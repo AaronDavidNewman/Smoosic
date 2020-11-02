@@ -877,7 +877,7 @@ class SuiTextSession {
   // ### _isRendered
   // renderer has rendered text(promise condition)
   get _isRendered() {
-    return this.layout.passState ===  suiLayoutBase.passStates.clean;
+    return this.layout.passState ===  SuiRenderState.passStates.clean;
   }
 
   _removeScoreText() {
@@ -976,7 +976,7 @@ class SuiLyricSession {
   // ### _isRendered
   // renderer has rendered text(promise condition)
   get _isRendered() {
-    return this.layout.passState ===  suiLayoutBase.passStates.clean;
+    return this.layout.passState ===  SuiRenderState.passStates.clean;
   }
 
   get _pendingEditor() {

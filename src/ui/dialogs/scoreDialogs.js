@@ -231,7 +231,7 @@ class SuiLayoutDialog extends SuiDialogBase {
     if (this.engravingFontCtrl.changeFlag)  {
       const engrave = this.score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
       engrave.family = this.engravingFontCtrl.getValue();
-      suiLayoutBase.setFont(engrave.family);
+      SuiRenderState.setFont(engrave.family);
     }
     this.layout.setViewport();
   }

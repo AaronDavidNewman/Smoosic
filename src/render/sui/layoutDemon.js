@@ -1,5 +1,5 @@
 
-class SuiLayoutDemon {
+class SuiRenderDemon {
   constructor(parameters) {
     this.pollTime = 100;
 
@@ -11,8 +11,8 @@ class SuiLayoutDemon {
   }
 
   get isLayoutQuiet() {
-		return ((this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false)
-		   || this.layout.passState == suiLayoutBase.passStates.replace);
+		return ((this.layout.passState == SuiRenderState.passStates.clean && this.layout.dirty == false)
+		   || this.layout.passState == SuiRenderState.passStates.replace);
 	}
 
   handleRedrawTimer() {
@@ -31,7 +31,7 @@ class SuiLayoutDemon {
       } catch (ex) {
         SuiExceptionHandler.instance.exceptionHandler(ex);
       }
-  	} else if (this.layout.passState === suiLayoutBase.passStates.replace) {
+  	} else if (this.layout.passState === SuiRenderState.passStates.replace) {
   		// Do we need to refresh the score?
   		if (Date.now() - this.idleLayoutTimer > this.idleRedrawTime) {
   			this.layout.setRefresh();
@@ -55,7 +55,7 @@ class SuiLayoutDemon {
 
   render() {
 		this.layout.render();
-    if (this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false) {
+    if (this.layout.passState == SuiRenderState.passStates.clean && this.layout.dirty == false) {
        this.tracker.updateMap();
 
        // indicate the display is 'clean' and up-to-date with the score

@@ -1758,18 +1758,6 @@ class svgHelpers {
       return rv;
   }
 
-  static debugSvgGlyph(glyphCode,fontSize) {
-    var rr = new VF.Renderer($('#boo')[0],VF.Renderer.Backends.SVG);
-    const glyph=new Vex.Flow.Glyph(glyphCode, fontSize);
-    var context = suiLayoutBase._renderer.getContext();
-    $('.debugSvgGlyph').remove();
-    var group = context.openGroup();
-    group.classList.add('debugSvgGlyph');
-    glyph.render(context, 150, 50);
-    context.closeGroup();
-    return svgHelpers.copyBox($('.debugSvgGlyph')[0].getBBox());
-  }
-
   static debugSvgFont(fontFamily,fontSize,str) {
     const xoff = 20;
     const yoff = 50;
@@ -2133,7 +2121,7 @@ var sixTestJson = `{"a":{"b":{"c":30,"d":30,"e":40,"f":40,"g":816,"h":1056,"i":0
 ;var jesuBambino = `{"a":{"b":{"c":50,"d":50,"e":72,"f":40,"g":816,"h":1056,"i":0,"j":40,"k":30,"l":0.65,"m":1.5,"n":2,"o":7,"p":"letter"},"q":0,"r":{},"me":[{"ne":"engraving","oe":1,"xb":"Bravura","wb":1,"pe":false},{"ne":"score","oe":2,"xb":"Merriweather","wb":14,"pe":false},{"ne":"chords","oe":3,"xb":"Roboto Slab","wb":14,"pe":false},{"ne":"lyrics","oe":4,"xb":"Merriweather","wb":12,"pe":false}]},"s":[{"t":0,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Instrument","ca":"0","da":"treble"},"ea":[{"fa":{"ga":0,"ha":1,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":1,"ka":[]},"ma":0,"na":10,"oa":10,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":3,"ka":[]},"ma":0,"ta":14,"na":10,"oa":30,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":1,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":3,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":5,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":7,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":4,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":4,"ia":0,"ja":1,"ka":[]},"ma":0,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":4,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":4,"ia":0,"ja":3,"ka":[]},"ma":0,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":4,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":4,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":4,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":4,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":16,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":17,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":21,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":21,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":21,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":21,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":21,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":21,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":21,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":21,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":22,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":22,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":22,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":22,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":22,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":22,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":22,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":22,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":27,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":27,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":0},"bb":92.30000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":"2048","hb":1,"ib":0},"ka":[{"jb":"d","kb":5,"lb":"n"}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":1,"za":2,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5},{"jb":"a","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":0,"t":0},"bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":5,"za":6,"ab":0,"t":0},"bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":7,"za":8,"ab":0,"t":0},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":1,"t":0},"bb":6,"de":102,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4},{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":4,"pc":false}],"da":"treble","rb":true,"qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":0,"t":0},"bb":60.34,"de":22,"cb":[],"db":[{"eb":[{"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4},{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":0,"t":0},"bb":85.22,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":1,"t":0},"bb":6,"de":12,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":3,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":15,"za":16,"ab":0,"t":0},"bb":66.38,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":16,"za":17,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":17,"za":18,"ab":0,"t":0},"bb":85.22,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":18,"za":19,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":19,"za":20,"ab":0,"t":0},"bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":20,"za":21,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":21,"za":22,"ab":0,"t":0},"bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":22,"za":23,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"f","sa":"SmoDynamicText"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":23,"za":24,"ab":0,"t":0},"bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"a","lb":"b","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144}]}],"ea":[]},{"ya":{"ya":24,"za":25,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":25,"za":26,"ab":0,"t":0},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":26,"za":27,"ab":1,"t":0},"bb":24.48,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":27,"za":28,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"treble","qb":6144,"qc":[{"rc":"fermata","sa":"SmoArticulation"}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":28,"za":29,"ab":0,"t":0},"bb":92.30000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5},{"jb":"a","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":29,"za":30,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[{"ua":1,"tb":"a tempo","sa":"SmoMeasureText"}]},{"ya":{"ya":30,"za":31,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144,"qc":[{"rc":"fermata","sa":"SmoArticulation"}]}]}],"ea":[]}]},{"t":1,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Bass Clef Staff","ca":0,"da":"bass"},"ea":[{"fa":{"ga":1,"ha":3,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":3,"ia":0,"ja":3,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":4,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":4,"ia":0,"ja":3,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":5,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":5,"ia":0,"ja":3,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":20,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":20,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":21,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":21,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":22,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":22,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":22,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":22,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":22,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":22,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":23,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":23,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":27,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":27,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":30,"ia":0,"ja":2,"ka":[]},"la":{"ga":1,"ha":31,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":1},"da":"bass","bb":92.30000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":"2048","hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":1,"za":2,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":0,"t":1},"da":"bass","bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":5,"za":6,"ab":0,"t":1},"da":"bass","bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":7,"za":8,"ab":0,"t":1},"da":"bass","bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":0,"t":1},"da":"bass","bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144},{"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"oc":"r","da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":0,"t":1},"da":"bass","bb":85.22,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":3,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":15,"za":16,"ab":0,"t":1},"sc":1,"da":"bass","bb":66.38,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2}]},{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1}]}],"ea":[]},{"ya":{"ya":16,"za":17,"ab":1,"t":1},"sc":1,"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2}]},{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1}]}],"ea":[]},{"ld":true,"ya":{"ya":17,"za":18,"ab":0,"t":1},"da":"bass","bb":85.22,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":18,"za":19,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":19,"za":20,"ab":0,"t":1},"da":"bass","bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":20,"za":21,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":21,"za":22,"ab":0,"t":1},"da":"bass","bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":22,"za":23,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"},{"tb":"f","sa":"SmoDynamicText"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":23,"za":24,"ab":0,"t":1},"da":"bass","bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","rb":true,"qb":6144},{"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":2}],"da":"bass","qb":6144},{"ka":[{"jb":"b","lb":"b","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":24,"za":25,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"a","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","rb":true,"qb":6144},{"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass","rb":true,"qb":6144},{"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":2}],"da":"bass","qb":6144},{"ka":[{"jb":"b","lb":"b","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2}],"da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":25,"za":26,"ab":0,"t":1},"da":"bass","bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":26,"za":27,"ab":1,"t":1},"da":"bass","bb":24.48,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":27,"za":28,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":28,"za":29,"ab":0,"t":1},"da":"bass","bb":92.30000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144,"qc":[{"rc":"fermata","sa":"SmoArticulation"}]}]}],"ea":[]},{"ya":{"ya":29,"za":30,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":30,"za":31,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]}]},{"t":2,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Clef Staff","ca":0,"da":"treble"},"ea":[{"fa":{"ga":2,"ha":3,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":3,"ia":0,"ja":1,"ka":[]},"ma":-10,"na":10,"oa":10,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":3,"ia":0,"ja":3,"ka":[]},"la":{"ga":2,"ha":3,"ia":0,"ja":4,"ka":[]},"ma":-10,"ua":"2","na":10,"oa":10,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":3,"ia":0,"ja":6,"ka":[]},"la":{"ga":2,"ha":3,"ia":0,"ja":7,"ka":[]},"ma":-10,"na":10,"oa":10,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":4,"ia":0,"ja":5,"ka":[]},"la":{"ga":2,"ha":4,"ia":0,"ja":6,"ka":[]},"sa":"SmoSlur"},{"fa":{"ga":2,"ha":9,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":9,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":8,"ia":0,"ja":6,"ka":[]},"la":{"ga":2,"ha":9,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":11,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":11,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":11,"ia":0,"ja":1,"ka":[]},"la":{"ga":2,"ha":11,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":7,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":7,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":7,"ia":0,"ja":3,"ka":[]},"la":{"ga":2,"ha":7,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":8,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":8,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":8,"ia":0,"ja":3,"ka":[]},"la":{"ga":2,"ha":8,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":19,"ia":0,"ja":5,"ka":[]},"la":{"ga":2,"ha":19,"ia":0,"ja":6,"ka":[]},"ma":-14,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":21,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":21,"ia":0,"ja":1,"ka":[]},"ma":-14,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":20,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":20,"ia":0,"ja":9,"ka":[]},"uc":true,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":21,"ia":0,"ja":3,"ka":[]},"la":{"ga":2,"ha":21,"ia":0,"ja":4,"ka":[]},"ma":-10,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":21,"ia":0,"ja":6,"ka":[]},"la":{"ga":2,"ha":21,"ia":0,"ja":7,"ka":[]},"ma":-12,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":24,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":24,"ia":0,"ja":1,"ka":[]},"ma":-10,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":28,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":28,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":29,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":29,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":2},"bb":92.30000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":"2048","hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":1,"za":2,"ab":2,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Ne-"}]}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":" ll'u-"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"u   "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni   "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mile-"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"i   "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"cap-"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"a   "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"nna"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"nel "}]}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":0,"t":2},"bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"fre- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ddo  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"e  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"po- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ver- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ta  "}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":5,"za":6,"ab":0,"t":2},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"O- "}]}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"sa- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"nna  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"O  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"sa- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"nna  "}]},{"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"can  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ta- "}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"no  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"con  "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":7,"za":8,"ab":0,"t":2},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"gui- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"bi  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":" lan-"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te  "}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"cor "}]}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":1,"t":2},"bb":6,"de":92,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"I  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"tuo  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"i  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"pa- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"sto- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ri  "}]}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":0,"t":2},"bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"an- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"gel- "}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"i  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"o  "}]},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"di  "}]},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"luce  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"e'a  "}]}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"more "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144,"qc":[{"ua":"below","rc":"fermata","sa":"SmoArticulation"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":0,"t":2},"bb":85.22,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":2,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":3,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":15,"za":16,"ab":0,"t":2},"bb":66.38,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":16,"za":17,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Ah- "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":17,"za":18,"ab":0,"t":2},"bb":85.22,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Ve "}]}]}],"ea":[]},{"ya":{"ya":18,"za":19,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"a- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"do- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mus "}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Ah!  "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":19,"za":20,"ab":0,"t":2},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"a- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"do  "}]}]}],"ea":[]},{"ya":{"ya":20,"za":21,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mus  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Do- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mi- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"num "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ve- "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":21,"za":22,"ab":0,"t":2},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te "}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ve- "},{"wc":2,"tb":"p","sa":"SmoDynamicText"}]}]}],"ea":[]},{"ya":{"ya":22,"za":23,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni- "}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":23,"za":24,"ab":0,"t":2},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ve- "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"a  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"dor- "}]}]}],"ea":[]},{"ya":{"ya":24,"za":25,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mus "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":25,"za":26,"ab":0,"t":2},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"A- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"do- "}]}]}],"ea":[]},{"ya":{"ya":26,"za":27,"ab":1,"t":2},"bb":24.48,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re- "}]}]}],"ea":[]},{"ya":{"ya":27,"za":28,"ab":2,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mus "}],"qc":[{"rc":"fermata","sa":"SmoArticulation"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":28,"za":29,"ab":0,"t":2},"bb":92.30000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Do  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mi  "}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"num "}],"qc":[{"rc":"fermata","sa":"SmoArticulation"}]}]}],"ea":[]},{"ya":{"ya":29,"za":30,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":30,"za":31,"ab":2,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]}]},{"t":3,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Clef Staff","ca":0,"da":"treble"},"ea":[{"fa":{"ga":3,"ha":6,"ia":0,"ja":6,"ka":[]},"la":{"ga":3,"ha":6,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":6,"ia":0,"ja":6,"ka":[]},"la":{"ga":3,"ha":6,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":11,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":11,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":11,"ia":0,"ja":1,"ka":[]},"la":{"ga":3,"ha":11,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":7,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":7,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":7,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":7,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":8,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":8,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":8,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":8,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":20,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":20,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":22,"ia":0,"ja":6,"ka":[]},"la":{"ga":3,"ha":22,"ia":0,"ja":7,"ka":[]},"ma":-9,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":24,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":24,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":25,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":25,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":18,"ia":0,"ja":4,"ka":[]},"la":{"ga":3,"ha":19,"ia":0,"ja":3,"ka":[]},"uc":true,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":28,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":28,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":20,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":20,"ia":0,"ja":8,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":29,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":29,"ia":0,"ja":4,"ka":[]},"sa":"SmoSlur"},{"fa":{"ga":3,"ha":22,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":22,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":22,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":22,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":23,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":23,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":23,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":23,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":5,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":5,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":5,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":5,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":5,"ia":0,"ja":6,"ka":[]},"la":{"ga":3,"ha":5,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":3},"bb":92.30000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":"2048","hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":1,"za":2,"ab":2,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":0,"t":3},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"e  "}]}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"na- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"to  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"il  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Sa- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"nto  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"pa- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"rgo- "}]},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"lo  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"che- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"il "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":5,"za":6,"ab":0,"t":3},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mo- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ndo  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"a- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"do- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re  "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ra  "}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"},{"tb":"f","sa":"SmoDynamicText"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"O- "}]}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"sa- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"nna  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"O  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"sa- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"na  "}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"can- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ta- "}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"no  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"con  "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":7,"za":8,"ab":0,"t":3},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"gui- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"bi  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"lan- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te  "}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":" cor "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"con  "}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"bui- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"bi- "}]}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"la- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"nte  "}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"core  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"I  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"tuo- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"   "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"i  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"pa- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"sto-  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ri  "}]}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":0,"t":3},"bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"an-  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"gel-  "}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"i   "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"o  "}]},{"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re-  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"di   "}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"luce  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"e'a  "}]}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"more "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"qc":[{"rc":"fermata","sa":"SmoArticulation"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":0,"t":3},"bb":85.22,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":2,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":3,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":15,"za":16,"ab":0,"t":3},"bb":66.38,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":16,"za":17,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":17,"za":18,"ab":0,"t":3},"bb":85.22,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Ah- "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":18,"za":19,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Ve- "}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"a- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"do  "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":19,"za":20,"ab":0,"t":3},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re- "}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mus  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Ah- "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":20,"za":21,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ve- "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":21,"za":22,"ab":0,"t":3},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te  "}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ve- "},{"wc":2,"tb":"p","sa":"SmoDynamicText"}]}]}],"ea":[]},{"ya":{"ya":22,"za":23,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":23,"za":24,"ab":0,"t":3},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ve- "}]},{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te- "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"a  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"dor  "}]}]}],"ea":[]},{"ya":{"ya":24,"za":25,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4,"pc":true}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":" re-"}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mus "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":2048},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":2048}]}],"ea":[]},{"ld":true,"ya":{"ya":25,"za":26,"ab":0,"t":3},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"A  "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"do- "}]}]}],"ea":[]},{"ya":{"ya":26,"za":27,"ab":1,"t":3},"bb":24.48,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re- "}]}]}],"ea":[]},{"ya":{"ya":27,"za":28,"ab":2,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mus  "}],"qc":[{"rc":"fermata","sa":"SmoArticulation"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":28,"za":29,"ab":0,"t":3},"bb":92.30000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Do  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mi  "}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"num "}],"qc":[{"rc":"fermata","sa":"SmoArticulation"}]}]}],"ea":[]},{"ya":{"ya":29,"za":30,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":30,"za":31,"ab":2,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]}]}],"yc":[],"ge":[{"sa":"SmoTextGroup","pa":{"qa":"auto38678","ra":"SmoTextGroup"},"he":[{"tb":{"sa":"SmoScoreText","pa":{"qa":"auto8948","ra":"SmoScoreText"},"zc":{"jc":995,"kc":46,"tb":"© Pietro Yon page ### of @@@","bd":"every","ua":"custom","vb":{"wb":"1em","xb":"Merriweather","yb":"normal","zb":"normal"},"ac":"score-text auto8948","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false},"ad":false,"jc":995,"kc":46,"tb":"© Pietro Yon Page ### of @@@","bd":"every","ua":"custom","vb":{"wb":"1em","xb":"Merriweather","yb":"normal","zb":"normal"},"ac":"score-text auto8948","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false,"ic":{"jc":1393.0408935546875,"kc":211.54330444335938,"lc":210.43017578125,"mc":15.30792236328125},"nc":{"jc":995,"kc":14.600000000000001,"lc":215.82,"mc":15.7}},"ua":4}],"ie":[],"dd":1,"je":[{"sa":"SmoScoreText","pa":{"qa":"auto8948","ra":"SmoScoreText"},"zc":{"jc":995,"kc":46,"tb":"© Pietro Yon page ### of @@@","bd":"every","ua":"custom","vb":{"wb":"1em","xb":"Merriweather","yb":"normal","zb":"normal"},"ac":"score-text auto8948","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false},"ad":false,"jc":995,"kc":46,"tb":"© Pietro Yon Page ### of @@@","bd":"every","ua":"custom","vb":{"wb":"1em","xb":"Merriweather","yb":"normal","zb":"normal"},"ac":"score-text auto8948","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false,"ic":{"jc":1393.0408935546875,"kc":211.54330444335938,"lc":210.43017578125,"mc":15.30792236328125},"nc":{"jc":995,"kc":14.600000000000001,"lc":215.82,"mc":15.7}}],"ad":true,"skipRender":false,"ic":{"jc":1393.0408935546875,"kc":211.54330444335938,"lc":210.43017578125,"mc":15.30792236328125},"nc":{"jc":995,"kc":14.600000000000001,"lc":215.82,"mc":15.7}},{"sa":"SmoTextGroup","pa":{"qa":"auto187317","ra":"SmoTextGroup"},"he":[{"tb":{"sa":"SmoScoreText","pa":{"qa":"auto8947","ra":"SmoScoreText"},"zc":{"jc":527,"kc":66,"tb":"Gesu Bambino","bd":"every","ua":"title","vb":{"wb":"1.8em","xb":"Times New Roman","yb":"normal","zb":"normal"},"ac":"score-text auto8947","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false},"ad":false,"jc":527,"kc":66,"tb":"Gesu Bambino","bd":"every","ua":"title","vb":{"wb":"21.6pt","xb":"Merriweather","yb":"normal","zb":"normal","pointSize":21.6},"ac":"score-text auto8947","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false,"ic":{"jc":936.7285766601562,"kc":223.04861450195312,"lc":199.68536376953125,"mc":23.303131103515625},"nc":{"jc":527,"kc":18.200000000000003,"lc":204.8,"mc":23.9}},"ua":4}],"ie":[],"dd":1,"je":[{"sa":"SmoScoreText","pa":{"qa":"auto8947","ra":"SmoScoreText"},"zc":{"jc":527,"kc":66,"tb":"Gesu Bambino","bd":"every","ua":"title","vb":{"wb":"1.8em","xb":"Times New Roman","yb":"normal","zb":"normal"},"ac":"score-text auto8947","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false},"ad":false,"jc":527,"kc":66,"tb":"Gesu Bambino","bd":"every","ua":"title","vb":{"wb":"21.6pt","xb":"Merriweather","yb":"normal","zb":"normal","pointSize":21.6},"ac":"score-text auto8947","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false,"ic":{"jc":936.7285766601562,"kc":223.04861450195312,"lc":199.68536376953125,"mc":23.303131103515625},"nc":{"jc":527,"kc":18.200000000000003,"lc":204.8,"mc":23.9}}],"ad":true,"skipRender":false,"ic":{"jc":936.7285766601562,"kc":223.04861450195312,"lc":199.68536376953125,"mc":23.303131103515625},"nc":{"jc":527,"kc":18.200000000000003,"lc":204.8,"mc":23.9}}],"yd":[{"zd":0,"fa":{"ga":0,"ha":1},"la":{"ga":1,"ha":1},"sa":"SmoSystemGroup"},{"zd":1,"fa":{"ga":2,"ha":0},"la":{"ga":3,"ha":0},"sa":"SmoSystemGroup"}],"ee":{"wa":{"0":"12/8","27":"9/8","29":"12/8"},"xa":{"0":"G","12":"Bb","18":"G"},"fe":{"0":{"sa":"SmoTempoText","pa":{"qa":"auto6887","ra":"SmoTempoText"},"id":"duration","nb":56,"ob":true,"pb":6144,"jd":"Allegro","ta":0},"9":{"sa":"SmoTempoText","pa":{"qa":"auto7029","ra":"SmoTempoText"},"id":"duration","nb":56,"ob":false,"pb":6144,"jd":"Allegro","ta":0},"30":{"sa":"SmoTempoText","pa":{"qa":"auto7344","ra":"SmoTempoText"},"id":"duration","nb":62,"ob":true,"pb":6144,"jd":"Allegro","ta":0}}},"dictionary":{"a":"score","b":"layout","c":"leftMargin","d":"rightMargin","e":"topMargin","f":"bottomMargin","g":"pageWidth","h":"pageHeight","i":"orientation","j":"interGap","k":"intraGap","l":"svgScale","m":"zoomScale","n":"zoomMode","o":"pages","p":"pageSize","q":"startIndex","r":"renumberingMap","s":"staves","t":"staffId","u":"staffX","v":"staffY","w":"adjY","x":"staffWidth","y":"staffHeight","z":"keySignatureMap","aa":"instrumentInfo","ba":"instrumentName","ca":"keyOffset","da":"clef","ea":"modifiers","fa":"startSelector","ga":"staff","ha":"measure","ia":"voice","ja":"tick","ka":"pitches","la":"endSelector","ma":"xOffset","na":"cp1y","oa":"cp2y","pa":"attrs","qa":"id","ra":"type","sa":"ctor","ta":"yOffset","ua":"position","va":"measures","wa":"timeSignature","xa":"keySignature","ya":"measureNumber","za":"measureIndex","ab":"systemIndex","bb":"adjX","cb":"tuplets","db":"voices","eb":"notes","fb":"ticks","gb":"numerator","hb":"denominator","ib":"remainder","jb":"letter","kb":"octave","lb":"accidental","mb":"symbol","nb":"bpm","ob":"display","pb":"beatDuration","qb":"beamBeats","rb":"endBeam","sb":"textModifiers","tb":"text","ub":"endChar","vb":"fontInfo","wb":"size","xb":"family","yb":"style","zb":"weight","ac":"classes","bc":"verse","cc":"fill","dc":"scaleX","ec":"scaleY","fc":"translateX","gc":"translateY","hc":"selector","ic":"renderedBox","jc":"x","kc":"y","lc":"width","mc":"height","nc":"logicalBox","oc":"noteType","pc":"cautionary","qc":"articulations","rc":"articulation","sc":"activeVoice","tc":"flagState","uc":"invert","vc":"fontSize","wc":"yOffsetLine","xc":"yOffsetPixels","yc":"scoreText","zc":"backup","ad":"edited","bd":"pagination","cd":"boxModel","dd":"justification","ed":"autoLayout","fd":"ornaments","gd":"offset","hd":"ornament","id":"tempoMode","jd":"tempoText","kd":"barline","ld":"systemBreak","md":"graceNotes","nd":"tones","od":"tuplet","pd":"beam_group","qd":"renderId","rd":"numNotes","sd":"totalTicks","td":"stemTicks","ud":"durationMap","vd":"bracketed","wd":"ratioed","xd":"location","yd":"systemGroups","zd":"leftConnector","ae":"padLeft","be":"customStretch","ce":"engravingFont","de":"customProportion","ee":"columnAttributeMap","fe":"tempo","ge":"textGroups","he":"textBlocks","ie":"backupBlocks","je":"blocks","ke":"_text","le":"parser","me":"fonts","ne":"name","oe":"purpose","pe":"custom","qe":"transposeIndex","re":"noteHead","se":"slash"}}`;
 ;var microJson = `{"score":{"layout":{"leftMargin":30,"rightMargin":30,"topMargin":40,"bottomMargin":40,"pageWidth":816,"pageHeight":1056,"orientation":0,"interGap":30,"intraGap":10,"svgScale":1,"zoomScale":2.107843137254902,"zoomMode":0,"pages":1},"startIndex":0,"renumberingMap":{}},"staves":[{"staffId":0,"staffX":10,"staffY":40,"adjY":0,"staffWidth":1600,"staffHeight":90,"startIndex":0,"renumberingMap":{},"keySignatureMap":{},"instrumentInfo":{"instrumentName":"Treble Instrument","keyOffset":"0","clef":"treble"},"modifiers":[],"measures":[{"measureNumber":{"measureNumber":0,"measureIndex":0,"systemIndex":0,"staffId":0},"adjX":64.98,"adjRight":11,"tuplets":[],"voices":[{"notes":[{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6268","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6269","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto6679","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"flat75sz","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6273","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6274","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto7062","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"flat25sz","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6279","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6280","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto8606","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"flat25ar","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6286","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6287","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto9475","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"sharp75","pitch":0}]}]}],"modifiers":[{"position":0,"barline":0,"ctor":"SmoBarline"},{"position":1,"barline":0,"ctor":"SmoBarline"},{"symbol":0,"xOffset":0,"yOffset":30,"position":0,"ctor":"SmoRepeatSymbol"}]},{"measureNumber":{"measureNumber":1,"measureIndex":1,"systemIndex":1,"staffId":0},"adjX":11,"adjRight":11,"tuplets":[],"voices":[{"notes":[{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9944","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9945","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto10352","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"sharp125","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9949","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9950","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto10728","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"sharp25","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9955","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9956","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto11106","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"sori","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9962","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9963","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto11486","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"koron","pitch":0}]}]}],"modifiers":[{"position":0,"barline":0,"ctor":"SmoBarline"},{"position":1,"barline":0,"ctor":"SmoBarline"},{"symbol":0,"xOffset":0,"yOffset":30,"position":0,"ctor":"SmoRepeatSymbol"}]}]}],"scoreText":[]}`;
 ;var preciousLord = `{"a":{"b":{"c":30,"d":30,"e":121,"f":40,"g":816,"h":1056,"i":0,"j":50,"k":40,"l":0.65,"m":1.742019121698266,"n":2,"o":1,"p":"letter"},"q":0,"r":{},"me":[{"ne":"engraving","oe":1,"xb":"Bravura","wb":1,"pe":false},{"ne":"score","oe":2,"xb":"Merriweather","wb":14,"pe":false},{"ne":"chords","oe":3,"xb":"Roboto Slab","wb":14,"pe":false},{"ne":"lyrics","oe":4,"xb":"Merriweather","wb":12,"pe":false}]},"s":[{"t":0,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Instrument","ca":"0","da":"treble"},"ea":[{"fa":{"ga":0,"ha":15,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":16,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":0},"bb":77.42,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Pre- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"cious  "}]}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":0},"bb":11,"be":19,"ae":1,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Lord,  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"dark- "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"take  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"ness "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"Gm^7"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"my "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"a-  "}]}]}],"ea":[{"ua":0,"kd":3,"sa":"SmoBarline"}]},{"ya":{"ya":1,"za":2,"ab":2,"t":0},"bb":6,"be":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"hand, "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"pears  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"lead  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"and  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"me  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"the  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F^@csymAugmented@5"}]}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"on,  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"night  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"Gm^7"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"let  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"dra- "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"B@accidentalFlat@"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"me  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"ws  "}]}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":4,"t":0},"bb":6,"be":24,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"sta- "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":" ne- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"nd "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"ar   "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"I  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"when   "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"B^@csymDiminished@"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"am  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"my   "}]}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":5,"t":0},"bb":6,"be":15,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"tired "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"life   "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"I  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"am  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"is- "}]}]}],"ea":[]},{"ya":{"ya":5,"za":6,"ab":0,"t":0},"bb":58.94,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"weak "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"al-  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"I   "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"most  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"G^7"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"am "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"  "}]}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"worn  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"gone"},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"C"}]},{"ka":[{"jb":"b","lb":"n","kb":3},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"- "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"G^7"}]}]}],"ea":[]},{"ya":{"ya":7,"za":8,"ab":2,"t":0},"bb":6,"be":12,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"- "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"C"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Through  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"at  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"the  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"the  "}]}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":3,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"storm,  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"riv- "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4},{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"through  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"er  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4},{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"the  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"I  "}]}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":4,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"night  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"stand,  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"lead  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"guide  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F^7"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"me  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"me  "}]}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":5,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"on  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"feet,  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"Gm^7"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"to  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"hold  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"B@accidentalFlat@"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"the  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"my  "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":0,"t":0},"bb":58.94,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"li- "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"ha- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ght  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric","ke":"nd  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Take  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"sa":"SmoLyric"},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"B^@csymDiminished@"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"my  "}]}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ha- "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"nd  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"pre- "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"Dm"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"cious  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"A^@csymAugmented@5"}]}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Lord,  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"lead  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"C^@csymParensLeftTall@sus4@csymParensRightTall@"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"me  "}]}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":3,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"home- "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ya":{"ya":15,"za":16,"ab":4,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"When  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"the "}]}]}],"ea":[{"kd":4,"sa":"SmoBarline"},{"mb":9,"ma":-40,"sa":"SmoRepeatSymbol"}]}]},{"t":1,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Bass Clef Staff","ca":0,"da":"bass"},"ea":[{"fa":{"ga":1,"ha":15,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":16,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":1},"da":"bass","bb":77.42,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":1},"da":"bass","bb":11,"ae":1,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2},{"jb":"e","lb":"n","kb":3}],"da":"bass","tc":2,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]}]}],"ea":[{"ua":0,"kd":3,"sa":"SmoBarline"}]},{"ya":{"ya":1,"za":2,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3},{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3},{"jb":"f","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":4,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"d","lb":"n","kb":3}],"da":"bass","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":5,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"f","lb":"n","kb":3}],"da":"bass","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"e","lb":"n","kb":3}],"da":"bass","sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"e","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":5,"za":6,"ab":0,"t":1},"da":"bass","bb":58.94,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"ka":[{"jb":"d","lb":"n","kb":3},{"jb":"f","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":7,"za":8,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3},{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":3,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":4,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":5,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"b","lb":"b","kb":3}],"da":"bass"}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":0,"t":1},"da":"bass","bb":58.94,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2},{"jb":"a","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2},{"jb":"g","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":3,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"bass"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ya":{"ya":15,"za":16,"ab":4,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2}]}],"ea":[{"kd":4,"sa":"SmoBarline"},{"mb":9,"ma":-40,"sa":"SmoRepeatSymbol"}]}]}],"yc":[{"jc":-52.25,"kc":10,"tb":"Smoosic  c","ua":"copyright","vb":{"wb":".6em","xb":"Times New Roman","yb":"normal","zb":"normal"},"ac":"score-text auto1463","sa":"SmoScoreText"}],"ge":[{"sa":"SmoTextGroup","pa":{"qa":"auto1465","ra":"SmoTextGroup"},"he":[{"tb":{"sa":"SmoScoreText","pa":{"qa":"auto1464","ra":"SmoScoreText"},"zc":{},"ad":false,"jc":476,"kc":64,"tb":"Precious Lord","bd":"once","ua":"title","vb":{"wb":"1.8em","xb":"Merriweather","yb":"normal","zb":"normal"},"ac":"score-text auto1575 auto19265 auto90198 auto1464 auto7469","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":true,"ic":{"jc":863.1796875,"kc":222.9161834716797,"lc":258.7012939453125,"mc":31.57904052734375},"nc":{"jc":476,"kc":8.219999999999999,"lc":228.48,"mc":27.89}},"ua":4}],"ie":[],"dd":1,"je":[{"tb":{"sa":"SmoScoreText","pa":{"qa":"auto1464","ra":"SmoScoreText"},"zc":{},"ad":false,"jc":476,"kc":64,"tb":"Precious Lord","bd":"once","ua":"title","vb":{"wb":"1.8em","xb":"Merriweather","yb":"normal","zb":"normal"},"ac":"score-text auto1575 auto19265 auto90198 auto1464 auto7469","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":true,"ic":{"jc":863.1796875,"kc":222.9161834716797,"lc":258.7012939453125,"mc":31.57904052734375},"nc":{"jc":476,"kc":8.219999999999999,"lc":228.48,"mc":27.89}},"ua":4}],"ic":{"jc":863.1796875,"kc":222.9161834716797,"lc":258.7012939453125,"mc":31.57904052734375},"nc":{"jc":476,"kc":8.219999999999999,"lc":228.48,"mc":27.89}}],"yd":[{"zd":0,"fa":{"ga":0,"ha":2},"la":{"ga":1,"ha":2},"sa":"SmoSystemGroup"}],"ee":{"wa":{"0":"3/4"},"xa":{"0":"F"}},"dictionary":{"a":"score","b":"layout","c":"leftMargin","d":"rightMargin","e":"topMargin","f":"bottomMargin","g":"pageWidth","h":"pageHeight","i":"orientation","j":"interGap","k":"intraGap","l":"svgScale","m":"zoomScale","n":"zoomMode","o":"pages","p":"pageSize","q":"startIndex","r":"renumberingMap","s":"staves","t":"staffId","u":"staffX","v":"staffY","w":"adjY","x":"staffWidth","y":"staffHeight","z":"keySignatureMap","aa":"instrumentInfo","ba":"instrumentName","ca":"keyOffset","da":"clef","ea":"modifiers","fa":"startSelector","ga":"staff","ha":"measure","ia":"voice","ja":"tick","ka":"pitches","la":"endSelector","ma":"xOffset","na":"cp1y","oa":"cp2y","pa":"attrs","qa":"id","ra":"type","sa":"ctor","ta":"yOffset","ua":"position","va":"measures","wa":"timeSignature","xa":"keySignature","ya":"measureNumber","za":"measureIndex","ab":"systemIndex","bb":"adjX","cb":"tuplets","db":"voices","eb":"notes","fb":"ticks","gb":"numerator","hb":"denominator","ib":"remainder","jb":"letter","kb":"octave","lb":"accidental","mb":"symbol","nb":"bpm","ob":"display","pb":"beatDuration","qb":"beamBeats","rb":"endBeam","sb":"textModifiers","tb":"text","ub":"endChar","vb":"fontInfo","wb":"size","xb":"family","yb":"style","zb":"weight","ac":"classes","bc":"verse","cc":"fill","dc":"scaleX","ec":"scaleY","fc":"translateX","gc":"translateY","hc":"selector","ic":"renderedBox","jc":"x","kc":"y","lc":"width","mc":"height","nc":"logicalBox","oc":"noteType","pc":"cautionary","qc":"articulations","rc":"articulation","sc":"activeVoice","tc":"flagState","uc":"invert","vc":"fontSize","wc":"yOffsetLine","xc":"yOffsetPixels","yc":"scoreText","zc":"backup","ad":"edited","bd":"pagination","cd":"boxModel","dd":"justification","ed":"autoLayout","fd":"ornaments","gd":"offset","hd":"ornament","id":"tempoMode","jd":"tempoText","kd":"barline","ld":"systemBreak","md":"graceNotes","nd":"tones","od":"tuplet","pd":"beam_group","qd":"renderId","rd":"numNotes","sd":"totalTicks","td":"stemTicks","ud":"durationMap","vd":"bracketed","wd":"ratioed","xd":"location","yd":"systemGroups","zd":"leftConnector","ae":"padLeft","be":"customStretch","ce":"engravingFont","de":"customProportion","ee":"columnAttributeMap","fe":"tempo","ge":"textGroups","he":"textBlocks","ie":"backupBlocks","je":"blocks","ke":"_text","le":"parser","me":"fonts","ne":"name","oe":"purpose","pe":"custom","qe":"transposeIndex","re":"noteHead","se":"slash"}}`;
-;var yamaJson = `{"a":{"b":{"c":30,"d":30,"e":50,"f":40,"g":816,"h":1056,"i":0,"j":30,"k":10,"l":0.7,"m":1.9162210338680927,"n":2,"o":2},"q":0,"r":{},"ce":"Petaluma"},"s":[{"t":0,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Instrument","ca":"0","da":"treble"},"ea":[{"fa":{"ga":0,"ha":0,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":0,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":2,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":2,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":2,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":2,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":5,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":5,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":6,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":6,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":7,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":7,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":10,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":10,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":11,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":11,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":15,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":15,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":16,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":16,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":17,"ia":0,"ja":12,"ka":[]},"la":{"ga":0,"ha":17,"ia":0,"ja":13,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":17,"ia":0,"ja":14,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":10,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":15,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":16,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":25,"ia":0,"ja":12,"ka":[]},"la":{"ga":0,"ha":25,"ia":0,"ja":13,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":25,"ia":0,"ja":16,"ka":[]},"la":{"ga":0,"ha":26,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":24,"ia":0,"ja":8,"ka":[]},"la":{"ga":0,"ha":24,"ia":0,"ja":9,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":25,"ia":0,"ja":8,"ka":[]},"la":{"ga":0,"ha":25,"ia":0,"ja":9,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":26,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":26,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":26,"ia":0,"ja":11,"ka":[]},"la":{"ga":0,"ha":26,"ia":0,"ja":12,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":29,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":29,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":36,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":36,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":36,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":36,"ia":0,"ja":10,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":36,"ia":0,"ja":11,"ka":[]},"la":{"ga":0,"ha":36,"ia":0,"ja":12,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":0,"za":0,"ab":0,"t":0},"transposeIndex":2,"bb":77.42,"cb":[{"pa":{"qa":"auto196875","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto203439","ra":"SmoTuplet"},"q":6},{"ud":[2,1],"pa":{"qa":"auto210860","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"gc":8,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto210860","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto210860","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":12,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble","noteHead":""},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":1,"za":1,"ab":1,"t":0},"transposeIndex":2,"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto11224","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto11233","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto11240","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"gc":13,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto11224","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto11224","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":9,"sa":"SmoLyric","_text":"C7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":2,"za":2,"ab":2,"t":0},"transposeIndex":2,"bb":6,"be":83,"cb":[{"ud":[2,1],"pa":{"qa":"auto8246","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto8256","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto8263","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto8246","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto8246","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":9,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":3,"za":3,"ab":3,"t":0},"transposeIndex":2,"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto31809","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto31819","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto31826","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto31809","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto31809","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":10,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ld":true,"ya":{"ya":4,"za":4,"ab":0,"t":0},"transposeIndex":2,"bb":58.94,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"G^-7 "}]},{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^Maj7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[{"sa":"SmoRehearsalMark"}]},{"ya":{"ya":5,"za":5,"ab":1,"t":0},"transposeIndex":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","noteHead":"x2","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":6,"za":6,"ab":2,"t":0},"transposeIndex":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Db^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4,"pc":true}],"da":"treble","noteHead":"x2","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Ab^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":7,"za":7,"ab":3,"t":0},"transposeIndex":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"D^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":8,"za":8,"ab":0,"t":0},"transposeIndex":2,"bb":58.94,"cb":[],"db":[{"eb":[{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"G^-7 "}],"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"D^7+5 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":9,"za":9,"ab":1,"t":0},"transposeIndex":2,"bb":6,"cb":[{"pa":{"qa":"auto100919","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Ab^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":10,"za":10,"ab":2,"t":0},"transposeIndex":2,"bb":6,"be":10,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^Maj7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":11,"za":11,"ab":3,"t":0},"transposeIndex":2,"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto303621","ra":"SmoTuplet"},"q":0},{"pa":{"qa":"auto320948","ra":"SmoTuplet"},"q":6},{"pa":{"qa":"auto10785","ra":"SmoTuplet"},"q":2}],"db":[{"eb":[{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto303621","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":14,"sa":"SmoLyric","_text":"Eb^7 "}],"qc":[{"ua":"below","rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto303621","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble"},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"D^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"b","kb":4}],"oc":"r","od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1366,"sb":[{"parser":2,"gc":7,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1365,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1365}]}],"ea":[]},{"ld":true,"ya":{"ya":12,"za":12,"ab":0,"t":0},"transposeIndex":2,"bb":58.94,"cb":[{"ud":[1,2],"pa":{"qa":"auto46986","ra":"SmoTuplet"},"q":3}],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"tc":1,"sb":[{"parser":2,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto46986","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":2730,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto46986","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":13,"za":13,"ab":1,"t":0},"transposeIndex":2,"bb":6,"cb":[{"td":1024,"ud":[1,1,1,1,1],"pa":{"qa":"auto147967","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^7 "}]},{"fb":{"gb":819,"hb":1,"ib":1},"ka":[{"jb":"d","lb":"b","kb":5}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Bb^7 "}]},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":14,"za":14,"ab":2,"t":0},"transposeIndex":2,"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto127112","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto127379","ra":"SmoTuplet"},"q":4}],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb^7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto127112","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":14,"sa":"SmoLyric","_text":"D^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto127112","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":15,"za":15,"ab":3,"t":0},"transposeIndex":2,"bb":6,"cb":[{"pa":{"qa":"auto239480","ra":"SmoTuplet"},"q":3}],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"g","lb":"n","kb":4}],"od":{},"da":"treble","sb":[{"parser":2,"gc":10,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":16,"za":16,"ab":4,"t":0},"transposeIndex":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"gc":1,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric","_text":"C^7 "}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ld":true,"ya":{"ya":17,"za":17,"ab":0,"t":0},"transposeIndex":2,"bb":58.94,"be":-25,"cb":[{"ud":[1,1,0.5,0.5],"pa":{"qa":"auto32682","ra":"SmoTuplet"},"q":8}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":2},"ka":[{"jb":"g","lb":"n","kb":5}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":9,"sa":"SmoLyric","_text":"F^Maj7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":18,"za":18,"ab":1,"t":0},"transposeIndex":2,"bb":6,"be":55,"de":12,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto439759","ra":"SmoTuplet"},"q":1},{"ud":[1,2],"pa":{"qa":"auto152250","ra":"SmoTuplet"},"q":6},{"td":1024,"sd":2048,"pa":{"qa":"auto193687","ra":"SmoTuplet"},"q":5}],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"gc":10,"sa":"SmoLyric","_text":"Eb^7 "}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto152250","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":16,"sa":"SmoLyric","_text":"C^7 "}],"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":2730,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"od":{"qa":"auto152250","ra":"SmoTuplet"},"da":"treble"},{"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":19,"za":19,"ab":0,"t":0},"transposeIndex":2,"bb":58.94,"be":41,"de":12,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Db^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Ab^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":20,"za":20,"ab":1,"t":0},"transposeIndex":2,"bb":6,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto52582","ra":"SmoTuplet"},"q":5},{"td":1024,"sd":2048,"pa":{"qa":"auto273903","ra":"SmoTuplet"},"q":10}],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true,"qb":1024,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"D^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"#","kb":4}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":21,"za":21,"ab":0,"t":0},"transposeIndex":2,"bb":58.94,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"gc":6,"sa":"SmoLyric","_text":"D^7+5 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":22,"za":22,"ab":1,"t":0},"transposeIndex":2,"bb":6,"de":-8,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Db^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","qb":2048,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Ab-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble"}]}],"ea":[]},{"ya":{"ya":23,"za":23,"ab":2,"t":0},"transposeIndex":2,"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"gc":13,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^Maj7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":24,"za":24,"ab":0,"t":0},"transposeIndex":2,"bb":58.94,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto639348","ra":"SmoTuplet"},"q":0},{"td":1024,"sd":2048,"pa":{"qa":"auto1649531","ra":"SmoTuplet"},"q":4},{"td":1024,"sd":2048,"pa":{"qa":"auto1805448","ra":"SmoTuplet"},"q":10}],"db":[{"eb":[{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":17,"sa":"SmoLyric","_text":"Eb^7 "}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto1649531","ra":"SmoTuplet"},"da":"treble","qb":684},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto1649531","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":682},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"od":{"qa":"auto1649531","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":682},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"D^7 "}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto1805448","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1805448","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto1805448","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":25,"za":25,"ab":1,"t":0},"transposeIndex":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"parser":2,"gc":9,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"gc":5,"sa":"SmoLyric","_text":"C^7 "}],"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":26,"za":26,"ab":0,"t":0},"transposeIndex":2,"bb":58.94,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto2041825","ra":"SmoTuplet"},"q":11}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":2048,"sb":[{"parser":2,"sa":"SmoLyric","_text":"F^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Bb^7 "}],"md":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"slash":true,"sa":"SmoGraceNote"}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto2041825","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto2041825","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto2041825","ra":"SmoTuplet"},"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"oc":"r","od":{},"da":"treble"}]}],"ea":[]},{"ya":{"ya":27,"za":27,"ab":1,"t":0},"transposeIndex":2,"bb":6,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto2138794","ra":"SmoTuplet"},"q":7},{"td":1024,"sd":2048,"pa":{"qa":"auto2410639","ra":"SmoTuplet"},"q":10}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"oc":"r","da":"treble","rb":true,"qb":1024,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb^7 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto2138794","ra":"SmoTuplet"},"da":"treble","sb":[{"parser":2,"gc":20,"sa":"SmoLyric","_text":"D^7 "}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto2138794","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto2138794","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"#","kb":4}],"od":{"qa":"auto2410639","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto2410639","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto2410639","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","rb":true}]}],"ea":[]},{"ld":true,"ya":{"ya":28,"za":28,"ab":0,"t":0},"transposeIndex":2,"bb":58.94,"cb":[{"pa":{"qa":"auto310764","ra":"SmoTuplet"},"q":1},{"td":1024,"sd":2048,"pa":{"qa":"auto1286701","ra":"SmoTuplet"},"q":8},{"td":1024,"sd":2048,"pa":{"qa":"auto1323888","ra":"SmoTuplet"},"q":11}],"db":[{"eb":[{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"d","lb":"n","kb":5}],"oc":"r","od":{"qa":"auto310764","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"od":{"qa":"auto310764","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"od":{"qa":"auto310764","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"e","lb":"n","kb":5}],"od":{"qa":"auto1286701","ra":"SmoTuplet"},"da":"treble","md":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"slash":true,"sa":"SmoGraceNote"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"oc":"r","od":{"qa":"auto1286701","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto1286701","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto1323888","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1323888","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto1323888","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":29,"za":29,"ab":1,"t":0},"transposeIndex":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"G^-7 "}],"md":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"slash":true,"sa":"SmoGraceNote"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ld":true,"ya":{"ya":30,"za":30,"ab":0,"t":0},"transposeIndex":2,"bb":58.94,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^Maj "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":31,"za":31,"ab":1,"t":0},"transposeIndex":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb^7 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":32,"za":32,"ab":2,"t":0},"transposeIndex":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Db^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}],"fd":[{"hd":"FALL_SHORT","sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":1024,"sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":4}],"da":"treble","qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","rb":true,"qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Ab^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5,"pc":true}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5,"pc":true}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":33,"za":33,"ab":0,"t":0},"transposeIndex":2,"bb":58.94,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"D^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":34,"za":34,"ab":1,"t":0},"transposeIndex":2,"bb":6,"be":9,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto2828176","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"e","lb":"n","kb":5}],"od":{"qa":"auto2828176","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto2828176","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto2828176","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"D^7+5 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":4}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"oc":"r","da":"treble"}]}],"ea":[]},{"ya":{"ya":35,"za":35,"ab":2,"t":0},"transposeIndex":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5,"pc":true}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Ab^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4,"pc":false}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":36,"za":36,"ab":0,"t":0},"transposeIndex":2,"bb":58.94,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto1152853","ra":"SmoTuplet"},"q":4}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":2048,"sb":[{"parser":2,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048,"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":2048},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1152853","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto1152853","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1152853","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":3072,"sb":[{"parser":2,"gc":6,"sa":"SmoLyric","_text":"F^Maj7 "}],"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":37,"za":37,"ab":1,"t":0},"transposeIndex":2,"bb":6,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto2273973","ra":"SmoTuplet"},"q":0},{"td":1024,"sd":2048,"pa":{"qa":"auto2275359","ra":"SmoTuplet"},"q":3},{"td":1024,"sd":2048,"pa":{"qa":"auto2447172","ra":"SmoTuplet"},"q":6},{"td":1024,"sd":2048,"pa":{"qa":"auto2571791","ra":"SmoTuplet"},"q":9},{"td":1024,"sd":2048,"pa":{"qa":"auto2694259","ra":"SmoTuplet"},"q":15},{"td":1024,"sd":2048,"ud":[1,2],"pa":{"qa":"auto2816339","ra":"SmoTuplet"},"q":16},{"td":1024,"sd":2048,"ud":[2,1],"pa":{"qa":"auto2924730","ra":"SmoTuplet"},"q":18}],"db":[{"eb":[{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","od":{"qa":"auto2273973","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":2048,"sb":[{"parser":2,"gc":9,"sa":"SmoLyric","_text":"Eb^7 "}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","od":{"qa":"auto2273973","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":2048},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"od":{"qa":"auto2273973","ra":"SmoTuplet"},"da":"treble","qb":2048},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"d","lb":"b","kb":4}],"od":{"qa":"auto2275359","ra":"SmoTuplet"},"da":"treble","qb":2048},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto2275359","ra":"SmoTuplet"},"da":"treble","qb":2048},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto2275359","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":2048},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto2447172","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto2447172","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","od":{"qa":"auto2447172","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto2571791","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto2571791","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto2571791","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"od":{},"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"D^7 "}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"#","kb":4}],"od":{"qa":"auto2694259","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto2694259","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto2694259","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":1},"ka":[{"jb":"e","lb":"b","kb":5,"pc":true}],"od":{"qa":"auto2816339","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"od":{"qa":"auto2816339","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"d","lb":"n","kb":5}],"od":{"qa":"auto2924730","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto2924730","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":38,"za":38,"ab":0,"t":0},"transposeIndex":2,"bb":58.94,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"G^-7 "}],"md":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"#","kb":5}],"sa":"SmoGraceNote"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","md":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"#","kb":5}],"sa":"SmoGraceNote"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":39,"za":39,"ab":1,"t":0},"transposeIndex":2,"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"F^7 "}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Bb^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":40,"za":40,"ab":2,"t":0},"transposeIndex":2,"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"Eb^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":5}],"da":"treble","sb":[{"parser":2,"gc":10,"sa":"SmoLyric","_text":"D^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5,"pc":false}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":41,"za":41,"ab":0,"t":0},"transposeIndex":2,"bb":58.94,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto1143660","ra":"SmoTuplet"},"q":4}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1143660","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto1143660","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1143660","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"C^7 "}],"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":42,"za":42,"ab":1,"t":0},"transposeIndex":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":1024},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","rb":true,"qb":1024,"sb":[{"parser":2,"sa":"SmoLyric","_text":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":1024},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"parser":2,"sa":"SmoLyric","_text":"C^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":1024},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ya":{"ya":43,"za":43,"ab":2,"t":0},"transposeIndex":2,"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"}]}],"ea":[]}]}],"yc":[{"jc":616,"kc":54,"tb":"Yama","vb":{"wb":"1.8000000000000007em","xb":"Times New Roman","yb":"normal","zb":"normal"},"ac":"score-text auto2033","sa":"SmoScoreText"},{"jc":692,"kc":48,"tb":"(as played by Lee Morgan)","ac":"score-text auto2034","sa":"SmoScoreText"},{"jc":1006,"kc":44,"tb":"Bb Trumpet","ac":"score-text auto2035","sa":"SmoScoreText"}],"yd":[],"ee":{"wa":{"0":"4/4"},"xa":{"0":"F"},"fe":{"0":{"sa":"SmoTempoText","pa":{"qa":"auto1018","ra":"SmoTempoText"},"id":"duration","nb":96,"ob":true,"pb":4096,"jd":"Allegro","ta":24},"1":{"sa":"SmoTempoText","pa":{"qa":"auto1042","ra":"SmoTempoText"},"id":"duration","nb":96,"ob":true,"pb":4096,"jd":"Allegro","ta":0}}},"dictionary":{"a":"score","b":"layout","c":"leftMargin","d":"rightMargin","e":"topMargin","f":"bottomMargin","g":"pageWidth","h":"pageHeight","i":"orientation","j":"interGap","k":"intraGap","l":"svgScale","m":"zoomScale","n":"zoomMode","o":"pages","p":"pageSize","q":"startIndex","r":"renumberingMap","s":"staves","t":"staffId","u":"staffX","v":"staffY","w":"adjY","x":"staffWidth","y":"staffHeight","z":"keySignatureMap","aa":"instrumentInfo","ba":"instrumentName","ca":"keyOffset","da":"clef","ea":"modifiers","fa":"startSelector","ga":"staff","ha":"measure","ia":"voice","ja":"tick","ka":"pitches","la":"endSelector","ma":"xOffset","na":"cp1y","oa":"cp2y","pa":"attrs","qa":"id","ra":"type","sa":"ctor","ta":"yOffset","ua":"position","va":"measures","wa":"timeSignature","xa":"keySignature","ya":"measureNumber","za":"measureIndex","ab":"systemIndex","bb":"adjX","cb":"tuplets","db":"voices","eb":"notes","fb":"ticks","gb":"numerator","hb":"denominator","ib":"remainder","jb":"letter","kb":"octave","lb":"accidental","mb":"symbol","nb":"bpm","ob":"display","pb":"beatDuration","qb":"beamBeats","rb":"endBeam","sb":"textModifiers","tb":"text","ub":"endChar","vb":"fontInfo","wb":"size","xb":"family","yb":"style","zb":"weight","ac":"classes","bc":"verse","cc":"fill","dc":"scaleX","ec":"scaleY","fc":"translateX","gc":"translateY","hc":"selector","ic":"renderedBox","jc":"x","kc":"y","lc":"width","mc":"height","nc":"logicalBox","oc":"noteType","pc":"cautionary","qc":"articulations","rc":"articulation","sc":"activeVoice","tc":"flagState","uc":"invert","vc":"fontSize","wc":"yOffsetLine","xc":"yOffsetPixels","yc":"scoreText","zc":"backup","ad":"edited","bd":"pagination","cd":"boxModel","dd":"justification","ed":"autoLayout","fd":"ornaments","gd":"offset","hd":"ornament","id":"tempoMode","jd":"tempoText","kd":"barline","ld":"systemBreak","md":"graceNotes","nd":"tones","od":"tuplet","pd":"beam_group","qd":"renderId","rd":"numNotes","sd":"totalTicks","td":"stemTicks","ud":"durationMap","vd":"bracketed","wd":"ratioed","xd":"location","yd":"systemGroups","zd":"leftConnector","ae":"padLeft","be":"customStretch","ce":"engravingFont","de":"customProportion","ee":"columnAttributeMap","fe":"tempo"}}`;
+;var yamaJson = `{"a":{"b":{"c":30,"d":30,"e":50,"f":40,"g":816,"h":1056,"i":0,"j":30,"k":10,"l":0.65,"m":1.9162210338680927,"n":2,"o":2},"q":0,"r":{},"me":[{"ne":"engraving","oe":1,"xb":"Petaluma","wb":1,"pe":false},{"ne":"score","oe":2,"xb":"Merriweather","wb":14,"pe":false},{"ne":"chords","oe":3,"xb":"Roboto Slab","wb":14,"pe":false},{"ne":"lyrics","oe":4,"xb":"Merriweather","wb":12,"pe":false}]},"s":[{"t":0,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Instrument","ca":"0","da":"treble"},"ea":[{"fa":{"ga":0,"ha":0,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":0,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":2,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":2,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":2,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":2,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":5,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":5,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":6,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":6,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":7,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":7,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":10,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":10,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":11,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":11,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":15,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":15,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":16,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":16,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":17,"ia":0,"ja":12,"ka":[]},"la":{"ga":0,"ha":17,"ia":0,"ja":13,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":17,"ia":0,"ja":14,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":10,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":15,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":16,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":25,"ia":0,"ja":12,"ka":[]},"la":{"ga":0,"ha":25,"ia":0,"ja":13,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":25,"ia":0,"ja":16,"ka":[]},"la":{"ga":0,"ha":26,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":24,"ia":0,"ja":8,"ka":[]},"la":{"ga":0,"ha":24,"ia":0,"ja":9,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":25,"ia":0,"ja":8,"ka":[]},"la":{"ga":0,"ha":25,"ia":0,"ja":9,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":26,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":26,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":26,"ia":0,"ja":11,"ka":[]},"la":{"ga":0,"ha":26,"ia":0,"ja":12,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":29,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":29,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":36,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":36,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":36,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":36,"ia":0,"ja":10,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":36,"ia":0,"ja":11,"ka":[]},"la":{"ga":0,"ha":36,"ia":0,"ja":12,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":0,"za":0,"ab":0,"t":0},"qe":2,"bb":77.42,"cb":[{"pa":{"qa":"auto196875","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto203439","ra":"SmoTuplet"},"q":6},{"ud":[2,1],"pa":{"qa":"auto210860","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":8,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto210860","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto210860","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":12,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble","re":""},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":1,"za":1,"ab":1,"t":0},"qe":2,"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto11224","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto11233","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto11240","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":13,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto11224","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto11224","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":9,"sa":"SmoLyric","ke":"C7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":2,"za":2,"ab":2,"t":0},"qe":2,"bb":6,"be":83,"cb":[{"ud":[2,1],"pa":{"qa":"auto8246","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto8256","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto8263","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto8246","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto8246","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":9,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":3,"za":3,"ab":3,"t":0},"qe":2,"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto31809","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto31819","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto31826","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto31809","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto31809","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":10,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ld":true,"ya":{"ya":4,"za":4,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"F^Maj7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[{"sa":"SmoRehearsalMark"}]},{"ya":{"ya":5,"za":5,"ab":1,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","re":"x2","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":6,"za":6,"ab":2,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Db^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4,"pc":true}],"da":"treble","re":"x2","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Ab^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":7,"za":7,"ab":3,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":8,"za":8,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[],"db":[{"eb":[{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}],"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"D^7+5 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":9,"za":9,"ab":1,"t":0},"qe":2,"bb":6,"cb":[{"pa":{"qa":"auto100919","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Ab^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":10,"za":10,"ab":2,"t":0},"qe":2,"bb":6,"be":10,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"F^Maj7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":11,"za":11,"ab":3,"t":0},"qe":2,"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto303621","ra":"SmoTuplet"},"q":0},{"pa":{"qa":"auto320948","ra":"SmoTuplet"},"q":6},{"pa":{"qa":"auto10785","ra":"SmoTuplet"},"q":2}],"db":[{"eb":[{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto303621","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":14,"sa":"SmoLyric","ke":"Eb^7 "}],"qc":[{"ua":"below","rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto303621","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble"},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"b","kb":4}],"oc":"r","od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1366,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":7,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1365,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1365}]}],"ea":[]},{"ld":true,"ya":{"ya":12,"za":12,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[{"ud":[1,2],"pa":{"qa":"auto46986","ra":"SmoTuplet"},"q":3}],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"tc":1,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto46986","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2730,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto46986","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":13,"za":13,"ab":1,"t":0},"qe":2,"bb":6,"cb":[{"td":1024,"ud":[1,1,1,1,1],"pa":{"qa":"auto147967","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"F^7 "}]},{"fb":{"gb":819,"hb":1,"ib":1},"ka":[{"jb":"d","lb":"b","kb":5}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Bb^7 "}]},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":14,"za":14,"ab":2,"t":0},"qe":2,"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto127112","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto127379","ra":"SmoTuplet"},"q":4}],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto127112","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":14,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto127112","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":15,"za":15,"ab":3,"t":0},"qe":2,"bb":6,"cb":[{"pa":{"qa":"auto239480","ra":"SmoTuplet"},"q":3}],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"g","lb":"n","kb":4}],"od":{},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":10,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":16,"za":16,"ab":4,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":1,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ld":true,"ya":{"ya":17,"za":17,"ab":0,"t":0},"qe":2,"bb":58.94,"be":-25,"cb":[{"ud":[1,1,0.5,0.5],"pa":{"qa":"auto32682","ra":"SmoTuplet"},"q":8}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":2},"ka":[{"jb":"g","lb":"n","kb":5}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":9,"sa":"SmoLyric","ke":"F^Maj7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":18,"za":18,"ab":1,"t":0},"qe":2,"bb":6,"be":55,"de":12,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto439759","ra":"SmoTuplet"},"q":1},{"ud":[1,2],"pa":{"qa":"auto152250","ra":"SmoTuplet"},"q":6},{"td":1024,"sd":2048,"pa":{"qa":"auto193687","ra":"SmoTuplet"},"q":5}],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":10,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto152250","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":16,"sa":"SmoLyric","ke":"C^7 "}],"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":2730,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"od":{"qa":"auto152250","ra":"SmoTuplet"},"da":"treble"},{"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":19,"za":19,"ab":2,"t":0},"qe":2,"bb":6,"be":41,"de":12,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Db^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Ab^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":20,"za":20,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto52582","ra":"SmoTuplet"},"q":5},{"td":1024,"sd":2048,"pa":{"qa":"auto273903","ra":"SmoTuplet"},"q":10}],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true,"qb":1024,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"#","kb":4}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":21,"za":21,"ab":1,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":6,"sa":"SmoLyric","ke":"D^7+5 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":22,"za":22,"ab":2,"t":0},"qe":2,"bb":6,"de":-8,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Db^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Ab-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble"}]}],"ea":[]},{"ya":{"ya":23,"za":23,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":13,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"F^Maj7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":24,"za":24,"ab":1,"t":0},"qe":2,"bb":6,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto639348","ra":"SmoTuplet"},"q":0},{"td":1024,"sd":2048,"pa":{"qa":"auto1649531","ra":"SmoTuplet"},"q":4},{"td":1024,"sd":2048,"pa":{"qa":"auto1805448","ra":"SmoTuplet"},"q":10}],"db":[{"eb":[{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":17,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto1649531","ra":"SmoTuplet"},"da":"treble","qb":684},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto1649531","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":682},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"od":{"qa":"auto1649531","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":682},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto1805448","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1805448","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto1805448","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":25,"za":25,"ab":2,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":9,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":5,"sa":"SmoLyric","ke":"C^7 "}],"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":26,"za":26,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto2041825","ra":"SmoTuplet"},"q":11}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"F^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Bb^7 "}],"md":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"se":true,"sa":"SmoGraceNote"}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto2041825","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto2041825","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto2041825","ra":"SmoTuplet"},"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"oc":"r","od":{},"da":"treble"}]}],"ea":[]},{"ya":{"ya":27,"za":27,"ab":1,"t":0},"qe":2,"bb":6,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto2138794","ra":"SmoTuplet"},"q":7},{"td":1024,"sd":2048,"pa":{"qa":"auto2410639","ra":"SmoTuplet"},"q":10}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"oc":"r","da":"treble","rb":true,"qb":1024,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto2138794","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":20,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto2138794","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto2138794","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"#","kb":4}],"od":{"qa":"auto2410639","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto2410639","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto2410639","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","rb":true}]}],"ea":[]},{"ld":true,"ya":{"ya":28,"za":28,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[{"pa":{"qa":"auto310764","ra":"SmoTuplet"},"q":1},{"td":1024,"sd":2048,"pa":{"qa":"auto1286701","ra":"SmoTuplet"},"q":8},{"td":1024,"sd":2048,"pa":{"qa":"auto1323888","ra":"SmoTuplet"},"q":11}],"db":[{"eb":[{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"d","lb":"n","kb":5}],"oc":"r","od":{"qa":"auto310764","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"od":{"qa":"auto310764","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"od":{"qa":"auto310764","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"e","lb":"n","kb":5}],"od":{"qa":"auto1286701","ra":"SmoTuplet"},"da":"treble","md":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"se":true,"sa":"SmoGraceNote"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"oc":"r","od":{"qa":"auto1286701","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto1286701","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto1323888","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1323888","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto1323888","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":29,"za":29,"ab":1,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}],"md":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"se":true,"sa":"SmoGraceNote"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ld":true,"ya":{"ya":30,"za":30,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"F^Maj "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":31,"za":31,"ab":1,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":32,"za":32,"ab":2,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Db^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}],"fd":[{"hd":"FALL_SHORT","sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":1024,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":4}],"da":"treble","qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","rb":true,"qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Ab^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5,"pc":true}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5,"pc":true}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":33,"za":33,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":34,"za":34,"ab":1,"t":0},"qe":2,"bb":6,"be":9,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto2828176","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"e","lb":"n","kb":5}],"od":{"qa":"auto2828176","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto2828176","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto2828176","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"D^7+5 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":4}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"oc":"r","da":"treble"}]}],"ea":[]},{"ya":{"ya":35,"za":35,"ab":2,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5,"pc":true}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Ab^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4,"pc":false}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":36,"za":36,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto1152853","ra":"SmoTuplet"},"q":4}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048,"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":2048},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1152853","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto1152853","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1152853","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":3072,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":6,"sa":"SmoLyric","ke":"F^Maj7 "}],"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":37,"za":37,"ab":1,"t":0},"qe":2,"bb":6,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto2273973","ra":"SmoTuplet"},"q":0},{"td":1024,"sd":2048,"pa":{"qa":"auto2275359","ra":"SmoTuplet"},"q":3},{"td":1024,"sd":2048,"pa":{"qa":"auto2447172","ra":"SmoTuplet"},"q":6},{"td":1024,"sd":2048,"pa":{"qa":"auto2571791","ra":"SmoTuplet"},"q":9},{"td":1024,"sd":2048,"pa":{"qa":"auto2694259","ra":"SmoTuplet"},"q":15},{"td":1024,"sd":2048,"ud":[1,2],"pa":{"qa":"auto2816339","ra":"SmoTuplet"},"q":16},{"td":1024,"sd":2048,"ud":[2,1],"pa":{"qa":"auto2924730","ra":"SmoTuplet"},"q":18}],"db":[{"eb":[{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","od":{"qa":"auto2273973","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":9,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","od":{"qa":"auto2273973","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":2048},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"od":{"qa":"auto2273973","ra":"SmoTuplet"},"da":"treble","qb":2048},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"d","lb":"b","kb":4}],"od":{"qa":"auto2275359","ra":"SmoTuplet"},"da":"treble","qb":2048},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto2275359","ra":"SmoTuplet"},"da":"treble","qb":2048},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto2275359","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":2048},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto2447172","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto2447172","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","od":{"qa":"auto2447172","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto2571791","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto2571791","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto2571791","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"od":{},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"#","kb":4}],"od":{"qa":"auto2694259","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto2694259","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto2694259","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":1},"ka":[{"jb":"e","lb":"b","kb":5,"pc":true}],"od":{"qa":"auto2816339","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"od":{"qa":"auto2816339","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"d","lb":"n","kb":5}],"od":{"qa":"auto2924730","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto2924730","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":38,"za":38,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}],"md":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"#","kb":5}],"sa":"SmoGraceNote"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","md":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"#","kb":5}],"sa":"SmoGraceNote"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":39,"za":39,"ab":1,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"F^7 "}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Bb^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":40,"za":40,"ab":2,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":10,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5,"pc":false}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":41,"za":41,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto1143660","ra":"SmoTuplet"},"q":4}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1143660","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto1143660","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1143660","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}],"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":42,"za":42,"ab":1,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":1024},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","rb":true,"qb":1024,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":1024},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":1024},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ya":{"ya":43,"za":43,"ab":2,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"}]}],"ea":[]}]}],"yc":[{"jc":616,"kc":54,"tb":"Yama","vb":{"wb":"1.8000000000000007em","xb":"Times New Roman","yb":"normal","zb":"normal"},"ac":"score-text auto40740","sa":"SmoScoreText"},{"jc":692,"kc":48,"tb":"(as played by Lee Morgan)","ac":"score-text auto40741","sa":"SmoScoreText"},{"jc":1006,"kc":44,"tb":"Bb Trumpet","ac":"score-text auto40742","sa":"SmoScoreText"}],"ge":[],"yd":[],"ee":{"wa":{"0":"4/4"},"xa":{"0":"F"},"fe":{"0":{"sa":"SmoTempoText","pa":{"qa":"auto39725","ra":"SmoTempoText"},"id":"duration","nb":96,"ob":true,"pb":4096,"jd":"Allegro","ta":24},"1":{"sa":"SmoTempoText","pa":{"qa":"auto39749","ra":"SmoTempoText"},"id":"duration","nb":96,"ob":true,"pb":4096,"jd":"Allegro","ta":0}}},"dictionary":{"a":"score","b":"layout","c":"leftMargin","d":"rightMargin","e":"topMargin","f":"bottomMargin","g":"pageWidth","h":"pageHeight","i":"orientation","j":"interGap","k":"intraGap","l":"svgScale","m":"zoomScale","n":"zoomMode","o":"pages","p":"pageSize","q":"startIndex","r":"renumberingMap","s":"staves","t":"staffId","u":"staffX","v":"staffY","w":"adjY","x":"staffWidth","y":"staffHeight","z":"keySignatureMap","aa":"instrumentInfo","ba":"instrumentName","ca":"keyOffset","da":"clef","ea":"modifiers","fa":"startSelector","ga":"staff","ha":"measure","ia":"voice","ja":"tick","ka":"pitches","la":"endSelector","ma":"xOffset","na":"cp1y","oa":"cp2y","pa":"attrs","qa":"id","ra":"type","sa":"ctor","ta":"yOffset","ua":"position","va":"measures","wa":"timeSignature","xa":"keySignature","ya":"measureNumber","za":"measureIndex","ab":"systemIndex","bb":"adjX","cb":"tuplets","db":"voices","eb":"notes","fb":"ticks","gb":"numerator","hb":"denominator","ib":"remainder","jb":"letter","kb":"octave","lb":"accidental","mb":"symbol","nb":"bpm","ob":"display","pb":"beatDuration","qb":"beamBeats","rb":"endBeam","sb":"textModifiers","tb":"text","ub":"endChar","vb":"fontInfo","wb":"size","xb":"family","yb":"style","zb":"weight","ac":"classes","bc":"verse","cc":"fill","dc":"scaleX","ec":"scaleY","fc":"translateX","gc":"translateY","hc":"selector","ic":"renderedBox","jc":"x","kc":"y","lc":"width","mc":"height","nc":"logicalBox","oc":"noteType","pc":"cautionary","qc":"articulations","rc":"articulation","sc":"activeVoice","tc":"flagState","uc":"invert","vc":"fontSize","wc":"yOffsetLine","xc":"yOffsetPixels","yc":"scoreText","zc":"backup","ad":"edited","bd":"pagination","cd":"boxModel","dd":"justification","ed":"autoLayout","fd":"ornaments","gd":"offset","hd":"ornament","id":"tempoMode","jd":"tempoText","kd":"barline","ld":"systemBreak","md":"graceNotes","nd":"tones","od":"tuplet","pd":"beam_group","qd":"renderId","rd":"numNotes","sd":"totalTicks","td":"stemTicks","ud":"durationMap","vd":"bracketed","wd":"ratioed","xd":"location","yd":"systemGroups","zd":"leftConnector","ae":"padLeft","be":"customStretch","ce":"engravingFont","de":"customProportion","ee":"columnAttributeMap","fe":"tempo","ge":"textGroups","he":"textBlocks","ie":"backupBlocks","je":"blocks","ke":"_text","le":"parser","me":"fonts","ne":"name","oe":"purpose","pe":"custom","qe":"transposeIndex","re":"noteHead","se":"slash"}}`;
 ;
 var AudioContext = window.AudioContext || window.webkitAudioContext;
 
@@ -2870,31 +2858,33 @@ class suiLayoutAdjuster {
     return {belowBaseline:heightOffset,aboveBaseline:yOffset};
   }
 }
-;
-// ## suiLayoutBase
-// ## Description:
-// A layout maps the measures and notes to a spot on the page.  It
-// manages the flow of music as an ordinary score.  We call it simple layout, because
-// there may be other layouts for parts view, or output to other media.
-class suiLayoutBase {
-	constructor(ctor) {
-		this.attrs = {
-			id: VF.Element.newID(),
-			type: ctor
-		};
-		this.dirty=true;
-    this.replaceQ=[];
-    this.renderTime=250;  // ms to render before time slicing
+;// ## SuiRenderState
+// Manage the state of the score rendering.  The score can be rendered either completely,
+// or partially for editing.  This class works with the RenderDemon to decide when to
+// render the score after it has been modified, and keeps track of what the current
+// render state is (dirty, etc.)
+// eslint-disable-next-line no-unused-vars
+class SuiRenderState {
+  constructor(ctor) {
+    this.attrs = {
+      id: VF.Element.newID(),
+      type: ctor
+    };
+    this.dirty = true;
+    this.replaceQ = [];
+    this.renderTime = 250;  // ms to render before time slicing
     this.partialRender = false;
-    this.stateRepCount=0;
+    this.stateRepCount = 0;
     this.viewportPages = 1;
-		this.setPassState(suiLayoutBase.initial,'ctor');
-		console.log('layout ctor: pstate initial');
-		this.viewportChanged = false;
+    this.setPassState(SuiRenderState.initial, 'ctor');
+    this.viewportChanged = false;
     this._resetViewport = false;
     this.measureMapper = null;
-	}
+  }
 
+  // ### setMeasureMapper
+  // DI/notifier pattern.  The measure mapper/tracker is updated when the score is rendered
+  // so the UI stays in sync with the location of elements in the score.
   setMeasureMapper(mapper) {
     this.measureMapper = mapper;
   }
@@ -2908,45 +2898,40 @@ class suiLayoutBase {
   }
 
   static setFont(font) {
-    VF.DEFAULT_FONT_STACK=suiLayoutBase.Fonts[font];
+    VF.DEFAULT_FONT_STACK = SuiRenderState.Fonts[font];
   }
 
-	static get passStates() {
-		return {initial:0,clean:2,replace:3};
-	}
+  static get passStates() {
+    return { initial: 0, clean: 2, replace: 3 };
+  }
 
   addToReplaceQueue(selection) {
-    if (this.passState == suiLayoutBase.passStates.clean ||
-      this.passState == suiLayoutBase.passStates.replace) {
+    if (this.passState === SuiRenderState.passStates.clean ||
+      this.passState === SuiRenderState.passStates.replace) {
       if (Array.isArray(selection)) {
         this.replaceQ = this.replaceQ.concat(selection);
       } else {
-        this.replaceQ.push(selection)
+        this.replaceQ.push(selection);
       }
       this.setDirty();
-   }
+    }
   }
 
-  _partialRenderCondition() {
-
+  setDirty() {
+    if (!this.dirty) {
+      this.dirty = true;
+      if (this.passState === SuiRenderState.passStates.clean) {
+        this.setPassState(SuiRenderState.passStates.replace);
+      }
+    }
   }
-
-
-	setDirty() {
-		if (!this.dirty) {
-			this.dirty = true;
-			if (this.passState == suiLayoutBase.passStates.clean) {
-        this.setPassState(suiLayoutBase.passStates.replace);
-			}
-		}
-	}
-	setRefresh() {
-		this.dirty=true;
-		this.setPassState(suiLayoutBase.passStates.initial,'setRefresh');
-	}
+  setRefresh() {
+    this.dirty = true;
+    this.setPassState(SuiRenderState.passStates.initial, 'setRefresh');
+  }
   rerenderAll() {
-    this.dirty=true;
-  	this.setPassState(suiLayoutBase.passStates.initial,'rerenderAll');
+    this.dirty = true;
+    this.setPassState(SuiRenderState.passStates.initial, 'rerenderAll');
     this._resetViewport = true;
   }
 
@@ -2955,83 +2940,84 @@ class suiLayoutBase {
     this.setRefresh();
   }
 
+  // Number the measures at the first measure in each system.
   numberMeasures() {
-    var staff = this.score.staves[0];
-    var measures = staff.measures.filter((measure) => measure.measureNumber.systemIndex == 0);
+    const printing = $('body').hasClass('print-render');
+    const staff = this.score.staves[0];
+    const measures = staff.measures.filter((measure) => measure.measureNumber.systemIndex === 0);
     $('.measure-number').remove();
-    var printing = $('body').hasClass('print-render');
 
     measures.forEach((measure) => {
-      var at = [];
-      if (measure.measureNumber.measureNumber > 0 && measure.measureNumber.systemIndex == 0) {
-        at.push({y:measure.logicalBox.y - 10});
-        at.push({x:measure.logicalBox.x});
-        at.push({fontFamily:'Helvitica'});
-        at.push({fontSize:'8pt'});
-        svgHelpers.placeSvgText(this.context.svg,at,'measure-number',(measure.measureNumber.measureNumber + 1).toString());
+      if (measure.measureNumber.measureNumber > 0 && measure.measureNumber.systemIndex === 0) {
+        const numAr = [];
+        numAr.push({ y: measure.logicalBox.y - 10 });
+        numAr.push({ x: measure.logicalBox.x });
+        numAr.push({ fontFamily: 'Helvitica' });
+        numAr.push({ fontSize: '8pt' });
+        svgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.measureNumber + 1).toString());
 
-        var formatIndex = SmoMeasure.systemOptions.findIndex((option) => measure[option] != SmoMeasure.defaults[option]);
+        // asterisk measures that were formatted specially in view mode
+        const formatIndex = SmoMeasure.systemOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
         if (formatIndex >= 0 && !printing) {
-          var at=[];
-          at.push({y:measure.logicalBox.y - 5});
-          at.push({x:measure.logicalBox.x + 25});
-          at.push({fontFamily:'Helvitica'});
-          at.push({fontSize:'8pt'});
-          svgHelpers.placeSvgText(this.context.svg,at,'measure-format','&#x21b0;');
+          const starAr = [];
+          starAr.push({ y: measure.logicalBox.y - 5 });
+          starAr.push({ x: measure.logicalBox.x + 25 });
+          starAr.push({ fontFamily: 'Helvitica' });
+          starAr.push({ fontSize: '8pt' });
+          svgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', '&#x21b0;');
         }
       }
     });
   }
 
-	_setViewport(reset,elementId) {
-		// this.screenWidth = window.innerWidth;
-		var layout = this._score.layout;
-		this.zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
-			layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;
+  // ### _setViewport
+  // Create (or recrate) the svg viewport, considering the dimensions of the score.
+  _setViewport(reset, elementId) {
+    // this.screenWidth = window.innerWidth;
+    const layout = this._score.layout;
+    this.zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
+      layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;
 
-		if (layout.zoomMode != SmoScore.zoomModes.zoomScale) {
-			layout.zoomScale = this.zoomScale;
-		}
+    if (layout.zoomMode !== SmoScore.zoomModes.zoomScale) {
+      layout.zoomScale = this.zoomScale;
+    }
 
-		this.svgScale = layout.svgScale * this.zoomScale;
-		this.orientation = this._score.layout.orientation;
-		var w = Math.round(layout.pageWidth * this.zoomScale) ;
-		var h = Math.round(layout.pageHeight * this.zoomScale);
-		this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w: h;
-		this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
-        this.totalHeight = this.pageHeight * this.score.layout.pages;
-        this.viewportPages = this.score.layout.pages;
+    this.svgScale = layout.svgScale * this.zoomScale;
+    this.orientation = this._score.layout.orientation;
+    const w = Math.round(layout.pageWidth * this.zoomScale);
+    const h = Math.round(layout.pageHeight * this.zoomScale);
+    this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w : h;
+    this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
+    this.totalHeight = this.pageHeight * this.score.layout.pages;
+    this.viewportPages = this.score.layout.pages;
 
-		this.leftMargin=this._score.layout.leftMargin;
-        this.rightMargin = this._score.layout.rightMargin;
-		$(elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
-		$(elementId).css('height', '' + Math.round(this.totalHeight) + 'px');
-		if (reset) {
-		    $(elementId).html('');
-    		this.renderer = new VF.Renderer(elementId, VF.Renderer.Backends.SVG);
-            this.viewportChanged = true;
-            if (this.measureMapper) {
-                this.measureMapper.scroller.scrollAbsolute(0,0);
-            }
-		}
-		// this.renderer.resize(this.pageWidth, this.pageHeight);
-
-		svgHelpers.svgViewport(this.context.svg, 0, 0, this.pageWidth, this.totalHeight, this.svgScale);
-
-		this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
-		this.resizing = false;
-		console.log('layout setViewport: pstate initial');
-		this.dirty=true;
-    suiLayoutBase._renderer = this.renderer;
-	}
+    this.leftMargin = this._score.layout.leftMargin;
+    this.rightMargin = this._score.layout.rightMargin;
+    $(elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
+    $(elementId).css('height', '' + Math.round(this.totalHeight) + 'px');
+    // Reset means we remove the previous SVG element.  Otherwise, we just alter it
+    if (reset) {
+      $(elementId).html('');
+      this.renderer = new VF.Renderer(elementId, VF.Renderer.Backends.SVG);
+      this.viewportChanged = true;
+      if (this.measureMapper) {
+        this.measureMapper.scroller.scrollAbsolute(0, 0);
+      }
+    }
+    svgHelpers.svgViewport(this.context.svg, 0, 0, this.pageWidth, this.totalHeight, this.svgScale);
+    // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
+    this.resizing = false;
+    console.log('layout setViewport: pstate initial');
+    this.dirty = true;
+    SuiRenderState._renderer = this.renderer;
+  }
 
   setViewport(reset) {
-    this._setViewport(reset,this.elementId);
+    this._setViewport(reset, this.elementId);
     this.score.staves.forEach((staff) => {
       staff.measures.forEach((measure) => {
         if (measure.logicalBox && reset) {
-          measure.svg.history=['reset'];
-          // measure.deleteLogicalBox('reset viewport');
+          measure.svg.history = ['reset'];
         }
       });
     });
@@ -3039,30 +3025,28 @@ class suiLayoutBase {
   }
   renderForPrintPromise() {
     $('body').addClass('print-render');
-    var self = this;
-    // layout.setViewport(true);
+    const self = this;
     this._backupLayout = JSON.parse(JSON.stringify(this.score.layout));
     this.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
     this.score.layout.zoomScale = 1.0;
     this.setViewport(true);
     this.setRefresh();
-    var self = this;
 
-    var promise = new Promise((resolve) => {
-      var poll = () => {
+    const promise = new Promise((resolve) => {
+      const poll = () => {
         setTimeout(() => {
           if (!self.dirty) {
-             // tracker.highlightSelection();
-             $('body').removeClass('print-render');
-             $('.vf-selection').remove();
-             $('body').addClass('printing');
-             $('.musicRelief').css('height','');
-             resolve();
+            // tracker.highlightSelection();
+            $('body').removeClass('print-render');
+            $('.vf-selection').remove();
+            $('body').addClass('printing');
+            $('.musicRelief').css('height', '');
+            resolve();
           } else {
             poll();
           }
-        },500);
-      }
+        }, 500);
+      };
       poll();
     });
     return promise;
@@ -3078,11 +3062,14 @@ class suiLayoutBase {
   }
 
   clearLine(measure) {
-    var lineIndex = measure.lineIndex;
-    var startIndex = (lineIndex > 1 ? lineIndex - 1: 0);
-    for (var i = startIndex;i<lineIndex+1;++i) {
+    const lineIndex = measure.lineIndex;
+    const startIndex = (lineIndex > 1 ? lineIndex - 1 : 0);
+    let i = 0;
+    for (i = startIndex; i < lineIndex + 1; ++i) {
+      // for lint error
+      const index = i;
       this.score.staves.forEach((staff) => {
-        var mms = staff.measures.filter((mm) => mm.lineIndex === i);
+        const mms = staff.measures.filter((mm) => mm.lineIndex === index);
         mms.forEach((mm) => {
           delete mm.logicalBox;
         });
@@ -3090,66 +3077,62 @@ class suiLayoutBase {
     }
   }
 
-	setPassState(st,location) {
-    var oldState = this.passState;
-    if (oldState != st) {
+  setPassState(st, location) {
+    const oldState = this.passState;
+    let msg = '';
+    if (oldState !== st) {
       this.stateRepCount = 0;
     } else {
       this.stateRepCount += 1;
     }
 
-    var msg = location + ': passState '+this.passState+'=>'+st;
+    msg = location + ': passState ' + this.passState + '=>' + st;
     if (this.stateRepCount > 0) {
-      msg += ' ('+this.stateRepCount+')';
+      msg += ' (' + this.stateRepCount + ')';
     }
-		console.log(msg);
-		this.passState = st;
-	}
-	static get defaults() {
-		return {
-			clefWidth: 70,
-			staffWidth: 250,
-			totalWidth: 250,
-			leftMargin: 15,
-			topMargin: 15,
-			pageWidth: 8 * 96 + 48,
-			pageHeight: 11 * 96,
-			svgScale: 0.7,
-			font: {
-				typeface: "Arial",
-				pointSize: 10,
-				fillStyle: '#eed'
-			}
-		};
-	}
+    console.log(msg);
+    this.passState = st;
+  }
+  static get defaults() {
+    return {
+      clefWidth: 70,
+      staffWidth: 250,
+      totalWidth: 250,
+      leftMargin: 15,
+      topMargin: 15,
+      pageWidth: 8 * 96 + 48,
+      pageHeight: 11 * 96,
+      svgScale: 0.7,
+    };
+  }
 
-	static get debugLayout() {
-		suiLayoutBase['_debugLayout'] = suiLayoutBase['_debugLayout'] ? suiLayoutBase._debugLayout : false
-		return suiLayoutBase._debugLayout;
-	}
+  static get debugLayout() {
+    SuiRenderState._debugLayout = SuiRenderState._debugLayout ? SuiRenderState._debugLayout : false;
+    return SuiRenderState._debugLayout;
+  }
 
-	static set debugLayout(value) {
-		suiLayoutBase._debugLayout = value;
-      if (value) {
-        $('body').addClass('layout-debug');
-      } else {
-        $('body').removeClass('layout-debug');
-      }
-	}
+  static set debugLayout(value) {
+    SuiRenderState._debugLayout = value;
+    if (value) {
+      $('body').addClass('layout-debug');
+    } else {
+      $('body').removeClass('layout-debug');
+    }
+  }
 
-	// ### get context
-	// ### Description:
-	// return the VEX renderer context.
-	get context() {
-		return this.renderer.getContext();
-	}
-	get renderElement() {
-		return this.renderer.elementId;
-	}
+  // ### get context
+  // ### Description:
+  // return the VEX renderer context.
+  get context() {
+    return this.renderer.getContext();
+  }
+  get renderElement() {
+    return this.renderer.elementId;
+  }
 
-	get svg() {
-		return this.context.svg;
-	}
+  get svg() {
+    return this.context.svg;
+  }
 
   get score() {
     return this._score;
@@ -3160,9 +3143,9 @@ class suiLayoutBase {
     if (this._score) {
       shouldReset = true;
     }
-    this.setPassState(suiLayoutBase.passStates.initial,'load score');
+    this.setPassState(SuiRenderState.passStates.initial, 'load score');
     const font = score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
-    suiLayoutBase.setFont(font.family);
+    SuiRenderState.setFont(font.family);
     this.dirty = true;
     this._score = score;
     if (shouldReset) {
@@ -3173,218 +3156,204 @@ class suiLayoutBase {
     }
   }
 
-
-	// ### render
-	// ### Description:
-	// Render the current score in the div using VEX.  Rendering is actually done twice:
-	// 1. Rendering is done just to the changed parts of the score.  THe first time, the whole score is rendered.
-	// 2. Widths and heights are adjusted for elements that may have overlapped or exceeded their expected boundary.
-	// 3. The whole score is rendered a second time with the new values.
-
-
-	// ### undo
-	// ### Description:
-	// Undo is handled by the layout, because the layout has to first delete areas of the div that may have changed
-	// , then create the modified score, then render the 'new' score.
-	undo(undoBuffer) {
-		var buffer = undoBuffer.peek();
-		var op = 'setDirty';
-		// Unrender the modified music because the IDs may change and normal unrender won't work
-		if (buffer) {
-			var sel = buffer.selector;
-			if (buffer.type == 'measure') {
-				this.unrenderMeasure(SmoSelection.measureSelection(this._score, sel.staff, sel.measure).measure);
-			} else if (buffer.type === 'staff') {
-				this.unrenderStaff(SmoSelection.measureSelection(this._score, sel.staff, 0).staff);
-				op = 'setRefresh';
-			} else {
-				this.unrenderAll();
-				op = 'setRefresh';
-			}
-			this._score = undoBuffer.undo(this._score);
-			this[op]();
-		}
-	}
-
-	// ### renderNoteModifierPreview
-	// ### Description:
-	// For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
-	// changes can be undone before the buffer closes.
-	renderNoteModifierPreview(modifier,selection) {
-		var selection = SmoSelection.noteSelection(this._score, selection.selector.staff, selection.selector.measure, selection.selector.voice, selection.selector.tick);
-		if (!selection.measure.renderedBox) {
-			return;
-		}
-		var system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex,this.score);
-		system.renderMeasure(selection.measure,this.mapper);
-	}
-
-    // ### renderNoteModifierPreview
-	// ### Description:
-	// For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
-	// changes can be undone before the buffer closes.
-	renderMeasureModifierPreview(modifier,measure) {
-        var ix = measure.measureNumber.measureIndex;
-        this._score.staves.forEach((staff) => {
-            var cm = staff.measures[ix];
-    		var system = new VxSystem(this.context, cm.staffY, cm.lineIndex,this.score);
-            system.renderMeasure(staff.staffId, cm);
-        });
-	}
-
-	// ### renderStaffModifierPreview
-	// ### Description:
-	// Similar to renderNoteModifierPreview, but lets you preveiw a change to a staff element.
-	// re-render a modifier for preview during modifier dialog
-	renderStaffModifierPreview(modifier) {
-		// get the first measure the modifier touches
-		var startSelection = SmoSelection.measureSelection(this._score, modifier.startSelector.staff, modifier.startSelector.measure);
-
-		// We can only render if we already have, or we don't know where things go.
-		if (!startSelection.measure.renderedBox) {
-			return;
-		}
-		var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex,this.score);
-		while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
-			smoBeamerFactory.applyBeams(startSelection.measure);
-      system.renderMeasure(startSelection.measure,null,true);
-      this._renderModifiers(startSelection.staff, system);
-
-			var nextSelection = SmoSelection.measureSelection(this._score, startSelection.selector.staff, startSelection.selector.measure + 1);
-
-			// If we go to new line, render this line part, then advance because the modifier is split
-			if (nextSelection && nextSelection.measure && nextSelection.measure.lineIndex != startSelection.measure.lineIndex) {
-				this._renderModifiers(startSelection.staff, system);
-				var system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex,this.score);
-			}
-			startSelection = nextSelection;
-		}
-		// this._renderModifiers(startSelection.staff, system);
-	}
-
-	// ### unrenderMeasure
-	// ### Description:
-	// All SVG elements are associated with a logical SMO element.  We need to erase any SVG element before we change a SMO
-	// element in such a way that some of the logical elements go away (e.g. when deleting a measure).
-	unrenderMeasure(measure) {
-		if (!measure)
-			return;
-
-		$(this.renderer.getContext().svg).find('g.' + measure.getClassId()).remove();
-		measure.setYTop(0,'unrender');
-		measure.setChanged();
-	}
-
-    unrenderColumn(measure) {
-        this.score.staves.forEach((staff) => {
-            this.unrenderMeasure(staff.measures[measure.measureNumber.measureIndex]);
-        });
-    }
-
-	// ### unrenderStaff
-	// ### Description:
-	// See unrenderMeasure.  Like that, but with a staff.
-	unrenderStaff(staff) {
-		staff.measures.forEach((measure) => {
-			this.unrenderMeasure(measure);
-		});
-		staff.modifiers.forEach((modifier) => {
-			$(this.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
-		});
-	}
-
-
-	// ### _renderModifiers
-	// ### Description:
-	// Render staff modifiers (modifiers straddle more than one measure, like a slur).  Handle cases where the destination
-	// is on a different system due to wrapping.
-	_renderModifiers(staff, system) {
-		var svg = this.svg;
-		staff.modifiers.forEach((modifier) => {
-			var startNote = SmoSelection.noteSelection(this._score,
-					modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-			var endNote = SmoSelection.noteSelection(this._score,
-					modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
-            if (!startNote || !endNote) {
-                console.log('missing modifier...');
-                return;
-            }
-
-			var vxStart = system.getVxNote(startNote.note);
-			var vxEnd = system.getVxNote(endNote.note);
-
-			// If the modifier goes to the next staff, draw what part of it we can on this staff.
-			if (vxStart && !vxEnd) {
-				var nextNote = SmoSelection.nextNoteSelection(this._score,
-						modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-				var testNote = system.getVxNote(nextNote.note);
-				while (testNote) {
-					vxEnd = testNote;
-					nextNote = SmoSelection.nextNoteSelection(this._score,
-							nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
-                    // last beat of the measure
-                    if (!nextNote) {
-                        break;
-                    }
-					testNote = system.getVxNote(nextNote.note);
-
-				}
-			}
-			if (vxEnd && !vxStart) {
-				var lastNote = SmoSelection.lastNoteSelection(this._score,
-						modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
-				var testNote = system.getVxNote(lastNote.note);
-				while (testNote) {
-					vxStart = testNote;
-					lastNote = SmoSelection.lastNoteSelection(this._score,
-							lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
-                    if (!lastNote) {
-                        break;
-                    }
-					testNote = system.getVxNote(lastNote.note);
-				}
-			}
-
-			if (!vxStart && !vxEnd)
-				return;
-
-			// TODO: notes may have changed, get closest if these exact endpoints don't exist
-			modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd,startNote,endNote);
-			modifier.logicalBox = svgHelpers.clientToLogical(svg,modifier.renderedBox);
-
-			// TODO: consider staff height with these.
-			// TODO: handle dynamics split across systems.
-		});
-
-        // Note: this is done elsewhere, after system is rendered.
-		// system.updateLyricOffsets();
-	}
-
-  _drawPageLines() {
-    $(this.context.svg).find('.pageLine').remove();
-    var printing = $('body').hasClass('print-render');
-    if (printing) {
-      return;
-    }
-    for (var i=1;i<this._score.layout.pages;++i) {
-      var y = (this.pageHeight/this.svgScale)*i;
-      svgHelpers.line(this.svg,0,y,this.score.layout.pageWidth/this.score.layout.svgScale,y,
-        [
-          {'stroke': '#321'},
-          {'stroke-width': '2'},
-          {'stroke-dasharray': '4,1'},
-          {'fill': 'none'}],'pageLine');
+  // ### undo
+  // Undo is handled by the render state machine, because the layout has to first
+  // delete areas of the viewport that may have changed,
+  // then create the modified score, then render the 'new' score.
+  undo(undoBuffer) {
+    const buffer = undoBuffer.peek();
+    let op = 'setDirty';
+    // Unrender the modified music because the IDs may change and normal unrender won't work
+    if (buffer) {
+      const sel = buffer.selector;
+      if (buffer.type === 'measure') {
+        this.unrenderMeasure(SmoSelection.measureSelection(this._score, sel.staff, sel.measure).measure);
+      } else if (buffer.type === 'staff') {
+        this.unrenderStaff(SmoSelection.measureSelection(this._score, sel.staff, 0).staff);
+        op = 'setRefresh';
+      } else {
+        this.unrenderAll();
+        op = 'setRefresh';
+      }
+      this._score = undoBuffer.undo(this._score);
+      this[op]();
     }
   }
 
+  // ### renderNoteModifierPreview
+  // ### Description:
+  // For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
+  // changes can be undone before the buffer closes.
+  renderNoteModifierPreview(modifier, selection) {
+    selection =
+      SmoSelection.noteSelection(this._score, selection.selector.staff, selection.selector.measure, selection.selector.voice, selection.selector.tick);
+    if (!selection.measure.renderedBox) {
+      return;
+    }
+    const system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex, this.score);
+    system.renderMeasure(selection.measure, this.mapper);
+  }
+
+  // ### renderNoteModifierPreview
+  // For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
+  // changes can be undone before the buffer closes.
+  renderMeasureModifierPreview(modifier, measure) {
+    const ix = measure.measureNumber.measureIndex;
+    this._score.staves.forEach((staff) => {
+      const cm = staff.measures[ix];
+      const system = new VxSystem(this.context, cm.staffY, cm.lineIndex, this.score);
+      system.renderMeasure(staff.staffId, cm);
+    });
+  }
+
+  // ### renderStaffModifierPreview
+  // Similar to renderNoteModifierPreview, but lets you preveiw a change to a staff element.
+  // re-render a modifier for preview during modifier dialog
+  renderStaffModifierPreview(modifier) {
+    let system = null;
+    // get the first measure the modifier touches
+    var startSelection = SmoSelection.measureSelection(this._score, modifier.startSelector.staff, modifier.startSelector.measure);
+
+    // We can only render if we already have, or we don't know where things go.
+    if (!startSelection.measure.renderedBox) {
+      return;
+    }
+    system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex, this.score);
+    while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
+      smoBeamerFactory.applyBeams(startSelection.measure);
+      system.renderMeasure(startSelection.measure, null, true);
+      this._renderModifiers(startSelection.staff, system);
+
+      const nextSelection = SmoSelection.measureSelection(this._score, startSelection.selector.staff, startSelection.selector.measure + 1);
+
+      // If we go to new line, render this line part, then advance because the modifier is split
+      if (nextSelection && nextSelection.measure && nextSelection.measure.lineIndex !== startSelection.measure.lineIndex) {
+        this._renderModifiers(startSelection.staff, system);
+        system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex, this.score);
+      }
+      startSelection = nextSelection;
+    }
+  }
+
+  // ### unrenderMeasure
+  // ### Description:
+  // All SVG elements are associated with a logical SMO element.  We need to erase any SVG element before we change a SMO
+  // element in such a way that some of the logical elements go away (e.g. when deleting a measure).
+  unrenderMeasure(measure) {
+    if (!measure) {
+      return;
+    }
+    $(this.renderer.getContext().svg).find('g.' + measure.getClassId()).remove();
+    measure.setYTop(0, 'unrender');
+    measure.setChanged();
+  }
+
+  unrenderColumn(measure) {
+    this.score.staves.forEach((staff) => {
+      this.unrenderMeasure(staff.measures[measure.measureNumber.measureIndex]);
+    });
+  }
+
+  // ### unrenderStaff
+  // ### Description:
+  // See unrenderMeasure.  Like that, but with a staff.
+  unrenderStaff(staff) {
+    staff.measures.forEach((measure) => {
+      this.unrenderMeasure(measure);
+    });
+    staff.modifiers.forEach((modifier) => {
+      $(this.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
+    });
+  }
+
+  // ### _renderModifiers
+  // ### Description:
+  // Render staff modifiers (modifiers straddle more than one measure, like a slur).  Handle cases where the destination
+  // is on a different system due to wrapping.
+  _renderModifiers(staff, system) {
+    const svg = this.svg;
+    let nextNote = null;
+    let lastNote = null;
+    let testNote = null;
+    let vxStart = null;
+    let vxEnd = null;
+    staff.modifiers.forEach((modifier) => {
+      const startNote = SmoSelection.noteSelection(this._score,
+        modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+      const endNote = SmoSelection.noteSelection(this._score,
+        modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+      if (!startNote || !endNote) {
+        console.log('missing modifier...');
+        return;
+      }
+
+      vxStart = system.getVxNote(startNote.note);
+      vxEnd = system.getVxNote(endNote.note);
+
+      // If the modifier goes to the next staff, draw what part of it we can on this staff.
+      if (vxStart && !vxEnd) {
+        nextNote = SmoSelection.nextNoteSelection(this._score,
+          modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+        testNote = system.getVxNote(nextNote.note);
+        while (testNote) {
+          vxEnd = testNote;
+          nextNote = SmoSelection.nextNoteSelection(this._score,
+            nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
+          if (!nextNote) {
+            break;
+          }
+          testNote = system.getVxNote(nextNote.note);
+        }
+      }
+      if (vxEnd && !vxStart) {
+        lastNote = SmoSelection.lastNoteSelection(this._score,
+          modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+        testNote = system.getVxNote(lastNote.note);
+        while (testNote) {
+          vxStart = testNote;
+          lastNote = SmoSelection.lastNoteSelection(this._score,
+            lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
+          if (!lastNote) {
+            break;
+          }
+          testNote = system.getVxNote(lastNote.note);
+        }
+      }
+      if (!vxStart && !vxEnd) {
+        return;
+      }
+      modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd, startNote, endNote);
+      modifier.logicalBox = svgHelpers.clientToLogical(svg, modifier.renderedBox);
+    });
+  }
+
+  _drawPageLines() {
+    let i = 0;
+    $(this.context.svg).find('.pageLine').remove();
+    const printing = $('body').hasClass('print-render');
+    if (printing) {
+      return;
+    }
+    for (i = 1; i < this._score.layout.pages; ++i) {
+      const y = (this.pageHeight / this.svgScale) * i;
+      svgHelpers.line(this.svg, 0, y, this.score.layout.pageWidth / this.score.layout.svgScale, y,
+        [
+          { 'stroke': '#321' },
+          { 'stroke-width': '2' },
+          { 'stroke-dasharray': '4,1' },
+          { 'fill': 'none' }], 'pageLine');
+    }
+  }
+
+  // ### _replaceMeasures
+  // Do a quick re-render of a measure that has changed.
   _replaceMeasures() {
-    var rendered = {};
     this.replaceQ.forEach((change) => {
       smoBeamerFactory.applyBeams(change.measure);
-      var system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex,this.score);
-      var selections = SmoSelection.measuresInColumn(this.score,change.measure.measureNumber.measureIndex);
+      const system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex, this.score);
+      const selections = SmoSelection.measuresInColumn(this.score, change.measure.measureNumber.measureIndex);
       selections.forEach((selection) => {
-        system.renderMeasure(selection.measure,this.measureMapper);
+        system.renderMeasure(selection.measure, this.measureMapper);
       });
       system.renderEndings();
       this._renderModifiers(change.staff, system);
@@ -3403,23 +3372,20 @@ class suiLayoutBase {
     this.render();
   }
 
-	render() {
-        if (this._resetViewport) {
-            this.setViewport(true);
-            this._resetViewport = false;
-        }
-
-		// layout iteratively until we get it right, adjusting X each time.
-        if (suiLayoutBase.passStates.replace == this.passState) {
-            this._replaceMeasures();
-        } else if (suiLayoutBase.passStates.initial == this.passState) {
-           this.layout();
-           this._drawPageLines();
-           this.setPassState(suiLayoutBase.passStates.clean);
-        }
-        this.dirty = false;
-
-	}
+  render() {
+    if (this._resetViewport) {
+      this.setViewport(true);
+      this._resetViewport = false;
+    }
+    if (SuiRenderState.passStates.replace === this.passState) {
+      this._replaceMeasures();
+    } else if (SuiRenderState.passStates.initial === this.passState) {
+      this.layout();
+      this._drawPageLines();
+      this.setPassState(SuiRenderState.passStates.clean);
+    }
+    this.dirty = false;
+  }
 }
 ;
 class layoutDebug {
@@ -3549,7 +3515,7 @@ class layoutDebug {
     }
 }
 ;
-class SuiLayoutDemon {
+class SuiRenderDemon {
   constructor(parameters) {
     this.pollTime = 100;
 
@@ -3561,8 +3527,8 @@ class SuiLayoutDemon {
   }
 
   get isLayoutQuiet() {
-		return ((this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false)
-		   || this.layout.passState == suiLayoutBase.passStates.replace);
+		return ((this.layout.passState == SuiRenderState.passStates.clean && this.layout.dirty == false)
+		   || this.layout.passState == SuiRenderState.passStates.replace);
 	}
 
   handleRedrawTimer() {
@@ -3581,7 +3547,7 @@ class SuiLayoutDemon {
       } catch (ex) {
         SuiExceptionHandler.instance.exceptionHandler(ex);
       }
-  	} else if (this.layout.passState === suiLayoutBase.passStates.replace) {
+  	} else if (this.layout.passState === SuiRenderState.passStates.replace) {
   		// Do we need to refresh the score?
   		if (Date.now() - this.idleLayoutTimer > this.idleRedrawTime) {
   			this.layout.setRefresh();
@@ -3605,7 +3571,7 @@ class SuiLayoutDemon {
 
   render() {
 		this.layout.render();
-    if (this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false) {
+    if (this.layout.passState == SuiRenderState.passStates.clean && this.layout.dirty == false) {
        this.tracker.updateMap();
 
        // indicate the display is 'clean' and up-to-date with the score
@@ -4198,18 +4164,15 @@ class suiPiano {
 		this.bind();
 	}
 }
-;
-// ## suiLayoutBase
-// ## Description:
-// A layout maps the measures and notes to a spot on the page.  It
-// manages the flow of music as an ordinary score.  We call it simple layout, because
-// there may be other layouts for parts view, or output to other media.
-class suiScoreLayout extends suiLayoutBase {
+;// ## SuiRenderScore
+// This module renders the entire score.  It calculates the layout first based on the
+// computed dimensions.
+// eslint-disable-next-line no-unused-vars
+class SuiRenderScore extends SuiRenderState {
   constructor(params) {
-    super('suiScoreLayout');
-    Vex.Merge(this, suiLayoutBase.defaults);
+    super('SuiRenderScore');
+    Vex.Merge(this, SuiRenderState.defaults);
     Vex.Merge(this, params);
-
     this.setViewport(true);
 
     this.attrs = {
@@ -4218,35 +4181,20 @@ class suiScoreLayout extends suiLayoutBase {
     };
   }
 
-  // ### createScoreLayout
+  // ### createScoreRenderer
   // ### Description;
   // to get the score to appear, a div and a score object are required.  The layout takes care of creating the
   // svg element in the dom and interacting with the vex library.
-  static createScoreLayout(renderElement,score, layoutParams) {
-    var ctorObj = {
+  static createScoreRenderer(renderElement, score, layoutParams) {
+    const ctorObj = {
       elementId: renderElement,
-      score: score
+      score
     };
     if (layoutParams) {
       Vex.Merge(ctorObj, layoutParams);
     }
-    var layout = new suiScoreLayout(ctorObj);
-      return layout;
-  }
-  static get defaults() {
-    return {
-      clefWidth: 70,
-      staffWidth: 250,
-      totalWidth: 250,
-      pageWidth: 8 * 96 + 48,
-      pageHeight: 11 * 96,
-      svgScale: 0.7,
-      font: {
-        typeface: "Arial",
-        pointSize: 10,
-        fillStyle: '#eed'
-      }
-    };
+    const layout = new SuiRenderScore(ctorObj);
+    return layout;
   }
 
   // ### unrenderAll
@@ -4270,9 +4218,9 @@ class suiScoreLayout extends suiLayoutBase {
   // measure to 'left' is on previous row if this is the first column in a system
   // but we still use it to compute beginning symbols (key sig etc.)
   _measureToLeft(measure) {
-    var j = measure.measureNumber.staffId;
-    var i = measure.measureNumber.measureIndex;
-    return (i > 0 ? this._score.staves[j].measures[i - 1] :null);
+    const j = measure.measureNumber.staffId;
+    const i = measure.measureNumber.measureIndex;
+    return (i > 0 ? this._score.staves[j].measures[i - 1] : null);
   }
 
   renderTextGroup(gg) {
@@ -4299,44 +4247,41 @@ class suiScoreLayout extends suiLayoutBase {
   }
 
   renderScoreText(tt) {
-    var svg = this.context.svg;
-    var scoreLayout = this.scaledScoreLayout;
-    var classes = tt.attrs.id+' '+'score-text'+' '+tt.classes;
-    var text = tt.text.replace('###',1); /// page number
-    text = text.replace('@@@',scoreLayout.pages); /// page number
-    var args = {svg:this.svg,width:tt.width,height:tt.height,layout:this._score.layout,text:text};
+    let i = 0;
+    let boxed = false;
+    const scoreLayout = this.scaledScoreLayout;
+    let text = tt.text.replace('###', 1); /// page number
+    text = text.replace('@@@', scoreLayout.pages); /// page number
+    const args = { svg: this.svg, width: tt.width, height: tt.height, layout: this._score.layout, text };
     if (tt.pagination === SmoScoreText.paginations.once) {
-      const block = SuiInlineText.fromScoreText(tt,this.context);
+      const block = SuiInlineText.fromScoreText(tt, this.context);
       const blocks = [{ text: block, position: SmoTextGroup.relativePosition.RIGHT }];
-      const svgText = new SuiTextBlock({blocks: blocks, context: this.context} );
+      const svgText = new SuiTextBlock({ blocks, context: this.context });
       svgText.render();
       tt.renderedBox = svgText.getRenderedBox();
       tt.logicalBox = svgText.getLogicalBox();
-    }  else {
-      var boxed = false;
-      for (var i = 0;i<scoreLayout.pages;++i) {
-        if (tt.pagination == SmoScoreText.paginations.even &&
-          i % 2 > 0)  {
-            continue;
-        }
-        else if (tt.pagination == SmoScoreText.paginations.odd &&
-           i % 2 == 0) {
+    } else {
+      for (i = 0; i < scoreLayout.pages; ++i) {
+        if (tt.pagination === SmoScoreText.paginations.even &&
+          i % 2 > 0) {
+          continue;
+        } else if (tt.pagination === SmoScoreText.paginations.odd &&
+           i % 2 === 0) {
+          continue;
+        } else if (tt.pagination === SmoScoreText.paginations.subsequent
+           && i === 1) {
           continue;
         }
-        else if (tt.pagination == SmoScoreText.paginations.subsequent
-           && i == 1) {
-            continue;
-        }
 
-        var xx = new SmoScoreText(tt);
-        xx.classes = 'score-text '+xx.attrs.id;
-        xx.text = xx.text.replace('###',i + 1); /// page number
-        xx.text = xx.text.replace('@@@',scoreLayout.pages); /// page number
-        xx.y += scoreLayout.pageHeight*i;
+        const xx = new SmoScoreText(tt);
+        xx.classes = 'score-text ' + xx.attrs.id;
+        xx.text = xx.text.replace('###', i + 1); /// page number
+        xx.text = xx.text.replace('@@@', scoreLayout.pages); /// page number
+        xx.y += scoreLayout.pageHeight * i;
         args.text = xx.text;
-        const block = SuiInlineText.fromScoreText(xx,this.context);
+        const block = SuiInlineText.fromScoreText(xx, this.context);
         const blocks = [{ text: block, position: SmoTextGroup.relativePosition.RIGHT }];
-        const svgText = new SuiTextBlock({blocks: blocks, context: this.context} );
+        const svgText = new SuiTextBlock({ blocks, context: this.context });
         svgText.render();
         // Base the rendered box on the first instance
         if (!boxed) {
@@ -4348,7 +4293,6 @@ class suiScoreLayout extends suiLayoutBase {
     }
   }
   _renderScoreModifiers() {
-    var svg = this.context.svg;
     $(this.renderer.getContext().svg).find('.all-score-text').remove();
     const group = this.context.openGroup();
     group.classList.add('all-score-text');
@@ -4363,21 +4307,19 @@ class suiScoreLayout extends suiLayoutBase {
     this.context.closeGroup();
   }
 
-
-    // ### calculateBeginningSymbols
-    // calculate which symbols like clef, key signature that we have to render in this measure.
-  calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast,tempoLast) {
-    var measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
+  // ### calculateBeginningSymbols
+  // calculate which symbols like clef, key signature that we have to render in this measure.
+  calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast, tempoLast) {
+    const measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
     measure.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
-    measure.forceTimeSignature = (measure.measureNumber.measureIndex == 0 || measure.timeSignature !== timeSigLast);
-      measure.forceTempo = false;
-    var tempo = measure.getTempo();
-    if (tempo && measure.measureNumber.measureIndex == 0) {
+    measure.forceTimeSignature = (measure.measureNumber.measureIndex === 0 || measure.timeSignature !== timeSigLast);
+    measure.forceTempo = false;
+    const tempo = measure.getTempo();
+    if (tempo && measure.measureNumber.measureIndex === 0) {
+      measure.forceTempo = tempo.display;
+    } else if (tempo && tempoLast) {
+      if (!SmoTempoText.eq(tempo, tempoLast)) {
         measure.forceTempo = tempo.display;
-    }
-    else if (tempo && tempoLast) {
-      if (!SmoTempoText.eq(tempo,tempoLast)) {
-      	measure.forceTempo = tempo.display;
       }
     } else if (tempo) {
       measure.forceTempo = tempo.display;
@@ -4386,7 +4328,7 @@ class suiScoreLayout extends suiLayoutBase {
       measure.canceledKeySignature = keySigLast;
       measure.setChanged();
       measure.forceKeySignature = true;
-    } else if (systemIndex == 0 && measureKeySig != 'C') {
+    } else if (systemIndex === 0 && measureKeySig !== 'C') {
       measure.forceKeySignature = true;
     } else {
       measure.forceKeySignature = false;
@@ -4394,9 +4336,9 @@ class suiScoreLayout extends suiLayoutBase {
   }
 
   _getMeasuresInColumn(ix) {
-    var rv = [];
+    const rv = [];
     this.score.staves.forEach((staff) => {
-      var inst = staff.measures.find((ss) => ss.measureNumber.measureIndex == ix);
+      const inst = staff.measures.find((ss) => ss.measureNumber.measureIndex === ix);
       if (inst) {
         rv.push(inst);
       }
@@ -4404,257 +4346,258 @@ class suiScoreLayout extends suiLayoutBase {
     return rv;
   }
   get scaledScoreLayout() {
-    var svgScale = this.score.layout.svgScale;
-    var rv = JSON.parse(JSON.stringify(this.score.layout));
-    var attrs = ['topMargin','bottomMargin','interGap','intraGap','pageHeight','pageWidth','leftMargin','rightMargin'];
+    const svgScale = this.score.layout.svgScale;
+    const rv = JSON.parse(JSON.stringify(this.score.layout));
+    const attrs = ['topMargin', 'bottomMargin', 'interGap', 'intraGap', 'pageHeight', 'pageWidth', 'leftMargin', 'rightMargin'];
     attrs.forEach((attr) => {
       rv[attr] = rv[attr] / svgScale;
     });
-
     return rv;
   }
 
-    renderAllMeasures() {
-        var mscore = {};
-        $('.measure-format').remove();
-        var printing = $('body').hasClass('print-render');
-        this.score.staves.forEach((staff) => {
-            staff.measures.forEach((measure) => {
-                if (!mscore[measure.lineIndex]) {
-                    mscore[measure.lineIndex] = [];
-                }
-                mscore[measure.lineIndex].push(measure);
-            });
-        });
-
-        var keys = Object.keys(mscore);
-        keys.forEach((key) => {
-            var columns = {};
-            var vxSystem = new VxSystem(this.context,0,parseInt(key),this.score);
-            mscore[key].forEach((measure) => {
-                if (!columns[measure.measureNumber.systemIndex]) {
-                    columns[measure.measureNumber.systemIndex] = [];
-                }
-                columns[measure.measureNumber.systemIndex].push(measure);
-            });
-
-            var colKeys = Object.keys(columns);
-            colKeys.forEach((colKey) => {
-                columns[colKey].forEach((measure) => {
-                    vxSystem.renderMeasure(measure,this.measureMapper);
-                    var formatIndex = SmoMeasure.formattingOptions.findIndex((option) => measure[option] != SmoMeasure.defaults[option]);
-                    if (formatIndex >= 0 && !printing) {
-                        var at=[];
-                        at.push({y:measure.logicalBox.y - 5});
-                        at.push({x:measure.logicalBox.x + 25});
-                        at.push({fontFamily:'Helvitica'});
-                        at.push({fontSize:'8pt'});
-                        svgHelpers.placeSvgText(this.context.svg,at,'measure-format','*');
-                    }
-
-                });
-            });
-
-            vxSystem.renderEndings();
-            vxSystem.updateLyricOffsets();
-            this._score.staves.forEach((stf) => {
-    			this._renderModifiers(stf, vxSystem);
-    		});
-
-        });
-        this._renderScoreModifiers();
-        this.numberMeasures();
-    }
-
-    // ### _justifyY
-    // when we have finished a line of music, adjust the measures in the system so the
-    // top of the staff lines up.
-    _justifyY(svg,scoreLayout,measureEstimate,currentLine) {
-        // We estimate the staves at the same absolute y value.  Now, move them down so the top of the staves align for all measures in a  row.
-        for (var i =0;i< measureEstimate.measures.length;++i) {
-            var rowAdj = currentLine.filter((mm) => mm.svg.rowInSystem == i);
-            // lowest staff has greatest staffY value.
-            var lowestStaff = rowAdj.reduce((a,b) => {
-                return a.staffY > b.staffY ? a : b;
-            });
-            rowAdj.forEach((measure) => {
-                var adj = lowestStaff.staffY - measure.staffY;
-                measure.setY(measure.staffY + adj);
-                measure.setBox(svgHelpers.boxPoints(measure.logicalBox.x,measure.logicalBox.y + adj,measure.logicalBox.width,measure.logicalBox.height));
-            });
-            var rightStaff = rowAdj.reduce((a,b) => {
-               return a.staffX + a.staffWidth > b.staffX + b.staffWidth ?  a : b});
-
-            var justifyX = Math.round((scoreLayout.pageWidth - (scoreLayout.leftMargin + scoreLayout.rightMargin + rightStaff.staffX + rightStaff.staffWidth))
-                 / rowAdj.length);
-            rowAdj.forEach((measure) => {
-                measure.setWidth(measure.staffWidth + justifyX,'_estimateMeasureDimensions justify');
-                var offset = measure.measureNumber.systemIndex * justifyX;
-                measure.setX(measure.staffX + offset);
-                measure.setBox(svgHelpers.boxPoints(measure.logicalBox.x + offset,measure.logicalBox.y,measure.staffWidth,measure.logicalBox.height,));
-                layoutDebug.debugBox(svg,measure.logicalBox,'adjust');
-            });
-         }
-
-    }
-
-    // ### _checkPageBreak
-    // See if this line breaks the page boundary
-    _checkPageBreak(scoreLayout,currentLine,bottomMeasure) {
-        // See if this measure breaks a page.
-        var maxY = bottomMeasure.logicalBox.y +  bottomMeasure.logicalBox.height;
-        if (maxY > (scoreLayout.pages * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
-            // When adjusting the page, make it so the top staff of the system
-            // clears the bottom of the page.
-            var topMeasure = currentLine.reduce((a,b) => {
-                return a.logicalBox.y < b.logicalBox.y ? a : b;
-            });
-            var minMaxY = topMeasure.logicalBox.y;
-            var pageAdj = (scoreLayout.pages * scoreLayout.pageHeight) - minMaxY;
-            pageAdj = pageAdj + scoreLayout.topMargin;
-            scoreLayout.pages += 1;
-            currentLine.forEach((measure) => {
-                measure.setBox(svgHelpers.boxPoints(
-                    measure.logicalBox.x,measure.logicalBox.y + pageAdj,measure.logicalBox.width,measure.logicalBox.height));
-                measure.setY(measure.staffY + pageAdj);
-            });
+  renderAllMeasures() {
+    const mscore = {};
+    $('.measure-format').remove();
+    const printing = $('body').hasClass('print-render');
+    this.score.staves.forEach((staff) => {
+      staff.measures.forEach((measure) => {
+        if (!mscore[measure.lineIndex]) {
+          mscore[measure.lineIndex] = [];
         }
-    }
+        mscore[measure.lineIndex].push(measure);
+      });
+    });
 
-    layout() {
-        var measureIx = 0;
-        var systemIndex = 0;
-
-        layoutDebug.clearDebugBoxes('pre');
-        layoutDebug.clearDebugBoxes('post');
-        layoutDebug.clearDebugBoxes('adjust');
-        layoutDebug.clearDebugBoxes('system');
-        layoutDebug.clearDebugBoxes('note');
-
-        var svg = this.context.svg;
-        var scoreLayout = this.scaledScoreLayout;
-        scoreLayout.pages = 1;
-
-        var y = scoreLayout.topMargin;
-        var x = scoreLayout.leftMargin;
-        var currentLine = []; // the system we are esimating
-
-        var lineIndex = 0;
-        while (measureIx < this.score.staves[0].measures.length) {
-
-            var measureEstimate = this._estimateColumn(scoreLayout,measureIx,systemIndex,lineIndex,x,y);
-            x = measureEstimate.x;
-
-            if (systemIndex > 0 &&
-                  (measureEstimate.measures[0].getForceSystemBreak() || measureEstimate.x > (scoreLayout.pageWidth - scoreLayout.leftMargin))) {
-
-                  this._justifyY(svg,scoreLayout,measureEstimate,currentLine);
-                  // find the measure with the lowest y extend (greatest y value), not necessarily one with lowest
-                  // start of staff.
-                  var bottomMeasure = currentLine.reduce((a,b) => {
-                      return a.logicalBox.y + a.logicalBox.height > b.logicalBox.y + b.logicalBox.height ? a : b;
-                  });
-
-                  this._checkPageBreak(scoreLayout,currentLine,bottomMeasure);
-
-                  if (layoutDebug.mask & layoutDebug.values.system) {
-                      currentLine.forEach((measure) => {
-                         layoutDebug.debugBox(svg,measure.logicalBox,'system');
-                         layoutDebug.debugBox(svg,svgHelpers.boxPoints(measure.staffX,measure.logicalBox.y,measure.adjX,measure.logicalBox.height),'post');
-                      });
-                  }
-
-                // Now start rendering on the next system.
-                y = bottomMeasure.logicalBox.height + bottomMeasure.logicalBox.y + this.score.layout.interGap;
-                currentLine = [];
-                systemIndex = 0;
-                x = scoreLayout.leftMargin;
-                lineIndex += 1;
-                measureEstimate = this._estimateColumn(scoreLayout,measureIx,systemIndex,lineIndex,x,y);
-                x = measureEstimate.x;
-            }
-
-            measureEstimate.measures.forEach((measure) => {
-               layoutDebug.debugBox(svg,measure.logicalBox,'pre');
-            });
-
-            currentLine = currentLine.concat(measureEstimate.measures);
-            measureIx += 1;
-            systemIndex += 1;
-            // If this is the last measure but we have not filled the x extent,
-            // still justify the vertical staves and check for page break.
-            if (measureIx >= this.score.staves[0].measures.length) {
-                this._justifyY(svg,scoreLayout,measureEstimate,currentLine);
-
-                var bottomMeasure = currentLine.reduce((a,b) => {
-                    return a.logicalBox.y + a.logicalBox.height > b.logicalBox.y + b.logicalBox.height ? a : b;
-                });
-
-                this._checkPageBreak(scoreLayout,currentLine,bottomMeasure);
-            }
+    const keys = Object.keys(mscore);
+    keys.forEach((key) => {
+      const columns = {};
+      const vxSystem = new VxSystem(this.context, 0, parseInt(key, 10), this.score);
+      mscore[key].forEach((measure) => {
+        if (!columns[measure.measureNumber.systemIndex]) {
+          columns[measure.measureNumber.systemIndex] = [];
         }
-        if (scoreLayout.pages != this.score.layout.pages) {
-            this.score.layout.pages = scoreLayout.pages;
-            this.setViewport(true);
+        columns[measure.measureNumber.systemIndex].push(measure);
+      });
+      const colKeys = Object.keys(columns);
+      colKeys.forEach((colKey) => {
+        columns[colKey].forEach((measure) => {
+          vxSystem.renderMeasure(measure, this.measureMapper);
+          const formatIndex = SmoMeasure.formattingOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
+          if (formatIndex >= 0 && !printing) {
+            const at = [];
+            at.push({ y: measure.logicalBox.y - 5 });
+            at.push({ x: measure.logicalBox.x + 25 });
+            at.push({ fontFamily: 'Helvitica' });
+            at.push({ fontSize: '8pt' });
+            svgHelpers.placeSvgText(this.context.svg, at, 'measure-format', '*');
+          }
+        });
+      });
+
+      vxSystem.renderEndings();
+      vxSystem.updateLyricOffsets();
+      this._score.staves.forEach((stf) => {
+        this._renderModifiers(stf, vxSystem);
+      });
+    });
+    this._renderScoreModifiers();
+    this.numberMeasures();
+  }
+
+  // ### _justifyY
+  // when we have finished a line of music, adjust the measures in the system so the
+  // top of the staff lines up.
+  _justifyY(svg, scoreLayout, measureEstimate, currentLine) {
+    let i = 0;
+    // We estimate the staves at the same absolute y value.
+    // Now, move them down so the top of the staves align for all measures in a  row.
+    for (i = 0; i < measureEstimate.measures.length; ++i) {
+      const index = i;
+      const rowAdj = currentLine.filter((mm) => mm.svg.rowInSystem === index);
+      // lowest staff has greatest staffY value.
+      const lowestStaff = rowAdj.reduce((a, b) =>
+        a.staffY > b.staffY ? a : b
+      );
+      const sh = svgHelpers;
+      rowAdj.forEach((measure) => {
+        const adj = lowestStaff.staffY - measure.staffY;
+        measure.setY(measure.staffY + adj);
+        measure.setBox(sh.boxPoints(measure.logicalBox.x, measure.logicalBox.y + adj, measure.logicalBox.width, measure.logicalBox.height));
+      });
+      const rightStaff = rowAdj.reduce((a, b) =>
+        a.staffX + a.staffWidth > b.staffX + b.staffWidth ?  a : b);
+
+      const justifyX = Math.round((scoreLayout.pageWidth - (scoreLayout.leftMargin + scoreLayout.rightMargin + rightStaff.staffX + rightStaff.staffWidth))
+           / rowAdj.length);
+      const ld = layoutDebug;
+      rowAdj.forEach((measure) => {
+        measure.setWidth(measure.staffWidth + justifyX, '_estimateMeasureDimensions justify');
+        const offset = measure.measureNumber.systemIndex * justifyX;
+        measure.setX(measure.staffX + offset);
+        measure.setBox(sh.boxPoints(measure.logicalBox.x + offset, measure.logicalBox.y, measure.staffWidth, measure.logicalBox.height));
+        ld.debugBox(svg, measure.logicalBox, 'adjust');
+      });
+    }
+  }
+
+  // ### _checkPageBreak
+  // See if this line breaks the page boundary
+  _checkPageBreak(scoreLayout, currentLine, bottomMeasure) {
+    let pageAdj = 0;
+    // See if this measure breaks a page.
+    const maxY = bottomMeasure.logicalBox.y +  bottomMeasure.logicalBox.height;
+    if (maxY > (scoreLayout.pages * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
+      // When adjusting the page, make it so the top staff of the system
+      // clears the bottom of the page.
+      const topMeasure = currentLine.reduce((a, b) =>
+        a.logicalBox.y < b.logicalBox.y ? a : b
+      );
+      const minMaxY = topMeasure.logicalBox.y;
+      pageAdj = (scoreLayout.pages * scoreLayout.pageHeight) - minMaxY;
+      pageAdj = pageAdj + scoreLayout.topMargin;
+      scoreLayout.pages += 1;
+      currentLine.forEach((measure) => {
+        measure.setBox(svgHelpers.boxPoints(
+          measure.logicalBox.x, measure.logicalBox.y + pageAdj, measure.logicalBox.width, measure.logicalBox.height));
+        measure.setY(measure.staffY + pageAdj);
+      });
+    }
+  }
+
+  layout() {
+    let measureIx = 0;
+    let systemIndex = 0;
+    let y = 0;
+    let x = 0;
+    let lineIndex = 0;
+    let currentLine = []; // the system we are esimating
+    let measureEstimate = {};
+
+    layoutDebug.clearDebugBoxes('pre');
+    layoutDebug.clearDebugBoxes('post');
+    layoutDebug.clearDebugBoxes('adjust');
+    layoutDebug.clearDebugBoxes('system');
+    layoutDebug.clearDebugBoxes('note');
+    const svg = this.context.svg;
+    const scoreLayout = this.scaledScoreLayout;
+    scoreLayout.pages = 1;
+
+    y = scoreLayout.topMargin;
+    x = scoreLayout.leftMargin;
+
+    while (measureIx < this.score.staves[0].measures.length) {
+      measureEstimate = this._estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, x, y);
+      x = measureEstimate.x;
+
+      if (systemIndex > 0 &&
+        (measureEstimate.measures[0].getForceSystemBreak() || measureEstimate.x > (scoreLayout.pageWidth - scoreLayout.leftMargin))) {
+        this._justifyY(svg, scoreLayout, measureEstimate, currentLine);
+        // find the measure with the lowest y extend (greatest y value), not necessarily one with lowest
+        // start of staff.
+        const bottomMeasure = currentLine.reduce((a, b) =>
+          a.logicalBox.y + a.logicalBox.height > b.logicalBox.y + b.logicalBox.height ? a : b
+        );
+
+        this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
+
+        const ld = layoutDebug;
+        const sh = svgHelpers;
+        if (layoutDebug.mask & layoutDebug.values.system) {
+          currentLine.forEach((measure) => {
+            ld.debugBox(svg, measure.logicalBox, 'system');
+            ld.debugBox(svg, sh.boxPoints(measure.staffX, measure.logicalBox.y, measure.adjX, measure.logicalBox.height), 'post');
+          });
         }
-        this.renderAllMeasures();
+
+        // Now start rendering on the next system.
+        y = bottomMeasure.logicalBox.height + bottomMeasure.logicalBox.y + this.score.layout.interGap;
+        currentLine = [];
+        systemIndex = 0;
+        x = scoreLayout.leftMargin;
+        lineIndex += 1;
+        measureEstimate = this._estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, x, y);
+        x = measureEstimate.x;
+      }
+      // ld declared for lint
+      const ld = layoutDebug;
+      measureEstimate.measures.forEach((measure) => {
+        ld.debugBox(svg, measure.logicalBox, 'pre');
+      });
+
+      currentLine = currentLine.concat(measureEstimate.measures);
+      measureIx += 1;
+      systemIndex += 1;
+      // If this is the last measure but we have not filled the x extent,
+      // still justify the vertical staves and check for page break.
+      if (measureIx >= this.score.staves[0].measures.length) {
+        this._justifyY(svg, scoreLayout, measureEstimate, currentLine);
+        const bottomMeasure = currentLine.reduce((a, b) =>
+          a.logicalBox.y + a.logicalBox.height > b.logicalBox.y + b.logicalBox.height ? a : b
+        );
+        this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
+      }
     }
-
-    // ### _estimateColumns
-    // the new logic to estimate the dimensions of a column of music, corresponding to
-    // a certain measure index.
-    // returns:
-    // {measures,y,x}  the x and y at the left/bottom of the render
-    _estimateColumn(scoreLayout,measureIx,systemIndex,lineIndex,x,y) {
-        var s = {};
-        var measures = this._getMeasuresInColumn(measureIx);
-        var rowInSystem = 0;
-        measures.forEach((measure) => {
-            smoBeamerFactory.applyBeams(measure);
-            var staff = this.score.staves[measure.measureNumber.staffId];
-            measure.measureNumber.systemIndex = systemIndex;
-            measure.svg.rowInSystem = rowInSystem;
-            measure.lineIndex = lineIndex;
-
-            // use measure to left to figure out whether I need to render key signature, etc.
-            // If I am the first measure, just use self and we always render them on the first measure.
-            var measureToLeft = this._measureToLeft(measure);
-            if (!measureToLeft) {
-                measureToLeft = measure;
-            }
-            s.measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
-            s.keySigLast = smoMusic.vexKeySignatureTranspose(measureToLeft.keySignature,measure.transposeIndex);
-            s.tempoLast = measureToLeft.getTempo();
-            s.timeSigLast = measureToLeft.timeSignature;
-            s.clefLast = measureToLeft.clef;
-            this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast,s.tempoLast);
-
-            // calculate vertical offsets from the baseline
-            var offsets = suiLayoutAdjuster.estimateMeasureHeight(measure,this.score.layout);
-            measure.setYTop(offsets.aboveBaseline);
-            measure.setY(y - measure.yTop,'_estimateColumns height');
-            measure.setX(x);
-
-            // Add custom width to measure:
-            measure.setBox(svgHelpers.boxPoints(measure.staffX,y,measure.staffWidth,offsets.belowBaseline-offsets.aboveBaseline));
-            suiLayoutAdjuster.estimateMeasureWidth(measure);
-            y = y + measure.logicalBox.height + scoreLayout.intraGap;
-            rowInSystem += 1;
-        });
-
-        // justify this column to the maximum width
-        var maxMeasure = measures.reduce((a,b) => a.staffX+a.staffWidth > b.staffX+b.staffWidth ? a : b);
-        var maxX = maxMeasure.staffX + maxMeasure.staffWidth;
-        var maxAdjMeasure =measures.reduce((a,b) => a.adjX > b.adjX  ? a  : b);
-        var maxAdj = maxAdjMeasure.adjX;
-        measures.forEach((measure) => {
-            measure.setWidth(measure.staffWidth + (maxX - (measure.staffX + measure.staffWidth)));
-            measure.adjX = maxAdj;
-        });
-        var rv = {measures:measures,y:y,x:maxX};
-        return rv;
+    if (scoreLayout.pages !== this.score.layout.pages) {
+      this.score.layout.pages = scoreLayout.pages;
+      this.setViewport(true);
     }
+    this.renderAllMeasures();
+  }
 
+  // ### _estimateColumns
+  // the new logic to estimate the dimensions of a column of music, corresponding to
+  // a certain measure index.
+  // returns:
+  // {measures,y,x}  the x and y at the left/bottom of the render
+  _estimateColumn(scoreLayout, measureIx, systemIndex, lineIndex, x, y) {
+    const s = {};
+    let measureToLeft = {};
+    const measures = this._getMeasuresInColumn(measureIx);
+    let rowInSystem = 0;
+    measures.forEach((measure) => {
+      smoBeamerFactory.applyBeams(measure);
+      measure.measureNumber.systemIndex = systemIndex;
+      measure.svg.rowInSystem = rowInSystem;
+      measure.lineIndex = lineIndex;
+
+      // use measure to left to figure out whether I need to render key signature, etc.
+      // If I am the first measure, just use self and we always render them on the first measure.
+      measureToLeft = this._measureToLeft(measure);
+      if (!measureToLeft) {
+        measureToLeft = measure;
+      }
+      s.measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
+      s.keySigLast = smoMusic.vexKeySignatureTranspose(measureToLeft.keySignature, measure.transposeIndex);
+      s.tempoLast = measureToLeft.getTempo();
+      s.timeSigLast = measureToLeft.timeSignature;
+      s.clefLast = measureToLeft.clef;
+      this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast, s.tempoLast);
+
+      // calculate vertical offsets from the baseline
+      const offsets = suiLayoutAdjuster.estimateMeasureHeight(measure, this.score.layout);
+      measure.setYTop(offsets.aboveBaseline);
+      measure.setY(y - measure.yTop, '_estimateColumns height');
+      measure.setX(x);
+
+      // Add custom width to measure:
+      measure.setBox(svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline));
+      suiLayoutAdjuster.estimateMeasureWidth(measure);
+      y = y + measure.logicalBox.height + scoreLayout.intraGap;
+      rowInSystem += 1;
+    });
+
+    // justify this column to the maximum width
+    const maxMeasure = measures.reduce((a, b) => a.staffX + a.staffWidth > b.staffX + b.staffWidth ? a : b);
+    const maxX = maxMeasure.staffX + maxMeasure.staffWidth;
+    const maxAdjMeasure = measures.reduce((a, b) => a.adjX > b.adjX  ? a : b);
+    const maxAdj = maxAdjMeasure.adjX;
+    measures.forEach((measure) => {
+      measure.setWidth(measure.staffWidth + (maxX - (measure.staffX + measure.staffWidth)));
+      measure.adjX = maxAdj;
+    });
+    const rv = { measures, y, x: maxX };
+    return rv;
+  }
 }
 ;
 
@@ -5673,7 +5616,7 @@ class SuiTextSession {
   // ### _isRendered
   // renderer has rendered text(promise condition)
   get _isRendered() {
-    return this.layout.passState ===  suiLayoutBase.passStates.clean;
+    return this.layout.passState ===  SuiRenderState.passStates.clean;
   }
 
   _removeScoreText() {
@@ -5772,7 +5715,7 @@ class SuiLyricSession {
   // ### _isRendered
   // renderer has rendered text(promise condition)
   get _isRendered() {
-    return this.layout.passState ===  suiLayoutBase.passStates.clean;
+    return this.layout.passState ===  SuiRenderState.passStates.clean;
   }
 
   get _pendingEditor() {
@@ -6659,7 +6602,7 @@ class suiTracker extends suiMapper {
     return new Promise((resolve) => {
       var f = function() {
         setTimeout(function() {
-          if (self.layout.passState === suiLayoutBase.passStates.clean) {
+          if (self.layout.passState === SuiRenderState.passStates.clean) {
               resolve();
           } else {
               f();
@@ -6680,8 +6623,8 @@ class suiTracker extends suiMapper {
     var preventScroll = $('body').hasClass('modal');
 
   if (r.y != b.y || r.x != b.x) {
-      if (this.layout.passState == suiLayoutBase.passStates.replace ||
-        this.layout.passState == suiLayoutBase.passStates.clean) {
+      if (this.layout.passState == SuiRenderState.passStates.replace ||
+        this.layout.passState == SuiRenderState.passStates.clean) {
         console.log('tracker: rerender conflicting map');
         this.layout.remapAll();
       }
@@ -22021,7 +21964,7 @@ class SmoUndoable {
     var params = suiController.keyBindingDefaults;
     params.eventSource = new browserEventSource(); // events come from the browser UI.
 
-    params.layout = suiScoreLayout.createScoreLayout(document.getElementById(SmoConfig.vexDomContainer),score);
+    params.layout = SuiRenderScore.createScoreRenderer(document.getElementById(SmoConfig.vexDomContainer),score);
     params.eventSource.setRenderElement(params.layout.renderElement);
     params.scroller = new suiScroller();
     params.tracker = new suiTracker(params.layout,params.scroller);
@@ -22032,7 +21975,7 @@ class SmoUndoable {
     if (SmoConfig.menus) {
       params.menus = new suiMenuManager(params);
     }
-    params.layoutDemon = new SuiLayoutDemon(params);
+    params.layoutDemon = new SuiRenderDemon(params);
     var ctor = eval(SmoConfig.controller);
     var controller = new ctor(params);
     if (SmoConfig.menus) {
@@ -22272,8 +22215,8 @@ class suiController {
   }
 
 	get isLayoutQuiet() {
-		return ((this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false)
-		   || this.layout.passState == suiLayoutBase.passStates.replace);
+		return ((this.layout.passState == SuiRenderState.passStates.clean && this.layout.dirty == false)
+		   || this.layout.passState == SuiRenderState.passStates.replace);
 	}
 
 	handleScrollEvent(ev) {
@@ -24675,7 +24618,7 @@ class SuiLayoutDialog extends SuiDialogBase {
     if (this.engravingFontCtrl.changeFlag)  {
       const engrave = this.score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
       engrave.family = this.engravingFontCtrl.getValue();
-      suiLayoutBase.setFont(engrave.family);
+      SuiRenderState.setFont(engrave.family);
     }
     this.layout.setViewport();
   }

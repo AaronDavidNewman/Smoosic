@@ -76,8 +76,8 @@ class suiController {
   }
 
 	get isLayoutQuiet() {
-		return ((this.layout.passState == suiLayoutBase.passStates.clean && this.layout.dirty == false)
-		   || this.layout.passState == suiLayoutBase.passStates.replace);
+		return ((this.layout.passState == SuiRenderState.passStates.clean && this.layout.dirty == false)
+		   || this.layout.passState == SuiRenderState.passStates.replace);
 	}
 
 	handleScrollEvent(ev) {

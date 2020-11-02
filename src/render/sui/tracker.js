@@ -20,7 +20,7 @@ class suiTracker extends suiMapper {
     return new Promise((resolve) => {
       var f = function() {
         setTimeout(function() {
-          if (self.layout.passState === suiLayoutBase.passStates.clean) {
+          if (self.layout.passState === SuiRenderState.passStates.clean) {
               resolve();
           } else {
               f();
@@ -41,8 +41,8 @@ class suiTracker extends suiMapper {
     var preventScroll = $('body').hasClass('modal');
 
   if (r.y != b.y || r.x != b.x) {
-      if (this.layout.passState == suiLayoutBase.passStates.replace ||
-        this.layout.passState == suiLayoutBase.passStates.clean) {
+      if (this.layout.passState == SuiRenderState.passStates.replace ||
+        this.layout.passState == SuiRenderState.passStates.clean) {
         console.log('tracker: rerender conflicting map');
         this.layout.remapAll();
       }

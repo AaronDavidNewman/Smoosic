@@ -305,18 +305,6 @@ class svgHelpers {
       return rv;
   }
 
-  static debugSvgGlyph(glyphCode,fontSize) {
-    var rr = new VF.Renderer($('#boo')[0],VF.Renderer.Backends.SVG);
-    const glyph=new Vex.Flow.Glyph(glyphCode, fontSize);
-    var context = suiLayoutBase._renderer.getContext();
-    $('.debugSvgGlyph').remove();
-    var group = context.openGroup();
-    group.classList.add('debugSvgGlyph');
-    glyph.render(context, 150, 50);
-    context.closeGroup();
-    return svgHelpers.copyBox($('.debugSvgGlyph')[0].getBBox());
-  }
-
   static debugSvgFont(fontFamily,fontSize,str) {
     const xoff = 20;
     const yoff = 50;
