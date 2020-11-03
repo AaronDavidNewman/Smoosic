@@ -126,7 +126,7 @@ class SuiRenderScore extends SuiRenderState {
       }
     }
   }
-  _renderScoreModifiers() {
+  renderScoreModifiers() {
     $(this.renderer.getContext().svg).find('.all-score-text').remove();
     const group = this.context.openGroup();
     group.classList.add('all-score-text');
@@ -234,7 +234,7 @@ class SuiRenderScore extends SuiRenderState {
         this._renderModifiers(stf, vxSystem);
       });
     });
-    this._renderScoreModifiers();
+    this.renderScoreModifiers();
     this.numberMeasures();
   }
 

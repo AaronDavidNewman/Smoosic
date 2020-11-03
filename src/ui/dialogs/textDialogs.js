@@ -767,8 +767,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     }
 
     // Use layout context because render may have reset svg.
-    $(this.layout.context.svg).find('.' + this.modifier.attrs.id).remove();
-    this.layout.renderTextGroup(this.modifier);
+    this.layout.renderScoreModifiers();
   }
 
   constructor(parameters) {

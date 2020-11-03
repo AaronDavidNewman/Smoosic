@@ -173,6 +173,10 @@ class SuiTextEditor {
       } else {
         this._setSelectionToSugggestion();
       }
+      const npos = this.selectionStart + this.selectionLength;
+      if (npos >= 0 && npos <= this.svgText.blocks.length) {
+        this.textPos = npos;
+      }
       this.svgText.render();
     }
     return handled;
