@@ -92,19 +92,19 @@ class SuiRenderState {
         const numAr = [];
         numAr.push({ y: measure.logicalBox.y - 10 });
         numAr.push({ x: measure.logicalBox.x });
-        numAr.push({ fontFamily: 'Helvitica' });
-        numAr.push({ fontSize: '8pt' });
+        numAr.push({ 'font-family': SourceSansProFont.fontFamily });
+        numAr.push({ 'font-size': '10pt' });
         svgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.measureNumber + 1).toString());
 
-        // asterisk measures that were formatted specially in view mode
+        // Show line-feed symbol
         const formatIndex = SmoMeasure.systemOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
         if (formatIndex >= 0 && !printing) {
           const starAr = [];
           starAr.push({ y: measure.logicalBox.y - 5 });
           starAr.push({ x: measure.logicalBox.x + 25 });
-          starAr.push({ fontFamily: 'Helvitica' });
-          starAr.push({ fontSize: '8pt' });
-          svgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', '&#x21b0;');
+          starAr.push({ 'font-family': SourceSansProFont.fontFamily });
+          starAr.push({ 'font-size': '12pt' });
+          svgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', '\u21b0');
         }
       }
     });

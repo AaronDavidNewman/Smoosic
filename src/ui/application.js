@@ -144,7 +144,34 @@ class SuiApplication {
       subscriptOffset: 0.66,
       description: 'Serif screen font from Sorkin Type',
     });
-
+    VF.TextFont.registerFont({
+      name: SourceSansProFont.name,
+      resolution: SourceSansProFont.resolution,
+      glyphs: SourceSansProFont.glyphs,
+      family: SourceSansProFont.fontFamily,
+      serifs: false,
+      monospaced: false,
+      italic: false,
+      bold: false,
+      maxSizeGlyph: 'H',
+      superscriptOffset: 0.66,
+      subscriptOffset: 0.66,
+      description: 'Open source Sans screen font from Adobe',
+    });
+    VF.TextFont.registerFont({
+      name: SourceSerifProFont.name,
+      resolution: SourceSerifProFont.resolution,
+      glyphs: SourceSerifProFont.glyphs,
+      family: SourceSerifProFont.fontFamily,
+      serifs: false,
+      monospaced: false,
+      italic: false,
+      bold: false,
+      maxSizeGlyph: 'H',
+      superscriptOffset: 0.66,
+      subscriptOffset: 0.66,
+      description: 'Open source Serif screen font from Adobe',
+    });
   }
 
   static _nvQueryPair(str) {

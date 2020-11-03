@@ -1,4 +1,16 @@
 const SourceSansProFont = {
+  smufl: false,
+  name: "Sans",
+  spacing: 50,
+  description: "Open-source Sans font from Adobe",
+  serifs: true,
+  monospaced: false,
+  superscriptOffset: 0.66,
+  subscriptOffset: 0.66,
+  maxSizeGlyph: 'H',
+  "fontFamily": "Source Sans Pro",
+  "resolution": 1000,
+  "generatedOn": "2020-11-01T21:31:30.347Z",
   "glyphs": {
     "0": {
       "x_min": 44,
@@ -856,7 +868,4 @@ const SourceSansProFont = {
       "advanceWidth": 497
     }
   },
-  "fontFamily": "Source Sans Pro",
-  "resolution": 1000,
-  "generatedOn": "2020-11-01T21:31:30.347Z"
 };

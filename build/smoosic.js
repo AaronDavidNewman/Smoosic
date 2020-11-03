@@ -1792,11 +1792,8 @@ class svgHelpers {
     if (classes) {
       e.setAttributeNS('', 'class', classes);
     }
-    var dp = new DOMParser();
-    var id = id ? id : 'smootext';
-    var tn = dp.parseFromString('<tspan xmlns="http://www.w3.org/2000/svg" id="'+id+'">'+text+'</tspan>','application/xml');
-    var st = tn.getElementById(id);
-    e.appendChild(st);
+    var tn = document.createTextNode(text);
+    e.appendChild(tn);
     svg.appendChild(e);
     return e;
   }
@@ -2952,19 +2949,19 @@ class SuiRenderState {
         const numAr = [];
         numAr.push({ y: measure.logicalBox.y - 10 });
         numAr.push({ x: measure.logicalBox.x });
-        numAr.push({ fontFamily: 'Helvitica' });
-        numAr.push({ fontSize: '8pt' });
+        numAr.push({ 'font-family': SourceSansProFont.fontFamily });
+        numAr.push({ 'font-size': '10pt' });
         svgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.measureNumber + 1).toString());
 
-        // asterisk measures that were formatted specially in view mode
+        // Show line-feed symbol
         const formatIndex = SmoMeasure.systemOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
         if (formatIndex >= 0 && !printing) {
           const starAr = [];
           starAr.push({ y: measure.logicalBox.y - 5 });
           starAr.push({ x: measure.logicalBox.x + 25 });
-          starAr.push({ fontFamily: 'Helvitica' });
-          starAr.push({ fontSize: '8pt' });
-          svgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', '&#x21b0;');
+          starAr.push({ 'font-family': SourceSansProFont.fontFamily });
+          starAr.push({ 'font-size': '12pt' });
+          svgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', '\u21b0');
         }
       }
     });
@@ -4387,8 +4384,8 @@ class SuiRenderScore extends SuiRenderState {
             const at = [];
             at.push({ y: measure.logicalBox.y - 5 });
             at.push({ x: measure.logicalBox.x + 25 });
-            at.push({ fontFamily: 'Helvitica' });
-            at.push({ fontSize: '8pt' });
+            at.push({ 'font-family': SourceSansProFont.fontFamily });
+            at.push({ 'font-size': '12pt' });
             svgHelpers.placeSvgText(this.context.svg, at, 'measure-format', '*');
           }
         });
@@ -7740,27 +7737,11 @@ class vexGlyph {
     };
   }
 }
-;/* global svgHelpers */
-/* global SmoNote  */
-/* global SmoArticulation  */
-/* global SmoBarline  */
-/* global SmoMeasureText  */
-/* global smoMusic  */
-/* global SmoRepeatSymbol  */
-/* global SmoOrnament  */
-/* global SmoTickTransformer  */
-/* global smoModifierFactory  */
-/* global SmoLyric  */
-/* global Vex  */
-/* global VF  */
-
-// ## Description:
-//   Create a staff and draw music on it usinbg VexFLow rendering engine
-//
-// ###  Options:
-//  `{measure:measure}` - The SMO measure to render
-// ### VxMeasure methods
-// ---
+;// ## Description:
+// This file calls the vexflow routines that actually render a
+// measure of music.  If multiple measures are justified in a
+// column, the rendering is deferred until all the measures have been
+// preformatted.
 // eslint-disable-next-line no-unused-vars
 class VxMeasure {
   constructor(context, options) {
@@ -8172,6 +8153,8 @@ class VxMeasure {
     const tempo = this.smoMeasure.getTempo();
     if (tempo && this.smoMeasure.forceTempo) {
       this.stave.setTempo(tempo.toVexTempo(), -1 * tempo.yOffset);
+      const vexTempo = this.stave.modifiers.find((mod) => mod.attrs.type === 'StaveTempo');
+      vexTempo.font = { family: SourceSerifProFont.fontFamily, size: 14, weight: 'bold' };
     }
   }
 
@@ -8221,7 +8204,8 @@ class VxMeasure {
 
     const staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
 
-    this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - (1 + this.smoMeasure.padLeft));
+    this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - (1 + this.smoMeasure.padLeft),
+      { font: { family: SourceSansProFont.fontFamily, size: '12pt' } });
     if (this.smoMeasure.prevFrame < VxMeasure.fps) {
       this.smoMeasure.prevFrame += 1;
     }
@@ -19316,6 +19300,18 @@ class SmoUndoable {
   "generatedOn": "2020-10-16T18:04:00.805Z"
 };
 ;const SourceSansProFont = {
+  smufl: false,
+  name: "Sans",
+  spacing: 50,
+  description: "Open-source Sans font from Adobe",
+  serifs: true,
+  monospaced: false,
+  superscriptOffset: 0.66,
+  subscriptOffset: 0.66,
+  maxSizeGlyph: 'H',
+  "fontFamily": "Source Sans Pro",
+  "resolution": 1000,
+  "generatedOn": "2020-11-01T21:31:30.347Z",
   "glyphs": {
     "0": {
       "x_min": 44,
@@ -20173,11 +20169,19 @@ class SmoUndoable {
       "advanceWidth": 497
     }
   },
-  "fontFamily": "Source Sans Pro",
-  "resolution": 1000,
-  "generatedOn": "2020-11-01T21:31:30.347Z"
 };
 ;const SourceSerifProFont = {
+  smufl: false,
+  name: "Serif",
+  spacing: 50,
+  description: "Open-source Serif font from Adobe",
+  serifs: true,
+  monospaced: false,
+  superscriptOffset: 0.66,
+  subscriptOffset: 0.66,
+  maxSizeGlyph: 'H',
+  "fontFamily": "Source Serif Pro",
+  "resolution": 1000,
   "glyphs": {
     "0": {
       "x_min": 41,
@@ -21035,8 +21039,6 @@ class SmoUndoable {
       "advanceWidth": 531
     }
   },
-  "fontFamily": "Source Serif Pro",
-  "resolution": 1000,
   "generatedOn": "2020-11-01T21:35:39.674Z"
 };
 ;const TimesFont = {
@@ -22056,7 +22058,34 @@ class SmoUndoable {
       subscriptOffset: 0.66,
       description: 'Serif screen font from Sorkin Type',
     });
-
+    VF.TextFont.registerFont({
+      name: SourceSansProFont.name,
+      resolution: SourceSansProFont.resolution,
+      glyphs: SourceSansProFont.glyphs,
+      family: SourceSansProFont.fontFamily,
+      serifs: false,
+      monospaced: false,
+      italic: false,
+      bold: false,
+      maxSizeGlyph: 'H',
+      superscriptOffset: 0.66,
+      subscriptOffset: 0.66,
+      description: 'Open source Sans screen font from Adobe',
+    });
+    VF.TextFont.registerFont({
+      name: SourceSerifProFont.name,
+      resolution: SourceSerifProFont.resolution,
+      glyphs: SourceSerifProFont.glyphs,
+      family: SourceSerifProFont.fontFamily,
+      serifs: false,
+      monospaced: false,
+      italic: false,
+      bold: false,
+      maxSizeGlyph: 'H',
+      superscriptOffset: 0.66,
+      subscriptOffset: 0.66,
+      description: 'Open source Serif screen font from Adobe',
+    });
   }
 
   static _nvQueryPair(str) {
@@ -23228,6 +23257,8 @@ class SuiFontComponent extends SuiComponentBase {
         options: [
           { label: 'Arial', value: 'Arial' },
           { label: 'Times New Roman', value: 'Times New Roman' },
+          { label: 'Serif', value: SourceSerifProFont.fontFamily },
+          { label: 'Sans', value: SourceSansProFont.fontFamily },
           { label: 'Roboto Slab', value: 'Roboto Slab' },
           { label: 'Petaluma', value: 'Petaluma Script' },
           { label: 'Commissioner', value: 'Commissioner' },

@@ -40,6 +40,44 @@
     font-style: normal;
 }
 
+@font-face {
+    font-family: 'Source Sans Pro', sans-serif;
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSansPro-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Sans Pro', sans-serif;
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSansPro-Bold.woff') format('woff'),
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSansPro-Bold.woff2') format('woff2')
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSerifPro-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Serif Pro';
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSerifPro-Bold.woff') format('woff'),
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSerifPro-Bold.woff2') format('woff2');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'ConcertOne';
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/ConcertOne-Regular.woff2') format('woff2'),
+         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/ConcertOne-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
 body {
 	margin:0;
 	overflow:hidden;

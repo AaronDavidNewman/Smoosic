@@ -419,6 +419,8 @@ class SuiFontComponent extends SuiComponentBase {
         options: [
           { label: 'Arial', value: 'Arial' },
           { label: 'Times New Roman', value: 'Times New Roman' },
+          { label: 'Serif', value: SourceSerifProFont.fontFamily },
+          { label: 'Sans', value: SourceSansProFont.fontFamily },
           { label: 'Roboto Slab', value: 'Roboto Slab' },
           { label: 'Petaluma', value: 'Petaluma Script' },
           { label: 'Commissioner', value: 'Commissioner' },

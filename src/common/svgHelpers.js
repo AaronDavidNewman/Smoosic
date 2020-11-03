@@ -339,11 +339,8 @@ class svgHelpers {
     if (classes) {
       e.setAttributeNS('', 'class', classes);
     }
-    var dp = new DOMParser();
-    var id = id ? id : 'smootext';
-    var tn = dp.parseFromString('<tspan xmlns="http://www.w3.org/2000/svg" id="'+id+'">'+text+'</tspan>','application/xml');
-    var st = tn.getElementById(id);
-    e.appendChild(st);
+    var tn = document.createTextNode(text);
+    e.appendChild(tn);
     svg.appendChild(e);
     return e;
   }

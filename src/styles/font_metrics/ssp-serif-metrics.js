@@ -1,4 +1,15 @@
 const SourceSerifProFont = {
+  smufl: false,
+  name: "Serif",
+  spacing: 50,
+  description: "Open-source Serif font from Adobe",
+  serifs: true,
+  monospaced: false,
+  superscriptOffset: 0.66,
+  subscriptOffset: 0.66,
+  maxSizeGlyph: 'H',
+  "fontFamily": "Source Serif Pro",
+  "resolution": 1000,
   "glyphs": {
     "0": {
       "x_min": 41,
@@ -856,7 +867,5 @@ const SourceSerifProFont = {
       "advanceWidth": 531
     }
   },
-  "fontFamily": "Source Serif Pro",
-  "resolution": 1000,
   "generatedOn": "2020-11-01T21:35:39.674Z"
 };

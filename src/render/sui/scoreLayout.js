@@ -221,8 +221,8 @@ class SuiRenderScore extends SuiRenderState {
             const at = [];
             at.push({ y: measure.logicalBox.y - 5 });
             at.push({ x: measure.logicalBox.x + 25 });
-            at.push({ fontFamily: 'Helvitica' });
-            at.push({ fontSize: '8pt' });
+            at.push({ 'font-family': SourceSansProFont.fontFamily });
+            at.push({ 'font-size': '12pt' });
             svgHelpers.placeSvgText(this.context.svg, at, 'measure-format', '*');
           }
         });

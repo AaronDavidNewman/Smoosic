@@ -1,24 +1,8 @@
-/* global svgHelpers */
-/* global SmoNote  */
-/* global SmoArticulation  */
-/* global SmoBarline  */
-/* global SmoMeasureText  */
-/* global smoMusic  */
-/* global SmoRepeatSymbol  */
-/* global SmoOrnament  */
-/* global SmoTickTransformer  */
-/* global smoModifierFactory  */
-/* global SmoLyric  */
-/* global Vex  */
-/* global VF  */
-
 // ## Description:
-//   Create a staff and draw music on it usinbg VexFLow rendering engine
-//
-// ###  Options:
-//  `{measure:measure}` - The SMO measure to render
-// ### VxMeasure methods
-// ---
+// This file calls the vexflow routines that actually render a
+// measure of music.  If multiple measures are justified in a
+// column, the rendering is deferred until all the measures have been
+// preformatted.
 // eslint-disable-next-line no-unused-vars
 class VxMeasure {
   constructor(context, options) {
@@ -430,6 +414,8 @@ class VxMeasure {
     const tempo = this.smoMeasure.getTempo();
     if (tempo && this.smoMeasure.forceTempo) {
       this.stave.setTempo(tempo.toVexTempo(), -1 * tempo.yOffset);
+      const vexTempo = this.stave.modifiers.find((mod) => mod.attrs.type === 'StaveTempo');
+      vexTempo.font = { family: SourceSerifProFont.fontFamily, size: 14, weight: 'bold' };
     }
   }
 
@@ -479,7 +465,8 @@ class VxMeasure {
 
     const staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
 
-    this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - (1 + this.smoMeasure.padLeft));
+    this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - (1 + this.smoMeasure.padLeft),
+      { font: { family: SourceSansProFont.fontFamily, size: '12pt' } });
     if (this.smoMeasure.prevFrame < VxMeasure.fps) {
       this.smoMeasure.prevFrame += 1;
     }
