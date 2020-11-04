@@ -42,32 +42,32 @@
 
 @font-face {
     font-family: 'Source Sans Pro';
-    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSansPro-Regular.woff') format('woff'),
-         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSansPro-Regular.woff2') format('woff2');
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSansPro-Regular.woff2') format('woff2'),
+         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSansPro-Regular.woff') format('woff');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'Source Sans Pro';
-    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSansPro-Bold.woff') format('woff'),
-         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSansPro-Bold.woff2') format('woff2')
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSansPro-Bold.woff2') format('woff2'),
+         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSansPro-Bold.woff') format('woff')
     font-weight: bold;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'Source Serif Pro';
-    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSerifPro-Regular.woff') format('woff'),
-         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSerifPro-Regular.woff2') format('woff2');
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSerifPro-Regular.woff2') format('woff2'),
+         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSerifPro-Regular.woff') format('woff');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'Source Serif Pro';
-    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSerifPro-Bold.woff') format('woff'),
-         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSerifPro-Bold.woff2') format('woff2');
+    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSerifPro-Bold.woff2') format('woff2'),
+         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSerifPro-Bold.woff') format('woff');
     font-weight: bold;
     font-style: normal;
 }
