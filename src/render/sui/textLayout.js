@@ -84,9 +84,10 @@ class SuiInlineText {
       fontSize: 14,
       startX: 100,
       startY: 100,
-      fontWeight:500,
+      fontWeight: 500,
+      fontStyle: 'normal',
       scale: 1,
-      activeBlock:-1,
+      activeBlock: -1,
       artifacts: [],
       updatedMetrics: false
     };
@@ -96,7 +97,8 @@ class SuiInlineText {
     this.textFont = VF.TextFont.getTextFontFromVexFontData({
       family: this.fontFamily,
       weight: this.fontWeight,
-      size: this.fontSize
+      size: this.fontSize,
+      style: this.fontStyle
     });
   }
   // ### constructor just creates an empty svg
@@ -117,7 +119,9 @@ class SuiInlineText {
   static fromScoreText(scoreText,context) {
     var pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
       : SmoScoreText.fontPointSize(scoreText.fontInfo.size);
-    const params = { fontFamily:scoreText.fontInfo.family,
+    const params = { fontFamily: scoreText.fontInfo.family,
+      fontWeight: scoreText.fontInfo.weight,
+      fontStyle: scoreText.fontInfo.style,
       startX: scoreText.x, startY: scoreText.y,
       fontSize: pointSize, context: context};
     let rv = new SuiInlineText(params);
@@ -423,12 +427,15 @@ class SuiInlineText {
       this.context.setFillStyle('#999');
     }
 
+    // This is how svgcontext expects to get 'style'
+    const weight = this.fontWeight + ',' + this.fontStyle;
+
     if (sp || sub) {
       // y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
       this.context.save();
-      this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio * block.scale, this.fontWeight);
+      this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio * block.scale, weight);
     } else {
-      this.context.setFont(this.fontFamily, this.fontSize * block.scale, this.fontWeight);
+      this.context.setFont(this.fontFamily, this.fontSize * block.scale, weight);
     }
     if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
       this.context.fillText(block.text,block.x,y);

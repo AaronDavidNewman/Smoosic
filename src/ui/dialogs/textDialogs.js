@@ -615,7 +615,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     const fontSize = svgHelpers.getFontSize(this.activeScoreText.fontInfo.size);
     this.fontCtrl.setValue({
       family: fontFamily,
-      size: fontSize
+      size: fontSize,
+      style: this.activeScoreText.fontInfo.style,
+      weight: this.activeScoreText.fontInfo.weight
     });
 
     this.wrapCtrl.setValue(this.activeScoreText.boxModel != SmoScoreText.boxModels.none);
@@ -764,6 +766,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       // transitioning away from non-point-based font size units
       this.activeScoreText.fontInfo.size = '' + fontInfo.size.size + fontInfo.size.unit;
       this.activeScoreText.fontInfo.pointSize = fontInfo.size.size;
+      this.activeScoreText.fontInfo.weight = fontInfo.weight;
+      this.activeScoreText.fontInfo.style = fontInfo.style;
     }
 
     // Use layout context because render may have reset svg.

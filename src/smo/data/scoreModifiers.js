@@ -235,6 +235,21 @@ class SmoScoreText extends SmoScoreModifierBase {
     return rv;
   }
 
+  // ### weightString
+  // Convert a numeric or string weight into either 'bold' or 'normal'
+  static weightString(fontWeight) {
+    let rv = 'normal';
+    if (fontWeight) {
+      const numForm = parseInt(fontWeight, 10);
+      if (isNaN(numForm)) {
+        rv = fontWeight;
+      } else if (numForm > 500) {
+        rv = 'bold';
+      }
+    }
+    return rv;
+  }
+
   static get paginations() {
     return { every: 'every', even: 'even', odd: 'odd', once: 'once', subsequent: 'subsequent' };
   }
@@ -386,5 +401,7 @@ class SmoScoreText extends SmoScoreModifierBase {
         this.fontInfo.size = '.6em';
       }
     }
+    const weight = parameters.fontInfo ? parameters.fontInfo.weight : 'normal';
+    this.fontInfo.weight = SmoScoreText.weightString(weight);
   }
 }

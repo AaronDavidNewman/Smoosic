@@ -6009,9 +6009,10 @@ class SuiInlineText {
       fontSize: 14,
       startX: 100,
       startY: 100,
-      fontWeight:500,
+      fontWeight: 500,
+      fontStyle: 'normal',
       scale: 1,
-      activeBlock:-1,
+      activeBlock: -1,
       artifacts: [],
       updatedMetrics: false
     };
@@ -6021,7 +6022,8 @@ class SuiInlineText {
     this.textFont = VF.TextFont.getTextFontFromVexFontData({
       family: this.fontFamily,
       weight: this.fontWeight,
-      size: this.fontSize
+      size: this.fontSize,
+      style: this.fontStyle
     });
   }
   // ### constructor just creates an empty svg
@@ -6042,7 +6044,9 @@ class SuiInlineText {
   static fromScoreText(scoreText,context) {
     var pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
       : SmoScoreText.fontPointSize(scoreText.fontInfo.size);
-    const params = { fontFamily:scoreText.fontInfo.family,
+    const params = { fontFamily: scoreText.fontInfo.family,
+      fontWeight: scoreText.fontInfo.weight,
+      fontStyle: scoreText.fontInfo.style,
       startX: scoreText.x, startY: scoreText.y,
       fontSize: pointSize, context: context};
     let rv = new SuiInlineText(params);
@@ -6348,12 +6352,15 @@ class SuiInlineText {
       this.context.setFillStyle('#999');
     }
 
+    // This is how svgcontext expects to get 'style'
+    const weight = this.fontWeight + ',' + this.fontStyle;
+
     if (sp || sub) {
       // y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
       this.context.save();
-      this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio * block.scale, this.fontWeight);
+      this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio * block.scale, weight);
     } else {
-      this.context.setFont(this.fontFamily, this.fontSize * block.scale, this.fontWeight);
+      this.context.setFont(this.fontFamily, this.fontSize * block.scale, weight);
     }
     if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
       this.context.fillText(block.text,block.x,y);
@@ -11852,6 +11859,21 @@ class SmoScoreText extends SmoScoreModifierBase {
     return rv;
   }
 
+  // ### weightString
+  // Convert a numeric or string weight into either 'bold' or 'normal'
+  static weightString(fontWeight) {
+    let rv = 'normal';
+    if (fontWeight) {
+      const numForm = parseInt(fontWeight, 10);
+      if (isNaN(numForm)) {
+        rv = fontWeight;
+      } else if (numForm > 500) {
+        rv = 'bold';
+      }
+    }
+    return rv;
+  }
+
   static get paginations() {
     return { every: 'every', even: 'even', odd: 'odd', once: 'once', subsequent: 'subsequent' };
   }
@@ -12003,6 +12025,8 @@ class SmoScoreText extends SmoScoreModifierBase {
         this.fontInfo.size = '.6em';
       }
     }
+    const weight = parameters.fontInfo ? parameters.fontInfo.weight : 'normal';
+    this.fontInfo.weight = SmoScoreText.weightString(weight);
   }
 }
 ;
@@ -23209,6 +23233,7 @@ class SuiDropdownComponent extends SuiComponentBase {
 
 // ### SuiDropdownComposite
 // Dropdown component that can be part of a composite control.
+// eslint-disable-next-line no-unused-vars
 class SuiDropdownComposite extends SuiDropdownComponent {
   constructor(dialog, parameters) {
     super(dialog, parameters);
@@ -23222,7 +23247,10 @@ class SuiDropdownComposite extends SuiDropdownComponent {
   }
 }
 
-class SuiRockerComposite extends SuiRockerComponent {
+// ### SuiButtonComposite
+// Dropdown component that can be part of a composite control.
+// eslint-disable-next-line no-unused-vars
+class SuiToggleComposite extends SuiToggleComponent {
   constructor(dialog, parameters) {
     super(dialog, parameters);
     this.parentControl = parameters.parentControl;
@@ -23236,94 +23264,16 @@ class SuiRockerComposite extends SuiRockerComponent {
 }
 
 // eslint-disable-next-line no-unused-vars
-class SuiFontComponent extends SuiComponentBase {
-  constructor(dialog, parameter) {
-    super(parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
-    }
-    if (!this.dataType) {
-      this.dataType = 'string';
-    }
-    this.dialog = dialog;
-    this.familyPart = new SuiDropdownComposite(this.dialog,
-      {
-        smoName: 'fontFamily',
-        parameterName: 'fontFamily',
-        classes: 'hide-when-editing hide-when-moving',
-        defaultValue: SmoScoreText.fontFamilies.times,
-        control: 'SuiDropdownComponent',
-        label: 'Font Family',
-        startRow: true,
-        parentControl: this,
-        options: [
-          { label: 'Arial', value: 'Arial' },
-          { label: 'Times New Roman', value: 'Times New Roman' },
-          { label: 'Serif', value: SourceSerifProFont.fontFamily },
-          { label: 'Sans', value: SourceSansProFont.fontFamily },
-          { label: 'Roboto Slab', value: 'Roboto Slab' },
-          { label: 'Petaluma', value: 'Petaluma Script' },
-          { label: 'Commissioner', value: 'Commissioner' },
-          { label: 'Concert One', value: 'ConcertOne' },
-          { label: 'Merriweather', value: 'Merriweather' }
-        ]
-      });
-    this.sizePart = new SuiRockerComposite(
-      this.dialog,
-      {
-        smoName: 'fontSize',
-        parameterName: 'fontSize',
-        defaultValue: 1,
-        parentControl: this,
-        classes: 'hide-when-editing hide-when-moving',
-        control: 'SuiRockerComponent',
-        label: 'Font Size',
-        type: 'float',
-        increment: 0.1
-      },
-    );
-  }
-  changed() {
-    this.handleChanged();
+class SuiRockerComposite extends SuiRockerComponent {
+  constructor(dialog, parameters) {
+    super(dialog, parameters);
+    this.parentControl = parameters.parentControl;
   }
 
-  get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
-  }
-
-  get html() {
-    const b = htmlHelpers.buildDom;
-    const q = b('div').classes(this.makeClasses('multiControl smoControl'));
-    q.append(this.familyPart.html);
-    q.append(this.sizePart.html);
-
-    return q;
-  }
-
-  _getInputElement() {
-    var pid = this.parameterId;
-    return $(this.dialog.dgDom.element).find('#' + pid).find('select');
-  }
-  getValue() {
-    return {
-      family: this.familyPart.getValue(),
-      size: {
-        size: this.sizePart.getValue(),
-        unit: 'pt'
-      }
-    };
-  }
-  setValue(value) {
-    this.familyPart.setValue(value.family);
-    this.sizePart.setValue(
-      svgHelpers.convertFont(value.size.size, value.size.unit, 'pt'));
-  }
-
-  bind() {
-    this.familyPart.bind();
-    this.sizePart.bind();
+  handleChanged() {
+    this.changeFlag = true;
+    this.parentControl.changed();
+    this.changeFlag = false;
   }
 }
 
@@ -23588,6 +23538,137 @@ class SuiSaveFileDialog extends SuiFileDialog {
     parameters.ctor='SuiSaveFileDialog';
     super(parameters);
 	}
+}
+;// ## SuiFontComponent
+// Dialog component that lets user choose and customize fonts.
+// eslint-disable-next-line no-unused-vars
+class SuiFontComponent extends SuiComponentBase {
+  constructor(dialog, parameter) {
+    super(parameter);
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+    if (!this.defaultValue) {
+      this.defaultValue = 0;
+    }
+    if (!this.dataType) {
+      this.dataType = 'string';
+    }
+    this.dialog = dialog;
+    this.familyPart = new SuiDropdownComposite(this.dialog,
+      {
+        smoName: 'fontFamily',
+        parameterName: 'fontFamily',
+        classes: 'hide-when-editing hide-when-moving',
+        defaultValue: SmoScoreText.fontFamilies.times,
+        control: 'SuiDropdownComponent',
+        label: 'Font Family',
+        startRow: true,
+        parentControl: this,
+        options: [
+          { label: 'Arial', value: 'Arial' },
+          { label: 'Times New Roman', value: 'Times New Roman' },
+          { label: 'Serif', value: SourceSerifProFont.fontFamily },
+          { label: 'Sans', value: SourceSansProFont.fontFamily },
+          { label: 'Roboto Slab', value: 'Roboto Slab' },
+          { label: 'Petaluma', value: 'Petaluma Script' },
+          { label: 'Commissioner', value: 'Commissioner' },
+          { label: 'Concert One', value: 'ConcertOne' },
+          { label: 'Merriweather', value: 'Merriweather' }
+        ]
+      });
+    this.sizePart = new SuiRockerComposite(
+      this.dialog,
+      {
+        smoName: 'fontSize',
+        parameterName: 'fontSize',
+        defaultValue: 1,
+        parentControl: this,
+        classes: 'hide-when-editing hide-when-moving',
+        control: 'SuiRockerComponent',
+        label: 'Font Size',
+        type: 'float',
+        increment: 0.1
+      },
+    );
+    this.italicsCtrl = new SuiToggleComposite(
+      this.dialog,
+      {
+        smoName: 'italics',
+        parameterName: 'italics',
+        defaultValue: false,
+        parentControl: this,
+        classes: 'hide-when-editing hide-when-moving',
+        control: 'SuiToggleComponent',
+        label: 'Italics'
+      }
+    );
+    this.boldCtrl = new SuiToggleComposite(
+      this.dialog,
+      {
+        smoName: 'bold',
+        parameterName: 'bold',
+        parentControl: this,
+        defaultValue: false,
+        classes: 'hide-when-editing hide-when-moving',
+        control: 'SuiToggleComponent',
+        label: 'Bold'
+      }
+    );
+  }
+  changed() {
+    this.handleChanged();
+  }
+
+  get parameterId() {
+    return this.dialog.id + '-' + this.parameterName;
+  }
+
+  get html() {
+    const b = htmlHelpers.buildDom;
+    const q = b('div').classes(this.makeClasses('multiControl smoControl'));
+    q.append(this.familyPart.html);
+    q.append(this.sizePart.html);
+    q.append(this.boldCtrl.html);
+    q.append(this.italicsCtrl.html);
+
+    return q;
+  }
+
+  _getInputElement() {
+    var pid = this.parameterId;
+    return $(this.dialog.dgDom.element).find('#' + pid).find('select');
+  }
+  getValue() {
+    return {
+      family: this.familyPart.getValue(),
+      size: {
+        size: this.sizePart.getValue(),
+        unit: 'pt'
+      },
+      weight: this.boldCtrl.getValue() ? 'bold' : 'normal',
+      style: this.italicsCtrl.getValue() ? 'italics' : 'normal'
+    };
+  }
+  setValue(value) {
+    let italics = false;
+    if (value.style && value.style === 'italics') {
+      italics = true;
+    }
+    const boldString = SmoScoreText.weightString(value.weight);
+    const bold = boldString === 'bold';
+    this.boldCtrl.setValue(bold);
+    this.italicsCtrl.setValue(italics);
+    this.familyPart.setValue(value.family);
+    this.sizePart.setValue(
+      svgHelpers.convertFont(value.size.size, value.size.unit, 'pt'));
+  }
+
+  bind() {
+    this.familyPart.bind();
+    this.sizePart.bind();
+    this.boldCtrl.bind();
+    this.italicsCtrl.bind();
+  }
 }
 ;// ## measureDialogs.js
 // This file contains dialogs that affect all measures at a certain position,
@@ -26219,7 +26300,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     const fontSize = svgHelpers.getFontSize(this.activeScoreText.fontInfo.size);
     this.fontCtrl.setValue({
       family: fontFamily,
-      size: fontSize
+      size: fontSize,
+      style: this.activeScoreText.fontInfo.style,
+      weight: this.activeScoreText.fontInfo.weight
     });
 
     this.wrapCtrl.setValue(this.activeScoreText.boxModel != SmoScoreText.boxModels.none);
@@ -26368,6 +26451,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       // transitioning away from non-point-based font size units
       this.activeScoreText.fontInfo.size = '' + fontInfo.size.size + fontInfo.size.unit;
       this.activeScoreText.fontInfo.pointSize = fontInfo.size.size;
+      this.activeScoreText.fontInfo.weight = fontInfo.weight;
+      this.activeScoreText.fontInfo.style = fontInfo.style;
     }
 
     // Use layout context because render may have reset svg.
