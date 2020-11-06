@@ -357,7 +357,7 @@ body.showAttributeDialog .attributeDialog {
 }
 .attributeModal .smoControl.multiControl {
   flex: 1 0 100%;
-  flex-flow: row nowrap;
+  flex-flow: row wrap;
 }
 .attributeModal .smoControl.multiControl .smoControl {
   flex-flow: row nowrap;
