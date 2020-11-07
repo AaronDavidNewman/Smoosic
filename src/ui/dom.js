@@ -17,6 +17,12 @@ class SuiDom {
     }, 1000);
   }
 
+  static createAudio() {
+    const audio = document.createElement('audio');
+    audio.src = 'data:autio/mp3,base64,' + encodedCPiano;
+    audio.id = 'audio-middlec';
+    return audio;
+  }
 	static createDom(title) {
     if (title) {
   	  $('h1.testTitle').text(title);
@@ -53,6 +59,7 @@ class SuiDom {
             .append(b('div').classes('musicContainer').attr('id',vexId)
             .attr('dir','ltr')))));
     $('#'+smoId).append(r.dom());
+    $('#' + smoId).append($(SuiDom.createAudio()));
     var pianoDom=$('.piano-keys')[0];
     var svg=document.createElementNS(svgHelpers.namespace,'svg');
     svg.id='piano-svg';

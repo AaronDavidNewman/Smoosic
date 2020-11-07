@@ -42,8 +42,12 @@ class SuiApplication {
     Vex.Merge(config,params);
     window.SmoConfig = config;
     this.registerFonts();
-    this.start();
+    const self = this;
+    suiOscillator.samplePromise().then(() => {
+      self.start();
+    });
   }
+
   // ## createUi
   // ### Description:
   // Convenience constructor, taking a renderElement and a score.

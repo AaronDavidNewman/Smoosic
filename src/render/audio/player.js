@@ -68,6 +68,7 @@ class suiAudioPlayer {
         var rv = [];
         ar.forEach((soundData) => {
             var osc = new suiOscillator({frequency:soundData.frequency,duration:soundData.duration,gain:soundData.gain});
+            // var osc = new suiSampler({frequency:soundData.frequency,duration:soundData.duration,gain:soundData.gain});
             rv.push(osc);
         });
         return rv;
