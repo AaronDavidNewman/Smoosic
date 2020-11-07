@@ -170,6 +170,7 @@ class suiOscillator {
     let duration = 0;
     let i = 0;
     const tempo = measure.getTempo();
+
     const bpm = tempo.bpm;
     const beats = note.tickCount / 4096;
     duration = (beats / bpm) * 60000;
@@ -181,7 +182,7 @@ class suiOscillator {
     }
 
     const ar = [];
-    gain = gain === 0 ?  0.2 : gain;
+    gain = isNaN(gain) ?  0.2 : gain;
     gain = gain / note.pitches.length;
     if (note.noteType === 'r') {
       gain = 0.001;

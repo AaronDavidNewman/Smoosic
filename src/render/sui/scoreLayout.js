@@ -58,6 +58,7 @@ class SuiRenderScore extends SuiRenderState {
   }
 
   renderTextGroup(gg) {
+    let ix = 0;
     if (gg.skipRender) {
       return;
     }
@@ -66,66 +67,21 @@ class SuiRenderScore extends SuiRenderState {
     const group = this.context.openGroup();
     group.id = gg.attrs.id;
 
-    gg.textBlocks.forEach((block) => {
-      this.renderScoreText(block.text);
-      if (typeof(gg.renderedBox.x) === 'undefined') {
-        gg.renderedBox = block.text.renderedBox;
-        gg.logicalBox =  block.text.logicalBox;
-      } else {
-        gg.renderedBox = svgHelpers.unionRect(gg.renderedBox, block.text.renderedBox);
-        gg.logicalBox = svgHelpers.unionRect(gg.logicalBox, block.text.logicalBox);
+    // If this is a per-page score text, get a text group copy for each page.
+    // else the array contains the original.
+    const groupAr = SmoTextGroup.getPagedTextGroups(gg, this.scaledScoreLayout.pages, this.scaledScoreLayout.pageHeight);
+    groupAr.forEach((newGroup) => {
+      const block = SuiTextBlock.fromTextGroup(newGroup, this.renderer.getContext());
+      block.render();
+      if (ix === 0) {
+        gg.renderedBox = JSON.parse(JSON.stringify(block.renderedBox));
+        gg.logicalBox = JSON.parse(JSON.stringify(block.logicalBox));
       }
+      ix += 1;
     });
-    gg.renderedBox.y = gg.renderedBox.y + gg.renderedBox.height;
     this.context.closeGroup();
   }
 
-  renderScoreText(tt) {
-    let i = 0;
-    let boxed = false;
-    const scoreLayout = this.scaledScoreLayout;
-    let text = tt.text.replace('###', 1); /// page number
-    text = text.replace('@@@', scoreLayout.pages); /// page number
-    const args = { svg: this.svg, width: tt.width, height: tt.height, layout: this._score.layout, text };
-    if (tt.pagination === SmoScoreText.paginations.once) {
-      const block = SuiInlineText.fromScoreText(tt, this.context);
-      const blocks = [{ text: block, position: SmoTextGroup.relativePosition.RIGHT }];
-      const svgText = new SuiTextBlock({ blocks, context: this.context });
-      svgText.render();
-      tt.renderedBox = svgText.getRenderedBox();
-      tt.logicalBox = svgText.getLogicalBox();
-    } else {
-      for (i = 0; i < scoreLayout.pages; ++i) {
-        if (tt.pagination === SmoScoreText.paginations.even &&
-          i % 2 > 0) {
-          continue;
-        } else if (tt.pagination === SmoScoreText.paginations.odd &&
-           i % 2 === 0) {
-          continue;
-        } else if (tt.pagination === SmoScoreText.paginations.subsequent
-           && i === 1) {
-          continue;
-        }
-
-        const xx = new SmoScoreText(tt);
-        xx.classes = 'score-text ' + xx.attrs.id;
-        xx.text = xx.text.replace('###', i + 1); /// page number
-        xx.text = xx.text.replace('@@@', scoreLayout.pages); /// page number
-        xx.y += scoreLayout.pageHeight * i;
-        args.text = xx.text;
-        const block = SuiInlineText.fromScoreText(xx, this.context);
-        const blocks = [{ text: block, position: SmoTextGroup.relativePosition.RIGHT }];
-        const svgText = new SuiTextBlock({ blocks, context: this.context });
-        svgText.render();
-        // Base the rendered box on the first instance
-        if (!boxed) {
-          tt.renderedBox = svgText.getRenderedBox();
-          tt.logicalBox = svgText.getLogicalBox();
-          boxed = true;
-        }
-      }
-    }
-  }
   renderScoreModifiers() {
     $(this.renderer.getContext().svg).find('.all-score-text').remove();
     const group = this.context.openGroup();

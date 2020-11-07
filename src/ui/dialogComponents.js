@@ -252,7 +252,7 @@ class SuiButtonComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
     smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'control', 'label', 'additionalClasses'], parameter, this);
+      ['parameterName', 'smoName', 'defaultValue', 'control', 'label', 'additionalClasses', 'icon'], parameter, this);
     if (!this.defaultValue) {
       this.defaultValue = 0;
     }
@@ -261,9 +261,9 @@ class SuiButtonComponent extends SuiComponentBase {
   get html() {
     const b = htmlHelpers.buildDom;
     const id = this.parameterId;
-    const classNames = this.additionalClasses ? this.additionalClasses + ' buttonComponent' : 'buttonComponent';
-    var r = b('div').classes(this.makeClasses('buttonControl smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
-      .append(b('button').attr('type', 'button').classes(classNames)
+    this.icon = typeof(this.icon) === 'undefined' ? '' : this.icon;
+    const r = b('div').classes(this.makeClasses('buttonControl smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
+      .append(b('button').attr('type', 'button').classes(this.icon)
         .attr('id', id + '-input')).append(
         b('label').attr('for', id + '-input').text(this.label));
     return r;

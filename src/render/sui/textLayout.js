@@ -463,10 +463,10 @@ class SuiInlineText {
 // A text block is a set of inline blocks that can be aligned/arranged in different ways.
 class SuiTextBlock {
   static get relativePosition() {
-    return { ABOVE:SmoTextGroup.relativePosition.ABOVE,
-      BELOW: SmoTextGroup.relativePosition.BELOW,
-      LEFT: SmoTextGroup.relativePosition.LEFT,
-      RIGHT: SmoTextGroup.relativePosition.RIGHT
+    return { ABOVE: SmoTextGroup.relativePositions.ABOVE,
+      BELOW: SmoTextGroup.relativePositions.BELOW,
+      LEFT: SmoTextGroup.relativePositions.LEFT,
+      RIGHT: SmoTextGroup.relativePositions.RIGHT
     };
   }
   constructor(params) {
@@ -475,11 +475,9 @@ class SuiTextBlock {
     this.skipRender = false; // used when editing the text
     if (!params.blocks) {
       const inst = new SuiInlineText(params);
-      params.blocks = [{ text: inst, position: SmoTextGroup.relativePosition.RIGHT }];
+      params.blocks = [{ text: inst, position: SmoTextGroup.relativePositions.RIGHT }];
     }
     params.blocks.forEach((block) => {
-      // const position = block.position ? block.position : SmoTextGroup.relativePosition.RIGHT;
-      // const ib = {text:block, position: position};
       if (!this.currentBlock) {
         this.currentBlock = block;
         this.currentBlockIndex = 0;
@@ -577,7 +575,6 @@ class SuiTextBlock {
     return rv;
   }
   static fromTextGroup(tg,context) {
-    var rv = null;
     let blocks = [];
 
     // Create an inline block for each ScoreText
@@ -585,7 +582,9 @@ class SuiTextBlock {
       const st = stBlock.text;
       blocks.push(SuiTextBlock.blockFromScoreText(st,context, stBlock.position));
     });
-    return new SuiTextBlock({blocks: blocks, justification: tg.justification, context: context});
+    const rv = new SuiTextBlock({blocks: blocks, justification: tg.justification, context: context});
+    rv._justify();
+    return rv;
   }
   unrender() {
     this.inlineBlocks.forEach((block) => {
@@ -598,30 +597,59 @@ class SuiTextBlock {
       return;
     }
     var minx = this.inlineBlocks[0].text.startX;
+    var initialX = this.inlineBlocks[0].text.startX;
+    var initialY = this.inlineBlocks[0].text.startY;
     var maxx = 0;
     var maxwidth = 0;
+    var runningWidth = 0;
+    var runningHeight = 0;
     var vert = {};
     var lvl = 0;
+    var hIx = 0;
     this.inlineBlocks.forEach((inlineBlock) => {
       const block = inlineBlock.text;
+      const blockBox = block.getLogicalBox();
+      // If this is a horizontal positioning, reset to startX before
+      // calculating offsets.
+      if (hIx > 0) {
+        block.startX = initialX;
+        block.startY = initialY;
+      }
       minx = block.startX < minx ? block.startX : minx;
-      maxx = (block.startX + block.width) > maxx ? block.startX + block.width : maxx;
-      lvl = inlineBlock.position === SmoTextGroup.relativePosition.ABOVE ? lvl + 1 : lvl;
-      lvl = inlineBlock.position === SmoTextGroup.relativePosition.BELOW ? lvl - 1 : lvl;
+      maxx = (block.startX + blockBox.width) > maxx ? block.startX + blockBox.width : maxx;
+
+      lvl = inlineBlock.position === SmoTextGroup.relativePositions.ABOVE ? lvl + 1 : lvl;
+      lvl = inlineBlock.position === SmoTextGroup.relativePositions.BELOW ? lvl - 1 : lvl;
+      if (inlineBlock.position === SmoTextGroup.relativePositions.RIGHT) {
+        block.startX += runningWidth;
+      }
+      if (inlineBlock.position === SmoTextGroup.relativePositions.LEFT) {
+        block.startX -= (runningWidth + blockBox.width);
+      }
+      if (inlineBlock.position === SmoTextGroup.relativePositions.BELOW) {
+        block.startY += runningHeight;
+      }
+      if (inlineBlock.position === SmoTextGroup.relativePositions.ABOVE) {
+        block.startY -= runningHeight;
+      }
       if (!vert[lvl] ) {
         vert[lvl] = {};
         vert[lvl].blocks = [ block ];
         vert[lvl].minx = block.startX;
-        vert[lvl].maxx = block.startX + block.width;
-        maxwidth = vert[lvl].width = block.width;
+        vert[lvl].maxx = block.startX + blockBox.width;
+        maxwidth = vert[lvl].width = blockBox.width;
       }  else {
         vert[lvl].blocks.push(block);
         vert[lvl].minx = vert[lvl].minx < block.startX ? vert[lvl].minx : block.startX;
-        vert[lvl].maxx = vert[lvl].maxx > (block.startX + block.width) ?
-          vert[lvl].maxx : (block.startX + block.width);
-        vert[lvl].width += block.width;
+        vert[lvl].maxx = vert[lvl].maxx > (block.startX + blockBox.width) ?
+          vert[lvl].maxx : (block.startX + blockBox.width);
+        vert[lvl].width += blockBox.width;
         maxwidth = maxwidth > vert[lvl].width ? maxwidth : vert[lvl].width;
       }
+      runningWidth += blockBox.width;
+      runningHeight += blockBox.height;
+      hIx += 1;
+      block.updatedMetrics = false;
     });
     var levels = Object.keys(vert);
     levels.forEach((level) => {

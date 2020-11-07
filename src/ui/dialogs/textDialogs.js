@@ -548,13 +548,13 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         label:'Justification',
                 startRow:true,
         options: [{
-            value: 'left',
+            value: SmoTextGroup.justifications.LEFT,
             label: 'Left'
           }, {
-            value: 'right',
+            value: SmoTextGroup.justifications.RIGHT,
             label: 'Right'
           }, {
-            value: 'center',
+            value: SmoTextGroup.justifications.CENTER,
             label: 'Center'
           }
         ]
@@ -566,6 +566,38 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         classes: 'hide-when-editing hide-when-moving',
         control:'SuiToggleComponent',
         label: 'Wrap Text'
+      },
+      {
+        smoName: 'relativePosition',
+        parameterName: 'relativePosition',
+        defaultValue: SmoScoreText.justifications.left,
+        classes: 'hide-when-editing hide-when-moving',
+        control: 'SuiDropdownComponent',
+        label:'Block Positions',
+        startRow:true,
+        options: [{
+          value: SmoTextGroup.relativePositions.ABOVE,
+          label: 'Above'
+        }, {
+          value: SmoTextGroup.relativePositions.BELOW,
+          label: 'Below'
+        }, {
+          value: SmoTextGroup.relativePositions.LEFT,
+          label: 'Left'
+        }, {
+          value: SmoTextGroup.relativePositions.RIGHT,
+          label: 'Right'
+        }
+      ]
+      },
+      {
+        smoName: 'addBlock',
+        parameterName: 'addBlock',
+        defaultValue: false,
+        icon: 'icon-plus',
+        classes: 'hide-when-editing hide-when-moving',
+        control:'SuiButtonComponent',
+        label: 'Add Text Block'
       },
       { // {every:'every',even:'even',odd:'odd',once:'once'}
         smoName: 'pagination',
@@ -597,6 +629,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
 
 
+  _setActiveScoreDisplay() {
+
+  }
   display() {
     console.log('text box creationg complete');
     this.textElement=$(this.layout.context.svg).find('.' + this.modifier.attrs.id)[0];
@@ -610,6 +645,13 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     });
     const dbFont = this.fontCtrl.getValue();
 
+    this.relativePositionCtrl.setValue(this.modifier.relativePosition);
+    if (this.modifier.textBlocks.length < 2) {
+      $('#' + this.relativePositionCtrl.parameterId).addClass('hide');
+    } else {
+      $('#' + this.relativePositionCtrl.parameterId).removeClass('hide');
+    }
+
     const fontFamily = this.activeScoreText.fontInfo.family;
     var dbFontUnit  = 'pt';
     const fontSize = svgHelpers.getFontSize(this.activeScoreText.fontInfo.size);
@@ -620,16 +662,18 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       weight: this.activeScoreText.fontInfo.weight
     });
 
+    this.justificationCtrl.setValue(this.modifier.justification);
+
     this.wrapCtrl.setValue(this.activeScoreText.boxModel != SmoScoreText.boxModels.none);
 
     this.paginationsComponent = this.components.find((c) => c.smoName == 'pagination');
-    this.paginationsComponent.setValue(this.activeScoreText.pagination);
+    this.paginationsComponent.setValue(this.modifier.pagination);
 
     this._bindElements();
-    if (!this.activeScoreText.renderedBox) {
+    if (!this.modifier.renderedBox) {
       this.layout.renderTextGroup(this.modifier);
     }
-    this.position(this.activeScoreText.renderedBox);
+    this.position(this.modifier.renderedBox);
     const ul = this.modifier.ul();
     this.xCtrl.setValue(ul.x);
     this.yCtrl.setValue(ul.y);
@@ -671,6 +715,75 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     this.mouseDownHandler = this.eventSource.bindMouseDownHandler(this,'mouseDown');
     this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
   }
+
+  changed() {
+    if (this.insertCodeCtrl.changeFlag && this.textEditorCtrl.session) {
+      const val = this.insertCodeCtrl.getValue().split('');
+      val.forEach((key) => {
+        this.evKey({ key });
+      });
+      this.insertCodeCtrl.unselect();
+    }
+
+    if (this.wrapCtrl.changeFlag) {
+      var boxModel = this.wrapCtrl.getValue() ? SmoScoreText.boxModels.wrap :
+        SmoScoreText.boxModels.none;
+      this.modifier.boxModel = boxModel;
+      if (boxModel ==  SmoScoreText.boxModels.wrap) {
+        this.modifier.scaleX = this.modifier.scaleY = 1.0;
+        this.modifier.translateX = this.modifier.translateY = 1.0;
+        this.modifier.width = this.modifier.logicalBox.width;
+        this.modifier.height = this.modifier.logicalBox.height;
+      }
+    }
+
+    if (this.addBlockCtrl.changeFlag) {
+      const nt = new SmoScoreText(this.activeScoreText);
+      this.modifier.addScoreText(nt);
+      this.activeScoreText = nt;
+    }
+
+    if (this.relativePositionCtrl.changeFlag) {
+      this.modifier.setRelativePosition(parseInt(this.relativePositionCtrl.getValue(), 10));
+    }
+
+    const pos = this.modifier.ul();
+
+    // position can change from drag or by dialog - only update from
+    // dialog entries if that changed.
+    if (this.xCtrl.changeFlag) {
+      this.modifier.offsetX(this.xCtrl.getValue() - pos.x);
+    }
+    if (this.yCtrl.changeFlag) {
+      this.modifier.offsetY(this.yCtrl.getValue() - pos.y);
+    }
+    if (this.textDraggerCtrl.changeFlag) {
+      this.xCtrl.setValue(pos.x);
+      this.yCtrl.setValue(pos.y);
+    }
+
+    if (this.paginationsComponent.changeFlag) {
+      this.activeScoreText.pagination = this.paginationsComponent.getValue();
+    }
+
+    if (this.fontCtrl.changeFlag) {
+      const fontInfo = this.fontCtrl.getValue();
+      this.activeScoreText.fontInfo.family = fontInfo.family;
+      // transitioning away from non-point-based font size units
+      this.activeScoreText.fontInfo.size = '' + fontInfo.size.size + fontInfo.size.unit;
+      this.activeScoreText.fontInfo.pointSize = fontInfo.size.size;
+      this.activeScoreText.fontInfo.weight = fontInfo.weight;
+      this.activeScoreText.fontInfo.style = fontInfo.style;
+    }
+
+    if (this.justificationCtrl.changeFlag) {
+      this.modifier.justification = this.justificationCtrl.getValue();
+    }
+
+    // Use layout context because render may have reset svg.
+    this.layout.renderScoreModifiers();
+  }
+
   // ### handleKeydown
   // allow a dialog to be dismissed by esc.
   evKey(evdata) {
@@ -719,59 +832,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
       this.textDraggerCtrl.mouseDown(ev);
     }
-  }
-  changed() {
-    if (this.insertCodeCtrl.changeFlag && this.textEditorCtrl.session) {
-      const val = this.insertCodeCtrl.getValue().split('');
-      val.forEach((key) => {
-        this.evKey({ key });
-      });
-      this.insertCodeCtrl.unselect();
-    }
-
-    if (this.wrapCtrl.changeFlag) {
-      var boxModel = this.wrapCtrl.getValue() ? SmoScoreText.boxModels.wrap :
-        SmoScoreText.boxModels.none;
-      this.modifier.boxModel = boxModel;
-      if (boxModel ==  SmoScoreText.boxModels.wrap) {
-        this.modifier.scaleX = this.modifier.scaleY = 1.0;
-        this.modifier.translateX = this.modifier.translateY = 1.0;
-        this.modifier.width = this.modifier.logicalBox.width;
-        this.modifier.height = this.modifier.logicalBox.height;
-      }
-    }
-
-    const pos = this.modifier.ul();
-
-    // position can change from drag or by dialog - only update from
-    // dialog entries if that changed.
-    if (this.xCtrl.changeFlag) {
-      this.modifier.offsetX(this.xCtrl.getValue() - pos.x);
-    }
-    if (this.yCtrl.changeFlag) {
-      this.modifier.offsetY(this.yCtrl.getValue() - pos.y);
-    }
-    if (this.textDraggerCtrl.changeFlag) {
-      this.xCtrl.setValue(pos.x);
-      this.yCtrl.setValue(pos.y);
-    }
-
-    if (this.paginationsComponent.changeFlag) {
-      this.activeScoreText.pagination = this.paginationsComponent.getValue();
-    }
-
-    if (this.fontCtrl.changeFlag) {
-      const fontInfo = this.fontCtrl.getValue();
-      this.activeScoreText.fontInfo.family = fontInfo.family;
-      // transitioning away from non-point-based font size units
-      this.activeScoreText.fontInfo.size = '' + fontInfo.size.size + fontInfo.size.unit;
-      this.activeScoreText.fontInfo.pointSize = fontInfo.size.size;
-      this.activeScoreText.fontInfo.weight = fontInfo.weight;
-      this.activeScoreText.fontInfo.style = fontInfo.style;
-    }
-
-    // Use layout context because render may have reset svg.
-    this.layout.renderScoreModifiers();
   }
 
   constructor(parameters) {

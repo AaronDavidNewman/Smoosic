@@ -100,18 +100,48 @@ class SmoTextGroup extends SmoScoreModifierBase {
       CENTER: 3
     };
   }
+  static get paginations() {
+    return { EVERY: 1, EVENT: 2, ODD: 3, ONCE: 4, SUBSEQUENT: 5 };
+  }
+
+  static getPagedTextGroups(tg, pages, pageHeight) {
+    const rv = [];
+    let i = 0;
+    if (tg.pagination === SmoTextGroup.paginations.ONCE) {
+      rv.push(tg);
+      return rv;
+    }
+    for (i = 0; i < pages; ++i) {
+      const ix = i;
+      const ngroup = new SmoTextGroup(
+        { justification: tg.justification, blocks: tg.textBlocks,
+          relativePosition: tg.relativePosition, pagination: tg.pagination });
+      ngroup.textBlocks.forEach((block) => {
+        const xx = block.text;
+        xx.classes = 'score-text ' + xx.attrs.id;
+        xx.text = xx.text.replace('###', ix + 1); /// page number
+        xx.text = xx.text.replace('@@@', pages); /// page number
+        xx.y += pageHeight * ix;
+      });
+      rv.push(ngroup);
+    }
+    return rv;
+  }
+
   // The position of block n relative to block n-1.  Each block
   // has it's own position.  Justification is inter-block.
-  static get relativePosition() {
+  static get relativePositions() {
     return { ABOVE: 1, BELOW: 2, LEFT: 3, RIGHT: 4 };
   }
   static get defaults() {
     return { textBlocks: [],
-      justification: SmoTextGroup.justifications.LEFT
+      justification: SmoTextGroup.justifications.LEFT,
+      relativePosition: SmoTextGroup.relativePositions.RIGHT,
+      pagination: SmoTextGroup.paginations.ONCE
     };
   }
   static get attributes() {
-    return ['textBlocks', 'justification'];
+    return ['textBlocks', 'justification', 'relativePosition'];
   }
   static deserialize(jObj) {
     const blocks = [];
@@ -138,7 +168,7 @@ class SmoTextGroup extends SmoScoreModifierBase {
     if (params.blocks) {
       params.blocks.forEach((block) => {
         if (this._isScoreText(block)) {
-          this.textBlocks.push({ text: block, position: SmoTextGroup.relativePosition.RIGHT });
+          this.textBlocks.push({ text: block, position: SmoTextGroup.relativePositions.RIGHT });
         } else if (this._isScoreText(block.text)) {
           this.textBlocks.push(block);
         } else {
@@ -147,9 +177,18 @@ class SmoTextGroup extends SmoScoreModifierBase {
       });
     }
   }
+  setRelativePosition(position) {
+    this.textBlocks.forEach((block) => {
+      block.position = position;
+    });
+    this.relativePosition = position;
+  }
   addScoreText(scoreText, prevBlock, position) {
     if (!this._isScoreText(scoreText)) {
       throw 'Need SmoScoreText to add to TextGroup';
+    }
+    if (typeof(position) === 'undefined') {
+      position = this.relativePosition;
     }
     if (!prevBlock) {
       this.textBlocks.push({ text: scoreText, position });

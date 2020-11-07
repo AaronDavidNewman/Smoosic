@@ -851,7 +851,7 @@ class SuiTextSession {
         this.scoreText = this.textGroup.textBlocks[0].text;
       } else {
         this.scoreText = new SmoScoreText({ x: this.x, y: this.y });
-        this.textGroup.addScoreText(this.scoreText, null, SmoTextGroup.relativePosition.RIGHT);
+        this.textGroup.addScoreText(this.scoreText, null, SmoTextGroup.relativePositions.RIGHT);
       }
     }
     this.fontFamily = this.scoreText.fontInfo.family;

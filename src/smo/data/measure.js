@@ -782,6 +782,9 @@ class SmoMeasure {
     this.tempo = new SmoTempoText();
   }
   getTempo() {
+    if (typeof(this.tempo) === 'undefined') {
+      this.tempo = new SmoTempoText();
+    }
     return this.tempo;
   }
   addMeasureText(mod) {
