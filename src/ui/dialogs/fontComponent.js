@@ -129,3 +129,175 @@ class SuiFontComponent extends SuiComponentBase {
     this.italicsCtrl.bind();
   }
 }
+
+// eslint-disable-next-line no-unused-vars
+class SuiTextBlockComponent extends SuiComponentBase {
+  constructor(dialog, parameter) {
+    super(parameter);
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+    this.dialog = dialog;
+    this.addBlockCtrl = new SuiButtonComposite(this.dialog,
+      {
+        smoName: 'addBlock',
+        parameterName: 'addBlock',
+        parentControl: this,
+        defaultValue: false,
+        icon: 'icon-plus',
+        classes: 'hide-when-editing hide-when-moving',
+        control: 'SuiButtonComponent',
+        label: 'Add Text Block'
+      });
+
+    this.toggleBlockCtrl = new SuiButtonComposite(this.dialog,
+      {
+        smoName: 'toggleBlock',
+        parameterName: 'toggleBlock',
+        parentControl: this,
+        defaultValue: false,
+        icon: 'icon-arrow-right',
+        classes: 'hide-when-editing hide-when-moving',
+        control: 'SuiButtonComponent',
+        label: 'Next Block'
+      });
+
+    this.removeBlockCtrl = new SuiButtonComposite(this.dialog,
+      {
+        smoName: 'removeBlock',
+        parameterName: 'removeBlock',
+        parentControl: this,
+        defaultValue: false,
+        icon: 'icon-minus',
+        classes: 'hide-when-editing hide-when-moving',
+        control: 'SuiButtonComponent',
+        label: 'Remove Block'
+      });
+    this.relativePositionCtrl = new SuiDropdownComposite(
+      this.dialog,
+      {
+        smoName: 'relativePosition',
+        parameterName: 'relativePosition',
+        parentControl: this,
+        defaultValue: SmoScoreText.justifications.left,
+        classes: 'hide-when-editing hide-when-moving',
+        control: 'SuiDropdownComponent',
+        label: 'Block Positions',
+        startRow: true,
+        options: [{
+          value: SmoTextGroup.relativePositions.ABOVE,
+          label: 'Above'
+        }, {
+          value: SmoTextGroup.relativePositions.BELOW,
+          label: 'Below'
+        }, {
+          value: SmoTextGroup.relativePositions.LEFT,
+          label: 'Left'
+        }, {
+          value: SmoTextGroup.relativePositions.RIGHT,
+          label: 'Right'
+        }]
+      }
+    );
+    this.justificationCtrl = new SuiDropdownComposite(
+      this.dialog,
+      {
+        smoName: 'justification',
+        parameterName: 'justification',
+        parentControl: this,
+        defaultValue: SmoScoreText.justifications.left,
+        classes: 'hide-when-editing hide-when-moving',
+        control: 'SuiDropdownComponent',
+        label: 'Justification',
+        options: [{
+          value: SmoTextGroup.justifications.LEFT,
+          label: 'Left'
+        }, {
+          value: SmoTextGroup.justifications.RIGHT,
+          label: 'Right'
+        }, {
+          value: SmoTextGroup.justifications.CENTER,
+          label: 'Center'
+        }]
+      });
+    this.modifier = this.dialog.modifier;
+    this.activeScoreText = this.dialog.activeScoreText;
+  }
+  changed() {
+    if (this.addBlockCtrl.changeFlag) {
+      const nt = new SmoScoreText(this.activeScoreText);
+      this.modifier.addScoreText(nt);
+      this.activeScoreText = nt;
+      this.modifier.setActiveBlock(nt);
+      this._updateMultiiFields();
+    }
+    if (this.relativePositionCtrl.changeFlag) {
+      this.modifier.setRelativePosition(parseInt(this.relativePositionCtrl.getValue(), 10));
+    }
+    if (this.justificationCtrl.changeFlag) {
+      this.modifier.justification = parseInt(this.justificationCtrl.getValue(), 10);
+    }
+    if (this.removeBlockCtrl.changeFlag) {
+      this.modifier.removeBlock(this.activeScoreText);
+      this.activeScoreText = this.modifier.firstBlock();
+      this._updateMultiiFields();
+    }
+    if (this.toggleBlockCtrl.changeFlag) {
+      const curIx = this.modifier.indexOf(this.activeScoreText);
+      const newIx = (curIx + 1) % this.modifier.textBlocks.length;
+      this.activeScoreText = this.modifier.textBlocks[newIx].text;
+    }
+    this.handleChanged();
+  }
+
+  get parameterId() {
+    return this.dialog.id + '-' + this.parameterName;
+  }
+
+  get html() {
+    const b = htmlHelpers.buildDom;
+    const q = b('div').classes(this.makeClasses('multiControl smoControl'));
+    q.append(this.addBlockCtrl.html);
+    q.append(this.removeBlockCtrl.html);
+    q.append(this.toggleBlockCtrl.html);
+    q.append(this.relativePositionCtrl.html);
+    q.append(this.justificationCtrl.html);
+
+    return q;
+  }
+
+  _getInputElement() {
+    return $(this.dialog.dgDom.element).find('#' + pid);
+  }
+  getValue() {
+    return {
+      activeScoreText: this.activeScoreText,
+      modifier: this.modifier
+    };
+  }
+  _updateMultiiFields() {
+    const fields = [this.justificationCtrl, this.relativePositionCtrl,
+      this.removeBlockCtrl, this.toggleBlockCtrl];
+    fields.forEach((field) => {
+      if (this.modifier.textBlocks.length < 2) {
+        $('#' + field.parameterId).addClass('hide');
+      } else {
+        $('#' + field.parameterId).removeClass('hide');
+      }
+    });
+  }
+  setValue(value) {
+    this.activeScoreText = value.activeScoreText;
+    this.modifier = value.modifier;
+    this.relativePositionCtrl.setValue(this.modifier.relativePosition);
+    this._updateMultiiFields();
+    this.justificationCtrl.setValue(this.modifier.justification);
+  }
+
+  bind() {
+    this.addBlockCtrl.bind();
+    this.relativePositionCtrl.bind();
+    this.justificationCtrl.bind();
+    this.removeBlockCtrl.bind();
+    this.toggleBlockCtrl.bind();
+  }
+}

@@ -59,6 +59,7 @@ class SuiRenderScore extends SuiRenderState {
 
   renderTextGroup(gg) {
     let ix = 0;
+    let jj = 0;
     if (gg.skipRender) {
       return;
     }
@@ -73,9 +74,16 @@ class SuiRenderScore extends SuiRenderState {
     groupAr.forEach((newGroup) => {
       const block = SuiTextBlock.fromTextGroup(newGroup, this.renderer.getContext());
       block.render();
+      // For the first one we render, use that as the bounding box for all the text, for
+      // purposes of mapper/tracker
       if (ix === 0) {
         gg.renderedBox = JSON.parse(JSON.stringify(block.renderedBox));
         gg.logicalBox = JSON.parse(JSON.stringify(block.logicalBox));
+        // map all the child scoreText objects, too.
+        for (jj = 0; jj < gg.textBlocks.length; ++jj) {
+          gg.textBlocks[jj].text.renderedBox = JSON.parse(JSON.stringify(block.inlineBlocks[jj].text.renderedBox));
+          gg.textBlocks[jj].text.logicalBox = JSON.parse(JSON.stringify(block.inlineBlocks[jj].text.logicalBox));
+        }
       }
       ix += 1;
     });

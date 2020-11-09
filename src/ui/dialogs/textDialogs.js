@@ -538,26 +538,14 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         defaultValue: SmoScoreText.fontFamilies.times,
         control: 'SuiFontComponent',
         label:'Font Information'
-      }
-      , {
-        smoName: 'justification',
-        parameterName: 'justification',
-        defaultValue: SmoScoreText.justifications.left,
+      },
+      {
+        smoName: 'textBlock',
+        parameterName: 'textBlock',
         classes: 'hide-when-editing hide-when-moving',
-        control: 'SuiDropdownComponent',
-        label:'Justification',
-                startRow:true,
-        options: [{
-            value: SmoTextGroup.justifications.LEFT,
-            label: 'Left'
-          }, {
-            value: SmoTextGroup.justifications.RIGHT,
-            label: 'Right'
-          }, {
-            value: SmoTextGroup.justifications.CENTER,
-            label: 'Center'
-          }
-        ]
+        defaultValue: '',
+        control: 'SuiTextBlockComponent',
+        label:'Text Block Properties'
       },
       {
         smoName: 'wrap',
@@ -566,38 +554,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         classes: 'hide-when-editing hide-when-moving',
         control:'SuiToggleComponent',
         label: 'Wrap Text'
-      },
-      {
-        smoName: 'relativePosition',
-        parameterName: 'relativePosition',
-        defaultValue: SmoScoreText.justifications.left,
-        classes: 'hide-when-editing hide-when-moving',
-        control: 'SuiDropdownComponent',
-        label:'Block Positions',
-        startRow:true,
-        options: [{
-          value: SmoTextGroup.relativePositions.ABOVE,
-          label: 'Above'
-        }, {
-          value: SmoTextGroup.relativePositions.BELOW,
-          label: 'Below'
-        }, {
-          value: SmoTextGroup.relativePositions.LEFT,
-          label: 'Left'
-        }, {
-          value: SmoTextGroup.relativePositions.RIGHT,
-          label: 'Right'
-        }
-      ]
-      },
-      {
-        smoName: 'addBlock',
-        parameterName: 'addBlock',
-        defaultValue: false,
-        icon: 'icon-plus',
-        classes: 'hide-when-editing hide-when-moving',
-        control:'SuiButtonComponent',
-        label: 'Add Text Block'
       },
       { // {every:'every',even:'even',odd:'odd',once:'once'}
         smoName: 'pagination',
@@ -628,10 +584,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     return SuiTextTransformDialog.dialogElements.find((x) => x.staticText).staticText.find((x) => x[label])[label];
   }
 
-
-  _setActiveScoreDisplay() {
-
-  }
   display() {
     console.log('text box creationg complete');
     this.textElement=$(this.layout.context.svg).find('.' + this.modifier.attrs.id)[0];
@@ -644,13 +596,10 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       component.bind();
     });
     const dbFont = this.fontCtrl.getValue();
-
-    this.relativePositionCtrl.setValue(this.modifier.relativePosition);
-    if (this.modifier.textBlocks.length < 2) {
-      $('#' + this.relativePositionCtrl.parameterId).addClass('hide');
-    } else {
-      $('#' + this.relativePositionCtrl.parameterId).removeClass('hide');
-    }
+    this.textBlockCtrl.setValue({
+      activeScoreText: this.activeScoreText,
+      modifier: this.modifier
+    });
 
     const fontFamily = this.activeScoreText.fontInfo.family;
     var dbFontUnit  = 'pt';
@@ -661,8 +610,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       style: this.activeScoreText.fontInfo.style,
       weight: this.activeScoreText.fontInfo.weight
     });
-
-    this.justificationCtrl.setValue(this.modifier.justification);
 
     this.wrapCtrl.setValue(this.activeScoreText.boxModel != SmoScoreText.boxModels.none);
 
@@ -685,22 +632,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       animateDiv:'.draganime',
       cb: cb,
       moveParent: true
-    });
-    $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
-      if ($(ctrl).hasClass('cbTextInPlace')) {
-       $(ctrl).addClass('fold-textmove');
-       $(ctrl).addClass('fold-textresize');
-      } else if ($(ctrl).hasClass('cbDragTextDialog')) {
-        $(ctrl).addClass('fold-textedit');
-        $(ctrl).addClass('fold-textresize');
-      } else if ($(ctrl).hasClass('cbResizeTextBox')) {
-        $(ctrl).addClass('fold-textedit');
-        $(ctrl).addClass('fold-textmove');
-      } else {
-        $(ctrl).addClass('fold-textedit');
-        $(ctrl).addClass('fold-textmove');
-        $(ctrl).addClass('fold-textresize');
-      }
     });
 
     // If this control has not been edited this session, assume they want to
@@ -737,14 +668,10 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       }
     }
 
-    if (this.addBlockCtrl.changeFlag) {
-      const nt = new SmoScoreText(this.activeScoreText);
-      this.modifier.addScoreText(nt);
-      this.activeScoreText = nt;
-    }
-
-    if (this.relativePositionCtrl.changeFlag) {
-      this.modifier.setRelativePosition(parseInt(this.relativePositionCtrl.getValue(), 10));
+    if (this.textBlockCtrl.changeFlag) {
+      const nval = this.textBlockCtrl.getValue();
+      this.activeScoreText = nval.activeScoreText;
+      this.textEditorCtrl.activeScoreText = this.activeScoreText;
     }
 
     const pos = this.modifier.ul();
@@ -776,9 +703,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       this.activeScoreText.fontInfo.style = fontInfo.style;
     }
 
-    if (this.justificationCtrl.changeFlag) {
-      this.modifier.justification = this.justificationCtrl.getValue();
-    }
 
     // Use layout context because render may have reset svg.
     this.layout.renderScoreModifiers();
@@ -859,6 +783,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     } else if (!parameters.activeScoreText) {
       parameters.activeScoreText = parameters.modifier.textBlocks[0].text;
     }
+    parameters.modifier.setActiveBlock(parameters.activeScoreText);
 
     var scrollPosition = tracker.scroller.absScroll;
     console.log('text ribbon: scroll y is '+scrollPosition.y);
@@ -882,6 +807,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
 
   _complete() {
+    this.modifier.setActiveBlock(null);
     this.tracker.updateMap(); // update the text map
     this.layout.setDirty();
     this.eventSource.unbindMouseDownHandler(this.mouseDownHandler);

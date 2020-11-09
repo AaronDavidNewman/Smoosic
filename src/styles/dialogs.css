@@ -291,6 +291,10 @@ body.showAttributeDialog .attributeDialog {
     display:block;
 }
 
+.attributeModal .hide {
+  display: none!important;
+}
+
 #attr-modal-dialog-dialog-tempo .smoControlContainer select,
 #attr-modal-dialog-dialog-measure .smoControlContainer select {
     margin-left: 70px;
@@ -358,6 +362,8 @@ body.showAttributeDialog .attributeDialog {
 .attributeModal .smoControl.multiControl {
   flex: 1 0 100%;
   flex-flow: row wrap;
+  justify-content: space-around;
+  border: 2px #ddd outset;
 }
 .attributeModal .smoControl.multiControl .smoControl {
   flex-flow: row nowrap;

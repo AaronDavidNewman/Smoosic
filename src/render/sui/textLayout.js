@@ -130,10 +130,6 @@ class SuiInlineText {
     return rv;
   }
 
-  get fontMetrics() {
-    return this;
-  }
-
   static get blockDefaults() {
     return {
       symbolType: SuiInlineText.symbolTypes.TEXT,
@@ -499,6 +495,9 @@ class SuiTextBlock {
     this.logicalBox = null;
     this.inlineBlocks.forEach((block) => {
       block.text.render();
+      if (block.activeText) {
+        this._outlineBox(this.context, block.text.logicalBox);
+      }
       if (!this.renderedBox) {
         this.renderedBox = svgHelpers.smoBox(block.text.renderedBox);
         this.logicalBox = svgHelpers.smoBox(block.text.logicalBox);
@@ -507,6 +506,14 @@ class SuiTextBlock {
         this.logicalBox = svgHelpers.unionRect(this.logicalBox,block.text.logicalBox);
       }
     });
+  }
+  _outlineBox(context, box) {
+    const outlineStroke = SuiTextEditor.strokes['text-highlight'];
+    const obj = {
+      context, box, classes: 'text-drag',
+      outlineStroke, scroller: { netScroll: { x: 0, y: 0 }}
+    };
+    svgHelpers.outlineLogicalRect(obj);
   }
 
   offsetStartX(offset) {
@@ -580,9 +587,11 @@ class SuiTextBlock {
     // Create an inline block for each ScoreText
     tg.textBlocks.forEach((stBlock) => {
       const st = stBlock.text;
-      blocks.push(SuiTextBlock.blockFromScoreText(st,context, stBlock.position));
+      const newText = SuiTextBlock.blockFromScoreText(st,context, stBlock.position);
+      newText.activeText = stBlock.activeText;
+      blocks.push(newText);
     });
-    const rv = new SuiTextBlock({blocks: blocks, justification: tg.justification, context: context});
+    const rv = new SuiTextBlock({ blocks: blocks, justification: tg.justification, context: context });
     rv._justify();
     return rv;
   }
@@ -624,7 +633,10 @@ class SuiTextBlock {
         block.startX += runningWidth;
       }
       if (inlineBlock.position === SmoTextGroup.relativePositions.LEFT) {
-        block.startX -= (runningWidth + blockBox.width);
+        if (hIx > 0) {
+          block.startX = minx - blockBox.width;
+          minx = block.startX;
+        }
       }
       if (inlineBlock.position === SmoTextGroup.relativePositions.BELOW) {
         block.startY += runningHeight;

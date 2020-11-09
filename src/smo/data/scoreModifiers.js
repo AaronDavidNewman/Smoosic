@@ -177,11 +177,28 @@ class SmoTextGroup extends SmoScoreModifierBase {
       });
     }
   }
+  // ### setActiveBlock
+  // let the UI know which block is being edited.  Parameter null means reset all
+  setActiveBlock(scoreText) {
+    this.textBlocks.forEach((block) => {
+      if (scoreText != null && block.text.attrs.id === scoreText.attrs.id) {
+        block.activeText = true;
+      } else {
+        block.activeText = false;
+      }
+    });
+  }
   setRelativePosition(position) {
     this.textBlocks.forEach((block) => {
       block.position = position;
     });
     this.relativePosition = position;
+  }
+  firstBlock() {
+    return this.textBlocks[0].text;
+  }
+  indexOf(scoreText) {
+    return this.textBlocks.findIndex((block) => block.text.attrs.id === scoreText.attrs.id);
   }
   addScoreText(scoreText, prevBlock, position) {
     if (!this._isScoreText(scoreText)) {
@@ -211,7 +228,7 @@ class SmoTextGroup extends SmoScoreModifierBase {
       throw 'Need SmoScoreText to add to TextGroup';
     }
     const bbid = (typeof(scoreText) === 'string') ? scoreText : scoreText.attrs.id;
-    const ix = this.textBlocks.findIndex((bb) => bb.attrs.id === bbid);
+    const ix = this.textBlocks.findIndex((bb) => bb.text.attrs.id === bbid);
     this.textBlocks.splice(ix, 1);
   }
   offsetX(offset) {

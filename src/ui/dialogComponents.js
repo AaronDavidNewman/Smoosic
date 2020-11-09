@@ -381,10 +381,26 @@ class SuiDropdownComposite extends SuiDropdownComponent {
   }
 }
 
-// ### SuiButtonComposite
+// ### SuiToggleComposite
 // Dropdown component that can be part of a composite control.
 // eslint-disable-next-line no-unused-vars
 class SuiToggleComposite extends SuiToggleComponent {
+  constructor(dialog, parameters) {
+    super(dialog, parameters);
+    this.parentControl = parameters.parentControl;
+  }
+
+  handleChanged() {
+    this.changeFlag = true;
+    this.parentControl.changed();
+    this.changeFlag = false;
+  }
+}
+
+// ### SuiButtonComposite
+// Dropdown component that can be part of a composite control.
+// eslint-disable-next-line no-unused-vars
+class SuiButtonComposite extends SuiButtonComponent {
   constructor(dialog, parameters) {
     super(dialog, parameters);
     this.parentControl = parameters.parentControl;

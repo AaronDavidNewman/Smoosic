@@ -117,6 +117,8 @@ class SuiTextInPlace extends SuiComponentBase {
     var button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
     this.session.startSession();
+    // blur the button so key events don't get passed to it.
+    $(this._getInputElement()).blur();
   }
   evKey(evdata) {
     if (this.session) {
@@ -238,7 +240,6 @@ class SuiLyricComponent extends SuiNoteTextComponent {
           .attr('id', id + '-toggleInput').append(
           b('span').classes('icon icon-pencil'))).append(
           b('label').attr('for', id + '-toggleInput').text(this.label)))
-
       .append(b('div').classes('show-when-editing')
         .append(b('span')
           .append(
