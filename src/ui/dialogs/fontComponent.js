@@ -245,6 +245,7 @@ class SuiTextBlockComponent extends SuiComponentBase {
       const curIx = this.modifier.indexOf(this.activeScoreText);
       const newIx = (curIx + 1) % this.modifier.textBlocks.length;
       this.activeScoreText = this.modifier.textBlocks[newIx].text;
+      this.modifier.setActiveBlock(this.activeScoreText);
     }
     this.handleChanged();
   }

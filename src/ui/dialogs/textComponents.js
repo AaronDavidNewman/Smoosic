@@ -94,14 +94,37 @@ class SuiTextInPlace extends SuiComponentBase {
       this.session.handleMouseEvent(ev);
     }
   }
+  _renderInactiveBlocks() {
+    const modifier = this.dialog.modifier;
+    const context = this.dialog.layout.context;
+    context.save();
+    context.setFillStyle('#ddd');
+    modifier.textBlocks.forEach((block) => {
+      const st = block.text;
+      if (st.attrs.id !== this.activeScoreText.attrs.id) {
+        const svgText = SuiInlineText.fromScoreText(st, context);
+        if (st.logicalBox) {
+          svgText.startX += st.logicalBox.x - st.x;
+          svgText.startY += (st.y - st.logicalBox.y) - st.logicalBox.height / 2;
+        }
+        const sgrp = context.openGroup();
+        sgrp.classList.add('inactive-text');
+        sgrp.classList.add('suiInlineText');
+        svgText.render();
+        context.closeGroup();
+      }
+    });
+    context.restore();
+  }
   startEditSession() {
     var self=this;
     $(this._getInputElement()).find('label').text(this.altLabel);
     var modifier = this.dialog.modifier;
     modifier.skipRender = true;
     $(this.dialog.context.svg).find('#'+modifier.attrs.id).remove();
-
+    this._renderInactiveBlocks();
     const ul = modifier.ul();
+
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiTextSession({context : this.dialog.layout.context,
       scroller: this.dialog.tracker.scroller,

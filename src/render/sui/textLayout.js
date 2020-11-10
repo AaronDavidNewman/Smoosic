@@ -89,6 +89,7 @@ class SuiInlineText {
       scale: 1,
       activeBlock: -1,
       artifacts: [],
+      classes: '',
       updatedMetrics: false
     };
   }
@@ -123,7 +124,7 @@ class SuiInlineText {
       fontWeight: scoreText.fontInfo.weight,
       fontStyle: scoreText.fontInfo.style,
       startX: scoreText.x, startY: scoreText.y,
-      fontSize: pointSize, context: context};
+      fontSize: pointSize, context: context };
     let rv = new SuiInlineText(params);
     rv.attrs.id = scoreText.attrs.id;
     rv.addTextBlockAt(0, { text: scoreText.text});
