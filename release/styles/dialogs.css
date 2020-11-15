@@ -11,7 +11,7 @@
 	z-index:11;
 }
 
-.show-when-editing {
+body .attributeModal .show-when-editing {
   display:none;
 }
 
@@ -43,6 +43,9 @@ body.text-edit .show-always div.controlDiv span {
   margin:5px;
 }
 
+body.text-edit .show-always {
+  flex: 1 0 100%;
+}
 body.text-resize .textEdit {
   resize: both;
 }
@@ -288,6 +291,10 @@ body.showAttributeDialog .attributeDialog {
     display:block;
 }
 
+.attributeModal .hide {
+  display: none!important;
+}
+
 #attr-modal-dialog-dialog-tempo .smoControlContainer select,
 #attr-modal-dialog-dialog-measure .smoControlContainer select {
     margin-left: 70px;
@@ -352,8 +359,18 @@ body.showAttributeDialog .attributeDialog {
     display:flex;
     flex-flow: row wrap;
 }
-
+.attributeModal .smoControl.multiControl {
+  flex: 1 0 100%;
+  flex-flow: row wrap;
+  justify-content: space-around;
+  border: 2px #ddd outset;
+}
+.attributeModal .smoControl.multiControl .smoControl {
+  flex-flow: row nowrap;
+}
 .attributeModal .smoControl {
+  display:flex;
+  flex-flow: row wrap;
 	margin-top:5px;
 	margin-bottom:5px;
 }

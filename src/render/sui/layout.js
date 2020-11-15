@@ -417,13 +417,15 @@ class SuiRenderState {
     let testNote = null;
     let vxStart = null;
     let vxEnd = null;
+    const removedModifiers = [];
     staff.modifiers.forEach((modifier) => {
       const startNote = SmoSelection.noteSelection(this._score,
         modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
       const endNote = SmoSelection.noteSelection(this._score,
         modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
       if (!startNote || !endNote) {
-        console.log('missing modifier...');
+        // If the modifier doesn't have score endpoints, delete it from the score
+        removedModifiers.push(modifier);
         return;
       }
 
@@ -464,6 +466,9 @@ class SuiRenderState {
       }
       modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd, startNote, endNote);
       modifier.logicalBox = svgHelpers.clientToLogical(svg, modifier.renderedBox);
+    });
+    removedModifiers.forEach((mod) => {
+      staff.removeStaffModifier(mod);
     });
   }
 

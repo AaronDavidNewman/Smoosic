@@ -2281,8 +2281,8 @@ class TextTest {
     var tg1 = new SmoScoreText({text:'My Song',x:500,y:30});
     var tg2 = new SmoScoreText({text:'Below My Song',x:240,y:30});
     var tg = new SmoTextGroup({blocks: [
-      {text: tg1,position: SmoTextGroup.relativePosition.LEFT},
-      {text: tg2,position: SmoTextGroup.relativePosition.BELOW}
+      {text: tg1,position: SmoTextGroup.relativePositions.LEFT},
+      {text: tg2,position: SmoTextGroup.relativePositions.BELOW}
     ], justification: SmoTextGroup.justifications.LEFT } );
 		var mt=new SmoMeasureText({position:SmoMeasureText.positions.left,text:'Measure Text'});
 		var delay=250;

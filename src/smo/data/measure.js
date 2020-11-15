@@ -54,7 +54,7 @@ class SmoMeasure {
       'measureNumber',
       'activeVoice', 'clef', 'transposeIndex',
       'adjX', 'customStretch', 'customProportion', 'padLeft', 'padRight', 'rightMargin',
-      'formatIterations', 'autoJustify'
+      'formattingIterations', 'autoJustify'
     ];
   }
 

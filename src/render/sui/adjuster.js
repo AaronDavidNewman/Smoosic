@@ -3,26 +3,28 @@
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
 class suiLayoutAdjuster {
 
-	static estimateMusicWidth(smoMeasure) {
-		var widths = [];
+  static estimateMusicWidth(smoMeasure) {
+    var widths = [];
     var voiceIx = 0;
     var tmObj = smoMeasure.createMeasureTickmaps();
-		smoMeasure.voices.forEach((voice) => {
-			var tickIndex = 0;
+    smoMeasure.voices.forEach((voice) => {
+      var tickIndex = 0;
       var width = 0;
       var duration = 0;
       var tm = tmObj.tickmaps[voiceIx];
 
-			voice.notes.forEach((note) => {
+      voice.notes.forEach((note) => {
         var tuplet = smoMeasure.getTupletForNote(note);
         if (tuplet && tuplet.notes[0].attrs.id === note.attrs.id) {
           // width += vexGlyph.tupletBeam.width + vexGlyph.tupletBeam.spacingRight;
         }
         var noteWidth = 0;
         var dots = (note.dots ? note.dots : 0);
-				noteWidth += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight;
-				noteWidth += vexGlyph.dimensions.dot.width * dots + vexGlyph.dimensions.dot.spacingRight * dots;
-				note.pitches.forEach((pitch) => {
+        noteWidth += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight;
+        // TODO: Consider engraving font and adjust grace note size?
+        noteWidth += (vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight) * note.graceNotes.length;
+        noteWidth += vexGlyph.dimensions.dot.width * dots + vexGlyph.dimensions.dot.spacingRight * dots;
+        note.pitches.forEach((pitch) => {
           var keyAccidental = smoMusic.getAccidentalForKeySignature(pitch,smoMeasure.keySignature);
           var accidentals = tmObj.accidentalArray.filter((ar) =>
               ar.duration < duration && ar.pitches[pitch.letter]);
@@ -32,9 +34,9 @@ class suiLayoutAdjuster {
 
           if (declared != pitch.accidental
               || pitch.cautionary) {
-					noteWidth += vexGlyph.accidental(pitch.accidental).width;
-				}
-			});
+          noteWidth += vexGlyph.accidental(pitch.accidental).width;
+        }
+      });
 
       var verse = 0;
       var lyric;
@@ -50,77 +52,77 @@ class suiLayoutAdjuster {
           verse += 1;
         }
 
-  			tickIndex += 1;
+        tickIndex += 1;
         duration += note.tickCount;
         width += noteWidth;
-		  });
+      });
       voiceIx += 1;
       widths.push(width);
-		});
+    });
     widths.sort((a,b) => a > b ? -1 : 1);
-		return widths[0];
-	}
+    return widths[0];
+  }
 
-	static estimateStartSymbolWidth(smoMeasure) {
-		var width = 0;
-		if (smoMeasure.forceKeySignature) {
-			if ( smoMeasure.canceledKeySignature) {
-			    width += vexGlyph.keySignatureLength(smoMeasure.canceledKeySignature);
-			}
+  static estimateStartSymbolWidth(smoMeasure) {
+    var width = 0;
+    if (smoMeasure.forceKeySignature) {
+      if ( smoMeasure.canceledKeySignature) {
+          width += vexGlyph.keySignatureLength(smoMeasure.canceledKeySignature);
+      }
             width += vexGlyph.keySignatureLength(smoMeasure.keySignature);
-		}
-		if (smoMeasure.forceClef) {
-			width += vexGlyph.clef(smoMeasure.clef).width + vexGlyph.clef(smoMeasure.clef).spacingRight;
-		}
-		if (smoMeasure.forceTimeSignature) {
+    }
+    if (smoMeasure.forceClef) {
+      width += vexGlyph.clef(smoMeasure.clef).width + vexGlyph.clef(smoMeasure.clef).spacingRight;
+    }
+    if (smoMeasure.forceTimeSignature) {
             var digits = smoMeasure.timeSignature.split('/')[0].length;
-			width += vexGlyph.dimensions.timeSignature.width*digits + vexGlyph.dimensions.timeSignature.spacingRight;
-		}
-		var starts = smoMeasure.getStartBarline();
-		if (starts) {
-			width += vexGlyph.barWidth(starts);
-		}
-		return width;
-	}
+      width += vexGlyph.dimensions.timeSignature.width*digits + vexGlyph.dimensions.timeSignature.spacingRight;
+    }
+    var starts = smoMeasure.getStartBarline();
+    if (starts) {
+      width += vexGlyph.barWidth(starts);
+    }
+    return width;
+  }
 
-	static estimateEndSymbolWidth(smoMeasure) {
-		var width = 0;
-		var ends  = smoMeasure.getEndBarline();
-		if (ends) {
-			width += vexGlyph.barWidth(ends);
-		}
-		return width;
-	}
+  static estimateEndSymbolWidth(smoMeasure) {
+    var width = 0;
+    var ends  = smoMeasure.getEndBarline();
+    if (ends) {
+      width += vexGlyph.barWidth(ends);
+    }
+    return width;
+  }
 
 
-	static estimateTextOffset(renderer,smoMeasure) {
-		var leftText = smoMeasure.modifiers.filter((mm) => mm.ctor==='SmoMeasureText' && mm.position === SmoMeasureText.positions.left);
-		var rightText = smoMeasure.modifiers.filter((mm) => mm.ctor==='SmoMeasureText' && mm.position === SmoMeasureText.positions.right);
-		var svg = renderer.getContext().svg;
-		var xoff=0;
-		var width=0;
-		leftText.forEach((tt) => {
-    		var testText = new SmoScoreText({text:tt.text});
-    		var box = svgHelpers.getTextBox(svg,testText.toSvgAttributes(),testText.classes,testText.text);
-			xoff += box.width;
-		});
-		rightText.forEach((tt) => {
-    		var testText = new SmoScoreText({text:tt.text});
-			var box = svgHelpers.getTextBox(svg,testText.toSvgAttributes(),testText.classes,testText.text);
-			width += box.width;
-		});
-		return svgHelpers.boxPoints(xoff,0,width,0);
-	}
+  static estimateTextOffset(renderer,smoMeasure) {
+    var leftText = smoMeasure.modifiers.filter((mm) => mm.ctor==='SmoMeasureText' && mm.position === SmoMeasureText.positions.left);
+    var rightText = smoMeasure.modifiers.filter((mm) => mm.ctor==='SmoMeasureText' && mm.position === SmoMeasureText.positions.right);
+    var svg = renderer.getContext().svg;
+    var xoff=0;
+    var width=0;
+    leftText.forEach((tt) => {
+        var testText = new SmoScoreText({text:tt.text});
+        var box = svgHelpers.getTextBox(svg,testText.toSvgAttributes(),testText.classes,testText.text);
+      xoff += box.width;
+    });
+    rightText.forEach((tt) => {
+        var testText = new SmoScoreText({text:tt.text});
+      var box = svgHelpers.getTextBox(svg,testText.toSvgAttributes(),testText.classes,testText.text);
+      width += box.width;
+    });
+    return svgHelpers.boxPoints(xoff,0,width,0);
+  }
 
-	static estimateMeasureWidth(measure) {
+  static estimateMeasureWidth(measure) {
 
-		// Calculate the existing staff width, based on the notes and what we expect to be rendered.
+    // Calculate the existing staff width, based on the notes and what we expect to be rendered.
   var gravity = false;
   var prevWidth = measure.staffWidth;
-	var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
-	measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
-	measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
-	measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
+  var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
+  measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
+  measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
+  measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
   if (measure.changed == false && measure.logicalBox && measure.staffWidth < prevWidth) {
     measureWidth = Math.round((measure.staffWidth + prevWidth)/2);
     gravity = true;
@@ -128,12 +130,12 @@ class suiLayoutAdjuster {
   var y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
   measure.setWidth(measureWidth,'estimateMeasureWidth adjX adjRight gravity: '+gravity);
 
-		// Calculate the space for left/right text which displaces the measure.
-		// var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
-		// measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
+    // Calculate the space for left/right text which displaces the measure.
+    // var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
+    // measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
     measure.setBox(svgHelpers.boxPoints(measure.staffX,y,measure.staffWidth,measure.logicalBox.height),
        'estimate measure width');
-	}
+  }
   static _beamGroupForNote(measure,note) {
     var rv = null;
     if (!note.beam_group) {

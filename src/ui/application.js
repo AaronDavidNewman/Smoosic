@@ -42,10 +42,12 @@ class SuiApplication {
     Vex.Merge(config,params);
     window.SmoConfig = config;
     this.registerFonts();
-    const self = this;
-    suiOscillator.samplePromise().then(() => {
-      self.start();
-    });
+    this.start();
+    // const self = this;
+    // Sample-based playback, experimental
+    // suiOscillator.samplePromise().then(() => {
+    //   self.start();
+    // });
   }
 
   // ## createUi

@@ -311,7 +311,8 @@ class SmoLyric extends SmoNoteModifierBase {
       translateX: 0,
       translateY: 0,
       symbolBlocks: [],
-      adjustNoteWidth: true,
+      adjustNoteWidthLyric: true,
+      adjustNoteWidthChord: false,
       parser: SmoLyric.parsers.lyric
     };
   }
@@ -336,7 +337,8 @@ class SmoLyric extends SmoNoteModifierBase {
   }
 
   static get parameterArray() {
-    return ['endChar', 'fontInfo', 'classes', 'verse', 'parser', 'adjustNoteWidth',
+    return ['endChar', 'fontInfo', 'classes', 'verse', 'parser', 'adjustNoteWidthLyric',
+      'adjustNoteWidthChord',
       'fill', 'scaleX', 'scaleY', 'translateX', 'translateY', 'ctor', '_text'];
   }
   serialize() {
@@ -344,6 +346,18 @@ class SmoLyric extends SmoNoteModifierBase {
     smoSerialize.serializedMergeNonDefault(SmoLyric.defaults,
       SmoLyric.parameterArray, this, params);
     return params;
+  }
+  // For lyrics, we default to adjust note width on lyric size.  For chords, this is almost never what
+  // you want, so it is off by default.
+  get adjustNoteWidth() {
+    return (this.parser === SmoLyric.parsers.lyric) ? this.adjustNoteWidthLyric : this.adjustNoteWidthChord;
+  }
+  set adjustNoteWidth(val) {
+    if (this.parser === SmoLyric.parsers.lyric) {
+      this.adjustNoteWidthLyric = val;
+    } else {
+      this.adjustNoteWidthChord = val;
+    }
   }
 
   // ### getClassSelector
@@ -427,6 +441,7 @@ class SmoLyric extends SmoNoteModifierBase {
     super('SmoLyric');
     smoSerialize.serializedMerge(SmoLyric.parameterArray, SmoLyric.defaults, this);
     smoSerialize.serializedMerge(SmoLyric.parameterArray, parameters, this);
+
     this.skipRender = false;
 
     // backwards-compatibility for lyric text
