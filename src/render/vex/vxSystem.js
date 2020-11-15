@@ -125,10 +125,12 @@ class VxSystem {
       lyrics.forEach((lyric) => {
         lyric.adjY = Math.round(verseLimits[lyric.verse].bottom - lyric.logicalBox.y);
         const dom = $(this.context.svg).find(lyric.selector)[0];
-        dom.setAttributeNS('', 'transform', 'translate(' + lyric.adjX + ' ' + lyric.adjY + ')');
-        // Keep track of lyrics that are 'dash'
-        if (lyric.getText().trim() === '-') {
-          lyricsDash.push(lyric);
+        if (typeof(dom) !== 'undefined') {
+          dom.setAttributeNS('', 'transform', 'translate(' + lyric.adjX + ' ' + lyric.adjY + ')');
+          // Keep track of lyrics that are 'dash'
+          if (lyric.getText().trim() === '-') {
+            lyricsDash.push(lyric);
+          }
         }
       });
 
@@ -287,7 +289,7 @@ class VxSystem {
       this.vxMeasures.forEach((vv) => {
         if (!vv.rendered) {
           const systemGroup = this.score.getSystemGroupForStaff(vv.selection);
-          const justifyGroup = systemGroup ? systemGroup.attrs.id : vv.selection.staff.attrs.id;
+          const justifyGroup = (systemGroup && vv.smoMeasure.getAutoJustify()) ? systemGroup.attrs.id : vv.selection.staff.attrs.id;
           if (!smoGroupMap[justifyGroup]) {
             smoGroupMap[justifyGroup] = { firstMeasure: vv, voices: [] };
           }

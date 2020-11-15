@@ -311,6 +311,7 @@ class SmoLyric extends SmoNoteModifierBase {
       translateX: 0,
       translateY: 0,
       symbolBlocks: [],
+      adjustNoteWidth: true,
       parser: SmoLyric.parsers.lyric
     };
   }
@@ -335,7 +336,7 @@ class SmoLyric extends SmoNoteModifierBase {
   }
 
   static get parameterArray() {
-    return ['endChar', 'fontInfo', 'classes', 'verse', 'parser',
+    return ['endChar', 'fontInfo', 'classes', 'verse', 'parser', 'adjustNoteWidth',
       'fill', 'scaleX', 'scaleY', 'translateX', 'translateY', 'ctor', '_text'];
   }
   serialize() {

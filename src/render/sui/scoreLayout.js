@@ -57,6 +57,13 @@ class SuiRenderScore extends SuiRenderState {
     return (i > 0 ? this._score.staves[j].measures[i - 1] : null);
   }
 
+  renderScoreText(st) {
+    const tg = new SmoTextGroup();
+    tg.addScoreText(st);
+    this.score.addTextGroup(tg);
+    this.renderTextGroup(tg);
+  }
+
   renderTextGroup(gg) {
     let ix = 0;
     let jj = 0;

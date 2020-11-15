@@ -147,7 +147,7 @@ class SmoScore {
       obj.scoreText.push(tt.serialize());
     });
     this.textGroups.forEach((tg) => {
-      obj.textGroups.push(tg);
+      obj.textGroups.push(tg.serialize());
     });
     this.systemGroups.forEach((gg) => {
       obj.systemGroups.push(gg.serialize());
@@ -477,7 +477,17 @@ class SmoScore {
   removeScoreText(textObject) {
     this._updateScoreText(textObject, false);
   }
+  setLyricAdjustWidth(adjustNoteWidth) {
+    this.staves.forEach((staff) => {
+      staff.setLyricAdjustWidth(adjustNoteWidth);
+    });
+  }
 
+  setChordAdjustWidth(adjustNoteWidth) {
+    this.staves.forEach((staff) => {
+      staff.setChordAdjustWidth(adjustNoteWidth);
+    });
+  }
   // ### setLyricFont
   // set the font for lyrics, which are the same for all lyrics in the score
   setLyricFont(fontInfo) {

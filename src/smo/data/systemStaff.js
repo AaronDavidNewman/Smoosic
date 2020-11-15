@@ -134,9 +134,15 @@ class SmoSystemStaff {
       measure.setLyricFont(fontInfo);
     });
   }
-  setChordFont(fontInfo) {
+  setLyricAdjustWidth(adjustNoteWidth) {
     this.measures.forEach((measure) => {
-      measure.setChordFont(fontInfo);
+      measure.setLyricAdjustWidth(adjustNoteWidth);
+    });
+  }
+
+  setChordAdjustWidth(adjustNoteWidth) {
+    this.measures.forEach((measure) => {
+      measure.setChordAdjustWidth(adjustNoteWidth);
     });
   }
 

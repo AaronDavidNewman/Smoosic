@@ -53,12 +53,13 @@ class SmoMeasure {
       'timeSignature', 'keySignature', 'systemBreak', 'pageBreak',
       'measureNumber',
       'activeVoice', 'clef', 'transposeIndex',
-      'adjX', 'customStretch', 'customProportion', 'padLeft', 'padRight', 'rightMargin'
+      'adjX', 'customStretch', 'customProportion', 'padLeft', 'padRight', 'rightMargin',
+      'formatIterations', 'autoJustify'
     ];
   }
 
   static get formattingOptions() {
-    return ['customStretch', 'customProportion'];
+    return ['customStretch', 'customProportion', 'autoJustify', 'formattingIterations'];
   }
   static get systemOptions() {
     return ['systemBreak', 'pageBreak'];
@@ -74,6 +75,59 @@ class SmoMeasure {
       }
     });
     return rv;
+  }
+
+  static get defaults() {
+    // var noteDefault = SmoMeasure.defaultVoice44;
+    const modifiers = [];
+    modifiers.push(new SmoBarline({
+      position: SmoBarline.positions.start,
+      barline: SmoBarline.barlines.singleBar
+    }));
+    modifiers.push(new SmoBarline({
+      position: SmoBarline.positions.end,
+      barline: SmoBarline.barlines.singleBar
+    }));
+    modifiers.push(new SmoRepeatSymbol({
+      position: SmoRepeatSymbol.positions.start,
+      symbol: SmoRepeatSymbol.symbols.None
+    }));
+
+    return {
+      timeSignature: '4/4',
+      keySignature: 'C',
+      canceledKeySignature: null,
+      adjX: 0,
+      pageBreak: false,
+      systemBreak: false,
+      adjRight: 0,
+      padRight: 10,
+      padLeft: 0,
+      tuplets: [],
+      transposeIndex: 0,
+      customStretch: 0,
+      customProportion: 2,
+      modifiers,
+      autoJustify: true,
+      formattingIterations: 0,
+      rightMargin: 2,
+      staffY: 40,
+      // bars: [1, 1], // follows enumeration in VF.Barline
+      measureNumber: {
+        localIndex: 0,
+        systemIndex: 0,
+        measureNumber: 0,
+        staffId: 0
+      },
+      clef: 'treble',
+      changed: true,
+      forceClef: false,
+      forceKeySignature: false,
+      forceTimeSignature: false,
+      voices: [],
+      activeVoice: 0,
+      tempo: new SmoTempoText()
+    };
   }
 
   // ### serializeColumnMapped
@@ -375,57 +429,6 @@ class SmoMeasure {
       }));
     }
   }
-  static get defaults() {
-    // var noteDefault = SmoMeasure.defaultVoice44;
-    const modifiers = [];
-    modifiers.push(new SmoBarline({
-      position: SmoBarline.positions.start,
-      barline: SmoBarline.barlines.singleBar
-    }));
-    modifiers.push(new SmoBarline({
-      position: SmoBarline.positions.end,
-      barline: SmoBarline.barlines.singleBar
-    }));
-    modifiers.push(new SmoRepeatSymbol({
-      position: SmoRepeatSymbol.positions.start,
-      symbol: SmoRepeatSymbol.symbols.None
-    }));
-
-    return {
-      timeSignature: '4/4',
-      keySignature: 'C',
-      canceledKeySignature: null,
-      adjX: 0,
-      pageBreak: false,
-      systemBreak: false,
-      adjRight: 0,
-      padRight: 10,
-      padLeft: 0,
-      tuplets: [],
-      transposeIndex: 0,
-      customStretch: 0,
-      customProportion: 2,
-      modifiers,
-      autoJustify: false,
-      rightMargin: 2,
-      staffY: 40,
-      // bars: [1, 1], // follows enumeration in VF.Barline
-      measureNumber: {
-        localIndex: 0,
-        systemIndex: 0,
-        measureNumber: 0,
-        staffId: 0
-      },
-      clef: 'treble',
-      changed: true,
-      forceClef: false,
-      forceKeySignature: false,
-      forceTimeSignature: false,
-      voices: [],
-      activeVoice: 0,
-      tempo: new SmoTempoText()
-    };
-  }
 
   setForcePageBreak(val) {
     this.pageBreak = val;
@@ -435,6 +438,12 @@ class SmoMeasure {
     this.systemBreak = val;
   }
 
+  setAutoJustify(val) {
+    this.autoJustify = val;
+  }
+  getAutoJustify() {
+    return this.autoJustify;
+  }
   getForceSystemBreak() {
     return this.systemBreak;
   }
@@ -660,6 +669,28 @@ class SmoMeasure {
         note.setLyricFont(fontInfo);
       });
     });
+  }
+  setLyricAdjustWidth(adjustNoteWidth) {
+    this.voices.forEach((voice) => {
+      voice.notes.forEach((note) => {
+        note.setLyricAdjustWidth(adjustNoteWidth);
+      });
+    });
+  }
+
+  setChordAdjustWidth(adjustNoteWidth) {
+    this.voices.forEach((voice) => {
+      voice.notes.forEach((note) => {
+        note.setChordAdjustWidth(adjustNoteWidth);
+      });
+    });
+  }
+  setFormattingIterations(val) {
+    this.formattingIterations = val;
+  }
+
+  getFormattingIterations() {
+    return this.formattingIterations;
   }
 
   // ### updateLyricFont

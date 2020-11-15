@@ -145,6 +145,10 @@ class svgHelpers {
   // update the note geometry based on current viewbox conditions.
   // This may not be the appropriate place for this...maybe in layout
   static updateArtifactBox(svg,element,artifact) {
+    if (typeof(element) === 'undefined') {
+      console.log('updateArtifactBox: undefined element!');
+      return;
+    }
     artifact.renderedBox = svgHelpers.smoBox(element.getBoundingClientRect());
     artifact.logicalBox = svgHelpers.smoBox(element.getBBox());
   }

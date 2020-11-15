@@ -127,7 +127,7 @@ class VxMeasure {
       return;
     }
     const y = lyric.verse * 10;
-    const vexL = new VF.Annotation(lyric.getText()).setReportWidth(false);
+    const vexL = new VF.Annotation(lyric.getText()).setReportWidth(lyric.adjustNoteWidth);
     vexL.setAttribute(lyric.attrs.id); //
 
     // If we adjusted this note for the lyric, adjust the lyric as well.
@@ -149,7 +149,7 @@ class VxMeasure {
         cs.addGlyphOrText(block.text, block);
       }
     });
-    cs.setFont(lyric.fontInfo.family, lyric.fontInfo.size).setReportWidth(false);
+    cs.setFont(lyric.fontInfo.family, lyric.fontInfo.size).setReportWidth(lyric.adjustNoteWidth);
     vexNote.addModifier(0, cs);
     const classString = 'chord chord-' + lyric.verse;
     cs.addClass(classString);
@@ -513,7 +513,7 @@ class VxMeasure {
       const voice = new VF.Voice({
         num_beats: this.smoMeasure.numBeats,
         beat_value: this.smoMeasure.beatValue
-      }).setMode(VF.Voice.Mode.SOFT);
+      }).setMode(VF.Voice.Mode.FULL);
       voice.addTickables(this.vexNotes);
       this.voiceAr.push(voice);
     }
@@ -522,9 +522,14 @@ class VxMeasure {
     this.formatter = new VF.Formatter({ softmaxFactor: this.smoMeasure.customProportion }).joinVoices(this.voiceAr);
   }
   format(voices) {
+    let i = 0;
     this.formatter.format(voices,
       this.smoMeasure.staffWidth -
       (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft));
+    const iterations = this.smoMeasure.getFormattingIterations();
+    for (i = 0; i < iterations; ++i) {
+      this.formatter.tune();
+    }
   }
   render() {
     var self = this;

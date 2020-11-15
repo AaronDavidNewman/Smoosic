@@ -55,6 +55,14 @@ class SuiLyricDialog extends SuiDialogBase {
       label:'Edit Lyrics',
       options: []
     }, {
+      smoName: 'adjustWidth',
+      parameterName: 'adjustNoteWidth',
+      defaultValue: true,
+      classes: 'hide-when-editing',
+      control: 'SuiToggleComponent',
+      label: 'Adjust Note Width',
+      options: []
+    }, {
     staticText: [
       {doneEditing: 'Done Editing Lyrics'},
       {undo: 'Undo Lyrics'},
@@ -134,6 +142,7 @@ class SuiLyricDialog extends SuiDialogBase {
 
     if (this.lyricEditorCtrl && this.lyricEditorCtrl.session && this.lyricEditorCtrl.session.lyric) {
       const lyric = this.lyricEditorCtrl.session.lyric;
+      this.adjustWidthCtrl.setValue(lyric.adjustNoteWidth);
       this.fontCtrl.setValue({
         family: lyric.fontInfo.family,
         size: {
@@ -154,9 +163,13 @@ class SuiLyricDialog extends SuiDialogBase {
   changed() {
     this.lyricEditorCtrl.verse = parseInt(this.verse.getValue());
 
+    // TODO: make these undoable
     if (this.fontCtrl.changeFlag) {
       const fontInfo = this.fontCtrl.getValue();
       this.layout.score.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size.size });
+    }
+    if (this.adjustWidthCtrl.changeFlag) {
+      this.layout.score.setLyricAdjustWidth(this.adjustWidthCtrl.getValue());
     }
   }
   _bindElements() {
@@ -331,6 +344,15 @@ class SuiChordChangeDialog  extends SuiDialogBase {
              label: 'Font'
            },
            {
+            smoName: 'adjustWidth',
+            parameterName: 'adjustNoteWidth',
+            defaultValue: true,
+            classes: 'hide-when-editing',
+            control: 'SuiToggleComponent',
+            label: 'Adjust Note Width',
+            options: []
+          },
+           {
         staticText: [
           {label : 'Edit Chord Symbol'},
           {undo: 'Undo Chord Symbols'},
@@ -360,6 +382,9 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       const fontInfo = this.fontCtrl.getValue();
       this.layout.score.setChordFont(
         { 'family': fontInfo.family, size: fontInfo.size.size });
+    }
+    if (this.adjustWidthCtrl.changeFlag) {
+      this.layout.score.setChordAdjustWidth(this.adjustWidthCtrl.getValue());
     }
   }
 
@@ -400,6 +425,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
     if (this.chordEditorCtrl && this.chordEditorCtrl.session && this.chordEditorCtrl.session.lyric) {
       const lyric = this.chordEditorCtrl.session.lyric;
+      this.adjustWidthCtrl.setValue(lyric.adjustNoteWidth);
       this.fontCtrl.setValue({
         family: lyric.fontInfo.family,
         size: {
@@ -563,11 +589,11 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         control: 'SuiDropdownComponent',
         label:'Page Behavior',
         startRow:true,
-        options: [{ value: 'once', label: 'Once' },
-          { value: 'every', label: 'Every' },
-          { label: 'Even', value: 'even' },
-          { label: 'Odd', value: 'odd' },
-          { label: 'Subsequent', value: 'subsequent' }
+        options: [{ value: SmoTextGroup.paginations.ONCE, label: 'Once' },
+          { value: SmoTextGroup.paginations.EVERY, label: 'Every' },
+          { value: SmoTextGroup.paginations.EVEN, label: 'Even' },
+          { value: SmoTextGroup.paginations.ODD, label: 'Odd' },
+          { value: SmoTextGroup.paginations.SUBSEQUENT, label: 'Subsequent' }
         ]
       }, {
         staticText: [
@@ -690,7 +716,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     }
 
     if (this.paginationsComponent.changeFlag) {
-      this.activeScoreText.pagination = this.paginationsComponent.getValue();
+      this.modifier.pagination = parseInt(this.paginationsComponent.getValue(), 10);
     }
 
     if (this.fontCtrl.changeFlag) {

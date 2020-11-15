@@ -104,6 +104,9 @@ class SmoTextGroup extends SmoScoreModifierBase {
     return { EVERY: 1, EVENT: 2, ODD: 3, ONCE: 4, SUBSEQUENT: 5 };
   }
 
+  // ### getPagedTextGroups
+  // If this text is repeated on page, create duplicates for each page, and
+  // resolve page numbers;
   static getPagedTextGroups(tg, pages, pageHeight) {
     const rv = [];
     let i = 0;
@@ -113,9 +116,23 @@ class SmoTextGroup extends SmoScoreModifierBase {
     }
     for (i = 0; i < pages; ++i) {
       const ix = i;
-      const ngroup = new SmoTextGroup(
-        { justification: tg.justification, blocks: tg.textBlocks,
-          relativePosition: tg.relativePosition, pagination: tg.pagination });
+      const nblocks = [];
+      // deep copy the blocks so the page offsets don't bleed into
+      // original.
+      tg.textBlocks.forEach((block) => {
+        const nscoreText = new SmoScoreText(block.text);
+        nblocks.push({
+          text: nscoreText, position: block.position
+        });
+      });
+      const params = {};
+      SmoTextGroup.attributes.forEach((attr) => {
+        if (attr !== 'textBlocks') {
+          params[attr] = tg[attr];
+        }
+      });
+      params.blocks = nblocks;
+      const ngroup = new SmoTextGroup(params);
       ngroup.textBlocks.forEach((block) => {
         const xx = block.text;
         xx.classes = 'score-text ' + xx.attrs.id;
@@ -137,21 +154,35 @@ class SmoTextGroup extends SmoScoreModifierBase {
     return { textBlocks: [],
       justification: SmoTextGroup.justifications.LEFT,
       relativePosition: SmoTextGroup.relativePositions.RIGHT,
-      pagination: SmoTextGroup.paginations.ONCE
+      pagination: SmoTextGroup.paginations.ONCE,
+      spacing: 0
     };
   }
   static get attributes() {
-    return ['textBlocks', 'justification', 'relativePosition'];
+    return ['textBlocks', 'justification', 'relativePosition', 'spacing', 'pagination'];
   }
   static deserialize(jObj) {
     const blocks = [];
+    const params = {};
+
+    // Create new scoreText object for the text blocks
     jObj.textBlocks.forEach((st) => {
       const tx = new SmoScoreText(st.text);
       blocks.push({ text: tx, position: st.position });
     });
-    return new SmoTextGroup({ blocks });
+    // fill in the textBlock configuration
+    SmoTextGroup.attributes.forEach((attr) => {
+      if (attr !== 'textBlocks') {
+        if (typeof(jObj[attr]) !== 'undefined') {
+          params[attr] = jObj[attr];
+        }
+      }
+    });
+    params.blocks = blocks;
+    return new SmoTextGroup(params);
   }
   serialize() {
+    const params = {};
     smoSerialize.serializedMergeNonDefault(SmoTextGroup.defaults, SmoTextGroup.attributes, this, params);
     params.ctor = 'SmoTextGroup';
     return params;
@@ -161,6 +192,9 @@ class SmoTextGroup extends SmoScoreModifierBase {
   }
   constructor(params) {
     super('SmoTextGroup');
+    if (typeof(params) === 'undefined') {
+      params = {};
+    }
     this.textBlocks = [];
     this.backupBlocks = [];
     Vex.Merge(this, SmoTextGroup.defaults);

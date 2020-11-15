@@ -140,11 +140,29 @@ class SmoNote {
     );
   }
 
+  // ### setLyricFont
+  // Lyric font is score-wide, so we set all lyrics to the same thing.
   setLyricFont(fontInfo) {
     const lyrics = this.getTrueLyrics();
 
     lyrics.forEach((lyric) => {
       lyric.fontInfo = JSON.parse(JSON.stringify(fontInfo));
+    });
+  }
+
+  // ### setLyricFont
+  // Set whether we ajust note width for lyrics, a scope-wide setting.
+  setLyricAdjustWidth(adjustNoteWidth) {
+    const lyrics = this.getTrueLyrics();
+    lyrics.forEach((lyric) => {
+      lyric.adjustNoteWidth = adjustNoteWidth;
+    });
+  }
+
+  setChordAdjustWidth(adjustNoteWidth) {
+    const chords = this.getChords();
+    chords.forEach((chord) => {
+      chord.adjustNoteWidth = adjustNoteWidth;
     });
   }
 

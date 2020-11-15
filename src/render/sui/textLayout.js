@@ -468,6 +468,10 @@ class SuiTextBlock {
   }
   constructor(params) {
     this.inlineBlocks = [];
+    this.spacing = 0;
+    if (typeof(params.spacing) !== 'undefined') {
+      this.spacing = params.spacing;
+    }
     this.context = params.context;
     this.skipRender = false; // used when editing the text
     if (!params.blocks) {
@@ -592,7 +596,7 @@ class SuiTextBlock {
       newText.activeText = stBlock.activeText;
       blocks.push(newText);
     });
-    const rv = new SuiTextBlock({ blocks: blocks, justification: tg.justification, context: context });
+    const rv = new SuiTextBlock({ blocks: blocks, justification: tg.justification, spacing: tg.spacing, context: context });
     rv._justify();
     return rv;
   }
@@ -632,18 +636,28 @@ class SuiTextBlock {
       lvl = inlineBlock.position === SmoTextGroup.relativePositions.BELOW ? lvl - 1 : lvl;
       if (inlineBlock.position === SmoTextGroup.relativePositions.RIGHT) {
         block.startX += runningWidth;
+        if (hIx > 0) {
+          block.startX += this.spacing;
+        }
       }
       if (inlineBlock.position === SmoTextGroup.relativePositions.LEFT) {
         if (hIx > 0) {
           block.startX = minx - blockBox.width;
           minx = block.startX;
+          block.startX -= this.spacing;
         }
       }
       if (inlineBlock.position === SmoTextGroup.relativePositions.BELOW) {
         block.startY += runningHeight;
+        if (hIx > 0) {
+          block.startY += this.spacing;
+        }
       }
       if (inlineBlock.position === SmoTextGroup.relativePositions.ABOVE) {
         block.startY -= runningHeight;
+        if (hIx > 0) {
+          block.startY -= this.spacing;
+        }
       }
       if (!vert[lvl] ) {
         vert[lvl] = {};

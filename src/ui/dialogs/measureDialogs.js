@@ -21,32 +21,32 @@ class SuiMeasureDialog extends SuiDialogBase {
               { label: 'Measure Properties' }]
           },
           {
-          smoName: 'pickupMeasure',
-          parameterName: 'pickupMeasure',
-          defaultValue: 2048,
-          control: 'SuiDropdownComponent',
-          label:'Pickup Measure',
-          options: [{
-            value: 2048,
-            label: 'Eighth Note'
-          }, {
-            value: 4096,
-            label: 'Quarter Note'
-          }, {
-            value: 6144,
-            label: 'Dotted Quarter'
-          }, {
-            value: 8192,
-            label: 'Half Note'
+            smoName: 'pickupMeasure',
+            parameterName: 'pickupMeasure',
+            defaultValue: 2048,
+            control: 'SuiDropdownComponent',
+            label:'Pickup Measure',
+            options: [{
+              value: 2048,
+              label: 'Eighth Note'
+            }, {
+              value: 4096,
+              label: 'Quarter Note'
+            }, {
+              value: 6144,
+              label: 'Dotted Quarter'
+            }, {
+              value: 8192,
+              label: 'Half Note'
           }
         ]
-			}, {
-  			smoName:'makePickup',
-  			parameterName:'makePickup',
-  			defaultValue: false,
-  			control:'SuiToggleComponent',
-  			label:'Convert to Pickup Measure'
-  		}, {
+      }, {
+        smoName:'makePickup',
+        parameterName:'makePickup',
+        defaultValue: false,
+        control:'SuiToggleComponent',
+        label:'Convert to Pickup Measure'
+      }, {
         parameterName: 'padLeft',
         smoName: 'padLeft',
         defaultValue: 0,
@@ -63,41 +63,67 @@ class SuiMeasureDialog extends SuiDialogBase {
         smoName: 'customProportion',
         defaultValue: SmoMeasure.defaults.customProportion,
         control: 'SuiRockerComponent',
-        increment:10,
+        increment: 10,
         label: 'Adjust Proportional Spacing'
-      },{
-  			smoName:'padAllInSystem',
-  			parameterName:'padAllInSystem',
-  			defaultValue: false,
-  			control:'SuiToggleComponent',
-  			label:'Pad all measures in system'
-  		},{
+      }, {
+        smoName:'padAllInSystem',
+        parameterName:'padAllInSystem',
+        defaultValue: false,
+        control:'SuiToggleComponent',
+        label:'Pad all measures in system'
+      }, {
+        smoName: 'autoJustify',
+        parameterName: 'autoJustify',
+        defaultValue: true,
+        control: 'SuiToggleComponent',
+        label: 'Justify Columns'
+      },  {
+        smoName: 'noteFormatting',
+        parameterName: 'noteFormatting',
+        defaultValue: 0,
+        control: 'SuiDropdownComponent',
+        label: 'Formatting Iterations',
+        options: [{
+            value: 0,
+            label: 'None'
+          }, {
+            value: 2,
+            label: '2'
+          }, {
+            value: 5,
+            label: '5'
+          }, {
+            value: 10,
+            label: '10'
+          }
+        ]
+      }, {
         smoName: 'measureTextPosition',
         parameterName: 'measureTextPosition',
         defaultValue: SmoMeasureText.positions.above,
         control: 'SuiDropdownComponent',
         label:'Text Position',
         options: [{
-                value: SmoMeasureText.positions.left,
-                label: 'Left'
-            }, {
-                value: SmoMeasureText.positions.right,
-                label: 'Right'
-            }, {
-                value:SmoMeasureText.positions.above,
-                label: 'Above'
-            }, {
-                value: SmoMeasureText.positions.below,
-                label: 'Below'
-            }
-            ]
-    			}, {
-  			smoName:'systemBreak',
-  			parameterName:'systemBreak',
-  			defaultValue: false,
-  			control:'SuiToggleComponent',
-  			label: 'System break before this measure'
-  		}];
+            value: SmoMeasureText.positions.left,
+            label: 'Left'
+          }, {
+            value: SmoMeasureText.positions.right,
+            label: 'Right'
+          }, {
+            value:SmoMeasureText.positions.above,
+            label: 'Above'
+          }, {
+            value: SmoMeasureText.positions.below,
+            label: 'Below'
+          }
+        ]
+      }, {
+        smoName:'systemBreak',
+        parameterName:'systemBreak',
+        defaultValue: false,
+        control:'SuiToggleComponent',
+        label: 'System break before this measure'
+      }];
 
       return SuiMeasureDialog._dialogElements;
     }
@@ -112,8 +138,8 @@ class SuiMeasureDialog extends SuiDialogBase {
   changed() {
     if (this.pickupMeasureCtrl.changeFlag || this.pickupMeasureCtrl.changeFlag) {
       this.layout.unrenderColumn(this.measure);
-      SmoUndoable.scoreOp(this.layout.score,'convertToPickupMeasure',this.pickupMeasureCtrl.getValue(),this.undoBuffer,'Create pickup measure');
-      this.selection = SmoSelection.measureSelection(this.layout.score,this.selection.selector.staff,this.selection.selector.measure);
+      SmoUndoable.scoreOp(this.layout.score, 'convertToPickupMeasure', this.pickupMeasureCtrl.getValue(), this.undoBuffer, 'Create pickup measure');
+      this.selection = SmoSelection.measureSelection(this.layout.score, this.selection.selector.staff, this.selection.selector.measure);
       this.tracker.replaceSelectedMeasures();
       this.measure = this.selection.measure;
     }
@@ -129,16 +155,28 @@ class SuiMeasureDialog extends SuiDialogBase {
     }
     if (this.systemBreakCtrl.changeFlag) {
       SmoUndoable.scoreSelectionOp(this.layout.score,
-          this.tracker.selections[0],'setForceSystemBreak',this.systemBreakCtrl.getValue(),
-            this.undoBuffer,'change system break flag');
+        this.tracker.selections[0],'setForceSystemBreak', this.systemBreakCtrl.getValue(),
+        this.undoBuffer,'change system break flag');
       this.layout.setRefresh();
+    }
+    if (this.autoJustifyCtrl.changeFlag) {
+      SmoUndoable.scoreSelectionOp(this.layout.score,
+        this.tracker.selections[0], 'setAutoJustify', this.autoJustifyCtrl.getValue(),
+        this.undoBuffer, 'change the vertical note justification');
+      this.tracker.replaceSelectedMeasures();
+    }
+    if (this.noteFormattingCtrl.changeFlag) {
+      SmoUndoable.scoreSelectionOp(this.layout.score,
+        this.tracker.selections[0], 'setFormattingIterations', parseInt(this.noteFormattingCtrl.getValue(),10),
+        this.undoBuffer, 'change the horizontal justification');
+      this.tracker.replaceSelectedMeasures();
     }
     if (this.padLeftCtrl.changeFlag || this.padAllInSystemCtrl.changeFlag) {
       this.layout.unrenderColumn(this.measure);
-      var selections = this.padAllInSystemCtrl.getValue() ?
-         SmoSelection.measuresInColumn(this.layout.score,this.selection.measure.measureNumber.measureIndex) :
-         SmoSelection.measureSelection(this.layout.score,this.selection.selector.staff,this.selection.selector.measure);
-      SmoUndoable.padMeasuresLeft(selections,this.padLeftCtrl.getValue(),this.undoBuffer);
+      const selections = this.padAllInSystemCtrl.getValue() ?
+        SmoSelection.measuresInColumn(this.layout.score, this.selection.measure.measureNumber.measureIndex) :
+        SmoSelection.measureSelection(this.layout.score, this.selection.selector.staff, this.selection.selector.measure);
+      SmoUndoable.padMeasuresLeft(selections, this.padLeftCtrl.getValue(), this.undoBuffer);
       this.tracker.replaceSelectedMeasures();
     }
     //
@@ -146,7 +184,7 @@ class SuiMeasureDialog extends SuiDialogBase {
   }
   constructor(parameters) {
     if (!parameters.selection) {
-        throw new Error('measure dialogmust have measure and selection');
+      throw new Error('measure dialogmust have measure and selection');
     }
 
     super(SuiMeasureDialog.dialogElements, {
@@ -154,7 +192,7 @@ class SuiMeasureDialog extends SuiDialogBase {
       top: parameters.selection.measure.renderedBox.y,
       left: parameters.selection.measure.renderedBox.x,
       label: 'Measure Properties',
-  		tracker:parameters.tracker,
+      tracker:parameters.tracker,
       undoBuffer: parameters.undoBuffer,
       eventSource: parameters.eventSource,
       completeNotifier : parameters.completeNotifier,
@@ -197,11 +235,13 @@ class SuiMeasureDialog extends SuiDialogBase {
   }
   populateInitial() {
     this.padLeftCtrl.setValue(this.measure.padLeft);
+    this.autoJustifyCtrl.setValue(this.measure.autoJustify);
     this.originalStretch = this.measure.customStretch;
     this.originalProportion = this.measure.customProportion;
     var isPickup = this.measure.isPickup();
     this.customStretchCtrl.setValue(this.measure.customStretch);
     this.customProportionCtrl.setValue(this.measure.customProportion);
+    this.noteFormattingCtrl.setValue(this.measure.getFormattingIterations());
     this.pickupMeasureCtrl.setValue(isPickup);
     if (isPickup) {
       this.pickupMeasureCtrl.setValue(this.measure.getTicksFromVoice())
@@ -221,25 +261,25 @@ class SuiMeasureDialog extends SuiDialogBase {
   }
   _bindElements() {
     this._bindComponentNames();
-		var self = this;
-		var dgDom = this.dgDom;
+    var self = this;
+    var dgDom = this.dgDom;
     this.bindKeyboard();
     this._bindComponentNames();
     this.populateInitial();
 
-  	$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
       self.tracker.replaceSelectedMeasures();
-  		self.complete();
-  	});
+      self.complete();
+    });
 
-		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+    $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
       self._cancelEdits();
-			self.complete();
-		});
-		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-			self.complete();
-		});
-	}
+      self.complete();
+    });
+    $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+      self.complete();
+    });
+  }
 }
 
 class SuiInstrumentDialog extends SuiDialogBase {
@@ -285,7 +325,7 @@ class SuiInstrumentDialog extends SuiDialogBase {
             label: 'Remaining Measures'
           }
         ]
-			}
+      }
     ];
     return SuiInstrumentDialog._dialogElements;
   }
@@ -414,7 +454,7 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
           control: 'SuiRockerComponent',
           label:'Beats/Measure',
         },
-		    {
+        {
           parameterName: 'denominator',
           smoName: 'denominator',
           defaultValue: 8,
@@ -474,22 +514,22 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
    }
    _bindElements() {
      var self = this;
-	   var dgDom = this.dgDom;
+     var dgDom = this.dgDom;
      this.numeratorCtrl = this.components.find((comp) => {return comp.smoName == 'numerator';});
      this.denominatorCtrl = this.components.find((comp) => {return comp.smoName == 'denominator';});
      this.populateInitial();
 
-		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
           self.changeTimeSignature();
-			self.complete();
-		});
+      self.complete();
+    });
 
- 		$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
- 			self.complete();
- 		});
- 		$(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
- 			self.complete();
- 		});
+     $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+       self.complete();
+     });
+     $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+       self.complete();
+     });
    }
    display() {
      $('body').addClass('showAttributeDialog');
@@ -526,7 +566,7 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
            top: measure.renderedBox.y,
            left: measure.renderedBox.x,
            label: 'Custom Time Signature',
-			 tracker:parameters.tracker,
+       tracker:parameters.tracker,
      undoBuffer: parameters.undoBuffer,
      eventSource: parameters.eventSource,
      completeNotifier : parameters.completeNotifier,
@@ -593,18 +633,18 @@ class SuiTempoDialog extends SuiDialogBase {
         control: 'SuiDropdownComponent',
         label: 'Unit for Beat',
         options: [{
-        		value: 4096,
-        		label: 'Quarter Note',
-        	}, {
-        		value: 2048,
-        		label: '1/8 note'
-        	}, {
-        		value: 6144,
-        		label: 'Dotted 1/4 note'
-        	}, {
-        		value: 8192,
-        		label: '1/2 note'
-        	}
+            value: 4096,
+            label: 'Quarter Note',
+          }, {
+            value: 2048,
+            label: '1/8 note'
+          }, {
+            value: 6144,
+            label: 'Dotted 1/4 note'
+          }, {
+            value: 8192,
+            label: '1/2 note'
+          }
         ]
       },
       {
@@ -731,30 +771,30 @@ class SuiTempoDialog extends SuiDialogBase {
                 comp.setValue(this.modifier[attr]);
             }
         });
-		this._updateModeClass();
+    this._updateModeClass();
     }
-	_updateModeClass() {
+  _updateModeClass() {
         if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
-			$('.attributeModal').addClass('tempoTextMode');
-			$('.attributeModal').removeClass('tempoDurationMode');
+      $('.attributeModal').addClass('tempoTextMode');
+      $('.attributeModal').removeClass('tempoDurationMode');
         } else if (this.modifier.tempoMode == SmoTempoText.tempoModes.durationMode) {
-			$('.attributeModal').addClass('tempoDurationMode');
-			$('.attributeModal').removeClass('tempoTextMode');
-		} else {
-			$('.attributeModal').removeClass('tempoDurationMode');
-			$('.attributeModal').removeClass('tempoTextMode');
-		}
-	}
+      $('.attributeModal').addClass('tempoDurationMode');
+      $('.attributeModal').removeClass('tempoTextMode');
+    } else {
+      $('.attributeModal').removeClass('tempoDurationMode');
+      $('.attributeModal').removeClass('tempoTextMode');
+    }
+  }
     changed() {
         this.components.forEach((component) => {
-			if (SmoTempoText.attributes.indexOf(component.smoName) >= 0) {
+      if (SmoTempoText.attributes.indexOf(component.smoName) >= 0) {
                 this.modifier[component.smoName] = component.getValue();
-			}
+      }
         });
         if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
             this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
         }
-		this._updateModeClass();
+    this._updateModeClass();
         this.refresh = true;
     }
     // ### handleFuture
@@ -809,7 +849,7 @@ class SuiTempoDialog extends SuiDialogBase {
     _bindElements() {
         var self = this;
         this.populateInitial();
-		var dgDom = this.dgDom;
+    var dgDom = this.dgDom;
         // Create promise to release the keyboard when dialog is closed
         this.closeDialogPromise = new Promise((resolve) => {
             $(dgDom.element).find('.cancel-button').remove();

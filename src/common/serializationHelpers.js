@@ -176,7 +176,10 @@ class smoSerialize {
       "pe": "custom",
       "qe": "transposeIndex",
       "re": "noteHead",
-      "se": "slash"
+      "se": "slash",
+      "te": "pointSize",
+      "ue": "spacing",
+      "ve": "relativePosition"
      }`
      ;
      return JSON.parse(_tm);

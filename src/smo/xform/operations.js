@@ -13,8 +13,20 @@ class SmoOperation {
        });
    }
 
+  static setAutoJustify(score,selection,value) {
+    score.staves.forEach((staff) => {
+      staff.measures[selection.selector.measure].setAutoJustify(value);
+    });
+  }
+
+  static setFormattingIterations(score, selection, value) {
+    score.staves.forEach((staff) => {
+      staff.measures[selection.selector.measure].setFormattingIterations(value);
+    });
+  }
+
   static addKeySignature(score, selection, keySignature) {
-  score.addKeySignature(selection.selector.measure, keySignature);
+    score.addKeySignature(selection.selector.measure, keySignature);
   }
 
   static deleteMeasure(score, selection) {

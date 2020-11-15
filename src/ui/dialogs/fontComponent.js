@@ -219,6 +219,20 @@ class SuiTextBlockComponent extends SuiComponentBase {
           label: 'Center'
         }]
       });
+    this.spacingCtrl = new SuiRockerComposite(
+      this.dialog,
+      {
+        smoName: 'spacing',
+        parameterName: 'spacing',
+        defaultValue: 0,
+        parentControl: this,
+        classes: 'hide-when-editing hide-when-moving',
+        control: 'SuiRockerComponent',
+        label: 'Spacing',
+        type: 'float',
+        increment: 0.1
+      },
+    );
     this.modifier = this.dialog.modifier;
     this.activeScoreText = this.dialog.activeScoreText;
   }
@@ -247,6 +261,12 @@ class SuiTextBlockComponent extends SuiComponentBase {
       this.activeScoreText = this.modifier.textBlocks[newIx].text;
       this.modifier.setActiveBlock(this.activeScoreText);
     }
+    if (this.spacingCtrl.changeFlag) {
+      const val = this.spacingCtrl.getValue();
+      if (val >= 0) {
+        this.modifier.spacing = val;
+      }
+    }
     this.handleChanged();
   }
 
@@ -262,6 +282,7 @@ class SuiTextBlockComponent extends SuiComponentBase {
     q.append(this.toggleBlockCtrl.html);
     q.append(this.relativePositionCtrl.html);
     q.append(this.justificationCtrl.html);
+    q.append(this.spacingCtrl.html);
 
     return q;
   }
@@ -277,7 +298,7 @@ class SuiTextBlockComponent extends SuiComponentBase {
   }
   _updateMultiiFields() {
     const fields = [this.justificationCtrl, this.relativePositionCtrl,
-      this.removeBlockCtrl, this.toggleBlockCtrl];
+      this.removeBlockCtrl, this.toggleBlockCtrl, this.spacingCtrl];
     fields.forEach((field) => {
       if (this.modifier.textBlocks.length < 2) {
         $('#' + field.parameterId).addClass('hide');
@@ -292,6 +313,7 @@ class SuiTextBlockComponent extends SuiComponentBase {
     this.relativePositionCtrl.setValue(this.modifier.relativePosition);
     this._updateMultiiFields();
     this.justificationCtrl.setValue(this.modifier.justification);
+    this.spacingCtrl.setValue(this.modifier.spacing);
   }
 
   bind() {
@@ -300,5 +322,6 @@ class SuiTextBlockComponent extends SuiComponentBase {
     this.justificationCtrl.bind();
     this.removeBlockCtrl.bind();
     this.toggleBlockCtrl.bind();
+    this.spacingCtrl.bind();
   }
 }
