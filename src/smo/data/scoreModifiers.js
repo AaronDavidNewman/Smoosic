@@ -155,11 +155,15 @@ class SmoTextGroup extends SmoScoreModifierBase {
       justification: SmoTextGroup.justifications.LEFT,
       relativePosition: SmoTextGroup.relativePositions.RIGHT,
       pagination: SmoTextGroup.paginations.ONCE,
-      spacing: 0
+      spacing: 0,
+      attachToSelector: false,
+      selector: null,
+      musicXOffset: 0,
+      musicYOffset: 0
     };
   }
   static get attributes() {
-    return ['textBlocks', 'justification', 'relativePosition', 'spacing', 'pagination'];
+    return ['textBlocks', 'justification', 'relativePosition', 'spacing', 'pagination', 'attachToSelector', 'selector', 'musicXOffset', 'musicYOffset'];
   }
   static deserialize(jObj) {
     const blocks = [];
@@ -266,11 +270,17 @@ class SmoTextGroup extends SmoScoreModifierBase {
     this.textBlocks.splice(ix, 1);
   }
   offsetX(offset) {
+    if (this.attachToSelector) {
+      this.musicXOffset += offset;
+    }
     this.textBlocks.forEach((block) => {
       block.text.offsetX(offset);
     });
   }
   offsetY(offset) {
+    if (this.attachToSelector) {
+      this.musicYOffset -= offset;
+    }
     this.textBlocks.forEach((block) => {
       block.text.offsetY(offset);
     });

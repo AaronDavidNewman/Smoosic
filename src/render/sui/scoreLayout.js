@@ -79,6 +79,16 @@ class SuiRenderScore extends SuiRenderState {
     // else the array contains the original.
     const groupAr = SmoTextGroup.getPagedTextGroups(gg, this.scaledScoreLayout.pages, this.scaledScoreLayout.pageHeight);
     groupAr.forEach((newGroup) => {
+      // If this text is attached to the measure, base the block location on the rendered measure location.
+      if (newGroup.attachToSelector) {
+        const mm = SmoSelection.measureSelection(this.score, newGroup.selector.staff, newGroup.selector.measure).measure;
+        if (typeof(mm.logicalBox) !== 'undefined') {
+          const xoff = mm.logicalBox.x + newGroup.musicXOffset;
+          const yoff = mm.logicalBox.y - newGroup.musicYOffset;
+          newGroup.textBlocks[0].text.x = xoff;
+          newGroup.textBlocks[0].text.y = yoff;
+        }
+      }
       const block = SuiTextBlock.fromTextGroup(newGroup, this.renderer.getContext());
       block.render();
       // For the first one we render, use that as the bounding box for all the text, for

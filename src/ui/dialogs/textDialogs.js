@@ -573,14 +573,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         control: 'SuiTextBlockComponent',
         label:'Text Block Properties'
       },
-      {
-        smoName: 'wrap',
-        parameterName: 'wrap',
-        defaultValue: false,
-        classes: 'hide-when-editing hide-when-moving',
-        control:'SuiToggleComponent',
-        label: 'Wrap Text'
-      },
       { // {every:'every',even:'even',odd:'odd',once:'once'}
         smoName: 'pagination',
         parameterName: 'pagination',
@@ -595,6 +587,14 @@ class SuiTextTransformDialog  extends SuiDialogBase {
           { value: SmoTextGroup.paginations.ODD, label: 'Odd' },
           { value: SmoTextGroup.paginations.SUBSEQUENT, label: 'Subsequent' }
         ]
+      }, {
+        smoName: 'attachToSelector',
+        parameterName: 'attachToSelector',
+        defaultValue: false,
+        parentControl: this,
+        classes: 'hide-when-editing hide-when-moving',
+        control: 'SuiToggleComponent',
+        label: 'Attach to Selection'
       }, {
         staticText: [
           {label : 'Text Properties' },
@@ -637,7 +637,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       weight: this.activeScoreText.fontInfo.weight
     });
 
-    this.wrapCtrl.setValue(this.activeScoreText.boxModel != SmoScoreText.boxModels.none);
+    this.attachToSelectorCtrl.setValue(this.modifier.attachToSelector);
 
     this.paginationsComponent = this.components.find((c) => c.smoName == 'pagination');
     this.paginationsComponent.setValue(this.modifier.pagination);
@@ -672,6 +672,18 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     this.mouseDownHandler = this.eventSource.bindMouseDownHandler(this,'mouseDown');
     this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
   }
+  _resetAttachToSelector() {
+    this.modifier.attachToSelector = false;
+    this.modifier.selector = SmoTextGroup.defaults.selector;
+    this.modifier.musicXOffset = SmoTextGroup.defaults.musicXOffset;
+    this.modifier.musicYOffset = SmoTextGroup.defaults.musicYOffset;
+  }
+  _activateAttachToSelector() {
+    this.modifier.attachToSelector = true;
+    this.modifier.selector = JSON.parse(JSON.stringify(this.tracker.selections[0].selector));
+    this.modifier.musicXOffset = this.modifier.logicalBox.x - this.tracker.selections[0].measure.logicalBox.x;
+    this.modifier.musicYOffset = this.modifier.logicalBox.y - this.tracker.selections[0].measure.logicalBox.y;
+  }
 
   changed() {
     if (this.insertCodeCtrl.changeFlag && this.textEditorCtrl.session) {
@@ -682,22 +694,21 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       this.insertCodeCtrl.unselect();
     }
 
-    if (this.wrapCtrl.changeFlag) {
-      var boxModel = this.wrapCtrl.getValue() ? SmoScoreText.boxModels.wrap :
-        SmoScoreText.boxModels.none;
-      this.modifier.boxModel = boxModel;
-      if (boxModel ==  SmoScoreText.boxModels.wrap) {
-        this.modifier.scaleX = this.modifier.scaleY = 1.0;
-        this.modifier.translateX = this.modifier.translateY = 1.0;
-        this.modifier.width = this.modifier.logicalBox.width;
-        this.modifier.height = this.modifier.logicalBox.height;
-      }
-    }
-
     if (this.textBlockCtrl.changeFlag) {
       const nval = this.textBlockCtrl.getValue();
       this.activeScoreText = nval.activeScoreText;
       this.textEditorCtrl.activeScoreText = this.activeScoreText;
+    }
+
+    if (this.attachToSelectorCtrl.changeFlag) {
+      const toSet = this.attachToSelectorCtrl.getValue();
+      if (toSet) {
+        this._activateAttachToSelector();
+        this.paginationsComponent.setValue(SmoTextGroup.paginations.ONCE);
+        this.modifier.pagination = SmoTextGroup.paginations.ONCE;
+      } else {
+        this._resetAttachToSelector();
+      }
     }
 
     const pos = this.modifier.ul();
@@ -717,6 +728,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
     if (this.paginationsComponent.changeFlag) {
       this.modifier.pagination = parseInt(this.paginationsComponent.getValue(), 10);
+      // Pagination and attach to measure don't mix.
+      this._resetAttachToSelector();
+      this.attachToSelectorCtrl.setValue(false);
     }
 
     if (this.fontCtrl.changeFlag) {
@@ -788,12 +802,19 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     var tracker = parameters.tracker;
     var layout = tracker.layout.score.layout;
 
-    // If this is a SmoScoreText, promote it to SmoTextGroup.  That is what the other
-    // layers expect.  A text group could contain multiple score text objects, and
-    // one of them is the active block we are editing.  We need to know what that
-    // one is so we can apply the correct fonts etc. to it
+    // Create a new text modifier, if required.
     if (!parameters.modifier) {
-      var newText =  new SmoScoreText({position:SmoScoreText.positions.custom});
+      var newText =  new SmoScoreText({ position: SmoScoreText.positions.custom });
+      newText.y += tracker.scroller.netScroll.y;
+      if (tracker.selections.length > 0) {
+        const sel = tracker.selections[0].measure;
+        if (typeof(sel.logicalBox) !== 'undefined') {
+          if (sel.logicalBox.y >= newText.y) {
+            newText.y = sel.logicalBox.y;
+            newText.x = sel.logicalBox.x;
+          }
+        }
+      }
       var newGroup = new SmoTextGroup({blocks:[newText]});
       parameters.modifier = newGroup;
       parameters.activeScoreText = newText;
@@ -801,6 +822,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         parameters.modifier,  parameters.undoBuffer,'Text Menu Command');
       parameters.layout.setRefresh();
     } else if (parameters.modifier.ctor === 'SmoScoreText') {
+      // This code promotes SmoScoreText to SmoTextGroup.  This should be done in
+      // deserialization code now, for legacy files.
       var newGroup = new SmoTextGroup({blocks:[parameters.modifier]});
       parameters.activeScoreText = newGroup.textBlocks[0].text;
       parameters.modifier = newGroup;

@@ -261,6 +261,11 @@ class SmoScore {
     this.staves.forEach((staff) => {
       staff.deleteMeasure(measureIndex);
     });
+    this.textGroups.forEach((tg) => {
+      if (tg.attachToSelector && tg.selector.measure >= measureIndex && tg.selector.measure > 0) {
+        tg.selector.measure -= 1;
+      }
+    });
   }
 
   convertToPickupMeasure(measureIndex, duration) {
@@ -306,6 +311,12 @@ class SmoScore {
       }
       staff.addMeasure(measureIndex, nmeasure);
     }
+    // Update offsets for score modifiers that have a selector
+    this.textGroups.forEach((tg) => {
+      if (tg.attachToSelector && tg.selector.measure >= measureIndex && tg.selector.measure < this.staves[0].measures.length) {
+        tg.selector.measure += 1;
+      }
+    });
     this._numberStaves();
   }
 

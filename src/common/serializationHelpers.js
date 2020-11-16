@@ -179,7 +179,11 @@ class smoSerialize {
       "se": "slash",
       "te": "pointSize",
       "ue": "spacing",
-      "ve": "relativePosition"
+      "ve": "relativePosition",
+      "we": "activeText",
+      "xe": "attachToSelector",
+      "ye": "musicXOffset",
+      "ze": "musicYOffset"
      }`
      ;
      return JSON.parse(_tm);
