@@ -143,11 +143,11 @@ class SmoScore {
     this.staves.forEach((staff) => {
       obj.staves.push(staff.serialize());
     });
-    this.scoreText.forEach((tt) => {
-      obj.scoreText.push(tt.serialize());
-    });
+    // Score text is not part of text group, so don't save separately.
     this.textGroups.forEach((tg) => {
-      obj.textGroups.push(tg.serialize());
+      if (tg.isTextVisible()) {
+        obj.textGroups.push(tg.serialize());
+      }
     });
     this.systemGroups.forEach((gg) => {
       obj.systemGroups.push(gg.serialize());

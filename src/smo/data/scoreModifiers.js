@@ -215,6 +215,19 @@ class SmoTextGroup extends SmoScoreModifierBase {
       });
     }
   }
+  // avoid saving text that can't be deleted
+  isTextVisible() {
+    let rv = true;
+    if (this.attachToSelector) {
+      return true;
+    }
+    this.textBlocks.forEach((block) => {
+      if (block.text.x < 0 || block.text.y < 0) {
+        rv = false;
+      }
+    });
+    return rv;
+  }
   // ### setActiveBlock
   // let the UI know which block is being edited.  Parameter null means reset all
   setActiveBlock(scoreText) {

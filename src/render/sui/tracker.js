@@ -676,7 +676,7 @@ class suiTracker extends suiMapper {
   }
 
   selectSuggestion(ev) {
-    if (!this.suggestion.measure) {
+    if (!this.suggestion.measure && this.modifierSuggestion < 0) {
       return;
     }
 
