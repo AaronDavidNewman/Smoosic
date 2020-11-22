@@ -4231,6 +4231,28 @@ class suiPiano {
 		this.bind();
 	}
 }
+;// ## renderOperation
+// Do a thing to the music.
+class SuiRenderOperation {
+  static addTextGroup(layout, score, undoBuffer, textGroup) {
+    SmoUndoable.changeTextGroup(score, undoBuffer, textGroup,
+      UndoBuffer.bufferSubtypes.ADD);
+    layout.renderScoreModifiers();
+  }
+
+  static removeTextGroup(layout, score, undoBuffer, textGroup) {
+    SmoUndoable.changeTextGroup(score, undoBuffer, textGroup,
+      UndoBuffer.bufferSubtypes.REMOVE);
+    layout.renderScoreModifiers();
+  }
+
+  static updateTextGroup(layout, score, undoBuffer, oldVersion, newVersion) {
+    SmoUndoable.changeTextGroup(score, undoBuffer, oldVersion,
+      UndoBuffer.bufferSubtypes.UPDATE);
+    // TODO: only render the one TG.
+    layout.renderScoreModifiers();
+  }
+}
 ;// ## SuiRenderScore
 // This module renders the entire score.  It calculates the layout first based on the
 // computed dimensions.
@@ -11500,6 +11522,7 @@ class SmoScore {
     this.staves.forEach((staff) => {
       staff.deleteMeasure(measureIndex);
     });
+    // adjust offset if text was attached to any missing measures after the deleted one.
     this.textGroups.forEach((tg) => {
       if (tg.attachToSelector && tg.selector.measure >= measureIndex && tg.selector.measure > 0) {
         tg.selector.measure -= 1;
@@ -11695,7 +11718,6 @@ class SmoScore {
       this.textGroups.push(textGroup);
     }
   }
-
   addTextGroup(textGroup) {
     this._updateTextGroup(textGroup, true);
   }
@@ -11982,6 +12004,7 @@ class SmoTextGroup extends SmoScoreModifierBase {
     const params = {};
     smoSerialize.serializedMergeNonDefault(SmoTextGroup.defaults, SmoTextGroup.attributes, this, params);
     params.ctor = 'SmoTextGroup';
+    params.attrs = JSON.parse(JSON.stringify(this.attrs));
     return params;
   }
   _isScoreText(st) {
@@ -12031,6 +12054,14 @@ class SmoTextGroup extends SmoScoreModifierBase {
         block.activeText = false;
       }
     });
+  }
+  // For editing, keep track of the active text block.
+  getActiveBlock() {
+    const rv = this.textBlocks.find((block) => block.activeText === true);
+    if (typeof(rv) !== 'undefined') {
+      return rv.text;
+    }
+    return this.textBlocks[0].text;
   }
   setRelativePosition(position) {
     this.textBlocks.forEach((block) => {
@@ -12123,6 +12154,8 @@ class SmoTextGroup extends SmoScoreModifierBase {
 // ## SmoScoreText
 // Identify some text in the score, not associated with any musical element, like page
 // decorations, titles etc.
+// Note: score text is always contained in a text group.  So this isn't directly accessed
+// by score, but we keep the collection in score for backwards-compatibility
 // eslint-disable-next-line no-unused-vars
 class SmoScoreText extends SmoScoreModifierBase {
   // convert EM to a number, or leave as a number etc.
@@ -15780,9 +15813,7 @@ class SmoStretchNoteActor extends TickTransformBase {
         return null;
     }
 }
-;
-// ## UndoBuffer
-// ## Description:
+;// ## UndoBuffer
 // manage a set of undo or redo operations on a score.  The objects passed into
 // undo must implement serialize()/deserialize()
 // ## Buffer format:
@@ -15791,48 +15822,67 @@ class SmoStretchNoteActor extends TickTransformBase {
 // * A single staff
 // * the whole score.
 class UndoBuffer {
-    constructor() {
-        this.buffer = [];
-		this.opCount = 0;
-    }
-    static get bufferMax() {
-        return 100;
-    }
+  constructor() {
+    this.buffer = [];
+    this.opCount = 0;
+  }
+  static get bufferMax() {
+    return 100;
+  }
 
-    static get bufferTypes() {
-        return ['measure', 'staff', 'score'];
-    }
+  static get bufferTypes() {
+    return {
+      FIRST: 1,
+      MEASURE: 1, STAFF: 2, SCORE: 3, SCORE_MODIFIER: 4, NOTE_MODIFIER: 5,
+      LAST: 5
+    };
+  }
+  static get bufferSubtypes() {
+    return {
+      NONE: 0, ADD: 1, REMOVE: 2, UPDATE: 3
+    };
+  }
+  static get bufferTypeLabel() {
+    return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER', 'NOTE_MODIFIER'];
+  }
 
   // ### addBuffer
   // Description:
   // Add the current state of the score required to undo the next operation we
   // are about to perform.  For instance, if we are adding a crescendo, we back up the
   // staff the crescendo will go on.
-  addBuffer(title, type, selector, obj) {
-    if (UndoBuffer.bufferTypes.indexOf(type) < 0) {
-      throw ('Undo failure: illegal buffer type ' + type);
+  addBuffer(title, type, selector, obj, subtype) {
+    if (typeof(type) !== 'number' || type < UndoBuffer.bufferTypes.FIRST || type > UndoBuffer.bufferTypes.LAST) {
+      throw 'Undo failure: illegal buffer type ' + type;
     }
-    var json = obj.serialize();
-
-    // If this is a measure, preserve the column-mapped attributes
+    const undoObj = {
+      title,
+      type,
+      selector,
+      subtype
+    };
+    // If this is a score object, obj is the score and
+    // obj[objName] is the serializable component
     if (obj.attrs && obj.attrs.type === 'SmoMeasure') {
-      var attrColumnHash = {};
-      var attrCurrentValue  = {};
-      obj.serializeColumnMapped(attrColumnHash,attrCurrentValue);
+      // If this is a measure, preserve the column-mapped attributes
+      const attrColumnHash = {};
+      const attrCurrentValue  = {};
+      const json = obj.serialize();
+      obj.serializeColumnMapped(attrColumnHash, attrCurrentValue);
       Object.keys(attrCurrentValue).forEach((key) => {
         json[key] = attrCurrentValue[key];
       });
+      undoObj.json = json;
+    } else if (type === UndoBuffer.bufferTypes.SCORE_MODIFIER) {
+      // score modifier, already serialized
+      undoObj.json = obj;
+    } else {
+      undoObj.json = obj.serialize();
     }
-    var undoObj = {
-      title: title,
-      type: type,
-      selector: selector,
-      json: json
-    };
     if (this.buffer.length >= UndoBuffer.bufferMax) {
-      this.buffer.splice(0,1);
+      this.buffer.splice(0, 1);
     }
-		this.opCount += 1;
+    this.opCount += 1;
     this.buffer.push(undoObj);
   }
 
@@ -15840,18 +15890,19 @@ class UndoBuffer {
   // ### Description:
   // Internal method to pop the top buffer off the stack.
   _pop() {
-
-      if (this.buffer.length < 1)
-          return null;
-      var buf = this.buffer.pop();
-      return buf;
+    if (this.buffer.length < 1) {
+      return null;
+    }
+    const buf = this.buffer.pop();
+    return buf;
   }
 
   // ## Before undoing, peek at the top action in the q
   // so it can be re-rendered
   peek() {
-    if (this.buffer.length < 1)
+    if (this.buffer.length < 1) {
       return null;
+    }
     return this.buffer[this.buffer.length - 1];
   }
 
@@ -15860,288 +15911,319 @@ class UndoBuffer {
   // Undo the operation at the top of the undo stack.  This is done by replacing
   // the music as it existed before the change was made.
   undo(score) {
-    var buf = this._pop();
-    if (!buf)
+    const buf = this._pop();
+    if (!buf) {
       return score;
-    if (buf.type === 'measure') {
-      var measure = SmoMeasure.deserialize(buf.json);
+    }
+
+    if (buf.type === UndoBuffer.bufferTypes.MEASURE) {
+      const measure = SmoMeasure.deserialize(buf.json);
       measure.setChanged();
       score.replaceMeasure(buf.selector, measure);
-    } else if (buf.type === 'score') {
+    } else if (buf.type === UndoBuffer.bufferTypes.SCORE) {
       // Score expects string, as deserialized score is how saving is done.
       score = SmoScore.deserialize(JSON.stringify(buf.json));
+    } else if (buf.type === UndoBuffer.bufferTypes.SCORE_MODIFIER) {
+      // Currently only one type like this: SmoTextGroup
+      if (buf.json.ctor === 'SmoTextGroup') {
+        const obj = SmoTextGroup.deserialize(buf.json);
+        obj.attrs.id = buf.json.attrs.id;
+        // undo of add is remove, undo of remove is add
+        if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.ADD) {
+          score.removeTextGroup(obj);
+        } if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.REMOVE) {
+          score.addTextGroup(obj);
+        }
+      }
     } else {
-      // TODO: test me
-      var staff = SmoSystemStaff.deserialize(buf.json);
+      const staff = SmoSystemStaff.deserialize(buf.json);
       score.replaceStaff(buf.selector.staff, staff);
     }
     return score;
   }
 }
 
-
 // ## SmoUndoable
-// ## Description:
 // Convenience functions to save the score state before operations so we can undo the operation.
 // Each undo-able knows which set of parameters the undo operation requires (measure, staff, score).
+// eslint-disable-next-line no-unused-vars
 class SmoUndoable {
-	static undoForSelections(score,selections,undoBuffer,operation) {
-	    var staffUndo = false;
-		var scoreUndo = false;
-		if (!selections.length)
-			return;
-		var measure=selections[0].selector.measure;
-		var staff = selections[0].selector.staff;
-		for (var i=0;i<selections.length;++i) {
-			var sel = selections[i];
-			if (sel.selector.measure != measure) {
-				staffUndo = true;
-			} else if (sel.selector.staff != staff) {
-				scoreUndo = true;
-				break;
-			}
-		}
-		if (scoreUndo) {
-			undoBuffer.addBuffer('score backup for '+operation, 'score', null, score);
-		} else if (staffUndo) {
-			undoBuffer.addBuffer('staff backup for '+operation, 'staff', selections[0].selector, score);
-		} else {
-			undoBuffer.addBuffer('measure backup for '+operation, 'measure', selections[0].selector, selections[0].measure);
-		}
-	}
-	// Add the measure/staff/score that will cover this list of selections
-	static batchDurationOperation(score,selections,operation,undoBuffer) {
-	    SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
-		SmoOperation.batchSelectionOperation(score,selections,operation);
-	}
-  static multiSelectionOperation(score,selections,operation,parameter,undoBuffer) {
-    SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
-    SmoOperation[operation](score,selections,parameter);
+  // ### undoScoreObject
+  // Called when a score object is being modified.  There is no need to update the score as it contains a
+  // reference to the object
+  static changeTextGroup(score, undoBuffer, object, subtype) {
+    undoBuffer.addBuffer('modify text',
+      UndoBuffer.bufferTypes.SCORE_MODIFIER, null, object, subtype);
+    if (subtype === UndoBuffer.bufferSubtypes.REMOVE) {
+      SmoOperation.removeTextGroup(score, object);
+    } else if (subtype === UndoBuffer.bufferSubtypes.ADD) {
+      SmoOperation.addTextGroup(score, object);
+    }
+    // Update operation, there is nothing to do since the text is already
+    // part of the score
   }
-  static addConnectorDown(score,selections,parameters,undoBuffer) {
-    SmoUndoable.undoForSelections(score,selections,undoBuffer,'Add Connector Below');
-    SmoOperation.addConnectorDown(score,selections,parameters);
+  // ### undoForSelections
+  // We want to undo a bunch of selections.
+  static undoForSelections(score, selections, undoBuffer, operation) {
+    let staffUndo = false;
+    let scoreUndo = false;
+    let i = 0;
+    if (!selections.length) {
+      return;
+    }
+    const measure = selections[0].selector.measure;
+    const staff = selections[0].selector.staff;
+    for (i = 0; i < selections.length; ++i) {
+      const sel = selections[i];
+      if (sel.selector.measure !== measure) {
+        staffUndo = true;
+      } else if (sel.selector.staff !== staff) {
+        scoreUndo = true;
+        break;
+      }
+    }
+    if (scoreUndo) {
+      undoBuffer.addBuffer('score backup for ' + operation, UndoBuffer.bufferTypes.SCORE, null, score);
+    } else if (staffUndo) {
+      undoBuffer.addBuffer('staff backup for ' + operation, UndoBuffer.bufferTypes.STAFF, selections[0].selector, score);
+    } else {
+      undoBuffer.addBuffer('measure backup for ' + operation, UndoBuffer.bufferTypes.MEASURE, selections[0].selector, selections[0].measure);
+    }
   }
-  static addGraceNote(selection,undoBuffer) {
+  // Add the measure/staff/score that will cover this list of selections
+  static batchDurationOperation(score, selections, operation, undoBuffer) {
+    SmoUndoable.undoForSelections(score, selections, undoBuffer, operation);
+    SmoOperation.batchSelectionOperation(score, selections, operation);
+  }
+  static multiSelectionOperation(score, selections, operation, parameter, undoBuffer) {
+    SmoUndoable.undoForSelections(score, selections, undoBuffer, operation);
+    SmoOperation[operation](score, selections, parameter);
+  }
+  static addConnectorDown(score, selections, parameters, undoBuffer) {
+    SmoUndoable.undoForSelections(score, selections, undoBuffer, 'Add Connector Below');
+    SmoOperation.addConnectorDown(score, selections, parameters);
+  }
+  static addGraceNote(selection, undoBuffer) {
     undoBuffer.addBuffer('grace note ' + JSON.stringify(selection.note.pitches, null, ' '),
-      'measure', selection.selector, selection.measure);
-    var pitches = JSON.parse(JSON.stringify(selection.note.pitches));
-    SmoOperation.addGraceNote(selection,new SmoGraceNote({pitches:pitches,ticks:{numerator:2048,denominator:1,remainder:0}}))
+      UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    const pitches = JSON.parse(JSON.stringify(selection.note.pitches));
+    SmoOperation.addGraceNote(selection, new SmoGraceNote({ pitches, ticks:
+      { numerator: 2048, denominator: 1, remainder: 0 } }));
   }
-  static removeGraceNote(selection,params,undoBuffer) {
-      undoBuffer.addBuffer('remove grace note',
-        'measure', selection.selector, selection.measure);
-      SmoOperation.removeGraceNote(selection,params.index);
+  static removeGraceNote(selection, params, undoBuffer) {
+    undoBuffer.addBuffer('remove grace note',
+      UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.removeGraceNote(selection, params.index);
   }
 
-  static slashGraceNotes(selections,undoBuffer) {
+  static slashGraceNotes(selections, undoBuffer) {
     undoBuffer.addBuffer('transpose grace note',
-      'measure', selections[0].selection.selector, selections[0].selection.measure);
+      UndoBuffer.bufferTypes.MEASURE, selections[0].selection.selector, selections[0].selection.measure);
     SmoOperation.slashGraceNotes(selections);
   }
 
-  static transposeGraceNotes(selection,params,undoBuffer) {
+  static transposeGraceNotes(selection, params, undoBuffer) {
     undoBuffer.addBuffer('transpose grace note',
-      'measure', selection.selector, selection.measure);
-    SmoOperation.transposeGraceNotes(selection,params.modifiers,params.offset);
+      UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.transposeGraceNotes(selection, params.modifiers, params.offset);
   }
-  static setNoteHead(score,selections,noteHead,undoBuffer) {
-    SmoUndoable.undoForSelections(score,selections,undoBuffer,'note head');
-    SmoOperation.setNoteHead(selections,noteHead);
+  static setNoteHead(score, selections, noteHead, undoBuffer) {
+    SmoUndoable.undoForSelections(score, selections, undoBuffer, 'note head');
+    SmoOperation.setNoteHead(selections, noteHead);
   }
 
-  static padMeasuresLeft(selections,padding,undoBuffer) {
+  static padMeasuresLeft(selections, padding, undoBuffer) {
     if (!Array.isArray(selections)) {
-      selections=[selections];
+      selections = [selections];
     }
     selections.forEach((selection) => {
-      undoBuffer.addBuffer('pad measure','measure',selection.selector,selection.measure);
-      SmoOperation.padMeasureLeft(selection,padding);
+      undoBuffer.addBuffer('pad measure', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+      SmoOperation.padMeasureLeft(selection, padding);
     });
   }
-  static doubleGraceNoteDuration(selection,modifier,undoBuffer) {
+  static doubleGraceNoteDuration(selection, modifier, undoBuffer) {
     undoBuffer.addBuffer('double grace note duration',
-      'measure', selection.selector, selection.measure);
-    SmoOperation.doubleGraceNoteDuration(selection,modifier);
+      UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.doubleGraceNoteDuration(selection, modifier);
   }
 
-  static halveGraceNoteDuration(selection,modifier,undoBuffer) {
+  static halveGraceNoteDuration(selection, modifier, undoBuffer) {
     undoBuffer.addBuffer('halve grace note duration',
-      'measure', selection.selector, selection.measure);
-    SmoOperation.halveGraceNoteDuration(selection,modifier);
+      UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.halveGraceNoteDuration(selection, modifier);
   }
   static setPitch(selection, pitches, undoBuffer)  {
     undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
-      'measure', selection.selector, selection.measure);
+      UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
     SmoOperation.setPitch(selection, pitches);
   }
   static addPitch(selection, pitches, undoBuffer)  {
     undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
-        'measure', selection.selector, selection.measure);
+      UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
     SmoOperation.addPitch(selection, pitches);
   }
   static doubleDuration(selection, undoBuffer) {
-    undoBuffer.addBuffer('double duration', 'measure', selection.selector, selection.measure);
+    undoBuffer.addBuffer('double duration', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
     SmoOperation.doubleDuration(selection);
   }
   static halveDuration(selection, undoBuffer) {
-    undoBuffer.addBuffer('halve note duration', 'measure', selection.selector, selection.measure);
+    undoBuffer.addBuffer('halve note duration', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
     SmoOperation.halveDuration(selection);
   }
   static makeTuplet(selection, numNotes, undoBuffer) {
-    undoBuffer.addBuffer(numNotes + '-let', 'measure', selection.selector, selection.measure);
+    undoBuffer.addBuffer(numNotes + '-let', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
     SmoOperation.makeTuplet(selection, numNotes);
   }
   static makeRest(selection, undoBuffer) {
-    undoBuffer.addBuffer('make rest', 'measure', selection.selector, selection.measure);
+    undoBuffer.addBuffer('make rest', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
     SmoOperation.makeRest(selection);
   }
   static makeNote(selection, undoBuffer) {
-    undoBuffer.addBuffer('make note', 'measure', selection.selector, selection.measure);
+    undoBuffer.addBuffer('make note', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
     SmoOperation.makeNote(selection);
   }
   static unmakeTuplet(selection, undoBuffer) {
-    undoBuffer.addBuffer('unmake tuplet', 'measure', selection.selector, selection.measure);
+    undoBuffer.addBuffer('unmake tuplet', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
     SmoOperation.unmakeTuplet(selection);
   }
-    static dotDuration(selection, undoBuffer) {
-        undoBuffer.addBuffer('dot duration', 'measure', selection.selector, selection.measure);
-        SmoOperation.dotDuration(selection);
-    }
-    static populateVoice(selections,voiceIx,undoBuffer) {
-        var measures = SmoSelection.getMeasureList(selections);
-        measures.forEach((selection) => {
-            undoBuffer.addBuffer('populate voice', 'measure',
-               selection.selector, selection.measure);
-            SmoOperation.populateVoice(selection,voiceIx);
-        });
-    }
+  static dotDuration(selection, undoBuffer) {
+    undoBuffer.addBuffer('dot duration', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.dotDuration(selection);
+  }
+  static populateVoice(selections, voiceIx, undoBuffer) {
+    const measures = SmoSelection.getMeasureList(selections);
+    measures.forEach((selection) => {
+      undoBuffer.addBuffer('populate voice', UndoBuffer.bufferTypes.MEASURE,
+        selection.selector, selection.measure);
+      SmoOperation.populateVoice(selection, voiceIx);
+    });
+  }
 
-    static depopulateVoice(selections,voiceIx,undoBuffer) {
-        var measures = SmoSelection.getMeasureList(selections);
-        measures.forEach((selection) => {
-            undoBuffer.addBuffer('populate voice', 'measure',
-               selection.selector, selection.measure);
-            SmoOperation.depopulateVoice(selection,voiceIx);
-        });
-    }
-    static toggleBeamGroups(selections, undoBuffer) {
-        var measureUndoHash = {};
-        selections.forEach((selection) => {
-            if (!measureUndoHash[selection.selector.measure]) {
-                measureUndoHash[selection.selector.measure] = true;
-                undoBuffer.addBuffer('toggleBeamGroups', 'measure', selection.selector, selection.measure);
-            }
-            SmoOperation.toggleBeamGroup(selection);
-        });
-    }
-    static toggleBeamDirection(selections,undoBuffer) {
-        undoBuffer.addBuffer('beam notes', 'measure', selections[0].selector, selections[0].measure);
-        SmoOperation.toggleBeamDirection(selections);
-    }
-    static beamSelections(selections,undoBuffer) {
-        undoBuffer.addBuffer('beam notes', 'measure', selections[0].selector, selections[0].measure);
-        SmoOperation.beamSelections(selections);
-    }
-    static undotDuration(selection, undoBuffer) {
-        undoBuffer.addBuffer('undot duration', 'measure', selection.selector, selection.measure);
-        SmoOperation.undotDuration(selection);
-    }
-    static transpose(selection, offset, undoBuffer) {
-        undoBuffer.addBuffer('transpose pitches ' + offset, 'measure', selection.selector, selection.measure);
-        SmoOperation.transpose(selection, offset);
-    }
-    static courtesyAccidental(pitchSelection, toBe, undoBuffer) {
-        undoBuffer.addBuffer('courtesy accidental ', 'measure', pitchSelection.selector, pitchSelection.measure);
-        SmoOperation.courtesyAccidental(pitchSelection, toBe);
-    }
-    static addDynamic(selection, dynamic, undoBuffer) {
-        undoBuffer.addBuffer('add dynamic', 'measure', selection.selector, selection.measure);
-        SmoOperation.addDynamic(selection, dynamic);
-    }
-	static toggleEnharmonic(pitchSelection,undoBuffer) {
-	     undoBuffer.addBuffer('toggle enharmonic', 'measure', pitchSelection.selector, pitchSelection.measure);
-		 SmoOperation.toggleEnharmonic(pitchSelection)
-	}
-    static interval(selection, interval, undoBuffer) {
-        undoBuffer.addBuffer('add interval ' + interval, 'measure', selection.selector, selection.measure);
-        SmoOperation.interval(selection, interval);
-    }
-    static crescendo(fromSelection, toSelection, undoBuffer) {
-        undoBuffer.addBuffer('crescendo', 'staff', fromSelection.selector, fromSelection.staff);
-        SmoOperation.crescendo(fromSelection, toSelection);
-    }
-    static decrescendo(fromSelection, toSelection, undoBuffer) {
-        undoBuffer.addBuffer('decrescendo', 'staff', fromSelection.selector, fromSelection.staff);
-        SmoOperation.decrescendo(fromSelection, toSelection);
-    }
-    static slur(fromSelection, toSelection, undoBuffer) {
-        undoBuffer.addBuffer('slur', 'staff', fromSelection.selector, fromSelection.staff);
-        SmoOperation.slur(fromSelection, toSelection);
-    }
-    // easy way to back up the score for a score-wide operation
-	static noop(score,undoBuffer,label) {
-        label = label ? label : 'Backup';
-        undoBuffer.addBuffer(label, 'score', null, score);
-	}
+  static depopulateVoice(selections, voiceIx, undoBuffer) {
+    var measures = SmoSelection.getMeasureList(selections);
+    measures.forEach((selection) => {
+      undoBuffer.addBuffer('populate voice', UndoBuffer.bufferTypes.MEASURE,
+        selection.selector, selection.measure);
+      SmoOperation.depopulateVoice(selection, voiceIx);
+    });
+  }
+  static toggleBeamGroups(selections, undoBuffer) {
+    var measureUndoHash = {};
+    selections.forEach((selection) => {
+      if (!measureUndoHash[selection.selector.measure]) {
+        measureUndoHash[selection.selector.measure] = true;
+        undoBuffer.addBuffer('toggleBeamGroups', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+      }
+      SmoOperation.toggleBeamGroup(selection);
+    });
+  }
+  static toggleBeamDirection(selections, undoBuffer) {
+    undoBuffer.addBuffer('beam notes', UndoBuffer.bufferTypes.MEASURE, selections[0].selector, selections[0].measure);
+    SmoOperation.toggleBeamDirection(selections);
+  }
+  static beamSelections(selections, undoBuffer) {
+    undoBuffer.addBuffer('beam notes', UndoBuffer.bufferTypes.MEASURE, selections[0].selector, selections[0].measure);
+    SmoOperation.beamSelections(selections);
+  }
+  static undotDuration(selection, undoBuffer) {
+    undoBuffer.addBuffer('undot duration', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.undotDuration(selection);
+  }
+  static transpose(selection, offset, undoBuffer) {
+    undoBuffer.addBuffer('transpose pitches ' + offset, UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.transpose(selection, offset);
+  }
+  static courtesyAccidental(pitchSelection, toBe, undoBuffer) {
+    undoBuffer.addBuffer('courtesy accidental ', UndoBuffer.bufferTypes.MEASURE, pitchSelection.selector, pitchSelection.measure);
+    SmoOperation.courtesyAccidental(pitchSelection, toBe);
+  }
+  static addDynamic(selection, dynamic, undoBuffer) {
+    undoBuffer.addBuffer('add dynamic', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.addDynamic(selection, dynamic);
+  }
+  static toggleEnharmonic(pitchSelection, undoBuffer) {
+    undoBuffer.addBuffer('toggle enharmonic', UndoBuffer.bufferTypes.MEASURE, pitchSelection.selector, pitchSelection.measure);
+    SmoOperation.toggleEnharmonic(pitchSelection);
+  }
+  static interval(selection, interval, undoBuffer) {
+    undoBuffer.addBuffer('add interval ' + interval, UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.interval(selection, interval);
+  }
+  static crescendo(fromSelection, toSelection, undoBuffer) {
+    undoBuffer.addBuffer('crescendo', UndoBuffer.bufferTypes.STAFF, fromSelection.selector, fromSelection.staff);
+    SmoOperation.crescendo(fromSelection, toSelection);
+  }
+  static decrescendo(fromSelection, toSelection, undoBuffer) {
+    undoBuffer.addBuffer('decrescendo', UndoBuffer.bufferTypes.STAFF, fromSelection.selector, fromSelection.staff);
+    SmoOperation.decrescendo(fromSelection, toSelection);
+  }
+  static slur(fromSelection, toSelection, undoBuffer) {
+    undoBuffer.addBuffer('slur', UndoBuffer.bufferTypes.STAFF, fromSelection.selector, fromSelection.staff);
+    SmoOperation.slur(fromSelection, toSelection);
+  }
+  // easy way to back up the score for a score-wide operation
+  static noop(score, undoBuffer, label) {
+    label = typeof(label) !== 'undefined' ? label : 'Backup';
+    undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE, null, score);
+  }
 
-	static measureSelectionOp(score,selection,op,params,undoBuffer,description) {
-		undoBuffer.addBuffer(description, 'measure', selection.selector, selection.measure);
-		SmoOperation[op](score,selection,params);
-	}
+  static measureSelectionOp(score, selection, op, params, undoBuffer, description) {
+    undoBuffer.addBuffer(description, UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation[op](score, selection, params);
+  }
 
-    static staffSelectionOp(score,selection,op,params,undoBuffer,description) {
-		undoBuffer.addBuffer(description, 'staff', selection.selector, selection.staff);
-		SmoOperation[op](selection,params);
-	}
+  static staffSelectionOp(score, selection, op, params, undoBuffer, description) {
+    undoBuffer.addBuffer(description, UndoBuffer.bufferTypes.STAFF, selection.selector, selection.staff);
+    SmoOperation[op](selection, params);
+  }
 
-	static scoreSelectionOp(score,selection,op,params,undoBuffer,description) {
-        undoBuffer.addBuffer(description, 'score', null, score);
-		SmoOperation[op](score,selection,params);
-	}
-	static scoreOp(score,op,params,undoBuffer,description) {
-		undoBuffer.addBuffer(description, 'score', null, score);
-		SmoOperation[op](score,params);
-	}
+  static scoreSelectionOp(score, selection, op, params, undoBuffer, description) {
+    undoBuffer.addBuffer(description, UndoBuffer.bufferTypes.SCORE, null, score);
+    SmoOperation[op](score, selection, params);
+  }
+  static scoreOp(score, op, params, undoBuffer, description) {
+    undoBuffer.addBuffer(description, UndoBuffer.bufferTypes.SCORE, null, score);
+    SmoOperation[op](score, params);
+  }
 
-    static addKeySignature(score, selection, keySignature, undoBuffer) {
-        undoBuffer.addBuffer('addKeySignature ' + keySignature, 'score', null, score);
-        SmoOperation.addKeySignature(score, selection, keySignature);
-    }
-    static addMeasure(score, systemIndex, nmeasure, undoBuffer) {
-        undoBuffer.addBuffer('add measure', 'score', null, score);
-        SmoOperation.addMeasure(score, systemIndex, nmeasure);
-    }
-    static deleteMeasure(score, selection, undoBuffer) {
-        undoBuffer.addBuffer('delete measure', 'score', null, score);
-        var measureIndex = selection.selector.measure;
-        score.deleteMeasure(measureIndex);
-    }
-    static addStaff(score, parameters, undoBuffer) {
-        undoBuffer.addBuffer('add instrument', 'score', null, score);
-        SmoOperation.addStaff(score, parameters);
-    }
-    static toggleGraceNoteCourtesyAccidental(selection,modifier,undoBuffer) {
-        undoBuffer.addBuffer('toggle grace courtesy ','measure', selection.selector, selection.measure);
-		SmoOperation.toggleGraceNoteCourtesy(selection,modifier);
-    }
-	static toggleCourtesyAccidental(selection,undoBuffer) {
-        undoBuffer.addBuffer('toggle courtesy ','measure', selection.selector, selection.measure);
-		SmoOperation.toggleCourtesyAccidental(selection);
-	}
-    static removeStaff(score, index, undoBuffer) {
-        undoBuffer.addBuffer('remove instrument', 'score', null, score);
-        SmoOperation.removeStaff(score, index);
-    }
-    static changeInstrument(score, instrument, selections, undoBuffer) {
-        undoBuffer.addBuffer('changeInstrument', 'staff', selections[0].selector, selections[0].staff);
-        SmoOperation.changeInstrument(score, instrument, selections);
-    }
-	static pasteBuffer(score,pasteBuffer,selections,undoBuffer,operation) {
-		SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
-		var pasteTarget = selections[0].selector;
-        pasteBuffer.pasteSelections(this.score, pasteTarget);
-	}
+  static addKeySignature(score, selection, keySignature, undoBuffer) {
+    undoBuffer.addBuffer('addKeySignature ' + keySignature, UndoBuffer.bufferTypes.SCORE, null, score);
+    SmoOperation.addKeySignature(score, selection, keySignature);
+  }
+  static addMeasure(score, systemIndex, nmeasure, undoBuffer) {
+    undoBuffer.addBuffer('add measure', UndoBuffer.bufferTypes.SCORE, null, score);
+    SmoOperation.addMeasure(score, systemIndex, nmeasure);
+  }
+  static deleteMeasure(score, selection, undoBuffer) {
+    undoBuffer.addBuffer('delete measure', UndoBuffer.bufferTypes.SCORE, null, score);
+    const measureIndex = selection.selector.measure;
+    score.deleteMeasure(measureIndex);
+  }
+  static addStaff(score, parameters, undoBuffer) {
+    undoBuffer.addBuffer('add instrument', UndoBuffer.bufferTypes.SCORE, null, score);
+    SmoOperation.addStaff(score, parameters);
+  }
+  static toggleGraceNoteCourtesyAccidental(selection, modifier, undoBuffer) {
+    undoBuffer.addBuffer('toggle grace courtesy ', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.toggleGraceNoteCourtesy(selection, modifier);
+  }
+  static toggleCourtesyAccidental(selection, undoBuffer) {
+    undoBuffer.addBuffer('toggle courtesy ', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.toggleCourtesyAccidental(selection);
+  }
+  static removeStaff(score, index, undoBuffer) {
+    undoBuffer.addBuffer('remove instrument', UndoBuffer.bufferTypes.SCORE, null, score);
+    SmoOperation.removeStaff(score, index);
+  }
+  static changeInstrument(score, instrument, selections, undoBuffer) {
+    undoBuffer.addBuffer('changeInstrument', UndoBuffer.bufferTypes.STAFF, selections[0].selector, selections[0].staff);
+    SmoOperation.changeInstrument(score, instrument, selections);
+  }
+  static pasteBuffer(score, pasteBuffer, selections, undoBuffer, operation) {
+    SmoUndoable.undoForSelections(score, selections, undoBuffer, operation);
+    const pasteTarget = selections[0].selector;
+    pasteBuffer.pasteSelections(this.score, pasteTarget);
+  }
 }
 ;const ArialFont = {
   smufl: false,
@@ -22515,56 +22597,56 @@ class SmoUndoable {
 // 5. tracker change events tracker-selection
 class suiController {
 
-	constructor(params) {
-		Vex.Merge(this, suiController.defaults);
-		Vex.Merge(this, params);
-		window.suiControllerInstance = this;
+  constructor(params) {
+    Vex.Merge(this, suiController.defaults);
+    Vex.Merge(this, params);
+    window.suiControllerInstance = this;
 
 
-		this.undoBuffer = new UndoBuffer();
+    this.undoBuffer = new UndoBuffer();
     this.eventSource = params.eventSource;
-		this.pasteBuffer = this.tracker.pasteBuffer;
+    this.pasteBuffer = this.tracker.pasteBuffer;
     this.tracker.setDialogModifier(this);
-		this.keyCommands.controller = this;
-		this.keyCommands.undoBuffer = this.undoBuffer;
-		this.keyCommands.pasteBuffer = this.pasteBuffer;
-		this.resizing = false;
-		this.undoStatus=0;
-		this.trackScrolling = false;
+    this.keyCommands.controller = this;
+    this.keyCommands.undoBuffer = this.undoBuffer;
+    this.keyCommands.pasteBuffer = this.pasteBuffer;
+    this.resizing = false;
+    this.undoStatus=0;
+    this.trackScrolling = false;
 
     this.keyHandlerObj = null;
 
-		this.ribbon = new RibbonButtons({
-			ribbons: defaultRibbonLayout.ribbons,
-			ribbonButtons: defaultRibbonLayout.ribbonButtons,
-			menus: this.menus,
-			keyCommands: this.keyCommands,
-			tracker: this.tracker,
-			score: this.score,
-			controller: this,
+    this.ribbon = new RibbonButtons({
+      ribbons: defaultRibbonLayout.ribbons,
+      ribbonButtons: defaultRibbonLayout.ribbonButtons,
+      menus: this.menus,
+      keyCommands: this.keyCommands,
+      tracker: this.tracker,
+      score: this.score,
+      controller: this,
       layout:this.tracker.layout,
       eventSource:this.eventSource
-		});
+    });
 
     this.menus.setController(this);
 
-		// create globbal exception instance
-		this.exhandler = new SuiExceptionHandler(this);
+    // create globbal exception instance
+    this.exhandler = new SuiExceptionHandler(this);
 
-		this.bindEvents();
+    this.bindEvents();
 
     // Only display the ribbon one time b/c it's expensive operation
     this.ribbon.display();
-		this.bindResize();
+    this.bindResize();
     this.layoutDemon.undoBuffer = this.undoBuffer;
     this.layoutDemon.startDemon();
 
-		this.createPiano();
-	}
+    this.createPiano();
+  }
 
-	static get scrollable() {
-		return '.musicRelief';
-	}
+  static get scrollable() {
+    return '.musicRelief';
+  }
 
   static get keyboardWidget() {
     return suiController._kbWidget;
@@ -22577,69 +22659,69 @@ class suiController {
     }
   }
 
-	get isLayoutQuiet() {
-		return ((this.layout.passState == SuiRenderState.passStates.clean && this.layout.dirty == false)
-		   || this.layout.passState == SuiRenderState.passStates.replace);
-	}
+  get isLayoutQuiet() {
+    return ((this.layout.passState == SuiRenderState.passStates.clean && this.layout.dirty == false)
+       || this.layout.passState == SuiRenderState.passStates.replace);
+  }
 
-	handleScrollEvent(ev) {
-		var self=this;
-		if (self.trackScrolling) {
-				return;
-		}
-		self.trackScrolling = true;
-		setTimeout(function() {
+  handleScrollEvent(ev) {
+    var self=this;
+    if (self.trackScrolling) {
+        return;
+    }
+    self.trackScrolling = true;
+    setTimeout(function() {
             try {
-		    // wait until redraw is done to track scroll events.
-			self.trackScrolling = false;
+        // wait until redraw is done to track scroll events.
+      self.trackScrolling = false;
 
-			// self.scrollRedrawStatus = true;
+      // self.scrollRedrawStatus = true;
             // self.tracker.updateMap(true);
             // Thisi s a WIP...
-			self.scroller.handleScroll($(suiController.scrollable)[0].scrollLeft,$(suiController.scrollable)[0].scrollTop);
+      self.scroller.handleScroll($(suiController.scrollable)[0].scrollLeft,$(suiController.scrollable)[0].scrollTop);
             } catch(e) {
                 SuiExceptionHandler.instance.exceptionHandler(e);
             }
-		},500);
-	}
+    },500);
+  }
 
-	createPiano() {
-		this.piano = new suiPiano(
+  createPiano() {
+    this.piano = new suiPiano(
     {
       elementId:'piano-svg',
-			ribbons: defaultRibbonLayout.ribbons,
-			ribbonButtons: defaultRibbonLayout.ribbonButtons,
-			menus: this.menus,
-			keyCommands: this.keyCommands,
-			tracker: this.tracker,
-			score: this.score,
-			controller: this,
+      ribbons: defaultRibbonLayout.ribbons,
+      ribbonButtons: defaultRibbonLayout.ribbonButtons,
+      menus: this.menus,
+      keyCommands: this.keyCommands,
+      tracker: this.tracker,
+      score: this.score,
+      controller: this,
       layout:this.tracker.layout,
       eventSource:this.eventSource,
       undoBuffer:this.undoBuffer
-		});
+    });
         // $('.close-piano').click();
-	}
+  }
   _setMusicDimensions() {
     $('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
 
   }
-	resizeEvent() {
-		var self = this;
-		if (this.resizing) {
-			return;
+  resizeEvent() {
+    var self = this;
+    if (this.resizing) {
+      return;
     }
     if ($('body').hasClass('printing')) {
       return;
     }
-		this.resizing = true;
-		setTimeout(function () {
-			console.log('resizing');
-			self.resizing = false;
+    this.resizing = true;
+    setTimeout(function () {
+      console.log('resizing');
+      self.resizing = false;
       self._setMusicDimensions();
-			self.piano.handleResize();
-		}, 500);
-	}
+      self.piano.handleResize();
+    }, 500);
+  }
 
   createModifierDialog(modifierSelection) {
     var parameters = {
@@ -22649,183 +22731,186 @@ class suiController {
     SuiModifierDialogFactory.createDialog(modifierSelection.modifier,parameters);
   }
 
-	// If the user has selected a modifier via the mouse/touch, bring up mod dialog
-	// for that modifier
-	trackerModifierSelect(ev) {
-		var modSelection = this.tracker.getSelectedModifier();
-		if (modSelection) {
-			var dialog = this.createModifierDialog(modSelection);
+  // If the user has selected a modifier via the mouse/touch, bring up mod dialog
+  // for that modifier
+  trackerModifierSelect(ev) {
+    var modSelection = this.tracker.getSelectedModifier();
+    if (modSelection) {
+      var dialog = this.createModifierDialog(modSelection);
       if (dialog) {
         this.tracker.selectSuggestion(ev);
-  	    // this.unbindKeyboardForModal(dialog);
+        // this.unbindKeyboardForModal(dialog);
       } else {
         this.tracker.advanceModifierSelection(ev);
       }
-		} else {
+    } else {
       this.tracker.selectSuggestion(ev);
     }
     var modifier = this.tracker.getSelectedModifier();
     // if (modifier) {
     //   this.createModifierDialog(modifier);
     // }
-		return;
-	}
+    return;
+  }
 
     // ### bindResize
-	// This handles both resizing of the music area (scrolling) and resizing of the window.
-	// The latter results in a redraw, the former just resets the client/logical map of elements
-	// in the tracker.
-	bindResize() {
-		var self = this;
-		var el = $(suiController.scrollable)[0];
-		// unit test programs don't have resize html
-		if (!el) {
-			return;
-		}
+  // This handles both resizing of the music area (scrolling) and resizing of the window.
+  // The latter results in a redraw, the former just resets the client/logical map of elements
+  // in the tracker.
+  bindResize() {
+    var self = this;
+    var el = $(suiController.scrollable)[0];
+    // unit test programs don't have resize html
+    if (!el) {
+      return;
+    }
     this._setMusicDimensions();
-		// $(suiController.scrollable).height(window.innerHeight - $('.musicRelief').offset().top);
+    // $(suiController.scrollable).height(window.innerHeight - $('.musicRelief').offset().top);
 
-		window.addEventListener('resize', function () {
-			self.resizeEvent();
-		});
+    window.addEventListener('resize', function () {
+      self.resizeEvent();
+    });
 
-		let scrollCallback = (ev) => {
+    let scrollCallback = (ev) => {
       self.handleScrollEvent(ev);
-		};
-		el.onscroll = scrollCallback;
-	}
-
-
-	// ### renderElement
-	// return render element that is the DOM parent of the svg
-	get renderElement() {
-		return this.layout.renderElement;
-	}
-
-	// ## keyBindingDefaults
-	// ### Description:
-	// Different applications can create their own key bindings, these are the defaults.
-	// Many editor commands can be reached by a single keystroke.  For more advanced things there
-	// are menus.
-	static get keyBindingDefaults() {
-		var editorKeys = suiController.editorKeyBindingDefaults;
-		editorKeys.forEach((key) => {
-			key.module = 'keyCommands'
-		});
-		var trackerKeys = suiController.trackerKeyBindingDefaults;
-		trackerKeys.forEach((key) => {
-			key.module = 'tracker'
-		});
-		return trackerKeys.concat(editorKeys);
-	}
-
-	// ## editorKeyBindingDefaults
-	// ## Description:
-	// execute a simple command on the editor, based on a keystroke.
-	static get editorKeyBindingDefaults() {
-		return defaultEditorKeys.keys;
-	}
-
-	// ## trackerKeyBindingDefaults
-	// ### Description:
-	// Key bindings for the tracker.  The tracker is the 'cursor' in the music
-	// that lets you select and edit notes.
-	static get trackerKeyBindingDefaults() {
-		return defaultTrackerKeys.keys;
-	}
-
-	helpControls() {
-		var self = this;
-		var rebind = function () {
-			self.bindEvents();
-		}
+    };
+    el.onscroll = scrollCallback;
   }
-	static set reentry(value) {
-		suiController._reentry = value;
-	}
-	static get reentry() {
-		if (typeof(suiController['_reentry']) == 'undefined') {
-			suiController._reentry = false;
-		}
-		return suiController._reentry;
-	}
 
-	menuHelp() {
-		SmoHelp.displayHelp();
-	}
 
-	static get defaults() {
-		return {
-			keyBind: suiController.keyBindingDefaults
-		};
-	}
+  // ### renderElement
+  // return render element that is the DOM parent of the svg
+  get renderElement() {
+    return this.layout.renderElement;
+  }
 
-	showModifierDialog(modSelection) {
-		return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout,this.undoBuffer,this)
-	}
+  // ## keyBindingDefaults
+  // ### Description:
+  // Different applications can create their own key bindings, these are the defaults.
+  // Many editor commands can be reached by a single keystroke.  For more advanced things there
+  // are menus.
+  static get keyBindingDefaults() {
+    var editorKeys = suiController.editorKeyBindingDefaults;
+    editorKeys.forEach((key) => {
+      key.module = 'keyCommands'
+    });
+    var trackerKeys = suiController.trackerKeyBindingDefaults;
+    trackerKeys.forEach((key) => {
+      key.module = 'tracker'
+    });
+    return trackerKeys.concat(editorKeys);
+  }
+
+  // ## editorKeyBindingDefaults
+  // ## Description:
+  // execute a simple command on the editor, based on a keystroke.
+  static get editorKeyBindingDefaults() {
+    return defaultEditorKeys.keys;
+  }
+
+  // ## trackerKeyBindingDefaults
+  // ### Description:
+  // Key bindings for the tracker.  The tracker is the 'cursor' in the music
+  // that lets you select and edit notes.
+  static get trackerKeyBindingDefaults() {
+    return defaultTrackerKeys.keys;
+  }
+
+  helpControls() {
+    var self = this;
+    var rebind = function () {
+      self.bindEvents();
+    }
+  }
+  static set reentry(value) {
+    suiController._reentry = value;
+  }
+  static get reentry() {
+    if (typeof(suiController['_reentry']) == 'undefined') {
+      suiController._reentry = false;
+    }
+    return suiController._reentry;
+  }
+
+  menuHelp() {
+    SmoHelp.displayHelp();
+  }
+
+  static get defaults() {
+    return {
+      keyBind: suiController.keyBindingDefaults
+    };
+  }
+
+  showModifierDialog(modSelection) {
+    return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout,this.undoBuffer,this)
+  }
 
   // ### unbindKeyboardForModal
   // Global events from keyboard and pointer are handled by this object.  Modal
   // UI elements take over the events, and then let the controller know when
   // the modals go away.
-	unbindKeyboardForModal(dialog) {
-		var self=this;
+  unbindKeyboardForModal(dialog) {
+    var self=this;
     layoutDebug.addDialogDebug('controller: unbindKeyboardForModal')
-		var rebind = function () {
-			self.bindEvents();
+    var rebind = function () {
+      self.bindEvents();
       layoutDebug.addDialogDebug('controller: unbindKeyboardForModal resolve')
-		}
+    }
     this.eventSource.unbindKeydownHandler(this.keydownHandler);
     this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
     this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
 
-		dialog.closeModalPromise.then(rebind);
-	}
+    dialog.closeModalPromise.then(rebind);
+  }
 
-	evKey(evdata) {
-		var self = this;
+  evKey(evdata) {
+    var self = this;
     if ($('body').hasClass('translation-mode')) {
       return;
     }
 
-		console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
-			evdata.code + "'"
-			 + " shift='" + evdata.shiftKey + "' control='" + evdata.ctrlKey + "'" + " alt='" + evdata.altKey + "'");
-		evdata.preventDefault();
+    console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
+      evdata.code + "'"
+       + " shift='" + evdata.shiftKey + "' control='" + evdata.ctrlKey + "'" + " alt='" + evdata.altKey + "'");
+    evdata.preventDefault();
 
     if (suiController.keyboardWidget) {
       Qwerty.handleKeyEvent(evdata);
     }
-		if (evdata.key == '?') {
-			SmoHelp.displayHelp();
-		}
+    if (evdata.key == '?') {
+      SmoHelp.displayHelp();
+    }
 
-		if (evdata.key == '/') {
+    if (evdata.key == '/') {
       // set up menu DOM.
       this.menus.slashMenuMode(this);
-		}
+    }
 
-		if (evdata.key == 'Enter') {
-			self.trackerModifierSelect(evdata);
+    if (evdata.key == 'Enter') {
+      self.trackerModifierSelect(evdata);
       var modifier = this.tracker.getSelectedModifier();
       if (modifier) {
         this.createModifierDialog(modifier);
       }
 
-		}
+    }
 
-		var binding = this.keyBind.find((ev) =>
-				ev.event === 'keydown' && ev.key === evdata.key && ev.ctrlKey === evdata.ctrlKey &&
-				ev.altKey === evdata.altKey && evdata.shiftKey === ev.shiftKey);
+    var binding = this.keyBind.find((ev) =>
+        ev.event === 'keydown' && ev.key === evdata.key && ev.ctrlKey === evdata.ctrlKey &&
+        ev.altKey === evdata.altKey && evdata.shiftKey === ev.shiftKey);
 
-		if (binding) {
-			try {
-			this[binding.module][binding.action](evdata);
-			} catch (e) {
-				this.exhandler.exceptionHandler(e);
-			}
-		}
-	}
+    if (binding) {
+      try {
+      this[binding.module][binding.action](evdata);
+      } catch (e) {
+        if (typeof(e) === 'string') {
+          console.error(e);
+        }
+        this.exhandler.exceptionHandler(e);
+      }
+    }
+  }
 
   mouseMove(ev) {
     this.tracker.intersectingArtifact({
@@ -22841,44 +22926,44 @@ class suiController {
       this.createModifierDialog(modifier);
     }
   }
-	bindEvents() {
-		var self = this;
-		var tracker = this.tracker;
+  bindEvents() {
+    var self = this;
+    var tracker = this.tracker;
 
-		$('body').off('redrawScore').on('redrawScore',function() {
-			self.handleRedrawTimer();
-		});
-		$('body').off('forceScrollEvent').on('forceScrollEvent',function() {
-			self.handleScrollEvent();
-		});
-		$('body').off('forceResizeEvent').on('forceResizeEvent',function() {
-			self.resizeEvent();
-		});
+    $('body').off('redrawScore').on('redrawScore',function() {
+      self.handleRedrawTimer();
+    });
+    $('body').off('forceScrollEvent').on('forceScrollEvent',function() {
+      self.handleScrollEvent();
+    });
+    $('body').off('forceResizeEvent').on('forceResizeEvent',function() {
+      self.resizeEvent();
+    });
     this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
     this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
 
-		/* $(this.renderElement).off('mousemove').on('mousemove', function (ev) {
-			tracker.intersectingArtifact({
-				x: ev.clientX,
-				y: ev.clientY
-			});
-		});
+    /* $(this.renderElement).off('mousemove').on('mousemove', function (ev) {
+      tracker.intersectingArtifact({
+        x: ev.clientX,
+        y: ev.clientY
+      });
+    });
 
-		$(this.renderElement).off('click').on('click', function (ev) {
+    $(this.renderElement).off('click').on('click', function (ev) {
       tracker.selectSuggestion(ev);
       var modifier = tracker.getSelectedModifier();
       if (modifier) {
         self.createModifierDialog(modifier);
       }
-		});   */
+    });   */
 
     this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
 
-		this.helpControls();
-		window.addEventListener('error', function (e) {
-			SuiExceptionHandler.instance.exceptionHandler(e);
-		});
-	}
+    this.helpControls();
+    window.addEventListener('error', function (e) {
+      SuiExceptionHandler.instance.exceptionHandler(e);
+    });
+  }
 
 }
 ;// # Dialog base classes
@@ -22917,6 +23002,10 @@ class SuiModifierDialogFactory {
 // Base class for dialogs.
 // eslint-disable-next-line no-unused-vars
 class SuiDialogBase {
+  static get parameters() {
+    return ['eventSource', 'layout', 'tracker',
+      'completeNotifier', 'undoBuffer', 'keyCommands', 'modifier', 'activeScoreText'];
+  }
   // ### SuiDialogBase ctor
   // Creates the DOM element for the dialog and gets some initial elements
   constructor(dialogElements, parameters) {
@@ -22946,17 +23035,10 @@ class SuiDialogBase {
     // If this dialog was spawned by a menu, wait for the menu to dismiss
     // before continuing.
     this.startPromise = parameters.closeMenuPromise;
-    this.eventSource = parameters.eventSource;
-    this.layout = parameters.layout;
-    this.context = this.layout.context;
     this.dialogElements = dialogElements;
-    this.tracker = parameters.tracker;
-    this.completeNotifier = parameters.completeNotifier;
-    this.undoBuffer = parameters.undoBuffer;
-    this.keyCommands = parameters.keyCommands;
-    this.label = this.staticText.label;
-    this.modifier = parameters.modifier;
-    this.activeScoreText = parameters.activeScoreText;
+    SuiDialogBase.parameters.forEach((param) => {
+      this[param] = parameters[param];
+    });
 
     const top = parameters.top - this.tracker.scroller.netScroll.y;
     const left = parameters.left - this.tracker.scroller.netScroll.x;
@@ -25713,7 +25795,6 @@ class SuiTextInPlace extends SuiComponentBase {
     this.value='';
     var modifier = this.dialog.modifier;
 
-    this.activeScoreText = dialog.activeScoreText;
     this.value = modifier;
     this.altLabel = SuiTextTransformDialog.getStaticText('editorLabel');
   }
@@ -25748,6 +25829,7 @@ class SuiTextInPlace extends SuiComponentBase {
       this.session.stopSession().then(render);
     }
     $('body').removeClass('text-edit');
+    this.handleChanged();
   }
   get isRunning() {
     return this.session && this.session.isRunning;
@@ -25777,7 +25859,7 @@ class SuiTextInPlace extends SuiComponentBase {
     context.setFillStyle('#ddd');
     modifier.textBlocks.forEach((block) => {
       const st = block.text;
-      if (st.attrs.id !== this.activeScoreText.attrs.id) {
+      if (st.attrs.id !== this.dialog.activeScoreText.attrs.id) {
         const svgText = SuiInlineText.fromScoreText(st, context);
         if (st.logicalBox) {
           svgText.startX += st.logicalBox.x - st.x;
@@ -25797,7 +25879,7 @@ class SuiTextInPlace extends SuiComponentBase {
     $(this._getInputElement()).find('label').text(this.altLabel);
     var modifier = this.dialog.modifier;
     modifier.skipRender = true;
-    $(this.dialog.context.svg).find('#'+modifier.attrs.id).remove();
+    $(this.dialog.layout.context.svg).find('#'+modifier.attrs.id).remove();
     this._renderInactiveBlocks();
     const ul = modifier.ul();
 
@@ -25809,7 +25891,7 @@ class SuiTextInPlace extends SuiComponentBase {
       x: ul.x,
       y: ul.y,
       textGroup: modifier,
-      scoreText: this.activeScoreText
+      scoreText: this.dialog.activeScoreText
     });
     $('body').addClass('text-edit');
     this.value = this.session.textGroup;
@@ -25827,7 +25909,7 @@ class SuiTextInPlace extends SuiComponentBase {
 
   bind() {
     var self=this;
-    this.fontInfo = JSON.parse(JSON.stringify(this.activeScoreText.fontInfo));
+    this.fontInfo = JSON.parse(JSON.stringify(this.dialog.activeScoreText.fontInfo));
     this.value = this.dialog.modifier;
     $(this._getInputElement()).off('click').on('click',function(ev) {
       if (self.session && self.session.isRunning) {
@@ -26864,9 +26946,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         label: 'Attach to Selection'
       }, {
         staticText: [
-          {label : 'Text Properties' },
-          {editorLabel: 'Done Editing Text' },
-          {draggerLabel: 'Done Dragging Text'}
+          { label : 'Text Properties' },
+          { editorLabel: 'Done Editing Text' },
+          { draggerLabel: 'Done Dragging Text' }
         ]
       }
     ];
@@ -26906,7 +26988,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
     this.attachToSelectorCtrl.setValue(this.modifier.attachToSelector);
 
-    this.paginationsComponent = this.components.find((c) => c.smoName == 'pagination');
+    this.paginationsComponent = this.components.find((c) => c.smoName === 'pagination');
     this.paginationsComponent.setValue(this.modifier.pagination);
 
     this._bindElements();
@@ -27009,10 +27091,10 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       this.activeScoreText.fontInfo.weight = fontInfo.weight;
       this.activeScoreText.fontInfo.style = fontInfo.style;
     }
-
-
     // Use layout context because render may have reset svg.
-    this.layout.renderScoreModifiers();
+    SuiRenderOperation.updateTextGroup(this.layout, this.layout.score, this.undoBuffer,
+      this.previousModifier, this.modifier);
+    this.previousModifier = this.modifier.serialize();
   }
 
   // ### handleKeydown
@@ -27066,12 +27148,12 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
 
   constructor(parameters) {
-    var tracker = parameters.tracker;
-    var layout = tracker.layout.score.layout;
+    const tracker = parameters.tracker;
+    const layout = tracker.layout.score.layout;
 
     // Create a new text modifier, if required.
     if (!parameters.modifier) {
-      var newText =  new SmoScoreText({ position: SmoScoreText.positions.custom });
+      const newText =  new SmoScoreText({ position: SmoScoreText.positions.custom });
       newText.y += tracker.scroller.netScroll.y;
       if (tracker.selections.length > 0) {
         const sel = tracker.selections[0].measure;
@@ -27082,26 +27164,16 @@ class SuiTextTransformDialog  extends SuiDialogBase {
           }
         }
       }
-      var newGroup = new SmoTextGroup({blocks:[newText]});
+      const newGroup = new SmoTextGroup({blocks:[newText]});
       parameters.modifier = newGroup;
-      parameters.activeScoreText = newText;
-      SmoUndoable.scoreOp(parameters.layout.score,'addTextGroup',
-        parameters.modifier,  parameters.undoBuffer,'Text Menu Command');
-      parameters.layout.setRefresh();
-    } else if (parameters.modifier.ctor === 'SmoScoreText') {
-      // This code promotes SmoScoreText to SmoTextGroup.  This should be done in
-      // deserialization code now, for legacy files.
-      var newGroup = new SmoTextGroup({blocks:[parameters.modifier]});
-      parameters.activeScoreText = newGroup.textBlocks[0].text;
-      parameters.modifier = newGroup;
-      tracker.layout.score.removeScoreText(parameters.activeScoreText);
-      tracker.layout.score.addTextGroup(newGroup);
-    } else if (!parameters.activeScoreText) {
-      parameters.activeScoreText = parameters.modifier.textBlocks[0].text;
+      parameters.modifier.setActiveBlock(newText);
+      SuiRenderOperation.addTextGroup(tracker.layout, tracker.layout.score, parameters.undoBuffer, parameters.modifier);
+    } else {
+      // Make sure there is a score text to start the editing.
+      parameters.modifier.setActiveBlock(parameters.modifier.textBlocks[0].text);
     }
-    parameters.modifier.setActiveBlock(parameters.activeScoreText);
 
-    var scrollPosition = tracker.scroller.absScroll;
+    const scrollPosition = tracker.scroller.absScroll;
     console.log('text ribbon: scroll y is '+scrollPosition.y);
 
     scrollPosition.y = scrollPosition.y / (layout.svgScale * layout.zoomScale);
@@ -27114,11 +27186,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       left: scrollPosition.x + 100,
       ...parameters
     });
-
+    this.previousModifier = this.modifier.serialize();
+    this.activeScoreText = this.modifier.getActiveBlock();
     Vex.Merge(this, parameters);
-    // Do we jump right into editing?
-    this.undo = parameters.undoBuffer;
-    this.modifier.backupParams();
     this.completeNotifier.unbindKeyboardForModal(this);
   }
 
@@ -27133,6 +27203,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     $('body').removeClass('showAttributeDialog');
     $('body').removeClass('textEditor');
     this.complete();
+  }
+  _removeText() {
+    SuiRenderOperation.removeTextGroup(this.layout, this.layout.score, this.undoBuffer, this.modifier);
   }
 
   _bindElements() {
@@ -27149,14 +27222,14 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       self._complete();
     });
     $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-      SmoUndoable.scoreOp(self.layout.score,'removeTextGroup',self.modifier,self.undo,'remove text from dialog');
+      self._removeText();
       self._complete();
     });
   }
 }
 
 
-// ## SuiTextModifierDialog
+// ## SuiDynamicModifierDialog
 // This is a poorly named class, it just allows you to placeText
 // dynamic text so it doesn't collide with something.
 class SuiDynamicModifierDialog extends SuiDialogBase {
@@ -27177,91 +27250,92 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
 
   static get dialogElements() {
     SuiDynamicModifierDialog._dialogElements = SuiDynamicModifierDialog._dialogElements ? SuiDynamicModifierDialog._dialogElements :
-    [{
-  smoName: 'yOffsetLine',
-  parameterName: 'yOffsetLine',
-  defaultValue: 11,
-  control: 'SuiRockerComponent',
-  label: 'Y Line'
-  }, {
-  smoName: 'yOffsetPixels',
-  parameterName: 'yOffsetPixels',
-  defaultValue: 0,
-  control: 'SuiRockerComponent',
-  label: 'Y Offset Px'
-  }, {
-  smoName: 'xOffset',
-  parameterName: 'yOffset',
-  defaultValue: 0,
-  control: 'SuiRockerComponent',
-  label: 'X Offset'
-  }, {
-  smoName: 'text',
-  parameterName: 'text',
-  defaultValue: SmoDynamicText.dynamics.P,
-  options: [{
-  value: SmoDynamicText.dynamics.P,
-  label: 'Piano'
-  }, {
-  value: SmoDynamicText.dynamics.PP,
-  label: 'Pianissimo'
-  }, {
-  value: SmoDynamicText.dynamics.MP,
-  label: 'Mezzo-Piano'
-  }, {
-  value: SmoDynamicText.dynamics.MF,
-  label: 'Mezzo-Forte'
-  }, {
-  value: SmoDynamicText.dynamics.F,
-  label: 'Forte'
-  }, {
-  value: SmoDynamicText.dynamics.FF,
-  label: 'Fortissimo'
-  }, {
-  value: SmoDynamicText.dynamics.SFZ,
-  label: 'Sforzando'
-  }
-  ],
-  control: 'SuiDropdownComponent',
-  label: 'Text'
-  },
-      {staticText: [
-        {label: 'Dynamics Properties'}
-      ]}
-  ];
+      [{
+        smoName: 'yOffsetLine',
+        parameterName: 'yOffsetLine',
+        defaultValue: 11,
+        control: 'SuiRockerComponent',
+        label: 'Y Line'
+      }, {
+        smoName: 'yOffsetPixels',
+        parameterName: 'yOffsetPixels',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Y Offset Px'
+      }, {
+        smoName: 'xOffset',
+        parameterName: 'yOffset',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'X Offset'
+      }, {
+        smoName: 'text',
+        parameterName: 'text',
+        defaultValue: SmoDynamicText.dynamics.P,
+        options: [{
+          value: SmoDynamicText.dynamics.P,
+          label: 'Piano'
+        }, {
+          value: SmoDynamicText.dynamics.PP,
+          label: 'Pianissimo'
+        }, {
+          value: SmoDynamicText.dynamics.MP,
+          label: 'Mezzo-Piano'
+        }, {
+          value: SmoDynamicText.dynamics.MF,
+          label: 'Mezzo-Forte'
+        }, {
+          value: SmoDynamicText.dynamics.F,
+          label: 'Forte'
+        }, {
+          value: SmoDynamicText.dynamics.FF,
+          label: 'Fortissimo'
+        }, {
+          value: SmoDynamicText.dynamics.SFZ,
+          label: 'Sforzando'
+      }
+      ],
+      control: 'SuiDropdownComponent',
+      label: 'Text'
+    },
+    { staticText: [
+          { label: 'Dynamics Properties' }
+        ] }
+    ];
     return SuiDynamicModifierDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
-  var dg = new SuiDynamicModifierDialog(parameters);
-  dg.display();
-  return dg;
+    var dg = new SuiDynamicModifierDialog(parameters);
+    dg.display();
+    dg._bindComponentNames();
+    return dg;
   }
 
   constructor(parameters) {
-  super(SuiDynamicModifierDialog.dialogElements, {
-  id: 'dialog-' + parameters.modifier.id,
-  top: parameters.modifier.renderedBox.y,
-  left: parameters.modifier.renderedBox.x,
-      ...parameters
-  });
-  Vex.Merge(this, parameters);
+    super(SuiDynamicModifierDialog.dialogElements, {
+      id: 'dialog-' + parameters.modifier.id,
+      top: parameters.modifier.renderedBox.y,
+      left: parameters.modifier.renderedBox.x,
+          ...parameters
+    });
+    Vex.Merge(this, parameters);
     this.selection = this.tracker.selections[0];
-  this.components.find((x) => {
-  return x.parameterName == 'text'
-  }).defaultValue = parameters.modifier.text;
+    this.components.find((x) => {
+      return x.parameterName == 'text'
+    }).defaultValue = parameters.modifier.text;
   }
   handleRemove() {
-  $(this.context.svg).find('g.' + this.modifier.id).remove();
-    this.undoBuffer.addBuffer('remove dynamic', 'measure', this.selection.selector, this.selection.measure);
-  this.selection.note.removeModifier(this.modifier);
-  this.tracker.clearModifierSelections();
+    $(this.context.svg).find('g.' + this.modifier.id).remove();
+    this.undoBuffer.addBuffer('remove dynamic', UndoBuffer.bufferTypes.MEASURE, this.selection.selector, this.selection.measure);
+    this.selection.note.removeModifier(this.modifier);
+    this.tracker.clearModifierSelections();
   }
   changed() {
-  this.modifier.backupOriginal();
-  this.components.forEach((component) => {
-  this.modifier[component.smoName] = component.getValue();
-  });
-  this.layout.renderNoteModifierPreview(this.modifier,this.selection);
+    this.modifier.backupOriginal();
+    this.components.forEach((component) => {
+      this.modifier[component.smoName] = component.getValue();
+    });
+    this.layout.renderNoteModifierPreview(this.modifier,this.selection);
   }
 }
 
@@ -32728,7 +32802,7 @@ class SuiKeyCommands {
 
   toggleArticulationCommand(articulation, ctor) {
     this.undoBuffer.addBuffer('change articulation ' + articulation,
-      'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
+      UndoBuffer.bufferTypes.STAFF, this.tracker.selections[0].selector, this.tracker.selections[0].staff);
 
     this.tracker.selections.forEach((sel) => {
 
@@ -33152,7 +33226,7 @@ class SuiFileMenu extends suiMenuBase {
         closeMenuPromise:this.closePromise
      });
      } else if (text == 'newFile') {
-        this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
         var score = SmoScore.getDefaultScore();
         this.layout.score = score;
         setTimeout(function() {
@@ -33168,28 +33242,28 @@ class SuiFileMenu extends suiMenuBase {
       }
         this.layout.renderForPrintPromise().then(systemPrint);
       } else if (text == 'bach') {
-  			this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+  			this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
   			var score = SmoScore.deserialize(inventionJson);
   			this.layout.score = score;
   			this.layout.setViewport(true);
     } else if (text == 'yamaJson') {
-      this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+      this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
       var score = SmoScore.deserialize(yamaJson);
       this.layout.score = score;
       this.layout.setViewport(true);
     }
       else if (text == 'bambino') {
-        this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
         var score = SmoScore.deserialize(jesuBambino);
         this.layout.score = score;
         this.layout.setViewport(true);
       } else if (text == 'microtone') {
-        this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
         var score = SmoScore.deserialize(microJson);
         this.layout.score = score;
         this.layout.setViewport(true);
-      }     else if (text == 'preciousLord') {
-        this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+      }  else if (text == 'preciousLord') {
+        this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
         var score = SmoScore.deserialize(preciousLord);
         this.layout.score = score;
         this.layout.setViewport(true);
@@ -33340,18 +33414,18 @@ class SuiTimeSignatureMenu extends suiMenuBase {
       SuiTimeSignatureDialog.createAndDisplay({
   			layout: this.layout,
         tracker: this.tracker,
-        completeNotifier:this.completeNotifier,
-        closeMenuPromise:this.closePromise,
-        undoBuffer:this.undoBuffer,
-        eventSource:this.eventSource
+        completeNotifier: this.completeNotifier,
+        closeMenuPromise: this.closePromise,
+        undoBuffer: this.undoBuffer,
+        eventSource: this.eventSource
 	    });
       this.complete();
       return;
     }
     var timeSig = $(ev.currentTarget).attr('data-value');
     this.layout.unrenderAll();
-    SmoUndoable.scoreSelectionOp(this.layout.score,this.tracker.selections,
-      'setTimeSignature',timeSig,this.undoBuffer,'change time signature');
+    SmoUndoable.scoreSelectionOp(this.layout.score, this.tracker.selections,
+      'setTimeSignature', timeSig,this.undoBuffer, 'change time signature');
     this.layout.setRefresh();
     this.complete();
   }

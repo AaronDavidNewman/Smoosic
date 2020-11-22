@@ -597,9 +597,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         label: 'Attach to Selection'
       }, {
         staticText: [
-          {label : 'Text Properties' },
-          {editorLabel: 'Done Editing Text' },
-          {draggerLabel: 'Done Dragging Text'}
+          { label : 'Text Properties' },
+          { editorLabel: 'Done Editing Text' },
+          { draggerLabel: 'Done Dragging Text' }
         ]
       }
     ];
@@ -639,7 +639,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
     this.attachToSelectorCtrl.setValue(this.modifier.attachToSelector);
 
-    this.paginationsComponent = this.components.find((c) => c.smoName == 'pagination');
+    this.paginationsComponent = this.components.find((c) => c.smoName === 'pagination');
     this.paginationsComponent.setValue(this.modifier.pagination);
 
     this._bindElements();
@@ -742,10 +742,10 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       this.activeScoreText.fontInfo.weight = fontInfo.weight;
       this.activeScoreText.fontInfo.style = fontInfo.style;
     }
-
-
     // Use layout context because render may have reset svg.
-    this.layout.renderScoreModifiers();
+    SuiRenderOperation.updateTextGroup(this.layout, this.layout.score, this.undoBuffer,
+      this.previousModifier, this.modifier);
+    this.previousModifier = this.modifier.serialize();
   }
 
   // ### handleKeydown
@@ -799,12 +799,12 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
 
   constructor(parameters) {
-    var tracker = parameters.tracker;
-    var layout = tracker.layout.score.layout;
+    const tracker = parameters.tracker;
+    const layout = tracker.layout.score.layout;
 
     // Create a new text modifier, if required.
     if (!parameters.modifier) {
-      var newText =  new SmoScoreText({ position: SmoScoreText.positions.custom });
+      const newText =  new SmoScoreText({ position: SmoScoreText.positions.custom });
       newText.y += tracker.scroller.netScroll.y;
       if (tracker.selections.length > 0) {
         const sel = tracker.selections[0].measure;
@@ -815,26 +815,16 @@ class SuiTextTransformDialog  extends SuiDialogBase {
           }
         }
       }
-      var newGroup = new SmoTextGroup({blocks:[newText]});
+      const newGroup = new SmoTextGroup({blocks:[newText]});
       parameters.modifier = newGroup;
-      parameters.activeScoreText = newText;
-      SmoUndoable.scoreOp(parameters.layout.score,'addTextGroup',
-        parameters.modifier,  parameters.undoBuffer,'Text Menu Command');
-      parameters.layout.setRefresh();
-    } else if (parameters.modifier.ctor === 'SmoScoreText') {
-      // This code promotes SmoScoreText to SmoTextGroup.  This should be done in
-      // deserialization code now, for legacy files.
-      var newGroup = new SmoTextGroup({blocks:[parameters.modifier]});
-      parameters.activeScoreText = newGroup.textBlocks[0].text;
-      parameters.modifier = newGroup;
-      tracker.layout.score.removeScoreText(parameters.activeScoreText);
-      tracker.layout.score.addTextGroup(newGroup);
-    } else if (!parameters.activeScoreText) {
-      parameters.activeScoreText = parameters.modifier.textBlocks[0].text;
+      parameters.modifier.setActiveBlock(newText);
+      SuiRenderOperation.addTextGroup(tracker.layout, tracker.layout.score, parameters.undoBuffer, parameters.modifier);
+    } else {
+      // Make sure there is a score text to start the editing.
+      parameters.modifier.setActiveBlock(parameters.modifier.textBlocks[0].text);
     }
-    parameters.modifier.setActiveBlock(parameters.activeScoreText);
 
-    var scrollPosition = tracker.scroller.absScroll;
+    const scrollPosition = tracker.scroller.absScroll;
     console.log('text ribbon: scroll y is '+scrollPosition.y);
 
     scrollPosition.y = scrollPosition.y / (layout.svgScale * layout.zoomScale);
@@ -847,11 +837,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       left: scrollPosition.x + 100,
       ...parameters
     });
-
+    this.previousModifier = this.modifier.serialize();
+    this.activeScoreText = this.modifier.getActiveBlock();
     Vex.Merge(this, parameters);
-    // Do we jump right into editing?
-    this.undo = parameters.undoBuffer;
-    this.modifier.backupParams();
     this.completeNotifier.unbindKeyboardForModal(this);
   }
 
@@ -866,6 +854,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     $('body').removeClass('showAttributeDialog');
     $('body').removeClass('textEditor');
     this.complete();
+  }
+  _removeText() {
+    SuiRenderOperation.removeTextGroup(this.layout, this.layout.score, this.undoBuffer, this.modifier);
   }
 
   _bindElements() {
@@ -882,14 +873,14 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       self._complete();
     });
     $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-      SmoUndoable.scoreOp(self.layout.score,'removeTextGroup',self.modifier,self.undo,'remove text from dialog');
+      self._removeText();
       self._complete();
     });
   }
 }
 
 
-// ## SuiTextModifierDialog
+// ## SuiDynamicModifierDialog
 // This is a poorly named class, it just allows you to placeText
 // dynamic text so it doesn't collide with something.
 class SuiDynamicModifierDialog extends SuiDialogBase {
@@ -910,91 +901,92 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
 
   static get dialogElements() {
     SuiDynamicModifierDialog._dialogElements = SuiDynamicModifierDialog._dialogElements ? SuiDynamicModifierDialog._dialogElements :
-    [{
-  smoName: 'yOffsetLine',
-  parameterName: 'yOffsetLine',
-  defaultValue: 11,
-  control: 'SuiRockerComponent',
-  label: 'Y Line'
-  }, {
-  smoName: 'yOffsetPixels',
-  parameterName: 'yOffsetPixels',
-  defaultValue: 0,
-  control: 'SuiRockerComponent',
-  label: 'Y Offset Px'
-  }, {
-  smoName: 'xOffset',
-  parameterName: 'yOffset',
-  defaultValue: 0,
-  control: 'SuiRockerComponent',
-  label: 'X Offset'
-  }, {
-  smoName: 'text',
-  parameterName: 'text',
-  defaultValue: SmoDynamicText.dynamics.P,
-  options: [{
-  value: SmoDynamicText.dynamics.P,
-  label: 'Piano'
-  }, {
-  value: SmoDynamicText.dynamics.PP,
-  label: 'Pianissimo'
-  }, {
-  value: SmoDynamicText.dynamics.MP,
-  label: 'Mezzo-Piano'
-  }, {
-  value: SmoDynamicText.dynamics.MF,
-  label: 'Mezzo-Forte'
-  }, {
-  value: SmoDynamicText.dynamics.F,
-  label: 'Forte'
-  }, {
-  value: SmoDynamicText.dynamics.FF,
-  label: 'Fortissimo'
-  }, {
-  value: SmoDynamicText.dynamics.SFZ,
-  label: 'Sforzando'
-  }
-  ],
-  control: 'SuiDropdownComponent',
-  label: 'Text'
-  },
-      {staticText: [
-        {label: 'Dynamics Properties'}
-      ]}
-  ];
+      [{
+        smoName: 'yOffsetLine',
+        parameterName: 'yOffsetLine',
+        defaultValue: 11,
+        control: 'SuiRockerComponent',
+        label: 'Y Line'
+      }, {
+        smoName: 'yOffsetPixels',
+        parameterName: 'yOffsetPixels',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Y Offset Px'
+      }, {
+        smoName: 'xOffset',
+        parameterName: 'yOffset',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'X Offset'
+      }, {
+        smoName: 'text',
+        parameterName: 'text',
+        defaultValue: SmoDynamicText.dynamics.P,
+        options: [{
+          value: SmoDynamicText.dynamics.P,
+          label: 'Piano'
+        }, {
+          value: SmoDynamicText.dynamics.PP,
+          label: 'Pianissimo'
+        }, {
+          value: SmoDynamicText.dynamics.MP,
+          label: 'Mezzo-Piano'
+        }, {
+          value: SmoDynamicText.dynamics.MF,
+          label: 'Mezzo-Forte'
+        }, {
+          value: SmoDynamicText.dynamics.F,
+          label: 'Forte'
+        }, {
+          value: SmoDynamicText.dynamics.FF,
+          label: 'Fortissimo'
+        }, {
+          value: SmoDynamicText.dynamics.SFZ,
+          label: 'Sforzando'
+      }
+      ],
+      control: 'SuiDropdownComponent',
+      label: 'Text'
+    },
+    { staticText: [
+          { label: 'Dynamics Properties' }
+        ] }
+    ];
     return SuiDynamicModifierDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
-  var dg = new SuiDynamicModifierDialog(parameters);
-  dg.display();
-  return dg;
+    var dg = new SuiDynamicModifierDialog(parameters);
+    dg.display();
+    dg._bindComponentNames();
+    return dg;
   }
 
   constructor(parameters) {
-  super(SuiDynamicModifierDialog.dialogElements, {
-  id: 'dialog-' + parameters.modifier.id,
-  top: parameters.modifier.renderedBox.y,
-  left: parameters.modifier.renderedBox.x,
-      ...parameters
-  });
-  Vex.Merge(this, parameters);
+    super(SuiDynamicModifierDialog.dialogElements, {
+      id: 'dialog-' + parameters.modifier.id,
+      top: parameters.modifier.renderedBox.y,
+      left: parameters.modifier.renderedBox.x,
+          ...parameters
+    });
+    Vex.Merge(this, parameters);
     this.selection = this.tracker.selections[0];
-  this.components.find((x) => {
-  return x.parameterName == 'text'
-  }).defaultValue = parameters.modifier.text;
+    this.components.find((x) => {
+      return x.parameterName == 'text'
+    }).defaultValue = parameters.modifier.text;
   }
   handleRemove() {
-  $(this.context.svg).find('g.' + this.modifier.id).remove();
-    this.undoBuffer.addBuffer('remove dynamic', 'measure', this.selection.selector, this.selection.measure);
-  this.selection.note.removeModifier(this.modifier);
-  this.tracker.clearModifierSelections();
+    $(this.context.svg).find('g.' + this.modifier.id).remove();
+    this.undoBuffer.addBuffer('remove dynamic', UndoBuffer.bufferTypes.MEASURE, this.selection.selector, this.selection.measure);
+    this.selection.note.removeModifier(this.modifier);
+    this.tracker.clearModifierSelections();
   }
   changed() {
-  this.modifier.backupOriginal();
-  this.components.forEach((component) => {
-  this.modifier[component.smoName] = component.getValue();
-  });
-  this.layout.renderNoteModifierPreview(this.modifier,this.selection);
+    this.modifier.backupOriginal();
+    this.components.forEach((component) => {
+      this.modifier[component.smoName] = component.getValue();
+    });
+    this.layout.renderNoteModifierPreview(this.modifier,this.selection);
   }
 }
 

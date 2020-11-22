@@ -404,7 +404,7 @@ class SuiKeyCommands {
 
   toggleArticulationCommand(articulation, ctor) {
     this.undoBuffer.addBuffer('change articulation ' + articulation,
-      'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
+      UndoBuffer.bufferTypes.STAFF, this.tracker.selections[0].selector, this.tracker.selections[0].staff);
 
     this.tracker.selections.forEach((sel) => {
 

@@ -37,7 +37,6 @@ class SuiTextInPlace extends SuiComponentBase {
     this.value='';
     var modifier = this.dialog.modifier;
 
-    this.activeScoreText = dialog.activeScoreText;
     this.value = modifier;
     this.altLabel = SuiTextTransformDialog.getStaticText('editorLabel');
   }
@@ -72,6 +71,7 @@ class SuiTextInPlace extends SuiComponentBase {
       this.session.stopSession().then(render);
     }
     $('body').removeClass('text-edit');
+    this.handleChanged();
   }
   get isRunning() {
     return this.session && this.session.isRunning;
@@ -101,7 +101,7 @@ class SuiTextInPlace extends SuiComponentBase {
     context.setFillStyle('#ddd');
     modifier.textBlocks.forEach((block) => {
       const st = block.text;
-      if (st.attrs.id !== this.activeScoreText.attrs.id) {
+      if (st.attrs.id !== this.dialog.activeScoreText.attrs.id) {
         const svgText = SuiInlineText.fromScoreText(st, context);
         if (st.logicalBox) {
           svgText.startX += st.logicalBox.x - st.x;
@@ -121,7 +121,7 @@ class SuiTextInPlace extends SuiComponentBase {
     $(this._getInputElement()).find('label').text(this.altLabel);
     var modifier = this.dialog.modifier;
     modifier.skipRender = true;
-    $(this.dialog.context.svg).find('#'+modifier.attrs.id).remove();
+    $(this.dialog.layout.context.svg).find('#'+modifier.attrs.id).remove();
     this._renderInactiveBlocks();
     const ul = modifier.ul();
 
@@ -133,7 +133,7 @@ class SuiTextInPlace extends SuiComponentBase {
       x: ul.x,
       y: ul.y,
       textGroup: modifier,
-      scoreText: this.activeScoreText
+      scoreText: this.dialog.activeScoreText
     });
     $('body').addClass('text-edit');
     this.value = this.session.textGroup;
@@ -151,7 +151,7 @@ class SuiTextInPlace extends SuiComponentBase {
 
   bind() {
     var self=this;
-    this.fontInfo = JSON.parse(JSON.stringify(this.activeScoreText.fontInfo));
+    this.fontInfo = JSON.parse(JSON.stringify(this.dialog.activeScoreText.fontInfo));
     this.value = this.dialog.modifier;
     $(this._getInputElement()).off('click').on('click',function(ev) {
       if (self.session && self.session.isRunning) {

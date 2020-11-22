@@ -30,6 +30,7 @@ class suiMenuManager {
     Vex.Merge(this, suiMenuManager.defaults);
     Vex.Merge(this, params);
     this.eventSource = params.eventSource;
+    this.view = params.view;
     this.bound = false;
     this.hotkeyBindings={};
   }
@@ -50,7 +51,7 @@ class suiMenuManager {
   }
 
   get score() {
-    return this.layout.score;
+    return this.view.score;
   }
 
   // ### Description:
@@ -200,7 +201,7 @@ class suiMenuManager {
       score: this.score,
       completeNotifier:this.controller,
       closePromise:this.closeMenuPromise,
-      layout: this.layout,
+      view: this.view,
       eventSource:this.eventSource,
       undoBuffer: this.undoBuffer
     });
@@ -347,7 +348,7 @@ class SuiFileMenu extends suiMenuBase {
    var self = this;
    window.print();
    SuiPrintFileDialog.createAndDisplay({
-       layout: self.layout,
+       view: self.view,
        completeNotifier:self.completeNotifier,
        closeMenuPromise:self.closePromise,
        tracker:self.tracker,
@@ -359,68 +360,59 @@ class SuiFileMenu extends suiMenuBase {
     var self=this;
     if (text == 'saveFile') {
       SuiSaveFileDialog.createAndDisplay({
-        completeNotifier:this.completeNotifier,
-        tracker:this.tracker,
-        undoBuffer:this.keyCommands.undoBuffer,
-        eventSource:this.eventSource,
-        keyCommands:this.keyCommands,
-        layout:this.layout,
-        closeMenuPromise:this.closePromise
+        completeNotifier: this.completeNotifier,
+        tracker: this.tracker,
+        undoBuffer: this.keyCommands.undoBuffer,
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        view: this.view,
+        closeMenuPromise: this.closePromise
     });
     } else if (text == 'openFile') {
       SuiLoadFileDialog.createAndDisplay({
-        completeNotifier:this.completeNotifier,
-        tracker:this.tracker,
-        undoBuffer:this.undoBuffer,
-        eventSource:this.eventSource,
-        editor:this.keyCommands,
-        layout:this.layout,
-        closeMenuPromise:this.closePromise
+        completeNotifier: this.completeNotifier,
+        tracker: this.tracker,
+        undoBuffer: this.undoBuffer,
+        eventSource: this.eventSource,
+        editor: this.keyCommands,
+        view: this.view,
+        closeMenuPromise: this.closePromise
      });
      } else if (text == 'newFile') {
-        this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
         var score = SmoScore.getDefaultScore();
-        this.layout.score = score;
-        setTimeout(function() {
-        $('body').trigger('forceResizeEvent');
-        },1);
-
+        this.view.changeScore(score);
       } else if (text == 'quickSave') {
-        var scoreStr = JSON.stringify(this.layout.score.serialize());
+        var scoreStr = JSON.stringify(this.view.storeScore.serialize());
         localStorage.setItem(smoSerialize.localScore,scoreStr);
       } else if (text == 'printScore') {
         var systemPrint = () => {
         self.systemPrint();
       }
-        this.layout.renderForPrintPromise().then(systemPrint);
+        this.view.renderer.renderForPrintPromise().then(systemPrint);
       } else if (text == 'bach') {
-  			this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+  			this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
   			var score = SmoScore.deserialize(inventionJson);
-  			this.layout.score = score;
-  			this.layout.setViewport(true);
+  			this.view.changeScore(score);
     } else if (text == 'yamaJson') {
-      this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+      this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
       var score = SmoScore.deserialize(yamaJson);
-      this.layout.score = score;
-      this.layout.setViewport(true);
+      this.view.changeScore(score);
     }
       else if (text == 'bambino') {
-        this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
         var score = SmoScore.deserialize(jesuBambino);
-        this.layout.score = score;
-        this.layout.setViewport(true);
+        this.view.changeScore(score);
       } else if (text == 'microtone') {
-        this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
         var score = SmoScore.deserialize(microJson);
-        this.layout.score = score;
-        this.layout.setViewport(true);
-      }     else if (text == 'preciousLord') {
-        this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
+        this.view.changeScore(score);
+      }  else if (text == 'preciousLord') {
+        this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
         var score = SmoScore.deserialize(preciousLord);
-        this.layout.score = score;
-        this.layout.setViewport(true);
+        this.view.changeScore(score);
     }
-  this.complete();
+    this.complete();
   }
 
   keydown(ev) {}
@@ -564,20 +556,19 @@ class SuiTimeSignatureMenu extends suiMenuBase {
 
     if (text == 'TimeSigOther') {
       SuiTimeSignatureDialog.createAndDisplay({
-  			layout: this.layout,
-        tracker: this.tracker,
-        completeNotifier:this.completeNotifier,
-        closeMenuPromise:this.closePromise,
-        undoBuffer:this.undoBuffer,
-        eventSource:this.eventSource
+  			view: this.view,
+        completeNotifier: this.completeNotifier,
+        closeMenuPromise: this.closePromise,
+        undoBuffer: this.view.undoBuffer,
+        eventSource: this.eventSource
 	    });
       this.complete();
       return;
     }
     var timeSig = $(ev.currentTarget).attr('data-value');
-    this.layout.unrenderAll();
-    SmoUndoable.scoreSelectionOp(this.layout.score,this.tracker.selections,
-      'setTimeSignature',timeSig,this.undoBuffer,'change time signature');
+    this.view.renderer.unrenderAll();
+    SmoUndoable.scoreSelectionOp(this.layout.score, this.tracker.selections,
+      'setTimeSignature', timeSig,this.undoBuffer, 'change time signature');
     this.layout.setRefresh();
     this.complete();
   }

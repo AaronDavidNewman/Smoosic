@@ -34,6 +34,10 @@ class SuiModifierDialogFactory {
 // Base class for dialogs.
 // eslint-disable-next-line no-unused-vars
 class SuiDialogBase {
+  static get parameters() {
+    return ['eventSource', 'layout', 'tracker',
+      'completeNotifier', 'undoBuffer', 'keyCommands', 'modifier', 'activeScoreText'];
+  }
   // ### SuiDialogBase ctor
   // Creates the DOM element for the dialog and gets some initial elements
   constructor(dialogElements, parameters) {
@@ -63,17 +67,10 @@ class SuiDialogBase {
     // If this dialog was spawned by a menu, wait for the menu to dismiss
     // before continuing.
     this.startPromise = parameters.closeMenuPromise;
-    this.eventSource = parameters.eventSource;
-    this.layout = parameters.layout;
-    this.context = this.layout.context;
     this.dialogElements = dialogElements;
-    this.tracker = parameters.tracker;
-    this.completeNotifier = parameters.completeNotifier;
-    this.undoBuffer = parameters.undoBuffer;
-    this.keyCommands = parameters.keyCommands;
-    this.label = this.staticText.label;
-    this.modifier = parameters.modifier;
-    this.activeScoreText = parameters.activeScoreText;
+    SuiDialogBase.parameters.forEach((param) => {
+      this[param] = parameters[param];
+    });
 
     const top = parameters.top - this.tracker.scroller.netScroll.y;
     const left = parameters.left - this.tracker.scroller.netScroll.x;

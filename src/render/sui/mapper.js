@@ -4,14 +4,14 @@
 // Map the notes in the svg so the can respond to events and interact
 // with the mouse/keyboard
 class suiMapper {
-  constructor(layout,scroller) {
+  constructor(view) {
     // layout renders the music when it changes
-    this.layout = layout;
+    this.layout = view.layout;
 
     // measure to selector map
     this.measureMap = {};
     this.measureNoteMap = {}; // Map for tracker
-    this.scroller = scroller;
+    this.scroller = view.scroller;
 
     // notes currently selected.  Something is always selected
     this.selections = [];
@@ -29,7 +29,7 @@ class suiMapper {
     // index if a single pitch of a chord is selected
     this.pitchIndex = -1;
     // the current selection, which is also the copy/paste destination
-    this.pasteBuffer = new PasteBuffer();
+    this.pasteBuffer = view.pasteBuffer;
   }
 
     // ### loadScore

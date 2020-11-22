@@ -58,11 +58,9 @@ class SuiApplication {
     var params = suiController.keyBindingDefaults;
     params.eventSource = new browserEventSource(); // events come from the browser UI.
 
-    params.layout = SuiRenderScore.createScoreRenderer(document.getElementById(SmoConfig.vexDomContainer),score);
-    params.eventSource.setRenderElement(params.layout.renderElement);
-    params.scroller = new suiScroller();
-    params.tracker = new suiTracker(params.layout,params.scroller);
-    params.layout.setMeasureMapper(params.tracker);
+    const scoreRenderer = SuiRenderScore.createScoreRenderer(document.getElementById(SmoConfig.vexDomContainer), score);
+    params.eventSource.setRenderElement(scoreRenderer.renderElement);
+    params.view = new SuiScoreView(scoreRenderer, score);
     if (SmoConfig.keyCommands) {
       params.keyCommands = new SuiKeyCommands(params);
     }
@@ -75,7 +73,6 @@ class SuiApplication {
     if (SmoConfig.menus) {
       params.menus.undoBuffer = controller.undoBuffer;
     }
-    params.layout.score = score;
     eval(SmoConfig.domSource).splash();
     this.controller = controller;
   }

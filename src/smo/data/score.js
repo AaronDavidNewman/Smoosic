@@ -261,6 +261,7 @@ class SmoScore {
     this.staves.forEach((staff) => {
       staff.deleteMeasure(measureIndex);
     });
+    // adjust offset if text was attached to any missing measures after the deleted one.
     this.textGroups.forEach((tg) => {
       if (tg.attachToSelector && tg.selector.measure >= measureIndex && tg.selector.measure > 0) {
         tg.selector.measure -= 1;
@@ -456,7 +457,6 @@ class SmoScore {
       this.textGroups.push(textGroup);
     }
   }
-
   addTextGroup(textGroup) {
     this._updateTextGroup(textGroup, true);
   }
