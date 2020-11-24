@@ -4,14 +4,14 @@
 // Map the notes in the svg so the can respond to events and interact
 // with the mouse/keyboard
 class suiMapper {
-  constructor(view) {
-    // layout renders the music when it changes
-    this.layout = view.layout;
+  constructor(renderer, scroller, pasteBuffer) {
+    // renderer renders the music when it changes
+    this.renderer = renderer;
 
     // measure to selector map
     this.measureMap = {};
     this.measureNoteMap = {}; // Map for tracker
-    this.scroller = view.scroller;
+    this.scroller = scroller;
 
     // notes currently selected.  Something is always selected
     this.selections = [];
@@ -29,7 +29,7 @@ class suiMapper {
     // index if a single pitch of a chord is selected
     this.pitchIndex = -1;
     // the current selection, which is also the copy/paste destination
-    this.pasteBuffer = view.pasteBuffer;
+    this.pasteBuffer = pasteBuffer;
   }
 
     // ### loadScore
@@ -224,7 +224,7 @@ class suiMapper {
     this._createLocalModifiersList();
     // Is this right?  Don't update the past buffer with data until the display is redrawn
     // because some of the selections may not exist in the score.
-    if (this.layout.isDirty === false) {
+    if (this.renderer.isDirty === false) {
       this.pasteBuffer.clearSelections();
   		this.pasteBuffer.setSelections(this.score, this.selections);
     }

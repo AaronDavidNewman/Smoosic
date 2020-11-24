@@ -20,7 +20,8 @@ class suiController {
 
     this.view = params.view;
     this.eventSource = params.eventSource;
-    this.tracker.setDialogModifier(this);
+    this.view.tracker.setDialogModifier(this);
+    this.tracker = this.view.tracker; // needed for key event handling
     this.keyCommands.controller = this;
     this.keyCommands.view = this.view;
     this.resizing = false;
@@ -33,11 +34,9 @@ class suiController {
       ribbons: defaultRibbonLayout.ribbons,
       ribbonButtons: defaultRibbonLayout.ribbonButtons,
       menus: this.menus,
-      keyCommands: this.keyCommands,
-      tracker: this.tracker,
-      score: this.score,
       controller: this,
-      layout:this.tracker.layout,
+      keyCommands: this.keyCommands,
+      view: this.view,
       eventSource:this.eventSource
     });
 
@@ -51,7 +50,7 @@ class suiController {
     // Only display the ribbon one time b/c it's expensive operation
     this.ribbon.display();
     this.bindResize();
-    this.layoutDemon.undoBuffer = this.undoBuffer;
+    this.layoutDemon.undoBuffer = this.view.undoBuffer;
     this.layoutDemon.startDemon();
 
     this.createPiano();
@@ -73,28 +72,25 @@ class suiController {
   }
 
   get isLayoutQuiet() {
-    return ((this.layout.passState == SuiRenderState.passStates.clean && this.layout.dirty == false)
-       || this.layout.passState == SuiRenderState.passStates.replace);
+    return ((this.view.renderer.passState == SuiRenderState.passStates.clean && this.renderer.layout.dirty == false)
+       || this.view.renderer.passState == SuiRenderState.passStates.replace);
   }
 
   handleScrollEvent(ev) {
-    var self=this;
+    const self = this;
     if (self.trackScrolling) {
         return;
     }
     self.trackScrolling = true;
     setTimeout(function() {
-            try {
+      try {
         // wait until redraw is done to track scroll events.
-      self.trackScrolling = false;
-
-      // self.scrollRedrawStatus = true;
-            // self.tracker.updateMap(true);
-            // Thisi s a WIP...
-      self.scroller.handleScroll($(suiController.scrollable)[0].scrollLeft,$(suiController.scrollable)[0].scrollTop);
-            } catch(e) {
-                SuiExceptionHandler.instance.exceptionHandler(e);
-            }
+        self.trackScrolling = false;
+          // Thisi s a WIP...
+        self.view.tracker.scroller.handleScroll($(suiController.scrollable)[0].scrollLeft, $(suiController.scrollable)[0].scrollTop);
+      } catch(e) {
+        SuiExceptionHandler.instance.exceptionHandler(e);
+      }
     },500);
   }
 
@@ -106,18 +102,14 @@ class suiController {
       ribbonButtons: defaultRibbonLayout.ribbonButtons,
       menus: this.menus,
       keyCommands: this.keyCommands,
-      tracker: this.tracker,
-      score: this.score,
       controller: this,
-      layout:this.tracker.layout,
-      eventSource:this.eventSource,
-      undoBuffer:this.undoBuffer
+      view: this.view,
+      eventSource:this.eventSource
     });
         // $('.close-piano').click();
   }
   _setMusicDimensions() {
     $('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
-
   }
   resizeEvent() {
     var self = this;
@@ -138,31 +130,29 @@ class suiController {
 
   createModifierDialog(modifierSelection) {
     var parameters = {
-      modifier:modifierSelection.modifier, context:this.tracker.context, tracker:this.tracker, layout:this.layout, undoBuffer:this.undoBuffer,eventSource:this.eventSource,
-         completeNotifier:this,keyCommands:this.keyCommands
+      modifier: modifierSelection.modifier,
+        view: this.view, eventSource:this.eventSource,
+         completeNotifier:this, keyCommands:this.keyCommands
     }
-    SuiModifierDialogFactory.createDialog(modifierSelection.modifier,parameters);
+    SuiModifierDialogFactory.createDialog(modifierSelection.modifier, parameters);
   }
 
   // If the user has selected a modifier via the mouse/touch, bring up mod dialog
   // for that modifier
   trackerModifierSelect(ev) {
-    var modSelection = this.tracker.getSelectedModifier();
+    var modSelection = this.view.tracker.getSelectedModifier();
     if (modSelection) {
       var dialog = this.createModifierDialog(modSelection);
       if (dialog) {
-        this.tracker.selectSuggestion(ev);
+        this.view.tracker.selectSuggestion(ev);
         // this.unbindKeyboardForModal(dialog);
       } else {
-        this.tracker.advanceModifierSelection(ev);
+        this.view.tracker.advanceModifierSelection(ev);
       }
     } else {
-      this.tracker.selectSuggestion(ev);
+      this.view.tracker.selectSuggestion(ev);
     }
-    var modifier = this.tracker.getSelectedModifier();
-    // if (modifier) {
-    //   this.createModifierDialog(modifier);
-    // }
+    var modifier = this.view.tracker.getSelectedModifier();
     return;
   }
 
@@ -171,8 +161,8 @@ class suiController {
   // The latter results in a redraw, the former just resets the client/logical map of elements
   // in the tracker.
   bindResize() {
-    var self = this;
-    var el = $(suiController.scrollable)[0];
+    const self = this;
+    const el = $(suiController.scrollable)[0];
     // unit test programs don't have resize html
     if (!el) {
       return;
@@ -194,7 +184,7 @@ class suiController {
   // ### renderElement
   // return render element that is the DOM parent of the svg
   get renderElement() {
-    return this.layout.renderElement;
+    return this.view.renderer.renderElement;
   }
 
   // ## keyBindingDefaults
@@ -228,7 +218,6 @@ class suiController {
   static get trackerKeyBindingDefaults() {
     return defaultTrackerKeys.keys;
   }
-
   helpControls() {
     var self = this;
     var rebind = function () {
@@ -256,7 +245,7 @@ class suiController {
   }
 
   showModifierDialog(modSelection) {
-    return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout,this.undoBuffer,this)
+    return SuiDialogFactory.createDialog(modSelection, this.view, this)
   }
 
   // ### unbindKeyboardForModal
@@ -264,9 +253,9 @@ class suiController {
   // UI elements take over the events, and then let the controller know when
   // the modals go away.
   unbindKeyboardForModal(dialog) {
-    var self=this;
+    const self = this;
     layoutDebug.addDialogDebug('controller: unbindKeyboardForModal')
-    var rebind = function () {
+    const rebind = () => {
       self.bindEvents();
       layoutDebug.addDialogDebug('controller: unbindKeyboardForModal resolve')
     }
@@ -278,7 +267,6 @@ class suiController {
   }
 
   evKey(evdata) {
-    var self = this;
     if ($('body').hasClass('translation-mode')) {
       return;
     }
@@ -301,21 +289,20 @@ class suiController {
     }
 
     if (evdata.key == 'Enter') {
-      self.trackerModifierSelect(evdata);
-      var modifier = this.tracker.getSelectedModifier();
+      this.trackerModifierSelect(evdata);
+      const modifier = this.view.tracker.getSelectedModifier();
       if (modifier) {
         this.createModifierDialog(modifier);
       }
-
     }
 
     var binding = this.keyBind.find((ev) =>
-        ev.event === 'keydown' && ev.key === evdata.key && ev.ctrlKey === evdata.ctrlKey &&
-        ev.altKey === evdata.altKey && evdata.shiftKey === ev.shiftKey);
+      ev.event === 'keydown' && ev.key === evdata.key && ev.ctrlKey === evdata.ctrlKey &&
+      ev.altKey === evdata.altKey && evdata.shiftKey === ev.shiftKey);
 
     if (binding) {
       try {
-      this[binding.module][binding.action](evdata);
+        this[binding.module][binding.action](evdata);
       } catch (e) {
         if (typeof(e) === 'string') {
           console.error(e);
@@ -326,56 +313,39 @@ class suiController {
   }
 
   mouseMove(ev) {
-    this.tracker.intersectingArtifact({
+    this.view.tracker.intersectingArtifact({
       x: ev.clientX,
       y: ev.clientY
     });
   }
 
   mouseClick(ev) {
-    this.tracker.selectSuggestion(ev);
-    var modifier = this.tracker.getSelectedModifier();
+    this.view.tracker.selectSuggestion(ev);
+    var modifier = this.view.tracker.getSelectedModifier();
     if (modifier) {
       this.createModifierDialog(modifier);
     }
   }
   bindEvents() {
-    var self = this;
-    var tracker = this.tracker;
+    const self = this;
+    const tracker = this.view.tracker;
 
-    $('body').off('redrawScore').on('redrawScore',function() {
+    $('body').off('redrawScore').on('redrawScore', function() {
       self.handleRedrawTimer();
     });
-    $('body').off('forceScrollEvent').on('forceScrollEvent',function() {
+    $('body').off('forceScrollEvent').on('forceScrollEvent', function() {
       self.handleScrollEvent();
     });
-    $('body').off('forceResizeEvent').on('forceResizeEvent',function() {
+    $('body').off('forceResizeEvent').on('forceResizeEvent', function() {
       self.resizeEvent();
     });
-    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
-    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
-
-    /* $(this.renderElement).off('mousemove').on('mousemove', function (ev) {
-      tracker.intersectingArtifact({
-        x: ev.clientX,
-        y: ev.clientY
-      });
-    });
-
-    $(this.renderElement).off('click').on('click', function (ev) {
-      tracker.selectSuggestion(ev);
-      var modifier = tracker.getSelectedModifier();
-      if (modifier) {
-        self.createModifierDialog(modifier);
-      }
-    });   */
-
-    this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
+    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
+    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
+    this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
 
     this.helpControls();
     window.addEventListener('error', function (e) {
       SuiExceptionHandler.instance.exceptionHandler(e);
     });
   }
-
 }

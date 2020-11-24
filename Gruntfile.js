@@ -5,6 +5,7 @@ module.exports = function (grunt) {
   'src/render/vex/vxMeasure.js','src/render/sui/renderState.js', 'src/render/sui/renderScore.js',
   'src/render/sui/textRender.js','src/render/vex/vxSystem.js', 'src/render/vex/glyphDimensions.js',
   'src/render/sui/textEdit.js', 'src/render/sui/tracker.js', 'src/render/audio/oscillator.js',
+  'src/render/sui/scoreView.js',
    'src/ui/dialog.js', 'src/ui/dialogComponents.js', 'src/ui/dialogs/scoreDialogs.js',
    'src/ui/dialogs/fontComponent.js' ]
   const SOURCES = ['src/**/*.js','!src/test/*.js'];

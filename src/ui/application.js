@@ -70,9 +70,6 @@ class SuiApplication {
     params.layoutDemon = new SuiRenderDemon(params);
     var ctor = eval(SmoConfig.controller);
     var controller = new ctor(params);
-    if (SmoConfig.menus) {
-      params.menus.undoBuffer = controller.undoBuffer;
-    }
     eval(SmoConfig.domSource).splash();
     this.controller = controller;
   }
@@ -239,7 +236,7 @@ class SuiApplication {
   static _deferCreateTranslator(lang) {
     setTimeout(() => {
       var transDom =  SmoTranslationEditor.startEditor(lang);
-    },1);
+    }, 1);
   }
 
   static _deferLanguageSelection(lang) {

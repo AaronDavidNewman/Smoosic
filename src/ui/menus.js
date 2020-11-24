@@ -567,9 +567,9 @@ class SuiTimeSignatureMenu extends suiMenuBase {
     }
     var timeSig = $(ev.currentTarget).attr('data-value');
     this.view.renderer.unrenderAll();
-    SmoUndoable.scoreSelectionOp(this.layout.score, this.tracker.selections,
+    SmoUndoable.scoreSelectionOp(this.view.score, this.view.tracker.selections,
       'setTimeSignature', timeSig,this.undoBuffer, 'change time signature');
-    this.layout.setRefresh();
+    this.view.renderer.setRefresh();
     this.complete();
   }
 
@@ -662,14 +662,14 @@ class SuiKeySignatureMenu extends suiMenuBase {
     var keySig = $(ev.currentTarget).attr('data-value');
     keySig = (keySig === 'cancel' ? keySig : keySig.substring(5,keySig.length));
     var changed = [];
-    this.tracker.selections.forEach((sel) => {
+    this.view.tracker.selections.forEach((sel) => {
       if (changed.indexOf(sel.selector.measure) === -1) {
         changed.push(sel.selector.measure);
         SmoUndoable.addKeySignature(this.score, sel, keySig, this.keyCommands.undoBuffer);
         }
     });
 
-    this.layout.setRefresh();
+    this.view.renderer.setRefresh();
     this.complete();
   }
   keydown(ev) {}
@@ -723,14 +723,15 @@ class SuiStaffModifierMenu extends suiMenuBase {
   selection(ev) {
     var op = $(ev.currentTarget).attr('data-value');
 
-    var ft = this.tracker.getExtremeSelection(-1);
-    var tt = this.tracker.getExtremeSelection(1);
+    var ft = this.view.tracker.getExtremeSelection(-1);
+    var tt = this.view.tracker.getExtremeSelection(1);
 
     if (op === 'ending') {
       SmoUndoable.scoreOp(this.score,'addEnding',
-        new SmoVolta({startBar:ft.selector.measure,endBar:tt.selector.measure,number:1}),this.keyCommands.undoBuffer,'add ending');
+        new SmoVolta({ startBar: ft.selector.measure, endBar: tt.selector.measure,number: 1 }),
+          this.keyCommands.undoBuffer, 'add ending');
       this.complete();
-    return;
+      return;
     }
     if (SmoSelector.sameNote(ft.selector, tt.selector)) {
       this.complete();
@@ -738,12 +739,11 @@ class SuiStaffModifierMenu extends suiMenuBase {
     }
 
     SmoUndoable[op](ft, tt, this.keyCommands.undoBuffer);
-    this.tracker.replaceSelectedMeasures();
+    this.view.tracker.replaceSelectedMeasures();
     this.complete();
   }
 
   keydown(ev) {
-
   }
 }
 
@@ -795,7 +795,6 @@ class SuiLanguageMenu extends suiMenuBase {
   }
 
   keydown(ev) {
-
   }
 }
 class SuiMeasureMenu extends suiMenuBase {
@@ -847,22 +846,20 @@ class SuiMeasureMenu extends suiMenuBase {
 
     if (text == 'formatMeasureDialog') {
       SuiMeasureDialog.createAndDisplay({
-        layout: this.layout,
-        tracker: this.tracker,
+        view: this.view,
         completeNotifier:this.completeNotifier,
         closeMenuPromise:this.closePromise,
-        undoBuffer:this.undoBuffer,
         eventSource:this.eventSource
       });
       this.complete();
       return;
     }
     if (text === 'addMenuBeforeCmd') {
-      this.keyCommands.addMeasure({shiftKey:false});
+      this.keyCommands.addMeasure({ shiftKey: false });
       this.complete();
     }
     if (text === 'addMenuAfterCmd') {
-      this.keyCommands.addMeasure({shiftKey:true});
+      this.keyCommands.addMeasure({ shiftKey: true });
       this.complete();
     }
     if (text === 'deleteSelected') {

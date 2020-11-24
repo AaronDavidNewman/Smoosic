@@ -88,8 +88,8 @@ class SuiLyricDialog extends SuiDialogBase {
 
     super(dialogElements, {
       id: 'dialog-lyrics',
-      top: (p.layout.score.layout.pageWidth / 2) - 200,
-      left: (p.layout.score.layout.pageHeight / 2) - 200,
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...p
     });
 
@@ -101,7 +101,7 @@ class SuiLyricDialog extends SuiDialogBase {
     } else {
       this.parser = parameters.parser; // lyrics or chord changes
     }
-    SmoUndoable.noop(this.layout.score,this.undoBuffer,'Undo lyrics');
+    SmoUndoable.noop(this.view.score, this.view.undoBuffer, 'Undo lyrics');
   }
   display() {
     let fontSize;
@@ -118,23 +118,23 @@ class SuiLyricDialog extends SuiDialogBase {
     this._bindElements();
 
     // make sure keyboard is unbound or we get dupicate key events.
-    var self=this;
+    var self = this;
     this.completeNotifier.unbindKeyboardForModal(this);
 
-    $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
-        if (!$(ctrl).hasClass('cbLyricEdit')) {
-          $(ctrl).addClass('fold-textedit');
-        }
+    $(this.dgDom.element).find('.smoControl').each((ix, ctrl) => {
+      if (!$(ctrl).hasClass('cbLyricEdit')) {
+        $(ctrl).addClass('fold-textedit');
+      }
     });
 
-    this.position(this.tracker.selections[0].note.renderedBox);
+    this.position(this.view.tracker.selections[0].note.renderedBox);
 
     var cb = function (x, y) {}
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
       handle: $(this.dgDom.element).find('.jsDbMove'),
-            animateDiv:'.draganime',
-            cb: cb,
+        animateDiv:'.draganime',
+        cb: cb,
       moveParent: true
     });
     this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
@@ -157,7 +157,7 @@ class SuiLyricDialog extends SuiDialogBase {
     if (this.lyricEditorCtrl.editor.selection &&
       this.lyricEditorCtrl.editor.selection.note &&
       this.lyricEditorCtrl.editor.selection.note.renderedBox) {
-      this.tracker.scroller.scrollVisibleBox(this.lyricEditorCtrl.editor.selection.note.renderedBox);
+      this.view.scroller.scrollVisibleBox(this.lyricEditorCtrl.editor.selection.note.renderedBox);
     }
   }
   changed() {
@@ -166,10 +166,10 @@ class SuiLyricDialog extends SuiDialogBase {
     // TODO: make these undoable
     if (this.fontCtrl.changeFlag) {
       const fontInfo = this.fontCtrl.getValue();
-      this.layout.score.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size.size });
+      this.view.score.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size.size });
     }
     if (this.adjustWidthCtrl.changeFlag) {
-      this.layout.score.setLyricAdjustWidth(this.adjustWidthCtrl.getValue());
+      this.view.score.setLyricAdjustWidth(this.adjustWidthCtrl.getValue());
     }
   }
   _bindElements() {
@@ -178,12 +178,12 @@ class SuiLyricDialog extends SuiDialogBase {
 
     $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
       self.tracker.replaceSelectedMeasures();
-      self.tracker.layout.setDirty();
+      self.view.renderer.setDirty();
       self._complete();
     });
     $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
       self.keyCommands.undo();
-      self.tracker.layout.setDirty();
+      self.view.renderer.setDirty();
       self._complete();
     });
     $(dgDom.element).find('.remove-button').remove();
@@ -206,7 +206,7 @@ class SuiLyricDialog extends SuiDialogBase {
   }
 
   _complete() {
-    this.layout.setDirty();
+    this.view.renderer.setDirty();
     if (this.lyricEditorCtrl.running) {
       this.lyricEditorCtrl.endSession();
     }
@@ -229,7 +229,6 @@ class SuiLyricDialog extends SuiDialogBase {
       ev.stopPropagation();
     }
   }
-
 }
 
 class SuiChordChangeDialog  extends SuiDialogBase {
@@ -253,8 +252,8 @@ class SuiChordChangeDialog  extends SuiDialogBase {
 
     super(dialogElements, {
       id: 'dialog-chords',
-      top: (p.layout.score.layout.pageWidth / 2) - 200,
-      left: (p.layout.score.layout.pageHeight / 2) - 200,
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...p
     });
   }
@@ -380,11 +379,11 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     }
     if (this.fontCtrl.changeFlag) {
       const fontInfo = this.fontCtrl.getValue();
-      this.layout.score.setChordFont(
+      this.view.score.setChordFont(
         { 'family': fontInfo.family, size: fontInfo.size.size });
     }
     if (this.adjustWidthCtrl.changeFlag) {
-      this.layout.score.setChordAdjustWidth(this.adjustWidthCtrl.getValue());
+      this.view.score.setChordAdjustWidth(this.adjustWidthCtrl.getValue());
     }
   }
 
@@ -402,27 +401,27 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     this._bindElements();
 
     // make sure keyboard is unbound or we get dupicate key events.
-    var self=this;
+    const self = this;
     this.completeNotifier.unbindKeyboardForModal(this);
 
     $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
-        if (!$(ctrl).hasClass('cbLyricEdit')) {
-          $(ctrl).addClass('fold-textedit');
-        }
+      if (!$(ctrl).hasClass('cbLyricEdit')) {
+        $(ctrl).addClass('fold-textedit');
+      }
     });
 
     this.position(this.tracker.selections[0].note.renderedBox);
 
-    var cb = function (x, y) {}
+    const cb = (x, y) => {}
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
       handle: $(this.dgDom.element).find('.jsDbMove'),
-            animateDiv:'.draganime',
-            cb: cb,
+      animateDiv:'.draganime',
+      cb: cb,
       moveParent: true
     });
-    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
-    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
+    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
+    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
     if (this.chordEditorCtrl && this.chordEditorCtrl.session && this.chordEditorCtrl.session.lyric) {
       const lyric = this.chordEditorCtrl.session.lyric;
       this.adjustWidthCtrl.setValue(lyric.adjustNoteWidth);
@@ -442,13 +441,13 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     var dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-      self.tracker.replaceSelectedMeasures();
-      self.tracker.layout.setDirty();
+      self.view.tracker.replaceSelectedMeasures();
+      self.view.tracker.layout.setDirty();
       self._complete();
     });
     $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
       self.keyCommands.undo();
-      self.tracker.layout.setDirty();
+      self.view.renderer.setDirty();
       self._complete();
     });
     $(dgDom.element).find('.remove-button').remove();
@@ -474,7 +473,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     if (this.chordEditorCtrl.running) {
       this.chordEditorCtrl.endSession();
     }
-    this.layout.setDirty();
+    this.view.renderer.setDirty();
     this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
     this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
     $('body').removeClass('showAttributeDialog');
@@ -612,7 +611,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
   display() {
     console.log('text box creationg complete');
-    this.textElement=$(this.layout.context.svg).find('.' + this.modifier.attrs.id)[0];
+    this.textElement=$(this.view.renderer.context.svg).find('.' + this.modifier.attrs.id)[0];
 
     $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');
@@ -644,7 +643,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
     this._bindElements();
     if (!this.modifier.renderedBox) {
-      this.layout.renderTextGroup(this.modifier);
+      this.view.renderer.renderTextGroup(this.modifier);
     }
     this.position(this.modifier.renderedBox);
     const ul = this.modifier.ul();
@@ -743,8 +742,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       this.activeScoreText.fontInfo.style = fontInfo.style;
     }
     // Use layout context because render may have reset svg.
-    SuiRenderOperation.updateTextGroup(this.layout, this.layout.score, this.undoBuffer,
-      this.previousModifier, this.modifier);
+    this.view.updateTextGroup(this.previousModifier, this.modifier);
     this.previousModifier = this.modifier.serialize();
   }
 
@@ -799,8 +797,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
 
   constructor(parameters) {
-    const tracker = parameters.tracker;
-    const layout = tracker.layout.score.layout;
+    const tracker = parameters.view.tracker;
+    const layout = parameters.view.score.layout;
+    const score = parameters.view.score;
 
     // Create a new text modifier, if required.
     if (!parameters.modifier) {
@@ -815,10 +814,10 @@ class SuiTextTransformDialog  extends SuiDialogBase {
           }
         }
       }
-      const newGroup = new SmoTextGroup({blocks:[newText]});
+      const newGroup = new SmoTextGroup({ blocks: [newText] });
       parameters.modifier = newGroup;
       parameters.modifier.setActiveBlock(newText);
-      SuiRenderOperation.addTextGroup(tracker.layout, tracker.layout.score, parameters.undoBuffer, parameters.modifier);
+      parameters.view.addTextGroup(parameters.modifier);
     } else {
       // Make sure there is a score text to start the editing.
       parameters.modifier.setActiveBlock(parameters.modifier.textBlocks[0].text);
@@ -845,8 +844,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
   _complete() {
     this.modifier.setActiveBlock(null);
-    this.tracker.updateMap(); // update the text map
-    this.layout.setDirty();
+    this.view.tracker.updateMap(); // update the text map
+    this.view.renderer.setDirty();
     this.eventSource.unbindMouseDownHandler(this.mouseDownHandler);
     this.eventSource.unbindMouseUpHandler(this.mouseUpHandler);
     this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
@@ -856,7 +855,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     this.complete();
   }
   _removeText() {
-    SuiRenderOperation.removeTextGroup(this.layout, this.layout.score, this.undoBuffer, this.modifier);
+    this.view.removeTextGroup(this.modifier);
   }
 
   _bindElements() {
@@ -977,16 +976,16 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
   }
   handleRemove() {
     $(this.context.svg).find('g.' + this.modifier.id).remove();
-    this.undoBuffer.addBuffer('remove dynamic', UndoBuffer.bufferTypes.MEASURE, this.selection.selector, this.selection.measure);
+    this.view.undoBuffer.addBuffer('remove dynamic', UndoBuffer.bufferTypes.MEASURE, this.selection.selector, this.selection.measure);
     this.selection.note.removeModifier(this.modifier);
-    this.tracker.clearModifierSelections();
+    this.view.tracker.clearModifierSelections();
   }
   changed() {
     this.modifier.backupOriginal();
     this.components.forEach((component) => {
       this.modifier[component.smoName] = component.getValue();
     });
-    this.layout.renderNoteModifierPreview(this.modifier,this.selection);
+    this.view.renderer.renderNoteModifierPreview(this.modifier,this.selection);
   }
 }
 

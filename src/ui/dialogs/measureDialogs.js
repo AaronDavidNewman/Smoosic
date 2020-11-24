@@ -137,9 +137,9 @@ class SuiMeasureDialog extends SuiDialogBase {
     }
   changed() {
     if (this.pickupMeasureCtrl.changeFlag || this.pickupMeasureCtrl.changeFlag) {
-      this.layout.unrenderColumn(this.measure);
-      SmoUndoable.scoreOp(this.layout.score, 'convertToPickupMeasure', this.pickupMeasureCtrl.getValue(), this.undoBuffer, 'Create pickup measure');
-      this.selection = SmoSelection.measureSelection(this.layout.score, this.selection.selector.staff, this.selection.selector.measure);
+      this.view.renderer.unrenderColumn(this.measure);
+      SmoUndoable.scoreOp(this.view.score, 'convertToPickupMeasure', this.pickupMeasureCtrl.getValue(), this.view.undoBuffer, 'Create pickup measure');
+      this.selection = SmoSelection.measureSelection(this.view.score, this.selection.selector.staff, this.selection.selector.measure);
       this.tracker.replaceSelectedMeasures();
       this.measure = this.selection.measure;
     }
@@ -154,28 +154,28 @@ class SuiMeasureDialog extends SuiDialogBase {
       this.tracker.replaceSelectedMeasures();
     }
     if (this.systemBreakCtrl.changeFlag) {
-      SmoUndoable.scoreSelectionOp(this.layout.score,
-        this.tracker.selections[0],'setForceSystemBreak', this.systemBreakCtrl.getValue(),
-        this.undoBuffer,'change system break flag');
-      this.layout.setRefresh();
+      SmoUndoable.scoreSelectionOp(this.view.score,
+        this.tracker.selections[0], 'setForceSystemBreak', this.systemBreakCtrl.getValue(),
+        this.undoBuffer, 'change system break flag');
+      this.view.renderer.setRefresh();
     }
     if (this.autoJustifyCtrl.changeFlag) {
-      SmoUndoable.scoreSelectionOp(this.layout.score,
+      SmoUndoable.scoreSelectionOp(this.view.score,
         this.tracker.selections[0], 'setAutoJustify', this.autoJustifyCtrl.getValue(),
         this.undoBuffer, 'change the vertical note justification');
       this.tracker.replaceSelectedMeasures();
     }
     if (this.noteFormattingCtrl.changeFlag) {
-      SmoUndoable.scoreSelectionOp(this.layout.score,
+      SmoUndoable.scoreSelectionOp(this.view.score,
         this.tracker.selections[0], 'setFormattingIterations', parseInt(this.noteFormattingCtrl.getValue(),10),
         this.undoBuffer, 'change the horizontal justification');
       this.tracker.replaceSelectedMeasures();
     }
     if (this.padLeftCtrl.changeFlag || this.padAllInSystemCtrl.changeFlag) {
-      this.layout.unrenderColumn(this.measure);
+      this.view.renderer.unrenderColumn(this.measure);
       const selections = this.padAllInSystemCtrl.getValue() ?
-        SmoSelection.measuresInColumn(this.layout.score, this.selection.measure.measureNumber.measureIndex) :
-        SmoSelection.measureSelection(this.layout.score, this.selection.selector.staff, this.selection.selector.measure);
+        SmoSelection.measuresInColumn(this.view.score, this.selection.measure.measureNumber.measureIndex) :
+        SmoSelection.measureSelection(this.view.score, this.selection.selector.staff, this.selection.selector.measure);
       SmoUndoable.padMeasuresLeft(selections, this.padLeftCtrl.getValue(), this.undoBuffer);
       this.tracker.replaceSelectedMeasures();
     }
@@ -192,13 +192,10 @@ class SuiMeasureDialog extends SuiDialogBase {
       top: parameters.selection.measure.renderedBox.y,
       left: parameters.selection.measure.renderedBox.x,
       label: 'Measure Properties',
-      tracker:parameters.tracker,
-      undoBuffer: parameters.undoBuffer,
       eventSource: parameters.eventSource,
-      completeNotifier : parameters.completeNotifier,
-      layout: parameters.layout
+      completeNotifier : parameters.completeNotifier
     });
-    this.startPromise=parameters.closeMenuPromise;
+    this.startPromise = parameters.closeMenuPromise;
     if (!this.startPromise) {
       this.startPromise = new Promise((resolve,reject) => {
         resolve();
@@ -257,7 +254,7 @@ class SuiMeasureDialog extends SuiDialogBase {
   _cancelEdits() {
     this.measure.customStretch = this.originalStretch;
     this.measure.customProportion = this.originalProportion;
-    this.layout.setRefresh();
+    this.view.renderer.setRefresh();
   }
   _bindElements() {
     this._bindComponentNames();
@@ -391,7 +388,7 @@ class SuiInstrumentDialog extends SuiDialogBase {
       selections,
       this.undoBuffer);
 
-    this.layout.setRefresh();
+    this.view.renderer.setRefresh();
   }
 
   constructor(parameters) {
@@ -430,7 +427,6 @@ class SuiInstrumentDialog extends SuiDialogBase {
   }
 
 }
-
 
 class SuiTimeSignatureDialog extends SuiDialogBase {
   static get ctor() {
@@ -490,37 +486,30 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
   changed() {
     // no dynamic change for time  signatures
   }
- static createAndDisplay(params) {
-     // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
-     //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
-
-     var dg = new SuiTimeSignatureDialog({
-        selections: params.tracker.selections,
-        undoBuffer: params.undoBuffer,
-        layout: params.tracker.layout,
-        completeNotifier :params.completeNotifier,
-        closeMenuPromise:params.closeMenuPromise,
-        tracker: params.tracker
-      });
-      dg.display();
-      return dg;
+  static createAndDisplay(params) {
+    var dg = new SuiTimeSignatureDialog(
+      params
+    );
+    dg.display();
+    return dg;
    }
+
    changeTimeSignature() {
-    var ts = '' + this.numeratorCtrl.getValue() + '/'+this.denominatorCtrl.getValue();
-    SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
-      this.tracker.selections,
-      'setTimeSignature',ts,this.undoBuffer);
+    var ts = '' + this.numeratorCtrl.getValue() + '/' + this.denominatorCtrl.getValue();
+    SmoUndoable.multiSelectionOperation(this.view.score,
+      this.view.tracker.selections,
+      'setTimeSignature', ts,this.undoBuffer);
       this.tracker.replaceSelectedMeasures();
    }
    _bindElements() {
-     var self = this;
-     var dgDom = this.dgDom;
+     const self = this;
+     const dgDom = this.dgDom;
      this.numeratorCtrl = this.components.find((comp) => {return comp.smoName == 'numerator';});
      this.denominatorCtrl = this.components.find((comp) => {return comp.smoName == 'denominator';});
      this.populateInitial();
 
     $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-          self.changeTimeSignature();
+      self.changeTimeSignature();
       self.complete();
     });
 
@@ -531,54 +520,49 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
        self.complete();
      });
    }
-   display() {
-     $('body').addClass('showAttributeDialog');
-     this.components.forEach((component) => {
-         component.bind();
-     });
-     this._bindElements();
-     this.position(this.measure.renderedBox);
-     this.tracker.scroller.scrollVisibleBox(
-         svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
-     );
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    this._bindElements();
+    this.position(this.measure.renderedBox);
+    this.view.tracker.scroller.scrollVisibleBox(
+      svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
+    );
 
 
-     var cb = function (x, y) {}
-     htmlHelpers.draggable({
-         parent: $(this.dgDom.element).find('.attributeModal'),
-         handle: $(this.dgDom.element).find('.jsDbMove'),
-          animateDiv:'.draganime',
-         cb: cb,
-         moveParent: true
-     });
+    const cb = (x, y) => {}
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.jsDbMove'),
+      animateDiv: '.draganime',
+      cb: cb,
+      moveParent: true
+    });
 
-     var self=this;
-     function getKeys() {
-         self.completeNotifier.unbindKeyboardForModal(self);
-     }
-     this.startPromise.then(getKeys);
-   }
+    const self = this;
+    const getKeys = () => {
+      self.completeNotifier.unbindKeyboardForModal(self);
+    }
+    this.startPromise.then(getKeys);
+  }
    constructor(parameters) {
-       var measure = parameters.selections[0].measure;
+   const measure = parameters.selections[0].measure;
 
-       super(SuiTimeSignatureDialog.dialogElements, {
-           id: 'time-signature-measure',
-           top: measure.renderedBox.y,
-           left: measure.renderedBox.x,
-           label: 'Custom Time Signature',
-       tracker:parameters.tracker,
-     undoBuffer: parameters.undoBuffer,
-     eventSource: parameters.eventSource,
-     completeNotifier : parameters.completeNotifier,
-     layout: parameters.layout
-
-       });
-       this.measure = measure;
-       this.refresh = false;
-       this.startPromise=parameters.closeMenuPromise;
-       Vex.Merge(this, parameters);
-   }
- }
+   super(SuiTimeSignatureDialog.dialogElements, {
+      id: 'time-signature-measure',
+      top: measure.renderedBox.y,
+      left: measure.renderedBox.x,
+      label: 'Custom Time Signature',
+      ...parameters
+     });
+    this.measure = measure;
+    this.refresh = false;
+    this.startPromise=parameters.closeMenuPromise;
+    Vex.Merge(this, parameters);
+  }
+}
 
 
 // ## SuiTempoDialog
@@ -727,57 +711,53 @@ class SuiTempoDialog extends SuiDialogBase {
   }
   static createAndDisplay(parameters) {
     parameters.measures = SmoSelection.getMeasureList(parameters.tracker.selections)
-       .map((sel) => sel.measure);
+      .map((sel) => sel.measure);
     var measure = parameters.measures[0];
 
     // All measures have a default tempo, but it is not explicitly set unless it is
     // non-default
     parameters.modifier = measure.getTempo();
     if (!parameters.modifier) {
-        parameters.modifier = new SmoTempoText();
-        measure.addTempo(parameters.modifier);
+      parameters.modifier = new SmoTempoText();
+      measure.addTempo(parameters.modifier);
     }
     if (!parameters.modifier.renderedBox) {
-        parameters.modifier.renderedBox = svgHelpers.copyBox(measure.renderedBox);
+      parameters.modifier.renderedBox = svgHelpers.copyBox(measure.renderedBox);
     }
     var dg = new SuiTempoDialog(parameters);
     dg.display();
     return dg;
   }
-    constructor(parameters) {
-        if (!parameters.modifier || !parameters.measures) {
-            throw new Error('modifier attribute dialog must have modifier and selection');
-        }
+  constructor(parameters) {
+    if (!parameters.modifier || !parameters.measures) {
+      throw new Error('modifier attribute dialog must have modifier and selection');
+    }
 
-        super(SuiTempoDialog.dialogElements, {
-            id: 'dialog-tempo',
-            top: parameters.modifier.renderedBox.y,
-            left: parameters.modifier.renderedBox.x,
-            tracker:parameters.tracker,
-            undoBuffer: parameters.undoBuffer,
-            eventSource: parameters.eventSource,
-            completeNotifier : parameters.completeNotifier,
-            layout: parameters.layout
-        });
-        this.refresh = false;
-        Vex.Merge(this, parameters);
-    }
-    populateInitial() {
-        SmoTempoText.attributes.forEach((attr) => {
-            var comp = this.components.find((cc) => {
-                return cc.smoName == attr;
-            });
-            if (comp) {
-                comp.setValue(this.modifier[attr]);
-            }
-        });
+    super(SuiTempoDialog.dialogElements, {
+      id: 'dialog-tempo',
+      top: parameters.modifier.renderedBox.y,
+      left: parameters.modifier.renderedBox.x,
+      ...parameters
+    });
+    this.refresh = false;
+    Vex.Merge(this, parameters);
+  }
+  populateInitial() {
+    SmoTempoText.attributes.forEach((attr) => {
+      var comp = this.components.find((cc) => {
+        return cc.smoName == attr;
+      });
+      if (comp) {
+        comp.setValue(this.modifier[attr]);
+      }
+    });
     this._updateModeClass();
-    }
+  }
   _updateModeClass() {
-        if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
+    if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
       $('.attributeModal').addClass('tempoTextMode');
       $('.attributeModal').removeClass('tempoDurationMode');
-        } else if (this.modifier.tempoMode == SmoTempoText.tempoModes.durationMode) {
+    } else if (this.modifier.tempoMode == SmoTempoText.tempoModes.durationMode) {
       $('.attributeModal').addClass('tempoDurationMode');
       $('.attributeModal').removeClass('tempoTextMode');
     } else {
@@ -785,87 +765,87 @@ class SuiTempoDialog extends SuiDialogBase {
       $('.attributeModal').removeClass('tempoTextMode');
     }
   }
-    changed() {
-        this.components.forEach((component) => {
+  changed() {
+    this.components.forEach((component) => {
       if (SmoTempoText.attributes.indexOf(component.smoName) >= 0) {
-                this.modifier[component.smoName] = component.getValue();
+        this.modifier[component.smoName] = component.getValue();
       }
-        });
-        if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
-            this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
-        }
+    });
+    if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
+      this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
+    }
     this._updateModeClass();
-        this.refresh = true;
-    }
-    // ### handleFuture
-    // Update other measures in selection, or all future measures if the user chose that.
-    handleFuture() {
-        var fc = this.components.find((comp) => {return comp.smoName == 'applyToAll'});
-        var toModify = [];
-        if (fc.getValue()) {
-            this.layout.score.staves.forEach((staff) => {
-                var toAdd = staff.measures.filter((mm) => {
-                    return mm.measureNumber.measureIndex >= this.measures[0].measureNumber.measureIndex;
-                });
-                toModify = toModify.concat(toAdd);
-            });
-        } else {
-            this.measures.forEach((measure) => {
-                this.layout.score.staves.forEach((staff) => {
-                    toModify.push(staff.measures[measure.measureNumber.measureIndex]);
-                });
-            });
-        }
-        toModify.forEach((measure) => {
-            measure.changed = true;
-            var tempo = SmoMeasureModifierBase.deserialize(this.modifier.serialize());
-            tempo.attrs.id = VF.Element.newID();
-            measure.addTempo(tempo);
+    this.refresh = true;
+  }
+  // ### handleFuture
+  // Update other measures in selection, or all future measures if the user chose that.
+  handleFuture() {
+    const fc = this.components.find((comp) => {return comp.smoName == 'applyToAll'});
+    const toModify = [];
+    if (fc.getValue()) {
+      this.view.score.staves.forEach((staff) => {
+        var toAdd = staff.measures.filter((mm) => {
+          return mm.measureNumber.measureIndex >= this.measures[0].measureNumber.measureIndex;
         });
-        this.tracker.replaceSelectedMeasures();
-    }
-    // ### handleRemove
-    // Removing a tempo change is like changing the measure to the previous measure's tempo.
-    // If this is the first measure, use the default value.
-    handleRemove() {
-        if (this.measures[0].measureNumber.measureIndex > 0) {
-            var target = this.measures[0].measureNumber.measureIndex - 1;
-            this.modifier = this.layout.score.staves[0].measures[target].getTempo();
-            this.handleFuture();
-        } else {
-            this.modifier = new SmoTempoText();
-        }
-        this.handleFuture();
-    }
-    // ### _backup
-    // Backup the score before changing tempo which affects score.
-    _backup() {
-        if (this.refresh) {
-            SmoUndoable.noop(this.layout.score,this.undoBuffer,'Tempo change');
-            this.layout.setDirty();
-        }
-    }
-    // ### Populate the initial values and bind to the buttons.
-    _bindElements() {
-        var self = this;
-        this.populateInitial();
-    var dgDom = this.dgDom;
-        // Create promise to release the keyboard when dialog is closed
-        this.closeDialogPromise = new Promise((resolve) => {
-            $(dgDom.element).find('.cancel-button').remove();
-            $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-                self._backup();
-                self.handleFuture();
-                self.complete();
-                resolve();
-            });
-            $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-                self._backup();
-                self.handleRemove();
-                self.complete();
-                resolve();
-            });
+        toModify = toModify.concat(toAdd);
+      });
+    } else {
+      this.measures.forEach((measure) => {
+        this.view.score.staves.forEach((staff) => {
+          toModify.push(staff.measures[measure.measureNumber.measureIndex]);
         });
-        this.completeNotifier.unbindKeyboardForModal(this);
+      });
     }
+    toModify.forEach((measure) => {
+      measure.changed = true;
+      const tempo = SmoMeasureModifierBase.deserialize(this.modifier.serialize());
+      tempo.attrs.id = VF.Element.newID();
+      measure.addTempo(tempo);
+    });
+    this.view.tracker.replaceSelectedMeasures();
+  }
+  // ### handleRemove
+  // Removing a tempo change is like changing the measure to the previous measure's tempo.
+  // If this is the first measure, use the default value.
+  handleRemove() {
+    if (this.measures[0].measureNumber.measureIndex > 0) {
+      const target = this.measures[0].measureNumber.measureIndex - 1;
+      this.modifier = this.view.score.staves[0].measures[target].getTempo();
+      this.handleFuture();
+    } else {
+      this.modifier = new SmoTempoText();
+    }
+    this.handleFuture();
+  }
+  // ### _backup
+  // Backup the score before changing tempo which affects score.
+  _backup() {
+    if (this.refresh) {
+      SmoUndoable.noop(this.view.score, this.undoBuffer, 'Tempo change');
+      this.view.renderer.setDirty();
+    }
+  }
+  // ### Populate the initial values and bind to the buttons.
+  _bindElements() {
+    const self = this;
+    this.populateInitial();
+    const dgDom = this.dgDom;
+    // Create promise to release the keyboard when dialog is closed
+    this.closeDialogPromise = new Promise((resolve) => {
+      $(dgDom.element).find('.cancel-button').remove();
+      $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+        self._backup();
+        self.handleFuture();
+        self.complete();
+        resolve();
+      });
+      $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+        self._backup();
+        self.handleRemove();
+        self.complete();
+        resolve();
+      });
+    });
+    this.completeNotifier.unbindKeyboardForModal(this);
+  }
 }

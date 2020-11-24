@@ -1,8 +1,10 @@
-// ## renderOperation
-// Do a thing to the music.
+// ## SuiScoreView
+// Do a thing to the music.  Save in undo buffer before.  Render the score to reflect
+// the change after.  Map the operation on the score view to the actual score.
+// eslint-disable-next-line no-unused-vars
 class SuiScoreView {
   addTextGroup(textGroup) {
-    SmoUndoable.changeTextGroup(score, this.undoBuffer, textGroup,
+    SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup,
       UndoBuffer.bufferSubtypes.ADD);
     this.renderer.renderScoreModifiers();
   }
@@ -13,24 +15,115 @@ class SuiScoreView {
     this.renderer.renderScoreModifiers();
   }
 
-  updateTextGroup(oldVersion, newVersion) {
+  updateTextGroup(oldVersion) {
     SmoUndoable.changeTextGroup(this.score, this.undoBuffer, oldVersion,
       UndoBuffer.bufferSubtypes.UPDATE);
     // TODO: only render the one TG.
     this.renderer.renderScoreModifiers();
+  }
+
+  // ### transposeSelections
+  // tranpose whatever is selected in tracker the given offset.
+  transposeSelections(offset) {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    const grace = this.tracker.getSelectedGraceNotes();
+    if (grace.length) {
+      grace.forEach((artifact) => {
+        SmoOperation.transposeGraceNotes(artifact.selection, artifact.modifier, offset);
+        SmoOperation.transposeGraceNotes(this._getEquivalentSelection(artifact.selection),
+          artifact.modifier, offset);
+      });
+    } else {
+      selections.forEach((selected) => {
+        SmoOperation.transpose(selected, offset);
+        SmoOperation.transpose(this._getEquivalentSelection(selected), offset);
+      });
+      if (selections.length === 1) {
+        suiOscillator.playSelectionNow(selections[0]);
+      }
+    }
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  toggleCourtesyAccidentals() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    const grace = this.tracker.getSelectedGraceNotes();
+    if (grace.length) {
+      grace.forEach((artifact) => {
+        SmoOperation.toggleGraceNoteCourtesy(artifact.selection, artifact.modifier);
+        SmoUndoable.toggleGraceNoteCourtesyAccidental(
+          this._getEquivalentSelection(artifact.selection), artifact.modifier);
+      });
+    } else {
+      selections.forEach((selection) => {
+        SmoOperation.toggleCourtesyAccidental(selection);
+        SmoOperation.toggleCourtesyAccidental(this._getEquivalentSelection(selection));
+      });
+    }
+    this._renderChangedMeasures(measureSelections);
+  }
+  // ### _undoTrackerSelections
+  // Add to the undo buffer the current set of measures selected.
+  _undoTrackerMeasureSelections() {
+    const measureSelections = SmoSelection.getMeasureList(this.tracker.selections);
+    measureSelections.forEach((measureSelection) => {
+      const equiv = this._getEquivalentSelection(measureSelection);
+      this.undoBuffer.addBuffer('transpose selections', UndoBuffer.bufferTypes.MEASURE, measureSelection.selector, measureSelection.measure);
+      this.storeBuffer.addBuffer('transpose selections', UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure);
+    });
+    return measureSelections;
+  }
+  _renderChangedMeasures(measureSelections) {
+    measureSelections.forEach((measureSelection) => {
+      this.renderer.addToReplaceQueue(measureSelection);
+    });
+  }
+
+  _getEquivalentSelection(selection) {
+    if (typeof(selection.selector.tick) === 'undefined') {
+      return SmoSelection.measureSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure);
+    }
+    if (typeof(selection.selector.pitches) === 'undefined') {
+      return SmoSelection.noteSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
+        selection.selector.tick);
+    }
+    return SmoSelection.noteSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
+      selection.selector.tick, selection.selector.pitch);
+  }
+
+  // ### _createStaveMap
+  // create a map for staves from the view score (this.score) to the model score
+  // (this.storeScore)
+  _createStaveMap() {
+    let i = 0;
+    let j = 0;
+    this.staffMap = [];
+    for (i = 0; i < this.score.staves.length; ++i) {
+      const istaff = this.score.staves[i];
+      for (j = 0; j < this.storeScore.staves.length; ++j) {
+        const jstaff = this.storeScore.staves[j];
+        if (jstaff.attrs.id === istaff.attrs.id) {
+          rv.push(j);
+          break;
+        }
+      }
+    }
   }
   constructor(renderer, score) {
     this.score = score;
     this.renderer = renderer;
     const scoreJson = score.serialize();
     const scroller = new suiScroller();
-    this.tracker = new suiTracker(this.renderer, scroller);
-    this.renderer.setMeasureMapper(this.tracker);
     this.pasteBuffer = new PasteBuffer();
+    this.tracker = new suiTracker(this.renderer, scroller, this.pasteBuffer);
+    this.renderer.setMeasureMapper(this.tracker);
 
-    this.storeScore = SmoScore.deserialize(scoreJson);
+    this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));
     this.undoBuffer = new UndoBuffer();
     this.storeBuffer = new UndoBuffer();
+    this._createStaveMap();
   }
 
   changeScore(score) {
@@ -39,5 +132,10 @@ class SuiScoreView {
     setTimeout(() => {
       $('body').trigger('forceResizeEvent');
     }, 1);
+  }
+
+  undo() {
+    this.renderer.undo(this.undoBuffer);
+    this.storeScore = this.storeBuffer.undo(this.storeScore);
   }
 }

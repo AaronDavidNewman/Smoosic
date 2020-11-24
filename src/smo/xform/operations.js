@@ -447,60 +447,67 @@ class SmoOperation {
   // Add the value of the last dot to the note, increasing length and
   // reducing the number of dots.
   static undotDuration(selection) {
-  var note = selection.note;
-  var measure = selection.measure;
-  var nticks = smoMusic.getPreviousDottedLevel(note.tickCount);
-  if (nticks == note.tickCount) {
-  return;
-  }
-  var actor = new SmoContractNoteActor({
-  startIndex: selection.selector.tick,
-  tickmap: measure.tickmapForVoice(selection.selector.voice),
-  newTicks: nticks
-  });
-  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-  selection.measure.setChanged();
-  return true;
+    const note = selection.note;
+    const measure = selection.measure;
+    const nticks = smoMusic.getPreviousDottedLevel(note.tickCount);
+    if (nticks == note.tickCount) {
+      return;
+    }
+    const actor = new SmoContractNoteActor({
+      startIndex: selection.selector.tick,
+      tickmap: measure.tickmapForVoice(selection.selector.voice),
+      newTicks: nticks
+    });
+    SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
+    selection.measure.setChanged();
+    return true;
   }
 
   // ## transpose
   // ## Description
   // Transpose the selected note, trying to find a key-signature friendly value
   static transpose(selection, offset) {
-  var measure = selection.measure;
-  var note = selection.note;
-  if (measure && note) {
-      var pitchar = [];
-      var pitchIx = 0;
-      var voiceIx = 0;
-      var accidentalMap = {};
-      var activeTm = measure.tickmapForVoice(measure.getActiveVoice());
-      var targetDuration = activeTm.durationMap[selection.selector.tick];
+    let pitchIx = 0;
+    let voiceIx = 0;
+    let trans = false;
+    let transInt = 0;
+    let i = 0;
+    if (typeof(selection.selector.pitches) === 'undefined') {
+      selection.selector.pitches = [];
+    }
+    const measure = selection.measure;
+    const note = selection.note;
+    if (measure && note) {
+      const pitchar = [];
+      pitchIx = 0;
+      voiceIx = 0;
+      const accidentalMap = {};
+      const activeTm = measure.tickmapForVoice(measure.getActiveVoice());
+      const targetDuration = activeTm.durationMap[selection.selector.tick];
 
       note.pitches.forEach((opitch) => {
         // Only translate selected pitches
-        var shouldXpose = selection.selector.pitches.length == 0 ||
+        const shouldXpose = selection.selector.pitches.length === 0 ||
           selection.selector.pitches.indexOf(pitchIx) >= 0;
 
         // Translate the pitch, ignoring enharmonic
-        var trans =  shouldXpose ? smoMusic.getKeyOffset(opitch,offset)
+        trans =  shouldXpose ? smoMusic.getKeyOffset(opitch, offset)
           : JSON.parse(JSON.stringify(opitch));
-        trans = smoMusic.getEnharmonicInKey(trans,measure.keySignature);
+        trans = smoMusic.getEnharmonicInKey(trans, measure.keySignature);
         if (!trans.accidental) {
           trans.accidental = 'n';
         }
-        var transInt = smoMusic.smoPitchToInt(trans);
+        transInt = smoMusic.smoPitchToInt(trans);
 
         // Look through the earlier notes in the measure and try
         // to find an equivalent note, and convert it if it exists.
-        var voiceIx = 0;
         measure.voices.forEach((voice) => {
-          for (var i = 0;i<selection.selector.tick
-            && i < voice.notes.length;++i)  {
-            var prevNote = voice.notes[i];
+          for (i = 0; i<selection.selector.tick
+            && i < voice.notes.length; ++i)  {
+            const prevNote = voice.notes[i];
             prevNote.pitches.forEach((prevPitch) => {
-                var prevInt = smoMusic.smoPitchToInt(prevPitch);
-                if (prevInt == transInt) {
+                const prevInt = smoMusic.smoPitchToInt(prevPitch);
+                if (prevInt === transInt) {
                   trans = JSON.parse(JSON.stringify(prevPitch));
                 }
              });
@@ -510,10 +517,9 @@ class SmoOperation {
           pitchIx += 1;
       });
       note.pitches = pitchar;
-  measure.setChanged();
-  return true;
-  }
-  return false;
+      return true;
+    }
+    return false;
   }
 
   // ## setPitch

@@ -3594,17 +3594,17 @@ class SuiRenderDemon {
   }
 
   get isLayoutQuiet() {
-		return ((this.layout.passState == SuiRenderState.passStates.clean && this.layout.dirty == false)
-		   || this.layout.passState == SuiRenderState.passStates.replace);
+		return ((this.view.renderer.passState == SuiRenderState.passStates.clean && this.view.renderer.dirty == false)
+		   || this.view.renderer.passState == SuiRenderState.passStates.replace);
 	}
 
   handleRedrawTimer() {
     // If there has been a change, redraw the score
-  	if (this.undoStatus != this.undoBuffer.opCount || this.layout.dirty) {
-  		this.layout.dirty=true;
+  	if (this.undoStatus != this.undoBuffer.opCount || this.view.renderer.dirty) {
+  		this.view.renderer.dirty=true;
   		this.undoStatus = this.undoBuffer.opCount;
   		this.idleLayoutTimer = Date.now();
-      var state = this.layout.passState;
+      var state = this.view.renderer.passState;
       // this.tracker.updateMap(); why do this before rendering?
 
       // indicate the display is 'dirty' and we will be refreshing it.
@@ -3612,12 +3612,13 @@ class SuiRenderDemon {
       try {
   		  this.render();
       } catch (ex) {
+        console.error(ex);
         SuiExceptionHandler.instance.exceptionHandler(ex);
       }
-  	} else if (this.layout.passState === SuiRenderState.passStates.replace) {
+  	} else if (this.view.renderer.passState === SuiRenderState.passStates.replace) {
   		// Do we need to refresh the score?
   		if (Date.now() - this.idleLayoutTimer > this.idleRedrawTime) {
-  			this.layout.setRefresh();
+  			this.view.renderer.setRefresh();
   		}
   	}
 }
@@ -3637,9 +3638,9 @@ class SuiRenderDemon {
   }
 
   render() {
-		this.layout.render();
-    if (this.layout.passState == SuiRenderState.passStates.clean && this.layout.dirty == false) {
-       this.tracker.updateMap();
+		this.view.renderer.render();
+    if (this.view.renderer.passState == SuiRenderState.passStates.clean && this.view.renderer.dirty == false) {
+       this.view.tracker.updateMap();
 
        // indicate the display is 'clean' and up-to-date with the score
        $('body').removeClass('refresh-1');
@@ -3652,9 +3653,9 @@ class SuiRenderDemon {
 // Map the notes in the svg so the can respond to events and interact
 // with the mouse/keyboard
 class suiMapper {
-  constructor(layout,scroller) {
-    // layout renders the music when it changes
-    this.layout = layout;
+  constructor(renderer, scroller, pasteBuffer) {
+    // renderer renders the music when it changes
+    this.renderer = renderer;
 
     // measure to selector map
     this.measureMap = {};
@@ -3677,7 +3678,7 @@ class suiMapper {
     // index if a single pitch of a chord is selected
     this.pitchIndex = -1;
     // the current selection, which is also the copy/paste destination
-    this.pasteBuffer = new PasteBuffer();
+    this.pasteBuffer = pasteBuffer;
   }
 
     // ### loadScore
@@ -3872,7 +3873,7 @@ class suiMapper {
     this._createLocalModifiersList();
     // Is this right?  Don't update the past buffer with data until the display is redrawn
     // because some of the selections may not exist in the score.
-    if (this.layout.isDirty === false) {
+    if (this.renderer.isDirty === false) {
       this.pasteBuffer.clearSelections();
   		this.pasteBuffer.setSelections(this.score, this.selections);
     }
@@ -4230,28 +4231,6 @@ class suiPiano {
 		this._mapKeys();
 		this.bind();
 	}
-}
-;// ## renderOperation
-// Do a thing to the music.
-class SuiRenderOperation {
-  static addTextGroup(layout, score, undoBuffer, textGroup) {
-    SmoUndoable.changeTextGroup(score, undoBuffer, textGroup,
-      UndoBuffer.bufferSubtypes.ADD);
-    layout.renderScoreModifiers();
-  }
-
-  static removeTextGroup(layout, score, undoBuffer, textGroup) {
-    SmoUndoable.changeTextGroup(score, undoBuffer, textGroup,
-      UndoBuffer.bufferSubtypes.REMOVE);
-    layout.renderScoreModifiers();
-  }
-
-  static updateTextGroup(layout, score, undoBuffer, oldVersion, newVersion) {
-    SmoUndoable.changeTextGroup(score, undoBuffer, oldVersion,
-      UndoBuffer.bufferSubtypes.UPDATE);
-    // TODO: only render the one TG.
-    layout.renderScoreModifiers();
-  }
 }
 ;// ## SuiRenderScore
 // This module renders the entire score.  It calculates the layout first based on the
@@ -4669,6 +4648,147 @@ class SuiRenderScore extends SuiRenderState {
     return rv;
   }
 }
+;// ## SuiScoreView
+// Do a thing to the music.  Save in undo buffer before.  Render the score to reflect
+// the change after.  Map the operation on the score view to the actual score.
+// eslint-disable-next-line no-unused-vars
+class SuiScoreView {
+  addTextGroup(textGroup) {
+    SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup,
+      UndoBuffer.bufferSubtypes.ADD);
+    this.renderer.renderScoreModifiers();
+  }
+
+  removeTextGroup(textGroup) {
+    SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup,
+      UndoBuffer.bufferSubtypes.REMOVE);
+    this.renderer.renderScoreModifiers();
+  }
+
+  updateTextGroup(oldVersion) {
+    SmoUndoable.changeTextGroup(this.score, this.undoBuffer, oldVersion,
+      UndoBuffer.bufferSubtypes.UPDATE);
+    // TODO: only render the one TG.
+    this.renderer.renderScoreModifiers();
+  }
+
+  // ### transposeSelections
+  // tranpose whatever is selected in tracker the given offset.
+  transposeSelections(offset) {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    const grace = this.tracker.getSelectedGraceNotes();
+    if (grace.length) {
+      grace.forEach((artifact) => {
+        SmoOperation.transposeGraceNotes(artifact.selection, artifact.modifier, offset);
+        SmoOperation.transposeGraceNotes(this._getEquivalentSelection(artifact.selection),
+          artifact.modifier, offset);
+      });
+    } else {
+      selections.forEach((selected) => {
+        SmoOperation.transpose(selected, offset);
+        SmoOperation.transpose(this._getEquivalentSelection(selected), offset);
+      });
+      if (selections.length === 1) {
+        suiOscillator.playSelectionNow(selections[0]);
+      }
+    }
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  toggleCourtesyAccidentals() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    const grace = this.tracker.getSelectedGraceNotes();
+    if (grace.length) {
+      grace.forEach((artifact) => {
+        SmoOperation.toggleGraceNoteCourtesy(artifact.selection, artifact.modifier);
+        SmoUndoable.toggleGraceNoteCourtesyAccidental(
+          this._getEquivalentSelection(artifact.selection), artifact.modifier);
+      });
+    } else {
+      selections.forEach((selection) => {
+        SmoOperation.toggleCourtesyAccidental(selection);
+        SmoOperation.toggleCourtesyAccidental(this._getEquivalentSelection(selection));
+      });
+    }
+    this._renderChangedMeasures(measureSelections);
+  }
+  // ### _undoTrackerSelections
+  // Add to the undo buffer the current set of measures selected.
+  _undoTrackerMeasureSelections() {
+    const measureSelections = SmoSelection.getMeasureList(this.tracker.selections);
+    measureSelections.forEach((measureSelection) => {
+      const equiv = this._getEquivalentSelection(measureSelection);
+      this.undoBuffer.addBuffer('transpose selections', UndoBuffer.bufferTypes.MEASURE, measureSelection.selector, measureSelection.measure);
+      this.storeBuffer.addBuffer('transpose selections', UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure);
+    });
+    return measureSelections;
+  }
+  _renderChangedMeasures(measureSelections) {
+    measureSelections.forEach((measureSelection) => {
+      this.renderer.addToReplaceQueue(measureSelection);
+    });
+  }
+
+  _getEquivalentSelection(selection) {
+    if (typeof(selection.selector.tick) === 'undefined') {
+      return SmoSelection.measureSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure);
+    }
+    if (typeof(selection.selector.pitches) === 'undefined') {
+      return SmoSelection.noteSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
+        selection.selector.tick);
+    }
+    return SmoSelection.noteSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
+      selection.selector.tick, selection.selector.pitch);
+  }
+
+  // ### _createStaveMap
+  // create a map for staves from the view score (this.score) to the model score
+  // (this.storeScore)
+  _createStaveMap() {
+    let i = 0;
+    let j = 0;
+    this.staffMap = [];
+    for (i = 0; i < this.score.staves.length; ++i) {
+      const istaff = this.score.staves[i];
+      for (j = 0; j < this.storeScore.staves.length; ++j) {
+        const jstaff = this.storeScore.staves[j];
+        if (jstaff.attrs.id === istaff.attrs.id) {
+          rv.push(j);
+          break;
+        }
+      }
+    }
+  }
+  constructor(renderer, score) {
+    this.score = score;
+    this.renderer = renderer;
+    const scoreJson = score.serialize();
+    const scroller = new suiScroller();
+    this.pasteBuffer = new PasteBuffer();
+    this.tracker = new suiTracker(this.renderer, scroller, this.pasteBuffer);
+    this.renderer.setMeasureMapper(this.tracker);
+
+    this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));
+    this.undoBuffer = new UndoBuffer();
+    this.storeBuffer = new UndoBuffer();
+    this._createStaveMap();
+  }
+
+  changeScore(score) {
+    this.renderer.score = score;
+    this.renderer.setViewport(true);
+    setTimeout(() => {
+      $('body').trigger('forceResizeEvent');
+    }, 1);
+  }
+
+  undo() {
+    this.renderer.undo(this.undoBuffer);
+    this.storeScore = this.storeBuffer.undo(this.storeScore);
+  }
+}
 ;
 
 // ## suiScroller
@@ -4677,135 +4797,131 @@ class SuiRenderScore extends SuiRenderState {
 // ### class methods:
 // ---
 class suiScroller  {
-	constructor(layout) {
+  constructor() {
+    this._scroll = {x:0,y:0};
+    this._scrollInitial = {x:0,y:0};
+    var scroller = $('.musicRelief');
+    this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
 
-        this._scroll = {x:0,y:0};
-        this._scrollInitial = {x:0,y:0};
-	    var scroller = $('.musicRelief');
-	    this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+    this.viewport = svgHelpers.boxPoints(
+      $('.musicRelief').offset().left,
+      $('.musicRelief').offset().top,
+      $('.musicRelief').width(),
+      $('.musicRelief').height());
+   }
 
-        this.viewport = svgHelpers.boxPoints(
-          $('.musicRelief').offset().left,
-          $('.musicRelief').offset().top,
-          $('.musicRelief').width(),
-          $('.musicRelief').height());
-	}
+  // ### setScrollInitial
+  // tracker is going to remap the music, make sure we take the current scroll into account.
+  setScrollInitial() {
+    var scroller = $('.musicRelief');
+    this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
+    this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+  }
 
-    // ### setScrollInitial
-    // tracker is going to remap the music, make sure we take the current scroll into account.
-    setScrollInitial() {
-        var scroller = $('.musicRelief');
-        this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
-        this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+  // ### handleScroll
+  // handle scroll events.
+  handleScroll(x,y) {
+    this._scroll = {x:x,y:y};
+    this.viewport = svgHelpers.boxPoints(
+      $('.musicRelief').offset().left,
+      $('.musicRelief').offset().top,
+      $('.musicRelief').width(),
+      $('.musicRelief').height());
+  }
+
+  scrollAbsolute(x,y) {
+    $('.musicRelief')[0].scrollLeft = x;
+    $('.musicRelief')[0].scrollTop = y;
+    this.netScroll.x = x;
+    this.netScroll.y = y;
+  }
+
+  // ### scrollVisible
+  // Scroll such that the box is fully visible, if possible (if it is
+  // not larger than the screen)
+  scrollVisibleBox(box) {
+    let xoff = 0;
+    let yoff = 0;
+    const curBox = this.scrollBox;
+    if (box.width > curBox.width || box.height > curBox.height) {
+      return;
+    }
+    if (box.height < curBox.height) {
+      if (box.y < curBox.y) {
+        yoff = box.y - (curBox.y + 25);
+      }
+      else if (box.y + box.height > curBox.y + curBox.height) {
+        yoff = box.y + box.height - (curBox.y + curBox.height) + 25;
+      }
     }
 
-    // ### handleScroll
-    // handle scroll events.
-    handleScroll(x,y) {
-        this._scroll = {x:x,y:y};
-        this.viewport = svgHelpers.boxPoints(
-          $('.musicRelief').offset().left,
-          $('.musicRelief').offset().top,
-          $('.musicRelief').width(),
-          $('.musicRelief').height());
+    if (box.x < curBox.width) {
+      if (box.x < curBox.x) {
+        xoff = box.x - curBox.x;
+      } else if (box.x + box.width > curBox.x + curBox.width) {
+        xoff = box.x + box.width - (curBox.x + curBox.width);
+      }
     }
 
-    scrollAbsolute(x,y) {
-        $('.musicRelief')[0].scrollLeft = x;
-        $('.musicRelief')[0].scrollTop = y;
-        this.netScroll.x = x;
-        this.netScroll.y = y;
+    if (xoff !== 0 || yoff !== 0) {
+        this.scrollOffset(xoff,yoff);
     }
+  }
 
-    // ### scrollVisible
-    // Scroll such that the box is fully visible, if possible (if it is
-    // not larger than the screen)
-    scrollVisibleBox(box) {
+  // ### scrollBox
+  // get the current viewport, in scrolled coordinates.  When tracker maps the
+  // music element to client coordinates, these are the coordinates used in the
+  // map
+  get scrollBox() {
+    return svgHelpers.boxPoints(this.viewport.x + this.netScroll.x,
+     this.viewport.y + this.netScroll.y,
+     this.viewport.width,
+     this.viewport.height
+    );
+  }
 
-        var xoff = 0;
-        var yoff = 0;
-        var curBox = this.scrollBox;
-        if (box.width > curBox.width || box.height > curBox.height) {
-            return;
-        }
-        if (box.height < curBox.height) {
-            if (box.y < curBox.y) {
-                yoff = box.y - (curBox.y + 25);
-            }
-            else if (box.y + box.height > curBox.y + curBox.height) {
-                yoff = box.y + box.height - (curBox.y + curBox.height) + 25;
-            }
-        }
+  get absScroll() {
+    var x = $('.musicRelief').offset().left + $('.musicRelief')[0].scrollLeft;
+    var y = $('.musicRelief').offset().top + $('.musicRelief')[0].scrollTop;
+    return svgHelpers.boxPoints(x,
+      y,
+      this.viewport.width,
+      this.viewport.height
+    );
+  }
 
-        if (box.x < curBox.width) {
-            if (box.x < curBox.x) {
-                xoff = box.x - curBox.x;
-            } else if (box.x + box.width > curBox.x + curBox.width) {
-                xoff = box.x + box.width - (curBox.x + curBox.width);
-            }
-        }
+  // ### scrollOffset
+  // scroll the offset from the starting scroll point
+  scrollOffset(x,y) {
+    const self = this;
+    const cur = { x: this._scroll.x, y: this._scroll.y };
+    setTimeout(() => {
+      if (x) {
+        $('.musicRelief')[0].scrollLeft = cur.x + x;
+      }
+      if (y) {
+        $('.musicRelief')[0].scrollTop = cur.y + y;
+      }
+      self.handleScroll( $('.musicRelief')[0].scrollLeft, $('.musicRelief')[0].scrollTop);
+    }, 1);
+  }
 
-        if (xoff != 0 || yoff != 0) {
-            this.scrollOffset(xoff,yoff);
-        }
-    }
+  // ### netScroll
+  // return the net amount we've scrolled, based on when the maps were make (initial)
+  // , the offset of the container, and the absolute coordinates of the scrollbar.
+  get netScroll() {
+    var xoffset = $('.musicRelief').offset().left - this._offsetInitial.x;
+    var yoffset = $('.musicRelief').offset().top - this._offsetInitial.y;
+    return { x: this._scroll.x -
+      (this._scrollInitial.x + xoffset), y: this._scroll.y - (this._scrollInitial.y + yoffset)};
+  }
 
-    // ### scrollBox
-    // get the current viewport, in scrolled coordinates.  When tracker maps the
-    // music element to client coordinates, these are the coordinates used in the
-    // map
-    get scrollBox() {
-        return svgHelpers.boxPoints(this.viewport.x + this.netScroll.x,
-         this.viewport.y + this.netScroll.y,
-         this.viewport.width,
-          this.viewport.height
-      );
-    }
-
-    get absScroll() {
-        var x = $('.musicRelief').offset().left + $('.musicRelief')[0].scrollLeft;
-        var y = $('.musicRelief').offset().top + $('.musicRelief')[0].scrollTop;
-        return svgHelpers.boxPoints(x,
-         y,
-         this.viewport.width,
-          this.viewport.height
-      );
-
-    }
-
-    // ### scrollOffset
-    // scroll the offset from the starting scroll point
-    scrollOffset(x,y) {
-        var self = this;
-        var cur = {x:this._scroll.x,y:this._scroll.y};
-        setTimeout(function() {
-            if (x) {
-                $('.musicRelief')[0].scrollLeft = cur.x + x;
-            }
-            if (y) {
-                $('.musicRelief')[0].scrollTop = cur.y + y;
-            }
-
-            self.handleScroll( $('.musicRelief')[0].scrollLeft,$('.musicRelief')[0].scrollTop);
-        },1);
-    }
-
-    // ### netScroll
-    // return the net amount we've scrolled, based on when the maps were make (initial)
-    // , the offset of the container, and the absolute coordinates of the scrollbar.
-    get netScroll() {
-		var xoffset = $('.musicRelief').offset().left - this._offsetInitial.x;
-		var yoffset = $('.musicRelief').offset().top - this._offsetInitial.y;
-        return {x:this._scroll.x - (this._scrollInitial.x + xoffset),y:this._scroll.y - (this._scrollInitial.y + yoffset)};
-    }
-
-    // ### invScroll
-    // invert the scroll parameters.
-    get invScroll() {
-        var vect = this.netScroll;
-        return {x:vect.x*(-1),y:vect.y*(-1)};
-    }
-
+  // ### invScroll
+  // invert the scroll parameters.
+  get invScroll() {
+    var vect = this.netScroll;
+    return { x: vect.x * (-1), y: vect.y * (-1)};
+  }
 }
 ;// The heirarchy of text editing objects goes:
 // dialog -> component -> session -> editor
@@ -4826,10 +4942,6 @@ class suiScroller  {
 // and retrieving the results into the target object.
 // eslint-disable-next-line no-unused-vars
 class SuiTextEditor {
-  static get attributes() {
-    return ['svgText', 'context', 'x', 'y', 'text',
-      'textPos', 'selectionStart', 'selectionLength', 'empty', 'suggestionIndex'];
-  }
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
   }
@@ -4872,7 +4984,7 @@ class SuiTextEditor {
   constructor(params) {
     Vex.Merge(this, SuiTextEditor.defaults);
     Vex.Merge(this, params);
-    this.context = params.context;
+    this.context = params.renderer.context;
   }
 
   static get strokes() {
@@ -4907,7 +5019,7 @@ class SuiTextEditor {
   _suggestionParameters(box, strokeName) {
     const outlineStroke = SuiTextEditor.strokes[strokeName];
     return {
-      context: this.context, box, classes: strokeName,
+      context: this.renderer.context, box, classes: strokeName,
       outlineStroke, scroller: this.scroller
     };
   }
@@ -5280,7 +5392,7 @@ class SuiLyricEditor extends SuiTextEditor {
   }
   parseBlocks() {
     let i = 0;
-    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y });
+    this.svgText = new SuiInlineText({ context: this.renderer.context, startX: this.x, startY: this.y });
     for (i = 0; i < this.text.length; ++i) {
       this.svgText.addTextBlockAt(i, { text: this.text[i] });
       this.empty = false;
@@ -5378,7 +5490,7 @@ class SuiChordEditor extends SuiTextEditor {
     let curGlyph = '';
     let blockIx = 0; // so we skip modifier characters
     let i = 0;
-    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y });
+    this.svgText = new SuiInlineText({ context: this.renderer.context, startX: this.x, startY: this.y });
 
     for (i = 0; i < this.text.length; ++i) {
       const char = this.text[i];
@@ -5487,83 +5599,6 @@ class SuiChordEditor extends SuiTextEditor {
 }
 
 // eslint-disable-next-line no-unused-vars
-class SuiResizeTextSession {
-  static get defaultSpring() {
-    return 0.1;
-  }
-  static get resizeModes() {
-    return { BOX: 1, FONT: 2 };
-  }
-  static get defaults() {
-    return {
-      spring: 0.1,
-      resizeMode: SuiResizeTextSession.resizeModes.FONT,
-      dragging: false,
-      startDragPoint: { x: -1, y: -1 }
-    };
-  }
-  constructor(params) {
-    Vex.Merge(this, SuiResizeTextSession.defaults);
-    Vex.Merge(this, params);
-    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup, this.context); // SuiTextBlock
-    this.startBox = this.textObject.getLogicalBox();
-    this.clientBox = this.textObject.getRenderedBox();
-    this.startBox.y += this.textObject.maxFontHeight(1);
-    this.currentBox = svgHelpers.smoBox(this.startBox);
-
-    this.currentClientBox = svgHelpers.adjustScroll(svgHelpers.logicalToClient(this.context.svg, this.currentBox), this.scroller.netScroll);
-  }
-  _outlineBox() {
-    const outlineStroke = SuiTextEditor.strokes['text-drag'];
-    const obj = {
-      context: this.context, box: this.currentBox, classes: 'text-drag',
-      outlineStroke, scroller: this.scroller
-    };
-    svgHelpers.outlineLogicalRect(obj);
-  }
-
-  startDrag(e) {
-    if (!svgHelpers.containsPoint(this.clientBox, { x: e.clientX, y: e.clientY }, this.scroller.netScroll)) {
-      return;
-    }
-
-    this.dragging = true;
-    this.startDragPoint = { x: e.clientX, y: e.clientY };
-    this.deltaDrag = null;
-    // calculate offset of mouse start vs. box UL
-    this._outlineBox();
-  }
-
-  mouseMove(e) {
-    if (!this.dragging) {
-      return;
-    }
-    const clientX = this.startDragPoint.x;
-    const clientY = this.startDragPoint.y;
-    const xdelta = e.clientX - clientX;
-    const ydelta = e.clientY - clientY;
-    if (!this.deltaDrag) {
-      this.deltaDrag = { x: xdelta, y: ydelta };
-      return;
-    }
-    const dragDiff = Math.abs(xdelta) - Math.abs(this.deltaDrag.x);
-    const coeff = dragDiff > 0 ? 2 : 0.5;
-    const  absRate = 1 + (this.spring * coeff);
-    const rate = xdelta > 0 ? absRate : 1 / absRate;
-    this.textGroup.scaleInPlace(rate);
-    this.textObject.rescale(rate);
-    this.textObject.render();
-    this._outlineBox();
-    this.deltaDrag = { x: xdelta, y: ydelta };
-  }
-  endDrag() {
-    this.dragging = false;
-    svgHelpers.eraseOutline(this.context, 'text-drag');
-    this.textObject.render();
-  }
-}
-
-// eslint-disable-next-line no-unused-vars
 class SuiDragSession {
   constructor(params) {
     this.textGroup = params.textGroup;
@@ -5639,9 +5674,8 @@ class SuiTextSession {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
   }
   constructor(params) {
-    this.score = params.score;
-    this.layout = params.layout;
     this.scroller = params.scroller;
+    this.renderer = params.renderer;
     this.scoreText = params.scoreText;
     this.text = params.text ? params.text : '';
     this.x = params.x;
@@ -5672,7 +5706,7 @@ class SuiTextSession {
   // ### _isRefreshed
   // renderer has partially rendered text(promise condition)
   get _isRefreshed() {
-    return this.layout.dirty === false;
+    return this.renderer.dirty === false;
   }
 
   get isStopped() {
@@ -5690,7 +5724,7 @@ class SuiTextSession {
   // ### _isRendered
   // renderer has rendered text(promise condition)
   get _isRendered() {
-    return this.layout.passState ===  SuiRenderState.passStates.clean;
+    return this.renderer.passState ===  SuiRenderState.passStates.clean;
   }
 
   _removeScoreText() {
@@ -5701,7 +5735,7 @@ class SuiTextSession {
   // ### _startSessionForNote
   // Start the lyric session
   startSession() {
-    this.editor = new SuiTextBlockEditor({ context: this.layout.context,
+    this.editor = new SuiTextBlockEditor({ renderer: this.renderer,
       x: this.x, y: this.y, scroller: this.scroller,
       fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight,
       text: this.scoreText.text });
@@ -5748,7 +5782,7 @@ class SuiLyricSession {
   }
   constructor(params) {
     this.score = params.score;
-    this.layout = params.layout;
+    this.renderer = params.renderer;
     this.scroller = params.scroller;
     this.parser = params.parser ? params.parser : SmoLyric.parsers.lyric;
     this.verse = params.verse;
@@ -5783,13 +5817,13 @@ class SuiLyricSession {
   // ### _endLyricCondition
   // renderer has partially rendered text(promise condition)
   get _isRefreshed() {
-    return this.layout.dirty === false;
+    return this.renderer.dirty === false;
   }
 
   // ### _isRendered
   // renderer has rendered text(promise condition)
   get _isRendered() {
-    return this.layout.passState ===  SuiRenderState.passStates.clean;
+    return this.renderer.passState ===  SuiRenderState.passStates.clean;
   }
 
   get _pendingEditor() {
@@ -5826,7 +5860,7 @@ class SuiLyricSession {
     const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
     const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
       this.note.logicalBox.y + this.note.logicalBox.height;
-    this.editor = new SuiLyricEditor({ context: this.layout.context,
+    this.editor = new SuiLyricEditor({ context: this.context,
       lyric: this.lyric, x: startX, y: startY, scroller: this.scroller });
     this.state = SuiTextEditor.States.RUNNING;
     if (!lyricRendered) {
@@ -5895,7 +5929,7 @@ class SuiLyricSession {
     this.lyric.setText(txt);
     this.lyric.skipRender = false;
     this.editor.stopEditor();
-    this.layout.addToReplaceQueue(this.selection);
+    this.view.renderer.addToReplaceQueue(this.selection);
   }
   // ### evKey
   // Key handler (pass to editor)
@@ -5985,7 +6019,7 @@ class SuiChordSession extends SuiLyricSession {
     const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
     const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
       this.selection.measure.logicalBox.y + this.selection.measure.logicalBox.height - 70;
-    this.editor = new SuiChordEditor({ context: this.layout.context,
+    this.editor = new SuiChordEditor({ context: this.view.renderer.context,
       lyric: this.lyric, x: startX, y: startY, scroller: this.scroller });
     this.state = SuiTextEditor.States.RUNNING;
     if (!lyricRendered) {
@@ -6738,7 +6772,7 @@ class suiTracker extends suiMapper {
     return new Promise((resolve) => {
       var f = () => {
         setTimeout(() => {
-          if (self.layout.passState === SuiRenderState.passStates.clean) {
+          if (self.view.renderer.passState === SuiRenderState.passStates.clean) {
             resolve();
           } else {
             f();
@@ -6759,10 +6793,10 @@ class suiTracker extends suiMapper {
     const preventScroll = $('body').hasClass('modal');
 
     if (r.y !== b.y || r.x !== b.x) {
-      if (this.layout.passState === SuiRenderState.passStates.replace ||
-        this.layout.passState === SuiRenderState.passStates.clean) {
+      if (this.renderer.passState === SuiRenderState.passStates.replace ||
+        this.renderer.passState === SuiRenderState.passStates.clean) {
         console.log('tracker: rerender conflicting map');
-        this.layout.remapAll();
+        this.renderer.remapAll();
       }
       if (!preventScroll) {
         console.log('prevent scroll conflicting map');
@@ -6776,7 +6810,7 @@ class suiTracker extends suiMapper {
 
   replaceSelectedMeasures() {
     const mm = SmoSelection.getMeasureList(this.selections);
-    this.layout.addToReplaceQueue(mm);
+    this.renderer.addToReplaceQueue(mm);
   }
 
   setDialogModifier(notifier) {
@@ -6786,15 +6820,15 @@ class suiTracker extends suiMapper {
   // ### renderElement
   // the element the score is rendered on
   get renderElement() {
-    return this.layout.renderer.elementId;
+    return this.renderer.renderer.elementId;
   }
 
   get score() {
-    return this.layout.score;
+    return this.renderer.score;
   }
 
   get context() {
-    return this.layout.renderer.getContext();
+    return this.renderer.renderer.getContext();
   }
 
   _copySelections() {
@@ -6860,7 +6894,7 @@ class suiTracker extends suiMapper {
     this.modifierTabs = [];
     this.modifierBoxes = [];
     const modMap = {};
-    this.layout.score.scoreText.forEach((modifier) => {
+    this.renderer.score.scoreText.forEach((modifier) => {
       if (!modMap[modifier.attrs.id]) {
         this.modifierTabs.push({
           modifier,
@@ -6871,7 +6905,7 @@ class suiTracker extends suiMapper {
         ix += 1;
       }
     });
-    this.layout.score.textGroups.forEach((modifier) => {
+    this.renderer.score.textGroups.forEach((modifier) => {
       if (!modMap[modifier.attrs.id]) {
         this.modifierTabs.push({
           modifier,
@@ -6936,8 +6970,8 @@ class suiTracker extends suiMapper {
   musicCursor(selector) {
     const key = SmoSelector.getNoteKey(selector);
     if (this.measureNoteMap[key]) {
-      const measureSel = SmoSelection.measureSelection(this.layout.score,
-        this.layout.score.staves.length - 1, selector.measure);
+      const measureSel = SmoSelection.measureSelection(this.renderer.score,
+        this.renderer.score.staves.length - 1, selector.measure);
       const measure = measureSel.measure;
       const mbox = measure.renderedBox;
       const pos = this.measureNoteMap[key].scrollBox;
@@ -14469,60 +14503,67 @@ class SmoOperation {
   // Add the value of the last dot to the note, increasing length and
   // reducing the number of dots.
   static undotDuration(selection) {
-  var note = selection.note;
-  var measure = selection.measure;
-  var nticks = smoMusic.getPreviousDottedLevel(note.tickCount);
-  if (nticks == note.tickCount) {
-  return;
-  }
-  var actor = new SmoContractNoteActor({
-  startIndex: selection.selector.tick,
-  tickmap: measure.tickmapForVoice(selection.selector.voice),
-  newTicks: nticks
-  });
-  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-  selection.measure.setChanged();
-  return true;
+    const note = selection.note;
+    const measure = selection.measure;
+    const nticks = smoMusic.getPreviousDottedLevel(note.tickCount);
+    if (nticks == note.tickCount) {
+      return;
+    }
+    const actor = new SmoContractNoteActor({
+      startIndex: selection.selector.tick,
+      tickmap: measure.tickmapForVoice(selection.selector.voice),
+      newTicks: nticks
+    });
+    SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
+    selection.measure.setChanged();
+    return true;
   }
 
   // ## transpose
   // ## Description
   // Transpose the selected note, trying to find a key-signature friendly value
   static transpose(selection, offset) {
-  var measure = selection.measure;
-  var note = selection.note;
-  if (measure && note) {
-      var pitchar = [];
-      var pitchIx = 0;
-      var voiceIx = 0;
-      var accidentalMap = {};
-      var activeTm = measure.tickmapForVoice(measure.getActiveVoice());
-      var targetDuration = activeTm.durationMap[selection.selector.tick];
+    let pitchIx = 0;
+    let voiceIx = 0;
+    let trans = false;
+    let transInt = 0;
+    let i = 0;
+    if (typeof(selection.selector.pitches) === 'undefined') {
+      selection.selector.pitches = [];
+    }
+    const measure = selection.measure;
+    const note = selection.note;
+    if (measure && note) {
+      const pitchar = [];
+      pitchIx = 0;
+      voiceIx = 0;
+      const accidentalMap = {};
+      const activeTm = measure.tickmapForVoice(measure.getActiveVoice());
+      const targetDuration = activeTm.durationMap[selection.selector.tick];
 
       note.pitches.forEach((opitch) => {
         // Only translate selected pitches
-        var shouldXpose = selection.selector.pitches.length == 0 ||
+        const shouldXpose = selection.selector.pitches.length === 0 ||
           selection.selector.pitches.indexOf(pitchIx) >= 0;
 
         // Translate the pitch, ignoring enharmonic
-        var trans =  shouldXpose ? smoMusic.getKeyOffset(opitch,offset)
+        trans =  shouldXpose ? smoMusic.getKeyOffset(opitch, offset)
           : JSON.parse(JSON.stringify(opitch));
-        trans = smoMusic.getEnharmonicInKey(trans,measure.keySignature);
+        trans = smoMusic.getEnharmonicInKey(trans, measure.keySignature);
         if (!trans.accidental) {
           trans.accidental = 'n';
         }
-        var transInt = smoMusic.smoPitchToInt(trans);
+        transInt = smoMusic.smoPitchToInt(trans);
 
         // Look through the earlier notes in the measure and try
         // to find an equivalent note, and convert it if it exists.
-        var voiceIx = 0;
         measure.voices.forEach((voice) => {
-          for (var i = 0;i<selection.selector.tick
-            && i < voice.notes.length;++i)  {
-            var prevNote = voice.notes[i];
+          for (i = 0; i<selection.selector.tick
+            && i < voice.notes.length; ++i)  {
+            const prevNote = voice.notes[i];
             prevNote.pitches.forEach((prevPitch) => {
-                var prevInt = smoMusic.smoPitchToInt(prevPitch);
-                if (prevInt == transInt) {
+                const prevInt = smoMusic.smoPitchToInt(prevPitch);
+                if (prevInt === transInt) {
                   trans = JSON.parse(JSON.stringify(prevPitch));
                 }
              });
@@ -14532,10 +14573,9 @@ class SmoOperation {
           pitchIx += 1;
       });
       note.pitches = pitchar;
-  measure.setChanged();
-  return true;
-  }
-  return false;
+      return true;
+    }
+    return false;
   }
 
   // ## setPitch
@@ -14971,44 +15011,44 @@ class SmoOperation {
 // indices that define what was selected.  This is the latter.  The actual object does not
 // have any methods so there is no constructor.
 class SmoSelector {
-	// TODO:  tick in selector s/b tickIndex
-	static sameNote(sel1, sel2) {
-		return (sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.voice == sel2.voice
-			 && sel1.tick == sel2.tick);
-	}
-	static sameMeasure(sel1, sel2) {
-		return (sel1.staff == sel2.staff && sel1.measure == sel2.measure);
-	}
+  // TODO:  tick in selector s/b tickIndex
+  static sameNote(sel1, sel2) {
+    return (sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.voice == sel2.voice
+       && sel1.tick == sel2.tick);
+  }
+  static sameMeasure(sel1, sel2) {
+    return (sel1.staff == sel2.staff && sel1.measure == sel2.measure);
+  }
 
-	static sameStaff(sel1, sel2) {
-		return sel1.staff === sel2.staff;
-	}
+  static sameStaff(sel1, sel2) {
+    return sel1.staff === sel2.staff;
+  }
 
-	// ## return true if sel1 > sel2.
-	static gt(sel1, sel2) {
-		// Note: voice is not considered b/c it's more of a vertical component
-		return sel1.staff > sel2.staff ||
-		(sel1.staff == sel2.staff && sel1.measure > sel2.measure) ||
-		(sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.tick > sel2.tick);
-	}
+  // ## return true if sel1 > sel2.
+  static gt(sel1, sel2) {
+    // Note: voice is not considered b/c it's more of a vertical component
+    return sel1.staff > sel2.staff ||
+    (sel1.staff == sel2.staff && sel1.measure > sel2.measure) ||
+    (sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.tick > sel2.tick);
+  }
 
-	static eq(sel1, sel2) {
-		return (sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.tick == sel2.tick);
-	}
-	static neq(sel1,sel2) {
-		return !(SmoSelector.eq(sel1,sel2));
-	}
+  static eq(sel1, sel2) {
+    return (sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.tick == sel2.tick);
+  }
+  static neq(sel1,sel2) {
+    return !(SmoSelector.eq(sel1,sel2));
+  }
 
-	static lt(sel1, sel2) {
-		return SmoSelector.gt(sel2, sel1);
-	}
+  static lt(sel1, sel2) {
+    return SmoSelector.gt(sel2, sel1);
+  }
 
-	static gteq(sel1, sel2) {
-		return SmoSelector.gt(sel1, sel2) || SmoSelector.eq(sel1, sel2);
-	}
-	static lteq(sel1, sel2) {
-		return SmoSelector.lt(sel1, sel2) || SmoSelector.eq(sel1, sel2);
-	}
+  static gteq(sel1, sel2) {
+    return SmoSelector.gt(sel1, sel2) || SmoSelector.eq(sel1, sel2);
+  }
+  static lteq(sel1, sel2) {
+    return SmoSelector.lt(sel1, sel2) || SmoSelector.eq(sel1, sel2);
+  }
 
     // ### getNoteKey
     // Get a key useful for a hash map of notes.
@@ -15020,34 +15060,34 @@ class SmoSelector {
         return ''+selector.staff + '-' +selector.measure;
     }
 
-	// ## applyOffset
-	// ### Description:
-	// offset 'selector' the difference between src and target, return the result
-	static applyOffset(src, target, selector) {
-		var rv = JSON.parse(JSON.stringify(selector));
-		rv.staff += target.staff - src.staff;
-		rv.measure += target.measure - src.measure;
-		rv.voice += target.voice - src.voice;
-		rv.note += target.staff - src.staff;
-		return rv;
-	}
+  // ## applyOffset
+  // ### Description:
+  // offset 'selector' the difference between src and target, return the result
+  static applyOffset(src, target, selector) {
+    var rv = JSON.parse(JSON.stringify(selector));
+    rv.staff += target.staff - src.staff;
+    rv.measure += target.measure - src.measure;
+    rv.voice += target.voice - src.voice;
+    rv.note += target.staff - src.staff;
+    return rv;
+  }
 
-	// return true if testSel is contained in the selStart to selEnd range.
-	static contains(testSel, selStart, selEnd) {
-		var geStart =
-			selStart.measure < testSel.measure ||
-			(selStart.measure === testSel.measure && selStart.tick <= testSel.tick);
-		var leEnd =
-			selEnd.measure > testSel.measure ||
-			(selEnd.measure === testSel.measure && testSel.tick <= selEnd.tick);
+  // return true if testSel is contained in the selStart to selEnd range.
+  static contains(testSel, selStart, selEnd) {
+    var geStart =
+      selStart.measure < testSel.measure ||
+      (selStart.measure === testSel.measure && selStart.tick <= testSel.tick);
+    var leEnd =
+      selEnd.measure > testSel.measure ||
+      (selEnd.measure === testSel.measure && testSel.tick <= selEnd.tick);
 
-		return geStart && leEnd;
-	}
+    return geStart && leEnd;
+  }
 
-	// create a hashmap key for a single note, used to organize modifiers
-	static selectorNoteKey(selector) {
-		return 'staff-' + selector.staff + '-measure-' + selector.measure + '-voice-' + selector.voice + '-tick-' + selector.tick;
-	}
+  // create a hashmap key for a single note, used to organize modifiers
+  static selectorNoteKey(selector) {
+    return 'staff-' + selector.staff + '-measure-' + selector.measure + '-voice-' + selector.voice + '-tick-' + selector.tick;
+  }
 }
 
 // ## SmoSelection
@@ -15058,31 +15098,31 @@ class SmoSelector {
 // or navigating to an element with the keyboard.
 class SmoSelection {
 
-	// ### measureSelection
-	// A selection that does not contain a specific note
-	static measureSelection(score, staffIndex, measureIndex) {
-		staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
-		var selector = {
-			staff: staffIndex,
-			measure: measureIndex
-		};
-		if (score.staves.length <= staffIndex) {
-			return null;
-		}
-		var staff = score.staves[staffIndex];
-		if (staff.measures.length <= measureIndex) {
-			return null;
-		}
-		var measure = staff.measures[measureIndex];
+  // ### measureSelection
+  // A selection that does not contain a specific note
+  static measureSelection(score, staffIndex, measureIndex) {
+    staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
+    var selector = {
+      staff: staffIndex,
+      measure: measureIndex
+    };
+    if (score.staves.length <= staffIndex) {
+      return null;
+    }
+    var staff = score.staves[staffIndex];
+    if (staff.measures.length <= measureIndex) {
+      return null;
+    }
+    var measure = staff.measures[measureIndex];
 
-		return new SmoSelection
-		({
-			selector: selector,
-			_staff: staff,
-			_measure: measure,
-			type: 'measure'
-		});
-	}
+    return new SmoSelection
+    ({
+      selector: selector,
+      _staff: staff,
+      _measure: measure,
+      type: 'measure'
+    });
+  }
 
   static measuresInColumn(score,staffIndex) {
     var rv = [];
@@ -15092,21 +15132,21 @@ class SmoSelection {
     return rv;
   }
 
-	static noteFromSelection(score, selection) {
-		return SmoSelection(score, selection.staffIndex, selection.measureIndex, selection.voiceIndex, selection.tickIndex);
-	}
+  static noteFromSelection(score, selection) {
+    return SmoSelection(score, selection.staffIndex, selection.measureIndex, selection.voiceIndex, selection.tickIndex);
+  }
 
-	// ### noteSelection
-	// a selection that specifies a note in the score
-	static noteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
-		staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
-		measureIndex = measureIndex ? measureIndex : 0;
-		voiceIndex = voiceIndex ? voiceIndex : 0;
-		var staff = score.staves[staffIndex];
+  // ### noteSelection
+  // a selection that specifies a note in the score
+  static noteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
+    staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
+    measureIndex = measureIndex ? measureIndex : 0;
+    voiceIndex = voiceIndex ? voiceIndex : 0;
+    var staff = score.staves[staffIndex];
     if (!staff) {
       return null;
     }
-		var measure = staff.measures[measureIndex];
+    var measure = staff.measures[measureIndex];
     if (!measure) {
       return null;
     }
@@ -15116,114 +15156,114 @@ class SmoSelection {
     if (measure.voices[voiceIndex].notes.length <= tickIndex) {
       return null;
     }
-		var note = measure.voices[voiceIndex].notes[tickIndex];
-		var selector = {
-			staff: staffIndex,
-			measure: measureIndex,
-			voice: voiceIndex,
-			tick: tickIndex
-		};
-		return new SmoSelection({
-			selector: selector,
-			_staff: staff,
-			_measure: measure,
-			_note: note,
-			_pitches: [],
-			type: 'note'
-		});
-	}
+    var note = measure.voices[voiceIndex].notes[tickIndex];
+    var selector = {
+      staff: staffIndex,
+      measure: measureIndex,
+      voice: voiceIndex,
+      tick: tickIndex
+    };
+    return new SmoSelection({
+      selector: selector,
+      _staff: staff,
+      _measure: measure,
+      _note: note,
+      _pitches: [],
+      type: 'note'
+    });
+  }
 
   static noteFromSelector(score,selector) {
     return SmoSelection.noteSelection(score,
       selector.staff,selector.measure,selector.voice,selector.tick);
   }
 
-	// ### renderedNoteSelection
-	// this is a special selection that we associated with all he rendered notes, so that we
-	// can map from a place in the display to a place in the score.
-	static renderedNoteSelection(score, nel, box) {
-		var elementId = nel.getAttribute('id');
-		for (var i = 0; i < score.staves.length; ++i) {
-			var staff = score.staves[i];
-			for (var j = 0; j < staff.measures.length; ++j) {
-				var measure = staff.measures[j];
-				for (var k = 0; k < measure.voices.length; ++k) {
-					var voice = measure.voices[k];
-					for (var m = 0; m < voice.notes.length; ++m) {
-						var note = voice.notes[m];
-						if (note.renderId === elementId) {
-							var selector = {
-								staff: i,
-								measure: j,
-								voice: k,
-								tick: m,
-								pitches: []
-							};
-							// var box = document.getElementById(nel.id).getBBox();
-							var rv = new SmoSelection({
-									selector: selector,
-									_staff: staff,
-									_measure: measure,
-									_note: note,
-									_pitches: [],
-									box: box,
-									type: 'rendered'
-								});
+  // ### renderedNoteSelection
+  // this is a special selection that we associated with all he rendered notes, so that we
+  // can map from a place in the display to a place in the score.
+  static renderedNoteSelection(score, nel, box) {
+    var elementId = nel.getAttribute('id');
+    for (var i = 0; i < score.staves.length; ++i) {
+      var staff = score.staves[i];
+      for (var j = 0; j < staff.measures.length; ++j) {
+        var measure = staff.measures[j];
+        for (var k = 0; k < measure.voices.length; ++k) {
+          var voice = measure.voices[k];
+          for (var m = 0; m < voice.notes.length; ++m) {
+            var note = voice.notes[m];
+            if (note.renderId === elementId) {
+              var selector = {
+                staff: i,
+                measure: j,
+                voice: k,
+                tick: m,
+                pitches: []
+              };
+              // var box = document.getElementById(nel.id).getBBox();
+              var rv = new SmoSelection({
+                  selector: selector,
+                  _staff: staff,
+                  _measure: measure,
+                  _note: note,
+                  _pitches: [],
+                  box: box,
+                  type: 'rendered'
+                });
 
-							return rv;
-						}
-					}
-				}
-			}
-		}
-		return null;
-	}
+              return rv;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
 
-	static pitchSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex, pitches) {
-		staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
-		measureIndex = measureIndex ? measureIndex : 0;
-		voiceIndex = voiceIndex ? voiceIndex : 0;
-		var staff = score.staves[staffIndex];
-		var measure = staff.measures[measureIndex];
-		var note = measure.voices[voiceIndex].notes[tickIndex];
-		pitches = pitches ? pitches : [];
-		var pa = [];
-		pitches.forEach((ix) => {
-			pa.push(JSON.parse(JSON.stringify(note.pitches[ix])));
-		});
-		var selector = {
-			staff: staffIndex,
-			measure: measureIndex,
-			voice: voiceIndex,
-			tick: tickIndex,
-			pitches: pitches
-		};
-		return new SmoSelection({
-			selector: selector,
-			_staff: staff,
-			_measure: measure,
-			_note: note,
-			_pitches: pa,
-			type: 'pitches'
-		});
-	}
+  static pitchSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex, pitches) {
+    staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
+    measureIndex = measureIndex ? measureIndex : 0;
+    voiceIndex = voiceIndex ? voiceIndex : 0;
+    var staff = score.staves[staffIndex];
+    var measure = staff.measures[measureIndex];
+    var note = measure.voices[voiceIndex].notes[tickIndex];
+    pitches = pitches ? pitches : [];
+    var pa = [];
+    pitches.forEach((ix) => {
+      pa.push(JSON.parse(JSON.stringify(note.pitches[ix])));
+    });
+    var selector = {
+      staff: staffIndex,
+      measure: measureIndex,
+      voice: voiceIndex,
+      tick: tickIndex,
+      pitches: pitches
+    };
+    return new SmoSelection({
+      selector: selector,
+      _staff: staff,
+      _measure: measure,
+      _note: note,
+      _pitches: pa,
+      type: 'pitches'
+    });
+  }
 
-	// ## nextNoteSelection
-	// ## Description:
-	// Return the next note in this measure, or the first note of the next measure, if it exists.
-	static nextNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
-		var nextTick = tickIndex + 1;
-		var nextMeasure = measureIndex + 1;
-		var staff = score.staves[staffIndex];
-		var measure = staff.measures[measureIndex];
-		if (measure.voices[voiceIndex].notes.length > nextTick) {
-			return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, nextTick);
-		}
-		if (staff.measures.length > nextMeasure) {
-			return SmoSelection.noteSelection(score, staffIndex, nextMeasure, voiceIndex, 0);
-		}
-		return null;
-	}
+  // ## nextNoteSelection
+  // ## Description:
+  // Return the next note in this measure, or the first note of the next measure, if it exists.
+  static nextNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
+    var nextTick = tickIndex + 1;
+    var nextMeasure = measureIndex + 1;
+    var staff = score.staves[staffIndex];
+    var measure = staff.measures[measureIndex];
+    if (measure.voices[voiceIndex].notes.length > nextTick) {
+      return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, nextTick);
+    }
+    if (staff.measures.length > nextMeasure) {
+      return SmoSelection.noteSelection(score, staffIndex, nextMeasure, voiceIndex, 0);
+    }
+    return null;
+  }
 
   static nextNoteSelectionFromSelector(score, selector) {
     return SmoSelection.nextNoteSelection(score, selector.staff, selector.measure, selector.voice, selector.tick);
@@ -15232,120 +15272,121 @@ class SmoSelection {
     return SmoSelection.lastNoteSelection(score, selector.staff, selector.measure, selector.voice, selector.tick);
   }
 
-	// ### getMeasureList
-	// Gets the list of measures in an array from the selections
-	static getMeasureList(selections) {
-		var rv = [];
-		if (!selections.length) {
-			return rv;
-		}
-        var cur = selections[0].selector.measure;
-		for (var i=0;i<selections.length;++i) {
-			var sel = selections[i];
-			if (i == 0 ||
-                 (sel.selector.measure != cur)) {
-				rv.push({
-                    selector:{
-                        staff:sel.selector.staff,
-                        measure:sel.selector.measure
-                    },
-                    staff:sel.staff,
-                    measure:sel.measure
-                    });
-			}
-            cur = sel.selector.measure;
-		}
-		return rv;
-	}
+  // ### getMeasureList
+  // Gets the list of measures in an array from the selections
+  static getMeasureList(selections) {
+    let i = 0;
+    let cur = {};
+    const rv = [];
+    if (!selections.length) {
+      return rv;
+    }
+    cur = selections[0].selector.measure;
+    for (i = 0; i < selections.length; ++i) {
+      var sel = selections[i];
+      if (i === 0 || (sel.selector.measure !== cur)) {
+        rv.push({
+          selector:{
+            staff:sel.selector.staff,
+            measure:sel.selector.measure
+          },
+          staff:sel.staff,
+          measure:sel.measure
+        });
+      }
+      cur = sel.selector.measure;
+    }
+    return rv;
+  }
 
-	static lastNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
-		var lastTick = tickIndex - 1;
-		var lastMeasure = measureIndex - 1;
-		var staff = score.staves[staffIndex];
-		var measure = staff.measures[measureIndex];
-		if (tickIndex > 0) {
-			return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, lastTick);
-		}
-		if (lastMeasure >= 0) {
-			measure = staff.measures[lastMeasure];
+  static lastNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
+    var lastTick = tickIndex - 1;
+    var lastMeasure = measureIndex - 1;
+    var staff = score.staves[staffIndex];
+    var measure = staff.measures[measureIndex];
+    if (tickIndex > 0) {
+      return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, lastTick);
+    }
+    if (lastMeasure >= 0) {
+      measure = staff.measures[lastMeasure];
             if (voiceIndex >= measure.voices.length) {
                 return null;
             }
-			var noteIndex = measure.voices[voiceIndex].notes.length - 1;
-			return SmoSelection.noteSelection(score, staffIndex, lastMeasure, voiceIndex, noteIndex);
-		}
-		return SmoSelection.noteSelection(score, staffIndex, 0, 0,0);
-	}
+      var noteIndex = measure.voices[voiceIndex].notes.length - 1;
+      return SmoSelection.noteSelection(score, staffIndex, lastMeasure, voiceIndex, noteIndex);
+    }
+    return SmoSelection.noteSelection(score, staffIndex, 0, 0,0);
+  }
 
-	// ### selectionsSameMeasure
-	// Return true if the selections are all in the same measure.  Used to determine what
-	// type of undo we need.
-	static selectionsSameMeasure(selections) {
-		if (selections.length < 2) {
-			return true;
-		}
-		var sel1 = selections[0].selector;
-		for (var i = 1; i < selections.length; ++i) {
-			if (!SmoSelector.sameMeasure(sel1, selections[i].selector)) {
-				return false;
-			}
-		}
-		return true;
-	}
+  // ### selectionsSameMeasure
+  // Return true if the selections are all in the same measure.  Used to determine what
+  // type of undo we need.
+  static selectionsSameMeasure(selections) {
+    if (selections.length < 2) {
+      return true;
+    }
+    var sel1 = selections[0].selector;
+    for (var i = 1; i < selections.length; ++i) {
+      if (!SmoSelector.sameMeasure(sel1, selections[i].selector)) {
+        return false;
+      }
+    }
+    return true;
+  }
 
-	static selectionsSameStaff(selections) {
-		if (selections.length < 2) {
-			return true;
-		}
-		var sel1 = selections[0].selector;
-		for (var i = 1; i < selections.length; ++i) {
-			if (!SmoSelector.sameStaff(sel1, selections[i].selector)) {
-				return false;
-			}
-		}
-		return true;
-	}
+  static selectionsSameStaff(selections) {
+    if (selections.length < 2) {
+      return true;
+    }
+    var sel1 = selections[0].selector;
+    for (var i = 1; i < selections.length; ++i) {
+      if (!SmoSelector.sameStaff(sel1, selections[i].selector)) {
+        return false;
+      }
+    }
+    return true;
+  }
 
-	constructor(params) {
-		this.selector = {
-			staff: 0,
-			measure: 0,
-			voice: 0,
-			note: 0,
-			pitches: []
-		}
-		this._staff = null;
-		this._measure = null;
-		this._note = null;
-		this._pitches = [];
-		this._box = svgHelpers.pointBox(0, 0);
+  constructor(params) {
+    this.selector = {
+      staff: 0,
+      measure: 0,
+      voice: 0,
+      note: 0,
+      pitches: []
+    }
+    this._staff = null;
+    this._measure = null;
+    this._note = null;
+    this._pitches = [];
+    this._box = svgHelpers.pointBox(0, 0);
 
-		this.selectionGroup = {
-			id: VF.Element.newID(),
-			type: 'SmoSelection'
-		};
-		Vex.Merge(this, params);
-	}
+    this.selectionGroup = {
+      id: VF.Element.newID(),
+      type: 'SmoSelection'
+    };
+    Vex.Merge(this, params);
+  }
 
-	get staff() {
-		return this._staff;
-	}
-	get measure() {
-		return this._measure;
-	}
+  get staff() {
+    return this._staff;
+  }
+  get measure() {
+    return this._measure;
+  }
 
-	get note() {
-		return this._note;
-	}
-	get pitches() {
-		if (this._pitches.length) {
-			return this._pitches;
-		} else if (this._note) {
-			this._pitches = JSON.parse(JSON.stringify(this.note.pitches));
-			return this._pitches;
-		}
-		return [];
-	}
+  get note() {
+    return this._note;
+  }
+  get pitches() {
+    if (this._pitches.length) {
+      return this._pitches;
+    } else if (this._note) {
+      this._pitches = JSON.parse(JSON.stringify(this.note.pitches));
+      return this._pitches;
+    }
+    return [];
+  }
 }
 ;VF = Vex.Flow;
 Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
@@ -15833,8 +15874,8 @@ class UndoBuffer {
   static get bufferTypes() {
     return {
       FIRST: 1,
-      MEASURE: 1, STAFF: 2, SCORE: 3, SCORE_MODIFIER: 4, NOTE_MODIFIER: 5,
-      LAST: 5
+      MEASURE: 1, STAFF: 2, SCORE: 3, SCORE_MODIFIER: 4,
+      LAST: 4
     };
   }
   static get bufferSubtypes() {
@@ -15843,9 +15884,8 @@ class UndoBuffer {
     };
   }
   static get bufferTypeLabel() {
-    return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER', 'NOTE_MODIFIER'];
+    return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER'];
   }
-
   // ### addBuffer
   // Description:
   // Add the current state of the score required to undo the next operation we
@@ -22382,11 +22422,9 @@ class SmoUndoable {
     var params = suiController.keyBindingDefaults;
     params.eventSource = new browserEventSource(); // events come from the browser UI.
 
-    params.layout = SuiRenderScore.createScoreRenderer(document.getElementById(SmoConfig.vexDomContainer),score);
-    params.eventSource.setRenderElement(params.layout.renderElement);
-    params.scroller = new suiScroller();
-    params.tracker = new suiTracker(params.layout,params.scroller);
-    params.layout.setMeasureMapper(params.tracker);
+    const scoreRenderer = SuiRenderScore.createScoreRenderer(document.getElementById(SmoConfig.vexDomContainer), score);
+    params.eventSource.setRenderElement(scoreRenderer.renderElement);
+    params.view = new SuiScoreView(scoreRenderer, score);
     if (SmoConfig.keyCommands) {
       params.keyCommands = new SuiKeyCommands(params);
     }
@@ -22396,10 +22434,6 @@ class SmoUndoable {
     params.layoutDemon = new SuiRenderDemon(params);
     var ctor = eval(SmoConfig.controller);
     var controller = new ctor(params);
-    if (SmoConfig.menus) {
-      params.menus.undoBuffer = controller.undoBuffer;
-    }
-    params.layout.score = score;
     eval(SmoConfig.domSource).splash();
     this.controller = controller;
   }
@@ -22566,7 +22600,7 @@ class SmoUndoable {
   static _deferCreateTranslator(lang) {
     setTimeout(() => {
       var transDom =  SmoTranslationEditor.startEditor(lang);
-    },1);
+    }, 1);
   }
 
   static _deferLanguageSelection(lang) {
@@ -22602,14 +22636,12 @@ class suiController {
     Vex.Merge(this, params);
     window.suiControllerInstance = this;
 
-
-    this.undoBuffer = new UndoBuffer();
+    this.view = params.view;
     this.eventSource = params.eventSource;
-    this.pasteBuffer = this.tracker.pasteBuffer;
-    this.tracker.setDialogModifier(this);
+    this.view.tracker.setDialogModifier(this);
+    this.tracker = this.view.tracker; // needed for key event handling
     this.keyCommands.controller = this;
-    this.keyCommands.undoBuffer = this.undoBuffer;
-    this.keyCommands.pasteBuffer = this.pasteBuffer;
+    this.keyCommands.view = this.view;
     this.resizing = false;
     this.undoStatus=0;
     this.trackScrolling = false;
@@ -22620,11 +22652,9 @@ class suiController {
       ribbons: defaultRibbonLayout.ribbons,
       ribbonButtons: defaultRibbonLayout.ribbonButtons,
       menus: this.menus,
-      keyCommands: this.keyCommands,
-      tracker: this.tracker,
-      score: this.score,
       controller: this,
-      layout:this.tracker.layout,
+      keyCommands: this.keyCommands,
+      view: this.view,
       eventSource:this.eventSource
     });
 
@@ -22638,7 +22668,7 @@ class suiController {
     // Only display the ribbon one time b/c it's expensive operation
     this.ribbon.display();
     this.bindResize();
-    this.layoutDemon.undoBuffer = this.undoBuffer;
+    this.layoutDemon.undoBuffer = this.view.undoBuffer;
     this.layoutDemon.startDemon();
 
     this.createPiano();
@@ -22660,28 +22690,25 @@ class suiController {
   }
 
   get isLayoutQuiet() {
-    return ((this.layout.passState == SuiRenderState.passStates.clean && this.layout.dirty == false)
-       || this.layout.passState == SuiRenderState.passStates.replace);
+    return ((this.view.renderer.passState == SuiRenderState.passStates.clean && this.renderer.layout.dirty == false)
+       || this.view.renderer.passState == SuiRenderState.passStates.replace);
   }
 
   handleScrollEvent(ev) {
-    var self=this;
+    const self = this;
     if (self.trackScrolling) {
         return;
     }
     self.trackScrolling = true;
     setTimeout(function() {
-            try {
+      try {
         // wait until redraw is done to track scroll events.
-      self.trackScrolling = false;
-
-      // self.scrollRedrawStatus = true;
-            // self.tracker.updateMap(true);
-            // Thisi s a WIP...
-      self.scroller.handleScroll($(suiController.scrollable)[0].scrollLeft,$(suiController.scrollable)[0].scrollTop);
-            } catch(e) {
-                SuiExceptionHandler.instance.exceptionHandler(e);
-            }
+        self.trackScrolling = false;
+          // Thisi s a WIP...
+        self.view.tracker.scroller.handleScroll($(suiController.scrollable)[0].scrollLeft, $(suiController.scrollable)[0].scrollTop);
+      } catch(e) {
+        SuiExceptionHandler.instance.exceptionHandler(e);
+      }
     },500);
   }
 
@@ -22693,18 +22720,14 @@ class suiController {
       ribbonButtons: defaultRibbonLayout.ribbonButtons,
       menus: this.menus,
       keyCommands: this.keyCommands,
-      tracker: this.tracker,
-      score: this.score,
       controller: this,
-      layout:this.tracker.layout,
-      eventSource:this.eventSource,
-      undoBuffer:this.undoBuffer
+      view: this.view,
+      eventSource:this.eventSource
     });
         // $('.close-piano').click();
   }
   _setMusicDimensions() {
     $('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
-
   }
   resizeEvent() {
     var self = this;
@@ -22725,31 +22748,29 @@ class suiController {
 
   createModifierDialog(modifierSelection) {
     var parameters = {
-      modifier:modifierSelection.modifier, context:this.tracker.context, tracker:this.tracker, layout:this.layout, undoBuffer:this.undoBuffer,eventSource:this.eventSource,
-         completeNotifier:this,keyCommands:this.keyCommands
+      modifier: modifierSelection.modifier,
+        view: this.view, eventSource:this.eventSource,
+         completeNotifier:this, keyCommands:this.keyCommands
     }
-    SuiModifierDialogFactory.createDialog(modifierSelection.modifier,parameters);
+    SuiModifierDialogFactory.createDialog(modifierSelection.modifier, parameters);
   }
 
   // If the user has selected a modifier via the mouse/touch, bring up mod dialog
   // for that modifier
   trackerModifierSelect(ev) {
-    var modSelection = this.tracker.getSelectedModifier();
+    var modSelection = this.view.tracker.getSelectedModifier();
     if (modSelection) {
       var dialog = this.createModifierDialog(modSelection);
       if (dialog) {
-        this.tracker.selectSuggestion(ev);
+        this.view.tracker.selectSuggestion(ev);
         // this.unbindKeyboardForModal(dialog);
       } else {
-        this.tracker.advanceModifierSelection(ev);
+        this.view.tracker.advanceModifierSelection(ev);
       }
     } else {
-      this.tracker.selectSuggestion(ev);
+      this.view.tracker.selectSuggestion(ev);
     }
-    var modifier = this.tracker.getSelectedModifier();
-    // if (modifier) {
-    //   this.createModifierDialog(modifier);
-    // }
+    var modifier = this.view.tracker.getSelectedModifier();
     return;
   }
 
@@ -22758,8 +22779,8 @@ class suiController {
   // The latter results in a redraw, the former just resets the client/logical map of elements
   // in the tracker.
   bindResize() {
-    var self = this;
-    var el = $(suiController.scrollable)[0];
+    const self = this;
+    const el = $(suiController.scrollable)[0];
     // unit test programs don't have resize html
     if (!el) {
       return;
@@ -22781,7 +22802,7 @@ class suiController {
   // ### renderElement
   // return render element that is the DOM parent of the svg
   get renderElement() {
-    return this.layout.renderElement;
+    return this.view.renderer.renderElement;
   }
 
   // ## keyBindingDefaults
@@ -22815,7 +22836,6 @@ class suiController {
   static get trackerKeyBindingDefaults() {
     return defaultTrackerKeys.keys;
   }
-
   helpControls() {
     var self = this;
     var rebind = function () {
@@ -22843,7 +22863,7 @@ class suiController {
   }
 
   showModifierDialog(modSelection) {
-    return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout,this.undoBuffer,this)
+    return SuiDialogFactory.createDialog(modSelection, this.view, this)
   }
 
   // ### unbindKeyboardForModal
@@ -22851,9 +22871,9 @@ class suiController {
   // UI elements take over the events, and then let the controller know when
   // the modals go away.
   unbindKeyboardForModal(dialog) {
-    var self=this;
+    const self = this;
     layoutDebug.addDialogDebug('controller: unbindKeyboardForModal')
-    var rebind = function () {
+    const rebind = () => {
       self.bindEvents();
       layoutDebug.addDialogDebug('controller: unbindKeyboardForModal resolve')
     }
@@ -22865,7 +22885,6 @@ class suiController {
   }
 
   evKey(evdata) {
-    var self = this;
     if ($('body').hasClass('translation-mode')) {
       return;
     }
@@ -22888,21 +22907,20 @@ class suiController {
     }
 
     if (evdata.key == 'Enter') {
-      self.trackerModifierSelect(evdata);
-      var modifier = this.tracker.getSelectedModifier();
+      this.trackerModifierSelect(evdata);
+      const modifier = this.view.tracker.getSelectedModifier();
       if (modifier) {
         this.createModifierDialog(modifier);
       }
-
     }
 
     var binding = this.keyBind.find((ev) =>
-        ev.event === 'keydown' && ev.key === evdata.key && ev.ctrlKey === evdata.ctrlKey &&
-        ev.altKey === evdata.altKey && evdata.shiftKey === ev.shiftKey);
+      ev.event === 'keydown' && ev.key === evdata.key && ev.ctrlKey === evdata.ctrlKey &&
+      ev.altKey === evdata.altKey && evdata.shiftKey === ev.shiftKey);
 
     if (binding) {
       try {
-      this[binding.module][binding.action](evdata);
+        this[binding.module][binding.action](evdata);
       } catch (e) {
         if (typeof(e) === 'string') {
           console.error(e);
@@ -22913,58 +22931,41 @@ class suiController {
   }
 
   mouseMove(ev) {
-    this.tracker.intersectingArtifact({
+    this.view.tracker.intersectingArtifact({
       x: ev.clientX,
       y: ev.clientY
     });
   }
 
   mouseClick(ev) {
-    this.tracker.selectSuggestion(ev);
-    var modifier = this.tracker.getSelectedModifier();
+    this.view.tracker.selectSuggestion(ev);
+    var modifier = this.view.tracker.getSelectedModifier();
     if (modifier) {
       this.createModifierDialog(modifier);
     }
   }
   bindEvents() {
-    var self = this;
-    var tracker = this.tracker;
+    const self = this;
+    const tracker = this.view.tracker;
 
-    $('body').off('redrawScore').on('redrawScore',function() {
+    $('body').off('redrawScore').on('redrawScore', function() {
       self.handleRedrawTimer();
     });
-    $('body').off('forceScrollEvent').on('forceScrollEvent',function() {
+    $('body').off('forceScrollEvent').on('forceScrollEvent', function() {
       self.handleScrollEvent();
     });
-    $('body').off('forceResizeEvent').on('forceResizeEvent',function() {
+    $('body').off('forceResizeEvent').on('forceResizeEvent', function() {
       self.resizeEvent();
     });
-    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
-    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
-
-    /* $(this.renderElement).off('mousemove').on('mousemove', function (ev) {
-      tracker.intersectingArtifact({
-        x: ev.clientX,
-        y: ev.clientY
-      });
-    });
-
-    $(this.renderElement).off('click').on('click', function (ev) {
-      tracker.selectSuggestion(ev);
-      var modifier = tracker.getSelectedModifier();
-      if (modifier) {
-        self.createModifierDialog(modifier);
-      }
-    });   */
-
-    this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
+    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
+    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
+    this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
 
     this.helpControls();
     window.addEventListener('error', function (e) {
       SuiExceptionHandler.instance.exceptionHandler(e);
     });
   }
-
 }
 ;// # Dialog base classes
 
@@ -22977,6 +22978,10 @@ class SuiModifierDialogFactory {
     let dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
     if (dbType === 'SuiLyricDialog' && modifier.parser === SmoLyric.parsers.chord) {
       dbType = 'SuiChordChangeDialog';
+    }
+    if (typeof(dbType) === 'undefined') {
+      console.warn('no dialog for modifier ' + modifier.attrs.type);
+      return null;
     }
     const ctor = eval(dbType);
     return ctor.createAndDisplay({
@@ -23003,8 +23008,8 @@ class SuiModifierDialogFactory {
 // eslint-disable-next-line no-unused-vars
 class SuiDialogBase {
   static get parameters() {
-    return ['eventSource', 'layout', 'tracker',
-      'completeNotifier', 'undoBuffer', 'keyCommands', 'modifier', 'activeScoreText'];
+    return ['eventSource', 'view',
+      'completeNotifier', 'keyCommands', 'modifier'];
   }
   // ### SuiDialogBase ctor
   // Creates the DOM element for the dialog and gets some initial elements
@@ -23040,8 +23045,8 @@ class SuiDialogBase {
       this[param] = parameters[param];
     });
 
-    const top = parameters.top - this.tracker.scroller.netScroll.y;
-    const left = parameters.left - this.tracker.scroller.netScroll.x;
+    const top = parameters.top - this.view.tracker.scroller.netScroll.y;
+    const left = parameters.left - this.view.tracker.scroller.netScroll.x;
 
     this.dgDom = this._constructDialog(dialogElements, {
       id: 'dialog-' + this.id,
@@ -23122,7 +23127,7 @@ class SuiDialogBase {
   // Position the dialog near a selection.  If the dialog is not visible due
   // to scrolling, make sure it is visible.
   position(box) {
-    SuiDialogBase.position(box, this.dgDom, this.tracker.scroller);
+    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
   }
   // ### build the html for the dialog, based on the instance-specific components.
   _constructDialog(dialogElements, parameters) {
@@ -23200,7 +23205,7 @@ class SuiDialogBase {
     if (this.modifier && this.modifier.renderedBox) {
       this.position(this.modifier.renderedBox);
     }
-    this.tracker.scroller.scrollVisibleBox(
+    this.view.tracker.scroller.scrollVisibleBox(
       svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
     );
 
@@ -23731,25 +23736,22 @@ class SuiTextInputComponent extends SuiComponentBase {
 ;
 class SuiFileDialog extends SuiDialogBase {
   constructor(parameters) {
-		var p = parameters;
+    var p = parameters;
     var ctor = eval(parameters.ctor);
     p.label = parameters.label ? parameters.label : 'Dialog Box';
     p.id = 'dialog-file';
-    p.top = (p.layout.score.layout.pageWidth / 2) - 200;
-    p.left = (p.layout.score.layout.pageHeight / 2) - 200;
+    p.top = (p.view.score.layout.pageWidth / 2) - 200;
+    p.left = (p.view.score.layout.pageHeight / 2) - 200;
 
-		super(ctor.dialogElements, p);
-
-    // File dialogs can be created from menu, get menu promise
-		this.layout = p.layout;
+    super(ctor.dialogElements, p);
     this.value='';
-	}
+  }
   display() {
     $('body').addClass('showAttributeDialog');
-		this.components.forEach((component) => {
-			component.bind();
-		});
-		this._bindElements();
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    this._bindElements();
 
     // make sure keyboard is unbound or we get dupicate key events.
     var self=this;
@@ -23758,30 +23760,30 @@ class SuiFileDialog extends SuiDialogBase {
     }
     this.startPromise.then(getKeys);
     this.position($(this.dgDom.element)[0].getBoundingClientRect());
-	}
+  }
 
   _bindElements() {
-  	var self = this;
-  	var dgDom = this.dgDom;
+    var self = this;
+    var dgDom = this.dgDom;
 
-  	$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
             self.commit();
-  	});
+    });
 
-  	$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-  		self.complete();
-  	});
+    $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+      self.complete();
+    });
 
-  	$(dgDom.element).find('.remove-button').remove();
+    $(dgDom.element).find('.remove-button').remove();
         this.bindKeyboard();
-  	}
+    }
     position(box) {
-  	var y = (window.innerHeight/3  + box.height);
+    var y = (window.innerHeight/3  + box.height);
 
-  	// TODO: adjust if db is clipped by the browser.
+    // TODO: adjust if db is clipped by the browser.
     var dge = $(this.dgDom.element).find('.attributeModal');
 
-  	$(dge).css('top', '' + y + 'px');
+    $(dge).css('top', '' + y + 'px');
         var x = window.innerWidth - box.width/2;
         $(dge).css('left', '' + x + 'px');
   }
@@ -23794,57 +23796,55 @@ class SuiLoadFileDialog extends SuiFileDialog {
     return SuiLoadFileDialog.ctor;
   }
 
-    static get dialogElements() {
-      SuiLoadFileDialog._dialogElements = SuiLoadFileDialog._dialogElements ? SuiLoadFileDialog._dialogElements :
-		    [{
-  				smoName: 'loadFile',
-  				parameterName: 'jsonFile',
-  				defaultValue: '',
-  				control: 'SuiFileDownloadComponent',
-  				label:''
-			  },{staticText: [
-          {label: 'Load File'}
-        ]}
-      ];
-      return SuiLoadFileDialog._dialogElements;
+  static get dialogElements() {
+    SuiLoadFileDialog._dialogElements = SuiLoadFileDialog._dialogElements ? SuiLoadFileDialog._dialogElements :
+      [{
+        smoName: 'loadFile',
+        parameterName: 'jsonFile',
+        defaultValue: '',
+        control: 'SuiFileDownloadComponent',
+        label:''
+      },{staticText: [
+        {label: 'Load File'}
+      ]}
+    ];
+    return SuiLoadFileDialog._dialogElements;
+  }
+  changed() {
+    this.value = this.components[0].getValue();
+    $(this.dgDom.element).find('.ok-button').prop('disabled',false);
+  }
+  commit() {
+    let scoreWorks = false;
+    if (this.value) {
+      try {
+        const score = SmoScore.deserialize(this.value);
+        scoreWorks = true;
+        this.view.score = score;
+        this.view.renderer.setViewport(true);
+        setTimeout(() => {
+          $('body').trigger('forceResizeEvent');
+        }, 1);
+        this.complete();
+      } catch (e) {
+        console.log('unable to score '+e);
+      }
+      if (!scoreWorks) {
+        this.complete();
+      }
     }
-
-    changed() {
-        this.value = this.components[0].getValue();
-        $(this.dgDom.element).find('.ok-button').prop('disabled',false);
-    }
-    commit() {
-        var scoreWorks = false;
-        if (this.value) {
-            try {
-                var score = SmoScore.deserialize(this.value);
-                scoreWorks=true;
-                this.layout.score = score;
-                this.layout.setViewport(true);
-                setTimeout(function() {
-                    $('body').trigger('forceResizeEvent');
-                },1);
-                this.complete();
-            } catch (e) {
-                console.log('unable to score '+e);
-            }
-            if (!scoreWorks) {
-                this.complete();
-            }
-        }
-    }
-    static createAndDisplay(params) {
-		var dg = new SuiLoadFileDialog(params);
-		dg.display();
+  }
+  static createAndDisplay(params) {
+    const dg = new SuiLoadFileDialog(params);
+    dg.display();
      // disable until file is selected
-    $(dg.dgDom.element).find('.ok-button').prop('disabled',true);
-	}
-    constructor(parameters) {
-        parameters.ctor='SuiLoadFileDialog';
-        super(parameters);
-	}
+    $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
+  }
+  constructor(parameters) {
+    parameters.ctor = 'SuiLoadFileDialog';
+    super(parameters);
+  }
 }
-
 
 class SuiPrintFileDialog extends SuiFileDialog {
   static get ctor() {
@@ -23854,7 +23854,7 @@ class SuiPrintFileDialog extends SuiFileDialog {
     return SuiPrintFileDialog.ctor;
   }
   static get label() {
-    SuiPrintFileDialog._label = SuiPrintFileDialog._label ? SuiPrintFileDialog._label :
+    SuiPrintFileDialog._label = typeof(SuiPrintFileDialog._label) !== 'undefined' ? SuiPrintFileDialog._label :
        'Print Complete';
     return SuiPrintFileDialog._label;
   }
@@ -23863,33 +23863,33 @@ class SuiPrintFileDialog extends SuiFileDialog {
   }
 
   static get dialogElements() {
-	  return [
-      {staticText: [
-      {label: 'Print Complete'}
-    ]}];
+    return [
+      { staticText: [
+      { label: 'Print Complete'}
+    ] }];
   }
   static createAndDisplay(params) {
-		var dg = new SuiPrintFileDialog(params);
-		dg.display();
-	}
+    var dg = new SuiPrintFileDialog(params);
+    dg.display();
+  }
   constructor(parameters) {
     parameters.ctor='SuiPrintFileDialog';
     super(parameters);
-	}
+  }
   changed() {}
   _bindElements() {
-    var self = this;
-    var dgDom = this.dgDom;
-		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+    const self = this;
+    const dgDom = this.dgDom;
+    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
       $('body').removeClass('printing');
-      self.layout.restoreLayoutAfterPrint();
+      self.view.renderer.restoreLayoutAfterPrint();
       window.dispatchEvent(new Event('resize'));
       self.complete();
-	  });
+    });
 
-		$(dgDom.element).find('.cancel-button').remove();
-		$(dgDom.element).find('.remove-button').remove();
-	}
+    $(dgDom.element).find('.cancel-button').remove();
+    $(dgDom.element).find('.remove-button').remove();
+  }
 }
 class SuiSaveFileDialog extends SuiFileDialog {
   static get ctor() {
@@ -23900,20 +23900,20 @@ class SuiSaveFileDialog extends SuiFileDialog {
   }
 
   static get dialogElements() {
-    SuiSaveFileDialog._dialogElements = SuiSaveFileDialog._dialogElements ? SuiSaveFileDialog._dialogElements :
-	  [{
-        smoName: 'saveFileName',
-        parameterName: 'saveFileName',
-        defaultValue: '',
-        control: 'SuiTextInputComponent',
-        label:'File Name'
-		},
-    {
-      staticText: [
-        {label : 'Save Score'}
-      ]
-    }];
-
+    SuiSaveFileDialog._dialogElements = typeof(SuiSaveFileDialog._dialogElements) !== 'undefined' ?
+      SuiSaveFileDialog._dialogElements :
+      [{
+          smoName: 'saveFileName',
+          parameterName: 'saveFileName',
+          defaultValue: '',
+          control: 'SuiTextInputComponent',
+          label:'File Name'
+      },
+      {
+        staticText: [
+          { label : 'Save Score' }
+        ]
+      }];
     return SuiSaveFileDialog._dialogElements;
   }
 
@@ -23921,27 +23921,27 @@ class SuiSaveFileDialog extends SuiFileDialog {
     this.value = this.components[0].getValue();
   }
   commit() {
-    var filename = this.value;
+    let filename = this.value;
     if (!filename) {
-        filename='myScore.json';
+      filename='myScore.json';
     }
     if (filename.indexOf('.json') < 0) {
-        filename = filename + '.json';
+      filename = filename + '.json';
     }
-    var txt = this.layout.score.serialize();
+    var txt = this.view.renderer.score.serialize();
     txt = JSON.stringify(txt);
-    htmlHelpers.addFileLink(filename,txt,$('.saveLink'));
+    htmlHelpers.addFileLink(filename, txt, $('.saveLink'));
     $('.saveLink a')[0].click();
     this.complete();
   }
   static createAndDisplay(params) {
-		var dg = new SuiSaveFileDialog(params);
-		dg.display();
-	}
+    var dg = new SuiSaveFileDialog(params);
+    dg.display();
+  }
   constructor(parameters) {
     parameters.ctor='SuiSaveFileDialog';
     super(parameters);
-	}
+  }
 }
 ;// ## SuiFontComponent
 // Dialog component that lets user choose and customize fonts.
@@ -24409,9 +24409,9 @@ class SuiMeasureDialog extends SuiDialogBase {
     }
   changed() {
     if (this.pickupMeasureCtrl.changeFlag || this.pickupMeasureCtrl.changeFlag) {
-      this.layout.unrenderColumn(this.measure);
-      SmoUndoable.scoreOp(this.layout.score, 'convertToPickupMeasure', this.pickupMeasureCtrl.getValue(), this.undoBuffer, 'Create pickup measure');
-      this.selection = SmoSelection.measureSelection(this.layout.score, this.selection.selector.staff, this.selection.selector.measure);
+      this.view.renderer.unrenderColumn(this.measure);
+      SmoUndoable.scoreOp(this.view.score, 'convertToPickupMeasure', this.pickupMeasureCtrl.getValue(), this.view.undoBuffer, 'Create pickup measure');
+      this.selection = SmoSelection.measureSelection(this.view.score, this.selection.selector.staff, this.selection.selector.measure);
       this.tracker.replaceSelectedMeasures();
       this.measure = this.selection.measure;
     }
@@ -24426,28 +24426,28 @@ class SuiMeasureDialog extends SuiDialogBase {
       this.tracker.replaceSelectedMeasures();
     }
     if (this.systemBreakCtrl.changeFlag) {
-      SmoUndoable.scoreSelectionOp(this.layout.score,
-        this.tracker.selections[0],'setForceSystemBreak', this.systemBreakCtrl.getValue(),
-        this.undoBuffer,'change system break flag');
-      this.layout.setRefresh();
+      SmoUndoable.scoreSelectionOp(this.view.score,
+        this.tracker.selections[0], 'setForceSystemBreak', this.systemBreakCtrl.getValue(),
+        this.undoBuffer, 'change system break flag');
+      this.view.renderer.setRefresh();
     }
     if (this.autoJustifyCtrl.changeFlag) {
-      SmoUndoable.scoreSelectionOp(this.layout.score,
+      SmoUndoable.scoreSelectionOp(this.view.score,
         this.tracker.selections[0], 'setAutoJustify', this.autoJustifyCtrl.getValue(),
         this.undoBuffer, 'change the vertical note justification');
       this.tracker.replaceSelectedMeasures();
     }
     if (this.noteFormattingCtrl.changeFlag) {
-      SmoUndoable.scoreSelectionOp(this.layout.score,
+      SmoUndoable.scoreSelectionOp(this.view.score,
         this.tracker.selections[0], 'setFormattingIterations', parseInt(this.noteFormattingCtrl.getValue(),10),
         this.undoBuffer, 'change the horizontal justification');
       this.tracker.replaceSelectedMeasures();
     }
     if (this.padLeftCtrl.changeFlag || this.padAllInSystemCtrl.changeFlag) {
-      this.layout.unrenderColumn(this.measure);
+      this.view.renderer.unrenderColumn(this.measure);
       const selections = this.padAllInSystemCtrl.getValue() ?
-        SmoSelection.measuresInColumn(this.layout.score, this.selection.measure.measureNumber.measureIndex) :
-        SmoSelection.measureSelection(this.layout.score, this.selection.selector.staff, this.selection.selector.measure);
+        SmoSelection.measuresInColumn(this.view.score, this.selection.measure.measureNumber.measureIndex) :
+        SmoSelection.measureSelection(this.view.score, this.selection.selector.staff, this.selection.selector.measure);
       SmoUndoable.padMeasuresLeft(selections, this.padLeftCtrl.getValue(), this.undoBuffer);
       this.tracker.replaceSelectedMeasures();
     }
@@ -24464,13 +24464,10 @@ class SuiMeasureDialog extends SuiDialogBase {
       top: parameters.selection.measure.renderedBox.y,
       left: parameters.selection.measure.renderedBox.x,
       label: 'Measure Properties',
-      tracker:parameters.tracker,
-      undoBuffer: parameters.undoBuffer,
       eventSource: parameters.eventSource,
-      completeNotifier : parameters.completeNotifier,
-      layout: parameters.layout
+      completeNotifier : parameters.completeNotifier
     });
-    this.startPromise=parameters.closeMenuPromise;
+    this.startPromise = parameters.closeMenuPromise;
     if (!this.startPromise) {
       this.startPromise = new Promise((resolve,reject) => {
         resolve();
@@ -24529,7 +24526,7 @@ class SuiMeasureDialog extends SuiDialogBase {
   _cancelEdits() {
     this.measure.customStretch = this.originalStretch;
     this.measure.customProportion = this.originalProportion;
-    this.layout.setRefresh();
+    this.view.renderer.setRefresh();
   }
   _bindElements() {
     this._bindComponentNames();
@@ -24663,7 +24660,7 @@ class SuiInstrumentDialog extends SuiDialogBase {
       selections,
       this.undoBuffer);
 
-    this.layout.setRefresh();
+    this.view.renderer.setRefresh();
   }
 
   constructor(parameters) {
@@ -24702,7 +24699,6 @@ class SuiInstrumentDialog extends SuiDialogBase {
   }
 
 }
-
 
 class SuiTimeSignatureDialog extends SuiDialogBase {
   static get ctor() {
@@ -24762,37 +24758,30 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
   changed() {
     // no dynamic change for time  signatures
   }
- static createAndDisplay(params) {
-     // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
-     //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
-
-     var dg = new SuiTimeSignatureDialog({
-        selections: params.tracker.selections,
-        undoBuffer: params.undoBuffer,
-        layout: params.tracker.layout,
-        completeNotifier :params.completeNotifier,
-        closeMenuPromise:params.closeMenuPromise,
-        tracker: params.tracker
-      });
-      dg.display();
-      return dg;
+  static createAndDisplay(params) {
+    var dg = new SuiTimeSignatureDialog(
+      params
+    );
+    dg.display();
+    return dg;
    }
+
    changeTimeSignature() {
-    var ts = '' + this.numeratorCtrl.getValue() + '/'+this.denominatorCtrl.getValue();
-    SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
-      this.tracker.selections,
-      'setTimeSignature',ts,this.undoBuffer);
+    var ts = '' + this.numeratorCtrl.getValue() + '/' + this.denominatorCtrl.getValue();
+    SmoUndoable.multiSelectionOperation(this.view.score,
+      this.view.tracker.selections,
+      'setTimeSignature', ts,this.undoBuffer);
       this.tracker.replaceSelectedMeasures();
    }
    _bindElements() {
-     var self = this;
-     var dgDom = this.dgDom;
+     const self = this;
+     const dgDom = this.dgDom;
      this.numeratorCtrl = this.components.find((comp) => {return comp.smoName == 'numerator';});
      this.denominatorCtrl = this.components.find((comp) => {return comp.smoName == 'denominator';});
      this.populateInitial();
 
     $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-          self.changeTimeSignature();
+      self.changeTimeSignature();
       self.complete();
     });
 
@@ -24803,54 +24792,49 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
        self.complete();
      });
    }
-   display() {
-     $('body').addClass('showAttributeDialog');
-     this.components.forEach((component) => {
-         component.bind();
-     });
-     this._bindElements();
-     this.position(this.measure.renderedBox);
-     this.tracker.scroller.scrollVisibleBox(
-         svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
-     );
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    this._bindElements();
+    this.position(this.measure.renderedBox);
+    this.view.tracker.scroller.scrollVisibleBox(
+      svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
+    );
 
 
-     var cb = function (x, y) {}
-     htmlHelpers.draggable({
-         parent: $(this.dgDom.element).find('.attributeModal'),
-         handle: $(this.dgDom.element).find('.jsDbMove'),
-          animateDiv:'.draganime',
-         cb: cb,
-         moveParent: true
-     });
+    const cb = (x, y) => {}
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.jsDbMove'),
+      animateDiv: '.draganime',
+      cb: cb,
+      moveParent: true
+    });
 
-     var self=this;
-     function getKeys() {
-         self.completeNotifier.unbindKeyboardForModal(self);
-     }
-     this.startPromise.then(getKeys);
-   }
+    const self = this;
+    const getKeys = () => {
+      self.completeNotifier.unbindKeyboardForModal(self);
+    }
+    this.startPromise.then(getKeys);
+  }
    constructor(parameters) {
-       var measure = parameters.selections[0].measure;
+   const measure = parameters.selections[0].measure;
 
-       super(SuiTimeSignatureDialog.dialogElements, {
-           id: 'time-signature-measure',
-           top: measure.renderedBox.y,
-           left: measure.renderedBox.x,
-           label: 'Custom Time Signature',
-       tracker:parameters.tracker,
-     undoBuffer: parameters.undoBuffer,
-     eventSource: parameters.eventSource,
-     completeNotifier : parameters.completeNotifier,
-     layout: parameters.layout
-
-       });
-       this.measure = measure;
-       this.refresh = false;
-       this.startPromise=parameters.closeMenuPromise;
-       Vex.Merge(this, parameters);
-   }
- }
+   super(SuiTimeSignatureDialog.dialogElements, {
+      id: 'time-signature-measure',
+      top: measure.renderedBox.y,
+      left: measure.renderedBox.x,
+      label: 'Custom Time Signature',
+      ...parameters
+     });
+    this.measure = measure;
+    this.refresh = false;
+    this.startPromise=parameters.closeMenuPromise;
+    Vex.Merge(this, parameters);
+  }
+}
 
 
 // ## SuiTempoDialog
@@ -24999,57 +24983,53 @@ class SuiTempoDialog extends SuiDialogBase {
   }
   static createAndDisplay(parameters) {
     parameters.measures = SmoSelection.getMeasureList(parameters.tracker.selections)
-       .map((sel) => sel.measure);
+      .map((sel) => sel.measure);
     var measure = parameters.measures[0];
 
     // All measures have a default tempo, but it is not explicitly set unless it is
     // non-default
     parameters.modifier = measure.getTempo();
     if (!parameters.modifier) {
-        parameters.modifier = new SmoTempoText();
-        measure.addTempo(parameters.modifier);
+      parameters.modifier = new SmoTempoText();
+      measure.addTempo(parameters.modifier);
     }
     if (!parameters.modifier.renderedBox) {
-        parameters.modifier.renderedBox = svgHelpers.copyBox(measure.renderedBox);
+      parameters.modifier.renderedBox = svgHelpers.copyBox(measure.renderedBox);
     }
     var dg = new SuiTempoDialog(parameters);
     dg.display();
     return dg;
   }
-    constructor(parameters) {
-        if (!parameters.modifier || !parameters.measures) {
-            throw new Error('modifier attribute dialog must have modifier and selection');
-        }
+  constructor(parameters) {
+    if (!parameters.modifier || !parameters.measures) {
+      throw new Error('modifier attribute dialog must have modifier and selection');
+    }
 
-        super(SuiTempoDialog.dialogElements, {
-            id: 'dialog-tempo',
-            top: parameters.modifier.renderedBox.y,
-            left: parameters.modifier.renderedBox.x,
-            tracker:parameters.tracker,
-            undoBuffer: parameters.undoBuffer,
-            eventSource: parameters.eventSource,
-            completeNotifier : parameters.completeNotifier,
-            layout: parameters.layout
-        });
-        this.refresh = false;
-        Vex.Merge(this, parameters);
-    }
-    populateInitial() {
-        SmoTempoText.attributes.forEach((attr) => {
-            var comp = this.components.find((cc) => {
-                return cc.smoName == attr;
-            });
-            if (comp) {
-                comp.setValue(this.modifier[attr]);
-            }
-        });
+    super(SuiTempoDialog.dialogElements, {
+      id: 'dialog-tempo',
+      top: parameters.modifier.renderedBox.y,
+      left: parameters.modifier.renderedBox.x,
+      ...parameters
+    });
+    this.refresh = false;
+    Vex.Merge(this, parameters);
+  }
+  populateInitial() {
+    SmoTempoText.attributes.forEach((attr) => {
+      var comp = this.components.find((cc) => {
+        return cc.smoName == attr;
+      });
+      if (comp) {
+        comp.setValue(this.modifier[attr]);
+      }
+    });
     this._updateModeClass();
-    }
+  }
   _updateModeClass() {
-        if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
+    if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
       $('.attributeModal').addClass('tempoTextMode');
       $('.attributeModal').removeClass('tempoDurationMode');
-        } else if (this.modifier.tempoMode == SmoTempoText.tempoModes.durationMode) {
+    } else if (this.modifier.tempoMode == SmoTempoText.tempoModes.durationMode) {
       $('.attributeModal').addClass('tempoDurationMode');
       $('.attributeModal').removeClass('tempoTextMode');
     } else {
@@ -25057,89 +25037,89 @@ class SuiTempoDialog extends SuiDialogBase {
       $('.attributeModal').removeClass('tempoTextMode');
     }
   }
-    changed() {
-        this.components.forEach((component) => {
+  changed() {
+    this.components.forEach((component) => {
       if (SmoTempoText.attributes.indexOf(component.smoName) >= 0) {
-                this.modifier[component.smoName] = component.getValue();
+        this.modifier[component.smoName] = component.getValue();
       }
-        });
-        if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
-            this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
-        }
+    });
+    if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
+      this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
+    }
     this._updateModeClass();
-        this.refresh = true;
-    }
-    // ### handleFuture
-    // Update other measures in selection, or all future measures if the user chose that.
-    handleFuture() {
-        var fc = this.components.find((comp) => {return comp.smoName == 'applyToAll'});
-        var toModify = [];
-        if (fc.getValue()) {
-            this.layout.score.staves.forEach((staff) => {
-                var toAdd = staff.measures.filter((mm) => {
-                    return mm.measureNumber.measureIndex >= this.measures[0].measureNumber.measureIndex;
-                });
-                toModify = toModify.concat(toAdd);
-            });
-        } else {
-            this.measures.forEach((measure) => {
-                this.layout.score.staves.forEach((staff) => {
-                    toModify.push(staff.measures[measure.measureNumber.measureIndex]);
-                });
-            });
-        }
-        toModify.forEach((measure) => {
-            measure.changed = true;
-            var tempo = SmoMeasureModifierBase.deserialize(this.modifier.serialize());
-            tempo.attrs.id = VF.Element.newID();
-            measure.addTempo(tempo);
+    this.refresh = true;
+  }
+  // ### handleFuture
+  // Update other measures in selection, or all future measures if the user chose that.
+  handleFuture() {
+    const fc = this.components.find((comp) => {return comp.smoName == 'applyToAll'});
+    const toModify = [];
+    if (fc.getValue()) {
+      this.view.score.staves.forEach((staff) => {
+        var toAdd = staff.measures.filter((mm) => {
+          return mm.measureNumber.measureIndex >= this.measures[0].measureNumber.measureIndex;
         });
-        this.tracker.replaceSelectedMeasures();
-    }
-    // ### handleRemove
-    // Removing a tempo change is like changing the measure to the previous measure's tempo.
-    // If this is the first measure, use the default value.
-    handleRemove() {
-        if (this.measures[0].measureNumber.measureIndex > 0) {
-            var target = this.measures[0].measureNumber.measureIndex - 1;
-            this.modifier = this.layout.score.staves[0].measures[target].getTempo();
-            this.handleFuture();
-        } else {
-            this.modifier = new SmoTempoText();
-        }
-        this.handleFuture();
-    }
-    // ### _backup
-    // Backup the score before changing tempo which affects score.
-    _backup() {
-        if (this.refresh) {
-            SmoUndoable.noop(this.layout.score,this.undoBuffer,'Tempo change');
-            this.layout.setDirty();
-        }
-    }
-    // ### Populate the initial values and bind to the buttons.
-    _bindElements() {
-        var self = this;
-        this.populateInitial();
-    var dgDom = this.dgDom;
-        // Create promise to release the keyboard when dialog is closed
-        this.closeDialogPromise = new Promise((resolve) => {
-            $(dgDom.element).find('.cancel-button').remove();
-            $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-                self._backup();
-                self.handleFuture();
-                self.complete();
-                resolve();
-            });
-            $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-                self._backup();
-                self.handleRemove();
-                self.complete();
-                resolve();
-            });
+        toModify = toModify.concat(toAdd);
+      });
+    } else {
+      this.measures.forEach((measure) => {
+        this.view.score.staves.forEach((staff) => {
+          toModify.push(staff.measures[measure.measureNumber.measureIndex]);
         });
-        this.completeNotifier.unbindKeyboardForModal(this);
+      });
     }
+    toModify.forEach((measure) => {
+      measure.changed = true;
+      const tempo = SmoMeasureModifierBase.deserialize(this.modifier.serialize());
+      tempo.attrs.id = VF.Element.newID();
+      measure.addTempo(tempo);
+    });
+    this.view.tracker.replaceSelectedMeasures();
+  }
+  // ### handleRemove
+  // Removing a tempo change is like changing the measure to the previous measure's tempo.
+  // If this is the first measure, use the default value.
+  handleRemove() {
+    if (this.measures[0].measureNumber.measureIndex > 0) {
+      const target = this.measures[0].measureNumber.measureIndex - 1;
+      this.modifier = this.view.score.staves[0].measures[target].getTempo();
+      this.handleFuture();
+    } else {
+      this.modifier = new SmoTempoText();
+    }
+    this.handleFuture();
+  }
+  // ### _backup
+  // Backup the score before changing tempo which affects score.
+  _backup() {
+    if (this.refresh) {
+      SmoUndoable.noop(this.view.score, this.undoBuffer, 'Tempo change');
+      this.view.renderer.setDirty();
+    }
+  }
+  // ### Populate the initial values and bind to the buttons.
+  _bindElements() {
+    const self = this;
+    this.populateInitial();
+    const dgDom = this.dgDom;
+    // Create promise to release the keyboard when dialog is closed
+    this.closeDialogPromise = new Promise((resolve) => {
+      $(dgDom.element).find('.cancel-button').remove();
+      $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+        self._backup();
+        self.handleFuture();
+        self.complete();
+        resolve();
+      });
+      $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
+        self._backup();
+        self.handleRemove();
+        self.complete();
+        resolve();
+      });
+    });
+    this.completeNotifier.unbindKeyboardForModal(this);
+  }
 }
 ;// ## SuiLayoutDialog
 // The layout dialog has page layout and zoom logic.  It is not based on a selection but score-wide
@@ -25269,7 +25249,6 @@ class SuiLayoutDialog extends SuiDialogBase {
           { label: 'Score Layout' }
         ] }
       ];
-
     return SuiLayoutDialog._dialogElements;
   }
 
@@ -25307,10 +25286,10 @@ class SuiLayoutDialog extends SuiDialogBase {
   // even if the layout is not changed, we re-render the entire score by resetting
   // the svg context.
   _updateLayout() {
-    this.layout.rerenderAll();
+    this.view.layout.rerenderAll();
   }
   _handleCancel() {
-    this.layout.score.layout = this.backup;
+    this.view.score.layout = this.backup;
     this._updateLayout();
     this.complete();
   }
@@ -25321,7 +25300,7 @@ class SuiLayoutDialog extends SuiDialogBase {
     this._bindComponentNames();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       // TODO:  allow user to select a zoom mode.
-      self.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+      self.view.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
       self._updateLayout();
       self.complete();
     });
@@ -25334,7 +25313,7 @@ class SuiLayoutDialog extends SuiDialogBase {
   }
   _setPageSizeDefault() {
     var value = 'custom';
-    var scoreDims = this.layout.score.layout;
+    var scoreDims = this.view.score.layout;
     SmoScore.pageSizes.forEach((sz) => {
       var dim = SmoScore.pageDimensions[sz];
       if (scoreDims.pageWidth === dim.width && scoreDims.pageHeight === dim.height) {
@@ -25367,8 +25346,8 @@ class SuiLayoutDialog extends SuiDialogBase {
   changed() {
     this._handlePageSizeChange();
     this.components.forEach((component) => {
-      if (typeof(this.layout.score.layout[component.smoName]) !== 'undefined') {
-        this.layout.score.layout[component.smoName] = component.getValue();
+      if (typeof(this.view.score.layout[component.smoName]) !== 'undefined') {
+        this.view.score.layout[component.smoName] = component.getValue();
       }
     });
     if (this.engravingFontCtrl.changeFlag)  {
@@ -25376,7 +25355,7 @@ class SuiLayoutDialog extends SuiDialogBase {
       engrave.family = this.engravingFontCtrl.getValue();
       SuiRenderState.setFont(engrave.family);
     }
-    this.layout.setViewport();
+    this.view.renderer.setViewport();
   }
 
   // ### createAndDisplay
@@ -25393,37 +25372,37 @@ class SuiLayoutDialog extends SuiDialogBase {
       left: (p.layout.score.layout.pageHeight / 2) - 200,
       ...parameters
     });
-    this.layout = p.layout;
-    this.score = p.layout.score;
-    this.modifier = this.layout.score.layout;
+    this.view.renderer = p.view.renderer;
+    this.score = p.view.renderer.score;
+    this.modifier = this.view.score.layout;
     this.backupOriginal();
   }
 }
 ;class SuiStaffModifierDialog extends SuiDialogBase {
-	 handleRemove() {
-      $(this.context.svg).find('g.' + this.modifier.attrs.id).remove();
-      var selection = SmoSelection.measureSelection(this.layout.score,this.modifier.startSelector.staff,this.modifier.startSelector.measure);
-      SmoUndoable.staffSelectionOp(this.layout.score,selection,'removeStaffModifier',this.modifier,this.undoBuffer,'remove slur');
-      this.tracker.clearModifierSelections();
-    }
+  handleRemove() {
+    $(this.context.svg).find('g.' + this.modifier.attrs.id).remove();
+    var selection = SmoSelection.measureSelection(this.view.renderer.score, this.modifier.startSelector.staff,
+      this.modifier.startSelector.measure);
+    SmoUndoable.staffSelectionOp(this.view.score, selection, 'removeStaffModifier', this.modifier, this.view.undoBuffer, 'remove slur');
+    this.tracker.clearModifierSelections();
+  }
 
-    _preview() {
-        this.modifier.backupOriginal();
-        this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
-        });
-        this.layout.renderStaffModifierPreview(this.modifier)
-    }
+  _preview() {
+    this.modifier.backupOriginal();
+    this.components.forEach((component) => {
+      this.modifier[component.smoName] = component.getValue();
+    });
+    this.view.renderer.renderStaffModifierPreview(this.modifier)
+  }
 
-    changed() {
-        this.modifier.backupOriginal();
-        this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
-        });
-        this.layout.renderStaffModifierPreview(this.modifier);
-    }
+  changed() {
+    this.modifier.backupOriginal();
+    this.components.forEach((component) => {
+      this.modifier[component.smoName] = component.getValue();
+    });
+    this.view.renderer.renderStaffModifierPreview(this.modifier);
+  }
 }
-
 
 class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
@@ -25524,7 +25503,6 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
         label: 'Control Point 2 Y'
       }
     ];
-
     return SuiSlurAttributesDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
@@ -25578,40 +25556,39 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
 
  static get dialogElements() {
     SuiVoltaAttributeDialog._dialogElements = SuiVoltaAttributeDialog._dialogElements ? SuiVoltaAttributeDialog._dialogElements :
-      [
-        {
-          staticText: [
-            {label: 'Volta Properties'}
-          ]
-        },
-        {
+      [{
+        staticText: [
+          {label: 'Volta Properties'}
+        ]
+      },
+      {
         parameterName: 'number',
         smoName: 'number',
         defaultValue: 1,
         control: 'SuiRockerComponent',
         label: 'number'
-        }, {
+      }, {
         smoName: 'xOffsetStart',
         parameterName: 'xOffsetStart',
         defaultValue: 0,
         control: 'SuiRockerComponent',
         label: 'X1 Offset'
-        }, {
+      }, {
         smoName: 'xOffsetEnd',
         parameterName: 'xOffsetEnd',
         defaultValue: 0,
         control: 'SuiRockerComponent',
         label: 'X2 Offset'
-        }, {
+      }, {
         smoName: 'yOffset',
         parameterName: 'yOffset',
         defaultValue: 0,
         control: 'SuiRockerComponent',
         label: 'Y Offset'
-        }
-     ];
+      }
+   ];
 
-     return SuiVoltaAttributeDialog._dialogElements;
+   return SuiVoltaAttributeDialog._dialogElements;
  }
  static createAndDisplay(parameters) {
     var dg = new SuiVoltaAttributeDialog(parameters);
@@ -25619,41 +25596,41 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
     return dg;
   }
 handleRemove() {
-  this.undoBuffer.addBuffer('Remove nth ending', 'score', null, this.layout.score);
-	this.layout.score.staves.forEach((staff) => {
-  	staff.measures.forEach((measure) => {
-  		if (measure.measureNumber.measureNumber === this.modifier.startBar) {
-  			measure.removeNthEnding(this.modifier.number);
-  		}
-  	 });
-	});
+  this.view.undoBuffer.addBuffer('Remove nth ending', UndoBuffer.bufferTypes.SCORE, null, this.view.score);
+  this.view.score.staves.forEach((staff) => {
+    staff.measures.forEach((measure) => {
+      if (measure.measureNumber.measureNumber === this.modifier.startBar) {
+        measure.removeNthEnding(this.modifier.number);
+      }
+     });
+  });
   $(this.context.svg).find('g.' + this.modifier.endingId).remove();
   this.selection.staff.removeStaffModifier(this.modifier);
  }
   _commit() {
     this.modifier.restoreOriginal();
-	  this.layout.score.staves.forEach((staff) => {
-  		staff.measures.forEach((measure) => {
-    		if (measure.measureNumber.measureNumber === this.modifier.startBar) {
-    			var endings = measure.getNthEndings().filter((mm) => {
-    			  return mm.endingId === this.modifier.endingId;
-    			});
-    			if (endings.length) {
-    			  endings.forEach((ending) => {
-      		    this.components.forEach((component) => {
-    			      ending[component.smoName] = component.getValue();
-    			    });
-    			  });
-    		  }
-    	  }
+    this.view.score.staves.forEach((staff) => {
+      staff.measures.forEach((measure) => {
+        if (measure.measureNumber.measureNumber === this.modifier.startBar) {
+          var endings = measure.getNthEndings().filter((mm) => {
+            return mm.endingId === this.modifier.endingId;
+          });
+          if (endings.length) {
+            endings.forEach((ending) => {
+              this.components.forEach((component) => {
+                ending[component.smoName] = component.getValue();
+              });
+            });
+          }
+        }
       });
-	  });
+    });
 
-    this.layout.renderStaffModifierPreview(this.modifier);
+    this.view.renderer.renderStaffModifierPreview(this.modifier);
   }
   constructor(parameters) {
     if (!parameters.modifier) {
-        throw new Error('modifier attribute dialog must have modifier');
+      throw new Error('modifier attribute dialog must have modifier');
     }
 
     super(SuiVoltaAttributeDialog.dialogElements, {
@@ -25663,14 +25640,14 @@ handleRemove() {
         ...parameters
     });
     Vex.Merge(this, parameters);
-    this.selection = SmoSelection.measureSelection(this.layout.score,this.modifier.startSelector.staff,this.modifier.startSelector.measure);
+    this.selection = SmoSelection.measureSelection(this.view.score, this.modifier.startSelector.staff, this.modifier.startSelector.measure);
 
-  	SmoVolta.editableAttributes.forEach((attr) => {
-  		var comp = this.components.find((cc)=>{return cc.smoName===attr});
-  		if (comp) {
-  			comp.defaultValue=this.modifier[attr];
-  		}
-  	});
+    SmoVolta.editableAttributes.forEach((attr) => {
+      const comp = this.components.find((cc) => cc.smoName === attr);
+      if (comp) {
+        comp.defaultValue = this.modifier[attr];
+      }
+    });
 
     this.completeNotifier.unbindKeyboardForModal(this);
   }
@@ -25736,7 +25713,7 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   }
   constructor(parameters) {
     if (!parameters.modifier) {
-        throw new Error('modifier attribute dialog must have modifier');
+      throw new Error('modifier attribute dialog must have modifier');
     }
 
     super(SuiHairpinAttributesDialog.dialogElements, {
@@ -25746,12 +25723,12 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
       ...parameters
     });
     Vex.Merge(this, parameters);
-  	SmoStaffHairpin.editableAttributes.forEach((attr) => {
-  		var comp = this.components.find((cc)=>{return cc.smoName===attr});
-  		if (comp) {
-  			comp.defaultValue=this.modifier[attr];
-  		}
-  	});
+    SmoStaffHairpin.editableAttributes.forEach((attr) => {
+      var comp = this.components.find((cc) => cc.smoName === attr);
+      if (comp) {
+        comp.defaultValue = this.modifier[attr];
+      }
+    });
 
     this.completeNotifier.unbindKeyboardForModal(this);
   }
@@ -25822,10 +25799,10 @@ class SuiTextInPlace extends SuiComponentBase {
     this.dialog.modifier.skipRender = false;
 
     var render = () => {
-      this.dialog.layout.setRefresh();
+      this.dialog.view.renderer.setRefresh();
     }
     if (this.session) {
-      this.value=this.session.textGroup;
+      this.value = this.session.textGroup;
       this.session.stopSession().then(render);
     }
     $('body').removeClass('text-edit');
@@ -25854,7 +25831,7 @@ class SuiTextInPlace extends SuiComponentBase {
   }
   _renderInactiveBlocks() {
     const modifier = this.dialog.modifier;
-    const context = this.dialog.layout.context;
+    const context = this.dialog.view.renderer.context;
     context.save();
     context.setFillStyle('#ddd');
     modifier.textBlocks.forEach((block) => {
@@ -25879,15 +25856,13 @@ class SuiTextInPlace extends SuiComponentBase {
     $(this._getInputElement()).find('label').text(this.altLabel);
     var modifier = this.dialog.modifier;
     modifier.skipRender = true;
-    $(this.dialog.layout.context.svg).find('#'+modifier.attrs.id).remove();
+    $(this.dialog.view.renderer.context.svg).find('#'+modifier.attrs.id).remove();
     this._renderInactiveBlocks();
     const ul = modifier.ul();
 
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
-    this.session = new SuiTextSession({context : this.dialog.layout.context,
-      scroller: this.dialog.tracker.scroller,
-      layout: this.dialog.layout,
-      score: this.dialog.layout.score,
+    this.session = new SuiTextSession({ renderer : this.dialog.view.renderer,
+      scroller: this.dialog.view.tracker.scroller,
       x: ul.x,
       y: ul.y,
       textGroup: modifier,
@@ -25928,7 +25903,7 @@ class SuiNoteTextComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
 
-    this.selection = dialog.tracker.selections[0];
+    this.selection = dialog.view.tracker.selections[0];
     this.selector = JSON.parse(JSON.stringify(this.selection.selector));
     this.dialog = dialog;
   }
@@ -25998,8 +25973,8 @@ class SuiNoteTextComponent extends SuiComponentBase {
 // ## SuiLyricComponent
 // manage a lyric session that moves from note to note and adds lyrics.
 class SuiLyricComponent extends SuiNoteTextComponent {
-  constructor(dialog,parameter) {
-    super(dialog,parameter);
+  constructor(dialog, parameter) {
+    super(dialog, parameter);
     smoSerialize.filteredMerge(
         ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     if (!this.defaultValue) {
@@ -26056,12 +26031,11 @@ class SuiLyricComponent extends SuiNoteTextComponent {
     $(this._getInputElement()).find('label').text(this.altLabel);
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiLyricSession({
-       context : this.dialog.layout.context,
+       renderer : this.dialog.view.renderer,
        selector: this.selector,
-       scroller: this.dialog.tracker.scroller,
-       layout: this.dialog.layout,
+       scroller: this.dialog.view.tracker.scroller,
        verse: this.verse,
-       score: this.dialog.layout.score
+       score: this.dialog.view.score
        }
      );
     $('body').addClass('text-edit');
@@ -26088,7 +26062,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
     this.session = null;
     this.dialog = dialog;
 
-    this.selection = dialog.tracker.selections[0];
+    this.selection = dialog.view.tracker.selections[0];
     this.selector = JSON.parse(JSON.stringify(this.selection.selector));
     this.altLabel = SuiLyricDialog.getStaticText('doneEditing');
     if (!this.verse) {
@@ -26127,7 +26101,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
 
     var render = () => {
-      this.dialog.layout.setRefresh();
+      this.dialog.view.renderer.setRefresh();
     }
     if (this.session) {
       this.value=this.session.textGroup;
@@ -26142,12 +26116,11 @@ class SuiChordComponent extends SuiNoteTextComponent {
 
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiChordSession({
-       context : this.dialog.layout.context,
+       renderer : this.dialog.view.renderer,
        selector: this.selector,
-       scroller: this.dialog.tracker.scroller,
-       layout: this.dialog.layout,
+       scroller: this.dialog.view.tracker.scroller,
        verse: 0,
-       score: this.dialog.layout.score
+       score: this.dialog.view.score
        }
      );
     $('body').addClass('text-edit');
@@ -26164,7 +26137,6 @@ class SuiChordComponent extends SuiNoteTextComponent {
   getTextType(type) {
     return this.session.textType;
   }
-
 }
 
 // ## SuiDragText
@@ -26179,7 +26151,7 @@ class SuiDragText extends SuiComponentBase {
     if (!this.defaultValue) {
         this.defaultValue = 0;
     }
-    this.dragging=false;
+    this.dragging = false;
     this.running = false;
 
     this.dialog = dialog;
@@ -26221,8 +26193,8 @@ class SuiDragText extends SuiComponentBase {
     $('body').addClass('text-move');
     this.session = new SuiDragSession({
       textGroup: this.dialog.modifier,
-      context: this.dialog.layout.context,
-      scroller: this.dialog.tracker.scroller
+      context: this.dialog.view.renderer.context,
+      scroller: this.dialog.view.tracker.scroller
     });
     $(this._getInputElement()).find('label').text(this.altLabel);
     $(this._getInputElement()).find('span.icon').removeClass('icon-enlarge').addClass('icon-checkmark');
@@ -26257,95 +26229,6 @@ class SuiDragText extends SuiComponentBase {
       }
     });
   }
-}
-
-// ## Removing this for now...
-class SuiResizeTextBox extends SuiComponentBase {
-  constructor(dialog,parameter) {
-    super(parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
-    }
-    this.resizing = false;
-    this.running = false;
-
-    this.dialog = dialog;
-    this.value='';
-  }
-
-  get html() {
-    var b = htmlHelpers.buildDom;
-    var id = this.parameterId;
-    var r = b('div').classes(this.makeClasses('cbResizeTextBox smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
-      .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
-          .attr('id', id + '-input').append(
-          b('span').classes('icon icon-enlarge'))
-          .append(
-          b('label').attr('for', id + '-input').text(this.label)));
-    return r;
-  }
-  get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
-  }
-
-  stopEditSession() {
-    $('body').removeClass('text-resize');
-    if (this.session && this.session.dragging) {
-      this.session.dragging = false;
-      this.dragging = false;
-    }
-    this.running = false;
-  }
-  getValue() {
-    return this.value;
-  }
-  _getInputElement() {
-    var pid = this.parameterId;
-    return $(this.dialog.dgDom.element).find('#' + pid).find('button');
-  }
-  mouseUp(e) {
-    if (this.session && this.session.dragging) {
-      this.session.endDrag(e);
-      this.dragging = false;
-      this.session.changed();
-    }
-  }
-  mouseMove(e) {
-    if (this.session && this.session.dragging) {
-      this.session.mouseMove(e);
-    }
-  }
-
-  startEditSession() {
-    $('body').addClass('text-resize');
-    this.session = new SuiResizeTextSession({
-      textGroup: this.dialog.modifier,
-      context: this.dialog.layout.context,
-      scroller: this.dialog.tracker.scroller
-    });
-    this.running = true;
-    $(this._getInputElement()).find('label').text('Done Resizing Text Block');
-    $(this._getInputElement()).find('span.icon').removeClass('icon-enlarge').addClass('icon-checkmark');
-  }
-  mouseDown(e) {
-    if (this.session && !this.session.dragging) {
-      this.session.startDrag(e);
-      this.dragging = true;
-    }
-  }
-
-  bind() {
-      var self=this;
-      $(this._getInputElement()).off('click').on('click',function(ev) {
-        if (self.running) {
-          self.stopEditSession();
-        } else {
-          self.startEditSession();
-        }
-      });
-    }
 }
 ;class SuiLyricDialog extends SuiDialogBase {
   static get ctor() {
@@ -26437,8 +26320,8 @@ class SuiResizeTextBox extends SuiComponentBase {
 
     super(dialogElements, {
       id: 'dialog-lyrics',
-      top: (p.layout.score.layout.pageWidth / 2) - 200,
-      left: (p.layout.score.layout.pageHeight / 2) - 200,
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...p
     });
 
@@ -26450,7 +26333,7 @@ class SuiResizeTextBox extends SuiComponentBase {
     } else {
       this.parser = parameters.parser; // lyrics or chord changes
     }
-    SmoUndoable.noop(this.layout.score,this.undoBuffer,'Undo lyrics');
+    SmoUndoable.noop(this.view.score, this.view.undoBuffer, 'Undo lyrics');
   }
   display() {
     let fontSize;
@@ -26467,23 +26350,23 @@ class SuiResizeTextBox extends SuiComponentBase {
     this._bindElements();
 
     // make sure keyboard is unbound or we get dupicate key events.
-    var self=this;
+    var self = this;
     this.completeNotifier.unbindKeyboardForModal(this);
 
-    $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
-        if (!$(ctrl).hasClass('cbLyricEdit')) {
-          $(ctrl).addClass('fold-textedit');
-        }
+    $(this.dgDom.element).find('.smoControl').each((ix, ctrl) => {
+      if (!$(ctrl).hasClass('cbLyricEdit')) {
+        $(ctrl).addClass('fold-textedit');
+      }
     });
 
-    this.position(this.tracker.selections[0].note.renderedBox);
+    this.position(this.view.tracker.selections[0].note.renderedBox);
 
     var cb = function (x, y) {}
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
       handle: $(this.dgDom.element).find('.jsDbMove'),
-            animateDiv:'.draganime',
-            cb: cb,
+        animateDiv:'.draganime',
+        cb: cb,
       moveParent: true
     });
     this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
@@ -26506,7 +26389,7 @@ class SuiResizeTextBox extends SuiComponentBase {
     if (this.lyricEditorCtrl.editor.selection &&
       this.lyricEditorCtrl.editor.selection.note &&
       this.lyricEditorCtrl.editor.selection.note.renderedBox) {
-      this.tracker.scroller.scrollVisibleBox(this.lyricEditorCtrl.editor.selection.note.renderedBox);
+      this.view.scroller.scrollVisibleBox(this.lyricEditorCtrl.editor.selection.note.renderedBox);
     }
   }
   changed() {
@@ -26515,10 +26398,10 @@ class SuiResizeTextBox extends SuiComponentBase {
     // TODO: make these undoable
     if (this.fontCtrl.changeFlag) {
       const fontInfo = this.fontCtrl.getValue();
-      this.layout.score.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size.size });
+      this.view.score.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size.size });
     }
     if (this.adjustWidthCtrl.changeFlag) {
-      this.layout.score.setLyricAdjustWidth(this.adjustWidthCtrl.getValue());
+      this.view.score.setLyricAdjustWidth(this.adjustWidthCtrl.getValue());
     }
   }
   _bindElements() {
@@ -26527,12 +26410,12 @@ class SuiResizeTextBox extends SuiComponentBase {
 
     $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
       self.tracker.replaceSelectedMeasures();
-      self.tracker.layout.setDirty();
+      self.view.renderer.setDirty();
       self._complete();
     });
     $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
       self.keyCommands.undo();
-      self.tracker.layout.setDirty();
+      self.view.renderer.setDirty();
       self._complete();
     });
     $(dgDom.element).find('.remove-button').remove();
@@ -26555,7 +26438,7 @@ class SuiResizeTextBox extends SuiComponentBase {
   }
 
   _complete() {
-    this.layout.setDirty();
+    this.view.renderer.setDirty();
     if (this.lyricEditorCtrl.running) {
       this.lyricEditorCtrl.endSession();
     }
@@ -26578,7 +26461,6 @@ class SuiResizeTextBox extends SuiComponentBase {
       ev.stopPropagation();
     }
   }
-
 }
 
 class SuiChordChangeDialog  extends SuiDialogBase {
@@ -26602,8 +26484,8 @@ class SuiChordChangeDialog  extends SuiDialogBase {
 
     super(dialogElements, {
       id: 'dialog-chords',
-      top: (p.layout.score.layout.pageWidth / 2) - 200,
-      left: (p.layout.score.layout.pageHeight / 2) - 200,
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...p
     });
   }
@@ -26729,11 +26611,11 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     }
     if (this.fontCtrl.changeFlag) {
       const fontInfo = this.fontCtrl.getValue();
-      this.layout.score.setChordFont(
+      this.view.score.setChordFont(
         { 'family': fontInfo.family, size: fontInfo.size.size });
     }
     if (this.adjustWidthCtrl.changeFlag) {
-      this.layout.score.setChordAdjustWidth(this.adjustWidthCtrl.getValue());
+      this.view.score.setChordAdjustWidth(this.adjustWidthCtrl.getValue());
     }
   }
 
@@ -26751,27 +26633,27 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     this._bindElements();
 
     // make sure keyboard is unbound or we get dupicate key events.
-    var self=this;
+    const self = this;
     this.completeNotifier.unbindKeyboardForModal(this);
 
     $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
-        if (!$(ctrl).hasClass('cbLyricEdit')) {
-          $(ctrl).addClass('fold-textedit');
-        }
+      if (!$(ctrl).hasClass('cbLyricEdit')) {
+        $(ctrl).addClass('fold-textedit');
+      }
     });
 
     this.position(this.tracker.selections[0].note.renderedBox);
 
-    var cb = function (x, y) {}
+    const cb = (x, y) => {}
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
       handle: $(this.dgDom.element).find('.jsDbMove'),
-            animateDiv:'.draganime',
-            cb: cb,
+      animateDiv:'.draganime',
+      cb: cb,
       moveParent: true
     });
-    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
-    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
+    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
+    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
     if (this.chordEditorCtrl && this.chordEditorCtrl.session && this.chordEditorCtrl.session.lyric) {
       const lyric = this.chordEditorCtrl.session.lyric;
       this.adjustWidthCtrl.setValue(lyric.adjustNoteWidth);
@@ -26791,13 +26673,13 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     var dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-      self.tracker.replaceSelectedMeasures();
-      self.tracker.layout.setDirty();
+      self.view.tracker.replaceSelectedMeasures();
+      self.view.tracker.layout.setDirty();
       self._complete();
     });
     $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
       self.keyCommands.undo();
-      self.tracker.layout.setDirty();
+      self.view.renderer.setDirty();
       self._complete();
     });
     $(dgDom.element).find('.remove-button').remove();
@@ -26823,7 +26705,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     if (this.chordEditorCtrl.running) {
       this.chordEditorCtrl.endSession();
     }
-    this.layout.setDirty();
+    this.view.renderer.setDirty();
     this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
     this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
     $('body').removeClass('showAttributeDialog');
@@ -26961,7 +26843,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
   display() {
     console.log('text box creationg complete');
-    this.textElement=$(this.layout.context.svg).find('.' + this.modifier.attrs.id)[0];
+    this.textElement=$(this.view.renderer.context.svg).find('.' + this.modifier.attrs.id)[0];
 
     $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');
@@ -26993,7 +26875,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
     this._bindElements();
     if (!this.modifier.renderedBox) {
-      this.layout.renderTextGroup(this.modifier);
+      this.view.renderer.renderTextGroup(this.modifier);
     }
     this.position(this.modifier.renderedBox);
     const ul = this.modifier.ul();
@@ -27092,8 +26974,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       this.activeScoreText.fontInfo.style = fontInfo.style;
     }
     // Use layout context because render may have reset svg.
-    SuiRenderOperation.updateTextGroup(this.layout, this.layout.score, this.undoBuffer,
-      this.previousModifier, this.modifier);
+    this.view.updateTextGroup(this.previousModifier, this.modifier);
     this.previousModifier = this.modifier.serialize();
   }
 
@@ -27148,8 +27029,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
 
   constructor(parameters) {
-    const tracker = parameters.tracker;
-    const layout = tracker.layout.score.layout;
+    const tracker = parameters.view.tracker;
+    const layout = parameters.view.score.layout;
+    const score = parameters.view.score;
 
     // Create a new text modifier, if required.
     if (!parameters.modifier) {
@@ -27164,10 +27046,10 @@ class SuiTextTransformDialog  extends SuiDialogBase {
           }
         }
       }
-      const newGroup = new SmoTextGroup({blocks:[newText]});
+      const newGroup = new SmoTextGroup({ blocks: [newText] });
       parameters.modifier = newGroup;
       parameters.modifier.setActiveBlock(newText);
-      SuiRenderOperation.addTextGroup(tracker.layout, tracker.layout.score, parameters.undoBuffer, parameters.modifier);
+      parameters.view.addTextGroup(parameters.modifier);
     } else {
       // Make sure there is a score text to start the editing.
       parameters.modifier.setActiveBlock(parameters.modifier.textBlocks[0].text);
@@ -27194,8 +27076,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
   _complete() {
     this.modifier.setActiveBlock(null);
-    this.tracker.updateMap(); // update the text map
-    this.layout.setDirty();
+    this.view.tracker.updateMap(); // update the text map
+    this.view.renderer.setDirty();
     this.eventSource.unbindMouseDownHandler(this.mouseDownHandler);
     this.eventSource.unbindMouseUpHandler(this.mouseUpHandler);
     this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
@@ -27205,7 +27087,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     this.complete();
   }
   _removeText() {
-    SuiRenderOperation.removeTextGroup(this.layout, this.layout.score, this.undoBuffer, this.modifier);
+    this.view.removeTextGroup(this.modifier);
   }
 
   _bindElements() {
@@ -27326,16 +27208,16 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
   }
   handleRemove() {
     $(this.context.svg).find('g.' + this.modifier.id).remove();
-    this.undoBuffer.addBuffer('remove dynamic', UndoBuffer.bufferTypes.MEASURE, this.selection.selector, this.selection.measure);
+    this.view.undoBuffer.addBuffer('remove dynamic', UndoBuffer.bufferTypes.MEASURE, this.selection.selector, this.selection.measure);
     this.selection.note.removeModifier(this.modifier);
-    this.tracker.clearModifierSelections();
+    this.view.tracker.clearModifierSelections();
   }
   changed() {
     this.modifier.backupOriginal();
     this.components.forEach((component) => {
       this.modifier[component.smoName] = component.getValue();
     });
-    this.layout.renderNoteModifierPreview(this.modifier,this.selection);
+    this.view.renderer.renderNoteModifierPreview(this.modifier,this.selection);
   }
 }
 
@@ -27589,100 +27471,96 @@ class browserEventSource {
 }
 ;
 class SuiExceptionHandler {
-    constructor(params) {
-        this.tracker = params.tracker;
-        this.layout = params.layout;
-        this.score = params.score;
-        this.undoBuffer = params.undoBuffer;
-        this.thrown = false;
-		SuiExceptionHandler._instance = this;
-    }
+  constructor(params) {
+    this.view = params.view;
+    this.thrown = false;
+	  SuiExceptionHandler._instance = this;
+  }
 	static get instance() {
 		return SuiExceptionHandler._instance;
 	}
-    exceptionHandler(e) {
-        var self = this;
-        if (this.thrown) {
-          return;
-        }
-        this.thrown = true;
-        if (window['suiController'] && window['suiController'].reentry) {
-            return;
-        }
-
-        if (window['suiController']) {
-            suiController.reentry = true;
-        }
-        var scoreString = 'Could not serialize score.';
-        try {
-            scoreString = this.layout.score.serialize();
-        } catch (e) {
-            scoreString += ' ' + e.message;
-        }
-        var message = e.message;
-        var stack = 'No stack trace available';
-
-        try {
-            if (e.error && e.error.stack) {
-                stack = e.error.stack;
-            } else if (e['stack']) {
-				stack = e.stack;
-			}
-        } catch (e2) {
-            stack = 'Error with stack: ' + e2.message;
-        }
-        var doing = 'Last operation not available.';
-
-        var lastOp = this.undoBuffer.peek();
-        if (lastOp) {
-            doing = lastOp.title;
-        }
-        var url = 'https://github.com/AaronDavidNewman/Smoosic/issues';
-        var bodyObject = JSON.stringify({
-                message: message,
-                stack: stack,
-                lastOperation: doing,
-                scoreString: scoreString
-            }, null, ' ');
-
-        var b = htmlHelpers.buildDom;
-        var r = b('div').classes('bug-modal').append(
-                b('img').attr('src', '../styles/images/logo.png').classes('bug-logo'))
-            .append(b('button').classes('icon icon-cross bug-dismiss-button'))
-            .append(b('span').classes('bug-title').text('oh nooooo!  You\'ve found a bug'))
-            .append(b('p').text('It would be helpful if you would submit a bug report, and copy the data below into an issue'))
-            .append(b('div')
-                .append(b('textarea').attr('id', 'bug-text-area').text(bodyObject))
-                .append(
-                    b('div').classes('button-container').append(b('button').classes('bug-submit-button').text('Submit Report'))));
-
-        $('.bugDialog').html('');
-        $('.bugDialog').append(r.dom());
-
-        $('.bug-dismiss-button').off('click').on('click', function () {
-            $('body').removeClass('bugReport');
-            if (lastOp) {
-                self.undoBuffer.undo(self.score);
-                self.layout.render();
-                suiController.reentry = false;
-            }
-        });
-        $('.bug-submit-button').off('click').on('click', function () {
-            var data = {
-                title: "automated bug report",
-                body: encodeURIComponent(bodyObject)
-            };
-            $('#bug-text-area').select();
-            document.execCommand('copy');
-            window.open(url, 'Report Smoosic issues');
-        });
-        $('body').addClass('bugReport');
-        if (!this.thrown) {
-            this.thrown = true;
-            throw(e);
-        }
-
+  exceptionHandler(e) {
+    var self = this;
+    if (this.thrown) {
+      return;
     }
+    this.thrown = true;
+    if (window['suiController'] && window['suiController'].reentry) {
+      return;
+    }
+
+    if (window['suiController']) {
+      suiController.reentry = true;
+    }
+    var scoreString = 'Could not serialize score.';
+    try {
+      scoreString = this.view.score.serialize();
+    } catch (e) {
+      scoreString += ' ' + e.message;
+    }
+    var message = e.message;
+    var stack = 'No stack trace available';
+
+    try {
+      if (e.error && e.error.stack) {
+        stack = e.error.stack;
+      } else if (e['stack']) {
+  	     stack = e.stack;
+      }
+    } catch (e2) {
+      stack = 'Error with stack: ' + e2.message;
+    }
+    var doing = 'Last operation not available.';
+
+    var lastOp = this.view.undoBuffer.peek();
+    if (lastOp) {
+      doing = lastOp.title;
+    }
+    var url = 'https://github.com/AaronDavidNewman/Smoosic/issues';
+    var bodyObject = JSON.stringify({
+        message: message,
+        stack: stack,
+        lastOperation: doing,
+        scoreString: scoreString
+      }, null, ' ');
+
+    var b = htmlHelpers.buildDom;
+    var r = b('div').classes('bug-modal').append(
+      b('img').attr('src', '../styles/images/logo.png').classes('bug-logo'))
+        .append(b('button').classes('icon icon-cross bug-dismiss-button'))
+        .append(b('span').classes('bug-title').text('oh nooooo!  You\'ve found a bug'))
+        .append(b('p').text('It would be helpful if you would submit a bug report, and copy the data below into an issue'))
+        .append(b('div')
+            .append(b('textarea').attr('id', 'bug-text-area').text(bodyObject))
+            .append(
+                b('div').classes('button-container').append(b('button').classes('bug-submit-button').text('Submit Report'))));
+
+    $('.bugDialog').html('');
+    $('.bugDialog').append(r.dom());
+
+    $('.bug-dismiss-button').off('click').on('click', function () {
+        $('body').removeClass('bugReport');
+        if (lastOp) {
+            self.view.undoBuffer.undo(self.view.score);
+            self.view.renderer.render();
+            suiController.reentry = false;
+        }
+    });
+    $('.bug-submit-button').off('click').on('click', function () {
+      var data = {
+        title: "automated bug report",
+        body: encodeURIComponent(bodyObject)
+      };
+      $('#bug-text-area').select();
+      document.execCommand('copy');
+      window.open(url, 'Report Smoosic issues');
+    });
+    $('body').addClass('bugReport');
+    if (!this.thrown) {
+      this.thrown = true;
+      throw(e);
+    }
+  }
 }
 ;
 
@@ -32407,81 +32285,79 @@ class SuiKeyCommands {
     this.slashMode = false;
   }
 
-	tempoDialog() {
-		SuiTempoDialog.createAndDisplay(
+  tempoDialog() {
+    SuiTempoDialog.createAndDisplay(
       {
-        buttonElement:this.buttonElement,
-        buttonData:this.buttonData,
-        completeNotifier:this.controller,
-        tracker: this.tracker,
-        layout:this.layout,
-        undoBuffer:this.undoBuffer,
-        eventSource:this.eventSource,
-        editor:this
+        buttonElement: this.buttonElement,
+        buttonData: this.buttonData,
+        completeNotifier: this.controller,
+        view: this.view,
+        eventSource: this.eventSource,
+        editor: this
       }
     );
-	}
+  }
 
-    // ## _render
-    // utility function to render the music and update the tracker map.
-    _render() {
-		this.tracker.replaceSelectedMeasures();
-    }
+  // ## _render
+  // utility function to render the music and update the tracker map.
+  _render() {
+    this.view.tracker.replaceSelectedMeasures();
+  }
 
-	_refresh() {
-		this.layout.setRefresh();
-	}
+  _refresh() {
+    this.view.renderer.setRefresh();
+  }
 
   get score() {
-      return this.layout.score;
+      return this.view.score;
   }
 
   _renderAndAdvance() {
-    this.tracker.replaceSelectedMeasures();
-	  this.tracker.moveSelectionRight(null,true);
+    this.view.tracker.replaceSelectedMeasures();
+    this.view.tracker.moveSelectionRight(null, true);
   }
   _rebeam() {
-      this.tracker.getSelectedMeasures().forEach((measure) => {
-        smoBeamerFactory.applyBeams(measure);
-      });
+    this.view.tracker.getSelectedMeasures().forEach((measure) => {
+      smoBeamerFactory.applyBeams(measure);
+    });
   }
   _batchDurationOperation(operation) {
-    SmoUndoable.batchDurationOperation(this.layout.score, this.tracker.selections, operation, this.undoBuffer);
+    SmoUndoable.batchDurationOperation(this.view.score, this.view.tracker.selections, operation, this.view.undoBuffer);
     this._rebeam();
     this._render();
   }
 
-	scoreSelectionOperation(selection,name,parameters,description) {
-		SmoUndoable.scoreSelectionOp(this.layout.score,selection,name,parameters,
-	    this.undoBuffer,description);
-		this._render();
-	}
+  scoreSelectionOperation(selection, name, parameters, description) {
+    SmoUndoable.scoreSelectionOp(this.view.score, selection, name, parameters,
+      this.undoBuffer, description);
+    this._render();
+  }
 
 
-	scoreOperation(name,parameters,description) {
-		SmoUndoable.scoreOp(this.layout.score,name,parameters,this.undoBuffer,description);
-		this._render();
-	}
+  scoreOperation(name,parameters,description) {
+    SmoUndoable.scoreOp(this.view.score, name, parameters, this.undoBuffer, description);
+    this._render();
+  }
 
   _selectionOperation(selection, name, parameters) {
     if (parameters) {
-      SmoUndoable[name](selection, parameters, this.undoBuffer);
+      SmoUndoable[name](selection, parameters, this.view.undoBuffer);
     } else {
-      SmoUndoable[name](selection, this.undoBuffer);
+      SmoUndoable[name](selection, this.view.undoBuffer);
     }
-	  this._render();
+    this._render();
   }
 
   undo() {
-    this.layout.undo(this.undoBuffer);
+    this.view.undo();
   }
 
   _singleSelectionOperation(name, parameters) {
-    var selection = this.tracker.selections[0];
+    var selection = this.view.tracker.selections[0];
     if (parameters) {
-      SmoUndoable[name](selection, parameters, this.undoBuffer);
+      SmoUndoable[name](selection, parameters, this.view.undoBuffer);
     } else {
-      SmoUndoable[name](selection, this.undoBuffer);
+      SmoUndoable[name](selection, this.view.undoBuffer);
     }
     suiOscillator.playSelectionNow(selection);
     this._rebeam();
@@ -32489,69 +32365,68 @@ class SuiKeyCommands {
   }
 
   _transpose(selection, offset, playSelection) {
-      this._selectionOperation(selection, 'transpose', offset);
-      if (playSelection) {
-          suiOscillator.playSelectionNow(selection);
-      }
+    this._selectionOperation(selection, 'transpose', offset);
+    if (playSelection) {
+      suiOscillator.playSelectionNow(selection);
+    }
   }
 
   copy() {
-      if (this.tracker.selections.length < 1) {
-          return;
-      }
-      this.pasteBuffer.setSelections(this.layout.score, this.tracker.selections);
+    if (this.view.tracker.selections.length < 1) {
+      return;
+    }
+    this.view.pasteBuffer.setSelections(this.view.score, this.view.tracker.selections);
   }
   paste() {
-      if (this.tracker.selections.length < 1) {
-          return;
-      }
-
-      SmoUndoable.pasteBuffer(this.layout.score, this.pasteBuffer, this.tracker.selections, this.undoBuffer, 'paste')
-      this._rebeam();
-      this._refresh();
+    if (this.view.tracker.selections.length < 1) {
+      return;
+    }
+    SmoUndoable.pasteBuffer(this.view.score, this.view.pasteBuffer, this.view.tracker.selections, this.view.undoBuffer, 'paste')
+    this._rebeam();
+    this._refresh();
   }
   toggleBeamGroup() {
-      if (this.tracker.selections.length < 1) {
-          return;
-      }
-      SmoUndoable.toggleBeamGroups(this.tracker.selections, this.undoBuffer);
-      this._rebeam();
-      this._render();
+    if (this.view.tracker.selections.length < 1) {
+      return;
+    }
+    SmoUndoable.toggleBeamGroups(this.view.tracker.selections, this.view.undoBuffer);
+    this._rebeam();
+    this._render();
   }
 
   beamSelections() {
-      if (this.tracker.selections.length < 1) {
-          return;
-      }
-      SmoUndoable.beamSelections(this.tracker.selections, this.undoBuffer);
-      this._rebeam();
-      this._render();
+    if (this.view.tracker.selections.length < 1) {
+      return;
+    }
+    SmoUndoable.beamSelections(this.view.tracker.selections, this.view.undoBuffer);
+    this._rebeam();
+    this._render();
   }
   toggleBeamDirection() {
-      if (this.tracker.selections.length < 1) {
-          return;
-      }
-      SmoUndoable.toggleBeamDirection(this.tracker.selections, this.undoBuffer);
-      this._render();
+    if (this.view.tracker.selections.length < 1) {
+      return;
+    }
+    SmoUndoable.toggleBeamDirection(this.view.tracker.selections, this.view.undoBuffer);
+    this._render();
   }
 
   collapseChord() {
-      SmoUndoable.noop(this.layout.score, this.undoBuffer);
-      this.tracker.selections.forEach((selection) => {
-          var p = selection.note.pitches[0];
-          p = JSON.parse(JSON.stringify(p));
-          selection.note.pitches = [p];
-      });
-      this._render();
+    SmoUndoable.noop(this.view.score, this.view.undoBuffer);
+    this.view.tracker.selections.forEach((selection) => {
+        var p = selection.note.pitches[0];
+        p = JSON.parse(JSON.stringify(p));
+        selection.note.pitches = [p];
+    });
+    this._render();
   }
 
   playScore() {
-    var mm = this.tracker.getExtremeSelection(-1);
+    var mm = this.view.tracker.getExtremeSelection(-1);
     if (suiAudioPlayer.playingInstance && suiAudioPlayer.playingInstance.paused) {
       suiAudioPlayer.playingInstance.play();
       return;
     }
-    new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure,tracker:this.tracker}).play();
+    new suiAudioPlayer({ score: this.view.score, startIndex: mm.selector.measure, tracker: this.view.tracker }).play();
   }
 
   stopPlayer() {
@@ -32566,7 +32441,7 @@ class SuiKeyCommands {
   }
 
   interval(keyEvent) {
-    if (this.tracker.selections.length != 1)
+    if (this.view.tracker.selections.length != 1)
       return;
     // code='Digit3'
     var interval = parseInt(keyEvent.keyCode) - 49;  // 48 === '0', 0 indexed
@@ -32577,22 +32452,14 @@ class SuiKeyCommands {
   }
 
   transpose(offset) {
-      var grace = this.tracker.getSelectedGraceNotes();
-      if (grace.length) {
-          grace.forEach((artifact) => {
-              SmoUndoable.transposeGraceNotes(artifact.selection,{modifiers:artifact.modifier,offset:offset},this.undoBuffer);
-          });
-          this._render();
-
-          return;
-      }
-      // If there are lots of selections, just play the first note
-      var playSelection = true;
-      this.tracker.selections.forEach((selected) => {
-          this._transpose(selected, offset, playSelection);
-          playSelection = false;
-      });
-      this._render();
+    this.view.transposeSelections(offset);
+    // If there are lots of selections, just play the first note
+    /* var playSelection = true;
+    this.view.tracker.selections.forEach((selected) => {
+        this._transpose(selected, offset, playSelection);
+        playSelection = false;
+    });
+    this._render();  */
   }
   transposeDown() {
     this.transpose(-1);
@@ -32607,18 +32474,18 @@ class SuiKeyCommands {
     this.transpose(-12);
   }
   makeRest() {
-      this.tracker.selections.forEach((selection) => {
-          this._selectionOperation(selection,'makeRest');
-      });
-      this.tracker.replaceSelectedMeasures();
+    this.view.tracker.selections.forEach((selection) => {
+      this._selectionOperation(selection,'makeRest');
+    });
+    this.view.tracker.replaceSelectedMeasures();
   }
 
   _setPitch(selected, letter) {
     var selector = selected.selector;
-    var hintSel = SmoSelection.lastNoteSelection(this.layout.score,
+    var hintSel = SmoSelection.lastNoteSelection(this.view.score,
       selector.staff, selector.measure, selector.voice, selector.tick);
     if (!hintSel) {
-      hintSel = SmoSelection.nextNoteSelection(this.layout.score,
+      hintSel = SmoSelection.nextNoteSelection(this.view.score,
         selector.staff, selector.measure, selector.voice, selector.tick);
     }
     // The selection no longer exists, possibly deleted
@@ -32649,126 +32516,110 @@ class SuiKeyCommands {
     if (downv.indexOf(delta) >= 0) {
       pitch.octave -= 1;
     }
-    SmoUndoable['setPitch'](selected, pitch, this.undoBuffer);
+    SmoUndoable['setPitch'](selected, pitch, this.view.undoBuffer);
     suiOscillator.playSelectionNow(selected);
   }
 
-    setPitchCommand(letter) {
-        this.tracker.selections.forEach((selected) => this._setPitch(selected, letter));
-        this._renderAndAdvance();
-    }
+  setPitchCommand(letter) {
+    this.view.tracker.selections.forEach((selected) => this._setPitch(selected, letter));
+    this._renderAndAdvance();
+  }
 
-    setPitch(keyEvent) {
-        this.setPitchCommand(keyEvent.key.toLowerCase());
-    }
+  setPitch(keyEvent) {
+    this.setPitchCommand(keyEvent.key.toLowerCase());
+  }
 
-    dotDuration(keyEvent) {
-        this._batchDurationOperation('dotDuration');
-    }
+  dotDuration(keyEvent) {
+    this._batchDurationOperation('dotDuration');
+  }
 
-    undotDuration(keyEvent) {
-        this._batchDurationOperation('undotDuration');
-    }
+  undotDuration(keyEvent) {
+    this._batchDurationOperation('undotDuration');
+  }
 
-    doubleDuration(keyEvent) {
-        var grace = this.tracker.getSelectedGraceNotes();
-        if (grace.length) {
-            grace.forEach((artifact) => {
-                SmoUndoable.doubleGraceNoteDuration(artifact.selection,artifact.modifier,this.undoBuffer);
-            });
-            this._render();
-
-            return;
-        }
-        this._batchDurationOperation('doubleDuration');
+  doubleDuration(keyEvent) {
+    var grace = this.view.tracker.getSelectedGraceNotes();
+    if (grace.length) {
+      grace.forEach((artifact) => {
+        SmoUndoable.doubleGraceNoteDuration(artifact.selection, artifact.modifier, this.view.undoBuffer);
+      });
+      this._render();
+      return;
     }
+    this._batchDurationOperation('doubleDuration');
+  }
 
-    halveDuration(keyEvent) {
-        var grace = this.tracker.getSelectedGraceNotes();
-        if (grace.length) {
-            grace.forEach((artifact) => {
-                SmoUndoable.halveGraceNoteDuration(artifact.selection,artifact.modifier,this.undoBuffer);
-            });
-            this._render();
-            return;
-        }
-        this._batchDurationOperation('halveDuration');
+  halveDuration(keyEvent) {
+    var grace = this.view.tracker.getSelectedGraceNotes();
+    if (grace.length) {
+      grace.forEach((artifact) => {
+        SmoUndoable.halveGraceNoteDuration(artifact.selection, artifact.modifier, this.view.undoBuffer);
+      });
+      this._render();
+      return;
     }
+    this._batchDurationOperation('halveDuration');
+  }
 
-    addMeasure(keyEvent) {
-        if (this.tracker.selections.length < 1) {
-            return;
-        }
-        var measure = this.tracker.getFirstMeasureOfSelection();
-        if (measure) {
-            var nmeasure = SmoMeasure.getDefaultMeasureWithNotes(measure);
-			var pos = measure.measureNumber.measureIndex;
-			if (keyEvent.shiftKey) {
-				pos += 1;
-			}
-            nmeasure.measureNumber.measureIndex = pos;
-            nmeasure.setActiveVoice(0);
-            SmoUndoable.addMeasure(this.layout.score, pos, nmeasure, this.undoBuffer);
-            this.layout.clearLine(measure);
-            this._refresh();
-        }
+  addMeasure(keyEvent) {
+    if (this.view.tracker.selections.length < 1) {
+      return;
     }
-	deleteMeasure() {
-    if (this.tracker.selections.length < 1) {
+    var measure = this.view.tracker.getFirstMeasureOfSelection();
+    if (measure) {
+      var nmeasure = SmoMeasure.getDefaultMeasureWithNotes(measure);
+      var pos = measure.measureNumber.measureIndex;
+      if (keyEvent.shiftKey) {
+        pos += 1;
+      }
+      nmeasure.measureNumber.measureIndex = pos;
+      nmeasure.setActiveVoice(0);
+      SmoUndoable.addMeasure(this.view.score, pos, nmeasure, this.view.undoBuffer);
+      this.view.renderer.clearLine(measure);
+      this._refresh();
+    }
+  }
+  deleteMeasure() {
+    if (this.view.tracker.selections.length < 1) {
       return;
     }
     // don't delete the last measure
-    if (this.layout.score.staves[0].measures.length < 2) {
+    if (this.view.score.staves[0].measures.length < 2) {
       return;
     }
-    var selection = this.tracker.selections[0];
+    var selection = this.view.tracker.selections[0];
     var ix = selection.selector.measure;
-    this.layout.score.staves.forEach((staff) => {
-      this.layout.unrenderMeasure(staff.measures[ix]);
-      this.layout.unrenderMeasure(staff.measures[staff.measures.length-1]);
+    this.view.score.staves.forEach((staff) => {
+      this.view.renderer.unrenderMeasure(staff.measures[ix]);
+      this.view.renderer.unrenderMeasure(staff.measures[staff.measures.length-1]);
 
       // A little hacky - delete the modifiers if they start or end on
       // the measure
       staff.modifiers.forEach((modifier) => {
         if (modifier.startSelector.measure == ix || modifier.endSelector.measure == ix) {
-  	        $(this.layout.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
+            $(this.view.renderer.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
         }
-        });
+      });
     });
-    this.tracker.deleteMeasure(selection);
+    this.view.tracker.deleteMeasure(selection);
     // this.layout.unrenderAll();
 
-    SmoUndoable.deleteMeasure(this.layout.score, selection, this.undoBuffer);
-    this.tracker.loadScore();
+    SmoUndoable.deleteMeasure(this.view.score, selection, this.view.undoBuffer);
+    this.view.tracker.loadScore();
     this._refresh();
   }
 
   toggleCourtesyAccidental() {
-    var grace = this.tracker.getSelectedGraceNotes();
-    if (grace.length) {
-      grace.forEach((artifact) => {
-        SmoUndoable.toggleGraceNoteCourtesyAccidental(artifact.selection,{modifiers:artifact.modifier},this.undoBuffer);
-      });
-      this._render();
-
-      return;
-    }
-    if (this.tracker.selections.length < 1) {
-      return;
-    }
-    this.tracker.selections.forEach((selection) => {
-      SmoUndoable.toggleCourtesyAccidental(selection, this.undoBuffer);
-    });
-    this._render();
+    this.view.toggleCourtesyAccidentals();
   }
   toggleEnharmonic() {
-    this.tracker.selections.forEach((selected) => this._selectionOperation(selected, 'toggleEnharmonic'));
+    this.view.tracker.selections.forEach((selected) => this._selectionOperation(selected, 'toggleEnharmonic'));
     this._render();
   }
 
   rerender(keyEvent) {
-    this.layout.unrenderAll();
-    SmoUndoable.noop(this.layout.score, this.undoBuffer);
+    this.view.renderer.unrenderAll();
+    SmoUndoable.noop(this.view.score, this.view.undoBuffer);
     this.undo();
     this._render();
   }
@@ -32784,28 +32635,26 @@ class SuiKeyCommands {
     this._singleSelectionOperation('unmakeTuplet');
   }
   setNoteHead(keyEvent) {
-     SmoUndoable.setNoteHead(this.layout.score, this.tracker.selections, 'x2', this.undoBuffer);
+     SmoUndoable.setNoteHead(this.view.score, this.view.tracker.selections, 'x2', this.view.undoBuffer);
      this._render();
   }
   removeGraceNote(keyEvent) {
-    this._singleSelectionOperation('removeGraceNote',{index:0});
+    this._singleSelectionOperation('removeGraceNote', { index: 0 });
   }
   addGraceNote(keyEvent) {
     this._singleSelectionOperation('addGraceNote');
   }
   slashGraceNotes(keyEvent) {
-    if (!this.tracker.modifierSelections.length) {
+    if (!this.view.tracker.modifierSelections.length) {
       return;
     }
-    this._selectionOperation(this.tracker.modifierSelections,'slashGraceNotes');
+    this._selectionOperation(this.view.tracker.modifierSelections,'slashGraceNotes');
   }
 
   toggleArticulationCommand(articulation, ctor) {
-    this.undoBuffer.addBuffer('change articulation ' + articulation,
-      UndoBuffer.bufferTypes.STAFF, this.tracker.selections[0].selector, this.tracker.selections[0].staff);
-
-    this.tracker.selections.forEach((sel) => {
-
+    this.view.undoBuffer.addBuffer('change articulation ' + articulation,
+      UndoBuffer.bufferTypes.STAFF, this.view.tracker.selections[0].selector, this.view.tracker.selections[0].staff);
+    this.view.tracker.selections.forEach((sel) => {
       if (ctor === 'SmoArticulation') {
         var aa = new SmoArticulation({
             articulation: articulation
@@ -32821,30 +32670,29 @@ class SuiKeyCommands {
     this._render();
   }
 
-    addRemoveArticulation(keyEvent) {
-        if (this.tracker.selections.length < 1)
-            return;
-
-        var atyp = SmoArticulation.articulations.accent;
-
-        if (keyEvent.key.toLowerCase() === 'h') {
-            atyp = SmoArticulation.articulations.accent;
-        }
-        if (keyEvent.key.toLowerCase() === 'i') {
-            atyp = SmoArticulation.articulations.tenuto;
-        }
-        if (keyEvent.key.toLowerCase() === 'j') {
-            atyp = SmoArticulation.articulations.staccato;
-        }
-        if (keyEvent.key.toLowerCase() === 'k') {
-            atyp = SmoArticulation.articulations.marcato;
-        }
-        if (keyEvent.key.toLowerCase() === 'l') {
-            atyp = SmoArticulation.articulations.pizzicato;
-        }
-        this.toggleArticulationCommand(atyp, 'SmoArticulation');
-
+  addRemoveArticulation(keyEvent) {
+    if (this.view.tracker.selections.length < 1) {
+      return;
     }
+    var atyp = SmoArticulation.articulations.accent;
+
+    if (keyEvent.key.toLowerCase() === 'h') {
+      atyp = SmoArticulation.articulations.accent;
+    }
+    if (keyEvent.key.toLowerCase() === 'i') {
+      atyp = SmoArticulation.articulations.tenuto;
+    }
+    if (keyEvent.key.toLowerCase() === 'j') {
+      atyp = SmoArticulation.articulations.staccato;
+    }
+    if (keyEvent.key.toLowerCase() === 'k') {
+      atyp = SmoArticulation.articulations.marcato;
+    }
+    if (keyEvent.key.toLowerCase() === 'l') {
+      atyp = SmoArticulation.articulations.pizzicato;
+    }
+    this.toggleArticulationCommand(atyp, 'SmoArticulation');
+  }
 }
 ;
 class suiMenuBase {
@@ -32878,6 +32726,7 @@ class suiMenuManager {
     Vex.Merge(this, suiMenuManager.defaults);
     Vex.Merge(this, params);
     this.eventSource = params.eventSource;
+    this.view = params.view;
     this.bound = false;
     this.hotkeyBindings={};
   }
@@ -32898,7 +32747,7 @@ class suiMenuManager {
   }
 
   get score() {
-    return this.layout.score;
+    return this.view.score;
   }
 
   // ### Description:
@@ -33048,7 +32897,7 @@ class suiMenuManager {
       score: this.score,
       completeNotifier:this.controller,
       closePromise:this.closeMenuPromise,
-      layout: this.layout,
+      view: this.view,
       eventSource:this.eventSource,
       undoBuffer: this.undoBuffer
     });
@@ -33195,7 +33044,7 @@ class SuiFileMenu extends suiMenuBase {
    var self = this;
    window.print();
    SuiPrintFileDialog.createAndDisplay({
-       layout: self.layout,
+       view: self.view,
        completeNotifier:self.completeNotifier,
        closeMenuPromise:self.closePromise,
        tracker:self.tracker,
@@ -33207,68 +33056,59 @@ class SuiFileMenu extends suiMenuBase {
     var self=this;
     if (text == 'saveFile') {
       SuiSaveFileDialog.createAndDisplay({
-        completeNotifier:this.completeNotifier,
-        tracker:this.tracker,
-        undoBuffer:this.keyCommands.undoBuffer,
-        eventSource:this.eventSource,
-        keyCommands:this.keyCommands,
-        layout:this.layout,
-        closeMenuPromise:this.closePromise
+        completeNotifier: this.completeNotifier,
+        tracker: this.tracker,
+        undoBuffer: this.keyCommands.undoBuffer,
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        view: this.view,
+        closeMenuPromise: this.closePromise
     });
     } else if (text == 'openFile') {
       SuiLoadFileDialog.createAndDisplay({
-        completeNotifier:this.completeNotifier,
-        tracker:this.tracker,
-        undoBuffer:this.undoBuffer,
-        eventSource:this.eventSource,
-        editor:this.keyCommands,
-        layout:this.layout,
-        closeMenuPromise:this.closePromise
+        completeNotifier: this.completeNotifier,
+        tracker: this.tracker,
+        undoBuffer: this.undoBuffer,
+        eventSource: this.eventSource,
+        editor: this.keyCommands,
+        view: this.view,
+        closeMenuPromise: this.closePromise
      });
      } else if (text == 'newFile') {
         this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
         var score = SmoScore.getDefaultScore();
-        this.layout.score = score;
-        setTimeout(function() {
-        $('body').trigger('forceResizeEvent');
-        },1);
-
+        this.view.changeScore(score);
       } else if (text == 'quickSave') {
-        var scoreStr = JSON.stringify(this.layout.score.serialize());
+        var scoreStr = JSON.stringify(this.view.storeScore.serialize());
         localStorage.setItem(smoSerialize.localScore,scoreStr);
       } else if (text == 'printScore') {
         var systemPrint = () => {
         self.systemPrint();
       }
-        this.layout.renderForPrintPromise().then(systemPrint);
+        this.view.renderer.renderForPrintPromise().then(systemPrint);
       } else if (text == 'bach') {
   			this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
   			var score = SmoScore.deserialize(inventionJson);
-  			this.layout.score = score;
-  			this.layout.setViewport(true);
+  			this.view.changeScore(score);
     } else if (text == 'yamaJson') {
       this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
       var score = SmoScore.deserialize(yamaJson);
-      this.layout.score = score;
-      this.layout.setViewport(true);
+      this.view.changeScore(score);
     }
       else if (text == 'bambino') {
         this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
         var score = SmoScore.deserialize(jesuBambino);
-        this.layout.score = score;
-        this.layout.setViewport(true);
+        this.view.changeScore(score);
       } else if (text == 'microtone') {
         this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
         var score = SmoScore.deserialize(microJson);
-        this.layout.score = score;
-        this.layout.setViewport(true);
+        this.view.changeScore(score);
       }  else if (text == 'preciousLord') {
         this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
         var score = SmoScore.deserialize(preciousLord);
-        this.layout.score = score;
-        this.layout.setViewport(true);
+        this.view.changeScore(score);
     }
-  this.complete();
+    this.complete();
   }
 
   keydown(ev) {}
@@ -33412,21 +33252,20 @@ class SuiTimeSignatureMenu extends suiMenuBase {
 
     if (text == 'TimeSigOther') {
       SuiTimeSignatureDialog.createAndDisplay({
-  			layout: this.layout,
-        tracker: this.tracker,
+  			view: this.view,
         completeNotifier: this.completeNotifier,
         closeMenuPromise: this.closePromise,
-        undoBuffer: this.undoBuffer,
+        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource
 	    });
       this.complete();
       return;
     }
     var timeSig = $(ev.currentTarget).attr('data-value');
-    this.layout.unrenderAll();
-    SmoUndoable.scoreSelectionOp(this.layout.score, this.tracker.selections,
+    this.view.renderer.unrenderAll();
+    SmoUndoable.scoreSelectionOp(this.view.score, this.view.tracker.selections,
       'setTimeSignature', timeSig,this.undoBuffer, 'change time signature');
-    this.layout.setRefresh();
+    this.view.renderer.setRefresh();
     this.complete();
   }
 
@@ -33519,14 +33358,14 @@ class SuiKeySignatureMenu extends suiMenuBase {
     var keySig = $(ev.currentTarget).attr('data-value');
     keySig = (keySig === 'cancel' ? keySig : keySig.substring(5,keySig.length));
     var changed = [];
-    this.tracker.selections.forEach((sel) => {
+    this.view.tracker.selections.forEach((sel) => {
       if (changed.indexOf(sel.selector.measure) === -1) {
         changed.push(sel.selector.measure);
         SmoUndoable.addKeySignature(this.score, sel, keySig, this.keyCommands.undoBuffer);
         }
     });
 
-    this.layout.setRefresh();
+    this.view.renderer.setRefresh();
     this.complete();
   }
   keydown(ev) {}
@@ -33580,14 +33419,15 @@ class SuiStaffModifierMenu extends suiMenuBase {
   selection(ev) {
     var op = $(ev.currentTarget).attr('data-value');
 
-    var ft = this.tracker.getExtremeSelection(-1);
-    var tt = this.tracker.getExtremeSelection(1);
+    var ft = this.view.tracker.getExtremeSelection(-1);
+    var tt = this.view.tracker.getExtremeSelection(1);
 
     if (op === 'ending') {
       SmoUndoable.scoreOp(this.score,'addEnding',
-        new SmoVolta({startBar:ft.selector.measure,endBar:tt.selector.measure,number:1}),this.keyCommands.undoBuffer,'add ending');
+        new SmoVolta({ startBar: ft.selector.measure, endBar: tt.selector.measure,number: 1 }),
+          this.keyCommands.undoBuffer, 'add ending');
       this.complete();
-    return;
+      return;
     }
     if (SmoSelector.sameNote(ft.selector, tt.selector)) {
       this.complete();
@@ -33595,12 +33435,11 @@ class SuiStaffModifierMenu extends suiMenuBase {
     }
 
     SmoUndoable[op](ft, tt, this.keyCommands.undoBuffer);
-    this.tracker.replaceSelectedMeasures();
+    this.view.tracker.replaceSelectedMeasures();
     this.complete();
   }
 
   keydown(ev) {
-
   }
 }
 
@@ -33652,7 +33491,6 @@ class SuiLanguageMenu extends suiMenuBase {
   }
 
   keydown(ev) {
-
   }
 }
 class SuiMeasureMenu extends suiMenuBase {
@@ -33704,22 +33542,20 @@ class SuiMeasureMenu extends suiMenuBase {
 
     if (text == 'formatMeasureDialog') {
       SuiMeasureDialog.createAndDisplay({
-        layout: this.layout,
-        tracker: this.tracker,
+        view: this.view,
         completeNotifier:this.completeNotifier,
         closeMenuPromise:this.closePromise,
-        undoBuffer:this.undoBuffer,
         eventSource:this.eventSource
       });
       this.complete();
       return;
     }
     if (text === 'addMenuBeforeCmd') {
-      this.keyCommands.addMeasure({shiftKey:false});
+      this.keyCommands.addMeasure({ shiftKey: false });
       this.complete();
     }
     if (text === 'addMenuAfterCmd') {
-      this.keyCommands.addMeasure({shiftKey:true});
+      this.keyCommands.addMeasure({ shiftKey: true });
       this.complete();
     }
     if (text === 'deleteSelected') {
@@ -34019,67 +33855,65 @@ class Qwerty {
 // ### RibbonButton methods
 // ---
 class RibbonButtons {
-	static get paramArray() {
-		return ['ribbonButtons', 'ribbons', 'keyCommands', 'controller', 'tracker', 'menus','layout','eventSource'];
-	}
-	static _buttonHtml(containerClass,buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
-		var b = htmlHelpers.buildDom;
-		var r = b('div').classes(containerClass).append(b('button').attr('id', buttonId).classes(buttonClass).append(
-					b('span').classes('left-text').append(
-					    b('span').classes('text-span').text(buttonText)).append(
-					b('span').classes('ribbon-button-text icon ' + buttonIcon))).append(
-					b('span').classes('ribbon-button-hotkey').text(buttonKey)));
-		return r.dom();
-	}
+  static get paramArray() {
+    return ['ribbonButtons', 'ribbons', 'keyCommands', 'controller', 'menus','eventSource', 'view'];
+  }
+  static _buttonHtml(containerClass,buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
+    var b = htmlHelpers.buildDom;
+    var r = b('div').classes(containerClass).append(b('button').attr('id', buttonId).classes(buttonClass).append(
+      b('span').classes('left-text').append(
+        b('span').classes('text-span').text(buttonText)).append(
+      b('span').classes('ribbon-button-text icon ' + buttonIcon))).append(
+      b('span').classes('ribbon-button-hotkey').text(buttonKey)));
+    return r.dom();
+  }
   static get translateButtons() {
     if (!RibbonButtons._translateButtons) {
       RibbonButtons._translateButtons = [];
     }
     return RibbonButtons._translateButtons;
   }
-	constructor(parameters) {
-		smoSerialize.filteredMerge(RibbonButtons.paramArray, parameters, this);
-		this.ribbonButtons = parameters.ribbonButtons;
-		this.ribbons = parameters.ribbons;
-		this.collapsables = [];
-		this.collapseChildren = [];
-	}
-	_executeButtonModal(buttonElement, buttonData) {
-		var ctor = eval(buttonData.ctor);
-		ctor.createAndDisplay(
+  constructor(parameters) {
+    smoSerialize.filteredMerge(RibbonButtons.paramArray, parameters, this);
+    this.ribbonButtons = parameters.ribbonButtons;
+    this.ribbons = parameters.ribbons;
+    this.collapsables = [];
+    this.collapseChildren = [];
+  }
+  _executeButtonModal(buttonElement, buttonData) {
+    var ctor = eval(buttonData.ctor);
+    ctor.createAndDisplay(
       {
-        tracker:this.tracker,
         undoBuffer:this.keyCommands.undoBuffer,
         eventSource:this.eventSource,
         keyCommands:this.keyCommands,
         completeNotifier: this.controller,
-        layout: this.layout
+        view: this.view
       }
     );
-	}
-	_executeButtonMenu(buttonElement, buttonData) {
-		var self = this;
+  }
+  _executeButtonMenu(buttonElement, buttonData) {
     this.menus.slashMenuMode(this.controller);
-		this.menus.createMenu(buttonData.ctor);
-	}
-	_rebindController() {
-		this.controller.render();
-		this.controller.bindEvents();
-	}
-	_executeButton(buttonElement, buttonData) {
-		if (buttonData.action === 'modal') {
-			this._executeButtonModal(buttonElement, buttonData);
-			return;
-		}
-		if (buttonData.action === 'menu' || buttonData.action === 'collapseChildMenu') {
-			this._executeButtonMenu(buttonElement, buttonData);
-			return;
-		}
-	}
+    this.menus.createMenu(buttonData.ctor);
+  }
+  _rebindController() {
+    this.controller.render();
+    this.controller.bindEvents();
+  }
+  _executeButton(buttonElement, buttonData) {
+    if (buttonData.action === 'modal') {
+      this._executeButtonModal(buttonElement, buttonData);
+      return;
+    }
+    if (buttonData.action === 'menu' || buttonData.action === 'collapseChildMenu') {
+      this._executeButtonMenu(buttonElement, buttonData);
+      return;
+    }
+  }
 
-	_bindButton(buttonElement, buttonData) {
+  _bindButton(buttonElement, buttonData) {
     this.eventSource.domClick(buttonElement,this,'_executeButton',buttonData);
-	}
+  }
   _createCollapsibleButtonGroups(selector) {
     // Now all the button elements have been bound.  Join child and parent buttons
     // For all the children of a button group, add it to the parent group
@@ -34089,7 +33923,7 @@ class RibbonButtons {
         containerClass = 'ribbonButtonContainerMore'
       }
       var buttonHtml = RibbonButtons._buttonHtml(
-        containerClass,b.id, b.classes, b.leftText, b.icon, b.rightText);
+        containerClass, b.id, b.classes, b.leftText, b.icon, b.rightText);
       if (b.dataElements) {
         var bkeys = Object.keys(b.dataElements);
         bkeys.forEach((bkey) => {
@@ -34121,194 +33955,188 @@ class RibbonButtons {
     // ### _createButtonHtml
     // For each button, create the html and bind the events based on
     // the button's configured action.
-	_createRibbonHtml(buttonAr, selector) {
-		buttonAr.forEach((buttonId) => {
-			var buttonData = this.ribbonButtons.find((e) => {
-					return e.id === buttonId;
-				});
-			if (buttonData) {
+  _createRibbonHtml(buttonAr, selector) {
+    buttonAr.forEach((buttonId) => {
+      var buttonData = this.ribbonButtons.find((e) => {
+        return e.id === buttonId;
+      });
+      if (buttonData) {
         if (buttonData.leftText) {
-          RibbonButtons.translateButtons.push({buttonId:buttonData.id,
-            buttonText:buttonData.leftText});
+          RibbonButtons.translateButtons.push({ buttonId: buttonData.id,
+            buttonText: buttonData.leftText });
         }
 
         // collapse child is hidden until the parent button is selected, exposing the button group
-				if (RibbonButtons.isCollapsible(buttonData.action)) {
-					this.collapseChildren.push(buttonData);
+        if (RibbonButtons.isCollapsible(buttonData.action)) {
+          this.collapseChildren.push(buttonData);
         }
-				if (buttonData.action != 'collapseChild') {
-
+        if (buttonData.action != 'collapseChild') {
           // else the button has a specific action, such as a menu or dialog, or a parent button
           // for translation, add the menu name to the button class
           var buttonClass = buttonData.classes;
           if (buttonData.action === 'menu' || buttonData.action === 'modal') {
             buttonClass += ' ' +buttonData.ctor;
           }
-					var buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer',
+          var buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer',
               buttonData.id, buttonClass, buttonData.leftText, buttonData.icon, buttonData.rightText);
-					$(buttonHtml).attr('data-group', buttonData.group);
-
-					$(selector).append(buttonHtml);
+          $(buttonHtml).attr('data-group', buttonData.group);
+          $(selector).append(buttonHtml);
           var buttonElement = $('#' + buttonData.id);
-
           // If this is a collabsable button, create it, otherwise bind its execute function.
-					if (buttonData.action == 'collapseParent') {
-						$(buttonHtml).addClass('collapseContainer');
+          if (buttonData.action == 'collapseParent') {
+            $(buttonHtml).addClass('collapseContainer');
                   // collapseParent
-          		this.collapsables.push(new CollapseRibbonControl({
-          				ribbonButtons: this.ribbonButtons,
-                  layout:this.layout,
-                  undoBuffer:this.keyCommands.undoBuffer,
-          				menus: this.menus,
+              this.collapsables.push(new CollapseRibbonControl({
+                  ribbonButtons: this.ribbonButtons,
+                  view: this.view,
+                  menus: this.menus,
                   eventSource:this.eventSource,
-          				tracker: this.tracker,
-          				controller: this.controller,
-          				keyCommands: this.keyCommands,
-          				buttonElement: buttonElement,
-          				buttonData: buttonData
-          			}));
-					} else {
+                  controller: this.controller,
+                  keyCommands: this.keyCommands,
+                  buttonElement: buttonElement,
+                  buttonData: buttonData
+                }));
+          } else {
             this.eventSource.domClick(buttonElement,this,'_executeButton',buttonData);
           }
-				}
-			}
-		});
-	}
+        }
+      }
+    });
+  }
 
   createRibbon(buttonDataArray,parentElement) {
     this._createRibbonHtml(buttonDataArray, parentElement);
     this._createCollapsibleButtonGroups(parentElement);
   }
 
-	display() {
-		$('body .controls-left').html('');
-		$('body .controls-top').html('');
+  display() {
+    $('body .controls-left').html('');
+    $('body .controls-top').html('');
 
-		var buttonAr = this.ribbons['left'];
-		this.createRibbon(buttonAr, 'body .controls-left');
+    var buttonAr = this.ribbons['left'];
+    this.createRibbon(buttonAr, 'body .controls-left');
 
-		buttonAr = this.ribbons['top'];
-		this.createRibbon(buttonAr, 'body .controls-top');
-	}
+    buttonAr = this.ribbons['top'];
+    this.createRibbon(buttonAr, 'body .controls-top');
+  }
 }
 
 class DebugButtons {
-	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
-	}
-	bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			$('body').trigger('redrawScore');
-		});
-    }
+  constructor(parameters) {
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.keyCommands = parameters.keyCommands;
+  }
+  bind() {
+    var self = this;
+    $(this.buttonElement).off('click').on('click', function () {
+      $('body').trigger('redrawScore');
+    });
+  }
 }
 
 class ExtendedCollapseParent {
     constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
-	}
-    bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			$(this).closest('.collapseContainer').toggleClass('expanded-more');
-		});
-    }
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.keyCommands = parameters.keyCommands;
+  }
+  bind() {
+    $(this.buttonElement).off('click').on('click', function () {
+      $(this).closest('.collapseContainer').toggleClass('expanded-more');
+    });
+  }
 }
 class BeamButtons {
-	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
-	}
-    operation() {
-        if (this.buttonData.id === 'breakBeam') {
-			this.keyCommands.toggleBeamGroup();
-        } else if (this.buttonData.id === 'beamSelections') {
-            this.keyCommands.beamSelections();
-        } else if (this.buttonData.id === 'toggleBeamDirection') {
-            this.keyCommands.toggleBeamDirection();
-        }
+  constructor(parameters) {
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.keyCommands = parameters.keyCommands;
+  }
+  operation() {
+    if (this.buttonData.id === 'breakBeam') {
+      this.keyCommands.toggleBeamGroup();
+    } else if (this.buttonData.id === 'beamSelections') {
+      this.keyCommands.beamSelections();
+    } else if (this.buttonData.id === 'toggleBeamDirection') {
+      this.keyCommands.toggleBeamDirection();
     }
-	bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			self.operation();
-		});
+  }
+  bind() {
+    const self = this;
+    $(this.buttonElement).off('click').on('click', function () {
+      self.operation();
+    });
     }
 }
 class MicrotoneButtons {
     constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
-        this.tracker = parameters.tracker
-	}
-    applyButton(el) {
-        var pitch = 0;
-        if (this.tracker.selections.length == 1 &&
-            this.tracker.selections[0].selector.pitches &&
-            this.tracker.selections[0].selector.pitches.length
-        ) {
-            pitch = this.tracker.selections[0].selector.pitches[0];
-        }
-        var tn = new SmoMicrotone({tone:el.id,pitch:pitch});
-        SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
-             this.tracker.selections,'addRemoveMicrotone',tn,this.keyCommands.undoBuffer);
-        suiOscillator.playSelectionNow(this.tracker.selections[0]);
-        this.tracker.layout.addToReplaceQueue(this.tracker.selections[0]);
+      this.buttonElement = parameters.buttonElement;
+      this.buttonData = parameters.buttonData;
+      this.keyCommands = parameters.keyCommands;
+      this.view = parameters.view
     }
-    bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-            self.applyButton(self.buttonData);
-		});
-	}
+  applyButton(el) {
+    var pitch = 0;
+    if (this.view.tracker.selections.length == 1 &&
+      this.view.tracker.selections[0].selector.pitches &&
+      this.view.tracker.selections[0].selector.pitches.length
+    ) {
+      pitch = this.view.tracker.selections[0].selector.pitches[0];
+    }
+    var tn = new SmoMicrotone({ tone: el.id,pitch: pitch });
+    SmoUndoable.multiSelectionOperation(this.view.score,
+      this.tracker.selections, 'addRemoveMicrotone', tn, this.view.undoBuffer);
+    suiOscillator.playSelectionNow(this.view.tracker.selections[0]);
+    this.view.renderer.addToReplaceQueue(this.view.tracker.selections[0]);
+  }
+  bind() {
+    var self = this;
+    $(this.buttonElement).off('click').on('click', function () {
+      self.applyButton(self.buttonData);
+    });
+  }
 }
 class DurationButtons {
-	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
-	}
-	setDuration() {
-		if (this.buttonData.id === 'GrowDuration') {
-			this.keyCommands.doubleDuration();
-		} else if (this.buttonData.id === 'LessDuration') {
-			this.keyCommands.halveDuration();
-		} else if (this.buttonData.id === 'GrowDurationDot') {
-			this.keyCommands.dotDuration();
-		} else if (this.buttonData.id === 'LessDurationDot') {
-			this.keyCommands.undotDuration();
-		} else if (this.buttonData.id === 'TripletButton') {
-			this.keyCommands.makeTupletCommand(3);
-		} else if (this.buttonData.id === 'QuintupletButton') {
-			this.keyCommands.makeTupletCommand(5);
-		} else if (this.buttonData.id === 'SeptupletButton') {
-			this.keyCommands.makeTupletCommand(7);
-		} else if (this.buttonData.id === 'NoTupletButton') {
-			this.keyCommands.unmakeTuplet();
-		}
-	}
-	bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			self.setDuration();
-		});
-	}
+  constructor(parameters) {
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.keyCommands = parameters.keyCommands;
+  }
+  setDuration() {
+    if (this.buttonData.id === 'GrowDuration') {
+      this.keyCommands.doubleDuration();
+    } else if (this.buttonData.id === 'LessDuration') {
+      this.keyCommands.halveDuration();
+    } else if (this.buttonData.id === 'GrowDurationDot') {
+      this.keyCommands.dotDuration();
+    } else if (this.buttonData.id === 'LessDurationDot') {
+      this.keyCommands.undotDuration();
+    } else if (this.buttonData.id === 'TripletButton') {
+      this.keyCommands.makeTupletCommand(3);
+    } else if (this.buttonData.id === 'QuintupletButton') {
+      this.keyCommands.makeTupletCommand(5);
+    } else if (this.buttonData.id === 'SeptupletButton') {
+      this.keyCommands.makeTupletCommand(7);
+    } else if (this.buttonData.id === 'NoTupletButton') {
+      this.keyCommands.unmakeTuplet();
+    }
+  }
+  bind() {
+    var self = this;
+    $(this.buttonElement).off('click').on('click', function () {
+      self.setDuration();
+    });
+  }
 }
 
 class VoiceButtons {
-	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
+  constructor(parameters) {
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.keyCommands = parameters.keyCommands;
         this.tracker = parameters.tracker;
-	}
+  }
     _depopulateVoice() {
         var selections = SmoSelection.getMeasureList(this.tracker.selections);
         selections.forEach((selection) => {
@@ -34318,188 +34146,187 @@ class VoiceButtons {
         });
         this.tracker.replaceSelectedMeasures();
     }
-	setPitch() {
-        var voiceIx = 0;
-		if (this.buttonData.id === 'V1Button') {
-            SmoOperation.setActiveVoice(this.tracker.layout.score,voiceIx);
-            var ml = SmoSelection.getMeasureList(this.tracker.selections);
-            ml.forEach((sel) => {
-                sel.measure.setChanged();
-            });
-            this.tracker.replaceSelectedMeasures();
-            return;
-		} else if (this.buttonData.id === 'V2Button') {
-			voiceIx = 1;
-		} else if (this.buttonData.id === 'V3Button') {
-			this.keyCommands.upOctave();
-            voiceIx = 2;
-		} else if (this.buttonData.id === 'V4Button') {
-			this.keyCommands.downOctave();
-            voiceIx = 3;
-		} else if (this.buttonData.id === 'VXButton') {
-        	return this._depopulateVoice();
-        }
-        SmoUndoable.populateVoice(this.tracker.selections,voiceIx,this.keyCommands.undoBuffer);
-        SmoOperation.setActiveVoice(this.tracker.layout.score,voiceIx);
-        this.tracker.replaceSelectedMeasures();
+  setPitch() {
+    var voiceIx = 0;
+    if (this.buttonData.id === 'V1Button') {
+      SmoOperation.setActiveVoice(this.view.score, voiceIx);
+      const ml = SmoSelection.getMeasureList(this.view.tracker.selections);
+      ml.forEach((sel) => {
+        sel.measure.setChanged();
+      });
+      this.view.tracker.replaceSelectedMeasures();
+      return;
+    } else if (this.buttonData.id === 'V2Button') {
+      voiceIx = 1;
+    } else if (this.buttonData.id === 'V3Button') {
+      this.keyCommands.upOctave();
+       voiceIx = 2;
+    } else if (this.buttonData.id === 'V4Button') {
+      this.keyCommands.downOctave();
+      voiceIx = 3;
+    } else if (this.buttonData.id === 'VXButton') {
+      return this._depopulateVoice();
     }
-	bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			self.setPitch();
-		});
-	}
+    SmoUndoable.populateVoice(this.view.tracker.selections, voiceIx, this.view.undoBuffer);
+    SmoOperation.setActiveVoice(this.view.score, voiceIx);
+    this.view.tracker.replaceSelectedMeasures();
+  }
+  bind() {
+    var self = this;
+    $(this.buttonElement).off('click').on('click', function () {
+      self.setPitch();
+    });
+  }
 }
 class NoteButtons {
-	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
-	}
-	setPitch() {
-		if (this.buttonData.id === 'UpNoteButton') {
-			this.keyCommands.transposeUp();
-		} else if (this.buttonData.id === 'DownNoteButton') {
-			this.keyCommands.transposeDown();
-		} else if (this.buttonData.id === 'UpOctaveButton') {
-			this.keyCommands.upOctave();
-		} else if (this.buttonData.id === 'DownOctaveButton') {
-			this.keyCommands.downOctave();
-		} else if (this.buttonData.id === 'ToggleAccidental') {
-			this.keyCommands.toggleEnharmonic();
-		} else if (this.buttonData.id === 'ToggleCourtesy') {
-			this.keyCommands.toggleCourtesyAccidental();
-		} else if (this.buttonData.id === 'ToggleRestButton') {
-			this.keyCommands.makeRest();
-		} else if (this.buttonData.id === 'AddGraceNote') {
-			this.keyCommands.addGraceNote();
-		} else if (this.buttonData.id === 'SlashGraceNote') {
+  constructor(parameters) {
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.keyCommands = parameters.keyCommands;
+  }
+  setPitch() {
+    if (this.buttonData.id === 'UpNoteButton') {
+      this.keyCommands.transposeUp();
+    } else if (this.buttonData.id === 'DownNoteButton') {
+      this.keyCommands.transposeDown();
+    } else if (this.buttonData.id === 'UpOctaveButton') {
+      this.keyCommands.upOctave();
+    } else if (this.buttonData.id === 'DownOctaveButton') {
+      this.keyCommands.downOctave();
+    } else if (this.buttonData.id === 'ToggleAccidental') {
+      this.keyCommands.toggleEnharmonic();
+    } else if (this.buttonData.id === 'ToggleCourtesy') {
+      this.keyCommands.toggleCourtesyAccidental();
+    } else if (this.buttonData.id === 'ToggleRestButton') {
+      this.keyCommands.makeRest();
+    } else if (this.buttonData.id === 'AddGraceNote') {
+      this.keyCommands.addGraceNote();
+    } else if (this.buttonData.id === 'SlashGraceNote') {
       this.keyCommands.slashGraceNotes();
     } else if (this.buttonData.id === 'RemoveGraceNote') {
-			this.keyCommands.removeGraceNote();
-		} else if (this.buttonData.id === 'XNoteHead') {
+      this.keyCommands.removeGraceNote();
+    } else if (this.buttonData.id === 'XNoteHead') {
       this.keyCommands.setNoteHead();
     } else {
-			this.keyCommands.setPitchCommand(this.buttonData.rightText);
-		}
-	}
-	bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			self.setPitch();
-		});
-	}
+      this.keyCommands.setPitchCommand(this.buttonData.rightText);
+    }
+  }
+  bind() {
+    var self = this;
+    $(this.buttonElement).off('click').on('click', function () {
+      self.setPitch();
+    });
+  }
 }
 
 class ChordButtons {
-	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
-		this.tracker = parameters.tracker;
-		this.score = parameters.score;
-		this.interval = parseInt($(this.buttonElement).attr('data-interval'));
-		this.direction = parseInt($(this.buttonElement).attr('data-direction'));
-	}
-	static get direction() {
-		return {
-			up: 1,
-			down: -1
-		}
-	}
-	static get intervalButtonMap() {}
-	collapseChord() {
-		this.keyCommands.collapseChord();
-	}
-	setInterval() {
-		this.keyCommands.intervalAdd(this.interval, this.direction);
-	}
-	bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			if ($(self.buttonElement).attr('id') === 'CollapseChordButton') {
-				self.collapseChord();
-				return;
-			}
-			self.setInterval();
-		});
-	}
+  constructor(parameters) {
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.keyCommands = parameters.keyCommands;
+    this.view = parameters.view;
+    this.interval = parseInt($(this.buttonElement).attr('data-interval'));
+    this.direction = parseInt($(this.buttonElement).attr('data-direction'));
+  }
+  static get direction() {
+    return {
+      up: 1,
+      down: -1
+    }
+  }
+  static get intervalButtonMap() {}
+  collapseChord() {
+    this.keyCommands.collapseChord();
+  }
+  setInterval() {
+    this.keyCommands.intervalAdd(this.interval, this.direction);
+  }
+  bind() {
+    const self = this;
+    $(this.buttonElement).off('click').on('click', () => {
+      if ($(self.buttonElement).attr('id') === 'CollapseChordButton') {
+        self.collapseChord();
+        return;
+      }
+      self.setInterval();
+    });
+  }
 }
 
 class StaveButtons {
-	constructor(parameters) {
+  constructor(parameters) {
     Vex.Merge(this,parameters);
-    this.score = this.layout.score;
-	}
-	addClef(clef,clefName) {
-		var instrument = {
-			instrumentName:clefName,
-			keyOffset:0,
-			clef:clef
-		}
-		var staff = this.tracker.selections[0].selector.staff;
-		var measures = SmoSelection.getMeasureList(this.tracker.selections)
-            .map((sel) => sel.measure);
-		var selections=[];
-		measures.forEach((measure) => {
-			selections.push(SmoSelection.measureSelection(this.tracker.layout.score,staff,measure.measureNumber.measureIndex));
-		});
-		SmoUndoable.changeInstrument(this.tracker.layout.score,instrument,selections,this.keyCommands.undoBuffer);
-		this.tracker.replaceSelectedMeasures();
-	}
-	clefTreble() {
-		this.addClef('treble','Treble Instrument');
-	}
-	clefBass() {
-		this.addClef('bass','Bass Instrument');
-	}
-	clefAlto() {
-		this.addClef('alto','Alto Instrument');
-	}
-	clefTenor() {
-		this.addClef('tenor','Tenor Instrument');
-	}
-    _clefMove(index,direction) {
-        SmoUndoable.scoreSelectionOp(this.tracker.layout.score,this.tracker.selections[0],'moveStaffUpDown',
-           index,this.keyCommands.undoBuffer,'Move staff '+direction);
-        this.tracker.layout.rerenderAll();
+    this.view = this.view;
+  }
+  addClef(clef,clefName) {
+    var instrument = {
+      instrumentName: clefName,
+      keyOffset: 0,
+      clef: clef
     }
-    clefMoveUp() {
-        this._clefMove(-1,'up');
-    }
-    clefMoveDown() {
-        this._clefMove(1,'down');
-    }
-    _addStaffGroup(type) {
-        SmoUndoable.addConnectorDown(this.tracker.layout.score,
-            this.tracker.selections,
-        {mapType:SmoSystemGroup.mapTypes.allMeasures,leftConnector:type,
-            rightConnector:SmoSystemGroup.connectorTypes.single},
-            this.keyCommands.undoBuffer);
-    }
-    staffBraceLower() {
-        this._addStaffGroup(SmoSystemGroup.connectorTypes.brace);
-    }
-    staffBracketLower() {
-        this._addStaffGroup(SmoSystemGroup.connectorTypes.bracket);
-    }
-	bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function (ev) {
-			 console.log('couch');
-			 var id = self.buttonData.id;
-			if (typeof(self[id]) === 'function') {
-				self[id]();
-			}
-		});
-	}
+    const staff = this.view.tracker.selections[0].selector.staff;
+    const measures = SmoSelection.getMeasureList(this.view.tracker.selections)
+      .map((sel) => sel.measure);
+    const selections=[];
+    measures.forEach((measure) => {
+      selections.push(SmoSelection.measureSelection(this.view.score, staff, measure.measureNumber.measureIndex));
+    });
+    SmoUndoable.changeInstrument(this.view.score, instrument, selections, this.view.undoBuffer);
+    this.view.tracker.replaceSelectedMeasures();
+  }
+  clefTreble() {
+    this.addClef('treble','Treble Instrument');
+  }
+  clefBass() {
+    this.addClef('bass','Bass Instrument');
+  }
+  clefAlto() {
+    this.addClef('alto','Alto Instrument');
+  }
+  clefTenor() {
+    this.addClef('tenor','Tenor Instrument');
+  }
+  _clefMove(index,direction) {
+    SmoUndoable.scoreSelectionOp(this.view.score, this.view.tracker.selections[0], 'moveStaffUpDown',
+      index, this.view.undoBuffer, 'Move staff ' + direction);
+    this.view.renderer.rerenderAll();
+  }
+  clefMoveUp() {
+    this._clefMove(-1,'up');
+  }
+  clefMoveDown() {
+    this._clefMove(1,'down');
+  }
+  _addStaffGroup(type) {
+    SmoUndoable.addConnectorDown(this.view.score,
+      this.view.tracker.selections,
+      { mapType: SmoSystemGroup.mapTypes.allMeasures,leftConnector: type,
+        rightConnector: SmoSystemGroup.connectorTypes.single },
+      this.view.undoBuffer);
+  }
+  staffBraceLower() {
+    this._addStaffGroup(SmoSystemGroup.connectorTypes.brace);
+  }
+  staffBracketLower() {
+    this._addStaffGroup(SmoSystemGroup.connectorTypes.bracket);
+  }
+  bind() {
+    const self = this;
+    $(this.buttonElement).off('click').on('click', function (ev) {
+       console.log('couch');
+       var id = self.buttonData.id;
+      if (typeof(self[id]) === 'function') {
+        self[id]();
+      }
+    });
+  }
 }
 class MeasureButtons {
-	constructor(parameters) {
+  constructor(parameters) {
     Vex.Merge(this,parameters);
-	}
-	/*
-	 static get barlines() {
+  }
+  /*
+   static get barlines() {
         return {
             singleBar: 0,
             doubleBar: 1,
@@ -34509,93 +34336,92 @@ class MeasureButtons {
             none: 5
         }
     }*/
-	setEnding(startBar,endBar,number) {
-		this.keyCommands.scoreOperation('addEnding',new SmoVolta({startBar:startBar,endBar:endBar,number:number}));
+  setEnding(startBar,endBar,number) {
+    this.keyCommands.scoreOperation('addEnding',new SmoVolta({ startBar: startBar, endBar: endBar, number: number }));
 
-	}
-	setBarline(selection,position,barline,description) {
-		this.keyCommands.scoreSelectionOperation(selection, 'setMeasureBarline', new SmoBarline({position:position,barline:barline})
-		    ,description);
-	}
-	setSymbol(selection,position,symbol,description) {
-		this.keyCommands.scoreSelectionOperation(selection, 'setRepeatSymbol', new SmoRepeatSymbol({position:position,symbol:symbol})
-		    ,description);
-	}
-	endRepeat() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.endRepeat,'add repeat');
-	}
-	startRepeat() {
-		var selection = this.tracker.getExtremeSelection(-1);
-		this.setBarline(selection,SmoBarline.positions.start,SmoBarline.barlines.startRepeat,'add start repeat');
-	}
-	singleBarStart() {
-		var selection = this.tracker.getExtremeSelection(-1);
-		this.setBarline(selection,SmoBarline.positions.start,SmoBarline.barlines.singleBar,'single start bar');
-	}
+  }
+  setBarline(selection,position,barline,description) {
+    this.keyCommands.scoreSelectionOperation(selection, 'setMeasureBarline', new SmoBarline({ position: position, barline: barline})
+      ,description);
+  }
+  setSymbol(selection,position,symbol,description) {
+    this.keyCommands.scoreSelectionOperation(selection, 'setRepeatSymbol', new SmoRepeatSymbol({ position: position, symbol: symbol })
+      ,description);
+  }
+  endRepeat() {
+    var selection = this.view.tracker.getExtremeSelection(1);
+    this.setBarline(selection, SmoBarline.positions.end, SmoBarline.barlines.endRepeat, 'add repeat');
+  }
+  startRepeat() {
+    var selection = this.view.tracker.getExtremeSelection(-1);
+    this.setBarline(selection, SmoBarline.positions.start, SmoBarline.barlines.startRepeat, 'add start repeat');
+  }
+  singleBarStart() {
+    var selection = this.view.tracker.getExtremeSelection(-1);
+    this.setBarline(selection,SmoBarline.positions.start,SmoBarline.barlines.singleBar,'single start bar');
+  }
     singleBarEnd() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.singleBar,'single  bar');
-	}
-
-	doubleBar() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.doubleBar,'double  bar');
-	}
-	endBar() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.endBar,'final  bar');
-	}
-	coda() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.Coda);
-	}
-	toCoda() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.ToCoda);
-	}
-	segno() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.Segno);
-	}
-	dsAlCoda() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.DsAlCoda);
-	}
-	dcAlCoda() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.DcAlCoda);
-	}
-	dsAlFine() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.DsAlFine);
-	}
-	dcAlFine() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.DcAlFine);
-	}
-	fine() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.Fine);
-	}
-	nthEnding() {
-		var startSel = this.tracker.getExtremeSelection(-1);
-		var endSel = this.tracker.getExtremeSelection(1);
-		this.setEnding(startSel.selector.measure,endSel.selector.measure,1);
-	}
-  handleEvent(event,method) {
-    this[method]();
-    this.tracker.replaceSelectedMeasures();
+    var selection = this.view.tracker.getExtremeSelection(1);
+    this.setBarline(selection, SmoBarline.positions.end, SmoBarline.barlines.singleBar, 'single  bar');
   }
 
-	bind() {
-		var self = this;
-    this.eventSource.domClick(this.buttonElement,this,'handleEvent',this.buttonData.id);
-	}
+  doubleBar() {
+    var selection = this.view.tracker.getExtremeSelection(1);
+    this.setBarline(selection, SmoBarline.positions.end, SmoBarline.barlines.doubleBar, 'double  bar');
+  }
+  endBar() {
+    var selection = this.view.tracker.getExtremeSelection(1);
+    this.setBarline(selection, SmoBarline.positions.end, SmoBarline.barlines.endBar, 'final  bar');
+  }
+  coda() {
+    var selection = this.view.tracker.getExtremeSelection(1);
+    this.setSymbol(selection, SmoRepeatSymbol.positions.end, SmoRepeatSymbol.symbols.Coda);
+  }
+  toCoda() {
+    const selection = this.view.tracker.getExtremeSelection(1);
+    this.setSymbol(selection, SmoRepeatSymbol.positions.end, SmoRepeatSymbol.symbols.ToCoda);
+  }
+  segno() {
+    const selection = this.view.tracker.getExtremeSelection(1);
+    this.setSymbol(selection, SmoRepeatSymbol.positions.end, SmoRepeatSymbol.symbols.Segno);
+  }
+  dsAlCoda() {
+    const selection = this.view.tracker.getExtremeSelection(1);
+    this.setSymbol(selection, SmoRepeatSymbol.positions.end, SmoRepeatSymbol.symbols.DsAlCoda);
+  }
+  dcAlCoda() {
+    const selection = this.view.tracker.getExtremeSelection(1);
+    this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.DcAlCoda);
+  }
+  dsAlFine() {
+    const selection = this.view.tracker.getExtremeSelection(1);
+    this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.DsAlFine);
+  }
+  dcAlFine() {
+    const selection = this.view.tracker.getExtremeSelection(1);
+    this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.DcAlFine);
+  }
+  fine() {
+    const selection = this.view.tracker.getExtremeSelection(1);
+    this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.Fine);
+  }
+  nthEnding() {
+    const startSel = this.view.tracker.getExtremeSelection(-1);
+    const endSel = this.view.tracker.getExtremeSelection(1);
+    this.setEnding(startSel.selector.measure, endSel.selector.measure, 1);
+  }
+  handleEvent(event,method) {
+    this[method]();
+    this.view.tracker.replaceSelectedMeasures();
+  }
+
+  bind() {
+    this.eventSource.domClick(this.buttonElement, this, 'handleEvent', this.buttonData.id);
+  }
 }
 
 class PlayerButtons {
-	constructor(parameters) {
+  constructor(parameters) {
     Vex.Merge(this,parameters);
   }
   playButton() {
@@ -34608,7 +34434,7 @@ class PlayerButtons {
     this.keyCommands.pausePlayer();
   }
   bind() {
-    this.eventSource.domClick(this.buttonElement,this,this.buttonData.id);
+    this.eventSource.domClick(this.buttonElement, this, this.buttonData.id);
   }
 }
 
@@ -34618,20 +34444,20 @@ class DisplaySettings {
   }
 
   refresh() {
-      this.layout.setViewport(true);
-      this.layout.setRefresh();
+    this.view.renderer.setViewport(true);
+    this.view.renderer.setRefresh();
   }
   zoomout() {
-      this.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-      this.layout.score.layout.zoomScale = this.layout.score.layout.zoomScale * 1.1;
-      this.layout.setViewport();
-      this.layout.setRefresh();
+    this.view.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+    this.view.score.layout.zoomScale = this.view.score.layout.zoomScale * 1.1;
+    this.view.renderer.setViewport();
+    this.view.renderer.setRefresh();
   }
   zoomin() {
-      this.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-      this.layout.score.layout.zoomScale = this.layout.score.layout.zoomScale / 1.1;
-      this.layout.setViewport();
-      this.layout.setRefresh();
+    this.view.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+    this.view.score.layout.zoomScale = this.view.score.layout.zoomScale / 1.1;
+    this.view.renderer.setViewport();
+    this.view.renderer.setRefresh();
   }
   playButton2() {
     this.keyCommands.playScore();
@@ -34642,42 +34468,39 @@ class DisplaySettings {
 
 
   bind() {
-    this.eventSource.domClick(this.buttonElement,this,this.buttonData.id);
+    this.eventSource.domClick(this.buttonElement, this, this.buttonData.id);
   }
 }
 class TextButtons {
-	constructor(parameters) {
+  constructor(parameters) {
     Vex.Merge(this,parameters);
     this.menus = this.controller.menus;
-	}
+  }
   lyrics() {
-	  SuiLyricDialog.createAndDisplay(
+    SuiLyricDialog.createAndDisplay(
       {
-        buttonElement:this.buttonElement,
-        buttonData:this.buttonData,
-        completeNotifier:this.controller,
-        tracker: this.tracker,
-        layout:this.layout,
-        undoBuffer:this.keyCommands.undoBuffer,
-        eventSource:this.eventSource,
-        keyCommands:this.keyCommands,
-        parser:SmoLyric.parsers.lyric
+        buttonElement: this.buttonElement,
+        buttonData: this.buttonData,
+        completeNotifier: this.controller,
+        view: this.view,
+        undoBuffer: this.keyCommands.undoBuffer,
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        parser: SmoLyric.parsers.lyric
       }
     );
-  	// tracker, selection, controller
+    // tracker, selection, controller
   }
   chordChanges() {
     SuiChordChangeDialog.createAndDisplay(
       {
-        buttonElement:this.buttonElement,
-        buttonData:this.buttonData,
-        completeNotifier:this.controller,
-        tracker: this.tracker,
-        layout:this.layout,
-        undoBuffer:this.keyCommands.undoBuffer,
+        buttonElement: this.buttonElement,
+        buttonData: this.buttonData,
+        completeNotifier: this.controller,
+        view: this.view,
         eventSource:this.eventSource,
         keyCommands:this.keyCommands,
-        parser:SmoLyric.parsers.chord
+        parser: SmoLyric.parsers.chord
       }
     );
   }
@@ -34694,59 +34517,58 @@ class TextButtons {
   addTextMenu() {
     var dialog = SuiTextTransformDialog.createAndDisplay(
       {
-        buttonElement:this.buttonElement,
-        buttonData:this.buttonData,
-        completeNotifier:this.controller,
+        buttonElement: this.buttonElement,
+        buttonData: this.buttonData,
+        completeNotifier: this.controller,
         tracker: this.tracker,
-        layout:this.layout,
-        undoBuffer:this.keyCommands.undoBuffer,
-        eventSource:this.eventSource,
-        keyCommands:this.keyCommands
+        view: this.view,
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands
     });
   }
-	addDynamicsMenu() {
+  addDynamicsMenu() {
         this._invokeMenu('SuiDynamicsMenu');
-	}
+  }
   bind() {
     var self=this;
     this.eventSource.domClick(this.buttonElement,this,self.buttonData.id);
-	}
+  }
 }
 
 class NavigationButtons {
-	static get directionsTrackerMap() {
-		return {
-			navLeftButton: 'moveSelectionLeft',
-			navRightButton: 'moveSelectionRight',
-			navUpButton: 'moveSelectionUp',
-			navDownButton: 'moveSelectionDown',
-			navFastForward: 'moveSelectionRightMeasure',
-			navRewind: 'moveSelectionLeftMeasure',
-			navGrowLeft: 'growSelectionLeft',
-			navGrowRight: 'growSelectionRight'
-		};
-	}
-	constructor(parameters) {
+  static get directionsTrackerMap() {
+    return {
+      navLeftButton: 'moveSelectionLeft',
+      navRightButton: 'moveSelectionRight',
+      navUpButton: 'moveSelectionUp',
+      navDownButton: 'moveSelectionDown',
+      navFastForward: 'moveSelectionRightMeasure',
+      navRewind: 'moveSelectionLeftMeasure',
+      navGrowLeft: 'growSelectionLeft',
+      navGrowRight: 'growSelectionRight'
+    };
+  }
+  constructor(parameters) {
     Vex.Merge(this,parameters);
-	}
+  }
 
-	_moveTracker() {
-		this.tracker[NavigationButtons.directionsTrackerMap[this.buttonData.id]]();
-	}
-	bind() {
-		var self = this;
+  _moveTracker() {
+    this.tracker[NavigationButtons.directionsTrackerMap[this.buttonData.id]]();
+  }
+  bind() {
+    var self = this;
     this.eventSource.domClick(this.buttonElement,this,'_moveTracker');
-	}
+  }
 }
 class ArticulationButtons {
-	static get articulationIdMap() {
-		return {
-			accentButton: SmoArticulation.articulations.accent,
-			tenutoButton: SmoArticulation.articulations.tenuto,
-			staccatoButton: SmoArticulation.articulations.staccato,
-			marcatoButton: SmoArticulation.articulations.marcato,
-			pizzicatoButton: SmoArticulation.articulations.pizzicato,
-			fermataButton: SmoArticulation.articulations.fermata,
+  static get articulationIdMap() {
+    return {
+      accentButton: SmoArticulation.articulations.accent,
+      tenutoButton: SmoArticulation.articulations.tenuto,
+      staccatoButton: SmoArticulation.articulations.staccato,
+      marcatoButton: SmoArticulation.articulations.marcato,
+      pizzicatoButton: SmoArticulation.articulations.pizzicato,
+      fermataButton: SmoArticulation.articulations.fermata,
       mordentButton: SmoOrnament.ornaments.mordent,
       mordentInvertedButton:SmoOrnament.ornaments.mordentInverted,
       trillButton: SmoOrnament.ornaments.trill,
@@ -34757,16 +34579,16 @@ class ArticulationButtons {
       doitLongButton: SmoOrnament.ornaments.doitLong,
       flipButton: SmoOrnament.ornaments.flip,
       smearButton: SmoOrnament.ornaments.smear
-		};
-	}
+    };
+  }
   static get constructors() {
     return {
-  		accentButton: 'SmoArticulation',
-  		tenutoButton: 'SmoArticulation',
-  		staccatoButton: 'SmoArticulation',
-  		marcatoButton: 'SmoArticulation',
-  		pizzicatoButton: 'SmoArticulation',
-  		fermataButton: 'SmoArticulation',
+      accentButton: 'SmoArticulation',
+      tenutoButton: 'SmoArticulation',
+      staccatoButton: 'SmoArticulation',
+      marcatoButton: 'SmoArticulation',
+      pizzicatoButton: 'SmoArticulation',
+      fermataButton: 'SmoArticulation',
       mordentButton: 'SmoOrnament',
       mordentInvertedButton:'SmoOrnament',
       trillButton:'SmoOrnament',
@@ -34779,83 +34601,80 @@ class ArticulationButtons {
       smearButton:'SmoOrnament'
     }
   }
-	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
-		this.articulation = ArticulationButtons.articulationIdMap[this.buttonData.id];
+  constructor(parameters) {
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.keyCommands = parameters.keyCommands;
+    this.articulation = ArticulationButtons.articulationIdMap[this.buttonData.id];
     this.eventSource = parameters.eventSource;
     this.ctor = ArticulationButtons.constructors[this.buttonData.id];
-	}
-	_toggleArticulation() {
-		this.showState = !this.showState;
-		this.keyCommands.toggleArticulationCommand(this.articulation, this.ctor);
-	}
-	bind() {
-		var self = this;
+  }
+  _toggleArticulation() {
+    this.showState = !this.showState;
+    this.keyCommands.toggleArticulationCommand(this.articulation, this.ctor);
+  }
+  bind() {
+    var self = this;
     this.eventSource.domClick(this.buttonElement,this,'_toggleArticulation');
-	}
+  }
 }
 
 
 class CollapseRibbonControl {
-	static get paramArray() {
-		return ['ribbonButtons', 'keyCommands', 'controller', 'tracker', 'menus', 'buttonData', 'buttonElement',
-    'layout','eventSource','undoBuffer'];
-	}
-	constructor(parameters) {
-		smoSerialize.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
-		this.childButtons = parameters.ribbonButtons.filter((cb) => {
-				return cb.group === this.buttonData.group &&
-                    RibbonButtons.isCollapsible(cb.action)
-			});
-	}
-	_toggleExpand() {
-		this.childButtons.forEach((cb) => {
+  static get paramArray() {
+    return ['ribbonButtons', 'keyCommands', 'controller', 'view', 'menus', 'buttonData', 'buttonElement',
+    'eventSource'];
+  }
+  constructor(parameters) {
+    smoSerialize.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
+    this.childButtons = parameters.ribbonButtons.filter((cb) => {
+        return cb.group === this.buttonData.group &&
+          RibbonButtons.isCollapsible(cb.action)
+    });
+  }
+  _toggleExpand() {
+    this.childButtons.forEach((cb) => {
+      var el = $('#' + cb.id);
+      $(el).toggleClass('collapsed');
+      $(el).toggleClass('expanded');
+    });
 
-			var el = $('#' + cb.id);
-			$(el).toggleClass('collapsed');
-			$(el).toggleClass('expanded');
-		});
-
-		this.buttonElement.closest('div').toggleClass('expanded');
-		this.buttonElement.toggleClass('expandedChildren');
-		if (this.buttonElement.hasClass('expandedChildren')) {
-			var leftSpan = $(this.buttonElement).find('.ribbon-button-text');
-			$(leftSpan).text('');
-			$(leftSpan).removeClass(this.buttonData.icon);
-			$(this.buttonElement).addClass('icon icon-circle-left');
-		} else {
-			$(this.buttonElement).removeClass('icon-circle-left');
-			var leftSpan = $(this.buttonElement).find('.ribbon-button-text');
-			$(leftSpan).addClass(this.buttonData.icon);
-			$(leftSpan).text(this.buttonData.leftText);
-		}
-  	// Expand may change music dom, redraw
-  	$('body').trigger('forceScrollEvent');
-	}
-	bind() {
-		var self = this;
-		$(this.buttonElement).closest('div').addClass('collapseContainer');
+    this.buttonElement.closest('div').toggleClass('expanded');
+    this.buttonElement.toggleClass('expandedChildren');
+    if (this.buttonElement.hasClass('expandedChildren')) {
+      var leftSpan = $(this.buttonElement).find('.ribbon-button-text');
+      $(leftSpan).text('');
+      $(leftSpan).removeClass(this.buttonData.icon);
+      $(this.buttonElement).addClass('icon icon-circle-left');
+    } else {
+      $(this.buttonElement).removeClass('icon-circle-left');
+      var leftSpan = $(this.buttonElement).find('.ribbon-button-text');
+      $(leftSpan).addClass(this.buttonData.icon);
+      $(leftSpan).text(this.buttonData.leftText);
+    }
+    // Expand may change music dom, redraw
+    $('body').trigger('forceScrollEvent');
+  }
+  bind() {
+    var self = this;
+    $(this.buttonElement).closest('div').addClass('collapseContainer');
     this.eventSource.domClick(this.buttonElement,this,'_toggleExpand');
-		this.childButtons.forEach((cb) => {
-			var ctor = eval(cb.ctor);
-			var el = $('#' + cb.id);
-			var btn = new ctor({
-					buttonData: cb,
-					buttonElement: el,
-					keyCommands: this.keyCommands,
-					tracker: this.tracker,
-					controller: this.controller,
-          layout:this.layout,
-          eventSource:this.eventSource,
-          undoBuffer:this.undoBuffer
-				});
+    this.childButtons.forEach((cb) => {
+      var ctor = eval(cb.ctor);
+      var el = $('#' + cb.id);
+      var btn = new ctor({
+          buttonData: cb,
+          buttonElement: el,
+          keyCommands: this.keyCommands,
+          view: this.view,
+          controller: this.controller,
+          eventSource:this.eventSource
+        });
         if (typeof(btn.bind) == 'function') {
           btn.bind();
         }
-		});
-	}
+    });
+  }
 }
 ;
 

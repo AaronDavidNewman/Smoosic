@@ -64,10 +64,10 @@ class SuiTextInPlace extends SuiComponentBase {
     this.dialog.modifier.skipRender = false;
 
     var render = () => {
-      this.dialog.layout.setRefresh();
+      this.dialog.view.renderer.setRefresh();
     }
     if (this.session) {
-      this.value=this.session.textGroup;
+      this.value = this.session.textGroup;
       this.session.stopSession().then(render);
     }
     $('body').removeClass('text-edit');
@@ -96,7 +96,7 @@ class SuiTextInPlace extends SuiComponentBase {
   }
   _renderInactiveBlocks() {
     const modifier = this.dialog.modifier;
-    const context = this.dialog.layout.context;
+    const context = this.dialog.view.renderer.context;
     context.save();
     context.setFillStyle('#ddd');
     modifier.textBlocks.forEach((block) => {
@@ -121,15 +121,13 @@ class SuiTextInPlace extends SuiComponentBase {
     $(this._getInputElement()).find('label').text(this.altLabel);
     var modifier = this.dialog.modifier;
     modifier.skipRender = true;
-    $(this.dialog.layout.context.svg).find('#'+modifier.attrs.id).remove();
+    $(this.dialog.view.renderer.context.svg).find('#'+modifier.attrs.id).remove();
     this._renderInactiveBlocks();
     const ul = modifier.ul();
 
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
-    this.session = new SuiTextSession({context : this.dialog.layout.context,
-      scroller: this.dialog.tracker.scroller,
-      layout: this.dialog.layout,
-      score: this.dialog.layout.score,
+    this.session = new SuiTextSession({ renderer : this.dialog.view.renderer,
+      scroller: this.dialog.view.tracker.scroller,
       x: ul.x,
       y: ul.y,
       textGroup: modifier,
@@ -170,7 +168,7 @@ class SuiNoteTextComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
 
-    this.selection = dialog.tracker.selections[0];
+    this.selection = dialog.view.tracker.selections[0];
     this.selector = JSON.parse(JSON.stringify(this.selection.selector));
     this.dialog = dialog;
   }
@@ -240,8 +238,8 @@ class SuiNoteTextComponent extends SuiComponentBase {
 // ## SuiLyricComponent
 // manage a lyric session that moves from note to note and adds lyrics.
 class SuiLyricComponent extends SuiNoteTextComponent {
-  constructor(dialog,parameter) {
-    super(dialog,parameter);
+  constructor(dialog, parameter) {
+    super(dialog, parameter);
     smoSerialize.filteredMerge(
         ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     if (!this.defaultValue) {
@@ -298,12 +296,11 @@ class SuiLyricComponent extends SuiNoteTextComponent {
     $(this._getInputElement()).find('label').text(this.altLabel);
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiLyricSession({
-       context : this.dialog.layout.context,
+       renderer : this.dialog.view.renderer,
        selector: this.selector,
-       scroller: this.dialog.tracker.scroller,
-       layout: this.dialog.layout,
+       scroller: this.dialog.view.tracker.scroller,
        verse: this.verse,
-       score: this.dialog.layout.score
+       score: this.dialog.view.score
        }
      );
     $('body').addClass('text-edit');
@@ -330,7 +327,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
     this.session = null;
     this.dialog = dialog;
 
-    this.selection = dialog.tracker.selections[0];
+    this.selection = dialog.view.tracker.selections[0];
     this.selector = JSON.parse(JSON.stringify(this.selection.selector));
     this.altLabel = SuiLyricDialog.getStaticText('doneEditing');
     if (!this.verse) {
@@ -369,7 +366,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
 
     var render = () => {
-      this.dialog.layout.setRefresh();
+      this.dialog.view.renderer.setRefresh();
     }
     if (this.session) {
       this.value=this.session.textGroup;
@@ -384,12 +381,11 @@ class SuiChordComponent extends SuiNoteTextComponent {
 
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiChordSession({
-       context : this.dialog.layout.context,
+       renderer : this.dialog.view.renderer,
        selector: this.selector,
-       scroller: this.dialog.tracker.scroller,
-       layout: this.dialog.layout,
+       scroller: this.dialog.view.tracker.scroller,
        verse: 0,
-       score: this.dialog.layout.score
+       score: this.dialog.view.score
        }
      );
     $('body').addClass('text-edit');
@@ -406,7 +402,6 @@ class SuiChordComponent extends SuiNoteTextComponent {
   getTextType(type) {
     return this.session.textType;
   }
-
 }
 
 // ## SuiDragText
@@ -421,7 +416,7 @@ class SuiDragText extends SuiComponentBase {
     if (!this.defaultValue) {
         this.defaultValue = 0;
     }
-    this.dragging=false;
+    this.dragging = false;
     this.running = false;
 
     this.dialog = dialog;
@@ -463,8 +458,8 @@ class SuiDragText extends SuiComponentBase {
     $('body').addClass('text-move');
     this.session = new SuiDragSession({
       textGroup: this.dialog.modifier,
-      context: this.dialog.layout.context,
-      scroller: this.dialog.tracker.scroller
+      context: this.dialog.view.renderer.context,
+      scroller: this.dialog.view.tracker.scroller
     });
     $(this._getInputElement()).find('label').text(this.altLabel);
     $(this._getInputElement()).find('span.icon').removeClass('icon-enlarge').addClass('icon-checkmark');
@@ -499,93 +494,4 @@ class SuiDragText extends SuiComponentBase {
       }
     });
   }
-}
-
-// ## Removing this for now...
-class SuiResizeTextBox extends SuiComponentBase {
-  constructor(dialog,parameter) {
-    super(parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
-    }
-    this.resizing = false;
-    this.running = false;
-
-    this.dialog = dialog;
-    this.value='';
-  }
-
-  get html() {
-    var b = htmlHelpers.buildDom;
-    var id = this.parameterId;
-    var r = b('div').classes(this.makeClasses('cbResizeTextBox smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
-      .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
-          .attr('id', id + '-input').append(
-          b('span').classes('icon icon-enlarge'))
-          .append(
-          b('label').attr('for', id + '-input').text(this.label)));
-    return r;
-  }
-  get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
-  }
-
-  stopEditSession() {
-    $('body').removeClass('text-resize');
-    if (this.session && this.session.dragging) {
-      this.session.dragging = false;
-      this.dragging = false;
-    }
-    this.running = false;
-  }
-  getValue() {
-    return this.value;
-  }
-  _getInputElement() {
-    var pid = this.parameterId;
-    return $(this.dialog.dgDom.element).find('#' + pid).find('button');
-  }
-  mouseUp(e) {
-    if (this.session && this.session.dragging) {
-      this.session.endDrag(e);
-      this.dragging = false;
-      this.session.changed();
-    }
-  }
-  mouseMove(e) {
-    if (this.session && this.session.dragging) {
-      this.session.mouseMove(e);
-    }
-  }
-
-  startEditSession() {
-    $('body').addClass('text-resize');
-    this.session = new SuiResizeTextSession({
-      textGroup: this.dialog.modifier,
-      context: this.dialog.layout.context,
-      scroller: this.dialog.tracker.scroller
-    });
-    this.running = true;
-    $(this._getInputElement()).find('label').text('Done Resizing Text Block');
-    $(this._getInputElement()).find('span.icon').removeClass('icon-enlarge').addClass('icon-checkmark');
-  }
-  mouseDown(e) {
-    if (this.session && !this.session.dragging) {
-      this.session.startDrag(e);
-      this.dragging = true;
-    }
-  }
-
-  bind() {
-      var self=this;
-      $(this._getInputElement()).off('click').on('click',function(ev) {
-        if (self.running) {
-          self.stopEditSession();
-        } else {
-          self.startEditSession();
-        }
-      });
-    }
 }

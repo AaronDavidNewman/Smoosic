@@ -1,28 +1,28 @@
 class SuiStaffModifierDialog extends SuiDialogBase {
-	 handleRemove() {
-      $(this.context.svg).find('g.' + this.modifier.attrs.id).remove();
-      var selection = SmoSelection.measureSelection(this.layout.score,this.modifier.startSelector.staff,this.modifier.startSelector.measure);
-      SmoUndoable.staffSelectionOp(this.layout.score,selection,'removeStaffModifier',this.modifier,this.undoBuffer,'remove slur');
-      this.tracker.clearModifierSelections();
-    }
+  handleRemove() {
+    $(this.context.svg).find('g.' + this.modifier.attrs.id).remove();
+    var selection = SmoSelection.measureSelection(this.view.renderer.score, this.modifier.startSelector.staff,
+      this.modifier.startSelector.measure);
+    SmoUndoable.staffSelectionOp(this.view.score, selection, 'removeStaffModifier', this.modifier, this.view.undoBuffer, 'remove slur');
+    this.tracker.clearModifierSelections();
+  }
 
-    _preview() {
-        this.modifier.backupOriginal();
-        this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
-        });
-        this.layout.renderStaffModifierPreview(this.modifier)
-    }
+  _preview() {
+    this.modifier.backupOriginal();
+    this.components.forEach((component) => {
+      this.modifier[component.smoName] = component.getValue();
+    });
+    this.view.renderer.renderStaffModifierPreview(this.modifier)
+  }
 
-    changed() {
-        this.modifier.backupOriginal();
-        this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
-        });
-        this.layout.renderStaffModifierPreview(this.modifier);
-    }
+  changed() {
+    this.modifier.backupOriginal();
+    this.components.forEach((component) => {
+      this.modifier[component.smoName] = component.getValue();
+    });
+    this.view.renderer.renderStaffModifierPreview(this.modifier);
+  }
 }
-
 
 class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
@@ -123,7 +123,6 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
         label: 'Control Point 2 Y'
       }
     ];
-
     return SuiSlurAttributesDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
@@ -177,40 +176,39 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
 
  static get dialogElements() {
     SuiVoltaAttributeDialog._dialogElements = SuiVoltaAttributeDialog._dialogElements ? SuiVoltaAttributeDialog._dialogElements :
-      [
-        {
-          staticText: [
-            {label: 'Volta Properties'}
-          ]
-        },
-        {
+      [{
+        staticText: [
+          {label: 'Volta Properties'}
+        ]
+      },
+      {
         parameterName: 'number',
         smoName: 'number',
         defaultValue: 1,
         control: 'SuiRockerComponent',
         label: 'number'
-        }, {
+      }, {
         smoName: 'xOffsetStart',
         parameterName: 'xOffsetStart',
         defaultValue: 0,
         control: 'SuiRockerComponent',
         label: 'X1 Offset'
-        }, {
+      }, {
         smoName: 'xOffsetEnd',
         parameterName: 'xOffsetEnd',
         defaultValue: 0,
         control: 'SuiRockerComponent',
         label: 'X2 Offset'
-        }, {
+      }, {
         smoName: 'yOffset',
         parameterName: 'yOffset',
         defaultValue: 0,
         control: 'SuiRockerComponent',
         label: 'Y Offset'
-        }
-     ];
+      }
+   ];
 
-     return SuiVoltaAttributeDialog._dialogElements;
+   return SuiVoltaAttributeDialog._dialogElements;
  }
  static createAndDisplay(parameters) {
     var dg = new SuiVoltaAttributeDialog(parameters);
@@ -218,41 +216,41 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
     return dg;
   }
 handleRemove() {
-  this.undoBuffer.addBuffer('Remove nth ending', 'score', null, this.layout.score);
-	this.layout.score.staves.forEach((staff) => {
-  	staff.measures.forEach((measure) => {
-  		if (measure.measureNumber.measureNumber === this.modifier.startBar) {
-  			measure.removeNthEnding(this.modifier.number);
-  		}
-  	 });
-	});
+  this.view.undoBuffer.addBuffer('Remove nth ending', UndoBuffer.bufferTypes.SCORE, null, this.view.score);
+  this.view.score.staves.forEach((staff) => {
+    staff.measures.forEach((measure) => {
+      if (measure.measureNumber.measureNumber === this.modifier.startBar) {
+        measure.removeNthEnding(this.modifier.number);
+      }
+     });
+  });
   $(this.context.svg).find('g.' + this.modifier.endingId).remove();
   this.selection.staff.removeStaffModifier(this.modifier);
  }
   _commit() {
     this.modifier.restoreOriginal();
-	  this.layout.score.staves.forEach((staff) => {
-  		staff.measures.forEach((measure) => {
-    		if (measure.measureNumber.measureNumber === this.modifier.startBar) {
-    			var endings = measure.getNthEndings().filter((mm) => {
-    			  return mm.endingId === this.modifier.endingId;
-    			});
-    			if (endings.length) {
-    			  endings.forEach((ending) => {
-      		    this.components.forEach((component) => {
-    			      ending[component.smoName] = component.getValue();
-    			    });
-    			  });
-    		  }
-    	  }
+    this.view.score.staves.forEach((staff) => {
+      staff.measures.forEach((measure) => {
+        if (measure.measureNumber.measureNumber === this.modifier.startBar) {
+          var endings = measure.getNthEndings().filter((mm) => {
+            return mm.endingId === this.modifier.endingId;
+          });
+          if (endings.length) {
+            endings.forEach((ending) => {
+              this.components.forEach((component) => {
+                ending[component.smoName] = component.getValue();
+              });
+            });
+          }
+        }
       });
-	  });
+    });
 
-    this.layout.renderStaffModifierPreview(this.modifier);
+    this.view.renderer.renderStaffModifierPreview(this.modifier);
   }
   constructor(parameters) {
     if (!parameters.modifier) {
-        throw new Error('modifier attribute dialog must have modifier');
+      throw new Error('modifier attribute dialog must have modifier');
     }
 
     super(SuiVoltaAttributeDialog.dialogElements, {
@@ -262,14 +260,14 @@ handleRemove() {
         ...parameters
     });
     Vex.Merge(this, parameters);
-    this.selection = SmoSelection.measureSelection(this.layout.score,this.modifier.startSelector.staff,this.modifier.startSelector.measure);
+    this.selection = SmoSelection.measureSelection(this.view.score, this.modifier.startSelector.staff, this.modifier.startSelector.measure);
 
-  	SmoVolta.editableAttributes.forEach((attr) => {
-  		var comp = this.components.find((cc)=>{return cc.smoName===attr});
-  		if (comp) {
-  			comp.defaultValue=this.modifier[attr];
-  		}
-  	});
+    SmoVolta.editableAttributes.forEach((attr) => {
+      const comp = this.components.find((cc) => cc.smoName === attr);
+      if (comp) {
+        comp.defaultValue = this.modifier[attr];
+      }
+    });
 
     this.completeNotifier.unbindKeyboardForModal(this);
   }
@@ -335,7 +333,7 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   }
   constructor(parameters) {
     if (!parameters.modifier) {
-        throw new Error('modifier attribute dialog must have modifier');
+      throw new Error('modifier attribute dialog must have modifier');
     }
 
     super(SuiHairpinAttributesDialog.dialogElements, {
@@ -345,12 +343,12 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
       ...parameters
     });
     Vex.Merge(this, parameters);
-  	SmoStaffHairpin.editableAttributes.forEach((attr) => {
-  		var comp = this.components.find((cc)=>{return cc.smoName===attr});
-  		if (comp) {
-  			comp.defaultValue=this.modifier[attr];
-  		}
-  	});
+    SmoStaffHairpin.editableAttributes.forEach((attr) => {
+      var comp = this.components.find((cc) => cc.smoName === attr);
+      if (comp) {
+        comp.defaultValue = this.modifier[attr];
+      }
+    });
 
     this.completeNotifier.unbindKeyboardForModal(this);
   }

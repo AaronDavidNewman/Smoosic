@@ -18,8 +18,8 @@ class UndoBuffer {
   static get bufferTypes() {
     return {
       FIRST: 1,
-      MEASURE: 1, STAFF: 2, SCORE: 3, SCORE_MODIFIER: 4, NOTE_MODIFIER: 5,
-      LAST: 5
+      MEASURE: 1, STAFF: 2, SCORE: 3, SCORE_MODIFIER: 4,
+      LAST: 4
     };
   }
   static get bufferSubtypes() {
@@ -28,9 +28,8 @@ class UndoBuffer {
     };
   }
   static get bufferTypeLabel() {
-    return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER', 'NOTE_MODIFIER'];
+    return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER'];
   }
-
   // ### addBuffer
   // Description:
   // Add the current state of the score required to undo the next operation we

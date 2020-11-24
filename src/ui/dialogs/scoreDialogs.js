@@ -126,7 +126,6 @@ class SuiLayoutDialog extends SuiDialogBase {
           { label: 'Score Layout' }
         ] }
       ];
-
     return SuiLayoutDialog._dialogElements;
   }
 
@@ -164,10 +163,10 @@ class SuiLayoutDialog extends SuiDialogBase {
   // even if the layout is not changed, we re-render the entire score by resetting
   // the svg context.
   _updateLayout() {
-    this.layout.rerenderAll();
+    this.view.layout.rerenderAll();
   }
   _handleCancel() {
-    this.layout.score.layout = this.backup;
+    this.view.score.layout = this.backup;
     this._updateLayout();
     this.complete();
   }
@@ -178,7 +177,7 @@ class SuiLayoutDialog extends SuiDialogBase {
     this._bindComponentNames();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       // TODO:  allow user to select a zoom mode.
-      self.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+      self.view.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
       self._updateLayout();
       self.complete();
     });
@@ -191,7 +190,7 @@ class SuiLayoutDialog extends SuiDialogBase {
   }
   _setPageSizeDefault() {
     var value = 'custom';
-    var scoreDims = this.layout.score.layout;
+    var scoreDims = this.view.score.layout;
     SmoScore.pageSizes.forEach((sz) => {
       var dim = SmoScore.pageDimensions[sz];
       if (scoreDims.pageWidth === dim.width && scoreDims.pageHeight === dim.height) {
@@ -224,8 +223,8 @@ class SuiLayoutDialog extends SuiDialogBase {
   changed() {
     this._handlePageSizeChange();
     this.components.forEach((component) => {
-      if (typeof(this.layout.score.layout[component.smoName]) !== 'undefined') {
-        this.layout.score.layout[component.smoName] = component.getValue();
+      if (typeof(this.view.score.layout[component.smoName]) !== 'undefined') {
+        this.view.score.layout[component.smoName] = component.getValue();
       }
     });
     if (this.engravingFontCtrl.changeFlag)  {
@@ -233,7 +232,7 @@ class SuiLayoutDialog extends SuiDialogBase {
       engrave.family = this.engravingFontCtrl.getValue();
       SuiRenderState.setFont(engrave.family);
     }
-    this.layout.setViewport();
+    this.view.renderer.setViewport();
   }
 
   // ### createAndDisplay
@@ -250,9 +249,9 @@ class SuiLayoutDialog extends SuiDialogBase {
       left: (p.layout.score.layout.pageHeight / 2) - 200,
       ...parameters
     });
-    this.layout = p.layout;
-    this.score = p.layout.score;
-    this.modifier = this.layout.score.layout;
+    this.view.renderer = p.view.renderer;
+    this.score = p.view.renderer.score;
+    this.modifier = this.view.score.layout;
     this.backupOriginal();
   }
 }

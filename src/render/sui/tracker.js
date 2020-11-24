@@ -13,7 +13,7 @@ class suiTracker extends suiMapper {
     return new Promise((resolve) => {
       var f = () => {
         setTimeout(() => {
-          if (self.layout.passState === SuiRenderState.passStates.clean) {
+          if (self.view.renderer.passState === SuiRenderState.passStates.clean) {
             resolve();
           } else {
             f();
@@ -34,10 +34,10 @@ class suiTracker extends suiMapper {
     const preventScroll = $('body').hasClass('modal');
 
     if (r.y !== b.y || r.x !== b.x) {
-      if (this.layout.passState === SuiRenderState.passStates.replace ||
-        this.layout.passState === SuiRenderState.passStates.clean) {
+      if (this.renderer.passState === SuiRenderState.passStates.replace ||
+        this.renderer.passState === SuiRenderState.passStates.clean) {
         console.log('tracker: rerender conflicting map');
-        this.layout.remapAll();
+        this.renderer.remapAll();
       }
       if (!preventScroll) {
         console.log('prevent scroll conflicting map');
@@ -51,7 +51,7 @@ class suiTracker extends suiMapper {
 
   replaceSelectedMeasures() {
     const mm = SmoSelection.getMeasureList(this.selections);
-    this.layout.addToReplaceQueue(mm);
+    this.renderer.addToReplaceQueue(mm);
   }
 
   setDialogModifier(notifier) {
@@ -61,15 +61,15 @@ class suiTracker extends suiMapper {
   // ### renderElement
   // the element the score is rendered on
   get renderElement() {
-    return this.layout.renderer.elementId;
+    return this.renderer.renderer.elementId;
   }
 
   get score() {
-    return this.layout.score;
+    return this.renderer.score;
   }
 
   get context() {
-    return this.layout.renderer.getContext();
+    return this.renderer.renderer.getContext();
   }
 
   _copySelections() {
@@ -135,7 +135,7 @@ class suiTracker extends suiMapper {
     this.modifierTabs = [];
     this.modifierBoxes = [];
     const modMap = {};
-    this.layout.score.scoreText.forEach((modifier) => {
+    this.renderer.score.scoreText.forEach((modifier) => {
       if (!modMap[modifier.attrs.id]) {
         this.modifierTabs.push({
           modifier,
@@ -146,7 +146,7 @@ class suiTracker extends suiMapper {
         ix += 1;
       }
     });
-    this.layout.score.textGroups.forEach((modifier) => {
+    this.renderer.score.textGroups.forEach((modifier) => {
       if (!modMap[modifier.attrs.id]) {
         this.modifierTabs.push({
           modifier,
@@ -211,8 +211,8 @@ class suiTracker extends suiMapper {
   musicCursor(selector) {
     const key = SmoSelector.getNoteKey(selector);
     if (this.measureNoteMap[key]) {
-      const measureSel = SmoSelection.measureSelection(this.layout.score,
-        this.layout.score.staves.length - 1, selector.measure);
+      const measureSel = SmoSelection.measureSelection(this.renderer.score,
+        this.renderer.score.staves.length - 1, selector.measure);
       const measure = measureSel.measure;
       const mbox = measure.renderedBox;
       const pos = this.measureNoteMap[key].scrollBox;
