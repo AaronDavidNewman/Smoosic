@@ -4672,6 +4672,49 @@ class SuiScoreView {
     this.renderer.renderScoreModifiers();
   }
 
+  addGraceNote() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    selections.forEach((selection) => {
+      const index = selection.note.getGraceNotes().length;
+      const pitches = JSON.parse(JSON.stringify(selection.note.pitches));
+      const grace = new SmoGraceNote({ pitches, ticks:
+        { numerator: 2048, denominator: 1, remainder: 0 } });
+      SmoOperation.addGraceNote(selection, grace, index);
+
+      const altPitches = JSON.parse(JSON.stringify(selection.note.pitches));
+      const altGrace =  new SmoGraceNote({ altPitches, ticks:
+        { numerator: 2048, denominator: 1, remainder: 0 } });
+      altGrace.attrs.id = grace.attrs.id;
+      const altSelection = this._getEquivalentSelection(selection);
+      SmoOperation.addGraceNote(altSelection, altGrace, index);
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  removeGraceNote() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    selections.forEach((selection) => {
+      // TODO: get the correct offset
+      SmoOperation.removeGraceNote(selection, 0);
+      SmoOperation.removeGraceNote(this._getEquivalentSelection(selection), 0);
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  slashGraceNotes() {
+    const grace = this.tracker.getSelectedGraceNotes();
+    const measureSelections = this._undoTrackerMeasureSelections();
+    grace.forEach((gn) => {
+      SmoOperation.slashGraceNotes(gn);
+      const altSelection = this._getEquivalentSelection(gn.selection);
+      const altGn = this._getEquivalentGraceNote(altSelection, gn.modifier);
+      SmoOperation.slashGraceNotes({ selection: altSelection, modifier: altGn });
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
+
   // ### transposeSelections
   // tranpose whatever is selected in tracker the given offset.
   transposeSelections(offset) {
@@ -4680,9 +4723,10 @@ class SuiScoreView {
     const grace = this.tracker.getSelectedGraceNotes();
     if (grace.length) {
       grace.forEach((artifact) => {
+        const altSelection = this._getEquivalentSelection(artifact.selection);
         SmoOperation.transposeGraceNotes(artifact.selection, artifact.modifier, offset);
-        SmoOperation.transposeGraceNotes(this._getEquivalentSelection(artifact.selection),
-          artifact.modifier, offset);
+        SmoOperation.transposeGraceNotes(altSelection,
+          this._getEquivalentGraceNote(altSelection, artifact.modifier), offset);
       });
     } else {
       selections.forEach((selected) => {
@@ -4692,6 +4736,28 @@ class SuiScoreView {
       if (selections.length === 1) {
         suiOscillator.playSelectionNow(selections[0]);
       }
+    }
+    this._renderChangedMeasures(measureSelections);
+  }
+  toggleEnharmonic() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    const grace = this.tracker.getSelectedGraceNotes();
+    if (grace.length) {
+      grace.forEach((artifact) => {
+        SmoOperation.toggleGraceNoteEnharmonic(artifact.selection, artifact.modifier);
+        const altSelection = this._getEquivalentSelection(artifact.selection);
+        SmoOperation.toggleGraceNoteEnharmonic(this._getEquivalentSelection(artifact.selection),
+          this._getEquivalentGraceNote(altSelection, artifact.modifier));
+      });
+    } else {
+      selections.forEach((selected) => {
+        if (typeof(selected.selector.pitches) === 'undefined') {
+          selected.selector.pitches = [];
+        }
+        SmoOperation.toggleEnharmonic(selected);
+        SmoOperation.toggleEnharmonic(this._getEquivalentSelection(selected));
+      });
     }
     this._renderChangedMeasures(measureSelections);
   }
@@ -4739,8 +4805,12 @@ class SuiScoreView {
       return SmoSelection.noteSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
         selection.selector.tick);
     }
-    return SmoSelection.noteSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
-      selection.selector.tick, selection.selector.pitch);
+    return SmoSelection.pitchSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
+      selection.selector.tick, selection.selector.pitches);
+  }
+
+  _getEquivalentGraceNote(selection, gn) {
+    return selection.note.getGraceNotes().find((gg) => gg.attrs.id === gn.attrs.id);
   }
 
   // ### _createStaveMap
@@ -10553,13 +10623,12 @@ class SmoNote {
       this.noteHead = noteHead;
     }
   }
-  addGraceNote(params, offset) {
-    params.clef = this.clef;
-    if (this.graceNotes.length > offset) {
-      this.graceNotes[offset] = new SmoGraceNote(params);
-    } else {
-      this.graceNotes.push(new SmoGraceNote(params));
+  addGraceNote(graceNote, offset) {
+    if (typeof(offset) === 'undefined') {
+      offset = 0;
     }
+    graceNote.clef = this.clef;
+    this.graceNotes.push(graceNote);
   }
   removeGraceNote(offset) {
     if (offset >= this.graceNotes.length) {
@@ -10605,6 +10674,17 @@ class SmoNote {
 
   getMicrotones() {
     return this.tones;
+  }
+  static toggleEnharmonic(pitch) {
+    const lastLetter = pitch.letter;
+    let vexPitch = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch));
+    vexPitch = smoMusic.getEnharmonic(vexPitch);
+
+    pitch.letter = vexPitch[0];
+    pitch.accidental = vexPitch.length > 1 ?
+      vexPitch.substring(1, vexPitch.length) : 'n';
+    pitch.octave += smoMusic.letterChangedOctave(lastLetter, pitch.letter);
+    return pitch;
   }
 
   transpose(pitchArray, offset, keySignature) {
@@ -14365,13 +14445,12 @@ class SmoOperation {
     });
   }
 
-  static addGraceNote(selection,offset,g) {
-      selection.note.addGraceNote(offset,g);
-      selection.measure.changed= true;
+  static addGraceNote(selection, g, offset) {
+    selection.note.addGraceNote(g, offset);
   }
 
 
-  static removeGraceNote(selection,offset) {
+  static removeGraceNote(selection, offset) {
     selection.note.removeGraceNote(offset);
     selection.measure.changed= true;
   }
@@ -14395,18 +14474,29 @@ class SmoOperation {
     selection.measure.changed = true;
   }
 
-    static toggleGraceNoteCourtesy(selection,modifiers) {
-        if (!Array.isArray(modifiers)) {
-            modifiers=[modifiers];
-        }
-        modifiers.forEach((mm) => {
-            mm.modifiers.pitches.forEach((pitch)=> {
-                pitch.cautionary = pitch.cautionary ? false : true;
-            });
-        });
+  static toggleGraceNoteCourtesy(selection,modifiers) {
+    if (!Array.isArray(modifiers)) {
+      modifiers=[modifiers];
     }
+    modifiers.forEach((mm) => {
+      mm.modifiers.pitches.forEach((pitch)=> {
+        pitch.cautionary = pitch.cautionary ? false : true;
+      });
+    });
+  }
+  static toggleGraceNoteEnharmonic(selection, modifiers, offset) {
+    if (!Array.isArray(modifiers)) {
+      modifiers=[modifiers];
+    }
+    modifiers.forEach((mm) => {
+      var par = [];
+      mm.pitches.forEach((pitch)=> {
+        SmoNote.toggleEnharmonic(pitch);
+      });
+    });
+  }
 
-  static transposeGraceNotes(selection,modifiers,offset) {
+  static transposeGraceNotes(selection, modifiers, offset) {
     if (!Array.isArray(modifiers)) {
       modifiers=[modifiers];
     }
@@ -14682,15 +14772,7 @@ class SmoOperation {
       pitchSelection.selector.pitches.push(0);
     }
     var pitch = pitchSelection.note.pitches[pitchSelection.selector.pitches[0]];
-    var lastLetter = pitch.letter;
-    var vexPitch = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch));
-    vexPitch = smoMusic.getEnharmonic(vexPitch);
-
-    pitch.letter = vexPitch[0];
-    pitch.accidental = vexPitch.length > 1 ?
-    vexPitch.substring(1, vexPitch.length) : 'n';
-    pitch.octave += smoMusic.letterChangedOctave(lastLetter, pitch.letter);
-    pitchSelection.measure.setChanged();
+    SmoNote.toggleEnharmonic(pitch);
   }
 
   static addDynamic(selection, dynamic) {
@@ -32333,7 +32415,6 @@ class SuiKeyCommands {
     this._render();
   }
 
-
   scoreOperation(name,parameters,description) {
     SmoUndoable.scoreOp(this.view.score, name, parameters, this.undoBuffer, description);
     this._render();
@@ -32453,13 +32534,6 @@ class SuiKeyCommands {
 
   transpose(offset) {
     this.view.transposeSelections(offset);
-    // If there are lots of selections, just play the first note
-    /* var playSelection = true;
-    this.view.tracker.selections.forEach((selected) => {
-        this._transpose(selected, offset, playSelection);
-        playSelection = false;
-    });
-    this._render();  */
   }
   transposeDown() {
     this.transpose(-1);
@@ -32613,8 +32687,7 @@ class SuiKeyCommands {
     this.view.toggleCourtesyAccidentals();
   }
   toggleEnharmonic() {
-    this.view.tracker.selections.forEach((selected) => this._selectionOperation(selected, 'toggleEnharmonic'));
-    this._render();
+    this.view.toggleEnharmonic();
   }
 
   rerender(keyEvent) {
@@ -32639,16 +32712,13 @@ class SuiKeyCommands {
      this._render();
   }
   removeGraceNote(keyEvent) {
-    this._singleSelectionOperation('removeGraceNote', { index: 0 });
+    this.view.removeGraceNote();
   }
   addGraceNote(keyEvent) {
-    this._singleSelectionOperation('addGraceNote');
+    this.view.addGraceNote();
   }
   slashGraceNotes(keyEvent) {
-    if (!this.view.tracker.modifierSelections.length) {
-      return;
-    }
-    this._selectionOperation(this.view.tracker.modifierSelections,'slashGraceNotes');
+    this.view.slashGraceNotes();
   }
 
   toggleArticulationCommand(articulation, ctor) {

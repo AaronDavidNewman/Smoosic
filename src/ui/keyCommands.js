@@ -57,7 +57,6 @@ class SuiKeyCommands {
     this._render();
   }
 
-
   scoreOperation(name,parameters,description) {
     SmoUndoable.scoreOp(this.view.score, name, parameters, this.undoBuffer, description);
     this._render();
@@ -177,13 +176,6 @@ class SuiKeyCommands {
 
   transpose(offset) {
     this.view.transposeSelections(offset);
-    // If there are lots of selections, just play the first note
-    /* var playSelection = true;
-    this.view.tracker.selections.forEach((selected) => {
-        this._transpose(selected, offset, playSelection);
-        playSelection = false;
-    });
-    this._render();  */
   }
   transposeDown() {
     this.transpose(-1);
@@ -337,8 +329,7 @@ class SuiKeyCommands {
     this.view.toggleCourtesyAccidentals();
   }
   toggleEnharmonic() {
-    this.view.tracker.selections.forEach((selected) => this._selectionOperation(selected, 'toggleEnharmonic'));
-    this._render();
+    this.view.toggleEnharmonic();
   }
 
   rerender(keyEvent) {
@@ -363,16 +354,13 @@ class SuiKeyCommands {
      this._render();
   }
   removeGraceNote(keyEvent) {
-    this._singleSelectionOperation('removeGraceNote', { index: 0 });
+    this.view.removeGraceNote();
   }
   addGraceNote(keyEvent) {
-    this._singleSelectionOperation('addGraceNote');
+    this.view.addGraceNote();
   }
   slashGraceNotes(keyEvent) {
-    if (!this.view.tracker.modifierSelections.length) {
-      return;
-    }
-    this._selectionOperation(this.view.tracker.modifierSelections,'slashGraceNotes');
+    this.view.slashGraceNotes();
   }
 
   toggleArticulationCommand(articulation, ctor) {

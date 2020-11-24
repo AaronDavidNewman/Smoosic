@@ -309,13 +309,12 @@ class SmoOperation {
     });
   }
 
-  static addGraceNote(selection,offset,g) {
-      selection.note.addGraceNote(offset,g);
-      selection.measure.changed= true;
+  static addGraceNote(selection, g, offset) {
+    selection.note.addGraceNote(g, offset);
   }
 
 
-  static removeGraceNote(selection,offset) {
+  static removeGraceNote(selection, offset) {
     selection.note.removeGraceNote(offset);
     selection.measure.changed= true;
   }
@@ -339,18 +338,29 @@ class SmoOperation {
     selection.measure.changed = true;
   }
 
-    static toggleGraceNoteCourtesy(selection,modifiers) {
-        if (!Array.isArray(modifiers)) {
-            modifiers=[modifiers];
-        }
-        modifiers.forEach((mm) => {
-            mm.modifiers.pitches.forEach((pitch)=> {
-                pitch.cautionary = pitch.cautionary ? false : true;
-            });
-        });
+  static toggleGraceNoteCourtesy(selection,modifiers) {
+    if (!Array.isArray(modifiers)) {
+      modifiers=[modifiers];
     }
+    modifiers.forEach((mm) => {
+      mm.modifiers.pitches.forEach((pitch)=> {
+        pitch.cautionary = pitch.cautionary ? false : true;
+      });
+    });
+  }
+  static toggleGraceNoteEnharmonic(selection, modifiers, offset) {
+    if (!Array.isArray(modifiers)) {
+      modifiers=[modifiers];
+    }
+    modifiers.forEach((mm) => {
+      var par = [];
+      mm.pitches.forEach((pitch)=> {
+        SmoNote.toggleEnharmonic(pitch);
+      });
+    });
+  }
 
-  static transposeGraceNotes(selection,modifiers,offset) {
+  static transposeGraceNotes(selection, modifiers, offset) {
     if (!Array.isArray(modifiers)) {
       modifiers=[modifiers];
     }
@@ -626,15 +636,7 @@ class SmoOperation {
       pitchSelection.selector.pitches.push(0);
     }
     var pitch = pitchSelection.note.pitches[pitchSelection.selector.pitches[0]];
-    var lastLetter = pitch.letter;
-    var vexPitch = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch));
-    vexPitch = smoMusic.getEnharmonic(vexPitch);
-
-    pitch.letter = vexPitch[0];
-    pitch.accidental = vexPitch.length > 1 ?
-    vexPitch.substring(1, vexPitch.length) : 'n';
-    pitch.octave += smoMusic.letterChangedOctave(lastLetter, pitch.letter);
-    pitchSelection.measure.setChanged();
+    SmoNote.toggleEnharmonic(pitch);
   }
 
   static addDynamic(selection, dynamic) {
