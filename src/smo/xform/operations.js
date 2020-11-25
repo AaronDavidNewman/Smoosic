@@ -296,12 +296,12 @@ class SmoOperation {
     }
 
   static makeRest(selection) {
-  selection.measure.setChanged();
-  selection.note.makeRest();
+    selection.measure.setChanged();
+    selection.note.makeRest();
   }
   static makeNote(selection) {
-  selection.measure.setChanged();
-  selection.note.makeNote();
+    selection.measure.setChanged();
+    selection.note.makeNote();
   }
   static setNoteHead(selections,noteHead) {
     selections.forEach((selection) => {
@@ -538,16 +538,16 @@ class SmoOperation {
   // the letter value appropriate for the key signature is used, e.g. c in A major becomes
   // c#
   static setPitch(selection, pitches) {
-  var measure = selection.measure;
-  var note = selection.note;
+    var measure = selection.measure;
+    var note = selection.note;
     selection.note.makeNote();
-  measure.setChanged();
-  // TODO allow hint for octave
-  var octave = note.pitches[0].octave;
-  note.pitches = [];
-  if (!Array.isArray(pitches)) {
-  pitches = [pitches];
-  }
+    measure.setChanged();
+    // TODO allow hint for octave
+    var octave = note.pitches[0].octave;
+    note.pitches = [];
+    if (!Array.isArray(pitches)) {
+      pitches = [pitches];
+    }
     var earlierAccidental = (pitch) => {
       selection.measure.voices.forEach((voice) => {
         for (var i=0;i<selection.selector.tick
@@ -564,64 +564,62 @@ class SmoOperation {
         }
       });
     }
-  pitches.forEach((pitch) => {
-  var letter = pitch;
-  if (typeof(pitch) === 'string') {
-  var letter = smoMusic.getKeySignatureKey(pitch[0], measure.keySignature);
-  pitch = {
-  letter: letter[0],
-  accidental: letter.length > 1 ? letter.substring(1) : '',
-  octave: octave
-  };
-  }
-
+    pitches.forEach((pitch) => {
+      var letter = pitch;
+      if (typeof(pitch) === 'string') {
+        var letter = smoMusic.getKeySignatureKey(pitch[0], measure.keySignature);
+        pitch = {
+        letter: letter[0],
+        accidental: letter.length > 1 ? letter.substring(1) : '',
+        octave: octave
+        };
+      }
       earlierAccidental(pitch);
-  note.pitches.push(pitch);
-  });
-  return true;
+      note.pitches.push(pitch);
+    });
+    return true;
   }
 
   // ## addPitch
   // add a pitch to a note chord, avoiding duplicates.
   static addPitch(selection, pitches) {
-  var toAdd = [];
-  selection.note.makeNote();
-  pitches.forEach((pitch) => {
-  var found = false;
-  toAdd.forEach((np) => {
-  if (np.accidental === pitch.accidental && np.letter === pitch.letter && np.octave === pitch.octave) {
-  found = true;
-  }
-  });
-  if (!found) {
-  toAdd.push(pitch);
-  }
-  });
-  toAdd.sort(function (a, b) {
-  return smoMusic.smoPitchToInt(a) -
-  smoMusic.smoPitchToInt(b);
-  });
-  selection.note.pitches = JSON.parse(JSON.stringify(toAdd));
-  selection.measure.setChanged();
+    var toAdd = [];
+    selection.note.makeNote();
+    pitches.forEach((pitch) => {
+      var found = false;
+      toAdd.forEach((np) => {
+        if (np.accidental === pitch.accidental && np.letter === pitch.letter && np.octave === pitch.octave) {
+          found = true;
+        }
+      });
+    if (!found) {
+      toAdd.push(pitch);
+    }
+    });
+    toAdd.sort(function (a, b) {
+      return smoMusic.smoPitchToInt(a) -
+      smoMusic.smoPitchToInt(b);
+    });
+    selection.note.pitches = JSON.parse(JSON.stringify(toAdd));
+    selection.measure.setChanged();
   }
 
   static toggleCourtesyAccidental(selection) {
-  var toBe = false;
-  var i = 0;
-  if (!selection.selector['pitches'] || selection.selector.pitches.length === 0) {
-  var ps = [];
-  selection.note.pitches.forEach((pitch) => {
-  var p = JSON.parse(JSON.stringify(pitch));
-  ps.push(p);
-  p.cautionary = !(pitch.cautionary);
-  });
-  selection.note.pitches = ps;
-  } else {
-  toBe = !(selection.note.pitches[selection.selector.pitches[0]].cautionary);
-  }
-
-  SmoOperation.courtesyAccidental(selection, toBe);
-  selection.measure.setChanged();
+    var toBe = false;
+    var i = 0;
+    if (!selection.selector['pitches'] || selection.selector.pitches.length === 0) {
+      var ps = [];
+      selection.note.pitches.forEach((pitch) => {
+        var p = JSON.parse(JSON.stringify(pitch));
+        ps.push(p);
+        p.cautionary = !(pitch.cautionary);
+      });
+      selection.note.pitches = ps;
+    } else {
+      toBe = !(selection.note.pitches[selection.selector.pitches[0]].cautionary);
+    }
+    SmoOperation.courtesyAccidental(selection, toBe);
+    selection.measure.setChanged();
   }
 
   static courtesyAccidental(pitchSelection, toBe) {
@@ -667,18 +665,18 @@ class SmoOperation {
     }
   }
 
-    static toggleBeamDirection(selections) {
-        selections[0].note.toggleFlagState();
-        selections.forEach((selection) => {
-            selection.note.flagState = selections[0].note.flagState;
-            selection.measure.setChanged()
-        });
-    }
+  static toggleBeamDirection(selections) {
+    selections[0].note.toggleFlagState();
+    selections.forEach((selection) => {
+      selection.note.flagState = selections[0].note.flagState;
+      selection.measure.setChanged()
+    });
+  }
 
-    static toggleOrnament(selection,ornament) {
-  selection.note.toggleOrnament(ornament);
-  selection.measure.setChanged();
-    }
+  static toggleOrnament(selection,ornament) {
+    selection.note.toggleOrnament(ornament);
+    selection.measure.setChanged();
+  }
 
   static toggleArticulation(selection, articulation) {
   selection.note.toggleArticulation(articulation);

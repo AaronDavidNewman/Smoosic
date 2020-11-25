@@ -214,6 +214,35 @@ class SuiScoreView {
     this._renderChangedMeasures(measureSelections);
   }
 
+  makeRest() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    selections.forEach((selection) => {
+      SmoOperation.makeRest(selection);
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
+  toggleBeamGroup() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    selections.forEach((selection) => {
+      SmoOperation.toggleBeamGroup(selection);
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
+  toggleBeamDirection() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    SmoOperation.toggleBeamDirection(selections);
+    this._renderChangedMeasures(measureSelections);
+  }
+  beamSelections() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    SmoOperation.beamSelections(selections);
+    this._renderChangedMeasures(measureSelections);
+  }
+
   setPitch(letter) {
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections();
@@ -238,7 +267,33 @@ class SuiScoreView {
     if (selections.length === 1) {
       suiOscillator.playSelectionNow(selections[0].note);
     }
-
+    this._renderChangedMeasures(measureSelections);
+  }
+  copy() {
+    this.pasteBuffer.setSelections(this.score, this.tracker.selections);
+    const altAr = [];
+    this.tracker.selections.forEach((sel) => {
+      const noteSelection = this._getEquivalentSelection(sel);
+      altAr.push(noteSelection);
+    });
+    this.storePaste.setSelections(this.storeScore, altAr);
+  }
+  paste() {
+    // We undo the whole score on a paste, since we don't yet know the
+    // extent of the overlap
+    this._undoScore('paste');
+    const firstSelection = this.tracker.selections[0];
+    const pasteTarget = firstSelection.selector;
+    const altSelection = this._getEquivalentSelection(firstSelection);
+    const altTarget = altSelection.selector;
+    this.pasteBuffer.pasteSelections(this.score, pasteTarget);
+    this.storePaste.pasteSelections(this.storeScore, altTarget);
+    this._renderChangedMeasures(this.pasteBuffer.replacementMeasures);
+  }
+  setNoteHead(head) {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    SmoOperation.setNoteHead(selections, head);
     this._renderChangedMeasures(measureSelections);
   }
 
@@ -292,7 +347,7 @@ class SuiScoreView {
     measureSelections.forEach((measureSelection) => {
       const equiv = this._getEquivalentSelection(measureSelection);
       this.undoBuffer.addBuffer('transpose selections', UndoBuffer.bufferTypes.MEASURE, measureSelection.selector, measureSelection.measure);
-      this.storeBuffer.addBuffer('transpose selections', UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure);
+      this.storeUndo.addBuffer('transpose selections', UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure);
     });
     return measureSelections;
   }
@@ -304,7 +359,7 @@ class SuiScoreView {
 
   _undoScore(label) {
     this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE, null, this.score);
-    this.storeBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE, null, this.storeScore);
+    this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.SCORE, null, this.storeScore);
   }
 
   _getEquivalentSelection(selection) {
@@ -347,12 +402,13 @@ class SuiScoreView {
     const scoreJson = score.serialize();
     const scroller = new suiScroller();
     this.pasteBuffer = new PasteBuffer();
+    this.storePaste = new PasteBuffer();
     this.tracker = new suiTracker(this.renderer, scroller, this.pasteBuffer);
     this.renderer.setMeasureMapper(this.tracker);
 
     this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));
     this.undoBuffer = new UndoBuffer();
-    this.storeBuffer = new UndoBuffer();
+    this.storeUndo = new UndoBuffer();
     this._createStaveMap();
   }
 
@@ -366,6 +422,6 @@ class SuiScoreView {
 
   undo() {
     this.renderer.undo(this.undoBuffer);
-    this.storeScore = this.storeBuffer.undo(this.storeScore);
+    this.storeScore = this.storeUndo.undo(this.storeScore);
   }
 }

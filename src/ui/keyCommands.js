@@ -88,42 +88,20 @@ class SuiKeyCommands {
   }
 
   copy() {
-    if (this.view.tracker.selections.length < 1) {
-      return;
-    }
-    this.view.pasteBuffer.setSelections(this.view.score, this.view.tracker.selections);
+    this.view.copy();
   }
   paste() {
-    if (this.view.tracker.selections.length < 1) {
-      return;
-    }
-    SmoUndoable.pasteBuffer(this.view.score, this.view.pasteBuffer, this.view.tracker.selections, this.view.undoBuffer, 'paste')
-    this._rebeam();
-    this._refresh();
+    this.view.paste();
   }
   toggleBeamGroup() {
-    if (this.view.tracker.selections.length < 1) {
-      return;
-    }
-    SmoUndoable.toggleBeamGroups(this.view.tracker.selections, this.view.undoBuffer);
-    this._rebeam();
-    this._render();
+    this.view.toggleBeamGroup();
   }
 
   beamSelections() {
-    if (this.view.tracker.selections.length < 1) {
-      return;
-    }
-    SmoUndoable.beamSelections(this.view.tracker.selections, this.view.undoBuffer);
-    this._rebeam();
-    this._render();
+    this.view.beamSelections();
   }
   toggleBeamDirection() {
-    if (this.view.tracker.selections.length < 1) {
-      return;
-    }
-    SmoUndoable.toggleBeamDirection(this.view.tracker.selections, this.view.undoBuffer);
-    this._render();
+    this.view.toggleBeamDirection();
   }
 
   collapseChord() {
@@ -177,10 +155,7 @@ class SuiKeyCommands {
     this.transpose(-12);
   }
   makeRest() {
-    this.view.tracker.selections.forEach((selection) => {
-      this._selectionOperation(selection,'makeRest');
-    });
-    this.view.tracker.replaceSelectedMeasures();
+    this.view.makeRest();
   }
 
   setPitchCommand(letter) {
@@ -239,8 +214,7 @@ class SuiKeyCommands {
     this.view.unmakeTuplet();
   }
   setNoteHead(keyEvent) {
-     SmoUndoable.setNoteHead(this.view.score, this.view.tracker.selections, 'x2', this.view.undoBuffer);
-     this._render();
+    this.view.setNoteHead('x2');
   }
   removeGraceNote(keyEvent) {
     this.view.removeGraceNote();
