@@ -348,22 +348,7 @@ class SuiKeyCommands {
   }
 
   toggleArticulationCommand(articulation, ctor) {
-    this.view.undoBuffer.addBuffer('change articulation ' + articulation,
-      UndoBuffer.bufferTypes.STAFF, this.view.tracker.selections[0].selector, this.view.tracker.selections[0].staff);
-    this.view.tracker.selections.forEach((sel) => {
-      if (ctor === 'SmoArticulation') {
-        var aa = new SmoArticulation({
-            articulation: articulation
-        });
-       SmoOperation.toggleArticulation(sel, aa);
-      } else {
-        var aa = new SmoOrnament({
-            ornament: articulation
-        });
-        SmoOperation.toggleOrnament(sel, aa);
-      }
-    });
-    this._render();
+    this.view.toggleArticulation(articulation, ctor);
   }
 
   addRemoveArticulation(keyEvent) {

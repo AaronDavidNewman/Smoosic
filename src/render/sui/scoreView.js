@@ -155,6 +155,25 @@ class SuiScoreView {
     }
     this._renderChangedMeasures(measureSelections);
   }
+  toggleArticulation(articulation, ctor) {
+    const measureSelections = this._undoTrackerMeasureSelections();
+    this.tracker.selections.forEach((sel) => {
+      if (ctor === 'SmoArticulation') {
+        const aa = new SmoArticulation({ articulation });
+        const altAa = new SmoArticulation({ articulation });
+        altAa.attrs.id = aa.attrs.id;
+        SmoOperation.toggleArticulation(sel, aa);
+        SmoOperation.toggleArticulation(this._getEquivalentSelection(sel), altAa);
+      } else {
+        const aa = new SmoOrnament({ ornament: articulation });
+        const altAa = new SmoOrnament({ ornament: articulation });
+        altAa.attrs.id = aa.attrs.id;
+        SmoOperation.toggleOrnament(sel,  aa);
+        SmoOperation.toggleOrnament(this._getEquivalentSelection(sel), altAa);
+      }
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
 
   makeTuplet(numNotes) {
     const selection = this.tracker.selections[0];
