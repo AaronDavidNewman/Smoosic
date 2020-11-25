@@ -798,14 +798,14 @@ class SmoOperation {
   }
 
   static setRepeatSymbol(score, selection, sym) {
-  var mm = selection.selector.measure;
-  var ix = 0;
-  score.staves.forEach((staff) => {
-  var s2 = SmoSelection.measureSelection(score, ix, mm);
-  s2.measure.setRepeatSymbol(sym);
-  s2.measure.setChanged();
-  ix += 1;
-  });
+    var mm = selection.selector.measure;
+    var ix = 0;
+    score.staves.forEach((staff) => {
+    var s2 = SmoSelection.measureSelection(score, ix, mm);
+    s2.measure.setRepeatSymbol(sym);
+    s2.measure.setChanged();
+    ix += 1;
+    });
   }
 
   // ## interval
@@ -942,6 +942,6 @@ class SmoOperation {
   }
 
   static addMeasure(score, systemIndex, nmeasure) {
-  score.addMeasure(systemIndex, nmeasure);
+    score.addMeasure(systemIndex, nmeasure);
   }
 }

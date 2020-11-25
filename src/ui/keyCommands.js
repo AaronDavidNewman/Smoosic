@@ -208,51 +208,10 @@ class SuiKeyCommands {
   }
 
   addMeasure(keyEvent) {
-    if (this.view.tracker.selections.length < 1) {
-      return;
-    }
-    var measure = this.view.tracker.getFirstMeasureOfSelection();
-    if (measure) {
-      var nmeasure = SmoMeasure.getDefaultMeasureWithNotes(measure);
-      var pos = measure.measureNumber.measureIndex;
-      if (keyEvent.shiftKey) {
-        pos += 1;
-      }
-      nmeasure.measureNumber.measureIndex = pos;
-      nmeasure.setActiveVoice(0);
-      SmoUndoable.addMeasure(this.view.score, pos, nmeasure, this.view.undoBuffer);
-      this.view.renderer.clearLine(measure);
-      this._refresh();
-    }
+    this.view.addMeasure(keyEvent.shiftKey);
   }
   deleteMeasure() {
-    if (this.view.tracker.selections.length < 1) {
-      return;
-    }
-    // don't delete the last measure
-    if (this.view.score.staves[0].measures.length < 2) {
-      return;
-    }
-    var selection = this.view.tracker.selections[0];
-    var ix = selection.selector.measure;
-    this.view.score.staves.forEach((staff) => {
-      this.view.renderer.unrenderMeasure(staff.measures[ix]);
-      this.view.renderer.unrenderMeasure(staff.measures[staff.measures.length-1]);
-
-      // A little hacky - delete the modifiers if they start or end on
-      // the measure
-      staff.modifiers.forEach((modifier) => {
-        if (modifier.startSelector.measure == ix || modifier.endSelector.measure == ix) {
-            $(this.view.renderer.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
-        }
-      });
-    });
-    this.view.tracker.deleteMeasure(selection);
-    // this.layout.unrenderAll();
-
-    SmoUndoable.deleteMeasure(this.view.score, selection, this.view.undoBuffer);
-    this.view.tracker.loadScore();
-    this._refresh();
+   this.view.deleteMeasure();
   }
 
   toggleCourtesyAccidental() {

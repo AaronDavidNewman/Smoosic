@@ -242,6 +242,49 @@ class SuiScoreView {
     this._renderChangedMeasures(measureSelections);
   }
 
+  deleteMeasure() {
+    this._undoScore('Delete Measure');
+    const selection = this.tracker.selections[0];
+    const index = selection.selector.measure;
+    // Unrender the deleted measure
+    this.score.staves.forEach((staff) => {
+      this.renderer.unrenderMeasure(staff.measures[index]);
+      this.renderer.unrenderMeasure(staff.measures[staff.measures.length - 1]);
+
+      // A little hacky - delete the modifiers if they start or end on
+      // the measure
+      staff.modifiers.forEach((modifier) => {
+        if (modifier.startSelector.measure === index || modifier.endSelector.measure === index) {
+          $(this.renderer.context.svg).find('g.' + modifier.attrs.id).remove();
+        }
+      });
+    });
+    this.tracker.deleteMeasure(selection);
+    this.score.deleteMeasure(index);
+    this.storeScore.deleteMeasure(index);
+    this.tracker.loadScore();
+    this.renderer.setRefresh();
+  }
+  addMeasure(append) {
+    this._undoScore('Add Measure');
+    let pos = 0;
+    const measure = this.tracker.getFirstMeasureOfSelection();
+    const nmeasure = SmoMeasure.getDefaultMeasureWithNotes(measure);
+    const altMeasure = SmoMeasure.deserialize(nmeasure.serialize());
+
+    pos = measure.measureNumber.measureIndex;
+    if (append) {
+      pos += 1;
+    }
+    nmeasure.measureNumber.measureIndex = pos;
+    nmeasure.setActiveVoice(0);
+    this.score.addMeasure(pos, nmeasure);
+    this.storeScore.addMeasure(pos, altMeasure);
+
+    this.renderer.clearLine(measure);
+    this.renderer.setRefresh();
+  }
+
   // ### _undoTrackerSelections
   // Add to the undo buffer the current set of measures selected.
   _undoTrackerMeasureSelections() {
@@ -257,6 +300,11 @@ class SuiScoreView {
     measureSelections.forEach((measureSelection) => {
       this.renderer.addToReplaceQueue(measureSelection);
     });
+  }
+
+  _undoScore(label) {
+    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE, null, this.score);
+    this.storeBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE, null, this.storeScore);
   }
 
   _getEquivalentSelection(selection) {
