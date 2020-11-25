@@ -87,13 +87,6 @@ class SuiKeyCommands {
     this._render();
   }
 
-  _transpose(selection, offset, playSelection) {
-    this._selectionOperation(selection, 'transpose', offset);
-    if (playSelection) {
-      suiOscillator.playSelectionNow(selection);
-    }
-  }
-
   copy() {
     if (this.view.tracker.selections.length < 1) {
       return;
@@ -134,13 +127,7 @@ class SuiKeyCommands {
   }
 
   collapseChord() {
-    SmoUndoable.noop(this.view.score, this.view.undoBuffer);
-    this.view.tracker.selections.forEach((selection) => {
-        var p = selection.note.pitches[0];
-        p = JSON.parse(JSON.stringify(p));
-        selection.note.pitches = [p];
-    });
-    this._render();
+    this.view.collapseChord();
   }
 
   playScore() {
@@ -160,7 +147,7 @@ class SuiKeyCommands {
   }
 
   intervalAdd(interval, direction) {
-    this._singleSelectionOperation('interval', direction * interval);
+    this.view.setInterval(direction * interval);
   }
 
   interval(keyEvent) {
@@ -196,49 +183,8 @@ class SuiKeyCommands {
     this.view.tracker.replaceSelectedMeasures();
   }
 
-  _setPitch(selected, letter) {
-    var selector = selected.selector;
-    var hintSel = SmoSelection.lastNoteSelection(this.view.score,
-      selector.staff, selector.measure, selector.voice, selector.tick);
-    if (!hintSel) {
-      hintSel = SmoSelection.nextNoteSelection(this.view.score,
-        selector.staff, selector.measure, selector.voice, selector.tick);
-    }
-    // The selection no longer exists, possibly deleted
-    if (!hintSel) {
-      return;
-    }
-
-    var hintNote = hintSel.note;
-    var hpitch = hintNote.pitches[0];
-    var pitch = JSON.parse(JSON.stringify(hpitch));
-    pitch.letter = letter;
-
-    // Make the key 'a' make 'Ab' in the key of Eb, for instance
-    var vexKsKey = smoMusic.getKeySignatureKey(letter, selected.measure.keySignature);
-    if (vexKsKey.length > 1) {
-        pitch.accidental = vexKsKey[1];
-    } else {
-        pitch.accidental = 'n';
-    }
-
-    // make the octave of the new note as close to previous (or next) note as possible.
-    var upv = ['bc', 'ac', 'bd', 'da', 'be', 'gc'];
-    var downv = ['cb', 'ca', 'db', 'da', 'eb', 'cg'];
-    var delta = hpitch.letter + pitch.letter;
-    if (upv.indexOf(delta) >= 0) {
-        pitch.octave += 1;
-    }
-    if (downv.indexOf(delta) >= 0) {
-      pitch.octave -= 1;
-    }
-    SmoUndoable['setPitch'](selected, pitch, this.view.undoBuffer);
-    suiOscillator.playSelectionNow(selected);
-  }
-
   setPitchCommand(letter) {
-    this.view.tracker.selections.forEach((selected) => this._setPitch(selected, letter));
-    this._renderAndAdvance();
+    this.view.setPitch(letter);
   }
 
   setPitch(keyEvent) {

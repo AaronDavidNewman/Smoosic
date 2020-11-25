@@ -811,24 +811,24 @@ class SmoOperation {
   // ## interval
   // Add a pitch at the specified interval to the chord in the selection.
   static interval(selection, interval) {
-  var measure = selection.measure;
-  var note = selection.note;
-  selection.measure.setChanged();
+    const measure = selection.measure;
+    const note = selection.note;
+    let pitch = {};
 
-  // TODO: figure out which pitch is selected
-  var pitch = note.pitches[0];
-  if (interval > 0) {
-  pitch = note.pitches[note.pitches.length - 1];
-  }
-  var pitch = smoMusic.getIntervalInKey(pitch, measure.keySignature, interval);
-  if (pitch) {
-  note.pitches.push(pitch);
-  note.pitches.sort((x, y) => {
-  return smoMusic.smoPitchToInt(x) - smoMusic.smoPitchToInt(y);
-  });
-  return true;
-  }
-  return false;
+    // TODO: figure out which pitch is selected
+    pitch = note.pitches[0];
+    if (interval > 0) {
+      pitch = note.pitches[note.pitches.length - 1];
+    }
+    pitch = smoMusic.getIntervalInKey(pitch, measure.keySignature, interval);
+    if (pitch) {
+      note.pitches.push(pitch);
+      note.pitches.sort((x, y) =>
+        smoMusic.smoPitchToInt(x) - smoMusic.smoPitchToInt(y)
+      );
+      return true;
+    }
+    return false;
   }
 
   static crescendo(fromSelection, toSelection) {

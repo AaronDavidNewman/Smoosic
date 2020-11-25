@@ -190,6 +190,58 @@ class SuiScoreView {
     this._renderChangedMeasures(measureSelections);
   }
 
+  setInterval(interval) {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    selections.forEach((selected) => {
+      SmoOperation.interval(selected, interval);
+      SmoOperation.interval(this._getEquivalentSelection(selected), interval);
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  collapseChord() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    selections.forEach((selected) => {
+      const pp = JSON.parse(JSON.stringify(selected.note.pitches[0]));
+      const altpp = JSON.parse(JSON.stringify(selected.note.pitches[0]));
+      // No operation for this?
+      selected.note.pitches = [pp];
+      const altSelection = this._getEquivalentSelection(selected);
+      altSelection.note.pitches = [altpp];
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  setPitch(letter) {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    selections.forEach((selected) => {
+      var selector = selected.selector;
+      var hintSel = SmoSelection.lastNoteSelection(this.score,
+        selector.staff, selector.measure, selector.voice, selector.tick);
+      if (!hintSel) {
+        hintSel = SmoSelection.nextNoteSelection(this.score,
+          selector.staff, selector.measure, selector.voice, selector.tick);
+      }
+      // The selection no longer exists, possibly deleted
+      if (!hintSel) {
+        return;
+      }
+      const pitch = smoMusic.getLetterNotePitch(hintSel.note.pitches[0],
+        letter, hintSel.measure.keySignature);
+      SmoOperation.setPitch(selected, pitch);
+      SmoOperation.setPitch(this._getEquivalentSelection(selected), pitch);
+      this.tracker.moveSelectionRight(null, true);
+    });
+    if (selections.length === 1) {
+      suiOscillator.playSelectionNow(selections[0].note);
+    }
+
+    this._renderChangedMeasures(measureSelections);
+  }
+
   // ### _undoTrackerSelections
   // Add to the undo buffer the current set of measures selected.
   _undoTrackerMeasureSelections() {
