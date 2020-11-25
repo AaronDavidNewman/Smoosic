@@ -4780,6 +4780,47 @@ class SuiScoreView {
     }
     this._renderChangedMeasures(measureSelections);
   }
+
+  batchDurationOperation(operation) {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    const grace = this.tracker.getSelectedGraceNotes();
+    const graceMap = { doubleDuration: 'doubleGraceNoteDuration',
+      halveDuration: 'halveGraceNoteDuration' };
+    if (grace.length && typeof(graceMap[operation]) !== 'undefined') {
+      operation = graceMap[operation];
+      grace.forEach((artifact) => {
+        SmoOperation[operation](artifact.selection, artifact.modifier);
+        const altSelection = this._getEquivalentSelection(artifact.selection);
+        SmoOperation[operation](this._getEquivalentSelection(artifact.selection),
+          this._getEquivalentGraceNote(altSelection, artifact.modifier));
+      });
+    } else {
+      const altAr = [];
+      selections.forEach((sel) => {
+        altAr.push(this._getEquivalentSelection(sel));
+      });
+      SmoOperation.batchSelectionOperation(this.score, selections, operation);
+      SmoOperation.batchSelectionOperation(this.storeScore, altAr, operation);
+    }
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  makeTuplet(numNotes) {
+    const selection = this.tracker.selections[0];
+    const measureSelections = this._undoTrackerMeasureSelections();
+    SmoOperation.makeTuplet(selection, numNotes);
+    SmoOperation.makeTuplet(this._getEquivalentSelection(selection), numNotes);
+    this._renderChangedMeasures(measureSelections);
+  }
+  unmakeTuplet() {
+    const selection = this.tracker.selections[0];
+    const measureSelections = this._undoTrackerMeasureSelections();
+    SmoOperation.unmakeTuplet(selection);
+    SmoOperation.unmakeTuplet(this._getEquivalentSelection(selection));
+    this._renderChangedMeasures(measureSelections);
+  }
+
   // ### _undoTrackerSelections
   // Add to the undo buffer the current set of measures selected.
   _undoTrackerMeasureSelections() {
@@ -8133,7 +8174,7 @@ class VxMeasure {
             gr.addAccidental(i, accidental);
           }
         }
-        if (g.tickCount() > 4096) {
+        if (g.tickCount() >= 4096) {
           toBeam = false;
         }
         gr.addClass('grace-note'); // note: this doesn't work :(
@@ -32604,35 +32645,19 @@ class SuiKeyCommands {
   }
 
   dotDuration(keyEvent) {
-    this._batchDurationOperation('dotDuration');
+    this.view.batchDurationOperation('dotDuration');
   }
 
   undotDuration(keyEvent) {
-    this._batchDurationOperation('undotDuration');
+    this.view.batchDurationOperation('undotDuration');
   }
 
   doubleDuration(keyEvent) {
-    var grace = this.view.tracker.getSelectedGraceNotes();
-    if (grace.length) {
-      grace.forEach((artifact) => {
-        SmoUndoable.doubleGraceNoteDuration(artifact.selection, artifact.modifier, this.view.undoBuffer);
-      });
-      this._render();
-      return;
-    }
-    this._batchDurationOperation('doubleDuration');
+    this.view.batchDurationOperation('doubleDuration');
   }
 
   halveDuration(keyEvent) {
-    var grace = this.view.tracker.getSelectedGraceNotes();
-    if (grace.length) {
-      grace.forEach((artifact) => {
-        SmoUndoable.halveGraceNoteDuration(artifact.selection, artifact.modifier, this.view.undoBuffer);
-      });
-      this._render();
-      return;
-    }
-    this._batchDurationOperation('halveDuration');
+    this.view.batchDurationOperation('halveDuration');
   }
 
   addMeasure(keyEvent) {
@@ -32697,7 +32722,7 @@ class SuiKeyCommands {
     this._render();
   }
   makeTupletCommand(numNotes) {
-    this._singleSelectionOperation('makeTuplet', numNotes);
+    this.view.makeTuplet(numNotes);
   }
   makeTuplet(keyEvent) {
     var numNotes = parseInt(keyEvent.key);
@@ -32705,7 +32730,7 @@ class SuiKeyCommands {
   }
 
   unmakeTuplet(keyEvent) {
-    this._singleSelectionOperation('unmakeTuplet');
+    this.view.unmakeTuplet();
   }
   setNoteHead(keyEvent) {
      SmoUndoable.setNoteHead(this.view.score, this.view.tracker.selections, 'x2', this.view.undoBuffer);

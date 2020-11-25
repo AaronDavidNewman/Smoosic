@@ -130,6 +130,47 @@ class SuiScoreView {
     }
     this._renderChangedMeasures(measureSelections);
   }
+
+  batchDurationOperation(operation) {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    const grace = this.tracker.getSelectedGraceNotes();
+    const graceMap = { doubleDuration: 'doubleGraceNoteDuration',
+      halveDuration: 'halveGraceNoteDuration' };
+    if (grace.length && typeof(graceMap[operation]) !== 'undefined') {
+      operation = graceMap[operation];
+      grace.forEach((artifact) => {
+        SmoOperation[operation](artifact.selection, artifact.modifier);
+        const altSelection = this._getEquivalentSelection(artifact.selection);
+        SmoOperation[operation](this._getEquivalentSelection(artifact.selection),
+          this._getEquivalentGraceNote(altSelection, artifact.modifier));
+      });
+    } else {
+      const altAr = [];
+      selections.forEach((sel) => {
+        altAr.push(this._getEquivalentSelection(sel));
+      });
+      SmoOperation.batchSelectionOperation(this.score, selections, operation);
+      SmoOperation.batchSelectionOperation(this.storeScore, altAr, operation);
+    }
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  makeTuplet(numNotes) {
+    const selection = this.tracker.selections[0];
+    const measureSelections = this._undoTrackerMeasureSelections();
+    SmoOperation.makeTuplet(selection, numNotes);
+    SmoOperation.makeTuplet(this._getEquivalentSelection(selection), numNotes);
+    this._renderChangedMeasures(measureSelections);
+  }
+  unmakeTuplet() {
+    const selection = this.tracker.selections[0];
+    const measureSelections = this._undoTrackerMeasureSelections();
+    SmoOperation.unmakeTuplet(selection);
+    SmoOperation.unmakeTuplet(this._getEquivalentSelection(selection));
+    this._renderChangedMeasures(measureSelections);
+  }
+
   // ### _undoTrackerSelections
   // Add to the undo buffer the current set of measures selected.
   _undoTrackerMeasureSelections() {

@@ -246,35 +246,19 @@ class SuiKeyCommands {
   }
 
   dotDuration(keyEvent) {
-    this._batchDurationOperation('dotDuration');
+    this.view.batchDurationOperation('dotDuration');
   }
 
   undotDuration(keyEvent) {
-    this._batchDurationOperation('undotDuration');
+    this.view.batchDurationOperation('undotDuration');
   }
 
   doubleDuration(keyEvent) {
-    var grace = this.view.tracker.getSelectedGraceNotes();
-    if (grace.length) {
-      grace.forEach((artifact) => {
-        SmoUndoable.doubleGraceNoteDuration(artifact.selection, artifact.modifier, this.view.undoBuffer);
-      });
-      this._render();
-      return;
-    }
-    this._batchDurationOperation('doubleDuration');
+    this.view.batchDurationOperation('doubleDuration');
   }
 
   halveDuration(keyEvent) {
-    var grace = this.view.tracker.getSelectedGraceNotes();
-    if (grace.length) {
-      grace.forEach((artifact) => {
-        SmoUndoable.halveGraceNoteDuration(artifact.selection, artifact.modifier, this.view.undoBuffer);
-      });
-      this._render();
-      return;
-    }
-    this._batchDurationOperation('halveDuration');
+    this.view.batchDurationOperation('halveDuration');
   }
 
   addMeasure(keyEvent) {
@@ -339,7 +323,7 @@ class SuiKeyCommands {
     this._render();
   }
   makeTupletCommand(numNotes) {
-    this._singleSelectionOperation('makeTuplet', numNotes);
+    this.view.makeTuplet(numNotes);
   }
   makeTuplet(keyEvent) {
     var numNotes = parseInt(keyEvent.key);
@@ -347,7 +331,7 @@ class SuiKeyCommands {
   }
 
   unmakeTuplet(keyEvent) {
-    this._singleSelectionOperation('unmakeTuplet');
+    this.view.unmakeTuplet();
   }
   setNoteHead(keyEvent) {
      SmoUndoable.setNoteHead(this.view.score, this.view.tracker.selections, 'x2', this.view.undoBuffer);

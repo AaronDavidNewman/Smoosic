@@ -184,7 +184,7 @@ class VxMeasure {
             gr.addAccidental(i, accidental);
           }
         }
-        if (g.tickCount() > 4096) {
+        if (g.tickCount() >= 4096) {
           toBeam = false;
         }
         gr.addClass('grace-note'); // note: this doesn't work :(
