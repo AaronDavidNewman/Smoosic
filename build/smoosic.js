@@ -5010,6 +5010,28 @@ class SuiScoreView {
     SmoOperation.addEnding(this.score, volta);
     this.renderer.setRefresh();
   }
+  _lineOperation(op) {
+    if (this.tracker.selections.length < 2) {
+      return;
+    }
+    const measureSelections = this._undoTrackerMeasureSelections();
+    const ft = this.tracker.getExtremeSelection(-1);
+    const tt = this.tracker.getExtremeSelection(1);
+    const ftAlt = this._getEquivalentSelection(ft);
+    const ttAlt = this._getEquivalentSelection(tt);
+    SmoOperation[op](ft, tt);
+    SmoOperation[op](ftAlt, ttAlt);
+    this._renderChangedMeasures(measureSelections);
+  }
+  crescendo() {
+    this._lineOperation('crescendo');
+  }
+  decrescendo() {
+    this._lineOperation('decrescendo');
+  }
+  slur() {
+    this._lineOperation('slur');
+  }
 
   deleteMeasure() {
     this._undoScore('Delete Measure');
@@ -15315,40 +15337,40 @@ class SmoOperation {
   }
 
   static crescendo(fromSelection, toSelection) {
-  var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
-  var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
-  var modifier = new SmoStaffHairpin({
-  startSelector: fromSelector,
-  endSelector: toSelector,
-  hairpinType: SmoStaffHairpin.types.CRESCENDO,
-  position: SmoStaffHairpin.positions.BELOW
-  });
-  fromSelection.staff.addStaffModifier(modifier);
+    const fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+    const toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+    const modifier = new SmoStaffHairpin({
+      startSelector: fromSelector,
+      endSelector: toSelector,
+      hairpinType: SmoStaffHairpin.types.CRESCENDO,
+      position: SmoStaffHairpin.positions.BELOW
+    });
+    fromSelection.staff.addStaffModifier(modifier);
   }
 
   static decrescendo(fromSelection, toSelection) {
-  var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
-  var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
-  var modifier = new SmoStaffHairpin({
-  startSelector: fromSelector,
-  endSelector: toSelector,
-  hairpinType: SmoStaffHairpin.types.DECRESCENDO,
-  position: SmoStaffHairpin.positions.BELOW
-  });
-  fromSelection.staff.addStaffModifier(modifier);
+    const fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+    const toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+    const modifier = new SmoStaffHairpin({
+      startSelector: fromSelector,
+      endSelector: toSelector,
+      hairpinType: SmoStaffHairpin.types.DECRESCENDO,
+      position: SmoStaffHairpin.positions.BELOW
+    });
+    fromSelection.staff.addStaffModifier(modifier);
   }
 
   static slur(fromSelection, toSelection) {
-  var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
-  var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
-  var modifier = new SmoSlur({
-  startSelector: fromSelector,
-  endSelector: toSelector,
-  position: SmoStaffHairpin.positions.BELOW
-  });
-  fromSelection.staff.addStaffModifier(modifier);
-  fromSelection.measure.setChanged();
-  toSelection.measure.setChanged();
+    var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+    var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+    var modifier = new SmoSlur({
+      startSelector: fromSelector,
+      endSelector: toSelector,
+      position: SmoStaffHairpin.positions.BELOW
+    });
+    fromSelection.staff.addStaffModifier(modifier);
+    fromSelection.measure.setChanged();
+    toSelection.measure.setChanged();
   }
 
   static addStaff(score, parameters) {
@@ -33582,24 +33604,16 @@ class SuiStaffModifierMenu extends suiMenuBase {
   }
   selection(ev) {
     var op = $(ev.currentTarget).attr('data-value');
-
-    var ft = this.view.tracker.getExtremeSelection(-1);
-    var tt = this.view.tracker.getExtremeSelection(1);
-
     if (op === 'ending') {
-      SmoUndoable.scoreOp(this.score,'addEnding',
-        new SmoVolta({ startBar: ft.selector.measure, endBar: tt.selector.measure,number: 1 }),
-          this.keyCommands.undoBuffer, 'add ending');
-      this.complete();
-      return;
+      this.view.addEnding();
+    } else if (op === 'slur') {
+      this.view.slur();
+    } else if (op === 'crescendo') {
+      this.view.crescendo();
+    } else if (op === 'decrescendo'){
+      this.view.decrescendo();
     }
-    if (SmoSelector.sameNote(ft.selector, tt.selector)) {
-      this.complete();
-      return;
-    }
-
-    SmoUndoable[op](ft, tt, this.keyCommands.undoBuffer);
-    this.view.tracker.replaceSelectedMeasures();
+    // else cancel...
     this.complete();
   }
 

@@ -834,40 +834,40 @@ class SmoOperation {
   }
 
   static crescendo(fromSelection, toSelection) {
-  var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
-  var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
-  var modifier = new SmoStaffHairpin({
-  startSelector: fromSelector,
-  endSelector: toSelector,
-  hairpinType: SmoStaffHairpin.types.CRESCENDO,
-  position: SmoStaffHairpin.positions.BELOW
-  });
-  fromSelection.staff.addStaffModifier(modifier);
+    const fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+    const toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+    const modifier = new SmoStaffHairpin({
+      startSelector: fromSelector,
+      endSelector: toSelector,
+      hairpinType: SmoStaffHairpin.types.CRESCENDO,
+      position: SmoStaffHairpin.positions.BELOW
+    });
+    fromSelection.staff.addStaffModifier(modifier);
   }
 
   static decrescendo(fromSelection, toSelection) {
-  var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
-  var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
-  var modifier = new SmoStaffHairpin({
-  startSelector: fromSelector,
-  endSelector: toSelector,
-  hairpinType: SmoStaffHairpin.types.DECRESCENDO,
-  position: SmoStaffHairpin.positions.BELOW
-  });
-  fromSelection.staff.addStaffModifier(modifier);
+    const fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+    const toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+    const modifier = new SmoStaffHairpin({
+      startSelector: fromSelector,
+      endSelector: toSelector,
+      hairpinType: SmoStaffHairpin.types.DECRESCENDO,
+      position: SmoStaffHairpin.positions.BELOW
+    });
+    fromSelection.staff.addStaffModifier(modifier);
   }
 
   static slur(fromSelection, toSelection) {
-  var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
-  var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
-  var modifier = new SmoSlur({
-  startSelector: fromSelector,
-  endSelector: toSelector,
-  position: SmoStaffHairpin.positions.BELOW
-  });
-  fromSelection.staff.addStaffModifier(modifier);
-  fromSelection.measure.setChanged();
-  toSelection.measure.setChanged();
+    var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+    var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+    var modifier = new SmoSlur({
+      startSelector: fromSelector,
+      endSelector: toSelector,
+      position: SmoStaffHairpin.positions.BELOW
+    });
+    fromSelection.staff.addStaffModifier(modifier);
+    fromSelection.measure.setChanged();
+    toSelection.measure.setChanged();
   }
 
   static addStaff(score, parameters) {

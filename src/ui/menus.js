@@ -684,24 +684,16 @@ class SuiStaffModifierMenu extends suiMenuBase {
   }
   selection(ev) {
     var op = $(ev.currentTarget).attr('data-value');
-
-    var ft = this.view.tracker.getExtremeSelection(-1);
-    var tt = this.view.tracker.getExtremeSelection(1);
-
     if (op === 'ending') {
-      SmoUndoable.scoreOp(this.score,'addEnding',
-        new SmoVolta({ startBar: ft.selector.measure, endBar: tt.selector.measure,number: 1 }),
-          this.keyCommands.undoBuffer, 'add ending');
-      this.complete();
-      return;
+      this.view.addEnding();
+    } else if (op === 'slur') {
+      this.view.slur();
+    } else if (op === 'crescendo') {
+      this.view.crescendo();
+    } else if (op === 'decrescendo'){
+      this.view.decrescendo();
     }
-    if (SmoSelector.sameNote(ft.selector, tt.selector)) {
-      this.complete();
-      return;
-    }
-
-    SmoUndoable[op](ft, tt, this.keyCommands.undoBuffer);
-    this.view.tracker.replaceSelectedMeasures();
+    // else cancel...
     this.complete();
   }
 

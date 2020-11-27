@@ -333,6 +333,28 @@ class SuiScoreView {
     SmoOperation.addEnding(this.score, volta);
     this.renderer.setRefresh();
   }
+  _lineOperation(op) {
+    if (this.tracker.selections.length < 2) {
+      return;
+    }
+    const measureSelections = this._undoTrackerMeasureSelections();
+    const ft = this.tracker.getExtremeSelection(-1);
+    const tt = this.tracker.getExtremeSelection(1);
+    const ftAlt = this._getEquivalentSelection(ft);
+    const ttAlt = this._getEquivalentSelection(tt);
+    SmoOperation[op](ft, tt);
+    SmoOperation[op](ftAlt, ttAlt);
+    this._renderChangedMeasures(measureSelections);
+  }
+  crescendo() {
+    this._lineOperation('crescendo');
+  }
+  decrescendo() {
+    this._lineOperation('decrescendo');
+  }
+  slur() {
+    this._lineOperation('slur');
+  }
 
   deleteMeasure() {
     this._undoScore('Delete Measure');
