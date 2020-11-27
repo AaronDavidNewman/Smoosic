@@ -4823,10 +4823,7 @@ class SuiScoreView {
           this._getEquivalentGraceNote(altSelection, artifact.modifier));
       });
     } else {
-      const altAr = [];
-      selections.forEach((sel) => {
-        altAr.push(this._getEquivalentSelection(sel));
-      });
+      const altAr = this._getEquivalentSelections(selections);
       SmoOperation.batchSelectionOperation(this.score, selections, operation);
       SmoOperation.batchSelectionOperation(this.storeScore, altAr, operation);
     }
@@ -4904,6 +4901,7 @@ class SuiScoreView {
     const measureSelections = this._undoTrackerMeasureSelections();
     selections.forEach((selection) => {
       SmoOperation.toggleBeamGroup(selection);
+      SmoOperation.toggleBeamGroup(this._getEquivalentSelection(selection));
     });
     this._renderChangedMeasures(measureSelections);
   }
@@ -4911,12 +4909,29 @@ class SuiScoreView {
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections();
     SmoOperation.toggleBeamDirection(selections);
+    SmoOperation.toggleBeamDirection(this._getEquivalentSelections(selections));
     this._renderChangedMeasures(measureSelections);
   }
   beamSelections() {
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections();
     SmoOperation.beamSelections(selections);
+    SmoOperation.beamSelections(this._getEquivalentSelections(selections));
+    this._renderChangedMeasures(measureSelections);
+  }
+  setTimeSignature(timeSignature) {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    SmoOperation.setTimeSignature(this.score, selections, timeSignature);
+    SmoOperation.setTimeSignature(this.storeScore, this._getEquivalentSelections(selections), timeSignature);
+    this._renderChangedMeasures(measureSelections);
+  }
+  addKeySignature(keySignature) {
+    const measureSelections = this._undoTrackerMeasureSelections();
+    measureSelections.forEach((sel) => {
+      SmoOperation.addKeySignature(this.score, sel, keySignature);
+      SmoOperation.addKeySignature(this.storeScore, this._getEquivalentSelection(sel), keySignature);
+    });
     this._renderChangedMeasures(measureSelections);
   }
 
@@ -4973,6 +4988,28 @@ class SuiScoreView {
     SmoOperation.setNoteHead(selections, head);
     this._renderChangedMeasures(measureSelections);
   }
+  addDynamic(dynamicText) {
+    const selection = this._undoFirstMeasureSelection();
+    const dynamic = new SmoDynamicText({
+      selector: selection.selector,
+      text: dynamicText,
+      yOffsetLine: 11,
+      fontSize: 38
+    });
+    SmoOperation.addDynamic(selection, dynamic);
+    this._renderChangedMeasures([selection]);
+  }
+  addEnding() {
+    // TODO: we should have undo for columns
+    this._undoScore();
+    const ft = this.tracker.getExtremeSelection(-1);
+    const tt = this.tracker.getExtremeSelection(1);
+    const volta = new SmoVolta({ startBar: ft.selector.measure, endBar: tt.selector.measure, number: 1 });
+    const altVolta = new SmoVolta({ startBar: ft.selector.measure, endBar: tt.selector.measure, number: 1 });
+    SmoOperation.addEnding(this.storeScore, altVolta);
+    SmoOperation.addEnding(this.score, volta);
+    this.renderer.setRefresh();
+  }
 
   deleteMeasure() {
     this._undoScore('Delete Measure');
@@ -5016,6 +5053,53 @@ class SuiScoreView {
     this.renderer.clearLine(measure);
     this.renderer.setRefresh();
   }
+  removeStaff() {
+    this._undoScore('Remove Instrument');
+    // if we are looking at a subset of the score,
+    // revert to the full score view before removing the staff.
+    const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    const sel = this.tracker.selections[0];
+    const scoreSel = this._getEquivalentSelection(sel);
+    const staffIndex = scoreSel.selector.staff;
+    SmoOperation.removeStaff(newScore, staffIndex);
+    this.changeScore(newScore);
+  }
+  addStaff(instrument) {
+    this._undoScore('Add Instrument');
+    // if we are looking at a subset of the score, we won't see the new staff.  So
+    // revert to the full view
+    const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    SmoOperation.addStaff(newScore, instrument);
+    this.changeScore(newScore);
+  }
+  // ### _reverseMapSelection
+  // For operations that affect all columns, we operate on the
+  // entire score and update the view score.  Some selections
+  // will not have an equivalent in the reverse map since the
+  // view can be a subset.
+  _reverseMapSelection(selection) {
+    return this.score.staves.find((st) => selection.staff.attrs.id === st.attrs.id);
+  }
+  _reverseMapSelections(selections) {
+    const rv = [];
+    selections.forEach((selection) => {
+      const rsel = this._reverseMapSelection(selection);
+      if (rsel !== null) {
+        rv.push(rsel);
+      }
+    });
+    return rv;
+  }
+
+  // ### _getEquivalentSelections
+  // The plural form of _getEquivalentSelection
+  _getEquivalentSelections(selections) {
+    const rv = [];
+    selections.forEach((selection) => {
+      rv.push(this._getEquivalentSelection(selection));
+    });
+    return rv;
+  }
 
   // ### _undoTrackerSelections
   // Add to the undo buffer the current set of measures selected.
@@ -5028,12 +5112,23 @@ class SuiScoreView {
     });
     return measureSelections;
   }
+  // ### _undoFirstMeasureSelection
+  // operation that only affects the first selection.  Setup undo for the measure
+  _undoFirstMeasureSelection() {
+    const sel = this.tracker.selections[0];
+    this.undoBuffer.addBuffer('transpose selections', UndoBuffer.bufferTypes.MEASURE, sel.selector, sel.measure);
+    return sel;
+  }
+  // ###_renderChangedMeasures
+  // Update renderer for measures that have changed
   _renderChangedMeasures(measureSelections) {
     measureSelections.forEach((measureSelection) => {
       this.renderer.addToReplaceQueue(measureSelection);
     });
   }
 
+  // ###_renderChangedMeasures
+  // Setup undo for operation that affects the whole score
   _undoScore(label) {
     this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE, null, this.score);
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.SCORE, null, this.storeScore);
@@ -5066,12 +5161,18 @@ class SuiScoreView {
       const istaff = this.score.staves[i];
       for (j = 0; j < this.storeScore.staves.length; ++j) {
         const jstaff = this.storeScore.staves[j];
-        if (jstaff.attrs.id === istaff.attrs.id) {
-          rv.push(j);
+        if (jstaff.staffId === istaff.staffId) {
+          this.staffMap.push(j);
           break;
         }
       }
     }
+  }
+  static get Instance() {
+    if (typeof(SuiScoreView._instance) !== 'undefined') {
+      return SuiScoreView._instance;
+    }
+    return null;
   }
   constructor(renderer, score) {
     this.score = score;
@@ -5087,18 +5188,36 @@ class SuiScoreView {
     this.undoBuffer = new UndoBuffer();
     this.storeUndo = new UndoBuffer();
     this._createStaveMap();
+    SuiScoreView._instance = this;
+  }
+  static debugSwapScore() {
+    const dbg = SuiScoreView.Instance;
+    if (dbg === null) {
+      return;
+    }
+    const newScore = SmoScore.deserialize(JSON.stringify(dbg.storeScore.serialize()));
+    dbg.changeScore(newScore);
   }
 
   changeScore(score) {
+    this._undoScore();
     this.renderer.score = score;
     this.renderer.setViewport(true);
+    this.storeScore = SmoScore.deserialize(JSON.stringify(score.serialize()));
+    this.score = score;
+    this._createStaveMap();
     setTimeout(() => {
       $('body').trigger('forceResizeEvent');
     }, 1);
   }
 
+  // ### undo
+  // for the view score, we the renderer decides what to render
+  // depending on what is undone.
   undo() {
     this.renderer.undo(this.undoBuffer);
+    // A score-level undo might have changed the score.
+    this.score = this.renderer.score;
     this.storeScore = this.storeUndo.undo(this.storeScore);
   }
 }
@@ -10170,391 +10289,389 @@ class SmoMeasure {
 // ## Measure modifiers are elements that are attached to the bar itself, like barlines or measure-specific text,
 // repeats - lots of stuff
 class SmoMeasureModifierBase {
-    constructor(ctor) {
-        this.ctor = ctor;
-		 if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: ctor
-            };
-        } else {
-            console.log('inherit attrs');
-        }
+  constructor(ctor) {
+    this.ctor = ctor;
+    if (!this['attrs']) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: ctor
+      };
+    } else {
+      console.log('inherit attrs');
     }
-    static deserialize(jsonObj) {
-        var ctor = eval(jsonObj.ctor);
-        var rv = new ctor(jsonObj);
-        return rv;
-    }
+  }
+  static deserialize(jsonObj) {
+    const ctor = eval(jsonObj.ctor);
+    const rv = new ctor(jsonObj);
+    return rv;
+  }
 }
 
 class SmoBarline extends SmoMeasureModifierBase {
-    static get positions() {
-        return {
-            start: 0,
-            end: 1
-        }
+  static get positions() {
+    return {
+      start: 0,
+      end: 1
+    }
+  };
+
+  static get barlines() {
+    return {
+      singleBar: 0,
+      doubleBar: 1,
+      endBar: 2,
+      startRepeat: 3,
+      endRepeat: 4,
+      noBar: 5
+    }
+  }
+
+  static get _barlineToString() {
+    return  ['singleBar', 'doubleBar', 'endBar', 'startRepeat', 'endRepeat', 'noBar'];
+  }
+  static barlineString(inst) {
+    return SmoBarline._barlineToString[inst.barline];
+  }
+
+  static get defaults() {
+    return {
+      position: SmoBarline.positions.end,
+      barline: SmoBarline.barlines.singleBar
     };
+  }
 
-    static get barlines() {
-        return {
-            singleBar: 0,
-            doubleBar: 1,
-            endBar: 2,
-            startRepeat: 3,
-            endRepeat: 4,
-            noBar: 5
-        }
-    }
+  static get attributes() {
+    return ['position', 'barline'];
+  }
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoBarline.defaults, SmoBarline.attributes, this, params);
+    params.ctor = 'SmoBarline';
+    return params;
+  }
 
-	static get _barlineToString() {
-		return  ['singleBar','doubleBar','endBar','startRepeat','endRepeat','noBar'];
-	}
-	static barlineString(inst) {
-		return SmoBarline._barlineToString[inst.barline];
-	}
+  constructor(parameters) {
+    super('SmoBarline');
+    parameters = typeof(parameters) !== 'undefined' ? parameters : {};
+    smoSerialize.serializedMerge(SmoBarline.attributes, SmoBarline.defaults, this);
+    smoSerialize.serializedMerge(SmoBarline.attributes, parameters, this);
+  }
 
-    static get defaults() {
-        return {
-            position: SmoBarline.positions.end,
-            barline: SmoBarline.barlines.singleBar
-        };
-    }
+  static get toVexBarline() {
+    return [VF.Barline.type.SINGLE, VF.Barline.type.DOUBLE, VF.Barline.type.END,
+      VF.Barline.type.REPEAT_BEGIN, VF.Barline.type.REPEAT_END, VF.Barline.type.NONE];
 
-    static get attributes() {
-        return ['position', 'barline'];
-    }
-	serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoBarline.defaults,SmoBarline.attributes,this,params);
-        params.ctor = 'SmoBarline';
-        return params;
-	}
+  }
+  static get toVexPosition() {
+    return [VF.StaveModifier.BEGIN, VF.StaveModifier.END];
+  }
 
-    constructor(parameters) {
-        super('SmoBarline');
-        parameters = parameters ? parameters : {};
-        smoSerialize.serializedMerge(SmoBarline.attributes, SmoBarline.defaults, this);
-        smoSerialize.serializedMerge(SmoBarline.attributes, parameters, this);
-    }
-
-    static get toVexBarline() {
-        return [VF.Barline.type.SINGLE, VF.Barline.type.DOUBLE, VF.Barline.type.END,
-            VF.Barline.type.REPEAT_BEGIN, VF.Barline.type.REPEAT_END, VF.Barline.type.NONE];
-
-    }
-    static get toVexPosition() {
-        return [VF.StaveModifier.BEGIN, VF.StaveModifier.END];
-    }
-
-    toVexBarline() {
-        return SmoBarline.toVexBarline[this.barline];
-    }
-    toVexPosition() {
-        return SmoBarline.toVexPosition[this.position];
-    }
+  toVexBarline() {
+    return SmoBarline.toVexBarline[this.barline];
+  }
+  toVexPosition() {
+    return SmoBarline.toVexPosition[this.position];
+  }
 }
 
 class SmoRepeatSymbol extends SmoMeasureModifierBase {
-    static get symbols() {
-        return {
-            None: 0,
-            Coda: 1,
-            Segno: 2,
-            Dc: 3,
-			ToCoda:1,
-            DcAlCoda: 4,
-            DcAlFine: 5,
-            Ds: 6,
-            DsAlCoda: 7,
-            DsAlFine: 8,
-            Fine: 9
-        };
-    }
-
-	static get defaultXOffset() {
-		return [0,0,0,-20,-60,-60,-50,-60,-50,-40];
-	}
-    static get positions() {
-        return {
-            start: 0,
-            end: 1
-        }
+  static get symbols() {
+    return {
+      None: 0,
+      Coda: 1,
+      Segno: 2,
+      Dc: 3,
+      ToCoda:1,
+      DcAlCoda: 4,
+      DcAlFine: 5,
+      Ds: 6,
+      DsAlCoda: 7,
+      DsAlFine: 8,
+      Fine: 9
     };
-    static get defaults() {
-        return {
-            symbol: SmoRepeatSymbol.Coda,
-            xOffset: 0,
-            yOffset: 30,
-            position: SmoRepeatSymbol.positions.end
-        }
+  }
+
+  static get defaultXOffset() {
+    return [0, 0, 0, -20, -60, -60, -50, -60, -50, -40];
+  }
+  static get positions() {
+    return {
+      start: 0,
+      end: 1
     }
-    static get toVexSymbol() {
-        return [VF.Repetition.type.NONE, VF.Repetition.type.CODA_LEFT, VF.Repetition.type.SEGNO_LEFT, VF.Repetition.type.DC,
-            VF.Repetition.type.DC_AL_CODA, VF.Repetition.type.DC_AL_FINE, VF.Repetition.type.DS, VF.Repetition.type.DS_AL_CODA, VF.Repetition.type.DS_AL_FINE, VF.Repetition.type.FINE];
+  };
+  static get defaults() {
+    return {
+      symbol: SmoRepeatSymbol.Coda,
+      xOffset: 0,
+      yOffset: 30,
+      position: SmoRepeatSymbol.positions.end
     }
-    static get attributes() {
-        return ['symbol', 'xOffset', 'yOffset', 'position'];
-    }
-    toVexSymbol() {
-        return SmoRepeatSymbol.toVexSymbol[this.symbol];
-    }
-	serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoRepeatSymbol.defaults,SmoRepeatSymbol.attributes,this,params);
-        params.ctor = 'SmoRepeatSymbol';
-        return params;
-	}
-    constructor(parameters) {
-        super('SmoRepeatSymbol');
-        smoSerialize.serializedMerge(SmoRepeatSymbol.attributes, SmoRepeatSymbol.defaults, this);
-		this.xOffset = SmoRepeatSymbol.defaultXOffset[parameters.symbol];
-        smoSerialize.serializedMerge(SmoRepeatSymbol.attributes, parameters, this);
-    }
+  }
+  static get toVexSymbol() {
+    return [VF.Repetition.type.NONE, VF.Repetition.type.CODA_LEFT, VF.Repetition.type.SEGNO_LEFT, VF.Repetition.type.DC,
+      VF.Repetition.type.DC_AL_CODA, VF.Repetition.type.DC_AL_FINE, VF.Repetition.type.DS,
+      VF.Repetition.type.DS_AL_CODA, VF.Repetition.type.DS_AL_FINE, VF.Repetition.type.FINE];
+  }
+  static get attributes() {
+    return ['symbol', 'xOffset', 'yOffset', 'position'];
+  }
+  toVexSymbol() {
+    return SmoRepeatSymbol.toVexSymbol[this.symbol];
+  }
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoRepeatSymbol.defaults, SmoRepeatSymbol.attributes, this, params);
+    params.ctor = 'SmoRepeatSymbol';
+    return params;
+  }
+  constructor(parameters) {
+    super('SmoRepeatSymbol');
+    smoSerialize.serializedMerge(SmoRepeatSymbol.attributes, SmoRepeatSymbol.defaults, this);
+    this.xOffset = SmoRepeatSymbol.defaultXOffset[parameters.symbol];
+    smoSerialize.serializedMerge(SmoRepeatSymbol.attributes, parameters, this);
+  }
 }
 
 class SmoVolta extends SmoMeasureModifierBase {
-    constructor(parameters) {
-        super('SmoVolta');
-		this.original={};
+  constructor(parameters) {
+    super('SmoVolta');
+    this.original = {};
+    smoSerialize.serializedMerge(SmoVolta.attributes, SmoVolta.defaults, this);
+    smoSerialize.serializedMerge(SmoVolta.attributes, parameters, this);
+  }
+  get id() {
+    return this.attrs.id;
+  }
+  get type() {
+    return this.attrs.type;
+  }
+  static get attributes() {
+    return ['startBar', 'endBar', 'endingId', 'startSelector', 'endSelector', 'xOffsetStart', 'xOffsetEnd', 'yOffset', 'number'];
+  }
+  static get editableAttributes() {
+    return ['xOffsetStart', 'xOffsetEnd', 'yOffset', 'number'];
+  }
 
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoVolta.defaults, SmoVolta.attributes, this, params);
+    params.ctor = 'SmoVolta';
+    return params;
+  }
 
-        smoSerialize.serializedMerge(SmoVolta.attributes, SmoVolta.defaults, this);
-		smoSerialize.serializedMerge(SmoVolta.attributes, parameters, this);
+  static get defaults() {
+    return {
+      startBar: 1,
+      endBar: 1,
+      xOffsetStart: 0,
+      xOffsetEnd: 0,
+      yOffset: 20,
+      number: 1
     }
-	get id() {
-		return this.attrs.id;
-	}
+  }
 
-	get type() {
-		return this.attrs.type;
-	}
-    static get attributes() {
-        return ['startBar', 'endBar', 'endingId','startSelector','endSelector','xOffsetStart', 'xOffsetEnd', 'yOffset', 'number'];
+ backupOriginal() {
+    if (!this['original']) {
+      this.original = {};
+      smoSerialize.filteredMerge(
+        SmoVolta.attributes,
+        this, this.original);
     }
-	static get editableAttributes() {
-		return ['xOffsetStart','xOffsetEnd','yOffset','number'];
-	}
-
-	serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoVolta.defaults,SmoVolta.attributes,this,params);
-        params.ctor = 'SmoVolta';
-        return params;
-	}
-
-    static get defaults() {
-        return {
-            startBar: 1,
-            endBar: 1,
-            xOffsetStart: 0,
-            xOffsetEnd: 0,
-            yOffset: 20,
-            number: 1
-        }
+  }
+  restoreOriginal() {
+    if (this['original']) {
+      smoSerialize.filteredMerge(
+        SmoVolta.attributes,
+        this.original, this);
+      this.original = null;
     }
+  }
 
-	 backupOriginal() {
-        if (!this['original']) {
-            this.original = {};
-            smoSerialize.filteredMerge(
-                SmoVolta.attributes,
-                this, this.original);
-        }
+  toVexVolta(measureNumber) {
+    if (this.startBar === measureNumber && this.startBar === this.endBar) {
+      return VF.Volta.type.BEGIN_END;
     }
-    restoreOriginal() {
-        if (this['original']) {
-            smoSerialize.filteredMerge(
-                SmoVolta.attributes,
-                this.original, this);
-            this.original = null;
-        }
+    if (this.startBar === measureNumber) {
+      return VF.Volta.type.BEGIN;
     }
-
-	toVexVolta(measureNumber) {
-		if (this.startBar === measureNumber && this.startBar === this.endBar) {
-			return VF.Volta.type.BEGIN_END;
-		}
-		if (this.startBar === measureNumber) {
-			return VF.Volta.type.BEGIN;
-		}
-		if (this.endBar === measureNumber) {
-			return VF.Volta.type.END;
-		}
-		if (this.startBar < measureNumber && this.endBar > measureNumber) {
-			return VF.Volta.type.MID;
-		}
-		return VF.Volta.type.NONE;
-	}
+    if (this.endBar === measureNumber) {
+      return VF.Volta.type.END;
+    }
+    if (this.startBar < measureNumber && this.endBar > measureNumber) {
+      return VF.Volta.type.MID;
+    }
+    return VF.Volta.type.NONE;
+  }
 }
 
 class SmoMeasureText extends SmoMeasureModifierBase {
-	static get positions() {
-		return {above:0,below:1,left:2,right:3,none:4};
-	}
+  static get positions() {
+    return {above:0,below:1,left:2,right:3,none:4};
+  }
 
-	static get justifications() {
-		return {left:0,right:1,center:2}
-	}
+  static get justifications() {
+    return {left:0,right:1,center:2}
+  }
 
-	static get _positionToString() {
-		return ['above','below','left','right'];
-	}
+  static get _positionToString() {
+    return ['above','below','left','right'];
+  }
 
-	static get toVexPosition() {
-		return [VF.Modifier.Position.ABOVE,VF.Modifier.Position.BELOW,VF.Modifier.Position.LEFT,VF.Modifier.Position.RIGHT];
-	}
-	static get toVexJustification() {
-		return [VF.TextNote.LEFT,VF.TextNote.RIGHT,VF.TextNote.CENTER];
-	}
+  static get toVexPosition() {
+    return [VF.Modifier.Position.ABOVE,VF.Modifier.Position.BELOW,VF.Modifier.Position.LEFT,VF.Modifier.Position.RIGHT];
+  }
+  static get toVexJustification() {
+    return [VF.TextNote.LEFT,VF.TextNote.RIGHT,VF.TextNote.CENTER];
+  }
 
-	toVexJustification() {
-		return SmoMeasureText.toVexJustification[this.justification];
-	}
-	toVexPosition() {
-		return SmoMeasureText.toVexPosition[parseInt(this.position)];
-	}
-	static get attributes() {
-		return ['position','fontInfo','text','adjustX','adjustY','justification'];
-	}
+  toVexJustification() {
+    return SmoMeasureText.toVexJustification[this.justification];
+  }
+  toVexPosition() {
+    return SmoMeasureText.toVexPosition[parseInt(this.position)];
+  }
+  static get attributes() {
+    return ['position','fontInfo','text','adjustX','adjustY','justification'];
+  }
 
-	static get defaults() {
-		return {
-			position:SmoMeasureText.positions.above,
-			fontInfo: {
-				size: '9',
-				family:'times',
-				style:'normal',
-				weight:'normal'
-			},
-			text:'Smo',
-			adjustX:0,
-			adjustY:0,
-			justification:SmoMeasureText.justifications.center
-		};
-	}
-	serialize() {
+  static get defaults() {
+    return {
+      position:SmoMeasureText.positions.above,
+      fontInfo: {
+        size: '9',
+        family:'times',
+        style:'normal',
+        weight:'normal'
+      },
+      text:'Smo',
+      adjustX:0,
+      adjustY:0,
+      justification:SmoMeasureText.justifications.center
+    };
+  }
+  serialize() {
         var params = {};
         smoSerialize.serializedMergeNonDefault(SmoMeasureText.defaults,SmoMeasureText.attributes,this,params)
         params.ctor = 'SmoMeasureText';
         return params;
-	}
+  }
 
-	constructor(parameters) {
-		super('SmoMeasureText');
+  constructor(parameters) {
+    super('SmoMeasureText');
         parameters = parameters ? parameters : {};
         smoSerialize.serializedMerge(SmoMeasureText.attributes, SmoMeasureText.defaults, this);
         smoSerialize.serializedMerge(SmoMeasureText.attributes, parameters, this);
 
-		// right-justify left text and left-justify right text by default
-		if (!parameters['justification']) {
-			this.justification = (this.position === SmoMeasureText.positions.left) ? SmoMeasureText.justifications.right :
-			     (this.position === SmoMeasureText.positions.right ? SmoMeasureText.justifications.left : this.justification);
-		}
-	}
+    // right-justify left text and left-justify right text by default
+    if (!parameters['justification']) {
+      this.justification = (this.position === SmoMeasureText.positions.left) ? SmoMeasureText.justifications.right :
+           (this.position === SmoMeasureText.positions.right ? SmoMeasureText.justifications.left : this.justification);
+    }
+  }
 }
 
 class SmoRehearsalMark extends SmoMeasureModifierBase {
 
-	static get cardinalities() {
-		return {capitals:'capitals',lowerCase:'lowerCase',numbers:'numbers'};
-	}
-	static get positions() {
-		return {above:0,below:1,left:2,right:3};
-	}
-	static get _positionToString() {
-		return ['above','below','left','right'];
-	}
+  static get cardinalities() {
+    return {capitals:'capitals',lowerCase:'lowerCase',numbers:'numbers'};
+  }
+  static get positions() {
+    return {above:0,below:1,left:2,right:3};
+  }
+  static get _positionToString() {
+    return ['above','below','left','right'];
+  }
 
-	// TODO: positions don't work.
-	static get defaults() {
-		return {
-			position:SmoRehearsalMark.positions.above,
-			cardinality:SmoRehearsalMark.cardinalities.capitals,
-			symbol:'A',
+  // TODO: positions don't work.
+  static get defaults() {
+    return {
+      position:SmoRehearsalMark.positions.above,
+      cardinality:SmoRehearsalMark.cardinalities.capitals,
+      symbol:'A',
             increment:true
-		}
-	}
-	static get attributes() {
-		return ['cardinality','symbol','position','increment'];
-	}
-	getIncrement() {
-		if (!this.cardinality != 'number') {
-			var code = this.symbol.charCodeAt(0);
-			code += 1;
-			var symbol=String.fromCharCode(code);
-			return symbol;
-		} else {
+    }
+  }
+  static get attributes() {
+    return ['cardinality','symbol','position','increment'];
+  }
+  getIncrement() {
+    if (!this.cardinality != 'number') {
+      var code = this.symbol.charCodeAt(0);
+      code += 1;
+      var symbol=String.fromCharCode(code);
+      return symbol;
+    } else {
             return parseInt(symbol)+1;
         }
-	}
+  }
     getInitial() {
         return this.cardinality == SmoRehearsalMark.cardinalities.capitals ? 'A' :
             (this.cardinality == SmoRehearsalMark.cardinalities.lowerCase ? 'a' : '1');
     }
-	serialize() {
+  serialize() {
         var params = {};
         smoSerialize.serializedMergeNonDefault(SmoRehearsalMark.defaults,SmoRehearsalMark.attributes,this,params)
         params.ctor = 'SmoRehearsalMark';
         return params;
-	}
-	constructor(parameters) {
-		super('SmoRehearsalMark');
+  }
+  constructor(parameters) {
+    super('SmoRehearsalMark');
         parameters = parameters ? parameters : {};
         smoSerialize.serializedMerge(SmoRehearsalMark.attributes, SmoRehearsalMark.defaults, this);
         smoSerialize.serializedMerge(SmoRehearsalMark.attributes, parameters, this);
         if (!parameters.symbol) {
             this.symbol=this.getInitial();
         }
-	}
+  }
 }
 
 
 // ### SmoTempoText
 // Tempo marking and also the information about the tempo.
 class SmoTempoText extends SmoMeasureModifierBase {
-	static get tempoModes() {
-		return {
-			durationMode: 'duration',
-			textMode: 'text',
-			customMode: 'custom'
-		};
-	}
+  static get tempoModes() {
+    return {
+      durationMode: 'duration',
+      textMode: 'text',
+      customMode: 'custom'
+    };
+  }
 
-	static get tempoTexts() {
-		return {
-			larghissimo: 'Larghissimo',
-			grave: 'Grave',
-			lento: 'Lento',
-			largo: 'Largo',
-			larghetto: 'Larghetto',
-			adagio: 'Adagio',
-			adagietto: 'Adagietto',
-			andante_moderato: 'Andante moderato',
-			andante: 'Andante',
-			andantino: 'Andantino',
-			moderator: 'Moderato',
-			allegretto: 'Allegretto',
-			allegro: 'Allegro',
-			vivace: 'Vivace',
-			presto: 'Presto',
-			prestissimo: 'Prestissimo'
-		};
-	}
+  static get tempoTexts() {
+    return {
+      larghissimo: 'Larghissimo',
+      grave: 'Grave',
+      lento: 'Lento',
+      largo: 'Largo',
+      larghetto: 'Larghetto',
+      adagio: 'Adagio',
+      adagietto: 'Adagietto',
+      andante_moderato: 'Andante moderato',
+      andante: 'Andante',
+      andantino: 'Andantino',
+      moderator: 'Moderato',
+      allegretto: 'Allegretto',
+      allegro: 'Allegro',
+      vivace: 'Vivace',
+      presto: 'Presto',
+      prestissimo: 'Prestissimo'
+    };
+  }
 
-	static get defaults() {
-		return {
-			tempoMode: SmoTempoText.tempoModes.durationMode,
-			bpm: 120,
-			beatDuration: 4096,
-			tempoText: SmoTempoText.tempoTexts.allegro,
+  static get defaults() {
+    return {
+      tempoMode: SmoTempoText.tempoModes.durationMode,
+      bpm: 120,
+      beatDuration: 4096,
+      tempoText: SmoTempoText.tempoTexts.allegro,
       yOffset:0,
       display:false
-		};
-	}
-	static get attributes() {
-		return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText','yOffset'];
-	}
+    };
+  }
+  static get attributes() {
+    return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText','yOffset'];
+  }
     compare(instance) {
         var rv = true;
         SmoTempoText.attributes.forEach((attr) => {
@@ -10572,18 +10689,18 @@ class SmoTempoText extends SmoMeasureModifierBase {
     // Return equality wrt the tempo marking, e.g. 2 allegro in textMode will be equal but
     // an allegro and duration 120bpm will not.
     static eq (t1,t2) {
-    	if (t1.tempoMode != t2.tempoMode) {
-    		return false;
-    	}
-    	if (t1.tempoMode == SmoTempoText.tempoModes.durationMode) {
-    		return t1.bpm == t2.bpm && t1.beatDuration == t2.beatDuration;
-    	}
-    	if (t1.tempoMode == SmoTempoText.tempoModes.textMode) {
-    		return t1.tempoText == t2.tempoText;
-    	} else {
-    		return t1.bpm == t2.bpm && t1.beatDuration == t2.beatDuration &&
-    		    t1.tempoText == t2.tempoText;
-    	}
+      if (t1.tempoMode != t2.tempoMode) {
+        return false;
+      }
+      if (t1.tempoMode == SmoTempoText.tempoModes.durationMode) {
+        return t1.bpm == t2.bpm && t1.beatDuration == t2.beatDuration;
+      }
+      if (t1.tempoMode == SmoTempoText.tempoModes.textMode) {
+        return t1.tempoText == t2.tempoText;
+      } else {
+        return t1.bpm == t2.bpm && t1.beatDuration == t2.beatDuration &&
+            t1.tempoText == t2.tempoText;
+      }
     }
 
     static get bpmFromText() {
@@ -10591,20 +10708,20 @@ class SmoTempoText extends SmoMeasureModifierBase {
         var rv = {};
         rv[SmoTempoText.tempoTexts.larghissimo] = 40;
         rv[SmoTempoText.tempoTexts.grave] = 40;
-		rv[SmoTempoText.tempoTexts.lento] = 42;
-		rv[SmoTempoText.tempoTexts.largo] = 46;
-		rv[SmoTempoText.tempoTexts.larghetto] = 52;
-		rv[SmoTempoText.tempoTexts.adagio] = 72;
-		rv[SmoTempoText.tempoTexts.adagietto] = 72;
-		rv[SmoTempoText.tempoTexts.andante_moderato] = 72;
-		rv[SmoTempoText.tempoTexts.andante] = 72;
-		rv[SmoTempoText.tempoTexts.andantino] = 84;
-		rv[SmoTempoText.tempoTexts.moderator] = 96;
-		rv[SmoTempoText.tempoTexts.allegretto] = 96;
-		rv[SmoTempoText.tempoTexts.allegro] = 120;
-		rv[SmoTempoText.tempoTexts.vivace] = 144;
-		rv[SmoTempoText.tempoTexts.presto] = 168;
-		rv[SmoTempoText.tempoTexts.prestissimo] = 240;
+    rv[SmoTempoText.tempoTexts.lento] = 42;
+    rv[SmoTempoText.tempoTexts.largo] = 46;
+    rv[SmoTempoText.tempoTexts.larghetto] = 52;
+    rv[SmoTempoText.tempoTexts.adagio] = 72;
+    rv[SmoTempoText.tempoTexts.adagietto] = 72;
+    rv[SmoTempoText.tempoTexts.andante_moderato] = 72;
+    rv[SmoTempoText.tempoTexts.andante] = 72;
+    rv[SmoTempoText.tempoTexts.andantino] = 84;
+    rv[SmoTempoText.tempoTexts.moderator] = 96;
+    rv[SmoTempoText.tempoTexts.allegretto] = 96;
+    rv[SmoTempoText.tempoTexts.allegro] = 120;
+    rv[SmoTempoText.tempoTexts.vivace] = 144;
+    rv[SmoTempoText.tempoTexts.presto] = 168;
+    rv[SmoTempoText.tempoTexts.prestissimo] = 240;
         return rv;
     }
 
@@ -10632,13 +10749,13 @@ class SmoTempoText extends SmoMeasureModifierBase {
         smoSerialize.serializedMergeNonDefault(SmoTempoText.defaults,SmoTempoText.attributes,this,params)
         params.ctor = 'SmoTempoText';
         return params;
-	}
-	constructor(parameters) {
-		super('SmoTempoText');
+  }
+  constructor(parameters) {
+    super('SmoTempoText');
         parameters = parameters ? parameters : {};
-		smoSerialize.serializedMerge(SmoTempoText.attributes, SmoTempoText.defaults, this);
-		smoSerialize.serializedMerge(SmoTempoText.attributes, parameters, this);
-	}
+    smoSerialize.serializedMerge(SmoTempoText.attributes, SmoTempoText.defaults, this);
+    smoSerialize.serializedMerge(SmoTempoText.attributes, parameters, this);
+  }
 }
 ;// ## SmoNote
 // ## Description:
@@ -11906,25 +12023,28 @@ class SmoScore {
     }
     this._numberStaves();
   }
+  getPrototypeMeasure(measureIndex, staffIndex) {
+    const staff = this.staves[staffIndex];
+    let protomeasure = {};
+
+    // Since this staff may already have instrument settings, use the
+    // immediately preceeding or post-ceding measure if it exists.
+    if (measureIndex < staff.measures.length) {
+      protomeasure = staff.measures[measureIndex];
+    } else if (staff.measures.length) {
+      protomeasure = staff.measures[staff.measures.length - 1];
+    }
+    return SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
+  }
 
   // ### addMeasure
   // Give a measure prototype, create a new measure and add it to each staff, with the
   // correct settings for current time signature/clef.
-  addMeasure(measureIndex, measure) {
+  addMeasure(measureIndex) {
     let i = 0;
-    let protomeasure = 0;
     for (i = 0; i < this.staves.length; ++i) {
-      protomeasure = measure;
       const staff = this.staves[i];
-
-      // Since this staff may already have instrument settings, use the
-      // immediately preceeding or post-ceding measure if it exists.
-      if (measureIndex < staff.measures.length) {
-        protomeasure = staff.measures[measureIndex];
-      } else if (staff.measures.length) {
-        protomeasure = staff.measures[staff.measures.length - 1];
-      }
-      const nmeasure = SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
+      const nmeasure = this.getPrototypeMeasure(measureIndex, i);
       if (nmeasure.voices.length <= nmeasure.getActiveVoice()) {
         nmeasure.setActiveVoice(0);
       }
@@ -12713,11 +12833,11 @@ class SmoScoreText extends SmoScoreModifierBase {
 // Base class that mostly standardizes the interface and deals with serialization.
 class StaffModifierBase {
     constructor(ctor) {
-        this.ctor = ctor;
+      this.ctor = ctor;
     }
     static deserialize(params) {
-        var ctor = eval(params.ctor);
-        var rv = new ctor(params);
+      var ctor = eval(params.ctor);
+      var rv = new ctor(params);
 		return rv;
     }
 }
@@ -12726,83 +12846,82 @@ class StaffModifierBase {
 // ## Descpription:
 // crescendo/decrescendo
 class SmoStaffHairpin extends StaffModifierBase {
-    constructor(params) {
-        super('SmoStaffHairpin');
-        Vex.Merge(this, SmoStaffHairpin.defaults);
-        smoSerialize.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
-        this.startSelector = params.startSelector;
-        this.endSelector = params.endSelector;
+  constructor(params) {
+    super('SmoStaffHairpin');
+    Vex.Merge(this, SmoStaffHairpin.defaults);
+    smoSerialize.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
+    this.startSelector = params.startSelector;
+    this.endSelector = params.endSelector;
 
-        if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: 'SmoStaffHairpin'
-            };
-        } else {
-            console.log('inherit attrs');
-        }
+    if (!this['attrs']) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoStaffHairpin'
+      };
+    } else {
+      console.log('inherit attrs');
     }
+  }
 	static get editableAttributes() {
 		return ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height'];
 	}
-    static get attributes() {
-        return ['position', 'startSelector','endSelector','xOffset', 'yOffset', 'hairpinType', 'height'];
-    }
-    serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoStaffHairpin.defaults,SmoStaffHairpin.attributes,this,params);
-        params.ctor = 'SmoStaffHairpin';
-        return params;
-    }
-    get id() {
-        return this.attrs.id;
-    }
-    get type() {
-        return this.attrs.type;
-    }
+  static get attributes() {
+    return ['position', 'startSelector','endSelector','xOffset', 'yOffset', 'hairpinType', 'height'];
+  }
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoStaffHairpin.defaults,SmoStaffHairpin.attributes,this,params);
+    params.ctor = 'SmoStaffHairpin';
+    return params;
+  }
+  get id() {
+    return this.attrs.id;
+  }
+  get type() {
+    return this.attrs.type;
+  }
 
-    backupOriginal() {
-        if (!this['original']) {
-            this.original = {};
-            smoSerialize.filteredMerge(
-                ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height', 'position', 'hairpinType'],
-                this, this.original);
-        }
+  backupOriginal() {
+    if (!this['original']) {
+      this.original = {};
+      smoSerialize.filteredMerge(
+        ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height', 'position', 'hairpinType'],
+        this, this.original);
     }
-    restoreOriginal() {
-        if (this['original']) {
-            smoSerialize.filteredMerge(
-                ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height', 'position', 'hairpinType'],
-                this.original, this);
-            this.original = null;
-        }
+  }
+  restoreOriginal() {
+    if (this['original']) {
+      smoSerialize.filteredMerge(
+        ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height', 'position', 'hairpinType'],
+        this.original, this);
+      this.original = null;
     }
-    static get defaults() {
-        return {
-            xOffsetLeft: -2,
-            xOffsetRight: 0,
-            yOffset: -50,
-            height: 10,
-            position: SmoStaffHairpin.positions.BELOW,
-            hairpinType: SmoStaffHairpin.types.CRESCENDO
-
-        };
-    }
-    static get positions() {
-        // matches VF.modifier
-        return {
-            LEFT: 1,
-            RIGHT: 2,
-            ABOVE: 3,
-            BELOW: 4,
-        };
-    }
-    static get types() {
-        return {
-            CRESCENDO: 1,
-            DECRESCENDO: 2
-        };
-    }
+  }
+  static get defaults() {
+    return {
+      xOffsetLeft: -2,
+      xOffsetRight: 0,
+      yOffset: -50,
+      height: 10,
+      position: SmoStaffHairpin.positions.BELOW,
+      hairpinType: SmoStaffHairpin.types.CRESCENDO
+    };
+  }
+  static get positions() {
+    // matches VF.modifier
+    return {
+      LEFT: 1,
+      RIGHT: 2,
+      ABOVE: 3,
+      BELOW: 4,
+    };
+  }
+  static get types() {
+    return {
+      CRESCENDO: 1,
+      DECRESCENDO: 2
+    };
+  }
 }
 
 // ## SmoSlur
@@ -12811,92 +12930,89 @@ class SmoStaffHairpin extends StaffModifierBase {
 // ## SmoSlur Methods:
 // ---
 class SmoSlur extends StaffModifierBase {
-    static get defaults() {
-        return {
-            spacing: 2,
-            thickness: 2,
-            xOffset: -5,
-            yOffset: 10,
-            position: SmoSlur.positions.HEAD,
-            position_end: SmoSlur.positions.HEAD,
-            invert: false,
-            cp1x: 0,
-            cp1y: 15,
-            cp2x: 0,
-            cp2y: 15,
-            pitchesStart:[],
-            pitchesEnd:[]
-        };
-    }
+  static get defaults() {
+    return {
+      spacing: 2,
+      thickness: 2,
+      xOffset: -5,
+      yOffset: 10,
+      position: SmoSlur.positions.HEAD,
+      position_end: SmoSlur.positions.HEAD,
+      invert: false,
+      cp1x: 0,
+      cp1y: 15,
+      cp2x: 0,
+      cp2y: 15,
+      pitchesStart:[],
+      pitchesEnd:[]
+    };
+  }
 
-    // matches VF curve
-    static get positions() {
-        return {
-            HEAD: 1,
-            TOP: 2
-        };
-    }
-    static get parameterArray() {
-        return ['startSelector','endSelector','spacing', 'xOffset', 'yOffset', 'position', 'position_end', 'invert',
-            'cp1x', 'cp1y', 'cp2x', 'cp2y','thickness','pitchesStart','pitchesEnd'];
-    }
+  // matches VF curve
+  static get positions() {
+    return {
+      HEAD: 1,
+      TOP: 2
+    };
+  }
+  static get parameterArray() {
+    return ['startSelector', 'endSelector', 'spacing', 'xOffset', 'yOffset', 'position', 'position_end', 'invert',
+        'cp1x', 'cp1y', 'cp2x', 'cp2y', 'thickness', 'pitchesStart', 'pitchesEnd'];
+  }
 
-    serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoSlur.defaults,
-            SmoSlur.parameterArray,this,params);
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoSlur.defaults,
+      SmoSlur.parameterArray,this,params);
 
-        // smoMusic.filteredMerge(SmoSlur.parameterArray, this, params);
-        params.ctor = 'SmoSlur';
-        return params;
-    }
+    params.ctor = 'SmoSlur';
+    return params;
+  }
 
-    backupOriginal() {
-        if (!this['original']) {
-            this.original = {};
-            smoSerialize.filteredMerge(
-                SmoSlur.parameterArray,
-                this, this.original);
-        }
+  backupOriginal() {
+    if (!this['original']) {
+      this.original = {};
+      smoSerialize.filteredMerge(
+        SmoSlur.parameterArray,
+        this, this.original);
     }
-    restoreOriginal() {
-        if (this['original']) {
-            smoSerialize.filteredMerge(
-                SmoSlur.parameterArray,
-                this.original, this);
-            this.original = null;
-        }
+  }
+  restoreOriginal() {
+    if (this['original']) {
+      smoSerialize.filteredMerge(
+        SmoSlur.parameterArray,
+        this.original, this);
+      this.original = null;
     }
-    get controlPoints() {
-        var ar = [{
-                x: this.cp1x,
-                y: this.cp1y
-            }, {
-                x: this.cp2x,
-                y: this.cp2y
-            }
-        ];
-        return ar;
-    }
+  }
+  get controlPoints() {
+    const ar = [{
+        x: this.cp1x,
+        y: this.cp1y
+      }, {
+        x: this.cp2x,
+        y: this.cp2y
+      }
+    ];
+  return ar;
+  }
 
-    constructor(params) {
-        super('SmoSlur');
-        smoSerialize.serializedMerge(SmoSlur.parameterArray,SmoSlur.defaults,this);
-		// Vex.Merge(this,SmoSlur.defaults);
-		// smoMusic.filteredMerge(SmoSlur.parameterArray,params,this);
-        smoSerialize.serializedMerge(SmoSlur.parameterArray, params, this);
-        this.startSelector = params.startSelector;
-        this.endSelector = params.endSelector;
+  constructor(params) {
+    super('SmoSlur');
+    smoSerialize.serializedMerge(SmoSlur.parameterArray,SmoSlur.defaults,this);
+    smoSerialize.serializedMerge(SmoSlur.parameterArray, params, this);
+    this.startSelector = params.startSelector;
+    this.endSelector = params.endSelector;
 
-        // TODO: allow user to customize these
+    // TODO: allow user to customize these
 
-        if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: 'SmoSlur'
-            };
-        }
+    if (!this['attrs']) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoSlur'
+      };
     }
+  }
 }
 ;
 
@@ -12930,28 +13046,28 @@ class SmoSystemStaff {
             'renumberingMap','keySignatureMap','instrumentInfo'];
   }
 
-    // ### defaults
-    // default values for all instances
-    static get defaults() {
-        return {
-            staffX: 10,
-            staffY: 40,
-            adjY: 0,
-            staffWidth: 1600,
-            staffHeight: 90,
-            startIndex: 0,
+  // ### defaults
+  // default values for all instances
+  static get defaults() {
+    return {
+      staffX: 10,
+      staffY: 40,
+      adjY: 0,
+      staffWidth: 1600,
+      staffHeight: 90,
+      startIndex: 0,
       staffId:0,
-            renumberingMap: {},
-            keySignatureMap: {},
-            instrumentInfo: {
-                instrumentName: 'Treble Instrument',
-                keyOffset: '0',
-                clef: 'treble'
-            },
-            measures: [],
-            modifiers: []
-        };
-    }
+      renumberingMap: {},
+      keySignatureMap: {},
+      instrumentInfo: {
+        instrumentName: 'Treble Instrument',
+        keyOffset: '0',
+        clef: 'treble'
+      },
+      measures: [],
+      modifiers: []
+    };
+  }
 
     // ### serialize
     // JSONify self.
@@ -12973,52 +13089,50 @@ class SmoSystemStaff {
     return params;
   }
 
-     // ### deserialize
-     // parse formerly serialized staff.
-    static deserialize(jsonObj) {
-        var params = {};
-        smoSerialize.serializedMerge(
-            ['staffId','staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
-            jsonObj, params);
-        params.measures = [];
-        jsonObj.measures.forEach(function (measureObj) {
-            var measure = SmoMeasure.deserialize(measureObj);
-            params.measures.push(measure);
-        });
-
-        var rv = new SmoSystemStaff(params);
-
-        if (jsonObj.modifiers) {
-            jsonObj.modifiers.forEach((params) => {
-                var mod = StaffModifierBase.deserialize(params);
-                rv.modifiers.push(mod);
-            });
-        }
+   // ### deserialize
+   // parse formerly serialized staff.
+  static deserialize(jsonObj) {
+    const params = {};
+    smoSerialize.serializedMerge(
+      ['staffId','staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
+      jsonObj, params);
+    params.measures = [];
+    jsonObj.measures.forEach(function (measureObj) {
+      var measure = SmoMeasure.deserialize(measureObj);
+      params.measures.push(measure);
+    });
+    const rv = new SmoSystemStaff(params);
+    if (jsonObj.modifiers) {
+      jsonObj.modifiers.forEach((params) => {
+        const mod = StaffModifierBase.deserialize(params);
+        rv.modifiers.push(mod);
+      });
+    }
     return rv;
-    }
+  }
 
-   // ### addStaffModifier
-   // add a staff modifier, or replace a modifier of same type
-   // with same endpoints.
-    addStaffModifier(modifier) {
-        this.removeStaffModifier(modifier);
-        this.modifiers.push(modifier);
-    }
+ // ### addStaffModifier
+ // add a staff modifier, or replace a modifier of same type
+ // with same endpoints.
+  addStaffModifier(modifier) {
+    this.removeStaffModifier(modifier);
+    this.modifiers.push(modifier);
+  }
 
-    // ### removeStaffModifier
-    // Remove a modifier of given type and location
-    removeStaffModifier(modifier) {
-        var mods = [];
-        this.modifiers.forEach((mod) => {
-            if (mod.attrs.id != modifier.attrs.id) {
-                mods.push(mod);
-            }
-        });
-        this.modifiers = mods;
-    }
+  // ### removeStaffModifier
+  // Remove a modifier of given type and location
+  removeStaffModifier(modifier) {
+    var mods = [];
+    this.modifiers.forEach((mod) => {
+      if (mod.attrs.id != modifier.attrs.id) {
+        mods.push(mod);
+      }
+    });
+    this.modifiers = mods;
+  }
 
-    // ### getModifiersAt
-    // get any modifiers at the selected location
+  // ### getModifiersAt
+  // get any modifiers at the selected location
   getModifiersAt(selector) {
     var rv = [];
     this.modifiers.forEach((mod) => {
@@ -13046,271 +13160,270 @@ class SmoSystemStaff {
     });
   }
 
-    // ### getSlursStartingAt
-    // like it says.  Used by audio player to slur notes
-    getSlursStartingAt(selector) {
-        return this.modifiers.filter((mod) => {
-            return SmoSelector.sameNote(mod.startSelector,selector)
-               && mod.attrs.type == 'SmoSlur';
-        });
+  // ### getSlursStartingAt
+  // like it says.  Used by audio player to slur notes
+  getSlursStartingAt(selector) {
+    return this.modifiers.filter((mod) => {
+      return SmoSelector.sameNote(mod.startSelector,selector)
+        && mod.attrs.type == 'SmoSlur';
+    });
+  }
+
+  // ### getSlursEndingAt
+  // like it says.
+  getSlursEndingAt(selector) {
+    return this.modifiers.filter((mod) => {
+      return SmoSelector.sameNote(mod.endSelector,selector);
+    });
+  }
+
+  // ### accesor getModifiers
+  getModifiers() {
+    return this.modifiers;
+  }
+
+  // ### applyBeams
+  // group all the measures' notes into beam groups.
+  applyBeams() {
+    for (var i = 0; i < this.measures.length; ++i) {
+      var measure = this.measures[i];
+      smoBeamerFactory.applyBeams(measure);
+    }
+  }
+
+  // ### getRenderedNote
+  // used by mapper to get the rendered note from it's SVG DOM ID.
+  getRenderedNote(id) {
+    let i = 0;
+    for (i = 0; i < this.measures.length; ++i) {
+    const measure = this.measures[i];
+    const note = measure.getRenderedNote(id);
+    if (note)
+      return {
+        smoMeasure: measure,
+        smoNote: note.smoNote,
+        smoSystem: this,
+        selection: {
+          measureIndex: measure.measureNumber.measureIndex,
+          voice: measure.activeVoice,
+          tick: note.tick,
+          maxTickIndex: measure.notes.length,
+          maxMeasureIndex: this.measures.length
+        },
+        type: note.smoNote.attrs.type,
+        id: note.smoNote.attrs.id
+      };
+    }
+    return null;
+  }
+
+  // ### addRehearsalMark
+  // for all measures in the system, and also bump the
+  // auto-indexing
+  addRehearsalMark(index,parameters) {
+    var mark = new SmoRehearsalMark(parameters);
+    if (!mark.increment) {
+      this.measures[index].addRehearsalMark(mark);
+      return;
     }
 
-    // ### getSlursEndingAt
-    // like it says.
-    getSlursEndingAt(selector) {
-        return this.modifiers.filter((mod) => {
-            return SmoSelector.sameNote(mod.endSelector,selector);
-        });
-    }
-
-    // ### accesor getModifiers
-    getModifiers() {
-        return this.modifiers;
-    }
-
-    // ### applyBeams
-    // group all the measures' notes into beam groups.
-    applyBeams() {
-        for (var i = 0; i < this.measures.length; ++i) {
-            var measure = this.measures[i];
-            smoBeamerFactory.applyBeams(measure);
+    var symbol = mark.symbol;
+    for (var i=0;i<this.measures.length;++i) {
+      var mm = this.measures[i];
+      if (i < index) {
+        var rm = mm.getRehearsalMark();
+        if (rm && rm.cardinality==mark.cardinality && rm.increment) {
+           symbol = rm.getIncrement();
+           mark.symbol=symbol;
         }
-    }
-
-    // ### getRenderedNote
-    // used by mapper to get the rendered note from it's SVG DOM ID.
-    getRenderedNote(id) {
-        for (var i = 0; i < this.measures.length; ++i) {
-            var measure = this.measures[i];
-            var note = measure.getRenderedNote(id);
-            if (note)
-                return {
-                    smoMeasure: measure,
-                    smoNote: note.smoNote,
-                    smoSystem: this,
-                    selection: {
-                        measureIndex: measure.measureNumber.measureIndex,
-                        voice: measure.activeVoice,
-                        tick: note.tick,
-                        maxTickIndex: measure.notes.length,
-                        maxMeasureIndex: this.measures.length
-                    },
-                    type: note.smoNote.attrs.type,
-                    id: note.smoNote.attrs.id
-                };
+      }
+      if (i === index) {
+        mm.addRehearsalMark(mark);
+        symbol = mark.getIncrement();
+      }
+      if (i > index) {
+        var rm = mm.getRehearsalMark();
+        if (rm && rm.cardinality==mark.cardinality && rm.increment) {
+          rm.symbol = symbol;
+          symbol = rm.getIncrement();
         }
-        return null;
+      }
     }
+  }
 
-    // ### addRehearsalMark
-    // for all measures in the system, and also bump the
-    // auto-indexing
-    addRehearsalMark(index,parameters) {
-        var mark = new SmoRehearsalMark(parameters);
-        if (!mark.increment) {
-            this.measures[index].addRehearsalMark(mark);
-            return;
+  removeTempo(index) {
+    this.measures[index].removeTempo();
+  }
+
+  addTempo(tempo,index) {
+    this.measures[index].addTempo(tempo);
+  }
+
+  // ### removeRehearsalMark
+  // for all measures in the system, and also decrement the
+  // auto-indexing
+  removeRehearsalMark(index) {
+    let ix = 0;
+    let symbol = null;
+    let card = null;
+    this.measures.forEach((measure) => {
+      if (ix == index) {
+        const mark = measure.getRehearsalMark();
+        if (mark) {
+          symbol = mark.symbol;
+          card = mark.cardinality;
         }
-
-        var symbol = mark.symbol;
-        for (var i=0;i<this.measures.length;++i) {
-            var mm = this.measures[i];
-            if (i < index) {
-                var rm = mm.getRehearsalMark();
-                if (rm && rm.cardinality==mark.cardinality && rm.increment) {
-                   symbol = rm.getIncrement();
-                   mark.symbol=symbol;
-                }
-            }
-            if (i === index) {
-                mm.addRehearsalMark(mark);
-                symbol = mark.getIncrement();
-            }
-            if (i > index) {
-                var rm = mm.getRehearsalMark();
-                if (rm && rm.cardinality==mark.cardinality && rm.increment) {
-                    rm.symbol = symbol;
-                    symbol = rm.getIncrement();
-                }
-            }
+        measure.removeRehearsalMark();
+      }
+      if (ix > index && symbol && card) {
+        const mark = measure.getRehearsalMark();
+        if (mark && mark.increment) {
+          mark.symbol = symbol;
+          symbol = mark.getIncrement();
         }
-    }
+      }
+      ix += 1;
+    });
+  }
 
-    removeTempo(index) {
-        this.measures[index].removeTempo();
-    }
-
-    addTempo(tempo,index) {
-        this.measures[index].addTempo(tempo);
-    }
-
-    // ### removeRehearsalMark
-    // for all measures in the system, and also decrement the
-    // auto-indexing
-    removeRehearsalMark(index) {
-        var ix = 0;
-        var symbol=null;
-        var card = null;
-        this.measures.forEach((measure) => {
-            if (ix == index) {
-                var mark = measure.getRehearsalMark();
-                if (mark) {
-                    symbol = mark.symbol;
-                    card = mark.cardinality;
-                }
-                measure.removeRehearsalMark();
-            }
-            if (ix > index && symbol && card) {
-                var mark = measure.getRehearsalMark();
-                if (mark && mark.increment) {
-                    mark.symbol = symbol;
-                    symbol = mark.getIncrement();
-                }
-            }
-
-            ix += 1;
-        });
-    }
-
-    // ### deleteMeasure
-    // delete the measure, and any staff modifiers that start/end there.
+  // ### deleteMeasure
+  // delete the measure, and any staff modifiers that start/end there.
   deleteMeasure(index) {
     if (this.measures.length < 2) {
       return; // don't delete last measure.
     }
-    var nm=[];
+    const nm = [];
     this.measures.forEach((measure) => {
-      if (measure.measureNumber.measureIndex != index) {
+      if (measure.measureNumber.measureIndex !== index) {
         nm.push(measure);
       }
     });
-    var sm=[];
+    const sm = [];
     this.modifiers.forEach((mod)=> {
-            // Bug: if we are deleting a measure before the selector, change the measure number.
-      if (mod.startSelector.measure != index && mod.endSelector.measure != index) {
-                if (index < mod.startSelector.measure) {
-                    mod.startSelector.measure -= 1;
-                }
-                if (index < mod.endSelector.measure) {
-                    mod.endSelector.measure -= 1;
-                }
+      // Bug: if we are deleting a measure before the selector, change the measure number.
+      if (mod.startSelector.measure !== index && mod.endSelector.measure !== index) {
+        if (index < mod.startSelector.measure) {
+            mod.startSelector.measure -= 1;
+        }
+        if (index < mod.endSelector.measure) {
+          mod.endSelector.measure -= 1;
+        }
         sm.push(mod);
       }
     });
-    this.measures=nm;
-    this.modifiers=sm;
+    this.measures = nm;
+    this.modifiers = sm;
     this.numberMeasures();
   }
 
-    // ### addKeySignature
-    // Add key signature to the given measure and update map so we know
-    // when it changes, cancels etc.
-    addKeySignature(measureIndex, key) {
-        this.keySignatureMap[measureIndex] = key;
+  // ### addKeySignature
+  // Add key signature to the given measure and update map so we know
+  // when it changes, cancels etc.
+  addKeySignature(measureIndex, key) {
+    this.keySignatureMap[measureIndex] = key;
     var target = this.measures[measureIndex];
     target.keySignature = key;
-        // this._updateKeySignatures();
+  }
+
+  // ### removeKeySignature
+  // remove key signature and update map so we know
+  // when it changes, cancels etc.
+  removeKeySignature(measureIndex) {
+    const keys = Object.keys(this.keySignatureMap);
+    const nmap = {};
+    keys.forEach((key) => {
+      if (key !== measureIndex) {
+        nmap[key] = this.keySignatureMap[key];
+      }
+    });
+    this.keySignatureMap = nmap;
+    this._updateKeySignatures();
+  }
+  _updateKeySignatures() {
+    let i = 0;
+    var currentSig = this.measures[0].keySignature;
+
+    for (i = 0; i < this.measures.length; ++i) {
+      const measure = this.measures[i];
+      const nextSig = this.keySignatureMap[i] ? this.keySignatureMap[i] : currentSig;
+      measure.setKeySignature(nextSig);
+    }
+  }
+
+  // ### numberMeasures
+  // After anything that might change the measure numbers, update them iteratively
+  numberMeasures() {
+    this.renumberIndex = this.startIndex;
+    var currentOffset = 0;
+    if (this.measures[0].getTicksFromVoice(0) < smoMusic.timeSignatureToTicks(this.measures[0].timeSignature)) {
+      currentOffset = -1;
     }
 
-    // ### removeKeySignature
-    // remove key signature and update map so we know
-    // when it changes, cancels etc.
-    removeKeySignature(measureIndex) {
-        var keys = Object.keys(this.keySignatureMap);
-        var nmap = {};
-        keys.forEach((key) => {
-            if (key !== measureIndex) {
-                nmap[key] = this.keySignatureMap[key];
-            }
-        });
-        this.keySignatureMap = nmap;
-        this._updateKeySignatures();
-    }
-    _updateKeySignatures() {
-        var currentSig = this.measures[0].keySignature;
+    for (var i = 0; i < this.measures.length; ++i) {
+      var measure = this.measures[i];
 
-        for (var i = 0; i < this.measures.length; ++i) {
-            var measure = this.measures[i];
-
-            var nextSig = this.keySignatureMap[i] ? this.keySignatureMap[i] : currentSig;
-            measure.setKeySignature(nextSig);
-        }
-    }
-
-    // ### numberMeasures
-    // After anything that might change the measure numbers, update them iteratively
-    numberMeasures() {
-        this.renumberIndex = this.startIndex;
-        var currentOffset = 0;
-        if (this.measures[0].getTicksFromVoice(0) < smoMusic.timeSignatureToTicks(this.measures[0].timeSignature)) {
-            currentOffset = -1;
-        }
-
-        for (var i = 0; i < this.measures.length; ++i) {
-            var measure = this.measures[i];
-
-            this.renumberIndex = this.renumberingMap[i] ? this.renumberingMap[i].startIndex : this.renumberIndex;
-            var localIndex = this.renumberIndex + i + currentOffset;
-            // If this is the first full measure, call it '1'
-            var numberObj = {
-                measureNumber: localIndex,
-                measureIndex: i + this.startIndex,
-                systemIndex: i,
+      this.renumberIndex = this.renumberingMap[i] ? this.renumberingMap[i].startIndex : this.renumberIndex;
+      var localIndex = this.renumberIndex + i + currentOffset;
+      // If this is the first full measure, call it '1'
+      var numberObj = {
+        measureNumber: localIndex,
+        measureIndex: i + this.startIndex,
+        systemIndex: i,
         staffId:this.staffId
-            }
-            measure.setMeasureNumber(numberObj);
+      }
+      measure.setMeasureNumber(numberObj);
       // If we are renumbering measures, we assume we want to redo the layout so set measures to changed.
       measure.changed=true;
-        }
     }
-    getSelection(measureNumber, voice, tick, pitches) {
-        for (var i = 0; i < this.measures.length; ++i) {
-            var measure = this.measures[i];
-            if (measure.measureNumber.measureNumber === measureNumber) {
-                var target = this.measures[i].getSelection(voice, tick, pitches);
-                if (!target) {
-                    return null;
-                }
-                return ({
-                    measure: measure,
-                    note: target.note,
-                    selection: target.selection
-                });
-            }
-        }
-        return null;
-    }
+  }
 
-    addDefaultMeasure(index, params) {
-        var measure = SmoMeasure.getDefaultMeasure(params);
-        this.addMeasure(index, measure);
-    }
-
-    // ## addMeasure
-    // ## Description:
-    // Add the measure at the specified index, splicing the array as required.
-    addMeasure(index, measure) {
-
-        if (index === 0 && this.measures.length) {
-            measure.setMeasureNumber(this.measures[0].measureNumber);
+  getSelection(measureNumber, voice, tick, pitches) {
+    let i = 0;
+    for (i = 0; i < this.measures.length; ++i) {
+      const measure = this.measures[i];
+      if (measure.measureNumber.measureNumber === measureNumber) {
+        const target = this.measures[i].getSelection(voice, tick, pitches);
+        if (!target) {
+            return null;
         }
-        if (index >= this.measures.length) {
-            this.measures.push(measure);
-        } else {
-            this.measures.splice(index, 0, measure);
-        }
-        var modifiers = this.modifiers.filter((mod) => mod.startSelector.measure >= index);
-        modifiers.forEach((mod) => {
-            if (mod.startSelector.measure < this.measures.length) {
-                mod.startSelector.measure += 1;
-            }
-            if (mod.endSelector.measure < this.measures.length) {
-                mod.endSelector.measure += 1;
-            }
+        return ({
+            measure,
+            note: target.note,
+            selection: target.selection
         });
-
-        this.numberMeasures();
+      }
     }
+    return null;
+  }
+
+  addDefaultMeasure(index, params) {
+    var measure = SmoMeasure.getDefaultMeasure(params);
+    this.addMeasure(index, measure);
+  }
+
+  // ## addMeasure
+  // ## Description:
+  // Add the measure at the specified index, splicing the array as required.
+  addMeasure(index, measure) {
+    if (index === 0 && this.measures.length) {
+      measure.setMeasureNumber(this.measures[0].measureNumber);
+    }
+    if (index >= this.measures.length) {
+      this.measures.push(measure);
+    } else {
+      this.measures.splice(index, 0, measure);
+    }
+    const modifiers = this.modifiers.filter((mod) => mod.startSelector.measure >= index);
+    modifiers.forEach((mod) => {
+      if (mod.startSelector.measure < this.measures.length) {
+          mod.startSelector.measure += 1;
+      }
+      if (mod.endSelector.measure < this.measures.length) {
+          mod.endSelector.measure += 1;
+      }
+    });
+    this.numberMeasures();
+  }
 }
 ;
 class SmoTuplet {
@@ -14489,64 +14602,67 @@ class SmoOperation {
         selection.measure.setChanged();
     }
 
-    static setTimeSignature(score,selections,timeSignature) {
-        var selectors = [];
-        selections.forEach((selection) => {
-            for (var i=0;i<score.staves.length;++i) {
-                var measureSel = {
-                    staff: i,
-                    measure: selection.selector.measure
-                };
-                selectors.push(measureSel);
-            }
-        });
-        var tsTicks = smoMusic.timeSignatureToTicks(timeSignature);
+  static setTimeSignature(score, selections, timeSignature) {
+    const selectors = [];
+    let nm = {};
+    let i = 0;
+    let ticks = 0;
+    selections.forEach((selection) => {
+      for (i = 0; i < score.staves.length; ++i) {
+        var measureSel = {
+          staff: i,
+          measure: selection.selector.measure
+        };
+        selectors.push(measureSel);
+      }
+    });
+    const tsTicks = smoMusic.timeSignatureToTicks(timeSignature);
 
-        selectors.forEach((selector) => {
-            var params={};
-            var attrs = SmoMeasure.defaultAttributes.filter((aa) => aa != 'timeSignature');
-            var psel =  SmoSelection.measureSelection(score,selector.staff,selector.measure);
-            if (!psel['measure']) {
-                console.log('Error: score has changed in time signature change');
+    selectors.forEach((selector) => {
+      const params = {};
+      const voices = [];
+      let nm = {};
+      const attrs = SmoMeasure.defaultAttributes.filter((aa) => aa !== 'timeSignature');
+      const psel =  SmoSelection.measureSelection(score,selector.staff,selector.measure);
+      if (!psel['measure']) {
+        console.log('Error: score has changed in time signature change');
+      } else {
+        const proto = SmoSelection.measureSelection(score,selector.staff,selector.measure).measure;
+        smoSerialize.serializedMerge(attrs,proto,params);
+        params.timeSignature = timeSignature;
+        nm = SmoMeasure.getDefaultMeasure(params);
+        const spareNotes = SmoMeasure.getDefaultNotes(params);
+        ticks = 0;
+        proto.voices.forEach((voice) => {
+          const nvoice=[];
+          for (i = 0; i < voice.notes.length; ++i) {
+            const pnote = voice.notes[i];
+            const nnote = SmoNote.deserialize(pnote.serialize());
+            if (ticks + pnote.tickCount <= tsTicks) {
+              nnote.ticks = JSON.parse(JSON.stringify(pnote.ticks))
+              nvoice.push(nnote);
+              ticks += nnote.tickCount;
             } else {
-                var proto = SmoSelection.measureSelection(score,selector.staff,selector.measure).measure;
-                smoSerialize.serializedMerge(attrs,proto,params);
-                params.timeSignature = timeSignature;
-                var nm = SmoMeasure.getDefaultMeasure(params);
-                var spareNotes = SmoMeasure.getDefaultNotes(params);
-                var ticks = 0;
-                var voices = [];
-                proto.voices.forEach((voice) => {
-                    var nvoice=[];
-                    for (var i=0;i<voice.notes.length;++i) {
-                        var pnote = voice.notes[i];
-                        var nnote = SmoNote.deserialize(pnote.serialize());
-                        if (ticks + pnote.tickCount <= tsTicks) {
-                            nnote.ticks = JSON.parse(JSON.stringify(pnote.ticks))
-                            nvoice.push(nnote);
-                            ticks += nnote.tickCount;
-                        } else {
-                            var remain = (ticks + pnote.tickCount)-tsTicks;
-                            nnote.ticks = {numerator:remain,denominator:1,remainder:0};
-                            nvoice.push(nnote);
-                            ticks += nnote.tickCount;
-                        }
-                        if (ticks >= tsTicks) {
-                            break;
-                        }
-                    }
-                    if (ticks < tsTicks) {
-                        var adjNote = SmoNote.cloneWithDuration(nvoice[nvoice.length - 1],{numerator:tsTicks - ticks,denominator:1,remainder:0});
-                        nvoice.push(adjNote);
-                    }
-                    voices.push({notes:nvoice});
-
-                });
+              const remain = (ticks + pnote.tickCount)-tsTicks;
+              nnote.ticks = { numerator: remain, denominator: 1, remainder: 0};
+              nvoice.push(nnote);
+              ticks += nnote.tickCount;
             }
-            nm.voices=voices;
-            score.replaceMeasure(selector,nm);
+            if (ticks >= tsTicks) {
+              break;
+            }
+          }
+          if (ticks < tsTicks) {
+            const adjNote = SmoNote.cloneWithDuration(nvoice[nvoice.length - 1], { numerator: tsTicks - ticks, denominator: 1, remainder: 0 });
+            nvoice.push(adjNote);
+          }
+          voices.push({ notes: nvoice });
         });
-    }
+      }
+      nm.voices = voices;
+      score.replaceMeasure(selector, nm);
+    });
+  }
 
   static batchSelectionOperation(score, selections, operation) {
   var measureTicks = [];
@@ -15047,31 +15163,32 @@ class SmoOperation {
   }
 
   static toggleArticulation(selection, articulation) {
-  selection.note.toggleArticulation(articulation);
-  selection.measure.setChanged();
+    selection.note.toggleArticulation(articulation);
+    selection.measure.setChanged();
   }
 
   static addEnding(score, parameters) {
+    let m = 0;
+    let s = 0;
     var startMeasure = parameters.startBar;
     var endMeasure = parameters.endBar;
-    var s = 0;
 
     // Ending ID ties all the instances of an ending across staves
-    parameters.endingId=VF.Element.newID();
+    parameters.endingId = VF.Element.newID();
     score.staves.forEach((staff) => {
-      var m = 0;
+      m = 0;
       staff.measures.forEach((measure) => {
         if (m === startMeasure) {
-          var pp = JSON.parse(JSON.stringify(parameters));
+          const pp = JSON.parse(JSON.stringify(parameters));
           pp.startSelector = {
-          staff: s,
-          measure: startMeasure
+            staff: s,
+            measure: startMeasure
           };
           pp.endSelector = {
-          staff: s,
-          measure: endMeasure
+            staff: s,
+            measure: endMeasure
           };
-          var ending = new SmoVolta(pp);
+          const ending = new SmoVolta(pp);
           measure.addNthEnding(ending);
         }
         measure.setChanged();
@@ -32610,69 +32727,12 @@ class SuiKeyCommands {
     );
   }
 
-  // ## _render
-  // utility function to render the music and update the tracker map.
-  _render() {
-    this.view.tracker.replaceSelectedMeasures();
-  }
-
-  _refresh() {
-    this.view.renderer.setRefresh();
-  }
-
   get score() {
-      return this.view.score;
-  }
-
-  _renderAndAdvance() {
-    this.view.tracker.replaceSelectedMeasures();
-    this.view.tracker.moveSelectionRight(null, true);
-  }
-  _rebeam() {
-    this.view.tracker.getSelectedMeasures().forEach((measure) => {
-      smoBeamerFactory.applyBeams(measure);
-    });
-  }
-  _batchDurationOperation(operation) {
-    SmoUndoable.batchDurationOperation(this.view.score, this.view.tracker.selections, operation, this.view.undoBuffer);
-    this._rebeam();
-    this._render();
-  }
-
-  scoreSelectionOperation(selection, name, parameters, description) {
-    SmoUndoable.scoreSelectionOp(this.view.score, selection, name, parameters,
-      this.undoBuffer, description);
-    this._render();
-  }
-
-  scoreOperation(name,parameters,description) {
-    SmoUndoable.scoreOp(this.view.score, name, parameters, this.undoBuffer, description);
-    this._render();
-  }
-
-  _selectionOperation(selection, name, parameters) {
-    if (parameters) {
-      SmoUndoable[name](selection, parameters, this.view.undoBuffer);
-    } else {
-      SmoUndoable[name](selection, this.view.undoBuffer);
-    }
-    this._render();
+    return this.view.score;
   }
 
   undo() {
     this.view.undo();
-  }
-
-  _singleSelectionOperation(name, parameters) {
-    var selection = this.view.tracker.selections[0];
-    if (parameters) {
-      SmoUndoable[name](selection, parameters, this.view.undoBuffer);
-    } else {
-      SmoUndoable[name](selection, this.view.undoBuffer);
-    }
-    suiOscillator.playSelectionNow(selection);
-    this._rebeam();
-    this._render();
   }
 
   copy() {
@@ -32784,12 +32844,6 @@ class SuiKeyCommands {
     this.view.toggleEnharmonic();
   }
 
-  rerender(keyEvent) {
-    this.view.renderer.unrenderAll();
-    SmoUndoable.noop(this.view.score, this.view.undoBuffer);
-    this.undo();
-    this._render();
-  }
   makeTupletCommand(numNotes) {
     this.view.makeTuplet(numNotes);
   }
@@ -32853,12 +32907,11 @@ class suiMenuBase {
     return this.closePromise();
   }
   static printTranslate(_class) {
-    var xx = eval(_class);
-    var items = [];
+    const xx = eval(_class);
+    const items = [];
     xx['defaults'].menuItems.forEach((item) => {
       items.push({value:item.value,text:item.text});
     });
-
     return {ctor:xx['ctor'],label:xx['label'],menuItems:items};
   }
 
@@ -32963,7 +33016,7 @@ class suiMenuManager {
     ];
   }
   _advanceSelection(inc) {
-    var options = $('.menuContainer ul.menuElement li.menuOption');
+    const options = $('.menuContainer ul.menuElement li.menuOption');
     inc = inc < 0 ? options.length - 1: 1;
     this.menu.focusIndex = (this.menu.focusIndex+inc) % options.length;
     $(options[this.menu.focusIndex]).find('button').focus();
@@ -32983,15 +33036,14 @@ class suiMenuManager {
   }
 
   attach(el) {
-    var b = htmlHelpers.buildDom();
+    let hotkey=0;
 
     $(this.menuContainer).html('');
     $(this.menuContainer).attr('z-index', '12');
-    var b = htmlHelpers.buildDom;
-    var r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
-    .css('left', '' + this.menuPosition.x + 'px')
-    .css('top', '' + this.menuPosition.y + 'px');
-      var hotkey=0;
+    const b = htmlHelpers.buildDom;
+    const r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
+      .css('left', '' + this.menuPosition.x + 'px')
+      .css('top', '' + this.menuPosition.y + 'px');
     this.menu.menuItems.forEach((item) => {
       var vkey = (hotkey < 10) ? String.fromCharCode(48+hotkey) :
         String.fromCharCode(87 + hotkey);
@@ -33001,7 +33053,7 @@ class suiMenuManager {
           b('button').attr('data-value',item.value).append(
             b('span').classes('menuText').text(item.text))
           .append(b('span').classes('icon icon-' + item.icon))
-        .append(b('span').classes('menu-key').text(''+vkey))));
+        .append(b('span').classes('menu-key').text('' + vkey))));
       item.hotkey=vkey;
       hotkey += 1;
     });
@@ -33031,27 +33083,26 @@ class suiMenuManager {
     $('body').trigger('menuDismiss');
   }
 
-  createMenu(action,completeNotifier) {
+  createMenu(action, completeNotifier) {
     this.menuPosition = {x:250,y:40,width:1,height:1};
-      // If we were called from the ribbon, we notify the controller that we are
-      // taking over the keyboard.  If this was a key-based command we already did.
-
+    // If we were called from the ribbon, we notify the controller that we are
+    // taking over the keyboard.  If this was a key-based command we already did.
     layoutDebug.addDialogDebug('createMenu creating ' + action);
-    var ctor = eval(action);
+    const ctor = eval(action);
     this.menu = new ctor({
       position: this.menuPosition,
       tracker: this.tracker,
       keyCommands: this.keyCommands,
       score: this.score,
-      completeNotifier:this.controller,
-      closePromise:this.closeMenuPromise,
+      completeNotifier: this.controller,
+      closePromise: this.closeMenuPromise,
       view: this.view,
-      eventSource:this.eventSource,
+      eventSource: this.eventSource,
       undoBuffer: this.undoBuffer
     });
     this.attach(this.menuContainer);
     this.menu.menuItems.forEach((item) => {
-      if (typeof(item.hotkey) != 'undefined') {
+      if (typeof(item.hotkey) !== 'undefined') {
         this.hotkeyBindings[item.hotkey] = item.value;
       }
     });
@@ -33068,28 +33119,26 @@ class suiMenuManager {
     if (['Tab', 'Enter'].indexOf(event.code) >= 0) {
       return;
     }
-
     event.preventDefault();
-
     if (event.code === 'Escape') {
       this.dismiss();
     }
     if (this.menu) {
-      if (event.code == 'ArrowUp') {
+      if (event.code === 'ArrowUp') {
         this._advanceSelection(-1);
       }
-      else if (event.code == 'ArrowDown') {
+      else if (event.code === 'ArrowDown') {
         this._advanceSelection(1);
       } else  if (this.hotkeyBindings[event.key]) {
-        $('button[data-value="'+this.hotkeyBindings[event.key]+'"]').click();
+        $('button[data-value="'+this.hotkeyBindings[event.key] + '"]').click();
       } else {
         this.menu.keydown(event);
       }
       return;
     }
-    var binding = this.menuBind.find((ev) => {
-      return ev.key === event.key
-    });
+    const binding = this.menuBind.find((ev) =>
+      ev.key === event.key
+    );
     if (!binding) {
       this.dismiss();
       return;
@@ -33098,33 +33147,31 @@ class suiMenuManager {
   }
 
   bindEvents() {
-  var self = this;
-    this.hotkeyBindings={};
+    const self = this;
+    this.hotkeyBindings = { };
     $('body').addClass('slash-menu');
 
     // We need to keep track of is bound, b/c the menu can be created from
     // different sources.
     if (!this.bound) {
-      this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
+      this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
       this.bound = true;
     }
 
   $(this.menuContainer).find('button').off('click').on('click', function (ev) {
-  if ($(ev.currentTarget).attr('data-value') == 'cancel') {
-  self.menu.complete();
-  return;
-  }
-  self.menu.selection(ev);
+    if ($(ev.currentTarget).attr('data-value') === 'cancel') {
+      self.menu.complete();
+      return;
+    }
+    self.menu.selection(ev);
   });
   }
 }
 
-
-
 class SuiFileMenu extends suiMenuBase {
-    constructor(params) {
-  params = (params ? params : {});
-  Vex.Merge(params, SuiFileMenu.defaults);
+  constructor(params) {
+    params = (typeof(params) !== 'undefined' ? params : {});
+    Vex.Merge(params, SuiFileMenu.defaults);
     super(params);
   }
   static get ctor() {
@@ -33142,43 +33189,43 @@ class SuiFileMenu extends suiMenuBase {
           icon: 'folder-new',
           text: 'New Score',
           value: 'newFile'
-        },{
+        }, {
           icon: 'folder-open',
           text: 'Open',
           value: 'openFile'
-        },{
+        }, {
           icon: 'folder-save',
           text: 'Save',
           value: 'saveFile'
-        },{
+        }, {
           icon: 'folder-save',
           text: 'Quick Save',
           value: 'quickSave'
-        },{
+        }, {
           icon: '',
           text: 'Print',
           value: 'printScore'
-        },{
+        }, {
           icon: '',
           text: 'Bach Invention',
           value: 'bach'
-        },{
+        }, {
           icon: '',
           text: 'Jesu Bambino',
           value: 'bambino'
-        },{
+        }, {
           icon: '',
           text: 'Microtone Sample',
           value: 'microtone'
-        },{
+        }, {
           icon: '',
           text: 'Precious Lord',
           value: 'preciousLord'
-        },{
+        }, {
           icon: '',
           text: 'Yama',
           value: 'yamaJson'
-        },	{
+        }, {
           icon: '',
           text: 'Cancel',
           value: 'cancel'
@@ -33189,20 +33236,20 @@ class SuiFileMenu extends suiMenuBase {
   }
 
   systemPrint() {
-   var self = this;
-   window.print();
-   SuiPrintFileDialog.createAndDisplay({
-       view: self.view,
-       completeNotifier:self.completeNotifier,
-       closeMenuPromise:self.closePromise,
-       tracker:self.tracker,
-       undoBuffer:self.undoBuffer,
-       });
+    const self = this;
+    window.print();
+    SuiPrintFileDialog.createAndDisplay({
+      view: self.view,
+      completeNotifier: self.completeNotifier,
+      closeMenuPromise: self.closePromise,
+      tracker: self.tracker,
+      undoBuffer: self.undoBuffer,
+    });
   }
   selection(ev) {
-    var text = $(ev.currentTarget).attr('data-value');
-    var self=this;
-    if (text == 'saveFile') {
+    const text = $(ev.currentTarget).attr('data-value');
+    var self = this;
+    if (text === 'saveFile') {
       SuiSaveFileDialog.createAndDisplay({
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
@@ -33211,8 +33258,8 @@ class SuiFileMenu extends suiMenuBase {
         keyCommands: this.keyCommands,
         view: this.view,
         closeMenuPromise: this.closePromise
-    });
-    } else if (text == 'openFile') {
+      });
+    } else if (text === 'openFile') {
       SuiLoadFileDialog.createAndDisplay({
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
@@ -33221,52 +33268,45 @@ class SuiFileMenu extends suiMenuBase {
         editor: this.keyCommands,
         view: this.view,
         closeMenuPromise: this.closePromise
-     });
-     } else if (text == 'newFile') {
-        this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
-        var score = SmoScore.getDefaultScore();
-        this.view.changeScore(score);
-      } else if (text == 'quickSave') {
-        var scoreStr = JSON.stringify(this.view.storeScore.serialize());
-        localStorage.setItem(smoSerialize.localScore,scoreStr);
-      } else if (text == 'printScore') {
-        var systemPrint = () => {
+      });
+    } else if (text == 'newFile') {
+      const score = SmoScore.getDefaultScore();
+      this.view.changeScore(score);
+    } else if (text == 'quickSave') {
+      const scoreStr = JSON.stringify(this.view.storeScore.serialize());
+      localStorage.setItem(smoSerialize.localScore, scoreStr);
+    } else if (text == 'printScore') {
+      const systemPrint = () => {
         self.systemPrint();
       }
-        this.view.renderer.renderForPrintPromise().then(systemPrint);
-      } else if (text == 'bach') {
-  			this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
-  			var score = SmoScore.deserialize(inventionJson);
-  			this.view.changeScore(score);
+      this.view.renderer.renderForPrintPromise().then(systemPrint);
+    } else if (text == 'bach') {
+      const score = SmoScore.deserialize(inventionJson);
+      this.view.changeScore(score);
     } else if (text == 'yamaJson') {
-      this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
-      var score = SmoScore.deserialize(yamaJson);
+      const score = SmoScore.deserialize(yamaJson);
       this.view.changeScore(score);
     }
-      else if (text == 'bambino') {
-        this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
-        var score = SmoScore.deserialize(jesuBambino);
-        this.view.changeScore(score);
-      } else if (text == 'microtone') {
-        this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
-        var score = SmoScore.deserialize(microJson);
-        this.view.changeScore(score);
-      }  else if (text == 'preciousLord') {
-        this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
-        var score = SmoScore.deserialize(preciousLord);
-        this.view.changeScore(score);
+    else if (text == 'bambino') {
+      const score = SmoScore.deserialize(jesuBambino);
+      this.view.changeScore(score);
+    } else if (text == 'microtone') {
+      const score = SmoScore.deserialize(microJson);
+      this.view.changeScore(score);
+    }  else if (text == 'preciousLord') {
+      const score = SmoScore.deserialize(preciousLord);
+      this.view.changeScore(score);
     }
     this.complete();
   }
-
   keydown(ev) {}
 }
 
 class SuiDynamicsMenu extends suiMenuBase {
   constructor(params) {
-  params = (params ? params : {});
-  Vex.Merge(params, SuiDynamicsMenu.defaults);
-  super(params);
+    params = (params ? params : {});
+    Vex.Merge(params, SuiDynamicsMenu.defaults);
+    super(params);
   }
   static get ctor() {
     return 'SuiDynamicsMenu';
@@ -33314,27 +33354,13 @@ class SuiDynamicsMenu extends suiMenuBase {
       }
     ]
     };
-
     return SuiDynamicsMenu._defaults;
-
   }
 
   selection(ev) {
-  var text = $(ev.currentTarget).attr('data-value');
-
-  var ft = this.tracker.getExtremeSelection(-1);
-  if (!ft || !ft.note) {
-  return;
-  }
-
-  SmoUndoable.addDynamic(ft, new SmoDynamicText({
-  selector: ft.selector,
-  text: text,
-  yOffsetLine: 11,
-  fontSize: 38
-  }), this.keyCommands.undoBuffer);
-    this.tracker.replaceSelectedMeasures();
-  this.complete();
+    const text = $(ev.currentTarget).attr('data-value');
+    this.view.addDynamic(text);
+    this.complete();
   }
   keydown(ev) {}
 }
@@ -33398,22 +33424,18 @@ class SuiTimeSignatureMenu extends suiMenuBase {
   selection(ev) {
     var text = $(ev.currentTarget).attr('data-value');
 
-    if (text == 'TimeSigOther') {
+    if (text === 'TimeSigOther') {
       SuiTimeSignatureDialog.createAndDisplay({
-  			view: this.view,
+        view: this.view,
         completeNotifier: this.completeNotifier,
         closeMenuPromise: this.closePromise,
         undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource
-	    });
+      });
       this.complete();
       return;
     }
-    var timeSig = $(ev.currentTarget).attr('data-value');
-    this.view.renderer.unrenderAll();
-    SmoUndoable.scoreSelectionOp(this.view.score, this.view.tracker.selections,
-      'setTimeSignature', timeSig,this.undoBuffer, 'change time signature');
-    this.view.renderer.setRefresh();
+    this.view.setTimeSignature(text);
     this.complete();
   }
 
@@ -33436,66 +33458,65 @@ class SuiKeySignatureMenu extends suiMenuBase {
   static get defaults() {
     SuiKeySignatureMenu._defaults = SuiKeySignatureMenu._defaults ? SuiKeySignatureMenu._defaults :
    {
-     label:'Key',
-
-  menuItems: [{
-    icon: 'key-sig-c',
-    text: 'C Major',
-    value: 'KeyOfC',
-    }, {
-    icon: 'key-sig-f',
-    text: 'F Major',
-    value: 'KeyOfF',
-    }, {
-    icon: 'key-sig-g',
-    text: 'G Major',
-    value: 'KeyOfG',
-    }, {
-    icon: 'key-sig-bb',
-    text: 'Bb Major',
-    value: 'KeyOfBb'
-    }, {
-    icon: 'key-sig-d',
-    text: 'D Major',
-    value: 'KeyOfD'
-    }, {
-    icon: 'key-sig-eb',
-    text: 'Eb Major',
-    value: 'KeyOfEb'
-    }, {
-    icon: 'key-sig-a',
-    text: 'A Major',
-    value: 'KeyOfA'
-    }, {
-    icon: 'key-sig-ab',
-    text: 'Ab Major',
-    value: 'KeyOfAb'
-    }, {
-    icon: 'key-sig-e',
-    text: 'E Major',
-    value: 'KeyOfE'
-    }, {
-    icon: 'key-sig-bd',
-    text: 'Db Major',
-    value: 'KeyOfDb'
-    }, {
-    icon: 'key-sig-b',
-    text: 'B Major',
-    value: 'KeyOfB'
-    }, {
-    icon: 'key-sig-fs',
-    text: 'F# Major',
-    value: 'KeyOfF#'
-    }, {
-    icon: 'key-sig-cs',
-    text: 'C# Major',
-    value: 'KeyOfC#'
-    },
-     {
-    icon: '',
-    text: 'Cancel',
-    value: 'cancel'
-    }
+      label:'Key',
+      menuItems: [{
+        icon: 'key-sig-c',
+        text: 'C Major',
+        value: 'KeyOfC',
+      }, {
+        icon: 'key-sig-f',
+        text: 'F Major',
+        value: 'KeyOfF',
+      }, {
+        icon: 'key-sig-g',
+        text: 'G Major',
+        value: 'KeyOfG',
+      }, {
+        icon: 'key-sig-bb',
+        text: 'Bb Major',
+        value: 'KeyOfBb'
+      }, {
+        icon: 'key-sig-d',
+        text: 'D Major',
+        value: 'KeyOfD'
+      }, {
+        icon: 'key-sig-eb',
+        text: 'Eb Major',
+        value: 'KeyOfEb'
+      }, {
+        icon: 'key-sig-a',
+        text: 'A Major',
+        value: 'KeyOfA'
+      }, {
+        icon: 'key-sig-ab',
+        text: 'Ab Major',
+        value: 'KeyOfAb'
+      }, {
+        icon: 'key-sig-e',
+        text: 'E Major',
+        value: 'KeyOfE'
+      }, {
+        icon: 'key-sig-bd',
+        text: 'Db Major',
+        value: 'KeyOfDb'
+      }, {
+        icon: 'key-sig-b',
+        text: 'B Major',
+        value: 'KeyOfB'
+      }, {
+        icon: 'key-sig-fs',
+        text: 'F# Major',
+        value: 'KeyOfF#'
+      }, {
+        icon: 'key-sig-cs',
+        text: 'C# Major',
+        value: 'KeyOfC#'
+      },
+      {
+        icon: '',
+        text: 'Cancel',
+        value: 'cancel'
+      }
     ],
     menuContainer: '.menuContainer'
     };
@@ -33504,16 +33525,11 @@ class SuiKeySignatureMenu extends suiMenuBase {
 
   selection(ev) {
     var keySig = $(ev.currentTarget).attr('data-value');
-    keySig = (keySig === 'cancel' ? keySig : keySig.substring(5,keySig.length));
-    var changed = [];
-    this.view.tracker.selections.forEach((sel) => {
-      if (changed.indexOf(sel.selector.measure) === -1) {
-        changed.push(sel.selector.measure);
-        SmoUndoable.addKeySignature(this.score, sel, keySig, this.keyCommands.undoBuffer);
-        }
-    });
-
-    this.view.renderer.setRefresh();
+    keySig = (keySig === 'cancel' ? keySig : keySig.substring(5, keySig.length));
+    if (keySig === 'cancel') {
+      return;
+    }
+    this.view.addKeySignature(keySig);
     this.complete();
   }
   keydown(ev) {}
@@ -33805,20 +33821,15 @@ class SuiAddStaffMenu extends suiMenuBase {
   selection(ev) {
     var op = $(ev.currentTarget).attr('data-value');
     if (op == 'remove') {
-      if (this.score.staves.length > 1 && this.tracker.selections.length > 0) {
-        this.tracker.layout.unrenderAll();
-        SmoUndoable.removeStaff(this.score, this.tracker.selections[0].selector.staff, this.keyCommands.undoBuffer);
-        this.tracker.layout.setRefresh();
-      }
+      this.view.removeStaff();
+      this.complete();
     } else if (op === 'cancel') {
       this.complete();
     } else {
       var instrument = SuiAddStaffMenu.instrumentMap[op];
-      SmoUndoable.addStaff(this.score, instrument, this.keyCommands.undoBuffer);
-      this.tracker.layout.setRefresh();
+      this.view.addStaff(instrument);
+      this.complete();
     }
-    this.layout.setRefresh();
-    this.complete();
   }
   keydown(ev) {}
 

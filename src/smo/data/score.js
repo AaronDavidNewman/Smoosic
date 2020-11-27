@@ -288,25 +288,28 @@ class SmoScore {
     }
     this._numberStaves();
   }
+  getPrototypeMeasure(measureIndex, staffIndex) {
+    const staff = this.staves[staffIndex];
+    let protomeasure = {};
+
+    // Since this staff may already have instrument settings, use the
+    // immediately preceeding or post-ceding measure if it exists.
+    if (measureIndex < staff.measures.length) {
+      protomeasure = staff.measures[measureIndex];
+    } else if (staff.measures.length) {
+      protomeasure = staff.measures[staff.measures.length - 1];
+    }
+    return SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
+  }
 
   // ### addMeasure
   // Give a measure prototype, create a new measure and add it to each staff, with the
   // correct settings for current time signature/clef.
-  addMeasure(measureIndex, measure) {
+  addMeasure(measureIndex) {
     let i = 0;
-    let protomeasure = 0;
     for (i = 0; i < this.staves.length; ++i) {
-      protomeasure = measure;
       const staff = this.staves[i];
-
-      // Since this staff may already have instrument settings, use the
-      // immediately preceeding or post-ceding measure if it exists.
-      if (measureIndex < staff.measures.length) {
-        protomeasure = staff.measures[measureIndex];
-      } else if (staff.measures.length) {
-        protomeasure = staff.measures[staff.measures.length - 1];
-      }
-      const nmeasure = SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
+      const nmeasure = this.getPrototypeMeasure(measureIndex, i);
       if (nmeasure.voices.length <= nmeasure.getActiveVoice()) {
         nmeasure.setActiveVoice(0);
       }

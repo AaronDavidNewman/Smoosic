@@ -146,10 +146,7 @@ class SuiScoreView {
           this._getEquivalentGraceNote(altSelection, artifact.modifier));
       });
     } else {
-      const altAr = [];
-      selections.forEach((sel) => {
-        altAr.push(this._getEquivalentSelection(sel));
-      });
+      const altAr = this._getEquivalentSelections(selections);
       SmoOperation.batchSelectionOperation(this.score, selections, operation);
       SmoOperation.batchSelectionOperation(this.storeScore, altAr, operation);
     }
@@ -227,6 +224,7 @@ class SuiScoreView {
     const measureSelections = this._undoTrackerMeasureSelections();
     selections.forEach((selection) => {
       SmoOperation.toggleBeamGroup(selection);
+      SmoOperation.toggleBeamGroup(this._getEquivalentSelection(selection));
     });
     this._renderChangedMeasures(measureSelections);
   }
@@ -234,12 +232,29 @@ class SuiScoreView {
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections();
     SmoOperation.toggleBeamDirection(selections);
+    SmoOperation.toggleBeamDirection(this._getEquivalentSelections(selections));
     this._renderChangedMeasures(measureSelections);
   }
   beamSelections() {
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections();
     SmoOperation.beamSelections(selections);
+    SmoOperation.beamSelections(this._getEquivalentSelections(selections));
+    this._renderChangedMeasures(measureSelections);
+  }
+  setTimeSignature(timeSignature) {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections();
+    SmoOperation.setTimeSignature(this.score, selections, timeSignature);
+    SmoOperation.setTimeSignature(this.storeScore, this._getEquivalentSelections(selections), timeSignature);
+    this._renderChangedMeasures(measureSelections);
+  }
+  addKeySignature(keySignature) {
+    const measureSelections = this._undoTrackerMeasureSelections();
+    measureSelections.forEach((sel) => {
+      SmoOperation.addKeySignature(this.score, sel, keySignature);
+      SmoOperation.addKeySignature(this.storeScore, this._getEquivalentSelection(sel), keySignature);
+    });
     this._renderChangedMeasures(measureSelections);
   }
 
@@ -296,6 +311,28 @@ class SuiScoreView {
     SmoOperation.setNoteHead(selections, head);
     this._renderChangedMeasures(measureSelections);
   }
+  addDynamic(dynamicText) {
+    const selection = this._undoFirstMeasureSelection();
+    const dynamic = new SmoDynamicText({
+      selector: selection.selector,
+      text: dynamicText,
+      yOffsetLine: 11,
+      fontSize: 38
+    });
+    SmoOperation.addDynamic(selection, dynamic);
+    this._renderChangedMeasures([selection]);
+  }
+  addEnding() {
+    // TODO: we should have undo for columns
+    this._undoScore();
+    const ft = this.tracker.getExtremeSelection(-1);
+    const tt = this.tracker.getExtremeSelection(1);
+    const volta = new SmoVolta({ startBar: ft.selector.measure, endBar: tt.selector.measure, number: 1 });
+    const altVolta = new SmoVolta({ startBar: ft.selector.measure, endBar: tt.selector.measure, number: 1 });
+    SmoOperation.addEnding(this.storeScore, altVolta);
+    SmoOperation.addEnding(this.score, volta);
+    this.renderer.setRefresh();
+  }
 
   deleteMeasure() {
     this._undoScore('Delete Measure');
@@ -339,6 +376,53 @@ class SuiScoreView {
     this.renderer.clearLine(measure);
     this.renderer.setRefresh();
   }
+  removeStaff() {
+    this._undoScore('Remove Instrument');
+    // if we are looking at a subset of the score,
+    // revert to the full score view before removing the staff.
+    const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    const sel = this.tracker.selections[0];
+    const scoreSel = this._getEquivalentSelection(sel);
+    const staffIndex = scoreSel.selector.staff;
+    SmoOperation.removeStaff(newScore, staffIndex);
+    this.changeScore(newScore);
+  }
+  addStaff(instrument) {
+    this._undoScore('Add Instrument');
+    // if we are looking at a subset of the score, we won't see the new staff.  So
+    // revert to the full view
+    const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    SmoOperation.addStaff(newScore, instrument);
+    this.changeScore(newScore);
+  }
+  // ### _reverseMapSelection
+  // For operations that affect all columns, we operate on the
+  // entire score and update the view score.  Some selections
+  // will not have an equivalent in the reverse map since the
+  // view can be a subset.
+  _reverseMapSelection(selection) {
+    return this.score.staves.find((st) => selection.staff.attrs.id === st.attrs.id);
+  }
+  _reverseMapSelections(selections) {
+    const rv = [];
+    selections.forEach((selection) => {
+      const rsel = this._reverseMapSelection(selection);
+      if (rsel !== null) {
+        rv.push(rsel);
+      }
+    });
+    return rv;
+  }
+
+  // ### _getEquivalentSelections
+  // The plural form of _getEquivalentSelection
+  _getEquivalentSelections(selections) {
+    const rv = [];
+    selections.forEach((selection) => {
+      rv.push(this._getEquivalentSelection(selection));
+    });
+    return rv;
+  }
 
   // ### _undoTrackerSelections
   // Add to the undo buffer the current set of measures selected.
@@ -351,12 +435,23 @@ class SuiScoreView {
     });
     return measureSelections;
   }
+  // ### _undoFirstMeasureSelection
+  // operation that only affects the first selection.  Setup undo for the measure
+  _undoFirstMeasureSelection() {
+    const sel = this.tracker.selections[0];
+    this.undoBuffer.addBuffer('transpose selections', UndoBuffer.bufferTypes.MEASURE, sel.selector, sel.measure);
+    return sel;
+  }
+  // ###_renderChangedMeasures
+  // Update renderer for measures that have changed
   _renderChangedMeasures(measureSelections) {
     measureSelections.forEach((measureSelection) => {
       this.renderer.addToReplaceQueue(measureSelection);
     });
   }
 
+  // ###_renderChangedMeasures
+  // Setup undo for operation that affects the whole score
   _undoScore(label) {
     this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE, null, this.score);
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.SCORE, null, this.storeScore);
@@ -389,12 +484,18 @@ class SuiScoreView {
       const istaff = this.score.staves[i];
       for (j = 0; j < this.storeScore.staves.length; ++j) {
         const jstaff = this.storeScore.staves[j];
-        if (jstaff.attrs.id === istaff.attrs.id) {
-          rv.push(j);
+        if (jstaff.staffId === istaff.staffId) {
+          this.staffMap.push(j);
           break;
         }
       }
     }
+  }
+  static get Instance() {
+    if (typeof(SuiScoreView._instance) !== 'undefined') {
+      return SuiScoreView._instance;
+    }
+    return null;
   }
   constructor(renderer, score) {
     this.score = score;
@@ -410,18 +511,36 @@ class SuiScoreView {
     this.undoBuffer = new UndoBuffer();
     this.storeUndo = new UndoBuffer();
     this._createStaveMap();
+    SuiScoreView._instance = this;
+  }
+  static debugSwapScore() {
+    const dbg = SuiScoreView.Instance;
+    if (dbg === null) {
+      return;
+    }
+    const newScore = SmoScore.deserialize(JSON.stringify(dbg.storeScore.serialize()));
+    dbg.changeScore(newScore);
   }
 
   changeScore(score) {
+    this._undoScore();
     this.renderer.score = score;
     this.renderer.setViewport(true);
+    this.storeScore = SmoScore.deserialize(JSON.stringify(score.serialize()));
+    this.score = score;
+    this._createStaveMap();
     setTimeout(() => {
       $('body').trigger('forceResizeEvent');
     }, 1);
   }
 
+  // ### undo
+  // for the view score, we the renderer decides what to render
+  // depending on what is undone.
   undo() {
     this.renderer.undo(this.undoBuffer);
+    // A score-level undo might have changed the score.
+    this.score = this.renderer.score;
     this.storeScore = this.storeUndo.undo(this.storeScore);
   }
 }

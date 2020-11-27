@@ -121,64 +121,67 @@ class SmoOperation {
         selection.measure.setChanged();
     }
 
-    static setTimeSignature(score,selections,timeSignature) {
-        var selectors = [];
-        selections.forEach((selection) => {
-            for (var i=0;i<score.staves.length;++i) {
-                var measureSel = {
-                    staff: i,
-                    measure: selection.selector.measure
-                };
-                selectors.push(measureSel);
-            }
-        });
-        var tsTicks = smoMusic.timeSignatureToTicks(timeSignature);
+  static setTimeSignature(score, selections, timeSignature) {
+    const selectors = [];
+    let nm = {};
+    let i = 0;
+    let ticks = 0;
+    selections.forEach((selection) => {
+      for (i = 0; i < score.staves.length; ++i) {
+        var measureSel = {
+          staff: i,
+          measure: selection.selector.measure
+        };
+        selectors.push(measureSel);
+      }
+    });
+    const tsTicks = smoMusic.timeSignatureToTicks(timeSignature);
 
-        selectors.forEach((selector) => {
-            var params={};
-            var attrs = SmoMeasure.defaultAttributes.filter((aa) => aa != 'timeSignature');
-            var psel =  SmoSelection.measureSelection(score,selector.staff,selector.measure);
-            if (!psel['measure']) {
-                console.log('Error: score has changed in time signature change');
+    selectors.forEach((selector) => {
+      const params = {};
+      const voices = [];
+      let nm = {};
+      const attrs = SmoMeasure.defaultAttributes.filter((aa) => aa !== 'timeSignature');
+      const psel =  SmoSelection.measureSelection(score,selector.staff,selector.measure);
+      if (!psel['measure']) {
+        console.log('Error: score has changed in time signature change');
+      } else {
+        const proto = SmoSelection.measureSelection(score,selector.staff,selector.measure).measure;
+        smoSerialize.serializedMerge(attrs,proto,params);
+        params.timeSignature = timeSignature;
+        nm = SmoMeasure.getDefaultMeasure(params);
+        const spareNotes = SmoMeasure.getDefaultNotes(params);
+        ticks = 0;
+        proto.voices.forEach((voice) => {
+          const nvoice=[];
+          for (i = 0; i < voice.notes.length; ++i) {
+            const pnote = voice.notes[i];
+            const nnote = SmoNote.deserialize(pnote.serialize());
+            if (ticks + pnote.tickCount <= tsTicks) {
+              nnote.ticks = JSON.parse(JSON.stringify(pnote.ticks))
+              nvoice.push(nnote);
+              ticks += nnote.tickCount;
             } else {
-                var proto = SmoSelection.measureSelection(score,selector.staff,selector.measure).measure;
-                smoSerialize.serializedMerge(attrs,proto,params);
-                params.timeSignature = timeSignature;
-                var nm = SmoMeasure.getDefaultMeasure(params);
-                var spareNotes = SmoMeasure.getDefaultNotes(params);
-                var ticks = 0;
-                var voices = [];
-                proto.voices.forEach((voice) => {
-                    var nvoice=[];
-                    for (var i=0;i<voice.notes.length;++i) {
-                        var pnote = voice.notes[i];
-                        var nnote = SmoNote.deserialize(pnote.serialize());
-                        if (ticks + pnote.tickCount <= tsTicks) {
-                            nnote.ticks = JSON.parse(JSON.stringify(pnote.ticks))
-                            nvoice.push(nnote);
-                            ticks += nnote.tickCount;
-                        } else {
-                            var remain = (ticks + pnote.tickCount)-tsTicks;
-                            nnote.ticks = {numerator:remain,denominator:1,remainder:0};
-                            nvoice.push(nnote);
-                            ticks += nnote.tickCount;
-                        }
-                        if (ticks >= tsTicks) {
-                            break;
-                        }
-                    }
-                    if (ticks < tsTicks) {
-                        var adjNote = SmoNote.cloneWithDuration(nvoice[nvoice.length - 1],{numerator:tsTicks - ticks,denominator:1,remainder:0});
-                        nvoice.push(adjNote);
-                    }
-                    voices.push({notes:nvoice});
-
-                });
+              const remain = (ticks + pnote.tickCount)-tsTicks;
+              nnote.ticks = { numerator: remain, denominator: 1, remainder: 0};
+              nvoice.push(nnote);
+              ticks += nnote.tickCount;
             }
-            nm.voices=voices;
-            score.replaceMeasure(selector,nm);
+            if (ticks >= tsTicks) {
+              break;
+            }
+          }
+          if (ticks < tsTicks) {
+            const adjNote = SmoNote.cloneWithDuration(nvoice[nvoice.length - 1], { numerator: tsTicks - ticks, denominator: 1, remainder: 0 });
+            nvoice.push(adjNote);
+          }
+          voices.push({ notes: nvoice });
         });
-    }
+      }
+      nm.voices = voices;
+      score.replaceMeasure(selector, nm);
+    });
+  }
 
   static batchSelectionOperation(score, selections, operation) {
   var measureTicks = [];
@@ -679,31 +682,32 @@ class SmoOperation {
   }
 
   static toggleArticulation(selection, articulation) {
-  selection.note.toggleArticulation(articulation);
-  selection.measure.setChanged();
+    selection.note.toggleArticulation(articulation);
+    selection.measure.setChanged();
   }
 
   static addEnding(score, parameters) {
+    let m = 0;
+    let s = 0;
     var startMeasure = parameters.startBar;
     var endMeasure = parameters.endBar;
-    var s = 0;
 
     // Ending ID ties all the instances of an ending across staves
-    parameters.endingId=VF.Element.newID();
+    parameters.endingId = VF.Element.newID();
     score.staves.forEach((staff) => {
-      var m = 0;
+      m = 0;
       staff.measures.forEach((measure) => {
         if (m === startMeasure) {
-          var pp = JSON.parse(JSON.stringify(parameters));
+          const pp = JSON.parse(JSON.stringify(parameters));
           pp.startSelector = {
-          staff: s,
-          measure: startMeasure
+            staff: s,
+            measure: startMeasure
           };
           pp.endSelector = {
-          staff: s,
-          measure: endMeasure
+            staff: s,
+            measure: endMeasure
           };
-          var ending = new SmoVolta(pp);
+          const ending = new SmoVolta(pp);
           measure.addNthEnding(ending);
         }
         measure.setChanged();

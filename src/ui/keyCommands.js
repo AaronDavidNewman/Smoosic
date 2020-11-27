@@ -22,69 +22,12 @@ class SuiKeyCommands {
     );
   }
 
-  // ## _render
-  // utility function to render the music and update the tracker map.
-  _render() {
-    this.view.tracker.replaceSelectedMeasures();
-  }
-
-  _refresh() {
-    this.view.renderer.setRefresh();
-  }
-
   get score() {
-      return this.view.score;
-  }
-
-  _renderAndAdvance() {
-    this.view.tracker.replaceSelectedMeasures();
-    this.view.tracker.moveSelectionRight(null, true);
-  }
-  _rebeam() {
-    this.view.tracker.getSelectedMeasures().forEach((measure) => {
-      smoBeamerFactory.applyBeams(measure);
-    });
-  }
-  _batchDurationOperation(operation) {
-    SmoUndoable.batchDurationOperation(this.view.score, this.view.tracker.selections, operation, this.view.undoBuffer);
-    this._rebeam();
-    this._render();
-  }
-
-  scoreSelectionOperation(selection, name, parameters, description) {
-    SmoUndoable.scoreSelectionOp(this.view.score, selection, name, parameters,
-      this.undoBuffer, description);
-    this._render();
-  }
-
-  scoreOperation(name,parameters,description) {
-    SmoUndoable.scoreOp(this.view.score, name, parameters, this.undoBuffer, description);
-    this._render();
-  }
-
-  _selectionOperation(selection, name, parameters) {
-    if (parameters) {
-      SmoUndoable[name](selection, parameters, this.view.undoBuffer);
-    } else {
-      SmoUndoable[name](selection, this.view.undoBuffer);
-    }
-    this._render();
+    return this.view.score;
   }
 
   undo() {
     this.view.undo();
-  }
-
-  _singleSelectionOperation(name, parameters) {
-    var selection = this.view.tracker.selections[0];
-    if (parameters) {
-      SmoUndoable[name](selection, parameters, this.view.undoBuffer);
-    } else {
-      SmoUndoable[name](selection, this.view.undoBuffer);
-    }
-    suiOscillator.playSelectionNow(selection);
-    this._rebeam();
-    this._render();
   }
 
   copy() {
@@ -196,12 +139,6 @@ class SuiKeyCommands {
     this.view.toggleEnharmonic();
   }
 
-  rerender(keyEvent) {
-    this.view.renderer.unrenderAll();
-    SmoUndoable.noop(this.view.score, this.view.undoBuffer);
-    this.undo();
-    this._render();
-  }
   makeTupletCommand(numNotes) {
     this.view.makeTuplet(numNotes);
   }

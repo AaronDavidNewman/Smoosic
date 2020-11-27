@@ -9,12 +9,11 @@ class suiMenuBase {
     return this.closePromise();
   }
   static printTranslate(_class) {
-    var xx = eval(_class);
-    var items = [];
+    const xx = eval(_class);
+    const items = [];
     xx['defaults'].menuItems.forEach((item) => {
       items.push({value:item.value,text:item.text});
     });
-
     return {ctor:xx['ctor'],label:xx['label'],menuItems:items};
   }
 
@@ -119,7 +118,7 @@ class suiMenuManager {
     ];
   }
   _advanceSelection(inc) {
-    var options = $('.menuContainer ul.menuElement li.menuOption');
+    const options = $('.menuContainer ul.menuElement li.menuOption');
     inc = inc < 0 ? options.length - 1: 1;
     this.menu.focusIndex = (this.menu.focusIndex+inc) % options.length;
     $(options[this.menu.focusIndex]).find('button').focus();
@@ -139,15 +138,14 @@ class suiMenuManager {
   }
 
   attach(el) {
-    var b = htmlHelpers.buildDom();
+    let hotkey=0;
 
     $(this.menuContainer).html('');
     $(this.menuContainer).attr('z-index', '12');
-    var b = htmlHelpers.buildDom;
-    var r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
-    .css('left', '' + this.menuPosition.x + 'px')
-    .css('top', '' + this.menuPosition.y + 'px');
-      var hotkey=0;
+    const b = htmlHelpers.buildDom;
+    const r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
+      .css('left', '' + this.menuPosition.x + 'px')
+      .css('top', '' + this.menuPosition.y + 'px');
     this.menu.menuItems.forEach((item) => {
       var vkey = (hotkey < 10) ? String.fromCharCode(48+hotkey) :
         String.fromCharCode(87 + hotkey);
@@ -157,7 +155,7 @@ class suiMenuManager {
           b('button').attr('data-value',item.value).append(
             b('span').classes('menuText').text(item.text))
           .append(b('span').classes('icon icon-' + item.icon))
-        .append(b('span').classes('menu-key').text(''+vkey))));
+        .append(b('span').classes('menu-key').text('' + vkey))));
       item.hotkey=vkey;
       hotkey += 1;
     });
@@ -187,27 +185,26 @@ class suiMenuManager {
     $('body').trigger('menuDismiss');
   }
 
-  createMenu(action,completeNotifier) {
+  createMenu(action, completeNotifier) {
     this.menuPosition = {x:250,y:40,width:1,height:1};
-      // If we were called from the ribbon, we notify the controller that we are
-      // taking over the keyboard.  If this was a key-based command we already did.
-
+    // If we were called from the ribbon, we notify the controller that we are
+    // taking over the keyboard.  If this was a key-based command we already did.
     layoutDebug.addDialogDebug('createMenu creating ' + action);
-    var ctor = eval(action);
+    const ctor = eval(action);
     this.menu = new ctor({
       position: this.menuPosition,
       tracker: this.tracker,
       keyCommands: this.keyCommands,
       score: this.score,
-      completeNotifier:this.controller,
-      closePromise:this.closeMenuPromise,
+      completeNotifier: this.controller,
+      closePromise: this.closeMenuPromise,
       view: this.view,
-      eventSource:this.eventSource,
+      eventSource: this.eventSource,
       undoBuffer: this.undoBuffer
     });
     this.attach(this.menuContainer);
     this.menu.menuItems.forEach((item) => {
-      if (typeof(item.hotkey) != 'undefined') {
+      if (typeof(item.hotkey) !== 'undefined') {
         this.hotkeyBindings[item.hotkey] = item.value;
       }
     });
@@ -224,28 +221,26 @@ class suiMenuManager {
     if (['Tab', 'Enter'].indexOf(event.code) >= 0) {
       return;
     }
-
     event.preventDefault();
-
     if (event.code === 'Escape') {
       this.dismiss();
     }
     if (this.menu) {
-      if (event.code == 'ArrowUp') {
+      if (event.code === 'ArrowUp') {
         this._advanceSelection(-1);
       }
-      else if (event.code == 'ArrowDown') {
+      else if (event.code === 'ArrowDown') {
         this._advanceSelection(1);
       } else  if (this.hotkeyBindings[event.key]) {
-        $('button[data-value="'+this.hotkeyBindings[event.key]+'"]').click();
+        $('button[data-value="'+this.hotkeyBindings[event.key] + '"]').click();
       } else {
         this.menu.keydown(event);
       }
       return;
     }
-    var binding = this.menuBind.find((ev) => {
-      return ev.key === event.key
-    });
+    const binding = this.menuBind.find((ev) =>
+      ev.key === event.key
+    );
     if (!binding) {
       this.dismiss();
       return;
@@ -254,33 +249,31 @@ class suiMenuManager {
   }
 
   bindEvents() {
-  var self = this;
-    this.hotkeyBindings={};
+    const self = this;
+    this.hotkeyBindings = { };
     $('body').addClass('slash-menu');
 
     // We need to keep track of is bound, b/c the menu can be created from
     // different sources.
     if (!this.bound) {
-      this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
+      this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
       this.bound = true;
     }
 
   $(this.menuContainer).find('button').off('click').on('click', function (ev) {
-  if ($(ev.currentTarget).attr('data-value') == 'cancel') {
-  self.menu.complete();
-  return;
-  }
-  self.menu.selection(ev);
+    if ($(ev.currentTarget).attr('data-value') === 'cancel') {
+      self.menu.complete();
+      return;
+    }
+    self.menu.selection(ev);
   });
   }
 }
 
-
-
 class SuiFileMenu extends suiMenuBase {
-    constructor(params) {
-  params = (params ? params : {});
-  Vex.Merge(params, SuiFileMenu.defaults);
+  constructor(params) {
+    params = (typeof(params) !== 'undefined' ? params : {});
+    Vex.Merge(params, SuiFileMenu.defaults);
     super(params);
   }
   static get ctor() {
@@ -298,43 +291,43 @@ class SuiFileMenu extends suiMenuBase {
           icon: 'folder-new',
           text: 'New Score',
           value: 'newFile'
-        },{
+        }, {
           icon: 'folder-open',
           text: 'Open',
           value: 'openFile'
-        },{
+        }, {
           icon: 'folder-save',
           text: 'Save',
           value: 'saveFile'
-        },{
+        }, {
           icon: 'folder-save',
           text: 'Quick Save',
           value: 'quickSave'
-        },{
+        }, {
           icon: '',
           text: 'Print',
           value: 'printScore'
-        },{
+        }, {
           icon: '',
           text: 'Bach Invention',
           value: 'bach'
-        },{
+        }, {
           icon: '',
           text: 'Jesu Bambino',
           value: 'bambino'
-        },{
+        }, {
           icon: '',
           text: 'Microtone Sample',
           value: 'microtone'
-        },{
+        }, {
           icon: '',
           text: 'Precious Lord',
           value: 'preciousLord'
-        },{
+        }, {
           icon: '',
           text: 'Yama',
           value: 'yamaJson'
-        },	{
+        }, {
           icon: '',
           text: 'Cancel',
           value: 'cancel'
@@ -345,20 +338,20 @@ class SuiFileMenu extends suiMenuBase {
   }
 
   systemPrint() {
-   var self = this;
-   window.print();
-   SuiPrintFileDialog.createAndDisplay({
-       view: self.view,
-       completeNotifier:self.completeNotifier,
-       closeMenuPromise:self.closePromise,
-       tracker:self.tracker,
-       undoBuffer:self.undoBuffer,
-       });
+    const self = this;
+    window.print();
+    SuiPrintFileDialog.createAndDisplay({
+      view: self.view,
+      completeNotifier: self.completeNotifier,
+      closeMenuPromise: self.closePromise,
+      tracker: self.tracker,
+      undoBuffer: self.undoBuffer,
+    });
   }
   selection(ev) {
-    var text = $(ev.currentTarget).attr('data-value');
-    var self=this;
-    if (text == 'saveFile') {
+    const text = $(ev.currentTarget).attr('data-value');
+    var self = this;
+    if (text === 'saveFile') {
       SuiSaveFileDialog.createAndDisplay({
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
@@ -367,8 +360,8 @@ class SuiFileMenu extends suiMenuBase {
         keyCommands: this.keyCommands,
         view: this.view,
         closeMenuPromise: this.closePromise
-    });
-    } else if (text == 'openFile') {
+      });
+    } else if (text === 'openFile') {
       SuiLoadFileDialog.createAndDisplay({
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
@@ -377,52 +370,45 @@ class SuiFileMenu extends suiMenuBase {
         editor: this.keyCommands,
         view: this.view,
         closeMenuPromise: this.closePromise
-     });
-     } else if (text == 'newFile') {
-        this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
-        var score = SmoScore.getDefaultScore();
-        this.view.changeScore(score);
-      } else if (text == 'quickSave') {
-        var scoreStr = JSON.stringify(this.view.storeScore.serialize());
-        localStorage.setItem(smoSerialize.localScore,scoreStr);
-      } else if (text == 'printScore') {
-        var systemPrint = () => {
+      });
+    } else if (text == 'newFile') {
+      const score = SmoScore.getDefaultScore();
+      this.view.changeScore(score);
+    } else if (text == 'quickSave') {
+      const scoreStr = JSON.stringify(this.view.storeScore.serialize());
+      localStorage.setItem(smoSerialize.localScore, scoreStr);
+    } else if (text == 'printScore') {
+      const systemPrint = () => {
         self.systemPrint();
       }
-        this.view.renderer.renderForPrintPromise().then(systemPrint);
-      } else if (text == 'bach') {
-  			this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
-  			var score = SmoScore.deserialize(inventionJson);
-  			this.view.changeScore(score);
+      this.view.renderer.renderForPrintPromise().then(systemPrint);
+    } else if (text == 'bach') {
+      const score = SmoScore.deserialize(inventionJson);
+      this.view.changeScore(score);
     } else if (text == 'yamaJson') {
-      this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
-      var score = SmoScore.deserialize(yamaJson);
+      const score = SmoScore.deserialize(yamaJson);
       this.view.changeScore(score);
     }
-      else if (text == 'bambino') {
-        this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
-        var score = SmoScore.deserialize(jesuBambino);
-        this.view.changeScore(score);
-      } else if (text == 'microtone') {
-        this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
-        var score = SmoScore.deserialize(microJson);
-        this.view.changeScore(score);
-      }  else if (text == 'preciousLord') {
-        this.undoBuffer.addBuffer('New Score', UndoBuffer.bufferTypes.SCORE, null, this.layout.score);
-        var score = SmoScore.deserialize(preciousLord);
-        this.view.changeScore(score);
+    else if (text == 'bambino') {
+      const score = SmoScore.deserialize(jesuBambino);
+      this.view.changeScore(score);
+    } else if (text == 'microtone') {
+      const score = SmoScore.deserialize(microJson);
+      this.view.changeScore(score);
+    }  else if (text == 'preciousLord') {
+      const score = SmoScore.deserialize(preciousLord);
+      this.view.changeScore(score);
     }
     this.complete();
   }
-
   keydown(ev) {}
 }
 
 class SuiDynamicsMenu extends suiMenuBase {
   constructor(params) {
-  params = (params ? params : {});
-  Vex.Merge(params, SuiDynamicsMenu.defaults);
-  super(params);
+    params = (params ? params : {});
+    Vex.Merge(params, SuiDynamicsMenu.defaults);
+    super(params);
   }
   static get ctor() {
     return 'SuiDynamicsMenu';
@@ -470,27 +456,13 @@ class SuiDynamicsMenu extends suiMenuBase {
       }
     ]
     };
-
     return SuiDynamicsMenu._defaults;
-
   }
 
   selection(ev) {
-  var text = $(ev.currentTarget).attr('data-value');
-
-  var ft = this.tracker.getExtremeSelection(-1);
-  if (!ft || !ft.note) {
-  return;
-  }
-
-  SmoUndoable.addDynamic(ft, new SmoDynamicText({
-  selector: ft.selector,
-  text: text,
-  yOffsetLine: 11,
-  fontSize: 38
-  }), this.keyCommands.undoBuffer);
-    this.tracker.replaceSelectedMeasures();
-  this.complete();
+    const text = $(ev.currentTarget).attr('data-value');
+    this.view.addDynamic(text);
+    this.complete();
   }
   keydown(ev) {}
 }
@@ -554,22 +526,18 @@ class SuiTimeSignatureMenu extends suiMenuBase {
   selection(ev) {
     var text = $(ev.currentTarget).attr('data-value');
 
-    if (text == 'TimeSigOther') {
+    if (text === 'TimeSigOther') {
       SuiTimeSignatureDialog.createAndDisplay({
-  			view: this.view,
+        view: this.view,
         completeNotifier: this.completeNotifier,
         closeMenuPromise: this.closePromise,
         undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource
-	    });
+      });
       this.complete();
       return;
     }
-    var timeSig = $(ev.currentTarget).attr('data-value');
-    this.view.renderer.unrenderAll();
-    SmoUndoable.scoreSelectionOp(this.view.score, this.view.tracker.selections,
-      'setTimeSignature', timeSig,this.undoBuffer, 'change time signature');
-    this.view.renderer.setRefresh();
+    this.view.setTimeSignature(text);
     this.complete();
   }
 
@@ -592,66 +560,65 @@ class SuiKeySignatureMenu extends suiMenuBase {
   static get defaults() {
     SuiKeySignatureMenu._defaults = SuiKeySignatureMenu._defaults ? SuiKeySignatureMenu._defaults :
    {
-     label:'Key',
-
-  menuItems: [{
-    icon: 'key-sig-c',
-    text: 'C Major',
-    value: 'KeyOfC',
-    }, {
-    icon: 'key-sig-f',
-    text: 'F Major',
-    value: 'KeyOfF',
-    }, {
-    icon: 'key-sig-g',
-    text: 'G Major',
-    value: 'KeyOfG',
-    }, {
-    icon: 'key-sig-bb',
-    text: 'Bb Major',
-    value: 'KeyOfBb'
-    }, {
-    icon: 'key-sig-d',
-    text: 'D Major',
-    value: 'KeyOfD'
-    }, {
-    icon: 'key-sig-eb',
-    text: 'Eb Major',
-    value: 'KeyOfEb'
-    }, {
-    icon: 'key-sig-a',
-    text: 'A Major',
-    value: 'KeyOfA'
-    }, {
-    icon: 'key-sig-ab',
-    text: 'Ab Major',
-    value: 'KeyOfAb'
-    }, {
-    icon: 'key-sig-e',
-    text: 'E Major',
-    value: 'KeyOfE'
-    }, {
-    icon: 'key-sig-bd',
-    text: 'Db Major',
-    value: 'KeyOfDb'
-    }, {
-    icon: 'key-sig-b',
-    text: 'B Major',
-    value: 'KeyOfB'
-    }, {
-    icon: 'key-sig-fs',
-    text: 'F# Major',
-    value: 'KeyOfF#'
-    }, {
-    icon: 'key-sig-cs',
-    text: 'C# Major',
-    value: 'KeyOfC#'
-    },
-     {
-    icon: '',
-    text: 'Cancel',
-    value: 'cancel'
-    }
+      label:'Key',
+      menuItems: [{
+        icon: 'key-sig-c',
+        text: 'C Major',
+        value: 'KeyOfC',
+      }, {
+        icon: 'key-sig-f',
+        text: 'F Major',
+        value: 'KeyOfF',
+      }, {
+        icon: 'key-sig-g',
+        text: 'G Major',
+        value: 'KeyOfG',
+      }, {
+        icon: 'key-sig-bb',
+        text: 'Bb Major',
+        value: 'KeyOfBb'
+      }, {
+        icon: 'key-sig-d',
+        text: 'D Major',
+        value: 'KeyOfD'
+      }, {
+        icon: 'key-sig-eb',
+        text: 'Eb Major',
+        value: 'KeyOfEb'
+      }, {
+        icon: 'key-sig-a',
+        text: 'A Major',
+        value: 'KeyOfA'
+      }, {
+        icon: 'key-sig-ab',
+        text: 'Ab Major',
+        value: 'KeyOfAb'
+      }, {
+        icon: 'key-sig-e',
+        text: 'E Major',
+        value: 'KeyOfE'
+      }, {
+        icon: 'key-sig-bd',
+        text: 'Db Major',
+        value: 'KeyOfDb'
+      }, {
+        icon: 'key-sig-b',
+        text: 'B Major',
+        value: 'KeyOfB'
+      }, {
+        icon: 'key-sig-fs',
+        text: 'F# Major',
+        value: 'KeyOfF#'
+      }, {
+        icon: 'key-sig-cs',
+        text: 'C# Major',
+        value: 'KeyOfC#'
+      },
+      {
+        icon: '',
+        text: 'Cancel',
+        value: 'cancel'
+      }
     ],
     menuContainer: '.menuContainer'
     };
@@ -660,16 +627,11 @@ class SuiKeySignatureMenu extends suiMenuBase {
 
   selection(ev) {
     var keySig = $(ev.currentTarget).attr('data-value');
-    keySig = (keySig === 'cancel' ? keySig : keySig.substring(5,keySig.length));
-    var changed = [];
-    this.view.tracker.selections.forEach((sel) => {
-      if (changed.indexOf(sel.selector.measure) === -1) {
-        changed.push(sel.selector.measure);
-        SmoUndoable.addKeySignature(this.score, sel, keySig, this.keyCommands.undoBuffer);
-        }
-    });
-
-    this.view.renderer.setRefresh();
+    keySig = (keySig === 'cancel' ? keySig : keySig.substring(5, keySig.length));
+    if (keySig === 'cancel') {
+      return;
+    }
+    this.view.addKeySignature(keySig);
     this.complete();
   }
   keydown(ev) {}
@@ -961,20 +923,15 @@ class SuiAddStaffMenu extends suiMenuBase {
   selection(ev) {
     var op = $(ev.currentTarget).attr('data-value');
     if (op == 'remove') {
-      if (this.score.staves.length > 1 && this.tracker.selections.length > 0) {
-        this.tracker.layout.unrenderAll();
-        SmoUndoable.removeStaff(this.score, this.tracker.selections[0].selector.staff, this.keyCommands.undoBuffer);
-        this.tracker.layout.setRefresh();
-      }
+      this.view.removeStaff();
+      this.complete();
     } else if (op === 'cancel') {
       this.complete();
     } else {
       var instrument = SuiAddStaffMenu.instrumentMap[op];
-      SmoUndoable.addStaff(this.score, instrument, this.keyCommands.undoBuffer);
-      this.tracker.layout.setRefresh();
+      this.view.addStaff(instrument);
+      this.complete();
     }
-    this.layout.setRefresh();
-    this.complete();
   }
   keydown(ev) {}
 
