@@ -10,12 +10,12 @@ class RibbonButtons {
     return ['ribbonButtons', 'ribbons', 'keyCommands', 'controller', 'menus','eventSource', 'view'];
   }
   static _buttonHtml(containerClass,buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
-    var b = htmlHelpers.buildDom;
-    var r = b('div').classes(containerClass).append(b('button').attr('id', buttonId).classes(buttonClass).append(
+    const b = htmlHelpers.buildDom;
+    const r = b('div').classes(containerClass).append(b('button').attr('id', buttonId).classes(buttonClass).append(
       b('span').classes('left-text').append(
         b('span').classes('text-span').text(buttonText)).append(
-      b('span').classes('ribbon-button-text icon ' + buttonIcon))).append(
-      b('span').classes('ribbon-button-hotkey').text(buttonKey)));
+        b('span').classes('ribbon-button-text icon ' + buttonIcon))).append(
+        b('span').classes('ribbon-button-hotkey').text(buttonKey)));
     return r.dom();
   }
   static get translateButtons() {
@@ -32,7 +32,7 @@ class RibbonButtons {
     this.collapseChildren = [];
   }
   _executeButtonModal(buttonElement, buttonData) {
-    var ctor = eval(buttonData.ctor);
+    const ctor = eval(buttonData.ctor);
     ctor.createAndDisplay(
       {
         undoBuffer: this.keyCommands.undoBuffer,
