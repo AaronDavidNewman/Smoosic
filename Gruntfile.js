@@ -8,7 +8,7 @@ module.exports = function (grunt) {
   'src/render/sui/textEdit.js', 'src/render/sui/tracker.js', 'src/render/audio/oscillator.js',
   'src/render/sui/scoreView.js',
   'src/ui/menus.js', 'src/ui/dialog.js', 'src/ui/dialogComponents.js', 'src/ui/dialogs/scoreDialogs.js',
-   'src/ui/dialogs/fontComponent.js' ]
+   'src/ui/dialogs/fontComponent.js', 'src/ui/dialogs/staffComponent.js' ]
   const SOURCES = ['src/**/*.js','!src/test/*.js'];
   const TESTSRC = ['src/test/*.js']
 

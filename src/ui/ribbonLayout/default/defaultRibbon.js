@@ -32,7 +32,7 @@ class defaultRibbonLayout {
 
 	static get leftRibbonIds() {
 		return ['helpDialog','languageMenu', 'fileMenu','addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2',
-    'instrumentModal','pianoModal','layoutModal'];
+    'instrumentModal','pianoModal','layoutMenu'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons',
@@ -1574,14 +1574,14 @@ class defaultRibbonLayout {
 				id: 'pianoModal'
 			},
 			 {
-				leftText: 'Layout',
+				leftText: 'Score',
 				rightText: '',
 				icon: '',
 				classes: 'icon ',
-				action: 'modal',
-				ctor: 'SuiLayoutDialog',
+				action: 'menu',
+				ctor: 'SuiScoreMenu',
 				group: 'scoreEdit',
-				id: 'layoutModal'
+				id: 'layoutMenu'
 			}
 		];
 	}

@@ -35,9 +35,9 @@ class RibbonButtons {
     var ctor = eval(buttonData.ctor);
     ctor.createAndDisplay(
       {
-        undoBuffer:this.keyCommands.undoBuffer,
-        eventSource:this.eventSource,
-        keyCommands:this.keyCommands,
+        undoBuffer: this.keyCommands.undoBuffer,
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
         completeNotifier: this.controller,
         view: this.view
       }
@@ -96,19 +96,20 @@ class RibbonButtons {
   }
 
     static isCollapsible(action) {
-        return ['collapseChild','collapseChildMenu','collapseGrandchild','collapseMore'].indexOf(action) >= 0;
+      return ['collapseChild','collapseChildMenu','collapseGrandchild','collapseMore'].indexOf(action) >= 0;
     }
 
     static isBindable(action) {
-        return ['collapseChildMenu','menu','modal'].indexOf(action) >= 0;
+      return ['collapseChildMenu','menu','modal'].indexOf(action) >= 0;
     }
 
     // ### _createButtonHtml
     // For each button, create the html and bind the events based on
     // the button's configured action.
   _createRibbonHtml(buttonAr, selector) {
+    let buttonClass = '';
     buttonAr.forEach((buttonId) => {
-      var buttonData = this.ribbonButtons.find((e) => {
+      const buttonData = this.ribbonButtons.find((e) => {
         return e.id === buttonId;
       });
       if (buttonData) {
@@ -124,15 +125,15 @@ class RibbonButtons {
         if (buttonData.action != 'collapseChild') {
           // else the button has a specific action, such as a menu or dialog, or a parent button
           // for translation, add the menu name to the button class
-          var buttonClass = buttonData.classes;
+          buttonClass = buttonData.classes;
           if (buttonData.action === 'menu' || buttonData.action === 'modal') {
             buttonClass += ' ' +buttonData.ctor;
           }
-          var buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer',
+          const buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer',
               buttonData.id, buttonClass, buttonData.leftText, buttonData.icon, buttonData.rightText);
           $(buttonHtml).attr('data-group', buttonData.group);
           $(selector).append(buttonHtml);
-          var buttonElement = $('#' + buttonData.id);
+          const buttonElement = $('#' + buttonData.id);
           // If this is a collabsable button, create it, otherwise bind its execute function.
           if (buttonData.action == 'collapseParent') {
             $(buttonHtml).addClass('collapseContainer');

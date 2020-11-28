@@ -31,18 +31,18 @@ class SuiFileDialog extends SuiDialogBase {
     var self = this;
     var dgDom = this.dgDom;
 
-    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.commit();
+    $(dgDom.element).find('.ok-button').off('click').on('click', (ev) => {
+      self.commit();
     });
 
-    $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+    $(dgDom.element).find('.cancel-button').off('click').on('click', (ev) => {
       self.complete();
     });
 
     $(dgDom.element).find('.remove-button').remove();
-        this.bindKeyboard();
-    }
-    position(box) {
+    this.bindKeyboard();
+  }
+  position(box) {
     var y = (window.innerHeight/3  + box.height);
 
     // TODO: adjust if db is clipped by the browser.

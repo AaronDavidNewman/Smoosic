@@ -12,7 +12,7 @@ class SmoScore {
       this.layout.pages = 1;
     }
     if (this.staves.length) {
-      this._numberStaves();
+      this.numberStaves();
     }
   }
   static get engravingFonts() {
@@ -232,9 +232,9 @@ class SmoScore {
     return score;
   }
 
-  // ### _numberStaves
+  // ### numberStaves
   // recursively renumber staffs and measures.
-  _numberStaves() {
+  numberStaves() {
     let i = 0;
     for (i = 0; i < this.staves.length; ++i) {
       const stave = this.staves[i];
@@ -276,7 +276,7 @@ class SmoScore {
       const protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
       staff.measures[measureIndex] = protomeasure;
     }
-    this._numberStaves();
+    this.numberStaves();
   }
 
   addPickupMeasure(measureIndex, duration) {
@@ -286,7 +286,7 @@ class SmoScore {
       const protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
       staff.addMeasure(measureIndex, protomeasure);
     }
-    this._numberStaves();
+    this.numberStaves();
   }
   getPrototypeMeasure(measureIndex, staffIndex) {
     const staff = this.staves[staffIndex];
@@ -321,7 +321,7 @@ class SmoScore {
         tg.selector.measure += 1;
       }
     });
-    this._numberStaves();
+    this.numberStaves();
   }
 
   // ### replaceMeasure
@@ -383,6 +383,8 @@ class SmoScore {
     if (this.staves.length === 0) {
       this.staves.push(new SmoSystemStaff(parameters));
       this.activeStaff = 0;
+      // For part views, we renumber the staves even if there is only one staff.
+      this.numberStaves();
       return;
     }
     if (!parameters) {
@@ -410,7 +412,7 @@ class SmoScore {
     const staff = new SmoSystemStaff(parameters);
     this.staves.push(staff);
     this.activeStaff = this.staves.length - 1;
-    this._numberStaves();
+    this.numberStaves();
   }
 
   // ### removeStaff
@@ -425,7 +427,7 @@ class SmoScore {
       ix += 1;
     });
     this.staves = staves;
-    this._numberStaves();
+    this.numberStaves();
   }
 
   swapStaves(index1, index2) {
@@ -435,7 +437,7 @@ class SmoScore {
     const tmpStaff = this.staves[index1];
     this.staves[index1] = this.staves[index2];
     this.staves[index2] = tmpStaff;
-    this._numberStaves();
+    this.numberStaves();
   }
 
   _updateScoreText(textObject, toAdd) {

@@ -4315,6 +4315,9 @@ class SuiScoreRender extends SuiRenderState {
   _measureToLeft(measure) {
     const j = measure.measureNumber.staffId;
     const i = measure.measureNumber.measureIndex;
+    if (this._score.staves.length <= j) {
+      console.log('no staff');
+    }
     return (i > 0 ? this._score.staves[j].measures[i - 1] : null);
   }
 
@@ -5172,29 +5175,21 @@ class SuiScoreView {
     return selection.note.getGraceNotes().find((gg) => gg.attrs.id === gn.attrs.id);
   }
 
-  // ### _createStaveMap
-  // create a map for staves from the view score (this.score) to the model score
-  // (this.storeScore)
-  _createStaveMap() {
-    let i = 0;
-    let j = 0;
-    this.staffMap = [];
-    for (i = 0; i < this.score.staves.length; ++i) {
-      const istaff = this.score.staves[i];
-      for (j = 0; j < this.storeScore.staves.length; ++j) {
-        const jstaff = this.storeScore.staves[j];
-        if (jstaff.staffId === istaff.staffId) {
-          this.staffMap.push(j);
-          break;
-        }
-      }
-    }
-  }
   static get Instance() {
     if (typeof(SuiScoreView._instance) !== 'undefined') {
       return SuiScoreView._instance;
     }
     return null;
+  }
+  // ### defaultStaffMap
+  // Show all staves, 1:1 mapping of view score staff to stored score staff
+  get defaultStaffMap() {
+    let i = 0;
+    const rv = [];
+    for (i = 0; i < this.storeScore.staves.length; ++i) {
+      rv.push(i);
+    }
+    return rv;
   }
   constructor(renderer, score) {
     this.score = score;
@@ -5209,7 +5204,7 @@ class SuiScoreView {
     this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));
     this.undoBuffer = new UndoBuffer();
     this.storeUndo = new UndoBuffer();
-    this._createStaveMap();
+    this.staffMap = this.defaultStaffMap;
     SuiScoreView._instance = this;
   }
   static debugSwapScore() {
@@ -5220,14 +5215,62 @@ class SuiScoreView {
     const newScore = SmoScore.deserialize(JSON.stringify(dbg.storeScore.serialize()));
     dbg.changeScore(newScore);
   }
+  getView() {
+    const rv = [];
+    let i = 0;
+    for (i = 0; i < this.storeScore.staves.length; ++i) {
+      const show = this.staffMap.indexOf(i) >= 0;
+      rv.push({ show });
+    }
+    return rv;
+  }
 
+  // ### setView
+  // Send a list of rows with a 'show' boolean in each, we display that line
+  // in the staff and hide the rest
+  setView(rows) {
+    let i = 0;
+    const any = rows.find((row) => row.show === true);
+    if (!any) {
+      return;
+    }
+    const nscore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    nscore.staves = [];
+    const staffMap = [];
+    for (i = 0; i < rows.length; ++i) {
+      const row = rows[i];
+      if (row.show) {
+        const staff = SmoSystemStaff.deserialize(this.storeScore.staves[i].serialize());
+        nscore.staves.push(staff);
+        staffMap.push(i);
+      }
+    }
+    nscore.numberStaves();
+    this.staffMap = staffMap;
+    this.score = nscore;
+    this.renderer.score = nscore;
+    this.renderer.setViewport(true);
+    setTimeout(() => {
+      $('body').trigger('forceResizeEvent');
+    }, 1);
+  }
+  // ### viewAll
+  // view all the staffs in score mode.
+  viewAll() {
+    this.score = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    this.staffMap = this.defaultStaffMap;
+    this.renderer.score = this.score;
+    this.renderer.setViewport(true);
+  }
+  // ### changeScore
+  // Update the view after loading or restoring a completely new score
   changeScore(score) {
     this._undoScore();
     this.renderer.score = score;
     this.renderer.setViewport(true);
     this.storeScore = SmoScore.deserialize(JSON.stringify(score.serialize()));
     this.score = score;
-    this._createStaveMap();
+    this.staffMap = this.defaultStaffMap;
     setTimeout(() => {
       $('body').trigger('forceResizeEvent');
     }, 1);
@@ -7226,7 +7269,7 @@ class suiTracker extends suiMapper {
     return new Promise((resolve) => {
       var f = () => {
         setTimeout(() => {
-          if (self.view.renderer.passState === SuiRenderState.passStates.clean) {
+          if (self.renderer.passState === SuiRenderState.passStates.clean) {
             resolve();
           } else {
             f();
@@ -8846,7 +8889,7 @@ class VxMeasure {
       const voice = new VF.Voice({
         num_beats: this.smoMeasure.numBeats,
         beat_value: this.smoMeasure.beatValue
-      }).setMode(VF.Voice.Mode.FULL);
+      }).setMode(VF.Voice.Mode.SOFT);
       voice.addTickables(this.vexNotes);
       this.voiceAr.push(voice);
     }
@@ -11769,7 +11812,7 @@ class SmoScore {
       this.layout.pages = 1;
     }
     if (this.staves.length) {
-      this._numberStaves();
+      this.numberStaves();
     }
   }
   static get engravingFonts() {
@@ -11989,9 +12032,9 @@ class SmoScore {
     return score;
   }
 
-  // ### _numberStaves
+  // ### numberStaves
   // recursively renumber staffs and measures.
-  _numberStaves() {
+  numberStaves() {
     let i = 0;
     for (i = 0; i < this.staves.length; ++i) {
       const stave = this.staves[i];
@@ -12033,7 +12076,7 @@ class SmoScore {
       const protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
       staff.measures[measureIndex] = protomeasure;
     }
-    this._numberStaves();
+    this.numberStaves();
   }
 
   addPickupMeasure(measureIndex, duration) {
@@ -12043,7 +12086,7 @@ class SmoScore {
       const protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
       staff.addMeasure(measureIndex, protomeasure);
     }
-    this._numberStaves();
+    this.numberStaves();
   }
   getPrototypeMeasure(measureIndex, staffIndex) {
     const staff = this.staves[staffIndex];
@@ -12078,7 +12121,7 @@ class SmoScore {
         tg.selector.measure += 1;
       }
     });
-    this._numberStaves();
+    this.numberStaves();
   }
 
   // ### replaceMeasure
@@ -12140,6 +12183,8 @@ class SmoScore {
     if (this.staves.length === 0) {
       this.staves.push(new SmoSystemStaff(parameters));
       this.activeStaff = 0;
+      // For part views, we renumber the staves even if there is only one staff.
+      this.numberStaves();
       return;
     }
     if (!parameters) {
@@ -12167,7 +12212,7 @@ class SmoScore {
     const staff = new SmoSystemStaff(parameters);
     this.staves.push(staff);
     this.activeStaff = this.staves.length - 1;
-    this._numberStaves();
+    this.numberStaves();
   }
 
   // ### removeStaff
@@ -12182,7 +12227,7 @@ class SmoScore {
       ix += 1;
     });
     this.staves = staves;
-    this._numberStaves();
+    this.numberStaves();
   }
 
   swapStaves(index1, index2) {
@@ -12192,7 +12237,7 @@ class SmoScore {
     const tmpStaff = this.staves[index1];
     this.staves[index1] = this.staves[index2];
     this.staves[index2] = tmpStaff;
-    this._numberStaves();
+    this.numberStaves();
   }
 
   _updateScoreText(textObject, toAdd) {
@@ -24216,18 +24261,18 @@ class SuiFileDialog extends SuiDialogBase {
     var self = this;
     var dgDom = this.dgDom;
 
-    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.commit();
+    $(dgDom.element).find('.ok-button').off('click').on('click', (ev) => {
+      self.commit();
     });
 
-    $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
+    $(dgDom.element).find('.cancel-button').off('click').on('click', (ev) => {
       self.complete();
     });
 
     $(dgDom.element).find('.remove-button').remove();
-        this.bindKeyboard();
-    }
-    position(box) {
+    this.bindKeyboard();
+  }
+  position(box) {
     var y = (window.innerHeight/3  + box.height);
 
     // TODO: adjust if db is clipped by the browser.
@@ -25571,7 +25616,92 @@ class SuiTempoDialog extends SuiDialogBase {
     this.completeNotifier.unbindKeyboardForModal(this);
   }
 }
-;// ## SuiLayoutDialog
+;// ## SuiScoreViewDialog
+// decide which rows of the score to look at
+// eslint-disable-next-line no-unused-vars
+class SuiScoreViewDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiScoreViewDialog';
+  }
+  get ctor() {
+    return SuiScoreViewDialog.ctor;
+  }
+  static get dialogElements() {
+    SuiScoreViewDialog._dialogElements = typeof(SuiScoreViewDialog._dialogElements) !== 'undefined' ? SuiScoreViewDialog._dialogElements :
+      [{
+        smoName: 'scoreView',
+        parameterName: 'scoreView',
+        defaultValue: [],
+        control: 'StaffCheckComponent',
+        label: 'Show staff',
+      }, {
+        staticText: [
+          { label: 'Score View' }
+        ]
+      }];
+    return SuiScoreViewDialog._dialogElements;
+  }
+  static createAndDisplay(parameters) {
+    const dg = new SuiScoreViewDialog(parameters);
+    dg.display();
+  }
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    const cb = () => {};
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.icon-move'),
+      animateDiv: '.draganime',
+      cb,
+      moveParent: true
+    });
+
+    const self = this;
+    const getKeys = () => {
+      self.completeNotifier.unbindKeyboardForModal(self);
+    };
+    this.startPromise.then(getKeys);
+    this._bindElements();
+    this.scoreViewCtrl.setValue(this.view.getView());
+    const box = svgHelpers.boxPoints(250, 250, 1, 1);
+    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+  }
+  _bindElements() {
+    const self = this;
+    const dgDom = this.dgDom;
+    this._bindComponentNames();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      self.complete();
+    });
+
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      self.view.viewAll();
+      self.complete();
+    });
+
+    $(dgDom.element).find('.remove-button').remove();
+    this.bindKeyboard();
+  }
+
+  changed() {
+    this.view.setView(this.scoreViewCtrl.getValue());
+  }
+  constructor(parameters) {
+    var p = parameters;
+    super(SuiScoreViewDialog.dialogElements, {
+      id: 'dialog-layout',
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
+      ...parameters
+    });
+    this.startPromise = p.startPromise;
+  }
+}
+
+// ## SuiLayoutDialog
 // The layout dialog has page layout and zoom logic.  It is not based on a selection but score-wide
 // eslint-disable-next-line no-unused-vars
 class SuiLayoutDialog extends SuiDialogBase {
@@ -25585,120 +25715,119 @@ class SuiLayoutDialog extends SuiDialogBase {
   // ### dialogElements
   // all dialogs have elements define the controls of the dialog.
   static get dialogElements() {
-    SuiLayoutDialog._dialogElements = SuiLayoutDialog._dialogElements ? SuiLayoutDialog._dialogElements :
-      [
-        {
-          smoName: 'pageSize',
-          parameterName: 'pageSize',
-          defaultValue: SmoScore.pageSizes.letter,
-          control: 'SuiDropdownComponent',
-          label: 'Page Size',
-          options: [
-            {
-              value: 'letter',
-              label: 'Letter'
-            }, {
-              value: 'tabloid',
-              label: 'Tabloid (11x17)'
-            }, {
-              value: 'A4',
-              label: 'A4'
-            }, {
-              value: 'custom',
-              label: 'Custom'
-            }]
-        }, {
-          smoName: 'pageWidth',
-          parameterName: 'pageWidth',
-          defaultValue: SmoScore.defaults.layout.pageWidth,
-          control: 'SuiRockerComponent',
-          label: 'Page Width (px)'
-        }, {
-          smoName: 'pageHeight',
-          parameterName: 'pageHeight',
-          defaultValue: SmoScore.defaults.layout.pageHeight,
-          control: 'SuiRockerComponent',
-          label: 'Page Height (px)'
-        }, {
-          smoName: 'orientation',
-          parameterName: 'orientation',
-          defaultValue: SmoScore.orientations.portrait,
-          control: 'SuiDropdownComponent',
-          label: 'Orientation',
-          dataType: 'int',
-          options: [{
-            value: SmoScore.orientations.portrait,
-            label: 'Portrait'
+    SuiLayoutDialog._dialogElements = typeof(SuiLayoutDialog._dialogElements) !== 'undefined' ? SuiLayoutDialog._dialogElements :
+      [{
+        smoName: 'pageSize',
+        parameterName: 'pageSize',
+        defaultValue: SmoScore.pageSizes.letter,
+        control: 'SuiDropdownComponent',
+        label: 'Page Size',
+        options: [
+          {
+            value: 'letter',
+            label: 'Letter'
           }, {
-            value: SmoScore.orientations.landscape,
-            label: 'Landscape'
+            value: 'tabloid',
+            label: 'Tabloid (11x17)'
+          }, {
+            value: 'A4',
+            label: 'A4'
+          }, {
+            value: 'custom',
+            label: 'Custom'
           }]
+      }, {
+        smoName: 'pageWidth',
+        parameterName: 'pageWidth',
+        defaultValue: SmoScore.defaults.layout.pageWidth,
+        control: 'SuiRockerComponent',
+        label: 'Page Width (px)'
+      }, {
+        smoName: 'pageHeight',
+        parameterName: 'pageHeight',
+        defaultValue: SmoScore.defaults.layout.pageHeight,
+        control: 'SuiRockerComponent',
+        label: 'Page Height (px)'
+      }, {
+        smoName: 'orientation',
+        parameterName: 'orientation',
+        defaultValue: SmoScore.orientations.portrait,
+        control: 'SuiDropdownComponent',
+        label: 'Orientation',
+        dataType: 'int',
+        options: [{
+          value: SmoScore.orientations.portrait,
+          label: 'Portrait'
         }, {
-          smoName: 'engravingFont',
-          parameterName: 'engravingFont',
-          defaultValue: SmoScore.engravingFonts.Bravura,
-          control: 'SuiDropdownComponent',
-          label: 'Engraving Font',
-          options: [{
-            value: 'Bravura',
-            label: 'Bravura'
-          }, {
-            value: 'Gonville',
-            label: 'Gonville'
-          }, {
-            value: 'Petaluma',
-            label: 'Petaluma'
-          }
-          ]
+          value: SmoScore.orientations.landscape,
+          label: 'Landscape'
+        }]
+      }, {
+        smoName: 'engravingFont',
+        parameterName: 'engravingFont',
+        defaultValue: SmoScore.engravingFonts.Bravura,
+        control: 'SuiDropdownComponent',
+        label: 'Engraving Font',
+        options: [{
+          value: 'Bravura',
+          label: 'Bravura'
         }, {
-          smoName: 'leftMargin',
-          parameterName: 'leftMargin',
-          defaultValue: SmoScore.defaults.layout.leftMargin,
-          control: 'SuiRockerComponent',
-          label: 'Left Margin (px)'
+          value: 'Gonville',
+          label: 'Gonville'
         }, {
-          smoName: 'rightMargin',
-          parameterName: 'rightMargin',
-          defaultValue: SmoScore.defaults.layout.rightMargin,
-          control: 'SuiRockerComponent',
-          label: 'Right Margin (px)'
-        }, {
-          smoName: 'topMargin',
-          parameterName: 'topMargin',
-          defaultValue: SmoScore.defaults.layout.topMargin,
-          control: 'SuiRockerComponent',
-          label: 'Top Margin (px)'
-        }, {
-          smoName: 'interGap',
-          parameterName: 'interGap',
-          defaultValue: SmoScore.defaults.layout.interGap,
-          control: 'SuiRockerComponent',
-          label: 'Inter-System Margin'
-        }, {
-          smoName: 'intraGap',
-          parameterName: 'intraGap',
-          defaultValue: SmoScore.defaults.layout.intraGap,
-          control: 'SuiRockerComponent',
-          label: 'Intra-System Margin'
-        }, {
-          smoName: 'zoomScale',
-          parameterName: 'zoomScale',
-          defaultValue: SmoScore.defaults.layout.zoomScale,
-          control: 'SuiRockerComponent',
-          label: '% Zoom',
-          type: 'percent'
-        }, {
-          smoName: 'svgScale',
-          parameterName: 'svgScale',
-          defaultValue: SmoScore.defaults.layout.svgScale,
-          control: 'SuiRockerComponent',
-          label: '% Note size',
-          type: 'percent'
-        },
-        { staticText: [
+          value: 'Petaluma',
+          label: 'Petaluma'
+        }
+        ]
+      }, {
+        smoName: 'leftMargin',
+        parameterName: 'leftMargin',
+        defaultValue: SmoScore.defaults.layout.leftMargin,
+        control: 'SuiRockerComponent',
+        label: 'Left Margin (px)'
+      }, {
+        smoName: 'rightMargin',
+        parameterName: 'rightMargin',
+        defaultValue: SmoScore.defaults.layout.rightMargin,
+        control: 'SuiRockerComponent',
+        label: 'Right Margin (px)'
+      }, {
+        smoName: 'topMargin',
+        parameterName: 'topMargin',
+        defaultValue: SmoScore.defaults.layout.topMargin,
+        control: 'SuiRockerComponent',
+        label: 'Top Margin (px)'
+      }, {
+        smoName: 'interGap',
+        parameterName: 'interGap',
+        defaultValue: SmoScore.defaults.layout.interGap,
+        control: 'SuiRockerComponent',
+        label: 'Inter-System Margin'
+      }, {
+        smoName: 'intraGap',
+        parameterName: 'intraGap',
+        defaultValue: SmoScore.defaults.layout.intraGap,
+        control: 'SuiRockerComponent',
+        label: 'Intra-System Margin'
+      }, {
+        smoName: 'zoomScale',
+        parameterName: 'zoomScale',
+        defaultValue: SmoScore.defaults.layout.zoomScale,
+        control: 'SuiRockerComponent',
+        label: '% Zoom',
+        type: 'percent'
+      }, {
+        smoName: 'svgScale',
+        parameterName: 'svgScale',
+        defaultValue: SmoScore.defaults.layout.svgScale,
+        control: 'SuiRockerComponent',
+        label: '% Note size',
+        type: 'percent'
+      }, {
+        staticText: [
           { label: 'Score Layout' }
-        ] }
-      ];
+        ]
+      }];
     return SuiLayoutDialog._dialogElements;
   }
 
@@ -25713,7 +25842,7 @@ class SuiLayoutDialog extends SuiDialogBase {
       component.bind();
     });
     this.components.forEach((component) => {
-      var val = this.modifier[component.parameterName];
+      const val = this.modifier[component.parameterName];
       component.setValue(val);
     });
     this._setPageSizeDefault();
@@ -25727,16 +25856,20 @@ class SuiLayoutDialog extends SuiDialogBase {
       cb,
       moveParent: true
     });
-    this.completeNotifier.unbindKeyboardForModal(this);
+    const self = this;
+    const getKeys = () => {
+      self.completeNotifier.unbindKeyboardForModal(self);
+    };
+    this.startPromise.then(getKeys);
 
     const box = svgHelpers.boxPoints(250, 250, 1, 1);
-    SuiDialogBase.position(box, this.dgDom, this.tracker.scroller);
+    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
   }
   // ### _updateLayout
   // even if the layout is not changed, we re-render the entire score by resetting
   // the svg context.
   _updateLayout() {
-    this.view.layout.rerenderAll();
+    this.view.renderer.rerenderAll();
   }
   _handleCancel() {
     this.view.score.layout = this.backup;
@@ -25762,10 +25895,10 @@ class SuiLayoutDialog extends SuiDialogBase {
     $(dgDom.element).find('.remove-button').remove();
   }
   _setPageSizeDefault() {
-    var value = 'custom';
-    var scoreDims = this.view.score.layout;
+    let value = 'custom';
+    const scoreDims = this.view.score.layout;
     SmoScore.pageSizes.forEach((sz) => {
-      var dim = SmoScore.pageDimensions[sz];
+      const dim = SmoScore.pageDimensions[sz];
       if (scoreDims.pageWidth === dim.width && scoreDims.pageHeight === dim.height) {
         value = sz;
       } else if (scoreDims.pageHeight === dim.width && scoreDims.pageWidth === dim.height) {
@@ -25818,14 +25951,85 @@ class SuiLayoutDialog extends SuiDialogBase {
     var p = parameters;
     super(SuiLayoutDialog.dialogElements, {
       id: 'dialog-layout',
-      top: (p.layout.score.layout.pageWidth / 2) - 200,
-      left: (p.layout.score.layout.pageHeight / 2) - 200,
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...parameters
     });
-    this.view.renderer = p.view.renderer;
-    this.score = p.view.renderer.score;
+    this.score = p.view.score;
     this.modifier = this.view.score.layout;
+    this.startPromise = p.startPromise;
     this.backupOriginal();
+  }
+}
+;class StaffCheckComponent extends SuiComponentBase {
+  constructor(dialog, parameter) {
+    let i = 0;
+    super(parameter);
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+    if (!this.defaultValue) {
+      this.defaultValue = 0;
+    }
+    if (!this.dataType) {
+      this.dataType = 'string';
+    }
+    this.dialog = dialog;
+    this.view = this.dialog.view;
+    this.staffRows = [];
+    this.view.storeScore.staves.forEach((staff) => {
+      const name = 'View Staff ' + (i + 1);
+      const id = 'show-' + i;
+      const rowElement = new SuiToggleComponent(this.dialog, {
+        smoName: id,
+        parameterName: id,
+        defaultValue: true,
+        classes: 'hide-when-editing',
+        control: 'SuiToggleComponent',
+        label: name
+      });
+      this.staffRows.push({
+        showCtrl: rowElement
+      });
+      i += 1;
+    });
+  }
+
+  get html() {
+    const b = htmlHelpers.buildDom;
+    const q = b('div').classes(this.makeClasses('multiControl smoControl staffContainer'));
+    this.staffRows.forEach((row) => {
+      q.append(row.showCtrl.html);
+    });
+    return q;
+  }
+  // Is this used for compound controls?
+  _getInputElement() {
+    var pid = this.parameterId;
+    return $(this.dialog.dgDom.element).find('#' + pid).find('.staffContainer');
+  }
+  getValue() {
+    const rv = [];
+    let i = 0;
+    for (i = 0;i < this.staffRows.length; ++i) {
+      const show = this.staffRows[i].showCtrl.getValue();
+      rv.push({show: show});
+    }
+    return rv;
+  }
+  setValue(rows) {
+    let i = 0;
+    rows.forEach((row) => {
+      this.staffRows[i].showCtrl.setValue(row.show);
+      i += 1;
+    });
+  }
+  changed() {
+    this.handleChanged();
+  }
+  bind() {
+    this.staffRows.forEach((row) => {
+      row.showCtrl.bind();
+    });
   }
 }
 ;class SuiStaffModifierDialog extends SuiDialogBase {
@@ -33183,6 +33387,64 @@ class suiMenuManager {
 }
 
 // eslint-disable-next-line no-unused-vars
+class SuiScoreMenu extends suiMenuBase {
+  static get defaults() {
+    SuiScoreMenu._defaults = typeof(SuiScoreMenu._defaults) !== 'undefined' ? SuiScoreMenu._defaults : {
+      label: 'Score Settings',
+      menuItems: [{
+        icon: '',
+        text: 'Layout',
+        value: 'layout'
+      }, {
+        icon: '',
+        text: 'View',
+        value: 'view'
+      }, {
+        icon: '',
+        text: 'Cancel',
+        value: 'cancel'
+      }]
+    };
+    return SuiScoreMenu._defaults;
+  }
+  constructor(params) {
+    params = (typeof(params) !== 'undefined' ? params : {});
+    Vex.Merge(params, SuiScoreMenu.defaults);
+    super(params);
+  }
+
+  execView() {
+    SuiScoreViewDialog.createAndDisplay(
+      {
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        completeNotifier: this.completeNotifier,
+        view: this.view,
+        startPromise: this.closePromise
+      });
+  }
+  execLayout() {
+    SuiLayoutDialog.createAndDisplay(
+      {
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        completeNotifier: this.completeNotifier,
+        view: this.view,
+        startPromise: this.closePromise
+      });
+  }
+  selection(ev) {
+    const text = $(ev.currentTarget).attr('data-value');
+    if (text === 'view') {
+      this.execView();
+    } else if (text === 'layout') {
+      this.execLayout();
+    }
+    this.complete();
+  }
+  keydown() {}
+}
+// eslint-disable-next-line no-unused-vars
 class SuiFileMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined' ? params : {});
@@ -33196,7 +33458,7 @@ class SuiFileMenu extends suiMenuBase {
     return SuiFileMenu.ctor;
   }
   static get defaults() {
-    SuiFileMenu._defaults = SuiFileMenu._defaults ? SuiFileMenu._defaults : {
+    SuiFileMenu._defaults = typeof(SuiFileMenu._defaults) !== 'undefined' ? SuiFileMenu._defaults : {
       label: 'File',
       menuItems: [{
         icon: 'folder-new',
@@ -34034,9 +34296,9 @@ class RibbonButtons {
     var ctor = eval(buttonData.ctor);
     ctor.createAndDisplay(
       {
-        undoBuffer:this.keyCommands.undoBuffer,
-        eventSource:this.eventSource,
-        keyCommands:this.keyCommands,
+        undoBuffer: this.keyCommands.undoBuffer,
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
         completeNotifier: this.controller,
         view: this.view
       }
@@ -34095,19 +34357,20 @@ class RibbonButtons {
   }
 
     static isCollapsible(action) {
-        return ['collapseChild','collapseChildMenu','collapseGrandchild','collapseMore'].indexOf(action) >= 0;
+      return ['collapseChild','collapseChildMenu','collapseGrandchild','collapseMore'].indexOf(action) >= 0;
     }
 
     static isBindable(action) {
-        return ['collapseChildMenu','menu','modal'].indexOf(action) >= 0;
+      return ['collapseChildMenu','menu','modal'].indexOf(action) >= 0;
     }
 
     // ### _createButtonHtml
     // For each button, create the html and bind the events based on
     // the button's configured action.
   _createRibbonHtml(buttonAr, selector) {
+    let buttonClass = '';
     buttonAr.forEach((buttonId) => {
-      var buttonData = this.ribbonButtons.find((e) => {
+      const buttonData = this.ribbonButtons.find((e) => {
         return e.id === buttonId;
       });
       if (buttonData) {
@@ -34123,15 +34386,15 @@ class RibbonButtons {
         if (buttonData.action != 'collapseChild') {
           // else the button has a specific action, such as a menu or dialog, or a parent button
           // for translation, add the menu name to the button class
-          var buttonClass = buttonData.classes;
+          buttonClass = buttonData.classes;
           if (buttonData.action === 'menu' || buttonData.action === 'modal') {
             buttonClass += ' ' +buttonData.ctor;
           }
-          var buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer',
+          const buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer',
               buttonData.id, buttonClass, buttonData.leftText, buttonData.icon, buttonData.rightText);
           $(buttonHtml).attr('data-group', buttonData.group);
           $(selector).append(buttonHtml);
-          var buttonElement = $('#' + buttonData.id);
+          const buttonElement = $('#' + buttonData.id);
           // If this is a collabsable button, create it, otherwise bind its execute function.
           if (buttonData.action == 'collapseParent') {
             $(buttonHtml).addClass('collapseContainer');
@@ -34860,7 +35123,7 @@ class defaultRibbonLayout {
 
 	static get leftRibbonIds() {
 		return ['helpDialog','languageMenu', 'fileMenu','addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2',
-    'instrumentModal','pianoModal','layoutModal'];
+    'instrumentModal','pianoModal','layoutMenu'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons',
@@ -36402,14 +36665,14 @@ class defaultRibbonLayout {
 				id: 'pianoModal'
 			},
 			 {
-				leftText: 'Layout',
+				leftText: 'Score',
 				rightText: '',
 				icon: '',
 				classes: 'icon ',
-				action: 'modal',
-				ctor: 'SuiLayoutDialog',
+				action: 'menu',
+				ctor: 'SuiScoreMenu',
 				group: 'scoreEdit',
-				id: 'layoutModal'
+				id: 'layoutMenu'
 			}
 		];
 	}

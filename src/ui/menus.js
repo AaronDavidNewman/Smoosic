@@ -264,6 +264,64 @@ class suiMenuManager {
 }
 
 // eslint-disable-next-line no-unused-vars
+class SuiScoreMenu extends suiMenuBase {
+  static get defaults() {
+    SuiScoreMenu._defaults = typeof(SuiScoreMenu._defaults) !== 'undefined' ? SuiScoreMenu._defaults : {
+      label: 'Score Settings',
+      menuItems: [{
+        icon: '',
+        text: 'Layout',
+        value: 'layout'
+      }, {
+        icon: '',
+        text: 'View',
+        value: 'view'
+      }, {
+        icon: '',
+        text: 'Cancel',
+        value: 'cancel'
+      }]
+    };
+    return SuiScoreMenu._defaults;
+  }
+  constructor(params) {
+    params = (typeof(params) !== 'undefined' ? params : {});
+    Vex.Merge(params, SuiScoreMenu.defaults);
+    super(params);
+  }
+
+  execView() {
+    SuiScoreViewDialog.createAndDisplay(
+      {
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        completeNotifier: this.completeNotifier,
+        view: this.view,
+        startPromise: this.closePromise
+      });
+  }
+  execLayout() {
+    SuiLayoutDialog.createAndDisplay(
+      {
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        completeNotifier: this.completeNotifier,
+        view: this.view,
+        startPromise: this.closePromise
+      });
+  }
+  selection(ev) {
+    const text = $(ev.currentTarget).attr('data-value');
+    if (text === 'view') {
+      this.execView();
+    } else if (text === 'layout') {
+      this.execLayout();
+    }
+    this.complete();
+  }
+  keydown() {}
+}
+// eslint-disable-next-line no-unused-vars
 class SuiFileMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined' ? params : {});
@@ -277,7 +335,7 @@ class SuiFileMenu extends suiMenuBase {
     return SuiFileMenu.ctor;
   }
   static get defaults() {
-    SuiFileMenu._defaults = SuiFileMenu._defaults ? SuiFileMenu._defaults : {
+    SuiFileMenu._defaults = typeof(SuiFileMenu._defaults) !== 'undefined' ? SuiFileMenu._defaults : {
       label: 'File',
       menuItems: [{
         icon: 'folder-new',

@@ -513,7 +513,7 @@ class VxMeasure {
       const voice = new VF.Voice({
         num_beats: this.smoMeasure.numBeats,
         beat_value: this.smoMeasure.beatValue
-      }).setMode(VF.Voice.Mode.FULL);
+      }).setMode(VF.Voice.Mode.SOFT);
       voice.addTickables(this.vexNotes);
       this.voiceAr.push(voice);
     }

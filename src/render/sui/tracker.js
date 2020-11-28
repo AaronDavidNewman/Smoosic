@@ -13,7 +13,7 @@ class suiTracker extends suiMapper {
     return new Promise((resolve) => {
       var f = () => {
         setTimeout(() => {
-          if (self.view.renderer.passState === SuiRenderState.passStates.clean) {
+          if (self.renderer.passState === SuiRenderState.passStates.clean) {
             resolve();
           } else {
             f();

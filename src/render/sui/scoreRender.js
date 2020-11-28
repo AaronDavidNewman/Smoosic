@@ -54,6 +54,9 @@ class SuiScoreRender extends SuiRenderState {
   _measureToLeft(measure) {
     const j = measure.measureNumber.staffId;
     const i = measure.measureNumber.measureIndex;
+    if (this._score.staves.length <= j) {
+      console.log('no staff');
+    }
     return (i > 0 ? this._score.staves[j].measures[i - 1] : null);
   }
 

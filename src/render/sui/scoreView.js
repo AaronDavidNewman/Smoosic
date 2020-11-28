@@ -495,29 +495,21 @@ class SuiScoreView {
     return selection.note.getGraceNotes().find((gg) => gg.attrs.id === gn.attrs.id);
   }
 
-  // ### _createStaveMap
-  // create a map for staves from the view score (this.score) to the model score
-  // (this.storeScore)
-  _createStaveMap() {
-    let i = 0;
-    let j = 0;
-    this.staffMap = [];
-    for (i = 0; i < this.score.staves.length; ++i) {
-      const istaff = this.score.staves[i];
-      for (j = 0; j < this.storeScore.staves.length; ++j) {
-        const jstaff = this.storeScore.staves[j];
-        if (jstaff.staffId === istaff.staffId) {
-          this.staffMap.push(j);
-          break;
-        }
-      }
-    }
-  }
   static get Instance() {
     if (typeof(SuiScoreView._instance) !== 'undefined') {
       return SuiScoreView._instance;
     }
     return null;
+  }
+  // ### defaultStaffMap
+  // Show all staves, 1:1 mapping of view score staff to stored score staff
+  get defaultStaffMap() {
+    let i = 0;
+    const rv = [];
+    for (i = 0; i < this.storeScore.staves.length; ++i) {
+      rv.push(i);
+    }
+    return rv;
   }
   constructor(renderer, score) {
     this.score = score;
@@ -532,7 +524,7 @@ class SuiScoreView {
     this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));
     this.undoBuffer = new UndoBuffer();
     this.storeUndo = new UndoBuffer();
-    this._createStaveMap();
+    this.staffMap = this.defaultStaffMap;
     SuiScoreView._instance = this;
   }
   static debugSwapScore() {
@@ -543,14 +535,62 @@ class SuiScoreView {
     const newScore = SmoScore.deserialize(JSON.stringify(dbg.storeScore.serialize()));
     dbg.changeScore(newScore);
   }
+  getView() {
+    const rv = [];
+    let i = 0;
+    for (i = 0; i < this.storeScore.staves.length; ++i) {
+      const show = this.staffMap.indexOf(i) >= 0;
+      rv.push({ show });
+    }
+    return rv;
+  }
 
+  // ### setView
+  // Send a list of rows with a 'show' boolean in each, we display that line
+  // in the staff and hide the rest
+  setView(rows) {
+    let i = 0;
+    const any = rows.find((row) => row.show === true);
+    if (!any) {
+      return;
+    }
+    const nscore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    nscore.staves = [];
+    const staffMap = [];
+    for (i = 0; i < rows.length; ++i) {
+      const row = rows[i];
+      if (row.show) {
+        const staff = SmoSystemStaff.deserialize(this.storeScore.staves[i].serialize());
+        nscore.staves.push(staff);
+        staffMap.push(i);
+      }
+    }
+    nscore.numberStaves();
+    this.staffMap = staffMap;
+    this.score = nscore;
+    this.renderer.score = nscore;
+    this.renderer.setViewport(true);
+    setTimeout(() => {
+      $('body').trigger('forceResizeEvent');
+    }, 1);
+  }
+  // ### viewAll
+  // view all the staffs in score mode.
+  viewAll() {
+    this.score = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    this.staffMap = this.defaultStaffMap;
+    this.renderer.score = this.score;
+    this.renderer.setViewport(true);
+  }
+  // ### changeScore
+  // Update the view after loading or restoring a completely new score
   changeScore(score) {
     this._undoScore();
     this.renderer.score = score;
     this.renderer.setViewport(true);
     this.storeScore = SmoScore.deserialize(JSON.stringify(score.serialize()));
     this.score = score;
-    this._createStaveMap();
+    this.staffMap = this.defaultStaffMap;
     setTimeout(() => {
       $('body').trigger('forceResizeEvent');
     }, 1);
