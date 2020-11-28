@@ -2947,540 +2947,6 @@ class suiLayoutAdjuster {
     return {belowBaseline:heightOffset,aboveBaseline:yOffset};
   }
 }
-;// ## SuiRenderState
-// Manage the state of the score rendering.  The score can be rendered either completely,
-// or partially for editing.  This class works with the RenderDemon to decide when to
-// render the score after it has been modified, and keeps track of what the current
-// render state is (dirty, etc.)
-// eslint-disable-next-line no-unused-vars
-class SuiRenderState {
-  constructor(ctor) {
-    this.attrs = {
-      id: VF.Element.newID(),
-      type: ctor
-    };
-    this.dirty = true;
-    this.replaceQ = [];
-    this.renderTime = 250;  // ms to render before time slicing
-    this.partialRender = false;
-    this.stateRepCount = 0;
-    this.viewportPages = 1;
-    this.setPassState(SuiRenderState.initial, 'ctor');
-    this.viewportChanged = false;
-    this._resetViewport = false;
-    this.measureMapper = null;
-  }
-
-  // ### setMeasureMapper
-  // DI/notifier pattern.  The measure mapper/tracker is updated when the score is rendered
-  // so the UI stays in sync with the location of elements in the score.
-  setMeasureMapper(mapper) {
-    this.measureMapper = mapper;
-  }
-
-  static get Fonts() {
-    return {
-      Bravura: [VF.Fonts.Bravura, VF.Fonts.Gonville, VF.Fonts.Custom],
-      Gonville: [VF.Fonts.Gonville, VF.Fonts.Bravura, VF.Fonts.Custom],
-      Petaluma: [VF.Fonts.Petaluma, VF.Fonts.Gonville, VF.Fonts.Custom]
-    };
-  }
-
-  static setFont(font) {
-    VF.DEFAULT_FONT_STACK = SuiRenderState.Fonts[font];
-  }
-
-  static get passStates() {
-    return { initial: 0, clean: 2, replace: 3 };
-  }
-
-  addToReplaceQueue(selection) {
-    if (this.passState === SuiRenderState.passStates.clean ||
-      this.passState === SuiRenderState.passStates.replace) {
-      if (Array.isArray(selection)) {
-        this.replaceQ = this.replaceQ.concat(selection);
-      } else {
-        this.replaceQ.push(selection);
-      }
-      this.setDirty();
-    }
-  }
-
-  setDirty() {
-    if (!this.dirty) {
-      this.dirty = true;
-      if (this.passState === SuiRenderState.passStates.clean) {
-        this.setPassState(SuiRenderState.passStates.replace);
-      }
-    }
-  }
-  setRefresh() {
-    this.dirty = true;
-    this.setPassState(SuiRenderState.passStates.initial, 'setRefresh');
-  }
-  rerenderAll() {
-    this.dirty = true;
-    this.setPassState(SuiRenderState.passStates.initial, 'rerenderAll');
-    this._resetViewport = true;
-  }
-
-  remapAll() {
-    this.partialRender = false;
-    this.setRefresh();
-  }
-
-  // Number the measures at the first measure in each system.
-  numberMeasures() {
-    const printing = $('body').hasClass('print-render');
-    const staff = this.score.staves[0];
-    const measures = staff.measures.filter((measure) => measure.measureNumber.systemIndex === 0);
-    $('.measure-number').remove();
-
-    measures.forEach((measure) => {
-      if (measure.measureNumber.measureNumber > 0 && measure.measureNumber.systemIndex === 0) {
-        const numAr = [];
-        numAr.push({ y: measure.logicalBox.y - 10 });
-        numAr.push({ x: measure.logicalBox.x });
-        numAr.push({ 'font-family': SourceSansProFont.fontFamily });
-        numAr.push({ 'font-size': '10pt' });
-        svgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.measureNumber + 1).toString());
-
-        // Show line-feed symbol
-        const formatIndex = SmoMeasure.systemOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
-        if (formatIndex >= 0 && !printing) {
-          const starAr = [];
-          starAr.push({ y: measure.logicalBox.y - 5 });
-          starAr.push({ x: measure.logicalBox.x + 25 });
-          starAr.push({ 'font-family': SourceSansProFont.fontFamily });
-          starAr.push({ 'font-size': '12pt' });
-          svgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', '\u21b0');
-        }
-      }
-    });
-  }
-
-  // ### _setViewport
-  // Create (or recrate) the svg viewport, considering the dimensions of the score.
-  _setViewport(reset, elementId) {
-    // this.screenWidth = window.innerWidth;
-    const layout = this._score.layout;
-    this.zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
-      layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;
-
-    if (layout.zoomMode !== SmoScore.zoomModes.zoomScale) {
-      layout.zoomScale = this.zoomScale;
-    }
-
-    this.svgScale = layout.svgScale * this.zoomScale;
-    this.orientation = this._score.layout.orientation;
-    const w = Math.round(layout.pageWidth * this.zoomScale);
-    const h = Math.round(layout.pageHeight * this.zoomScale);
-    this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w : h;
-    this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
-    this.totalHeight = this.pageHeight * this.score.layout.pages;
-    this.viewportPages = this.score.layout.pages;
-
-    this.leftMargin = this._score.layout.leftMargin;
-    this.rightMargin = this._score.layout.rightMargin;
-    $(elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
-    $(elementId).css('height', '' + Math.round(this.totalHeight) + 'px');
-    // Reset means we remove the previous SVG element.  Otherwise, we just alter it
-    if (reset) {
-      $(elementId).html('');
-      this.renderer = new VF.Renderer(elementId, VF.Renderer.Backends.SVG);
-      this.viewportChanged = true;
-      if (this.measureMapper) {
-        this.measureMapper.scroller.scrollAbsolute(0, 0);
-      }
-    }
-    svgHelpers.svgViewport(this.context.svg, 0, 0, this.pageWidth, this.totalHeight, this.svgScale);
-    // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
-    this.resizing = false;
-    console.log('layout setViewport: pstate initial');
-    this.dirty = true;
-    SuiRenderState._renderer = this.renderer;
-  }
-
-  setViewport(reset) {
-    this._setViewport(reset, this.elementId);
-    this.score.staves.forEach((staff) => {
-      staff.measures.forEach((measure) => {
-        if (measure.logicalBox && reset) {
-          measure.svg.history = ['reset'];
-        }
-      });
-    });
-    this.partialRender = false;
-  }
-  renderForPrintPromise() {
-    $('body').addClass('print-render');
-    const self = this;
-    this._backupLayout = JSON.parse(JSON.stringify(this.score.layout));
-    this.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-    this.score.layout.zoomScale = 1.0;
-    this.setViewport(true);
-    this.setRefresh();
-
-    const promise = new Promise((resolve) => {
-      const poll = () => {
-        setTimeout(() => {
-          if (!self.dirty) {
-            // tracker.highlightSelection();
-            $('body').removeClass('print-render');
-            $('.vf-selection').remove();
-            $('body').addClass('printing');
-            $('.musicRelief').css('height', '');
-            resolve();
-          } else {
-            poll();
-          }
-        }, 500);
-      };
-      poll();
-    });
-    return promise;
-  }
-
-  restoreLayoutAfterPrint() {
-    if (this._backupLayout) {
-      this.score.layout  = this._backupLayout;
-      this.setViewport(true);
-      this.setRefresh();
-      this._backupLayout = null;
-    }
-  }
-
-  clearLine(measure) {
-    const lineIndex = measure.lineIndex;
-    const startIndex = (lineIndex > 1 ? lineIndex - 1 : 0);
-    let i = 0;
-    for (i = startIndex; i < lineIndex + 1; ++i) {
-      // for lint error
-      const index = i;
-      this.score.staves.forEach((staff) => {
-        const mms = staff.measures.filter((mm) => mm.lineIndex === index);
-        mms.forEach((mm) => {
-          delete mm.logicalBox;
-        });
-      });
-    }
-  }
-
-  setPassState(st, location) {
-    const oldState = this.passState;
-    let msg = '';
-    if (oldState !== st) {
-      this.stateRepCount = 0;
-    } else {
-      this.stateRepCount += 1;
-    }
-
-    msg = location + ': passState ' + this.passState + '=>' + st;
-    if (this.stateRepCount > 0) {
-      msg += ' (' + this.stateRepCount + ')';
-    }
-    console.log(msg);
-    this.passState = st;
-  }
-  static get defaults() {
-    return {
-      clefWidth: 70,
-      staffWidth: 250,
-      totalWidth: 250,
-      leftMargin: 15,
-      topMargin: 15,
-      pageWidth: 8 * 96 + 48,
-      pageHeight: 11 * 96,
-      svgScale: 0.7,
-    };
-  }
-
-  static get debugLayout() {
-    SuiRenderState._debugLayout = SuiRenderState._debugLayout ? SuiRenderState._debugLayout : false;
-    return SuiRenderState._debugLayout;
-  }
-
-  static set debugLayout(value) {
-    SuiRenderState._debugLayout = value;
-    if (value) {
-      $('body').addClass('layout-debug');
-    } else {
-      $('body').removeClass('layout-debug');
-    }
-  }
-
-  // ### get context
-  // ### Description:
-  // return the VEX renderer context.
-  get context() {
-    return this.renderer.getContext();
-  }
-  get renderElement() {
-    return this.renderer.elementId;
-  }
-
-  get svg() {
-    return this.context.svg;
-  }
-
-  get score() {
-    return this._score;
-  }
-
-  set score(score) {
-    let shouldReset = false;
-    if (this._score) {
-      shouldReset = true;
-    }
-    this.setPassState(SuiRenderState.passStates.initial, 'load score');
-    const font = score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
-    SuiRenderState.setFont(font.family);
-    this.dirty = true;
-    this._score = score;
-    if (shouldReset) {
-      if (this.measureMapper) {
-        this.measureMapper.loadScore();
-      }
-      this.setViewport(true);
-    }
-  }
-
-  // ### undo
-  // Undo is handled by the render state machine, because the layout has to first
-  // delete areas of the viewport that may have changed,
-  // then create the modified score, then render the 'new' score.
-  undo(undoBuffer) {
-    const buffer = undoBuffer.peek();
-    let op = 'setDirty';
-    // Unrender the modified music because the IDs may change and normal unrender won't work
-    if (buffer) {
-      const sel = buffer.selector;
-      if (buffer.type === 'measure') {
-        this.unrenderMeasure(SmoSelection.measureSelection(this._score, sel.staff, sel.measure).measure);
-      } else if (buffer.type === 'staff') {
-        this.unrenderStaff(SmoSelection.measureSelection(this._score, sel.staff, 0).staff);
-        op = 'setRefresh';
-      } else {
-        this.unrenderAll();
-        op = 'setRefresh';
-      }
-      this._score = undoBuffer.undo(this._score);
-      this[op]();
-    }
-  }
-
-  // ### renderNoteModifierPreview
-  // ### Description:
-  // For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
-  // changes can be undone before the buffer closes.
-  renderNoteModifierPreview(modifier, selection) {
-    selection =
-      SmoSelection.noteSelection(this._score, selection.selector.staff, selection.selector.measure, selection.selector.voice, selection.selector.tick);
-    if (!selection.measure.renderedBox) {
-      return;
-    }
-    const system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex, this.score);
-    system.renderMeasure(selection.measure, this.mapper);
-  }
-
-  // ### renderNoteModifierPreview
-  // For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
-  // changes can be undone before the buffer closes.
-  renderMeasureModifierPreview(modifier, measure) {
-    const ix = measure.measureNumber.measureIndex;
-    this._score.staves.forEach((staff) => {
-      const cm = staff.measures[ix];
-      const system = new VxSystem(this.context, cm.staffY, cm.lineIndex, this.score);
-      system.renderMeasure(staff.staffId, cm);
-    });
-  }
-
-  // ### renderStaffModifierPreview
-  // Similar to renderNoteModifierPreview, but lets you preveiw a change to a staff element.
-  // re-render a modifier for preview during modifier dialog
-  renderStaffModifierPreview(modifier) {
-    let system = null;
-    // get the first measure the modifier touches
-    var startSelection = SmoSelection.measureSelection(this._score, modifier.startSelector.staff, modifier.startSelector.measure);
-
-    // We can only render if we already have, or we don't know where things go.
-    if (!startSelection.measure.renderedBox) {
-      return;
-    }
-    system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex, this.score);
-    while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
-      smoBeamerFactory.applyBeams(startSelection.measure);
-      system.renderMeasure(startSelection.measure, null, true);
-      this._renderModifiers(startSelection.staff, system);
-
-      const nextSelection = SmoSelection.measureSelection(this._score, startSelection.selector.staff, startSelection.selector.measure + 1);
-
-      // If we go to new line, render this line part, then advance because the modifier is split
-      if (nextSelection && nextSelection.measure && nextSelection.measure.lineIndex !== startSelection.measure.lineIndex) {
-        this._renderModifiers(startSelection.staff, system);
-        system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex, this.score);
-      }
-      startSelection = nextSelection;
-    }
-  }
-
-  // ### unrenderMeasure
-  // ### Description:
-  // All SVG elements are associated with a logical SMO element.  We need to erase any SVG element before we change a SMO
-  // element in such a way that some of the logical elements go away (e.g. when deleting a measure).
-  unrenderMeasure(measure) {
-    if (!measure) {
-      return;
-    }
-    $(this.renderer.getContext().svg).find('g.' + measure.getClassId()).remove();
-    measure.setYTop(0, 'unrender');
-    measure.setChanged();
-  }
-
-  unrenderColumn(measure) {
-    this.score.staves.forEach((staff) => {
-      this.unrenderMeasure(staff.measures[measure.measureNumber.measureIndex]);
-    });
-  }
-
-  // ### unrenderStaff
-  // ### Description:
-  // See unrenderMeasure.  Like that, but with a staff.
-  unrenderStaff(staff) {
-    staff.measures.forEach((measure) => {
-      this.unrenderMeasure(measure);
-    });
-    staff.modifiers.forEach((modifier) => {
-      $(this.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
-    });
-  }
-
-  // ### _renderModifiers
-  // ### Description:
-  // Render staff modifiers (modifiers straddle more than one measure, like a slur).  Handle cases where the destination
-  // is on a different system due to wrapping.
-  _renderModifiers(staff, system) {
-    const svg = this.svg;
-    let nextNote = null;
-    let lastNote = null;
-    let testNote = null;
-    let vxStart = null;
-    let vxEnd = null;
-    const removedModifiers = [];
-    staff.modifiers.forEach((modifier) => {
-      const startNote = SmoSelection.noteSelection(this._score,
-        modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-      const endNote = SmoSelection.noteSelection(this._score,
-        modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
-      if (!startNote || !endNote) {
-        // If the modifier doesn't have score endpoints, delete it from the score
-        removedModifiers.push(modifier);
-        return;
-      }
-
-      vxStart = system.getVxNote(startNote.note);
-      vxEnd = system.getVxNote(endNote.note);
-
-      // If the modifier goes to the next staff, draw what part of it we can on this staff.
-      if (vxStart && !vxEnd) {
-        nextNote = SmoSelection.nextNoteSelection(this._score,
-          modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-        testNote = system.getVxNote(nextNote.note);
-        while (testNote) {
-          vxEnd = testNote;
-          nextNote = SmoSelection.nextNoteSelection(this._score,
-            nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
-          if (!nextNote) {
-            break;
-          }
-          testNote = system.getVxNote(nextNote.note);
-        }
-      }
-      if (vxEnd && !vxStart) {
-        lastNote = SmoSelection.lastNoteSelection(this._score,
-          modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
-        testNote = system.getVxNote(lastNote.note);
-        while (testNote) {
-          vxStart = testNote;
-          lastNote = SmoSelection.lastNoteSelection(this._score,
-            lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
-          if (!lastNote) {
-            break;
-          }
-          testNote = system.getVxNote(lastNote.note);
-        }
-      }
-      if (!vxStart && !vxEnd) {
-        return;
-      }
-      modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd, startNote, endNote);
-      modifier.logicalBox = svgHelpers.clientToLogical(svg, modifier.renderedBox);
-    });
-    removedModifiers.forEach((mod) => {
-      staff.removeStaffModifier(mod);
-    });
-  }
-
-  _drawPageLines() {
-    let i = 0;
-    $(this.context.svg).find('.pageLine').remove();
-    const printing = $('body').hasClass('print-render');
-    if (printing) {
-      return;
-    }
-    for (i = 1; i < this._score.layout.pages; ++i) {
-      const y = (this.pageHeight / this.svgScale) * i;
-      svgHelpers.line(this.svg, 0, y, this.score.layout.pageWidth / this.score.layout.svgScale, y,
-        [
-          { 'stroke': '#321' },
-          { 'stroke-width': '2' },
-          { 'stroke-dasharray': '4,1' },
-          { 'fill': 'none' }], 'pageLine');
-    }
-  }
-
-  // ### _replaceMeasures
-  // Do a quick re-render of a measure that has changed.
-  _replaceMeasures() {
-    this.replaceQ.forEach((change) => {
-      smoBeamerFactory.applyBeams(change.measure);
-      const system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex, this.score);
-      const selections = SmoSelection.measuresInColumn(this.score, change.measure.measureNumber.measureIndex);
-      selections.forEach((selection) => {
-        system.renderMeasure(selection.measure, this.measureMapper);
-      });
-      system.renderEndings();
-      this._renderModifiers(change.staff, system);
-      system.updateLyricOffsets();
-
-      // Fix a bug: measure change needs to stay true so we recaltulate the width
-      change.measure.changed = true;
-    });
-    this.replaceQ = [];
-  }
-
-  // ### forceRender
-  // For unit test applictions that want to render right-away
-  forceRender() {
-    this.setRefresh();
-    this.render();
-  }
-
-  render() {
-    if (this._resetViewport) {
-      this.setViewport(true);
-      this._resetViewport = false;
-    }
-    if (SuiRenderState.passStates.replace === this.passState) {
-      this._replaceMeasures();
-    } else if (SuiRenderState.passStates.initial === this.passState) {
-      this.layout();
-      this._drawPageLines();
-      this.setPassState(SuiRenderState.passStates.clean);
-    }
-    this.dirty = false;
-  }
-}
 ;
 class layoutDebug {
     static get values() {
@@ -4259,13 +3725,547 @@ class suiPiano {
 		this.bind();
 	}
 }
-;// ## SuiRenderScore
+;// ## SuiRenderState
+// Manage the state of the score rendering.  The score can be rendered either completely,
+// or partially for editing.  This class works with the RenderDemon to decide when to
+// render the score after it has been modified, and keeps track of what the current
+// render state is (dirty, etc.)
+// eslint-disable-next-line no-unused-vars
+class SuiRenderState {
+  constructor(ctor) {
+    this.attrs = {
+      id: VF.Element.newID(),
+      type: ctor
+    };
+    this.dirty = true;
+    this.replaceQ = [];
+    this.renderTime = 250;  // ms to render before time slicing
+    this.partialRender = false;
+    this.stateRepCount = 0;
+    this.viewportPages = 1;
+    this.setPassState(SuiRenderState.initial, 'ctor');
+    this.viewportChanged = false;
+    this._resetViewport = false;
+    this.measureMapper = null;
+  }
+
+  // ### setMeasureMapper
+  // DI/notifier pattern.  The measure mapper/tracker is updated when the score is rendered
+  // so the UI stays in sync with the location of elements in the score.
+  setMeasureMapper(mapper) {
+    this.measureMapper = mapper;
+  }
+
+  static get Fonts() {
+    return {
+      Bravura: [VF.Fonts.Bravura, VF.Fonts.Gonville, VF.Fonts.Custom],
+      Gonville: [VF.Fonts.Gonville, VF.Fonts.Bravura, VF.Fonts.Custom],
+      Petaluma: [VF.Fonts.Petaluma, VF.Fonts.Gonville, VF.Fonts.Custom]
+    };
+  }
+
+  static setFont(font) {
+    VF.DEFAULT_FONT_STACK = SuiRenderState.Fonts[font];
+  }
+
+  static get passStates() {
+    return { initial: 0, clean: 2, replace: 3 };
+  }
+
+  addToReplaceQueue(selection) {
+    if (this.passState === SuiRenderState.passStates.clean ||
+      this.passState === SuiRenderState.passStates.replace) {
+      if (Array.isArray(selection)) {
+        this.replaceQ = this.replaceQ.concat(selection);
+      } else {
+        this.replaceQ.push(selection);
+      }
+      this.setDirty();
+    }
+  }
+
+  setDirty() {
+    if (!this.dirty) {
+      this.dirty = true;
+      if (this.passState === SuiRenderState.passStates.clean) {
+        this.setPassState(SuiRenderState.passStates.replace);
+      }
+    }
+  }
+  setRefresh() {
+    this.dirty = true;
+    this.setPassState(SuiRenderState.passStates.initial, 'setRefresh');
+  }
+  rerenderAll() {
+    this.dirty = true;
+    this.setPassState(SuiRenderState.passStates.initial, 'rerenderAll');
+    this._resetViewport = true;
+  }
+
+  remapAll() {
+    this.partialRender = false;
+    this.setRefresh();
+  }
+
+  // Number the measures at the first measure in each system.
+  numberMeasures() {
+    const printing = $('body').hasClass('print-render');
+    const staff = this.score.staves[0];
+    const measures = staff.measures.filter((measure) => measure.measureNumber.systemIndex === 0);
+    $('.measure-number').remove();
+
+    measures.forEach((measure) => {
+      if (measure.measureNumber.measureNumber > 0 && measure.measureNumber.systemIndex === 0) {
+        const numAr = [];
+        numAr.push({ y: measure.logicalBox.y - 10 });
+        numAr.push({ x: measure.logicalBox.x });
+        numAr.push({ 'font-family': SourceSansProFont.fontFamily });
+        numAr.push({ 'font-size': '10pt' });
+        svgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.measureNumber + 1).toString());
+
+        // Show line-feed symbol
+        const formatIndex = SmoMeasure.systemOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
+        if (formatIndex >= 0 && !printing) {
+          const starAr = [];
+          starAr.push({ y: measure.logicalBox.y - 5 });
+          starAr.push({ x: measure.logicalBox.x + 25 });
+          starAr.push({ 'font-family': SourceSansProFont.fontFamily });
+          starAr.push({ 'font-size': '12pt' });
+          svgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', '\u21b0');
+        }
+      }
+    });
+  }
+
+  // ### _setViewport
+  // Create (or recrate) the svg viewport, considering the dimensions of the score.
+  _setViewport(reset, elementId) {
+    // this.screenWidth = window.innerWidth;
+    const layout = this._score.layout;
+    this.zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
+      layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;
+
+    if (layout.zoomMode !== SmoScore.zoomModes.zoomScale) {
+      layout.zoomScale = this.zoomScale;
+    }
+
+    this.svgScale = layout.svgScale * this.zoomScale;
+    this.orientation = this._score.layout.orientation;
+    const w = Math.round(layout.pageWidth * this.zoomScale);
+    const h = Math.round(layout.pageHeight * this.zoomScale);
+    this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w : h;
+    this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
+    this.totalHeight = this.pageHeight * this.score.layout.pages;
+    this.viewportPages = this.score.layout.pages;
+
+    this.leftMargin = this._score.layout.leftMargin;
+    this.rightMargin = this._score.layout.rightMargin;
+    $(elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
+    $(elementId).css('height', '' + Math.round(this.totalHeight) + 'px');
+    // Reset means we remove the previous SVG element.  Otherwise, we just alter it
+    if (reset) {
+      $(elementId).html('');
+      this.renderer = new VF.Renderer(elementId, VF.Renderer.Backends.SVG);
+      this.viewportChanged = true;
+      if (this.measureMapper) {
+        this.measureMapper.scroller.scrollAbsolute(0, 0);
+      }
+    }
+    svgHelpers.svgViewport(this.context.svg, 0, 0, this.pageWidth, this.totalHeight, this.svgScale);
+    // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
+    this.resizing = false;
+    console.log('layout setViewport: pstate initial');
+    this.dirty = true;
+    SuiRenderState._renderer = this.renderer;
+  }
+
+  setViewport(reset) {
+    this._setViewport(reset, this.elementId);
+    this.score.staves.forEach((staff) => {
+      staff.measures.forEach((measure) => {
+        if (measure.logicalBox && reset) {
+          measure.svg.history = ['reset'];
+        }
+      });
+    });
+    this.partialRender = false;
+  }
+  renderForPrintPromise() {
+    $('body').addClass('print-render');
+    const self = this;
+    this._backupLayout = JSON.parse(JSON.stringify(this.score.layout));
+    this.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+    this.score.layout.zoomScale = 1.0;
+    this.setViewport(true);
+    this.setRefresh();
+
+    const promise = new Promise((resolve) => {
+      const poll = () => {
+        setTimeout(() => {
+          if (!self.dirty) {
+            // tracker.highlightSelection();
+            $('body').removeClass('print-render');
+            $('.vf-selection').remove();
+            $('body').addClass('printing');
+            $('.musicRelief').css('height', '');
+            resolve();
+          } else {
+            poll();
+          }
+        }, 500);
+      };
+      poll();
+    });
+    return promise;
+  }
+
+  restoreLayoutAfterPrint() {
+    if (this._backupLayout) {
+      this.score.layout  = this._backupLayout;
+      this.setViewport(true);
+      this.setRefresh();
+      this._backupLayout = null;
+    }
+  }
+
+  clearLine(measure) {
+    const lineIndex = measure.lineIndex;
+    const startIndex = (lineIndex > 1 ? lineIndex - 1 : 0);
+    let i = 0;
+    for (i = startIndex; i < lineIndex + 1; ++i) {
+      // for lint error
+      const index = i;
+      this.score.staves.forEach((staff) => {
+        const mms = staff.measures.filter((mm) => mm.lineIndex === index);
+        mms.forEach((mm) => {
+          delete mm.logicalBox;
+        });
+      });
+    }
+  }
+
+  setPassState(st, location) {
+    const oldState = this.passState;
+    let msg = '';
+    if (oldState !== st) {
+      this.stateRepCount = 0;
+    } else {
+      this.stateRepCount += 1;
+    }
+
+    msg = location + ': passState ' + this.passState + '=>' + st;
+    if (this.stateRepCount > 0) {
+      msg += ' (' + this.stateRepCount + ')';
+    }
+    console.log(msg);
+    this.passState = st;
+  }
+  static get defaults() {
+    return {
+      clefWidth: 70,
+      staffWidth: 250,
+      totalWidth: 250,
+      leftMargin: 15,
+      topMargin: 15,
+      pageWidth: 8 * 96 + 48,
+      pageHeight: 11 * 96,
+      svgScale: 0.7,
+    };
+  }
+
+  static get debugLayout() {
+    SuiRenderState._debugLayout = SuiRenderState._debugLayout ? SuiRenderState._debugLayout : false;
+    return SuiRenderState._debugLayout;
+  }
+
+  static set debugLayout(value) {
+    SuiRenderState._debugLayout = value;
+    if (value) {
+      $('body').addClass('layout-debug');
+    } else {
+      $('body').removeClass('layout-debug');
+    }
+  }
+
+  // ### get context
+  // ### Description:
+  // return the VEX renderer context.
+  get context() {
+    return this.renderer.getContext();
+  }
+  get renderElement() {
+    return this.renderer.elementId;
+  }
+
+  get svg() {
+    return this.context.svg;
+  }
+
+  get score() {
+    return this._score;
+  }
+
+  set score(score) {
+    let shouldReset = false;
+    if (this._score) {
+      shouldReset = true;
+    }
+    this.setPassState(SuiRenderState.passStates.initial, 'load score');
+    const font = score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
+    SuiRenderState.setFont(font.family);
+    this.dirty = true;
+    this._score = score;
+    if (shouldReset) {
+      if (this.measureMapper) {
+        this.measureMapper.loadScore();
+      }
+      this.setViewport(true);
+    }
+  }
+
+  // ### undo
+  // Undo is handled by the render state machine, because the layout has to first
+  // delete areas of the viewport that may have changed,
+  // then create the modified score, then render the 'new' score.
+  undo(undoBuffer) {
+    const buffer = undoBuffer.peek();
+    let op = 'setDirty';
+    // Unrender the modified music because the IDs may change and normal unrender won't work
+    if (buffer) {
+      const sel = buffer.selector;
+      if (buffer.type === 'measure') {
+        this.unrenderMeasure(SmoSelection.measureSelection(this._score, sel.staff, sel.measure).measure);
+      } else if (buffer.type === 'staff') {
+        this.unrenderStaff(SmoSelection.measureSelection(this._score, sel.staff, 0).staff);
+        op = 'setRefresh';
+      } else {
+        this.unrenderAll();
+        op = 'setRefresh';
+      }
+      this._score = undoBuffer.undo(this._score);
+      this[op]();
+    }
+  }
+
+  // ### renderNoteModifierPreview
+  // ### Description:
+  // For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
+  // changes can be undone before the buffer closes.
+  renderNoteModifierPreview(modifier, selection) {
+    selection =
+      SmoSelection.noteSelection(this._score, selection.selector.staff, selection.selector.measure, selection.selector.voice, selection.selector.tick);
+    if (!selection.measure.renderedBox) {
+      return;
+    }
+    const system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex, this.score);
+    system.renderMeasure(selection.measure, this.mapper);
+  }
+
+  // ### renderNoteModifierPreview
+  // For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
+  // changes can be undone before the buffer closes.
+  renderMeasureModifierPreview(modifier, measure) {
+    const ix = measure.measureNumber.measureIndex;
+    this._score.staves.forEach((staff) => {
+      const cm = staff.measures[ix];
+      const system = new VxSystem(this.context, cm.staffY, cm.lineIndex, this.score);
+      system.renderMeasure(staff.staffId, cm);
+    });
+  }
+
+  // ### renderStaffModifierPreview
+  // Similar to renderNoteModifierPreview, but lets you preveiw a change to a staff element.
+  // re-render a modifier for preview during modifier dialog
+  renderStaffModifierPreview(modifier) {
+    let system = null;
+    // get the first measure the modifier touches
+    var startSelection = SmoSelection.measureSelection(this._score, modifier.startSelector.staff, modifier.startSelector.measure);
+
+    // We can only render if we already have, or we don't know where things go.
+    if (!startSelection.measure.renderedBox) {
+      return;
+    }
+    system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex, this.score);
+    while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
+      smoBeamerFactory.applyBeams(startSelection.measure);
+      system.renderMeasure(startSelection.measure, null, true);
+      this._renderModifiers(startSelection.staff, system);
+
+      const nextSelection = SmoSelection.measureSelection(this._score, startSelection.selector.staff, startSelection.selector.measure + 1);
+
+      // If we go to new line, render this line part, then advance because the modifier is split
+      if (nextSelection && nextSelection.measure && nextSelection.measure.lineIndex !== startSelection.measure.lineIndex) {
+        this._renderModifiers(startSelection.staff, system);
+        system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex, this.score);
+      }
+      startSelection = nextSelection;
+    }
+  }
+
+  // ### unrenderMeasure
+  // ### Description:
+  // All SVG elements are associated with a logical SMO element.  We need to erase any SVG element before we change a SMO
+  // element in such a way that some of the logical elements go away (e.g. when deleting a measure).
+  unrenderMeasure(measure) {
+    if (!measure) {
+      return;
+    }
+    $(this.renderer.getContext().svg).find('g.' + measure.getClassId()).remove();
+    measure.setYTop(0, 'unrender');
+    measure.setChanged();
+  }
+
+  unrenderColumn(measure) {
+    this.score.staves.forEach((staff) => {
+      this.unrenderMeasure(staff.measures[measure.measureNumber.measureIndex]);
+    });
+  }
+
+  // ### unrenderStaff
+  // ### Description:
+  // See unrenderMeasure.  Like that, but with a staff.
+  unrenderStaff(staff) {
+    staff.measures.forEach((measure) => {
+      this.unrenderMeasure(measure);
+    });
+    staff.modifiers.forEach((modifier) => {
+      $(this.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
+    });
+  }
+
+  // ### _renderModifiers
+  // ### Description:
+  // Render staff modifiers (modifiers straddle more than one measure, like a slur).  Handle cases where the destination
+  // is on a different system due to wrapping.
+  _renderModifiers(staff, system) {
+    const svg = this.svg;
+    let nextNote = null;
+    let lastNote = null;
+    let testNote = null;
+    let vxStart = null;
+    let vxEnd = null;
+    const removedModifiers = [];
+    staff.modifiers.forEach((modifier) => {
+      const startNote = SmoSelection.noteSelection(this._score,
+        modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+      const endNote = SmoSelection.noteSelection(this._score,
+        modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+      if (!startNote || !endNote) {
+        // If the modifier doesn't have score endpoints, delete it from the score
+        removedModifiers.push(modifier);
+        return;
+      }
+
+      vxStart = system.getVxNote(startNote.note);
+      vxEnd = system.getVxNote(endNote.note);
+
+      // If the modifier goes to the next staff, draw what part of it we can on this staff.
+      if (vxStart && !vxEnd) {
+        nextNote = SmoSelection.nextNoteSelection(this._score,
+          modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+        testNote = system.getVxNote(nextNote.note);
+        while (testNote) {
+          vxEnd = testNote;
+          nextNote = SmoSelection.nextNoteSelection(this._score,
+            nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
+          if (!nextNote) {
+            break;
+          }
+          testNote = system.getVxNote(nextNote.note);
+        }
+      }
+      if (vxEnd && !vxStart) {
+        lastNote = SmoSelection.lastNoteSelection(this._score,
+          modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+        testNote = system.getVxNote(lastNote.note);
+        while (testNote) {
+          vxStart = testNote;
+          lastNote = SmoSelection.lastNoteSelection(this._score,
+            lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
+          if (!lastNote) {
+            break;
+          }
+          testNote = system.getVxNote(lastNote.note);
+        }
+      }
+      if (!vxStart && !vxEnd) {
+        return;
+      }
+      modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd, startNote, endNote);
+      modifier.logicalBox = svgHelpers.clientToLogical(svg, modifier.renderedBox);
+    });
+    removedModifiers.forEach((mod) => {
+      staff.removeStaffModifier(mod);
+    });
+  }
+
+  _drawPageLines() {
+    let i = 0;
+    $(this.context.svg).find('.pageLine').remove();
+    const printing = $('body').hasClass('print-render');
+    if (printing) {
+      return;
+    }
+    for (i = 1; i < this._score.layout.pages; ++i) {
+      const y = (this.pageHeight / this.svgScale) * i;
+      svgHelpers.line(this.svg, 0, y, this.score.layout.pageWidth / this.score.layout.svgScale, y,
+        [
+          { 'stroke': '#321' },
+          { 'stroke-width': '2' },
+          { 'stroke-dasharray': '4,1' },
+          { 'fill': 'none' }], 'pageLine');
+    }
+  }
+
+  // ### _replaceMeasures
+  // Do a quick re-render of a measure that has changed.
+  _replaceMeasures() {
+    this.replaceQ.forEach((change) => {
+      smoBeamerFactory.applyBeams(change.measure);
+      const system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex, this.score);
+      const selections = SmoSelection.measuresInColumn(this.score, change.measure.measureNumber.measureIndex);
+      selections.forEach((selection) => {
+        system.renderMeasure(selection.measure, this.measureMapper);
+      });
+      system.renderEndings();
+      this._renderModifiers(change.staff, system);
+      system.updateLyricOffsets();
+
+      // Fix a bug: measure change needs to stay true so we recaltulate the width
+      change.measure.changed = true;
+    });
+    this.replaceQ = [];
+  }
+
+  // ### forceRender
+  // For unit test applictions that want to render right-away
+  forceRender() {
+    this.setRefresh();
+    this.render();
+  }
+
+  render() {
+    if (this._resetViewport) {
+      this.setViewport(true);
+      this._resetViewport = false;
+    }
+    if (SuiRenderState.passStates.replace === this.passState) {
+      this._replaceMeasures();
+    } else if (SuiRenderState.passStates.initial === this.passState) {
+      this.layout();
+      this._drawPageLines();
+      this.setPassState(SuiRenderState.passStates.clean);
+    }
+    this.dirty = false;
+  }
+}
+;// ## SuiScoreRender
 // This module renders the entire score.  It calculates the layout first based on the
 // computed dimensions.
 // eslint-disable-next-line no-unused-vars
-class SuiRenderScore extends SuiRenderState {
+class SuiScoreRender extends SuiRenderState {
   constructor(params) {
-    super('SuiRenderScore');
+    super('SuiScoreRender');
     Vex.Merge(this, SuiRenderState.defaults);
     Vex.Merge(this, params);
     this.setViewport(true);
@@ -4288,7 +4288,7 @@ class SuiRenderScore extends SuiRenderState {
     if (layoutParams) {
       Vex.Merge(ctorObj, layoutParams);
     }
-    const layout = new SuiRenderScore(ctorObj);
+    const layout = new SuiScoreRender(ctorObj);
     return layout;
   }
 
@@ -22873,7 +22873,7 @@ class SmoUndoable {
     var params = suiController.keyBindingDefaults;
     params.eventSource = new browserEventSource(); // events come from the browser UI.
 
-    const scoreRenderer = SuiRenderScore.createScoreRenderer(document.getElementById(SmoConfig.vexDomContainer), score);
+    const scoreRenderer = SuiScoreRender.createScoreRenderer(document.getElementById(SmoConfig.vexDomContainer), score);
     params.eventSource.setRenderElement(scoreRenderer.renderElement);
     params.view = new SuiScoreView(scoreRenderer, score);
     if (SmoConfig.keyCommands) {
@@ -23431,7 +23431,6 @@ class SuiModifierDialogFactory {
       dbType = 'SuiChordChangeDialog';
     }
     if (typeof(dbType) === 'undefined') {
-      console.warn('no dialog for modifier ' + modifier.attrs.type);
       return null;
     }
     const ctor = eval(dbType);
@@ -32918,8 +32917,7 @@ class SuiKeyCommands {
     this.toggleArticulationCommand(atyp, 'SmoArticulation');
   }
 }
-;
-class suiMenuBase {
+;class suiMenuBase {
   constructor(params) {
     Vex.Merge(this, params);
     this.focusIndex = -1;
@@ -32931,19 +32929,20 @@ class suiMenuBase {
   static printTranslate(_class) {
     const xx = eval(_class);
     const items = [];
-    xx['defaults'].menuItems.forEach((item) => {
-      items.push({value:item.value,text:item.text});
+    xx.defaults.menuItems.forEach((item) => {
+      items.push({ value: item.value, text: item.text });
     });
-    return {ctor:xx['ctor'],label:xx['label'],menuItems:items};
+    return { ctor: xx.ctor, label: xx.label, menuItems: items };
   }
 
   complete() {
     $('body').trigger('menuDismiss');
   }
   // Most menus don't process their own events
-  keydown(ev) {}
+  keydown() {}
 }
 
+// eslint-disable-next-line no-unused-vars
 class suiMenuManager {
   constructor(params) {
     Vex.Merge(this, suiMenuManager.defaults);
@@ -32951,7 +32950,7 @@ class suiMenuManager {
     this.eventSource = params.eventSource;
     this.view = params.view;
     this.bound = false;
-    this.hotkeyBindings={};
+    this.hotkeyBindings = {};
   }
 
   static get defaults() {
@@ -32966,7 +32965,7 @@ class suiMenuManager {
   }
 
   setController(c) {
-    this.controller=c;
+    this.controller = c;
   }
 
   get score() {
@@ -32979,68 +32978,68 @@ class suiMenuManager {
   static get menuKeyBindingDefaults() {
     return [
       {
-        event: "keydown",
-        key: "n",
+        event: 'keydown',
+        key: 'n',
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "SuiLanguageMenu"
+        action: 'SuiLanguageMenu'
       }, {
-        event: "keydown",
-        key: "k",
+        event: 'keydown',
+        key: 'k',
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "SuiKeySignatureMenu"
+        action: 'SuiKeySignatureMenu'
       }, {
-        event: "keydown",
-        key: "l",
+        event: 'keydown',
+        key: 'l',
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "SuiStaffModifierMenu"
+        action: 'SuiStaffModifierMenu'
       }, {
-        event: "keydown",
-        key: "d",
+        event: 'keydown',
+        key: 'd',
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "SuiDynamicsMenu"
+        action: 'SuiDynamicsMenu'
       }, {
-        event: "keydown",
-        key: "s",
+        event: 'keydown',
+        key: 's',
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "SuiAddStaffMenu"
-        }, {
-        event: "keydown",
-        key: "f",
-        ctrlKey: false,
-        altKey: false,
-        shiftKey: false,
-        action: "SuiFileMenu"
+        action: 'SuiAddStaffMenu'
       }, {
-        event: "keydown",
-        key: "m",
+        event: 'keydown',
+        key: 'f',
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "SuiTimeSignatureMenu"
+        action: 'SuiFileMenu'
       }, {
-        event: "keydown",
-        key: "a",
+        event: 'keydown',
+        key: 'm',
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "SuiMeasureMenu"
+        action: 'SuiTimeSignatureMenu'
+      }, {
+        event: 'keydown',
+        key: 'a',
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: 'SuiMeasureMenu'
       }
     ];
   }
   _advanceSelection(inc) {
     const options = $('.menuContainer ul.menuElement li.menuOption');
-    inc = inc < 0 ? options.length - 1: 1;
-    this.menu.focusIndex = (this.menu.focusIndex+inc) % options.length;
+    inc = inc < 0 ? options.length - 1 : 1;
+    this.menu.focusIndex = (this.menu.focusIndex + inc) % options.length;
     $(options[this.menu.focusIndex]).find('button').focus();
   }
 
@@ -33057,8 +33056,8 @@ class suiMenuManager {
     this.menu = null;
   }
 
-  attach(el) {
-    let hotkey=0;
+  attach() {
+    let hotkey = 0;
 
     $(this.menuContainer).html('');
     $(this.menuContainer).attr('z-index', '12');
@@ -33067,16 +33066,16 @@ class suiMenuManager {
       .css('left', '' + this.menuPosition.x + 'px')
       .css('top', '' + this.menuPosition.y + 'px');
     this.menu.menuItems.forEach((item) => {
-      var vkey = (hotkey < 10) ? String.fromCharCode(48+hotkey) :
+      var vkey = (hotkey < 10) ? String.fromCharCode(48 + hotkey) :
         String.fromCharCode(87 + hotkey);
 
       r.append(
         b('li').classes('menuOption').append(
-          b('button').attr('data-value',item.value).append(
+          b('button').attr('data-value', item.value).append(
             b('span').classes('menuText').text(item.text))
-          .append(b('span').classes('icon icon-' + item.icon))
-        .append(b('span').classes('menu-key').text('' + vkey))));
-      item.hotkey=vkey;
+            .append(b('span').classes('icon icon-' + item.icon))
+            .append(b('span').classes('menu-key').text('' + vkey))));
+      item.hotkey = vkey;
       hotkey += 1;
     });
     $(this.menuContainer).append(r.dom());
@@ -33089,8 +33088,8 @@ class suiMenuManager {
     this.bindEvents();
     layoutDebug.addDialogDebug('slash menu creating closeMenuPromise');
     // A menu asserts this event when it is done.
-    this.closeMenuPromise = new Promise((resolve, reject) => {
-      $('body').off('menuDismiss').on('menuDismiss', function () {
+    this.closeMenuPromise = new Promise((resolve) => {
+      $('body').off('menuDismiss').on('menuDismiss', () => {
         layoutDebug.addDialogDebug('menuDismiss received, resolve closeMenuPromise');
         self.unattach();
         $('body').removeClass('slash-menu');
@@ -33105,8 +33104,8 @@ class suiMenuManager {
     $('body').trigger('menuDismiss');
   }
 
-  createMenu(action, completeNotifier) {
-    this.menuPosition = {x:250,y:40,width:1,height:1};
+  createMenu(action) {
+    this.menuPosition = { x: 250, y: 40, width: 1, height: 1 };
     // If we were called from the ribbon, we notify the controller that we are
     // taking over the keyboard.  If this was a key-based command we already did.
     layoutDebug.addDialogDebug('createMenu creating ' + action);
@@ -33134,10 +33133,6 @@ class suiMenuManager {
   // We have taken over menu commands from controller.  If there is a menu active, send the key
   // to it.  If there is not, see if the keystroke creates one.  If neither, dismissi the menu.
   evKey(event) {
-    console.log("KeyboardEvent: key='" + event.key + "' | code='" +
-    event.code + "'"
-     + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
-
     if (['Tab', 'Enter'].indexOf(event.code) >= 0) {
       return;
     }
@@ -33148,11 +33143,10 @@ class suiMenuManager {
     if (this.menu) {
       if (event.code === 'ArrowUp') {
         this._advanceSelection(-1);
-      }
-      else if (event.code === 'ArrowDown') {
+      } else if (event.code === 'ArrowDown') {
         this._advanceSelection(1);
       } else  if (this.hotkeyBindings[event.key]) {
-        $('button[data-value="'+this.hotkeyBindings[event.key] + '"]').click();
+        $('button[data-value="' + this.hotkeyBindings[event.key] + '"]').click();
       } else {
         this.menu.keydown(event);
       }
@@ -33172,24 +33166,23 @@ class suiMenuManager {
     const self = this;
     this.hotkeyBindings = { };
     $('body').addClass('slash-menu');
-
     // We need to keep track of is bound, b/c the menu can be created from
     // different sources.
     if (!this.bound) {
       this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
       this.bound = true;
     }
-
-  $(this.menuContainer).find('button').off('click').on('click', function (ev) {
-    if ($(ev.currentTarget).attr('data-value') === 'cancel') {
-      self.menu.complete();
-      return;
-    }
-    self.menu.selection(ev);
-  });
+    $(this.menuContainer).find('button').off('click').on('click', (ev) => {
+      if ($(ev.currentTarget).attr('data-value') === 'cancel') {
+        self.menu.complete();
+        return;
+      }
+      self.menu.selection(ev);
+    });
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiFileMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined' ? params : {});
@@ -33203,56 +33196,53 @@ class SuiFileMenu extends suiMenuBase {
     return SuiFileMenu.ctor;
   }
   static get defaults() {
-
     SuiFileMenu._defaults = SuiFileMenu._defaults ? SuiFileMenu._defaults : {
-      label:'File',
-      menuItems: [
-        {
-          icon: 'folder-new',
-          text: 'New Score',
-          value: 'newFile'
-        }, {
-          icon: 'folder-open',
-          text: 'Open',
-          value: 'openFile'
-        }, {
-          icon: 'folder-save',
-          text: 'Save',
-          value: 'saveFile'
-        }, {
-          icon: 'folder-save',
-          text: 'Quick Save',
-          value: 'quickSave'
-        }, {
-          icon: '',
-          text: 'Print',
-          value: 'printScore'
-        }, {
-          icon: '',
-          text: 'Bach Invention',
-          value: 'bach'
-        }, {
-          icon: '',
-          text: 'Jesu Bambino',
-          value: 'bambino'
-        }, {
-          icon: '',
-          text: 'Microtone Sample',
-          value: 'microtone'
-        }, {
-          icon: '',
-          text: 'Precious Lord',
-          value: 'preciousLord'
-        }, {
-          icon: '',
-          text: 'Yama',
-          value: 'yamaJson'
-        }, {
-          icon: '',
-          text: 'Cancel',
-          value: 'cancel'
-        }
-      ]
+      label: 'File',
+      menuItems: [{
+        icon: 'folder-new',
+        text: 'New Score',
+        value: 'newFile'
+      }, {
+        icon: 'folder-open',
+        text: 'Open',
+        value: 'openFile'
+      }, {
+        icon: 'folder-save',
+        text: 'Save',
+        value: 'saveFile'
+      }, {
+        icon: 'folder-save',
+        text: 'Quick Save',
+        value: 'quickSave'
+      }, {
+        icon: '',
+        text: 'Print',
+        value: 'printScore'
+      }, {
+        icon: '',
+        text: 'Bach Invention',
+        value: 'bach'
+      }, {
+        icon: '',
+        text: 'Jesu Bambino',
+        value: 'bambino'
+      }, {
+        icon: '',
+        text: 'Microtone Sample',
+        value: 'microtone'
+      }, {
+        icon: '',
+        text: 'Precious Lord',
+        value: 'preciousLord'
+      }, {
+        icon: '',
+        text: 'Yama',
+        value: 'yamaJson'
+      }, {
+        icon: '',
+        text: 'Cancel',
+        value: 'cancel'
+      }]
     };
     return SuiFileMenu._defaults;
   }
@@ -33270,7 +33260,7 @@ class SuiFileMenu extends suiMenuBase {
   }
   selection(ev) {
     const text = $(ev.currentTarget).attr('data-value');
-    var self = this;
+    const self = this;
     if (text === 'saveFile') {
       SuiSaveFileDialog.createAndDisplay({
         completeNotifier: this.completeNotifier,
@@ -33291,42 +33281,42 @@ class SuiFileMenu extends suiMenuBase {
         view: this.view,
         closeMenuPromise: this.closePromise
       });
-    } else if (text == 'newFile') {
+    } else if (text === 'newFile') {
       const score = SmoScore.getDefaultScore();
       this.view.changeScore(score);
-    } else if (text == 'quickSave') {
+    } else if (text === 'quickSave') {
       const scoreStr = JSON.stringify(this.view.storeScore.serialize());
       localStorage.setItem(smoSerialize.localScore, scoreStr);
-    } else if (text == 'printScore') {
+    } else if (text === 'printScore') {
       const systemPrint = () => {
         self.systemPrint();
-      }
+      };
       this.view.renderer.renderForPrintPromise().then(systemPrint);
-    } else if (text == 'bach') {
+    } else if (text === 'bach') {
       const score = SmoScore.deserialize(inventionJson);
       this.view.changeScore(score);
-    } else if (text == 'yamaJson') {
+    } else if (text === 'yamaJson') {
       const score = SmoScore.deserialize(yamaJson);
       this.view.changeScore(score);
-    }
-    else if (text == 'bambino') {
+    } else if (text === 'bambino') {
       const score = SmoScore.deserialize(jesuBambino);
       this.view.changeScore(score);
-    } else if (text == 'microtone') {
+    } else if (text === 'microtone') {
       const score = SmoScore.deserialize(microJson);
       this.view.changeScore(score);
-    }  else if (text == 'preciousLord') {
+    }  else if (text === 'preciousLord') {
       const score = SmoScore.deserialize(preciousLord);
       this.view.changeScore(score);
     }
     this.complete();
   }
-  keydown(ev) {}
+  keydown() {}
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiDynamicsMenu extends suiMenuBase {
   constructor(params) {
-    params = (params ? params : {});
+    params = (typeof(params) !== 'undefined' ? params : {});
     Vex.Merge(params, SuiDynamicsMenu.defaults);
     super(params);
   }
@@ -33338,44 +33328,42 @@ class SuiDynamicsMenu extends suiMenuBase {
   }
   static get defaults() {
     SuiDynamicsMenu._defaults = SuiDynamicsMenu._defaults ? SuiDynamicsMenu._defaults :
-    {
-      label:'Dynamics',
-      menuItems: [{
-        icon: 'pianissimo',
-        text: 'Pianissimo',
-        value: 'pp'
-      }, {
-        icon: 'piano',
-        text: 'Piano',
-        value: 'p'
-      }, {
-        icon: 'mezzopiano',
-        text: 'Mezzo-piano',
-        value: 'mp'
-      }, {
-        icon: 'mezzoforte',
-        text: 'Mezzo-forte',
-        value: 'mf'
-      }, {
-        icon: 'forte',
-        text: 'Forte',
-        value: 'f'
-      }, {
-        icon: 'fortissimo',
-        text: 'Fortissimo',
-        value: 'ff'
-      }, {
-        icon: 'sfz',
-        text: 'sfortzando',
-        value: 'sfz'
-      },
-       {
-        icon: '',
-        text: 'Cancel',
-        value: 'cancel'
-      }
-    ]
-    };
+      {
+        label: 'Dynamics',
+        menuItems: [{
+          icon: 'pianissimo',
+          text: 'Pianissimo',
+          value: 'pp'
+        }, {
+          icon: 'piano',
+          text: 'Piano',
+          value: 'p'
+        }, {
+          icon: 'mezzopiano',
+          text: 'Mezzo-piano',
+          value: 'mp'
+        }, {
+          icon: 'mezzoforte',
+          text: 'Mezzo-forte',
+          value: 'mf'
+        }, {
+          icon: 'forte',
+          text: 'Forte',
+          value: 'f'
+        }, {
+          icon: 'fortissimo',
+          text: 'Fortissimo',
+          value: 'ff'
+        }, {
+          icon: 'sfz',
+          text: 'sfortzando',
+          value: 'sfz'
+        }, {
+          icon: '',
+          text: 'Cancel',
+          value: 'cancel'
+        }]
+      };
     return SuiDynamicsMenu._defaults;
   }
 
@@ -33384,62 +33372,60 @@ class SuiDynamicsMenu extends suiMenuBase {
     this.view.addDynamic(text);
     this.complete();
   }
-  keydown(ev) {}
+  keydown() {}
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiTimeSignatureMenu extends suiMenuBase {
-    constructor(params) {
-  params = (params ? params : {});
-  Vex.Merge(params, SuiTimeSignatureMenu.defaults);
-  super(params);
+  constructor(params) {
+    params = (typeof(params) !== 'undefined' ? params : {});
+    Vex.Merge(params, SuiTimeSignatureMenu.defaults);
+    super(params);
   }
   static get ctor() {
     return 'SuiTimeSignatureMenu';
   }
-
   get ctor() {
     return SuiTimeSignatureMenu.ctor;
   }
   static get defaults() {
     SuiTimeSignatureMenu._defaults = SuiTimeSignatureMenu._defaults ? SuiTimeSignatureMenu._defaults :
-    {
-      label:'Time Sig',
-      menuItems: [
-        {
+      {
+        label: 'Time Sig',
+        menuItems: [{
           icon: 'sixeight',
           text: '6/8',
           value: '6/8',
-        },{
+        }, {
           icon: 'threefour',
           text: '3/4',
           value: '3/4',
-        },{
+        }, {
           icon: 'twofour',
           text: '2/4',
           value: '2/4',
-        },{
+        }, {
           icon: 'twelveeight',
           text: '12/8',
           value: '12/8',
-        },{
+        }, {
           icon: 'seveneight',
           text: '7/8',
           value: '7/8',
-        },{
+        }, {
           icon: 'fiveeight',
           text: '5/8',
           value: '5/8',
-        },{
+        }, {
           icon: '',
           text: 'Other',
           value: 'TimeSigOther',
-        },{
+        }, {
           icon: '',
           text: 'Cancel',
           value: 'cancel'
-        }
-      ]
-    };
+        }]
+      };
     return SuiTimeSignatureMenu._defaults;
   }
 
@@ -33461,14 +33447,14 @@ class SuiTimeSignatureMenu extends suiMenuBase {
     this.complete();
   }
 
-  keydown(ev) {}
-  }
+  keydown() {}
+}
 
+// eslint-disable-next-line no-unused-vars
 class SuiKeySignatureMenu extends suiMenuBase {
-
   constructor(params) {
-  params = (params ? params : {});
-  Vex.Merge(params, SuiKeySignatureMenu.defaults);
+    params = (typeof(params) !== 'undefined' ? params : {});
+    Vex.Merge(params, SuiKeySignatureMenu.defaults);
     super(params);
   }
   static get ctor() {
@@ -33478,75 +33464,75 @@ class SuiKeySignatureMenu extends suiMenuBase {
     return SuiKeySignatureMenu.ctor;
   }
   static get defaults() {
-    SuiKeySignatureMenu._defaults = SuiKeySignatureMenu._defaults ? SuiKeySignatureMenu._defaults :
-   {
-      label:'Key',
-      menuItems: [{
-        icon: 'key-sig-c',
-        text: 'C Major',
-        value: 'KeyOfC',
-      }, {
-        icon: 'key-sig-f',
-        text: 'F Major',
-        value: 'KeyOfF',
-      }, {
-        icon: 'key-sig-g',
-        text: 'G Major',
-        value: 'KeyOfG',
-      }, {
-        icon: 'key-sig-bb',
-        text: 'Bb Major',
-        value: 'KeyOfBb'
-      }, {
-        icon: 'key-sig-d',
-        text: 'D Major',
-        value: 'KeyOfD'
-      }, {
-        icon: 'key-sig-eb',
-        text: 'Eb Major',
-        value: 'KeyOfEb'
-      }, {
-        icon: 'key-sig-a',
-        text: 'A Major',
-        value: 'KeyOfA'
-      }, {
-        icon: 'key-sig-ab',
-        text: 'Ab Major',
-        value: 'KeyOfAb'
-      }, {
-        icon: 'key-sig-e',
-        text: 'E Major',
-        value: 'KeyOfE'
-      }, {
-        icon: 'key-sig-bd',
-        text: 'Db Major',
-        value: 'KeyOfDb'
-      }, {
-        icon: 'key-sig-b',
-        text: 'B Major',
-        value: 'KeyOfB'
-      }, {
-        icon: 'key-sig-fs',
-        text: 'F# Major',
-        value: 'KeyOfF#'
-      }, {
-        icon: 'key-sig-cs',
-        text: 'C# Major',
-        value: 'KeyOfC#'
-      },
+    SuiKeySignatureMenu._defaults = typeof(SuiKeySignatureMenu._defaults) !== 'undefined'
+      ? SuiKeySignatureMenu._defaults :
       {
-        icon: '',
-        text: 'Cancel',
-        value: 'cancel'
-      }
-    ],
-    menuContainer: '.menuContainer'
-    };
+        label: 'Key',
+        menuItems: [{
+          icon: 'key-sig-c',
+          text: 'C Major',
+          value: 'KeyOfC',
+        }, {
+          icon: 'key-sig-f',
+          text: 'F Major',
+          value: 'KeyOfF',
+        }, {
+          icon: 'key-sig-g',
+          text: 'G Major',
+          value: 'KeyOfG',
+        }, {
+          icon: 'key-sig-bb',
+          text: 'Bb Major',
+          value: 'KeyOfBb'
+        }, {
+          icon: 'key-sig-d',
+          text: 'D Major',
+          value: 'KeyOfD'
+        }, {
+          icon: 'key-sig-eb',
+          text: 'Eb Major',
+          value: 'KeyOfEb'
+        }, {
+          icon: 'key-sig-a',
+          text: 'A Major',
+          value: 'KeyOfA'
+        }, {
+          icon: 'key-sig-ab',
+          text: 'Ab Major',
+          value: 'KeyOfAb'
+        }, {
+          icon: 'key-sig-e',
+          text: 'E Major',
+          value: 'KeyOfE'
+        }, {
+          icon: 'key-sig-bd',
+          text: 'Db Major',
+          value: 'KeyOfDb'
+        }, {
+          icon: 'key-sig-b',
+          text: 'B Major',
+          value: 'KeyOfB'
+        }, {
+          icon: 'key-sig-fs',
+          text: 'F# Major',
+          value: 'KeyOfF#'
+        }, {
+          icon: 'key-sig-cs',
+          text: 'C# Major',
+          value: 'KeyOfC#'
+        },
+        {
+          icon: '',
+          text: 'Cancel',
+          value: 'cancel'
+        }],
+        menuContainer: '.menuContainer'
+      };
     return SuiKeySignatureMenu._defaults;
   }
 
   selection(ev) {
-    var keySig = $(ev.currentTarget).attr('data-value');
+    let keySig = $(ev.currentTarget).attr('data-value');
     keySig = (keySig === 'cancel' ? keySig : keySig.substring(5, keySig.length));
     if (keySig === 'cancel') {
       return;
@@ -33554,13 +33540,13 @@ class SuiKeySignatureMenu extends suiMenuBase {
     this.view.addKeySignature(keySig);
     this.complete();
   }
-  keydown(ev) {}
+  keydown() {}
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiStaffModifierMenu extends suiMenuBase {
-
   constructor(params) {
-    params = (params ? params : {});
+    params = (typeof(params) !== 'undefined' ? params : {});
     Vex.Merge(params, SuiStaffModifierMenu.defaults);
     super(params);
   }
@@ -33572,34 +33558,33 @@ class SuiStaffModifierMenu extends suiMenuBase {
   }
 
   static get defaults() {
-    SuiStaffModifierMenu._defaults = SuiStaffModifierMenu._defaults ? SuiStaffModifierMenu._defaults :
-    {
-      label:'Lines',
-      menuItems: [{
-        icon: 'cresc',
-        text: 'Crescendo',
-        value: 'crescendo'
+    SuiStaffModifierMenu._defaults = typeof(SuiStaffModifierMenu._defaults) !== 'undefined' ? SuiStaffModifierMenu._defaults :
+      {
+        label: 'Lines',
+        menuItems: [{
+          icon: 'cresc',
+          text: 'Crescendo',
+          value: 'crescendo'
         }, {
-        icon: 'decresc',
-        text: 'Decrescendo',
-        value: 'decrescendo'
+          icon: 'decresc',
+          text: 'Decrescendo',
+          value: 'decrescendo'
         }, {
-        icon: 'slur',
-        text: 'Slur/Tie',
-        value: 'slur'
+          icon: 'slur',
+          text: 'Slur/Tie',
+          value: 'slur'
         }, {
-        icon: 'ending',
-        text: 'nth ending',
-        value: 'ending'
+          icon: 'ending',
+          text: 'nth ending',
+          value: 'ending'
         },
-         {
-        icon: '',
-        text: 'Cancel',
-        value: 'cancel'
-        }
-      ],
-      menuContainer: '.menuContainer'
-    };
+        {
+          icon: '',
+          text: 'Cancel',
+          value: 'cancel'
+        }],
+        menuContainer: '.menuContainer'
+      };
     return SuiStaffModifierMenu._defaults;
   }
   selection(ev) {
@@ -33610,21 +33595,20 @@ class SuiStaffModifierMenu extends suiMenuBase {
       this.view.slur();
     } else if (op === 'crescendo') {
       this.view.crescendo();
-    } else if (op === 'decrescendo'){
+    } else if (op === 'decrescendo') {
       this.view.decrescendo();
     }
     // else cancel...
     this.complete();
   }
-
-  keydown(ev) {
+  keydown() {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiLanguageMenu extends suiMenuBase {
-
   constructor(params) {
-    params = (params ? params : {});
+    params = (typeof(params) !== 'undefined') ? params : {};
     Vex.Merge(params, SuiLanguageMenu.defaults);
     super(params);
   }
@@ -33634,31 +33618,29 @@ class SuiLanguageMenu extends suiMenuBase {
   get ctor() {
     return SuiLanguageMenu.ctor;
   }
-
   static get defaults() {
     SuiLanguageMenu._defaults = SuiLanguageMenu._defaults ? SuiLanguageMenu._defaults :
-    {
-      label:'Language',
-      menuItems: [{
-        icon: '',
-        text: 'English',
-        value: 'en'
+      {
+        label: 'Language',
+        menuItems: [{
+          icon: '',
+          text: 'English',
+          value: 'en'
         }, {
           icon: '',
           text: 'Deutsch',
           value: 'de'
         }, {
-        icon: '',
-        text: 'اَلْعَرَبِيَّةُ',
-        value: 'ar'
-      }, {
-        icon: '',
-        text: 'Cancel',
-        value: 'cancel'
-        }
-      ],
-      menuContainer: '.menuContainer'
-    };
+          icon: '',
+          text: 'اَلْعَرَبِيَّةُ',
+          value: 'ar'
+        }, {
+          icon: '',
+          text: 'Cancel',
+          value: 'cancel'
+        }],
+        menuContainer: '.menuContainer'
+      };
     return SuiLanguageMenu._defaults;
   }
   selection(ev) {
@@ -33667,16 +33649,15 @@ class SuiLanguageMenu extends suiMenuBase {
     SmoTranslator.setLanguage(op);
     this.complete();
   }
-
-  keydown(ev) {
+  keydown() {
   }
 }
+// eslint-disable-next-line no-unused-vars
 class SuiMeasureMenu extends suiMenuBase {
   static get defaults() {
     SuiMeasureMenu._defaults = SuiMeasureMenu._defaults ? SuiMeasureMenu._defaults : {
-      label:'Measure',
+      label: 'Measure',
       menuItems: [
-
         {
           icon: '',
           text: 'Add Measure Before',
@@ -33700,7 +33681,7 @@ class SuiMeasureMenu extends suiMenuBase {
           value: 'cancel'
         }
       ]
-    }
+    };
     return SuiMeasureMenu._defaults;
   }
   static get ctor() {
@@ -33711,19 +33692,18 @@ class SuiMeasureMenu extends suiMenuBase {
   }
 
   constructor(params) {
-    params = (params ? params : {});
+    params = (typeof(params) !== 'undefined') ? params : {};
     Vex.Merge(params, SuiMeasureMenu.defaults);
     super(params);
   }
   selection(ev) {
-    var text = $(ev.currentTarget).attr('data-value');
-
-    if (text == 'formatMeasureDialog') {
+    const text = $(ev.currentTarget).attr('data-value');
+    if (text === 'formatMeasureDialog') {
       SuiMeasureDialog.createAndDisplay({
         view: this.view,
-        completeNotifier:this.completeNotifier,
-        closeMenuPromise:this.closePromise,
-        eventSource:this.eventSource
+        completeNotifier: this.completeNotifier,
+        closeMenuPromise: this.closePromise,
+        eventSource: this.eventSource
       });
       this.complete();
       return;
@@ -33741,13 +33721,12 @@ class SuiMeasureMenu extends suiMenuBase {
     }
     this.complete();
   }
-
-
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiAddStaffMenu extends suiMenuBase {
   constructor(params) {
-    params = (params ? params : {});
+    params = (typeof(params) !== 'undefined' ? params : {});
     Vex.Merge(params, SuiAddStaffMenu.defaults);
     super(params);
   }
@@ -33760,7 +33739,7 @@ class SuiAddStaffMenu extends suiMenuBase {
 
   static get defaults() {
     SuiAddStaffMenu._defaults = SuiAddStaffMenu._defaults ? SuiAddStaffMenu._defaults : {
-      label: "Add Staff",
+      label: 'Add Staff',
       menuItems: [
         {
           icon: 'treble',
@@ -33796,57 +33775,55 @@ class SuiAddStaffMenu extends suiMenuBase {
     return {
       'trebleInstrument': {
         instrumentInfo: {
-        instrumentName: 'Treble Clef Staff',
-        keyOffset: 0,
-        clef: 'treble'
-      }
+          instrumentName: 'Treble Clef Staff',
+          keyOffset: 0,
+          clef: 'treble'
+        }
       },
       'bassInstrument': {
         instrumentInfo: {
-        instrumentName: 'Bass Clef Staff',
-        keyOffset: 0,
-        clef: 'bass'
-      }
+          instrumentName: 'Bass Clef Staff',
+          keyOffset: 0,
+          clef: 'bass'
+        }
       },
       'altoInstrument': {
         instrumentInfo: {
-        instrumentName: 'Alto Clef Staff',
-        keyOffset: 0,
-        clef: 'alto'
-      }
+          instrumentName: 'Alto Clef Staff',
+          keyOffset: 0,
+          clef: 'alto'
+        }
       },
       'tenorInstrument': {
         instrumentInfo: {
-        instrumentName: 'Tenor Clef Staff',
-        keyOffset: 0,
-        clef: 'tenor'
-      }
+          instrumentName: 'Tenor Clef Staff',
+          keyOffset: 0,
+          clef: 'tenor'
+        }
       },
       'remove': {
         instrumentInfo: {
-        instrumentName: 'Remove clef',
-        keyOffset: 0,
-        clef: 'tenor'
+          instrumentName: 'Remove clef',
+          keyOffset: 0,
+          clef: 'tenor'
+        }
       }
-    }
-  }
-
+    };
   }
   selection(ev) {
-    var op = $(ev.currentTarget).attr('data-value');
-    if (op == 'remove') {
+    const op = $(ev.currentTarget).attr('data-value');
+    if (op === 'remove') {
       this.view.removeStaff();
       this.complete();
     } else if (op === 'cancel') {
       this.complete();
     } else {
-      var instrument = SuiAddStaffMenu.instrumentMap[op];
+      const instrument = SuiAddStaffMenu.instrumentMap[op];
       this.view.addStaff(instrument);
       this.complete();
     }
   }
-  keydown(ev) {}
-
+  keydown() {}
 }
 ;
 class Qwerty {

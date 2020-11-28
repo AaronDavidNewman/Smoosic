@@ -1,10 +1,10 @@
-// ## SuiRenderScore
+// ## SuiScoreRender
 // This module renders the entire score.  It calculates the layout first based on the
 // computed dimensions.
 // eslint-disable-next-line no-unused-vars
-class SuiRenderScore extends SuiRenderState {
+class SuiScoreRender extends SuiRenderState {
   constructor(params) {
-    super('SuiRenderScore');
+    super('SuiScoreRender');
     Vex.Merge(this, SuiRenderState.defaults);
     Vex.Merge(this, params);
     this.setViewport(true);
@@ -27,7 +27,7 @@ class SuiRenderScore extends SuiRenderState {
     if (layoutParams) {
       Vex.Merge(ctorObj, layoutParams);
     }
-    const layout = new SuiRenderScore(ctorObj);
+    const layout = new SuiScoreRender(ctorObj);
     return layout;
   }
 

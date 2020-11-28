@@ -58,7 +58,7 @@ class SuiApplication {
     var params = suiController.keyBindingDefaults;
     params.eventSource = new browserEventSource(); // events come from the browser UI.
 
-    const scoreRenderer = SuiRenderScore.createScoreRenderer(document.getElementById(SmoConfig.vexDomContainer), score);
+    const scoreRenderer = SuiScoreRender.createScoreRenderer(document.getElementById(SmoConfig.vexDomContainer), score);
     params.eventSource.setRenderElement(scoreRenderer.renderElement);
     params.view = new SuiScoreView(scoreRenderer, score);
     if (SmoConfig.keyCommands) {

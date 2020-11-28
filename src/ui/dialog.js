@@ -11,7 +11,6 @@ class SuiModifierDialogFactory {
       dbType = 'SuiChordChangeDialog';
     }
     if (typeof(dbType) === 'undefined') {
-      console.warn('no dialog for modifier ' + modifier.attrs.type);
       return null;
     }
     const ctor = eval(dbType);
