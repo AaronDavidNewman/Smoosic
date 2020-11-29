@@ -4898,6 +4898,68 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.renderer.renderScoreModifiers();
   }
 
+  addRemoveMicrotone(tone) {
+    const selections = this.tracker.selections;
+    const altSelections = this._getEquivalentSelections(selections);
+    const measureSelections = this._undoTrackerMeasureSelections();
+
+    SmoOperation.addRemoveMicrotone(null, selections, tone);
+    SmoOperation.addRemoveMicrotone(null, altSelections, tone);
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  depopulateVoice() {
+    const measureSelections = this._undoTrackerMeasureSelections();
+    measureSelections.forEach((selection) => {
+      const ix = selection.measure.getActiveVoice();
+      if (ix !== 0) {
+        SmoOperation.depopulateVoice(selection, ix);
+        SmoOperation.depopulateVoice(this._getEquivalentSelection(selection), ix);
+      }
+    });
+    SmoOperation.setActiveVoice(this.score, 0);
+    this._renderChangedMeasures(measureSelections);
+  }
+  populateVoice(index) {
+    const measureSelections = this._undoTrackerMeasureSelections();
+    measureSelections.forEach((selection) => {
+      SmoOperation.populateVoice(selection, index);
+      SmoOperation.populateVoice(this._getEquivalentSelection(selection), index);
+    });
+    SmoOperation.setActiveVoice(this.score, index);
+    this._renderChangedMeasures(measureSelections);
+  }
+  changeInstrument(instrument) {
+    const measureSelections = this._undoTrackerMeasureSelections();
+    const selections = this.tracker.selections;
+    const altSelections = this._getEquivalentSelections(selections);
+    SmoOperation.changeInstrument(null, selections, instrument);
+    SmoOperation.changeInstrument(null, altSelections, instrument);
+    this._renderChangedMeasures(measureSelections);
+  }
+  moveStaffUpDown(index) {
+    this._undoScore('re-order staves');
+    // Get staff to move
+    const selection = this._getEquivalentSelection(this.tracker.selections[0]);
+    // Make the move in the model, and reset the view so we can see the new
+    // arrangement
+    SmoOperation.moveStaffUpDown(this.storeScore, selection, index);
+    const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    this.changeScore(newScore);
+  }
+  addStaffGroupDown(braceType) {
+    this._undoScore('group staves');
+    const ft = this._getEquivalentSelection(this.tracker.getExtremeSelection(-1));
+    const tt = this._getEquivalentSelection(this.tracker.getExtremeSelection(1));
+    const selections = this._getEquivalentSelections(this.tracker.selections);
+    SmoOperation.addConnectorDown(this.storeScore, selections, {
+      startSelector: ft.selector, endSelector: tt.selector,
+      mapType: SmoSystemGroup.mapTypes.allMeasures, leftConnector: braceType,
+      rightConnector: SmoSystemGroup.connectorTypes.single
+    });
+    const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    this.changeScore(newScore);
+  }
   addGraceNote() {
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections();
@@ -5200,7 +5262,7 @@ class SuiScoreViewOperations extends SuiScoreView {
   }
   addEnding() {
     // TODO: we should have undo for columns
-    this._undoScore();
+    this._undoScore('Add Volta');
     const ft = this.tracker.getExtremeSelection(-1);
     const tt = this.tracker.getExtremeSelection(1);
     const volta = new SmoVolta({ startBar: ft.selector.measure, endBar: tt.selector.measure, number: 1 });
@@ -14627,55 +14689,54 @@ class SmoOperation {
     selection.measure.setChanged();
   }
 
-    static setActiveVoice(score,voiceIx) {
-        score.staves.forEach((staff) => {
-            staff.measures.forEach((measure) => {
-                measure.setActiveVoice(voiceIx);
-            });
-        });
-    }
+  static setActiveVoice(score,voiceIx) {
+    score.staves.forEach((staff) => {
+      staff.measures.forEach((measure) => {
+        measure.setActiveVoice(voiceIx);
+      });
+    });
+  }
 
-    static addRemoveMicrotone(ignore,selections,tone) {
-        selections.forEach((sel) => {
-            if (sel.note.tones.findIndex((tt) => tt.tone==tone.tone
-              && tt.pitch==tone.pitch) >= 0) {
-                  sel.note.removeMicrotone(tone);
-              } else {
-                  sel.note.addMicrotone(tone);
-              }
-              sel.measure.setChanged();
-        });
-    }
-
-    static moveStaffUpDown(score,selection,index) {
-        var index1 = selection.selector.staff;
-        var index2 = selection.selector.staff + index;
-        if (index2 < score.staves.length && index2 >= 0) {
-            score.swapStaves(index1,index2);
+  static addRemoveMicrotone(ignore,selections,tone) {
+    selections.forEach((sel) => {
+      if (sel.note.tones.findIndex((tt) => tt.tone === tone.tone
+        && tt.pitch === tone.pitch) >= 0) {
+          sel.note.removeMicrotone(tone);
+        } else {
+          sel.note.addMicrotone(tone);
         }
-    }
+        sel.measure.setChanged();
+    });
+  }
 
-    static depopulateVoice(selection,voiceIx) {
-        var ix = 0;
-        var voices = [];
-        var measure = selection.measure;
-        measure.voices.forEach((voice) => {
-            if (measure.voices.length <2 || ix != voiceIx)  {
-                voices.push(voice);
-            }
-            ix += 1;
-        });
-        measure.voices = voices;
-
-        if (measure.getActiveVoice() >= measure.voices.length) {
-            measure.setActiveVoice(0);
-        }
+  static moveStaffUpDown(score,selection,index) {
+    const index1 = selection.selector.staff;
+    const index2 = selection.selector.staff + index;
+    if (index2 < score.staves.length && index2 >= 0) {
+      score.swapStaves(index1,index2);
     }
+  }
 
-    static populateVoice(selection,voiceIx) {
-        selection.measure.populateVoice(voiceIx);
-        selection.measure.setChanged();
+  static depopulateVoice(selection,voiceIx) {
+    var ix = 0;
+    var voices = [];
+    var measure = selection.measure;
+    measure.voices.forEach((voice) => {
+      if (measure.voices.length <2 || ix != voiceIx)  {
+        voices.push(voice);
+      }
+      ix += 1;
+    });
+    measure.voices = voices;
+
+    if (measure.getActiveVoice() >= measure.voices.length) {
+      measure.setActiveVoice(0);
     }
+  }
+
+  static populateVoice(selection,voiceIx) {
+    selection.measure.populateVoice(voiceIx);
+  }
 
   static setTimeSignature(score, selections, timeSignature) {
     const selectors = [];
@@ -14794,65 +14855,65 @@ class SmoOperation {
   // Replace the note with 2 notes of 1/2 duration, if possible
   // Works on tuplets also.
   static halveDuration(selection) {
-  var note = selection.note;
-  var measure = selection.measure;
-  var tuplet = measure.getTupletForNote(note);
-  var divisor = 2;
-  if (measure.numBeats % 3 === 0 && selection.note.tickCount === 6144) {
-  // special behavior, if this is dotted 1/4 in 6/8, split to 3
-  divisor = 3;
-  }
-  if (!tuplet) {
-  var nticks = note.tickCount / divisor;
-  if (!smoMusic.ticksToDuration[nticks]) {
-  return;
-  }
-  var actor = new SmoContractNoteActor({
-  startIndex: selection.selector.tick,
-  tickmap: measure.tickmapForVoice(selection.selector.voice),
-  newTicks: nticks
-  });
-  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-            smoBeamerFactory.applyBeams(measure);
-
-  } else {
-  var startIndex = measure.tupletIndex(tuplet) + tuplet.getIndexOfNote(note);
-  var actor = new SmoContractTupletActor({
-  changeIndex: startIndex,
-  measure: measure,
-                    voice:selection.selector.voice
-  });
-  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-  }
-  selection.measure.setChanged();
+    const note = selection.note;
+    let divisor = 2;
+    const measure = selection.measure;
+    const tuplet = measure.getTupletForNote(note);
+    if (measure.numBeats % 3 === 0 && selection.note.tickCount === 6144) {
+      // special behavior, if this is dotted 1/4 in 6/8, split to 3
+      divisor = 3;
+    }
+    if (!tuplet) {
+      const nticks = note.tickCount / divisor;
+      if (!smoMusic.ticksToDuration[nticks]) {
+        return;
+      }
+      var actor = new SmoContractNoteActor({
+        startIndex: selection.selector.tick,
+        tickmap: measure.tickmapForVoice(selection.selector.voice),
+        newTicks: nticks
+      });
+      SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
+      smoBeamerFactory.applyBeams(measure);
+    } else {
+      const startIndex = measure.tupletIndex(tuplet) + tuplet.getIndexOfNote(note);
+      const actor = new SmoContractTupletActor({
+        changeIndex: startIndex,
+        measure,
+        voice: selection.selector.voice
+      });
+      SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
+    }
+    selection.measure.setChanged();
   }
 
   // ## makeTuplet
   // ## Description
   // Makes a non-tuplet into a tuplet of equal value.
   static makeTuplet(selection, numNotes) {
-  var note = selection.note;
-  var measure = selection.measure;
+    const note = selection.note;
+    const measure = selection.measure;
 
-  if (measure.getTupletForNote(note))
-  return;
-  var nticks = note.tickCount;
+    if (measure.getTupletForNote(note)) {
+      return;
+    }
+    const nticks = note.tickCount;
 
-  var actor = new SmoMakeTupletActor({
-  index: selection.selector.tick,
-  totalTicks: nticks,
-  numNotes: numNotes,
-  selection: selection
-  });
-  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-  selection.measure.setChanged();
+    var actor = new SmoMakeTupletActor({
+      index: selection.selector.tick,
+      totalTicks: nticks,
+      numNotes: numNotes,
+      selection: selection
+    });
+    SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
+    selection.measure.setChanged();
 
-  return true;
+    return true;
   }
 
-    static removeStaffModifier(selection,modifier) {
-        selection.staff.removeStaffModifier(modifier);
-    }
+  static removeStaffModifier(selection,modifier) {
+    selection.staff.removeStaffModifier(modifier);
+  }
 
   static makeRest(selection) {
     selection.measure.setChanged();
@@ -15464,33 +15525,34 @@ class SmoOperation {
       }
     });
   }
-  static changeInstrument(score, instrument, selections) {
-    var measureHash = {};
+  static changeInstrument(ignore, instrument, selections) {
+    const measureHash = {};
+    let newKey = '';
     selections.forEach((selection) => {
       if (!measureHash[selection.selector.measure]) {
         measureHash[selection.selector.measure] = 1;
-        var netOffset = instrument.keyOffset - selection.measure.transposeIndex;
-        var newKey = smoMusic.pitchToVexKey(smoMusic.smoIntToPitch(
+        const netOffset = instrument.keyOffset - selection.measure.transposeIndex;
+        newKey = smoMusic.pitchToVexKey(smoMusic.smoIntToPitch(
           smoMusic.smoPitchToInt(
             smoMusic.vexToSmoPitch(selection.measure.keySignature)) + netOffset));
         newKey = smoMusic.toValidKeySignature(newKey);
         if (newKey.length > 1 && newKey[1] === 'n') {
           newKey = newKey[0];
         }
-        newKey = newKey[0].toUpperCase() + newKey.substr(1,newKey.length)
+        newKey = newKey[0].toUpperCase() + newKey.substr(1, newKey.length)
         selection.measure.keySignature = newKey;
         selection.measure.clef = instrument.clef;
         selection.measure.transposeIndex = instrument.keyOffset;
         selection.measure.voices.forEach((voice) => {
           voice.notes.forEach((note) => {
             if (note.noteType === 'n') {
-              var pitches = [];
+              const pitches = [];
               note.pitches.forEach((pitch) => {
-                var pint = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(pitch) + netOffset);
-                pitches.push(JSON.parse(JSON.stringify(smoMusic.getEnharmonicInKey(pint,newKey))));
+                const pint = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(pitch) + netOffset);
+                pitches.push(JSON.parse(JSON.stringify(smoMusic.getEnharmonicInKey(pint, newKey))));
               });
               note.pitches = pitches;
-              SmoOperation.transposeChords(note,netOffset,newKey);
+              SmoOperation.transposeChords(note, netOffset, newKey);
             }
             note.clef = instrument.clef;
           });
@@ -34335,26 +34397,27 @@ class RibbonButtons {
     this.eventSource.domClick(buttonElement,this,'_executeButton',buttonData);
   }
   _createCollapsibleButtonGroups(selector) {
+    let containerClass = {};
     // Now all the button elements have been bound.  Join child and parent buttons
     // For all the children of a button group, add it to the parent group
     this.collapseChildren.forEach((b) => {
-      var containerClass = 'ribbonButtonContainer';
+      containerClass = 'ribbonButtonContainer';
       if (b.action == 'collapseGrandchild') {
         containerClass = 'ribbonButtonContainerMore'
       }
-      var buttonHtml = RibbonButtons._buttonHtml(
+      const buttonHtml = RibbonButtons._buttonHtml(
         containerClass, b.id, b.classes, b.leftText, b.icon, b.rightText);
       if (b.dataElements) {
-        var bkeys = Object.keys(b.dataElements);
+        const bkeys = Object.keys(b.dataElements);
         bkeys.forEach((bkey) => {
           var de = b.dataElements[bkey];
           $(buttonHtml).find('button').attr('data-' + bkey, de);
         });
       }
       // Bind the child button actions
-      var parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
+      const parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
       $(parent).append(buttonHtml);
-      var el = $(selector).find('#' + b.id);
+      const el = $(selector).find('#' + b.id);
       this._bindButton(el, b);
     });
 
@@ -34364,13 +34427,13 @@ class RibbonButtons {
     });
   }
 
-    static isCollapsible(action) {
-      return ['collapseChild','collapseChildMenu','collapseGrandchild','collapseMore'].indexOf(action) >= 0;
-    }
+  static isCollapsible(action) {
+    return ['collapseChild', 'collapseChildMenu', 'collapseGrandchild', 'collapseMore'].indexOf(action) >= 0;
+  }
 
-    static isBindable(action) {
-      return ['collapseChildMenu','menu','modal'].indexOf(action) >= 0;
-    }
+  static isBindable(action) {
+    return ['collapseChildMenu', 'menu', 'modal'].indexOf(action) >= 0;
+  }
 
     // ### _createButtonHtml
     // For each button, create the html and bind the events based on
@@ -34456,6 +34519,8 @@ class DebugButtons {
   }
 }
 
+// ## ExtendedCollapseParent
+// Muse-style '...' buttons for less-common operations
 class ExtendedCollapseParent {
     constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
@@ -34498,18 +34563,16 @@ class MicrotoneButtons {
       this.view = parameters.view
     }
   applyButton(el) {
-    var pitch = 0;
+    let pitch = 0;
     if (this.view.tracker.selections.length == 1 &&
       this.view.tracker.selections[0].selector.pitches &&
       this.view.tracker.selections[0].selector.pitches.length
     ) {
       pitch = this.view.tracker.selections[0].selector.pitches[0];
     }
-    var tn = new SmoMicrotone({ tone: el.id,pitch: pitch });
-    SmoUndoable.multiSelectionOperation(this.view.score,
-      this.tracker.selections, 'addRemoveMicrotone', tn, this.view.undoBuffer);
+    const tn = new SmoMicrotone({ tone: el.id, pitch: pitch });
+    this.view.addRemoveMicrotone(tn);
     suiOscillator.playSelectionNow(this.view.tracker.selections[0]);
-    this.view.renderer.addToReplaceQueue(this.view.tracker.selections[0]);
   }
   bind() {
     var self = this;
@@ -34555,47 +34618,35 @@ class VoiceButtons {
   constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
     this.buttonData = parameters.buttonData;
-    this.keyCommands = parameters.keyCommands;
-        this.tracker = parameters.tracker;
+    this.view = parameters.view;
   }
-    _depopulateVoice() {
-        var selections = SmoSelection.getMeasureList(this.tracker.selections);
-        selections.forEach((selection) => {
-            SmoUndoable.depopulateVoice([selection],selection.measure.getActiveVoice(),
-               this.keyCommands.undoBuffer);
-            selection.measure.setChanged();
-        });
-        this.tracker.replaceSelectedMeasures();
-    }
-  setPitch() {
-    var voiceIx = 0;
-    if (this.buttonData.id === 'V1Button') {
-      SmoOperation.setActiveVoice(this.view.score, voiceIx);
-      const ml = SmoSelection.getMeasureList(this.view.tracker.selections);
-      ml.forEach((sel) => {
-        sel.measure.setChanged();
-      });
-      this.view.tracker.replaceSelectedMeasures();
-      return;
-    } else if (this.buttonData.id === 'V2Button') {
+  _depopulateVoice() {
+    const selections = SmoSelection.getMeasureList(this.tracker.selections);
+    selections.forEach((selection) => {
+      SmoUndoable.depopulateVoice([selection], selection.measure.getActiveVoice(),
+        this.keyCommands.undoBuffer);
+      selection.measure.setChanged();
+    });
+    this.tracker.replaceSelectedMeasures();
+  }
+  doAction() {
+    let voiceIx = 0;
+    if (this.buttonData.id === 'V2Button') {
       voiceIx = 1;
     } else if (this.buttonData.id === 'V3Button') {
-      this.keyCommands.upOctave();
        voiceIx = 2;
     } else if (this.buttonData.id === 'V4Button') {
-      this.keyCommands.downOctave();
       voiceIx = 3;
     } else if (this.buttonData.id === 'VXButton') {
-      return this._depopulateVoice();
+      this.view.depopulateVoice();
+      return;
     }
-    SmoUndoable.populateVoice(this.view.tracker.selections, voiceIx, this.view.undoBuffer);
-    SmoOperation.setActiveVoice(this.view.score, voiceIx);
-    this.view.tracker.replaceSelectedMeasures();
+    this.view.populateVoice(voiceIx);
   }
   bind() {
     var self = this;
     $(this.buttonElement).off('click').on('click', function () {
-      self.setPitch();
+      self.doAction();
     });
   }
 }
@@ -34679,21 +34730,13 @@ class StaveButtons {
     Vex.Merge(this,parameters);
     this.view = this.view;
   }
-  addClef(clef,clefName) {
+  addClef(clef, clefName) {
     var instrument = {
       instrumentName: clefName,
       keyOffset: 0,
       clef: clef
     }
-    const staff = this.view.tracker.selections[0].selector.staff;
-    const measures = SmoSelection.getMeasureList(this.view.tracker.selections)
-      .map((sel) => sel.measure);
-    const selections=[];
-    measures.forEach((measure) => {
-      selections.push(SmoSelection.measureSelection(this.view.score, staff, measure.measureNumber.measureIndex));
-    });
-    SmoUndoable.changeInstrument(this.view.score, instrument, selections, this.view.undoBuffer);
-    this.view.tracker.replaceSelectedMeasures();
+    this.view.changeInstrument(instrument);
   }
   clefTreble() {
     this.addClef('treble','Treble Instrument');
@@ -34708,9 +34751,7 @@ class StaveButtons {
     this.addClef('tenor','Tenor Instrument');
   }
   _clefMove(index,direction) {
-    SmoUndoable.scoreSelectionOp(this.view.score, this.view.tracker.selections[0], 'moveStaffUpDown',
-      index, this.view.undoBuffer, 'Move staff ' + direction);
-    this.view.renderer.rerenderAll();
+    this.view.moveStaffUpDown(index);
   }
   clefMoveUp() {
     this._clefMove(-1,'up');
@@ -34719,11 +34760,7 @@ class StaveButtons {
     this._clefMove(1,'down');
   }
   _addStaffGroup(type) {
-    SmoUndoable.addConnectorDown(this.view.score,
-      this.view.tracker.selections,
-      { mapType: SmoSystemGroup.mapTypes.allMeasures,leftConnector: type,
-        rightConnector: SmoSystemGroup.connectorTypes.single },
-      this.view.undoBuffer);
+    this.view.addStaffGroupDown(type);
   }
   staffBraceLower() {
     this._addStaffGroup(SmoSystemGroup.connectorTypes.brace);

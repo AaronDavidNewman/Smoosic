@@ -24,6 +24,68 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.renderer.renderScoreModifiers();
   }
 
+  addRemoveMicrotone(tone) {
+    const selections = this.tracker.selections;
+    const altSelections = this._getEquivalentSelections(selections);
+    const measureSelections = this._undoTrackerMeasureSelections();
+
+    SmoOperation.addRemoveMicrotone(null, selections, tone);
+    SmoOperation.addRemoveMicrotone(null, altSelections, tone);
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  depopulateVoice() {
+    const measureSelections = this._undoTrackerMeasureSelections();
+    measureSelections.forEach((selection) => {
+      const ix = selection.measure.getActiveVoice();
+      if (ix !== 0) {
+        SmoOperation.depopulateVoice(selection, ix);
+        SmoOperation.depopulateVoice(this._getEquivalentSelection(selection), ix);
+      }
+    });
+    SmoOperation.setActiveVoice(this.score, 0);
+    this._renderChangedMeasures(measureSelections);
+  }
+  populateVoice(index) {
+    const measureSelections = this._undoTrackerMeasureSelections();
+    measureSelections.forEach((selection) => {
+      SmoOperation.populateVoice(selection, index);
+      SmoOperation.populateVoice(this._getEquivalentSelection(selection), index);
+    });
+    SmoOperation.setActiveVoice(this.score, index);
+    this._renderChangedMeasures(measureSelections);
+  }
+  changeInstrument(instrument) {
+    const measureSelections = this._undoTrackerMeasureSelections();
+    const selections = this.tracker.selections;
+    const altSelections = this._getEquivalentSelections(selections);
+    SmoOperation.changeInstrument(null, selections, instrument);
+    SmoOperation.changeInstrument(null, altSelections, instrument);
+    this._renderChangedMeasures(measureSelections);
+  }
+  moveStaffUpDown(index) {
+    this._undoScore('re-order staves');
+    // Get staff to move
+    const selection = this._getEquivalentSelection(this.tracker.selections[0]);
+    // Make the move in the model, and reset the view so we can see the new
+    // arrangement
+    SmoOperation.moveStaffUpDown(this.storeScore, selection, index);
+    const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    this.changeScore(newScore);
+  }
+  addStaffGroupDown(braceType) {
+    this._undoScore('group staves');
+    const ft = this._getEquivalentSelection(this.tracker.getExtremeSelection(-1));
+    const tt = this._getEquivalentSelection(this.tracker.getExtremeSelection(1));
+    const selections = this._getEquivalentSelections(this.tracker.selections);
+    SmoOperation.addConnectorDown(this.storeScore, selections, {
+      startSelector: ft.selector, endSelector: tt.selector,
+      mapType: SmoSystemGroup.mapTypes.allMeasures, leftConnector: braceType,
+      rightConnector: SmoSystemGroup.connectorTypes.single
+    });
+    const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    this.changeScore(newScore);
+  }
   addGraceNote() {
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections();
@@ -326,7 +388,7 @@ class SuiScoreViewOperations extends SuiScoreView {
   }
   addEnding() {
     // TODO: we should have undo for columns
-    this._undoScore();
+    this._undoScore('Add Volta');
     const ft = this.tracker.getExtremeSelection(-1);
     const tt = this.tracker.getExtremeSelection(1);
     const volta = new SmoVolta({ startBar: ft.selector.measure, endBar: tt.selector.measure, number: 1 });

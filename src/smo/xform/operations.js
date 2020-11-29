@@ -71,55 +71,54 @@ class SmoOperation {
     selection.measure.setChanged();
   }
 
-    static setActiveVoice(score,voiceIx) {
-        score.staves.forEach((staff) => {
-            staff.measures.forEach((measure) => {
-                measure.setActiveVoice(voiceIx);
-            });
-        });
-    }
+  static setActiveVoice(score,voiceIx) {
+    score.staves.forEach((staff) => {
+      staff.measures.forEach((measure) => {
+        measure.setActiveVoice(voiceIx);
+      });
+    });
+  }
 
-    static addRemoveMicrotone(ignore,selections,tone) {
-        selections.forEach((sel) => {
-            if (sel.note.tones.findIndex((tt) => tt.tone==tone.tone
-              && tt.pitch==tone.pitch) >= 0) {
-                  sel.note.removeMicrotone(tone);
-              } else {
-                  sel.note.addMicrotone(tone);
-              }
-              sel.measure.setChanged();
-        });
-    }
-
-    static moveStaffUpDown(score,selection,index) {
-        var index1 = selection.selector.staff;
-        var index2 = selection.selector.staff + index;
-        if (index2 < score.staves.length && index2 >= 0) {
-            score.swapStaves(index1,index2);
+  static addRemoveMicrotone(ignore,selections,tone) {
+    selections.forEach((sel) => {
+      if (sel.note.tones.findIndex((tt) => tt.tone === tone.tone
+        && tt.pitch === tone.pitch) >= 0) {
+          sel.note.removeMicrotone(tone);
+        } else {
+          sel.note.addMicrotone(tone);
         }
-    }
+        sel.measure.setChanged();
+    });
+  }
 
-    static depopulateVoice(selection,voiceIx) {
-        var ix = 0;
-        var voices = [];
-        var measure = selection.measure;
-        measure.voices.forEach((voice) => {
-            if (measure.voices.length <2 || ix != voiceIx)  {
-                voices.push(voice);
-            }
-            ix += 1;
-        });
-        measure.voices = voices;
-
-        if (measure.getActiveVoice() >= measure.voices.length) {
-            measure.setActiveVoice(0);
-        }
+  static moveStaffUpDown(score,selection,index) {
+    const index1 = selection.selector.staff;
+    const index2 = selection.selector.staff + index;
+    if (index2 < score.staves.length && index2 >= 0) {
+      score.swapStaves(index1,index2);
     }
+  }
 
-    static populateVoice(selection,voiceIx) {
-        selection.measure.populateVoice(voiceIx);
-        selection.measure.setChanged();
+  static depopulateVoice(selection,voiceIx) {
+    var ix = 0;
+    var voices = [];
+    var measure = selection.measure;
+    measure.voices.forEach((voice) => {
+      if (measure.voices.length <2 || ix != voiceIx)  {
+        voices.push(voice);
+      }
+      ix += 1;
+    });
+    measure.voices = voices;
+
+    if (measure.getActiveVoice() >= measure.voices.length) {
+      measure.setActiveVoice(0);
     }
+  }
+
+  static populateVoice(selection,voiceIx) {
+    selection.measure.populateVoice(voiceIx);
+  }
 
   static setTimeSignature(score, selections, timeSignature) {
     const selectors = [];
@@ -238,65 +237,65 @@ class SmoOperation {
   // Replace the note with 2 notes of 1/2 duration, if possible
   // Works on tuplets also.
   static halveDuration(selection) {
-  var note = selection.note;
-  var measure = selection.measure;
-  var tuplet = measure.getTupletForNote(note);
-  var divisor = 2;
-  if (measure.numBeats % 3 === 0 && selection.note.tickCount === 6144) {
-  // special behavior, if this is dotted 1/4 in 6/8, split to 3
-  divisor = 3;
-  }
-  if (!tuplet) {
-  var nticks = note.tickCount / divisor;
-  if (!smoMusic.ticksToDuration[nticks]) {
-  return;
-  }
-  var actor = new SmoContractNoteActor({
-  startIndex: selection.selector.tick,
-  tickmap: measure.tickmapForVoice(selection.selector.voice),
-  newTicks: nticks
-  });
-  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-            smoBeamerFactory.applyBeams(measure);
-
-  } else {
-  var startIndex = measure.tupletIndex(tuplet) + tuplet.getIndexOfNote(note);
-  var actor = new SmoContractTupletActor({
-  changeIndex: startIndex,
-  measure: measure,
-                    voice:selection.selector.voice
-  });
-  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-  }
-  selection.measure.setChanged();
+    const note = selection.note;
+    let divisor = 2;
+    const measure = selection.measure;
+    const tuplet = measure.getTupletForNote(note);
+    if (measure.numBeats % 3 === 0 && selection.note.tickCount === 6144) {
+      // special behavior, if this is dotted 1/4 in 6/8, split to 3
+      divisor = 3;
+    }
+    if (!tuplet) {
+      const nticks = note.tickCount / divisor;
+      if (!smoMusic.ticksToDuration[nticks]) {
+        return;
+      }
+      var actor = new SmoContractNoteActor({
+        startIndex: selection.selector.tick,
+        tickmap: measure.tickmapForVoice(selection.selector.voice),
+        newTicks: nticks
+      });
+      SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
+      smoBeamerFactory.applyBeams(measure);
+    } else {
+      const startIndex = measure.tupletIndex(tuplet) + tuplet.getIndexOfNote(note);
+      const actor = new SmoContractTupletActor({
+        changeIndex: startIndex,
+        measure,
+        voice: selection.selector.voice
+      });
+      SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
+    }
+    selection.measure.setChanged();
   }
 
   // ## makeTuplet
   // ## Description
   // Makes a non-tuplet into a tuplet of equal value.
   static makeTuplet(selection, numNotes) {
-  var note = selection.note;
-  var measure = selection.measure;
+    const note = selection.note;
+    const measure = selection.measure;
 
-  if (measure.getTupletForNote(note))
-  return;
-  var nticks = note.tickCount;
+    if (measure.getTupletForNote(note)) {
+      return;
+    }
+    const nticks = note.tickCount;
 
-  var actor = new SmoMakeTupletActor({
-  index: selection.selector.tick,
-  totalTicks: nticks,
-  numNotes: numNotes,
-  selection: selection
-  });
-  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-  selection.measure.setChanged();
+    var actor = new SmoMakeTupletActor({
+      index: selection.selector.tick,
+      totalTicks: nticks,
+      numNotes: numNotes,
+      selection: selection
+    });
+    SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
+    selection.measure.setChanged();
 
-  return true;
+    return true;
   }
 
-    static removeStaffModifier(selection,modifier) {
-        selection.staff.removeStaffModifier(modifier);
-    }
+  static removeStaffModifier(selection,modifier) {
+    selection.staff.removeStaffModifier(modifier);
+  }
 
   static makeRest(selection) {
     selection.measure.setChanged();
@@ -908,33 +907,34 @@ class SmoOperation {
       }
     });
   }
-  static changeInstrument(score, instrument, selections) {
-    var measureHash = {};
+  static changeInstrument(ignore, instrument, selections) {
+    const measureHash = {};
+    let newKey = '';
     selections.forEach((selection) => {
       if (!measureHash[selection.selector.measure]) {
         measureHash[selection.selector.measure] = 1;
-        var netOffset = instrument.keyOffset - selection.measure.transposeIndex;
-        var newKey = smoMusic.pitchToVexKey(smoMusic.smoIntToPitch(
+        const netOffset = instrument.keyOffset - selection.measure.transposeIndex;
+        newKey = smoMusic.pitchToVexKey(smoMusic.smoIntToPitch(
           smoMusic.smoPitchToInt(
             smoMusic.vexToSmoPitch(selection.measure.keySignature)) + netOffset));
         newKey = smoMusic.toValidKeySignature(newKey);
         if (newKey.length > 1 && newKey[1] === 'n') {
           newKey = newKey[0];
         }
-        newKey = newKey[0].toUpperCase() + newKey.substr(1,newKey.length)
+        newKey = newKey[0].toUpperCase() + newKey.substr(1, newKey.length)
         selection.measure.keySignature = newKey;
         selection.measure.clef = instrument.clef;
         selection.measure.transposeIndex = instrument.keyOffset;
         selection.measure.voices.forEach((voice) => {
           voice.notes.forEach((note) => {
             if (note.noteType === 'n') {
-              var pitches = [];
+              const pitches = [];
               note.pitches.forEach((pitch) => {
-                var pint = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(pitch) + netOffset);
-                pitches.push(JSON.parse(JSON.stringify(smoMusic.getEnharmonicInKey(pint,newKey))));
+                const pint = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(pitch) + netOffset);
+                pitches.push(JSON.parse(JSON.stringify(smoMusic.getEnharmonicInKey(pint, newKey))));
               });
               note.pitches = pitches;
-              SmoOperation.transposeChords(note,netOffset,newKey);
+              SmoOperation.transposeChords(note, netOffset, newKey);
             }
             note.clef = instrument.clef;
           });

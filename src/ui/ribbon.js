@@ -66,26 +66,27 @@ class RibbonButtons {
     this.eventSource.domClick(buttonElement,this,'_executeButton',buttonData);
   }
   _createCollapsibleButtonGroups(selector) {
+    let containerClass = {};
     // Now all the button elements have been bound.  Join child and parent buttons
     // For all the children of a button group, add it to the parent group
     this.collapseChildren.forEach((b) => {
-      var containerClass = 'ribbonButtonContainer';
+      containerClass = 'ribbonButtonContainer';
       if (b.action == 'collapseGrandchild') {
         containerClass = 'ribbonButtonContainerMore'
       }
-      var buttonHtml = RibbonButtons._buttonHtml(
+      const buttonHtml = RibbonButtons._buttonHtml(
         containerClass, b.id, b.classes, b.leftText, b.icon, b.rightText);
       if (b.dataElements) {
-        var bkeys = Object.keys(b.dataElements);
+        const bkeys = Object.keys(b.dataElements);
         bkeys.forEach((bkey) => {
           var de = b.dataElements[bkey];
           $(buttonHtml).find('button').attr('data-' + bkey, de);
         });
       }
       // Bind the child button actions
-      var parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
+      const parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
       $(parent).append(buttonHtml);
-      var el = $(selector).find('#' + b.id);
+      const el = $(selector).find('#' + b.id);
       this._bindButton(el, b);
     });
 
@@ -95,13 +96,13 @@ class RibbonButtons {
     });
   }
 
-    static isCollapsible(action) {
-      return ['collapseChild','collapseChildMenu','collapseGrandchild','collapseMore'].indexOf(action) >= 0;
-    }
+  static isCollapsible(action) {
+    return ['collapseChild', 'collapseChildMenu', 'collapseGrandchild', 'collapseMore'].indexOf(action) >= 0;
+  }
 
-    static isBindable(action) {
-      return ['collapseChildMenu','menu','modal'].indexOf(action) >= 0;
-    }
+  static isBindable(action) {
+    return ['collapseChildMenu', 'menu', 'modal'].indexOf(action) >= 0;
+  }
 
     // ### _createButtonHtml
     // For each button, create the html and bind the events based on
@@ -187,6 +188,8 @@ class DebugButtons {
   }
 }
 
+// ## ExtendedCollapseParent
+// Muse-style '...' buttons for less-common operations
 class ExtendedCollapseParent {
     constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
@@ -229,18 +232,16 @@ class MicrotoneButtons {
       this.view = parameters.view
     }
   applyButton(el) {
-    var pitch = 0;
+    let pitch = 0;
     if (this.view.tracker.selections.length == 1 &&
       this.view.tracker.selections[0].selector.pitches &&
       this.view.tracker.selections[0].selector.pitches.length
     ) {
       pitch = this.view.tracker.selections[0].selector.pitches[0];
     }
-    var tn = new SmoMicrotone({ tone: el.id,pitch: pitch });
-    SmoUndoable.multiSelectionOperation(this.view.score,
-      this.tracker.selections, 'addRemoveMicrotone', tn, this.view.undoBuffer);
+    const tn = new SmoMicrotone({ tone: el.id, pitch: pitch });
+    this.view.addRemoveMicrotone(tn);
     suiOscillator.playSelectionNow(this.view.tracker.selections[0]);
-    this.view.renderer.addToReplaceQueue(this.view.tracker.selections[0]);
   }
   bind() {
     var self = this;
@@ -286,47 +287,35 @@ class VoiceButtons {
   constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
     this.buttonData = parameters.buttonData;
-    this.keyCommands = parameters.keyCommands;
-        this.tracker = parameters.tracker;
+    this.view = parameters.view;
   }
-    _depopulateVoice() {
-        var selections = SmoSelection.getMeasureList(this.tracker.selections);
-        selections.forEach((selection) => {
-            SmoUndoable.depopulateVoice([selection],selection.measure.getActiveVoice(),
-               this.keyCommands.undoBuffer);
-            selection.measure.setChanged();
-        });
-        this.tracker.replaceSelectedMeasures();
-    }
-  setPitch() {
-    var voiceIx = 0;
-    if (this.buttonData.id === 'V1Button') {
-      SmoOperation.setActiveVoice(this.view.score, voiceIx);
-      const ml = SmoSelection.getMeasureList(this.view.tracker.selections);
-      ml.forEach((sel) => {
-        sel.measure.setChanged();
-      });
-      this.view.tracker.replaceSelectedMeasures();
-      return;
-    } else if (this.buttonData.id === 'V2Button') {
+  _depopulateVoice() {
+    const selections = SmoSelection.getMeasureList(this.tracker.selections);
+    selections.forEach((selection) => {
+      SmoUndoable.depopulateVoice([selection], selection.measure.getActiveVoice(),
+        this.keyCommands.undoBuffer);
+      selection.measure.setChanged();
+    });
+    this.tracker.replaceSelectedMeasures();
+  }
+  doAction() {
+    let voiceIx = 0;
+    if (this.buttonData.id === 'V2Button') {
       voiceIx = 1;
     } else if (this.buttonData.id === 'V3Button') {
-      this.keyCommands.upOctave();
        voiceIx = 2;
     } else if (this.buttonData.id === 'V4Button') {
-      this.keyCommands.downOctave();
       voiceIx = 3;
     } else if (this.buttonData.id === 'VXButton') {
-      return this._depopulateVoice();
+      this.view.depopulateVoice();
+      return;
     }
-    SmoUndoable.populateVoice(this.view.tracker.selections, voiceIx, this.view.undoBuffer);
-    SmoOperation.setActiveVoice(this.view.score, voiceIx);
-    this.view.tracker.replaceSelectedMeasures();
+    this.view.populateVoice(voiceIx);
   }
   bind() {
     var self = this;
     $(this.buttonElement).off('click').on('click', function () {
-      self.setPitch();
+      self.doAction();
     });
   }
 }
@@ -410,21 +399,13 @@ class StaveButtons {
     Vex.Merge(this,parameters);
     this.view = this.view;
   }
-  addClef(clef,clefName) {
+  addClef(clef, clefName) {
     var instrument = {
       instrumentName: clefName,
       keyOffset: 0,
       clef: clef
     }
-    const staff = this.view.tracker.selections[0].selector.staff;
-    const measures = SmoSelection.getMeasureList(this.view.tracker.selections)
-      .map((sel) => sel.measure);
-    const selections=[];
-    measures.forEach((measure) => {
-      selections.push(SmoSelection.measureSelection(this.view.score, staff, measure.measureNumber.measureIndex));
-    });
-    SmoUndoable.changeInstrument(this.view.score, instrument, selections, this.view.undoBuffer);
-    this.view.tracker.replaceSelectedMeasures();
+    this.view.changeInstrument(instrument);
   }
   clefTreble() {
     this.addClef('treble','Treble Instrument');
@@ -439,9 +420,7 @@ class StaveButtons {
     this.addClef('tenor','Tenor Instrument');
   }
   _clefMove(index,direction) {
-    SmoUndoable.scoreSelectionOp(this.view.score, this.view.tracker.selections[0], 'moveStaffUpDown',
-      index, this.view.undoBuffer, 'Move staff ' + direction);
-    this.view.renderer.rerenderAll();
+    this.view.moveStaffUpDown(index);
   }
   clefMoveUp() {
     this._clefMove(-1,'up');
@@ -450,11 +429,7 @@ class StaveButtons {
     this._clefMove(1,'down');
   }
   _addStaffGroup(type) {
-    SmoUndoable.addConnectorDown(this.view.score,
-      this.view.tracker.selections,
-      { mapType: SmoSystemGroup.mapTypes.allMeasures,leftConnector: type,
-        rightConnector: SmoSystemGroup.connectorTypes.single },
-      this.view.undoBuffer);
+    this.view.addStaffGroupDown(type);
   }
   staffBraceLower() {
     this._addStaffGroup(SmoSystemGroup.connectorTypes.brace);
