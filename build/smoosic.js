@@ -12212,16 +12212,20 @@ class SmoScore {
     return exist;
   }
 
+  // ### addOrReplaceSystemGroup
+  // Add a new staff grouping, or replace it if it overlaps and is different, or
+  // remove it if it is identical (toggle)
   addOrReplaceSystemGroup(newGroup) {
-    this.systemGroups = this.systemGroups.filter((sg) =>
-      sg.startSelector.staff >= newGroup.startSelector.staff ||
-        sg.endSelector.staff <= newGroup.startSelector.staff ||
-        (newGroup.mapType === SmoSystemGroup.mapType.measureMap &&
-        sg.mapType ===  SmoSystemGroup.mapType.measureMap &&
-        (sg.startSelector.measure >= newGroup.startSelector.measure ||
-        sg.endSelector.measure <= newGroup.startSelector.measure))
-    );
-    this.systemGroups.push(newGroup);
+    let toAdd = true;
+    const existing = this.systemGroups.find((sg) => sg.overlaps(newGroup));
+    if (existing && existing.leftConnector === newGroup.leftConnector) {
+      toAdd = false;
+    }
+    // Replace this group for any groups that overlap it.
+    this.systemGroups = this.systemGroups.filter((sg) => !sg.overlaps(newGroup));
+    if (toAdd) {
+      this.systemGroups.push(newGroup);
+    }
   }
 
   // ### replace staff
@@ -12476,6 +12480,19 @@ class SmoSystemGroup extends SmoScoreModifierBase {
       startSelector: { staff: 0, measure: 0 },
       endSelector: { staff: 0, measure: 0 }
     };
+  }
+  stavesOverlap(group) {
+    return (this.startSelector.staff >= group.startSelector.staff && this.startSelector.staff <= group.endSelector.staff) ||
+      (this.endSelector.staff >= group.startSelector.staff && this.endSelector.staff <= group.endSelector.staff);
+  }
+  measuresOverlap(group) {
+    return this.stavesOverlap(group) &&
+      ((this.startSelector.measure >= group.startSelector.measure && this.endSelector.measure <= group.startSelector.measure) ||
+        (this.endSelector.measure >= group.startSelector.measure && this.endSelector.measure <= group.endSelector.measure));
+  }
+  overlaps(group) {
+    return (this.stavesOverlap(group) && this.mapType === SmoSystemGroup.mapTypes.allMeasures) ||
+      (this.measuresOverlap(group) && this.mapType === SmoSystemGroup.mapTypes.range);
   }
   leftConnectorVx() {
     switch (this.leftConnector) {

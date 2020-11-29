@@ -48,6 +48,19 @@ class SmoSystemGroup extends SmoScoreModifierBase {
       endSelector: { staff: 0, measure: 0 }
     };
   }
+  stavesOverlap(group) {
+    return (this.startSelector.staff >= group.startSelector.staff && this.startSelector.staff <= group.endSelector.staff) ||
+      (this.endSelector.staff >= group.startSelector.staff && this.endSelector.staff <= group.endSelector.staff);
+  }
+  measuresOverlap(group) {
+    return this.stavesOverlap(group) &&
+      ((this.startSelector.measure >= group.startSelector.measure && this.endSelector.measure <= group.startSelector.measure) ||
+        (this.endSelector.measure >= group.startSelector.measure && this.endSelector.measure <= group.endSelector.measure));
+  }
+  overlaps(group) {
+    return (this.stavesOverlap(group) && this.mapType === SmoSystemGroup.mapTypes.allMeasures) ||
+      (this.measuresOverlap(group) && this.mapType === SmoSystemGroup.mapTypes.range);
+  }
   leftConnectorVx() {
     switch (this.leftConnector) {
       case SmoSystemGroup.connectorTypes.single:
