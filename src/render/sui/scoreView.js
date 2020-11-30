@@ -53,6 +53,9 @@ class SuiScoreView {
   // ###_renderChangedMeasures
   // Update renderer for measures that have changed
   _renderChangedMeasures(measureSelections) {
+    if (!Array.isArray(measureSelections)) {
+      measureSelections = [measureSelections];
+    }
     measureSelections.forEach((measureSelection) => {
       this.renderer.addToReplaceQueue(measureSelection);
     });

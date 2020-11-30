@@ -752,50 +752,49 @@ class SmoOperation {
   });
   }
 
-  static addRehearsalMark(score,selection,rehearsalMark) {
-  var mm = selection.selector.measure;
-  score.staves.forEach((staff) => {
-  var mt = new SmoRehearsalMark(rehearsalMark.serialize());
-            staff.addRehearsalMark(selection.selector.measure,mt);
-  });
+  static removeRehearsalMark(score, selection, rehearsalMark) {
+    score.staves.forEach((staff) => {
+      staff.removeRehearsalMark(selection.selector.measure);
+    });
   }
 
-    static addLyric(score,selection,lyric) {
-        selection.note.addLyric(lyric);
-    }
+  static addRehearsalMark(score, selection, rehearsalMark) {
+    const mm = selection.selector.measure;
+    score.staves.forEach((staff) => {
+      const mt = new SmoRehearsalMark(rehearsalMark.serialize());
+      staff.addRehearsalMark(selection.selector.measure, mt);
+    });
+  }
 
-    static removeLyric(score,selection,lyric) {
-        selection.note.removeLyric(lyric);
-    }
+  static addLyric(score,selection,lyric) {
+    selection.note.addLyric(lyric);
+  }
 
-    static addTempo(score,selection,tempo) {
-  score.staves.forEach((staff) => {
-            staff.addTempo(tempo,selection.selector.measure);
-  });
-    }
+  static removeLyric(score,selection,lyric) {
+    selection.note.removeLyric(lyric);
+  }
 
-    static removeTempo(score,selection) {
-  score.staves.forEach((staff) => {
-            staff.removeTempo();
-  });
-    }
+  static addTempo(score, selection, tempo) {
+    score.staves.forEach((staff) => {
+      staff.addTempo(tempo,selection.selector.measure);
+    });
+  }
 
-
-    static removeRehearsalMark(score,selection,rehearsalMark) {
-  score.staves.forEach((staff) => {
-            staff.removeRehearsalMark(selection.selector.measure);
-  });
+  static removeTempo(score, selection) {
+    score.staves.forEach((staff) => {
+      staff.removeTempo();
+    });
   }
 
   static setMeasureBarline(score, selection, barline) {
-  var mm = selection.selector.measure;
-  var ix = 0;
-  score.staves.forEach((staff) => {
-  var s2 = SmoSelection.measureSelection(score, ix, mm);
-  s2.measure.setBarline(barline);
-  s2.measure.setChanged();
-  ix += 1;
-  });
+    var mm = selection.selector.measure;
+    var ix = 0;
+    score.staves.forEach((staff) => {
+    var s2 = SmoSelection.measureSelection(score, ix, mm);
+    s2.measure.setBarline(barline);
+    s2.measure.setChanged();
+    ix += 1;
+    });
   }
 
   static setRepeatSymbol(score, selection, sym) {

@@ -373,6 +373,7 @@ class SuiScoreViewOperations extends SuiScoreView {
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections();
     SmoOperation.setNoteHead(selections, head);
+    SmoOperation.setNoteHead(this._getEquivalentSelections(selections), head);
     this._renderChangedMeasures(measureSelections);
   }
   addDynamic(dynamicText) {
@@ -396,6 +397,30 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.addEnding(this.storeScore, altVolta);
     SmoOperation.addEnding(this.score, volta);
     this.renderer.setRefresh();
+  }
+  setBarline(position, barline) {
+    const obj = new SmoBarline({ position, barline });
+    const altObj = new SmoBarline({ position, barline });
+    const selection = this._undoFirstMeasureSelection();
+    SmoOperation.setMeasureBarline(this.score, selection, obj);
+    SmoOperation.setMeasureBarline(this.storeScore, this._getEquivalentSelection(selection), altObj);
+    this._renderChangedMeasures([selection]);
+  }
+  setRepeatSymbol(position, symbol) {
+    const obj = new SmoRepeatSymbol({ position, symbol });
+    const altObj = new SmoRepeatSymbol({ position, symbol });
+    const selection = this._undoFirstMeasureSelection();
+    SmoOperation.setRepeatSymbol(this.score, selection, obj);
+    SmoOperation.setRepeatSymbol(this.storeScore, this._getEquivalentSelection(selection), altObj);
+    this._renderChangedMeasures([selection]);
+  }
+  toggleRehearsalMark() {
+    const selection = this.tracker.getExtremeSelection(-1);
+    const altSelection = this._getEquivalentSelection(selection);
+    const cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
+    SmoOperation[cmd](this.score, selection, new SmoRehearsalMark());
+    SmoOperation[cmd](this.storeScore, altSelection, new SmoRehearsalMark());
+    this._renderChangedMeasures([selection]);
   }
   _lineOperation(op) {
     if (this.tracker.selections.length < 2) {
