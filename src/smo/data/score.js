@@ -280,13 +280,7 @@ class SmoScore {
   }
 
   addPickupMeasure(measureIndex, duration) {
-    let i = 0;
-    for (i = 0; i < this.staves.length; ++i) {
-      const staff = this.staves[i];
-      const protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
-      staff.addMeasure(measureIndex, protomeasure);
-    }
-    this.numberStaves();
+    this.convertToPickupMeasure(measureIndex, duration);
   }
   getPrototypeMeasure(measureIndex, staffIndex) {
     const staff = this.staves[staffIndex];

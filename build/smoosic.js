@@ -2842,18 +2842,13 @@ class suiLayoutAdjuster {
   static estimateMeasureWidth(measure) {
 
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
-  var gravity = false;
   var prevWidth = measure.staffWidth;
   var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
   measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
   measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
   measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
-  if (measure.changed == false && measure.logicalBox && measure.staffWidth < prevWidth) {
-    measureWidth = Math.round((measure.staffWidth + prevWidth)/2);
-    gravity = true;
-  }
   var y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
-  measure.setWidth(measureWidth,'estimateMeasureWidth adjX adjRight gravity: '+gravity);
+  measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight ');
 
     // Calculate the space for left/right text which displaces the measure.
     // var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
@@ -4711,23 +4706,27 @@ class SuiScoreView {
     });
     return rv;
   }
+  _undoColumn(label, measureIndex) {
+    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, null, { score: this.score, measureIndex });
+    this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, null, { score: this.storeScore, measureIndex });
+  }
 
   // ### _undoTrackerSelections
   // Add to the undo buffer the current set of measures selected.
-  _undoTrackerMeasureSelections() {
+  _undoTrackerMeasureSelections(label) {
     const measureSelections = SmoSelection.getMeasureList(this.tracker.selections);
     measureSelections.forEach((measureSelection) => {
       const equiv = this._getEquivalentSelection(measureSelection);
-      this.undoBuffer.addBuffer('transpose selections', UndoBuffer.bufferTypes.MEASURE, measureSelection.selector, measureSelection.measure);
-      this.storeUndo.addBuffer('transpose selections', UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure);
+      this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, measureSelection.selector, measureSelection.measure);
+      this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure);
     });
     return measureSelections;
   }
   // ### _undoFirstMeasureSelection
   // operation that only affects the first selection.  Setup undo for the measure
-  _undoFirstMeasureSelection() {
+  _undoFirstMeasureSelection(label) {
     const sel = this.tracker.selections[0];
-    this.undoBuffer.addBuffer('transpose selections', UndoBuffer.bufferTypes.MEASURE, sel.selector, sel.measure);
+    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, sel.selector, sel.measure);
     return sel;
   }
   // ###_renderChangedMeasures
@@ -4904,7 +4903,7 @@ class SuiScoreViewOperations extends SuiScoreView {
   addRemoveMicrotone(tone) {
     const selections = this.tracker.selections;
     const altSelections = this._getEquivalentSelections(selections);
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('add/remove microtone');
 
     SmoOperation.addRemoveMicrotone(null, selections, tone);
     SmoOperation.addRemoveMicrotone(null, altSelections, tone);
@@ -4912,7 +4911,7 @@ class SuiScoreViewOperations extends SuiScoreView {
   }
 
   depopulateVoice() {
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('depopulate voice');
     measureSelections.forEach((selection) => {
       const ix = selection.measure.getActiveVoice();
       if (ix !== 0) {
@@ -4924,7 +4923,7 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._renderChangedMeasures(measureSelections);
   }
   populateVoice(index) {
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('populate voice');
     measureSelections.forEach((selection) => {
       SmoOperation.populateVoice(selection, index);
       SmoOperation.populateVoice(this._getEquivalentSelection(selection), index);
@@ -4933,7 +4932,7 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._renderChangedMeasures(measureSelections);
   }
   changeInstrument(instrument) {
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('change instrument');
     const selections = this.tracker.selections;
     const altSelections = this._getEquivalentSelections(selections);
     SmoOperation.changeInstrument(null, selections, instrument);
@@ -4965,7 +4964,7 @@ class SuiScoreViewOperations extends SuiScoreView {
   }
   addGraceNote() {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('add grace note');
     selections.forEach((selection) => {
       const index = selection.note.getGraceNotes().length;
       const pitches = JSON.parse(JSON.stringify(selection.note.pitches));
@@ -4985,7 +4984,7 @@ class SuiScoreViewOperations extends SuiScoreView {
 
   removeGraceNote() {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('remove grace note');
     selections.forEach((selection) => {
       // TODO: get the correct offset
       SmoOperation.removeGraceNote(selection, 0);
@@ -4996,7 +4995,7 @@ class SuiScoreViewOperations extends SuiScoreView {
 
   slashGraceNotes() {
     const grace = this.tracker.getSelectedGraceNotes();
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('slash grace note toggle');
     grace.forEach((gn) => {
       SmoOperation.slashGraceNotes(gn);
       const altSelection = this._getEquivalentSelection(gn.selection);
@@ -5010,7 +5009,7 @@ class SuiScoreViewOperations extends SuiScoreView {
   // tranpose whatever is selected in tracker the given offset.
   transposeSelections(offset) {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('transpose');
     const grace = this.tracker.getSelectedGraceNotes();
     if (grace.length) {
       grace.forEach((artifact) => {
@@ -5032,7 +5031,7 @@ class SuiScoreViewOperations extends SuiScoreView {
   }
   toggleEnharmonic() {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('toggle enharmonic');
     const grace = this.tracker.getSelectedGraceNotes();
     if (grace.length) {
       grace.forEach((artifact) => {
@@ -5055,7 +5054,7 @@ class SuiScoreViewOperations extends SuiScoreView {
 
   toggleCourtesyAccidentals() {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('toggle courtesy accidental');
     const grace = this.tracker.getSelectedGraceNotes();
     if (grace.length) {
       grace.forEach((artifact) => {
@@ -5074,7 +5073,7 @@ class SuiScoreViewOperations extends SuiScoreView {
 
   batchDurationOperation(operation) {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('change duration');
     const grace = this.tracker.getSelectedGraceNotes();
     const graceMap = { doubleDuration: 'doubleGraceNoteDuration',
       halveDuration: 'halveGraceNoteDuration' };
@@ -5094,7 +5093,7 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._renderChangedMeasures(measureSelections);
   }
   toggleArticulation(articulation, ctor) {
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('toggle articulation');
     this.tracker.selections.forEach((sel) => {
       if (ctor === 'SmoArticulation') {
         const aa = new SmoArticulation({ articulation });
@@ -5115,14 +5114,14 @@ class SuiScoreViewOperations extends SuiScoreView {
 
   makeTuplet(numNotes) {
     const selection = this.tracker.selections[0];
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('make tuplet');
     SmoOperation.makeTuplet(selection, numNotes);
     SmoOperation.makeTuplet(this._getEquivalentSelection(selection), numNotes);
     this._renderChangedMeasures(measureSelections);
   }
   unmakeTuplet() {
     const selection = this.tracker.selections[0];
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('unmake tuplet');
     SmoOperation.unmakeTuplet(selection);
     SmoOperation.unmakeTuplet(this._getEquivalentSelection(selection));
     this._renderChangedMeasures(measureSelections);
@@ -5130,7 +5129,7 @@ class SuiScoreViewOperations extends SuiScoreView {
 
   setInterval(interval) {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('set interval');
     selections.forEach((selected) => {
       SmoOperation.interval(selected, interval);
       SmoOperation.interval(this._getEquivalentSelection(selected), interval);
@@ -5140,7 +5139,7 @@ class SuiScoreViewOperations extends SuiScoreView {
 
   collapseChord() {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('collapse chord');
     selections.forEach((selected) => {
       const pp = JSON.parse(JSON.stringify(selected.note.pitches[0]));
       const altpp = JSON.parse(JSON.stringify(selected.note.pitches[0]));
@@ -5154,7 +5153,7 @@ class SuiScoreViewOperations extends SuiScoreView {
 
   makeRest() {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('make rest');
     selections.forEach((selection) => {
       SmoOperation.makeRest(selection);
     });
@@ -5162,7 +5161,7 @@ class SuiScoreViewOperations extends SuiScoreView {
   }
   toggleBeamGroup() {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('toggle beam group');
     selections.forEach((selection) => {
       SmoOperation.toggleBeamGroup(selection);
       SmoOperation.toggleBeamGroup(this._getEquivalentSelection(selection));
@@ -5171,27 +5170,27 @@ class SuiScoreViewOperations extends SuiScoreView {
   }
   toggleBeamDirection() {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('toggle beam direction');
     SmoOperation.toggleBeamDirection(selections);
     SmoOperation.toggleBeamDirection(this._getEquivalentSelections(selections));
     this._renderChangedMeasures(measureSelections);
   }
   beamSelections() {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('beam selections');
     SmoOperation.beamSelections(selections);
     SmoOperation.beamSelections(this._getEquivalentSelections(selections));
     this._renderChangedMeasures(measureSelections);
   }
   setTimeSignature(timeSignature) {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('set time signature');
     SmoOperation.setTimeSignature(this.score, selections, timeSignature);
     SmoOperation.setTimeSignature(this.storeScore, this._getEquivalentSelections(selections), timeSignature);
     this._renderChangedMeasures(measureSelections);
   }
   addKeySignature(keySignature) {
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('set key signature ' + keySignature);
     measureSelections.forEach((sel) => {
       SmoOperation.addKeySignature(this.score, sel, keySignature);
       SmoOperation.addKeySignature(this.storeScore, this._getEquivalentSelection(sel), keySignature);
@@ -5201,7 +5200,7 @@ class SuiScoreViewOperations extends SuiScoreView {
 
   setPitch(letter) {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('set pitch ' + letter);
     selections.forEach((selected) => {
       var selector = selected.selector;
       var hintSel = SmoSelection.lastNoteSelection(this.score,
@@ -5248,13 +5247,19 @@ class SuiScoreViewOperations extends SuiScoreView {
   }
   setNoteHead(head) {
     const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections('set note head');
     SmoOperation.setNoteHead(selections, head);
     SmoOperation.setNoteHead(this._getEquivalentSelections(selections), head);
     this._renderChangedMeasures(measureSelections);
   }
+  setMeasureProportion(val) {
+    const selection = this._undoFirstMeasureSelection('measure proportion');
+    SmoOperation.setMeasureProportion(selection, val);
+    SmoOperation.setMeasureProportion(this._getEquivalentSelection(selection), val);
+    this._renderChangedMeasures(selection);
+  }
   addDynamic(dynamicText) {
-    const selection = this._undoFirstMeasureSelection();
+    const selection = this._undoFirstMeasureSelection('add dynamic');
     const dynamic = new SmoDynamicText({
       selector: selection.selector,
       text: dynamicText,
@@ -5278,7 +5283,8 @@ class SuiScoreViewOperations extends SuiScoreView {
   setBarline(position, barline) {
     const obj = new SmoBarline({ position, barline });
     const altObj = new SmoBarline({ position, barline });
-    const selection = this._undoFirstMeasureSelection();
+    const selection = this.tracker.selections[0];
+    this._undoColumn('set barline', selection.selector.measure);
     SmoOperation.setMeasureBarline(this.score, selection, obj);
     SmoOperation.setMeasureBarline(this.storeScore, this._getEquivalentSelection(selection), altObj);
     this._renderChangedMeasures([selection]);
@@ -5286,10 +5292,11 @@ class SuiScoreViewOperations extends SuiScoreView {
   setRepeatSymbol(position, symbol) {
     const obj = new SmoRepeatSymbol({ position, symbol });
     const altObj = new SmoRepeatSymbol({ position, symbol });
-    const selection = this._undoFirstMeasureSelection();
+    const selection = this.tracker.selections[0];
+    this._undoColumn('set repeat symbol', selection.selector.measure);
     SmoOperation.setRepeatSymbol(this.score, selection, obj);
     SmoOperation.setRepeatSymbol(this.storeScore, this._getEquivalentSelection(selection), altObj);
-    this._renderChangedMeasures([selection]);
+    this._renderChangedMeasures(selection);
   }
   toggleRehearsalMark() {
     const selection = this.tracker.getExtremeSelection(-1);
@@ -5297,13 +5304,13 @@ class SuiScoreViewOperations extends SuiScoreView {
     const cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
     SmoOperation[cmd](this.score, selection, new SmoRehearsalMark());
     SmoOperation[cmd](this.storeScore, altSelection, new SmoRehearsalMark());
-    this._renderChangedMeasures([selection]);
+    this._renderChangedMeasures(selection);
   }
   _lineOperation(op) {
     if (this.tracker.selections.length < 2) {
       return;
     }
-    const measureSelections = this._undoTrackerMeasureSelections();
+    const measureSelections = this._undoTrackerMeasureSelections(op);
     const ft = this.tracker.getExtremeSelection(-1);
     const tt = this.tracker.getExtremeSelection(1);
     const ftAlt = this._getEquivalentSelection(ft);
@@ -5321,7 +5328,6 @@ class SuiScoreViewOperations extends SuiScoreView {
   slur() {
     this._lineOperation('slur');
   }
-
   deleteMeasure() {
     this._undoScore('Delete Measure');
     const selection = this.tracker.selections[0];
@@ -5360,7 +5366,6 @@ class SuiScoreViewOperations extends SuiScoreView {
     nmeasure.setActiveVoice(0);
     this.score.addMeasure(pos, nmeasure);
     this.storeScore.addMeasure(pos, altMeasure);
-
     this.renderer.clearLine(measure);
     this.renderer.setRefresh();
   }
@@ -5374,6 +5379,7 @@ class SuiScoreViewOperations extends SuiScoreView {
     const staffIndex = scoreSel.selector.staff;
     SmoOperation.removeStaff(newScore, staffIndex);
     this.changeScore(newScore);
+    this.renderer.setRefresh();
   }
   addStaff(instrument) {
     this._undoScore('Add Instrument');
@@ -5382,6 +5388,23 @@ class SuiScoreViewOperations extends SuiScoreView {
     const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
     SmoOperation.addStaff(newScore, instrument);
     this.changeScore(newScore);
+    this.renderer.setRefresh();
+  }
+  saveScore(filename) {
+    const json = this.storeScore.serialize();
+    const jsonText = JSON.stringify(json);
+    htmlHelpers.addFileLink(filename, jsonText, $('.saveLink'));
+    $('.saveLink a')[0].click();
+  }
+  quickSave() {
+    const scoreStr = JSON.stringify(this.storeScore.serialize());
+    localStorage.setItem(smoSerialize.localScore, scoreStr);
+  }
+  createPickup(duration) {
+    this._undoScore('create pickup');
+    this.score.convertToPickupMeasure(0, duration);
+    this.storeScore.convertToPickupMeasure(0, duration);
+    this.renderer.setRefresh();
   }
 }
 ;
@@ -12178,13 +12201,7 @@ class SmoScore {
   }
 
   addPickupMeasure(measureIndex, duration) {
-    let i = 0;
-    for (i = 0; i < this.staves.length; ++i) {
-      const staff = this.staves[i];
-      const protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
-      staff.addMeasure(measureIndex, protomeasure);
-    }
-    this.numberStaves();
+    this.convertToPickupMeasure(measureIndex, duration);
   }
   getPrototypeMeasure(measureIndex, staffIndex) {
     const staff = this.staves[staffIndex];
@@ -14698,8 +14715,8 @@ class SmoOperation {
   score.deleteMeasure(measureIndex);
   }
 
-  static addPickupMeasure(score,duration) {
-    score.addPickupMeasure(0,duration);
+  static addPickupMeasure(score, duration) {
+    score.addPickupMeasure(0, duration);
   }
 
   static addConnectorDown(score,selections,parameters) {
@@ -14722,7 +14739,7 @@ class SmoOperation {
   }
 
   static convertToPickupMeasure(score,duration) {
-      score.convertToPickupMeasure(0,duration);
+    score.convertToPickupMeasure(0,duration);
   }
   static toggleBeamGroup(noteSelection) {
   noteSelection.measure.setChanged();
@@ -14781,6 +14798,12 @@ class SmoOperation {
 
   static populateVoice(selection,voiceIx) {
     selection.measure.populateVoice(voiceIx);
+  }
+  // ### setMeasureProportion
+  // Change the softmax factor.
+  static setMeasureProportion(selection, proportion) {
+    // TODO: there should be a setter for this
+    selection.measure.customProportion = proportion;
   }
 
   static setTimeSignature(score, selections, timeSignature) {
@@ -15407,12 +15430,12 @@ class SmoOperation {
   selection.measure.removeMeasureText(mt.attrs.id);
   }
 
-  static addSystemText(score,selection,measureText) {
-  var mm = selection.selector.measure;
-  score.staves.forEach((staff) => {
-  var mt = new SmoMeasureText(measureText.serialize());
-  staff.measures[mm].addMeasureText(mt);
-  });
+  static addSystemText(score, selection, measureText) {
+    const mm = selection.selector.measure;
+    score.staves.forEach((staff) => {
+      const mt = new SmoMeasureText(measureText.serialize());
+      staff.measures[mm].addMeasureText(mt);
+    });
   }
 
   static removeRehearsalMark(score, selection, rehearsalMark) {
@@ -15429,11 +15452,11 @@ class SmoOperation {
     });
   }
 
-  static addLyric(score,selection,lyric) {
+  static addLyric(score, selection, lyric) {
     selection.note.addLyric(lyric);
   }
 
-  static removeLyric(score,selection,lyric) {
+  static removeLyric(score, selection, lyric) {
     selection.note.removeLyric(lyric);
   }
 
@@ -16484,8 +16507,8 @@ class UndoBuffer {
   static get bufferTypes() {
     return {
       FIRST: 1,
-      MEASURE: 1, STAFF: 2, SCORE: 3, SCORE_MODIFIER: 4,
-      LAST: 4
+      MEASURE: 1, STAFF: 2, SCORE: 3, SCORE_MODIFIER: 4, COLUMN: 5,
+      LAST: 5
     };
   }
   static get bufferSubtypes() {
@@ -16494,7 +16517,19 @@ class UndoBuffer {
     };
   }
   static get bufferTypeLabel() {
-    return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER'];
+    return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER', 'COLUMN'];
+  }
+  // ### serializeMeasure
+  // serialize a measure, preserving the column-mapped bits which aren't serialized on a full score save.
+  static serializeMeasure(measure) {
+    const attrColumnHash = {};
+    const attrCurrentValue  = {};
+    const json = measure.serialize();
+    measure.serializeColumnMapped(attrColumnHash, attrCurrentValue);
+    Object.keys(attrCurrentValue).forEach((key) => {
+      json[key] = attrCurrentValue[key];
+    });
+    return json;
   }
   // ### addBuffer
   // Description:
@@ -16511,22 +16546,22 @@ class UndoBuffer {
       selector,
       subtype
     };
-    // If this is a score object, obj is the score and
-    // obj[objName] is the serializable component
-    if (obj.attrs && obj.attrs.type === 'SmoMeasure') {
-      // If this is a measure, preserve the column-mapped attributes
-      const attrColumnHash = {};
-      const attrCurrentValue  = {};
-      const json = obj.serialize();
-      obj.serializeColumnMapped(attrColumnHash, attrCurrentValue);
-      Object.keys(attrCurrentValue).forEach((key) => {
-        json[key] = attrCurrentValue[key];
+    if (type === UndoBuffer.bufferTypes.COLUMN) {
+      // COLUMN obj is { score, measureIndex }
+      const ix = obj.measureIndex;
+      const measures = [];
+      obj.score.staves.forEach((staff) => {
+        measures.push(UndoBuffer.serializeMeasure(staff.measures[ix]));
       });
-      undoObj.json = json;
+      undoObj.json = { measureIndex: ix, measures };
+    } else if (type === UndoBuffer.bufferTypes.MEASURE) {
+      // If this is a measure, preserve the column-mapped attributes
+      undoObj.json = UndoBuffer.serializeMeasure(obj);
     } else if (type === UndoBuffer.bufferTypes.SCORE_MODIFIER) {
       // score modifier, already serialized
       undoObj.json = obj;
     } else {
+      // staff or score
       undoObj.json = obj.serialize();
     }
     if (this.buffer.length >= UndoBuffer.bufferMax) {
@@ -16561,12 +16596,17 @@ class UndoBuffer {
   // Undo the operation at the top of the undo stack.  This is done by replacing
   // the music as it existed before the change was made.
   undo(score) {
+    let i = 0;
     const buf = this._pop();
     if (!buf) {
       return score;
     }
-
-    if (buf.type === UndoBuffer.bufferTypes.MEASURE) {
+    if (buf.type === UndoBuffer.bufferTypes.COLUMN) {
+      for (i = 0; i < score.staves.length; ++i) {
+        const measure = SmoMeasure.deserialize(buf.json.measures[i]);
+        score.replaceMeasure({ staff: i, measure: buf.json.measureIndex }, measure);
+      }
+    } else if (buf.type === UndoBuffer.bufferTypes.MEASURE) {
       const measure = SmoMeasure.deserialize(buf.json);
       measure.setChanged();
       score.replaceMeasure(buf.selector, measure);
@@ -24342,7 +24382,7 @@ class SuiTextInputComponent extends SuiComponentBase {
     });
   }
 }
-;
+;// eslint-disable-next-line no-unused-vars
 class SuiFileDialog extends SuiDialogBase {
   constructor(parameters) {
     var p = parameters;
@@ -24353,7 +24393,7 @@ class SuiFileDialog extends SuiDialogBase {
     p.left = (p.view.score.layout.pageHeight / 2) - 200;
 
     super(ctor.dialogElements, p);
-    this.value='';
+    this.value = '';
   }
   display() {
     $('body').addClass('showAttributeDialog');
@@ -24363,40 +24403,38 @@ class SuiFileDialog extends SuiDialogBase {
     this._bindElements();
 
     // make sure keyboard is unbound or we get dupicate key events.
-    var self=this;
-    function getKeys() {
-        self.completeNotifier.unbindKeyboardForModal(self);
-    }
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(this);
+    };
     this.startPromise.then(getKeys);
     this.position($(this.dgDom.element)[0].getBoundingClientRect());
   }
 
   _bindElements() {
-    var self = this;
-    var dgDom = this.dgDom;
+    const dgDom = this.dgDom;
 
-    $(dgDom.element).find('.ok-button').off('click').on('click', (ev) => {
-      self.commit();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.commit();
     });
 
-    $(dgDom.element).find('.cancel-button').off('click').on('click', (ev) => {
-      self.complete();
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.complete();
     });
 
     $(dgDom.element).find('.remove-button').remove();
     this.bindKeyboard();
   }
   position(box) {
-    var y = (window.innerHeight/3  + box.height);
-
+    var y = (window.innerHeight / 3  + box.height);
     // TODO: adjust if db is clipped by the browser.
     var dge = $(this.dgDom.element).find('.attributeModal');
 
     $(dge).css('top', '' + y + 'px');
-        var x = window.innerWidth - box.width/2;
-        $(dge).css('left', '' + x + 'px');
+    const x = window.innerWidth - box.width / 2;
+    $(dge).css('left', '' + x + 'px');
   }
 }
+// eslint-disable-next-line no-unused-vars
 class SuiLoadFileDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiLoadFileDialog';
@@ -24412,16 +24450,16 @@ class SuiLoadFileDialog extends SuiFileDialog {
         parameterName: 'jsonFile',
         defaultValue: '',
         control: 'SuiFileDownloadComponent',
-        label:''
-      },{staticText: [
-        {label: 'Load File'}
-      ]}
-    ];
+        label: ''
+      }, { staticText: [
+        { label: 'Load File' }
+      ] }
+      ];
     return SuiLoadFileDialog._dialogElements;
   }
   changed() {
     this.value = this.components[0].getValue();
-    $(this.dgDom.element).find('.ok-button').prop('disabled',false);
+    $(this.dgDom.element).find('.ok-button').prop('disabled', false);
   }
   commit() {
     let scoreWorks = false;
@@ -24429,14 +24467,10 @@ class SuiLoadFileDialog extends SuiFileDialog {
       try {
         const score = SmoScore.deserialize(this.value);
         scoreWorks = true;
-        this.view.score = score;
-        this.view.renderer.setViewport(true);
-        setTimeout(() => {
-          $('body').trigger('forceResizeEvent');
-        }, 1);
+        this.view.changeScore(score);
         this.complete();
       } catch (e) {
-        console.log('unable to score '+e);
+        console.warn('unable to score ' + e);
       }
       if (!scoreWorks) {
         this.complete();
@@ -24446,7 +24480,7 @@ class SuiLoadFileDialog extends SuiFileDialog {
   static createAndDisplay(params) {
     const dg = new SuiLoadFileDialog(params);
     dg.display();
-     // disable until file is selected
+    // disable until file is selected
     $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
   }
   constructor(parameters) {
@@ -24455,6 +24489,7 @@ class SuiLoadFileDialog extends SuiFileDialog {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiPrintFileDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiPrintFileDialog';
@@ -24464,7 +24499,7 @@ class SuiPrintFileDialog extends SuiFileDialog {
   }
   static get label() {
     SuiPrintFileDialog._label = typeof(SuiPrintFileDialog._label) !== 'undefined' ? SuiPrintFileDialog._label :
-       'Print Complete';
+      'Print Complete';
     return SuiPrintFileDialog._label;
   }
   static set label(value) {
@@ -24474,24 +24509,23 @@ class SuiPrintFileDialog extends SuiFileDialog {
   static get dialogElements() {
     return [
       { staticText: [
-      { label: 'Print Complete'}
-    ] }];
+        { label: 'Print Complete' }
+      ] }];
   }
   static createAndDisplay(params) {
     var dg = new SuiPrintFileDialog(params);
     dg.display();
   }
   constructor(parameters) {
-    parameters.ctor='SuiPrintFileDialog';
+    parameters.ctor = 'SuiPrintFileDialog';
     super(parameters);
   }
   changed() {}
   _bindElements() {
-    const self = this;
     const dgDom = this.dgDom;
-    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       $('body').removeClass('printing');
-      self.view.renderer.restoreLayoutAfterPrint();
+      this.view.renderer.restoreLayoutAfterPrint();
       window.dispatchEvent(new Event('resize'));
       self.complete();
     });
@@ -24500,6 +24534,7 @@ class SuiPrintFileDialog extends SuiFileDialog {
     $(dgDom.element).find('.remove-button').remove();
   }
 }
+// eslint-disable-next-line no-unused-vars
 class SuiSaveFileDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiSaveFileDialog';
@@ -24512,15 +24547,15 @@ class SuiSaveFileDialog extends SuiFileDialog {
     SuiSaveFileDialog._dialogElements = typeof(SuiSaveFileDialog._dialogElements) !== 'undefined' ?
       SuiSaveFileDialog._dialogElements :
       [{
-          smoName: 'saveFileName',
-          parameterName: 'saveFileName',
-          defaultValue: '',
-          control: 'SuiTextInputComponent',
-          label:'File Name'
+        smoName: 'saveFileName',
+        parameterName: 'saveFileName',
+        defaultValue: '',
+        control: 'SuiTextInputComponent',
+        label: 'File Name'
       },
       {
         staticText: [
-          { label : 'Save Score' }
+          { label: 'Save Score' }
         ]
       }];
     return SuiSaveFileDialog._dialogElements;
@@ -24532,15 +24567,12 @@ class SuiSaveFileDialog extends SuiFileDialog {
   commit() {
     let filename = this.value;
     if (!filename) {
-      filename='myScore.json';
+      filename = 'myScore.json';
     }
     if (filename.indexOf('.json') < 0) {
       filename = filename + '.json';
     }
-    var txt = this.view.renderer.score.serialize();
-    txt = JSON.stringify(txt);
-    htmlHelpers.addFileLink(filename, txt, $('.saveLink'));
-    $('.saveLink a')[0].click();
+    this.view.saveScore(filename);
     this.complete();
   }
   static createAndDisplay(params) {
@@ -24548,7 +24580,7 @@ class SuiSaveFileDialog extends SuiFileDialog {
     dg.display();
   }
   constructor(parameters) {
-    parameters.ctor='SuiSaveFileDialog';
+    parameters.ctor = 'SuiSaveFileDialog';
     super(parameters);
   }
 }
@@ -24882,11 +24914,10 @@ class SuiTextBlockComponent extends SuiComponentBase {
 ;// ## measureDialogs.js
 // This file contains dialogs that affect all measures at a certain position,
 // such as tempo or time signature.
-
 class SuiMeasureDialog extends SuiDialogBase {
     static get attributes() {
       return ['pickupMeasure', 'makePickup', 'padLeft', 'padAllInSystem',
-        'measureText','measureTextPosition'];
+        'measureText', 'measureTextPosition'];
     }
     static get ctor() {
       return 'SuiMeasureDialog';
@@ -24895,90 +24926,98 @@ class SuiMeasureDialog extends SuiDialogBase {
       return SuiMeasureDialog.ctor;
     }
     static get dialogElements() {
-      SuiMeasureDialog._dialogElements = SuiMeasureDialog._dialogElements ? SuiMeasureDialog._dialogElements :
+      SuiMeasureDialog._dialogElements = typeof(SuiMeasureDialog._dialogElements) !== 'undefined' ? SuiMeasureDialog._dialogElements :
         [
           {
             staticText: [
               { label: 'Measure Properties' }]
           },
           {
-            smoName: 'pickupMeasure',
-            parameterName: 'pickupMeasure',
-            defaultValue: 2048,
-            control: 'SuiDropdownComponent',
-            label:'Pickup Measure',
-            options: [{
-              value: 2048,
-              label: 'Eighth Note'
-            }, {
-              value: 4096,
-              label: 'Quarter Note'
-            }, {
-              value: 6144,
-              label: 'Dotted Quarter'
-            }, {
-              value: 8192,
-              label: 'Half Note'
-          }
-        ]
-      }, {
-        smoName:'makePickup',
-        parameterName:'makePickup',
-        defaultValue: false,
-        control:'SuiToggleComponent',
-        label:'Convert to Pickup Measure'
-      }, {
-        parameterName: 'padLeft',
-        smoName: 'padLeft',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Pad Left (px)'
-      }, {
-        parameterName: 'customStretch',
-        smoName: 'customStretch',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Stretch Contents'
-      },{
-        parameterName: 'customProportion',
-        smoName: 'customProportion',
-        defaultValue: SmoMeasure.defaults.customProportion,
-        control: 'SuiRockerComponent',
-        increment: 10,
-        label: 'Adjust Proportional Spacing'
-      }, {
-        smoName:'padAllInSystem',
-        parameterName:'padAllInSystem',
-        defaultValue: false,
-        control:'SuiToggleComponent',
-        label:'Pad all measures in system'
-      }, {
-        smoName: 'autoJustify',
-        parameterName: 'autoJustify',
-        defaultValue: true,
-        control: 'SuiToggleComponent',
-        label: 'Justify Columns'
-      },  {
-        smoName: 'noteFormatting',
-        parameterName: 'noteFormatting',
-        defaultValue: 0,
-        control: 'SuiDropdownComponent',
-        label: 'Formatting Iterations',
-        options: [{
-            value: 0,
-            label: 'None'
+            smoName: 'pickup',
+            parameterName: 'pickup',
+            defaultValue: '',
+            control: CheckboxDropdownComponent,
+            label: 'Pickup',
+            toggleElement: {
+              smoName:'makePickup',
+              parameterName:'makePickup',
+              defaultValue: false,
+              control:'SuiToggleComponent',
+              label:'Convert to Pickup Measure'
+            },
+            dropdownElement: {
+              smoName: 'pickupMeasure',
+              parameterName: 'pickupMeasure',
+              defaultValue: 2048,
+              control: 'SuiDropdownComponent',
+              label:'Pickup Measure',
+              options: [{
+                  value: 2048,
+                  label: 'Eighth Note'
+                }, {
+                  value: 4096,
+                  label: 'Quarter Note'
+                }, {
+                  value: 6144,
+                  label: 'Dotted Quarter'
+                }, {
+                  value: 8192,
+                  label: 'Half Note'
+                }
+              ]
+            }
           }, {
-            value: 2,
-            label: '2'
-          }, {
-            value: 5,
-            label: '5'
-          }, {
-            value: 10,
-            label: '10'
-          }
-        ]
-      }, {
+          parameterName: 'padLeft',
+          smoName: 'padLeft',
+          defaultValue: 0,
+          control: 'SuiRockerComponent',
+          label: 'Pad Left (px)'
+        }, {
+          parameterName: 'customStretch',
+          smoName: 'customStretch',
+          defaultValue: 0,
+          control: 'SuiRockerComponent',
+          label: 'Stretch Contents'
+        },{
+          parameterName: 'customProportion',
+          smoName: 'customProportion',
+          defaultValue: SmoMeasure.defaults.customProportion,
+          control: 'SuiRockerComponent',
+          increment: 10,
+          label: 'Adjust Proportional Spacing'
+        }, {
+          smoName:'padAllInSystem',
+          parameterName:'padAllInSystem',
+          defaultValue: false,
+          control:'SuiToggleComponent',
+          label:'Pad all measures in system'
+        }, {
+          smoName: 'autoJustify',
+          parameterName: 'autoJustify',
+          defaultValue: true,
+          control: 'SuiToggleComponent',
+          label: 'Justify Columns'
+        },  {
+          smoName: 'noteFormatting',
+          parameterName: 'noteFormatting',
+          defaultValue: 0,
+          control: 'SuiDropdownComponent',
+          label: 'Formatting Iterations',
+          options: [{
+              value: 0,
+              label: 'None'
+            }, {
+              value: 2,
+              label: '2'
+            }, {
+              value: 5,
+              label: '5'
+            }, {
+              value: 10,
+              label: '10'
+            }
+          ]
+        }, {
         smoName: 'measureTextPosition',
         parameterName: 'measureTextPosition',
         defaultValue: SmoMeasureText.positions.above,
@@ -25011,18 +25050,18 @@ class SuiMeasureDialog extends SuiDialogBase {
     static createAndDisplay(parameters) {
       // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
       //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
-      parameters.selection = parameters.tracker.selections[0];
-      var dg = new SuiMeasureDialog(parameters);
+      parameters.selection = parameters.view.tracker.selections[0];
+      const dg = new SuiMeasureDialog(parameters);
       dg.display();
       return dg;
     }
   changed() {
-    if (this.pickupMeasureCtrl.changeFlag || this.pickupMeasureCtrl.changeFlag) {
-      this.view.renderer.unrenderColumn(this.measure);
-      SmoUndoable.scoreOp(this.view.score, 'convertToPickupMeasure', this.pickupMeasureCtrl.getValue(), this.view.undoBuffer, 'Create pickup measure');
-      this.selection = SmoSelection.measureSelection(this.view.score, this.selection.selector.staff, this.selection.selector.measure);
-      this.tracker.replaceSelectedMeasures();
-      this.measure = this.selection.measure;
+    if (this.pickupCtrl.changeFlag) {
+      if (this.pickupCtrl.toggleCtrl.getValue() === false) {
+        this.view.createPickup(smoMusic.timeSignatureToTicks(this.measure.timeSignature));
+      } else {
+        this.view.createPickup(this.pickupCtrl.dropdownCtrl.getValue());
+      }
     }
     if (this.customStretchCtrl.changeFlag) {
       var delta = this.measure.customStretch;
@@ -25031,8 +25070,7 @@ class SuiMeasureDialog extends SuiDialogBase {
       this.tracker.replaceSelectedMeasures();
     }
     if (this.customProportionCtrl.changeFlag) {
-      this.measure.customProportion = this.customProportionCtrl.getValue();
-      this.tracker.replaceSelectedMeasures();
+      this.view.setMeasureProportion(this.customProportionCtrl.getValue());
     }
     if (this.systemBreakCtrl.changeFlag) {
       SmoUndoable.scoreSelectionOp(this.view.score,
@@ -25073,12 +25111,11 @@ class SuiMeasureDialog extends SuiDialogBase {
       top: parameters.selection.measure.renderedBox.y,
       left: parameters.selection.measure.renderedBox.x,
       label: 'Measure Properties',
-      eventSource: parameters.eventSource,
-      completeNotifier : parameters.completeNotifier
+      ...parameters
     });
     this.startPromise = parameters.closeMenuPromise;
     if (!this.startPromise) {
-      this.startPromise = new Promise((resolve,reject) => {
+      this.startPromise = new Promise((resolve) => {
         resolve();
       });
     }
@@ -25092,9 +25129,8 @@ class SuiMeasureDialog extends SuiDialogBase {
   }
   display() {
     super.display();
-    var self=this;
-    function getKeys() {
-        self.completeNotifier.unbindKeyboardForModal(self);
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(this);
     }
     this.startPromise.then(getKeys);
   }
@@ -25104,58 +25140,42 @@ class SuiMeasureDialog extends SuiDialogBase {
     } else {
       $('.attributeDialog .attributeModal').removeClass('pad-left-select');
     }
-
-    if (this.pickupMeasureCtrl.getValue()) {
-      $('.attributeDialog .attributeModal').addClass('pickup-select');
-    } else {
-      $('.attributeDialog .attributeModal').removeClass('pickup-select');
-    }
   }
   populateInitial() {
     this.padLeftCtrl.setValue(this.measure.padLeft);
     this.autoJustifyCtrl.setValue(this.measure.autoJustify);
     this.originalStretch = this.measure.customStretch;
     this.originalProportion = this.measure.customProportion;
-    var isPickup = this.measure.isPickup();
+    const isPickup = this.measure.isPickup();
     this.customStretchCtrl.setValue(this.measure.customStretch);
     this.customProportionCtrl.setValue(this.measure.customProportion);
     this.noteFormattingCtrl.setValue(this.measure.getFormattingIterations());
-    this.pickupMeasureCtrl.setValue(isPickup);
+    this.pickupCtrl.toggleCtrl.setValue(isPickup);
     if (isPickup) {
-      this.pickupMeasureCtrl.setValue(this.measure.getTicksFromVoice())
+      this.pickupCtrl.dropdownCtrl.setValue(this.measure.getTicksFromVoice());
     }
 
-    var isSystemBreak = this.measure.getForceSystemBreak();
+    const isSystemBreak = this.measure.getForceSystemBreak();
     this.systemBreakCtrl.setValue(isSystemBreak);
     this._updateConditionals();
 
     // TODO: handle multiples (above/below)
-    var texts = this.measure.getMeasureText();
-  }
-  _cancelEdits() {
-    this.measure.customStretch = this.originalStretch;
-    this.measure.customProportion = this.originalProportion;
-    this.view.renderer.setRefresh();
+    this.measure.getMeasureText();
   }
   _bindElements() {
-    this._bindComponentNames();
-    var self = this;
-    var dgDom = this.dgDom;
+    const dgDom = this.dgDom;
     this.bindKeyboard();
     this._bindComponentNames();
     this.populateInitial();
 
-    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-      self.tracker.replaceSelectedMeasures();
-      self.complete();
+    $(dgDom.element).find('.ok-button').off('click').on('click', (ev) => {
+      this.complete();
     });
-
-    $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-      self._cancelEdits();
-      self.complete();
+    $(dgDom.element).find('.cancel-button').off('click').on('click', (ev) => {
+      this.complete();
     });
-    $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-      self.complete();
+    $(dgDom.element).find('.remove-button').off('click').on('click', (ev) => {
+      this.complete();
     });
   }
 }
@@ -26075,7 +26095,44 @@ class SuiLayoutDialog extends SuiDialogBase {
     this.backupOriginal();
   }
 }
-;class StaffCheckComponent extends SuiComponentBase {
+;class CheckboxDropdownComponent extends SuiComponentBase {
+  // { dropdownElement: {...}, toggleElement: }
+  constructor(dialog, parameter) {
+    super(parameter);
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+    this.dialog = dialog;
+    parameter.toggleElement.parentControl = this;
+    parameter.dropdownElement.parentControl = this;
+    this.toggleCtrl = new SuiToggleComposite(this.dialog, parameter.toggleElement);
+    this.dropdownCtrl = new SuiDropdownComposite(this.dialog, parameter.dropdownElement);
+  }
+  get html() {
+    const b = htmlHelpers.buildDom;
+    const q = b('div').classes(this.makeClasses('multiControl smoControl checkboxDropdown'))
+      .attr('id',this.parameterId);
+    q.append(this.toggleCtrl.html);
+    q.append(this.dropdownCtrl.html);
+    return q;
+  }
+  get parameterId() {
+    return this.dialog.id + '-' + this.parameterName;
+  }
+  bind() {
+    this.toggleCtrl.bind();
+    this.dropdownCtrl.bind();
+  }
+  changed() {
+    if (this.toggleCtrl.getValue()) {
+      $('#'+this.parameterId).addClass('checked');
+    } else {
+      $('#'+this.parameterId).removeClass('checked');
+    }
+    this.handleChanged();
+  }
+}
+
+class StaffCheckComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     let i = 0;
     super(parameter);
@@ -26107,7 +26164,6 @@ class SuiLayoutDialog extends SuiDialogBase {
       i += 1;
     });
   }
-
   get html() {
     const b = htmlHelpers.buildDom;
     const q = b('div').classes(this.makeClasses('multiControl smoControl staffContainer'));
@@ -33661,8 +33717,7 @@ class SuiFileMenu extends suiMenuBase {
       const score = SmoScore.getDefaultScore();
       this.view.changeScore(score);
     } else if (text === 'quickSave') {
-      const scoreStr = JSON.stringify(this.view.storeScore.serialize());
-      localStorage.setItem(smoSerialize.localScore, scoreStr);
+      this.view.quickSave();
     } else if (text === 'printScore') {
       const systemPrint = () => {
         self.systemPrint();

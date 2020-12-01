@@ -18,8 +18,8 @@ class UndoBuffer {
   static get bufferTypes() {
     return {
       FIRST: 1,
-      MEASURE: 1, STAFF: 2, SCORE: 3, SCORE_MODIFIER: 4,
-      LAST: 4
+      MEASURE: 1, STAFF: 2, SCORE: 3, SCORE_MODIFIER: 4, COLUMN: 5,
+      LAST: 5
     };
   }
   static get bufferSubtypes() {
@@ -28,7 +28,19 @@ class UndoBuffer {
     };
   }
   static get bufferTypeLabel() {
-    return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER'];
+    return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER', 'COLUMN'];
+  }
+  // ### serializeMeasure
+  // serialize a measure, preserving the column-mapped bits which aren't serialized on a full score save.
+  static serializeMeasure(measure) {
+    const attrColumnHash = {};
+    const attrCurrentValue  = {};
+    const json = measure.serialize();
+    measure.serializeColumnMapped(attrColumnHash, attrCurrentValue);
+    Object.keys(attrCurrentValue).forEach((key) => {
+      json[key] = attrCurrentValue[key];
+    });
+    return json;
   }
   // ### addBuffer
   // Description:
@@ -45,22 +57,22 @@ class UndoBuffer {
       selector,
       subtype
     };
-    // If this is a score object, obj is the score and
-    // obj[objName] is the serializable component
-    if (obj.attrs && obj.attrs.type === 'SmoMeasure') {
-      // If this is a measure, preserve the column-mapped attributes
-      const attrColumnHash = {};
-      const attrCurrentValue  = {};
-      const json = obj.serialize();
-      obj.serializeColumnMapped(attrColumnHash, attrCurrentValue);
-      Object.keys(attrCurrentValue).forEach((key) => {
-        json[key] = attrCurrentValue[key];
+    if (type === UndoBuffer.bufferTypes.COLUMN) {
+      // COLUMN obj is { score, measureIndex }
+      const ix = obj.measureIndex;
+      const measures = [];
+      obj.score.staves.forEach((staff) => {
+        measures.push(UndoBuffer.serializeMeasure(staff.measures[ix]));
       });
-      undoObj.json = json;
+      undoObj.json = { measureIndex: ix, measures };
+    } else if (type === UndoBuffer.bufferTypes.MEASURE) {
+      // If this is a measure, preserve the column-mapped attributes
+      undoObj.json = UndoBuffer.serializeMeasure(obj);
     } else if (type === UndoBuffer.bufferTypes.SCORE_MODIFIER) {
       // score modifier, already serialized
       undoObj.json = obj;
     } else {
+      // staff or score
       undoObj.json = obj.serialize();
     }
     if (this.buffer.length >= UndoBuffer.bufferMax) {
@@ -95,12 +107,17 @@ class UndoBuffer {
   // Undo the operation at the top of the undo stack.  This is done by replacing
   // the music as it existed before the change was made.
   undo(score) {
+    let i = 0;
     const buf = this._pop();
     if (!buf) {
       return score;
     }
-
-    if (buf.type === UndoBuffer.bufferTypes.MEASURE) {
+    if (buf.type === UndoBuffer.bufferTypes.COLUMN) {
+      for (i = 0; i < score.staves.length; ++i) {
+        const measure = SmoMeasure.deserialize(buf.json.measures[i]);
+        score.replaceMeasure({ staff: i, measure: buf.json.measureIndex }, measure);
+      }
+    } else if (buf.type === UndoBuffer.bufferTypes.MEASURE) {
       const measure = SmoMeasure.deserialize(buf.json);
       measure.setChanged();
       score.replaceMeasure(buf.selector, measure);

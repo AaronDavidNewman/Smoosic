@@ -424,8 +424,7 @@ class SuiFileMenu extends suiMenuBase {
       const score = SmoScore.getDefaultScore();
       this.view.changeScore(score);
     } else if (text === 'quickSave') {
-      const scoreStr = JSON.stringify(this.view.storeScore.serialize());
-      localStorage.setItem(smoSerialize.localScore, scoreStr);
+      this.view.quickSave();
     } else if (text === 'printScore') {
       const systemPrint = () => {
         self.systemPrint();

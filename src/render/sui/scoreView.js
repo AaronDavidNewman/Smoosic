@@ -31,23 +31,27 @@ class SuiScoreView {
     });
     return rv;
   }
+  _undoColumn(label, measureIndex) {
+    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, null, { score: this.score, measureIndex });
+    this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, null, { score: this.storeScore, measureIndex });
+  }
 
   // ### _undoTrackerSelections
   // Add to the undo buffer the current set of measures selected.
-  _undoTrackerMeasureSelections() {
+  _undoTrackerMeasureSelections(label) {
     const measureSelections = SmoSelection.getMeasureList(this.tracker.selections);
     measureSelections.forEach((measureSelection) => {
       const equiv = this._getEquivalentSelection(measureSelection);
-      this.undoBuffer.addBuffer('transpose selections', UndoBuffer.bufferTypes.MEASURE, measureSelection.selector, measureSelection.measure);
-      this.storeUndo.addBuffer('transpose selections', UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure);
+      this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, measureSelection.selector, measureSelection.measure);
+      this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure);
     });
     return measureSelections;
   }
   // ### _undoFirstMeasureSelection
   // operation that only affects the first selection.  Setup undo for the measure
-  _undoFirstMeasureSelection() {
+  _undoFirstMeasureSelection(label) {
     const sel = this.tracker.selections[0];
-    this.undoBuffer.addBuffer('transpose selections', UndoBuffer.bufferTypes.MEASURE, sel.selector, sel.measure);
+    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, sel.selector, sel.measure);
     return sel;
   }
   // ###_renderChangedMeasures

@@ -35,8 +35,8 @@ class SmoOperation {
   score.deleteMeasure(measureIndex);
   }
 
-  static addPickupMeasure(score,duration) {
-    score.addPickupMeasure(0,duration);
+  static addPickupMeasure(score, duration) {
+    score.addPickupMeasure(0, duration);
   }
 
   static addConnectorDown(score,selections,parameters) {
@@ -59,7 +59,7 @@ class SmoOperation {
   }
 
   static convertToPickupMeasure(score,duration) {
-      score.convertToPickupMeasure(0,duration);
+    score.convertToPickupMeasure(0,duration);
   }
   static toggleBeamGroup(noteSelection) {
   noteSelection.measure.setChanged();
@@ -118,6 +118,12 @@ class SmoOperation {
 
   static populateVoice(selection,voiceIx) {
     selection.measure.populateVoice(voiceIx);
+  }
+  // ### setMeasureProportion
+  // Change the softmax factor.
+  static setMeasureProportion(selection, proportion) {
+    // TODO: there should be a setter for this
+    selection.measure.customProportion = proportion;
   }
 
   static setTimeSignature(score, selections, timeSignature) {
@@ -744,12 +750,12 @@ class SmoOperation {
   selection.measure.removeMeasureText(mt.attrs.id);
   }
 
-  static addSystemText(score,selection,measureText) {
-  var mm = selection.selector.measure;
-  score.staves.forEach((staff) => {
-  var mt = new SmoMeasureText(measureText.serialize());
-  staff.measures[mm].addMeasureText(mt);
-  });
+  static addSystemText(score, selection, measureText) {
+    const mm = selection.selector.measure;
+    score.staves.forEach((staff) => {
+      const mt = new SmoMeasureText(measureText.serialize());
+      staff.measures[mm].addMeasureText(mt);
+    });
   }
 
   static removeRehearsalMark(score, selection, rehearsalMark) {
@@ -766,11 +772,11 @@ class SmoOperation {
     });
   }
 
-  static addLyric(score,selection,lyric) {
+  static addLyric(score, selection, lyric) {
     selection.note.addLyric(lyric);
   }
 
-  static removeLyric(score,selection,lyric) {
+  static removeLyric(score, selection, lyric) {
     selection.note.removeLyric(lyric);
   }
 

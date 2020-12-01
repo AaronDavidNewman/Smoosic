@@ -1,4 +1,4 @@
-
+// eslint-disable-next-line no-unused-vars
 class SuiFileDialog extends SuiDialogBase {
   constructor(parameters) {
     var p = parameters;
@@ -9,7 +9,7 @@ class SuiFileDialog extends SuiDialogBase {
     p.left = (p.view.score.layout.pageHeight / 2) - 200;
 
     super(ctor.dialogElements, p);
-    this.value='';
+    this.value = '';
   }
   display() {
     $('body').addClass('showAttributeDialog');
@@ -19,40 +19,38 @@ class SuiFileDialog extends SuiDialogBase {
     this._bindElements();
 
     // make sure keyboard is unbound or we get dupicate key events.
-    var self=this;
-    function getKeys() {
-        self.completeNotifier.unbindKeyboardForModal(self);
-    }
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(this);
+    };
     this.startPromise.then(getKeys);
     this.position($(this.dgDom.element)[0].getBoundingClientRect());
   }
 
   _bindElements() {
-    var self = this;
-    var dgDom = this.dgDom;
+    const dgDom = this.dgDom;
 
-    $(dgDom.element).find('.ok-button').off('click').on('click', (ev) => {
-      self.commit();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.commit();
     });
 
-    $(dgDom.element).find('.cancel-button').off('click').on('click', (ev) => {
-      self.complete();
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.complete();
     });
 
     $(dgDom.element).find('.remove-button').remove();
     this.bindKeyboard();
   }
   position(box) {
-    var y = (window.innerHeight/3  + box.height);
-
+    var y = (window.innerHeight / 3  + box.height);
     // TODO: adjust if db is clipped by the browser.
     var dge = $(this.dgDom.element).find('.attributeModal');
 
     $(dge).css('top', '' + y + 'px');
-        var x = window.innerWidth - box.width/2;
-        $(dge).css('left', '' + x + 'px');
+    const x = window.innerWidth - box.width / 2;
+    $(dge).css('left', '' + x + 'px');
   }
 }
+// eslint-disable-next-line no-unused-vars
 class SuiLoadFileDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiLoadFileDialog';
@@ -68,16 +66,16 @@ class SuiLoadFileDialog extends SuiFileDialog {
         parameterName: 'jsonFile',
         defaultValue: '',
         control: 'SuiFileDownloadComponent',
-        label:''
-      },{staticText: [
-        {label: 'Load File'}
-      ]}
-    ];
+        label: ''
+      }, { staticText: [
+        { label: 'Load File' }
+      ] }
+      ];
     return SuiLoadFileDialog._dialogElements;
   }
   changed() {
     this.value = this.components[0].getValue();
-    $(this.dgDom.element).find('.ok-button').prop('disabled',false);
+    $(this.dgDom.element).find('.ok-button').prop('disabled', false);
   }
   commit() {
     let scoreWorks = false;
@@ -85,14 +83,10 @@ class SuiLoadFileDialog extends SuiFileDialog {
       try {
         const score = SmoScore.deserialize(this.value);
         scoreWorks = true;
-        this.view.score = score;
-        this.view.renderer.setViewport(true);
-        setTimeout(() => {
-          $('body').trigger('forceResizeEvent');
-        }, 1);
+        this.view.changeScore(score);
         this.complete();
       } catch (e) {
-        console.log('unable to score '+e);
+        console.warn('unable to score ' + e);
       }
       if (!scoreWorks) {
         this.complete();
@@ -102,7 +96,7 @@ class SuiLoadFileDialog extends SuiFileDialog {
   static createAndDisplay(params) {
     const dg = new SuiLoadFileDialog(params);
     dg.display();
-     // disable until file is selected
+    // disable until file is selected
     $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
   }
   constructor(parameters) {
@@ -111,6 +105,7 @@ class SuiLoadFileDialog extends SuiFileDialog {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiPrintFileDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiPrintFileDialog';
@@ -120,7 +115,7 @@ class SuiPrintFileDialog extends SuiFileDialog {
   }
   static get label() {
     SuiPrintFileDialog._label = typeof(SuiPrintFileDialog._label) !== 'undefined' ? SuiPrintFileDialog._label :
-       'Print Complete';
+      'Print Complete';
     return SuiPrintFileDialog._label;
   }
   static set label(value) {
@@ -130,24 +125,23 @@ class SuiPrintFileDialog extends SuiFileDialog {
   static get dialogElements() {
     return [
       { staticText: [
-      { label: 'Print Complete'}
-    ] }];
+        { label: 'Print Complete' }
+      ] }];
   }
   static createAndDisplay(params) {
     var dg = new SuiPrintFileDialog(params);
     dg.display();
   }
   constructor(parameters) {
-    parameters.ctor='SuiPrintFileDialog';
+    parameters.ctor = 'SuiPrintFileDialog';
     super(parameters);
   }
   changed() {}
   _bindElements() {
-    const self = this;
     const dgDom = this.dgDom;
-    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       $('body').removeClass('printing');
-      self.view.renderer.restoreLayoutAfterPrint();
+      this.view.renderer.restoreLayoutAfterPrint();
       window.dispatchEvent(new Event('resize'));
       self.complete();
     });
@@ -156,6 +150,7 @@ class SuiPrintFileDialog extends SuiFileDialog {
     $(dgDom.element).find('.remove-button').remove();
   }
 }
+// eslint-disable-next-line no-unused-vars
 class SuiSaveFileDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiSaveFileDialog';
@@ -168,15 +163,15 @@ class SuiSaveFileDialog extends SuiFileDialog {
     SuiSaveFileDialog._dialogElements = typeof(SuiSaveFileDialog._dialogElements) !== 'undefined' ?
       SuiSaveFileDialog._dialogElements :
       [{
-          smoName: 'saveFileName',
-          parameterName: 'saveFileName',
-          defaultValue: '',
-          control: 'SuiTextInputComponent',
-          label:'File Name'
+        smoName: 'saveFileName',
+        parameterName: 'saveFileName',
+        defaultValue: '',
+        control: 'SuiTextInputComponent',
+        label: 'File Name'
       },
       {
         staticText: [
-          { label : 'Save Score' }
+          { label: 'Save Score' }
         ]
       }];
     return SuiSaveFileDialog._dialogElements;
@@ -188,15 +183,12 @@ class SuiSaveFileDialog extends SuiFileDialog {
   commit() {
     let filename = this.value;
     if (!filename) {
-      filename='myScore.json';
+      filename = 'myScore.json';
     }
     if (filename.indexOf('.json') < 0) {
       filename = filename + '.json';
     }
-    var txt = this.view.renderer.score.serialize();
-    txt = JSON.stringify(txt);
-    htmlHelpers.addFileLink(filename, txt, $('.saveLink'));
-    $('.saveLink a')[0].click();
+    this.view.saveScore(filename);
     this.complete();
   }
   static createAndDisplay(params) {
@@ -204,7 +196,7 @@ class SuiSaveFileDialog extends SuiFileDialog {
     dg.display();
   }
   constructor(parameters) {
-    parameters.ctor='SuiSaveFileDialog';
+    parameters.ctor = 'SuiSaveFileDialog';
     super(parameters);
   }
 }

@@ -1,11 +1,10 @@
 // ## measureDialogs.js
 // This file contains dialogs that affect all measures at a certain position,
 // such as tempo or time signature.
-
 class SuiMeasureDialog extends SuiDialogBase {
     static get attributes() {
       return ['pickupMeasure', 'makePickup', 'padLeft', 'padAllInSystem',
-        'measureText','measureTextPosition'];
+        'measureText', 'measureTextPosition'];
     }
     static get ctor() {
       return 'SuiMeasureDialog';
@@ -14,90 +13,98 @@ class SuiMeasureDialog extends SuiDialogBase {
       return SuiMeasureDialog.ctor;
     }
     static get dialogElements() {
-      SuiMeasureDialog._dialogElements = SuiMeasureDialog._dialogElements ? SuiMeasureDialog._dialogElements :
+      SuiMeasureDialog._dialogElements = typeof(SuiMeasureDialog._dialogElements) !== 'undefined' ? SuiMeasureDialog._dialogElements :
         [
           {
             staticText: [
               { label: 'Measure Properties' }]
           },
           {
-            smoName: 'pickupMeasure',
-            parameterName: 'pickupMeasure',
-            defaultValue: 2048,
-            control: 'SuiDropdownComponent',
-            label:'Pickup Measure',
-            options: [{
-              value: 2048,
-              label: 'Eighth Note'
-            }, {
-              value: 4096,
-              label: 'Quarter Note'
-            }, {
-              value: 6144,
-              label: 'Dotted Quarter'
-            }, {
-              value: 8192,
-              label: 'Half Note'
-          }
-        ]
-      }, {
-        smoName:'makePickup',
-        parameterName:'makePickup',
-        defaultValue: false,
-        control:'SuiToggleComponent',
-        label:'Convert to Pickup Measure'
-      }, {
-        parameterName: 'padLeft',
-        smoName: 'padLeft',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Pad Left (px)'
-      }, {
-        parameterName: 'customStretch',
-        smoName: 'customStretch',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Stretch Contents'
-      },{
-        parameterName: 'customProportion',
-        smoName: 'customProportion',
-        defaultValue: SmoMeasure.defaults.customProportion,
-        control: 'SuiRockerComponent',
-        increment: 10,
-        label: 'Adjust Proportional Spacing'
-      }, {
-        smoName:'padAllInSystem',
-        parameterName:'padAllInSystem',
-        defaultValue: false,
-        control:'SuiToggleComponent',
-        label:'Pad all measures in system'
-      }, {
-        smoName: 'autoJustify',
-        parameterName: 'autoJustify',
-        defaultValue: true,
-        control: 'SuiToggleComponent',
-        label: 'Justify Columns'
-      },  {
-        smoName: 'noteFormatting',
-        parameterName: 'noteFormatting',
-        defaultValue: 0,
-        control: 'SuiDropdownComponent',
-        label: 'Formatting Iterations',
-        options: [{
-            value: 0,
-            label: 'None'
+            smoName: 'pickup',
+            parameterName: 'pickup',
+            defaultValue: '',
+            control: CheckboxDropdownComponent,
+            label: 'Pickup',
+            toggleElement: {
+              smoName:'makePickup',
+              parameterName:'makePickup',
+              defaultValue: false,
+              control:'SuiToggleComponent',
+              label:'Convert to Pickup Measure'
+            },
+            dropdownElement: {
+              smoName: 'pickupMeasure',
+              parameterName: 'pickupMeasure',
+              defaultValue: 2048,
+              control: 'SuiDropdownComponent',
+              label:'Pickup Measure',
+              options: [{
+                  value: 2048,
+                  label: 'Eighth Note'
+                }, {
+                  value: 4096,
+                  label: 'Quarter Note'
+                }, {
+                  value: 6144,
+                  label: 'Dotted Quarter'
+                }, {
+                  value: 8192,
+                  label: 'Half Note'
+                }
+              ]
+            }
           }, {
-            value: 2,
-            label: '2'
-          }, {
-            value: 5,
-            label: '5'
-          }, {
-            value: 10,
-            label: '10'
-          }
-        ]
-      }, {
+          parameterName: 'padLeft',
+          smoName: 'padLeft',
+          defaultValue: 0,
+          control: 'SuiRockerComponent',
+          label: 'Pad Left (px)'
+        }, {
+          parameterName: 'customStretch',
+          smoName: 'customStretch',
+          defaultValue: 0,
+          control: 'SuiRockerComponent',
+          label: 'Stretch Contents'
+        },{
+          parameterName: 'customProportion',
+          smoName: 'customProportion',
+          defaultValue: SmoMeasure.defaults.customProportion,
+          control: 'SuiRockerComponent',
+          increment: 10,
+          label: 'Adjust Proportional Spacing'
+        }, {
+          smoName:'padAllInSystem',
+          parameterName:'padAllInSystem',
+          defaultValue: false,
+          control:'SuiToggleComponent',
+          label:'Pad all measures in system'
+        }, {
+          smoName: 'autoJustify',
+          parameterName: 'autoJustify',
+          defaultValue: true,
+          control: 'SuiToggleComponent',
+          label: 'Justify Columns'
+        },  {
+          smoName: 'noteFormatting',
+          parameterName: 'noteFormatting',
+          defaultValue: 0,
+          control: 'SuiDropdownComponent',
+          label: 'Formatting Iterations',
+          options: [{
+              value: 0,
+              label: 'None'
+            }, {
+              value: 2,
+              label: '2'
+            }, {
+              value: 5,
+              label: '5'
+            }, {
+              value: 10,
+              label: '10'
+            }
+          ]
+        }, {
         smoName: 'measureTextPosition',
         parameterName: 'measureTextPosition',
         defaultValue: SmoMeasureText.positions.above,
@@ -130,18 +137,18 @@ class SuiMeasureDialog extends SuiDialogBase {
     static createAndDisplay(parameters) {
       // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
       //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
-      parameters.selection = parameters.tracker.selections[0];
-      var dg = new SuiMeasureDialog(parameters);
+      parameters.selection = parameters.view.tracker.selections[0];
+      const dg = new SuiMeasureDialog(parameters);
       dg.display();
       return dg;
     }
   changed() {
-    if (this.pickupMeasureCtrl.changeFlag || this.pickupMeasureCtrl.changeFlag) {
-      this.view.renderer.unrenderColumn(this.measure);
-      SmoUndoable.scoreOp(this.view.score, 'convertToPickupMeasure', this.pickupMeasureCtrl.getValue(), this.view.undoBuffer, 'Create pickup measure');
-      this.selection = SmoSelection.measureSelection(this.view.score, this.selection.selector.staff, this.selection.selector.measure);
-      this.tracker.replaceSelectedMeasures();
-      this.measure = this.selection.measure;
+    if (this.pickupCtrl.changeFlag) {
+      if (this.pickupCtrl.toggleCtrl.getValue() === false) {
+        this.view.createPickup(smoMusic.timeSignatureToTicks(this.measure.timeSignature));
+      } else {
+        this.view.createPickup(this.pickupCtrl.dropdownCtrl.getValue());
+      }
     }
     if (this.customStretchCtrl.changeFlag) {
       var delta = this.measure.customStretch;
@@ -150,8 +157,7 @@ class SuiMeasureDialog extends SuiDialogBase {
       this.tracker.replaceSelectedMeasures();
     }
     if (this.customProportionCtrl.changeFlag) {
-      this.measure.customProportion = this.customProportionCtrl.getValue();
-      this.tracker.replaceSelectedMeasures();
+      this.view.setMeasureProportion(this.customProportionCtrl.getValue());
     }
     if (this.systemBreakCtrl.changeFlag) {
       SmoUndoable.scoreSelectionOp(this.view.score,
@@ -192,12 +198,11 @@ class SuiMeasureDialog extends SuiDialogBase {
       top: parameters.selection.measure.renderedBox.y,
       left: parameters.selection.measure.renderedBox.x,
       label: 'Measure Properties',
-      eventSource: parameters.eventSource,
-      completeNotifier : parameters.completeNotifier
+      ...parameters
     });
     this.startPromise = parameters.closeMenuPromise;
     if (!this.startPromise) {
-      this.startPromise = new Promise((resolve,reject) => {
+      this.startPromise = new Promise((resolve) => {
         resolve();
       });
     }
@@ -211,9 +216,8 @@ class SuiMeasureDialog extends SuiDialogBase {
   }
   display() {
     super.display();
-    var self=this;
-    function getKeys() {
-        self.completeNotifier.unbindKeyboardForModal(self);
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(this);
     }
     this.startPromise.then(getKeys);
   }
@@ -223,58 +227,42 @@ class SuiMeasureDialog extends SuiDialogBase {
     } else {
       $('.attributeDialog .attributeModal').removeClass('pad-left-select');
     }
-
-    if (this.pickupMeasureCtrl.getValue()) {
-      $('.attributeDialog .attributeModal').addClass('pickup-select');
-    } else {
-      $('.attributeDialog .attributeModal').removeClass('pickup-select');
-    }
   }
   populateInitial() {
     this.padLeftCtrl.setValue(this.measure.padLeft);
     this.autoJustifyCtrl.setValue(this.measure.autoJustify);
     this.originalStretch = this.measure.customStretch;
     this.originalProportion = this.measure.customProportion;
-    var isPickup = this.measure.isPickup();
+    const isPickup = this.measure.isPickup();
     this.customStretchCtrl.setValue(this.measure.customStretch);
     this.customProportionCtrl.setValue(this.measure.customProportion);
     this.noteFormattingCtrl.setValue(this.measure.getFormattingIterations());
-    this.pickupMeasureCtrl.setValue(isPickup);
+    this.pickupCtrl.toggleCtrl.setValue(isPickup);
     if (isPickup) {
-      this.pickupMeasureCtrl.setValue(this.measure.getTicksFromVoice())
+      this.pickupCtrl.dropdownCtrl.setValue(this.measure.getTicksFromVoice());
     }
 
-    var isSystemBreak = this.measure.getForceSystemBreak();
+    const isSystemBreak = this.measure.getForceSystemBreak();
     this.systemBreakCtrl.setValue(isSystemBreak);
     this._updateConditionals();
 
     // TODO: handle multiples (above/below)
-    var texts = this.measure.getMeasureText();
-  }
-  _cancelEdits() {
-    this.measure.customStretch = this.originalStretch;
-    this.measure.customProportion = this.originalProportion;
-    this.view.renderer.setRefresh();
+    this.measure.getMeasureText();
   }
   _bindElements() {
-    this._bindComponentNames();
-    var self = this;
-    var dgDom = this.dgDom;
+    const dgDom = this.dgDom;
     this.bindKeyboard();
     this._bindComponentNames();
     this.populateInitial();
 
-    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-      self.tracker.replaceSelectedMeasures();
-      self.complete();
+    $(dgDom.element).find('.ok-button').off('click').on('click', (ev) => {
+      this.complete();
     });
-
-    $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-      self._cancelEdits();
-      self.complete();
+    $(dgDom.element).find('.cancel-button').off('click').on('click', (ev) => {
+      this.complete();
     });
-    $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-      self.complete();
+    $(dgDom.element).find('.remove-button').off('click').on('click', (ev) => {
+      this.complete();
     });
   }
 }
