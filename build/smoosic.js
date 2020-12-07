@@ -15767,6 +15767,7 @@ class SmoOperation {
 // There are 2 parts to a selection: the actual musical bits that are selected, and the
 // indices that define what was selected.  This is the latter.  The actual object does not
 // have any methods so there is no constructor.
+// eslint-disable-next-line no-unused-vars
 class SmoSelector {
   // TODO:  tick in selector s/b tickIndex
   static sameNote(sel1, sel2) {
@@ -15790,10 +15791,10 @@ class SmoSelector {
   }
 
   static eq(sel1, sel2) {
-    return (sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.tick == sel2.tick);
+    return (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.tick === sel2.tick);
   }
-  static neq(sel1,sel2) {
-    return !(SmoSelector.eq(sel1,sel2));
+  static neq(sel1, sel2) {
+    return !(SmoSelector.eq(sel1, sel2));
   }
 
   static lt(sel1, sel2) {
@@ -15853,13 +15854,13 @@ class SmoSelector {
 // The staff and measure are always a part of the selection, and possible a voice and note,
 // and one or more pitches.  Selections can also be made from the UI by clicking on an element
 // or navigating to an element with the keyboard.
+// eslint-disable-next-line no-unused-vars
 class SmoSelection {
-
   // ### measureSelection
   // A selection that does not contain a specific note
   static measureSelection(score, staffIndex, measureIndex) {
     staffIndex = staffIndex !== null ? staffIndex : score.activeStaff;
-    var selector = {
+    const selector = {
       staff: staffIndex,
       measure: measureIndex
     };
@@ -15872,8 +15873,7 @@ class SmoSelection {
     }
     const measure = staff.measures[measureIndex];
 
-    return new SmoSelection
-    ({
+    return new SmoSelection({
       selector,
       _staff: staff,
       _measure: measure,
@@ -15885,7 +15885,7 @@ class SmoSelection {
     let i = 0;
     const rv = [];
     for (i = 0; i < score.staves.length; ++i) {
-      rv.push(SmoSelection.measureSelection(score,i,staffIndex));
+      rv.push(SmoSelection.measureSelection(score, i, staffIndex));
     }
     return rv;
   }
@@ -15898,8 +15898,8 @@ class SmoSelection {
   // a selection that specifies a note in the score
   static noteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
     staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
-    measureIndex = measureIndex ? measureIndex : 0;
-    voiceIndex = voiceIndex ? voiceIndex : 0;
+    measureIndex = typeof(measureIndex) !== 'undefined' ? measureIndex : 0;
+    voiceIndex = typeof(voiceIndex) !== 'undefined' ? voiceIndex : 0;
     const staff = score.staves[staffIndex];
     if (!staff) {
       return null;
@@ -15931,9 +15931,9 @@ class SmoSelection {
     });
   }
 
-  static noteFromSelector(score,selector) {
+  static noteFromSelector(score, selector) {
     return SmoSelection.noteSelection(score,
-      selector.staff,selector.measure,selector.voice,selector.tick);
+      selector.staff, selector.measure, selector.voice, selector.tick);
   }
 
   // ### renderedNoteSelection
@@ -15944,7 +15944,7 @@ class SmoSelection {
     let j = 0;
     let k = 0;
     let m = 0;
-    var elementId = nel.getAttribute('id');
+    const elementId = nel.getAttribute('id');
     for (i = 0; i < score.staves.length; ++i) {
       const staff = score.staves[i];
       for (j = 0; j < staff.measures.length; ++j) {
@@ -15963,14 +15963,14 @@ class SmoSelection {
               };
               // var box = document.getElementById(nel.id).getBBox();
               const rv = new SmoSelection({
-                  selector: selector,
-                  _staff: staff,
-                  _measure: measure,
-                  _note: note,
-                  _pitches: [],
-                  box: box,
-                  type: 'rendered'
-                });
+                selector,
+                _staff: staff,
+                _measure: measure,
+                _note: note,
+                _pitches: [],
+                box,
+                type: 'rendered'
+              });
 
               return rv;
             }
@@ -15993,7 +15993,7 @@ class SmoSelection {
     pitches.forEach((ix) => {
       pa.push(JSON.parse(JSON.stringify(note.pitches[ix])));
     });
-    var selector = {
+    const selector = {
       staff: staffIndex,
       measure: measureIndex,
       voice: voiceIndex,
@@ -16071,13 +16071,13 @@ class SmoSelection {
     }
     if (lastMeasure >= 0) {
       measure = staff.measures[lastMeasure];
-            if (voiceIndex >= measure.voices.length) {
-                return null;
-            }
+      if (voiceIndex >= measure.voices.length) {
+        return null;
+      }
       const noteIndex = measure.voices[voiceIndex].notes.length - 1;
       return SmoSelection.noteSelection(score, staffIndex, lastMeasure, voiceIndex, noteIndex);
     }
-    return SmoSelection.noteSelection(score, staffIndex, 0, 0,0);
+    return SmoSelection.noteSelection(score, staffIndex, 0, 0, 0);
   }
 
   // ### selectionsSameMeasure
@@ -16118,7 +16118,7 @@ class SmoSelection {
       voice: 0,
       note: 0,
       pitches: []
-    }
+    };
     this._staff = null;
     this._measure = null;
     this._note = null;
