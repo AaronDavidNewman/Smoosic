@@ -385,10 +385,10 @@ class ClefTest {
   			keyOffset:0,
   			clef:'treble'
   		}
-  		var sel1 = SmoSelection.measureSelection(score,1,1);
-  		var sel2=SmoSelection.measureSelection(score,1,2);
+  		var sel1 = SmoSelection.measureSelection(score, 1, 1);
+  		var sel2=SmoSelection.measureSelection(score, 1, 2);
   		keys.layout.unrenderAll();
-  		SmoOperation.changeInstrument(score,instrument,[sel1,sel2]);
+  		SmoOperation.changeInstrument(instrument, [sel1, sel2]);
   		keys.render()
       return timeTest();
   	}

@@ -440,9 +440,9 @@ class SmoUndoable {
     undoBuffer.addBuffer('remove instrument', UndoBuffer.bufferTypes.SCORE, null, score);
     SmoOperation.removeStaff(score, index);
   }
-  static changeInstrument(score, instrument, selections, undoBuffer) {
+  static changeInstrument(instrument, selections, undoBuffer) {
     undoBuffer.addBuffer('changeInstrument', UndoBuffer.bufferTypes.STAFF, selections[0].selector, selections[0].staff);
-    SmoOperation.changeInstrument(score, instrument, selections);
+    SmoOperation.changeInstrument(instrument, selections);
   }
   static pasteBuffer(score, pasteBuffer, selections, undoBuffer, operation) {
     SmoUndoable.undoForSelections(score, selections, undoBuffer, operation);

@@ -4972,8 +4972,8 @@ class SuiScoreViewOperations extends SuiScoreView {
     const measureSelections = this._undoTrackerMeasureSelections('change instrument');
     const selections = this.tracker.selections;
     const altSelections = this._getEquivalentSelections(selections);
-    SmoOperation.changeInstrument(null, selections, instrument);
-    SmoOperation.changeInstrument(null, altSelections, instrument);
+    SmoOperation.changeInstrument(instrument, selections);
+    SmoOperation.changeInstrument(instrument, altSelections);
     this._renderChangedMeasures(measureSelections);
   }
   moveStaffUpDown(index) {
@@ -15716,7 +15716,7 @@ class SmoOperation {
       }
     });
   }
-  static changeInstrument(ignore, instrument, selections) {
+  static changeInstrument(instrument, selections) {
     const measureHash = {};
     let newKey = '';
     selections.forEach((selection) => {
@@ -17060,9 +17060,9 @@ class SmoUndoable {
     undoBuffer.addBuffer('remove instrument', UndoBuffer.bufferTypes.SCORE, null, score);
     SmoOperation.removeStaff(score, index);
   }
-  static changeInstrument(score, instrument, selections, undoBuffer) {
+  static changeInstrument(instrument, selections, undoBuffer) {
     undoBuffer.addBuffer('changeInstrument', UndoBuffer.bufferTypes.STAFF, selections[0].selector, selections[0].staff);
-    SmoOperation.changeInstrument(score, instrument, selections);
+    SmoOperation.changeInstrument(instrument, selections);
   }
   static pasteBuffer(score, pasteBuffer, selections, undoBuffer, operation) {
     SmoUndoable.undoForSelections(score, selections, undoBuffer, operation);
@@ -25326,11 +25326,12 @@ class SuiInstrumentDialog extends SuiDialogBase {
   }
   static get applyTo() {
     return {
-      score: 0,selected:1, remaining: 3
+      score: 0,selected: 1, remaining: 3
     };
   }
   static get dialogElements() {
-    SuiInstrumentDialog._dialogElements = SuiInstrumentDialog._dialogElements ? SuiInstrumentDialog._dialogElements :
+    SuiInstrumentDialog._dialogElements = typeof(SuiInstrumentDialog._dialogElements) !== 'undefined' ?
+    SuiInstrumentDialog._dialogElements :
     [
       {
         staticText: [
@@ -25365,19 +25366,6 @@ class SuiInstrumentDialog extends SuiDialogBase {
     return SuiInstrumentDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
-    /* SuiLyricDialog.createAndDisplay(
-      {
-        buttonElement:this.buttonElement,
-        buttonData:this.buttonData,
-        completeNotifier:this.controller,
-        tracker: this.tracker,
-        layout:this.layout,
-        undoBuffer:this.editor.undoBuffer,
-        eventSource:this.eventSource,
-        editor:this.editor,
-        parser:SmoLyric.parsers.lyric
-      }
-    );  */
     var db = new SuiInstrumentDialog(parameters);
     db.display();
     return db;
@@ -25390,48 +25378,48 @@ class SuiInstrumentDialog extends SuiDialogBase {
     this._bindComponentNames();
     this._bindElements();
     this.position(this.measure.renderedBox);
-    this.tracker.scroller.scrollVisibleBox(
+    this.view.tracker.scroller.scrollVisibleBox(
       svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
     );
 
 
-    var cb = function (x, y) {}
+    const cb = function (x, y) {}
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
       handle: $(this.dgDom.element).find('.jsDbMove'),
       animateDiv:'.draganime',
-      cb: cb,
+      cb,
       moveParent: true
     });
+    this.completeNotifier.unbindKeyboardForModal(this);
   }
   populateInitial() {
-    var ix = this.measure.transposeIndex;
+    const ix = this.measure.transposeIndex;
     this.transposeIndexCtrl.setValue(ix);
   }
 
   changed() {
-    var staffIx = this.measure.measureNumber.staffId;
-
-    var xpose = this.transposeIndexCtrl.getValue();
-    var selections = [];
-    for (var i = 0;i < this.score.staves[staffIx].measures.length;++i) {
+    let i = 0;
+    const staffIx = this.measure.measureNumber.staffId;
+    const xpose = this.transposeIndexCtrl.getValue();
+    const selections = [];
+    for (i = 0; i < this.score.staves[staffIx].measures.length; ++i) {
       selections.push(SmoSelection.measureSelection(this.score, staffIx, i));
     }
-    SmoUndoable.changeInstrument(this.score,
+    this.view.changeInstrument(
       {
         instrumentName: 'Treble Instrument',
         keyOffset: xpose,
         clef: this.measure.clef
       },
       selections,
-      this.undoBuffer);
-
-    this.view.renderer.setRefresh();
+      this.undoBuffer
+    );
   }
 
   constructor(parameters) {
-    var selection = parameters.tracker.selections[0];
-    var measure = selection.measure;
+    const selection = parameters.view.tracker.selections[0];
+    const measure = selection.measure;
 
     parameters = {selection:selection,measure:measure,...parameters};
 

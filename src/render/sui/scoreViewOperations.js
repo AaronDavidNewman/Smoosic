@@ -59,8 +59,8 @@ class SuiScoreViewOperations extends SuiScoreView {
     const measureSelections = this._undoTrackerMeasureSelections('change instrument');
     const selections = this.tracker.selections;
     const altSelections = this._getEquivalentSelections(selections);
-    SmoOperation.changeInstrument(null, selections, instrument);
-    SmoOperation.changeInstrument(null, altSelections, instrument);
+    SmoOperation.changeInstrument(instrument, selections);
+    SmoOperation.changeInstrument(instrument, altSelections);
     this._renderChangedMeasures(measureSelections);
   }
   moveStaffUpDown(index) {

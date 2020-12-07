@@ -912,7 +912,7 @@ class SmoOperation {
       }
     });
   }
-  static changeInstrument(ignore, instrument, selections) {
+  static changeInstrument(instrument, selections) {
     const measureHash = {};
     let newKey = '';
     selections.forEach((selection) => {
