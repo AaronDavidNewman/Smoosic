@@ -212,10 +212,10 @@ class SmoScore {
   // ### getDefaultScore
   // Gets a score consisting of a single measure with all the defaults.
   static getDefaultScore(scoreDefaults, measureDefaults) {
-    scoreDefaults = (scoreDefaults != null ? scoreDefaults : SmoScore.defaults);
-    measureDefaults = (measureDefaults != null ? measureDefaults : SmoMeasure.defaults);
+    scoreDefaults = typeof(scoreDefaults) !== 'undefined' ? scoreDefaults : SmoScore.defaults;
+    measureDefaults = typeof(measureDefaults) !== 'undefined' ? measureDefaults : SmoMeasure.defaults;
     const score = new SmoScore(scoreDefaults);
-    score.addStaff({ measureDefaults });
+    score.addStaff();
     const measure = SmoMeasure.getDefaultMeasure(measureDefaults);
     score.addMeasure(0, measure);
     measure.voices.push({
@@ -384,10 +384,13 @@ class SmoScore {
   addStaff(parameters) {
     let i = 0;
     if (this.staves.length === 0) {
-      this.staves.push(new SmoSystemStaff(parameters));
+      const staff = new SmoSystemStaff(parameters);
+      this.staves.push(staff);
       this.activeStaff = 0;
       // For part views, we renumber the staves even if there is only one staff.
-      this.numberStaves();
+      if (staff.measures.length) {
+        this.numberStaves();
+      }
       return;
     }
     if (!parameters) {
