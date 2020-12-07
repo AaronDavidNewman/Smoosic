@@ -9,7 +9,19 @@ class SuiScoreView {
   // will not have an equivalent in the reverse map since the
   // view can be a subset.
   _reverseMapSelection(selection) {
-    return this.score.staves.find((st) => selection.staff.attrs.id === st.attrs.id);
+    const staffIndex = this.staffMap.indexOf(selection.selector.staff);
+    if (staffIndex < 0) {
+      return null;
+    }
+    if (typeof(selection.selector.tick) === 'undefined') {
+      return SmoSelection.measureSelection(this.score, staffIndex, selection.selector.measure);
+    }
+    if (typeof(selection.selector.pitches) === 'undefined') {
+      return SmoSelection.noteSelection(this.score, staffIndex, selection.selector.measure, selection.selector.voice,
+        selection.selector.tick);
+    }
+    return SmoSelection.pitchSelection(this.score, staffIndex, selection.selector.measure, selection.selector.voice,
+      selection.selector.tick, selection.selector.pitches);
   }
   _reverseMapSelections(selections) {
     const rv = [];
@@ -31,9 +43,36 @@ class SuiScoreView {
     });
     return rv;
   }
+  // ### _undoRectangle
+  // Create a rectangle undo, like a multiple columns but not necessarily the whole
+  // score.
+  _undoRectangle(label, startSelector, endSelector) {
+    const startSelection = SmoSelection.measureSelection(this.score, startSelector.staff, startSelector.measure);
+    const endSelection = SmoSelection.measureSelection(this.score, endSelector.staff, endSelector.measure);
+    const altStart = this._getEquivalentSelection(startSelection);
+    const altEnd = this._getEquivalentSelection(endSelection);
+    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.RECTANGLE, null, { score: this.score, topLeft: startSelector, bottomRight: endSelector });
+    this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.RECTANGLE, null, { score: this.storeScore, topLeft: altStart.selector, bottomRight: altEnd.selector });
+  }
   _undoColumn(label, measureIndex) {
     this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, null, { score: this.score, measureIndex });
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, null, { score: this.storeScore, measureIndex });
+  }
+  // ### _getRectangleFromStaffGroup
+  // For selections that affect a system of staves, find the rectangle based on one of the
+  // staves and return the selectors.
+  _getRectangleFromStaffGroup(selection) {
+    let startSelector = {};
+    let endSelector = {};
+    const sygrp = this.score.getSystemGroupForStaff(selection);
+    if (sygrp) {
+      startSelector = { staff: sygrp.startSelector.staff, measure: selection.selector.measure };
+      endSelector = { staff: sygrp.endSelector.staff, measure: selection.selector.measure };
+    } else {
+      startSelector = { staff: selection.selector.staff, measure: selection.selector.measure };
+      endSelector = JSON.parse(JSON.stringify(startSelector));
+    }
+    return { startSelector, endSelector };
   }
 
   // ### _undoTrackerSelections
@@ -147,6 +186,7 @@ class SuiScoreView {
     if (!any) {
       return;
     }
+    this._undoScore('change view');
     const nscore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
     nscore.staves = [];
     const staffMap = [];

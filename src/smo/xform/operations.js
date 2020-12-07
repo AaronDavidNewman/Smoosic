@@ -2,16 +2,16 @@
 // An operation works on a selection or set of selections to edit the music
 class SmoOperation {
 
-   static setForcePageBreak(score,selection,value) {
-       score.staves.forEach((staff) => {
-          staff.measures[selection.selector.measure].setForcePageBreak(value);
-       });
-   }
-   static setForceSystemBreak(score,selection,value) {
-       score.staves.forEach((staff) => {
-          staff.measures[selection.selector.measure].setForceSystemBreak(value);
-       });
-   }
+  static setForcePageBreak(score,selection,value) {
+    score.staves.forEach((staff) => {
+      staff.measures[selection.selector.measure].setForcePageBreak(value);
+    });
+  }
+  static setForceSystemBreak(score,selection,value) {
+    score.staves.forEach((staff) => {
+      staff.measures[selection.selector.measure].setForceSystemBreak(value);
+    });
+  }
 
   static setAutoJustify(score,selection,value) {
     score.staves.forEach((staff) => {
@@ -58,7 +58,7 @@ class SmoOperation {
     });
   }
 
-  static convertToPickupMeasure(score,duration) {
+  static convertToPickupMeasure(score, duration) {
     score.convertToPickupMeasure(0,duration);
   }
   static toggleBeamGroup(noteSelection) {
@@ -66,12 +66,12 @@ class SmoOperation {
   noteSelection.note.endBeam = !(noteSelection.note.endBeam);
   }
 
-  static padMeasureLeft(selection,padding) {
+  static padMeasureLeft(selection, padding) {
     selection.measure.padLeft = padding;
     selection.measure.setChanged();
   }
 
-  static setActiveVoice(score,voiceIx) {
+  static setActiveVoice(score, voiceIx) {
     score.staves.forEach((staff) => {
       staff.measures.forEach((measure) => {
         measure.setActiveVoice(voiceIx);
@@ -79,7 +79,7 @@ class SmoOperation {
     });
   }
 
-  static addRemoveMicrotone(ignore,selections,tone) {
+  static addRemoveMicrotone(ignore, selections, tone) {
     selections.forEach((sel) => {
       if (sel.note.tones.findIndex((tt) => tt.tone === tone.tone
         && tt.pitch === tone.pitch) >= 0) {

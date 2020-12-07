@@ -18,8 +18,8 @@ class UndoBuffer {
   static get bufferTypes() {
     return {
       FIRST: 1,
-      MEASURE: 1, STAFF: 2, SCORE: 3, SCORE_MODIFIER: 4, COLUMN: 5,
-      LAST: 5
+      MEASURE: 1, STAFF: 2, SCORE: 3, SCORE_MODIFIER: 4, COLUMN: 5, RECTANGLE: 6,
+      LAST: 6
     };
   }
   static get bufferSubtypes() {
@@ -28,7 +28,7 @@ class UndoBuffer {
     };
   }
   static get bufferTypeLabel() {
-    return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER', 'COLUMN'];
+    return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER', 'COLUMN', 'RECTANGLE'];
   }
   // ### serializeMeasure
   // serialize a measure, preserving the column-mapped bits which aren't serialized on a full score save.
@@ -48,6 +48,8 @@ class UndoBuffer {
   // are about to perform.  For instance, if we are adding a crescendo, we back up the
   // staff the crescendo will go on.
   addBuffer(title, type, selector, obj, subtype) {
+    let i = 0;
+    let j = 0;
     if (typeof(type) !== 'number' || type < UndoBuffer.bufferTypes.FIRST || type > UndoBuffer.bufferTypes.LAST) {
       throw 'Undo failure: illegal buffer type ' + type;
     }
@@ -57,7 +59,19 @@ class UndoBuffer {
       selector,
       subtype
     };
-    if (type === UndoBuffer.bufferTypes.COLUMN) {
+    if (type === UndoBuffer.bufferTypes.RECTANGLE) {
+      // RECTANGLE obj is {score, topLeft, bottomRight}
+      // where the last 2 are selectors
+      const measures = [];
+      for (i = obj.topLeft.staff; i <= obj.bottomRight.staff; ++i) {
+        for (j = obj.topLeft.measure; j <= obj.bottomRight.measure; ++j) {
+          measures.push(UndoBuffer.serializeMeasure(obj.score.staves[i].measures[j]));
+        }
+      }
+      undoObj.json = { topLeft: JSON.parse(JSON.stringify(obj.topLeft)),
+        bottomRight: JSON.parse(JSON.stringify(obj.bottomRight)),
+        measures };
+    } else if (type === UndoBuffer.bufferTypes.COLUMN) {
       // COLUMN obj is { score, measureIndex }
       const ix = obj.measureIndex;
       const measures = [];
@@ -108,11 +122,21 @@ class UndoBuffer {
   // the music as it existed before the change was made.
   undo(score) {
     let i = 0;
+    let j = 0;
+    let mix = 0;
     const buf = this._pop();
     if (!buf) {
       return score;
     }
-    if (buf.type === UndoBuffer.bufferTypes.COLUMN) {
+    if (buf.type === UndoBuffer.bufferTypes.RECTANGLE) {
+      for (i = buf.json.topLeft.staff; i <= buf.json.bottomRight.staff; ++i) {
+        for (j = buf.json.topLeft.measure; j <= buf.json.bottomRight.measure; ++j) {
+          const measure = SmoMeasure.deserialize(buf.json.measures[mix]);
+          mix += 1;
+          score.replaceMeasure({ staff: i, measure: j }, measure);
+        }
+      }
+    } else if (buf.type === UndoBuffer.bufferTypes.COLUMN) {
       for (i = 0; i < score.staves.length; ++i) {
         const measure = SmoMeasure.deserialize(buf.json.measures[i]);
         score.replaceMeasure({ staff: i, measure: buf.json.measureIndex }, measure);

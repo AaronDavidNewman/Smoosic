@@ -376,11 +376,67 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.setNoteHead(this._getEquivalentSelections(selections), head);
     this._renderChangedMeasures(measureSelections);
   }
-  setMeasureProportion(val) {
-    const selection = this._undoFirstMeasureSelection('measure proportion');
-    SmoOperation.setMeasureProportion(selection, val);
-    SmoOperation.setMeasureProportion(this._getEquivalentSelection(selection), val);
+  setMeasureProportion(value) {
+    let i = 0;
+    let j = 0;
+    const selection = this.tracker.selections[0];
+    const rect = this._getRectangleFromStaffGroup(selection);
+    this._undoRectangle('Set measure proportion', rect.startSelector, rect.endSelector);
+    for (i = rect.startSelector.staff; i <= rect.endSelector.staff; i++) {
+      for (j = rect.startSelector.measure; j <= rect.endSelector.measure; j++) {
+        const target = SmoSelection.measureSelection(this.score, i, j);
+        const altTarget = this._getEquivalentSelection(target);
+        this.renderer.addToReplaceQueue(target);
+        SmoOperation.setMeasureProportion(target, value);
+        SmoOperation.setMeasureProportion(altTarget, value);
+      }
+    }
+  }
+  setAutoJustify(value) {
+    let i = 0;
+    let j = 0;
+    const selection = this.tracker.selections[0];
+    const rect = this._getRectangleFromStaffGroup(selection);
+    this._undoRectangle('Set measure proportion', rect.startSelector, rect.endSelector);
+    for (i = rect.startSelector.staff; i <= rect.endSelector.staff; i++) {
+      for (j = rect.startSelector.measure; j <= rect.endSelector.measure; j++) {
+        const target = SmoSelection.measureSelection(this.score, i, j);
+        const altTarget = this._getEquivalentSelection(target);
+        this.renderer.addToReplaceQueue(target);
+        SmoOperation.setAutoJustify(this.score, target, value);
+        SmoOperation.setAutoJustify(this.storeScore, altTarget, value);
+      }
+    }
+  }
+  setCollisionAvoidance(value) {
+    const selection = this.tracker.selections[0];
+    this._undoColumn('set collision iterations', selection.selector.measure);
+    const altSelection = this._getEquivalentSelection(selection);
+    SmoOperation.setFormattingIterations(this.score, selection, value);
+    SmoOperation.setFormattingIterations(this.storeScore, altSelection, value);
     this._renderChangedMeasures(selection);
+  }
+  // ### padMeasure
+  // spacing to the left, and column means all measures in system.
+  padMeasure(spacing, column) {
+    let selection = this.tracker.selections[0];
+    if (column) {
+      this._undoColumn('set measure padding', selection.selector.measure);
+      this.storeScore.staves.forEach((staff) => {
+        const altSel = SmoSelection.measureSelection(this.storeScore, staff.staffId, selection.selector.measure);
+        const viewSel = this._reverseMapSelection(altSel);
+        SmoOperation.padMeasureLeft(altSel, spacing);
+        if (viewSel) {
+          SmoOperation.padMeasureLeft(viewSel, spacing);
+          this.renderer.addToReplaceQueue(viewSel);
+        }
+      });
+    } else {
+      selection = this._undoFirstMeasureSelection('add dynamic');
+      const altSel = this._getEquivalentSelection(selection);
+      SmoOperation.padMeasureLeft(selection, spacing);
+      SmoOperation.padMeasureLeft(altSel, spacing);
+    }
   }
   addDynamic(dynamicText) {
     const selection = this._undoFirstMeasureSelection('add dynamic');
@@ -391,7 +447,7 @@ class SuiScoreViewOperations extends SuiScoreView {
       fontSize: 38
     });
     SmoOperation.addDynamic(selection, dynamic);
-    this._renderChangedMeasures([selection]);
+    this._renderChangedMeasures(selection);
   }
   addEnding() {
     // TODO: we should have undo for columns
@@ -528,6 +584,32 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._undoScore('create pickup');
     this.score.convertToPickupMeasure(0, duration);
     this.storeScore.convertToPickupMeasure(0, duration);
+    this.renderer.setRefresh();
+  }
+  // ### stretchWidth
+  // Stretch the width of a measure, including all columns in the measure since they are all
+  // the same width
+  setMeasureStretch(measureIndex, stretch) {
+    this._undoColumn('Stretch measure', measureIndex);
+    this.storeScore.staves.forEach((staff) => {
+      const selection = SmoSelection.measureSelection(this.storeScore, staff.staffId, measureIndex);
+      const delta = selection.measure.customStretch;
+      selection.measure.customStretch = stretch;
+      const nwidth = selection.measure.staffWidth - (delta - selection.measure.customStretch);
+      selection.measure.setWidth(nwidth);
+      const viewSelection = this._reverseMapSelection(selection);
+      if (viewSelection) {
+        viewSelection.measure.customStretch = stretch;
+        viewSelection.measure.setWidth(nwidth);
+        this.renderer.addToReplaceQueue(viewSelection);
+      }
+    });
+  }
+  forceSystemBreak(value) {
+    const measureSelection = this.tracker.selections[0];
+    this._undoColumn('System break', measureSelection.selector.measure);
+    SmoOperation.setForceSystemBreak(this.score, measureSelection, value);
+    SmoOperation.setForceSystemBreak(this.storeScore, this._getEquivalentSelection(measureSelection), value);
     this.renderer.setRefresh();
   }
 }

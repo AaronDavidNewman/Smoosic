@@ -12,11 +12,11 @@
 class SmoSelector {
   // TODO:  tick in selector s/b tickIndex
   static sameNote(sel1, sel2) {
-    return (sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.voice == sel2.voice
-       && sel1.tick == sel2.tick);
+    return (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.voice === sel2.voice
+       && sel1.tick === sel2.tick);
   }
   static sameMeasure(sel1, sel2) {
-    return (sel1.staff == sel2.staff && sel1.measure == sel2.measure);
+    return (sel1.staff === sel2.staff && sel1.measure === sel2.measure);
   }
 
   static sameStaff(sel1, sel2) {
@@ -27,8 +27,8 @@ class SmoSelector {
   static gt(sel1, sel2) {
     // Note: voice is not considered b/c it's more of a vertical component
     return sel1.staff > sel2.staff ||
-    (sel1.staff == sel2.staff && sel1.measure > sel2.measure) ||
-    (sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.tick > sel2.tick);
+      (sel1.staff === sel2.staff && sel1.measure > sel2.measure) ||
+      (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.tick > sel2.tick);
   }
 
   static eq(sel1, sel2) {
@@ -49,21 +49,21 @@ class SmoSelector {
     return SmoSelector.lt(sel1, sel2) || SmoSelector.eq(sel1, sel2);
   }
 
-    // ### getNoteKey
-    // Get a key useful for a hash map of notes.
-    static getNoteKey(selector) {
-        return ''+selector.staff + '-' +selector.measure  + '-' + selector.voice + '-' + selector.tick;
-    }
+  // ### getNoteKey
+  // Get a key useful for a hash map of notes.
+  static getNoteKey(selector) {
+    return '' + selector.staff + '-' + selector.measure + '-' + selector.voice + '-' + selector.tick;
+  }
 
-    static getMeasureKey(selector) {
-        return ''+selector.staff + '-' +selector.measure;
-    }
+  static getMeasureKey(selector) {
+    return '' + selector.staff + '-' + selector.measure;
+  }
 
   // ## applyOffset
   // ### Description:
   // offset 'selector' the difference between src and target, return the result
   static applyOffset(src, target, selector) {
-    var rv = JSON.parse(JSON.stringify(selector));
+    const rv = JSON.parse(JSON.stringify(selector));
     rv.staff += target.staff - src.staff;
     rv.measure += target.measure - src.measure;
     rv.voice += target.voice - src.voice;
@@ -73,10 +73,10 @@ class SmoSelector {
 
   // return true if testSel is contained in the selStart to selEnd range.
   static contains(testSel, selStart, selEnd) {
-    var geStart =
+    const geStart =
       selStart.measure < testSel.measure ||
       (selStart.measure === testSel.measure && selStart.tick <= testSel.tick);
-    var leEnd =
+    const leEnd =
       selEnd.measure > testSel.measure ||
       (selEnd.measure === testSel.measure && testSel.tick <= selEnd.tick);
 
@@ -100,7 +100,7 @@ class SmoSelection {
   // ### measureSelection
   // A selection that does not contain a specific note
   static measureSelection(score, staffIndex, measureIndex) {
-    staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
+    staffIndex = staffIndex !== null ? staffIndex : score.activeStaff;
     var selector = {
       staff: staffIndex,
       measure: measureIndex
@@ -108,24 +108,25 @@ class SmoSelection {
     if (score.staves.length <= staffIndex) {
       return null;
     }
-    var staff = score.staves[staffIndex];
+    const staff = score.staves[staffIndex];
     if (staff.measures.length <= measureIndex) {
       return null;
     }
-    var measure = staff.measures[measureIndex];
+    const measure = staff.measures[measureIndex];
 
     return new SmoSelection
     ({
-      selector: selector,
+      selector,
       _staff: staff,
       _measure: measure,
       type: 'measure'
     });
   }
 
-  static measuresInColumn(score,staffIndex) {
-    var rv = [];
-    for (var i = 0;i<score.staves.length;++i) {
+  static measuresInColumn(score, staffIndex) {
+    let i = 0;
+    const rv = [];
+    for (i = 0; i < score.staves.length; ++i) {
       rv.push(SmoSelection.measureSelection(score,i,staffIndex));
     }
     return rv;
@@ -141,11 +142,11 @@ class SmoSelection {
     staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
     measureIndex = measureIndex ? measureIndex : 0;
     voiceIndex = voiceIndex ? voiceIndex : 0;
-    var staff = score.staves[staffIndex];
+    const staff = score.staves[staffIndex];
     if (!staff) {
       return null;
     }
-    var measure = staff.measures[measureIndex];
+    const measure = staff.measures[measureIndex];
     if (!measure) {
       return null;
     }
@@ -155,15 +156,15 @@ class SmoSelection {
     if (measure.voices[voiceIndex].notes.length <= tickIndex) {
       return null;
     }
-    var note = measure.voices[voiceIndex].notes[tickIndex];
-    var selector = {
+    const note = measure.voices[voiceIndex].notes[tickIndex];
+    const selector = {
       staff: staffIndex,
       measure: measureIndex,
       voice: voiceIndex,
       tick: tickIndex
     };
     return new SmoSelection({
-      selector: selector,
+      selector,
       _staff: staff,
       _measure: measure,
       _note: note,
@@ -181,17 +182,21 @@ class SmoSelection {
   // this is a special selection that we associated with all he rendered notes, so that we
   // can map from a place in the display to a place in the score.
   static renderedNoteSelection(score, nel, box) {
+    let i = 0;
+    let j = 0;
+    let k = 0;
+    let m = 0;
     var elementId = nel.getAttribute('id');
-    for (var i = 0; i < score.staves.length; ++i) {
-      var staff = score.staves[i];
-      for (var j = 0; j < staff.measures.length; ++j) {
-        var measure = staff.measures[j];
-        for (var k = 0; k < measure.voices.length; ++k) {
-          var voice = measure.voices[k];
-          for (var m = 0; m < voice.notes.length; ++m) {
-            var note = voice.notes[m];
+    for (i = 0; i < score.staves.length; ++i) {
+      const staff = score.staves[i];
+      for (j = 0; j < staff.measures.length; ++j) {
+        const measure = staff.measures[j];
+        for (k = 0; k < measure.voices.length; ++k) {
+          const voice = measure.voices[k];
+          for (m = 0; m < voice.notes.length; ++m) {
+            const note = voice.notes[m];
             if (note.renderId === elementId) {
-              var selector = {
+              const selector = {
                 staff: i,
                 measure: j,
                 voice: k,
@@ -199,7 +204,7 @@ class SmoSelection {
                 pitches: []
               };
               // var box = document.getElementById(nel.id).getBBox();
-              var rv = new SmoSelection({
+              const rv = new SmoSelection({
                   selector: selector,
                   _staff: staff,
                   _measure: measure,
@@ -219,14 +224,14 @@ class SmoSelection {
   }
 
   static pitchSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex, pitches) {
-    staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
-    measureIndex = measureIndex ? measureIndex : 0;
-    voiceIndex = voiceIndex ? voiceIndex : 0;
-    var staff = score.staves[staffIndex];
-    var measure = staff.measures[measureIndex];
-    var note = measure.voices[voiceIndex].notes[tickIndex];
-    pitches = pitches ? pitches : [];
-    var pa = [];
+    staffIndex = staffIndex !== null ? staffIndex : score.activeStaff;
+    measureIndex = typeof(measureIndex) !== 'undefined' ? measureIndex : 0;
+    voiceIndex = typeof(voiceIndex) !== 'undefined' ? voiceIndex : 0;
+    const staff = score.staves[staffIndex];
+    const measure = staff.measures[measureIndex];
+    const note = measure.voices[voiceIndex].notes[tickIndex];
+    pitches = typeof(pitches) !== 'undefined' ? pitches : [];
+    const pa = [];
     pitches.forEach((ix) => {
       pa.push(JSON.parse(JSON.stringify(note.pitches[ix])));
     });
@@ -235,10 +240,10 @@ class SmoSelection {
       measure: measureIndex,
       voice: voiceIndex,
       tick: tickIndex,
-      pitches: pitches
+      pitches
     };
     return new SmoSelection({
-      selector: selector,
+      selector,
       _staff: staff,
       _measure: measure,
       _note: note,
@@ -251,10 +256,10 @@ class SmoSelection {
   // ## Description:
   // Return the next note in this measure, or the first note of the next measure, if it exists.
   static nextNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
-    var nextTick = tickIndex + 1;
-    var nextMeasure = measureIndex + 1;
-    var staff = score.staves[staffIndex];
-    var measure = staff.measures[measureIndex];
+    const nextTick = tickIndex + 1;
+    const nextMeasure = measureIndex + 1;
+    const staff = score.staves[staffIndex];
+    const measure = staff.measures[measureIndex];
     if (measure.voices[voiceIndex].notes.length > nextTick) {
       return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, nextTick);
     }
@@ -282,15 +287,15 @@ class SmoSelection {
     }
     cur = selections[0].selector.measure;
     for (i = 0; i < selections.length; ++i) {
-      var sel = selections[i];
+      const sel = selections[i];
       if (i === 0 || (sel.selector.measure !== cur)) {
         rv.push({
-          selector:{
-            staff:sel.selector.staff,
-            measure:sel.selector.measure
+          selector: {
+            staff: sel.selector.staff,
+            measure: sel.selector.measure
           },
-          staff:sel.staff,
-          measure:sel.measure
+          staff: sel.staff,
+          measure: sel.measure
         });
       }
       cur = sel.selector.measure;
@@ -299,10 +304,10 @@ class SmoSelection {
   }
 
   static lastNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
-    var lastTick = tickIndex - 1;
-    var lastMeasure = measureIndex - 1;
-    var staff = score.staves[staffIndex];
-    var measure = staff.measures[measureIndex];
+    const lastTick = tickIndex - 1;
+    const lastMeasure = measureIndex - 1;
+    const staff = score.staves[staffIndex];
+    let measure = staff.measures[measureIndex];
     if (tickIndex > 0) {
       return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, lastTick);
     }
@@ -311,7 +316,7 @@ class SmoSelection {
             if (voiceIndex >= measure.voices.length) {
                 return null;
             }
-      var noteIndex = measure.voices[voiceIndex].notes.length - 1;
+      const noteIndex = measure.voices[voiceIndex].notes.length - 1;
       return SmoSelection.noteSelection(score, staffIndex, lastMeasure, voiceIndex, noteIndex);
     }
     return SmoSelection.noteSelection(score, staffIndex, 0, 0,0);
@@ -321,11 +326,12 @@ class SmoSelection {
   // Return true if the selections are all in the same measure.  Used to determine what
   // type of undo we need.
   static selectionsSameMeasure(selections) {
+    let i = 0;
     if (selections.length < 2) {
       return true;
     }
-    var sel1 = selections[0].selector;
-    for (var i = 1; i < selections.length; ++i) {
+    const sel1 = selections[0].selector;
+    for (i = 1; i < selections.length; ++i) {
       if (!SmoSelector.sameMeasure(sel1, selections[i].selector)) {
         return false;
       }
@@ -334,11 +340,12 @@ class SmoSelection {
   }
 
   static selectionsSameStaff(selections) {
+    let i = 0;
     if (selections.length < 2) {
       return true;
     }
-    var sel1 = selections[0].selector;
-    for (var i = 1; i < selections.length; ++i) {
+    const sel1 = selections[0].selector;
+    for (i = 1; i < selections.length; ++i) {
       if (!SmoSelector.sameStaff(sel1, selections[i].selector)) {
         return false;
       }

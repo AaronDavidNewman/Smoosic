@@ -1,7 +1,5 @@
-
-
 // ## suiMapper
-// Map the notes in the svg so the can respond to events and interact
+// Map the notes in the svg so they can respond to events and interact
 // with the mouse/keyboard
 class suiMapper {
   constructor(renderer, scroller, pasteBuffer) {
@@ -32,16 +30,15 @@ class suiMapper {
     this.pasteBuffer = pasteBuffer;
   }
 
-    // ### loadScore
-    // We are loading a new score.  clear the maps so we can rebuild them after
-    // rendering
-    loadScore() {
-        this.measureMap = {};
-        this.measureNoteMap = {};
-        this.clearModifierSelections();
-        this.selections=[];
-    }
-
+  // ### loadScore
+  // We are loading a new score.  clear the maps so we can rebuild them after
+  // rendering
+  loadScore() {
+    this.measureMap = {};
+    this.measureNoteMap = {};
+    this.clearModifierSelections();
+    this.selections=[];
+  }
 
   // ### _clearMeasureArtifacts
   // clear the measure from the measure and note maps so we can rebuild it.

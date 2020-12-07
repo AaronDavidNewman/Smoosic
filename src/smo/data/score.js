@@ -336,6 +336,11 @@ class SmoScore {
     return exist;
   }
 
+  getStavesForGroup(group) {
+    return this.staves.filter((staff) => staff.staffId >= group.startSelector.staff &&
+      staff.staffId <= group.endSelector.staff);
+  }
+
   // ### addOrReplaceSystemGroup
   // Add a new staff grouping, or replace it if it overlaps and is different, or
   // remove it if it is identical (toggle)
