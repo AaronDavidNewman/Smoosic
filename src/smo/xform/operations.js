@@ -125,7 +125,6 @@ class SmoOperation {
     // TODO: there should be a setter for this
     selection.measure.customProportion = proportion;
   }
-
   static setTimeSignature(score, selections, timeSignature) {
     const selectors = [];
     let nm = {};

@@ -63,6 +63,14 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.changeInstrument(instrument, altSelections);
     this._renderChangedMeasures(measureSelections);
   }
+  setTimeSignature(timeSignature) {
+    this._undoScore('Set time signature');
+    const selections = this.tracker.selections;
+    const altSelections = this._getEquivalentSelections(selections);
+    SmoOperation.setTimeSignature(this.score, selections, timeSignature);
+    SmoOperation.setTimeSignature(this.storeScore, altSelections, timeSignature);
+    this.renderer.setDirty();
+  }
   moveStaffUpDown(index) {
     this._undoScore('re-order staves');
     // Get staff to move
@@ -150,6 +158,9 @@ class SuiScoreViewOperations extends SuiScoreView {
       if (selections.length === 1) {
         suiOscillator.playSelectionNow(selections[0]);
       }
+    }
+    if (selections.length === 1) {
+      suiOscillator.playSelectionNow(selections[0]);
     }
     this._renderChangedMeasures(measureSelections);
   }
@@ -306,13 +317,6 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.beamSelections(this._getEquivalentSelections(selections));
     this._renderChangedMeasures(measureSelections);
   }
-  setTimeSignature(timeSignature) {
-    const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('set time signature');
-    SmoOperation.setTimeSignature(this.score, selections, timeSignature);
-    SmoOperation.setTimeSignature(this.storeScore, this._getEquivalentSelections(selections), timeSignature);
-    this._renderChangedMeasures(measureSelections);
-  }
   addKeySignature(keySignature) {
     const measureSelections = this._undoTrackerMeasureSelections('set key signature ' + keySignature);
     measureSelections.forEach((sel) => {
@@ -344,7 +348,7 @@ class SuiScoreViewOperations extends SuiScoreView {
       this.tracker.moveSelectionRight(null, true);
     });
     if (selections.length === 1) {
-      suiOscillator.playSelectionNow(selections[0].note);
+      suiOscillator.playSelectionNow(selections[0]);
     }
     this._renderChangedMeasures(measureSelections);
   }
@@ -507,6 +511,18 @@ class SuiScoreViewOperations extends SuiScoreView {
   }
   slur() {
     this._lineOperation('slur');
+  }
+  setScoreLayout(layout) {
+    this.score.layout = JSON.parse(JSON.stringify(layout));
+    this.storeScore.layout = JSON.parse(JSON.stringify(layout));
+    this.renderer.setViewport();
+  }
+  setEngravingFontFamily(family) {
+    const engrave = this.score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
+    const altEngrave = this.storeScore.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
+    engrave.family = family;
+    altEngrave.family = family;
+    SuiRenderState.setFont(engrave.family);
   }
   deleteMeasure() {
     this._undoScore('Delete Measure');

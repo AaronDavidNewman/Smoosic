@@ -299,7 +299,7 @@ class SuiLayoutDialog extends SuiDialogBase {
     } else {
       $('.attributeModal').removeClass('customPage');
       const dim = SmoScore.pageDimensions[sel];
-      const hComp = this.components.find((x) =>  x.parameterName === 'pageHeight');
+      const hComp = this.components.find((x) => x.parameterName === 'pageHeight');
       const wComp = this.components.find((x) => x.parameterName === 'pageWidth');
       hComp.setValue(dim.height);
       wComp.setValue(dim.width);
@@ -310,17 +310,16 @@ class SuiLayoutDialog extends SuiDialogBase {
   // One of the components has had a changed value.
   changed() {
     this._handlePageSizeChange();
+    const layout = this.view.score.layout;
     this.components.forEach((component) => {
-      if (typeof(this.view.score.layout[component.smoName]) !== 'undefined') {
-        this.view.score.layout[component.smoName] = component.getValue();
+      if (typeof(layout[component.smoName]) !== 'undefined') {
+        layout[component.smoName] = component.getValue();
       }
     });
     if (this.engravingFontCtrl.changeFlag)  {
-      const engrave = this.score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
-      engrave.family = this.engravingFontCtrl.getValue();
-      SuiRenderState.setFont(engrave.family);
+      this.view.setEngravingFontFamily(this.engravingFontCtrl.getValue());
     }
-    this.view.renderer.setViewport();
+    this.view.setScoreLayout(layout);
   }
 
   // ### createAndDisplay

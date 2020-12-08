@@ -198,11 +198,11 @@ class smoMusic {
     return vexKey;
   }
 
-  static pitchToVexKey(smoPitch,head) {
+  static pitchToVexKey(smoPitch, head) {
     if (!head) {
       return smoMusic._pitchToVexKey(smoPitch);
     }
-    return smoMusic._pitchToVexKey(smoPitch)+'/'+head;
+    return smoMusic._pitchToVexKey(smoPitch) + '/' + head;
   }
 
   static smoPitchToInt(pitch) {
@@ -326,7 +326,8 @@ class smoMusic {
     if (map[vexKey.toLowerCase()]) {
       return map[vexKey.toLowerCase()];
     }
-    return vexKey;
+    const strlen = (vexKey.length > 2 ? 2 : vexKey.length);
+    return vexKey.substr(0, strlen);
   }
 
 // ### getEnharmonicInKey
@@ -483,16 +484,15 @@ class smoMusic {
     };
   }
 
-    // ### smoPitchToVes
-  // #### Example:
-    // {letter:'f',accidental:'#'} => [f#/
-    static smoPitchesToVex(pitchAr) {
-        var rv = [];
-        pitchAr.forEach((p) => {
-            rv.push(smoMusic.pitchToVexKey(p));
-        });
-        return rv;
-    }
+  // ### smoPitchToVes
+  // {letter:'f',accidental:'#'} => [f#/
+  static smoPitchesToVex(pitchAr) {
+    var rv = [];
+    pitchAr.forEach((p) => {
+      rv.push(smoMusic.pitchToVexKey(p));
+    });
+    return rv;
+  }
 
   static stripVexOctave(vexKey) {
     if (vexKey.indexOf('/') > 0) {

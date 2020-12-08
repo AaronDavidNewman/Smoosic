@@ -450,11 +450,11 @@ class smoMusic {
     return vexKey;
   }
 
-  static pitchToVexKey(smoPitch,head) {
+  static pitchToVexKey(smoPitch, head) {
     if (!head) {
       return smoMusic._pitchToVexKey(smoPitch);
     }
-    return smoMusic._pitchToVexKey(smoPitch)+'/'+head;
+    return smoMusic._pitchToVexKey(smoPitch) + '/' + head;
   }
 
   static smoPitchToInt(pitch) {
@@ -578,7 +578,8 @@ class smoMusic {
     if (map[vexKey.toLowerCase()]) {
       return map[vexKey.toLowerCase()];
     }
-    return vexKey;
+    const strlen = (vexKey.length > 2 ? 2 : vexKey.length);
+    return vexKey.substr(0, strlen);
   }
 
 // ### getEnharmonicInKey
@@ -735,16 +736,15 @@ class smoMusic {
     };
   }
 
-    // ### smoPitchToVes
-  // #### Example:
-    // {letter:'f',accidental:'#'} => [f#/
-    static smoPitchesToVex(pitchAr) {
-        var rv = [];
-        pitchAr.forEach((p) => {
-            rv.push(smoMusic.pitchToVexKey(p));
-        });
-        return rv;
-    }
+  // ### smoPitchToVes
+  // {letter:'f',accidental:'#'} => [f#/
+  static smoPitchesToVex(pitchAr) {
+    var rv = [];
+    pitchAr.forEach((p) => {
+      rv.push(smoMusic.pitchToVexKey(p));
+    });
+    return rv;
+  }
 
   static stripVexOctave(vexKey) {
     if (vexKey.indexOf('/') > 0) {
@@ -4976,6 +4976,14 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.changeInstrument(instrument, altSelections);
     this._renderChangedMeasures(measureSelections);
   }
+  setTimeSignature(timeSignature) {
+    this._undoScore('Set time signature');
+    const selections = this.tracker.selections;
+    const altSelections = this._getEquivalentSelections(selections);
+    SmoOperation.setTimeSignature(this.score, selections, timeSignature);
+    SmoOperation.setTimeSignature(this.storeScore, altSelections, timeSignature);
+    this.renderer.setDirty();
+  }
   moveStaffUpDown(index) {
     this._undoScore('re-order staves');
     // Get staff to move
@@ -5063,6 +5071,9 @@ class SuiScoreViewOperations extends SuiScoreView {
       if (selections.length === 1) {
         suiOscillator.playSelectionNow(selections[0]);
       }
+    }
+    if (selections.length === 1) {
+      suiOscillator.playSelectionNow(selections[0]);
     }
     this._renderChangedMeasures(measureSelections);
   }
@@ -5219,13 +5230,6 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.beamSelections(this._getEquivalentSelections(selections));
     this._renderChangedMeasures(measureSelections);
   }
-  setTimeSignature(timeSignature) {
-    const selections = this.tracker.selections;
-    const measureSelections = this._undoTrackerMeasureSelections('set time signature');
-    SmoOperation.setTimeSignature(this.score, selections, timeSignature);
-    SmoOperation.setTimeSignature(this.storeScore, this._getEquivalentSelections(selections), timeSignature);
-    this._renderChangedMeasures(measureSelections);
-  }
   addKeySignature(keySignature) {
     const measureSelections = this._undoTrackerMeasureSelections('set key signature ' + keySignature);
     measureSelections.forEach((sel) => {
@@ -5257,7 +5261,7 @@ class SuiScoreViewOperations extends SuiScoreView {
       this.tracker.moveSelectionRight(null, true);
     });
     if (selections.length === 1) {
-      suiOscillator.playSelectionNow(selections[0].note);
+      suiOscillator.playSelectionNow(selections[0]);
     }
     this._renderChangedMeasures(measureSelections);
   }
@@ -5420,6 +5424,18 @@ class SuiScoreViewOperations extends SuiScoreView {
   }
   slur() {
     this._lineOperation('slur');
+  }
+  setScoreLayout(layout) {
+    this.score.layout = JSON.parse(JSON.stringify(layout));
+    this.storeScore.layout = JSON.parse(JSON.stringify(layout));
+    this.renderer.setViewport();
+  }
+  setEngravingFontFamily(family) {
+    const engrave = this.score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
+    const altEngrave = this.storeScore.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
+    engrave.family = family;
+    altEngrave.family = family;
+    SuiRenderState.setFont(engrave.family);
   }
   deleteMeasure() {
     this._undoScore('Delete Measure');
@@ -14932,7 +14948,6 @@ class SmoOperation {
     // TODO: there should be a setter for this
     selection.measure.customProportion = proportion;
   }
-
   static setTimeSignature(score, selections, timeSignature) {
     const selectors = [];
     let nm = {};
@@ -25424,7 +25439,7 @@ class SuiInstrumentDialog extends SuiDialogBase {
     const selection = parameters.view.tracker.selections[0];
     const measure = selection.measure;
 
-    parameters = {selection:selection,measure:measure,...parameters};
+    parameters = { selection: selection, measure: measure, ...parameters };
 
     super(SuiInstrumentDialog.dialogElements, {
       id: 'time-signature-measure',
@@ -25435,23 +25450,22 @@ class SuiInstrumentDialog extends SuiDialogBase {
     this.measure = measure;
     this.score = this.keyCommands.score;
     this.refresh = false;
-    this.startPromise=parameters.closeMenuPromise;
+    this.startPromise = parameters.closeMenuPromise;
     Vex.Merge(this, parameters);
   }
   _bindElements() {
-    var self = this;
     var dgDom = this.dgDom;
     this.populateInitial();
 
-   $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-     self.complete();
+   $(dgDom.element).find('.ok-button').off('click').on('click', (ev) => {
+     this.complete();
    });
 
-   $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-     self.complete();
+   $(dgDom.element).find('.cancel-button').off('click').on('click', (ev) => {
+     this.complete();
    });
-   $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-     self.complete();
+   $(dgDom.element).find('.remove-button').off('click').on('click', (ev) => {
+     this.complete();
    });
   }
 
@@ -25503,11 +25517,9 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
     return SuiTimeSignatureDialog._dialogElements;
   }
   populateInitial() {
-     var num,den;
-     var nd = this.measure.timeSignature.split('/');
-     var num = parseInt(nd[0]);
-     var den = parseInt(nd[1]);
-
+     const nd = this.measure.timeSignature.split('/');
+     const num = parseInt(nd[0]);
+     const den = parseInt(nd[1]);
      this.numeratorCtrl.setValue(num);
      this.denominatorCtrl.setValue(den);
   }
@@ -25524,30 +25536,24 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
    }
 
    changeTimeSignature() {
-    var ts = '' + this.numeratorCtrl.getValue() + '/' + this.denominatorCtrl.getValue();
-    SmoUndoable.multiSelectionOperation(this.view.score,
-      this.view.tracker.selections,
-      'setTimeSignature', ts,this.undoBuffer);
-      this.tracker.replaceSelectedMeasures();
+    const ts = '' + this.numeratorCtrl.getValue() + '/' + this.denominatorCtrl.getValue();
+    this.view.setTimeSignature(ts);
    }
-   _bindElements() {
-     const self = this;
-     const dgDom = this.dgDom;
-     this.numeratorCtrl = this.components.find((comp) => {return comp.smoName == 'numerator';});
-     this.denominatorCtrl = this.components.find((comp) => {return comp.smoName == 'denominator';});
-     this.populateInitial();
-
-    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-      self.changeTimeSignature();
-      self.complete();
+  _bindElements() {
+    const dgDom = this.dgDom;
+    this.numeratorCtrl = this.components.find((comp) => comp.smoName === 'numerator');
+    this.denominatorCtrl = this.components.find((comp) => comp.smoName === 'denominator');
+    this.populateInitial();
+    $(dgDom.element).find('.ok-button').off('click').on('click', (ev) => {
+      this.changeTimeSignature();
+      this.complete();
     });
-
-     $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-       self.complete();
+    $(dgDom.element).find('.cancel-button').off('click').on('click', (ev) => {
+      this.complete();
      });
-     $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-       self.complete();
-     });
+    $(dgDom.element).find('.remove-button').off('click').on('click', (ev) => {
+      this.complete();
+    });
    }
   display() {
     $('body').addClass('showAttributeDialog');
@@ -25570,22 +25576,21 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
       moveParent: true
     });
 
-    const self = this;
     const getKeys = () => {
-      self.completeNotifier.unbindKeyboardForModal(self);
+      this.completeNotifier.unbindKeyboardForModal(this);
     }
     this.startPromise.then(getKeys);
   }
-   constructor(parameters) {
-   const measure = parameters.selections[0].measure;
+  constructor(parameters) {
+    const measure = parameters.view.tracker.selections[0].measure;
 
-   super(SuiTimeSignatureDialog.dialogElements, {
+    super(SuiTimeSignatureDialog.dialogElements, {
       id: 'time-signature-measure',
       top: measure.renderedBox.y,
       left: measure.renderedBox.x,
       label: 'Custom Time Signature',
       ...parameters
-     });
+    });
     this.measure = measure;
     this.refresh = false;
     this.startPromise=parameters.closeMenuPromise;
@@ -26179,7 +26184,7 @@ class SuiLayoutDialog extends SuiDialogBase {
     } else {
       $('.attributeModal').removeClass('customPage');
       const dim = SmoScore.pageDimensions[sel];
-      const hComp = this.components.find((x) =>  x.parameterName === 'pageHeight');
+      const hComp = this.components.find((x) => x.parameterName === 'pageHeight');
       const wComp = this.components.find((x) => x.parameterName === 'pageWidth');
       hComp.setValue(dim.height);
       wComp.setValue(dim.width);
@@ -26190,17 +26195,16 @@ class SuiLayoutDialog extends SuiDialogBase {
   // One of the components has had a changed value.
   changed() {
     this._handlePageSizeChange();
+    const layout = this.view.score.layout;
     this.components.forEach((component) => {
-      if (typeof(this.view.score.layout[component.smoName]) !== 'undefined') {
-        this.view.score.layout[component.smoName] = component.getValue();
+      if (typeof(layout[component.smoName]) !== 'undefined') {
+        layout[component.smoName] = component.getValue();
       }
     });
     if (this.engravingFontCtrl.changeFlag)  {
-      const engrave = this.score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
-      engrave.family = this.engravingFontCtrl.getValue();
-      SuiRenderState.setFont(engrave.family);
+      this.view.setEngravingFontFamily(this.engravingFontCtrl.getValue());
     }
-    this.view.renderer.setViewport();
+    this.view.setScoreLayout(layout);
   }
 
   // ### createAndDisplay

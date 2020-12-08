@@ -353,7 +353,7 @@ class SuiInstrumentDialog extends SuiDialogBase {
     const selection = parameters.view.tracker.selections[0];
     const measure = selection.measure;
 
-    parameters = {selection:selection,measure:measure,...parameters};
+    parameters = { selection: selection, measure: measure, ...parameters };
 
     super(SuiInstrumentDialog.dialogElements, {
       id: 'time-signature-measure',
@@ -364,23 +364,22 @@ class SuiInstrumentDialog extends SuiDialogBase {
     this.measure = measure;
     this.score = this.keyCommands.score;
     this.refresh = false;
-    this.startPromise=parameters.closeMenuPromise;
+    this.startPromise = parameters.closeMenuPromise;
     Vex.Merge(this, parameters);
   }
   _bindElements() {
-    var self = this;
     var dgDom = this.dgDom;
     this.populateInitial();
 
-   $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-     self.complete();
+   $(dgDom.element).find('.ok-button').off('click').on('click', (ev) => {
+     this.complete();
    });
 
-   $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-     self.complete();
+   $(dgDom.element).find('.cancel-button').off('click').on('click', (ev) => {
+     this.complete();
    });
-   $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-     self.complete();
+   $(dgDom.element).find('.remove-button').off('click').on('click', (ev) => {
+     this.complete();
    });
   }
 
@@ -432,11 +431,9 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
     return SuiTimeSignatureDialog._dialogElements;
   }
   populateInitial() {
-     var num,den;
-     var nd = this.measure.timeSignature.split('/');
-     var num = parseInt(nd[0]);
-     var den = parseInt(nd[1]);
-
+     const nd = this.measure.timeSignature.split('/');
+     const num = parseInt(nd[0]);
+     const den = parseInt(nd[1]);
      this.numeratorCtrl.setValue(num);
      this.denominatorCtrl.setValue(den);
   }
@@ -453,30 +450,24 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
    }
 
    changeTimeSignature() {
-    var ts = '' + this.numeratorCtrl.getValue() + '/' + this.denominatorCtrl.getValue();
-    SmoUndoable.multiSelectionOperation(this.view.score,
-      this.view.tracker.selections,
-      'setTimeSignature', ts,this.undoBuffer);
-      this.tracker.replaceSelectedMeasures();
+    const ts = '' + this.numeratorCtrl.getValue() + '/' + this.denominatorCtrl.getValue();
+    this.view.setTimeSignature(ts);
    }
-   _bindElements() {
-     const self = this;
-     const dgDom = this.dgDom;
-     this.numeratorCtrl = this.components.find((comp) => {return comp.smoName == 'numerator';});
-     this.denominatorCtrl = this.components.find((comp) => {return comp.smoName == 'denominator';});
-     this.populateInitial();
-
-    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-      self.changeTimeSignature();
-      self.complete();
+  _bindElements() {
+    const dgDom = this.dgDom;
+    this.numeratorCtrl = this.components.find((comp) => comp.smoName === 'numerator');
+    this.denominatorCtrl = this.components.find((comp) => comp.smoName === 'denominator');
+    this.populateInitial();
+    $(dgDom.element).find('.ok-button').off('click').on('click', (ev) => {
+      this.changeTimeSignature();
+      this.complete();
     });
-
-     $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-       self.complete();
+    $(dgDom.element).find('.cancel-button').off('click').on('click', (ev) => {
+      this.complete();
      });
-     $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-       self.complete();
-     });
+    $(dgDom.element).find('.remove-button').off('click').on('click', (ev) => {
+      this.complete();
+    });
    }
   display() {
     $('body').addClass('showAttributeDialog');
@@ -499,22 +490,21 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
       moveParent: true
     });
 
-    const self = this;
     const getKeys = () => {
-      self.completeNotifier.unbindKeyboardForModal(self);
+      this.completeNotifier.unbindKeyboardForModal(this);
     }
     this.startPromise.then(getKeys);
   }
-   constructor(parameters) {
-   const measure = parameters.selections[0].measure;
+  constructor(parameters) {
+    const measure = parameters.view.tracker.selections[0].measure;
 
-   super(SuiTimeSignatureDialog.dialogElements, {
+    super(SuiTimeSignatureDialog.dialogElements, {
       id: 'time-signature-measure',
       top: measure.renderedBox.y,
       left: measure.renderedBox.x,
       label: 'Custom Time Signature',
       ...parameters
-     });
+    });
     this.measure = measure;
     this.refresh = false;
     this.startPromise=parameters.closeMenuPromise;
