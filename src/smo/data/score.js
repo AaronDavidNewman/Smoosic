@@ -375,7 +375,10 @@ class SmoScore {
   // Add a key signature at the specified index in all staves.
   addKeySignature(measureIndex, key) {
     this.staves.forEach((staff) => {
-      staff.addKeySignature(measureIndex, key);
+      // Consider transpose for key of instrument
+      const netOffset = staff.measures[measureIndex].transposeIndex;
+      const newKey = smoMusic.vexKeySigWithOffset(key, netOffset);
+      staff.addKeySignature(measureIndex, newKey);
     });
   }
 
@@ -406,6 +409,10 @@ class SmoScore {
       newParams.transposeIndex = parameters.instrumentInfo.keyOffset;
       const newMeasure = SmoMeasure.getDefaultMeasureWithNotes(newParams);
       newMeasure.measureNumber = measure.measureNumber;
+      // Consider key change if the proto measure is non-concert pitch
+      newMeasure.keySignature =
+        smoMusic.vexKeySigWithOffset(newMeasure.keySignature,
+          newMeasure.transposeIndex - measure.transposeIndex);
       newMeasure.modifiers = [];
       measure.modifiers.forEach((modifier) => {
         const ctor = eval(modifier.ctor);
