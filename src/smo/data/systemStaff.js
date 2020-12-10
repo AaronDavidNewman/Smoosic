@@ -56,10 +56,10 @@ class SmoSystemStaff {
     // ### serialize
     // JSONify self.
   serialize() {
-    var params={};
-    smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters,this,params);
-    params.modifiers=[];
-    params.measures=[];
+    const params = {};
+    smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters, this, params);
+    params.modifiers = [];
+    params.measures = [];
 
 
     this.measures.forEach((measure) => {
@@ -78,7 +78,8 @@ class SmoSystemStaff {
   static deserialize(jsonObj) {
     const params = {};
     smoSerialize.serializedMerge(
-      ['staffId','staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
+      ['staffId', 'staffX', 'staffY', 'staffWidth',
+        'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
       jsonObj, params);
     params.measures = [];
     jsonObj.measures.forEach(function (measureObj) {
@@ -147,10 +148,9 @@ class SmoSystemStaff {
   // ### getSlursStartingAt
   // like it says.  Used by audio player to slur notes
   getSlursStartingAt(selector) {
-    return this.modifiers.filter((mod) => {
-      return SmoSelector.sameNote(mod.startSelector,selector)
-        && mod.attrs.type == 'SmoSlur';
-    });
+    return this.modifiers.filter((mod) =>
+      SmoSelector.sameNote(mod.startSelector,selector) && mod.attrs.type == 'SmoSlur'
+    );
   }
 
   // ### getSlursEndingAt
@@ -204,21 +204,23 @@ class SmoSystemStaff {
   // ### addRehearsalMark
   // for all measures in the system, and also bump the
   // auto-indexing
-  addRehearsalMark(index,parameters) {
+  addRehearsalMark(index, parameters) {
+    let i = 0;
+    let symbol = '';
     var mark = new SmoRehearsalMark(parameters);
     if (!mark.increment) {
       this.measures[index].addRehearsalMark(mark);
       return;
     }
 
-    var symbol = mark.symbol;
-    for (var i=0;i<this.measures.length;++i) {
-      var mm = this.measures[i];
+    symbol = mark.symbol;
+    for (i = 0; i < this.measures.length; ++i) {
+      const mm = this.measures[i];
       if (i < index) {
-        var rm = mm.getRehearsalMark();
-        if (rm && rm.cardinality==mark.cardinality && rm.increment) {
+        const rm = mm.getRehearsalMark();
+        if (rm && rm.cardinality === mark.cardinality && rm.increment) {
            symbol = rm.getIncrement();
-           mark.symbol=symbol;
+           mark.symbol = symbol;
         }
       }
       if (i === index) {
@@ -226,8 +228,8 @@ class SmoSystemStaff {
         symbol = mark.getIncrement();
       }
       if (i > index) {
-        var rm = mm.getRehearsalMark();
-        if (rm && rm.cardinality==mark.cardinality && rm.increment) {
+        const rm = mm.getRehearsalMark();
+        if (rm && rm.cardinality === mark.cardinality && rm.increment) {
           rm.symbol = symbol;
           symbol = rm.getIncrement();
         }
@@ -239,7 +241,7 @@ class SmoSystemStaff {
     this.measures[index].removeTempo();
   }
 
-  addTempo(tempo,index) {
+  addTempo(tempo, index) {
     this.measures[index].addTempo(tempo);
   }
 
@@ -283,7 +285,7 @@ class SmoSystemStaff {
       }
     });
     const sm = [];
-    this.modifiers.forEach((mod)=> {
+    this.modifiers.forEach((mod) => {
       // Bug: if we are deleting a measure before the selector, change the measure number.
       if (mod.startSelector.measure !== index && mod.endSelector.measure !== index) {
         if (index < mod.startSelector.measure) {
@@ -305,7 +307,7 @@ class SmoSystemStaff {
   // when it changes, cancels etc.
   addKeySignature(measureIndex, key) {
     this.keySignatureMap[measureIndex] = key;
-    var target = this.measures[measureIndex];
+    const target = this.measures[measureIndex];
     target.keySignature = key;
   }
 
@@ -325,7 +327,7 @@ class SmoSystemStaff {
   }
   _updateKeySignatures() {
     let i = 0;
-    var currentSig = this.measures[0].keySignature;
+    const currentSig = this.measures[0].keySignature;
 
     for (i = 0; i < this.measures.length; ++i) {
       const measure = this.measures[i];
@@ -337,14 +339,15 @@ class SmoSystemStaff {
   // ### numberMeasures
   // After anything that might change the measure numbers, update them iteratively
   numberMeasures() {
+    let currentOffset = 0;
+    let i = 0;
     this.renumberIndex = this.startIndex;
-    var currentOffset = 0;
     if (this.measures[0].getTicksFromVoice(0) < smoMusic.timeSignatureToTicks(this.measures[0].timeSignature)) {
       currentOffset = -1;
     }
 
-    for (var i = 0; i < this.measures.length; ++i) {
-      var measure = this.measures[i];
+    for (i = 0; i < this.measures.length; ++i) {
+      const measure = this.measures[i];
 
       this.renumberIndex = this.renumberingMap[i] ? this.renumberingMap[i].startIndex : this.renumberIndex;
       var localIndex = this.renumberIndex + i + currentOffset;

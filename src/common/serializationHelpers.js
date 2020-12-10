@@ -1,9 +1,3 @@
-
-VF = Vex.Flow;
-Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
-	 : Vex.Xform);
-VX = Vex.Xform;
-
 // ## smoSerialize
 // Helper functions that perform serialized merges, general JSON
 // types of routines.
@@ -183,9 +177,13 @@ class smoSerialize {
       "we": "activeText",
       "xe": "attachToSelector",
       "ye": "musicXOffset",
-      "ze": "musicYOffset"
-     }`
-     ;
+      "ze": "musicYOffset",
+      "af": "formattingIterations",
+      "bf": "startBar",
+      "cf": "endBar",
+      "df": "endingId",
+      "ef": "autoJustify"
+     }`;
      return JSON.parse(_tm);
     }
 

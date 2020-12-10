@@ -1077,13 +1077,7 @@ class PromiseHelpers {
 		return result;
   }
 }
-;
-VF = Vex.Flow;
-Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
-	 : Vex.Xform);
-VX = Vex.Xform;
-
-// ## smoSerialize
+;// ## smoSerialize
 // Helper functions that perform serialized merges, general JSON
 // types of routines.
 // ---
@@ -1262,9 +1256,13 @@ class smoSerialize {
       "we": "activeText",
       "xe": "attachToSelector",
       "ye": "musicXOffset",
-      "ze": "musicYOffset"
-     }`
-     ;
+      "ze": "musicYOffset",
+      "af": "formattingIterations",
+      "bf": "startBar",
+      "cf": "endBar",
+      "df": "endingId",
+      "ef": "autoJustify"
+     }`;
      return JSON.parse(_tm);
     }
 
@@ -4875,13 +4873,13 @@ class SuiScoreView {
     }
     this._undoScore('change view');
     const nscore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    const staveScore =  SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
     nscore.staves = [];
     const staffMap = [];
     for (i = 0; i < rows.length; ++i) {
       const row = rows[i];
       if (row.show) {
-        const staff = SmoSystemStaff.deserialize(this.storeScore.staves[i].serialize());
-        nscore.staves.push(staff);
+        nscore.staves.push(staveScore.staves[i]);
         staffMap.push(i);
       }
     }
@@ -4934,20 +4932,32 @@ class SuiScoreView {
 // eslint-disable-next-line no-unused-vars
 class SuiScoreViewOperations extends SuiScoreView {
   addTextGroup(textGroup) {
+    const altNew = SmoTextGroup.deserialize(textGroup.serialize());
     SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup,
+      UndoBuffer.bufferSubtypes.ADD);
+    SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altNew,
       UndoBuffer.bufferSubtypes.ADD);
     this.renderer.renderScoreModifiers();
   }
 
   removeTextGroup(textGroup) {
+    const index = this.score.textGroups.findIndex((grp) => textGroup.attrs.id === grp.attrs.id);
+    const altGroup = this.storeScore.textGroups[index];
     SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup,
+      UndoBuffer.bufferSubtypes.REMOVE);
+    SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup,
       UndoBuffer.bufferSubtypes.REMOVE);
     this.renderer.renderScoreModifiers();
   }
 
-  updateTextGroup(oldVersion) {
+  updateTextGroup(oldVersion, newVersion) {
+    const index = this.score.textGroups.findIndex((grp) => oldVersion.attrs.id === grp.attrs.id);
     SmoUndoable.changeTextGroup(this.score, this.undoBuffer, oldVersion,
       UndoBuffer.bufferSubtypes.UPDATE);
+    SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, this.storeScore.textGroups[index], UndoBuffer.bufferSubtypes.UPDATE);
+    const altNew = SmoTextGroup.deserialize(newVersion.serialize());
+    this.storeScore.textGroups[index] = altNew;
+
     // TODO: only render the one TG.
     this.renderer.renderScoreModifiers();
   }
@@ -9669,6 +9679,8 @@ class SmoMeasure {
 
     this.setDefaultBarlines();
 
+    this.keySignature = smoMusic.vexKeySigWithOffset(this.keySignature, this.transposeIndex);
+
     if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),
@@ -9768,23 +9780,30 @@ class SmoMeasure {
   // separately.  Serialize those attributes, but only add them to the
   // hash if they already exist for an earlier measure
   serializeColumnMapped(attrColumnHash, attrCurrentValue) {
+    let curValue = {};
     SmoMeasure.columnMappedAttributes.forEach((attr) => {
       if (this[attr]) {
+        curValue = this[attr];
         if (!attrColumnHash[attr]) {
           attrColumnHash[attr] = {};
           attrCurrentValue[attr] = {};
         }
         const curAttrHash  = attrColumnHash[attr];
+        // If this is key signature, make sure we normalize to concert pitch
+        // from instrument pitch
+        if (attr === 'keySignature') {
+          curValue = smoMusic.vexKeySigWithOffset(curValue, -1 * this.transposeIndex);
+        }
         if (this[attr].ctor && this[attr].ctor === 'SmoTempoText') {
           if (this[attr].compare(attrCurrentValue[attr]) === false) {
-            curAttrHash[this.measureNumber.measureIndex] = this[attr];
-            attrCurrentValue[attr] = this[attr];
+            curAttrHash[this.measureNumber.measureIndex] = curValue;
+            attrCurrentValue[attr] = curValue;
           }
-        } else if (attrCurrentValue[attr] !== this[attr]) {
-          curAttrHash[this.measureNumber.measureIndex] = this[attr];
-          attrCurrentValue[attr] = this[attr];
+        } else if (attrCurrentValue[attr] !== curValue) {
+          curAttrHash[this.measureNumber.measureIndex] = curValue;
+          attrCurrentValue[attr] = curValue;
         }
-      } // ekse attr doesn't exist in this measure
+      } // else attr doesn't exist in this measure
     });
   }
 
@@ -13436,10 +13455,10 @@ class SmoSystemStaff {
     // ### serialize
     // JSONify self.
   serialize() {
-    var params={};
-    smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters,this,params);
-    params.modifiers=[];
-    params.measures=[];
+    const params = {};
+    smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters, this, params);
+    params.modifiers = [];
+    params.measures = [];
 
 
     this.measures.forEach((measure) => {
@@ -13458,7 +13477,8 @@ class SmoSystemStaff {
   static deserialize(jsonObj) {
     const params = {};
     smoSerialize.serializedMerge(
-      ['staffId','staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
+      ['staffId', 'staffX', 'staffY', 'staffWidth',
+        'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
       jsonObj, params);
     params.measures = [];
     jsonObj.measures.forEach(function (measureObj) {
@@ -13527,10 +13547,9 @@ class SmoSystemStaff {
   // ### getSlursStartingAt
   // like it says.  Used by audio player to slur notes
   getSlursStartingAt(selector) {
-    return this.modifiers.filter((mod) => {
-      return SmoSelector.sameNote(mod.startSelector,selector)
-        && mod.attrs.type == 'SmoSlur';
-    });
+    return this.modifiers.filter((mod) =>
+      SmoSelector.sameNote(mod.startSelector,selector) && mod.attrs.type == 'SmoSlur'
+    );
   }
 
   // ### getSlursEndingAt
@@ -13584,21 +13603,23 @@ class SmoSystemStaff {
   // ### addRehearsalMark
   // for all measures in the system, and also bump the
   // auto-indexing
-  addRehearsalMark(index,parameters) {
+  addRehearsalMark(index, parameters) {
+    let i = 0;
+    let symbol = '';
     var mark = new SmoRehearsalMark(parameters);
     if (!mark.increment) {
       this.measures[index].addRehearsalMark(mark);
       return;
     }
 
-    var symbol = mark.symbol;
-    for (var i=0;i<this.measures.length;++i) {
-      var mm = this.measures[i];
+    symbol = mark.symbol;
+    for (i = 0; i < this.measures.length; ++i) {
+      const mm = this.measures[i];
       if (i < index) {
-        var rm = mm.getRehearsalMark();
-        if (rm && rm.cardinality==mark.cardinality && rm.increment) {
+        const rm = mm.getRehearsalMark();
+        if (rm && rm.cardinality === mark.cardinality && rm.increment) {
            symbol = rm.getIncrement();
-           mark.symbol=symbol;
+           mark.symbol = symbol;
         }
       }
       if (i === index) {
@@ -13606,8 +13627,8 @@ class SmoSystemStaff {
         symbol = mark.getIncrement();
       }
       if (i > index) {
-        var rm = mm.getRehearsalMark();
-        if (rm && rm.cardinality==mark.cardinality && rm.increment) {
+        const rm = mm.getRehearsalMark();
+        if (rm && rm.cardinality === mark.cardinality && rm.increment) {
           rm.symbol = symbol;
           symbol = rm.getIncrement();
         }
@@ -13619,7 +13640,7 @@ class SmoSystemStaff {
     this.measures[index].removeTempo();
   }
 
-  addTempo(tempo,index) {
+  addTempo(tempo, index) {
     this.measures[index].addTempo(tempo);
   }
 
@@ -13663,7 +13684,7 @@ class SmoSystemStaff {
       }
     });
     const sm = [];
-    this.modifiers.forEach((mod)=> {
+    this.modifiers.forEach((mod) => {
       // Bug: if we are deleting a measure before the selector, change the measure number.
       if (mod.startSelector.measure !== index && mod.endSelector.measure !== index) {
         if (index < mod.startSelector.measure) {
@@ -13685,7 +13706,7 @@ class SmoSystemStaff {
   // when it changes, cancels etc.
   addKeySignature(measureIndex, key) {
     this.keySignatureMap[measureIndex] = key;
-    var target = this.measures[measureIndex];
+    const target = this.measures[measureIndex];
     target.keySignature = key;
   }
 
@@ -13705,7 +13726,7 @@ class SmoSystemStaff {
   }
   _updateKeySignatures() {
     let i = 0;
-    var currentSig = this.measures[0].keySignature;
+    const currentSig = this.measures[0].keySignature;
 
     for (i = 0; i < this.measures.length; ++i) {
       const measure = this.measures[i];
@@ -13717,14 +13738,15 @@ class SmoSystemStaff {
   // ### numberMeasures
   // After anything that might change the measure numbers, update them iteratively
   numberMeasures() {
+    let currentOffset = 0;
+    let i = 0;
     this.renumberIndex = this.startIndex;
-    var currentOffset = 0;
     if (this.measures[0].getTicksFromVoice(0) < smoMusic.timeSignatureToTicks(this.measures[0].timeSignature)) {
       currentOffset = -1;
     }
 
-    for (var i = 0; i < this.measures.length; ++i) {
-      var measure = this.measures[i];
+    for (i = 0; i < this.measures.length; ++i) {
+      const measure = this.measures[i];
 
       this.renumberIndex = this.renumberingMap[i] ? this.renumberingMap[i].startIndex : this.renumberIndex;
       var localIndex = this.renumberIndex + i + currentOffset;

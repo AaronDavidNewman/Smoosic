@@ -36,6 +36,8 @@ class SmoMeasure {
 
     this.setDefaultBarlines();
 
+    this.keySignature = smoMusic.vexKeySigWithOffset(this.keySignature, this.transposeIndex);
+
     if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),
@@ -135,23 +137,30 @@ class SmoMeasure {
   // separately.  Serialize those attributes, but only add them to the
   // hash if they already exist for an earlier measure
   serializeColumnMapped(attrColumnHash, attrCurrentValue) {
+    let curValue = {};
     SmoMeasure.columnMappedAttributes.forEach((attr) => {
       if (this[attr]) {
+        curValue = this[attr];
         if (!attrColumnHash[attr]) {
           attrColumnHash[attr] = {};
           attrCurrentValue[attr] = {};
         }
         const curAttrHash  = attrColumnHash[attr];
+        // If this is key signature, make sure we normalize to concert pitch
+        // from instrument pitch
+        if (attr === 'keySignature') {
+          curValue = smoMusic.vexKeySigWithOffset(curValue, -1 * this.transposeIndex);
+        }
         if (this[attr].ctor && this[attr].ctor === 'SmoTempoText') {
           if (this[attr].compare(attrCurrentValue[attr]) === false) {
-            curAttrHash[this.measureNumber.measureIndex] = this[attr];
-            attrCurrentValue[attr] = this[attr];
+            curAttrHash[this.measureNumber.measureIndex] = curValue;
+            attrCurrentValue[attr] = curValue;
           }
-        } else if (attrCurrentValue[attr] !== this[attr]) {
-          curAttrHash[this.measureNumber.measureIndex] = this[attr];
-          attrCurrentValue[attr] = this[attr];
+        } else if (attrCurrentValue[attr] !== curValue) {
+          curAttrHash[this.measureNumber.measureIndex] = curValue;
+          attrCurrentValue[attr] = curValue;
         }
-      } // ekse attr doesn't exist in this measure
+      } // else attr doesn't exist in this measure
     });
   }
 

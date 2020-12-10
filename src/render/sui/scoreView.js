@@ -188,13 +188,13 @@ class SuiScoreView {
     }
     this._undoScore('change view');
     const nscore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    const staveScore =  SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
     nscore.staves = [];
     const staffMap = [];
     for (i = 0; i < rows.length; ++i) {
       const row = rows[i];
       if (row.show) {
-        const staff = SmoSystemStaff.deserialize(this.storeScore.staves[i].serialize());
-        nscore.staves.push(staff);
+        nscore.staves.push(staveScore.staves[i]);
         staffMap.push(i);
       }
     }

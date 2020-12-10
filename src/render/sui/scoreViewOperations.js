@@ -6,20 +6,32 @@
 // eslint-disable-next-line no-unused-vars
 class SuiScoreViewOperations extends SuiScoreView {
   addTextGroup(textGroup) {
+    const altNew = SmoTextGroup.deserialize(textGroup.serialize());
     SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup,
+      UndoBuffer.bufferSubtypes.ADD);
+    SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altNew,
       UndoBuffer.bufferSubtypes.ADD);
     this.renderer.renderScoreModifiers();
   }
 
   removeTextGroup(textGroup) {
+    const index = this.score.textGroups.findIndex((grp) => textGroup.attrs.id === grp.attrs.id);
+    const altGroup = this.storeScore.textGroups[index];
     SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup,
+      UndoBuffer.bufferSubtypes.REMOVE);
+    SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup,
       UndoBuffer.bufferSubtypes.REMOVE);
     this.renderer.renderScoreModifiers();
   }
 
-  updateTextGroup(oldVersion) {
+  updateTextGroup(oldVersion, newVersion) {
+    const index = this.score.textGroups.findIndex((grp) => oldVersion.attrs.id === grp.attrs.id);
     SmoUndoable.changeTextGroup(this.score, this.undoBuffer, oldVersion,
       UndoBuffer.bufferSubtypes.UPDATE);
+    SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, this.storeScore.textGroups[index], UndoBuffer.bufferSubtypes.UPDATE);
+    const altNew = SmoTextGroup.deserialize(newVersion.serialize());
+    this.storeScore.textGroups[index] = altNew;
+
     // TODO: only render the one TG.
     this.renderer.renderScoreModifiers();
   }
