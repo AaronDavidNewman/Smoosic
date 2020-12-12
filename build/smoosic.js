@@ -24744,7 +24744,7 @@ class SuiPrintFileDialog extends SuiFileDialog {
       $('body').removeClass('printing');
       this.view.renderer.restoreLayoutAfterPrint();
       window.dispatchEvent(new Event('resize'));
-      self.complete();
+      this.complete();
     });
 
     $(dgDom.element).find('.cancel-button').remove();
