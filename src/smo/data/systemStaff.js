@@ -1,10 +1,9 @@
-
-
 // ## SmoSystemStaff
 // A staff is a line of music that can span multiple measures.
 // A system is a line of music for each staff in the score.  So a staff
 // spans multiple systems.
 // A staff modifier connects 2 points in the staff.
+// eslint-disable-next-line no-unused-vars
 class SmoSystemStaff {
   constructor(params) {
     this.measures = [];
@@ -13,21 +12,20 @@ class SmoSystemStaff {
     if (this.measures.length) {
       this.numberMeasures();
     }
-    if (!this['attrs']) {
+    if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),
         type: 'SmoSystemStaff'
       };
-    } else {
     }
   }
 
-    // ### defaultParameters
-    // the parameters that get saved with the score.
+  // ### defaultParameters
+  // the parameters that get saved with the score.
   static get defaultParameters() {
     return [
-    'staffId','staffX','staffY','adjY','staffWidth','staffHeight','startIndex',
-            'renumberingMap','keySignatureMap','instrumentInfo'];
+      'staffId', 'staffX', 'staffY', 'adjY', 'staffWidth', 'staffHeight', 'startIndex',
+      'renumberingMap', 'keySignatureMap', 'instrumentInfo'];
   }
 
   // ### defaults
@@ -40,9 +38,9 @@ class SmoSystemStaff {
       staffWidth: 1600,
       staffHeight: 90,
       startIndex: 0,
-      staffId:0,
-      renumberingMap: {},
-      keySignatureMap: {},
+      staffId: 0,
+      renumberingMap: { },
+      keySignatureMap: { },
       instrumentInfo: {
         instrumentName: 'Treble Instrument',
         keyOffset: '0',
@@ -53,14 +51,13 @@ class SmoSystemStaff {
     };
   }
 
-    // ### serialize
-    // JSONify self.
+  // ### serialize
+  // JSONify self.
   serialize() {
     const params = {};
     smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters, this, params);
     params.modifiers = [];
     params.measures = [];
-
 
     this.measures.forEach((measure) => {
       params.measures.push(measure.serialize());
@@ -73,8 +70,8 @@ class SmoSystemStaff {
     return params;
   }
 
-   // ### deserialize
-   // parse formerly serialized staff.
+  // ### deserialize
+  // parse formerly serialized staff.
   static deserialize(jsonObj) {
     const params = {};
     smoSerialize.serializedMerge(
@@ -82,8 +79,8 @@ class SmoSystemStaff {
         'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
       jsonObj, params);
     params.measures = [];
-    jsonObj.measures.forEach(function (measureObj) {
-      var measure = SmoMeasure.deserialize(measureObj);
+    jsonObj.measures.forEach((measureObj) => {
+      const measure = SmoMeasure.deserialize(measureObj);
       params.measures.push(measure);
     });
     const rv = new SmoSystemStaff(params);
@@ -96,9 +93,9 @@ class SmoSystemStaff {
     return rv;
   }
 
- // ### addStaffModifier
- // add a staff modifier, or replace a modifier of same type
- // with same endpoints.
+  // ### addStaffModifier
+  // add a staff modifier, or replace a modifier of same type
+  // with same endpoints.
   addStaffModifier(modifier) {
     this.removeStaffModifier(modifier);
     this.modifiers.push(modifier);
@@ -107,9 +104,9 @@ class SmoSystemStaff {
   // ### removeStaffModifier
   // Remove a modifier of given type and location
   removeStaffModifier(modifier) {
-    var mods = [];
+    const mods = [];
     this.modifiers.forEach((mod) => {
-      if (mod.attrs.id != modifier.attrs.id) {
+      if (mod.attrs.id !== modifier.attrs.id) {
         mods.push(mod);
       }
     });
@@ -119,9 +116,9 @@ class SmoSystemStaff {
   // ### getModifiersAt
   // get any modifiers at the selected location
   getModifiersAt(selector) {
-    var rv = [];
+    const rv = [];
     this.modifiers.forEach((mod) => {
-      if (SmoSelector.sameNote(mod.startSelector,selector)) {
+      if (SmoSelector.sameNote(mod.startSelector, selector)) {
         rv.push(mod);
       }
     });
@@ -149,16 +146,16 @@ class SmoSystemStaff {
   // like it says.  Used by audio player to slur notes
   getSlursStartingAt(selector) {
     return this.modifiers.filter((mod) =>
-      SmoSelector.sameNote(mod.startSelector,selector) && mod.attrs.type == 'SmoSlur'
+      SmoSelector.sameNote(mod.startSelector, selector) && mod.attrs.type === 'SmoSlur'
     );
   }
 
   // ### getSlursEndingAt
   // like it says.
   getSlursEndingAt(selector) {
-    return this.modifiers.filter((mod) => {
-      return SmoSelector.sameNote(mod.endSelector,selector);
-    });
+    return this.modifiers.filter((mod) =>
+      SmoSelector.sameNote(mod.endSelector, selector)
+    );
   }
 
   // ### accesor getModifiers
@@ -169,8 +166,8 @@ class SmoSystemStaff {
   // ### applyBeams
   // group all the measures' notes into beam groups.
   applyBeams() {
-    for (var i = 0; i < this.measures.length; ++i) {
-      var measure = this.measures[i];
+    for (let i = 0; i < this.measures.length; ++i) {
+      const measure = this.measures[i];
       smoBeamerFactory.applyBeams(measure);
     }
   }
@@ -180,23 +177,24 @@ class SmoSystemStaff {
   getRenderedNote(id) {
     let i = 0;
     for (i = 0; i < this.measures.length; ++i) {
-    const measure = this.measures[i];
-    const note = measure.getRenderedNote(id);
-    if (note)
-      return {
-        smoMeasure: measure,
-        smoNote: note.smoNote,
-        smoSystem: this,
-        selection: {
-          measureIndex: measure.measureNumber.measureIndex,
-          voice: measure.activeVoice,
-          tick: note.tick,
-          maxTickIndex: measure.notes.length,
-          maxMeasureIndex: this.measures.length
-        },
-        type: note.smoNote.attrs.type,
-        id: note.smoNote.attrs.id
-      };
+      const measure = this.measures[i];
+      const note = measure.getRenderedNote(id);
+      if (note) {
+        return {
+          smoMeasure: measure,
+          smoNote: note.smoNote,
+          smoSystem: this,
+          selection: {
+            measureIndex: measure.measureNumber.measureIndex,
+            voice: measure.activeVoice,
+            tick: note.tick,
+            maxTickIndex: measure.notes.length,
+            maxMeasureIndex: this.measures.length
+          },
+          type: note.smoNote.attrs.type,
+          id: note.smoNote.attrs.id
+        };
+      }
     }
     return null;
   }
@@ -219,8 +217,8 @@ class SmoSystemStaff {
       if (i < index) {
         const rm = mm.getRehearsalMark();
         if (rm && rm.cardinality === mark.cardinality && rm.increment) {
-           symbol = rm.getIncrement();
-           mark.symbol = symbol;
+          symbol = rm.getIncrement();
+          mark.symbol = symbol;
         }
       }
       if (i === index) {
@@ -253,7 +251,7 @@ class SmoSystemStaff {
     let symbol = null;
     let card = null;
     this.measures.forEach((measure) => {
-      if (ix == index) {
+      if (ix === index) {
         const mark = measure.getRehearsalMark();
         if (mark) {
           symbol = mark.symbol;
@@ -289,7 +287,7 @@ class SmoSystemStaff {
       // Bug: if we are deleting a measure before the selector, change the measure number.
       if (mod.startSelector.measure !== index && mod.endSelector.measure !== index) {
         if (index < mod.startSelector.measure) {
-            mod.startSelector.measure -= 1;
+          mod.startSelector.measure -= 1;
         }
         if (index < mod.endSelector.measure) {
           mod.endSelector.measure -= 1;
@@ -350,17 +348,17 @@ class SmoSystemStaff {
       const measure = this.measures[i];
 
       this.renumberIndex = this.renumberingMap[i] ? this.renumberingMap[i].startIndex : this.renumberIndex;
-      var localIndex = this.renumberIndex + i + currentOffset;
+      const localIndex = this.renumberIndex + i + currentOffset;
       // If this is the first full measure, call it '1'
-      var numberObj = {
+      const numberObj = {
         measureNumber: localIndex,
         measureIndex: i + this.startIndex,
         systemIndex: i,
-        staffId:this.staffId
-      }
+        staffId: this.staffId
+      };
       measure.setMeasureNumber(numberObj);
       // If we are renumbering measures, we assume we want to redo the layout so set measures to changed.
-      measure.changed=true;
+      measure.changed = true;
     }
   }
 
@@ -371,12 +369,12 @@ class SmoSystemStaff {
       if (measure.measureNumber.measureNumber === measureNumber) {
         const target = this.measures[i].getSelection(voice, tick, pitches);
         if (!target) {
-            return null;
+          return null;
         }
         return ({
-            measure,
-            note: target.note,
-            selection: target.selection
+          measure,
+          note: target.note,
+          selection: target.selection
         });
       }
     }
@@ -384,7 +382,7 @@ class SmoSystemStaff {
   }
 
   addDefaultMeasure(index, params) {
-    var measure = SmoMeasure.getDefaultMeasure(params);
+    const measure = SmoMeasure.getDefaultMeasure(params);
     this.addMeasure(index, measure);
   }
 
@@ -403,10 +401,10 @@ class SmoSystemStaff {
     const modifiers = this.modifiers.filter((mod) => mod.startSelector.measure >= index);
     modifiers.forEach((mod) => {
       if (mod.startSelector.measure < this.measures.length) {
-          mod.startSelector.measure += 1;
+        mod.startSelector.measure += 1;
       }
       if (mod.endSelector.measure < this.measures.length) {
-          mod.endSelector.measure += 1;
+        mod.endSelector.measure += 1;
       }
     });
     this.numberMeasures();

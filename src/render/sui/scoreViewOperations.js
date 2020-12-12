@@ -3,6 +3,7 @@
 // All operations that can be performed on a 'live' score go through this
 // module.  It maps the score view to the actual score and makes sure the
 // model and view stay in sync.
+/* global: SmoSelection */
 // eslint-disable-next-line no-unused-vars
 class SuiScoreViewOperations extends SuiScoreView {
   addTextGroup(textGroup) {
@@ -105,6 +106,53 @@ class SuiScoreViewOperations extends SuiScoreView {
     });
     const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
     this.changeScore(newScore);
+  }
+  // ### updateTempoScore
+  // Update the tempo for the entire score
+  updateTempoScore(tempo, scoreMode) {
+    let measureIndex = 0;
+    this._undoScore('update score tempo');
+    let startSelection = this.tracker.selections[0];
+    if (!scoreMode) {
+      startSelection = this.tracker.getExtremeSelection(-1);
+    }
+    const measureCount = this.score.staves[0].measures.length;
+    let endSelection = SmoSelection.measureSelection(this.score,
+      startSelection.selector.staff, measureCount - 1);
+    if (!scoreMode) {
+      endSelection = this.tracker.getExtremeSelection(1);
+    }
+    measureIndex = startSelection.selector.measure;
+    while (measureIndex < endSelection.selector.measure) {
+      const mi = measureIndex;
+      this.score.staves.forEach((staff) => {
+        SmoOperation.addTempo(this.score,
+          SmoSelection.measureSelection(this.score,
+            staff.staffId, mi), tempo);
+      });
+      measureIndex++;
+    }
+    measureIndex = startSelection.selector.measure;
+    while (measureIndex < endSelection.selector.measure) {
+      const mi = measureIndex;
+      this.storeScore.staves.forEach((staff) => {
+        SmoOperation.addTempo(this.storeScore,
+          SmoSelection.measureSelection(this.storeScore,
+            staff.staffId, mi), tempo);
+      });
+      measureIndex++;
+    }
+    this.renderer.setRefresh();
+  }
+  removeTempo(scoreMode) {
+    const startSelection = this.tracker.selections[0];
+    if (startSelection.selector.measure > 0) {
+      const target = this.measures[0].measureNumber.measureIndex - 1;
+      const tempo = this.score.staves[0].measures[target].getTempo();
+      this.updateTempoScore(tempo, scoreMode);
+    } else {
+      this.updateTempoScore(new SmoTempoText(), scoreMode);
+    }
   }
   addGraceNote() {
     const selections = this.tracker.selections;

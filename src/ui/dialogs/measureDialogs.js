@@ -658,7 +658,7 @@ class SuiTempoDialog extends SuiDialogBase {
     return SuiTempoDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
-    parameters.measures = SmoSelection.getMeasureList(parameters.tracker.selections)
+    parameters.measures = SmoSelection.getMeasureList(parameters.view.tracker.selections)
       .map((sel) => sel.measure);
     var measure = parameters.measures[0];
 
@@ -667,13 +667,13 @@ class SuiTempoDialog extends SuiDialogBase {
     parameters.modifier = measure.getTempo();
     if (!parameters.modifier) {
       parameters.modifier = new SmoTempoText();
-      measure.addTempo(parameters.modifier);
     }
     if (!parameters.modifier.renderedBox) {
       parameters.modifier.renderedBox = svgHelpers.copyBox(measure.renderedBox);
     }
     var dg = new SuiTempoDialog(parameters);
     dg.display();
+    dg._bindComponentNames();
     return dg;
   }
   constructor(parameters) {
@@ -723,74 +723,28 @@ class SuiTempoDialog extends SuiDialogBase {
       this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
     }
     this._updateModeClass();
-    this.refresh = true;
-  }
-  // ### handleFuture
-  // Update other measures in selection, or all future measures if the user chose that.
-  handleFuture() {
-    const fc = this.components.find((comp) => {return comp.smoName == 'applyToAll'});
-    const toModify = [];
-    if (fc.getValue()) {
-      this.view.score.staves.forEach((staff) => {
-        var toAdd = staff.measures.filter((mm) => {
-          return mm.measureNumber.measureIndex >= this.measures[0].measureNumber.measureIndex;
-        });
-        toModify = toModify.concat(toAdd);
-      });
-    } else {
-      this.measures.forEach((measure) => {
-        this.view.score.staves.forEach((staff) => {
-          toModify.push(staff.measures[measure.measureNumber.measureIndex]);
-        });
-      });
-    }
-    toModify.forEach((measure) => {
-      measure.changed = true;
-      const tempo = SmoMeasureModifierBase.deserialize(this.modifier.serialize());
-      tempo.attrs.id = VF.Element.newID();
-      measure.addTempo(tempo);
-    });
-    this.view.tracker.replaceSelectedMeasures();
+    this.view.updateTempoScore(this.modifier, this.applyToAllCtrl.getValue())
   }
   // ### handleRemove
   // Removing a tempo change is like changing the measure to the previous measure's tempo.
   // If this is the first measure, use the default value.
   handleRemove() {
-    if (this.measures[0].measureNumber.measureIndex > 0) {
-      const target = this.measures[0].measureNumber.measureIndex - 1;
-      this.modifier = this.view.score.staves[0].measures[target].getTempo();
-      this.handleFuture();
-    } else {
-      this.modifier = new SmoTempoText();
-    }
-    this.handleFuture();
-  }
-  // ### _backup
-  // Backup the score before changing tempo which affects score.
-  _backup() {
-    if (this.refresh) {
-      SmoUndoable.noop(this.view.score, this.undoBuffer, 'Tempo change');
-      this.view.renderer.setDirty();
-    }
+    this.view.removeTempo(this.applyToAllCtrl());
   }
   // ### Populate the initial values and bind to the buttons.
   _bindElements() {
-    const self = this;
     this.populateInitial();
     const dgDom = this.dgDom;
     // Create promise to release the keyboard when dialog is closed
     this.closeDialogPromise = new Promise((resolve) => {
       $(dgDom.element).find('.cancel-button').remove();
-      $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-        self._backup();
-        self.handleFuture();
-        self.complete();
+      $(dgDom.element).find('.ok-button').off('click').on('click', (ev) => {
+        this.complete();
         resolve();
       });
-      $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-        self._backup();
-        self.handleRemove();
-        self.complete();
+      $(dgDom.element).find('.remove-button').off('click').on('click', (ev) => {
+        this.handleRemove();
+        this.complete();
         resolve();
       });
     });

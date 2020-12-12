@@ -4929,6 +4929,7 @@ class SuiScoreView {
 // All operations that can be performed on a 'live' score go through this
 // module.  It maps the score view to the actual score and makes sure the
 // model and view stay in sync.
+/* global: SmoSelection */
 // eslint-disable-next-line no-unused-vars
 class SuiScoreViewOperations extends SuiScoreView {
   addTextGroup(textGroup) {
@@ -5031,6 +5032,53 @@ class SuiScoreViewOperations extends SuiScoreView {
     });
     const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
     this.changeScore(newScore);
+  }
+  // ### updateTempoScore
+  // Update the tempo for the entire score
+  updateTempoScore(tempo, scoreMode) {
+    let measureIndex = 0;
+    this._undoScore('update score tempo');
+    let startSelection = this.tracker.selections[0];
+    if (!scoreMode) {
+      startSelection = this.tracker.getExtremeSelection(-1);
+    }
+    const measureCount = this.score.staves[0].measures.length;
+    let endSelection = SmoSelection.measureSelection(this.score,
+      startSelection.selector.staff, measureCount - 1);
+    if (!scoreMode) {
+      endSelection = this.tracker.getExtremeSelection(1);
+    }
+    measureIndex = startSelection.selector.measure;
+    while (measureIndex < endSelection.selector.measure) {
+      const mi = measureIndex;
+      this.score.staves.forEach((staff) => {
+        SmoOperation.addTempo(this.score,
+          SmoSelection.measureSelection(this.score,
+            staff.staffId, mi), tempo);
+      });
+      measureIndex++;
+    }
+    measureIndex = startSelection.selector.measure;
+    while (measureIndex < endSelection.selector.measure) {
+      const mi = measureIndex;
+      this.storeScore.staves.forEach((staff) => {
+        SmoOperation.addTempo(this.storeScore,
+          SmoSelection.measureSelection(this.storeScore,
+            staff.staffId, mi), tempo);
+      });
+      measureIndex++;
+    }
+    this.renderer.setRefresh();
+  }
+  removeTempo(scoreMode) {
+    const startSelection = this.tracker.selections[0];
+    if (startSelection.selector.measure > 0) {
+      const target = this.measures[0].measureNumber.measureIndex - 1;
+      const tempo = this.score.staves[0].measures[target].getTempo();
+      this.updateTempoScore(tempo, scoreMode);
+    } else {
+      this.updateTempoScore(new SmoTempoText(), scoreMode);
+    }
   }
   addGraceNote() {
     const selections = this.tracker.selections;
@@ -13397,13 +13445,12 @@ class SmoSlur extends StaffModifierBase {
     }
   }
 }
-;
-
-// ## SmoSystemStaff
+;// ## SmoSystemStaff
 // A staff is a line of music that can span multiple measures.
 // A system is a line of music for each staff in the score.  So a staff
 // spans multiple systems.
 // A staff modifier connects 2 points in the staff.
+// eslint-disable-next-line no-unused-vars
 class SmoSystemStaff {
   constructor(params) {
     this.measures = [];
@@ -13412,21 +13459,20 @@ class SmoSystemStaff {
     if (this.measures.length) {
       this.numberMeasures();
     }
-    if (!this['attrs']) {
+    if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),
         type: 'SmoSystemStaff'
       };
-    } else {
     }
   }
 
-    // ### defaultParameters
-    // the parameters that get saved with the score.
+  // ### defaultParameters
+  // the parameters that get saved with the score.
   static get defaultParameters() {
     return [
-    'staffId','staffX','staffY','adjY','staffWidth','staffHeight','startIndex',
-            'renumberingMap','keySignatureMap','instrumentInfo'];
+      'staffId', 'staffX', 'staffY', 'adjY', 'staffWidth', 'staffHeight', 'startIndex',
+      'renumberingMap', 'keySignatureMap', 'instrumentInfo'];
   }
 
   // ### defaults
@@ -13439,9 +13485,9 @@ class SmoSystemStaff {
       staffWidth: 1600,
       staffHeight: 90,
       startIndex: 0,
-      staffId:0,
-      renumberingMap: {},
-      keySignatureMap: {},
+      staffId: 0,
+      renumberingMap: { },
+      keySignatureMap: { },
       instrumentInfo: {
         instrumentName: 'Treble Instrument',
         keyOffset: '0',
@@ -13452,14 +13498,13 @@ class SmoSystemStaff {
     };
   }
 
-    // ### serialize
-    // JSONify self.
+  // ### serialize
+  // JSONify self.
   serialize() {
     const params = {};
     smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters, this, params);
     params.modifiers = [];
     params.measures = [];
-
 
     this.measures.forEach((measure) => {
       params.measures.push(measure.serialize());
@@ -13472,8 +13517,8 @@ class SmoSystemStaff {
     return params;
   }
 
-   // ### deserialize
-   // parse formerly serialized staff.
+  // ### deserialize
+  // parse formerly serialized staff.
   static deserialize(jsonObj) {
     const params = {};
     smoSerialize.serializedMerge(
@@ -13481,8 +13526,8 @@ class SmoSystemStaff {
         'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
       jsonObj, params);
     params.measures = [];
-    jsonObj.measures.forEach(function (measureObj) {
-      var measure = SmoMeasure.deserialize(measureObj);
+    jsonObj.measures.forEach((measureObj) => {
+      const measure = SmoMeasure.deserialize(measureObj);
       params.measures.push(measure);
     });
     const rv = new SmoSystemStaff(params);
@@ -13495,9 +13540,9 @@ class SmoSystemStaff {
     return rv;
   }
 
- // ### addStaffModifier
- // add a staff modifier, or replace a modifier of same type
- // with same endpoints.
+  // ### addStaffModifier
+  // add a staff modifier, or replace a modifier of same type
+  // with same endpoints.
   addStaffModifier(modifier) {
     this.removeStaffModifier(modifier);
     this.modifiers.push(modifier);
@@ -13506,9 +13551,9 @@ class SmoSystemStaff {
   // ### removeStaffModifier
   // Remove a modifier of given type and location
   removeStaffModifier(modifier) {
-    var mods = [];
+    const mods = [];
     this.modifiers.forEach((mod) => {
-      if (mod.attrs.id != modifier.attrs.id) {
+      if (mod.attrs.id !== modifier.attrs.id) {
         mods.push(mod);
       }
     });
@@ -13518,9 +13563,9 @@ class SmoSystemStaff {
   // ### getModifiersAt
   // get any modifiers at the selected location
   getModifiersAt(selector) {
-    var rv = [];
+    const rv = [];
     this.modifiers.forEach((mod) => {
-      if (SmoSelector.sameNote(mod.startSelector,selector)) {
+      if (SmoSelector.sameNote(mod.startSelector, selector)) {
         rv.push(mod);
       }
     });
@@ -13548,16 +13593,16 @@ class SmoSystemStaff {
   // like it says.  Used by audio player to slur notes
   getSlursStartingAt(selector) {
     return this.modifiers.filter((mod) =>
-      SmoSelector.sameNote(mod.startSelector,selector) && mod.attrs.type == 'SmoSlur'
+      SmoSelector.sameNote(mod.startSelector, selector) && mod.attrs.type === 'SmoSlur'
     );
   }
 
   // ### getSlursEndingAt
   // like it says.
   getSlursEndingAt(selector) {
-    return this.modifiers.filter((mod) => {
-      return SmoSelector.sameNote(mod.endSelector,selector);
-    });
+    return this.modifiers.filter((mod) =>
+      SmoSelector.sameNote(mod.endSelector, selector)
+    );
   }
 
   // ### accesor getModifiers
@@ -13568,8 +13613,8 @@ class SmoSystemStaff {
   // ### applyBeams
   // group all the measures' notes into beam groups.
   applyBeams() {
-    for (var i = 0; i < this.measures.length; ++i) {
-      var measure = this.measures[i];
+    for (let i = 0; i < this.measures.length; ++i) {
+      const measure = this.measures[i];
       smoBeamerFactory.applyBeams(measure);
     }
   }
@@ -13579,23 +13624,24 @@ class SmoSystemStaff {
   getRenderedNote(id) {
     let i = 0;
     for (i = 0; i < this.measures.length; ++i) {
-    const measure = this.measures[i];
-    const note = measure.getRenderedNote(id);
-    if (note)
-      return {
-        smoMeasure: measure,
-        smoNote: note.smoNote,
-        smoSystem: this,
-        selection: {
-          measureIndex: measure.measureNumber.measureIndex,
-          voice: measure.activeVoice,
-          tick: note.tick,
-          maxTickIndex: measure.notes.length,
-          maxMeasureIndex: this.measures.length
-        },
-        type: note.smoNote.attrs.type,
-        id: note.smoNote.attrs.id
-      };
+      const measure = this.measures[i];
+      const note = measure.getRenderedNote(id);
+      if (note) {
+        return {
+          smoMeasure: measure,
+          smoNote: note.smoNote,
+          smoSystem: this,
+          selection: {
+            measureIndex: measure.measureNumber.measureIndex,
+            voice: measure.activeVoice,
+            tick: note.tick,
+            maxTickIndex: measure.notes.length,
+            maxMeasureIndex: this.measures.length
+          },
+          type: note.smoNote.attrs.type,
+          id: note.smoNote.attrs.id
+        };
+      }
     }
     return null;
   }
@@ -13618,8 +13664,8 @@ class SmoSystemStaff {
       if (i < index) {
         const rm = mm.getRehearsalMark();
         if (rm && rm.cardinality === mark.cardinality && rm.increment) {
-           symbol = rm.getIncrement();
-           mark.symbol = symbol;
+          symbol = rm.getIncrement();
+          mark.symbol = symbol;
         }
       }
       if (i === index) {
@@ -13652,7 +13698,7 @@ class SmoSystemStaff {
     let symbol = null;
     let card = null;
     this.measures.forEach((measure) => {
-      if (ix == index) {
+      if (ix === index) {
         const mark = measure.getRehearsalMark();
         if (mark) {
           symbol = mark.symbol;
@@ -13688,7 +13734,7 @@ class SmoSystemStaff {
       // Bug: if we are deleting a measure before the selector, change the measure number.
       if (mod.startSelector.measure !== index && mod.endSelector.measure !== index) {
         if (index < mod.startSelector.measure) {
-            mod.startSelector.measure -= 1;
+          mod.startSelector.measure -= 1;
         }
         if (index < mod.endSelector.measure) {
           mod.endSelector.measure -= 1;
@@ -13749,17 +13795,17 @@ class SmoSystemStaff {
       const measure = this.measures[i];
 
       this.renumberIndex = this.renumberingMap[i] ? this.renumberingMap[i].startIndex : this.renumberIndex;
-      var localIndex = this.renumberIndex + i + currentOffset;
+      const localIndex = this.renumberIndex + i + currentOffset;
       // If this is the first full measure, call it '1'
-      var numberObj = {
+      const numberObj = {
         measureNumber: localIndex,
         measureIndex: i + this.startIndex,
         systemIndex: i,
-        staffId:this.staffId
-      }
+        staffId: this.staffId
+      };
       measure.setMeasureNumber(numberObj);
       // If we are renumbering measures, we assume we want to redo the layout so set measures to changed.
-      measure.changed=true;
+      measure.changed = true;
     }
   }
 
@@ -13770,12 +13816,12 @@ class SmoSystemStaff {
       if (measure.measureNumber.measureNumber === measureNumber) {
         const target = this.measures[i].getSelection(voice, tick, pitches);
         if (!target) {
-            return null;
+          return null;
         }
         return ({
-            measure,
-            note: target.note,
-            selection: target.selection
+          measure,
+          note: target.note,
+          selection: target.selection
         });
       }
     }
@@ -13783,7 +13829,7 @@ class SmoSystemStaff {
   }
 
   addDefaultMeasure(index, params) {
-    var measure = SmoMeasure.getDefaultMeasure(params);
+    const measure = SmoMeasure.getDefaultMeasure(params);
     this.addMeasure(index, measure);
   }
 
@@ -13802,158 +13848,158 @@ class SmoSystemStaff {
     const modifiers = this.modifiers.filter((mod) => mod.startSelector.measure >= index);
     modifiers.forEach((mod) => {
       if (mod.startSelector.measure < this.measures.length) {
-          mod.startSelector.measure += 1;
+        mod.startSelector.measure += 1;
       }
       if (mod.endSelector.measure < this.measures.length) {
-          mod.endSelector.measure += 1;
+        mod.endSelector.measure += 1;
       }
     });
     this.numberMeasures();
   }
 }
-;
+;// eslint-disable-next-line no-unused-vars
 class SmoTuplet {
   constructor(params) {
     this.notes = params.notes;
     Vex.Merge(this, SmoTuplet.defaults);
     smoSerialize.serializedMerge(SmoTuplet.parameterArray, params, this);
-    if (!this['attrs']) {
+    if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),
         type: 'SmoTuplet'
       };
-    } else {
     }
     this._adjustTicks();
   }
 
-	static get longestTuplet() {
-		return 8192;
-	}
+  static get longestTuplet() {
+    return 8192;
+  }
 
   get clonedParams() {
-    var paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap'];
-    var rv = {};
+    const paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap'];
+    const rv = {};
     smoSerialize.serializedMerge(paramAr, this, rv);
     return rv;
-
   }
 
   static get parameterArray() {
-    return ['stemTicks', 'ticks', 'totalTicks', 'durationMap','attrs','ratioed','bracketed','voice','startIndex'];
+    return ['stemTicks', 'ticks', 'totalTicks',
+      'durationMap', 'attrs', 'ratioed', 'bracketed', 'voice', 'startIndex'];
   }
 
   serialize() {
-    var params = {};
+    const params = {};
     smoSerialize.serializedMergeNonDefault(SmoTuplet.defaults,
-     SmoTuplet.parameterArray,this,params);
+      SmoTuplet.parameterArray, this, params);
     return params;
   }
 
-	static calculateStemTicks(totalTicks,numNotes) {
-    var stemValue = totalTicks / numNotes;
-    var stemTicks = SmoTuplet.longestTuplet;
+  static calculateStemTicks(totalTicks, numNotes) {
+    const stemValue = totalTicks / numNotes;
+    let stemTicks = SmoTuplet.longestTuplet;
 
     // The stem value is the type on the non-tuplet note, e.g. 1/8 note
     // for a triplet.
     while (stemValue < stemTicks) {
       stemTicks = stemTicks / 2;
     }
-		return stemTicks * 2;
-	}
+    return stemTicks * 2;
+  }
 
   static cloneTuplet(tuplet) {
-    var noteAr = tuplet.notes;
-    var durationMap = JSON.parse(JSON.stringify(tuplet.durationMap)); // deep copy array
+    let i = 0;
+    const noteAr = tuplet.notes;
+    const durationMap = JSON.parse(JSON.stringify(tuplet.durationMap)); // deep copy array
 
     // Add any remainders for oddlets
-    var totalTicks = noteAr.map((nn) => nn.ticks.numerator+nn.ticks.remainder).reduce((acc, nn) => acc+nn);
+    const totalTicks = noteAr.map((nn) => nn.ticks.numerator + nn.ticks.remainder)
+      .reduce((acc, nn) => acc + nn);
 
-    var numNotes = tuplet.numNotes;
-    var stemValue = totalTicks / numNotes;
-    var stemTicks = SmoTuplet.calculateStemTicks(totalTicks,numNotes);
+    const numNotes = tuplet.numNotes;
+    const stemTicks = SmoTuplet.calculateStemTicks(totalTicks, numNotes);
 
-    var tupletNotes = [];
+    const tupletNotes = [];
 
-    var i = 0;
     noteAr.forEach((note) => {
-      var textModifiers = note.textModifiers;
+      const textModifiers = note.textModifiers;
       // Note preserver remainder
       note = SmoNote.cloneWithDuration(note, {
-        numerator: stemTicks*tuplet.durationMap[i],
+        numerator: stemTicks * tuplet.durationMap[i],
         denominator: 1,
         remainder: note.ticks.remainder
       });
 
       // Don't clone modifiers, except for first one.
       if (i === 0) {
-        var ntmAr = [];
+        const ntmAr = [];
         textModifiers.forEach((tm) => {
-          var ntm = SmoNoteModifierBase.deserialize(tm);
+          const ntm = SmoNoteModifierBase.deserialize(tm);
           ntmAr.push(ntm);
         });
         note.textModifiers = ntmAr;
       }
       i += 1;
-
       tupletNotes.push(note);
     });
-    var rv = new SmoTuplet({
+    const rv = new SmoTuplet({
       notes: tupletNotes,
-      stemTicks: stemTicks,
-      totalTicks: totalTicks,
+      stemTicks,
+      totalTicks,
       ratioed: false,
       bracketed: true,
       startIndex: tuplet.startIndex,
-      durationMap: durationMap
+      durationMap
     });
     return rv;
   }
 
   _adjustTicks() {
-    var sum = this.durationSum;
-    for (var i = 0; i < this.notes.length; ++i) {
-      var note = this.notes[i];
-      var normTicks = smoMusic.durationToTicks(smoMusic.ticksToDuration[this.stemTicks]);
+    let i = 0;
+    const sum = this.durationSum;
+    for (i = 0; i < this.notes.length; ++i) {
+      const note = this.notes[i];
       // TODO:  notes_occupied needs to consider vex duration
-      var tupletBase = normTicks * this.note_ticks_occupied;
       note.ticks.denominator = 1;
       note.ticks.numerator = Math.floor((this.totalTicks * this.durationMap[i]) / sum);
-
       note.tuplet = this.attrs;
     }
 
-		// put all the remainder in the first note of the tuplet
-		var noteTicks = this.notes.map((nn) => {return nn.tickCount;}).reduce((acc,dd) => {return acc+dd;});
+    // put all the remainder in the first note of the tuplet
+    const noteTicks = this.notes.map((nn) => nn.tickCount)
+      .reduce((acc, dd) => acc + dd);
     // bug fix:  if this is a clones tuplet, remainder is already set
-		this.notes[0].ticks.remainder = this.notes[0].ticks.remainder + this.totalTicks-noteTicks;
+    this.notes[0].ticks.remainder =
+      this.notes[0].ticks.remainder + this.totalTicks - noteTicks;
   }
   getIndexOfNote(note) {
-    var rv = -1;
-    for (var i = 0; i < this.notes.length; ++i) {
-      var tn = this.notes[i];
+    let rv = -1;
+    let i = 0;
+    for (i = 0; i < this.notes.length; ++i) {
+      const tn = this.notes[i];
       if (note.attrs.id === tn.attrs.id) {
-          rv = i;
+        rv = i;
       }
     }
     return rv;
   }
 
   split(combineIndex) {
-    var multiplier = 0.5;
-    var nnotes = [];
-    var nmap = [];
+    let i = 0;
+    const multiplier = 0.5;
+    const nnotes = [];
+    const nmap = [];
 
-    for (var i = 0; i < this.notes.length; ++i) {
-      var note = this.notes[i];
+    for (i = 0; i < this.notes.length; ++i) {
+      const note = this.notes[i];
       if (i === combineIndex) {
         nmap.push(this.durationMap[i] * multiplier);
         nmap.push(this.durationMap[i] * multiplier);
         note.ticks.numerator *= multiplier;
 
-        var onote = SmoNote.clone(note);
+        const onote = SmoNote.clone(note);
         // remainder is for the whole tuplet, so don't duplicate that.
-        onote.ticks.remainder=0;
+        onote.ticks.remainder = 0;
         nnotes.push(note);
         nnotes.push(onote);
       } else {
@@ -13965,37 +14011,37 @@ class SmoTuplet {
     this.durationMap = nmap;
   }
   combine(startIndex, endIndex) {
+    let i = 0;
+    let base = 0.0;
+    let acc = 0.0;
     // can't combine in this way, too many notes
     if (this.notes.length <= endIndex || startIndex >= endIndex) {
       return this;
     }
-    var acc = 0.0;
-    var i;
-    var base = 0.0;
     for (i = startIndex; i <= endIndex; ++i) {
       acc += this.durationMap[i];
-      if (i == startIndex) {
+      if (i === startIndex) {
         base = this.durationMap[i];
-      } else if (this.durationMap[i] != base) {
+      } else if (this.durationMap[i] !== base) {
         // Can't combine non-equal tuplet notes
         return this;
       }
     }
     // how much each combined value will be multiplied by
-    var multiplier = acc / base;
+    const multiplier = acc / base;
 
-    var nmap = [];
-    var nnotes = [];
+    const nmap = [];
+    const nnotes = [];
     // adjust the duration map
     for (i = 0; i < this.notes.length; ++i) {
-      var note = this.notes[i];
+      const note = this.notes[i];
       // notes that don't change are unchanged
       if (i < startIndex || i > endIndex) {
         nmap.push(this.durationMap[i]);
         nnotes.push(note);
       }
       // changed note with combined duration
-      if (i == startIndex) {
+      if (i === startIndex) {
         note.ticks.numerator = note.ticks.numerator * multiplier;
         nmap.push(acc);
         nnotes.push(note);
@@ -14004,6 +14050,7 @@ class SmoTuplet {
     }
     this.notes = nnotes;
     this.durationMap = nmap;
+    return this;
   }
 
   // ### getStemDirection
@@ -14011,17 +14058,18 @@ class SmoTuplet {
   getStemDirection(clef) {
     const note = this.notes.find((nn) => nn.noteType === 'n');
     if (!note) {
-      return SmoNote.flagStates.down;;
+      return SmoNote.flagStates.down;
     }
-    if (note.flagState != SmoNote.flagStates.auto) {
+    if (note.flagState !== SmoNote.flagStates.auto) {
       return note.flagState;
     }
-    return smoMusic.pitchToLedgerLine(clef,note.pitches[0])
+    return smoMusic.pitchToLedgerLine(clef, note.pitches[0])
        >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
   }
   get durationSum() {
-    var acc = 0;
-    for (var i = 0; i < this.durationMap.length; ++i) {
+    let acc = 0;
+    let i = 0;
+    for (i = 0; i < this.durationMap.length; ++i) {
       acc += this.durationMap[i];
     }
     return Math.round(acc);
@@ -14036,9 +14084,10 @@ class SmoTuplet {
     return this.totalTicks / this.stemTicks;
   }
   get tickCount() {
-    var rv = 0;
-    for (var i = 0; i < this.notes.length; ++i) {
-      var note = this.notes[i];
+    let rv = 0;
+    let i = 0;
+    for (i = 0; i < this.notes.length; ++i) {
+      const note = this.notes[i];
       rv += (note.ticks.numerator / note.ticks.denominator) + note.ticks.remainder;
     }
     return rv;
@@ -14051,9 +14100,9 @@ class SmoTuplet {
       stemTicks: 2048, // the stem ticks, for drawing purposes.  >16th, draw as 8th etc.
       durationMap: [1.0, 1.0, 1.0],
       bracketed: true,
-      voice:0,
+      voice: 0,
       ratioed: false
-    }
+    };
   }
 }
 ;
@@ -25788,7 +25837,7 @@ class SuiTempoDialog extends SuiDialogBase {
     return SuiTempoDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
-    parameters.measures = SmoSelection.getMeasureList(parameters.tracker.selections)
+    parameters.measures = SmoSelection.getMeasureList(parameters.view.tracker.selections)
       .map((sel) => sel.measure);
     var measure = parameters.measures[0];
 
@@ -25797,13 +25846,13 @@ class SuiTempoDialog extends SuiDialogBase {
     parameters.modifier = measure.getTempo();
     if (!parameters.modifier) {
       parameters.modifier = new SmoTempoText();
-      measure.addTempo(parameters.modifier);
     }
     if (!parameters.modifier.renderedBox) {
       parameters.modifier.renderedBox = svgHelpers.copyBox(measure.renderedBox);
     }
     var dg = new SuiTempoDialog(parameters);
     dg.display();
+    dg._bindComponentNames();
     return dg;
   }
   constructor(parameters) {
@@ -25853,74 +25902,28 @@ class SuiTempoDialog extends SuiDialogBase {
       this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
     }
     this._updateModeClass();
-    this.refresh = true;
-  }
-  // ### handleFuture
-  // Update other measures in selection, or all future measures if the user chose that.
-  handleFuture() {
-    const fc = this.components.find((comp) => {return comp.smoName == 'applyToAll'});
-    const toModify = [];
-    if (fc.getValue()) {
-      this.view.score.staves.forEach((staff) => {
-        var toAdd = staff.measures.filter((mm) => {
-          return mm.measureNumber.measureIndex >= this.measures[0].measureNumber.measureIndex;
-        });
-        toModify = toModify.concat(toAdd);
-      });
-    } else {
-      this.measures.forEach((measure) => {
-        this.view.score.staves.forEach((staff) => {
-          toModify.push(staff.measures[measure.measureNumber.measureIndex]);
-        });
-      });
-    }
-    toModify.forEach((measure) => {
-      measure.changed = true;
-      const tempo = SmoMeasureModifierBase.deserialize(this.modifier.serialize());
-      tempo.attrs.id = VF.Element.newID();
-      measure.addTempo(tempo);
-    });
-    this.view.tracker.replaceSelectedMeasures();
+    this.view.updateTempoScore(this.modifier, this.applyToAllCtrl.getValue())
   }
   // ### handleRemove
   // Removing a tempo change is like changing the measure to the previous measure's tempo.
   // If this is the first measure, use the default value.
   handleRemove() {
-    if (this.measures[0].measureNumber.measureIndex > 0) {
-      const target = this.measures[0].measureNumber.measureIndex - 1;
-      this.modifier = this.view.score.staves[0].measures[target].getTempo();
-      this.handleFuture();
-    } else {
-      this.modifier = new SmoTempoText();
-    }
-    this.handleFuture();
-  }
-  // ### _backup
-  // Backup the score before changing tempo which affects score.
-  _backup() {
-    if (this.refresh) {
-      SmoUndoable.noop(this.view.score, this.undoBuffer, 'Tempo change');
-      this.view.renderer.setDirty();
-    }
+    this.view.removeTempo(this.applyToAllCtrl());
   }
   // ### Populate the initial values and bind to the buttons.
   _bindElements() {
-    const self = this;
     this.populateInitial();
     const dgDom = this.dgDom;
     // Create promise to release the keyboard when dialog is closed
     this.closeDialogPromise = new Promise((resolve) => {
       $(dgDom.element).find('.cancel-button').remove();
-      $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-        self._backup();
-        self.handleFuture();
-        self.complete();
+      $(dgDom.element).find('.ok-button').off('click').on('click', (ev) => {
+        this.complete();
         resolve();
       });
-      $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-        self._backup();
-        self.handleRemove();
-        self.complete();
+      $(dgDom.element).find('.remove-button').off('click').on('click', (ev) => {
+        this.handleRemove();
+        this.complete();
         resolve();
       });
     });

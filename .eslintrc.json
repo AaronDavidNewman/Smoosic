@@ -6,6 +6,10 @@
     "jquery": true,
     "es6": true
   },
+  "globals": {
+    "SmoSelection": true,
+    "SmoOperation": true
+  },
   "rules": {
     "no-bitwise": [
       0
