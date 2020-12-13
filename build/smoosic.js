@@ -25180,6 +25180,7 @@ class SuiTextBlockComponent extends SuiComponentBase {
 ;// ## measureDialogs.js
 // This file contains dialogs that affect all measures at a certain position,
 // such as tempo or time signature.
+// eslint-disable-next-line no-unused-vars
 class SuiMeasureDialog extends SuiDialogBase {
   static get attributes() {
     return ['pickupMeasure', 'makePickup', 'padLeft', 'padAllInSystem',
@@ -25193,46 +25194,44 @@ class SuiMeasureDialog extends SuiDialogBase {
   }
   static get dialogElements() {
     SuiMeasureDialog._dialogElements = typeof(SuiMeasureDialog._dialogElements) !== 'undefined' ? SuiMeasureDialog._dialogElements :
-      [
-        {
-          staticText: [
-            { label: 'Measure Properties' }]
+      [{
+        staticText: [
+          { label: 'Measure Properties' }]
+      },
+      {
+        smoName: 'pickup',
+        parameterName: 'pickup',
+        defaultValue: '',
+        control: CheckboxDropdownComponent,
+        label: 'Pickup',
+        toggleElement: {
+          smoName: 'makePickup',
+          parameterName: 'makePickup',
+          defaultValue: false,
+          control: 'SuiToggleComponent',
+          label: 'Convert to Pickup Measure'
         },
-        {
-          smoName: 'pickup',
-          parameterName: 'pickup',
-          defaultValue: '',
-          control: CheckboxDropdownComponent,
-          label: 'Pickup',
-          toggleElement: {
-            smoName:'makePickup',
-            parameterName:'makePickup',
-            defaultValue: false,
-            control:'SuiToggleComponent',
-            label:'Convert to Pickup Measure'
-          },
-          dropdownElement: {
-            smoName: 'pickupMeasure',
-            parameterName: 'pickupMeasure',
-            defaultValue: 2048,
-            control: 'SuiDropdownComponent',
-            label:'Pickup Measure',
-            options: [{
-                value: 2048,
-                label: 'Eighth Note'
-              }, {
-                value: 4096,
-                label: 'Quarter Note'
-              }, {
-                value: 6144,
-                label: 'Dotted Quarter'
-              }, {
-                value: 8192,
-                label: 'Half Note'
-              }
-            ]
-          }
-        }, {
+        dropdownElement: {
+          smoName: 'pickupMeasure',
+          parameterName: 'pickupMeasure',
+          defaultValue: 2048,
+          control: 'SuiDropdownComponent',
+          label: 'Pickup Measure',
+          options: [{
+            value: 2048,
+            label: 'Eighth Note'
+          }, {
+            value: 4096,
+            label: 'Quarter Note'
+          }, {
+            value: 6144,
+            label: 'Dotted Quarter'
+          }, {
+            value: 8192,
+            label: 'Half Note'
+          }]
+        }
+      }, {
         parameterName: 'padLeft',
         smoName: 'padLeft',
         defaultValue: 0,
@@ -25244,7 +25243,7 @@ class SuiMeasureDialog extends SuiDialogBase {
         defaultValue: 0,
         control: 'SuiRockerComponent',
         label: 'Stretch Contents'
-      },{
+      }, {
         parameterName: 'customProportion',
         smoName: 'customProportion',
         defaultValue: SmoMeasure.defaults.customProportion,
@@ -25252,11 +25251,11 @@ class SuiMeasureDialog extends SuiDialogBase {
         increment: 10,
         label: 'Adjust Proportional Spacing'
       }, {
-        smoName:'padAllInSystem',
-        parameterName:'padAllInSystem',
+        smoName: 'padAllInSystem',
+        parameterName: 'padAllInSystem',
         defaultValue: false,
-        control:'SuiToggleComponent',
-        label:'Pad all measures in system'
+        control: 'SuiToggleComponent',
+        label: 'Pad all measures in system'
       }, {
         smoName: 'autoJustify',
         parameterName: 'autoJustify',
@@ -25270,46 +25269,44 @@ class SuiMeasureDialog extends SuiDialogBase {
         control: 'SuiDropdownComponent',
         label: 'Collision Avoidance',
         options: [{
-            value: 0,
-            label: 'Off'
-          }, {
-            value: 2,
-            label: '2x'
-          }, {
-            value: 5,
-            label: '5x'
-          }, {
-            value: 10,
-            label: '10x'
-          }
-        ]
+          value: 0,
+          label: 'Off'
+        }, {
+          value: 2,
+          label: '2x'
+        }, {
+          value: 5,
+          label: '5x'
+        }, {
+          value: 10,
+          label: '10x'
+        }]
       }, {
-      smoName: 'measureTextPosition',
-      parameterName: 'measureTextPosition',
-      defaultValue: SmoMeasureText.positions.above,
-      control: 'SuiDropdownComponent',
-      label:'Text Position',
-      options: [{
+        smoName: 'measureTextPosition',
+        parameterName: 'measureTextPosition',
+        defaultValue: SmoMeasureText.positions.above,
+        control: 'SuiDropdownComponent',
+        label: 'Text Position',
+        options: [{
           value: SmoMeasureText.positions.left,
           label: 'Left'
         }, {
           value: SmoMeasureText.positions.right,
           label: 'Right'
         }, {
-          value:SmoMeasureText.positions.above,
+          value: SmoMeasureText.positions.above,
           label: 'Above'
         }, {
           value: SmoMeasureText.positions.below,
           label: 'Below'
-        }
-      ]
-    }, {
-      smoName:'systemBreak',
-      parameterName:'systemBreak',
-      defaultValue: false,
-      control:'SuiToggleComponent',
-      label: 'System break before this measure'
-    }];
+        }]
+      }, {
+        smoName: 'systemBreak',
+        parameterName: 'systemBreak',
+        defaultValue: false,
+        control: 'SuiToggleComponent',
+        label: 'System break before this measure'
+      }];
     return SuiMeasureDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
@@ -25379,11 +25376,11 @@ class SuiMeasureDialog extends SuiDialogBase {
     super.display();
     const getKeys = () => {
       this.completeNotifier.unbindKeyboardForModal(this);
-    }
+    };
     this.startPromise.then(getKeys);
   }
   _updateConditionals() {
-    if (this.padLeftCtrl.getValue() != 0 || this.padLeftCtrl.changeFlag) {
+    if (this.padLeftCtrl.getValue() !== 0 || this.padLeftCtrl.changeFlag) {
       $('.attributeDialog .attributeModal').addClass('pad-left-select');
     } else {
       $('.attributeDialog .attributeModal').removeClass('pad-left-select');
@@ -25416,18 +25413,19 @@ class SuiMeasureDialog extends SuiDialogBase {
     this._bindComponentNames();
     this.populateInitial();
 
-    $(dgDom.element).find('.ok-button').off('click').on('click', (ev) => {
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.complete();
     });
-    $(dgDom.element).find('.cancel-button').off('click').on('click', (ev) => {
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
       this.complete();
     });
-    $(dgDom.element).find('.remove-button').off('click').on('click', (ev) => {
+    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
       this.complete();
     });
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiInstrumentDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiInstrumentDialog';
@@ -25437,16 +25435,15 @@ class SuiInstrumentDialog extends SuiDialogBase {
   }
   static get applyTo() {
     return {
-      score: 0,selected: 1, remaining: 3
+      score: 0, selected: 1, remaining: 3
     };
   }
   static get dialogElements() {
     SuiInstrumentDialog._dialogElements = typeof(SuiInstrumentDialog._dialogElements) !== 'undefined' ?
-    SuiInstrumentDialog._dialogElements :
-    [
-      {
+      SuiInstrumentDialog._dialogElements :
+      [{
         staticText: [
-          {label: 'Instrument Properties'}
+          { label: 'Instrument Properties' }
         ]
       },
       {
@@ -25454,26 +25451,24 @@ class SuiInstrumentDialog extends SuiDialogBase {
         parameterName: 'transposeIndex',
         defaultValue: 0,
         control: 'SuiRockerComponent',
-        label:'Transpose Index (1/2 steps)',
-      },{
+        label: 'Transpose Index (1/2 steps)',
+      }, {
         smoName: 'applyTo',
         parameterName: 'applyTo',
         defaultValue: SuiInstrumentDialog.applyTo.score,
         control: 'SuiDropdownComponent',
-        label:'Apply To',
+        label: 'Apply To',
         options: [{
-            value: SuiInstrumentDialog.applyTo.score,
-            label: 'Score'
-          }, {
-            value: SuiInstrumentDialog.applyTo.selected,
-            label: 'Selected Measures'
-          }, {
-            value: SuiInstrumentDialog.applyTo.remaining,
-            label: 'Remaining Measures'
-          }
-        ]
-      }
-    ];
+          value: SuiInstrumentDialog.applyTo.score,
+          label: 'Score'
+        }, {
+          value: SuiInstrumentDialog.applyTo.selected,
+          label: 'Selected Measures'
+        }, {
+          value: SuiInstrumentDialog.applyTo.remaining,
+          label: 'Remaining Measures'
+        }]
+      }];
     return SuiInstrumentDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
@@ -25484,7 +25479,7 @@ class SuiInstrumentDialog extends SuiDialogBase {
   display() {
     $('body').addClass('showAttributeDialog');
     this.components.forEach((component) => {
-        component.bind();
+      component.bind();
     });
     this._bindComponentNames();
     this._bindElements();
@@ -25493,12 +25488,11 @@ class SuiInstrumentDialog extends SuiDialogBase {
       svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
     );
 
-
-    const cb = function (x, y) {}
+    const cb = () => {};
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
       handle: $(this.dgDom.element).find('.jsDbMove'),
-      animateDiv:'.draganime',
+      animateDiv: '.draganime',
       cb,
       moveParent: true
     });
@@ -25532,7 +25526,7 @@ class SuiInstrumentDialog extends SuiDialogBase {
     const selection = parameters.view.tracker.selections[0];
     const measure = selection.measure;
 
-    parameters = { selection: selection, measure: measure, ...parameters };
+    parameters = { selection, measure, ...parameters };
 
     super(SuiInstrumentDialog.dialogElements, {
       id: 'time-signature-measure',
@@ -25550,20 +25544,19 @@ class SuiInstrumentDialog extends SuiDialogBase {
     var dgDom = this.dgDom;
     this.populateInitial();
 
-   $(dgDom.element).find('.ok-button').off('click').on('click', (ev) => {
-     this.complete();
-   });
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.complete();
+    });
 
-   $(dgDom.element).find('.cancel-button').off('click').on('click', (ev) => {
-     this.complete();
-   });
-   $(dgDom.element).find('.remove-button').off('click').on('click', (ev) => {
-     this.complete();
-   });
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.complete();
+    });
+    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+      this.complete();
+    });
   }
-
 }
-
+// eslint-disable-next-line no-unused-vars
 class SuiTimeSignatureDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiTimeSignatureDialog';
@@ -25576,21 +25569,20 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
     SuiTimeSignatureDialog._dialogElements = SuiTimeSignatureDialog._dialogElements ? SuiTimeSignatureDialog._dialogElements :
       [
         { staticText: [
-            { label: 'Custom Time Signature' }
-          ]
-        },
+          { label: 'Custom Time Signature' }
+        ] },
         {
           smoName: 'numerator',
           parameterName: 'numerator',
           defaultValue: 3,
           control: 'SuiRockerComponent',
-          label:'Beats/Measure',
+          label: 'Beats/Measure',
         },
         {
           parameterName: 'denominator',
           smoName: 'denominator',
           defaultValue: 8,
-          dataType:'int',
+          dataType: 'int',
           control: 'SuiDropdownComponent',
           label: 'Beat Value',
           options: [{
@@ -25602,19 +25594,16 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
           }, {
             value: 2,
             label: '2'
-          }
-        ]
-      }
-    ];
-
+          }]
+        }];
     return SuiTimeSignatureDialog._dialogElements;
   }
   populateInitial() {
-     const nd = this.measure.timeSignature.split('/');
-     const num = parseInt(nd[0]);
-     const den = parseInt(nd[1]);
-     this.numeratorCtrl.setValue(num);
-     this.denominatorCtrl.setValue(den);
+    const nd = this.measure.timeSignature.split('/');
+    const num = parseInt(nd[0], 10);
+    const den = parseInt(nd[1], 10);
+    this.numeratorCtrl.setValue(num);
+    this.denominatorCtrl.setValue(den);
   }
 
   changed() {
@@ -25626,28 +25615,28 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
     );
     dg.display();
     return dg;
-   }
+  }
 
-   changeTimeSignature() {
+  changeTimeSignature() {
     const ts = '' + this.numeratorCtrl.getValue() + '/' + this.denominatorCtrl.getValue();
     this.view.setTimeSignature(ts);
-   }
+  }
   _bindElements() {
     const dgDom = this.dgDom;
     this.numeratorCtrl = this.components.find((comp) => comp.smoName === 'numerator');
     this.denominatorCtrl = this.components.find((comp) => comp.smoName === 'denominator');
     this.populateInitial();
-    $(dgDom.element).find('.ok-button').off('click').on('click', (ev) => {
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.changeTimeSignature();
       this.complete();
     });
-    $(dgDom.element).find('.cancel-button').off('click').on('click', (ev) => {
-      this.complete();
-     });
-    $(dgDom.element).find('.remove-button').off('click').on('click', (ev) => {
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
       this.complete();
     });
-   }
+    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+      this.complete();
+    });
+  }
   display() {
     $('body').addClass('showAttributeDialog');
     this.components.forEach((component) => {
@@ -25659,19 +25648,18 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
       svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
     );
 
-
-    const cb = (x, y) => {}
+    const cb = () => {};
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
       handle: $(this.dgDom.element).find('.jsDbMove'),
       animateDiv: '.draganime',
-      cb: cb,
+      cb,
       moveParent: true
     });
 
     const getKeys = () => {
       this.completeNotifier.unbindKeyboardForModal(this);
-    }
+    };
     this.startPromise.then(getKeys);
   }
   constructor(parameters) {
@@ -25686,14 +25674,14 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
     });
     this.measure = measure;
     this.refresh = false;
-    this.startPromise=parameters.closeMenuPromise;
+    this.startPromise = parameters.closeMenuPromise;
     Vex.Merge(this, parameters);
   }
 }
 
-
 // ## SuiTempoDialog
 // Allow user to choose a tempo or tempo change.
+// eslint-disable-next-line no-unused-vars
 class SuiTempoDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiTempoDialog';
@@ -25702,22 +25690,22 @@ class SuiTempoDialog extends SuiDialogBase {
     return SuiTempoDialog.ctor;
   }
   static get attributes() {
-    return ['tempoMode', 'bpm', 'beatDuration', 'tempoText','yOffset'];
+    return ['tempoMode', 'bpm', 'beatDuration', 'tempoText', 'yOffset'];
   }
   static get dialogElements() {
     SuiTempoDialog._dialogElements = SuiTempoDialog._dialogElements ? SuiTempoDialog._dialogElements :
-     [
-       { staticText: [
-         { label: 'Tempo Properties'}
-       ]
-       },
-       {
-        smoName: 'tempoMode',
-        parameterName: 'tempoMode',
-        defaultValue: SmoTempoText.tempoModes.durationMode,
-        control: 'SuiDropdownComponent',
-        label:'Tempo Mode',
-        options: [{
+      [
+        { staticText: [
+          { label: 'Tempo Properties' }
+        ]
+        },
+        {
+          smoName: 'tempoMode',
+          parameterName: 'tempoMode',
+          defaultValue: SmoTempoText.tempoModes.durationMode,
+          control: 'SuiDropdownComponent',
+          label: 'Tempo Mode',
+          options: [{
             value: 'duration',
             label: 'Duration (Beats/Minute)'
           }, {
@@ -25727,23 +25715,23 @@ class SuiTempoDialog extends SuiDialogBase {
             value: 'custom',
             label: 'Specify text and duration'
           }
-        ]
-      },
-      {
-        parameterName: 'bpm',
-        smoName: 'bpm',
-        defaultValue: 120,
-        control: 'SuiRockerComponent',
-        label: 'Notes/Minute'
-      },
-      {
-        parameterName: 'duration',
-        smoName: 'beatDuration',
-        defaultValue: 4096,
-        dataType:'int',
-        control: 'SuiDropdownComponent',
-        label: 'Unit for Beat',
-        options: [{
+          ]
+        },
+        {
+          parameterName: 'bpm',
+          smoName: 'bpm',
+          defaultValue: 120,
+          control: 'SuiRockerComponent',
+          label: 'Notes/Minute'
+        },
+        {
+          parameterName: 'duration',
+          smoName: 'beatDuration',
+          defaultValue: 4096,
+          dataType: 'int',
+          control: 'SuiDropdownComponent',
+          label: 'Unit for Beat',
+          options: [{
             value: 4096,
             label: 'Quarter Note',
           }, {
@@ -25756,15 +25744,15 @@ class SuiTempoDialog extends SuiDialogBase {
             value: 8192,
             label: '1/2 note'
           }
-        ]
-      },
-      {
-        smoName: 'tempoText',
-        parameterName: 'tempoText',
-        defaultValue: SmoTempoText.tempoTexts.allegro,
-        control: 'SuiDropdownComponent',
-        label:'Tempo Text',
-        options: [{
+          ]
+        },
+        {
+          smoName: 'tempoText',
+          parameterName: 'tempoText',
+          defaultValue: SmoTempoText.tempoTexts.allegro,
+          control: 'SuiDropdownComponent',
+          label: 'Tempo Text',
+          options: [{
             value: SmoTempoText.tempoTexts.larghissimo,
             label: 'Larghissimo'
           }, {
@@ -25800,7 +25788,7 @@ class SuiTempoDialog extends SuiDialogBase {
           }, {
             value: SmoTempoText.tempoTexts.allegretto,
             label: 'Allegretto',
-          } ,{
+          }, {
             value: SmoTempoText.tempoTexts.allegro,
             label: 'Allegro'
           }, {
@@ -25813,33 +25801,33 @@ class SuiTempoDialog extends SuiDialogBase {
             value: SmoTempoText.tempoTexts.prestissimo,
             label: 'Prestissimo'
           }
-        ]
-      }, {
-        smoName:'applyToAll',
-        parameterName:'applyToAll',
-        defaultValue: false,
-        control:'SuiToggleComponent',
-        label:'Apply to all future measures?'
-      },{
-        smoName: 'display',
-        parameterName: 'display',
-        defaultValue: true,
-        control: 'SuiToggleComponent',
-        label: 'Display Tempo'
-      }, {
-        smoName: 'yOffset',
-        parameterName: 'yOffset',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Y Offset'
-      }
-    ];
+          ]
+        }, {
+          smoName: 'applyToAll',
+          parameterName: 'applyToAll',
+          defaultValue: false,
+          control: 'SuiToggleComponent',
+          label: 'Apply to all future measures?'
+        }, {
+          smoName: 'display',
+          parameterName: 'display',
+          defaultValue: true,
+          control: 'SuiToggleComponent',
+          label: 'Display Tempo'
+        }, {
+          smoName: 'yOffset',
+          parameterName: 'yOffset',
+          defaultValue: 0,
+          control: 'SuiRockerComponent',
+          label: 'Y Offset'
+        }
+      ];
     return SuiTempoDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
     parameters.measures = SmoSelection.getMeasureList(parameters.view.tracker.selections)
       .map((sel) => sel.measure);
-    var measure = parameters.measures[0];
+    const measure = parameters.measures[0];
 
     // All measures have a default tempo, but it is not explicitly set unless it is
     // non-default
@@ -25850,7 +25838,7 @@ class SuiTempoDialog extends SuiDialogBase {
     if (!parameters.modifier.renderedBox) {
       parameters.modifier.renderedBox = svgHelpers.copyBox(measure.renderedBox);
     }
-    var dg = new SuiTempoDialog(parameters);
+    const dg = new SuiTempoDialog(parameters);
     dg.display();
     dg._bindComponentNames();
     return dg;
@@ -25871,9 +25859,7 @@ class SuiTempoDialog extends SuiDialogBase {
   }
   populateInitial() {
     SmoTempoText.attributes.forEach((attr) => {
-      var comp = this.components.find((cc) => {
-        return cc.smoName == attr;
-      });
+      var comp = this.components.find((cc) => cc.smoName === attr);
       if (comp) {
         comp.setValue(this.modifier[attr]);
       }
@@ -25881,10 +25867,10 @@ class SuiTempoDialog extends SuiDialogBase {
     this._updateModeClass();
   }
   _updateModeClass() {
-    if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
+    if (this.modifier.tempoMode === SmoTempoText.tempoModes.textMode) {
       $('.attributeModal').addClass('tempoTextMode');
       $('.attributeModal').removeClass('tempoDurationMode');
-    } else if (this.modifier.tempoMode == SmoTempoText.tempoModes.durationMode) {
+    } else if (this.modifier.tempoMode === SmoTempoText.tempoModes.durationMode) {
       $('.attributeModal').addClass('tempoDurationMode');
       $('.attributeModal').removeClass('tempoTextMode');
     } else {
@@ -25898,11 +25884,11 @@ class SuiTempoDialog extends SuiDialogBase {
         this.modifier[component.smoName] = component.getValue();
       }
     });
-    if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
+    if (this.modifier.tempoMode === SmoTempoText.tempoModes.textMode) {
       this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
     }
     this._updateModeClass();
-    this.view.updateTempoScore(this.modifier, this.applyToAllCtrl.getValue())
+    this.view.updateTempoScore(this.modifier, this.applyToAllCtrl.getValue());
   }
   // ### handleRemove
   // Removing a tempo change is like changing the measure to the previous measure's tempo.
@@ -25917,11 +25903,11 @@ class SuiTempoDialog extends SuiDialogBase {
     // Create promise to release the keyboard when dialog is closed
     this.closeDialogPromise = new Promise((resolve) => {
       $(dgDom.element).find('.cancel-button').remove();
-      $(dgDom.element).find('.ok-button').off('click').on('click', (ev) => {
+      $(dgDom.element).find('.ok-button').off('click').on('click', () => {
         this.complete();
         resolve();
       });
-      $(dgDom.element).find('.remove-button').off('click').on('click', (ev) => {
+      $(dgDom.element).find('.remove-button').off('click').on('click', () => {
         this.handleRemove();
         this.complete();
         resolve();

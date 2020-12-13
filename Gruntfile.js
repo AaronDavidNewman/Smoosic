@@ -11,6 +11,7 @@ module.exports = function (grunt) {
   'src/render/sui/scoreView.js','src/render/sui/scoreViewOperations.js',
   'src/ui/ribbon.js', 'src/ui/menus.js', 'src/ui/dialog.js', 'src/ui/dialogComponents.js', 'src/ui/dialogs/scoreDialogs.js',
    'src/ui/dialogs/fontComponent.js', 'src/ui/dialogs/staffComponent.js',
+   'src/ui/dialogs/measureDialogs.js',
    'src/ui/dialogs/fileDialogs.js']
   const SOURCES = ['src/**/*.js','!src/test/*.js'];
   const TESTSRC = ['src/test/*.js']
