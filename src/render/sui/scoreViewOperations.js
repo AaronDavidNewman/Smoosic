@@ -46,6 +46,27 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.addRemoveMicrotone(null, altSelections, tone);
     this._renderChangedMeasures(measureSelections);
   }
+  // ### removeLyric
+  // The lyric editor moves around, so we can't depend on the tracker for the
+  // correct selection.  We get it directly from the editor.
+  removeLyric(selection, lyric) {
+    this._undoSelection('remove lyric', selection);
+    selection.note.removeLyric(lyric);
+    const equiv = this._getEquivalentSelection(selection);
+    const storeLyric = equiv.note.getLyricForVerse(lyric.verse, lyric.parser);
+    if (typeof(storeLyric) !== 'undefined') {
+      equiv.note.removeLyric(lyric);
+    }
+    this.renderer.addToReplaceQueue(selection);
+  }
+
+  addOrUpdateLyric(selection, lyric) {
+    this._undoSelection('update lyric', selection);
+    selection.note.addLyric(lyric);
+    const equiv = this._getEquivalentSelection(selection);
+    equiv.note.addLyric(SmoNoteModifierBase.deserialize(lyric.serialize()));
+    this.renderer.addToReplaceQueue(selection);
+  }
 
   depopulateVoice() {
     const measureSelections = this._undoTrackerMeasureSelections('depopulate voice');
@@ -583,6 +604,18 @@ class SuiScoreViewOperations extends SuiScoreView {
     engrave.family = family;
     altEngrave.family = family;
     SuiRenderState.setFont(engrave.family);
+  }
+  setLyricFont(fontInfo) {
+    this._undoScore('Set Lyric Font');
+    this.score.setLyricFont(fontInfo);
+    this.storeScore.setLyricFont(fontInfo);
+    this.renderer.setRefresh();
+  }
+  setLyricAdjustWidth(value) {
+    this._undoScore('Set Lyric Adj Width');
+    this.score.setLyricAdjustWidth(value);
+    this.storeScore.setLyricAdjustWidth(value);
+    this.renderer.setRefresh();
   }
   deleteMeasure() {
     this._undoScore('Delete Measure');

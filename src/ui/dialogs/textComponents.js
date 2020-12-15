@@ -175,6 +175,10 @@ class SuiNoteTextComponent extends SuiComponentBase {
   get parameterId() {
     return this.dialog.id + '-' + this.parameterName;
   }
+  setView(eventSource, view) {
+    this.eventSource = eventSource;
+    this.view = view;
+  }
   mouseMove(ev) {
     if (this.session && this.session.isRunning) {
       this.session.handleMouseEvent(ev);
@@ -201,7 +205,7 @@ class SuiNoteTextComponent extends SuiComponentBase {
   }
 
   moveSelectionRight() {
-      this.session.advanceSelection(false);
+    this.session.advanceSelection(false);
   }
   moveSelectionLeft() {
     this.session.advanceSelection(true);
@@ -280,19 +284,14 @@ class SuiLyricComponent extends SuiNoteTextComponent {
     $(this._getInputElement()).find('label').text(this.label);
     const button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
-
-    var render = () => {
-      this.dialog.layout.setRefresh();
-    }
     if (this.session) {
-      this.value=this.session.textGroup;
-      this.session.stopSession().then(render);
+      this.value = this.session.textGroup;
+      this.session.stopSession();
     }
     $('body').removeClass('text-edit');
   }
 
   startEditSession() {
-    var self=this;
     $(this._getInputElement()).find('label').text(this.altLabel);
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiLyricSession({
@@ -300,7 +299,8 @@ class SuiLyricComponent extends SuiNoteTextComponent {
        selector: this.selector,
        scroller: this.dialog.view.tracker.scroller,
        verse: this.verse,
-       score: this.dialog.view.score
+       score: this.dialog.view.score,
+       view: this.view
        }
      );
     $('body').addClass('text-edit');
@@ -385,6 +385,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
        selector: this.selector,
        scroller: this.dialog.view.tracker.scroller,
        verse: 0,
+       view: this.view,
        score: this.dialog.view.score
        }
      );

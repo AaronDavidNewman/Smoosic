@@ -306,9 +306,9 @@ class SuiRenderState {
     // Unrender the modified music because the IDs may change and normal unrender won't work
     if (buffer) {
       const sel = buffer.selector;
-      if (buffer.type === 'measure') {
+      if (buffer.type === UndoBuffer.bufferTypes.MEASURE) {
         this.unrenderMeasure(SmoSelection.measureSelection(this._score, sel.staff, sel.measure).measure);
-      } else if (buffer.type === 'staff') {
+      } else if (buffer.type === UndoBuffer.bufferTypes.STAFF) {
         this.unrenderStaff(SmoSelection.measureSelection(this._score, sel.staff, 0).staff);
         op = 'setRefresh';
       } else {
@@ -321,7 +321,6 @@ class SuiRenderState {
   }
 
   // ### renderNoteModifierPreview
-  // ### Description:
   // For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
   // changes can be undone before the buffer closes.
   renderNoteModifierPreview(modifier, selection) {

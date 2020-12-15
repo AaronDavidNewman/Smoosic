@@ -93,6 +93,13 @@ class SuiScoreView {
     this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, sel.selector, sel.measure);
     return sel;
   }
+  _undoSelection(label, selection) {
+    const equiv = this._getEquivalentSelection(selection);
+    this.undoBuffer.addBuffer(label,
+      UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    this.storeUndo.addBuffer(label,
+      UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure);
+  }
   // ###_renderChangedMeasures
   // Update renderer for measures that have changed
   _renderChangedMeasures(measureSelections) {

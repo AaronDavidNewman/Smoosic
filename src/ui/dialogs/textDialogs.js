@@ -81,8 +81,8 @@ class SuiLyricDialog extends SuiDialogBase {
   }
 
   constructor(parameters) {
-    parameters.ctor= parameters.ctor ? parameters.ctor : 'SuiLyricDialog';
-    var p = parameters;
+    parameters.ctor = typeof(parameters.ctor) !== 'undefined' ? parameters.ctor : 'SuiLyricDialog';
+    const p = parameters;
     const _class = eval(p.ctor);
     const dialogElements = _class['dialogElements'];
 
@@ -101,7 +101,6 @@ class SuiLyricDialog extends SuiDialogBase {
     } else {
       this.parser = parameters.parser; // lyrics or chord changes
     }
-    SmoUndoable.noop(this.view.score, this.view.undoBuffer, 'Undo lyrics');
   }
   display() {
     let fontSize;
@@ -129,16 +128,16 @@ class SuiLyricDialog extends SuiDialogBase {
 
     this.position(this.view.tracker.selections[0].note.renderedBox);
 
-    var cb = function (x, y) {}
+    const cb = () => {}
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
       handle: $(this.dgDom.element).find('.jsDbMove'),
-        animateDiv:'.draganime',
-        cb: cb,
+      animateDiv: '.draganime',
+      cb: cb,
       moveParent: true
     });
-    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
-    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
+    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
+    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
 
     if (this.lyricEditorCtrl && this.lyricEditorCtrl.session && this.lyricEditorCtrl.session.lyric) {
       const lyric = this.lyricEditorCtrl.session.lyric;
@@ -166,34 +165,30 @@ class SuiLyricDialog extends SuiDialogBase {
     // TODO: make these undoable
     if (this.fontCtrl.changeFlag) {
       const fontInfo = this.fontCtrl.getValue();
-      this.view.score.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size.size });
+      this.view.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size.size });
     }
     if (this.adjustWidthCtrl.changeFlag) {
-      this.view.score.setLyricAdjustWidth(this.adjustWidthCtrl.getValue());
+      this.view.setLyricAdjustWidth(this.adjustWidthCtrl.getValue());
     }
   }
   _bindElements() {
-    var self = this;
-    var dgDom = this.dgDom;
+    const dgDom = this.dgDom;
 
-    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-      self.tracker.replaceSelectedMeasures();
-      self.view.renderer.setDirty();
-      self._complete();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this._complete();
     });
-    $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-      self.keyCommands.undo();
-      self.view.renderer.setDirty();
-      self._complete();
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this._complete();
     });
     $(dgDom.element).find('.remove-button').remove();
     this.lyricEditorCtrl.eventSource = this.eventSource;
+    this.lyricEditorCtrl.setView(this.eventSource, this.view);
     this.lyricEditorCtrl.startEditSession();
   }
   // ### handleKeydown
   // allow a dialog to be dismissed by esc.
   evKey(evdata) {
-    if (evdata.key == 'Escape') {
+    if (evdata.key === 'Escape') {
       $(this.dgDom.element).find('.cancel-button').click();
       evdata.preventDefault();
       return;
@@ -206,7 +201,6 @@ class SuiLyricDialog extends SuiDialogBase {
   }
 
   _complete() {
-    this.view.renderer.setDirty();
     if (this.lyricEditorCtrl.running) {
       this.lyricEditorCtrl.endSession();
     }
@@ -410,7 +404,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       }
     });
 
-    this.position(this.tracker.selections[0].note.renderedBox);
+    this.position(this.view.tracker.selections[0].note.renderedBox);
 
     const cb = (x, y) => {}
     htmlHelpers.draggable({
@@ -441,17 +435,13 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     var dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-      self.view.tracker.replaceSelectedMeasures();
-      self.view.tracker.layout.setDirty();
       self._complete();
     });
     $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-      self.keyCommands.undo();
-      self.view.renderer.setDirty();
       self._complete();
     });
     $(dgDom.element).find('.remove-button').remove();
-    this.chordEditorCtrl.eventSource = this.eventSource;
+    this.chordEditorCtrl.setView(this.eventSource, this.view);
     this.chordEditorCtrl.startEditSession();
   }
 

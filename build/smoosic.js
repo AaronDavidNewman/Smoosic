@@ -4038,9 +4038,9 @@ class SuiRenderState {
     // Unrender the modified music because the IDs may change and normal unrender won't work
     if (buffer) {
       const sel = buffer.selector;
-      if (buffer.type === 'measure') {
+      if (buffer.type === UndoBuffer.bufferTypes.MEASURE) {
         this.unrenderMeasure(SmoSelection.measureSelection(this._score, sel.staff, sel.measure).measure);
-      } else if (buffer.type === 'staff') {
+      } else if (buffer.type === UndoBuffer.bufferTypes.STAFF) {
         this.unrenderStaff(SmoSelection.measureSelection(this._score, sel.staff, 0).staff);
         op = 'setRefresh';
       } else {
@@ -4053,7 +4053,6 @@ class SuiRenderState {
   }
 
   // ### renderNoteModifierPreview
-  // ### Description:
   // For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
   // changes can be undone before the buffer closes.
   renderNoteModifierPreview(modifier, selection) {
@@ -4778,6 +4777,13 @@ class SuiScoreView {
     this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, sel.selector, sel.measure);
     return sel;
   }
+  _undoSelection(label, selection) {
+    const equiv = this._getEquivalentSelection(selection);
+    this.undoBuffer.addBuffer(label,
+      UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    this.storeUndo.addBuffer(label,
+      UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure);
+  }
   // ###_renderChangedMeasures
   // Update renderer for measures that have changed
   _renderChangedMeasures(measureSelections) {
@@ -4971,6 +4977,27 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.addRemoveMicrotone(null, selections, tone);
     SmoOperation.addRemoveMicrotone(null, altSelections, tone);
     this._renderChangedMeasures(measureSelections);
+  }
+  // ### removeLyric
+  // The lyric editor moves around, so we can't depend on the tracker for the
+  // correct selection.  We get it directly from the editor.
+  removeLyric(selection, lyric) {
+    this._undoSelection('remove lyric', selection);
+    selection.note.removeLyric(lyric);
+    const equiv = this._getEquivalentSelection(selection);
+    const storeLyric = equiv.note.getLyricForVerse(lyric.verse, lyric.parser);
+    if (typeof(storeLyric) !== 'undefined') {
+      equiv.note.removeLyric(lyric);
+    }
+    this.renderer.addToReplaceQueue(selection);
+  }
+
+  addOrUpdateLyric(selection, lyric) {
+    this._undoSelection('update lyric', selection);
+    selection.note.addLyric(lyric);
+    const equiv = this._getEquivalentSelection(selection);
+    equiv.note.addLyric(SmoNoteModifierBase.deserialize(lyric.serialize()));
+    this.renderer.addToReplaceQueue(selection);
   }
 
   depopulateVoice() {
@@ -5510,6 +5537,18 @@ class SuiScoreViewOperations extends SuiScoreView {
     altEngrave.family = family;
     SuiRenderState.setFont(engrave.family);
   }
+  setLyricFont(fontInfo) {
+    this._undoScore('Set Lyric Font');
+    this.score.setLyricFont(fontInfo);
+    this.storeScore.setLyricFont(fontInfo);
+    this.renderer.setRefresh();
+  }
+  setLyricAdjustWidth(value) {
+    this._undoScore('Set Lyric Adj Width');
+    this.score.setLyricAdjustWidth(value);
+    this.storeScore.setLyricAdjustWidth(value);
+    this.renderer.setRefresh();
+  }
   deleteMeasure() {
     this._undoScore('Delete Measure');
     const selection = this.tracker.selections[0];
@@ -5810,7 +5849,6 @@ class SuiTextEditor {
   constructor(params) {
     Vex.Merge(this, SuiTextEditor.defaults);
     Vex.Merge(this, params);
-    this.context = params.renderer.context;
   }
 
   static get strokes() {
@@ -5845,7 +5883,7 @@ class SuiTextEditor {
   _suggestionParameters(box, strokeName) {
     const outlineStroke = SuiTextEditor.strokes[strokeName];
     return {
-      context: this.renderer.context, box, classes: strokeName,
+      context: this.context, box, classes: strokeName,
       outlineStroke, scroller: this.scroller
     };
   }
@@ -6218,7 +6256,7 @@ class SuiLyricEditor extends SuiTextEditor {
   }
   parseBlocks() {
     let i = 0;
-    this.svgText = new SuiInlineText({ context: this.renderer.context, startX: this.x, startY: this.y });
+    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y });
     for (i = 0; i < this.text.length; ++i) {
       this.svgText.addTextBlockAt(i, { text: this.text[i] });
       this.empty = false;
@@ -6316,7 +6354,7 @@ class SuiChordEditor extends SuiTextEditor {
     let curGlyph = '';
     let blockIx = 0; // so we skip modifier characters
     let i = 0;
-    this.svgText = new SuiInlineText({ context: this.renderer.context, startX: this.x, startY: this.y });
+    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y });
 
     for (i = 0; i < this.text.length; ++i) {
       const char = this.text[i];
@@ -6610,6 +6648,7 @@ class SuiLyricSession {
     this.score = params.score;
     this.renderer = params.renderer;
     this.scroller = params.scroller;
+    this.view = params.view;
     this.parser = params.parser ? params.parser : SmoLyric.parsers.lyric;
     this.verse = params.verse;
     this.selector = params.selector;
@@ -6629,9 +6668,9 @@ class SuiLyricSession {
       const scoreFont = this.score.fonts.find((fn) => fn.name === 'lyrics');
       const fontInfo = JSON.parse(JSON.stringify(scoreFont));
       this.lyric = new SmoLyric({  _text: '', verse: this.verse, fontInfo });
-      this.note.addLyric(this.lyric);
     }
     this.text = this.lyric._text;
+    this.view.addOrUpdateLyric(this.selection, this.lyric);
   }
 
   // ### _endLyricCondition
@@ -6686,7 +6725,7 @@ class SuiLyricSession {
     const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
     const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
       this.note.logicalBox.y + this.note.logicalBox.height;
-    this.editor = new SuiLyricEditor({ context: this.context,
+    this.editor = new SuiLyricEditor({ context: this.view.renderer.context,
       lyric: this.lyric, x: startX, y: startY, scroller: this.scroller });
     this.state = SuiTextEditor.States.RUNNING;
     if (!lyricRendered) {
@@ -6744,7 +6783,10 @@ class SuiLyricSession {
 
   removeLyric() {
     if (this.selection && this.lyric) {
-      this.selection.note.removeLyric(this.lyric);
+      this.view.removeLyric(this.selection, this.lyric);
+      this.lyric.deleted = true;
+      this.lyric.skipRender = true;
+      this.advanceSelection();
     }
   }
 
@@ -6755,7 +6797,9 @@ class SuiLyricSession {
     this.lyric.setText(txt);
     this.lyric.skipRender = false;
     this.editor.stopEditor();
-    this.view.renderer.addToReplaceQueue(this.selection);
+    if (!this.lyric.deleted) {
+      this.view.addOrUpdateLyric(this.selection, this.lyric);
+    }
   }
   // ### evKey
   // Key handler (pass to editor)
@@ -14107,159 +14151,160 @@ class SmoTuplet {
 }
 ;
 class BeamModifierBase {
-    constructor() {}
-    beamNote(note, tickmap, accidentalMap) {}
+  constructor() {}
+  beamNote(note, tickmap, accidentalMap) {}
 }
 
 class smoBeamerFactory {
-    static applyBeams(measure) {
-        for (var i = 0;i < measure.voices.length;++i) {
-            var beamer = new smoBeamModifier(measure,i);
-            var apply = new smoBeamerIterator(measure, beamer,i);
-            apply.run();
-        }
+  static applyBeams(measure) {
+    let i = 0;
+    for (i = 0; i < measure.voices.length; ++i) {
+      const beamer = new smoBeamModifier(measure,i);
+      const apply = new smoBeamerIterator(measure, beamer, i);
+      apply.run();
     }
+  }
 }
 
 class smoBeamerIterator {
-    constructor(measure, actor,voice) {
-        this.actor = actor;
-        this.measure = measure;
-        this.voice = voice;
-    }
+  constructor(measure, actor,voice) {
+    this.actor = actor;
+    this.measure = measure;
+    this.voice = voice;
+  }
 
-    //  ### run
-    //  ###  Description:  start the iteration on this set of notes
-    run() {
-        var tickmap = this.measure.tickmapForVoice(this.voice);
-        for (var i = 0;i < tickmap.durationMap.length;++i) {
-            this.actor.beamNote(tickmap, i,this.measure.voices[this.voice].notes[i]);
-        }
+  //  ### run
+  //  ###  Description:  start the iteration on this set of notes
+  run() {
+    let i = 0;
+    const tickmap = this.measure.tickmapForVoice(this.voice);
+    for (i = 0; i < tickmap.durationMap.length; ++i) {
+      this.actor.beamNote(tickmap, i,this.measure.voices[this.voice].notes[i]);
     }
+  }
 }
 
 class smoBeamModifier extends BeamModifierBase {
-    constructor(measure,voice) {
-        super();
-        this.measure = measure;
-        this._removeVoiceBeam(measure,voice);
-        this.duration = 0;
-        this.timeSignature = measure.timeSignature;
-        this.meterNumbers = this.timeSignature.split('/').map(number => parseInt(number, 10));
-
-        this.duration = 0;
-        // beam on 1/4 notes in most meter, triple time dotted quarter
-        this.beamBeats = 2 * 2048;
-        if (this.meterNumbers[0] % 3 == 0) {
-            this.beamBeats = 3 * 2048;
-        }
-        this.skipNext = 0;
-        this.currentGroup = [];
+  constructor(measure, voice) {
+    super();
+    this.measure = measure;
+    this._removeVoiceBeam(measure, voice);
+    this.duration = 0;
+    this.timeSignature = measure.timeSignature;
+    this.meterNumbers = this.timeSignature.split('/').map(number => parseInt(number, 10));
+    this.duration = 0;
+    // beam on 1/4 notes in most meter, triple time dotted quarter
+    this.beamBeats = 2 * 2048;
+    if (this.meterNumbers[0] % 3 == 0) {
+      this.beamBeats = 3 * 2048;
     }
+    this.skipNext = 0;
+    this.currentGroup = [];
+  }
 
-    get beamGroups() {
-        return this.measure.beamGroups;
-    }
-    _removeVoiceBeam(measure,voice) {
-        var beamGroups = [];
-        measure.beamGroups.forEach((gr) => {
-            if (gr.voice != voice) {
-                beamGroups.push(gr);
-            }
-        });
-
-        measure.beamGroups = beamGroups;
-    }
-
-    _completeGroup(voice) {
-        // don't beam groups of 1
-        if (this.currentGroup.length > 1) {
-            this.measure.beamGroups.push(new SmoBeamGroup({
-                    notes: this.currentGroup,
-                    voice:voice
-                }));
-        }
-    }
-
-    _advanceGroup() {
-        this.currentGroup = [];
-        this.duration = 0;
-    }
-
-    // ### _isRemainingTicksBeamable
-    // look ahead, and see if we need to beam the tuplet now or if we
-    // can combine current beam with future notes.
-    _isRemainingTicksBeamable(tickmap,index) {
-      if (this.duration >= this.beamBeats) {
-        return false;
+  get beamGroups() {
+    return this.measure.beamGroups;
+  }
+  _removeVoiceBeam(measure,voice) {
+    const beamGroups = [];
+    measure.beamGroups.forEach((gr) => {
+      if (gr.voice != voice) {
+        beamGroups.push(gr);
       }
-      var acc = this.duration;
-      for (var i = index + 1;i < tickmap.deltaMap.length; ++i) {
-        acc += tickmap.deltaMap[i]
-        if (acc === this.beamBeats) {
-          return true;
-        }
-        if (acc > this.beamBeats) {
-          return false;
-        }
-      }
+    });
+    measure.beamGroups = beamGroups;
+  }
+
+  _completeGroup(voice) {
+    // don't beam groups of 1
+    if (this.currentGroup.length > 1) {
+      this.measure.beamGroups.push(new SmoBeamGroup({
+        notes: this.currentGroup,
+        voice: voice
+      }));
+    }
+  }
+
+  _advanceGroup() {
+    this.currentGroup = [];
+    this.duration = 0;
+  }
+
+  // ### _isRemainingTicksBeamable
+  // look ahead, and see if we need to beam the tuplet now or if we
+  // can combine current beam with future notes.
+  _isRemainingTicksBeamable(tickmap,index) {
+    let acc = 0;
+    let i = 0;
+    if (this.duration >= this.beamBeats) {
       return false;
     }
-    beamNote(tickmap, index, note, accidentalMap) {
-        this.beamBeats = note.beamBeats;
-
-        this.duration += tickmap.deltaMap[index];
-
-        // beam tuplets
-        if (note.isTuplet) {
-            var tuplet = this.measure.getTupletForNote(note);
-            var ult = tuplet.notes[tuplet.notes.length - 1];
-            var first = tuplet.notes[0];
-
-            if (first.endBeam) {
-                this._advanceGroup();
-                return note;
-            }
-
-            // is this beamable length-wise
-            var vexDuration = smoMusic.closestVexDuration(note.tickCount);
-            var stemTicks = VF.durationToTicks.durations[vexDuration];
-            if (stemTicks < 4096) {
-                this.currentGroup.push(note);
-            }
-            // Ultimate note in tuplet
-            if (ult.attrs.id === note.attrs.id && !this._isRemainingTicksBeamable(tickmap,index)) {
-                this._completeGroup(tickmap.voice);
-                this._advanceGroup();
-            }
-            return note;
-        }
-
-        // don't beam > 1/4 note in 4/4 time
-        if (tickmap.deltaMap[index] >= 4096) {
-			this._completeGroup(tickmap.voice);
-            this._advanceGroup();
-            return note;
-        }
-
-        this.currentGroup.push(note);
-        if (note.endBeam) {
-            this._completeGroup(tickmap.voice);
-            this._advanceGroup();
-        }
-
-        if (this.duration == this.beamBeats) {
-            this._completeGroup(tickmap.voice);
-            this._advanceGroup();
-            return note;
-        }
-
-        // If this does not align on a beat, don't beam it
-        if (this.duration > this.beamBeats) {
-            this._advanceGroup()
-            return note;
-        }
+    acc = this.duration;
+    for (i = index + 1; i < tickmap.deltaMap.length; ++i) {
+      acc += tickmap.deltaMap[i]
+      if (acc === this.beamBeats) {
+        return true;
+      }
+      if (acc > this.beamBeats) {
+        return false;
+      }
     }
+    return false;
+  }
+  beamNote(tickmap, index, note, accidentalMap) {
+    this.beamBeats = note.beamBeats;
+    this.duration += tickmap.deltaMap[index];
+
+    // beam tuplets
+    if (note.isTuplet) {
+      const tuplet = this.measure.getTupletForNote(note);
+      const ult = tuplet.notes[tuplet.notes.length - 1];
+      const first = tuplet.notes[0];
+
+      if (first.endBeam) {
+        this._advanceGroup();
+        return note;
+      }
+
+      // is this beamable length-wise
+      const vexDuration = smoMusic.closestVexDuration(note.tickCount);
+      const stemTicks = VF.durationToTicks.durations[vexDuration];
+      if (stemTicks < 4096) {
+        this.currentGroup.push(note);
+      }
+      // Ultimate note in tuplet
+      if (ult.attrs.id === note.attrs.id && !this._isRemainingTicksBeamable(tickmap, index)) {
+        this._completeGroup(tickmap.voice);
+        this._advanceGroup();
+      }
+      return note;
+    }
+
+    // don't beam > 1/4 note in 4/4 time
+    if (tickmap.deltaMap[index] >= 4096) {
+		this._completeGroup(tickmap.voice);
+      this._advanceGroup();
+      return note;
+    }
+
+    this.currentGroup.push(note);
+    if (note.endBeam) {
+      this._completeGroup(tickmap.voice);
+      this._advanceGroup();
+    }
+
+    if (this.duration === this.beamBeats) {
+      this._completeGroup(tickmap.voice);
+      this._advanceGroup();
+      return note;
+    }
+
+    // If this does not align on a beat, don't beam it
+    if (this.duration > this.beamBeats) {
+      this._advanceGroup()
+      return note;
+    }
+  }
 }
 ;// ## PasteBuffer
 // ### Description:
@@ -26899,6 +26944,10 @@ class SuiNoteTextComponent extends SuiComponentBase {
   get parameterId() {
     return this.dialog.id + '-' + this.parameterName;
   }
+  setView(eventSource, view) {
+    this.eventSource = eventSource;
+    this.view = view;
+  }
   mouseMove(ev) {
     if (this.session && this.session.isRunning) {
       this.session.handleMouseEvent(ev);
@@ -26925,7 +26974,7 @@ class SuiNoteTextComponent extends SuiComponentBase {
   }
 
   moveSelectionRight() {
-      this.session.advanceSelection(false);
+    this.session.advanceSelection(false);
   }
   moveSelectionLeft() {
     this.session.advanceSelection(true);
@@ -27004,19 +27053,14 @@ class SuiLyricComponent extends SuiNoteTextComponent {
     $(this._getInputElement()).find('label').text(this.label);
     const button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
-
-    var render = () => {
-      this.dialog.layout.setRefresh();
-    }
     if (this.session) {
-      this.value=this.session.textGroup;
-      this.session.stopSession().then(render);
+      this.value = this.session.textGroup;
+      this.session.stopSession();
     }
     $('body').removeClass('text-edit');
   }
 
   startEditSession() {
-    var self=this;
     $(this._getInputElement()).find('label').text(this.altLabel);
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiLyricSession({
@@ -27024,7 +27068,8 @@ class SuiLyricComponent extends SuiNoteTextComponent {
        selector: this.selector,
        scroller: this.dialog.view.tracker.scroller,
        verse: this.verse,
-       score: this.dialog.view.score
+       score: this.dialog.view.score,
+       view: this.view
        }
      );
     $('body').addClass('text-edit');
@@ -27109,6 +27154,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
        selector: this.selector,
        scroller: this.dialog.view.tracker.scroller,
        verse: 0,
+       view: this.view,
        score: this.dialog.view.score
        }
      );
@@ -27302,8 +27348,8 @@ class SuiDragText extends SuiComponentBase {
   }
 
   constructor(parameters) {
-    parameters.ctor= parameters.ctor ? parameters.ctor : 'SuiLyricDialog';
-    var p = parameters;
+    parameters.ctor = typeof(parameters.ctor) !== 'undefined' ? parameters.ctor : 'SuiLyricDialog';
+    const p = parameters;
     const _class = eval(p.ctor);
     const dialogElements = _class['dialogElements'];
 
@@ -27322,7 +27368,6 @@ class SuiDragText extends SuiComponentBase {
     } else {
       this.parser = parameters.parser; // lyrics or chord changes
     }
-    SmoUndoable.noop(this.view.score, this.view.undoBuffer, 'Undo lyrics');
   }
   display() {
     let fontSize;
@@ -27350,16 +27395,16 @@ class SuiDragText extends SuiComponentBase {
 
     this.position(this.view.tracker.selections[0].note.renderedBox);
 
-    var cb = function (x, y) {}
+    const cb = () => {}
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
       handle: $(this.dgDom.element).find('.jsDbMove'),
-        animateDiv:'.draganime',
-        cb: cb,
+      animateDiv: '.draganime',
+      cb: cb,
       moveParent: true
     });
-    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
-    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
+    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
+    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
 
     if (this.lyricEditorCtrl && this.lyricEditorCtrl.session && this.lyricEditorCtrl.session.lyric) {
       const lyric = this.lyricEditorCtrl.session.lyric;
@@ -27387,34 +27432,30 @@ class SuiDragText extends SuiComponentBase {
     // TODO: make these undoable
     if (this.fontCtrl.changeFlag) {
       const fontInfo = this.fontCtrl.getValue();
-      this.view.score.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size.size });
+      this.view.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size.size });
     }
     if (this.adjustWidthCtrl.changeFlag) {
-      this.view.score.setLyricAdjustWidth(this.adjustWidthCtrl.getValue());
+      this.view.setLyricAdjustWidth(this.adjustWidthCtrl.getValue());
     }
   }
   _bindElements() {
-    var self = this;
-    var dgDom = this.dgDom;
+    const dgDom = this.dgDom;
 
-    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-      self.tracker.replaceSelectedMeasures();
-      self.view.renderer.setDirty();
-      self._complete();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this._complete();
     });
-    $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-      self.keyCommands.undo();
-      self.view.renderer.setDirty();
-      self._complete();
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this._complete();
     });
     $(dgDom.element).find('.remove-button').remove();
     this.lyricEditorCtrl.eventSource = this.eventSource;
+    this.lyricEditorCtrl.setView(this.eventSource, this.view);
     this.lyricEditorCtrl.startEditSession();
   }
   // ### handleKeydown
   // allow a dialog to be dismissed by esc.
   evKey(evdata) {
-    if (evdata.key == 'Escape') {
+    if (evdata.key === 'Escape') {
       $(this.dgDom.element).find('.cancel-button').click();
       evdata.preventDefault();
       return;
@@ -27427,7 +27468,6 @@ class SuiDragText extends SuiComponentBase {
   }
 
   _complete() {
-    this.view.renderer.setDirty();
     if (this.lyricEditorCtrl.running) {
       this.lyricEditorCtrl.endSession();
     }
@@ -27631,7 +27671,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       }
     });
 
-    this.position(this.tracker.selections[0].note.renderedBox);
+    this.position(this.view.tracker.selections[0].note.renderedBox);
 
     const cb = (x, y) => {}
     htmlHelpers.draggable({
@@ -27662,17 +27702,13 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     var dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-      self.view.tracker.replaceSelectedMeasures();
-      self.view.tracker.layout.setDirty();
       self._complete();
     });
     $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-      self.keyCommands.undo();
-      self.view.renderer.setDirty();
       self._complete();
     });
     $(dgDom.element).find('.remove-button').remove();
-    this.chordEditorCtrl.eventSource = this.eventSource;
+    this.chordEditorCtrl.setView(this.eventSource, this.view);
     this.chordEditorCtrl.startEditSession();
   }
 
