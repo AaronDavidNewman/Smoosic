@@ -4224,19 +4224,30 @@ class SuiRenderState {
   // ### _replaceMeasures
   // Do a quick re-render of a measure that has changed.
   _replaceMeasures() {
+    const staffMap = {};
+    let system = {};
     this.replaceQ.forEach((change) => {
       smoBeamerFactory.applyBeams(change.measure);
-      const system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex, this.score);
+      // Defer modifier update until all selected measures are drawn.
+      if (!staffMap[change.staff.staffId]) {
+        system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex, this.score);
+        staffMap[change.staff.staffId] = { system, staff: change.staff };
+      } else {
+        system = staffMap[change.staff.staffId].system;
+      }
       const selections = SmoSelection.measuresInColumn(this.score, change.measure.measureNumber.measureIndex);
       selections.forEach((selection) => {
         system.renderMeasure(selection.measure, this.measureMapper);
       });
-      system.renderEndings();
-      this._renderModifiers(change.staff, system);
-      system.updateLyricOffsets();
 
       // Fix a bug: measure change needs to stay true so we recaltulate the width
       change.measure.changed = true;
+    });
+    Object.keys(staffMap).forEach((key) => {
+      const obj = staffMap[key];
+      this._renderModifiers(obj.staff, obj.system);
+      obj.system.renderEndings();
+      obj.system.updateLyricOffsets();
     });
     this.replaceQ = [];
   }
@@ -5304,6 +5315,8 @@ class SuiScoreViewOperations extends SuiScoreView {
     const measureSelections = this._undoTrackerMeasureSelections('make rest');
     selections.forEach((selection) => {
       SmoOperation.makeRest(selection);
+      const altSel = this._getEquivalentSelection(selection);
+      SmoOperation.makeRest(altSel);
     });
     this._renderChangedMeasures(measureSelections);
   }
@@ -6602,7 +6615,7 @@ class SuiTextSession {
     this.editor = new SuiTextBlockEditor({ renderer: this.renderer,
       x: this.x, y: this.y, scroller: this.scroller,
       fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight,
-      text: this.scoreText.text });
+      text: this.scoreText.text, context: this.renderer.context });
     this.cursorPromise = this.editor.startCursorPromise();
     this.state = SuiTextEditor.States.RUNNING;
     this._removeScoreText();
@@ -9486,6 +9499,10 @@ class VxSystem {
     group.classList.add(artifactId);
     if ((modifier.ctor === 'SmoStaffHairpin' && modifier.hairpinType === SmoStaffHairpin.types.CRESCENDO) ||
       (modifier.ctor === 'SmoStaffHairpin' && modifier.hairpinType === SmoStaffHairpin.types.DECRESCENDO)) {
+      if (!vxStart || !vxEnd) {
+        this.context.closeGroup();
+        return svgHelpers.pointBox(1, 1);
+      }
       const hairpin = new VF.StaveHairpin({
         first_note: vxStart,
         last_note: vxEnd

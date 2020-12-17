@@ -812,7 +812,7 @@ class SuiTextSession {
     this.editor = new SuiTextBlockEditor({ renderer: this.renderer,
       x: this.x, y: this.y, scroller: this.scroller,
       fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight,
-      text: this.scoreText.text });
+      text: this.scoreText.text, context: this.renderer.context });
     this.cursorPromise = this.editor.startCursorPromise();
     this.state = SuiTextEditor.States.RUNNING;
     this._removeScoreText();

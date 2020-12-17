@@ -372,6 +372,8 @@ class SuiScoreViewOperations extends SuiScoreView {
     const measureSelections = this._undoTrackerMeasureSelections('make rest');
     selections.forEach((selection) => {
       SmoOperation.makeRest(selection);
+      const altSel = this._getEquivalentSelection(selection);
+      SmoOperation.makeRest(altSel);
     });
     this._renderChangedMeasures(measureSelections);
   }
