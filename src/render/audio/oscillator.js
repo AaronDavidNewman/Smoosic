@@ -155,6 +155,9 @@ class suiOscillator {
     if (!selection.note) {
       return;
     }
+    if (selection.note.isRest()) {
+      return;
+    }
     setTimeout(() => {
       const ar = suiOscillator.fromNote(selection.measure, selection.note, true, gain);
       ar.forEach((osc) => {

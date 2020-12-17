@@ -8,7 +8,11 @@
   },
   "globals": {
     "SmoSelection": true,
-    "SmoOperation": true
+    "SmoOperation": true,
+    "BeamModifierBase": true,
+    "smoBeamerFactory": true,
+    "smoBeamerIterator": true,
+    "smoBeamModifier": true
   },
   "rules": {
     "no-bitwise": [

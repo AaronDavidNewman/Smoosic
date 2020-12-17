@@ -253,6 +253,9 @@ class SmoNote {
   makeRest() {
     this.noteType = (this.noteType === 'r' ? 'n' : 'r');
   }
+  isRest() {
+    return this.noteType === 'r';
+  }
 
   makeNote() {
     this.noteType = 'n';

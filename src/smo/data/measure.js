@@ -366,18 +366,22 @@ class SmoMeasure {
     params.clef = params.clef ? params.clef : 'treble';
     const meterNumbers = params.timeSignature.split('/').map(number => parseInt(number, 10));
     beamBeats = ticks.numerator;
+    beats = meterNumbers[0];
     if (meterNumbers[1] === 8) {
       ticks = {
         numerator: 2048,
         denominator: 1,
         remainder: 0
       };
+      if (meterNumbers[0] % 3 === 0) {
+        ticks.numerator = 2048 * 3;
+        beats = meterNumbers[0] / 3;
+      }
       beamBeats = 2048 * 3;
     }
     const pitches =
       JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[params.clef]));
     const rv = [];
-    beats = meterNumbers[0];
 
     // Treat 2/2 like 4/4 time.
     if (meterNumbers[1] === 2) {

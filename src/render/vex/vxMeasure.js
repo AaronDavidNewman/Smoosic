@@ -211,9 +211,13 @@ class VxMeasure {
         smoMusic.closestVexDuration(smoNote.tickCount) :
         smoMusic.ticksToDuration[smoNote.tickCount];
 
+    if (typeof(duration) === 'undefined') {
+      console.warn('bad duration in measure ' + this.smoMeasure.measureNumber.measureIndex);
+      duration = '8';
+    }
     // transpose for instrument-specific keys
     const keys = smoMusic.smoPitchesToVexKeys(smoNote.pitches, 0, smoNote.noteHead);
-    var noteParams = {
+    const noteParams = {
       clef: smoNote.clef,
       keys,
       duration: duration + smoNote.noteType

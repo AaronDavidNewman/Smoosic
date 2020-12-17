@@ -1,14 +1,9 @@
-
-class BeamModifierBase {
-  constructor() {}
-  beamNote(note, tickmap, accidentalMap) {}
-}
-
+// eslint-disable-next-line no-unused-vars
 class smoBeamerFactory {
   static applyBeams(measure) {
     let i = 0;
     for (i = 0; i < measure.voices.length; ++i) {
-      const beamer = new smoBeamModifier(measure,i);
+      const beamer = new smoBeamModifier(measure, i);
       const apply = new smoBeamerIterator(measure, beamer, i);
       apply.run();
     }
@@ -16,7 +11,7 @@ class smoBeamerFactory {
 }
 
 class smoBeamerIterator {
-  constructor(measure, actor,voice) {
+  constructor(measure, actor, voice) {
     this.actor = actor;
     this.measure = measure;
     this.voice = voice;
@@ -28,23 +23,21 @@ class smoBeamerIterator {
     let i = 0;
     const tickmap = this.measure.tickmapForVoice(this.voice);
     for (i = 0; i < tickmap.durationMap.length; ++i) {
-      this.actor.beamNote(tickmap, i,this.measure.voices[this.voice].notes[i]);
+      this.actor.beamNote(tickmap, i, this.measure.voices[this.voice].notes[i]);
     }
   }
 }
 
-class smoBeamModifier extends BeamModifierBase {
+class smoBeamModifier {
   constructor(measure, voice) {
-    super();
     this.measure = measure;
     this._removeVoiceBeam(measure, voice);
     this.duration = 0;
     this.timeSignature = measure.timeSignature;
     this.meterNumbers = this.timeSignature.split('/').map(number => parseInt(number, 10));
-    this.duration = 0;
     // beam on 1/4 notes in most meter, triple time dotted quarter
     this.beamBeats = 2 * 2048;
-    if (this.meterNumbers[0] % 3 == 0) {
+    if (this.meterNumbers[0] % 3 === 0) {
       this.beamBeats = 3 * 2048;
     }
     this.skipNext = 0;
@@ -54,10 +47,10 @@ class smoBeamModifier extends BeamModifierBase {
   get beamGroups() {
     return this.measure.beamGroups;
   }
-  _removeVoiceBeam(measure,voice) {
+  _removeVoiceBeam(measure, voice) {
     const beamGroups = [];
     measure.beamGroups.forEach((gr) => {
-      if (gr.voice != voice) {
+      if (gr.voice !== voice) {
         beamGroups.push(gr);
       }
     });
@@ -69,7 +62,7 @@ class smoBeamModifier extends BeamModifierBase {
     if (this.currentGroup.length > 1) {
       this.measure.beamGroups.push(new SmoBeamGroup({
         notes: this.currentGroup,
-        voice: voice
+        voice
       }));
     }
   }
@@ -82,7 +75,7 @@ class smoBeamModifier extends BeamModifierBase {
   // ### _isRemainingTicksBeamable
   // look ahead, and see if we need to beam the tuplet now or if we
   // can combine current beam with future notes.
-  _isRemainingTicksBeamable(tickmap,index) {
+  _isRemainingTicksBeamable(tickmap, index) {
     let acc = 0;
     let i = 0;
     if (this.duration >= this.beamBeats) {
@@ -90,7 +83,7 @@ class smoBeamModifier extends BeamModifierBase {
     }
     acc = this.duration;
     for (i = index + 1; i < tickmap.deltaMap.length; ++i) {
-      acc += tickmap.deltaMap[i]
+      acc += tickmap.deltaMap[i];
       if (acc === this.beamBeats) {
         return true;
       }
@@ -100,7 +93,7 @@ class smoBeamModifier extends BeamModifierBase {
     }
     return false;
   }
-  beamNote(tickmap, index, note, accidentalMap) {
+  beamNote(tickmap, index, note) {
     this.beamBeats = note.beamBeats;
     this.duration += tickmap.deltaMap[index];
 
@@ -112,7 +105,7 @@ class smoBeamModifier extends BeamModifierBase {
 
       if (first.endBeam) {
         this._advanceGroup();
-        return note;
+        return;
       }
 
       // is this beamable length-wise
@@ -126,14 +119,14 @@ class smoBeamModifier extends BeamModifierBase {
         this._completeGroup(tickmap.voice);
         this._advanceGroup();
       }
-      return note;
+      return;
     }
 
-    // don't beam > 1/4 note in 4/4 time
-    if (tickmap.deltaMap[index] >= 4096) {
-		this._completeGroup(tickmap.voice);
+    // don't beam > 1/4 note in 4/4 time.  Don't beam rests.
+    if (tickmap.deltaMap[index] >= 4096 || note.isRest()) {
+      this._completeGroup(tickmap.voice);
       this._advanceGroup();
-      return note;
+      return;
     }
 
     this.currentGroup.push(note);
@@ -145,13 +138,12 @@ class smoBeamModifier extends BeamModifierBase {
     if (this.duration === this.beamBeats) {
       this._completeGroup(tickmap.voice);
       this._advanceGroup();
-      return note;
+      return;
     }
 
     // If this does not align on a beat, don't beam it
     if (this.duration > this.beamBeats) {
-      this._advanceGroup()
-      return note;
+      this._advanceGroup();
     }
   }
 }

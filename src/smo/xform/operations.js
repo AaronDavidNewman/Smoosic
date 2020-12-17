@@ -146,12 +146,12 @@ class SmoOperation {
       const voices = [];
       let nm = {};
       const attrs = SmoMeasure.defaultAttributes.filter((aa) => aa !== 'timeSignature');
-      const psel =  SmoSelection.measureSelection(score,selector.staff,selector.measure);
+      const psel =  SmoSelection.measureSelection(score,selector.staff, selector.measure);
       if (!psel['measure']) {
         console.log('Error: score has changed in time signature change');
       } else {
-        const proto = SmoSelection.measureSelection(score,selector.staff,selector.measure).measure;
-        smoSerialize.serializedMerge(attrs,proto,params);
+        const proto = SmoSelection.measureSelection(score, selector.staff,selector.measure).measure;
+        smoSerialize.serializedMerge(attrs, proto, params);
         params.timeSignature = timeSignature;
         nm = SmoMeasure.getDefaultMeasure(params);
         const spareNotes = SmoMeasure.getDefaultNotes(params);

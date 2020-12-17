@@ -535,6 +535,10 @@ class SuiTimeSignatureMenu extends suiMenuBase {
           text: '6/8',
           value: '6/8',
         }, {
+          icon: 'fourfour',
+          text: '4/4',
+          value: '4/4',
+        }, {
           icon: 'threefour',
           text: '3/4',
           value: '3/4',
