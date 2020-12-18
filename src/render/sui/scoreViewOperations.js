@@ -46,6 +46,37 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.addRemoveMicrotone(null, altSelections, tone);
     this._renderChangedMeasures(measureSelections);
   }
+  addDynamic(dynamic) {
+    this._undoFirstMeasureSelection('add dynamic');
+    const sel = this.tracker.selections[0];
+    this._removeDynamic(sel, dynamic);
+    const equiv = this._getEquivalentSelection(sel);
+    if (typeof(dynamic) === 'string') {
+      dynamic = new SmoDynamicText({
+        selector: sel.selector,
+        text: dynamic,
+        yOffsetLine: 11,
+        fontSize: 38
+      });
+    }
+    SmoOperation.addDynamic(sel, dynamic);
+    SmoOperation.addDynamic(equiv, SmoNoteModifierBase.deserialize(dynamic.serialize()));
+    this.renderer.addToReplaceQueue(sel);
+  }
+  _removeDynamic(selection, dynamic) {
+    const equiv = this._getEquivalentSelection(selection);
+    const altModifiers = equiv.note.getModifiers('SmoDynamicText');
+    SmoOperation.removeDynamic(selection, dynamic);
+    if (altModifiers.length) {
+      SmoOperation.removeDynamic(equiv, altModifiers[0]);
+    }
+  }
+  removeDynamic(dynamic) {
+    const sel = this.tracker.selections[0];
+    this._undoFirstMeasureSelection('remove dynamic');
+    this._removeDynamic(sel, dynamic);
+    this.renderer.addToReplaceQueue(sel);
+  }
   // ### removeLyric
   // The lyric editor moves around, so we can't depend on the tracker for the
   // correct selection.  We get it directly from the editor.
@@ -525,17 +556,7 @@ class SuiScoreViewOperations extends SuiScoreView {
       SmoOperation.padMeasureLeft(altSel, spacing);
     }
   }
-  addDynamic(dynamicText) {
-    const selection = this._undoFirstMeasureSelection('add dynamic');
-    const dynamic = new SmoDynamicText({
-      selector: selection.selector,
-      text: dynamicText,
-      yOffsetLine: 11,
-      fontSize: 38
-    });
-    SmoOperation.addDynamic(selection, dynamic);
-    this._renderChangedMeasures(selection);
-  }
+
   addEnding() {
     // TODO: we should have undo for columns
     this._undoScore('Add Volta');

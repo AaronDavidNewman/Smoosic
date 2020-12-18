@@ -256,7 +256,7 @@ class VxMeasure {
   }
 
   _renderNoteGlyph(smoNote, textObj) {
-    var x = smoNote.logicalBox.x;
+    var x = smoNote.logicalBox.x + textObj.xOffset;
     // the -3 is copied from vexflow textDynamics
     var y = this.stave.getYForLine(textObj.yOffsetLine - 3) + textObj.yOffsetPixels;
     var group = this.context.openGroup();

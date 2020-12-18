@@ -134,7 +134,7 @@ class suiController {
         view: this.view, eventSource:this.eventSource,
          completeNotifier:this, keyCommands:this.keyCommands
     }
-    SuiModifierDialogFactory.createDialog(modifierSelection.modifier, parameters);
+    return SuiModifierDialogFactory.createDialog(modifierSelection.modifier, parameters);
   }
 
   // If the user has selected a modifier via the mouse/touch, bring up mod dialog
@@ -144,7 +144,9 @@ class suiController {
     if (modSelection) {
       var dialog = this.createModifierDialog(modSelection);
       if (dialog) {
-        this.view.tracker.selectSuggestion(ev);
+        ev.stopPropagation();
+        // this.view.tracker.selectSuggestion(ev);
+        return;
         // this.unbindKeyboardForModal(dialog);
       } else {
         this.view.tracker.advanceModifierSelection(ev);
@@ -152,7 +154,6 @@ class suiController {
     } else {
       this.view.tracker.selectSuggestion(ev);
     }
-    var modifier = this.view.tracker.getSelectedModifier();
     return;
   }
 
@@ -290,10 +291,6 @@ class suiController {
 
     if (evdata.key == 'Enter') {
       this.trackerModifierSelect(evdata);
-      const modifier = this.view.tracker.getSelectedModifier();
-      if (modifier) {
-        this.createModifierDialog(modifier);
-      }
     }
 
     var binding = this.keyBind.find((ev) =>

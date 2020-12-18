@@ -90,7 +90,9 @@ class SuiScoreView {
   // operation that only affects the first selection.  Setup undo for the measure
   _undoFirstMeasureSelection(label) {
     const sel = this.tracker.selections[0];
+    const equiv = this._getEquivalentSelection(sel);
     this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, sel.selector, sel.measure);
+    this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure);
     return sel;
   }
   _undoSelection(label, selection) {

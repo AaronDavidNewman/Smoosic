@@ -62,8 +62,8 @@ class SmoOperation {
     score.convertToPickupMeasure(0,duration);
   }
   static toggleBeamGroup(noteSelection) {
-  noteSelection.measure.setChanged();
-  noteSelection.note.endBeam = !(noteSelection.note.endBeam);
+    noteSelection.measure.setChanged();
+    noteSelection.note.endBeam = !(noteSelection.note.endBeam);
   }
 
   static padMeasureLeft(selection, padding) {
@@ -646,7 +646,10 @@ class SmoOperation {
 
   static addDynamic(selection, dynamic) {
     selection.note.addModifier(dynamic);
-    selection.measure.setChanged();
+  }
+
+  static removeDynamic(selection, dynamic) {
+    selection.note.removeModifier(dynamic);
   }
 
   static beamSelections(selections) {
