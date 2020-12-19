@@ -48,6 +48,16 @@ class SmoScore {
         { name: 'lyrics', purpose: SmoScore.fontPurposes.LYRICS, family: 'Merriweather', size: 12, custom: false }
       ],
       staffWidth: 1600,
+      scoreInfo: {
+        name: 'Smoosical',
+        version: 1,
+      },
+      preferences: {
+        autoPlay: true,
+        autoAdvance: true,
+        defaultDupleDuration: 4096,
+        defaultTripleDuration: 6144
+      },
       startIndex: 0,
       renumberingMap: {},
       keySignatureMap: {},
@@ -79,7 +89,11 @@ class SmoScore {
   }
 
   static get defaultAttributes() {
-    return ['layout', 'startIndex', 'renumberingMap', 'renumberIndex', 'fonts'];
+    return ['layout', 'startIndex', 'renumberingMap', 'renumberIndex', 'fonts',
+      'preferences', 'scoreInfo'];
+  }
+  static get preferences() {
+    return ['preferences', 'fonts', 'scoreInfo', 'layout'];
   }
 
   serializeColumnMapped() {
@@ -201,11 +215,11 @@ class SmoScore {
       });
     }
     params.staves = staves;
-
     const score = new SmoScore(params);
     score.scoreText = scoreText;
     score.textGroups = textGroups;
     score.systemGroups = systemGroups;
+    score.scoreInfo.version += 1;
     return score;
   }
 

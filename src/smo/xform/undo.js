@@ -19,7 +19,7 @@ class UndoBuffer {
     return {
       FIRST: 1,
       MEASURE: 1, STAFF: 2, SCORE: 3, SCORE_MODIFIER: 4, COLUMN: 5, RECTANGLE: 6,
-      LAST: 6
+      SCORE_ATTRIBUTES: 7, LAST: 7
     };
   }
   static get bufferSubtypes() {
@@ -28,7 +28,8 @@ class UndoBuffer {
     };
   }
   static get bufferTypeLabel() {
-    return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER', 'COLUMN', 'RECTANGLE'];
+    return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER', 'COLUMN', 'RECTANGLE',
+      'SCORE_ATTRIBUTES'];
   }
   // ### serializeMeasure
   // serialize a measure, preserving the column-mapped bits which aren't serialized on a full score save.
@@ -71,6 +72,9 @@ class UndoBuffer {
       undoObj.json = { topLeft: JSON.parse(JSON.stringify(obj.topLeft)),
         bottomRight: JSON.parse(JSON.stringify(obj.bottomRight)),
         measures };
+    } else if (type === UndoBuffer.bufferTypes.SCORE_ATTRIBUTES) {
+      undoObj.json = {};
+      smoSerialize.serializedMerge(SmoScore.preferences, obj, undoObj.json);
     } else if (type === UndoBuffer.bufferTypes.COLUMN) {
       // COLUMN obj is { score, measureIndex }
       const ix = obj.measureIndex;
@@ -136,6 +140,8 @@ class UndoBuffer {
           score.replaceMeasure({ staff: i, measure: j }, measure);
         }
       }
+    } else if (buf.type === UndoBuffer.bufferTypes.SCORE_ATTRIBUTES) {
+      smoSerialize.serializedMerge(SmoScore.preferences, buf.json, score);
     } else if (buf.type === UndoBuffer.bufferTypes.COLUMN) {
       for (i = 0; i < score.staves.length; ++i) {
         const measure = SmoMeasure.deserialize(buf.json.measures[i]);

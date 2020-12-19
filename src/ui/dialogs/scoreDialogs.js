@@ -41,9 +41,8 @@ class SuiScoreViewDialog extends SuiDialogBase {
       moveParent: true
     });
 
-    const self = this;
     const getKeys = () => {
-      self.completeNotifier.unbindKeyboardForModal(self);
+      this.completeNotifier.unbindKeyboardForModal(self);
     };
     this.startPromise.then(getKeys);
     this._bindElements();
@@ -74,6 +73,109 @@ class SuiScoreViewDialog extends SuiDialogBase {
   constructor(parameters) {
     var p = parameters;
     super(SuiScoreViewDialog.dialogElements, {
+      id: 'dialog-layout',
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
+      ...parameters
+    });
+    this.startPromise = p.startPromise;
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
+class SuiScorePreferencesDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiScorePreferencesDialog';
+  }
+  get ctor() {
+    return SuiScorePreferencesDialog.ctor;
+  }
+  static get dialogElements() {
+    SuiScorePreferencesDialog._dialogElements = typeof(SuiScorePreferencesDialog._dialogElements)
+      !== 'undefined' ? SuiScorePreferencesDialog._dialogElements :
+      [{
+        smoName: 'scoreName',
+        parameterName: 'scoreName',
+        defaultValue: [],
+        control: 'SuiTextInputComponent',
+        label: 'Score Name',
+      }, {
+        smoName: 'autoPlay',
+        parameterName: 'autoPlay',
+        defaultValue: [],
+        control: 'SuiToggleComponent',
+        label: 'Play Selections',
+      }, {
+        smoName: 'autoAdvance',
+        parameterName: 'autoAdvance',
+        defaultValue: [],
+        control: 'SuiToggleComponent',
+        label: 'Auto-Advance Cursor',
+      }, {
+        staticText: [
+          { label: 'Score Preferences' }
+        ]
+      }];
+    return SuiScorePreferencesDialog._dialogElements;
+  }
+  static createAndDisplay(parameters) {
+    const dg = new SuiScorePreferencesDialog(parameters);
+    dg.display();
+  }
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    const cb = () => {};
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.icon-move'),
+      animateDiv: '.draganime',
+      cb,
+      moveParent: true
+    });
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(this);
+    };
+    this.startPromise.then(getKeys);
+    this._bindElements();
+    this.scoreNameCtrl.setValue(this.view.score.scoreInfo.name);
+    this.autoPlayCtrl.setValue(this.view.score.preferences.autoPlay);
+    this.autoAdvanceCtrl.setValue(this.view.score.preferences.autoAdvance);
+    const box = svgHelpers.boxPoints(250, 250, 1, 1);
+    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+  }
+  _bindElements() {
+    const dgDom = this.dgDom;
+    this._bindComponentNames();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.complete();
+    });
+
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.complete();
+    });
+
+    $(dgDom.element).find('.remove-button').remove();
+    this.bindKeyboard();
+  }
+
+  changed() {
+    if (this.scoreNameCtrl.changeFlag) {
+      this.view.score.scoreInfo.name = this.scoreNameCtrl.getValue();
+    }
+    if (this.autoPlayCtrl.changeFlag) {
+      this.view.score.preferences.autoPlay = this.autoPlayCtrl.getValue();
+    }
+    if (this.autoAdvanceCtrl.changeFlag) {
+      this.view.score.preferences.autoAdvance = this.autoAdvanceCtrl.getValue();
+    }
+    this.view.updateScorePreferences();
+  }
+  constructor(parameters) {
+    var p = parameters;
+    super(SuiScorePreferencesDialog.dialogElements, {
       id: 'dialog-layout',
       top: (p.view.score.layout.pageWidth / 2) - 200,
       left: (p.view.score.layout.pageHeight / 2) - 200,
@@ -238,9 +340,8 @@ class SuiLayoutDialog extends SuiDialogBase {
       cb,
       moveParent: true
     });
-    const self = this;
     const getKeys = () => {
-      self.completeNotifier.unbindKeyboardForModal(self);
+      this.completeNotifier.unbindKeyboardForModal(self);
     };
     this.startPromise.then(getKeys);
 

@@ -36,6 +36,13 @@ class SuiScoreViewOperations extends SuiScoreView {
     // TODO: only render the one TG.
     this.renderer.renderScoreModifiers();
   }
+  // ### updateScorePreferences
+  // The score preferences for view score have changed, sync them
+  updateScorePreferences() {
+    this._undoScorePreferences('Update preferences');
+    smoSerialize.serializedMerge(SmoScore.preferences, this.score, this.storeScore);
+    this.renderer.setDirty();
+  }
 
   addRemoveMicrotone(tone) {
     const selections = this.tracker.selections;
@@ -459,7 +466,9 @@ class SuiScoreViewOperations extends SuiScoreView {
         letter, hintSel.measure.keySignature);
       SmoOperation.setPitch(selected, pitch);
       SmoOperation.setPitch(this._getEquivalentSelection(selected), pitch);
-      this.tracker.moveSelectionRight(null, true);
+      if (this.score.preferences.autoAdvance) {
+        this.tracker.moveSelectionRight(null, true);
+      }
     });
     if (selections.length === 1) {
       suiOscillator.playSelectionNow(selections[0]);

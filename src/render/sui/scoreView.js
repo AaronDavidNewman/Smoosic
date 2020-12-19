@@ -58,6 +58,10 @@ class SuiScoreView {
     this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, null, { score: this.score, measureIndex });
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, null, { score: this.storeScore, measureIndex });
   }
+  _undoScorePreferences(label) {
+    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE_ATTRIBUTES, null, this.score);
+    this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.SCORE_ATTRIBUTES, null, this.storeScore);
+  }
   // ### _getRectangleFromStaffGroup
   // For selections that affect a system of staves, find the rectangle based on one of the
   // staves and return the selectors.

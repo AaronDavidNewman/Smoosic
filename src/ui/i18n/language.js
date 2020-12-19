@@ -155,7 +155,8 @@ class SmoTranslator {
       'SuiKeySignatureMenu',
       'SuiStaffModifierMenu',
       'SuiDynamicsMenu',
-      'SuiLanguageMenu'
+      'SuiLanguageMenu',
+      'SuiScoreMenu'
     ]
   }
 
@@ -175,7 +176,11 @@ class SmoTranslator {
       'SuiHairpinAttributesDialog',
       'SuiLyricDialog',
       'SuiChordChangeDialog',
-      'SuiTextTransformDialog'
+      'SuiTextTransformDialog',
+      'SuiScoreViewDialog',
+      'SuiScorePreferencesDialog',
+      'SuiLyricDialog',
+      'SuiChordChangeDialog',
     ]
   }
   static get allHelpFiles() {

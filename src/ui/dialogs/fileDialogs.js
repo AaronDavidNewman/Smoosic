@@ -188,8 +188,17 @@ class SuiSaveFileDialog extends SuiFileDialog {
     if (filename.indexOf('.json') < 0) {
       filename = filename + '.json';
     }
+    this.view.score.scoreInfo.version += 1;
     this.view.saveScore(filename);
     this.complete();
+  }
+  display() {
+    super.display();
+    this._bindComponentNames();
+    this.saveFileNameCtrl.setValue(this.value);
+  }
+  static createName(score) {
+    return score.scoreInfo.name + '-' + score.scoreInfo.version + '.json';
   }
   static createAndDisplay(params) {
     var dg = new SuiSaveFileDialog(params);
@@ -198,5 +207,6 @@ class SuiSaveFileDialog extends SuiFileDialog {
   constructor(parameters) {
     parameters.ctor = 'SuiSaveFileDialog';
     super(parameters);
+    this.value = SuiSaveFileDialog.createName(this.view.score);
   }
 }

@@ -278,6 +278,10 @@ class SuiScoreMenu extends suiMenuBase {
         value: 'view'
       }, {
         icon: '',
+        text: 'Preferences',
+        value: 'preferences'
+      }, {
+        icon: '',
         text: 'Cancel',
         value: 'cancel'
       }]
@@ -310,12 +314,24 @@ class SuiScoreMenu extends suiMenuBase {
         startPromise: this.closePromise
       });
   }
+  execPreferences() {
+    SuiScorePreferencesDialog.createAndDisplay(
+      {
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        completeNotifier: this.completeNotifier,
+        view: this.view,
+        startPromise: this.closePromise
+      });
+  }
   selection(ev) {
     const text = $(ev.currentTarget).attr('data-value');
     if (text === 'view') {
       this.execView();
     } else if (text === 'layout') {
       this.execLayout();
+    } else if (text === 'preferences') {
+      this.execPreferences();
     }
     this.complete();
   }

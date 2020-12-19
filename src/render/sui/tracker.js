@@ -447,6 +447,9 @@ class suiTracker extends suiMapper {
     this.modifierSelections.push(left[ix + offset]);
     this._highlightModifier();
   }
+  get autoPlay() {
+    return this.renderer.score.preferences.autoPlay;
+  }
 
   growSelectionRight() {
     if (this.isGraceNoteSelected()) {
@@ -462,7 +465,7 @@ class suiTracker extends suiMapper {
     if (this.selections.find((sel) => SmoSelector.sameNote(sel.selector, artifact.selector))) {
       return 0;
     }
-    if (!this.mapping) {
+    if (!this.mapping && this.autoPlay) {
       suiOscillator.playSelectionNow(artifact);
     }
     this.selections.push(artifact);
@@ -486,7 +489,9 @@ class suiTracker extends suiMapper {
       return 0;
     }
     this.selections.push(artifact);
-    suiOscillator.playSelectionNow(artifact);
+    if (this.autoPlay) {
+      suiOscillator.playSelectionNow(artifact);
+    }
     this.highlightSelection();
     this._createLocalModifiersList();
     return artifact.note.tickCount;
@@ -606,7 +611,7 @@ class suiTracker extends suiMapper {
       // disappeared - default to start
       artifact = SmoSelection.noteSelection(this.score, 0, 0, 0, 0);
     }
-    if (!skipPlay) {
+    if (!skipPlay && this.autoPlay) {
       suiOscillator.playSelectionNow(artifact);
     }
 
@@ -669,8 +674,9 @@ class suiTracker extends suiMapper {
     const ar = this.selections.filter((sel) =>
       SmoSelector.neq(sel.selector, selection.selector)
     );
-    suiOscillator.playSelectionNow(selection);
-
+    if (this.autoPlay) {
+      suiOscillator.playSelectionNow(selection);
+    }
     ar.push(selection);
     this.selections = ar;
   }
@@ -712,8 +718,9 @@ class suiTracker extends suiMapper {
       this.highlightSelection();
       return;
     }
-
-    suiOscillator.playSelectionNow(this.suggestion);
+    if (this.autoPlay) {
+      suiOscillator.playSelectionNow(this.suggestion);
+    }
 
     const preselected = this.selections[0] ?
       SmoSelector.sameNote(this.suggestion.selector, this.selections[0].selector) && this.selections.length === 1 : false;

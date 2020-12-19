@@ -1083,141 +1083,141 @@ class PromiseHelpers {
 // ---
 class smoSerialize {
 
-	// ### filteredMerge
-	// Like vexMerge, but only for specific attributes.
-	static filteredMerge(attrs, src, dest) {
-		attrs.forEach(function (attr) {
-			if (typeof(src[attr]) != 'undefined') {
-				dest[attr] = src[attr];
-			}
-		});
-	}
+  // ### filteredMerge
+  // Like vexMerge, but only for specific attributes.
+  static filteredMerge(attrs, src, dest) {
+    attrs.forEach(function (attr) {
+      if (typeof(src[attr]) != 'undefined') {
+        dest[attr] = src[attr];
+      }
+    });
+  }
 
     static get localScore() {
         return '_smoosicScore';
     }
 
-    // This is the token map we use to reduce the size of
-    // serialized data.
-    static get tokenMap() {
- var _tm=`{
-     "a": "score",
-     "b": "layout",
-     "c": "leftMargin",
-     "d": "rightMargin",
-     "e": "topMargin",
-     "f": "bottomMargin",
-     "g": "pageWidth",
-     "h": "pageHeight",
-     "i": "orientation",
-     "j": "interGap",
-     "k": "intraGap",
-     "l": "svgScale",
-     "m": "zoomScale",
-     "n": "zoomMode",
-     "o": "pages",
-     "p": "pageSize",
-     "q": "startIndex",
-     "r": "renumberingMap",
-     "s": "staves",
-     "t": "staffId",
-     "u": "staffX",
-     "v": "staffY",
-     "w": "adjY",
-     "x": "staffWidth",
-     "y": "staffHeight",
-     "z": "keySignatureMap",
-     "aa": "instrumentInfo",
-     "ba": "instrumentName",
-     "ca": "keyOffset",
-     "da": "clef",
-     "ea": "modifiers",
-     "fa": "startSelector",
-     "ga": "staff",
-     "ha": "measure",
-     "ia": "voice",
-     "ja": "tick",
-     "ka": "pitches",
-     "la": "endSelector",
-     "ma": "xOffset",
-     "na": "cp1y",
-     "oa": "cp2y",
-     "pa": "attrs",
-     "qa": "id",
-     "ra": "type",
-     "sa": "ctor",
-     "ta": "yOffset",
-     "ua": "position",
-     "va": "measures",
-     "wa": "timeSignature",
-     "xa": "keySignature",
-     "ya": "measureNumber",
-     "za": "measureIndex",
-     "ab": "systemIndex",
-     "bb": "adjX",
-     "cb": "tuplets",
-     "db": "voices",
-     "eb": "notes",
-     "fb": "ticks",
-     "gb": "numerator",
-     "hb": "denominator",
-     "ib": "remainder",
-     "jb": "letter",
-     "kb": "octave",
-     "lb": "accidental",
-     "mb": "symbol",
-     "nb": "bpm",
-     "ob": "display",
-     "pb": "beatDuration",
-     "qb": "beamBeats",
-     "rb": "endBeam",
-     "sb": "textModifiers",
-     "tb": "text",
-     "ub": "endChar",
-     "vb": "fontInfo",
-     "wb": "size",
-     "xb": "family",
-     "yb": "style",
-     "zb": "weight",
-     "ac": "classes",
-     "bc": "verse",
-     "cc": "fill",
-     "dc": "scaleX",
-     "ec": "scaleY",
-     "fc": "translateX",
-     "gc": "translateY",
-     "hc": "selector",
-     "ic": "renderedBox",
-     "jc": "x",
-     "kc": "y",
-     "lc": "width",
-     "mc": "height",
-     "nc": "logicalBox",
-     "oc": "noteType",
-     "pc": "cautionary",
-     "qc": "articulations",
-     "rc": "articulation",
-     "sc": "activeVoice",
-     "tc": "flagState",
-     "uc": "invert",
-     "vc": "fontSize",
-     "wc": "yOffsetLine",
-     "xc": "yOffsetPixels",
-     "yc": "scoreText",
-     "zc": "backup",
-     "ad": "edited",
-     "bd": "pagination",
-     "cd": "boxModel",
-     "dd": "justification",
-     "ed": "autoLayout",
-     "fd": "ornaments",
-     "gd": "offset",
-     "hd": "ornament",
-     "id": "tempoMode",
-     "jd": "tempoText",
-     "kd": "barline",
-     "ld": "systemBreak",
-     "md": "graceNotes",
+  // This is the token map we use to reduce the size of
+  // serialized data.
+  static get tokenMap() {
+   var _tm=`{
+      "a": "score",
+      "b": "layout",
+      "c": "leftMargin",
+      "d": "rightMargin",
+      "e": "topMargin",
+      "f": "bottomMargin",
+      "g": "pageWidth",
+      "h": "pageHeight",
+      "i": "orientation",
+      "j": "interGap",
+      "k": "intraGap",
+      "l": "svgScale",
+      "m": "zoomScale",
+      "n": "zoomMode",
+      "o": "pages",
+      "p": "pageSize",
+      "q": "startIndex",
+      "r": "renumberingMap",
+      "s": "staves",
+      "t": "staffId",
+      "u": "staffX",
+      "v": "staffY",
+      "w": "adjY",
+      "x": "staffWidth",
+      "y": "staffHeight",
+      "z": "keySignatureMap",
+      "aa": "instrumentInfo",
+      "ba": "instrumentName",
+      "ca": "keyOffset",
+      "da": "clef",
+      "ea": "modifiers",
+      "fa": "startSelector",
+      "ga": "staff",
+      "ha": "measure",
+      "ia": "voice",
+      "ja": "tick",
+      "ka": "pitches",
+      "la": "endSelector",
+      "ma": "xOffset",
+      "na": "cp1y",
+      "oa": "cp2y",
+      "pa": "attrs",
+      "qa": "id",
+      "ra": "type",
+      "sa": "ctor",
+      "ta": "yOffset",
+      "ua": "position",
+      "va": "measures",
+      "wa": "timeSignature",
+      "xa": "keySignature",
+      "ya": "measureNumber",
+      "za": "measureIndex",
+      "ab": "systemIndex",
+      "bb": "adjX",
+      "cb": "tuplets",
+      "db": "voices",
+      "eb": "notes",
+      "fb": "ticks",
+      "gb": "numerator",
+      "hb": "denominator",
+      "ib": "remainder",
+      "jb": "letter",
+      "kb": "octave",
+      "lb": "accidental",
+      "mb": "symbol",
+      "nb": "bpm",
+      "ob": "display",
+      "pb": "beatDuration",
+      "qb": "beamBeats",
+      "rb": "endBeam",
+      "sb": "textModifiers",
+      "tb": "text",
+      "ub": "endChar",
+      "vb": "fontInfo",
+      "wb": "size",
+      "xb": "family",
+      "yb": "style",
+      "zb": "weight",
+      "ac": "classes",
+      "bc": "verse",
+      "cc": "fill",
+      "dc": "scaleX",
+      "ec": "scaleY",
+      "fc": "translateX",
+      "gc": "translateY",
+      "hc": "selector",
+      "ic": "renderedBox",
+      "jc": "x",
+      "kc": "y",
+      "lc": "width",
+      "mc": "height",
+      "nc": "logicalBox",
+      "oc": "noteType",
+      "pc": "cautionary",
+      "qc": "articulations",
+      "rc": "articulation",
+      "sc": "activeVoice",
+      "tc": "flagState",
+      "uc": "invert",
+      "vc": "fontSize",
+      "wc": "yOffsetLine",
+      "xc": "yOffsetPixels",
+      "yc": "scoreText",
+      "zc": "backup",
+      "ad": "edited",
+      "bd": "pagination",
+      "cd": "boxModel",
+      "dd": "justification",
+      "ed": "autoLayout",
+      "fd": "ornaments",
+      "gd": "offset",
+      "hd": "ornament",
+      "id": "tempoMode",
+      "jd": "tempoText",
+      "kd": "barline",
+      "ld": "systemBreak",
+      "md": "graceNotes",
       "nd": "tones",
       "od": "tuplet",
       "pd": "beam_group",
@@ -1263,241 +1263,242 @@ class smoSerialize {
       "df": "endingId",
       "ef": "autoJustify",
       "ff": "thickness",
-      "gf": "number"
-     }`;
+      "gf": "number",
+      "hf": "preferences",
+      "if": "autoPlay",
+      "jf": "autoAdvance",
+      "kf": "defaultDupleDuration",
+      "lf": "defaultTripleDuration",
+      "mf": "scoreInfo",
+      "nf": "version"
+      }`;
      return JSON.parse(_tm);
     }
 
     static get valueTokens() {
-        var vm = `{"@sn","SmoNote"}`;
-        return JSON.parse(vm);
+      var vm = `{"@sn","SmoNote"}`;
+      return JSON.parse(vm);
     }
 
     static reverseMap(map) {
-        var rv = {};
-        var keys = Object.keys(map);
+      const rv = {};
+      const keys = Object.keys(map);
+      keys.forEach((key) => {
+        rv[map[key]] = key;
+      });
+      return rv;
+    }
+
+  static get tokenValues() {
+    return smoSerialize.reverseMap(smoSerialize.tokenMap);
+  }
+
+  // ## detokenize
+  // If we are saving, replace token values with keys, since the keys are smaller.
+  // if we are loading, replace the token keys with values so the score can
+  // deserialize it
+  static detokenize(json, dictionary) {
+      const rv = {};
+      const smoKey = (key) => {
+        return typeof(dictionary[key]) !== 'undefined' ? dictionary[key] : key;
+      }
+      const _tokenRecurse = (input,output) =>  {
+        const keys = Object.keys(input);
         keys.forEach((key) => {
-            rv[map[key]] = key;
-        });
-        return rv;
-    }
-
-    static get tokenValues() {
-        return smoSerialize.reverseMap(smoSerialize.tokenMap);
-    }
-
-    // ## detokenize
-    // If we are saving, replace token values with keys, since the keys are smaller.
-    // if we are loading, replace the token keys with values so the score can
-    // deserialize it
-    static detokenize(json,dictionary) {
-        var rv = {};
-
-        var smoKey = (key) => {
-            return dictionary[key] ? dictionary[key] : key;
-        }
-
-        var n1 = 0;
-        var n2=-1;
-        var _tokenRecurse = (input,output) =>  {
-            var keys = Object.keys(input);
-            keys.forEach((key) => {
-                var val = input[key];
-                var dkey = smoKey(key);
-                if (typeof(val) == 'string' || typeof(val) == 'number' || typeof(val) == 'boolean') {
-                    output[dkey] = val;
+          const val = input[key];
+          const dkey = smoKey(key);
+          if (typeof(val) == 'string' || typeof(val) == 'number' || typeof(val) == 'boolean') {
+            output[dkey] = val;
+          }
+          if (typeof(val) == 'object' && key != 'dictionary') {
+            if (Array.isArray(val)) {
+              output[dkey] = [];
+              val.forEach((arobj) => {
+                if (typeof(arobj) == 'string' || typeof(arobj) == 'number' || typeof(arobj) == 'boolean') {
+                  output[dkey].push(arobj);
                 }
-                if (typeof(val) == 'object' && key != 'dictionary') {
-                    if (Array.isArray(val)) {
-                        output[dkey] = [];
-                        val.forEach((arobj) => {
-                            if (typeof(arobj) == 'string' || typeof(arobj) == 'number' || typeof(arobj) == 'boolean') {
-                                output[dkey].push(arobj);
-                            }
-                            else if (arobj && typeof(arobj) == 'object') {
-                                var nobj = {};
-                                _tokenRecurse(arobj,nobj);
-                                output[dkey].push(nobj);
-                            }
-                        });
-                    } else {
-                        var nobj = {};
-                      _tokenRecurse(val,nobj);
-                      output[dkey] = nobj;
-                   }
+                else if (arobj && typeof(arobj) == 'object') {
+                  const nobj = {};
+                  _tokenRecurse(arobj,nobj);
+                  output[dkey].push(nobj);
                 }
-            });
-
-        }
-        _tokenRecurse(json,rv);
-        // console.log(JSON.stringify(rv,null,' '));
-        return rv;
-    }
-
-    static incrementIdentifier(label) {
-        var increcurse = (ar,ix) => {
-            var n1 = (ar[ix].charCodeAt(0)-97)+1;
-            if (n1 > 25) {
-                ar[ix]='a';
-                if (ar.length <= ix+1) {
-                    ar.push('a');
-                } else {
-                   increcurse(ar,ix+1);
-                }
+              });
             } else {
-                ar[ix] = String.fromCharCode(97+n1);
+              const nobj = {};
+              _tokenRecurse(val,nobj);
+              output[dkey] = nobj;
             }
-        }
-        if (!label) {
-            label = 'a';
-        }
-        var ar = label.split('');
-        increcurse(ar,0);
-        label = ar.join('');
-        return label;
-    }
+          }
+        });
+      }
+      _tokenRecurse(json,rv);
+      // console.log(JSON.stringify(rv,null,' '));
+      return rv;
+  }
 
-    // used to generate a tokenization scheme that I will use to make
-    // saved files smaller
-    static jsonTokens(json) {
-        var map = {};
-        var valmap = {};
-        var startKeys = Object.keys(smoSerialize.tokenMap);
-        var keyLabel = startKeys[startKeys.length - 1];
+  static incrementIdentifier(label) {
+    const increcurse = (ar, ix) => {
+      const n1 = (ar[ix].charCodeAt(0) - 97) + 1;
+      if (n1 > 25) {
+        ar[ix] = 'a';
+        if (ar.length <= ix+1) {
+          ar.push('a');
+        } else {
+          increcurse(ar,ix+1);
+        }
+      } else {
+        ar[ix] = String.fromCharCode(97+n1);
+      }
+    }
+    if (!label) {
+      label = 'a';
+    }
+    const ar = label.split('');
+    increcurse(ar,0);
+    label = ar.join('');
+    return label;
+  }
+
+  // used to generate a tokenization scheme that I will use to make
+  // saved files smaller
+  static jsonTokens(json) {
+    const map = {};
+    const valmap = {};
+    const startKeys = Object.keys(smoSerialize.tokenMap);
+    let keyLabel = startKeys[startKeys.length - 1];
+    keyLabel = smoSerialize.incrementIdentifier(keyLabel);
+
+    const exist = smoSerialize.tokenValues;
+    const addMap = (key) => {
+      if (!exist[key] && !map[key] && key.length > keyLabel.length) {
+        map[key] = keyLabel;
         keyLabel = smoSerialize.incrementIdentifier(keyLabel);
-
-        var exist = smoSerialize.tokenValues;
-        var addMap = (key) => {
-            if (!exist[key] && !map[key] && key.length > keyLabel.length) {
-                map[key] = keyLabel;
-                keyLabel = smoSerialize.incrementIdentifier(keyLabel);
-            }
+      }
+    };
+    const _tokenRecurse = (obj) =>  {
+      const keys = Object.keys(obj);
+      keys.forEach((key) => {
+        const val = obj[key];
+        if (typeof(val) === 'string' || typeof(val) === 'number'
+         || typeof(val) === 'boolean') {
+          addMap(key);
         }
-        var _tokenRecurse = (obj) =>  {
-            var keys = Object.keys(obj);
-            keys.forEach((key) => {
-                var val = obj[key];
-                if (typeof(val) == 'string' || typeof(val) == 'number'
-                 || typeof(val) == 'boolean') {
-                    addMap(key);
-                }
-                if (typeof(val) == 'object') {
-                    if (Array.isArray(val)) {
-                        addMap(key);
-                        val.forEach((arobj) => {
-                            if (arobj && typeof(arobj) == 'object') {
-                                _tokenRecurse(arobj);
-                            }
-                        });
-                    } else {
-                        addMap(key);
-                      _tokenRecurse(val);
-                   }
-                }
-
+        if (typeof(val) == 'object') {
+          if (Array.isArray(val)) {
+            addMap(key);
+            val.forEach((arobj) => {
+              if (arobj && typeof(arobj) === 'object') {
+                _tokenRecurse(arobj);
+              }
             });
+          } else {
+            addMap(key);
+            _tokenRecurse(val);
+          }
         }
-        _tokenRecurse(json);
-        var mkar = Object.keys(map);
-        var m2 = {};
-        mkar.forEach((mk) => {
-            m2[map[mk]] = mk;
-        })
-        console.log(JSON.stringify(m2,null,' '));
+      });
     }
-	// ### serializedMerge
-	// serialization-friendly, so merged, copied objects are deep-copied
-	static serializedMerge(attrs, src, dest) {
-		attrs.forEach(function (attr) {
-			if (typeof(src[attr]) != 'undefined') {
-				// copy the number 0
-				if (typeof(src[attr]) === 'number' ||
-					typeof(src[attr]) === 'boolean' ||
-                    typeof(src[attr]) === 'string') {
-					dest[attr] = src[attr];
-					// copy the empty array
-				} else if (Array.isArray(src[attr])) {
-					dest[attr] = JSON.parse(JSON.stringify(src[attr]));
-				} else {
-					// but don't copy empty/null objects
-					if (src[attr]) {
-						if (typeof(src[attr]) == 'object') {
-							dest[attr] = JSON.parse(JSON.stringify(src[attr]));
-						} else {
-							dest[attr] = src[attr];
-						}
-					}
-				}
-			}
-		});
-	}
+    _tokenRecurse(json);
+    const mkar = Object.keys(map);
+    const m2 = {};
+    mkar.forEach((mk) => {
+      m2[map[mk]] = mk;
+    })
+    console.log(JSON.stringify(m2, null, ' '));
+  }
 
-    // ### serializedMergeNonDefault
-    // Used to reduce size of serializations.  Create a serialzation of
-    // the object, but don't serialize attributes that are already the default
-    // since the default will be set when the object is deserialized
-    // #### parameters:
-    //     defaults - default Array
-    //     attrs - array of attributes to save
-    //     src - the object to serialize
-    //     dest - the json object that is the target.
-    static serializedMergeNonDefault(defaults,attrs,src,dest) {
-        attrs.forEach(function (attr) {
-			if (typeof(src[attr]) != 'undefined') {
-				// copy the number 0
-				if (typeof(src[attr]) === 'number' ||
-					typeof(src[attr]) === 'boolean' ||
-                    typeof(src[attr]) === 'string' ) {
-                        if (src[attr] != defaults[attr]) {
-					        dest[attr] = src[attr];
-                        }
-					// copy the empty array
-				} else if (Array.isArray(src[attr])) {
-                    var defval = JSON.stringify(defaults[attr]);
-                    var srcval = JSON.stringify(src[attr]);
-                    if (defval != srcval) {
-					    dest[attr] = JSON.parse(srcval);
-                    }
-				} else {
-					// but don't copy empty/null objects
-					if (src[attr]) {
-						if (typeof(src[attr]) == 'object') {
-                            var defval = JSON.stringify(defaults[attr]);
-                            var srcval = JSON.stringify(src[attr]);
-                            if (defval != srcval) {
-                                dest[attr] = JSON.parse(srcval);
-                            }
-						} else {
-                            if (src[attr] != defaults[attr]) {
-							    dest[attr] = src[attr];
-                            }
-						}
-					}
-				}
-			}
-		});
-    }
+  // ### serializedMerge
+  // serialization-friendly, so merged, copied objects are deep-copied
+  static serializedMerge(attrs, src, dest) {
+    attrs.forEach(function (attr) {
+      if (typeof(src[attr]) !== 'undefined') {
+        // copy the number 0
+        if (typeof(src[attr]) === 'number' ||
+          typeof(src[attr]) === 'boolean' ||
+          typeof(src[attr]) === 'string') {
+          dest[attr] = src[attr];
+          // copy the empty array
+        } else if (Array.isArray(src[attr])) {
+          dest[attr] = JSON.parse(JSON.stringify(src[attr]));
+        } else {
+          // but don't copy empty/null objects
+          if (src[attr]) {
+            if (typeof(src[attr]) == 'object') {
+              dest[attr] = JSON.parse(JSON.stringify(src[attr]));
+            } else {
+              dest[attr] = src[attr];
+            }
+          }
+        }
+      }
+    });
+  }
 
-	static stringifyAttrs(attrs, obj) {
-		var rv = '';
-		attrs.forEach((attr) => {
-			if (obj[attr]) {
-				rv += attr + ':' + obj[attr] + ', ';
-			} else {
-				rv += attr + ': null,';
-			}
-		});
-		return rv;
-	}
+  // ### serializedMergeNonDefault
+  // Used to reduce size of serializations.  Create a serialzation of
+  // the object, but don't serialize attributes that are already the default
+  // since the default will be set when the object is deserialized
+  // #### parameters:
+  //     defaults - default Array
+  //     attrs - array of attributes to save
+  //     src - the object to serialize
+  //     dest - the json object that is the target.
+  static serializedMergeNonDefault(defaults,attrs,src,dest) {
+    attrs.forEach(function (attr) {
+      if (typeof(src[attr]) != 'undefined') {
+        // copy the number 0
+        if (typeof(src[attr]) === 'number' ||
+          typeof(src[attr]) === 'boolean' ||
+          typeof(src[attr]) === 'string' ) {
+          if (src[attr] != defaults[attr]) {
+            dest[attr] = src[attr];
+          }
+        // copy the empty array
+        } else if (Array.isArray(src[attr])) {
+          const defval = JSON.stringify(defaults[attr]);
+          const srcval = JSON.stringify(src[attr]);
+          if (defval != srcval) {
+            dest[attr] = JSON.parse(srcval);
+          }
+        } else {
+          // but don't copy empty/null objects
+          if (src[attr]) {
+            if (typeof(src[attr]) == 'object') {
+              const defval = JSON.stringify(defaults[attr]);
+              const srcval = JSON.stringify(src[attr]);
+              if (defval != srcval) {
+                dest[attr] = JSON.parse(srcval);
+              }
+            } else {
+              if (src[attr] != defaults[attr]) {
+                dest[attr] = src[attr];
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  static stringifyAttrs(attrs, obj) {
+    let rv = '';
+    attrs.forEach((attr) => {
+      if (obj[attr]) {
+        rv += attr + ':' + obj[attr] + ', ';
+      } else {
+        rv += attr + ': null,';
+      }
+    });
+    return rv;
+  }
 
   // ### printXlate
   // print json with string labels to use as a translation file seed.
   static printTranslate(_class) {
-    var xxx = eval(_class+'.printTranslate');
+    const xxx = eval(_class + '.printTranslate');
     if (typeof(xxx) === 'function') {
       xxx();
     }
-
   }
 }
 ;
@@ -4758,6 +4759,10 @@ class SuiScoreView {
     this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, null, { score: this.score, measureIndex });
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, null, { score: this.storeScore, measureIndex });
   }
+  _undoScorePreferences(label) {
+    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE_ATTRIBUTES, null, this.score);
+    this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.SCORE_ATTRIBUTES, null, this.storeScore);
+  }
   // ### _getRectangleFromStaffGroup
   // For selections that affect a system of staves, find the rectangle based on one of the
   // staves and return the selectors.
@@ -5006,6 +5011,13 @@ class SuiScoreViewOperations extends SuiScoreView {
 
     // TODO: only render the one TG.
     this.renderer.renderScoreModifiers();
+  }
+  // ### updateScorePreferences
+  // The score preferences for view score have changed, sync them
+  updateScorePreferences() {
+    this._undoScorePreferences('Update preferences');
+    smoSerialize.serializedMerge(SmoScore.preferences, this.score, this.storeScore);
+    this.renderer.setDirty();
   }
 
   addRemoveMicrotone(tone) {
@@ -5430,7 +5442,9 @@ class SuiScoreViewOperations extends SuiScoreView {
         letter, hintSel.measure.keySignature);
       SmoOperation.setPitch(selected, pitch);
       SmoOperation.setPitch(this._getEquivalentSelection(selected), pitch);
-      this.tracker.moveSelectionRight(null, true);
+      if (this.score.preferences.autoAdvance) {
+        this.tracker.moveSelectionRight(null, true);
+      }
     });
     if (selections.length === 1) {
       suiOscillator.playSelectionNow(selections[0]);
@@ -8193,6 +8207,9 @@ class suiTracker extends suiMapper {
     this.modifierSelections.push(left[ix + offset]);
     this._highlightModifier();
   }
+  get autoPlay() {
+    return this.renderer.score.preferences.autoPlay;
+  }
 
   growSelectionRight() {
     if (this.isGraceNoteSelected()) {
@@ -8208,7 +8225,7 @@ class suiTracker extends suiMapper {
     if (this.selections.find((sel) => SmoSelector.sameNote(sel.selector, artifact.selector))) {
       return 0;
     }
-    if (!this.mapping) {
+    if (!this.mapping && this.autoPlay) {
       suiOscillator.playSelectionNow(artifact);
     }
     this.selections.push(artifact);
@@ -8232,7 +8249,9 @@ class suiTracker extends suiMapper {
       return 0;
     }
     this.selections.push(artifact);
-    suiOscillator.playSelectionNow(artifact);
+    if (this.autoPlay) {
+      suiOscillator.playSelectionNow(artifact);
+    }
     this.highlightSelection();
     this._createLocalModifiersList();
     return artifact.note.tickCount;
@@ -8352,7 +8371,7 @@ class suiTracker extends suiMapper {
       // disappeared - default to start
       artifact = SmoSelection.noteSelection(this.score, 0, 0, 0, 0);
     }
-    if (!skipPlay) {
+    if (!skipPlay && this.autoPlay) {
       suiOscillator.playSelectionNow(artifact);
     }
 
@@ -8415,8 +8434,9 @@ class suiTracker extends suiMapper {
     const ar = this.selections.filter((sel) =>
       SmoSelector.neq(sel.selector, selection.selector)
     );
-    suiOscillator.playSelectionNow(selection);
-
+    if (this.autoPlay) {
+      suiOscillator.playSelectionNow(selection);
+    }
     ar.push(selection);
     this.selections = ar;
   }
@@ -8458,8 +8478,9 @@ class suiTracker extends suiMapper {
       this.highlightSelection();
       return;
     }
-
-    suiOscillator.playSelectionNow(this.suggestion);
+    if (this.autoPlay) {
+      suiOscillator.playSelectionNow(this.suggestion);
+    }
 
     const preselected = this.selections[0] ?
       SmoSelector.sameNote(this.suggestion.selector, this.selections[0].selector) && this.selections.length === 1 : false;
@@ -12362,6 +12383,16 @@ class SmoScore {
         { name: 'lyrics', purpose: SmoScore.fontPurposes.LYRICS, family: 'Merriweather', size: 12, custom: false }
       ],
       staffWidth: 1600,
+      scoreInfo: {
+        name: 'Smoosical',
+        version: 1,
+      },
+      preferences: {
+        autoPlay: true,
+        autoAdvance: true,
+        defaultDupleDuration: 4096,
+        defaultTripleDuration: 6144
+      },
       startIndex: 0,
       renumberingMap: {},
       keySignatureMap: {},
@@ -12393,7 +12424,11 @@ class SmoScore {
   }
 
   static get defaultAttributes() {
-    return ['layout', 'startIndex', 'renumberingMap', 'renumberIndex', 'fonts'];
+    return ['layout', 'startIndex', 'renumberingMap', 'renumberIndex', 'fonts',
+      'preferences', 'scoreInfo'];
+  }
+  static get preferences() {
+    return ['preferences', 'fonts', 'scoreInfo', 'layout'];
   }
 
   serializeColumnMapped() {
@@ -12515,11 +12550,11 @@ class SmoScore {
       });
     }
     params.staves = staves;
-
     const score = new SmoScore(params);
     score.scoreText = scoreText;
     score.textGroups = textGroups;
     score.systemGroups = systemGroups;
+    score.scoreInfo.version += 1;
     return score;
   }
 
@@ -16890,7 +16925,7 @@ class UndoBuffer {
     return {
       FIRST: 1,
       MEASURE: 1, STAFF: 2, SCORE: 3, SCORE_MODIFIER: 4, COLUMN: 5, RECTANGLE: 6,
-      LAST: 6
+      SCORE_ATTRIBUTES: 7, LAST: 7
     };
   }
   static get bufferSubtypes() {
@@ -16899,7 +16934,8 @@ class UndoBuffer {
     };
   }
   static get bufferTypeLabel() {
-    return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER', 'COLUMN', 'RECTANGLE'];
+    return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER', 'COLUMN', 'RECTANGLE',
+      'SCORE_ATTRIBUTES'];
   }
   // ### serializeMeasure
   // serialize a measure, preserving the column-mapped bits which aren't serialized on a full score save.
@@ -16942,6 +16978,9 @@ class UndoBuffer {
       undoObj.json = { topLeft: JSON.parse(JSON.stringify(obj.topLeft)),
         bottomRight: JSON.parse(JSON.stringify(obj.bottomRight)),
         measures };
+    } else if (type === UndoBuffer.bufferTypes.SCORE_ATTRIBUTES) {
+      undoObj.json = {};
+      smoSerialize.serializedMerge(SmoScore.preferences, obj, undoObj.json);
     } else if (type === UndoBuffer.bufferTypes.COLUMN) {
       // COLUMN obj is { score, measureIndex }
       const ix = obj.measureIndex;
@@ -17007,6 +17046,8 @@ class UndoBuffer {
           score.replaceMeasure({ staff: i, measure: j }, measure);
         }
       }
+    } else if (buf.type === UndoBuffer.bufferTypes.SCORE_ATTRIBUTES) {
+      smoSerialize.serializedMerge(SmoScore.preferences, buf.json, score);
     } else if (buf.type === UndoBuffer.bufferTypes.COLUMN) {
       for (i = 0; i < score.staves.length; ++i) {
         const measure = SmoMeasure.deserialize(buf.json.measures[i]);
@@ -24963,8 +25004,17 @@ class SuiSaveFileDialog extends SuiFileDialog {
     if (filename.indexOf('.json') < 0) {
       filename = filename + '.json';
     }
+    this.view.score.scoreInfo.version += 1;
     this.view.saveScore(filename);
     this.complete();
+  }
+  display() {
+    super.display();
+    this._bindComponentNames();
+    this.saveFileNameCtrl.setValue(this.value);
+  }
+  static createName(score) {
+    return score.scoreInfo.name + '-' + score.scoreInfo.version + '.json';
   }
   static createAndDisplay(params) {
     var dg = new SuiSaveFileDialog(params);
@@ -24973,6 +25023,7 @@ class SuiSaveFileDialog extends SuiFileDialog {
   constructor(parameters) {
     parameters.ctor = 'SuiSaveFileDialog';
     super(parameters);
+    this.value = SuiSaveFileDialog.createName(this.view.score);
   }
 }
 ;// ## SuiFontComponent
@@ -26084,9 +26135,8 @@ class SuiScoreViewDialog extends SuiDialogBase {
       moveParent: true
     });
 
-    const self = this;
     const getKeys = () => {
-      self.completeNotifier.unbindKeyboardForModal(self);
+      this.completeNotifier.unbindKeyboardForModal(self);
     };
     this.startPromise.then(getKeys);
     this._bindElements();
@@ -26117,6 +26167,109 @@ class SuiScoreViewDialog extends SuiDialogBase {
   constructor(parameters) {
     var p = parameters;
     super(SuiScoreViewDialog.dialogElements, {
+      id: 'dialog-layout',
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
+      ...parameters
+    });
+    this.startPromise = p.startPromise;
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
+class SuiScorePreferencesDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiScorePreferencesDialog';
+  }
+  get ctor() {
+    return SuiScorePreferencesDialog.ctor;
+  }
+  static get dialogElements() {
+    SuiScorePreferencesDialog._dialogElements = typeof(SuiScorePreferencesDialog._dialogElements)
+      !== 'undefined' ? SuiScorePreferencesDialog._dialogElements :
+      [{
+        smoName: 'scoreName',
+        parameterName: 'scoreName',
+        defaultValue: [],
+        control: 'SuiTextInputComponent',
+        label: 'Score Name',
+      }, {
+        smoName: 'autoPlay',
+        parameterName: 'autoPlay',
+        defaultValue: [],
+        control: 'SuiToggleComponent',
+        label: 'Play Selections',
+      }, {
+        smoName: 'autoAdvance',
+        parameterName: 'autoAdvance',
+        defaultValue: [],
+        control: 'SuiToggleComponent',
+        label: 'Auto-Advance Cursor',
+      }, {
+        staticText: [
+          { label: 'Score Preferences' }
+        ]
+      }];
+    return SuiScorePreferencesDialog._dialogElements;
+  }
+  static createAndDisplay(parameters) {
+    const dg = new SuiScorePreferencesDialog(parameters);
+    dg.display();
+  }
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    const cb = () => {};
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.icon-move'),
+      animateDiv: '.draganime',
+      cb,
+      moveParent: true
+    });
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(this);
+    };
+    this.startPromise.then(getKeys);
+    this._bindElements();
+    this.scoreNameCtrl.setValue(this.view.score.scoreInfo.name);
+    this.autoPlayCtrl.setValue(this.view.score.preferences.autoPlay);
+    this.autoAdvanceCtrl.setValue(this.view.score.preferences.autoAdvance);
+    const box = svgHelpers.boxPoints(250, 250, 1, 1);
+    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+  }
+  _bindElements() {
+    const dgDom = this.dgDom;
+    this._bindComponentNames();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.complete();
+    });
+
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.complete();
+    });
+
+    $(dgDom.element).find('.remove-button').remove();
+    this.bindKeyboard();
+  }
+
+  changed() {
+    if (this.scoreNameCtrl.changeFlag) {
+      this.view.score.scoreInfo.name = this.scoreNameCtrl.getValue();
+    }
+    if (this.autoPlayCtrl.changeFlag) {
+      this.view.score.preferences.autoPlay = this.autoPlayCtrl.getValue();
+    }
+    if (this.autoAdvanceCtrl.changeFlag) {
+      this.view.score.preferences.autoAdvance = this.autoAdvanceCtrl.getValue();
+    }
+    this.view.updateScorePreferences();
+  }
+  constructor(parameters) {
+    var p = parameters;
+    super(SuiScorePreferencesDialog.dialogElements, {
       id: 'dialog-layout',
       top: (p.view.score.layout.pageWidth / 2) - 200,
       left: (p.view.score.layout.pageHeight / 2) - 200,
@@ -26281,9 +26434,8 @@ class SuiLayoutDialog extends SuiDialogBase {
       cb,
       moveParent: true
     });
-    const self = this;
     const getKeys = () => {
-      self.completeNotifier.unbindKeyboardForModal(self);
+      this.completeNotifier.unbindKeyboardForModal(self);
     };
     this.startPromise.then(getKeys);
 
@@ -32298,7 +32450,8 @@ class SmoTranslator {
       'SuiKeySignatureMenu',
       'SuiStaffModifierMenu',
       'SuiDynamicsMenu',
-      'SuiLanguageMenu'
+      'SuiLanguageMenu',
+      'SuiScoreMenu'
     ]
   }
 
@@ -32318,7 +32471,11 @@ class SmoTranslator {
       'SuiHairpinAttributesDialog',
       'SuiLyricDialog',
       'SuiChordChangeDialog',
-      'SuiTextTransformDialog'
+      'SuiTextTransformDialog',
+      'SuiScoreViewDialog',
+      'SuiScorePreferencesDialog',
+      'SuiLyricDialog',
+      'SuiChordChangeDialog',
     ]
   }
   static get allHelpFiles() {
@@ -33774,6 +33931,10 @@ class SuiScoreMenu extends suiMenuBase {
         value: 'view'
       }, {
         icon: '',
+        text: 'Preferences',
+        value: 'preferences'
+      }, {
+        icon: '',
         text: 'Cancel',
         value: 'cancel'
       }]
@@ -33806,12 +33967,24 @@ class SuiScoreMenu extends suiMenuBase {
         startPromise: this.closePromise
       });
   }
+  execPreferences() {
+    SuiScorePreferencesDialog.createAndDisplay(
+      {
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        completeNotifier: this.completeNotifier,
+        view: this.view,
+        startPromise: this.closePromise
+      });
+  }
   selection(ev) {
     const text = $(ev.currentTarget).attr('data-value');
     if (text === 'view') {
       this.execView();
     } else if (text === 'layout') {
       this.execLayout();
+    } else if (text === 'preferences') {
+      this.execPreferences();
     }
     this.complete();
   }
