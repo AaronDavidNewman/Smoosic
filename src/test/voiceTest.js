@@ -7,7 +7,7 @@ class VoiceTest {
 
     var keys = application.controller;
     var score = keys.score;
-    var layout = keys.layout;
+    var layout = keys.view.renderer;
 		$('h1.testTitle').text('Voice Test');
 
     var undoBuffer = keys.undoBuffer;

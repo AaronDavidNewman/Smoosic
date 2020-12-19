@@ -6,6 +6,14 @@
     "jquery": true,
     "es6": true
   },
+  "globals": {
+    "SmoSelection": true,
+    "SmoOperation": true,
+    "BeamModifierBase": true,
+    "smoBeamerFactory": true,
+    "smoBeamerIterator": true,
+    "smoBeamModifier": true
+  },
   "rules": {
     "no-bitwise": [
       0

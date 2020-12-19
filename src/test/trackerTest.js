@@ -6,8 +6,8 @@ class TrackerTest {
     var application = SuiApplication.createUtApplication({scoreLoadJson:'emptyScoreJson'});
 
 		var keys = application.controller;
-		var score = keys.layout.score;
-		var layout = keys.layout;
+		var score = keys.view.renderer.score;
+		var layout = keys.view.renderer;
 
 		score.addDefaultMeasureWithNotes(0, {});
 		score.addDefaultMeasureWithNotes(1, {});
@@ -52,36 +52,36 @@ class TrackerTest {
 
 		var selectionTest1 = () => {
 			subTitle('move selection right');
-			keys.tracker.moveSelectionRight(null)
+			keys.view.tracker.moveSelectionRight(null)
 			return timeTest();
 		}
 
 		var selectionTest2 = () => {
 			subTitle('move selection left');
-			keys.tracker.moveSelectionLeft();
+			keys.view.tracker.moveSelectionLeft();
 			return timeTest();
 		}
 		var selectionTest3 = () => {
 			subTitle('move selection over 5');
-			keys.tracker.moveSelectionOffset(5);
+			keys.view.tracker.moveSelectionOffset(5);
 			return timeTest();
 		}
 
 		var selectDown = () => {
 			subTitle('select staff below');
-			keys.tracker.moveSelectionDown();
+			keys.view.tracker.moveSelectionDown();
 			return timeTest();
 		}
 
 		var selectIncreaseRight = () => {
 			subTitle('grow selection right');
-			keys.tracker.growSelectionRight();
+			keys.view.tracker.growSelectionRight();
 			return timeTest();
 		}
 
 		var selectIncreaseLeft = () => {
 			subTitle('grow selection left');
-			keys.tracker.growSelectionLeft();
+			keys.view.tracker.growSelectionLeft();
 			return timeTest();
 		}
 

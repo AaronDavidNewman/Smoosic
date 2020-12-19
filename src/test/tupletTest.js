@@ -5,8 +5,8 @@ class TupletTest {
 	static CommonTests() {
     var application = SuiApplication.createUtApplication();
     var keys = application.controller;
-    var score = keys.layout.score;
-    var layout = keys.layout;
+    var score = keys.view.renderer.score;
+    var layout = keys.view.renderer;
     $('h1.testTitle').text('Tuplet Test');
 
 		var measure = SmoSelection.measureSelection(score, 0, 0).measure;

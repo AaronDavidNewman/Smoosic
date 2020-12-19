@@ -4,9 +4,9 @@ class TimeSignatureTest {
   static CommonTests() {
     var application = SuiApplication.createUtApplication({scoreLoadJson:'sixTestJson'});
     var keys = application.controller;
-    var score = keys.layout.score;
+    var score = keys.view.renderer.score;
     $('h1.testTitle').text('Time Signature Test');
-    var layout = keys.layout;
+    var layout = keys.view.renderer;
     var measure = SmoSelection.measureSelection(score, 0, 0).measure;
 
     var timeTest = () => {

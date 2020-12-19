@@ -12,7 +12,7 @@ class SmoScore {
       this.layout.pages = 1;
     }
     if (this.staves.length) {
-      this._numberStaves();
+      this.numberStaves();
     }
   }
   static get engravingFonts() {
@@ -48,6 +48,16 @@ class SmoScore {
         { name: 'lyrics', purpose: SmoScore.fontPurposes.LYRICS, family: 'Merriweather', size: 12, custom: false }
       ],
       staffWidth: 1600,
+      scoreInfo: {
+        name: 'Smoosical',
+        version: 1,
+      },
+      preferences: {
+        autoPlay: true,
+        autoAdvance: true,
+        defaultDupleDuration: 4096,
+        defaultTripleDuration: 6144
+      },
       startIndex: 0,
       renumberingMap: {},
       keySignatureMap: {},
@@ -79,7 +89,11 @@ class SmoScore {
   }
 
   static get defaultAttributes() {
-    return ['layout', 'startIndex', 'renumberingMap', 'renumberIndex', 'fonts'];
+    return ['layout', 'startIndex', 'renumberingMap', 'renumberIndex', 'fonts',
+      'preferences', 'scoreInfo'];
+  }
+  static get preferences() {
+    return ['preferences', 'fonts', 'scoreInfo', 'layout'];
   }
 
   serializeColumnMapped() {
@@ -201,21 +215,21 @@ class SmoScore {
       });
     }
     params.staves = staves;
-
     const score = new SmoScore(params);
     score.scoreText = scoreText;
     score.textGroups = textGroups;
     score.systemGroups = systemGroups;
+    score.scoreInfo.version += 1;
     return score;
   }
 
   // ### getDefaultScore
   // Gets a score consisting of a single measure with all the defaults.
   static getDefaultScore(scoreDefaults, measureDefaults) {
-    scoreDefaults = (scoreDefaults != null ? scoreDefaults : SmoScore.defaults);
-    measureDefaults = (measureDefaults != null ? measureDefaults : SmoMeasure.defaults);
+    scoreDefaults = typeof(scoreDefaults) !== 'undefined' ? scoreDefaults : SmoScore.defaults;
+    measureDefaults = typeof(measureDefaults) !== 'undefined' ? measureDefaults : SmoMeasure.defaults;
     const score = new SmoScore(scoreDefaults);
-    score.addStaff({ measureDefaults });
+    score.addStaff();
     const measure = SmoMeasure.getDefaultMeasure(measureDefaults);
     score.addMeasure(0, measure);
     measure.voices.push({
@@ -232,9 +246,9 @@ class SmoScore {
     return score;
   }
 
-  // ### _numberStaves
+  // ### numberStaves
   // recursively renumber staffs and measures.
-  _numberStaves() {
+  numberStaves() {
     let i = 0;
     for (i = 0; i < this.staves.length; ++i) {
       const stave = this.staves[i];
@@ -261,6 +275,7 @@ class SmoScore {
     this.staves.forEach((staff) => {
       staff.deleteMeasure(measureIndex);
     });
+    // adjust offset if text was attached to any missing measures after the deleted one.
     this.textGroups.forEach((tg) => {
       if (tg.attachToSelector && tg.selector.measure >= measureIndex && tg.selector.measure > 0) {
         tg.selector.measure -= 1;
@@ -275,37 +290,34 @@ class SmoScore {
       const protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
       staff.measures[measureIndex] = protomeasure;
     }
-    this._numberStaves();
+    this.numberStaves();
   }
 
   addPickupMeasure(measureIndex, duration) {
-    let i = 0;
-    for (i = 0; i < this.staves.length; ++i) {
-      const staff = this.staves[i];
-      const protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
-      staff.addMeasure(measureIndex, protomeasure);
+    this.convertToPickupMeasure(measureIndex, duration);
+  }
+  getPrototypeMeasure(measureIndex, staffIndex) {
+    const staff = this.staves[staffIndex];
+    let protomeasure = {};
+
+    // Since this staff may already have instrument settings, use the
+    // immediately preceeding or post-ceding measure if it exists.
+    if (measureIndex < staff.measures.length) {
+      protomeasure = staff.measures[measureIndex];
+    } else if (staff.measures.length) {
+      protomeasure = staff.measures[staff.measures.length - 1];
     }
-    this._numberStaves();
+    return SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
   }
 
   // ### addMeasure
   // Give a measure prototype, create a new measure and add it to each staff, with the
   // correct settings for current time signature/clef.
-  addMeasure(measureIndex, measure) {
+  addMeasure(measureIndex) {
     let i = 0;
-    let protomeasure = 0;
     for (i = 0; i < this.staves.length; ++i) {
-      protomeasure = measure;
       const staff = this.staves[i];
-
-      // Since this staff may already have instrument settings, use the
-      // immediately preceeding or post-ceding measure if it exists.
-      if (measureIndex < staff.measures.length) {
-        protomeasure = staff.measures[measureIndex];
-      } else if (staff.measures.length) {
-        protomeasure = staff.measures[staff.measures.length - 1];
-      }
-      const nmeasure = SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
+      const nmeasure = this.getPrototypeMeasure(measureIndex, i);
       if (nmeasure.voices.length <= nmeasure.getActiveVoice()) {
         nmeasure.setActiveVoice(0);
       }
@@ -317,7 +329,7 @@ class SmoScore {
         tg.selector.measure += 1;
       }
     });
-    this._numberStaves();
+    this.numberStaves();
   }
 
   // ### replaceMeasure
@@ -338,16 +350,25 @@ class SmoScore {
     return exist;
   }
 
+  getStavesForGroup(group) {
+    return this.staves.filter((staff) => staff.staffId >= group.startSelector.staff &&
+      staff.staffId <= group.endSelector.staff);
+  }
+
+  // ### addOrReplaceSystemGroup
+  // Add a new staff grouping, or replace it if it overlaps and is different, or
+  // remove it if it is identical (toggle)
   addOrReplaceSystemGroup(newGroup) {
-    this.systemGroups = this.systemGroups.filter((sg) =>
-      sg.startSelector.staff >= newGroup.startSelector.staff ||
-        sg.endSelector.staff <= newGroup.startSelector.staff ||
-        (newGroup.mapType === SmoSystemGroup.mapType.measureMap &&
-        sg.mapType ===  SmoSystemGroup.mapType.measureMap &&
-        (sg.startSelector.measure >= newGroup.startSelector.measure ||
-        sg.endSelector.measure <= newGroup.startSelector.measure))
-    );
-    this.systemGroups.push(newGroup);
+    let toAdd = true;
+    const existing = this.systemGroups.find((sg) => sg.overlaps(newGroup));
+    if (existing && existing.leftConnector === newGroup.leftConnector) {
+      toAdd = false;
+    }
+    // Replace this group for any groups that overlap it.
+    this.systemGroups = this.systemGroups.filter((sg) => !sg.overlaps(newGroup));
+    if (toAdd) {
+      this.systemGroups.push(newGroup);
+    }
   }
 
   // ### replace staff
@@ -368,7 +389,10 @@ class SmoScore {
   // Add a key signature at the specified index in all staves.
   addKeySignature(measureIndex, key) {
     this.staves.forEach((staff) => {
-      staff.addKeySignature(measureIndex, key);
+      // Consider transpose for key of instrument
+      const netOffset = staff.measures[measureIndex].transposeIndex;
+      const newKey = smoMusic.vexKeySigWithOffset(key, netOffset);
+      staff.addKeySignature(measureIndex, newKey);
     });
   }
 
@@ -377,8 +401,13 @@ class SmoScore {
   addStaff(parameters) {
     let i = 0;
     if (this.staves.length === 0) {
-      this.staves.push(new SmoSystemStaff(parameters));
+      const staff = new SmoSystemStaff(parameters);
+      this.staves.push(staff);
       this.activeStaff = 0;
+      // For part views, we renumber the staves even if there is only one staff.
+      if (staff.measures.length) {
+        this.numberStaves();
+      }
       return;
     }
     if (!parameters) {
@@ -394,6 +423,10 @@ class SmoScore {
       newParams.transposeIndex = parameters.instrumentInfo.keyOffset;
       const newMeasure = SmoMeasure.getDefaultMeasureWithNotes(newParams);
       newMeasure.measureNumber = measure.measureNumber;
+      // Consider key change if the proto measure is non-concert pitch
+      newMeasure.keySignature =
+        smoMusic.vexKeySigWithOffset(newMeasure.keySignature,
+          newMeasure.transposeIndex - measure.transposeIndex);
       newMeasure.modifiers = [];
       measure.modifiers.forEach((modifier) => {
         const ctor = eval(modifier.ctor);
@@ -406,7 +439,7 @@ class SmoScore {
     const staff = new SmoSystemStaff(parameters);
     this.staves.push(staff);
     this.activeStaff = this.staves.length - 1;
-    this._numberStaves();
+    this.numberStaves();
   }
 
   // ### removeStaff
@@ -421,7 +454,7 @@ class SmoScore {
       ix += 1;
     });
     this.staves = staves;
-    this._numberStaves();
+    this.numberStaves();
   }
 
   swapStaves(index1, index2) {
@@ -431,7 +464,7 @@ class SmoScore {
     const tmpStaff = this.staves[index1];
     this.staves[index1] = this.staves[index2];
     this.staves[index2] = tmpStaff;
-    this._numberStaves();
+    this.numberStaves();
   }
 
   _updateScoreText(textObject, toAdd) {
@@ -456,7 +489,6 @@ class SmoScore {
       this.textGroups.push(textGroup);
     }
   }
-
   addTextGroup(textGroup) {
     this._updateTextGroup(textGroup, true);
   }

@@ -184,7 +184,7 @@ class VxMeasure {
             gr.addAccidental(i, accidental);
           }
         }
-        if (g.tickCount() > 4096) {
+        if (g.tickCount() >= 4096) {
           toBeam = false;
         }
         gr.addClass('grace-note'); // note: this doesn't work :(
@@ -211,9 +211,13 @@ class VxMeasure {
         smoMusic.closestVexDuration(smoNote.tickCount) :
         smoMusic.ticksToDuration[smoNote.tickCount];
 
+    if (typeof(duration) === 'undefined') {
+      console.warn('bad duration in measure ' + this.smoMeasure.measureNumber.measureIndex);
+      duration = '8';
+    }
     // transpose for instrument-specific keys
     const keys = smoMusic.smoPitchesToVexKeys(smoNote.pitches, 0, smoNote.noteHead);
-    var noteParams = {
+    const noteParams = {
       clef: smoNote.clef,
       keys,
       duration: duration + smoNote.noteType
@@ -252,7 +256,7 @@ class VxMeasure {
   }
 
   _renderNoteGlyph(smoNote, textObj) {
-    var x = smoNote.logicalBox.x;
+    var x = smoNote.logicalBox.x + textObj.xOffset;
     // the -3 is copied from vexflow textDynamics
     var y = this.stave.getYForLine(textObj.yOffsetLine - 3) + textObj.yOffsetPixels;
     var group = this.context.openGroup();
@@ -513,7 +517,7 @@ class VxMeasure {
       const voice = new VF.Voice({
         num_beats: this.smoMeasure.numBeats,
         beat_value: this.smoMeasure.beatValue
-      }).setMode(VF.Voice.Mode.FULL);
+      }).setMode(VF.Voice.Mode.SOFT);
       voice.addTickables(this.vexNotes);
       this.voiceAr.push(voice);
     }

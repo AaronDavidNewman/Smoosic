@@ -168,6 +168,10 @@ class VxSystem {
     group.classList.add(artifactId);
     if ((modifier.ctor === 'SmoStaffHairpin' && modifier.hairpinType === SmoStaffHairpin.types.CRESCENDO) ||
       (modifier.ctor === 'SmoStaffHairpin' && modifier.hairpinType === SmoStaffHairpin.types.DECRESCENDO)) {
+      if (!vxStart || !vxEnd) {
+        this.context.closeGroup();
+        return svgHelpers.pointBox(1, 1);
+      }
       const hairpin = new VF.StaveHairpin({
         first_note: vxStart,
         last_note: vxEnd

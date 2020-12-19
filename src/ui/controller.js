@@ -13,56 +13,52 @@
 // 5. tracker change events tracker-selection
 class suiController {
 
-	constructor(params) {
-		Vex.Merge(this, suiController.defaults);
-		Vex.Merge(this, params);
-		window.suiControllerInstance = this;
+  constructor(params) {
+    Vex.Merge(this, suiController.defaults);
+    Vex.Merge(this, params);
+    window.suiControllerInstance = this;
 
-
-		this.undoBuffer = new UndoBuffer();
+    this.view = params.view;
     this.eventSource = params.eventSource;
-		this.pasteBuffer = this.tracker.pasteBuffer;
-    this.tracker.setDialogModifier(this);
-		this.keyCommands.controller = this;
-		this.keyCommands.undoBuffer = this.undoBuffer;
-		this.keyCommands.pasteBuffer = this.pasteBuffer;
-		this.resizing = false;
-		this.undoStatus=0;
-		this.trackScrolling = false;
+    this.view.tracker.setDialogModifier(this);
+    this.tracker = this.view.tracker; // needed for key event handling
+    this.keyCommands.controller = this;
+    this.keyCommands.view = this.view;
+    this.resizing = false;
+    this.undoStatus=0;
+    this.trackScrolling = false;
 
     this.keyHandlerObj = null;
 
-		this.ribbon = new RibbonButtons({
-			ribbons: defaultRibbonLayout.ribbons,
-			ribbonButtons: defaultRibbonLayout.ribbonButtons,
-			menus: this.menus,
-			keyCommands: this.keyCommands,
-			tracker: this.tracker,
-			score: this.score,
-			controller: this,
-      layout:this.tracker.layout,
+    this.ribbon = new RibbonButtons({
+      ribbons: defaultRibbonLayout.ribbons,
+      ribbonButtons: defaultRibbonLayout.ribbonButtons,
+      menus: this.menus,
+      controller: this,
+      keyCommands: this.keyCommands,
+      view: this.view,
       eventSource:this.eventSource
-		});
+    });
 
     this.menus.setController(this);
 
-		// create globbal exception instance
-		this.exhandler = new SuiExceptionHandler(this);
+    // create globbal exception instance
+    this.exhandler = new SuiExceptionHandler(this);
 
-		this.bindEvents();
+    this.bindEvents();
 
     // Only display the ribbon one time b/c it's expensive operation
     this.ribbon.display();
-		this.bindResize();
-    this.layoutDemon.undoBuffer = this.undoBuffer;
+    this.bindResize();
+    this.layoutDemon.undoBuffer = this.view.undoBuffer;
     this.layoutDemon.startDemon();
 
-		this.createPiano();
-	}
+    this.createPiano();
+  }
 
-	static get scrollable() {
-		return '.musicRelief';
-	}
+  static get scrollable() {
+    return '.musicRelief';
+  }
 
   static get keyboardWidget() {
     return suiController._kbWidget;
@@ -75,307 +71,278 @@ class suiController {
     }
   }
 
-	get isLayoutQuiet() {
-		return ((this.layout.passState == SuiRenderState.passStates.clean && this.layout.dirty == false)
-		   || this.layout.passState == SuiRenderState.passStates.replace);
-	}
+  get isLayoutQuiet() {
+    return ((this.view.renderer.passState == SuiRenderState.passStates.clean && this.renderer.layout.dirty == false)
+       || this.view.renderer.passState == SuiRenderState.passStates.replace);
+  }
 
-	handleScrollEvent(ev) {
-		var self=this;
-		if (self.trackScrolling) {
-				return;
-		}
-		self.trackScrolling = true;
-		setTimeout(function() {
-            try {
-		    // wait until redraw is done to track scroll events.
-			self.trackScrolling = false;
+  handleScrollEvent(ev) {
+    const self = this;
+    if (self.trackScrolling) {
+        return;
+    }
+    self.trackScrolling = true;
+    setTimeout(function() {
+      try {
+        // wait until redraw is done to track scroll events.
+        self.trackScrolling = false;
+          // Thisi s a WIP...
+        self.view.tracker.scroller.handleScroll($(suiController.scrollable)[0].scrollLeft, $(suiController.scrollable)[0].scrollTop);
+      } catch(e) {
+        SuiExceptionHandler.instance.exceptionHandler(e);
+      }
+    },500);
+  }
 
-			// self.scrollRedrawStatus = true;
-            // self.tracker.updateMap(true);
-            // Thisi s a WIP...
-			self.scroller.handleScroll($(suiController.scrollable)[0].scrollLeft,$(suiController.scrollable)[0].scrollTop);
-            } catch(e) {
-                SuiExceptionHandler.instance.exceptionHandler(e);
-            }
-		},500);
-	}
-
-	createPiano() {
-		this.piano = new suiPiano(
+  createPiano() {
+    this.piano = new suiPiano(
     {
       elementId:'piano-svg',
-			ribbons: defaultRibbonLayout.ribbons,
-			ribbonButtons: defaultRibbonLayout.ribbonButtons,
-			menus: this.menus,
-			keyCommands: this.keyCommands,
-			tracker: this.tracker,
-			score: this.score,
-			controller: this,
-      layout:this.tracker.layout,
-      eventSource:this.eventSource,
-      undoBuffer:this.undoBuffer
-		});
+      ribbons: defaultRibbonLayout.ribbons,
+      ribbonButtons: defaultRibbonLayout.ribbonButtons,
+      menus: this.menus,
+      keyCommands: this.keyCommands,
+      controller: this,
+      view: this.view,
+      eventSource:this.eventSource
+    });
         // $('.close-piano').click();
-	}
+  }
   _setMusicDimensions() {
     $('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
-
   }
-	resizeEvent() {
-		var self = this;
-		if (this.resizing) {
-			return;
+  resizeEvent() {
+    var self = this;
+    if (this.resizing) {
+      return;
     }
     if ($('body').hasClass('printing')) {
       return;
     }
-		this.resizing = true;
-		setTimeout(function () {
-			console.log('resizing');
-			self.resizing = false;
+    this.resizing = true;
+    setTimeout(function () {
+      console.log('resizing');
+      self.resizing = false;
       self._setMusicDimensions();
-			self.piano.handleResize();
-		}, 500);
-	}
+      self.piano.handleResize();
+    }, 500);
+  }
 
   createModifierDialog(modifierSelection) {
     var parameters = {
-      modifier:modifierSelection.modifier, context:this.tracker.context, tracker:this.tracker, layout:this.layout, undoBuffer:this.undoBuffer,eventSource:this.eventSource,
-         completeNotifier:this,keyCommands:this.keyCommands
+      modifier: modifierSelection.modifier,
+        view: this.view, eventSource:this.eventSource,
+         completeNotifier:this, keyCommands:this.keyCommands
     }
-    SuiModifierDialogFactory.createDialog(modifierSelection.modifier,parameters);
+    return SuiModifierDialogFactory.createDialog(modifierSelection.modifier, parameters);
   }
 
-	// If the user has selected a modifier via the mouse/touch, bring up mod dialog
-	// for that modifier
-	trackerModifierSelect(ev) {
-		var modSelection = this.tracker.getSelectedModifier();
-		if (modSelection) {
-			var dialog = this.createModifierDialog(modSelection);
+  // If the user has selected a modifier via the mouse/touch, bring up mod dialog
+  // for that modifier
+  trackerModifierSelect(ev) {
+    var modSelection = this.view.tracker.getSelectedModifier();
+    if (modSelection) {
+      var dialog = this.createModifierDialog(modSelection);
       if (dialog) {
-        this.tracker.selectSuggestion(ev);
-  	    // this.unbindKeyboardForModal(dialog);
+        ev.stopPropagation();
+        // this.view.tracker.selectSuggestion(ev);
+        return;
+        // this.unbindKeyboardForModal(dialog);
       } else {
-        this.tracker.advanceModifierSelection(ev);
+        this.view.tracker.advanceModifierSelection(ev);
       }
-		} else {
-      this.tracker.selectSuggestion(ev);
+    } else {
+      this.view.tracker.selectSuggestion(ev);
     }
-    var modifier = this.tracker.getSelectedModifier();
-    // if (modifier) {
-    //   this.createModifierDialog(modifier);
-    // }
-		return;
-	}
+    return;
+  }
 
     // ### bindResize
-	// This handles both resizing of the music area (scrolling) and resizing of the window.
-	// The latter results in a redraw, the former just resets the client/logical map of elements
-	// in the tracker.
-	bindResize() {
-		var self = this;
-		var el = $(suiController.scrollable)[0];
-		// unit test programs don't have resize html
-		if (!el) {
-			return;
-		}
+  // This handles both resizing of the music area (scrolling) and resizing of the window.
+  // The latter results in a redraw, the former just resets the client/logical map of elements
+  // in the tracker.
+  bindResize() {
+    const self = this;
+    const el = $(suiController.scrollable)[0];
+    // unit test programs don't have resize html
+    if (!el) {
+      return;
+    }
     this._setMusicDimensions();
-		// $(suiController.scrollable).height(window.innerHeight - $('.musicRelief').offset().top);
+    // $(suiController.scrollable).height(window.innerHeight - $('.musicRelief').offset().top);
 
-		window.addEventListener('resize', function () {
-			self.resizeEvent();
-		});
+    window.addEventListener('resize', function () {
+      self.resizeEvent();
+    });
 
-		let scrollCallback = (ev) => {
+    let scrollCallback = (ev) => {
       self.handleScrollEvent(ev);
-		};
-		el.onscroll = scrollCallback;
-	}
-
-
-	// ### renderElement
-	// return render element that is the DOM parent of the svg
-	get renderElement() {
-		return this.layout.renderElement;
-	}
-
-	// ## keyBindingDefaults
-	// ### Description:
-	// Different applications can create their own key bindings, these are the defaults.
-	// Many editor commands can be reached by a single keystroke.  For more advanced things there
-	// are menus.
-	static get keyBindingDefaults() {
-		var editorKeys = suiController.editorKeyBindingDefaults;
-		editorKeys.forEach((key) => {
-			key.module = 'keyCommands'
-		});
-		var trackerKeys = suiController.trackerKeyBindingDefaults;
-		trackerKeys.forEach((key) => {
-			key.module = 'tracker'
-		});
-		return trackerKeys.concat(editorKeys);
-	}
-
-	// ## editorKeyBindingDefaults
-	// ## Description:
-	// execute a simple command on the editor, based on a keystroke.
-	static get editorKeyBindingDefaults() {
-		return defaultEditorKeys.keys;
-	}
-
-	// ## trackerKeyBindingDefaults
-	// ### Description:
-	// Key bindings for the tracker.  The tracker is the 'cursor' in the music
-	// that lets you select and edit notes.
-	static get trackerKeyBindingDefaults() {
-		return defaultTrackerKeys.keys;
-	}
-
-	helpControls() {
-		var self = this;
-		var rebind = function () {
-			self.bindEvents();
-		}
+    };
+    el.onscroll = scrollCallback;
   }
-	static set reentry(value) {
-		suiController._reentry = value;
-	}
-	static get reentry() {
-		if (typeof(suiController['_reentry']) == 'undefined') {
-			suiController._reentry = false;
-		}
-		return suiController._reentry;
-	}
 
-	menuHelp() {
-		SmoHelp.displayHelp();
-	}
 
-	static get defaults() {
-		return {
-			keyBind: suiController.keyBindingDefaults
-		};
-	}
+  // ### renderElement
+  // return render element that is the DOM parent of the svg
+  get renderElement() {
+    return this.view.renderer.renderElement;
+  }
 
-	showModifierDialog(modSelection) {
-		return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout,this.undoBuffer,this)
-	}
+  // ## keyBindingDefaults
+  // ### Description:
+  // Different applications can create their own key bindings, these are the defaults.
+  // Many editor commands can be reached by a single keystroke.  For more advanced things there
+  // are menus.
+  static get keyBindingDefaults() {
+    var editorKeys = suiController.editorKeyBindingDefaults;
+    editorKeys.forEach((key) => {
+      key.module = 'keyCommands'
+    });
+    var trackerKeys = suiController.trackerKeyBindingDefaults;
+    trackerKeys.forEach((key) => {
+      key.module = 'tracker'
+    });
+    return trackerKeys.concat(editorKeys);
+  }
+
+  // ## editorKeyBindingDefaults
+  // ## Description:
+  // execute a simple command on the editor, based on a keystroke.
+  static get editorKeyBindingDefaults() {
+    return defaultEditorKeys.keys;
+  }
+
+  // ## trackerKeyBindingDefaults
+  // ### Description:
+  // Key bindings for the tracker.  The tracker is the 'cursor' in the music
+  // that lets you select and edit notes.
+  static get trackerKeyBindingDefaults() {
+    return defaultTrackerKeys.keys;
+  }
+  helpControls() {
+    var self = this;
+    var rebind = function () {
+      self.bindEvents();
+    }
+  }
+  static set reentry(value) {
+    suiController._reentry = value;
+  }
+  static get reentry() {
+    if (typeof(suiController['_reentry']) == 'undefined') {
+      suiController._reentry = false;
+    }
+    return suiController._reentry;
+  }
+
+  menuHelp() {
+    SmoHelp.displayHelp();
+  }
+
+  static get defaults() {
+    return {
+      keyBind: suiController.keyBindingDefaults
+    };
+  }
+
+  showModifierDialog(modSelection) {
+    return SuiDialogFactory.createDialog(modSelection, this.view, this)
+  }
 
   // ### unbindKeyboardForModal
   // Global events from keyboard and pointer are handled by this object.  Modal
   // UI elements take over the events, and then let the controller know when
   // the modals go away.
-	unbindKeyboardForModal(dialog) {
-		var self=this;
+  unbindKeyboardForModal(dialog) {
+    const self = this;
     layoutDebug.addDialogDebug('controller: unbindKeyboardForModal')
-		var rebind = function () {
-			self.bindEvents();
+    const rebind = () => {
+      self.bindEvents();
       layoutDebug.addDialogDebug('controller: unbindKeyboardForModal resolve')
-		}
+    }
     this.eventSource.unbindKeydownHandler(this.keydownHandler);
     this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
     this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
 
-		dialog.closeModalPromise.then(rebind);
-	}
+    dialog.closeModalPromise.then(rebind);
+  }
 
-	evKey(evdata) {
-		var self = this;
+  evKey(evdata) {
     if ($('body').hasClass('translation-mode')) {
       return;
     }
 
-		console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
-			evdata.code + "'"
-			 + " shift='" + evdata.shiftKey + "' control='" + evdata.ctrlKey + "'" + " alt='" + evdata.altKey + "'");
-		evdata.preventDefault();
+    console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
+      evdata.code + "'"
+       + " shift='" + evdata.shiftKey + "' control='" + evdata.ctrlKey + "'" + " alt='" + evdata.altKey + "'");
+    evdata.preventDefault();
 
     if (suiController.keyboardWidget) {
       Qwerty.handleKeyEvent(evdata);
     }
-		if (evdata.key == '?') {
-			SmoHelp.displayHelp();
-		}
+    if (evdata.key == '?') {
+      SmoHelp.displayHelp();
+    }
 
-		if (evdata.key == '/') {
+    if (evdata.key == '/') {
       // set up menu DOM.
       this.menus.slashMenuMode(this);
-		}
+    }
 
-		if (evdata.key == 'Enter') {
-			self.trackerModifierSelect(evdata);
-      var modifier = this.tracker.getSelectedModifier();
-      if (modifier) {
-        this.createModifierDialog(modifier);
+    if (evdata.key == 'Enter') {
+      this.trackerModifierSelect(evdata);
+    }
+
+    var binding = this.keyBind.find((ev) =>
+      ev.event === 'keydown' && ev.key === evdata.key && ev.ctrlKey === evdata.ctrlKey &&
+      ev.altKey === evdata.altKey && evdata.shiftKey === ev.shiftKey);
+
+    if (binding) {
+      try {
+        this[binding.module][binding.action](evdata);
+      } catch (e) {
+        if (typeof(e) === 'string') {
+          console.error(e);
+        }
+        this.exhandler.exceptionHandler(e);
       }
-
-		}
-
-		var binding = this.keyBind.find((ev) =>
-				ev.event === 'keydown' && ev.key === evdata.key && ev.ctrlKey === evdata.ctrlKey &&
-				ev.altKey === evdata.altKey && evdata.shiftKey === ev.shiftKey);
-
-		if (binding) {
-			try {
-			this[binding.module][binding.action](evdata);
-			} catch (e) {
-				this.exhandler.exceptionHandler(e);
-			}
-		}
-	}
+    }
+  }
 
   mouseMove(ev) {
-    this.tracker.intersectingArtifact({
+    this.view.tracker.intersectingArtifact({
       x: ev.clientX,
       y: ev.clientY
     });
   }
 
   mouseClick(ev) {
-    this.tracker.selectSuggestion(ev);
-    var modifier = this.tracker.getSelectedModifier();
+    this.view.tracker.selectSuggestion(ev);
+    var modifier = this.view.tracker.getSelectedModifier();
     if (modifier) {
       this.createModifierDialog(modifier);
     }
   }
-	bindEvents() {
-		var self = this;
-		var tracker = this.tracker;
+  bindEvents() {
+    const self = this;
+    const tracker = this.view.tracker;
 
-		$('body').off('redrawScore').on('redrawScore',function() {
-			self.handleRedrawTimer();
-		});
-		$('body').off('forceScrollEvent').on('forceScrollEvent',function() {
-			self.handleScrollEvent();
-		});
-		$('body').off('forceResizeEvent').on('forceResizeEvent',function() {
-			self.resizeEvent();
-		});
-    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
-    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
+    $('body').off('redrawScore').on('redrawScore', function() {
+      self.handleRedrawTimer();
+    });
+    $('body').off('forceScrollEvent').on('forceScrollEvent', function() {
+      self.handleScrollEvent();
+    });
+    $('body').off('forceResizeEvent').on('forceResizeEvent', function() {
+      self.resizeEvent();
+    });
+    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
+    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
+    this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
 
-		/* $(this.renderElement).off('mousemove').on('mousemove', function (ev) {
-			tracker.intersectingArtifact({
-				x: ev.clientX,
-				y: ev.clientY
-			});
-		});
-
-		$(this.renderElement).off('click').on('click', function (ev) {
-      tracker.selectSuggestion(ev);
-      var modifier = tracker.getSelectedModifier();
-      if (modifier) {
-        self.createModifierDialog(modifier);
-      }
-		});   */
-
-    this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
-
-		this.helpControls();
-		window.addEventListener('error', function (e) {
-			SuiExceptionHandler.instance.exceptionHandler(e);
-		});
-	}
-
+    this.helpControls();
+    window.addEventListener('error', function (e) {
+      SuiExceptionHandler.instance.exceptionHandler(e);
+    });
+  }
 }

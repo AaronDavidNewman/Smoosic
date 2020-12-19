@@ -3,8 +3,8 @@ class TextTest {
   static CommonTests() {
     var application = SuiApplication.createUtApplication();
     var keys = application.controller;
-    var score = keys.layout.score;
-    var context = keys.layout.context;
+    var score = keys.view.renderer.score;
+    var context = keys.view.renderer.context;
     var editText = new SuiInlineText({context:context,startY:200});
 
     score.addDefaultMeasureWithNotes(0,{});

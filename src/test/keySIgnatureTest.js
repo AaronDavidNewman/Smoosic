@@ -4,7 +4,7 @@ class KeySignatureTest {
 	static CommonTests() {
     var application = SuiApplication.createUtApplication();
     var keys = application.controller;
-    var score = keys.layout.score;
+    var score = keys.view.renderer.score;
 
 		var pasteBuffer = new PasteBuffer();
 
@@ -15,7 +15,7 @@ class KeySignatureTest {
 		var serial = JSON.stringify(score.serialize(), null, '');
 		console.log(serial);
 		var undo = keys.undoBuffer;
-		var layout = keys.layout;
+		var layout = keys.view.renderer;
 
 		var detach = () => {
 		}
@@ -47,7 +47,7 @@ class KeySignatureTest {
 		var changePitch = () => {
 			subTitle('change pitch');
 			var target = SmoSelection.pitchSelection(layout.score, 0, 2, 0, 1, [0]);
-			undo.addBuffer('undo pitch change', 'measure', target.selector, target.measure);
+			undo.addBuffer('undo pitch change', UndoBuffer.bufferTypes.MEASURE, target.selector, target.measure);
 			SmoOperation.setPitch(target, {
 				letter: 'e',
 				octave: 4,
@@ -63,7 +63,7 @@ class KeySignatureTest {
 		var changePitch2 = () => {
 			subTitle('change pitch 2');
 			var target = SmoSelection.pitchSelection(score, 0, 1, 0, 1, [0]);
-			undo.addBuffer('undo pitch change', 'measure', target.selector, target.measure);
+			undo.addBuffer('undo pitch change', UndoBuffer.bufferTypes.MEASURE, target.selector, target.measure);
 			SmoOperation.setPitch(target, {
 				letter: 'f',
 				octave: 4,
@@ -78,7 +78,7 @@ class KeySignatureTest {
 		var keySigTest = () => {
 			subTitle('key sig to C to A');
 			var selection = SmoSelection.measureSelection(score, 0, 1);
-			undo.addBuffer('undo key sig', 'staff', selection.selector, selection.staff);
+			undo.addBuffer('undo key sig', UndoBuffer.bufferTypes.STAFF, selection.selector, selection.staff);
 			SmoOperation.addKeySignature(score, selection, 'A');
 			// score.addKeySignature(1,'A');
 			var selection = SmoSelection.noteSelection(score, 0, 1, 0, 2);
@@ -89,7 +89,7 @@ class KeySignatureTest {
 		var keySigTest2 = () => {
 			subTitle('key sig to Bb');
 			var selection = SmoSelection.measureSelection(score, 0, 2);
-			undo.addBuffer('undo key sig', 'score', selection.selector, score);
+			undo.addBuffer('undo key sig', UndoBuffer.bufferTypes.SCORE, selection.selector, score);
 			SmoOperation.addKeySignature(score, selection, 'Bb');
 			keys.render()
             return timeTest();

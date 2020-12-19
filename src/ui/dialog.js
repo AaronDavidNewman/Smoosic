@@ -10,6 +10,9 @@ class SuiModifierDialogFactory {
     if (dbType === 'SuiLyricDialog' && modifier.parser === SmoLyric.parsers.chord) {
       dbType = 'SuiChordChangeDialog';
     }
+    if (typeof(dbType) === 'undefined') {
+      return null;
+    }
     const ctor = eval(dbType);
     return ctor.createAndDisplay({
       modifier,
@@ -34,6 +37,10 @@ class SuiModifierDialogFactory {
 // Base class for dialogs.
 // eslint-disable-next-line no-unused-vars
 class SuiDialogBase {
+  static get parameters() {
+    return ['eventSource', 'view',
+      'completeNotifier', 'keyCommands', 'modifier'];
+  }
   // ### SuiDialogBase ctor
   // Creates the DOM element for the dialog and gets some initial elements
   constructor(dialogElements, parameters) {
@@ -63,20 +70,13 @@ class SuiDialogBase {
     // If this dialog was spawned by a menu, wait for the menu to dismiss
     // before continuing.
     this.startPromise = parameters.closeMenuPromise;
-    this.eventSource = parameters.eventSource;
-    this.layout = parameters.layout;
-    this.context = this.layout.context;
     this.dialogElements = dialogElements;
-    this.tracker = parameters.tracker;
-    this.completeNotifier = parameters.completeNotifier;
-    this.undoBuffer = parameters.undoBuffer;
-    this.keyCommands = parameters.keyCommands;
-    this.label = this.staticText.label;
-    this.modifier = parameters.modifier;
-    this.activeScoreText = parameters.activeScoreText;
+    SuiDialogBase.parameters.forEach((param) => {
+      this[param] = parameters[param];
+    });
 
-    const top = parameters.top - this.tracker.scroller.netScroll.y;
-    const left = parameters.left - this.tracker.scroller.netScroll.x;
+    const top = parameters.top - this.view.tracker.scroller.netScroll.y;
+    const left = parameters.left - this.view.tracker.scroller.netScroll.x;
 
     this.dgDom = this._constructDialog(dialogElements, {
       id: 'dialog-' + this.id,
@@ -157,7 +157,7 @@ class SuiDialogBase {
   // Position the dialog near a selection.  If the dialog is not visible due
   // to scrolling, make sure it is visible.
   position(box) {
-    SuiDialogBase.position(box, this.dgDom, this.tracker.scroller);
+    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
   }
   // ### build the html for the dialog, based on the instance-specific components.
   _constructDialog(dialogElements, parameters) {
@@ -193,16 +193,6 @@ class SuiDialogBase {
       trapper
     };
   }
-
-  // ### _commit
-  // generic logic to commit changes to a momdifier.
-  _commit() {
-    this.modifier.restoreOriginal();
-    this.components.forEach((component) => {
-      this.modifier[component.smoName] = component.getValue();
-    });
-  }
-
   // ### Complete
   // Dialogs take over the keyboard, so release that and trigger an event
   // that the dialog is closing that can resolve any outstanding promises.
@@ -235,7 +225,7 @@ class SuiDialogBase {
     if (this.modifier && this.modifier.renderedBox) {
       this.position(this.modifier.renderedBox);
     }
-    this.tracker.scroller.scrollVisibleBox(
+    this.view.tracker.scroller.scrollVisibleBox(
       svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
     );
 
@@ -273,12 +263,10 @@ class SuiDialogBase {
     this.bindKeyboard();
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      self._commit();
       self.complete();
     });
 
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      self.modifier.restoreOriginal();
       self.complete();
     });
     $(dgDom.element).find('.remove-button').off('click').on('click', () => {

@@ -92,6 +92,12 @@ body.text-edit .buttonContainer.show-text-edit {
 	text-align:center;
 }
 
+.attributeModal .multiControl.checkboxDropdown .dropdownControl {
+  display: none;
+}
+.attributeModal .multiControl.checkboxDropdown.checked .dropdownControl {
+  display: block;
+}
 .helpKey.help-ellipsis {
 	margin-left: -5px;
 	border:0;
@@ -266,14 +272,6 @@ body.showAttributeDialog .attributeDialog {
 .attributeModal.tempoTextMode #dialog-tempo-bpm ,
 .attributeModal.tempoDurationMode #dialog-tempo-tempoText {
 	display:none;
-}
-
-.attributeModal #dialog-measure-pickupMeasure {
-    display:none;
-}
-
-.attributeModal.pickup-select #dialog-measure-pickupMeasure {
-    display:block;
 }
 .attributeModal.pad-left-select #dialog-measure-padAllInSystem {
     display:block;

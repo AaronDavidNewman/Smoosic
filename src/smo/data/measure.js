@@ -36,6 +36,8 @@ class SmoMeasure {
 
     this.setDefaultBarlines();
 
+    this.keySignature = smoMusic.vexKeySigWithOffset(this.keySignature, this.transposeIndex);
+
     if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),
@@ -135,23 +137,30 @@ class SmoMeasure {
   // separately.  Serialize those attributes, but only add them to the
   // hash if they already exist for an earlier measure
   serializeColumnMapped(attrColumnHash, attrCurrentValue) {
+    let curValue = {};
     SmoMeasure.columnMappedAttributes.forEach((attr) => {
       if (this[attr]) {
+        curValue = this[attr];
         if (!attrColumnHash[attr]) {
           attrColumnHash[attr] = {};
           attrCurrentValue[attr] = {};
         }
         const curAttrHash  = attrColumnHash[attr];
+        // If this is key signature, make sure we normalize to concert pitch
+        // from instrument pitch
+        if (attr === 'keySignature') {
+          curValue = smoMusic.vexKeySigWithOffset(curValue, -1 * this.transposeIndex);
+        }
         if (this[attr].ctor && this[attr].ctor === 'SmoTempoText') {
           if (this[attr].compare(attrCurrentValue[attr]) === false) {
-            curAttrHash[this.measureNumber.measureIndex] = this[attr];
-            attrCurrentValue[attr] = this[attr];
+            curAttrHash[this.measureNumber.measureIndex] = curValue;
+            attrCurrentValue[attr] = curValue;
           }
-        } else if (attrCurrentValue[attr] !== this[attr]) {
-          curAttrHash[this.measureNumber.measureIndex] = this[attr];
-          attrCurrentValue[attr] = this[attr];
+        } else if (attrCurrentValue[attr] !== curValue) {
+          curAttrHash[this.measureNumber.measureIndex] = curValue;
+          attrCurrentValue[attr] = curValue;
         }
-      } // ekse attr doesn't exist in this measure
+      } // else attr doesn't exist in this measure
     });
   }
 
@@ -357,18 +366,22 @@ class SmoMeasure {
     params.clef = params.clef ? params.clef : 'treble';
     const meterNumbers = params.timeSignature.split('/').map(number => parseInt(number, 10));
     beamBeats = ticks.numerator;
+    beats = meterNumbers[0];
     if (meterNumbers[1] === 8) {
       ticks = {
         numerator: 2048,
         denominator: 1,
         remainder: 0
       };
+      if (meterNumbers[0] % 3 === 0) {
+        ticks.numerator = 2048 * 3;
+        beats = meterNumbers[0] / 3;
+      }
       beamBeats = 2048 * 3;
     }
     const pitches =
       JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[params.clef]));
     const rv = [];
-    beats = meterNumbers[0];
 
     // Treat 2/2 like 4/4 time.
     if (meterNumbers[1] === 2) {

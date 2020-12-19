@@ -4,7 +4,7 @@ class StaffTest {
 		$('h1.testTitle').text('Chord Test');
 		var keys = utController.createUi(SmoScore.getDefaultScore(),'Staff Test');
 		var score = keys.score;
-		var layout = keys.layout;
+		var layout = keys.view.renderer;
         score.addDefaultMeasureWithNotes(0,{});
         score.addDefaultMeasureWithNotes(1,{});
         score.addDefaultMeasureWithNotes(2,{});

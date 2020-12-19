@@ -7,8 +7,8 @@ class TextEditTest {
     var application = SuiApplication.createUtApplication({scoreLoadJson:'emptyScoreJson'});
 
 		var keys = application.controller;
-		var score = keys.layout.score;
-		var layout = keys.layout;
+		var score = keys.view.renderer.score;
+		var layout = keys.view.renderer;
     var testTime = 200;
     var eventSource = new browserEventSource();
 
@@ -16,7 +16,7 @@ class TextEditTest {
 
     var lyric =  new SmoLyric({_text:'' });
     var editor = new SuiLyricEditor(
-      {context : keys.layout.context,
+      {context : keys.view.renderer.context,
       lyric:lyric,
       x: 100,
       y:40,
@@ -160,7 +160,7 @@ class TextEditTest {
       subTitle('drag start test');
       lyricSession = new SuiResizeTextSession({
         textGroup: startGroup,
-        context: keys.layout.context,
+        context: keys.view.renderer.context,
         scroller: keys.scroller
         }
       );
@@ -191,7 +191,7 @@ class TextEditTest {
       subTitle('drag start test');
       lyricSession = new SuiDragSession({
         textGroup: startGroup,
-        context: keys.layout.context,
+        context: keys.view.renderer.context,
         scroller: keys.scroller
         }
       );
@@ -222,10 +222,10 @@ class TextEditTest {
       testTime = 100;
       var selector = {staff: 0, measure: 0, voice: 0, tick: 1};
       lyricSession = new SuiLyricSession({
-        context : keys.layout.context,
+        context : keys.view.renderer.context,
         selector: selector,
         scroller: keys.scroller,
-        layout: keys.layout,
+        layout: keys.view.renderer,
         verse: 0,
         score: score
         }
@@ -275,7 +275,7 @@ class TextEditTest {
 
     tests.push( async () => {
       subTitle('render initial text');
-      keys.layout.setRefresh();
+      keys.view.renderer.setRefresh();
       return timeTest();
     });
 
@@ -283,9 +283,9 @@ class TextEditTest {
       subTitle('start text session');
       const ul = startGroup.ul();
       lyricSession = new SuiTextSession({
-        context : keys.layout.context,
+        context : keys.view.renderer.context,
         scroller: keys.scroller,
-        layout: keys.layout,
+        layout: keys.view.renderer,
         score: score,
         x:ul.x, y:ul.y,
         textGroup:startGroup
@@ -312,7 +312,7 @@ class TextEditTest {
     tests.push( async () => {
       subTitle('update score from text session');
       score.addTextGroup(lyricSession.textGroup);
-      keys.layout.setRefresh();
+      keys.view.renderer.setRefresh();
       return PromiseHelpers.makePromise(lyricSession,'_isRendered',null,null,100);
     });
 
@@ -321,10 +321,10 @@ class TextEditTest {
       console.log('start chord session');
       var selector = {staff: 0, measure: 0, voice: 0, tick: 1};
       lyricSession = new SuiChordSession({
-        context : keys.layout.context,
+        context : keys.view.renderer.context,
         selector: selector,
         scroller: keys.scroller,
-        layout: keys.layout,
+        layout: keys.view.renderer,
         verse: 0,
         score: score
         }

@@ -48,6 +48,19 @@ class SmoSystemGroup extends SmoScoreModifierBase {
       endSelector: { staff: 0, measure: 0 }
     };
   }
+  stavesOverlap(group) {
+    return (this.startSelector.staff >= group.startSelector.staff && this.startSelector.staff <= group.endSelector.staff) ||
+      (this.endSelector.staff >= group.startSelector.staff && this.endSelector.staff <= group.endSelector.staff);
+  }
+  measuresOverlap(group) {
+    return this.stavesOverlap(group) &&
+      ((this.startSelector.measure >= group.startSelector.measure && this.endSelector.measure <= group.startSelector.measure) ||
+        (this.endSelector.measure >= group.startSelector.measure && this.endSelector.measure <= group.endSelector.measure));
+  }
+  overlaps(group) {
+    return (this.stavesOverlap(group) && this.mapType === SmoSystemGroup.mapTypes.allMeasures) ||
+      (this.measuresOverlap(group) && this.mapType === SmoSystemGroup.mapTypes.range);
+  }
   leftConnectorVx() {
     switch (this.leftConnector) {
       case SmoSystemGroup.connectorTypes.single:
@@ -189,6 +202,7 @@ class SmoTextGroup extends SmoScoreModifierBase {
     const params = {};
     smoSerialize.serializedMergeNonDefault(SmoTextGroup.defaults, SmoTextGroup.attributes, this, params);
     params.ctor = 'SmoTextGroup';
+    params.attrs = JSON.parse(JSON.stringify(this.attrs));
     return params;
   }
   _isScoreText(st) {
@@ -238,6 +252,14 @@ class SmoTextGroup extends SmoScoreModifierBase {
         block.activeText = false;
       }
     });
+  }
+  // For editing, keep track of the active text block.
+  getActiveBlock() {
+    const rv = this.textBlocks.find((block) => block.activeText === true);
+    if (typeof(rv) !== 'undefined') {
+      return rv.text;
+    }
+    return this.textBlocks[0].text;
   }
   setRelativePosition(position) {
     this.textBlocks.forEach((block) => {
@@ -330,6 +352,8 @@ class SmoTextGroup extends SmoScoreModifierBase {
 // ## SmoScoreText
 // Identify some text in the score, not associated with any musical element, like page
 // decorations, titles etc.
+// Note: score text is always contained in a text group.  So this isn't directly accessed
+// by score, but we keep the collection in score for backwards-compatibility
 // eslint-disable-next-line no-unused-vars
 class SmoScoreText extends SmoScoreModifierBase {
   // convert EM to a number, or leave as a number etc.

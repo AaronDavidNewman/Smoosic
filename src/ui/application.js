@@ -58,11 +58,9 @@ class SuiApplication {
     var params = suiController.keyBindingDefaults;
     params.eventSource = new browserEventSource(); // events come from the browser UI.
 
-    params.layout = SuiRenderScore.createScoreRenderer(document.getElementById(SmoConfig.vexDomContainer),score);
-    params.eventSource.setRenderElement(params.layout.renderElement);
-    params.scroller = new suiScroller();
-    params.tracker = new suiTracker(params.layout,params.scroller);
-    params.layout.setMeasureMapper(params.tracker);
+    const scoreRenderer = SuiScoreRender.createScoreRenderer(document.getElementById(SmoConfig.vexDomContainer), score);
+    params.eventSource.setRenderElement(scoreRenderer.renderElement);
+    params.view = new SuiScoreViewOperations(scoreRenderer, score);
     if (SmoConfig.keyCommands) {
       params.keyCommands = new SuiKeyCommands(params);
     }
@@ -72,10 +70,6 @@ class SuiApplication {
     params.layoutDemon = new SuiRenderDemon(params);
     var ctor = eval(SmoConfig.controller);
     var controller = new ctor(params);
-    if (SmoConfig.menus) {
-      params.menus.undoBuffer = controller.undoBuffer;
-    }
-    params.layout.score = score;
     eval(SmoConfig.domSource).splash();
     this.controller = controller;
   }
@@ -242,7 +236,7 @@ class SuiApplication {
   static _deferCreateTranslator(lang) {
     setTimeout(() => {
       var transDom =  SmoTranslationEditor.startEditor(lang);
-    },1);
+    }, 1);
   }
 
   static _deferLanguageSelection(lang) {

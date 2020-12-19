@@ -224,13 +224,12 @@ class SmoNote {
       this.noteHead = noteHead;
     }
   }
-  addGraceNote(params, offset) {
-    params.clef = this.clef;
-    if (this.graceNotes.length > offset) {
-      this.graceNotes[offset] = new SmoGraceNote(params);
-    } else {
-      this.graceNotes.push(new SmoGraceNote(params));
+  addGraceNote(graceNote, offset) {
+    if (typeof(offset) === 'undefined') {
+      offset = 0;
     }
+    graceNote.clef = this.clef;
+    this.graceNotes.push(graceNote);
   }
   removeGraceNote(offset) {
     if (offset >= this.graceNotes.length) {
@@ -254,6 +253,9 @@ class SmoNote {
   makeRest() {
     this.noteType = (this.noteType === 'r' ? 'n' : 'r');
   }
+  isRest() {
+    return this.noteType === 'r';
+  }
 
   makeNote() {
     this.noteType = 'n';
@@ -276,6 +278,17 @@ class SmoNote {
 
   getMicrotones() {
     return this.tones;
+  }
+  static toggleEnharmonic(pitch) {
+    const lastLetter = pitch.letter;
+    let vexPitch = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch));
+    vexPitch = smoMusic.getEnharmonic(vexPitch);
+
+    pitch.letter = vexPitch[0];
+    pitch.accidental = vexPitch.length > 1 ?
+      vexPitch.substring(1, vexPitch.length) : 'n';
+    pitch.octave += smoMusic.letterChangedOctave(lastLetter, pitch.letter);
+    return pitch;
   }
 
   transpose(pitchArray, offset, keySignature) {

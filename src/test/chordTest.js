@@ -6,7 +6,7 @@ class ChordTest {
 
 		var keys = application.controller;
 		var score = keys.score;
-		var layout = keys.layout;
+		var layout = keys.view.renderer;
 		var measure = SmoSelection.measureSelection(score, 0, 0).measure;
 
 		var detach = () => {

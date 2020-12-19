@@ -5,7 +5,7 @@ class ClefTest {
     $('h1.testTitle').text('Clef Test');
     var application = SuiApplication.createUtApplication();
     var keys = application.controller;
-    var score = keys.layout.score;
+    var score = keys.view.renderer.score;
 
     var pasteBuffer = new PasteBuffer();
 
@@ -66,10 +66,10 @@ class ClefTest {
   			keyOffset:0,
   			clef:'treble'
   		}
-  		var sel1 = SmoSelection.measureSelection(score,1,1);
-  		var sel2=SmoSelection.measureSelection(score,1,2);
-  		keys.layout.unrenderAll();
-  		SmoOperation.changeInstrument(score,instrument,[sel1,sel2]);
+  		var sel1 = SmoSelection.measureSelection(score, 1, 1);
+  		var sel2=SmoSelection.measureSelection(score, 1, 2);
+  		keys.view.renderer.unrenderAll();
+  		SmoOperation.changeInstrument(instrument, [sel1, sel2]);
   		keys.render()
       return timeTest();
   	}
@@ -91,7 +91,7 @@ class ClefTest {
 
   	var tenorClefTest = () => {
   		subTitle('add cello clef');
-  		keys.layout.unrenderAll();
+  		keys.view.renderer.unrenderAll();
   		SmoOperation.removeStaff(score,1);
   		SmoOperation.addStaff(score, {
   			instrumentInfo: {
@@ -117,7 +117,7 @@ class ClefTest {
 
   	var baritoneClefTest = () => {
   		subTitle('remove and add clef');
-  		keys.layout.unrenderAll();
+  		keys.view.renderer.unrenderAll();
   		SmoOperation.removeStaff(score,1);
   		SmoOperation.addStaff(score, {
   			instrumentInfo: {
@@ -131,7 +131,7 @@ class ClefTest {
 
   	var baritoneClefTest2 = () => {
   		subTitle('remove and add clef 2');
-  		keys.layout.unrenderAll();
+  		keys.view.renderer.unrenderAll();
   		SmoOperation.removeStaff(score,1);
   		SmoOperation.addStaff(score, {
   			instrumentInfo: {
@@ -145,7 +145,7 @@ class ClefTest {
 
   	var trumpetClefTest = () => {
   		subTitle('clef with instrument in different key');
-  		keys.layout.unrenderAll();
+  		keys.view.renderer.unrenderAll();
   		SmoOperation.removeStaff(score,1);
   		SmoOperation.addStaff(score, {
   			instrumentInfo: {

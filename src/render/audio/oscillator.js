@@ -46,7 +46,7 @@ class suiAudioPitch {
 
   static smoPitchToFrequency(smoNote, smoPitch, ix, offset) {
     let pitchInt = 0;
-    let rv = suiAudioPitch._rawPitchToFrequency(smoPitch, -1 * offset);
+    let rv = suiAudioPitch._rawPitchToFrequency(smoPitch, offset);
     const mt = smoNote.tones.filter((tt) => tt.pitch === ix);
     if (mt.length) {
       const tone = mt[0];
@@ -54,7 +54,7 @@ class suiAudioPitch {
       pitchInt = smoMusic.smoPitchToInt(smoPitch);
       pitchInt += (coeff > 0) ? 1 : -1;
       const otherSmo = smoMusic.smoIntToPitch(pitchInt);
-      const otherPitch = suiAudioPitch._rawPitchToFrequency(otherSmo, -1 * offset);
+      const otherPitch = suiAudioPitch._rawPitchToFrequency(otherSmo, offset);
       rv += Math.abs(rv - otherPitch) * coeff;
     }
     return rv;
@@ -155,6 +155,9 @@ class suiOscillator {
     if (!selection.note) {
       return;
     }
+    if (selection.note.isRest()) {
+      return;
+    }
     setTimeout(() => {
       const ar = suiOscillator.fromNote(selection.measure, selection.note, true, gain);
       ar.forEach((osc) => {
@@ -189,7 +192,7 @@ class suiOscillator {
     }
     i = 0;
     note.pitches.forEach((pitch) => {
-      frequency = suiAudioPitch.smoPitchToFrequency(note, pitch, i, measure.transposeIndex);
+      frequency = suiAudioPitch.smoPitchToFrequency(note, pitch, i, -1 * measure.transposeIndex);
       const osc = new suiOscillator({ frequency, duration, gain });
       // var osc = new suiSampler({frequency:frequency,duration:duration,gain:gain});
       ar.push(osc);

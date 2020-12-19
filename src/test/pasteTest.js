@@ -4,7 +4,7 @@ class PasteTest {
 	static CommonTests() {
     var application = SuiApplication.createUtApplication();
     var keys = application.controller;
-    var score = keys.layout.score;
+    var score = keys.view.renderer.score;
 
 		var pasteBuffer = new PasteBuffer();
 
@@ -13,7 +13,7 @@ class PasteTest {
 		score.addDefaultMeasureWithNotes(2, {});
 
 		var undo = keys.undoBuffer;
-		var layout = keys.layout;
+		var layout = keys.view.renderer;
 
 		var subTitle = (txt) => {
 			$('.subTitle').text(txt);
@@ -94,7 +94,7 @@ class PasteTest {
 			subTitle('copy single note mm 2 beat 1');
 			selections.push(SmoSelection.noteSelection(layout.score, 0, 2, 0, 1));
 			pasteBuffer.setSelections(keys.score, selections);
-			keys.layout.unrenderAll();
+			keys.view.renderer.unrenderAll();
 			var pasteTarget = {
 				staff: 0,
 				measure: 1,
@@ -122,7 +122,7 @@ class PasteTest {
 			selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 3));
 			selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 4));
 			pasteBuffer.setSelections(score, selections);
-			keys.layout.unrenderAll();
+			keys.view.renderer.unrenderAll();
 			var pasteTarget = {
 				staff: 0,
 				measure: 2,
@@ -150,7 +150,7 @@ class PasteTest {
 			selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 3));
 
 			pasteBuffer.setSelections(score, selections);
-			keys.layout.unrenderAll();
+			keys.view.renderer.unrenderAll();
 			var pasteTarget = {
 				staff: 0,
 				measure: 2,

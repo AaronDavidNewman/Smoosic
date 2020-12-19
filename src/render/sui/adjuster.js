@@ -117,18 +117,13 @@ class suiLayoutAdjuster {
   static estimateMeasureWidth(measure) {
 
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
-  var gravity = false;
   var prevWidth = measure.staffWidth;
   var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
   measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
   measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
   measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
-  if (measure.changed == false && measure.logicalBox && measure.staffWidth < prevWidth) {
-    measureWidth = Math.round((measure.staffWidth + prevWidth)/2);
-    gravity = true;
-  }
   var y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
-  measure.setWidth(measureWidth,'estimateMeasureWidth adjX adjRight gravity: '+gravity);
+  measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight ');
 
     // Calculate the space for left/right text which displaces the measure.
     // var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
