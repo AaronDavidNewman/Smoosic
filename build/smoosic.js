@@ -5720,7 +5720,7 @@ class SuiScoreViewOperations extends SuiScoreView {
   }
   removeStaff() {
     this._undoScore('Remove Instrument');
-    if (this.storeScore.staves.length < 2 || this.viewScore.staves.length < 2) {
+    if (this.storeScore.staves.length < 2 || this.score.staves.length < 2) {
       return;
     }
     // if we are looking at a subset of the score,
