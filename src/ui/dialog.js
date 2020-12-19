@@ -193,16 +193,6 @@ class SuiDialogBase {
       trapper
     };
   }
-
-  // ### _commit
-  // generic logic to commit changes to a momdifier.
-  _commit() {
-    this.modifier.restoreOriginal();
-    this.components.forEach((component) => {
-      this.modifier[component.smoName] = component.getValue();
-    });
-  }
-
   // ### Complete
   // Dialogs take over the keyboard, so release that and trigger an event
   // that the dialog is closing that can resolve any outstanding promises.
@@ -273,12 +263,10 @@ class SuiDialogBase {
     this.bindKeyboard();
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      self._commit();
       self.complete();
     });
 
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      self.modifier.restoreOriginal();
       self.complete();
     });
     $(dgDom.element).find('.remove-button').off('click').on('click', () => {

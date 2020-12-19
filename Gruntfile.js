@@ -3,7 +3,7 @@ module.exports = function (grunt) {
   const LINTS = ['src/smo/data/measure.js','src/smo/data/note.js','src/smo/data/score.js',
   'src/smo/xform/beamers.js',
   'src/smo/data/noteModifiers.js','src/smo/data/systemStaff.js','src/smo/data/scoreModifiers.js',
-  'src/smo/data/tuplet.js',
+  'src/smo/data/tuplet.js','src/smo/data/staffModifiers.js',
   'src/smo/xform/undo.js',
   'src/smo/xform/copypaste.js','src/smo/xform/selections.js',
   'src/render/vex/vxMeasure.js','src/render/sui/renderState.js', 'src/render/sui/scoreRender.js',
@@ -13,7 +13,7 @@ module.exports = function (grunt) {
   'src/ui/ribbon.js', 'src/ui/menus.js', 'src/ui/dialog.js', 'src/ui/dialogComponents.js', 'src/ui/dialogs/scoreDialogs.js',
    'src/ui/dialogs/fontComponent.js', 'src/ui/dialogs/staffComponent.js',
    'src/ui/dialogs/textDialogs.js',
-   'src/ui/dialogs/measureDialogs.js',
+   'src/ui/dialogs/measureDialogs.js','src/ui/dialogs/staffDialogs.js',
    'src/ui/dialogs/fileDialogs.js']
   const SOURCES = ['src/**/*.js','!src/test/*.js'];
   const TESTSRC = ['src/test/*.js']

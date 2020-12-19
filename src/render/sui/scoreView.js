@@ -112,6 +112,11 @@ class SuiScoreView {
       this.renderer.addToReplaceQueue(measureSelection);
     });
   }
+  _renderRectangle(fromSelector, toSelector) {
+    this._getRectangleSelections(fromSelector, toSelector).forEach((s) => {
+      this.renderer.addToReplaceQueue(s.viewSelection);
+    });
+  }
 
   // ###_renderChangedMeasures
   // Setup undo for operation that affects the whole score
@@ -131,9 +136,25 @@ class SuiScoreView {
     return SmoSelection.pitchSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
       selection.selector.tick, selection.selector.pitches);
   }
+  _removeStandardModifier(modifier) {
+    $(this.renderer.context.svg).find('g.' + modifier.attrs.id).remove();
+  }
 
   _getEquivalentGraceNote(selection, gn) {
     return selection.note.getGraceNotes().find((gg) => gg.attrs.id === gn.attrs.id);
+  }
+  _getRectangleSelections(startSelector, endSelector) {
+    const rv = [];
+    let i = 0;
+    let j = 0;
+    for (i = startSelector.staff; i <= endSelector.staff; i++) {
+      for (j = startSelector.measure; j <= endSelector.measure; j++) {
+        const target = SmoSelection.measureSelection(this.score, i, j);
+        const altTarget = this._getEquivalentSelection(target);
+        rv.push({ viewSelection: target, storeSelection: altTarget });
+      }
+    }
+    return rv;
   }
 
   static get Instance() {

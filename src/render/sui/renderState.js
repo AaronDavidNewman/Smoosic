@@ -537,7 +537,7 @@ class SuiRenderState {
     } else if (SuiRenderState.passStates.initial === this.passState) {
       this.layout();
       this._drawPageLines();
-      this.setPassState(SuiRenderState.passStates.clean);
+      this.setPassState(SuiRenderState.passStates.clean, 'rs: complete render');
     }
     this.dirty = false;
   }

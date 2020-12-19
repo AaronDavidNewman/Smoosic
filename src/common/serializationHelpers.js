@@ -182,7 +182,9 @@ class smoSerialize {
       "bf": "startBar",
       "cf": "endBar",
       "df": "endingId",
-      "ef": "autoJustify"
+      "ef": "autoJustify",
+      "ff": "thickness",
+      "gf": "number"
      }`;
      return JSON.parse(_tm);
     }

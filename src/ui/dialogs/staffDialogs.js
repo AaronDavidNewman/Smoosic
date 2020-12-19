@@ -1,28 +1,18 @@
+// eslint-disable-next-line no-unused-vars
 class SuiStaffModifierDialog extends SuiDialogBase {
   handleRemove() {
-    var selection = SmoSelection.measureSelection(this.view.renderer.score, this.modifier.startSelector.staff,
-      this.modifier.startSelector.measure);
-    SmoUndoable.staffSelectionOp(this.view.score, selection, 'removeStaffModifier', this.modifier, this.view.undoBuffer, 'remove slur');
-    this.tracker.clearModifierSelections();
-  }
-
-  _preview() {
-    this.modifier.backupOriginal();
-    this.components.forEach((component) => {
-      this.modifier[component.smoName] = component.getValue();
-    });
-    this.view.renderer.renderStaffModifierPreview(this.modifier)
+    this.view.removeStaffModifier(this.modifier);
   }
 
   changed() {
-    this.modifier.backupOriginal();
     this.components.forEach((component) => {
       this.modifier[component.smoName] = component.getValue();
     });
-    this.view.renderer.renderStaffModifierPreview(this.modifier);
+    this.view.addOrUpdateStaffModifier(this.modifier);
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiSlurAttributesDialog.ctor;
@@ -33,8 +23,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
 
   static get dialogElements() {
     SuiSlurAttributesDialog._dialogElements = SuiSlurAttributesDialog._dialogElements ? SuiSlurAttributesDialog._dialogElements :
-    [
-      {
+      [{
         staticText: [
           { label: 'Slur Properties' }
         ]
@@ -67,13 +56,12 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
         parameterName: 'position',
         defaultValue: SmoSlur.positions.HEAD,
         options: [{
-            value: SmoSlur.positions.HEAD,
-            label: 'Head'
-          }, {
-            value: SmoSlur.positions.TOP,
-            label: 'Top'
-          }
-        ],
+          value: SmoSlur.positions.HEAD,
+          label: 'Head'
+        }, {
+          value: SmoSlur.positions.TOP,
+          label: 'Top'
+        }],
         control: 'SuiDropdownComponent',
         label: 'Start Position'
       }, {
@@ -86,8 +74,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
         }, {
           value: SmoSlur.positions.TOP,
           label: 'Top'
-        }
-        ],
+        }],
         control: 'SuiDropdownComponent',
         label: 'End Position'
       }, {
@@ -120,8 +107,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
         defaultValue: 40,
         control: 'SuiRockerComponent',
         label: 'Control Point 2 Y'
-      }
-    ];
+      }];
     return SuiSlurAttributesDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
@@ -131,7 +117,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   }
   constructor(parameters) {
     if (!parameters.modifier) {
-        throw new Error('modifier attribute dialog must have modifier');
+      throw new Error('modifier attribute dialog must have modifier');
     }
 
     super(SuiSlurAttributesDialog.dialogElements, {
@@ -139,14 +125,14 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
       top: parameters.modifier.renderedBox.y,
       left: parameters.modifier.renderedBox.x,
       label: 'Slur Properties',
-     ...parameters
+      ...parameters
     });
     Vex.Merge(this, parameters);
     this.completeNotifier.unbindKeyboardForModal(this);
   }
   populateInitial() {
     this.components.forEach((comp) => {
-      if (typeof(this.modifier[comp.smoName]) != 'undefined') {
+      if (typeof(this.modifier[comp.smoName]) !== 'undefined') {
         comp.setValue(this.modifier[comp.smoName]);
       }
     });
@@ -156,7 +142,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
     this.populateInitial();
   }
 }
-
+// eslint-disable-next-line no-unused-vars
 class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiVoltaAttributeDialog.ctor;
@@ -166,21 +152,20 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
   }
   static get label() {
     SuiVoltaAttributeDialog._label = SuiVoltaAttributeDialog._label ?
-        SuiVoltaAttributeDialog._label : 'Volta Properties';
+      SuiVoltaAttributeDialog._label : 'Volta Properties';
     return SuiVoltaAttributeDialog._label;
   }
   static set label(value) {
     SuiVoltaAttributeDialog._label = value;
   }
 
- static get dialogElements() {
+  static get dialogElements() {
     SuiVoltaAttributeDialog._dialogElements = SuiVoltaAttributeDialog._dialogElements ? SuiVoltaAttributeDialog._dialogElements :
       [{
         staticText: [
-          {label: 'Volta Properties'}
+          { label: 'Volta Properties' }
         ]
-      },
-      {
+      }, {
         parameterName: 'number',
         smoName: 'number',
         defaultValue: 1,
@@ -204,47 +189,22 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
         defaultValue: 0,
         control: 'SuiRockerComponent',
         label: 'Y Offset'
-      }
-   ];
-
-   return SuiVoltaAttributeDialog._dialogElements;
- }
- static createAndDisplay(parameters) {
-    var dg = new SuiVoltaAttributeDialog(parameters);
+      }];
+    return SuiVoltaAttributeDialog._dialogElements;
+  }
+  static createAndDisplay(parameters) {
+    const dg = new SuiVoltaAttributeDialog(parameters);
     dg.display();
     return dg;
   }
-handleRemove() {
-  this.view.undoBuffer.addBuffer('Remove nth ending', UndoBuffer.bufferTypes.SCORE, null, this.view.score);
-  this.view.score.staves.forEach((staff) => {
-    staff.measures.forEach((measure) => {
-      if (measure.measureNumber.measureNumber === this.modifier.startBar) {
-        measure.removeNthEnding(this.modifier.number);
-      }
-     });
-  });
-  this.selection.staff.removeStaffModifier(this.modifier);
- }
-  _commit() {
-    this.modifier.restoreOriginal();
-    this.view.score.staves.forEach((staff) => {
-      staff.measures.forEach((measure) => {
-        if (measure.measureNumber.measureNumber === this.modifier.startBar) {
-          var endings = measure.getNthEndings().filter((mm) => {
-            return mm.endingId === this.modifier.endingId;
-          });
-          if (endings.length) {
-            endings.forEach((ending) => {
-              this.components.forEach((component) => {
-                ending[component.smoName] = component.getValue();
-              });
-            });
-          }
-        }
-      });
+  handleRemove() {
+    this.view.removeEnding(this.modifier);
+  }
+  changed() {
+    this.components.forEach((component) => {
+      this.modifier[component.smoName] = component.getValue();
     });
-
-    this.view.renderer.renderStaffModifierPreview(this.modifier);
+    this.view.updateEnding(this.modifier);
   }
   constructor(parameters) {
     if (!parameters.modifier) {
@@ -252,10 +212,10 @@ handleRemove() {
     }
 
     super(SuiVoltaAttributeDialog.dialogElements, {
-        id: 'dialog-' + parameters.modifier.attrs.id,
-        top: parameters.modifier.renderedBox.y,
-        left: parameters.modifier.renderedBox.x,
-        ...parameters
+      id: 'dialog-' + parameters.modifier.attrs.id,
+      top: parameters.modifier.renderedBox.y,
+      left: parameters.modifier.renderedBox.x,
+      ...parameters
     });
     Vex.Merge(this, parameters);
     this.selection = SmoSelection.measureSelection(this.view.score, this.modifier.startSelector.staff, this.modifier.startSelector.measure);
@@ -270,7 +230,7 @@ handleRemove() {
     this.completeNotifier.unbindKeyboardForModal(this);
   }
 }
-
+// eslint-disable-next-line no-unused-vars
 class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiHairpinAttributesDialog.ctor;
@@ -289,13 +249,11 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   }
   static get dialogElements() {
     SuiHairpinAttributesDialog._dialogElements = SuiHairpinAttributesDialog._dialogElements ? SuiHairpinAttributesDialog._dialogElements :
-    [
-      {
+      [{
         staticText: [
           { label: 'Hairpin Properties' }
         ]
-      },
-      {
+      }, {
         parameterName: 'height',
         smoName: 'height',
         defaultValue: 10,
@@ -319,8 +277,7 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
         defaultValue: 0,
         control: 'SuiRockerComponent',
         label: 'Left Shift'
-      }
-    ];
+      }];
 
     return SuiHairpinAttributesDialog._dialogElements;
   }
@@ -347,7 +304,6 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
         comp.defaultValue = this.modifier[attr];
       }
     });
-
     this.completeNotifier.unbindKeyboardForModal(this);
   }
 }

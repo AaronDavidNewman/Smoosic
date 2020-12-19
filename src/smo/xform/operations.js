@@ -298,8 +298,11 @@ class SmoOperation {
     return true;
   }
 
-  static removeStaffModifier(selection,modifier) {
+  static removeStaffModifier(selection, modifier) {
     selection.staff.removeStaffModifier(modifier);
+  }
+  static addStaffModifier(selection, modifier) {
+    selection.staff.addStaffModifier(modifier);
   }
 
   static makeRest(selection) {
@@ -724,6 +727,15 @@ class SmoOperation {
     });
   }
 
+  static removeEnding(score, ending) {
+    let i = 0;
+    score.staves.forEach((staff) => {
+      for (i = ending.startSelector.measure; i < ending.endSelector.measure; ++i) {
+        staff.measures[i].removeNthEnding(ending.number);
+      }
+    });
+  }
+
   static addScoreText(score,scoreText) {
     score.addScoreText(scoreText);
   }
@@ -740,16 +752,16 @@ class SmoOperation {
   }
 
   static addMeasureText(score,selection,measureText) {
-        var current = selection.measure.getMeasureText();
-        // TODO: should we allow multiples per position
-        current.forEach((mod) => {
-            selection.measure.removeMeasureText(mod.attrs.id);
-        });
-  selection.measure.addMeasureText(measureText);
+    const current = selection.measure.getMeasureText();
+    // TODO: should we allow multiples per position
+    current.forEach((mod) => {
+        selection.measure.removeMeasureText(mod.attrs.id);
+    });
+    selection.measure.addMeasureText(measureText);
   }
 
   static removeMeasureText(score,selection,mt) {
-  selection.measure.removeMeasureText(mt.attrs.id);
+    selection.measure.removeMeasureText(mt.attrs.id);
   }
 
   static addSystemText(score, selection, measureText) {

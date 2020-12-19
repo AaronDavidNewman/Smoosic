@@ -1261,7 +1261,9 @@ class smoSerialize {
       "bf": "startBar",
       "cf": "endBar",
       "df": "endingId",
-      "ef": "autoJustify"
+      "ef": "autoJustify",
+      "ff": "thickness",
+      "gf": "number"
      }`;
      return JSON.parse(_tm);
     }
@@ -4272,7 +4274,7 @@ class SuiRenderState {
     } else if (SuiRenderState.passStates.initial === this.passState) {
       this.layout();
       this._drawPageLines();
-      this.setPassState(SuiRenderState.passStates.clean);
+      this.setPassState(SuiRenderState.passStates.clean, 'rs: complete render');
     }
     this.dirty = false;
   }
@@ -4810,6 +4812,11 @@ class SuiScoreView {
       this.renderer.addToReplaceQueue(measureSelection);
     });
   }
+  _renderRectangle(fromSelector, toSelector) {
+    this._getRectangleSelections(fromSelector, toSelector).forEach((s) => {
+      this.renderer.addToReplaceQueue(s.viewSelection);
+    });
+  }
 
   // ###_renderChangedMeasures
   // Setup undo for operation that affects the whole score
@@ -4829,9 +4836,25 @@ class SuiScoreView {
     return SmoSelection.pitchSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
       selection.selector.tick, selection.selector.pitches);
   }
+  _removeStandardModifier(modifier) {
+    $(this.renderer.context.svg).find('g.' + modifier.attrs.id).remove();
+  }
 
   _getEquivalentGraceNote(selection, gn) {
     return selection.note.getGraceNotes().find((gg) => gg.attrs.id === gn.attrs.id);
+  }
+  _getRectangleSelections(startSelector, endSelector) {
+    const rv = [];
+    let i = 0;
+    let j = 0;
+    for (i = startSelector.staff; i <= endSelector.staff; i++) {
+      for (j = startSelector.measure; j <= endSelector.measure; j++) {
+        const target = SmoSelection.measureSelection(this.score, i, j);
+        const altTarget = this._getEquivalentSelection(target);
+        rv.push({ viewSelection: target, storeSelection: altTarget });
+      }
+    }
+    return rv;
   }
 
   static get Instance() {
@@ -5443,36 +5466,26 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._renderChangedMeasures(measureSelections);
   }
   setMeasureProportion(value) {
-    let i = 0;
-    let j = 0;
     const selection = this.tracker.selections[0];
     const rect = this._getRectangleFromStaffGroup(selection);
     this._undoRectangle('Set measure proportion', rect.startSelector, rect.endSelector);
-    for (i = rect.startSelector.staff; i <= rect.endSelector.staff; i++) {
-      for (j = rect.startSelector.measure; j <= rect.endSelector.measure; j++) {
-        const target = SmoSelection.measureSelection(this.score, i, j);
-        const altTarget = this._getEquivalentSelection(target);
-        this.renderer.addToReplaceQueue(target);
-        SmoOperation.setMeasureProportion(target, value);
-        SmoOperation.setMeasureProportion(altTarget, value);
-      }
-    }
+    const rs = _getRectangleSelections(rect.startSelector, rect.endSelector);
+    rs.forEach((s) => {
+      this.renderer.addToReplaceQueue(s.viewSelection);
+      SmoOperation.setMeasureProportion(s.viewSelection, value);
+      SmoOperation.setMeasureProportion(s.storeSelection, value);
+    });
   }
   setAutoJustify(value) {
-    let i = 0;
-    let j = 0;
     const selection = this.tracker.selections[0];
     const rect = this._getRectangleFromStaffGroup(selection);
     this._undoRectangle('Set measure proportion', rect.startSelector, rect.endSelector);
-    for (i = rect.startSelector.staff; i <= rect.endSelector.staff; i++) {
-      for (j = rect.startSelector.measure; j <= rect.endSelector.measure; j++) {
-        const target = SmoSelection.measureSelection(this.score, i, j);
-        const altTarget = this._getEquivalentSelection(target);
-        this.renderer.addToReplaceQueue(target);
-        SmoOperation.setAutoJustify(this.score, target, value);
-        SmoOperation.setAutoJustify(this.storeScore, altTarget, value);
-      }
-    }
+    const rs = _getRectangleSelections(rect.startSelector, rect.endSelector);
+    rs.forEach((s) => {
+      this.renderer.addToReplaceQueue(s.viewSelection);
+      SmoOperation.setAutoJustify(this.score, s.viewSelection, value);
+      SmoOperation.setAutoJustify(this.storeScore, s.storeSelection, value);
+    });
   }
   setCollisionAvoidance(value) {
     const selection = this.tracker.selections[0];
@@ -5516,6 +5529,23 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.addEnding(this.score, volta);
     this.renderer.setRefresh();
   }
+  updateEnding(ending) {
+    this._undoScore('Change Volta');
+    $(this.renderer.context.svg).find('g.' + ending.attrs.id).remove();
+    SmoOperation.removeEnding(this.storeScore, ending);
+    SmoOperation.removeEnding(this.score, ending);
+    const altVolta = new SmoVolta(ending);
+    SmoOperation.addEnding(this.storeScore, altVolta);
+    SmoOperation.addEnding(this.score, ending);
+    this.renderer.setRefresh();
+  }
+  removeEnding(ending) {
+    this._undoScore('Remove Volta');
+    $(this.renderer.context.svg).find('g.' + ending.attrs.id).remove();
+    SmoOperation.removeEnding(this.storeScore, ending);
+    SmoOperation.removeEnding(this.score, ending);
+    this.renderer.setRefresh();
+  }
   setBarline(position, barline) {
     const obj = new SmoBarline({ position, barline });
     const altObj = new SmoBarline({ position, barline });
@@ -5541,6 +5571,48 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation[cmd](this.score, selection, new SmoRehearsalMark());
     SmoOperation[cmd](this.storeScore, altSelection, new SmoRehearsalMark());
     this._renderChangedMeasures(selection);
+  }
+  _removeStaffModifier(viewSelection, scoreSelection, modifier) {
+    SmoOperation.removeStaffModifier(viewSelection, modifier);
+
+    // Look up the selector based on the start/end selector of the view score
+    // modifier, adjusted for any staff offset
+    const testSelector = JSON.parse(JSON.stringify(modifier.endSelector));
+    testSelector.staff = scoreSelection.selector.staff;
+    const altMod = scoreSelection.staff.getModifiersAt(
+      scoreSelection.selector)
+      .find((mod) => mod.attrs.type === modifier.attrs.type &&
+        SmoSelector.eq(testSelector, mod.endSelector));
+    if (altMod) {
+      SmoOperation.removeStaffModifier(scoreSelection, altMod);
+    }
+  }
+  removeStaffModifier(modifier) {
+    this._undoRectangle('Set measure proportion', modifier.startSelector,
+      modifier.endSelector);
+    const sel = SmoSelection.noteFromSelector(this.score, modifier.startSelector);
+    const altSel = this._getEquivalentSelection(sel);
+    this._removeStaffModifier(sel, altSel, modifier);
+    this._removeStandardModifier(modifier);
+    this._renderRectangle(modifier.startSelector, modifier.endSelector);
+  }
+  addOrUpdateStaffModifier(modifier) {
+    this._undoRectangle('Set measure proportion', modifier.startSelector, modifier.endSelector);
+    const sel = SmoSelection.noteFromSelector(this.score, modifier.startSelector);
+    const altSel = this._getEquivalentSelection(sel);
+    this._removeStaffModifier(sel, altSel, modifier);
+    SmoOperation.addStaffModifier(sel, modifier);
+
+    // Create a modifier but with the model score staff ids
+    const altFrom = JSON.parse(JSON.stringify(modifier.startSelector));
+    const altTo = JSON.parse(JSON.stringify(modifier.endSelector));
+    altFrom.staff = altSel.selector.staff;
+    altTo.staff = altSel.selector.staff;
+    const altModifier = StaffModifierBase.deserialize(modifier.serialize());
+    altModifier.startSelector = altFrom;
+    SmoOperation.addStaffModifier(altSel, modifier);
+    altModifier.endSelector = altTo;
+    this._renderRectangle(modifier.startSelector, modifier.endSelector);
   }
   _lineOperation(op) {
     if (this.tracker.selections.length < 2) {
@@ -13350,8 +13422,7 @@ class SmoScoreText extends SmoScoreModifierBase {
     this.fontInfo.weight = SmoScoreText.weightString(weight);
   }
 }
-;
-// ## StaffModifiers
+;// ## StaffModifiers
 // ## Description:
 // This file contains modifiers that might take up multiple measures, and are thus associated
 // with the staff.
@@ -13360,71 +13431,25 @@ class SmoScoreText extends SmoScoreModifierBase {
 // ## StaffModifierBase
 // ## Description:
 // Base class that mostly standardizes the interface and deals with serialization.
+// eslint-disable-next-line no-unused-vars
 class StaffModifierBase {
-    constructor(ctor) {
-      this.ctor = ctor;
-    }
-    static deserialize(params) {
-      var ctor = eval(params.ctor);
-      var rv = new ctor(params);
-		return rv;
-    }
+  constructor(ctor) {
+    this.ctor = ctor;
+  }
+  static deserialize(params) {
+    const ctor = eval(params.ctor);
+    const rv = new ctor(params);
+    return rv;
+  }
 }
 
 // ## SmoStaffHairpin
 // ## Descpription:
 // crescendo/decrescendo
+// eslint-disable-next-line no-unused-vars
 class SmoStaffHairpin extends StaffModifierBase {
-  constructor(params) {
-    super('SmoStaffHairpin');
-    Vex.Merge(this, SmoStaffHairpin.defaults);
-    smoSerialize.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
-    this.startSelector = params.startSelector;
-    this.endSelector = params.endSelector;
-
-    if (!this['attrs']) {
-      this.attrs = {
-        id: VF.Element.newID(),
-        type: 'SmoStaffHairpin'
-      };
-    } else {
-      console.log('inherit attrs');
-    }
-  }
-	static get editableAttributes() {
-		return ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height'];
-	}
-  static get attributes() {
-    return ['position', 'startSelector','endSelector','xOffset', 'yOffset', 'hairpinType', 'height'];
-  }
-  serialize() {
-    const params = {};
-    smoSerialize.serializedMergeNonDefault(SmoStaffHairpin.defaults,SmoStaffHairpin.attributes,this,params);
-    params.ctor = 'SmoStaffHairpin';
-    return params;
-  }
-  get id() {
-    return this.attrs.id;
-  }
-  get type() {
-    return this.attrs.type;
-  }
-
-  backupOriginal() {
-    if (!this['original']) {
-      this.original = {};
-      smoSerialize.filteredMerge(
-        ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height', 'position', 'hairpinType'],
-        this, this.original);
-    }
-  }
-  restoreOriginal() {
-    if (this['original']) {
-      smoSerialize.filteredMerge(
-        ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height', 'position', 'hairpinType'],
-        this.original, this);
-      this.original = null;
-    }
+  static get editableAttributes() {
+    return ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height'];
   }
   static get defaults() {
     return {
@@ -13451,6 +13476,28 @@ class SmoStaffHairpin extends StaffModifierBase {
       DECRESCENDO: 2
     };
   }
+  static get attributes() {
+    return ['position', 'startSelector', 'endSelector', 'xOffsetLeft',
+      'xOffsetRight', 'yOffset', 'hairpinType', 'height'];
+  }
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoStaffHairpin.defaults, SmoStaffHairpin.attributes, this, params);
+    params.ctor = 'SmoStaffHairpin';
+    return params;
+  }
+  constructor(params) {
+    super('SmoStaffHairpin');
+    Vex.Merge(this, SmoStaffHairpin.defaults);
+    smoSerialize.filteredMerge(SmoStaffHairpin.attributes, params, this);
+
+    if (!this.attrs) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoStaffHairpin'
+      };
+    }
+  }
 }
 
 // ## SmoSlur
@@ -13458,6 +13505,7 @@ class SmoStaffHairpin extends StaffModifierBase {
 // slur staff modifier
 // ## SmoSlur Methods:
 // ---
+// eslint-disable-next-line no-unused-vars
 class SmoSlur extends StaffModifierBase {
   static get defaults() {
     return {
@@ -13472,8 +13520,8 @@ class SmoSlur extends StaffModifierBase {
       cp1y: 15,
       cp2x: 0,
       cp2y: 15,
-      pitchesStart:[],
-      pitchesEnd:[]
+      pitchesStart: [],
+      pitchesEnd: []
     };
   }
 
@@ -13486,56 +13534,36 @@ class SmoSlur extends StaffModifierBase {
   }
   static get parameterArray() {
     return ['startSelector', 'endSelector', 'spacing', 'xOffset', 'yOffset', 'position', 'position_end', 'invert',
-        'cp1x', 'cp1y', 'cp2x', 'cp2y', 'thickness', 'pitchesStart', 'pitchesEnd'];
+      'cp1x', 'cp1y', 'cp2x', 'cp2y', 'thickness', 'pitchesStart', 'pitchesEnd'];
   }
 
   serialize() {
     const params = {};
     smoSerialize.serializedMergeNonDefault(SmoSlur.defaults,
-      SmoSlur.parameterArray,this,params);
+      SmoSlur.parameterArray, this, params);
 
     params.ctor = 'SmoSlur';
     return params;
   }
-
-  backupOriginal() {
-    if (!this['original']) {
-      this.original = {};
-      smoSerialize.filteredMerge(
-        SmoSlur.parameterArray,
-        this, this.original);
-    }
-  }
-  restoreOriginal() {
-    if (this['original']) {
-      smoSerialize.filteredMerge(
-        SmoSlur.parameterArray,
-        this.original, this);
-      this.original = null;
-    }
-  }
   get controlPoints() {
     const ar = [{
-        x: this.cp1x,
-        y: this.cp1y
-      }, {
-        x: this.cp2x,
-        y: this.cp2y
-      }
-    ];
-  return ar;
+      x: this.cp1x,
+      y: this.cp1y
+    }, {
+      x: this.cp2x,
+      y: this.cp2y
+    }];
+    return ar;
   }
 
   constructor(params) {
     super('SmoSlur');
-    smoSerialize.serializedMerge(SmoSlur.parameterArray,SmoSlur.defaults,this);
+    smoSerialize.serializedMerge(SmoSlur.parameterArray, SmoSlur.defaults, this);
     smoSerialize.serializedMerge(SmoSlur.parameterArray, params, this);
     this.startSelector = params.startSelector;
     this.endSelector = params.endSelector;
-
     // TODO: allow user to customize these
-
-    if (!this['attrs']) {
+    if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),
         type: 'SmoSlur'
@@ -15305,8 +15333,11 @@ class SmoOperation {
     return true;
   }
 
-  static removeStaffModifier(selection,modifier) {
+  static removeStaffModifier(selection, modifier) {
     selection.staff.removeStaffModifier(modifier);
+  }
+  static addStaffModifier(selection, modifier) {
+    selection.staff.addStaffModifier(modifier);
   }
 
   static makeRest(selection) {
@@ -15731,6 +15762,15 @@ class SmoOperation {
     });
   }
 
+  static removeEnding(score, ending) {
+    let i = 0;
+    score.staves.forEach((staff) => {
+      for (i = ending.startSelector.measure; i < ending.endSelector.measure; ++i) {
+        staff.measures[i].removeNthEnding(ending.number);
+      }
+    });
+  }
+
   static addScoreText(score,scoreText) {
     score.addScoreText(scoreText);
   }
@@ -15747,16 +15787,16 @@ class SmoOperation {
   }
 
   static addMeasureText(score,selection,measureText) {
-        var current = selection.measure.getMeasureText();
-        // TODO: should we allow multiples per position
-        current.forEach((mod) => {
-            selection.measure.removeMeasureText(mod.attrs.id);
-        });
-  selection.measure.addMeasureText(measureText);
+    const current = selection.measure.getMeasureText();
+    // TODO: should we allow multiples per position
+    current.forEach((mod) => {
+        selection.measure.removeMeasureText(mod.attrs.id);
+    });
+    selection.measure.addMeasureText(measureText);
   }
 
   static removeMeasureText(score,selection,mt) {
-  selection.measure.removeMeasureText(mt.attrs.id);
+    selection.measure.removeMeasureText(mt.attrs.id);
   }
 
   static addSystemText(score, selection, measureText) {
@@ -24169,16 +24209,6 @@ class SuiDialogBase {
       trapper
     };
   }
-
-  // ### _commit
-  // generic logic to commit changes to a momdifier.
-  _commit() {
-    this.modifier.restoreOriginal();
-    this.components.forEach((component) => {
-      this.modifier[component.smoName] = component.getValue();
-    });
-  }
-
   // ### Complete
   // Dialogs take over the keyboard, so release that and trigger an event
   // that the dialog is closing that can resolve any outstanding promises.
@@ -24249,12 +24279,10 @@ class SuiDialogBase {
     this.bindKeyboard();
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      self._commit();
       self.complete();
     });
 
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      self.modifier.restoreOriginal();
       self.complete();
     });
     $(dgDom.element).find('.remove-button').off('click').on('click', () => {
@@ -26458,32 +26486,21 @@ class StaffCheckComponent extends SuiComponentBase {
     });
   }
 }
-;class SuiStaffModifierDialog extends SuiDialogBase {
+;// eslint-disable-next-line no-unused-vars
+class SuiStaffModifierDialog extends SuiDialogBase {
   handleRemove() {
-    $(this.view.context.svg).find('g.' + this.modifier.attrs.id).remove();
-    var selection = SmoSelection.measureSelection(this.view.renderer.score, this.modifier.startSelector.staff,
-      this.modifier.startSelector.measure);
-    SmoUndoable.staffSelectionOp(this.view.score, selection, 'removeStaffModifier', this.modifier, this.view.undoBuffer, 'remove slur');
-    this.tracker.clearModifierSelections();
-  }
-
-  _preview() {
-    this.modifier.backupOriginal();
-    this.components.forEach((component) => {
-      this.modifier[component.smoName] = component.getValue();
-    });
-    this.view.renderer.renderStaffModifierPreview(this.modifier)
+    this.view.removeStaffModifier(this.modifier);
   }
 
   changed() {
-    this.modifier.backupOriginal();
     this.components.forEach((component) => {
       this.modifier[component.smoName] = component.getValue();
     });
-    this.view.renderer.renderStaffModifierPreview(this.modifier);
+    this.view.addOrUpdateStaffModifier(this.modifier);
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiSlurAttributesDialog.ctor;
@@ -26494,8 +26511,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
 
   static get dialogElements() {
     SuiSlurAttributesDialog._dialogElements = SuiSlurAttributesDialog._dialogElements ? SuiSlurAttributesDialog._dialogElements :
-    [
-      {
+      [{
         staticText: [
           { label: 'Slur Properties' }
         ]
@@ -26528,13 +26544,12 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
         parameterName: 'position',
         defaultValue: SmoSlur.positions.HEAD,
         options: [{
-            value: SmoSlur.positions.HEAD,
-            label: 'Head'
-          }, {
-            value: SmoSlur.positions.TOP,
-            label: 'Top'
-          }
-        ],
+          value: SmoSlur.positions.HEAD,
+          label: 'Head'
+        }, {
+          value: SmoSlur.positions.TOP,
+          label: 'Top'
+        }],
         control: 'SuiDropdownComponent',
         label: 'Start Position'
       }, {
@@ -26547,8 +26562,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
         }, {
           value: SmoSlur.positions.TOP,
           label: 'Top'
-        }
-        ],
+        }],
         control: 'SuiDropdownComponent',
         label: 'End Position'
       }, {
@@ -26581,8 +26595,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
         defaultValue: 40,
         control: 'SuiRockerComponent',
         label: 'Control Point 2 Y'
-      }
-    ];
+      }];
     return SuiSlurAttributesDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
@@ -26592,7 +26605,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   }
   constructor(parameters) {
     if (!parameters.modifier) {
-        throw new Error('modifier attribute dialog must have modifier');
+      throw new Error('modifier attribute dialog must have modifier');
     }
 
     super(SuiSlurAttributesDialog.dialogElements, {
@@ -26600,14 +26613,14 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
       top: parameters.modifier.renderedBox.y,
       left: parameters.modifier.renderedBox.x,
       label: 'Slur Properties',
-     ...parameters
+      ...parameters
     });
     Vex.Merge(this, parameters);
     this.completeNotifier.unbindKeyboardForModal(this);
   }
   populateInitial() {
     this.components.forEach((comp) => {
-      if (typeof(this.modifier[comp.smoName]) != 'undefined') {
+      if (typeof(this.modifier[comp.smoName]) !== 'undefined') {
         comp.setValue(this.modifier[comp.smoName]);
       }
     });
@@ -26617,7 +26630,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
     this.populateInitial();
   }
 }
-
+// eslint-disable-next-line no-unused-vars
 class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiVoltaAttributeDialog.ctor;
@@ -26627,21 +26640,20 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
   }
   static get label() {
     SuiVoltaAttributeDialog._label = SuiVoltaAttributeDialog._label ?
-        SuiVoltaAttributeDialog._label : 'Volta Properties';
+      SuiVoltaAttributeDialog._label : 'Volta Properties';
     return SuiVoltaAttributeDialog._label;
   }
   static set label(value) {
     SuiVoltaAttributeDialog._label = value;
   }
 
- static get dialogElements() {
+  static get dialogElements() {
     SuiVoltaAttributeDialog._dialogElements = SuiVoltaAttributeDialog._dialogElements ? SuiVoltaAttributeDialog._dialogElements :
       [{
         staticText: [
-          {label: 'Volta Properties'}
+          { label: 'Volta Properties' }
         ]
-      },
-      {
+      }, {
         parameterName: 'number',
         smoName: 'number',
         defaultValue: 1,
@@ -26665,48 +26677,22 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
         defaultValue: 0,
         control: 'SuiRockerComponent',
         label: 'Y Offset'
-      }
-   ];
-
-   return SuiVoltaAttributeDialog._dialogElements;
- }
- static createAndDisplay(parameters) {
-    var dg = new SuiVoltaAttributeDialog(parameters);
+      }];
+    return SuiVoltaAttributeDialog._dialogElements;
+  }
+  static createAndDisplay(parameters) {
+    const dg = new SuiVoltaAttributeDialog(parameters);
     dg.display();
     return dg;
   }
-handleRemove() {
-  this.view.undoBuffer.addBuffer('Remove nth ending', UndoBuffer.bufferTypes.SCORE, null, this.view.score);
-  this.view.score.staves.forEach((staff) => {
-    staff.measures.forEach((measure) => {
-      if (measure.measureNumber.measureNumber === this.modifier.startBar) {
-        measure.removeNthEnding(this.modifier.number);
-      }
-     });
-  });
-  $(this.view.context.svg).find('g.' + this.modifier.endingId).remove();
-  this.selection.staff.removeStaffModifier(this.modifier);
- }
-  _commit() {
-    this.modifier.restoreOriginal();
-    this.view.score.staves.forEach((staff) => {
-      staff.measures.forEach((measure) => {
-        if (measure.measureNumber.measureNumber === this.modifier.startBar) {
-          var endings = measure.getNthEndings().filter((mm) => {
-            return mm.endingId === this.modifier.endingId;
-          });
-          if (endings.length) {
-            endings.forEach((ending) => {
-              this.components.forEach((component) => {
-                ending[component.smoName] = component.getValue();
-              });
-            });
-          }
-        }
-      });
+  handleRemove() {
+    this.view.removeEnding(this.modifier);
+  }
+  changed() {
+    this.components.forEach((component) => {
+      this.modifier[component.smoName] = component.getValue();
     });
-
-    this.view.renderer.renderStaffModifierPreview(this.modifier);
+    this.view.updateEnding(this.modifier);
   }
   constructor(parameters) {
     if (!parameters.modifier) {
@@ -26714,10 +26700,10 @@ handleRemove() {
     }
 
     super(SuiVoltaAttributeDialog.dialogElements, {
-        id: 'dialog-' + parameters.modifier.attrs.id,
-        top: parameters.modifier.renderedBox.y,
-        left: parameters.modifier.renderedBox.x,
-        ...parameters
+      id: 'dialog-' + parameters.modifier.attrs.id,
+      top: parameters.modifier.renderedBox.y,
+      left: parameters.modifier.renderedBox.x,
+      ...parameters
     });
     Vex.Merge(this, parameters);
     this.selection = SmoSelection.measureSelection(this.view.score, this.modifier.startSelector.staff, this.modifier.startSelector.measure);
@@ -26732,7 +26718,7 @@ handleRemove() {
     this.completeNotifier.unbindKeyboardForModal(this);
   }
 }
-
+// eslint-disable-next-line no-unused-vars
 class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiHairpinAttributesDialog.ctor;
@@ -26751,13 +26737,11 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   }
   static get dialogElements() {
     SuiHairpinAttributesDialog._dialogElements = SuiHairpinAttributesDialog._dialogElements ? SuiHairpinAttributesDialog._dialogElements :
-    [
-      {
+      [{
         staticText: [
           { label: 'Hairpin Properties' }
         ]
-      },
-      {
+      }, {
         parameterName: 'height',
         smoName: 'height',
         defaultValue: 10,
@@ -26781,8 +26765,7 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
         defaultValue: 0,
         control: 'SuiRockerComponent',
         label: 'Left Shift'
-      }
-    ];
+      }];
 
     return SuiHairpinAttributesDialog._dialogElements;
   }
@@ -26809,7 +26792,6 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
         comp.defaultValue = this.modifier[attr];
       }
     });
-
     this.completeNotifier.unbindKeyboardForModal(this);
   }
 }

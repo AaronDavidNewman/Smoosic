@@ -495,36 +495,26 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._renderChangedMeasures(measureSelections);
   }
   setMeasureProportion(value) {
-    let i = 0;
-    let j = 0;
     const selection = this.tracker.selections[0];
     const rect = this._getRectangleFromStaffGroup(selection);
     this._undoRectangle('Set measure proportion', rect.startSelector, rect.endSelector);
-    for (i = rect.startSelector.staff; i <= rect.endSelector.staff; i++) {
-      for (j = rect.startSelector.measure; j <= rect.endSelector.measure; j++) {
-        const target = SmoSelection.measureSelection(this.score, i, j);
-        const altTarget = this._getEquivalentSelection(target);
-        this.renderer.addToReplaceQueue(target);
-        SmoOperation.setMeasureProportion(target, value);
-        SmoOperation.setMeasureProportion(altTarget, value);
-      }
-    }
+    const rs = _getRectangleSelections(rect.startSelector, rect.endSelector);
+    rs.forEach((s) => {
+      this.renderer.addToReplaceQueue(s.viewSelection);
+      SmoOperation.setMeasureProportion(s.viewSelection, value);
+      SmoOperation.setMeasureProportion(s.storeSelection, value);
+    });
   }
   setAutoJustify(value) {
-    let i = 0;
-    let j = 0;
     const selection = this.tracker.selections[0];
     const rect = this._getRectangleFromStaffGroup(selection);
     this._undoRectangle('Set measure proportion', rect.startSelector, rect.endSelector);
-    for (i = rect.startSelector.staff; i <= rect.endSelector.staff; i++) {
-      for (j = rect.startSelector.measure; j <= rect.endSelector.measure; j++) {
-        const target = SmoSelection.measureSelection(this.score, i, j);
-        const altTarget = this._getEquivalentSelection(target);
-        this.renderer.addToReplaceQueue(target);
-        SmoOperation.setAutoJustify(this.score, target, value);
-        SmoOperation.setAutoJustify(this.storeScore, altTarget, value);
-      }
-    }
+    const rs = _getRectangleSelections(rect.startSelector, rect.endSelector);
+    rs.forEach((s) => {
+      this.renderer.addToReplaceQueue(s.viewSelection);
+      SmoOperation.setAutoJustify(this.score, s.viewSelection, value);
+      SmoOperation.setAutoJustify(this.storeScore, s.storeSelection, value);
+    });
   }
   setCollisionAvoidance(value) {
     const selection = this.tracker.selections[0];
@@ -568,6 +558,23 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.addEnding(this.score, volta);
     this.renderer.setRefresh();
   }
+  updateEnding(ending) {
+    this._undoScore('Change Volta');
+    $(this.renderer.context.svg).find('g.' + ending.attrs.id).remove();
+    SmoOperation.removeEnding(this.storeScore, ending);
+    SmoOperation.removeEnding(this.score, ending);
+    const altVolta = new SmoVolta(ending);
+    SmoOperation.addEnding(this.storeScore, altVolta);
+    SmoOperation.addEnding(this.score, ending);
+    this.renderer.setRefresh();
+  }
+  removeEnding(ending) {
+    this._undoScore('Remove Volta');
+    $(this.renderer.context.svg).find('g.' + ending.attrs.id).remove();
+    SmoOperation.removeEnding(this.storeScore, ending);
+    SmoOperation.removeEnding(this.score, ending);
+    this.renderer.setRefresh();
+  }
   setBarline(position, barline) {
     const obj = new SmoBarline({ position, barline });
     const altObj = new SmoBarline({ position, barline });
@@ -593,6 +600,48 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation[cmd](this.score, selection, new SmoRehearsalMark());
     SmoOperation[cmd](this.storeScore, altSelection, new SmoRehearsalMark());
     this._renderChangedMeasures(selection);
+  }
+  _removeStaffModifier(viewSelection, scoreSelection, modifier) {
+    SmoOperation.removeStaffModifier(viewSelection, modifier);
+
+    // Look up the selector based on the start/end selector of the view score
+    // modifier, adjusted for any staff offset
+    const testSelector = JSON.parse(JSON.stringify(modifier.endSelector));
+    testSelector.staff = scoreSelection.selector.staff;
+    const altMod = scoreSelection.staff.getModifiersAt(
+      scoreSelection.selector)
+      .find((mod) => mod.attrs.type === modifier.attrs.type &&
+        SmoSelector.eq(testSelector, mod.endSelector));
+    if (altMod) {
+      SmoOperation.removeStaffModifier(scoreSelection, altMod);
+    }
+  }
+  removeStaffModifier(modifier) {
+    this._undoRectangle('Set measure proportion', modifier.startSelector,
+      modifier.endSelector);
+    const sel = SmoSelection.noteFromSelector(this.score, modifier.startSelector);
+    const altSel = this._getEquivalentSelection(sel);
+    this._removeStaffModifier(sel, altSel, modifier);
+    this._removeStandardModifier(modifier);
+    this._renderRectangle(modifier.startSelector, modifier.endSelector);
+  }
+  addOrUpdateStaffModifier(modifier) {
+    this._undoRectangle('Set measure proportion', modifier.startSelector, modifier.endSelector);
+    const sel = SmoSelection.noteFromSelector(this.score, modifier.startSelector);
+    const altSel = this._getEquivalentSelection(sel);
+    this._removeStaffModifier(sel, altSel, modifier);
+    SmoOperation.addStaffModifier(sel, modifier);
+
+    // Create a modifier but with the model score staff ids
+    const altFrom = JSON.parse(JSON.stringify(modifier.startSelector));
+    const altTo = JSON.parse(JSON.stringify(modifier.endSelector));
+    altFrom.staff = altSel.selector.staff;
+    altTo.staff = altSel.selector.staff;
+    const altModifier = StaffModifierBase.deserialize(modifier.serialize());
+    altModifier.startSelector = altFrom;
+    SmoOperation.addStaffModifier(altSel, modifier);
+    altModifier.endSelector = altTo;
+    this._renderRectangle(modifier.startSelector, modifier.endSelector);
   }
   _lineOperation(op) {
     if (this.tracker.selections.length < 2) {
