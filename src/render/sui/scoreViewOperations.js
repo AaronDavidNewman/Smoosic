@@ -691,6 +691,9 @@ class SuiScoreViewOperations extends SuiScoreView {
   }
   deleteMeasure() {
     this._undoScore('Delete Measure');
+    if (this.storeScore.staves[0].measures.length < 2) {
+      return;
+    }
     const selection = this.tracker.selections[0];
     const index = selection.selector.measure;
     // Unrender the deleted measure
@@ -732,6 +735,9 @@ class SuiScoreViewOperations extends SuiScoreView {
   }
   removeStaff() {
     this._undoScore('Remove Instrument');
+    if (this.storeScore.staves.length < 2 || this.viewScore.staves.length < 2) {
+      return;
+    }
     // if we are looking at a subset of the score,
     // revert to the full score view before removing the staff.
     const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
