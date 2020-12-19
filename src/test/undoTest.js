@@ -6,8 +6,8 @@ class UndoTest {
     var application = SuiApplication.createUtApplication({scoreLoadJson:'emptyScoreJson'});
 
 		var keys = application.controller;
-		var score = keys.layout.score;
-		var layout = keys.layout;
+		var score = keys.view.renderer.score;
+		var layout = keys.view.renderer;
 		var pasteBuffer = new PasteBuffer();
 
 		score.addDefaultMeasureWithNotes(0, {});

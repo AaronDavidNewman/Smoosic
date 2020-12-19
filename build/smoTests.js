@@ -6,7 +6,7 @@ class ChordTest {
 
 		var keys = application.controller;
 		var score = keys.score;
-		var layout = keys.layout;
+		var layout = keys.view.renderer;
 		var measure = SmoSelection.measureSelection(score, 0, 0).measure;
 
 		var detach = () => {
@@ -324,7 +324,7 @@ class ClefTest {
     $('h1.testTitle').text('Clef Test');
     var application = SuiApplication.createUtApplication();
     var keys = application.controller;
-    var score = keys.layout.score;
+    var score = keys.view.renderer.score;
 
     var pasteBuffer = new PasteBuffer();
 
@@ -387,7 +387,7 @@ class ClefTest {
   		}
   		var sel1 = SmoSelection.measureSelection(score, 1, 1);
   		var sel2=SmoSelection.measureSelection(score, 1, 2);
-  		keys.layout.unrenderAll();
+  		keys.view.renderer.unrenderAll();
   		SmoOperation.changeInstrument(instrument, [sel1, sel2]);
   		keys.render()
       return timeTest();
@@ -410,7 +410,7 @@ class ClefTest {
 
   	var tenorClefTest = () => {
   		subTitle('add cello clef');
-  		keys.layout.unrenderAll();
+  		keys.view.renderer.unrenderAll();
   		SmoOperation.removeStaff(score,1);
   		SmoOperation.addStaff(score, {
   			instrumentInfo: {
@@ -436,7 +436,7 @@ class ClefTest {
 
   	var baritoneClefTest = () => {
   		subTitle('remove and add clef');
-  		keys.layout.unrenderAll();
+  		keys.view.renderer.unrenderAll();
   		SmoOperation.removeStaff(score,1);
   		SmoOperation.addStaff(score, {
   			instrumentInfo: {
@@ -450,7 +450,7 @@ class ClefTest {
 
   	var baritoneClefTest2 = () => {
   		subTitle('remove and add clef 2');
-  		keys.layout.unrenderAll();
+  		keys.view.renderer.unrenderAll();
   		SmoOperation.removeStaff(score,1);
   		SmoOperation.addStaff(score, {
   			instrumentInfo: {
@@ -464,7 +464,7 @@ class ClefTest {
 
   	var trumpetClefTest = () => {
   		subTitle('clef with instrument in different key');
-  		keys.layout.unrenderAll();
+  		keys.view.renderer.unrenderAll();
   		SmoOperation.removeStaff(score,1);
   		SmoOperation.addStaff(score, {
   			instrumentInfo: {
@@ -488,7 +488,7 @@ class KeySignatureTest {
 	static CommonTests() {
     var application = SuiApplication.createUtApplication();
     var keys = application.controller;
-    var score = keys.layout.score;
+    var score = keys.view.renderer.score;
 
 		var pasteBuffer = new PasteBuffer();
 
@@ -499,7 +499,7 @@ class KeySignatureTest {
 		var serial = JSON.stringify(score.serialize(), null, '');
 		console.log(serial);
 		var undo = keys.undoBuffer;
-		var layout = keys.layout;
+		var layout = keys.view.renderer;
 
 		var detach = () => {
 		}
@@ -604,9 +604,9 @@ class MeasureTest {
   static CommonTests() {
     var application = SuiApplication.createUtApplication();
     var keys = application.controller;
-    var score = keys.layout.score;
+    var score = keys.view.renderer.score;
 
-		var layout = keys.layout;
+		var layout = keys.view.renderer;
 
 		// suiSimpleLayout.debugLayout=true;
 		var undoBuffer = keys.undoBuffer;
@@ -775,7 +775,7 @@ class PasteTest {
 	static CommonTests() {
     var application = SuiApplication.createUtApplication();
     var keys = application.controller;
-    var score = keys.layout.score;
+    var score = keys.view.renderer.score;
 
 		var pasteBuffer = new PasteBuffer();
 
@@ -784,7 +784,7 @@ class PasteTest {
 		score.addDefaultMeasureWithNotes(2, {});
 
 		var undo = keys.undoBuffer;
-		var layout = keys.layout;
+		var layout = keys.view.renderer;
 
 		var subTitle = (txt) => {
 			$('.subTitle').text(txt);
@@ -865,7 +865,7 @@ class PasteTest {
 			subTitle('copy single note mm 2 beat 1');
 			selections.push(SmoSelection.noteSelection(layout.score, 0, 2, 0, 1));
 			pasteBuffer.setSelections(keys.score, selections);
-			keys.layout.unrenderAll();
+			keys.view.renderer.unrenderAll();
 			var pasteTarget = {
 				staff: 0,
 				measure: 1,
@@ -893,7 +893,7 @@ class PasteTest {
 			selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 3));
 			selections.push(SmoSelection.noteSelection(score, 0, 1, 0, 4));
 			pasteBuffer.setSelections(score, selections);
-			keys.layout.unrenderAll();
+			keys.view.renderer.unrenderAll();
 			var pasteTarget = {
 				staff: 0,
 				measure: 2,
@@ -921,7 +921,7 @@ class PasteTest {
 			selections.push(SmoSelection.noteSelection(score, 0, 0, 0, 3));
 
 			pasteBuffer.setSelections(score, selections);
-			keys.layout.unrenderAll();
+			keys.view.renderer.unrenderAll();
 			var pasteTarget = {
 				staff: 0,
 				measure: 2,
@@ -1795,7 +1795,7 @@ class StaffTest {
 		$('h1.testTitle').text('Chord Test');
 		var keys = utController.createUi(SmoScore.getDefaultScore(),'Staff Test');
 		var score = keys.score;
-		var layout = keys.layout;
+		var layout = keys.view.renderer;
         score.addDefaultMeasureWithNotes(0,{});
         score.addDefaultMeasureWithNotes(1,{});
         score.addDefaultMeasureWithNotes(2,{});
@@ -1910,8 +1910,8 @@ class TextEditTest {
     var application = SuiApplication.createUtApplication({scoreLoadJson:'emptyScoreJson'});
 
 		var keys = application.controller;
-		var score = keys.layout.score;
-		var layout = keys.layout;
+		var score = keys.view.renderer.score;
+		var layout = keys.view.renderer;
     var testTime = 200;
     var eventSource = new browserEventSource();
 
@@ -1919,7 +1919,7 @@ class TextEditTest {
 
     var lyric =  new SmoLyric({_text:'' });
     var editor = new SuiLyricEditor(
-      {context : keys.layout.context,
+      {context : keys.view.renderer.context,
       lyric:lyric,
       x: 100,
       y:40,
@@ -2063,7 +2063,7 @@ class TextEditTest {
       subTitle('drag start test');
       lyricSession = new SuiResizeTextSession({
         textGroup: startGroup,
-        context: keys.layout.context,
+        context: keys.view.renderer.context,
         scroller: keys.scroller
         }
       );
@@ -2094,7 +2094,7 @@ class TextEditTest {
       subTitle('drag start test');
       lyricSession = new SuiDragSession({
         textGroup: startGroup,
-        context: keys.layout.context,
+        context: keys.view.renderer.context,
         scroller: keys.scroller
         }
       );
@@ -2125,10 +2125,10 @@ class TextEditTest {
       testTime = 100;
       var selector = {staff: 0, measure: 0, voice: 0, tick: 1};
       lyricSession = new SuiLyricSession({
-        context : keys.layout.context,
+        context : keys.view.renderer.context,
         selector: selector,
         scroller: keys.scroller,
-        layout: keys.layout,
+        layout: keys.view.renderer,
         verse: 0,
         score: score
         }
@@ -2178,7 +2178,7 @@ class TextEditTest {
 
     tests.push( async () => {
       subTitle('render initial text');
-      keys.layout.setRefresh();
+      keys.view.renderer.setRefresh();
       return timeTest();
     });
 
@@ -2186,9 +2186,9 @@ class TextEditTest {
       subTitle('start text session');
       const ul = startGroup.ul();
       lyricSession = new SuiTextSession({
-        context : keys.layout.context,
+        context : keys.view.renderer.context,
         scroller: keys.scroller,
-        layout: keys.layout,
+        layout: keys.view.renderer,
         score: score,
         x:ul.x, y:ul.y,
         textGroup:startGroup
@@ -2215,7 +2215,7 @@ class TextEditTest {
     tests.push( async () => {
       subTitle('update score from text session');
       score.addTextGroup(lyricSession.textGroup);
-      keys.layout.setRefresh();
+      keys.view.renderer.setRefresh();
       return PromiseHelpers.makePromise(lyricSession,'_isRendered',null,null,100);
     });
 
@@ -2224,10 +2224,10 @@ class TextEditTest {
       console.log('start chord session');
       var selector = {staff: 0, measure: 0, voice: 0, tick: 1};
       lyricSession = new SuiChordSession({
-        context : keys.layout.context,
+        context : keys.view.renderer.context,
         selector: selector,
         scroller: keys.scroller,
-        layout: keys.layout,
+        layout: keys.view.renderer,
         verse: 0,
         score: score
         }
@@ -2269,8 +2269,8 @@ class TextTest {
   static CommonTests() {
     var application = SuiApplication.createUtApplication();
     var keys = application.controller;
-    var score = keys.layout.score;
-    var context = keys.layout.context;
+    var score = keys.view.renderer.score;
+    var context = keys.view.renderer.context;
     var editText = new SuiInlineText({context:context,startY:200});
 
     score.addDefaultMeasureWithNotes(0,{});
@@ -2489,9 +2489,9 @@ class TimeSignatureTest {
   static CommonTests() {
     var application = SuiApplication.createUtApplication({scoreLoadJson:'sixTestJson'});
     var keys = application.controller;
-    var score = keys.layout.score;
+    var score = keys.view.renderer.score;
     $('h1.testTitle').text('Time Signature Test');
-    var layout = keys.layout;
+    var layout = keys.view.renderer;
     var measure = SmoSelection.measureSelection(score, 0, 0).measure;
 
     var timeTest = () => {
@@ -2624,8 +2624,8 @@ class TrackerTest {
     var application = SuiApplication.createUtApplication({scoreLoadJson:'emptyScoreJson'});
 
 		var keys = application.controller;
-		var score = keys.layout.score;
-		var layout = keys.layout;
+		var score = keys.view.renderer.score;
+		var layout = keys.view.renderer;
 
 		score.addDefaultMeasureWithNotes(0, {});
 		score.addDefaultMeasureWithNotes(1, {});
@@ -2670,36 +2670,36 @@ class TrackerTest {
 
 		var selectionTest1 = () => {
 			subTitle('move selection right');
-			keys.tracker.moveSelectionRight(null)
+			keys.view.tracker.moveSelectionRight(null)
 			return timeTest();
 		}
 
 		var selectionTest2 = () => {
 			subTitle('move selection left');
-			keys.tracker.moveSelectionLeft();
+			keys.view.tracker.moveSelectionLeft();
 			return timeTest();
 		}
 		var selectionTest3 = () => {
 			subTitle('move selection over 5');
-			keys.tracker.moveSelectionOffset(5);
+			keys.view.tracker.moveSelectionOffset(5);
 			return timeTest();
 		}
 
 		var selectDown = () => {
 			subTitle('select staff below');
-			keys.tracker.moveSelectionDown();
+			keys.view.tracker.moveSelectionDown();
 			return timeTest();
 		}
 
 		var selectIncreaseRight = () => {
 			subTitle('grow selection right');
-			keys.tracker.growSelectionRight();
+			keys.view.tracker.growSelectionRight();
 			return timeTest();
 		}
 
 		var selectIncreaseLeft = () => {
 			subTitle('grow selection left');
-			keys.tracker.growSelectionLeft();
+			keys.view.tracker.growSelectionLeft();
 			return timeTest();
 		}
 
@@ -2715,8 +2715,8 @@ class TupletTest {
 	static CommonTests() {
     var application = SuiApplication.createUtApplication();
     var keys = application.controller;
-    var score = keys.layout.score;
-    var layout = keys.layout;
+    var score = keys.view.renderer.score;
+    var layout = keys.view.renderer;
     $('h1.testTitle').text('Tuplet Test');
 
 		var measure = SmoSelection.measureSelection(score, 0, 0).measure;
@@ -2836,8 +2836,8 @@ class UndoTest {
     var application = SuiApplication.createUtApplication({scoreLoadJson:'emptyScoreJson'});
 
 		var keys = application.controller;
-		var score = keys.layout.score;
-		var layout = keys.layout;
+		var score = keys.view.renderer.score;
+		var layout = keys.view.renderer;
 		var pasteBuffer = new PasteBuffer();
 
 		score.addDefaultMeasureWithNotes(0, {});
@@ -2975,7 +2975,7 @@ class VoiceTest {
 
     var keys = application.controller;
     var score = keys.score;
-    var layout = keys.layout;
+    var layout = keys.view.renderer;
 		$('h1.testTitle').text('Voice Test');
 
     var undoBuffer = keys.undoBuffer;

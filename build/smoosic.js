@@ -36980,7 +36980,7 @@ class utController {
 		Vex.Merge(this, utController.defaults);
 		Vex.Merge(this, params);
 		this.bindEvents();
-    this.score = params.layout.score;
+    this.score = params.view.renderer.score;
 		this.undoBuffer = new UndoBuffer();
     this.layoutDemon.undoBuffer = this.undoBuffer;
     this.exhandler = new SuiExceptionHandler(this);
@@ -37002,8 +37002,8 @@ class utController {
 	}
 
 	render() {
-        var ix = 0;
-        this.layout.layout();
+    var ix = 0;
+    this.view.renderer.layout()
 	}
 
 	bindEvents() {}

@@ -3,9 +3,9 @@ class MeasureTest {
   static CommonTests() {
     var application = SuiApplication.createUtApplication();
     var keys = application.controller;
-    var score = keys.layout.score;
+    var score = keys.view.renderer.score;
 
-		var layout = keys.layout;
+		var layout = keys.view.renderer;
 
 		// suiSimpleLayout.debugLayout=true;
 		var undoBuffer = keys.undoBuffer;

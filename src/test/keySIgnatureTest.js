@@ -4,7 +4,7 @@ class KeySignatureTest {
 	static CommonTests() {
     var application = SuiApplication.createUtApplication();
     var keys = application.controller;
-    var score = keys.layout.score;
+    var score = keys.view.renderer.score;
 
 		var pasteBuffer = new PasteBuffer();
 
@@ -15,7 +15,7 @@ class KeySignatureTest {
 		var serial = JSON.stringify(score.serialize(), null, '');
 		console.log(serial);
 		var undo = keys.undoBuffer;
-		var layout = keys.layout;
+		var layout = keys.view.renderer;
 
 		var detach = () => {
 		}
