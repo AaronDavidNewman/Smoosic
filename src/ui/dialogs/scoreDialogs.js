@@ -42,7 +42,7 @@ class SuiScoreViewDialog extends SuiDialogBase {
     });
 
     const getKeys = () => {
-      this.completeNotifier.unbindKeyboardForModal(self);
+      this.completeNotifier.unbindKeyboardForModal(this);
     };
     this.startPromise.then(getKeys);
     this._bindElements();
@@ -341,7 +341,7 @@ class SuiLayoutDialog extends SuiDialogBase {
       moveParent: true
     });
     const getKeys = () => {
-      this.completeNotifier.unbindKeyboardForModal(self);
+      this.completeNotifier.unbindKeyboardForModal(this);
     };
     this.startPromise.then(getKeys);
 
