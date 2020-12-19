@@ -250,13 +250,7 @@ class draggable {
 		this._animate(e);
 	}
 }
-;
-VF = Vex.Flow;
-Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
-	 : Vex.Xform);
-VX = Vex.Xform;
-
-// ## smoMusic
+;// ## smoMusic
 // Helper functions that build on the VX music theory routines, and other
 // utilities I wish were in VF.Music but aren't
 // ### Note on pitch and duration format
@@ -279,166 +273,168 @@ VX = Vex.Xform;
 // ## smoMusic static methods:
 // ---
 class smoMusic {
+  // ### vexToCannonical
+  // return Vex canonical note enharmonic - e.g. Bb to A#
+  // Get the canonical form
+  static vexToCannonical(vexKey) {
+    vexKey = smoMusic.stripVexOctave(vexKey);
+    return VF.Music.canonical_notes[VF.Music.noteValues[vexKey].int_val];
+  }
 
+  // ### circleOfFifths
+  // A note array in key-signature order
+  static get circleOfFifths() {
+    return [{
+        letter: 'c',
+        accidental: 'n'
+      }, {
+        letter: 'g',
+        accidental: 'n'
+      }, {
+        letter: 'd',
+        accidental: 'n'
+      }, {
+        letter: 'a',
+        accidental: 'n'
+      }, {
+        letter: 'e',
+        accidental: 'n'
+      }, {
+        letter: 'b',
+        accidental: 'n'
+      }, {
+        letter: 'f',
+        accidental: '#'
+      }, {
+        letter: 'c',
+        accidental: '#'
+      }, {
+        letter: 'a',
+        accidental: 'b'
+      }, {
+        letter: 'e',
+        accidental: 'b'
+      }, {
+        letter: 'b',
+        accidental: 'b'
+      }, {
+        letter: 'f',
+        accidental: 'n'
+      }
+    ];
+  }
 
-	// ### vexToCannonical
-	// return Vex canonical note enharmonic - e.g. Bb to A#
-	// Get the canonical form
-	static vexToCannonical(vexKey) {
-		vexKey = smoMusic.stripVexOctave(vexKey);
-		return VF.Music.canonical_notes[VF.Music.noteValues[vexKey].int_val];
-	}
+  // ### circleOfFifthsIndex
+  // gives the index into circle-of-fifths array for a pitch, considering enharmonics.
+  static circleOfFifthsIndex(smoPitch) {
+    const en1 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch)));
+    const en2 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch))));
+    const ix = smoMusic.circleOfFifths.findIndex((el) =>
+        (el.letter === smoPitch.letter && el.accidental === smoPitch.accidental) ||
+        (el.letter === en1.letter && el.accidental === en1.accidental) ||
+        (el.letter === en2.letter && el.accidental === en2.accidental)
+      );
+    return ix;
+  }
 
-	// ### circleOfFifths
-	// A note array in key-signature order
-	static get circleOfFifths() {
-		return [{
-				letter: 'c',
-				accidental: 'n'
-			}, {
-				letter: 'g',
-				accidental: 'n'
-			}, {
-				letter: 'd',
-				accidental: 'n'
-			}, {
-				letter: 'a',
-				accidental: 'n'
-			}, {
-				letter: 'e',
-				accidental: 'n'
-			}, {
-				letter: 'b',
-				accidental: 'n'
-			}, {
-				letter: 'f',
-				accidental: '#'
-			}, {
-				letter: 'c',
-				accidental: '#'
-			}, {
-				letter: 'a',
-				accidental: 'b'
-			}, {
-				letter: 'e',
-				accidental: 'b'
-			}, {
-				letter: 'b',
-				accidental: 'b'
-			}, {
-				letter: 'f',
-				accidental: 'n'
-			}
-		];
-	}
+  // ### addSharp
+  // Get pitch to the right in circle of fifths
+  static addSharp(smoPitch) {
+    let rv = smoMusic.circleOfFifths[
+      (smoMusic.circleOfFifthsIndex(smoPitch) + 1) % smoMusic.circleOfFifths.length];
+    rv = JSON.parse(JSON.stringify(rv));
+    rv.octave = smoPitch.octave;
+    return rv;
+  }
 
-	// ### circleOfFifthsIndex
-	// gives the index into circle-of-fifths array for a pitch, considering enharmonics.
-	static circleOfFifthsIndex(smoPitch) {
-		var en1 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch)));
-		var en2 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch))));
-		var ix = smoMusic.circleOfFifths.findIndex((el) => {
-				return (el.letter === smoPitch.letter && el.accidental == smoPitch.accidental) ||
-				(el.letter == en1.letter && el.accidental == en1.accidental) ||
-				(el.letter == en2.letter && el.accidental == en2.accidental);
-			});
-		return ix;
-	}
+  // ### addFlat
+  // Get pitch to the left in circle of fifths
+  static addFlat(smoPitch) {
+    let rv = smoMusic.circleOfFifths[
+        ((smoMusic.circleOfFifths.length - 1) + smoMusic.circleOfFifthsIndex(smoPitch)) % smoMusic.circleOfFifths.length];
+    rv = JSON.parse(JSON.stringify(rv));
+    rv.octave = smoPitch.octave;
+    return rv;
+  }
 
-	// ### addSharp
-	// Get pitch to the right in circle of fifths
-	static addSharp(smoPitch) {
-		var rv = smoMusic.circleOfFifths[
-				(smoMusic.circleOfFifthsIndex(smoPitch) + 1) % smoMusic.circleOfFifths.length];
-		rv = JSON.parse(JSON.stringify(rv));
-		rv.octave = smoPitch.octave;
-		return rv;
-	}
+  // ### addSharps
+  // Add *distance* sharps/flats to given key
+  static addSharps(smoPitch, distance) {
+    let i = 0;
+    let rv = {};
+    if (distance === 0) {
+      return JSON.parse(JSON.stringify(smoPitch));
+    }
+    rv = smoMusic.addSharp(smoPitch);
+    for (i = 1; i < distance; ++i) {
+      rv = smoMusic.addSharp(rv);
+    }
+    const octaveAdj = smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
+    rv.octave += octaveAdj;
+    return rv;
+  }
 
-	// ### addFlat
-	// Get pitch to the left in circle of fifths
-	static addFlat(smoPitch) {
-		var rv = smoMusic.circleOfFifths[
-				((smoMusic.circleOfFifths.length - 1) + smoMusic.circleOfFifthsIndex(smoPitch)) % smoMusic.circleOfFifths.length];
-		rv = JSON.parse(JSON.stringify(rv));
-		rv.octave = smoPitch.octave;
-		return rv;
-	}
+  // ### addFlats
+  // Add *distance* sharps/flats to given key
+  static addFlats(smoPitch, distance) {
+    let i = 0;
+    let rv = {};
+    if (distance === 0) {
+      return JSON.parse(JSON.stringify(smoPitch));
+    }
+    rv = smoMusic.addFlat(smoPitch);
+    for (i = 1; i < distance; ++i) {
+      rv = smoMusic.addFlat(rv);
+    }
+    const octaveAdj = smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
+    rv.octave += octaveAdj;
+    return rv;
+  }
 
-	// ### addSharps
-	// Add *distance* sharps/flats to given key
-	static addSharps(smoPitch, distance) {
-		if (distance == 0) {
-			return JSON.parse(JSON.stringify(smoPitch));
-		}
-		var rv = smoMusic.addSharp(smoPitch);
-		for (var i = 1; i < distance; ++i) {
-			rv = smoMusic.addSharp(rv);
-		}
-		var octaveAdj = smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
-		rv.octave += octaveAdj;
-		return rv;
-	}
+  // ### smoPitchesToVexKeys
+  // Transpose and convert from SMO to VEX format so we can use the VexFlow tables and methods
+  static smoPitchesToVexKeys(pitchAr, keyOffset, noteHead) {
+    const noopFunc = keyOffset > 0 ? 'addSharps' : 'addFlats';
 
-	// ### addFlats
-	// Add *distance* sharps/flats to given key
-	static addFlats(smoPitch, distance) {
-		if (distance == 0) {
-			return JSON.parse(JSON.stringify(smoPitch));
-		}
-		var rv = smoMusic.addFlat(smoPitch);
-		for (var i = 1; i < distance; ++i) {
-			rv = smoMusic.addFlat(rv);
-		}
-		var octaveAdj = smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
-		rv.octave += octaveAdj;
-		return rv;
-	}
+    const rv = [];
+    pitchAr.forEach((pitch) => {
+      rv.push(smoMusic.pitchToVexKey(smoMusic[noopFunc](pitch, keyOffset), noteHead));
+    });
+    return rv;
+  }
 
-	// ### smoPitchesToVexKeys
-	// Transpose and convert from SMO to VEX format so we can use the VexFlow tables and methods
-	static smoPitchesToVexKeys(pitchAr, keyOffset,noteHead) {
-		var noopFunc = keyOffset > 0 ? 'addSharps' : 'addFlats';
+  static get scaleIntervals() {
+    return {
+      up: [2, 2, 1, 2, 2, 2, 1],
+      down: [1, 2, 2, 2, 1, 2, 2]
+    };
+  }
 
-		var rv = [];
-		pitchAr.forEach((pitch) => {
-			rv.push(smoMusic.pitchToVexKey(smoMusic[noopFunc](pitch, keyOffset),noteHead));
-		});
-		return rv;
-	}
+  // ### smoScalePitchMatch
+  // return true if the pitches match, but maybe not in same octave
+  static smoScalePitchMatch(p1, p2) {
+    const pp1 = JSON.parse(JSON.stringify(p1));
+    const pp2 = JSON.parse(JSON.stringify(p2));
+    pp1.octave = 0;
+    pp2.octave = 0;
 
-	static get scaleIntervals() {
-		return {
-			up: [2, 2, 1, 2, 2, 2, 1],
-			down: [1, 2, 2, 2, 1, 2, 2]
-		};
-	}
-
-	// ### smoScalePitchMatch
-	// return true if the pitches match, but maybe not in same octave
-	static smoScalePitchMatch(p1, p2) {
-		var pp1 = JSON.parse(JSON.stringify(p1));
-		var pp2 = JSON.parse(JSON.stringify(p2));
-		pp1.octave = 0;
-		pp2.octave = 0;
-
-		return smoMusic.smoPitchToInt(pp1) == smoMusic.smoPitchToInt(pp2);
-	}
+    return smoMusic.smoPitchToInt(pp1) === smoMusic.smoPitchToInt(pp2);
+  }
 
   // ### pitchToLedgerLineInt
-  static pitchToLedgerLine(clef,pitch) {
+  static pitchToLedgerLine(clef, pitch) {
     // return the distance from the top ledger line, as 0.5 per line/space
-    return -1.0*(VF.keyProperties(smoMusic.pitchToVexKey(pitch,clef)).line-4.5)
+    return -1.0 * (VF.keyProperties(smoMusic.pitchToVexKey(pitch, clef)).line - 4.5)
      - VF.clefProperties.values[clef].line_shift;
   }
 
   // ### pitchToVexKey
   // convert from SMO to VEX format so we can use the VexFlow tables and methods
   // example:
-  // 	`{letter,octave,accidental}` object to vexKey string `'f#'`
+  //   `{letter,octave,accidental}` object to vexKey string `'f#'`
   static _pitchToVexKey(smoPitch) {
     // Convert to vex keys, where f# is a string like 'f#'.
-    var vexKey = smoPitch.letter.toLowerCase();
+    let vexKey = smoPitch.letter.toLowerCase();
     if (smoPitch.accidental.length === 0) {
       vexKey = vexKey + 'n';
     } else {
@@ -450,155 +446,178 @@ class smoMusic {
     return vexKey;
   }
 
-  static pitchToVexKey(smoPitch,head) {
+  static pitchToVexKey(smoPitch, head) {
     if (!head) {
       return smoMusic._pitchToVexKey(smoPitch);
     }
-    return smoMusic._pitchToVexKey(smoPitch)+'/'+head;
+    return smoMusic._pitchToVexKey(smoPitch) + '/' + head;
   }
 
-	static smoPitchToInt(pitch) {
+  static smoPitchToInt(pitch) {
     if (typeof(pitch.octave) === 'undefined') {
       pitch.octave = 0;
     }
-		var intVal = VF.Music.noteValues[
-				smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch))].int_val;
+    var intVal = VF.Music.noteValues[
+        smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch))].int_val;
     var octave =  (pitch.letter === 'c' && pitch.accidental === 'b' && pitch.octave > 0) ?
        pitch.octave - 1 : pitch.octave;
-		return octave * 12 + intVal;
-	}
+    return octave * 12 + intVal;
+  }
 
-	static smoIntToPitch(intValue) {
-
-		var letterInt = intValue >= 0 ? intValue % 12 :
+  static smoIntToPitch(intValue) {
+    let octave = 0;
+    let accidental = '';
+    let noteKey = '';
+    const letterInt = intValue >= 0 ? intValue % 12 :
        12 - (Math.abs(intValue) % 12);
-		var noteKey = Object.keys(VF.Music.noteValues).find((key) => {
-				return VF.Music.noteValues[key].int_val === letterInt && key.length === 1
-			});
+    noteKey = Object.keys(VF.Music.noteValues).find((key) =>
+        VF.Music.noteValues[key].int_val === letterInt && key.length === 1
+      );
     if (!noteKey) {
-      noteKey = Object.keys(VF.Music.noteValues).find((key) => {
-  				return VF.Music.noteValues[key].int_val === letterInt && key.length === 2
-  			});
+      noteKey = Object.keys(VF.Music.noteValues).find((key) =>
+          VF.Music.noteValues[key].int_val === letterInt && key.length === 2
+        );
     }
-		var octave = Math.floor(intValue / 12);
+    octave = Math.floor(intValue / 12);
     octave = octave >= 0 ? octave : 0;
-    var accidental = noteKey.substring(1, noteKey.length);
+    accidental = noteKey.substring(1, noteKey.length);
     accidental = accidental ? accidental : 'n';
-		return {
-			letter: noteKey[0],
-			accidental: accidental,
-			octave: octave
-		};
-	}
+    return {
+      letter: noteKey[0],
+      accidental: accidental,
+      octave: octave
+    };
+  }
 
-	// ### get enharmonics
-	// return a map of enharmonics for choosing or cycling.  notes are in vexKey form.
-	static get enharmonics() {
-		var rv = {};
-		var keys = Object.keys(VF.Music.noteValues);
-		for (var i = 0; i < keys.length; ++i) {
-			var key = keys[i];
-			var int_val = VF.Music.noteValues[key].int_val;
-			if (typeof(rv[int_val.toString()]) == 'undefined') {
-				rv[int_val.toString()] = [];
-			}
-			// only consider natural note 1 time.  It is in the list twice for some reason.
-			if (key.indexOf('n') == -1) {
-				rv[int_val.toString()].push(key);
-			}
-		}
-		return rv;
-	}
+  // ### vexKeySigWithOffset
+  // Consider instrument transpose when setting key -
+  // e.g. Eb for Bb instruments is F.
+  static vexKeySigWithOffset(vexKey, offset) {
+    let newKey = smoMusic.pitchToVexKey(smoMusic.smoIntToPitch(
+        smoMusic.smoPitchToInt(
+          smoMusic.vexToSmoPitch(vexKey)) + offset));
+    newKey = smoMusic.toValidKeySignature(newKey);
+    return newKey;
+  }
 
-	static getEnharmonics(vexKey) {
-		var proto = smoMusic.stripVexOctave(vexKey);
-		var rv = [];
-		var ne = smoMusic.getEnharmonic(vexKey);
-		rv.push(proto);
-		while (ne[0] != proto[0]) {
-			rv.push(ne);
-			ne = smoMusic.getEnharmonic(ne);
-		}
-		return rv;
-	}
+  // ### get enharmonics
+  // return a map of enharmonics for choosing or cycling.  notes are in vexKey form.
+  static get enharmonics() {
+    let i = 0;
+    const rv = {};
+    const keys = Object.keys(VF.Music.noteValues);
+    for (i = 0; i < keys.length; ++i) {
+      const key = keys[i];
+      const int_val = VF.Music.noteValues[key].int_val;
+      if (typeof(rv[int_val.toString()]) == 'undefined') {
+        rv[int_val.toString()] = [];
+      }
+      // only consider natural note 1 time.  It is in the list twice for some reason.
+      if (key.indexOf('n') === -1) {
+        rv[int_val.toString()].push(key);
+      }
+    }
+    return rv;
+  }
 
-    // ### getEnharmonic(noteProp)
-	// cycle through the enharmonics for a note.
-	static getEnharmonic(vexKey) {
-		vexKey = smoMusic.stripVexOctave(vexKey);
-		var intVal = VF.Music.noteValues[vexKey.toLowerCase()].int_val;
-		var ar = smoMusic.enharmonics[intVal.toString()];
-		var len = ar.length;
-		// 'n' for natural in key but not in value
-		vexKey = vexKey.length > 1 && vexKey[1] === 'n' ? vexKey[0] : vexKey;
-		var ix = ar.indexOf(vexKey);
-		vexKey = ar[(ix + 1) % len];
-		return vexKey;
-	}
+  static getEnharmonics(vexKey) {
+    const proto = smoMusic.stripVexOctave(vexKey);
+    const rv = [];
+    let ne = smoMusic.getEnharmonic(vexKey);
+    rv.push(proto);
+    while (ne[0] !== proto[0]) {
+      rv.push(ne);
+      ne = smoMusic.getEnharmonic(ne);
+    }
+    return rv;
+  }
 
-	// ### getKeyFriendlyEnharmonic
-	// fix the enharmonic to match the key, if possible
-	// `getKeyFriendlyEnharmonic('b','eb');  => returns 'bb'
-	static getKeyFriendlyEnharmonic(letter, keySignature) {
-		var rv = letter;
-		var muse = new VF.Music();
-		var scale = Object.values(muse.createScaleMap(keySignature));
-		var prop = smoMusic.getEnharmonic(letter.toLowerCase());
-		while (prop.toLowerCase() != letter.toLowerCase()) {
-			for (var i = 0; i < scale.length; ++i) {
-				var skey = scale[i];
-				if ((skey[0] == prop && skey[1] == 'n') ||
-					(skey.toLowerCase() == prop.toLowerCase())) {
-					rv = skey;
-					break;
-				}
-			}
-			prop = (prop[1] == 'n' ? prop[0] : prop);
-			prop = smoMusic.getEnharmonic(prop);
-		}
-		return rv;
-	}
-	static closestTonic(smoPitch, vexKey, direction) {
-		direction = Math.sign(direction) < 0 ? -1 : 1;
-		var tonic = smoMusic.vexToSmoPitch(vexKey);
-		tonic.octave=smoPitch.octave;
-		var iix = smoMusic.smoPitchToInt(smoPitch);
-		var smint=smoMusic.smoPitchToInt(tonic);
-		if (Math.sign(smint - iix) != direction) {
-			tonic.octave += direction
-		}
-		return tonic;
-	}
+  // ### getEnharmonic(noteProp)
+  // cycle through the enharmonics for a note.
+  static getEnharmonic(vexKey) {
+    vexKey = smoMusic.stripVexOctave(vexKey);
+    const intVal = VF.Music.noteValues[vexKey.toLowerCase()].int_val;
+    const ar = smoMusic.enharmonics[intVal.toString()];
+    const len = ar.length;
+    // 'n' for natural in key but not in value
+    vexKey = vexKey.length > 1 && vexKey[1] === 'n' ? vexKey[0] : vexKey;
+    const ix = ar.indexOf(vexKey);
+    vexKey = ar[(ix + 1) % len];
+    return vexKey;
+  }
+
+  // ### getKeyFriendlyEnharmonic
+  // fix the enharmonic to match the key, if possible
+  // `getKeyFriendlyEnharmonic('b','eb');  => returns 'bb'
+  static getKeyFriendlyEnharmonic(letter, keySignature) {
+    var rv = letter;
+    var muse = new VF.Music();
+    var scale = Object.values(muse.createScaleMap(keySignature));
+    var prop = smoMusic.getEnharmonic(letter.toLowerCase());
+    while (prop.toLowerCase() != letter.toLowerCase()) {
+      for (var i = 0; i < scale.length; ++i) {
+        var skey = scale[i];
+        if ((skey[0] == prop && skey[1] == 'n') ||
+          (skey.toLowerCase() == prop.toLowerCase())) {
+          rv = skey;
+          break;
+        }
+      }
+      prop = (prop[1] == 'n' ? prop[0] : prop);
+      prop = smoMusic.getEnharmonic(prop);
+    }
+    return rv;
+  }
+  static closestTonic(smoPitch, vexKey, direction) {
+    direction = Math.sign(direction) < 0 ? -1 : 1;
+    var tonic = smoMusic.vexToSmoPitch(vexKey);
+    tonic.octave=smoPitch.octave;
+    var iix = smoMusic.smoPitchToInt(smoPitch);
+    var smint=smoMusic.smoPitchToInt(tonic);
+    if (Math.sign(smint - iix) != direction) {
+      tonic.octave += direction
+    }
+    return tonic;
+  }
 
   // ### toValidKeySignature
   // When transposing, make sure key signature is valid, e.g. g# should be
   // Ab
   static toValidKeySignature(vexKey) {
+    let strlen = 0;
     var map = {'a#':'bb','g#':'ab','cb':'b','d#':'eb'}
     if (map[vexKey.toLowerCase()]) {
       return map[vexKey.toLowerCase()];
     }
-    return vexKey;
+    strlen = (vexKey.length > 2 ? 2 : vexKey.length);
+    // Vex doesn't like 'n' in key signatures.
+    if (strlen === 2 && vexKey[1].toLowerCase() === 'n') {
+      strlen = 1;
+    }
+    return vexKey.substr(0, strlen);
   }
 
-	static getEnharmonicInKey(smoPitch, keySignature) {
+// ### getEnharmonicInKey
+// Get the enharmonic equivalent that most closely matches
+// a given key
+  static getEnharmonicInKey(smoPitch, keySignature) {
     if (typeof(smoPitch.octave) === 'undefined') {
       smoPitch.octave = 1;
     }
     var sharpKey = keySignature.indexOf('#') >= 0 ? true : false;
     var flatKey = keySignature.indexOf('b') >= 0 ? true : false;
-		var ar = smoMusic.getEnharmonics(smoMusic.pitchToVexKey(smoPitch));
-		var rv = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(smoPitch));
-		var scaleMap = new VF.Music().createScaleMap(keySignature);
+    var ar = smoMusic.getEnharmonics(smoMusic.pitchToVexKey(smoPitch));
+    var rv = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(smoPitch));
+    var scaleMap = new VF.Music().createScaleMap(keySignature);
     var match = false;
-		ar.forEach((vexKey) => {
-			if (vexKey.length === 1) {
-				vexKey += 'n';
-			}
-			if (vexKey === scaleMap[vexKey[0]]) {
-				rv = vexKey;
+    ar.forEach((vexKey) => {
+      if (vexKey.length === 1) {
+        vexKey += 'n';
+      }
+      if (vexKey === scaleMap[vexKey[0]]) {
+        rv = vexKey;
         match = true;
-			} else if (!match) {
+      } else if (!match) {
         // In the absence of a match of a key tone, we bias towards more
         // 'common', like Bb is more common than A#, esp. as a chord.  This maybe
         // just be my horn player bias towards flat keys
@@ -614,195 +633,218 @@ class smoMusic {
           rv = 'gb';
         }
       }
-		});
-		var smoRv = smoMusic.vexToSmoPitch(rv);
-		smoRv.octave = smoPitch.octave;
-		var rvi = smoMusic.smoPitchToInt(smoRv);
-		var ori = smoMusic.smoPitchToInt(smoPitch);
-		// handle the case of c0 < b0, pitch-wise
-		smoRv.octave += Math.sign(ori - rvi);
-		return smoRv;
-	}
+    });
+    var smoRv = smoMusic.vexToSmoPitch(rv);
+    smoRv.octave = smoPitch.octave;
+    var rvi = smoMusic.smoPitchToInt(smoRv);
+    var ori = smoMusic.smoPitchToInt(smoPitch);
+    // handle the case of c0 < b0, pitch-wise
+    smoRv.octave += Math.sign(ori - rvi);
+    return smoRv;
+  }
 
-	// ### getIntervalInKey
-	// give a pitch and a key signature, return another pitch at the given
-	// diatonic interval.  Similar to getKeyOffset but diatonic.
-	static getIntervalInKey(pitch, keySignature, interval) {
-		if (interval === 0)
-			return JSON.parse(JSON.stringify(pitch));
+  // ### getIntervalInKey
+  // give a pitch and a key signature, return another pitch at the given
+  // diatonic interval.  Similar to getKeyOffset but diatonic.
+  static getIntervalInKey(pitch, keySignature, interval) {
+    if (interval === 0)
+      return JSON.parse(JSON.stringify(pitch));
 
-		var delta = interval > 0 ? 1 : -1;
-		var inv = -1 * delta;
-		var tonic = smoMusic.closestTonic(pitch, keySignature, inv);
-		var intervals = delta > 0 ? smoMusic.scaleIntervals.up : smoMusic.scaleIntervals.down;
-		var pitchInt = smoMusic.smoPitchToInt(pitch);
-		var scaleIx = 0;
-		var diatonicIx=0;
+    var delta = interval > 0 ? 1 : -1;
+    var inv = -1 * delta;
+    var tonic = smoMusic.closestTonic(pitch, keySignature, inv);
+    var intervals = delta > 0 ? smoMusic.scaleIntervals.up : smoMusic.scaleIntervals.down;
+    var pitchInt = smoMusic.smoPitchToInt(pitch);
+    var scaleIx = 0;
+    var diatonicIx=0;
 
-		var nkey = tonic;
-		var nkeyInt = smoMusic.smoPitchToInt(nkey);
-		while (Math.sign(nkeyInt - pitchInt) != delta && Math.sign(nkeyInt - pitchInt) != 0) {
-			nkey = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(nkey) + delta * intervals[scaleIx]);
-			scaleIx = (scaleIx + 1) % 7;
-			nkeyInt = smoMusic.smoPitchToInt(nkey);
-		}
-		while (diatonicIx != interval) {
-			nkey = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(nkey) + delta * intervals[scaleIx]);
-			scaleIx = (scaleIx + 1) % 7;
-			diatonicIx += delta;
-		}
-		return smoMusic.getEnharmonicInKey(nkey,keySignature);
-	}
+    var nkey = tonic;
+    var nkeyInt = smoMusic.smoPitchToInt(nkey);
+    while (Math.sign(nkeyInt - pitchInt) != delta && Math.sign(nkeyInt - pitchInt) != 0) {
+      nkey = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(nkey) + delta * intervals[scaleIx]);
+      scaleIx = (scaleIx + 1) % 7;
+      nkeyInt = smoMusic.smoPitchToInt(nkey);
+    }
+    while (diatonicIx != interval) {
+      nkey = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(nkey) + delta * intervals[scaleIx]);
+      scaleIx = (scaleIx + 1) % 7;
+      diatonicIx += delta;
+    }
+    return smoMusic.getEnharmonicInKey(nkey,keySignature);
+  }
 
-	static vexKeySignatureTranspose(key, transposeIndex) {
-		var key = smoMusic.vexToSmoPitch(key);
-		key = smoMusic.smoPitchesToVexKeys([key], transposeIndex)[0];
-		key = smoMusic.stripVexOctave(key);
-		key = key[0].toUpperCase() + key.substring(1, key.length);
-		if (key.length > 1 && key[1] === 'n') {
-			key = key[0];
-		}
-		return key;
-	}
+  static getLetterNotePitch(prevPitch, letter, key) {
+    const pitch = JSON.parse(JSON.stringify(prevPitch));
+    pitch.letter = letter;
+
+    // Make the key 'a' make 'Ab' in the key of Eb, for instance
+    const vexKsKey = smoMusic.getKeySignatureKey(letter, key);
+    if (vexKsKey.length > 1) {
+        pitch.accidental = vexKsKey[1];
+    } else {
+        pitch.accidental = 'n';
+    }
+
+    // make the octave of the new note as close to previous (or next) note as possible.
+    const upv = ['bc', 'ac', 'bd', 'da', 'be', 'gc'];
+    const downv = ['cb', 'ca', 'db', 'da', 'eb', 'cg'];
+    const delta = prevPitch.letter + pitch.letter;
+    if (upv.indexOf(delta) >= 0) {
+        pitch.octave += 1;
+    }
+    if (downv.indexOf(delta) >= 0) {
+      pitch.octave -= 1;
+    }
+    return pitch;
+  }
+  static vexKeySignatureTranspose(key, transposeIndex) {
+    var key = smoMusic.vexToSmoPitch(key);
+    key = smoMusic.smoPitchesToVexKeys([key], transposeIndex)[0];
+    key = smoMusic.stripVexOctave(key);
+    key = key[0].toUpperCase() + key.substring(1, key.length);
+    if (key.length > 1 && key[1] === 'n') {
+      key = key[0];
+    }
+    return key;
+  }
     static get frequencyMap() {
         return suiAudioPitch.pitchFrequencyMap;
     }
 
-	// ### get letterPitchIndex
-	// Used to adjust octave when transposing.
-	// Pitches are measured from c, so that b0 is higher than c0, c1 is 1 note higher etc.
-	static get letterPitchIndex() {
-		return {
-			'c': 0,
-			'd': 1,
-			'e': 2,
-			'f': 3,
-			'g': 4,
-			'a': 5,
-			'b': 6
-		};
-	}
+  // ### get letterPitchIndex
+  // Used to adjust octave when transposing.
+  // Pitches are measured from c, so that b0 is higher than c0, c1 is 1 note higher etc.
+  static get letterPitchIndex() {
+    return {
+      'c': 0,
+      'd': 1,
+      'e': 2,
+      'f': 3,
+      'g': 4,
+      'a': 5,
+      'b': 6
+    };
+  }
 
-	// ### letterChangedOctave
-	// Indicate if a change from letter note 'one' to 'two' needs us to adjust the
-	// octave due to the `smoMusic.letterPitchIndex` (b0 is higher than c0)
-	static letterChangedOctave(one, two) {
-		var p1 = smoMusic.letterPitchIndex[one];
-		var p2 = smoMusic.letterPitchIndex[two];
-		if (p1 < p2 && p2 - p1 > 2)
-			return -1;
-		if (p1 > p2 && p1 - p2 > 2)
-			return 1;
-		return 0;
+  // ### letterChangedOctave
+  // Indicate if a change from letter note 'one' to 'two' needs us to adjust the
+  // octave due to the `smoMusic.letterPitchIndex` (b0 is higher than c0)
+  static letterChangedOctave(one, two) {
+    var p1 = smoMusic.letterPitchIndex[one];
+    var p2 = smoMusic.letterPitchIndex[two];
+    if (p1 < p2 && p2 - p1 > 2)
+      return -1;
+    if (p1 > p2 && p1 - p2 > 2)
+      return 1;
+    return 0;
 
-	}
+  }
 
-	// ### vexToSmoPitch
-	// #### Example:
-	// ['f#'] => [{letter:'f',accidental:'#'}]
-	static vexToSmoPitch(vexPitch) {
-		var accidental = vexPitch.length < 2 ? 'n' : vexPitch.substring(1, vexPitch.length);
-		return {
-			letter: vexPitch[0].toLowerCase(),
-			accidental: accidental
-		};
-	}
+  // ### vexToSmoPitch
+  // #### Example:
+  // ['f#'] => [{letter:'f',accidental:'#'}]
+  static vexToSmoPitch(vexPitch) {
+    var accidental = vexPitch.length < 2 ? 'n' : vexPitch.substring(1, vexPitch.length);
+    return {
+      letter: vexPitch[0].toLowerCase(),
+      accidental: accidental
+    };
+  }
 
-    // ### smoPitchToVes
-	// #### Example:
-    // {letter:'f',accidental:'#'} => [f#/
-    static smoPitchesToVex(pitchAr) {
-        var rv = [];
-        pitchAr.forEach((p) => {
-            rv.push(smoMusic.pitchToVexKey(p));
-        });
-        return rv;
+  // ### smoPitchToVes
+  // {letter:'f',accidental:'#'} => [f#/
+  static smoPitchesToVex(pitchAr) {
+    var rv = [];
+    pitchAr.forEach((p) => {
+      rv.push(smoMusic.pitchToVexKey(p));
+    });
+    return rv;
+  }
+
+  static stripVexOctave(vexKey) {
+    if (vexKey.indexOf('/') > 0) {
+      vexKey = vexKey.substring(0, vexKey.indexOf('/'))
     }
-
-	static stripVexOctave(vexKey) {
-		if (vexKey.indexOf('/') > 0) {
-			vexKey = vexKey.substring(0, vexKey.indexOf('/'))
-		}
-		return vexKey;
-	}
+    return vexKey;
+  }
 
 
-	// ### getKeyOffset
-	// Given a vex noteProp and an offset, offset that number
-	// of 1/2 steps.
-	// #### Input:  smoPitch
-	// #### Output:  smoPitch offset, not key-adjusted.
-	static getKeyOffset(pitch, offset) {
-		var canon = VF.Music.canonical_notes;
+  // ### getKeyOffset
+  // Given a vex noteProp and an offset, offset that number
+  // of 1/2 steps.
+  // #### Input:  smoPitch
+  // #### Output:  smoPitch offset, not key-adjusted.
+  static getKeyOffset(pitch, offset) {
+    var canon = VF.Music.canonical_notes;
 
-		// Convert to vex keys, where f# is a string like 'f#'.
-		var vexKey = smoMusic.pitchToVexKey(pitch);
-		vexKey = smoMusic.vexToCannonical(vexKey);
-		var rootIndex = canon.indexOf(vexKey);
-		var index = (rootIndex + canon.length + offset) % canon.length;
-		var octave = pitch.octave;
-		if (Math.abs(offset) >= 12) {
-			var octaveOffset = Math.sign(offset) * Math.floor(Math.abs(offset) / 12);
-			octave += octaveOffset;
-			offset = offset % 12;
-		}
-		if (rootIndex + offset >= canon.length) {
-			octave += 1;
-		}
-		if (rootIndex + offset < 0) {
-			octave -= 1;
-		}
-		var rv = JSON.parse(JSON.stringify(pitch));
-		vexKey = canon[index];
-		if (vexKey.length > 1) {
-			rv.accidental = vexKey.substring(1);
-			vexKey = vexKey[0];
-		} else {
-			rv.accidental = '';
-		}
-		rv.letter = vexKey;
-		rv.octave = octave;
-		return rv;
-	}
+    // Convert to vex keys, where f# is a string like 'f#'.
+    var vexKey = smoMusic.pitchToVexKey(pitch);
+    vexKey = smoMusic.vexToCannonical(vexKey);
+    var rootIndex = canon.indexOf(vexKey);
+    var index = (rootIndex + canon.length + offset) % canon.length;
+    var octave = pitch.octave;
+    if (Math.abs(offset) >= 12) {
+      var octaveOffset = Math.sign(offset) * Math.floor(Math.abs(offset) / 12);
+      octave += octaveOffset;
+      offset = offset % 12;
+    }
+    if (rootIndex + offset >= canon.length) {
+      octave += 1;
+    }
+    if (rootIndex + offset < 0) {
+      octave -= 1;
+    }
+    var rv = JSON.parse(JSON.stringify(pitch));
+    vexKey = canon[index];
+    if (vexKey.length > 1) {
+      rv.accidental = vexKey.substring(1);
+      vexKey = vexKey[0];
+    } else {
+      rv.accidental = '';
+    }
+    rv.letter = vexKey;
+    rv.octave = octave;
+    return rv;
+  }
 
-	// ### keySignatureLength
-	// return the number of sharp/flat in a key signature for sizing guess.
-	static get keySignatureLength() {
-		return {
-			'C': 0,
-			'B': 5,
-			'A': 3,
-			'F#': 6,
-			'Bb': 2,
-			'Ab': 4,
-			'Gg': 6,
-			'G': 1,
-			'F': 1,
-			'Eb': 3,
-			'Db': 5,
-			'Cb': 7,
-			'C#': 7,
-			'F#': 6,
-			'E': 4,
-			'D': 2
-		};
-	}
+  // ### keySignatureLength
+  // return the number of sharp/flat in a key signature for sizing guess.
+  static get keySignatureLength() {
+    return {
+      'C': 0,
+      'B': 5,
+      'A': 3,
+      'F#': 6,
+      'Bb': 2,
+      'Ab': 4,
+      'Gg': 6,
+      'G': 1,
+      'F': 1,
+      'Eb': 3,
+      'Db': 5,
+      'Cb': 7,
+      'C#': 7,
+      'F#': 6,
+      'E': 4,
+      'D': 2
+    };
+  }
 
-	static getSharpsInKeySignature(key) {
-		var sharpKeys = ['B','G','D','A','E','B','F#','C#'];
-		if (sharpKeys.indexOf(key) < 0) {
-			return 0;
-		}
-		return smoMusic.keySignatureLength[key];
-	}
+  static getSharpsInKeySignature(key) {
+    var sharpKeys = ['B','G','D','A','E','B','F#','C#'];
+    if (sharpKeys.indexOf(key) < 0) {
+      return 0;
+    }
+    return smoMusic.keySignatureLength[key];
+  }
 
-	static getFlatsInKeySignature(key) {
-		var flatKeys = ['F','Bb','Eb','Ab','Db','Gb','Cb'];
-		if (flatKeys.indexOf(key) < 0) {
-			return 0;
-		}
-		return smoMusic.keySignatureLength[key];
-	}
+  static getFlatsInKeySignature(key) {
+    var flatKeys = ['F','Bb','Eb','Ab','Db','Gb','Cb'];
+    if (flatKeys.indexOf(key) < 0) {
+      return 0;
+    }
+    return smoMusic.keySignatureLength[key];
+  }
 
     static timeSignatureToTicks(timeSignature) {
         var nd = timeSignature.split('/');
@@ -817,36 +859,36 @@ class smoMusic {
         var dots = (vd.match(/d/g) || []).length;
         return dots;
     }
-	// ## closestVexDuration
-	// ## Description:
-	// return the closest vex duration >= to the actual number of ticks. Used in beaming
-	// triplets which have fewer ticks then their stem would normally indicate.
-	static closestVexDuration(ticks) {
-		var stemTicks = VF.RESOLUTION;
+  // ## closestVexDuration
+  // ## Description:
+  // return the closest vex duration >= to the actual number of ticks. Used in beaming
+  // triplets which have fewer ticks then their stem would normally indicate.
+  static closestVexDuration(ticks) {
+    var stemTicks = VF.RESOLUTION;
 
-		// The stem value is the type on the non-tuplet note, e.g. 1/8 note
-		// for a triplet.
-		while (ticks <= stemTicks) {
-			stemTicks = stemTicks / 2;
-		}
+    // The stem value is the type on the non-tuplet note, e.g. 1/8 note
+    // for a triplet.
+    while (ticks <= stemTicks) {
+      stemTicks = stemTicks / 2;
+    }
 
-		stemTicks = stemTicks * 2;
-		return smoMusic.ticksToDuration[stemTicks];
-		var ix = Object.keys(smoMusic.ticksToDuration).findIndex((x) => {
-				return x >= ticks
-			});
-		return smoMusic.ticksToDuration[durations[ix]];
-	}
+    stemTicks = stemTicks * 2;
+    return smoMusic.ticksToDuration[stemTicks];
+    var ix = Object.keys(smoMusic.ticksToDuration).findIndex((x) => {
+        return x >= ticks
+      });
+    return smoMusic.ticksToDuration[durations[ix]];
+  }
 
-	// ### getKeySignatureKey
-	// given a letter pitch (a,b,c etc.), and a key signature, return the actual note
-	// that you get without accidentals
-	// ### Usage:
-	//   smoMusic.getKeySignatureKey('F','G'); // returns f#
-	static getKeySignatureKey(letter, keySignature) {
-		var km = new VF.KeyManager(keySignature);
-		return km.scaleMap[letter];
-	}
+  // ### getKeySignatureKey
+  // given a letter pitch (a,b,c etc.), and a key signature, return the actual note
+  // that you get without accidentals
+  // ### Usage:
+  //   smoMusic.getKeySignatureKey('F','G'); // returns f#
+  static getKeySignatureKey(letter, keySignature) {
+    var km = new VF.KeyManager(keySignature);
+    return km.scaleMap[letter];
+  }
 
     static getAccidentalForKeySignature(smoPitch,keySignature) {
         var vexKey = smoMusic.getKeySignatureKey(smoPitch.letter,keySignature);
@@ -862,81 +904,81 @@ class smoMusic {
             (vexKey[1]==smoPitch.accidental));
     }
 
-	// ### Description:
-	// Get ticks for this note with an added dot.  Return
-	// identity if that is not a supported value.
-	static getNextDottedLevel(ticks) {
-		var ttd = smoMusic.ticksToDuration;
-		var vals = Object.values(ttd);
+  // ### Description:
+  // Get ticks for this note with an added dot.  Return
+  // identity if that is not a supported value.
+  static getNextDottedLevel(ticks) {
+    var ttd = smoMusic.ticksToDuration;
+    var vals = Object.values(ttd);
 
-		var ix = vals.indexOf(ttd[ticks]);
-		if (ix >= 0 && ix < vals.length && vals[ix][0] == vals[ix + 1][0]) {
-			return smoMusic.durationToTicks(vals[ix + 1]);
-		}
-		return ticks;
-	}
+    var ix = vals.indexOf(ttd[ticks]);
+    if (ix >= 0 && ix < vals.length && vals[ix][0] == vals[ix + 1][0]) {
+      return smoMusic.durationToTicks(vals[ix + 1]);
+    }
+    return ticks;
+  }
 
-	// ### Description:
-	// Get ticks for this note with one fewer dot.  Return
-	// identity if that is not a supported value.
-	static getPreviousDottedLevel(ticks) {
-		var ttd = smoMusic.ticksToDuration;
-		var vals = Object.values(ttd);
-		var ix = vals.indexOf(ttd[ticks]);
-		if (ix > 0 && vals[ix][0] == vals[ix - 1][0]) {
-			return smoMusic.durationToTicks(vals[ix - 1]);
-		}
-		return ticks;
-	}
+  // ### Description:
+  // Get ticks for this note with one fewer dot.  Return
+  // identity if that is not a supported value.
+  static getPreviousDottedLevel(ticks) {
+    var ttd = smoMusic.ticksToDuration;
+    var vals = Object.values(ttd);
+    var ix = vals.indexOf(ttd[ticks]);
+    if (ix > 0 && vals[ix][0] == vals[ix - 1][0]) {
+      return smoMusic.durationToTicks(vals[ix - 1]);
+    }
+    return ticks;
+  }
 
 
-	// ### ticksToDuration
-	// Frequently we double/halve a note duration, and we want to find the vex tick duration that goes with that.
-	static get ticksToDuration() {
-		var durations = ["1/2", "1", "2", "4", "8", "16", "32", "64", "128", "256"];
-		smoMusic._ticksToDuration = smoMusic['_ticksToDuration'] ? smoMusic._ticksToDuration : null;
-		var _ticksToDurationsF = function () {
+  // ### ticksToDuration
+  // Frequently we double/halve a note duration, and we want to find the vex tick duration that goes with that.
+  static get ticksToDuration() {
+    var durations = ["1/2", "1", "2", "4", "8", "16", "32", "64", "128", "256"];
+    smoMusic._ticksToDuration = smoMusic['_ticksToDuration'] ? smoMusic._ticksToDuration : null;
+    var _ticksToDurationsF = function () {
             var ticksToDuration = smoMusic._ticksToDuration = {};
-			for (var i = 0; i < durations.length - 1; ++i) {
-				var dots = '';
-				var ticks = 0;
+      for (var i = 0; i < durations.length - 1; ++i) {
+        var dots = '';
+        var ticks = 0;
 
-				// We support up to 4 'dots'
-				for (var j = 0; j <= 4 && j + i < durations.length; ++j) {
-					ticks += VF.durationToTicks.durations[durations[i + j]];
-					ticksToDuration[ticks.toString()] = durations[i] + dots;
-					dots += 'd'
-				}
-			}
-			return ticksToDuration;
-		}
-        if (!smoMusic._ticksToDuration) {
-		   _ticksToDurationsF();
+        // We support up to 4 'dots'
+        for (var j = 0; j <= 4 && j + i < durations.length; ++j) {
+          ticks += VF.durationToTicks.durations[durations[i + j]];
+          ticksToDuration[ticks.toString()] = durations[i] + dots;
+          dots += 'd'
         }
-		return smoMusic._ticksToDuration;
-	};
+      }
+      return ticksToDuration;
+    }
+        if (!smoMusic._ticksToDuration) {
+       _ticksToDurationsF();
+        }
+    return smoMusic._ticksToDuration;
+  };
 
-	// ### durationToTicks
-	// Uses VF.durationToTicks, but handles dots.
-	static durationToTicks(duration) {
-		var dots = duration.indexOf('d');
-		if (dots < 0) {
-			return VF.durationToTicks(duration);
-		} else {
-			var vfDuration = VF.durationToTicks(duration.substring(0, dots));
-			dots = duration.length - dots; // number of dots
-			var split = vfDuration / 2;
-			for (var i = 0; i < dots; ++i) {
-				vfDuration += split;
-				split = split / 2;
-			}
+  // ### durationToTicks
+  // Uses VF.durationToTicks, but handles dots.
+  static durationToTicks(duration) {
+    var dots = duration.indexOf('d');
+    if (dots < 0) {
+      return VF.durationToTicks(duration);
+    } else {
+      var vfDuration = VF.durationToTicks(duration.substring(0, dots));
+      dots = duration.length - dots; // number of dots
+      var split = vfDuration / 2;
+      for (var i = 0; i < dots; ++i) {
+        vfDuration += split;
+        split = split / 2;
+      }
 
-			return vfDuration;
-		}
-	}
+      return vfDuration;
+    }
+  }
 
 
-	static gcdMap(duration) {
+  static gcdMap(duration) {
         var keys = Object.keys(smoMusic.ticksToDuration).map((x) => parseInt(x));
         var dar = [];
 
@@ -1035,153 +1077,147 @@ class PromiseHelpers {
 		return result;
   }
 }
-;
-VF = Vex.Flow;
-Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
-	 : Vex.Xform);
-VX = Vex.Xform;
-
-// ## smoSerialize
+;// ## smoSerialize
 // Helper functions that perform serialized merges, general JSON
 // types of routines.
 // ---
 class smoSerialize {
 
-	// ### filteredMerge
-	// Like vexMerge, but only for specific attributes.
-	static filteredMerge(attrs, src, dest) {
-		attrs.forEach(function (attr) {
-			if (typeof(src[attr]) != 'undefined') {
-				dest[attr] = src[attr];
-			}
-		});
-	}
+  // ### filteredMerge
+  // Like vexMerge, but only for specific attributes.
+  static filteredMerge(attrs, src, dest) {
+    attrs.forEach(function (attr) {
+      if (typeof(src[attr]) != 'undefined') {
+        dest[attr] = src[attr];
+      }
+    });
+  }
 
     static get localScore() {
         return '_smoosicScore';
     }
 
-    // This is the token map we use to reduce the size of
-    // serialized data.
-    static get tokenMap() {
- var _tm=`{
-     "a": "score",
-     "b": "layout",
-     "c": "leftMargin",
-     "d": "rightMargin",
-     "e": "topMargin",
-     "f": "bottomMargin",
-     "g": "pageWidth",
-     "h": "pageHeight",
-     "i": "orientation",
-     "j": "interGap",
-     "k": "intraGap",
-     "l": "svgScale",
-     "m": "zoomScale",
-     "n": "zoomMode",
-     "o": "pages",
-     "p": "pageSize",
-     "q": "startIndex",
-     "r": "renumberingMap",
-     "s": "staves",
-     "t": "staffId",
-     "u": "staffX",
-     "v": "staffY",
-     "w": "adjY",
-     "x": "staffWidth",
-     "y": "staffHeight",
-     "z": "keySignatureMap",
-     "aa": "instrumentInfo",
-     "ba": "instrumentName",
-     "ca": "keyOffset",
-     "da": "clef",
-     "ea": "modifiers",
-     "fa": "startSelector",
-     "ga": "staff",
-     "ha": "measure",
-     "ia": "voice",
-     "ja": "tick",
-     "ka": "pitches",
-     "la": "endSelector",
-     "ma": "xOffset",
-     "na": "cp1y",
-     "oa": "cp2y",
-     "pa": "attrs",
-     "qa": "id",
-     "ra": "type",
-     "sa": "ctor",
-     "ta": "yOffset",
-     "ua": "position",
-     "va": "measures",
-     "wa": "timeSignature",
-     "xa": "keySignature",
-     "ya": "measureNumber",
-     "za": "measureIndex",
-     "ab": "systemIndex",
-     "bb": "adjX",
-     "cb": "tuplets",
-     "db": "voices",
-     "eb": "notes",
-     "fb": "ticks",
-     "gb": "numerator",
-     "hb": "denominator",
-     "ib": "remainder",
-     "jb": "letter",
-     "kb": "octave",
-     "lb": "accidental",
-     "mb": "symbol",
-     "nb": "bpm",
-     "ob": "display",
-     "pb": "beatDuration",
-     "qb": "beamBeats",
-     "rb": "endBeam",
-     "sb": "textModifiers",
-     "tb": "text",
-     "ub": "endChar",
-     "vb": "fontInfo",
-     "wb": "size",
-     "xb": "family",
-     "yb": "style",
-     "zb": "weight",
-     "ac": "classes",
-     "bc": "verse",
-     "cc": "fill",
-     "dc": "scaleX",
-     "ec": "scaleY",
-     "fc": "translateX",
-     "gc": "translateY",
-     "hc": "selector",
-     "ic": "renderedBox",
-     "jc": "x",
-     "kc": "y",
-     "lc": "width",
-     "mc": "height",
-     "nc": "logicalBox",
-     "oc": "noteType",
-     "pc": "cautionary",
-     "qc": "articulations",
-     "rc": "articulation",
-     "sc": "activeVoice",
-     "tc": "flagState",
-     "uc": "invert",
-     "vc": "fontSize",
-     "wc": "yOffsetLine",
-     "xc": "yOffsetPixels",
-     "yc": "scoreText",
-     "zc": "backup",
-     "ad": "edited",
-     "bd": "pagination",
-     "cd": "boxModel",
-     "dd": "justification",
-     "ed": "autoLayout",
-     "fd": "ornaments",
-     "gd": "offset",
-     "hd": "ornament",
-     "id": "tempoMode",
-     "jd": "tempoText",
-     "kd": "barline",
-     "ld": "systemBreak",
-     "md": "graceNotes",
+  // This is the token map we use to reduce the size of
+  // serialized data.
+  static get tokenMap() {
+   var _tm=`{
+      "a": "score",
+      "b": "layout",
+      "c": "leftMargin",
+      "d": "rightMargin",
+      "e": "topMargin",
+      "f": "bottomMargin",
+      "g": "pageWidth",
+      "h": "pageHeight",
+      "i": "orientation",
+      "j": "interGap",
+      "k": "intraGap",
+      "l": "svgScale",
+      "m": "zoomScale",
+      "n": "zoomMode",
+      "o": "pages",
+      "p": "pageSize",
+      "q": "startIndex",
+      "r": "renumberingMap",
+      "s": "staves",
+      "t": "staffId",
+      "u": "staffX",
+      "v": "staffY",
+      "w": "adjY",
+      "x": "staffWidth",
+      "y": "staffHeight",
+      "z": "keySignatureMap",
+      "aa": "instrumentInfo",
+      "ba": "instrumentName",
+      "ca": "keyOffset",
+      "da": "clef",
+      "ea": "modifiers",
+      "fa": "startSelector",
+      "ga": "staff",
+      "ha": "measure",
+      "ia": "voice",
+      "ja": "tick",
+      "ka": "pitches",
+      "la": "endSelector",
+      "ma": "xOffset",
+      "na": "cp1y",
+      "oa": "cp2y",
+      "pa": "attrs",
+      "qa": "id",
+      "ra": "type",
+      "sa": "ctor",
+      "ta": "yOffset",
+      "ua": "position",
+      "va": "measures",
+      "wa": "timeSignature",
+      "xa": "keySignature",
+      "ya": "measureNumber",
+      "za": "measureIndex",
+      "ab": "systemIndex",
+      "bb": "adjX",
+      "cb": "tuplets",
+      "db": "voices",
+      "eb": "notes",
+      "fb": "ticks",
+      "gb": "numerator",
+      "hb": "denominator",
+      "ib": "remainder",
+      "jb": "letter",
+      "kb": "octave",
+      "lb": "accidental",
+      "mb": "symbol",
+      "nb": "bpm",
+      "ob": "display",
+      "pb": "beatDuration",
+      "qb": "beamBeats",
+      "rb": "endBeam",
+      "sb": "textModifiers",
+      "tb": "text",
+      "ub": "endChar",
+      "vb": "fontInfo",
+      "wb": "size",
+      "xb": "family",
+      "yb": "style",
+      "zb": "weight",
+      "ac": "classes",
+      "bc": "verse",
+      "cc": "fill",
+      "dc": "scaleX",
+      "ec": "scaleY",
+      "fc": "translateX",
+      "gc": "translateY",
+      "hc": "selector",
+      "ic": "renderedBox",
+      "jc": "x",
+      "kc": "y",
+      "lc": "width",
+      "mc": "height",
+      "nc": "logicalBox",
+      "oc": "noteType",
+      "pc": "cautionary",
+      "qc": "articulations",
+      "rc": "articulation",
+      "sc": "activeVoice",
+      "tc": "flagState",
+      "uc": "invert",
+      "vc": "fontSize",
+      "wc": "yOffsetLine",
+      "xc": "yOffsetPixels",
+      "yc": "scoreText",
+      "zc": "backup",
+      "ad": "edited",
+      "bd": "pagination",
+      "cd": "boxModel",
+      "dd": "justification",
+      "ed": "autoLayout",
+      "fd": "ornaments",
+      "gd": "offset",
+      "hd": "ornament",
+      "id": "tempoMode",
+      "jd": "tempoText",
+      "kd": "barline",
+      "ld": "systemBreak",
+      "md": "graceNotes",
       "nd": "tones",
       "od": "tuplet",
       "pd": "beam_group",
@@ -1220,242 +1256,249 @@ class smoSerialize {
       "we": "activeText",
       "xe": "attachToSelector",
       "ye": "musicXOffset",
-      "ze": "musicYOffset"
-     }`
-     ;
+      "ze": "musicYOffset",
+      "af": "formattingIterations",
+      "bf": "startBar",
+      "cf": "endBar",
+      "df": "endingId",
+      "ef": "autoJustify",
+      "ff": "thickness",
+      "gf": "number",
+      "hf": "preferences",
+      "if": "autoPlay",
+      "jf": "autoAdvance",
+      "kf": "defaultDupleDuration",
+      "lf": "defaultTripleDuration",
+      "mf": "scoreInfo",
+      "nf": "version"
+      }`;
      return JSON.parse(_tm);
     }
 
     static get valueTokens() {
-        var vm = `{"@sn","SmoNote"}`;
-        return JSON.parse(vm);
+      var vm = `{"@sn","SmoNote"}`;
+      return JSON.parse(vm);
     }
 
     static reverseMap(map) {
-        var rv = {};
-        var keys = Object.keys(map);
+      const rv = {};
+      const keys = Object.keys(map);
+      keys.forEach((key) => {
+        rv[map[key]] = key;
+      });
+      return rv;
+    }
+
+  static get tokenValues() {
+    return smoSerialize.reverseMap(smoSerialize.tokenMap);
+  }
+
+  // ## detokenize
+  // If we are saving, replace token values with keys, since the keys are smaller.
+  // if we are loading, replace the token keys with values so the score can
+  // deserialize it
+  static detokenize(json, dictionary) {
+      const rv = {};
+      const smoKey = (key) => {
+        return typeof(dictionary[key]) !== 'undefined' ? dictionary[key] : key;
+      }
+      const _tokenRecurse = (input,output) =>  {
+        const keys = Object.keys(input);
         keys.forEach((key) => {
-            rv[map[key]] = key;
-        });
-        return rv;
-    }
-
-    static get tokenValues() {
-        return smoSerialize.reverseMap(smoSerialize.tokenMap);
-    }
-
-    // ## detokenize
-    // If we are saving, replace token values with keys, since the keys are smaller.
-    // if we are loading, replace the token keys with values so the score can
-    // deserialize it
-    static detokenize(json,dictionary) {
-        var rv = {};
-
-        var smoKey = (key) => {
-            return dictionary[key] ? dictionary[key] : key;
-        }
-
-        var n1 = 0;
-        var n2=-1;
-        var _tokenRecurse = (input,output) =>  {
-            var keys = Object.keys(input);
-            keys.forEach((key) => {
-                var val = input[key];
-                var dkey = smoKey(key);
-                if (typeof(val) == 'string' || typeof(val) == 'number' || typeof(val) == 'boolean') {
-                    output[dkey] = val;
+          const val = input[key];
+          const dkey = smoKey(key);
+          if (typeof(val) == 'string' || typeof(val) == 'number' || typeof(val) == 'boolean') {
+            output[dkey] = val;
+          }
+          if (typeof(val) == 'object' && key != 'dictionary') {
+            if (Array.isArray(val)) {
+              output[dkey] = [];
+              val.forEach((arobj) => {
+                if (typeof(arobj) == 'string' || typeof(arobj) == 'number' || typeof(arobj) == 'boolean') {
+                  output[dkey].push(arobj);
                 }
-                if (typeof(val) == 'object' && key != 'dictionary') {
-                    if (Array.isArray(val)) {
-                        output[dkey] = [];
-                        val.forEach((arobj) => {
-                            if (typeof(arobj) == 'string' || typeof(arobj) == 'number' || typeof(arobj) == 'boolean') {
-                                output[dkey].push(arobj);
-                            }
-                            else if (arobj && typeof(arobj) == 'object') {
-                                var nobj = {};
-                                _tokenRecurse(arobj,nobj);
-                                output[dkey].push(nobj);
-                            }
-                        });
-                    } else {
-                        var nobj = {};
-                      _tokenRecurse(val,nobj);
-                      output[dkey] = nobj;
-                   }
+                else if (arobj && typeof(arobj) == 'object') {
+                  const nobj = {};
+                  _tokenRecurse(arobj,nobj);
+                  output[dkey].push(nobj);
                 }
-            });
-
-        }
-        _tokenRecurse(json,rv);
-        // console.log(JSON.stringify(rv,null,' '));
-        return rv;
-    }
-
-    static incrementIdentifier(label) {
-        var increcurse = (ar,ix) => {
-            var n1 = (ar[ix].charCodeAt(0)-97)+1;
-            if (n1 > 25) {
-                ar[ix]='a';
-                if (ar.length <= ix+1) {
-                    ar.push('a');
-                } else {
-                   increcurse(ar,ix+1);
-                }
+              });
             } else {
-                ar[ix] = String.fromCharCode(97+n1);
+              const nobj = {};
+              _tokenRecurse(val,nobj);
+              output[dkey] = nobj;
             }
-        }
-        if (!label) {
-            label = 'a';
-        }
-        var ar = label.split('');
-        increcurse(ar,0);
-        label = ar.join('');
-        return label;
-    }
+          }
+        });
+      }
+      _tokenRecurse(json,rv);
+      // console.log(JSON.stringify(rv,null,' '));
+      return rv;
+  }
 
-    // used to generate a tokenization scheme that I will use to make
-    // saved files smaller
-    static jsonTokens(json) {
-        var map = {};
-        var valmap = {};
-        var startKeys = Object.keys(smoSerialize.tokenMap);
-        var keyLabel = startKeys[startKeys.length - 1];
+  static incrementIdentifier(label) {
+    const increcurse = (ar, ix) => {
+      const n1 = (ar[ix].charCodeAt(0) - 97) + 1;
+      if (n1 > 25) {
+        ar[ix] = 'a';
+        if (ar.length <= ix+1) {
+          ar.push('a');
+        } else {
+          increcurse(ar,ix+1);
+        }
+      } else {
+        ar[ix] = String.fromCharCode(97+n1);
+      }
+    }
+    if (!label) {
+      label = 'a';
+    }
+    const ar = label.split('');
+    increcurse(ar,0);
+    label = ar.join('');
+    return label;
+  }
+
+  // used to generate a tokenization scheme that I will use to make
+  // saved files smaller
+  static jsonTokens(json) {
+    const map = {};
+    const valmap = {};
+    const startKeys = Object.keys(smoSerialize.tokenMap);
+    let keyLabel = startKeys[startKeys.length - 1];
+    keyLabel = smoSerialize.incrementIdentifier(keyLabel);
+
+    const exist = smoSerialize.tokenValues;
+    const addMap = (key) => {
+      if (!exist[key] && !map[key] && key.length > keyLabel.length) {
+        map[key] = keyLabel;
         keyLabel = smoSerialize.incrementIdentifier(keyLabel);
-
-        var exist = smoSerialize.tokenValues;
-        var addMap = (key) => {
-            if (!exist[key] && !map[key] && key.length > keyLabel.length) {
-                map[key] = keyLabel;
-                keyLabel = smoSerialize.incrementIdentifier(keyLabel);
-            }
+      }
+    };
+    const _tokenRecurse = (obj) =>  {
+      const keys = Object.keys(obj);
+      keys.forEach((key) => {
+        const val = obj[key];
+        if (typeof(val) === 'string' || typeof(val) === 'number'
+         || typeof(val) === 'boolean') {
+          addMap(key);
         }
-        var _tokenRecurse = (obj) =>  {
-            var keys = Object.keys(obj);
-            keys.forEach((key) => {
-                var val = obj[key];
-                if (typeof(val) == 'string' || typeof(val) == 'number'
-                 || typeof(val) == 'boolean') {
-                    addMap(key);
-                }
-                if (typeof(val) == 'object') {
-                    if (Array.isArray(val)) {
-                        addMap(key);
-                        val.forEach((arobj) => {
-                            if (arobj && typeof(arobj) == 'object') {
-                                _tokenRecurse(arobj);
-                            }
-                        });
-                    } else {
-                        addMap(key);
-                      _tokenRecurse(val);
-                   }
-                }
-
+        if (typeof(val) == 'object') {
+          if (Array.isArray(val)) {
+            addMap(key);
+            val.forEach((arobj) => {
+              if (arobj && typeof(arobj) === 'object') {
+                _tokenRecurse(arobj);
+              }
             });
+          } else {
+            addMap(key);
+            _tokenRecurse(val);
+          }
         }
-        _tokenRecurse(json);
-        var mkar = Object.keys(map);
-        var m2 = {};
-        mkar.forEach((mk) => {
-            m2[map[mk]] = mk;
-        })
-        console.log(JSON.stringify(m2,null,' '));
+      });
     }
-	// ### serializedMerge
-	// serialization-friendly, so merged, copied objects are deep-copied
-	static serializedMerge(attrs, src, dest) {
-		attrs.forEach(function (attr) {
-			if (typeof(src[attr]) != 'undefined') {
-				// copy the number 0
-				if (typeof(src[attr]) === 'number' ||
-					typeof(src[attr]) === 'boolean' ||
-                    typeof(src[attr]) === 'string') {
-					dest[attr] = src[attr];
-					// copy the empty array
-				} else if (Array.isArray(src[attr])) {
-					dest[attr] = JSON.parse(JSON.stringify(src[attr]));
-				} else {
-					// but don't copy empty/null objects
-					if (src[attr]) {
-						if (typeof(src[attr]) == 'object') {
-							dest[attr] = JSON.parse(JSON.stringify(src[attr]));
-						} else {
-							dest[attr] = src[attr];
-						}
-					}
-				}
-			}
-		});
-	}
+    _tokenRecurse(json);
+    const mkar = Object.keys(map);
+    const m2 = {};
+    mkar.forEach((mk) => {
+      m2[map[mk]] = mk;
+    })
+    console.log(JSON.stringify(m2, null, ' '));
+  }
 
-    // ### serializedMergeNonDefault
-    // Used to reduce size of serializations.  Create a serialzation of
-    // the object, but don't serialize attributes that are already the default
-    // since the default will be set when the object is deserialized
-    // #### parameters:
-    //     defaults - default Array
-    //     attrs - array of attributes to save
-    //     src - the object to serialize
-    //     dest - the json object that is the target.
-    static serializedMergeNonDefault(defaults,attrs,src,dest) {
-        attrs.forEach(function (attr) {
-			if (typeof(src[attr]) != 'undefined') {
-				// copy the number 0
-				if (typeof(src[attr]) === 'number' ||
-					typeof(src[attr]) === 'boolean' ||
-                    typeof(src[attr]) === 'string' ) {
-                        if (src[attr] != defaults[attr]) {
-					        dest[attr] = src[attr];
-                        }
-					// copy the empty array
-				} else if (Array.isArray(src[attr])) {
-                    var defval = JSON.stringify(defaults[attr]);
-                    var srcval = JSON.stringify(src[attr]);
-                    if (defval != srcval) {
-					    dest[attr] = JSON.parse(srcval);
-                    }
-				} else {
-					// but don't copy empty/null objects
-					if (src[attr]) {
-						if (typeof(src[attr]) == 'object') {
-                            var defval = JSON.stringify(defaults[attr]);
-                            var srcval = JSON.stringify(src[attr]);
-                            if (defval != srcval) {
-                                dest[attr] = JSON.parse(srcval);
-                            }
-						} else {
-                            if (src[attr] != defaults[attr]) {
-							    dest[attr] = src[attr];
-                            }
-						}
-					}
-				}
-			}
-		});
-    }
+  // ### serializedMerge
+  // serialization-friendly, so merged, copied objects are deep-copied
+  static serializedMerge(attrs, src, dest) {
+    attrs.forEach(function (attr) {
+      if (typeof(src[attr]) !== 'undefined') {
+        // copy the number 0
+        if (typeof(src[attr]) === 'number' ||
+          typeof(src[attr]) === 'boolean' ||
+          typeof(src[attr]) === 'string') {
+          dest[attr] = src[attr];
+          // copy the empty array
+        } else if (Array.isArray(src[attr])) {
+          dest[attr] = JSON.parse(JSON.stringify(src[attr]));
+        } else {
+          // but don't copy empty/null objects
+          if (src[attr]) {
+            if (typeof(src[attr]) == 'object') {
+              dest[attr] = JSON.parse(JSON.stringify(src[attr]));
+            } else {
+              dest[attr] = src[attr];
+            }
+          }
+        }
+      }
+    });
+  }
 
-	static stringifyAttrs(attrs, obj) {
-		var rv = '';
-		attrs.forEach((attr) => {
-			if (obj[attr]) {
-				rv += attr + ':' + obj[attr] + ', ';
-			} else {
-				rv += attr + ': null,';
-			}
-		});
-		return rv;
-	}
+  // ### serializedMergeNonDefault
+  // Used to reduce size of serializations.  Create a serialzation of
+  // the object, but don't serialize attributes that are already the default
+  // since the default will be set when the object is deserialized
+  // #### parameters:
+  //     defaults - default Array
+  //     attrs - array of attributes to save
+  //     src - the object to serialize
+  //     dest - the json object that is the target.
+  static serializedMergeNonDefault(defaults,attrs,src,dest) {
+    attrs.forEach(function (attr) {
+      if (typeof(src[attr]) != 'undefined') {
+        // copy the number 0
+        if (typeof(src[attr]) === 'number' ||
+          typeof(src[attr]) === 'boolean' ||
+          typeof(src[attr]) === 'string' ) {
+          if (src[attr] != defaults[attr]) {
+            dest[attr] = src[attr];
+          }
+        // copy the empty array
+        } else if (Array.isArray(src[attr])) {
+          const defval = JSON.stringify(defaults[attr]);
+          const srcval = JSON.stringify(src[attr]);
+          if (defval != srcval) {
+            dest[attr] = JSON.parse(srcval);
+          }
+        } else {
+          // but don't copy empty/null objects
+          if (src[attr]) {
+            if (typeof(src[attr]) == 'object') {
+              const defval = JSON.stringify(defaults[attr]);
+              const srcval = JSON.stringify(src[attr]);
+              if (defval != srcval) {
+                dest[attr] = JSON.parse(srcval);
+              }
+            } else {
+              if (src[attr] != defaults[attr]) {
+                dest[attr] = src[attr];
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  static stringifyAttrs(attrs, obj) {
+    let rv = '';
+    attrs.forEach((attr) => {
+      if (obj[attr]) {
+        rv += attr + ':' + obj[attr] + ', ';
+      } else {
+        rv += attr + ': null,';
+      }
+    });
+    return rv;
+  }
 
   // ### printXlate
   // print json with string labels to use as a translation file seed.
   static printTranslate(_class) {
-    var xxx = eval(_class+'.printTranslate');
+    const xxx = eval(_class + '.printTranslate');
     if (typeof(xxx) === 'function') {
       xxx();
     }
-
   }
 }
 ;
@@ -2178,7 +2221,7 @@ class suiAudioPitch {
 
   static smoPitchToFrequency(smoNote, smoPitch, ix, offset) {
     let pitchInt = 0;
-    let rv = suiAudioPitch._rawPitchToFrequency(smoPitch, -1 * offset);
+    let rv = suiAudioPitch._rawPitchToFrequency(smoPitch, offset);
     const mt = smoNote.tones.filter((tt) => tt.pitch === ix);
     if (mt.length) {
       const tone = mt[0];
@@ -2186,7 +2229,7 @@ class suiAudioPitch {
       pitchInt = smoMusic.smoPitchToInt(smoPitch);
       pitchInt += (coeff > 0) ? 1 : -1;
       const otherSmo = smoMusic.smoIntToPitch(pitchInt);
-      const otherPitch = suiAudioPitch._rawPitchToFrequency(otherSmo, -1 * offset);
+      const otherPitch = suiAudioPitch._rawPitchToFrequency(otherSmo, offset);
       rv += Math.abs(rv - otherPitch) * coeff;
     }
     return rv;
@@ -2287,6 +2330,9 @@ class suiOscillator {
     if (!selection.note) {
       return;
     }
+    if (selection.note.isRest()) {
+      return;
+    }
     setTimeout(() => {
       const ar = suiOscillator.fromNote(selection.measure, selection.note, true, gain);
       ar.forEach((osc) => {
@@ -2321,7 +2367,7 @@ class suiOscillator {
     }
     i = 0;
     note.pitches.forEach((pitch) => {
-      frequency = suiAudioPitch.smoPitchToFrequency(note, pitch, i, measure.transposeIndex);
+      frequency = suiAudioPitch.smoPitchToFrequency(note, pitch, i, -1 * measure.transposeIndex);
       const osc = new suiOscillator({ frequency, duration, gain });
       // var osc = new suiSampler({frequency:frequency,duration:duration,gain:gain});
       ar.push(osc);
@@ -2815,18 +2861,13 @@ class suiLayoutAdjuster {
   static estimateMeasureWidth(measure) {
 
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
-  var gravity = false;
   var prevWidth = measure.staffWidth;
   var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
   measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
   measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
   measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
-  if (measure.changed == false && measure.logicalBox && measure.staffWidth < prevWidth) {
-    measureWidth = Math.round((measure.staffWidth + prevWidth)/2);
-    gravity = true;
-  }
   var y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
-  measure.setWidth(measureWidth,'estimateMeasureWidth adjX adjRight gravity: '+gravity);
+  measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight ');
 
     // Calculate the space for left/right text which displaces the measure.
     // var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
@@ -2918,540 +2959,6 @@ class suiLayoutAdjuster {
       });
     });
     return {belowBaseline:heightOffset,aboveBaseline:yOffset};
-  }
-}
-;// ## SuiRenderState
-// Manage the state of the score rendering.  The score can be rendered either completely,
-// or partially for editing.  This class works with the RenderDemon to decide when to
-// render the score after it has been modified, and keeps track of what the current
-// render state is (dirty, etc.)
-// eslint-disable-next-line no-unused-vars
-class SuiRenderState {
-  constructor(ctor) {
-    this.attrs = {
-      id: VF.Element.newID(),
-      type: ctor
-    };
-    this.dirty = true;
-    this.replaceQ = [];
-    this.renderTime = 250;  // ms to render before time slicing
-    this.partialRender = false;
-    this.stateRepCount = 0;
-    this.viewportPages = 1;
-    this.setPassState(SuiRenderState.initial, 'ctor');
-    this.viewportChanged = false;
-    this._resetViewport = false;
-    this.measureMapper = null;
-  }
-
-  // ### setMeasureMapper
-  // DI/notifier pattern.  The measure mapper/tracker is updated when the score is rendered
-  // so the UI stays in sync with the location of elements in the score.
-  setMeasureMapper(mapper) {
-    this.measureMapper = mapper;
-  }
-
-  static get Fonts() {
-    return {
-      Bravura: [VF.Fonts.Bravura, VF.Fonts.Gonville, VF.Fonts.Custom],
-      Gonville: [VF.Fonts.Gonville, VF.Fonts.Bravura, VF.Fonts.Custom],
-      Petaluma: [VF.Fonts.Petaluma, VF.Fonts.Gonville, VF.Fonts.Custom]
-    };
-  }
-
-  static setFont(font) {
-    VF.DEFAULT_FONT_STACK = SuiRenderState.Fonts[font];
-  }
-
-  static get passStates() {
-    return { initial: 0, clean: 2, replace: 3 };
-  }
-
-  addToReplaceQueue(selection) {
-    if (this.passState === SuiRenderState.passStates.clean ||
-      this.passState === SuiRenderState.passStates.replace) {
-      if (Array.isArray(selection)) {
-        this.replaceQ = this.replaceQ.concat(selection);
-      } else {
-        this.replaceQ.push(selection);
-      }
-      this.setDirty();
-    }
-  }
-
-  setDirty() {
-    if (!this.dirty) {
-      this.dirty = true;
-      if (this.passState === SuiRenderState.passStates.clean) {
-        this.setPassState(SuiRenderState.passStates.replace);
-      }
-    }
-  }
-  setRefresh() {
-    this.dirty = true;
-    this.setPassState(SuiRenderState.passStates.initial, 'setRefresh');
-  }
-  rerenderAll() {
-    this.dirty = true;
-    this.setPassState(SuiRenderState.passStates.initial, 'rerenderAll');
-    this._resetViewport = true;
-  }
-
-  remapAll() {
-    this.partialRender = false;
-    this.setRefresh();
-  }
-
-  // Number the measures at the first measure in each system.
-  numberMeasures() {
-    const printing = $('body').hasClass('print-render');
-    const staff = this.score.staves[0];
-    const measures = staff.measures.filter((measure) => measure.measureNumber.systemIndex === 0);
-    $('.measure-number').remove();
-
-    measures.forEach((measure) => {
-      if (measure.measureNumber.measureNumber > 0 && measure.measureNumber.systemIndex === 0) {
-        const numAr = [];
-        numAr.push({ y: measure.logicalBox.y - 10 });
-        numAr.push({ x: measure.logicalBox.x });
-        numAr.push({ 'font-family': SourceSansProFont.fontFamily });
-        numAr.push({ 'font-size': '10pt' });
-        svgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.measureNumber + 1).toString());
-
-        // Show line-feed symbol
-        const formatIndex = SmoMeasure.systemOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
-        if (formatIndex >= 0 && !printing) {
-          const starAr = [];
-          starAr.push({ y: measure.logicalBox.y - 5 });
-          starAr.push({ x: measure.logicalBox.x + 25 });
-          starAr.push({ 'font-family': SourceSansProFont.fontFamily });
-          starAr.push({ 'font-size': '12pt' });
-          svgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', '\u21b0');
-        }
-      }
-    });
-  }
-
-  // ### _setViewport
-  // Create (or recrate) the svg viewport, considering the dimensions of the score.
-  _setViewport(reset, elementId) {
-    // this.screenWidth = window.innerWidth;
-    const layout = this._score.layout;
-    this.zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
-      layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;
-
-    if (layout.zoomMode !== SmoScore.zoomModes.zoomScale) {
-      layout.zoomScale = this.zoomScale;
-    }
-
-    this.svgScale = layout.svgScale * this.zoomScale;
-    this.orientation = this._score.layout.orientation;
-    const w = Math.round(layout.pageWidth * this.zoomScale);
-    const h = Math.round(layout.pageHeight * this.zoomScale);
-    this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w : h;
-    this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
-    this.totalHeight = this.pageHeight * this.score.layout.pages;
-    this.viewportPages = this.score.layout.pages;
-
-    this.leftMargin = this._score.layout.leftMargin;
-    this.rightMargin = this._score.layout.rightMargin;
-    $(elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
-    $(elementId).css('height', '' + Math.round(this.totalHeight) + 'px');
-    // Reset means we remove the previous SVG element.  Otherwise, we just alter it
-    if (reset) {
-      $(elementId).html('');
-      this.renderer = new VF.Renderer(elementId, VF.Renderer.Backends.SVG);
-      this.viewportChanged = true;
-      if (this.measureMapper) {
-        this.measureMapper.scroller.scrollAbsolute(0, 0);
-      }
-    }
-    svgHelpers.svgViewport(this.context.svg, 0, 0, this.pageWidth, this.totalHeight, this.svgScale);
-    // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
-    this.resizing = false;
-    console.log('layout setViewport: pstate initial');
-    this.dirty = true;
-    SuiRenderState._renderer = this.renderer;
-  }
-
-  setViewport(reset) {
-    this._setViewport(reset, this.elementId);
-    this.score.staves.forEach((staff) => {
-      staff.measures.forEach((measure) => {
-        if (measure.logicalBox && reset) {
-          measure.svg.history = ['reset'];
-        }
-      });
-    });
-    this.partialRender = false;
-  }
-  renderForPrintPromise() {
-    $('body').addClass('print-render');
-    const self = this;
-    this._backupLayout = JSON.parse(JSON.stringify(this.score.layout));
-    this.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-    this.score.layout.zoomScale = 1.0;
-    this.setViewport(true);
-    this.setRefresh();
-
-    const promise = new Promise((resolve) => {
-      const poll = () => {
-        setTimeout(() => {
-          if (!self.dirty) {
-            // tracker.highlightSelection();
-            $('body').removeClass('print-render');
-            $('.vf-selection').remove();
-            $('body').addClass('printing');
-            $('.musicRelief').css('height', '');
-            resolve();
-          } else {
-            poll();
-          }
-        }, 500);
-      };
-      poll();
-    });
-    return promise;
-  }
-
-  restoreLayoutAfterPrint() {
-    if (this._backupLayout) {
-      this.score.layout  = this._backupLayout;
-      this.setViewport(true);
-      this.setRefresh();
-      this._backupLayout = null;
-    }
-  }
-
-  clearLine(measure) {
-    const lineIndex = measure.lineIndex;
-    const startIndex = (lineIndex > 1 ? lineIndex - 1 : 0);
-    let i = 0;
-    for (i = startIndex; i < lineIndex + 1; ++i) {
-      // for lint error
-      const index = i;
-      this.score.staves.forEach((staff) => {
-        const mms = staff.measures.filter((mm) => mm.lineIndex === index);
-        mms.forEach((mm) => {
-          delete mm.logicalBox;
-        });
-      });
-    }
-  }
-
-  setPassState(st, location) {
-    const oldState = this.passState;
-    let msg = '';
-    if (oldState !== st) {
-      this.stateRepCount = 0;
-    } else {
-      this.stateRepCount += 1;
-    }
-
-    msg = location + ': passState ' + this.passState + '=>' + st;
-    if (this.stateRepCount > 0) {
-      msg += ' (' + this.stateRepCount + ')';
-    }
-    console.log(msg);
-    this.passState = st;
-  }
-  static get defaults() {
-    return {
-      clefWidth: 70,
-      staffWidth: 250,
-      totalWidth: 250,
-      leftMargin: 15,
-      topMargin: 15,
-      pageWidth: 8 * 96 + 48,
-      pageHeight: 11 * 96,
-      svgScale: 0.7,
-    };
-  }
-
-  static get debugLayout() {
-    SuiRenderState._debugLayout = SuiRenderState._debugLayout ? SuiRenderState._debugLayout : false;
-    return SuiRenderState._debugLayout;
-  }
-
-  static set debugLayout(value) {
-    SuiRenderState._debugLayout = value;
-    if (value) {
-      $('body').addClass('layout-debug');
-    } else {
-      $('body').removeClass('layout-debug');
-    }
-  }
-
-  // ### get context
-  // ### Description:
-  // return the VEX renderer context.
-  get context() {
-    return this.renderer.getContext();
-  }
-  get renderElement() {
-    return this.renderer.elementId;
-  }
-
-  get svg() {
-    return this.context.svg;
-  }
-
-  get score() {
-    return this._score;
-  }
-
-  set score(score) {
-    let shouldReset = false;
-    if (this._score) {
-      shouldReset = true;
-    }
-    this.setPassState(SuiRenderState.passStates.initial, 'load score');
-    const font = score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
-    SuiRenderState.setFont(font.family);
-    this.dirty = true;
-    this._score = score;
-    if (shouldReset) {
-      if (this.measureMapper) {
-        this.measureMapper.loadScore();
-      }
-      this.setViewport(true);
-    }
-  }
-
-  // ### undo
-  // Undo is handled by the render state machine, because the layout has to first
-  // delete areas of the viewport that may have changed,
-  // then create the modified score, then render the 'new' score.
-  undo(undoBuffer) {
-    const buffer = undoBuffer.peek();
-    let op = 'setDirty';
-    // Unrender the modified music because the IDs may change and normal unrender won't work
-    if (buffer) {
-      const sel = buffer.selector;
-      if (buffer.type === 'measure') {
-        this.unrenderMeasure(SmoSelection.measureSelection(this._score, sel.staff, sel.measure).measure);
-      } else if (buffer.type === 'staff') {
-        this.unrenderStaff(SmoSelection.measureSelection(this._score, sel.staff, 0).staff);
-        op = 'setRefresh';
-      } else {
-        this.unrenderAll();
-        op = 'setRefresh';
-      }
-      this._score = undoBuffer.undo(this._score);
-      this[op]();
-    }
-  }
-
-  // ### renderNoteModifierPreview
-  // ### Description:
-  // For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
-  // changes can be undone before the buffer closes.
-  renderNoteModifierPreview(modifier, selection) {
-    selection =
-      SmoSelection.noteSelection(this._score, selection.selector.staff, selection.selector.measure, selection.selector.voice, selection.selector.tick);
-    if (!selection.measure.renderedBox) {
-      return;
-    }
-    const system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex, this.score);
-    system.renderMeasure(selection.measure, this.mapper);
-  }
-
-  // ### renderNoteModifierPreview
-  // For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
-  // changes can be undone before the buffer closes.
-  renderMeasureModifierPreview(modifier, measure) {
-    const ix = measure.measureNumber.measureIndex;
-    this._score.staves.forEach((staff) => {
-      const cm = staff.measures[ix];
-      const system = new VxSystem(this.context, cm.staffY, cm.lineIndex, this.score);
-      system.renderMeasure(staff.staffId, cm);
-    });
-  }
-
-  // ### renderStaffModifierPreview
-  // Similar to renderNoteModifierPreview, but lets you preveiw a change to a staff element.
-  // re-render a modifier for preview during modifier dialog
-  renderStaffModifierPreview(modifier) {
-    let system = null;
-    // get the first measure the modifier touches
-    var startSelection = SmoSelection.measureSelection(this._score, modifier.startSelector.staff, modifier.startSelector.measure);
-
-    // We can only render if we already have, or we don't know where things go.
-    if (!startSelection.measure.renderedBox) {
-      return;
-    }
-    system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex, this.score);
-    while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
-      smoBeamerFactory.applyBeams(startSelection.measure);
-      system.renderMeasure(startSelection.measure, null, true);
-      this._renderModifiers(startSelection.staff, system);
-
-      const nextSelection = SmoSelection.measureSelection(this._score, startSelection.selector.staff, startSelection.selector.measure + 1);
-
-      // If we go to new line, render this line part, then advance because the modifier is split
-      if (nextSelection && nextSelection.measure && nextSelection.measure.lineIndex !== startSelection.measure.lineIndex) {
-        this._renderModifiers(startSelection.staff, system);
-        system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex, this.score);
-      }
-      startSelection = nextSelection;
-    }
-  }
-
-  // ### unrenderMeasure
-  // ### Description:
-  // All SVG elements are associated with a logical SMO element.  We need to erase any SVG element before we change a SMO
-  // element in such a way that some of the logical elements go away (e.g. when deleting a measure).
-  unrenderMeasure(measure) {
-    if (!measure) {
-      return;
-    }
-    $(this.renderer.getContext().svg).find('g.' + measure.getClassId()).remove();
-    measure.setYTop(0, 'unrender');
-    measure.setChanged();
-  }
-
-  unrenderColumn(measure) {
-    this.score.staves.forEach((staff) => {
-      this.unrenderMeasure(staff.measures[measure.measureNumber.measureIndex]);
-    });
-  }
-
-  // ### unrenderStaff
-  // ### Description:
-  // See unrenderMeasure.  Like that, but with a staff.
-  unrenderStaff(staff) {
-    staff.measures.forEach((measure) => {
-      this.unrenderMeasure(measure);
-    });
-    staff.modifiers.forEach((modifier) => {
-      $(this.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
-    });
-  }
-
-  // ### _renderModifiers
-  // ### Description:
-  // Render staff modifiers (modifiers straddle more than one measure, like a slur).  Handle cases where the destination
-  // is on a different system due to wrapping.
-  _renderModifiers(staff, system) {
-    const svg = this.svg;
-    let nextNote = null;
-    let lastNote = null;
-    let testNote = null;
-    let vxStart = null;
-    let vxEnd = null;
-    const removedModifiers = [];
-    staff.modifiers.forEach((modifier) => {
-      const startNote = SmoSelection.noteSelection(this._score,
-        modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-      const endNote = SmoSelection.noteSelection(this._score,
-        modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
-      if (!startNote || !endNote) {
-        // If the modifier doesn't have score endpoints, delete it from the score
-        removedModifiers.push(modifier);
-        return;
-      }
-
-      vxStart = system.getVxNote(startNote.note);
-      vxEnd = system.getVxNote(endNote.note);
-
-      // If the modifier goes to the next staff, draw what part of it we can on this staff.
-      if (vxStart && !vxEnd) {
-        nextNote = SmoSelection.nextNoteSelection(this._score,
-          modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-        testNote = system.getVxNote(nextNote.note);
-        while (testNote) {
-          vxEnd = testNote;
-          nextNote = SmoSelection.nextNoteSelection(this._score,
-            nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
-          if (!nextNote) {
-            break;
-          }
-          testNote = system.getVxNote(nextNote.note);
-        }
-      }
-      if (vxEnd && !vxStart) {
-        lastNote = SmoSelection.lastNoteSelection(this._score,
-          modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
-        testNote = system.getVxNote(lastNote.note);
-        while (testNote) {
-          vxStart = testNote;
-          lastNote = SmoSelection.lastNoteSelection(this._score,
-            lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
-          if (!lastNote) {
-            break;
-          }
-          testNote = system.getVxNote(lastNote.note);
-        }
-      }
-      if (!vxStart && !vxEnd) {
-        return;
-      }
-      modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd, startNote, endNote);
-      modifier.logicalBox = svgHelpers.clientToLogical(svg, modifier.renderedBox);
-    });
-    removedModifiers.forEach((mod) => {
-      staff.removeStaffModifier(mod);
-    });
-  }
-
-  _drawPageLines() {
-    let i = 0;
-    $(this.context.svg).find('.pageLine').remove();
-    const printing = $('body').hasClass('print-render');
-    if (printing) {
-      return;
-    }
-    for (i = 1; i < this._score.layout.pages; ++i) {
-      const y = (this.pageHeight / this.svgScale) * i;
-      svgHelpers.line(this.svg, 0, y, this.score.layout.pageWidth / this.score.layout.svgScale, y,
-        [
-          { 'stroke': '#321' },
-          { 'stroke-width': '2' },
-          { 'stroke-dasharray': '4,1' },
-          { 'fill': 'none' }], 'pageLine');
-    }
-  }
-
-  // ### _replaceMeasures
-  // Do a quick re-render of a measure that has changed.
-  _replaceMeasures() {
-    this.replaceQ.forEach((change) => {
-      smoBeamerFactory.applyBeams(change.measure);
-      const system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex, this.score);
-      const selections = SmoSelection.measuresInColumn(this.score, change.measure.measureNumber.measureIndex);
-      selections.forEach((selection) => {
-        system.renderMeasure(selection.measure, this.measureMapper);
-      });
-      system.renderEndings();
-      this._renderModifiers(change.staff, system);
-      system.updateLyricOffsets();
-
-      // Fix a bug: measure change needs to stay true so we recaltulate the width
-      change.measure.changed = true;
-    });
-    this.replaceQ = [];
-  }
-
-  // ### forceRender
-  // For unit test applictions that want to render right-away
-  forceRender() {
-    this.setRefresh();
-    this.render();
-  }
-
-  render() {
-    if (this._resetViewport) {
-      this.setViewport(true);
-      this._resetViewport = false;
-    }
-    if (SuiRenderState.passStates.replace === this.passState) {
-      this._replaceMeasures();
-    } else if (SuiRenderState.passStates.initial === this.passState) {
-      this.layout();
-      this._drawPageLines();
-      this.setPassState(SuiRenderState.passStates.clean);
-    }
-    this.dirty = false;
   }
 }
 ;
@@ -3594,17 +3101,17 @@ class SuiRenderDemon {
   }
 
   get isLayoutQuiet() {
-		return ((this.layout.passState == SuiRenderState.passStates.clean && this.layout.dirty == false)
-		   || this.layout.passState == SuiRenderState.passStates.replace);
+		return ((this.view.renderer.passState == SuiRenderState.passStates.clean && this.view.renderer.dirty == false)
+		   || this.view.renderer.passState == SuiRenderState.passStates.replace);
 	}
 
   handleRedrawTimer() {
     // If there has been a change, redraw the score
-  	if (this.undoStatus != this.undoBuffer.opCount || this.layout.dirty) {
-  		this.layout.dirty=true;
+  	if (this.undoStatus != this.undoBuffer.opCount || this.view.renderer.dirty) {
+  		this.view.renderer.dirty=true;
   		this.undoStatus = this.undoBuffer.opCount;
   		this.idleLayoutTimer = Date.now();
-      var state = this.layout.passState;
+      var state = this.view.renderer.passState;
       // this.tracker.updateMap(); why do this before rendering?
 
       // indicate the display is 'dirty' and we will be refreshing it.
@@ -3612,12 +3119,13 @@ class SuiRenderDemon {
       try {
   		  this.render();
       } catch (ex) {
+        console.error(ex);
         SuiExceptionHandler.instance.exceptionHandler(ex);
       }
-  	} else if (this.layout.passState === SuiRenderState.passStates.replace) {
+  	} else if (this.view.renderer.passState === SuiRenderState.passStates.replace) {
   		// Do we need to refresh the score?
   		if (Date.now() - this.idleLayoutTimer > this.idleRedrawTime) {
-  			this.layout.setRefresh();
+  			this.view.renderer.setRefresh();
   		}
   	}
 }
@@ -3637,24 +3145,22 @@ class SuiRenderDemon {
   }
 
   render() {
-		this.layout.render();
-    if (this.layout.passState == SuiRenderState.passStates.clean && this.layout.dirty == false) {
-       this.tracker.updateMap();
+		this.view.renderer.render();
+    if (this.view.renderer.passState == SuiRenderState.passStates.clean && this.view.renderer.dirty == false) {
+       this.view.tracker.updateMap();
 
        // indicate the display is 'clean' and up-to-date with the score
        $('body').removeClass('refresh-1');
     }
 	}
 }
-;
-
-// ## suiMapper
-// Map the notes in the svg so the can respond to events and interact
+;// ## suiMapper
+// Map the notes in the svg so they can respond to events and interact
 // with the mouse/keyboard
 class suiMapper {
-  constructor(layout,scroller) {
-    // layout renders the music when it changes
-    this.layout = layout;
+  constructor(renderer, scroller, pasteBuffer) {
+    // renderer renders the music when it changes
+    this.renderer = renderer;
 
     // measure to selector map
     this.measureMap = {};
@@ -3677,19 +3183,18 @@ class suiMapper {
     // index if a single pitch of a chord is selected
     this.pitchIndex = -1;
     // the current selection, which is also the copy/paste destination
-    this.pasteBuffer = new PasteBuffer();
+    this.pasteBuffer = pasteBuffer;
   }
 
-    // ### loadScore
-    // We are loading a new score.  clear the maps so we can rebuild them after
-    // rendering
-    loadScore() {
-        this.measureMap = {};
-        this.measureNoteMap = {};
-        this.clearModifierSelections();
-        this.selections=[];
-    }
-
+  // ### loadScore
+  // We are loading a new score.  clear the maps so we can rebuild them after
+  // rendering
+  loadScore() {
+    this.measureMap = {};
+    this.measureNoteMap = {};
+    this.clearModifierSelections();
+    this.selections=[];
+  }
 
   // ### _clearMeasureArtifacts
   // clear the measure from the measure and note maps so we can rebuild it.
@@ -3872,7 +3377,7 @@ class suiMapper {
     this._createLocalModifiersList();
     // Is this right?  Don't update the past buffer with data until the display is redrawn
     // because some of the selections may not exist in the score.
-    if (this.layout.isDirty === false) {
+    if (this.renderer.isDirty === false) {
       this.pasteBuffer.clearSelections();
   		this.pasteBuffer.setSelections(this.score, this.selections);
     }
@@ -4231,13 +3736,557 @@ class suiPiano {
 		this.bind();
 	}
 }
-;// ## SuiRenderScore
+;// ## SuiRenderState
+// Manage the state of the score rendering.  The score can be rendered either completely,
+// or partially for editing.  This class works with the RenderDemon to decide when to
+// render the score after it has been modified, and keeps track of what the current
+// render state is (dirty, etc.)
+// eslint-disable-next-line no-unused-vars
+class SuiRenderState {
+  constructor(ctor) {
+    this.attrs = {
+      id: VF.Element.newID(),
+      type: ctor
+    };
+    this.dirty = true;
+    this.replaceQ = [];
+    this.renderTime = 250;  // ms to render before time slicing
+    this.partialRender = false;
+    this.stateRepCount = 0;
+    this.viewportPages = 1;
+    this.setPassState(SuiRenderState.initial, 'ctor');
+    this.viewportChanged = false;
+    this._resetViewport = false;
+    this.measureMapper = null;
+  }
+
+  // ### setMeasureMapper
+  // DI/notifier pattern.  The measure mapper/tracker is updated when the score is rendered
+  // so the UI stays in sync with the location of elements in the score.
+  setMeasureMapper(mapper) {
+    this.measureMapper = mapper;
+  }
+
+  static get Fonts() {
+    return {
+      Bravura: [VF.Fonts.Bravura, VF.Fonts.Gonville, VF.Fonts.Custom],
+      Gonville: [VF.Fonts.Gonville, VF.Fonts.Bravura, VF.Fonts.Custom],
+      Petaluma: [VF.Fonts.Petaluma, VF.Fonts.Gonville, VF.Fonts.Custom]
+    };
+  }
+
+  static setFont(font) {
+    VF.DEFAULT_FONT_STACK = SuiRenderState.Fonts[font];
+  }
+
+  static get passStates() {
+    return { initial: 0, clean: 2, replace: 3 };
+  }
+
+  addToReplaceQueue(selection) {
+    if (this.passState === SuiRenderState.passStates.clean ||
+      this.passState === SuiRenderState.passStates.replace) {
+      if (Array.isArray(selection)) {
+        this.replaceQ = this.replaceQ.concat(selection);
+      } else {
+        this.replaceQ.push(selection);
+      }
+      this.setDirty();
+    }
+  }
+
+  setDirty() {
+    if (!this.dirty) {
+      this.dirty = true;
+      if (this.passState === SuiRenderState.passStates.clean) {
+        this.setPassState(SuiRenderState.passStates.replace);
+      }
+    }
+  }
+  setRefresh() {
+    this.dirty = true;
+    this.setPassState(SuiRenderState.passStates.initial, 'setRefresh');
+  }
+  rerenderAll() {
+    this.dirty = true;
+    this.setPassState(SuiRenderState.passStates.initial, 'rerenderAll');
+    this._resetViewport = true;
+  }
+
+  remapAll() {
+    this.partialRender = false;
+    this.setRefresh();
+  }
+
+  // Number the measures at the first measure in each system.
+  numberMeasures() {
+    const printing = $('body').hasClass('print-render');
+    const staff = this.score.staves[0];
+    const measures = staff.measures.filter((measure) => measure.measureNumber.systemIndex === 0);
+    $('.measure-number').remove();
+
+    measures.forEach((measure) => {
+      if (measure.measureNumber.measureNumber > 0 && measure.measureNumber.systemIndex === 0) {
+        const numAr = [];
+        numAr.push({ y: measure.logicalBox.y - 10 });
+        numAr.push({ x: measure.logicalBox.x });
+        numAr.push({ 'font-family': SourceSansProFont.fontFamily });
+        numAr.push({ 'font-size': '10pt' });
+        svgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.measureNumber + 1).toString());
+
+        // Show line-feed symbol
+        const formatIndex = SmoMeasure.systemOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
+        if (formatIndex >= 0 && !printing) {
+          const starAr = [];
+          starAr.push({ y: measure.logicalBox.y - 5 });
+          starAr.push({ x: measure.logicalBox.x + 25 });
+          starAr.push({ 'font-family': SourceSansProFont.fontFamily });
+          starAr.push({ 'font-size': '12pt' });
+          svgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', '\u21b0');
+        }
+      }
+    });
+  }
+
+  // ### _setViewport
+  // Create (or recrate) the svg viewport, considering the dimensions of the score.
+  _setViewport(reset, elementId) {
+    // this.screenWidth = window.innerWidth;
+    const layout = this._score.layout;
+    this.zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
+      layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;
+
+    if (layout.zoomMode !== SmoScore.zoomModes.zoomScale) {
+      layout.zoomScale = this.zoomScale;
+    }
+
+    this.svgScale = layout.svgScale * this.zoomScale;
+    this.orientation = this._score.layout.orientation;
+    const w = Math.round(layout.pageWidth * this.zoomScale);
+    const h = Math.round(layout.pageHeight * this.zoomScale);
+    this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w : h;
+    this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
+    this.totalHeight = this.pageHeight * this.score.layout.pages;
+    this.viewportPages = this.score.layout.pages;
+
+    this.leftMargin = this._score.layout.leftMargin;
+    this.rightMargin = this._score.layout.rightMargin;
+    $(elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
+    $(elementId).css('height', '' + Math.round(this.totalHeight) + 'px');
+    // Reset means we remove the previous SVG element.  Otherwise, we just alter it
+    if (reset) {
+      $(elementId).html('');
+      this.renderer = new VF.Renderer(elementId, VF.Renderer.Backends.SVG);
+      this.viewportChanged = true;
+      if (this.measureMapper) {
+        this.measureMapper.scroller.scrollAbsolute(0, 0);
+      }
+    }
+    svgHelpers.svgViewport(this.context.svg, 0, 0, this.pageWidth, this.totalHeight, this.svgScale);
+    // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
+    this.resizing = false;
+    console.log('layout setViewport: pstate initial');
+    this.dirty = true;
+    SuiRenderState._renderer = this.renderer;
+  }
+
+  setViewport(reset) {
+    this._setViewport(reset, this.elementId);
+    this.score.staves.forEach((staff) => {
+      staff.measures.forEach((measure) => {
+        if (measure.logicalBox && reset) {
+          measure.svg.history = ['reset'];
+        }
+      });
+    });
+    this.partialRender = false;
+  }
+  renderForPrintPromise() {
+    $('body').addClass('print-render');
+    const self = this;
+    this._backupLayout = JSON.parse(JSON.stringify(this.score.layout));
+    this.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+    this.score.layout.zoomScale = 1.0;
+    this.setViewport(true);
+    this.setRefresh();
+
+    const promise = new Promise((resolve) => {
+      const poll = () => {
+        setTimeout(() => {
+          if (!self.dirty) {
+            // tracker.highlightSelection();
+            $('body').removeClass('print-render');
+            $('.vf-selection').remove();
+            $('body').addClass('printing');
+            $('.musicRelief').css('height', '');
+            resolve();
+          } else {
+            poll();
+          }
+        }, 500);
+      };
+      poll();
+    });
+    return promise;
+  }
+
+  restoreLayoutAfterPrint() {
+    if (this._backupLayout) {
+      this.score.layout  = this._backupLayout;
+      this.setViewport(true);
+      this.setRefresh();
+      this._backupLayout = null;
+    }
+  }
+
+  clearLine(measure) {
+    const lineIndex = measure.lineIndex;
+    const startIndex = (lineIndex > 1 ? lineIndex - 1 : 0);
+    let i = 0;
+    for (i = startIndex; i < lineIndex + 1; ++i) {
+      // for lint error
+      const index = i;
+      this.score.staves.forEach((staff) => {
+        const mms = staff.measures.filter((mm) => mm.lineIndex === index);
+        mms.forEach((mm) => {
+          delete mm.logicalBox;
+        });
+      });
+    }
+  }
+
+  setPassState(st, location) {
+    const oldState = this.passState;
+    let msg = '';
+    if (oldState !== st) {
+      this.stateRepCount = 0;
+    } else {
+      this.stateRepCount += 1;
+    }
+
+    msg = location + ': passState ' + this.passState + '=>' + st;
+    if (this.stateRepCount > 0) {
+      msg += ' (' + this.stateRepCount + ')';
+    }
+    console.log(msg);
+    this.passState = st;
+  }
+  static get defaults() {
+    return {
+      clefWidth: 70,
+      staffWidth: 250,
+      totalWidth: 250,
+      leftMargin: 15,
+      topMargin: 15,
+      pageWidth: 8 * 96 + 48,
+      pageHeight: 11 * 96,
+      svgScale: 0.7,
+    };
+  }
+
+  static get debugLayout() {
+    SuiRenderState._debugLayout = SuiRenderState._debugLayout ? SuiRenderState._debugLayout : false;
+    return SuiRenderState._debugLayout;
+  }
+
+  static set debugLayout(value) {
+    SuiRenderState._debugLayout = value;
+    if (value) {
+      $('body').addClass('layout-debug');
+    } else {
+      $('body').removeClass('layout-debug');
+    }
+  }
+
+  // ### get context
+  // ### Description:
+  // return the VEX renderer context.
+  get context() {
+    return this.renderer.getContext();
+  }
+  get renderElement() {
+    return this.renderer.elementId;
+  }
+
+  get svg() {
+    return this.context.svg;
+  }
+
+  get score() {
+    return this._score;
+  }
+
+  set score(score) {
+    let shouldReset = false;
+    if (this._score) {
+      shouldReset = true;
+    }
+    this.setPassState(SuiRenderState.passStates.initial, 'load score');
+    const font = score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
+    SuiRenderState.setFont(font.family);
+    this.dirty = true;
+    this._score = score;
+    if (shouldReset) {
+      if (this.measureMapper) {
+        this.measureMapper.loadScore();
+      }
+      this.setViewport(true);
+    }
+  }
+
+  // ### undo
+  // Undo is handled by the render state machine, because the layout has to first
+  // delete areas of the viewport that may have changed,
+  // then create the modified score, then render the 'new' score.
+  undo(undoBuffer) {
+    const buffer = undoBuffer.peek();
+    let op = 'setDirty';
+    // Unrender the modified music because the IDs may change and normal unrender won't work
+    if (buffer) {
+      const sel = buffer.selector;
+      if (buffer.type === UndoBuffer.bufferTypes.MEASURE) {
+        this.unrenderMeasure(SmoSelection.measureSelection(this._score, sel.staff, sel.measure).measure);
+      } else if (buffer.type === UndoBuffer.bufferTypes.STAFF) {
+        this.unrenderStaff(SmoSelection.measureSelection(this._score, sel.staff, 0).staff);
+        op = 'setRefresh';
+      } else {
+        this.unrenderAll();
+        op = 'setRefresh';
+      }
+      this._score = undoBuffer.undo(this._score);
+      this[op]();
+    }
+  }
+
+  // ### renderNoteModifierPreview
+  // For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
+  // changes can be undone before the buffer closes.
+  renderNoteModifierPreview(modifier, selection) {
+    selection =
+      SmoSelection.noteSelection(this._score, selection.selector.staff, selection.selector.measure, selection.selector.voice, selection.selector.tick);
+    if (!selection.measure.renderedBox) {
+      return;
+    }
+    const system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex, this.score);
+    system.renderMeasure(selection.measure, this.mapper);
+  }
+
+  // ### renderNoteModifierPreview
+  // For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
+  // changes can be undone before the buffer closes.
+  renderMeasureModifierPreview(modifier, measure) {
+    const ix = measure.measureNumber.measureIndex;
+    this._score.staves.forEach((staff) => {
+      const cm = staff.measures[ix];
+      const system = new VxSystem(this.context, cm.staffY, cm.lineIndex, this.score);
+      system.renderMeasure(staff.staffId, cm);
+    });
+  }
+
+  // ### renderStaffModifierPreview
+  // Similar to renderNoteModifierPreview, but lets you preveiw a change to a staff element.
+  // re-render a modifier for preview during modifier dialog
+  renderStaffModifierPreview(modifier) {
+    let system = null;
+    // get the first measure the modifier touches
+    var startSelection = SmoSelection.measureSelection(this._score, modifier.startSelector.staff, modifier.startSelector.measure);
+
+    // We can only render if we already have, or we don't know where things go.
+    if (!startSelection.measure.renderedBox) {
+      return;
+    }
+    system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex, this.score);
+    while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
+      smoBeamerFactory.applyBeams(startSelection.measure);
+      system.renderMeasure(startSelection.measure, null, true);
+      this._renderModifiers(startSelection.staff, system);
+
+      const nextSelection = SmoSelection.measureSelection(this._score, startSelection.selector.staff, startSelection.selector.measure + 1);
+
+      // If we go to new line, render this line part, then advance because the modifier is split
+      if (nextSelection && nextSelection.measure && nextSelection.measure.lineIndex !== startSelection.measure.lineIndex) {
+        this._renderModifiers(startSelection.staff, system);
+        system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex, this.score);
+      }
+      startSelection = nextSelection;
+    }
+  }
+
+  // ### unrenderMeasure
+  // ### Description:
+  // All SVG elements are associated with a logical SMO element.  We need to erase any SVG element before we change a SMO
+  // element in such a way that some of the logical elements go away (e.g. when deleting a measure).
+  unrenderMeasure(measure) {
+    if (!measure) {
+      return;
+    }
+    $(this.renderer.getContext().svg).find('g.' + measure.getClassId()).remove();
+    measure.setYTop(0, 'unrender');
+    measure.setChanged();
+  }
+
+  unrenderColumn(measure) {
+    this.score.staves.forEach((staff) => {
+      this.unrenderMeasure(staff.measures[measure.measureNumber.measureIndex]);
+    });
+  }
+
+  // ### unrenderStaff
+  // ### Description:
+  // See unrenderMeasure.  Like that, but with a staff.
+  unrenderStaff(staff) {
+    staff.measures.forEach((measure) => {
+      this.unrenderMeasure(measure);
+    });
+    staff.modifiers.forEach((modifier) => {
+      $(this.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
+    });
+  }
+
+  // ### _renderModifiers
+  // ### Description:
+  // Render staff modifiers (modifiers straddle more than one measure, like a slur).  Handle cases where the destination
+  // is on a different system due to wrapping.
+  _renderModifiers(staff, system) {
+    const svg = this.svg;
+    let nextNote = null;
+    let lastNote = null;
+    let testNote = null;
+    let vxStart = null;
+    let vxEnd = null;
+    const removedModifiers = [];
+    staff.modifiers.forEach((modifier) => {
+      const startNote = SmoSelection.noteSelection(this._score,
+        modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+      const endNote = SmoSelection.noteSelection(this._score,
+        modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+      if (!startNote || !endNote) {
+        // If the modifier doesn't have score endpoints, delete it from the score
+        removedModifiers.push(modifier);
+        return;
+      }
+
+      vxStart = system.getVxNote(startNote.note);
+      vxEnd = system.getVxNote(endNote.note);
+
+      // If the modifier goes to the next staff, draw what part of it we can on this staff.
+      if (vxStart && !vxEnd) {
+        nextNote = SmoSelection.nextNoteSelection(this._score,
+          modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
+        testNote = system.getVxNote(nextNote.note);
+        while (testNote) {
+          vxEnd = testNote;
+          nextNote = SmoSelection.nextNoteSelection(this._score,
+            nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
+          if (!nextNote) {
+            break;
+          }
+          testNote = system.getVxNote(nextNote.note);
+        }
+      }
+      if (vxEnd && !vxStart) {
+        lastNote = SmoSelection.lastNoteSelection(this._score,
+          modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
+        testNote = system.getVxNote(lastNote.note);
+        while (testNote) {
+          vxStart = testNote;
+          lastNote = SmoSelection.lastNoteSelection(this._score,
+            lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
+          if (!lastNote) {
+            break;
+          }
+          testNote = system.getVxNote(lastNote.note);
+        }
+      }
+      if (!vxStart && !vxEnd) {
+        return;
+      }
+      modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd, startNote, endNote);
+      modifier.logicalBox = svgHelpers.clientToLogical(svg, modifier.renderedBox);
+    });
+    removedModifiers.forEach((mod) => {
+      staff.removeStaffModifier(mod);
+    });
+  }
+
+  _drawPageLines() {
+    let i = 0;
+    $(this.context.svg).find('.pageLine').remove();
+    const printing = $('body').hasClass('print-render');
+    if (printing) {
+      return;
+    }
+    for (i = 1; i < this._score.layout.pages; ++i) {
+      const y = (this.pageHeight / this.svgScale) * i;
+      svgHelpers.line(this.svg, 0, y, this.score.layout.pageWidth / this.score.layout.svgScale, y,
+        [
+          { 'stroke': '#321' },
+          { 'stroke-width': '2' },
+          { 'stroke-dasharray': '4,1' },
+          { 'fill': 'none' }], 'pageLine');
+    }
+  }
+
+  // ### _replaceMeasures
+  // Do a quick re-render of a measure that has changed.
+  _replaceMeasures() {
+    const staffMap = {};
+    let system = {};
+    this.replaceQ.forEach((change) => {
+      smoBeamerFactory.applyBeams(change.measure);
+      // Defer modifier update until all selected measures are drawn.
+      if (!staffMap[change.staff.staffId]) {
+        system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex, this.score);
+        staffMap[change.staff.staffId] = { system, staff: change.staff };
+      } else {
+        system = staffMap[change.staff.staffId].system;
+      }
+      const selections = SmoSelection.measuresInColumn(this.score, change.measure.measureNumber.measureIndex);
+      selections.forEach((selection) => {
+        system.renderMeasure(selection.measure, this.measureMapper);
+      });
+
+      // Fix a bug: measure change needs to stay true so we recaltulate the width
+      change.measure.changed = true;
+    });
+    Object.keys(staffMap).forEach((key) => {
+      const obj = staffMap[key];
+      this._renderModifiers(obj.staff, obj.system);
+      obj.system.renderEndings();
+      obj.system.updateLyricOffsets();
+    });
+    this.replaceQ = [];
+  }
+
+  // ### forceRender
+  // For unit test applictions that want to render right-away
+  forceRender() {
+    this.setRefresh();
+    this.render();
+  }
+
+  render() {
+    if (this._resetViewport) {
+      this.setViewport(true);
+      this._resetViewport = false;
+    }
+    if (SuiRenderState.passStates.replace === this.passState) {
+      this._replaceMeasures();
+    } else if (SuiRenderState.passStates.initial === this.passState) {
+      this.layout();
+      this._drawPageLines();
+      this.setPassState(SuiRenderState.passStates.clean, 'rs: complete render');
+    }
+    this.dirty = false;
+  }
+}
+;// ## SuiScoreRender
 // This module renders the entire score.  It calculates the layout first based on the
 // computed dimensions.
 // eslint-disable-next-line no-unused-vars
-class SuiRenderScore extends SuiRenderState {
+class SuiScoreRender extends SuiRenderState {
   constructor(params) {
-    super('SuiRenderScore');
+    super('SuiScoreRender');
     Vex.Merge(this, SuiRenderState.defaults);
     Vex.Merge(this, params);
     this.setViewport(true);
@@ -4260,7 +4309,7 @@ class SuiRenderScore extends SuiRenderState {
     if (layoutParams) {
       Vex.Merge(ctorObj, layoutParams);
     }
-    const layout = new SuiRenderScore(ctorObj);
+    const layout = new SuiScoreRender(ctorObj);
     return layout;
   }
 
@@ -4287,6 +4336,9 @@ class SuiRenderScore extends SuiRenderState {
   _measureToLeft(measure) {
     const j = measure.measureNumber.staffId;
     const i = measure.measureNumber.measureIndex;
+    if (this._score.staves.length <= j) {
+      console.log('no staff');
+    }
     return (i > 0 ? this._score.staves[j].measures[i - 1] : null);
   }
 
@@ -4647,6 +4699,1092 @@ class SuiRenderScore extends SuiRenderState {
     return rv;
   }
 }
+;// ## SuiScoreView
+// Do a thing to the music.  Save in undo buffer before.  Render the score to reflect
+// the change after.  Map the operation on the score view to the actual score.
+// eslint-disable-next-line no-unused-vars
+class SuiScoreView {
+  // ### _reverseMapSelection
+  // For operations that affect all columns, we operate on the
+  // entire score and update the view score.  Some selections
+  // will not have an equivalent in the reverse map since the
+  // view can be a subset.
+  _reverseMapSelection(selection) {
+    const staffIndex = this.staffMap.indexOf(selection.selector.staff);
+    if (staffIndex < 0) {
+      return null;
+    }
+    if (typeof(selection.selector.tick) === 'undefined') {
+      return SmoSelection.measureSelection(this.score, staffIndex, selection.selector.measure);
+    }
+    if (typeof(selection.selector.pitches) === 'undefined') {
+      return SmoSelection.noteSelection(this.score, staffIndex, selection.selector.measure, selection.selector.voice,
+        selection.selector.tick);
+    }
+    return SmoSelection.pitchSelection(this.score, staffIndex, selection.selector.measure, selection.selector.voice,
+      selection.selector.tick, selection.selector.pitches);
+  }
+  _reverseMapSelections(selections) {
+    const rv = [];
+    selections.forEach((selection) => {
+      const rsel = this._reverseMapSelection(selection);
+      if (rsel !== null) {
+        rv.push(rsel);
+      }
+    });
+    return rv;
+  }
+
+  // ### _getEquivalentSelections
+  // The plural form of _getEquivalentSelection
+  _getEquivalentSelections(selections) {
+    const rv = [];
+    selections.forEach((selection) => {
+      rv.push(this._getEquivalentSelection(selection));
+    });
+    return rv;
+  }
+  // ### _undoRectangle
+  // Create a rectangle undo, like a multiple columns but not necessarily the whole
+  // score.
+  _undoRectangle(label, startSelector, endSelector) {
+    const startSelection = SmoSelection.measureSelection(this.score, startSelector.staff, startSelector.measure);
+    const endSelection = SmoSelection.measureSelection(this.score, endSelector.staff, endSelector.measure);
+    const altStart = this._getEquivalentSelection(startSelection);
+    const altEnd = this._getEquivalentSelection(endSelection);
+    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.RECTANGLE, null, { score: this.score, topLeft: startSelector, bottomRight: endSelector });
+    this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.RECTANGLE, null, { score: this.storeScore, topLeft: altStart.selector, bottomRight: altEnd.selector });
+  }
+  _undoColumn(label, measureIndex) {
+    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, null, { score: this.score, measureIndex });
+    this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, null, { score: this.storeScore, measureIndex });
+  }
+  _undoScorePreferences(label) {
+    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE_ATTRIBUTES, null, this.score);
+    this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.SCORE_ATTRIBUTES, null, this.storeScore);
+  }
+  // ### _getRectangleFromStaffGroup
+  // For selections that affect a system of staves, find the rectangle based on one of the
+  // staves and return the selectors.
+  _getRectangleFromStaffGroup(selection) {
+    let startSelector = {};
+    let endSelector = {};
+    const sygrp = this.score.getSystemGroupForStaff(selection);
+    if (sygrp) {
+      startSelector = { staff: sygrp.startSelector.staff, measure: selection.selector.measure };
+      endSelector = { staff: sygrp.endSelector.staff, measure: selection.selector.measure };
+    } else {
+      startSelector = { staff: selection.selector.staff, measure: selection.selector.measure };
+      endSelector = JSON.parse(JSON.stringify(startSelector));
+    }
+    return { startSelector, endSelector };
+  }
+
+  // ### _undoTrackerSelections
+  // Add to the undo buffer the current set of measures selected.
+  _undoTrackerMeasureSelections(label) {
+    const measureSelections = SmoSelection.getMeasureList(this.tracker.selections);
+    measureSelections.forEach((measureSelection) => {
+      const equiv = this._getEquivalentSelection(measureSelection);
+      this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, measureSelection.selector, measureSelection.measure);
+      this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure);
+    });
+    return measureSelections;
+  }
+  // ### _undoFirstMeasureSelection
+  // operation that only affects the first selection.  Setup undo for the measure
+  _undoFirstMeasureSelection(label) {
+    const sel = this.tracker.selections[0];
+    const equiv = this._getEquivalentSelection(sel);
+    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, sel.selector, sel.measure);
+    this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure);
+    return sel;
+  }
+  _undoSelection(label, selection) {
+    const equiv = this._getEquivalentSelection(selection);
+    this.undoBuffer.addBuffer(label,
+      UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    this.storeUndo.addBuffer(label,
+      UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure);
+  }
+  // ###_renderChangedMeasures
+  // Update renderer for measures that have changed
+  _renderChangedMeasures(measureSelections) {
+    if (!Array.isArray(measureSelections)) {
+      measureSelections = [measureSelections];
+    }
+    measureSelections.forEach((measureSelection) => {
+      this.renderer.addToReplaceQueue(measureSelection);
+    });
+  }
+  _renderRectangle(fromSelector, toSelector) {
+    this._getRectangleSelections(fromSelector, toSelector).forEach((s) => {
+      this.renderer.addToReplaceQueue(s.viewSelection);
+    });
+  }
+
+  // ###_renderChangedMeasures
+  // Setup undo for operation that affects the whole score
+  _undoScore(label) {
+    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE, null, this.score);
+    this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.SCORE, null, this.storeScore);
+  }
+
+  _getEquivalentSelection(selection) {
+    if (typeof(selection.selector.tick) === 'undefined') {
+      return SmoSelection.measureSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure);
+    }
+    if (typeof(selection.selector.pitches) === 'undefined') {
+      return SmoSelection.noteSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
+        selection.selector.tick);
+    }
+    return SmoSelection.pitchSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
+      selection.selector.tick, selection.selector.pitches);
+  }
+  _removeStandardModifier(modifier) {
+    $(this.renderer.context.svg).find('g.' + modifier.attrs.id).remove();
+  }
+
+  _getEquivalentGraceNote(selection, gn) {
+    return selection.note.getGraceNotes().find((gg) => gg.attrs.id === gn.attrs.id);
+  }
+  _getRectangleSelections(startSelector, endSelector) {
+    const rv = [];
+    let i = 0;
+    let j = 0;
+    for (i = startSelector.staff; i <= endSelector.staff; i++) {
+      for (j = startSelector.measure; j <= endSelector.measure; j++) {
+        const target = SmoSelection.measureSelection(this.score, i, j);
+        const altTarget = this._getEquivalentSelection(target);
+        rv.push({ viewSelection: target, storeSelection: altTarget });
+      }
+    }
+    return rv;
+  }
+
+  static get Instance() {
+    if (typeof(SuiScoreView._instance) !== 'undefined') {
+      return SuiScoreView._instance;
+    }
+    return null;
+  }
+  // ### defaultStaffMap
+  // Show all staves, 1:1 mapping of view score staff to stored score staff
+  get defaultStaffMap() {
+    let i = 0;
+    const rv = [];
+    for (i = 0; i < this.storeScore.staves.length; ++i) {
+      rv.push(i);
+    }
+    return rv;
+  }
+  constructor(renderer, score) {
+    this.score = score;
+    this.renderer = renderer;
+    const scoreJson = score.serialize();
+    const scroller = new suiScroller();
+    this.pasteBuffer = new PasteBuffer();
+    this.storePaste = new PasteBuffer();
+    this.tracker = new suiTracker(this.renderer, scroller, this.pasteBuffer);
+    this.renderer.setMeasureMapper(this.tracker);
+
+    this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));
+    this.undoBuffer = new UndoBuffer();
+    this.storeUndo = new UndoBuffer();
+    this.staffMap = this.defaultStaffMap;
+    SuiScoreView._instance = this;
+  }
+  static debugSwapScore() {
+    const dbg = SuiScoreView.Instance;
+    if (dbg === null) {
+      return;
+    }
+    const newScore = SmoScore.deserialize(JSON.stringify(dbg.storeScore.serialize()));
+    dbg.changeScore(newScore);
+  }
+  getView() {
+    const rv = [];
+    let i = 0;
+    for (i = 0; i < this.storeScore.staves.length; ++i) {
+      const show = this.staffMap.indexOf(i) >= 0;
+      rv.push({ show });
+    }
+    return rv;
+  }
+
+  // ### setView
+  // Send a list of rows with a 'show' boolean in each, we display that line
+  // in the staff and hide the rest
+  setView(rows) {
+    let i = 0;
+    const any = rows.find((row) => row.show === true);
+    if (!any) {
+      return;
+    }
+    this._undoScore('change view');
+    const nscore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    const staveScore =  SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    nscore.staves = [];
+    const staffMap = [];
+    for (i = 0; i < rows.length; ++i) {
+      const row = rows[i];
+      if (row.show) {
+        nscore.staves.push(staveScore.staves[i]);
+        staffMap.push(i);
+      }
+    }
+    nscore.numberStaves();
+    this.staffMap = staffMap;
+    this.score = nscore;
+    this.renderer.score = nscore;
+    this.renderer.setViewport(true);
+    setTimeout(() => {
+      $('body').trigger('forceResizeEvent');
+    }, 1);
+  }
+  // ### viewAll
+  // view all the staffs in score mode.
+  viewAll() {
+    this.score = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    this.staffMap = this.defaultStaffMap;
+    this.renderer.score = this.score;
+    this.renderer.setViewport(true);
+  }
+  // ### changeScore
+  // Update the view after loading or restoring a completely new score
+  changeScore(score) {
+    this._undoScore();
+    this.renderer.score = score;
+    this.renderer.setViewport(true);
+    this.storeScore = SmoScore.deserialize(JSON.stringify(score.serialize()));
+    this.score = score;
+    this.staffMap = this.defaultStaffMap;
+    setTimeout(() => {
+      $('body').trigger('forceResizeEvent');
+    }, 1);
+  }
+
+  // ### undo
+  // for the view score, we the renderer decides what to render
+  // depending on what is undone.
+  undo() {
+    this.renderer.undo(this.undoBuffer);
+    // A score-level undo might have changed the score.
+    this.score = this.renderer.score;
+    this.storeScore = this.storeUndo.undo(this.storeScore);
+  }
+}
+;// ## ScoreViewOperations
+// MVVM-like operations on the displayed score.
+// All operations that can be performed on a 'live' score go through this
+// module.  It maps the score view to the actual score and makes sure the
+// model and view stay in sync.
+/* global: SmoSelection */
+// eslint-disable-next-line no-unused-vars
+class SuiScoreViewOperations extends SuiScoreView {
+  addTextGroup(textGroup) {
+    const altNew = SmoTextGroup.deserialize(textGroup.serialize());
+    SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup,
+      UndoBuffer.bufferSubtypes.ADD);
+    SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altNew,
+      UndoBuffer.bufferSubtypes.ADD);
+    this.renderer.renderScoreModifiers();
+  }
+
+  removeTextGroup(textGroup) {
+    const index = this.score.textGroups.findIndex((grp) => textGroup.attrs.id === grp.attrs.id);
+    const altGroup = this.storeScore.textGroups[index];
+    SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup,
+      UndoBuffer.bufferSubtypes.REMOVE);
+    SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup,
+      UndoBuffer.bufferSubtypes.REMOVE);
+    this.renderer.renderScoreModifiers();
+  }
+
+  updateTextGroup(oldVersion, newVersion) {
+    const index = this.score.textGroups.findIndex((grp) => oldVersion.attrs.id === grp.attrs.id);
+    SmoUndoable.changeTextGroup(this.score, this.undoBuffer, oldVersion,
+      UndoBuffer.bufferSubtypes.UPDATE);
+    SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, this.storeScore.textGroups[index], UndoBuffer.bufferSubtypes.UPDATE);
+    const altNew = SmoTextGroup.deserialize(newVersion.serialize());
+    this.storeScore.textGroups[index] = altNew;
+
+    // TODO: only render the one TG.
+    this.renderer.renderScoreModifiers();
+  }
+  // ### updateScorePreferences
+  // The score preferences for view score have changed, sync them
+  updateScorePreferences() {
+    this._undoScorePreferences('Update preferences');
+    smoSerialize.serializedMerge(SmoScore.preferences, this.score, this.storeScore);
+    this.renderer.setDirty();
+  }
+
+  addRemoveMicrotone(tone) {
+    const selections = this.tracker.selections;
+    const altSelections = this._getEquivalentSelections(selections);
+    const measureSelections = this._undoTrackerMeasureSelections('add/remove microtone');
+
+    SmoOperation.addRemoveMicrotone(null, selections, tone);
+    SmoOperation.addRemoveMicrotone(null, altSelections, tone);
+    this._renderChangedMeasures(measureSelections);
+  }
+  addDynamic(dynamic) {
+    this._undoFirstMeasureSelection('add dynamic');
+    const sel = this.tracker.selections[0];
+    this._removeDynamic(sel, dynamic);
+    const equiv = this._getEquivalentSelection(sel);
+    if (typeof(dynamic) === 'string') {
+      dynamic = new SmoDynamicText({
+        selector: sel.selector,
+        text: dynamic,
+        yOffsetLine: 11,
+        fontSize: 38
+      });
+    }
+    SmoOperation.addDynamic(sel, dynamic);
+    SmoOperation.addDynamic(equiv, SmoNoteModifierBase.deserialize(dynamic.serialize()));
+    this.renderer.addToReplaceQueue(sel);
+  }
+  _removeDynamic(selection, dynamic) {
+    const equiv = this._getEquivalentSelection(selection);
+    const altModifiers = equiv.note.getModifiers('SmoDynamicText');
+    SmoOperation.removeDynamic(selection, dynamic);
+    if (altModifiers.length) {
+      SmoOperation.removeDynamic(equiv, altModifiers[0]);
+    }
+  }
+  removeDynamic(dynamic) {
+    const sel = this.tracker.selections[0];
+    this._undoFirstMeasureSelection('remove dynamic');
+    this._removeDynamic(sel, dynamic);
+    this.renderer.addToReplaceQueue(sel);
+  }
+  // ### removeLyric
+  // The lyric editor moves around, so we can't depend on the tracker for the
+  // correct selection.  We get it directly from the editor.
+  removeLyric(selection, lyric) {
+    this._undoSelection('remove lyric', selection);
+    selection.note.removeLyric(lyric);
+    const equiv = this._getEquivalentSelection(selection);
+    const storeLyric = equiv.note.getLyricForVerse(lyric.verse, lyric.parser);
+    if (typeof(storeLyric) !== 'undefined') {
+      equiv.note.removeLyric(lyric);
+    }
+    this.renderer.addToReplaceQueue(selection);
+  }
+
+  addOrUpdateLyric(selection, lyric) {
+    this._undoSelection('update lyric', selection);
+    selection.note.addLyric(lyric);
+    const equiv = this._getEquivalentSelection(selection);
+    equiv.note.addLyric(SmoNoteModifierBase.deserialize(lyric.serialize()));
+    this.renderer.addToReplaceQueue(selection);
+  }
+
+  depopulateVoice() {
+    const measureSelections = this._undoTrackerMeasureSelections('depopulate voice');
+    measureSelections.forEach((selection) => {
+      const ix = selection.measure.getActiveVoice();
+      if (ix !== 0) {
+        SmoOperation.depopulateVoice(selection, ix);
+        SmoOperation.depopulateVoice(this._getEquivalentSelection(selection), ix);
+      }
+    });
+    SmoOperation.setActiveVoice(this.score, 0);
+    this._renderChangedMeasures(measureSelections);
+  }
+  populateVoice(index) {
+    const measureSelections = this._undoTrackerMeasureSelections('populate voice');
+    measureSelections.forEach((selection) => {
+      SmoOperation.populateVoice(selection, index);
+      SmoOperation.populateVoice(this._getEquivalentSelection(selection), index);
+    });
+    SmoOperation.setActiveVoice(this.score, index);
+    this._renderChangedMeasures(measureSelections);
+  }
+  changeInstrument(instrument) {
+    const measureSelections = this._undoTrackerMeasureSelections('change instrument');
+    const selections = this.tracker.selections;
+    const altSelections = this._getEquivalentSelections(selections);
+    SmoOperation.changeInstrument(instrument, selections);
+    SmoOperation.changeInstrument(instrument, altSelections);
+    this._renderChangedMeasures(measureSelections);
+  }
+  setTimeSignature(timeSignature) {
+    this._undoScore('Set time signature');
+    const selections = this.tracker.selections;
+    const altSelections = this._getEquivalentSelections(selections);
+    SmoOperation.setTimeSignature(this.score, selections, timeSignature);
+    SmoOperation.setTimeSignature(this.storeScore, altSelections, timeSignature);
+    this.renderer.setDirty();
+  }
+  moveStaffUpDown(index) {
+    this._undoScore('re-order staves');
+    // Get staff to move
+    const selection = this._getEquivalentSelection(this.tracker.selections[0]);
+    // Make the move in the model, and reset the view so we can see the new
+    // arrangement
+    SmoOperation.moveStaffUpDown(this.storeScore, selection, index);
+    const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    this.changeScore(newScore);
+  }
+  addStaffGroupDown(braceType) {
+    this._undoScore('group staves');
+    const ft = this._getEquivalentSelection(this.tracker.getExtremeSelection(-1));
+    const tt = this._getEquivalentSelection(this.tracker.getExtremeSelection(1));
+    const selections = this._getEquivalentSelections(this.tracker.selections);
+    SmoOperation.addConnectorDown(this.storeScore, selections, {
+      startSelector: ft.selector, endSelector: tt.selector,
+      mapType: SmoSystemGroup.mapTypes.allMeasures, leftConnector: braceType,
+      rightConnector: SmoSystemGroup.connectorTypes.single
+    });
+    const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    this.changeScore(newScore);
+  }
+  // ### updateTempoScore
+  // Update the tempo for the entire score
+  updateTempoScore(tempo, scoreMode) {
+    let measureIndex = 0;
+    this._undoScore('update score tempo');
+    let startSelection = this.tracker.selections[0];
+    if (!scoreMode) {
+      startSelection = this.tracker.getExtremeSelection(-1);
+    }
+    const measureCount = this.score.staves[0].measures.length;
+    let endSelection = SmoSelection.measureSelection(this.score,
+      startSelection.selector.staff, measureCount - 1);
+    if (!scoreMode) {
+      endSelection = this.tracker.getExtremeSelection(1);
+    }
+    measureIndex = startSelection.selector.measure;
+    while (measureIndex < endSelection.selector.measure) {
+      const mi = measureIndex;
+      this.score.staves.forEach((staff) => {
+        SmoOperation.addTempo(this.score,
+          SmoSelection.measureSelection(this.score,
+            staff.staffId, mi), tempo);
+      });
+      measureIndex++;
+    }
+    measureIndex = startSelection.selector.measure;
+    while (measureIndex < endSelection.selector.measure) {
+      const mi = measureIndex;
+      this.storeScore.staves.forEach((staff) => {
+        SmoOperation.addTempo(this.storeScore,
+          SmoSelection.measureSelection(this.storeScore,
+            staff.staffId, mi), tempo);
+      });
+      measureIndex++;
+    }
+    this.renderer.setRefresh();
+  }
+  removeTempo(scoreMode) {
+    const startSelection = this.tracker.selections[0];
+    if (startSelection.selector.measure > 0) {
+      const target = this.measures[0].measureNumber.measureIndex - 1;
+      const tempo = this.score.staves[0].measures[target].getTempo();
+      this.updateTempoScore(tempo, scoreMode);
+    } else {
+      this.updateTempoScore(new SmoTempoText(), scoreMode);
+    }
+  }
+  addGraceNote() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections('add grace note');
+    selections.forEach((selection) => {
+      const index = selection.note.getGraceNotes().length;
+      const pitches = JSON.parse(JSON.stringify(selection.note.pitches));
+      const grace = new SmoGraceNote({ pitches, ticks:
+        { numerator: 2048, denominator: 1, remainder: 0 } });
+      SmoOperation.addGraceNote(selection, grace, index);
+
+      const altPitches = JSON.parse(JSON.stringify(selection.note.pitches));
+      const altGrace =  new SmoGraceNote({ altPitches, ticks:
+        { numerator: 2048, denominator: 1, remainder: 0 } });
+      altGrace.attrs.id = grace.attrs.id;
+      const altSelection = this._getEquivalentSelection(selection);
+      SmoOperation.addGraceNote(altSelection, altGrace, index);
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  removeGraceNote() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections('remove grace note');
+    selections.forEach((selection) => {
+      // TODO: get the correct offset
+      SmoOperation.removeGraceNote(selection, 0);
+      SmoOperation.removeGraceNote(this._getEquivalentSelection(selection), 0);
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  slashGraceNotes() {
+    const grace = this.tracker.getSelectedGraceNotes();
+    const measureSelections = this._undoTrackerMeasureSelections('slash grace note toggle');
+    grace.forEach((gn) => {
+      SmoOperation.slashGraceNotes(gn);
+      const altSelection = this._getEquivalentSelection(gn.selection);
+      const altGn = this._getEquivalentGraceNote(altSelection, gn.modifier);
+      SmoOperation.slashGraceNotes({ selection: altSelection, modifier: altGn });
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  // ### transposeSelections
+  // tranpose whatever is selected in tracker the given offset.
+  transposeSelections(offset) {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections('transpose');
+    const grace = this.tracker.getSelectedGraceNotes();
+    if (grace.length) {
+      grace.forEach((artifact) => {
+        const altSelection = this._getEquivalentSelection(artifact.selection);
+        SmoOperation.transposeGraceNotes(artifact.selection, artifact.modifier, offset);
+        SmoOperation.transposeGraceNotes(altSelection,
+          this._getEquivalentGraceNote(altSelection, artifact.modifier), offset);
+      });
+    } else {
+      selections.forEach((selected) => {
+        SmoOperation.transpose(selected, offset);
+        SmoOperation.transpose(this._getEquivalentSelection(selected), offset);
+      });
+      if (selections.length === 1) {
+        suiOscillator.playSelectionNow(selections[0]);
+      }
+    }
+    if (selections.length === 1) {
+      suiOscillator.playSelectionNow(selections[0]);
+    }
+    this._renderChangedMeasures(measureSelections);
+  }
+  toggleEnharmonic() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections('toggle enharmonic');
+    const grace = this.tracker.getSelectedGraceNotes();
+    if (grace.length) {
+      grace.forEach((artifact) => {
+        SmoOperation.toggleGraceNoteEnharmonic(artifact.selection, artifact.modifier);
+        const altSelection = this._getEquivalentSelection(artifact.selection);
+        SmoOperation.toggleGraceNoteEnharmonic(this._getEquivalentSelection(artifact.selection),
+          this._getEquivalentGraceNote(altSelection, artifact.modifier));
+      });
+    } else {
+      selections.forEach((selected) => {
+        if (typeof(selected.selector.pitches) === 'undefined') {
+          selected.selector.pitches = [];
+        }
+        SmoOperation.toggleEnharmonic(selected);
+        SmoOperation.toggleEnharmonic(this._getEquivalentSelection(selected));
+      });
+    }
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  toggleCourtesyAccidentals() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections('toggle courtesy accidental');
+    const grace = this.tracker.getSelectedGraceNotes();
+    if (grace.length) {
+      grace.forEach((artifact) => {
+        SmoOperation.toggleGraceNoteCourtesy(artifact.selection, artifact.modifier);
+        SmoUndoable.toggleGraceNoteCourtesyAccidental(
+          this._getEquivalentSelection(artifact.selection), artifact.modifier);
+      });
+    } else {
+      selections.forEach((selection) => {
+        SmoOperation.toggleCourtesyAccidental(selection);
+        SmoOperation.toggleCourtesyAccidental(this._getEquivalentSelection(selection));
+      });
+    }
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  batchDurationOperation(operation) {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections('change duration');
+    const grace = this.tracker.getSelectedGraceNotes();
+    const graceMap = { doubleDuration: 'doubleGraceNoteDuration',
+      halveDuration: 'halveGraceNoteDuration' };
+    if (grace.length && typeof(graceMap[operation]) !== 'undefined') {
+      operation = graceMap[operation];
+      grace.forEach((artifact) => {
+        SmoOperation[operation](artifact.selection, artifact.modifier);
+        const altSelection = this._getEquivalentSelection(artifact.selection);
+        SmoOperation[operation](this._getEquivalentSelection(artifact.selection),
+          this._getEquivalentGraceNote(altSelection, artifact.modifier));
+      });
+    } else {
+      const altAr = this._getEquivalentSelections(selections);
+      SmoOperation.batchSelectionOperation(this.score, selections, operation);
+      SmoOperation.batchSelectionOperation(this.storeScore, altAr, operation);
+    }
+    this._renderChangedMeasures(measureSelections);
+  }
+  toggleArticulation(articulation, ctor) {
+    const measureSelections = this._undoTrackerMeasureSelections('toggle articulation');
+    this.tracker.selections.forEach((sel) => {
+      if (ctor === 'SmoArticulation') {
+        const aa = new SmoArticulation({ articulation });
+        const altAa = new SmoArticulation({ articulation });
+        altAa.attrs.id = aa.attrs.id;
+        SmoOperation.toggleArticulation(sel, aa);
+        SmoOperation.toggleArticulation(this._getEquivalentSelection(sel), altAa);
+      } else {
+        const aa = new SmoOrnament({ ornament: articulation });
+        const altAa = new SmoOrnament({ ornament: articulation });
+        altAa.attrs.id = aa.attrs.id;
+        SmoOperation.toggleOrnament(sel,  aa);
+        SmoOperation.toggleOrnament(this._getEquivalentSelection(sel), altAa);
+      }
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  makeTuplet(numNotes) {
+    const selection = this.tracker.selections[0];
+    const measureSelections = this._undoTrackerMeasureSelections('make tuplet');
+    SmoOperation.makeTuplet(selection, numNotes);
+    SmoOperation.makeTuplet(this._getEquivalentSelection(selection), numNotes);
+    this._renderChangedMeasures(measureSelections);
+  }
+  unmakeTuplet() {
+    const selection = this.tracker.selections[0];
+    const measureSelections = this._undoTrackerMeasureSelections('unmake tuplet');
+    SmoOperation.unmakeTuplet(selection);
+    SmoOperation.unmakeTuplet(this._getEquivalentSelection(selection));
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  setInterval(interval) {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections('set interval');
+    selections.forEach((selected) => {
+      SmoOperation.interval(selected, interval);
+      SmoOperation.interval(this._getEquivalentSelection(selected), interval);
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  collapseChord() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections('collapse chord');
+    selections.forEach((selected) => {
+      const pp = JSON.parse(JSON.stringify(selected.note.pitches[0]));
+      const altpp = JSON.parse(JSON.stringify(selected.note.pitches[0]));
+      // No operation for this?
+      selected.note.pitches = [pp];
+      const altSelection = this._getEquivalentSelection(selected);
+      altSelection.note.pitches = [altpp];
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  makeRest() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections('make rest');
+    selections.forEach((selection) => {
+      SmoOperation.makeRest(selection);
+      const altSel = this._getEquivalentSelection(selection);
+      SmoOperation.makeRest(altSel);
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
+  toggleBeamGroup() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections('toggle beam group');
+    selections.forEach((selection) => {
+      SmoOperation.toggleBeamGroup(selection);
+      SmoOperation.toggleBeamGroup(this._getEquivalentSelection(selection));
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
+  toggleBeamDirection() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections('toggle beam direction');
+    SmoOperation.toggleBeamDirection(selections);
+    SmoOperation.toggleBeamDirection(this._getEquivalentSelections(selections));
+    this._renderChangedMeasures(measureSelections);
+  }
+  beamSelections() {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections('beam selections');
+    SmoOperation.beamSelections(selections);
+    SmoOperation.beamSelections(this._getEquivalentSelections(selections));
+    this._renderChangedMeasures(measureSelections);
+  }
+  addKeySignature(keySignature) {
+    const measureSelections = this._undoTrackerMeasureSelections('set key signature ' + keySignature);
+    measureSelections.forEach((sel) => {
+      SmoOperation.addKeySignature(this.score, sel, keySignature);
+      SmoOperation.addKeySignature(this.storeScore, this._getEquivalentSelection(sel), keySignature);
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
+
+  setPitch(letter) {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections('set pitch ' + letter);
+    selections.forEach((selected) => {
+      var selector = selected.selector;
+      var hintSel = SmoSelection.lastNoteSelection(this.score,
+        selector.staff, selector.measure, selector.voice, selector.tick);
+      if (!hintSel) {
+        hintSel = SmoSelection.nextNoteSelection(this.score,
+          selector.staff, selector.measure, selector.voice, selector.tick);
+      }
+      // The selection no longer exists, possibly deleted
+      if (!hintSel) {
+        return;
+      }
+      const pitch = smoMusic.getLetterNotePitch(hintSel.note.pitches[0],
+        letter, hintSel.measure.keySignature);
+      SmoOperation.setPitch(selected, pitch);
+      SmoOperation.setPitch(this._getEquivalentSelection(selected), pitch);
+      if (this.score.preferences.autoAdvance) {
+        this.tracker.moveSelectionRight(null, true);
+      }
+    });
+    if (selections.length === 1) {
+      suiOscillator.playSelectionNow(selections[0]);
+    }
+    this._renderChangedMeasures(measureSelections);
+  }
+  copy() {
+    this.pasteBuffer.setSelections(this.score, this.tracker.selections);
+    const altAr = [];
+    this.tracker.selections.forEach((sel) => {
+      const noteSelection = this._getEquivalentSelection(sel);
+      altAr.push(noteSelection);
+    });
+    this.storePaste.setSelections(this.storeScore, altAr);
+  }
+  paste() {
+    // We undo the whole score on a paste, since we don't yet know the
+    // extent of the overlap
+    this._undoScore('paste');
+    const firstSelection = this.tracker.selections[0];
+    const pasteTarget = firstSelection.selector;
+    const altSelection = this._getEquivalentSelection(firstSelection);
+    const altTarget = altSelection.selector;
+    this.pasteBuffer.pasteSelections(this.score, pasteTarget);
+    this.storePaste.pasteSelections(this.storeScore, altTarget);
+    this._renderChangedMeasures(this.pasteBuffer.replacementMeasures);
+  }
+  setNoteHead(head) {
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections('set note head');
+    SmoOperation.setNoteHead(selections, head);
+    SmoOperation.setNoteHead(this._getEquivalentSelections(selections), head);
+    this._renderChangedMeasures(measureSelections);
+  }
+  setMeasureProportion(value) {
+    const selection = this.tracker.selections[0];
+    const rect = this._getRectangleFromStaffGroup(selection);
+    this._undoRectangle('Set measure proportion', rect.startSelector, rect.endSelector);
+    const rs = _getRectangleSelections(rect.startSelector, rect.endSelector);
+    rs.forEach((s) => {
+      this.renderer.addToReplaceQueue(s.viewSelection);
+      SmoOperation.setMeasureProportion(s.viewSelection, value);
+      SmoOperation.setMeasureProportion(s.storeSelection, value);
+    });
+  }
+  setAutoJustify(value) {
+    const selection = this.tracker.selections[0];
+    const rect = this._getRectangleFromStaffGroup(selection);
+    this._undoRectangle('Set measure proportion', rect.startSelector, rect.endSelector);
+    const rs = _getRectangleSelections(rect.startSelector, rect.endSelector);
+    rs.forEach((s) => {
+      this.renderer.addToReplaceQueue(s.viewSelection);
+      SmoOperation.setAutoJustify(this.score, s.viewSelection, value);
+      SmoOperation.setAutoJustify(this.storeScore, s.storeSelection, value);
+    });
+  }
+  setCollisionAvoidance(value) {
+    const selection = this.tracker.selections[0];
+    this._undoColumn('set collision iterations', selection.selector.measure);
+    const altSelection = this._getEquivalentSelection(selection);
+    SmoOperation.setFormattingIterations(this.score, selection, value);
+    SmoOperation.setFormattingIterations(this.storeScore, altSelection, value);
+    this._renderChangedMeasures(selection);
+  }
+  // ### padMeasure
+  // spacing to the left, and column means all measures in system.
+  padMeasure(spacing, column) {
+    let selection = this.tracker.selections[0];
+    if (column) {
+      this._undoColumn('set measure padding', selection.selector.measure);
+      this.storeScore.staves.forEach((staff) => {
+        const altSel = SmoSelection.measureSelection(this.storeScore, staff.staffId, selection.selector.measure);
+        const viewSel = this._reverseMapSelection(altSel);
+        SmoOperation.padMeasureLeft(altSel, spacing);
+        if (viewSel) {
+          SmoOperation.padMeasureLeft(viewSel, spacing);
+          this.renderer.addToReplaceQueue(viewSel);
+        }
+      });
+    } else {
+      selection = this._undoFirstMeasureSelection('add dynamic');
+      const altSel = this._getEquivalentSelection(selection);
+      SmoOperation.padMeasureLeft(selection, spacing);
+      SmoOperation.padMeasureLeft(altSel, spacing);
+    }
+  }
+
+  addEnding() {
+    // TODO: we should have undo for columns
+    this._undoScore('Add Volta');
+    const ft = this.tracker.getExtremeSelection(-1);
+    const tt = this.tracker.getExtremeSelection(1);
+    const volta = new SmoVolta({ startBar: ft.selector.measure, endBar: tt.selector.measure, number: 1 });
+    const altVolta = new SmoVolta({ startBar: ft.selector.measure, endBar: tt.selector.measure, number: 1 });
+    SmoOperation.addEnding(this.storeScore, altVolta);
+    SmoOperation.addEnding(this.score, volta);
+    this.renderer.setRefresh();
+  }
+  updateEnding(ending) {
+    this._undoScore('Change Volta');
+    $(this.renderer.context.svg).find('g.' + ending.attrs.id).remove();
+    SmoOperation.removeEnding(this.storeScore, ending);
+    SmoOperation.removeEnding(this.score, ending);
+    const altVolta = new SmoVolta(ending);
+    SmoOperation.addEnding(this.storeScore, altVolta);
+    SmoOperation.addEnding(this.score, ending);
+    this.renderer.setRefresh();
+  }
+  removeEnding(ending) {
+    this._undoScore('Remove Volta');
+    $(this.renderer.context.svg).find('g.' + ending.attrs.id).remove();
+    SmoOperation.removeEnding(this.storeScore, ending);
+    SmoOperation.removeEnding(this.score, ending);
+    this.renderer.setRefresh();
+  }
+  setBarline(position, barline) {
+    const obj = new SmoBarline({ position, barline });
+    const altObj = new SmoBarline({ position, barline });
+    const selection = this.tracker.selections[0];
+    this._undoColumn('set barline', selection.selector.measure);
+    SmoOperation.setMeasureBarline(this.score, selection, obj);
+    SmoOperation.setMeasureBarline(this.storeScore, this._getEquivalentSelection(selection), altObj);
+    this._renderChangedMeasures([selection]);
+  }
+  setRepeatSymbol(position, symbol) {
+    const obj = new SmoRepeatSymbol({ position, symbol });
+    const altObj = new SmoRepeatSymbol({ position, symbol });
+    const selection = this.tracker.selections[0];
+    this._undoColumn('set repeat symbol', selection.selector.measure);
+    SmoOperation.setRepeatSymbol(this.score, selection, obj);
+    SmoOperation.setRepeatSymbol(this.storeScore, this._getEquivalentSelection(selection), altObj);
+    this._renderChangedMeasures(selection);
+  }
+  toggleRehearsalMark() {
+    const selection = this.tracker.getExtremeSelection(-1);
+    const altSelection = this._getEquivalentSelection(selection);
+    const cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
+    SmoOperation[cmd](this.score, selection, new SmoRehearsalMark());
+    SmoOperation[cmd](this.storeScore, altSelection, new SmoRehearsalMark());
+    this._renderChangedMeasures(selection);
+  }
+  _removeStaffModifier(viewSelection, scoreSelection, modifier) {
+    SmoOperation.removeStaffModifier(viewSelection, modifier);
+
+    // Look up the selector based on the start/end selector of the view score
+    // modifier, adjusted for any staff offset
+    const testSelector = JSON.parse(JSON.stringify(modifier.endSelector));
+    testSelector.staff = scoreSelection.selector.staff;
+    const altMod = scoreSelection.staff.getModifiersAt(
+      scoreSelection.selector)
+      .find((mod) => mod.attrs.type === modifier.attrs.type &&
+        SmoSelector.eq(testSelector, mod.endSelector));
+    if (altMod) {
+      SmoOperation.removeStaffModifier(scoreSelection, altMod);
+    }
+  }
+  removeStaffModifier(modifier) {
+    this._undoRectangle('Set measure proportion', modifier.startSelector,
+      modifier.endSelector);
+    const sel = SmoSelection.noteFromSelector(this.score, modifier.startSelector);
+    const altSel = this._getEquivalentSelection(sel);
+    this._removeStaffModifier(sel, altSel, modifier);
+    this._removeStandardModifier(modifier);
+    this._renderRectangle(modifier.startSelector, modifier.endSelector);
+  }
+  addOrUpdateStaffModifier(modifier) {
+    this._undoRectangle('Set measure proportion', modifier.startSelector, modifier.endSelector);
+    const sel = SmoSelection.noteFromSelector(this.score, modifier.startSelector);
+    const altSel = this._getEquivalentSelection(sel);
+    this._removeStaffModifier(sel, altSel, modifier);
+    SmoOperation.addStaffModifier(sel, modifier);
+
+    // Create a modifier but with the model score staff ids
+    const altFrom = JSON.parse(JSON.stringify(modifier.startSelector));
+    const altTo = JSON.parse(JSON.stringify(modifier.endSelector));
+    altFrom.staff = altSel.selector.staff;
+    altTo.staff = altSel.selector.staff;
+    const altModifier = StaffModifierBase.deserialize(modifier.serialize());
+    altModifier.startSelector = altFrom;
+    SmoOperation.addStaffModifier(altSel, modifier);
+    altModifier.endSelector = altTo;
+    this._renderRectangle(modifier.startSelector, modifier.endSelector);
+  }
+  _lineOperation(op) {
+    if (this.tracker.selections.length < 2) {
+      return;
+    }
+    const measureSelections = this._undoTrackerMeasureSelections(op);
+    const ft = this.tracker.getExtremeSelection(-1);
+    const tt = this.tracker.getExtremeSelection(1);
+    const ftAlt = this._getEquivalentSelection(ft);
+    const ttAlt = this._getEquivalentSelection(tt);
+    SmoOperation[op](ft, tt);
+    SmoOperation[op](ftAlt, ttAlt);
+    this._renderChangedMeasures(measureSelections);
+  }
+  crescendo() {
+    this._lineOperation('crescendo');
+  }
+  decrescendo() {
+    this._lineOperation('decrescendo');
+  }
+  slur() {
+    this._lineOperation('slur');
+  }
+  setScoreLayout(layout) {
+    this.score.layout = JSON.parse(JSON.stringify(layout));
+    this.storeScore.layout = JSON.parse(JSON.stringify(layout));
+    this.renderer.setViewport();
+  }
+  setEngravingFontFamily(family) {
+    const engrave = this.score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
+    const altEngrave = this.storeScore.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
+    engrave.family = family;
+    altEngrave.family = family;
+    SuiRenderState.setFont(engrave.family);
+  }
+  setLyricFont(fontInfo) {
+    this._undoScore('Set Lyric Font');
+    this.score.setLyricFont(fontInfo);
+    this.storeScore.setLyricFont(fontInfo);
+    this.renderer.setRefresh();
+  }
+  setLyricAdjustWidth(value) {
+    this._undoScore('Set Lyric Adj Width');
+    this.score.setLyricAdjustWidth(value);
+    this.storeScore.setLyricAdjustWidth(value);
+    this.renderer.setRefresh();
+  }
+  deleteMeasure() {
+    this._undoScore('Delete Measure');
+    if (this.storeScore.staves[0].measures.length < 2) {
+      return;
+    }
+    const selection = this.tracker.selections[0];
+    const index = selection.selector.measure;
+    // Unrender the deleted measure
+    this.score.staves.forEach((staff) => {
+      this.renderer.unrenderMeasure(staff.measures[index]);
+      this.renderer.unrenderMeasure(staff.measures[staff.measures.length - 1]);
+
+      // A little hacky - delete the modifiers if they start or end on
+      // the measure
+      staff.modifiers.forEach((modifier) => {
+        if (modifier.startSelector.measure === index || modifier.endSelector.measure === index) {
+          $(this.renderer.context.svg).find('g.' + modifier.attrs.id).remove();
+        }
+      });
+    });
+    this.tracker.deleteMeasure(selection);
+    this.score.deleteMeasure(index);
+    this.storeScore.deleteMeasure(index);
+    this.tracker.loadScore();
+    this.renderer.setRefresh();
+  }
+  addMeasure(append) {
+    this._undoScore('Add Measure');
+    let pos = 0;
+    const measure = this.tracker.getFirstMeasureOfSelection();
+    const nmeasure = SmoMeasure.getDefaultMeasureWithNotes(measure);
+    const altMeasure = SmoMeasure.deserialize(nmeasure.serialize());
+
+    pos = measure.measureNumber.measureIndex;
+    if (append) {
+      pos += 1;
+    }
+    nmeasure.measureNumber.measureIndex = pos;
+    nmeasure.setActiveVoice(0);
+    this.score.addMeasure(pos, nmeasure);
+    this.storeScore.addMeasure(pos, altMeasure);
+    this.renderer.clearLine(measure);
+    this.renderer.setRefresh();
+  }
+  removeStaff() {
+    this._undoScore('Remove Instrument');
+    if (this.storeScore.staves.length < 2 || this.viewScore.staves.length < 2) {
+      return;
+    }
+    // if we are looking at a subset of the score,
+    // revert to the full score view before removing the staff.
+    const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    const sel = this.tracker.selections[0];
+    const scoreSel = this._getEquivalentSelection(sel);
+    const staffIndex = scoreSel.selector.staff;
+    SmoOperation.removeStaff(newScore, staffIndex);
+    this.changeScore(newScore);
+    this.renderer.setRefresh();
+  }
+  addStaff(instrument) {
+    this._undoScore('Add Instrument');
+    // if we are looking at a subset of the score, we won't see the new staff.  So
+    // revert to the full view
+    const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
+    SmoOperation.addStaff(newScore, instrument);
+    this.changeScore(newScore);
+    this.renderer.setRefresh();
+  }
+  saveScore(filename) {
+    const json = this.storeScore.serialize();
+    const jsonText = JSON.stringify(json);
+    htmlHelpers.addFileLink(filename, jsonText, $('.saveLink'));
+    $('.saveLink a')[0].click();
+  }
+  quickSave() {
+    const scoreStr = JSON.stringify(this.storeScore.serialize());
+    localStorage.setItem(smoSerialize.localScore, scoreStr);
+  }
+  createPickup(duration) {
+    this._undoScore('create pickup');
+    this.score.convertToPickupMeasure(0, duration);
+    this.storeScore.convertToPickupMeasure(0, duration);
+    this.renderer.setRefresh();
+  }
+  // ### stretchWidth
+  // Stretch the width of a measure, including all columns in the measure since they are all
+  // the same width
+  setMeasureStretch(measureIndex, stretch) {
+    this._undoColumn('Stretch measure', measureIndex);
+    this.storeScore.staves.forEach((staff) => {
+      const selection = SmoSelection.measureSelection(this.storeScore, staff.staffId, measureIndex);
+      const delta = selection.measure.customStretch;
+      selection.measure.customStretch = stretch;
+      const nwidth = selection.measure.staffWidth - (delta - selection.measure.customStretch);
+      selection.measure.setWidth(nwidth);
+      const viewSelection = this._reverseMapSelection(selection);
+      if (viewSelection) {
+        viewSelection.measure.customStretch = stretch;
+        viewSelection.measure.setWidth(nwidth);
+        this.renderer.addToReplaceQueue(viewSelection);
+      }
+    });
+  }
+  forceSystemBreak(value) {
+    const measureSelection = this.tracker.selections[0];
+    this._undoColumn('System break', measureSelection.selector.measure);
+    SmoOperation.setForceSystemBreak(this.score, measureSelection, value);
+    SmoOperation.setForceSystemBreak(this.storeScore, this._getEquivalentSelection(measureSelection), value);
+    this.renderer.setRefresh();
+  }
+}
 ;
 
 // ## suiScroller
@@ -4655,135 +5793,131 @@ class SuiRenderScore extends SuiRenderState {
 // ### class methods:
 // ---
 class suiScroller  {
-	constructor(layout) {
+  constructor() {
+    this._scroll = {x:0,y:0};
+    this._scrollInitial = {x:0,y:0};
+    var scroller = $('.musicRelief');
+    this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
 
-        this._scroll = {x:0,y:0};
-        this._scrollInitial = {x:0,y:0};
-	    var scroller = $('.musicRelief');
-	    this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+    this.viewport = svgHelpers.boxPoints(
+      $('.musicRelief').offset().left,
+      $('.musicRelief').offset().top,
+      $('.musicRelief').width(),
+      $('.musicRelief').height());
+   }
 
-        this.viewport = svgHelpers.boxPoints(
-          $('.musicRelief').offset().left,
-          $('.musicRelief').offset().top,
-          $('.musicRelief').width(),
-          $('.musicRelief').height());
-	}
+  // ### setScrollInitial
+  // tracker is going to remap the music, make sure we take the current scroll into account.
+  setScrollInitial() {
+    var scroller = $('.musicRelief');
+    this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
+    this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+  }
 
-    // ### setScrollInitial
-    // tracker is going to remap the music, make sure we take the current scroll into account.
-    setScrollInitial() {
-        var scroller = $('.musicRelief');
-        this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
-        this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+  // ### handleScroll
+  // handle scroll events.
+  handleScroll(x,y) {
+    this._scroll = {x:x,y:y};
+    this.viewport = svgHelpers.boxPoints(
+      $('.musicRelief').offset().left,
+      $('.musicRelief').offset().top,
+      $('.musicRelief').width(),
+      $('.musicRelief').height());
+  }
+
+  scrollAbsolute(x,y) {
+    $('.musicRelief')[0].scrollLeft = x;
+    $('.musicRelief')[0].scrollTop = y;
+    this.netScroll.x = x;
+    this.netScroll.y = y;
+  }
+
+  // ### scrollVisible
+  // Scroll such that the box is fully visible, if possible (if it is
+  // not larger than the screen)
+  scrollVisibleBox(box) {
+    let xoff = 0;
+    let yoff = 0;
+    const curBox = this.scrollBox;
+    if (box.width > curBox.width || box.height > curBox.height) {
+      return;
+    }
+    if (box.height < curBox.height) {
+      if (box.y < curBox.y) {
+        yoff = box.y - (curBox.y + 25);
+      }
+      else if (box.y + box.height > curBox.y + curBox.height) {
+        yoff = box.y + box.height - (curBox.y + curBox.height) + 25;
+      }
     }
 
-    // ### handleScroll
-    // handle scroll events.
-    handleScroll(x,y) {
-        this._scroll = {x:x,y:y};
-        this.viewport = svgHelpers.boxPoints(
-          $('.musicRelief').offset().left,
-          $('.musicRelief').offset().top,
-          $('.musicRelief').width(),
-          $('.musicRelief').height());
+    if (box.x < curBox.width) {
+      if (box.x < curBox.x) {
+        xoff = box.x - curBox.x;
+      } else if (box.x + box.width > curBox.x + curBox.width) {
+        xoff = box.x + box.width - (curBox.x + curBox.width);
+      }
     }
 
-    scrollAbsolute(x,y) {
-        $('.musicRelief')[0].scrollLeft = x;
-        $('.musicRelief')[0].scrollTop = y;
-        this.netScroll.x = x;
-        this.netScroll.y = y;
+    if (xoff !== 0 || yoff !== 0) {
+        this.scrollOffset(xoff,yoff);
     }
+  }
 
-    // ### scrollVisible
-    // Scroll such that the box is fully visible, if possible (if it is
-    // not larger than the screen)
-    scrollVisibleBox(box) {
+  // ### scrollBox
+  // get the current viewport, in scrolled coordinates.  When tracker maps the
+  // music element to client coordinates, these are the coordinates used in the
+  // map
+  get scrollBox() {
+    return svgHelpers.boxPoints(this.viewport.x + this.netScroll.x,
+     this.viewport.y + this.netScroll.y,
+     this.viewport.width,
+     this.viewport.height
+    );
+  }
 
-        var xoff = 0;
-        var yoff = 0;
-        var curBox = this.scrollBox;
-        if (box.width > curBox.width || box.height > curBox.height) {
-            return;
-        }
-        if (box.height < curBox.height) {
-            if (box.y < curBox.y) {
-                yoff = box.y - (curBox.y + 25);
-            }
-            else if (box.y + box.height > curBox.y + curBox.height) {
-                yoff = box.y + box.height - (curBox.y + curBox.height) + 25;
-            }
-        }
+  get absScroll() {
+    var x = $('.musicRelief').offset().left + $('.musicRelief')[0].scrollLeft;
+    var y = $('.musicRelief').offset().top + $('.musicRelief')[0].scrollTop;
+    return svgHelpers.boxPoints(x,
+      y,
+      this.viewport.width,
+      this.viewport.height
+    );
+  }
 
-        if (box.x < curBox.width) {
-            if (box.x < curBox.x) {
-                xoff = box.x - curBox.x;
-            } else if (box.x + box.width > curBox.x + curBox.width) {
-                xoff = box.x + box.width - (curBox.x + curBox.width);
-            }
-        }
+  // ### scrollOffset
+  // scroll the offset from the starting scroll point
+  scrollOffset(x,y) {
+    const self = this;
+    const cur = { x: this._scroll.x, y: this._scroll.y };
+    setTimeout(() => {
+      if (x) {
+        $('.musicRelief')[0].scrollLeft = cur.x + x;
+      }
+      if (y) {
+        $('.musicRelief')[0].scrollTop = cur.y + y;
+      }
+      self.handleScroll( $('.musicRelief')[0].scrollLeft, $('.musicRelief')[0].scrollTop);
+    }, 1);
+  }
 
-        if (xoff != 0 || yoff != 0) {
-            this.scrollOffset(xoff,yoff);
-        }
-    }
+  // ### netScroll
+  // return the net amount we've scrolled, based on when the maps were make (initial)
+  // , the offset of the container, and the absolute coordinates of the scrollbar.
+  get netScroll() {
+    var xoffset = $('.musicRelief').offset().left - this._offsetInitial.x;
+    var yoffset = $('.musicRelief').offset().top - this._offsetInitial.y;
+    return { x: this._scroll.x -
+      (this._scrollInitial.x + xoffset), y: this._scroll.y - (this._scrollInitial.y + yoffset)};
+  }
 
-    // ### scrollBox
-    // get the current viewport, in scrolled coordinates.  When tracker maps the
-    // music element to client coordinates, these are the coordinates used in the
-    // map
-    get scrollBox() {
-        return svgHelpers.boxPoints(this.viewport.x + this.netScroll.x,
-         this.viewport.y + this.netScroll.y,
-         this.viewport.width,
-          this.viewport.height
-      );
-    }
-
-    get absScroll() {
-        var x = $('.musicRelief').offset().left + $('.musicRelief')[0].scrollLeft;
-        var y = $('.musicRelief').offset().top + $('.musicRelief')[0].scrollTop;
-        return svgHelpers.boxPoints(x,
-         y,
-         this.viewport.width,
-          this.viewport.height
-      );
-
-    }
-
-    // ### scrollOffset
-    // scroll the offset from the starting scroll point
-    scrollOffset(x,y) {
-        var self = this;
-        var cur = {x:this._scroll.x,y:this._scroll.y};
-        setTimeout(function() {
-            if (x) {
-                $('.musicRelief')[0].scrollLeft = cur.x + x;
-            }
-            if (y) {
-                $('.musicRelief')[0].scrollTop = cur.y + y;
-            }
-
-            self.handleScroll( $('.musicRelief')[0].scrollLeft,$('.musicRelief')[0].scrollTop);
-        },1);
-    }
-
-    // ### netScroll
-    // return the net amount we've scrolled, based on when the maps were make (initial)
-    // , the offset of the container, and the absolute coordinates of the scrollbar.
-    get netScroll() {
-		var xoffset = $('.musicRelief').offset().left - this._offsetInitial.x;
-		var yoffset = $('.musicRelief').offset().top - this._offsetInitial.y;
-        return {x:this._scroll.x - (this._scrollInitial.x + xoffset),y:this._scroll.y - (this._scrollInitial.y + yoffset)};
-    }
-
-    // ### invScroll
-    // invert the scroll parameters.
-    get invScroll() {
-        var vect = this.netScroll;
-        return {x:vect.x*(-1),y:vect.y*(-1)};
-    }
-
+  // ### invScroll
+  // invert the scroll parameters.
+  get invScroll() {
+    var vect = this.netScroll;
+    return { x: vect.x * (-1), y: vect.y * (-1)};
+  }
 }
 ;// The heirarchy of text editing objects goes:
 // dialog -> component -> session -> editor
@@ -4804,10 +5938,6 @@ class suiScroller  {
 // and retrieving the results into the target object.
 // eslint-disable-next-line no-unused-vars
 class SuiTextEditor {
-  static get attributes() {
-    return ['svgText', 'context', 'x', 'y', 'text',
-      'textPos', 'selectionStart', 'selectionLength', 'empty', 'suggestionIndex'];
-  }
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
   }
@@ -4850,7 +5980,6 @@ class SuiTextEditor {
   constructor(params) {
     Vex.Merge(this, SuiTextEditor.defaults);
     Vex.Merge(this, params);
-    this.context = params.context;
   }
 
   static get strokes() {
@@ -5465,83 +6594,6 @@ class SuiChordEditor extends SuiTextEditor {
 }
 
 // eslint-disable-next-line no-unused-vars
-class SuiResizeTextSession {
-  static get defaultSpring() {
-    return 0.1;
-  }
-  static get resizeModes() {
-    return { BOX: 1, FONT: 2 };
-  }
-  static get defaults() {
-    return {
-      spring: 0.1,
-      resizeMode: SuiResizeTextSession.resizeModes.FONT,
-      dragging: false,
-      startDragPoint: { x: -1, y: -1 }
-    };
-  }
-  constructor(params) {
-    Vex.Merge(this, SuiResizeTextSession.defaults);
-    Vex.Merge(this, params);
-    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup, this.context); // SuiTextBlock
-    this.startBox = this.textObject.getLogicalBox();
-    this.clientBox = this.textObject.getRenderedBox();
-    this.startBox.y += this.textObject.maxFontHeight(1);
-    this.currentBox = svgHelpers.smoBox(this.startBox);
-
-    this.currentClientBox = svgHelpers.adjustScroll(svgHelpers.logicalToClient(this.context.svg, this.currentBox), this.scroller.netScroll);
-  }
-  _outlineBox() {
-    const outlineStroke = SuiTextEditor.strokes['text-drag'];
-    const obj = {
-      context: this.context, box: this.currentBox, classes: 'text-drag',
-      outlineStroke, scroller: this.scroller
-    };
-    svgHelpers.outlineLogicalRect(obj);
-  }
-
-  startDrag(e) {
-    if (!svgHelpers.containsPoint(this.clientBox, { x: e.clientX, y: e.clientY }, this.scroller.netScroll)) {
-      return;
-    }
-
-    this.dragging = true;
-    this.startDragPoint = { x: e.clientX, y: e.clientY };
-    this.deltaDrag = null;
-    // calculate offset of mouse start vs. box UL
-    this._outlineBox();
-  }
-
-  mouseMove(e) {
-    if (!this.dragging) {
-      return;
-    }
-    const clientX = this.startDragPoint.x;
-    const clientY = this.startDragPoint.y;
-    const xdelta = e.clientX - clientX;
-    const ydelta = e.clientY - clientY;
-    if (!this.deltaDrag) {
-      this.deltaDrag = { x: xdelta, y: ydelta };
-      return;
-    }
-    const dragDiff = Math.abs(xdelta) - Math.abs(this.deltaDrag.x);
-    const coeff = dragDiff > 0 ? 2 : 0.5;
-    const  absRate = 1 + (this.spring * coeff);
-    const rate = xdelta > 0 ? absRate : 1 / absRate;
-    this.textGroup.scaleInPlace(rate);
-    this.textObject.rescale(rate);
-    this.textObject.render();
-    this._outlineBox();
-    this.deltaDrag = { x: xdelta, y: ydelta };
-  }
-  endDrag() {
-    this.dragging = false;
-    svgHelpers.eraseOutline(this.context, 'text-drag');
-    this.textObject.render();
-  }
-}
-
-// eslint-disable-next-line no-unused-vars
 class SuiDragSession {
   constructor(params) {
     this.textGroup = params.textGroup;
@@ -5617,9 +6669,8 @@ class SuiTextSession {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
   }
   constructor(params) {
-    this.score = params.score;
-    this.layout = params.layout;
     this.scroller = params.scroller;
+    this.renderer = params.renderer;
     this.scoreText = params.scoreText;
     this.text = params.text ? params.text : '';
     this.x = params.x;
@@ -5650,7 +6701,7 @@ class SuiTextSession {
   // ### _isRefreshed
   // renderer has partially rendered text(promise condition)
   get _isRefreshed() {
-    return this.layout.dirty === false;
+    return this.renderer.dirty === false;
   }
 
   get isStopped() {
@@ -5668,7 +6719,7 @@ class SuiTextSession {
   // ### _isRendered
   // renderer has rendered text(promise condition)
   get _isRendered() {
-    return this.layout.passState ===  SuiRenderState.passStates.clean;
+    return this.renderer.passState ===  SuiRenderState.passStates.clean;
   }
 
   _removeScoreText() {
@@ -5679,10 +6730,10 @@ class SuiTextSession {
   // ### _startSessionForNote
   // Start the lyric session
   startSession() {
-    this.editor = new SuiTextBlockEditor({ context: this.layout.context,
+    this.editor = new SuiTextBlockEditor({ renderer: this.renderer,
       x: this.x, y: this.y, scroller: this.scroller,
       fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight,
-      text: this.scoreText.text });
+      text: this.scoreText.text, context: this.renderer.context });
     this.cursorPromise = this.editor.startCursorPromise();
     this.state = SuiTextEditor.States.RUNNING;
     this._removeScoreText();
@@ -5726,8 +6777,9 @@ class SuiLyricSession {
   }
   constructor(params) {
     this.score = params.score;
-    this.layout = params.layout;
+    this.renderer = params.renderer;
     this.scroller = params.scroller;
+    this.view = params.view;
     this.parser = params.parser ? params.parser : SmoLyric.parsers.lyric;
     this.verse = params.verse;
     this.selector = params.selector;
@@ -5747,9 +6799,9 @@ class SuiLyricSession {
       const scoreFont = this.score.fonts.find((fn) => fn.name === 'lyrics');
       const fontInfo = JSON.parse(JSON.stringify(scoreFont));
       this.lyric = new SmoLyric({  _text: '', verse: this.verse, fontInfo });
-      this.note.addLyric(this.lyric);
     }
     this.text = this.lyric._text;
+    this.view.addOrUpdateLyric(this.selection, this.lyric);
   }
 
   // ### _endLyricCondition
@@ -5761,13 +6813,13 @@ class SuiLyricSession {
   // ### _endLyricCondition
   // renderer has partially rendered text(promise condition)
   get _isRefreshed() {
-    return this.layout.dirty === false;
+    return this.renderer.dirty === false;
   }
 
   // ### _isRendered
   // renderer has rendered text(promise condition)
   get _isRendered() {
-    return this.layout.passState ===  SuiRenderState.passStates.clean;
+    return this.renderer.passState ===  SuiRenderState.passStates.clean;
   }
 
   get _pendingEditor() {
@@ -5804,7 +6856,7 @@ class SuiLyricSession {
     const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
     const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
       this.note.logicalBox.y + this.note.logicalBox.height;
-    this.editor = new SuiLyricEditor({ context: this.layout.context,
+    this.editor = new SuiLyricEditor({ context: this.view.renderer.context,
       lyric: this.lyric, x: startX, y: startY, scroller: this.scroller });
     this.state = SuiTextEditor.States.RUNNING;
     if (!lyricRendered) {
@@ -5862,7 +6914,10 @@ class SuiLyricSession {
 
   removeLyric() {
     if (this.selection && this.lyric) {
-      this.selection.note.removeLyric(this.lyric);
+      this.view.removeLyric(this.selection, this.lyric);
+      this.lyric.deleted = true;
+      this.lyric.skipRender = true;
+      this.advanceSelection();
     }
   }
 
@@ -5873,7 +6928,9 @@ class SuiLyricSession {
     this.lyric.setText(txt);
     this.lyric.skipRender = false;
     this.editor.stopEditor();
-    this.layout.addToReplaceQueue(this.selection);
+    if (!this.lyric.deleted) {
+      this.view.addOrUpdateLyric(this.selection, this.lyric);
+    }
   }
   // ### evKey
   // Key handler (pass to editor)
@@ -5963,7 +7020,7 @@ class SuiChordSession extends SuiLyricSession {
     const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
     const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
       this.selection.measure.logicalBox.y + this.selection.measure.logicalBox.height - 70;
-    this.editor = new SuiChordEditor({ context: this.layout.context,
+    this.editor = new SuiChordEditor({ context: this.view.renderer.context,
       lyric: this.lyric, x: startX, y: startY, scroller: this.scroller });
     this.state = SuiTextEditor.States.RUNNING;
     if (!lyricRendered) {
@@ -5974,7 +7031,9 @@ class SuiChordSession extends SuiLyricSession {
     this._hideLyric();
   }
 }
-;// ## SuiInlineText
+;// ## textRender.js
+// Classes responsible for formatting and rendering text in SVG space.
+// ## SuiInlineText
 // Inline text is a block of SVG text with the same font.  Each block can
 // contain eithr text or an svg (vex) glyph.  Each block in the text has its own
 // metrics so we can support inline svg text editors (cursor).
@@ -5988,14 +7047,6 @@ class SuiInlineText {
       TEXT: 2,
       LINE: 3
     };
-  }
-
-  // List height top to bottom
-  static get textTypeRelativeHeight() {
-    const rv = {};
-    rv[SuiInlineText.textTypes.superScript] = 1;
-    rv[SuiInlineText.textTypes.normal] = 0;
-    rv[SuiInlineText.textTypes.subScript] = -1;
   }
 
   // ### textTypeTransitions
@@ -6018,7 +7069,7 @@ class SuiInlineText {
   static getTextTypeResult(oldType, newType) {
     let rv = SuiInlineText.textTypes.normal;
     let i = 0;
-    for (i = 0;i < SuiInlineText.textTypeTransitions.length; ++i) {
+    for (i = 0; i < SuiInlineText.textTypeTransitions.length; ++i) {
       const tt = SuiInlineText.textTypeTransitions[i];
       if (tt[0] === oldType && tt[1] === newType) {
         rv = tt[2];
@@ -6031,7 +7082,7 @@ class SuiInlineText {
   static getTextTypeTransition(oldType, result) {
     let rv = SuiInlineText.textTypes.normal;
     let i = 0;
-    for (i = 0;i < SuiInlineText.textTypeTransitions.length; ++i) {
+    for (i = 0; i < SuiInlineText.textTypeTransitions.length; ++i) {
       const tt = SuiInlineText.textTypeTransitions[i];
       if (tt[0] === oldType && tt[2] === result) {
         rv = tt[1];
@@ -6051,7 +7102,6 @@ class SuiInlineText {
   get spacing() {
     return this.textFont.spacing / this.textFont.resolution;
   }
-
 
   static get defaults() {
     return {
@@ -6088,22 +7138,22 @@ class SuiInlineText {
     };
 
     if (!this.context) {
-      throw('context for SVG must be set');
+      throw 'context for SVG must be set';
     }
     this.updateFontInfo();
   }
 
-  static fromScoreText(scoreText,context) {
+  static fromScoreText(scoreText, context) {
     var pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
       : SmoScoreText.fontPointSize(scoreText.fontInfo.size);
     const params = { fontFamily: scoreText.fontInfo.family,
       fontWeight: scoreText.fontInfo.weight,
       fontStyle: scoreText.fontInfo.style,
       startX: scoreText.x, startY: scoreText.y,
-      fontSize: pointSize, context: context };
-    let rv = new SuiInlineText(params);
+      fontSize: pointSize, context };
+    const rv = new SuiInlineText(params);
     rv.attrs.id = scoreText.attrs.id;
-    rv.addTextBlockAt(0, { text: scoreText.text});
+    rv.addTextBlockAt(0, { text: scoreText.text });
     return rv;
   }
 
@@ -6164,11 +7214,17 @@ class SuiInlineText {
       // coeff for sub/super script
       const subAdj = (sp || sub) ? VF.ChordSymbol.superSubRatio : 1.0;
       // offset for super/sub
-      const subOffset =  sp ? SuiInlineText.superscriptOffset * this.pointsToPixels : (sub ? SuiInlineText.subscriptOffset * this.pointsToPixels : 0);
-      const glyphAdj = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? 2.0 : 1.0;
+      let subOffset =  0;
+      if (sp) {
+        subOffset = SuiInlineText.superscriptOffset * this.pointsToPixels;
+      } else if (sub) {
+        subOffset = SuiInlineText.subscriptOffset * this.pointsToPixels;
+      } else {
+        subOffset = 0;
+      }
       block.x = curX;
       if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
-        for (i = 0;i < block.text.length;++i) {
+        for (i = 0; i < block.text.length; ++i) {
           const ch = block.text[i];
 
           const glyph = this.textFont.getMetricForCharacter(ch);
@@ -6218,20 +7274,20 @@ class SuiInlineText {
   // return the calculated svg metrics.  In SMO parlance the
   // logical box is in SVG space, 'renderedBox' is in client space.
   getLogicalBox() {
-    var rv = {};
+    let rv = {};
     if (!this.updatedMetrics) {
       this._calculateBlockIndex();
     }
-    var adjBox = (box) => {
+    const adjBox = (box) => {
       const nbox = svgHelpers.smoBox(box);
       nbox.y = nbox.y - nbox.height;
       return nbox;
-    }
+    };
     this.blocks.forEach((block) => {
       if (!rv.x) {
         rv = svgHelpers.smoBox(adjBox(block));
       } else {
-        rv = svgHelpers.unionRect(rv,adjBox(block));
+        rv = svgHelpers.unionRect(rv, adjBox(block));
       }
     });
     return rv;
@@ -6252,21 +7308,21 @@ class SuiInlineText {
     if (!this.updatedMetrics) {
       this._calculateBlockIndex();
     }
-    var group = this.context.openGroup();
+    const group = this.context.openGroup();
     group.id = 'inlineCursor';
-    let h = this.fontSize;
+    const h = this.fontSize;
     if (this.blocks.length <= position || position < 0) {
-      svgHelpers.renderCursor(group, this.startX,this.startY - h,h);
+      svgHelpers.renderCursor(group, this.startX, this.startY - h, h);
       this.context.closeGroup();
       return;
     }
-    var block = this.blocks[position];
-    adjH = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? h/2 : h;
+    const block = this.blocks[position];
+    adjH = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? h / 2 : h;
     // For glyph, add y adj back to the cursor since it's not a glyph
     adjY = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? block.y - this._glyphOffset(block) :
       block.y;
-    if (typeof(textType) === 'number' && textType != SuiInlineText.textTypes.normal) {
-      const ratio = textType !== SuiInlineText.textTypes.normal ? VF.ChordSymbol.superSubRatio : 1.0 ;
+    if (typeof(textType) === 'number' && textType !== SuiInlineText.textTypes.normal) {
+      const ratio = textType !== SuiInlineText.textTypes.normal ? VF.ChordSymbol.superSubRatio : 1.0;
       adjH = adjH * ratio;
       if (textType !== block.textType) {
         if (textType === SuiInlineText.textTypes.superScript) {
@@ -6283,23 +7339,23 @@ class SuiInlineText {
     $('svg #inlineCursor').remove();
   }
   unrender() {
-    $('svg #'+this.attrs.id).remove();
+    $('svg #' + this.attrs.id).remove();
   }
   getIntersectingBlocks(box, scroller) {
     if (!this.artifacts) {
       return [];
     }
-    return svgHelpers.findIntersectingArtifact(box,this.artifacts,scroller);
+    return svgHelpers.findIntersectingArtifact(box, this.artifacts, scroller);
   }
-  _addBlockAt(position,block) {
+  _addBlockAt(position, block) {
     if (position >= this.blocks.length) {
       this.blocks.push(block);
     } else {
-      this.blocks.splice(position,0,block);
+      this.blocks.splice(position, 0, block);
     }
   }
   removeBlockAt(position) {
-    this.blocks.splice(position,1);
+    this.blocks.splice(position, 1);
     this.updatedMetrics = false;
   }
 
@@ -6307,9 +7363,9 @@ class SuiInlineText {
   // Add a text block to the line of text.
   // params must contain at least:
   // {text:'xxx'}
-  addTextBlockAt(position,params) {
+  addTextBlockAt(position, params) {
     const block = this._getTextBlock(params);
-    this._addBlockAt(position,block);
+    this._addBlockAt(position, block);
     this.updatedMetrics = false;
   }
   _getGlyphBlock(params) {
@@ -6319,7 +7375,7 @@ class SuiInlineText {
     block.glyph = new VF.Glyph(block.glyphCode, this.fontSize);
     block.metrics = VF.ChordSymbol.getMetricForGlyph(block.glyphCode);
     block.scale  = (params.textType && params.textType !== SuiInlineText.textTypes.normal) ?
-       2 * VF.ChordSymbol.superSubRatio * block.metrics.scale : 2 * block.metrics.scale;
+      2 * VF.ChordSymbol.superSubRatio * block.metrics.scale : 2 * block.metrics.scale;
 
     block.textType = params.textType ? params.textType : SuiInlineText.textTypes.normal;
 
@@ -6329,9 +7385,9 @@ class SuiInlineText {
   // ### addGlyphBlockAt
   // Add a glyph block to the line of text.  Params must include:
   // {glyphCode:'csymDiminished'}
-  addGlyphBlockAt(position,params) {
+  addGlyphBlockAt(position, params) {
     const block = this._getGlyphBlock(params);
-    this._addBlockAt(position,block);
+    this._addBlockAt(position, block);
     this.updatedMetrics = false;
   }
   isSuperscript(block) {
@@ -6343,13 +7399,13 @@ class SuiInlineText {
   getHighlight(block) {
     return block.highlighted;
   }
-  setHighlight(block,value) {
+  setHighlight(block, value) {
     block.highlighted = value;
   }
 
   rescale(scale) {
     scale = (scale * this.fontSize < 6) ? 6 / this.fontSize : scale;
-    scale = (scale * this.fontSize > 72) ? 72/this.fontSize : scale;
+    scale = (scale * this.fontSize > 72) ? 72 / this.fontSize : scale;
     this.blocks.forEach((block) => {
       block.scale = scale;
     });
@@ -6357,28 +7413,28 @@ class SuiInlineText {
   }
 
   render() {
-    $('svg #'+this.attrs.id).remove();
+    $('svg #' + this.attrs.id).remove();
 
     if (!this.updatedMetrics) {
       this._calculateBlockIndex();
     }
 
     this.context.setFont(this.fontFamily, this.fontSize, this.fontWeight);
-    var group = this.context.openGroup();
-    var mmClass = "suiInlineText";
-    group.classList.add('vf-'+this.attrs.id);
+    const group = this.context.openGroup();
+    const mmClass = 'suiInlineText';
+    let ix = 0;
+    group.classList.add('vf-' + this.attrs.id);
     group.classList.add(this.attrs.id);
     group.classList.add(mmClass);
-    group.id=this.attrs.id;
+    group.id = this.attrs.id;
     this.artifacts = [];
-    var ix = 0;
 
     this.blocks.forEach((block) => {
       var bg = this.context.openGroup();
-      bg.classList.add('textblock-'+this.attrs.id+ix);
+      bg.classList.add('textblock-' + this.attrs.id + ix);
       this._drawBlock(block);
       this.context.closeGroup();
-      var artifact = {block: block};
+      const artifact = { block };
       artifact.box = svgHelpers.smoBox(bg.getBoundingClientRect());
       artifact.index = ix;
       this.artifacts.push(artifact);
@@ -6393,7 +7449,7 @@ class SuiInlineText {
     const sp = this.isSuperscript(block);
     const sub = this.isSubcript(block);
     const highlight = this.getHighlight(block);
-    let y = block.y;
+    const y = block.y;
 
     if (highlight) {
       this.context.save();
@@ -6404,14 +7460,13 @@ class SuiInlineText {
     const weight = this.fontWeight + ',' + this.fontStyle;
 
     if (sp || sub) {
-      // y = y + (sp ? SuiInlineText.superscriptOffset : SuiInlineText.subscriptOffset) * this.pointsToPixels * block.scale;
       this.context.save();
       this.context.setFont(this.fontFamily, this.fontSize * VF.ChordSymbol.superSubRatio * block.scale, weight);
     } else {
       this.context.setFont(this.fontFamily, this.fontSize * block.scale, weight);
     }
     if (block.symbolType === SuiInlineText.symbolTypes.TEXT) {
-      this.context.fillText(block.text,block.x,y);
+      this.context.fillText(block.text, block.x, y);
     } else if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
       block.glyph.render(this.context, block.x, y);
     }
@@ -6424,7 +7479,7 @@ class SuiInlineText {
   }
 
   getText() {
-    var rv ='';
+    let rv = '';
     this.blocks.forEach((block) => {
       rv += block.text;
     });
@@ -6434,6 +7489,7 @@ class SuiInlineText {
 
 // ## SuiTextBlock
 // A text block is a set of inline blocks that can be aligned/arranged in different ways.
+// eslint-disable-next-line no-unused-vars
 class SuiTextBlock {
   static get relativePosition() {
     return { ABOVE: SmoTextGroup.relativePositions.ABOVE,
@@ -6464,11 +7520,11 @@ class SuiTextBlock {
     this.justification = params.justification ? params.justification :
       SmoTextGroup.justifications.LEFT;
   }
-  addTextAt(position,params) {
-    this.currentBlock.text.addTextBlockAt(position,params);
+  addTextAt(position, params) {
+    this.currentBlock.text.addTextBlockAt(position, params);
   }
-  addGlyphAt(position,params) {
-    this.currentBlock.text.addGlyphBlockAt(position,params);
+  addGlyphAt(position, params) {
+    this.currentBlock.text.addGlyphBlockAt(position, params);
   }
   render() {
     this.unrender();
@@ -6483,8 +7539,8 @@ class SuiTextBlock {
         this.renderedBox = svgHelpers.smoBox(block.text.renderedBox);
         this.logicalBox = svgHelpers.smoBox(block.text.logicalBox);
       } else {
-        this.renderedBox = svgHelpers.unionRect(this.renderedBox,block.text.renderedBox);
-        this.logicalBox = svgHelpers.unionRect(this.logicalBox,block.text.logicalBox);
+        this.renderedBox = svgHelpers.unionRect(this.renderedBox, block.text.renderedBox);
+        this.logicalBox = svgHelpers.unionRect(this.logicalBox, block.text.logicalBox);
       }
     });
   }
@@ -6492,7 +7548,7 @@ class SuiTextBlock {
     const outlineStroke = SuiTextEditor.strokes['text-highlight'];
     const obj = {
       context, box, classes: 'text-drag',
-      outlineStroke, scroller: { netScroll: { x: 0, y: 0 }}
+      outlineStroke, scroller: { netScroll: { x: 0, y: 0 } }
     };
     svgHelpers.outlineLogicalRect(obj);
   }
@@ -6523,7 +7579,7 @@ class SuiTextBlock {
   }
 
   maxFontHeight(scale) {
-    var rv = 0;
+    let rv = 0;
     this.inlineBlocks.forEach((block) => {
       const blockHeight = block.text.maxFontHeight(scale);
       rv = blockHeight > rv ? blockHeight : rv;
@@ -6531,24 +7587,24 @@ class SuiTextBlock {
     return rv;
   }
 
-  static inlineParamsFromScoreText(scoreText,context) {
-    var pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
+  static inlineParamsFromScoreText(scoreText, context) {
+    const pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
       : SmoScoreText.fontPointSize(scoreText.fontInfo.size);
-    const rv = { fontFamily:scoreText.fontInfo.family,
+    const rv = { fontFamily: scoreText.fontInfo.family,
       startX: scoreText.x, startY: scoreText.y,
-      fontSize: pointSize, context: context };
+      fontSize: pointSize, context };
     return rv;
   }
-  static blockFromScoreText(scoreText,context, position) {
+  static blockFromScoreText(scoreText, context, position) {
     var inlineText = SuiInlineText.fromScoreText(scoreText, context);
-    return  {text: inlineText, position: position};
+    return  { text: inlineText, position };
   }
 
   getLogicalBox() {
     return this._calculateBoundingClientRect();
   }
   getRenderedBox() {
-    return svgHelpers.logicalToClient(this.context.svg,this._calculateBoundingClientRect());
+    return svgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect());
   }
   _calculateBoundingClientRect() {
     var rv = {};
@@ -6556,51 +7612,57 @@ class SuiTextBlock {
       if (!rv.x) {
         rv = block.text.getLogicalBox();
       } else {
-        rv = svgHelpers.unionRect(rv,block.text.getLogicalBox());
+        rv = svgHelpers.unionRect(rv, block.text.getLogicalBox());
       }
     });
     rv.y = rv.y - rv.height;
     return rv;
   }
-  static fromTextGroup(tg,context) {
-    let blocks = [];
+  static fromTextGroup(tg, context) {
+    const blocks = [];
 
     // Create an inline block for each ScoreText
     tg.textBlocks.forEach((stBlock) => {
       const st = stBlock.text;
-      const newText = SuiTextBlock.blockFromScoreText(st,context, stBlock.position);
+      const newText = SuiTextBlock.blockFromScoreText(st, context, stBlock.position);
       newText.activeText = stBlock.activeText;
       blocks.push(newText);
     });
-    const rv = new SuiTextBlock({ blocks: blocks, justification: tg.justification, spacing: tg.spacing, context: context });
+    const rv = new SuiTextBlock({ blocks, justification: tg.justification, spacing: tg.spacing, context });
     rv._justify();
     return rv;
   }
   unrender() {
     this.inlineBlocks.forEach((block) => {
-      var selector = '#'+block.text.attrs.id;
+      const selector = '#' + block.text.attrs.id;
       $(selector).remove();
     });
   }
+  // ### _justify
+  // justify the blocks according to the group justify policy and the
+  // relative position of the blocks
   _justify() {
+    let hIx = 0;
+    let left = 0;
+    let minx = 0;
+    let maxx = 0;
+    let lvl = 0;
+    let maxwidth = 0;
+    let runningWidth = 0;
+    let runningHeight = 0;
     if (!this.inlineBlocks.length) {
       return;
     }
-    var minx = this.inlineBlocks[0].text.startX;
-    var initialX = this.inlineBlocks[0].text.startX;
-    var initialY = this.inlineBlocks[0].text.startY;
-    var maxx = 0;
-    var maxwidth = 0;
-    var runningWidth = 0;
-    var runningHeight = 0;
-    var vert = {};
-    var lvl = 0;
-    var hIx = 0;
+    minx = this.inlineBlocks[0].text.startX;
+    // We justify relative to first block x/y.
+    const initialX = this.inlineBlocks[0].text.startX;
+    const initialY = this.inlineBlocks[0].text.startY;
+    const vert = {};
     this.inlineBlocks.forEach((inlineBlock) => {
       const block = inlineBlock.text;
       const blockBox = block.getLogicalBox();
-      // If this is a horizontal positioning, reset to startX before
-      // calculating offsets.
+      // If this is a horizontal positioning, reset to first blokc position
+      //
       if (hIx > 0) {
         block.startX = initialX;
         block.startY = initialY;
@@ -6635,9 +7697,9 @@ class SuiTextBlock {
           block.startY -= this.spacing;
         }
       }
-      if (!vert[lvl] ) {
+      if (!vert[lvl]) {
         vert[lvl] = {};
-        vert[lvl].blocks = [ block ];
+        vert[lvl].blocks = [block];
         vert[lvl].minx = block.startX;
         vert[lvl].maxx = block.startX + blockBox.width;
         maxwidth = vert[lvl].width = blockBox.width;
@@ -6654,16 +7716,18 @@ class SuiTextBlock {
       hIx += 1;
       block.updatedMetrics = false;
     });
-    var levels = Object.keys(vert);
+
+    const levels = Object.keys(vert);
+
+    // Horizontal justify the vertical blocks
     levels.forEach((level) => {
-      var vobj = vert[level];
-      var left = 0;
+      const vobj = vert[level];
       if (this.justification === SmoTextGroup.justifications.LEFT) {
         left = minx - vobj.minx;
       } else if (this.justification === SmoTextGroup.justifications.RIGHT) {
         left = maxx - vobj.maxx;
       } else {
-        left = ( maxwidth / 2 ) - (vobj.width / 2);
+        left = (maxwidth / 2) - (vobj.width / 2);
         left +=  minx - vobj.minx;
       }
       vobj.blocks.forEach((block) => {
@@ -6671,24 +7735,24 @@ class SuiTextBlock {
       });
     });
   }
-  addBlockPosition(scoreText,position) {
-    var blockBox = this.currentBlock.text.getRenderedBox();
-    position = position ? position : SuiTextBlock.relativePosition.BELOW;
-    var ycoff = position === SuiTextBlock.relativePosition.ABOVE ? -1 : 1;
-    var xcoff = position === SuiTextBlock.relativePosition.LEFT ? -1 : 1;
-    var yoffset = position === SuiTextBlock.relativePosition.ABOVE
+  addBlockPosition(scoreText, position) {
+    const blockBox = this.currentBlock.text.getRenderedBox();
+    position = typeof(position) !== 'undefined' ? position : SuiTextBlock.relativePosition.BELOW;
+    const ycoff = position === SuiTextBlock.relativePosition.ABOVE ? -1 : 1;
+    const xcoff = position === SuiTextBlock.relativePosition.LEFT ? -1 : 1;
+    const yoffset = position === SuiTextBlock.relativePosition.ABOVE
       || position === SuiTextBlock.relativePosition.BELOW ?
-       blockBox.height + this.currentBlock.text.spacing : 0;
-    var xoffset = position === SuiTextBlock.relativePosition.LEFT
+      blockBox.height + this.currentBlock.text.spacing : 0;
+    const xoffset = position === SuiTextBlock.relativePosition.LEFT
      || position === SuiTextBlock.relativePosition.RIGHT ?
       blockBox.width + this.currentBlock.text.spacing : 0;
-    const params = SuiTextBlock.inlineParamsFromScoreText(scoreText,this.context);
+    const params = SuiTextBlock.inlineParamsFromScoreText(scoreText, this.context);
     params.startX = this.currentBlock.text.startX + (xoffset * xcoff);
     params.startY = this.currentBlock.text.startY + (yoffset * ycoff);
     const textBlock = new SuiInlineText(params);
     textBlock.attrs.id = scoreText.attrs.id;
-    this.currentBlock = { text: textBlock,position: position };
-    this.currentBlock.text.addTextBlockAt(0,{text: scoreText.text});
+    this.currentBlock = { text: textBlock, position };
+    this.currentBlock.text.addTextBlockAt(0, { text: scoreText.text });
     this.inlineBlocks.push(this.currentBlock);
     this.currentBlockIndex += 1;
     this._justify();
@@ -6709,7 +7773,7 @@ class suiTracker extends suiMapper {
     return new Promise((resolve) => {
       var f = () => {
         setTimeout(() => {
-          if (self.layout.passState === SuiRenderState.passStates.clean) {
+          if (self.renderer.passState === SuiRenderState.passStates.clean) {
             resolve();
           } else {
             f();
@@ -6730,10 +7794,10 @@ class suiTracker extends suiMapper {
     const preventScroll = $('body').hasClass('modal');
 
     if (r.y !== b.y || r.x !== b.x) {
-      if (this.layout.passState === SuiRenderState.passStates.replace ||
-        this.layout.passState === SuiRenderState.passStates.clean) {
+      if (this.renderer.passState === SuiRenderState.passStates.replace ||
+        this.renderer.passState === SuiRenderState.passStates.clean) {
         console.log('tracker: rerender conflicting map');
-        this.layout.remapAll();
+        this.renderer.remapAll();
       }
       if (!preventScroll) {
         console.log('prevent scroll conflicting map');
@@ -6747,7 +7811,7 @@ class suiTracker extends suiMapper {
 
   replaceSelectedMeasures() {
     const mm = SmoSelection.getMeasureList(this.selections);
-    this.layout.addToReplaceQueue(mm);
+    this.renderer.addToReplaceQueue(mm);
   }
 
   setDialogModifier(notifier) {
@@ -6757,15 +7821,15 @@ class suiTracker extends suiMapper {
   // ### renderElement
   // the element the score is rendered on
   get renderElement() {
-    return this.layout.renderer.elementId;
+    return this.renderer.renderer.elementId;
   }
 
   get score() {
-    return this.layout.score;
+    return this.renderer.score;
   }
 
   get context() {
-    return this.layout.renderer.getContext();
+    return this.renderer.renderer.getContext();
   }
 
   _copySelections() {
@@ -6831,7 +7895,7 @@ class suiTracker extends suiMapper {
     this.modifierTabs = [];
     this.modifierBoxes = [];
     const modMap = {};
-    this.layout.score.scoreText.forEach((modifier) => {
+    this.renderer.score.scoreText.forEach((modifier) => {
       if (!modMap[modifier.attrs.id]) {
         this.modifierTabs.push({
           modifier,
@@ -6842,7 +7906,7 @@ class suiTracker extends suiMapper {
         ix += 1;
       }
     });
-    this.layout.score.textGroups.forEach((modifier) => {
+    this.renderer.score.textGroups.forEach((modifier) => {
       if (!modMap[modifier.attrs.id]) {
         this.modifierTabs.push({
           modifier,
@@ -6907,8 +7971,8 @@ class suiTracker extends suiMapper {
   musicCursor(selector) {
     const key = SmoSelector.getNoteKey(selector);
     if (this.measureNoteMap[key]) {
-      const measureSel = SmoSelection.measureSelection(this.layout.score,
-        this.layout.score.staves.length - 1, selector.measure);
+      const measureSel = SmoSelection.measureSelection(this.renderer.score,
+        this.renderer.score.staves.length - 1, selector.measure);
       const measure = measureSel.measure;
       const mbox = measure.renderedBox;
       const pos = this.measureNoteMap[key].scrollBox;
@@ -7143,6 +8207,9 @@ class suiTracker extends suiMapper {
     this.modifierSelections.push(left[ix + offset]);
     this._highlightModifier();
   }
+  get autoPlay() {
+    return this.renderer.score.preferences.autoPlay;
+  }
 
   growSelectionRight() {
     if (this.isGraceNoteSelected()) {
@@ -7158,7 +8225,7 @@ class suiTracker extends suiMapper {
     if (this.selections.find((sel) => SmoSelector.sameNote(sel.selector, artifact.selector))) {
       return 0;
     }
-    if (!this.mapping) {
+    if (!this.mapping && this.autoPlay) {
       suiOscillator.playSelectionNow(artifact);
     }
     this.selections.push(artifact);
@@ -7182,7 +8249,9 @@ class suiTracker extends suiMapper {
       return 0;
     }
     this.selections.push(artifact);
-    suiOscillator.playSelectionNow(artifact);
+    if (this.autoPlay) {
+      suiOscillator.playSelectionNow(artifact);
+    }
     this.highlightSelection();
     this._createLocalModifiersList();
     return artifact.note.tickCount;
@@ -7302,7 +8371,7 @@ class suiTracker extends suiMapper {
       // disappeared - default to start
       artifact = SmoSelection.noteSelection(this.score, 0, 0, 0, 0);
     }
-    if (!skipPlay) {
+    if (!skipPlay && this.autoPlay) {
       suiOscillator.playSelectionNow(artifact);
     }
 
@@ -7365,8 +8434,9 @@ class suiTracker extends suiMapper {
     const ar = this.selections.filter((sel) =>
       SmoSelector.neq(sel.selector, selection.selector)
     );
-    suiOscillator.playSelectionNow(selection);
-
+    if (this.autoPlay) {
+      suiOscillator.playSelectionNow(selection);
+    }
     ar.push(selection);
     this.selections = ar;
   }
@@ -7408,8 +8478,9 @@ class suiTracker extends suiMapper {
       this.highlightSelection();
       return;
     }
-
-    suiOscillator.playSelectionNow(this.suggestion);
+    if (this.autoPlay) {
+      suiOscillator.playSelectionNow(this.suggestion);
+    }
 
     const preselected = this.selections[0] ?
       SmoSelector.sameNote(this.suggestion.selector, this.selections[0].selector) && this.selections.length === 1 : false;
@@ -8000,7 +9071,7 @@ class VxMeasure {
             gr.addAccidental(i, accidental);
           }
         }
-        if (g.tickCount() > 4096) {
+        if (g.tickCount() >= 4096) {
           toBeam = false;
         }
         gr.addClass('grace-note'); // note: this doesn't work :(
@@ -8027,9 +9098,13 @@ class VxMeasure {
         smoMusic.closestVexDuration(smoNote.tickCount) :
         smoMusic.ticksToDuration[smoNote.tickCount];
 
+    if (typeof(duration) === 'undefined') {
+      console.warn('bad duration in measure ' + this.smoMeasure.measureNumber.measureIndex);
+      duration = '8';
+    }
     // transpose for instrument-specific keys
     const keys = smoMusic.smoPitchesToVexKeys(smoNote.pitches, 0, smoNote.noteHead);
-    var noteParams = {
+    const noteParams = {
       clef: smoNote.clef,
       keys,
       duration: duration + smoNote.noteType
@@ -8068,7 +9143,7 @@ class VxMeasure {
   }
 
   _renderNoteGlyph(smoNote, textObj) {
-    var x = smoNote.logicalBox.x;
+    var x = smoNote.logicalBox.x + textObj.xOffset;
     // the -3 is copied from vexflow textDynamics
     var y = this.stave.getYForLine(textObj.yOffsetLine - 3) + textObj.yOffsetPixels;
     var group = this.context.openGroup();
@@ -8329,7 +9404,7 @@ class VxMeasure {
       const voice = new VF.Voice({
         num_beats: this.smoMeasure.numBeats,
         beat_value: this.smoMeasure.beatValue
-      }).setMode(VF.Voice.Mode.FULL);
+      }).setMode(VF.Voice.Mode.SOFT);
       voice.addTickables(this.vexNotes);
       this.voiceAr.push(voice);
     }
@@ -8553,6 +9628,10 @@ class VxSystem {
     group.classList.add(artifactId);
     if ((modifier.ctor === 'SmoStaffHairpin' && modifier.hairpinType === SmoStaffHairpin.types.CRESCENDO) ||
       (modifier.ctor === 'SmoStaffHairpin' && modifier.hairpinType === SmoStaffHairpin.types.DECRESCENDO)) {
+      if (!vxStart || !vxEnd) {
+        this.context.closeGroup();
+        return svgHelpers.pointBox(1, 1);
+      }
       const hairpin = new VF.StaveHairpin({
         first_note: vxStart,
         last_note: vxEnd
@@ -8838,6 +9917,8 @@ class SmoMeasure {
 
     this.setDefaultBarlines();
 
+    this.keySignature = smoMusic.vexKeySigWithOffset(this.keySignature, this.transposeIndex);
+
     if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),
@@ -8937,23 +10018,30 @@ class SmoMeasure {
   // separately.  Serialize those attributes, but only add them to the
   // hash if they already exist for an earlier measure
   serializeColumnMapped(attrColumnHash, attrCurrentValue) {
+    let curValue = {};
     SmoMeasure.columnMappedAttributes.forEach((attr) => {
       if (this[attr]) {
+        curValue = this[attr];
         if (!attrColumnHash[attr]) {
           attrColumnHash[attr] = {};
           attrCurrentValue[attr] = {};
         }
         const curAttrHash  = attrColumnHash[attr];
+        // If this is key signature, make sure we normalize to concert pitch
+        // from instrument pitch
+        if (attr === 'keySignature') {
+          curValue = smoMusic.vexKeySigWithOffset(curValue, -1 * this.transposeIndex);
+        }
         if (this[attr].ctor && this[attr].ctor === 'SmoTempoText') {
           if (this[attr].compare(attrCurrentValue[attr]) === false) {
-            curAttrHash[this.measureNumber.measureIndex] = this[attr];
-            attrCurrentValue[attr] = this[attr];
+            curAttrHash[this.measureNumber.measureIndex] = curValue;
+            attrCurrentValue[attr] = curValue;
           }
-        } else if (attrCurrentValue[attr] !== this[attr]) {
-          curAttrHash[this.measureNumber.measureIndex] = this[attr];
-          attrCurrentValue[attr] = this[attr];
+        } else if (attrCurrentValue[attr] !== curValue) {
+          curAttrHash[this.measureNumber.measureIndex] = curValue;
+          attrCurrentValue[attr] = curValue;
         }
-      } // ekse attr doesn't exist in this measure
+      } // else attr doesn't exist in this measure
     });
   }
 
@@ -9159,18 +10247,22 @@ class SmoMeasure {
     params.clef = params.clef ? params.clef : 'treble';
     const meterNumbers = params.timeSignature.split('/').map(number => parseInt(number, 10));
     beamBeats = ticks.numerator;
+    beats = meterNumbers[0];
     if (meterNumbers[1] === 8) {
       ticks = {
         numerator: 2048,
         denominator: 1,
         remainder: 0
       };
+      if (meterNumbers[0] % 3 === 0) {
+        ticks.numerator = 2048 * 3;
+        beats = meterNumbers[0] / 3;
+      }
       beamBeats = 2048 * 3;
     }
     const pitches =
       JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[params.clef]));
     const rv = [];
-    beats = meterNumbers[0];
 
     // Treat 2/2 like 4/4 time.
     if (meterNumbers[1] === 2) {
@@ -9794,391 +10886,389 @@ class SmoMeasure {
 // ## Measure modifiers are elements that are attached to the bar itself, like barlines or measure-specific text,
 // repeats - lots of stuff
 class SmoMeasureModifierBase {
-    constructor(ctor) {
-        this.ctor = ctor;
-		 if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: ctor
-            };
-        } else {
-            console.log('inherit attrs');
-        }
+  constructor(ctor) {
+    this.ctor = ctor;
+    if (!this['attrs']) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: ctor
+      };
+    } else {
+      console.log('inherit attrs');
     }
-    static deserialize(jsonObj) {
-        var ctor = eval(jsonObj.ctor);
-        var rv = new ctor(jsonObj);
-        return rv;
-    }
+  }
+  static deserialize(jsonObj) {
+    const ctor = eval(jsonObj.ctor);
+    const rv = new ctor(jsonObj);
+    return rv;
+  }
 }
 
 class SmoBarline extends SmoMeasureModifierBase {
-    static get positions() {
-        return {
-            start: 0,
-            end: 1
-        }
+  static get positions() {
+    return {
+      start: 0,
+      end: 1
+    }
+  };
+
+  static get barlines() {
+    return {
+      singleBar: 0,
+      doubleBar: 1,
+      endBar: 2,
+      startRepeat: 3,
+      endRepeat: 4,
+      noBar: 5
+    }
+  }
+
+  static get _barlineToString() {
+    return  ['singleBar', 'doubleBar', 'endBar', 'startRepeat', 'endRepeat', 'noBar'];
+  }
+  static barlineString(inst) {
+    return SmoBarline._barlineToString[inst.barline];
+  }
+
+  static get defaults() {
+    return {
+      position: SmoBarline.positions.end,
+      barline: SmoBarline.barlines.singleBar
     };
+  }
 
-    static get barlines() {
-        return {
-            singleBar: 0,
-            doubleBar: 1,
-            endBar: 2,
-            startRepeat: 3,
-            endRepeat: 4,
-            noBar: 5
-        }
-    }
+  static get attributes() {
+    return ['position', 'barline'];
+  }
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoBarline.defaults, SmoBarline.attributes, this, params);
+    params.ctor = 'SmoBarline';
+    return params;
+  }
 
-	static get _barlineToString() {
-		return  ['singleBar','doubleBar','endBar','startRepeat','endRepeat','noBar'];
-	}
-	static barlineString(inst) {
-		return SmoBarline._barlineToString[inst.barline];
-	}
+  constructor(parameters) {
+    super('SmoBarline');
+    parameters = typeof(parameters) !== 'undefined' ? parameters : {};
+    smoSerialize.serializedMerge(SmoBarline.attributes, SmoBarline.defaults, this);
+    smoSerialize.serializedMerge(SmoBarline.attributes, parameters, this);
+  }
 
-    static get defaults() {
-        return {
-            position: SmoBarline.positions.end,
-            barline: SmoBarline.barlines.singleBar
-        };
-    }
+  static get toVexBarline() {
+    return [VF.Barline.type.SINGLE, VF.Barline.type.DOUBLE, VF.Barline.type.END,
+      VF.Barline.type.REPEAT_BEGIN, VF.Barline.type.REPEAT_END, VF.Barline.type.NONE];
 
-    static get attributes() {
-        return ['position', 'barline'];
-    }
-	serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoBarline.defaults,SmoBarline.attributes,this,params);
-        params.ctor = 'SmoBarline';
-        return params;
-	}
+  }
+  static get toVexPosition() {
+    return [VF.StaveModifier.BEGIN, VF.StaveModifier.END];
+  }
 
-    constructor(parameters) {
-        super('SmoBarline');
-        parameters = parameters ? parameters : {};
-        smoSerialize.serializedMerge(SmoBarline.attributes, SmoBarline.defaults, this);
-        smoSerialize.serializedMerge(SmoBarline.attributes, parameters, this);
-    }
-
-    static get toVexBarline() {
-        return [VF.Barline.type.SINGLE, VF.Barline.type.DOUBLE, VF.Barline.type.END,
-            VF.Barline.type.REPEAT_BEGIN, VF.Barline.type.REPEAT_END, VF.Barline.type.NONE];
-
-    }
-    static get toVexPosition() {
-        return [VF.StaveModifier.BEGIN, VF.StaveModifier.END];
-    }
-
-    toVexBarline() {
-        return SmoBarline.toVexBarline[this.barline];
-    }
-    toVexPosition() {
-        return SmoBarline.toVexPosition[this.position];
-    }
+  toVexBarline() {
+    return SmoBarline.toVexBarline[this.barline];
+  }
+  toVexPosition() {
+    return SmoBarline.toVexPosition[this.position];
+  }
 }
 
 class SmoRepeatSymbol extends SmoMeasureModifierBase {
-    static get symbols() {
-        return {
-            None: 0,
-            Coda: 1,
-            Segno: 2,
-            Dc: 3,
-			ToCoda:1,
-            DcAlCoda: 4,
-            DcAlFine: 5,
-            Ds: 6,
-            DsAlCoda: 7,
-            DsAlFine: 8,
-            Fine: 9
-        };
-    }
-
-	static get defaultXOffset() {
-		return [0,0,0,-20,-60,-60,-50,-60,-50,-40];
-	}
-    static get positions() {
-        return {
-            start: 0,
-            end: 1
-        }
+  static get symbols() {
+    return {
+      None: 0,
+      Coda: 1,
+      Segno: 2,
+      Dc: 3,
+      ToCoda:1,
+      DcAlCoda: 4,
+      DcAlFine: 5,
+      Ds: 6,
+      DsAlCoda: 7,
+      DsAlFine: 8,
+      Fine: 9
     };
-    static get defaults() {
-        return {
-            symbol: SmoRepeatSymbol.Coda,
-            xOffset: 0,
-            yOffset: 30,
-            position: SmoRepeatSymbol.positions.end
-        }
+  }
+
+  static get defaultXOffset() {
+    return [0, 0, 0, -20, -60, -60, -50, -60, -50, -40];
+  }
+  static get positions() {
+    return {
+      start: 0,
+      end: 1
     }
-    static get toVexSymbol() {
-        return [VF.Repetition.type.NONE, VF.Repetition.type.CODA_LEFT, VF.Repetition.type.SEGNO_LEFT, VF.Repetition.type.DC,
-            VF.Repetition.type.DC_AL_CODA, VF.Repetition.type.DC_AL_FINE, VF.Repetition.type.DS, VF.Repetition.type.DS_AL_CODA, VF.Repetition.type.DS_AL_FINE, VF.Repetition.type.FINE];
+  };
+  static get defaults() {
+    return {
+      symbol: SmoRepeatSymbol.Coda,
+      xOffset: 0,
+      yOffset: 30,
+      position: SmoRepeatSymbol.positions.end
     }
-    static get attributes() {
-        return ['symbol', 'xOffset', 'yOffset', 'position'];
-    }
-    toVexSymbol() {
-        return SmoRepeatSymbol.toVexSymbol[this.symbol];
-    }
-	serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoRepeatSymbol.defaults,SmoRepeatSymbol.attributes,this,params);
-        params.ctor = 'SmoRepeatSymbol';
-        return params;
-	}
-    constructor(parameters) {
-        super('SmoRepeatSymbol');
-        smoSerialize.serializedMerge(SmoRepeatSymbol.attributes, SmoRepeatSymbol.defaults, this);
-		this.xOffset = SmoRepeatSymbol.defaultXOffset[parameters.symbol];
-        smoSerialize.serializedMerge(SmoRepeatSymbol.attributes, parameters, this);
-    }
+  }
+  static get toVexSymbol() {
+    return [VF.Repetition.type.NONE, VF.Repetition.type.CODA_LEFT, VF.Repetition.type.SEGNO_LEFT, VF.Repetition.type.DC,
+      VF.Repetition.type.DC_AL_CODA, VF.Repetition.type.DC_AL_FINE, VF.Repetition.type.DS,
+      VF.Repetition.type.DS_AL_CODA, VF.Repetition.type.DS_AL_FINE, VF.Repetition.type.FINE];
+  }
+  static get attributes() {
+    return ['symbol', 'xOffset', 'yOffset', 'position'];
+  }
+  toVexSymbol() {
+    return SmoRepeatSymbol.toVexSymbol[this.symbol];
+  }
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoRepeatSymbol.defaults, SmoRepeatSymbol.attributes, this, params);
+    params.ctor = 'SmoRepeatSymbol';
+    return params;
+  }
+  constructor(parameters) {
+    super('SmoRepeatSymbol');
+    smoSerialize.serializedMerge(SmoRepeatSymbol.attributes, SmoRepeatSymbol.defaults, this);
+    this.xOffset = SmoRepeatSymbol.defaultXOffset[parameters.symbol];
+    smoSerialize.serializedMerge(SmoRepeatSymbol.attributes, parameters, this);
+  }
 }
 
 class SmoVolta extends SmoMeasureModifierBase {
-    constructor(parameters) {
-        super('SmoVolta');
-		this.original={};
+  constructor(parameters) {
+    super('SmoVolta');
+    this.original = {};
+    smoSerialize.serializedMerge(SmoVolta.attributes, SmoVolta.defaults, this);
+    smoSerialize.serializedMerge(SmoVolta.attributes, parameters, this);
+  }
+  get id() {
+    return this.attrs.id;
+  }
+  get type() {
+    return this.attrs.type;
+  }
+  static get attributes() {
+    return ['startBar', 'endBar', 'endingId', 'startSelector', 'endSelector', 'xOffsetStart', 'xOffsetEnd', 'yOffset', 'number'];
+  }
+  static get editableAttributes() {
+    return ['xOffsetStart', 'xOffsetEnd', 'yOffset', 'number'];
+  }
 
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoVolta.defaults, SmoVolta.attributes, this, params);
+    params.ctor = 'SmoVolta';
+    return params;
+  }
 
-        smoSerialize.serializedMerge(SmoVolta.attributes, SmoVolta.defaults, this);
-		smoSerialize.serializedMerge(SmoVolta.attributes, parameters, this);
+  static get defaults() {
+    return {
+      startBar: 1,
+      endBar: 1,
+      xOffsetStart: 0,
+      xOffsetEnd: 0,
+      yOffset: 20,
+      number: 1
     }
-	get id() {
-		return this.attrs.id;
-	}
+  }
 
-	get type() {
-		return this.attrs.type;
-	}
-    static get attributes() {
-        return ['startBar', 'endBar', 'endingId','startSelector','endSelector','xOffsetStart', 'xOffsetEnd', 'yOffset', 'number'];
+ backupOriginal() {
+    if (!this['original']) {
+      this.original = {};
+      smoSerialize.filteredMerge(
+        SmoVolta.attributes,
+        this, this.original);
     }
-	static get editableAttributes() {
-		return ['xOffsetStart','xOffsetEnd','yOffset','number'];
-	}
-
-	serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoVolta.defaults,SmoVolta.attributes,this,params);
-        params.ctor = 'SmoVolta';
-        return params;
-	}
-
-    static get defaults() {
-        return {
-            startBar: 1,
-            endBar: 1,
-            xOffsetStart: 0,
-            xOffsetEnd: 0,
-            yOffset: 20,
-            number: 1
-        }
+  }
+  restoreOriginal() {
+    if (this['original']) {
+      smoSerialize.filteredMerge(
+        SmoVolta.attributes,
+        this.original, this);
+      this.original = null;
     }
+  }
 
-	 backupOriginal() {
-        if (!this['original']) {
-            this.original = {};
-            smoSerialize.filteredMerge(
-                SmoVolta.attributes,
-                this, this.original);
-        }
+  toVexVolta(measureNumber) {
+    if (this.startBar === measureNumber && this.startBar === this.endBar) {
+      return VF.Volta.type.BEGIN_END;
     }
-    restoreOriginal() {
-        if (this['original']) {
-            smoSerialize.filteredMerge(
-                SmoVolta.attributes,
-                this.original, this);
-            this.original = null;
-        }
+    if (this.startBar === measureNumber) {
+      return VF.Volta.type.BEGIN;
     }
-
-	toVexVolta(measureNumber) {
-		if (this.startBar === measureNumber && this.startBar === this.endBar) {
-			return VF.Volta.type.BEGIN_END;
-		}
-		if (this.startBar === measureNumber) {
-			return VF.Volta.type.BEGIN;
-		}
-		if (this.endBar === measureNumber) {
-			return VF.Volta.type.END;
-		}
-		if (this.startBar < measureNumber && this.endBar > measureNumber) {
-			return VF.Volta.type.MID;
-		}
-		return VF.Volta.type.NONE;
-	}
+    if (this.endBar === measureNumber) {
+      return VF.Volta.type.END;
+    }
+    if (this.startBar < measureNumber && this.endBar > measureNumber) {
+      return VF.Volta.type.MID;
+    }
+    return VF.Volta.type.NONE;
+  }
 }
 
 class SmoMeasureText extends SmoMeasureModifierBase {
-	static get positions() {
-		return {above:0,below:1,left:2,right:3,none:4};
-	}
+  static get positions() {
+    return {above:0,below:1,left:2,right:3,none:4};
+  }
 
-	static get justifications() {
-		return {left:0,right:1,center:2}
-	}
+  static get justifications() {
+    return {left:0,right:1,center:2}
+  }
 
-	static get _positionToString() {
-		return ['above','below','left','right'];
-	}
+  static get _positionToString() {
+    return ['above','below','left','right'];
+  }
 
-	static get toVexPosition() {
-		return [VF.Modifier.Position.ABOVE,VF.Modifier.Position.BELOW,VF.Modifier.Position.LEFT,VF.Modifier.Position.RIGHT];
-	}
-	static get toVexJustification() {
-		return [VF.TextNote.LEFT,VF.TextNote.RIGHT,VF.TextNote.CENTER];
-	}
+  static get toVexPosition() {
+    return [VF.Modifier.Position.ABOVE,VF.Modifier.Position.BELOW,VF.Modifier.Position.LEFT,VF.Modifier.Position.RIGHT];
+  }
+  static get toVexJustification() {
+    return [VF.TextNote.LEFT,VF.TextNote.RIGHT,VF.TextNote.CENTER];
+  }
 
-	toVexJustification() {
-		return SmoMeasureText.toVexJustification[this.justification];
-	}
-	toVexPosition() {
-		return SmoMeasureText.toVexPosition[parseInt(this.position)];
-	}
-	static get attributes() {
-		return ['position','fontInfo','text','adjustX','adjustY','justification'];
-	}
+  toVexJustification() {
+    return SmoMeasureText.toVexJustification[this.justification];
+  }
+  toVexPosition() {
+    return SmoMeasureText.toVexPosition[parseInt(this.position)];
+  }
+  static get attributes() {
+    return ['position','fontInfo','text','adjustX','adjustY','justification'];
+  }
 
-	static get defaults() {
-		return {
-			position:SmoMeasureText.positions.above,
-			fontInfo: {
-				size: '9',
-				family:'times',
-				style:'normal',
-				weight:'normal'
-			},
-			text:'Smo',
-			adjustX:0,
-			adjustY:0,
-			justification:SmoMeasureText.justifications.center
-		};
-	}
-	serialize() {
+  static get defaults() {
+    return {
+      position:SmoMeasureText.positions.above,
+      fontInfo: {
+        size: '9',
+        family:'times',
+        style:'normal',
+        weight:'normal'
+      },
+      text:'Smo',
+      adjustX:0,
+      adjustY:0,
+      justification:SmoMeasureText.justifications.center
+    };
+  }
+  serialize() {
         var params = {};
         smoSerialize.serializedMergeNonDefault(SmoMeasureText.defaults,SmoMeasureText.attributes,this,params)
         params.ctor = 'SmoMeasureText';
         return params;
-	}
+  }
 
-	constructor(parameters) {
-		super('SmoMeasureText');
+  constructor(parameters) {
+    super('SmoMeasureText');
         parameters = parameters ? parameters : {};
         smoSerialize.serializedMerge(SmoMeasureText.attributes, SmoMeasureText.defaults, this);
         smoSerialize.serializedMerge(SmoMeasureText.attributes, parameters, this);
 
-		// right-justify left text and left-justify right text by default
-		if (!parameters['justification']) {
-			this.justification = (this.position === SmoMeasureText.positions.left) ? SmoMeasureText.justifications.right :
-			     (this.position === SmoMeasureText.positions.right ? SmoMeasureText.justifications.left : this.justification);
-		}
-	}
+    // right-justify left text and left-justify right text by default
+    if (!parameters['justification']) {
+      this.justification = (this.position === SmoMeasureText.positions.left) ? SmoMeasureText.justifications.right :
+           (this.position === SmoMeasureText.positions.right ? SmoMeasureText.justifications.left : this.justification);
+    }
+  }
 }
 
 class SmoRehearsalMark extends SmoMeasureModifierBase {
 
-	static get cardinalities() {
-		return {capitals:'capitals',lowerCase:'lowerCase',numbers:'numbers'};
-	}
-	static get positions() {
-		return {above:0,below:1,left:2,right:3};
-	}
-	static get _positionToString() {
-		return ['above','below','left','right'];
-	}
+  static get cardinalities() {
+    return {capitals:'capitals',lowerCase:'lowerCase',numbers:'numbers'};
+  }
+  static get positions() {
+    return {above:0,below:1,left:2,right:3};
+  }
+  static get _positionToString() {
+    return ['above','below','left','right'];
+  }
 
-	// TODO: positions don't work.
-	static get defaults() {
-		return {
-			position:SmoRehearsalMark.positions.above,
-			cardinality:SmoRehearsalMark.cardinalities.capitals,
-			symbol:'A',
+  // TODO: positions don't work.
+  static get defaults() {
+    return {
+      position:SmoRehearsalMark.positions.above,
+      cardinality:SmoRehearsalMark.cardinalities.capitals,
+      symbol:'A',
             increment:true
-		}
-	}
-	static get attributes() {
-		return ['cardinality','symbol','position','increment'];
-	}
-	getIncrement() {
-		if (!this.cardinality != 'number') {
-			var code = this.symbol.charCodeAt(0);
-			code += 1;
-			var symbol=String.fromCharCode(code);
-			return symbol;
-		} else {
+    }
+  }
+  static get attributes() {
+    return ['cardinality','symbol','position','increment'];
+  }
+  getIncrement() {
+    if (!this.cardinality != 'number') {
+      var code = this.symbol.charCodeAt(0);
+      code += 1;
+      var symbol=String.fromCharCode(code);
+      return symbol;
+    } else {
             return parseInt(symbol)+1;
         }
-	}
+  }
     getInitial() {
         return this.cardinality == SmoRehearsalMark.cardinalities.capitals ? 'A' :
             (this.cardinality == SmoRehearsalMark.cardinalities.lowerCase ? 'a' : '1');
     }
-	serialize() {
+  serialize() {
         var params = {};
         smoSerialize.serializedMergeNonDefault(SmoRehearsalMark.defaults,SmoRehearsalMark.attributes,this,params)
         params.ctor = 'SmoRehearsalMark';
         return params;
-	}
-	constructor(parameters) {
-		super('SmoRehearsalMark');
+  }
+  constructor(parameters) {
+    super('SmoRehearsalMark');
         parameters = parameters ? parameters : {};
         smoSerialize.serializedMerge(SmoRehearsalMark.attributes, SmoRehearsalMark.defaults, this);
         smoSerialize.serializedMerge(SmoRehearsalMark.attributes, parameters, this);
         if (!parameters.symbol) {
             this.symbol=this.getInitial();
         }
-	}
+  }
 }
 
 
 // ### SmoTempoText
 // Tempo marking and also the information about the tempo.
 class SmoTempoText extends SmoMeasureModifierBase {
-	static get tempoModes() {
-		return {
-			durationMode: 'duration',
-			textMode: 'text',
-			customMode: 'custom'
-		};
-	}
+  static get tempoModes() {
+    return {
+      durationMode: 'duration',
+      textMode: 'text',
+      customMode: 'custom'
+    };
+  }
 
-	static get tempoTexts() {
-		return {
-			larghissimo: 'Larghissimo',
-			grave: 'Grave',
-			lento: 'Lento',
-			largo: 'Largo',
-			larghetto: 'Larghetto',
-			adagio: 'Adagio',
-			adagietto: 'Adagietto',
-			andante_moderato: 'Andante moderato',
-			andante: 'Andante',
-			andantino: 'Andantino',
-			moderator: 'Moderato',
-			allegretto: 'Allegretto',
-			allegro: 'Allegro',
-			vivace: 'Vivace',
-			presto: 'Presto',
-			prestissimo: 'Prestissimo'
-		};
-	}
+  static get tempoTexts() {
+    return {
+      larghissimo: 'Larghissimo',
+      grave: 'Grave',
+      lento: 'Lento',
+      largo: 'Largo',
+      larghetto: 'Larghetto',
+      adagio: 'Adagio',
+      adagietto: 'Adagietto',
+      andante_moderato: 'Andante moderato',
+      andante: 'Andante',
+      andantino: 'Andantino',
+      moderator: 'Moderato',
+      allegretto: 'Allegretto',
+      allegro: 'Allegro',
+      vivace: 'Vivace',
+      presto: 'Presto',
+      prestissimo: 'Prestissimo'
+    };
+  }
 
-	static get defaults() {
-		return {
-			tempoMode: SmoTempoText.tempoModes.durationMode,
-			bpm: 120,
-			beatDuration: 4096,
-			tempoText: SmoTempoText.tempoTexts.allegro,
+  static get defaults() {
+    return {
+      tempoMode: SmoTempoText.tempoModes.durationMode,
+      bpm: 120,
+      beatDuration: 4096,
+      tempoText: SmoTempoText.tempoTexts.allegro,
       yOffset:0,
       display:false
-		};
-	}
-	static get attributes() {
-		return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText','yOffset'];
-	}
+    };
+  }
+  static get attributes() {
+    return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText','yOffset'];
+  }
     compare(instance) {
         var rv = true;
         SmoTempoText.attributes.forEach((attr) => {
@@ -10196,18 +11286,18 @@ class SmoTempoText extends SmoMeasureModifierBase {
     // Return equality wrt the tempo marking, e.g. 2 allegro in textMode will be equal but
     // an allegro and duration 120bpm will not.
     static eq (t1,t2) {
-    	if (t1.tempoMode != t2.tempoMode) {
-    		return false;
-    	}
-    	if (t1.tempoMode == SmoTempoText.tempoModes.durationMode) {
-    		return t1.bpm == t2.bpm && t1.beatDuration == t2.beatDuration;
-    	}
-    	if (t1.tempoMode == SmoTempoText.tempoModes.textMode) {
-    		return t1.tempoText == t2.tempoText;
-    	} else {
-    		return t1.bpm == t2.bpm && t1.beatDuration == t2.beatDuration &&
-    		    t1.tempoText == t2.tempoText;
-    	}
+      if (t1.tempoMode != t2.tempoMode) {
+        return false;
+      }
+      if (t1.tempoMode == SmoTempoText.tempoModes.durationMode) {
+        return t1.bpm == t2.bpm && t1.beatDuration == t2.beatDuration;
+      }
+      if (t1.tempoMode == SmoTempoText.tempoModes.textMode) {
+        return t1.tempoText == t2.tempoText;
+      } else {
+        return t1.bpm == t2.bpm && t1.beatDuration == t2.beatDuration &&
+            t1.tempoText == t2.tempoText;
+      }
     }
 
     static get bpmFromText() {
@@ -10215,20 +11305,20 @@ class SmoTempoText extends SmoMeasureModifierBase {
         var rv = {};
         rv[SmoTempoText.tempoTexts.larghissimo] = 40;
         rv[SmoTempoText.tempoTexts.grave] = 40;
-		rv[SmoTempoText.tempoTexts.lento] = 42;
-		rv[SmoTempoText.tempoTexts.largo] = 46;
-		rv[SmoTempoText.tempoTexts.larghetto] = 52;
-		rv[SmoTempoText.tempoTexts.adagio] = 72;
-		rv[SmoTempoText.tempoTexts.adagietto] = 72;
-		rv[SmoTempoText.tempoTexts.andante_moderato] = 72;
-		rv[SmoTempoText.tempoTexts.andante] = 72;
-		rv[SmoTempoText.tempoTexts.andantino] = 84;
-		rv[SmoTempoText.tempoTexts.moderator] = 96;
-		rv[SmoTempoText.tempoTexts.allegretto] = 96;
-		rv[SmoTempoText.tempoTexts.allegro] = 120;
-		rv[SmoTempoText.tempoTexts.vivace] = 144;
-		rv[SmoTempoText.tempoTexts.presto] = 168;
-		rv[SmoTempoText.tempoTexts.prestissimo] = 240;
+    rv[SmoTempoText.tempoTexts.lento] = 42;
+    rv[SmoTempoText.tempoTexts.largo] = 46;
+    rv[SmoTempoText.tempoTexts.larghetto] = 52;
+    rv[SmoTempoText.tempoTexts.adagio] = 72;
+    rv[SmoTempoText.tempoTexts.adagietto] = 72;
+    rv[SmoTempoText.tempoTexts.andante_moderato] = 72;
+    rv[SmoTempoText.tempoTexts.andante] = 72;
+    rv[SmoTempoText.tempoTexts.andantino] = 84;
+    rv[SmoTempoText.tempoTexts.moderator] = 96;
+    rv[SmoTempoText.tempoTexts.allegretto] = 96;
+    rv[SmoTempoText.tempoTexts.allegro] = 120;
+    rv[SmoTempoText.tempoTexts.vivace] = 144;
+    rv[SmoTempoText.tempoTexts.presto] = 168;
+    rv[SmoTempoText.tempoTexts.prestissimo] = 240;
         return rv;
     }
 
@@ -10256,13 +11346,13 @@ class SmoTempoText extends SmoMeasureModifierBase {
         smoSerialize.serializedMergeNonDefault(SmoTempoText.defaults,SmoTempoText.attributes,this,params)
         params.ctor = 'SmoTempoText';
         return params;
-	}
-	constructor(parameters) {
-		super('SmoTempoText');
+  }
+  constructor(parameters) {
+    super('SmoTempoText');
         parameters = parameters ? parameters : {};
-		smoSerialize.serializedMerge(SmoTempoText.attributes, SmoTempoText.defaults, this);
-		smoSerialize.serializedMerge(SmoTempoText.attributes, parameters, this);
-	}
+    smoSerialize.serializedMerge(SmoTempoText.attributes, SmoTempoText.defaults, this);
+    smoSerialize.serializedMerge(SmoTempoText.attributes, parameters, this);
+  }
 }
 ;// ## SmoNote
 // ## Description:
@@ -10490,13 +11580,12 @@ class SmoNote {
       this.noteHead = noteHead;
     }
   }
-  addGraceNote(params, offset) {
-    params.clef = this.clef;
-    if (this.graceNotes.length > offset) {
-      this.graceNotes[offset] = new SmoGraceNote(params);
-    } else {
-      this.graceNotes.push(new SmoGraceNote(params));
+  addGraceNote(graceNote, offset) {
+    if (typeof(offset) === 'undefined') {
+      offset = 0;
     }
+    graceNote.clef = this.clef;
+    this.graceNotes.push(graceNote);
   }
   removeGraceNote(offset) {
     if (offset >= this.graceNotes.length) {
@@ -10520,6 +11609,9 @@ class SmoNote {
   makeRest() {
     this.noteType = (this.noteType === 'r' ? 'n' : 'r');
   }
+  isRest() {
+    return this.noteType === 'r';
+  }
 
   makeNote() {
     this.noteType = 'n';
@@ -10542,6 +11634,17 @@ class SmoNote {
 
   getMicrotones() {
     return this.tones;
+  }
+  static toggleEnharmonic(pitch) {
+    const lastLetter = pitch.letter;
+    let vexPitch = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch));
+    vexPitch = smoMusic.getEnharmonic(vexPitch);
+
+    pitch.letter = vexPitch[0];
+    pitch.accidental = vexPitch.length > 1 ?
+      vexPitch.substring(1, vexPitch.length) : 'n';
+    pitch.octave += smoMusic.letterChangedOctave(lastLetter, pitch.letter);
+    return pitch;
   }
 
   transpose(pitchArray, offset, keySignature) {
@@ -11244,7 +12347,7 @@ class SmoScore {
       this.layout.pages = 1;
     }
     if (this.staves.length) {
-      this._numberStaves();
+      this.numberStaves();
     }
   }
   static get engravingFonts() {
@@ -11280,6 +12383,16 @@ class SmoScore {
         { name: 'lyrics', purpose: SmoScore.fontPurposes.LYRICS, family: 'Merriweather', size: 12, custom: false }
       ],
       staffWidth: 1600,
+      scoreInfo: {
+        name: 'Smoosical',
+        version: 1,
+      },
+      preferences: {
+        autoPlay: true,
+        autoAdvance: true,
+        defaultDupleDuration: 4096,
+        defaultTripleDuration: 6144
+      },
       startIndex: 0,
       renumberingMap: {},
       keySignatureMap: {},
@@ -11311,7 +12424,11 @@ class SmoScore {
   }
 
   static get defaultAttributes() {
-    return ['layout', 'startIndex', 'renumberingMap', 'renumberIndex', 'fonts'];
+    return ['layout', 'startIndex', 'renumberingMap', 'renumberIndex', 'fonts',
+      'preferences', 'scoreInfo'];
+  }
+  static get preferences() {
+    return ['preferences', 'fonts', 'scoreInfo', 'layout'];
   }
 
   serializeColumnMapped() {
@@ -11433,21 +12550,21 @@ class SmoScore {
       });
     }
     params.staves = staves;
-
     const score = new SmoScore(params);
     score.scoreText = scoreText;
     score.textGroups = textGroups;
     score.systemGroups = systemGroups;
+    score.scoreInfo.version += 1;
     return score;
   }
 
   // ### getDefaultScore
   // Gets a score consisting of a single measure with all the defaults.
   static getDefaultScore(scoreDefaults, measureDefaults) {
-    scoreDefaults = (scoreDefaults != null ? scoreDefaults : SmoScore.defaults);
-    measureDefaults = (measureDefaults != null ? measureDefaults : SmoMeasure.defaults);
+    scoreDefaults = typeof(scoreDefaults) !== 'undefined' ? scoreDefaults : SmoScore.defaults;
+    measureDefaults = typeof(measureDefaults) !== 'undefined' ? measureDefaults : SmoMeasure.defaults;
     const score = new SmoScore(scoreDefaults);
-    score.addStaff({ measureDefaults });
+    score.addStaff();
     const measure = SmoMeasure.getDefaultMeasure(measureDefaults);
     score.addMeasure(0, measure);
     measure.voices.push({
@@ -11464,9 +12581,9 @@ class SmoScore {
     return score;
   }
 
-  // ### _numberStaves
+  // ### numberStaves
   // recursively renumber staffs and measures.
-  _numberStaves() {
+  numberStaves() {
     let i = 0;
     for (i = 0; i < this.staves.length; ++i) {
       const stave = this.staves[i];
@@ -11493,6 +12610,7 @@ class SmoScore {
     this.staves.forEach((staff) => {
       staff.deleteMeasure(measureIndex);
     });
+    // adjust offset if text was attached to any missing measures after the deleted one.
     this.textGroups.forEach((tg) => {
       if (tg.attachToSelector && tg.selector.measure >= measureIndex && tg.selector.measure > 0) {
         tg.selector.measure -= 1;
@@ -11507,37 +12625,34 @@ class SmoScore {
       const protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
       staff.measures[measureIndex] = protomeasure;
     }
-    this._numberStaves();
+    this.numberStaves();
   }
 
   addPickupMeasure(measureIndex, duration) {
-    let i = 0;
-    for (i = 0; i < this.staves.length; ++i) {
-      const staff = this.staves[i];
-      const protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
-      staff.addMeasure(measureIndex, protomeasure);
+    this.convertToPickupMeasure(measureIndex, duration);
+  }
+  getPrototypeMeasure(measureIndex, staffIndex) {
+    const staff = this.staves[staffIndex];
+    let protomeasure = {};
+
+    // Since this staff may already have instrument settings, use the
+    // immediately preceeding or post-ceding measure if it exists.
+    if (measureIndex < staff.measures.length) {
+      protomeasure = staff.measures[measureIndex];
+    } else if (staff.measures.length) {
+      protomeasure = staff.measures[staff.measures.length - 1];
     }
-    this._numberStaves();
+    return SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
   }
 
   // ### addMeasure
   // Give a measure prototype, create a new measure and add it to each staff, with the
   // correct settings for current time signature/clef.
-  addMeasure(measureIndex, measure) {
+  addMeasure(measureIndex) {
     let i = 0;
-    let protomeasure = 0;
     for (i = 0; i < this.staves.length; ++i) {
-      protomeasure = measure;
       const staff = this.staves[i];
-
-      // Since this staff may already have instrument settings, use the
-      // immediately preceeding or post-ceding measure if it exists.
-      if (measureIndex < staff.measures.length) {
-        protomeasure = staff.measures[measureIndex];
-      } else if (staff.measures.length) {
-        protomeasure = staff.measures[staff.measures.length - 1];
-      }
-      const nmeasure = SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
+      const nmeasure = this.getPrototypeMeasure(measureIndex, i);
       if (nmeasure.voices.length <= nmeasure.getActiveVoice()) {
         nmeasure.setActiveVoice(0);
       }
@@ -11549,7 +12664,7 @@ class SmoScore {
         tg.selector.measure += 1;
       }
     });
-    this._numberStaves();
+    this.numberStaves();
   }
 
   // ### replaceMeasure
@@ -11570,16 +12685,25 @@ class SmoScore {
     return exist;
   }
 
+  getStavesForGroup(group) {
+    return this.staves.filter((staff) => staff.staffId >= group.startSelector.staff &&
+      staff.staffId <= group.endSelector.staff);
+  }
+
+  // ### addOrReplaceSystemGroup
+  // Add a new staff grouping, or replace it if it overlaps and is different, or
+  // remove it if it is identical (toggle)
   addOrReplaceSystemGroup(newGroup) {
-    this.systemGroups = this.systemGroups.filter((sg) =>
-      sg.startSelector.staff >= newGroup.startSelector.staff ||
-        sg.endSelector.staff <= newGroup.startSelector.staff ||
-        (newGroup.mapType === SmoSystemGroup.mapType.measureMap &&
-        sg.mapType ===  SmoSystemGroup.mapType.measureMap &&
-        (sg.startSelector.measure >= newGroup.startSelector.measure ||
-        sg.endSelector.measure <= newGroup.startSelector.measure))
-    );
-    this.systemGroups.push(newGroup);
+    let toAdd = true;
+    const existing = this.systemGroups.find((sg) => sg.overlaps(newGroup));
+    if (existing && existing.leftConnector === newGroup.leftConnector) {
+      toAdd = false;
+    }
+    // Replace this group for any groups that overlap it.
+    this.systemGroups = this.systemGroups.filter((sg) => !sg.overlaps(newGroup));
+    if (toAdd) {
+      this.systemGroups.push(newGroup);
+    }
   }
 
   // ### replace staff
@@ -11600,7 +12724,10 @@ class SmoScore {
   // Add a key signature at the specified index in all staves.
   addKeySignature(measureIndex, key) {
     this.staves.forEach((staff) => {
-      staff.addKeySignature(measureIndex, key);
+      // Consider transpose for key of instrument
+      const netOffset = staff.measures[measureIndex].transposeIndex;
+      const newKey = smoMusic.vexKeySigWithOffset(key, netOffset);
+      staff.addKeySignature(measureIndex, newKey);
     });
   }
 
@@ -11609,8 +12736,13 @@ class SmoScore {
   addStaff(parameters) {
     let i = 0;
     if (this.staves.length === 0) {
-      this.staves.push(new SmoSystemStaff(parameters));
+      const staff = new SmoSystemStaff(parameters);
+      this.staves.push(staff);
       this.activeStaff = 0;
+      // For part views, we renumber the staves even if there is only one staff.
+      if (staff.measures.length) {
+        this.numberStaves();
+      }
       return;
     }
     if (!parameters) {
@@ -11626,6 +12758,10 @@ class SmoScore {
       newParams.transposeIndex = parameters.instrumentInfo.keyOffset;
       const newMeasure = SmoMeasure.getDefaultMeasureWithNotes(newParams);
       newMeasure.measureNumber = measure.measureNumber;
+      // Consider key change if the proto measure is non-concert pitch
+      newMeasure.keySignature =
+        smoMusic.vexKeySigWithOffset(newMeasure.keySignature,
+          newMeasure.transposeIndex - measure.transposeIndex);
       newMeasure.modifiers = [];
       measure.modifiers.forEach((modifier) => {
         const ctor = eval(modifier.ctor);
@@ -11638,7 +12774,7 @@ class SmoScore {
     const staff = new SmoSystemStaff(parameters);
     this.staves.push(staff);
     this.activeStaff = this.staves.length - 1;
-    this._numberStaves();
+    this.numberStaves();
   }
 
   // ### removeStaff
@@ -11653,7 +12789,7 @@ class SmoScore {
       ix += 1;
     });
     this.staves = staves;
-    this._numberStaves();
+    this.numberStaves();
   }
 
   swapStaves(index1, index2) {
@@ -11663,7 +12799,7 @@ class SmoScore {
     const tmpStaff = this.staves[index1];
     this.staves[index1] = this.staves[index2];
     this.staves[index2] = tmpStaff;
-    this._numberStaves();
+    this.numberStaves();
   }
 
   _updateScoreText(textObject, toAdd) {
@@ -11688,7 +12824,6 @@ class SmoScore {
       this.textGroups.push(textGroup);
     }
   }
-
   addTextGroup(textGroup) {
     this._updateTextGroup(textGroup, true);
   }
@@ -11834,6 +12969,19 @@ class SmoSystemGroup extends SmoScoreModifierBase {
       endSelector: { staff: 0, measure: 0 }
     };
   }
+  stavesOverlap(group) {
+    return (this.startSelector.staff >= group.startSelector.staff && this.startSelector.staff <= group.endSelector.staff) ||
+      (this.endSelector.staff >= group.startSelector.staff && this.endSelector.staff <= group.endSelector.staff);
+  }
+  measuresOverlap(group) {
+    return this.stavesOverlap(group) &&
+      ((this.startSelector.measure >= group.startSelector.measure && this.endSelector.measure <= group.startSelector.measure) ||
+        (this.endSelector.measure >= group.startSelector.measure && this.endSelector.measure <= group.endSelector.measure));
+  }
+  overlaps(group) {
+    return (this.stavesOverlap(group) && this.mapType === SmoSystemGroup.mapTypes.allMeasures) ||
+      (this.measuresOverlap(group) && this.mapType === SmoSystemGroup.mapTypes.range);
+  }
   leftConnectorVx() {
     switch (this.leftConnector) {
       case SmoSystemGroup.connectorTypes.single:
@@ -11975,6 +13123,7 @@ class SmoTextGroup extends SmoScoreModifierBase {
     const params = {};
     smoSerialize.serializedMergeNonDefault(SmoTextGroup.defaults, SmoTextGroup.attributes, this, params);
     params.ctor = 'SmoTextGroup';
+    params.attrs = JSON.parse(JSON.stringify(this.attrs));
     return params;
   }
   _isScoreText(st) {
@@ -12024,6 +13173,14 @@ class SmoTextGroup extends SmoScoreModifierBase {
         block.activeText = false;
       }
     });
+  }
+  // For editing, keep track of the active text block.
+  getActiveBlock() {
+    const rv = this.textBlocks.find((block) => block.activeText === true);
+    if (typeof(rv) !== 'undefined') {
+      return rv.text;
+    }
+    return this.textBlocks[0].text;
   }
   setRelativePosition(position) {
     this.textBlocks.forEach((block) => {
@@ -12116,6 +13273,8 @@ class SmoTextGroup extends SmoScoreModifierBase {
 // ## SmoScoreText
 // Identify some text in the score, not associated with any musical element, like page
 // decorations, titles etc.
+// Note: score text is always contained in a text group.  So this isn't directly accessed
+// by score, but we keep the collection in score for backwards-compatibility
 // eslint-disable-next-line no-unused-vars
 class SmoScoreText extends SmoScoreModifierBase {
   // convert EM to a number, or leave as a number etc.
@@ -12304,8 +13463,7 @@ class SmoScoreText extends SmoScoreModifierBase {
     this.fontInfo.weight = SmoScoreText.weightString(weight);
   }
 }
-;
-// ## StaffModifiers
+;// ## StaffModifiers
 // ## Description:
 // This file contains modifiers that might take up multiple measures, and are thus associated
 // with the staff.
@@ -12314,98 +13472,73 @@ class SmoScoreText extends SmoScoreModifierBase {
 // ## StaffModifierBase
 // ## Description:
 // Base class that mostly standardizes the interface and deals with serialization.
+// eslint-disable-next-line no-unused-vars
 class StaffModifierBase {
-    constructor(ctor) {
-        this.ctor = ctor;
-    }
-    static deserialize(params) {
-        var ctor = eval(params.ctor);
-        var rv = new ctor(params);
-		return rv;
-    }
+  constructor(ctor) {
+    this.ctor = ctor;
+  }
+  static deserialize(params) {
+    const ctor = eval(params.ctor);
+    const rv = new ctor(params);
+    return rv;
+  }
 }
 
 // ## SmoStaffHairpin
 // ## Descpription:
 // crescendo/decrescendo
+// eslint-disable-next-line no-unused-vars
 class SmoStaffHairpin extends StaffModifierBase {
-    constructor(params) {
-        super('SmoStaffHairpin');
-        Vex.Merge(this, SmoStaffHairpin.defaults);
-        smoSerialize.filteredMerge(['position', 'xOffset', 'yOffset', 'hairpinType', 'height'], params, this);
-        this.startSelector = params.startSelector;
-        this.endSelector = params.endSelector;
+  static get editableAttributes() {
+    return ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height'];
+  }
+  static get defaults() {
+    return {
+      xOffsetLeft: -2,
+      xOffsetRight: 0,
+      yOffset: -50,
+      height: 10,
+      position: SmoStaffHairpin.positions.BELOW,
+      hairpinType: SmoStaffHairpin.types.CRESCENDO
+    };
+  }
+  static get positions() {
+    // matches VF.modifier
+    return {
+      LEFT: 1,
+      RIGHT: 2,
+      ABOVE: 3,
+      BELOW: 4,
+    };
+  }
+  static get types() {
+    return {
+      CRESCENDO: 1,
+      DECRESCENDO: 2
+    };
+  }
+  static get attributes() {
+    return ['position', 'startSelector', 'endSelector', 'xOffsetLeft',
+      'xOffsetRight', 'yOffset', 'hairpinType', 'height'];
+  }
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoStaffHairpin.defaults, SmoStaffHairpin.attributes, this, params);
+    params.ctor = 'SmoStaffHairpin';
+    return params;
+  }
+  constructor(params) {
+    super('SmoStaffHairpin');
+    Vex.Merge(this, SmoStaffHairpin.defaults);
+    smoSerialize.filteredMerge(SmoStaffHairpin.attributes, params, this);
 
-        if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: 'SmoStaffHairpin'
-            };
-        } else {
-            console.log('inherit attrs');
-        }
+    if (!this.attrs) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoStaffHairpin'
+      };
     }
-	static get editableAttributes() {
-		return ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height'];
-	}
-    static get attributes() {
-        return ['position', 'startSelector','endSelector','xOffset', 'yOffset', 'hairpinType', 'height'];
-    }
-    serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoStaffHairpin.defaults,SmoStaffHairpin.attributes,this,params);
-        params.ctor = 'SmoStaffHairpin';
-        return params;
-    }
-    get id() {
-        return this.attrs.id;
-    }
-    get type() {
-        return this.attrs.type;
-    }
-
-    backupOriginal() {
-        if (!this['original']) {
-            this.original = {};
-            smoSerialize.filteredMerge(
-                ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height', 'position', 'hairpinType'],
-                this, this.original);
-        }
-    }
-    restoreOriginal() {
-        if (this['original']) {
-            smoSerialize.filteredMerge(
-                ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height', 'position', 'hairpinType'],
-                this.original, this);
-            this.original = null;
-        }
-    }
-    static get defaults() {
-        return {
-            xOffsetLeft: -2,
-            xOffsetRight: 0,
-            yOffset: -50,
-            height: 10,
-            position: SmoStaffHairpin.positions.BELOW,
-            hairpinType: SmoStaffHairpin.types.CRESCENDO
-
-        };
-    }
-    static get positions() {
-        // matches VF.modifier
-        return {
-            LEFT: 1,
-            RIGHT: 2,
-            ABOVE: 3,
-            BELOW: 4,
-        };
-    }
-    static get types() {
-        return {
-            CRESCENDO: 1,
-            DECRESCENDO: 2
-        };
-    }
+  }
 }
 
 // ## SmoSlur
@@ -12413,101 +13546,78 @@ class SmoStaffHairpin extends StaffModifierBase {
 // slur staff modifier
 // ## SmoSlur Methods:
 // ---
+// eslint-disable-next-line no-unused-vars
 class SmoSlur extends StaffModifierBase {
-    static get defaults() {
-        return {
-            spacing: 2,
-            thickness: 2,
-            xOffset: -5,
-            yOffset: 10,
-            position: SmoSlur.positions.HEAD,
-            position_end: SmoSlur.positions.HEAD,
-            invert: false,
-            cp1x: 0,
-            cp1y: 15,
-            cp2x: 0,
-            cp2y: 15,
-            pitchesStart:[],
-            pitchesEnd:[]
-        };
-    }
+  static get defaults() {
+    return {
+      spacing: 2,
+      thickness: 2,
+      xOffset: -5,
+      yOffset: 10,
+      position: SmoSlur.positions.HEAD,
+      position_end: SmoSlur.positions.HEAD,
+      invert: false,
+      cp1x: 0,
+      cp1y: 15,
+      cp2x: 0,
+      cp2y: 15,
+      pitchesStart: [],
+      pitchesEnd: []
+    };
+  }
 
-    // matches VF curve
-    static get positions() {
-        return {
-            HEAD: 1,
-            TOP: 2
-        };
-    }
-    static get parameterArray() {
-        return ['startSelector','endSelector','spacing', 'xOffset', 'yOffset', 'position', 'position_end', 'invert',
-            'cp1x', 'cp1y', 'cp2x', 'cp2y','thickness','pitchesStart','pitchesEnd'];
-    }
+  // matches VF curve
+  static get positions() {
+    return {
+      HEAD: 1,
+      TOP: 2
+    };
+  }
+  static get parameterArray() {
+    return ['startSelector', 'endSelector', 'spacing', 'xOffset', 'yOffset', 'position', 'position_end', 'invert',
+      'cp1x', 'cp1y', 'cp2x', 'cp2y', 'thickness', 'pitchesStart', 'pitchesEnd'];
+  }
 
-    serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoSlur.defaults,
-            SmoSlur.parameterArray,this,params);
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoSlur.defaults,
+      SmoSlur.parameterArray, this, params);
 
-        // smoMusic.filteredMerge(SmoSlur.parameterArray, this, params);
-        params.ctor = 'SmoSlur';
-        return params;
-    }
+    params.ctor = 'SmoSlur';
+    return params;
+  }
+  get controlPoints() {
+    const ar = [{
+      x: this.cp1x,
+      y: this.cp1y
+    }, {
+      x: this.cp2x,
+      y: this.cp2y
+    }];
+    return ar;
+  }
 
-    backupOriginal() {
-        if (!this['original']) {
-            this.original = {};
-            smoSerialize.filteredMerge(
-                SmoSlur.parameterArray,
-                this, this.original);
-        }
+  constructor(params) {
+    super('SmoSlur');
+    smoSerialize.serializedMerge(SmoSlur.parameterArray, SmoSlur.defaults, this);
+    smoSerialize.serializedMerge(SmoSlur.parameterArray, params, this);
+    this.startSelector = params.startSelector;
+    this.endSelector = params.endSelector;
+    // TODO: allow user to customize these
+    if (!this.attrs) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoSlur'
+      };
     }
-    restoreOriginal() {
-        if (this['original']) {
-            smoSerialize.filteredMerge(
-                SmoSlur.parameterArray,
-                this.original, this);
-            this.original = null;
-        }
-    }
-    get controlPoints() {
-        var ar = [{
-                x: this.cp1x,
-                y: this.cp1y
-            }, {
-                x: this.cp2x,
-                y: this.cp2y
-            }
-        ];
-        return ar;
-    }
-
-    constructor(params) {
-        super('SmoSlur');
-        smoSerialize.serializedMerge(SmoSlur.parameterArray,SmoSlur.defaults,this);
-		// Vex.Merge(this,SmoSlur.defaults);
-		// smoMusic.filteredMerge(SmoSlur.parameterArray,params,this);
-        smoSerialize.serializedMerge(SmoSlur.parameterArray, params, this);
-        this.startSelector = params.startSelector;
-        this.endSelector = params.endSelector;
-
-        // TODO: allow user to customize these
-
-        if (!this['attrs']) {
-            this.attrs = {
-                id: VF.Element.newID(),
-                type: 'SmoSlur'
-            };
-        }
-    }
+  }
 }
-;
-
-// ## SmoSystemStaff
+;// ## SmoSystemStaff
 // A staff is a line of music that can span multiple measures.
 // A system is a line of music for each staff in the score.  So a staff
 // spans multiple systems.
 // A staff modifier connects 2 points in the staff.
+// eslint-disable-next-line no-unused-vars
 class SmoSystemStaff {
   constructor(params) {
     this.measures = [];
@@ -12516,54 +13626,52 @@ class SmoSystemStaff {
     if (this.measures.length) {
       this.numberMeasures();
     }
-    if (!this['attrs']) {
+    if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),
         type: 'SmoSystemStaff'
       };
-    } else {
     }
   }
 
-    // ### defaultParameters
-    // the parameters that get saved with the score.
+  // ### defaultParameters
+  // the parameters that get saved with the score.
   static get defaultParameters() {
     return [
-    'staffId','staffX','staffY','adjY','staffWidth','staffHeight','startIndex',
-            'renumberingMap','keySignatureMap','instrumentInfo'];
+      'staffId', 'staffX', 'staffY', 'adjY', 'staffWidth', 'staffHeight', 'startIndex',
+      'renumberingMap', 'keySignatureMap', 'instrumentInfo'];
   }
 
-    // ### defaults
-    // default values for all instances
-    static get defaults() {
-        return {
-            staffX: 10,
-            staffY: 40,
-            adjY: 0,
-            staffWidth: 1600,
-            staffHeight: 90,
-            startIndex: 0,
-      staffId:0,
-            renumberingMap: {},
-            keySignatureMap: {},
-            instrumentInfo: {
-                instrumentName: 'Treble Instrument',
-                keyOffset: '0',
-                clef: 'treble'
-            },
-            measures: [],
-            modifiers: []
-        };
-    }
+  // ### defaults
+  // default values for all instances
+  static get defaults() {
+    return {
+      staffX: 10,
+      staffY: 40,
+      adjY: 0,
+      staffWidth: 1600,
+      staffHeight: 90,
+      startIndex: 0,
+      staffId: 0,
+      renumberingMap: { },
+      keySignatureMap: { },
+      instrumentInfo: {
+        instrumentName: 'Treble Instrument',
+        keyOffset: '0',
+        clef: 'treble'
+      },
+      measures: [],
+      modifiers: []
+    };
+  }
 
-    // ### serialize
-    // JSONify self.
+  // ### serialize
+  // JSONify self.
   serialize() {
-    var params={};
-    smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters,this,params);
-    params.modifiers=[];
-    params.measures=[];
-
+    const params = {};
+    smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters, this, params);
+    params.modifiers = [];
+    params.measures = [];
 
     this.measures.forEach((measure) => {
       params.measures.push(measure.serialize());
@@ -12576,56 +13684,55 @@ class SmoSystemStaff {
     return params;
   }
 
-     // ### deserialize
-     // parse formerly serialized staff.
-    static deserialize(jsonObj) {
-        var params = {};
-        smoSerialize.serializedMerge(
-            ['staffId','staffX', 'staffY', 'staffWidth', 'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
-            jsonObj, params);
-        params.measures = [];
-        jsonObj.measures.forEach(function (measureObj) {
-            var measure = SmoMeasure.deserialize(measureObj);
-            params.measures.push(measure);
-        });
-
-        var rv = new SmoSystemStaff(params);
-
-        if (jsonObj.modifiers) {
-            jsonObj.modifiers.forEach((params) => {
-                var mod = StaffModifierBase.deserialize(params);
-                rv.modifiers.push(mod);
-            });
-        }
+  // ### deserialize
+  // parse formerly serialized staff.
+  static deserialize(jsonObj) {
+    const params = {};
+    smoSerialize.serializedMerge(
+      ['staffId', 'staffX', 'staffY', 'staffWidth',
+        'startIndex', 'renumberingMap', 'renumberIndex', 'instrumentInfo'],
+      jsonObj, params);
+    params.measures = [];
+    jsonObj.measures.forEach((measureObj) => {
+      const measure = SmoMeasure.deserialize(measureObj);
+      params.measures.push(measure);
+    });
+    const rv = new SmoSystemStaff(params);
+    if (jsonObj.modifiers) {
+      jsonObj.modifiers.forEach((params) => {
+        const mod = StaffModifierBase.deserialize(params);
+        rv.modifiers.push(mod);
+      });
+    }
     return rv;
-    }
+  }
 
-   // ### addStaffModifier
-   // add a staff modifier, or replace a modifier of same type
-   // with same endpoints.
-    addStaffModifier(modifier) {
-        this.removeStaffModifier(modifier);
-        this.modifiers.push(modifier);
-    }
+  // ### addStaffModifier
+  // add a staff modifier, or replace a modifier of same type
+  // with same endpoints.
+  addStaffModifier(modifier) {
+    this.removeStaffModifier(modifier);
+    this.modifiers.push(modifier);
+  }
 
-    // ### removeStaffModifier
-    // Remove a modifier of given type and location
-    removeStaffModifier(modifier) {
-        var mods = [];
-        this.modifiers.forEach((mod) => {
-            if (mod.attrs.id != modifier.attrs.id) {
-                mods.push(mod);
-            }
-        });
-        this.modifiers = mods;
-    }
-
-    // ### getModifiersAt
-    // get any modifiers at the selected location
-  getModifiersAt(selector) {
-    var rv = [];
+  // ### removeStaffModifier
+  // Remove a modifier of given type and location
+  removeStaffModifier(modifier) {
+    const mods = [];
     this.modifiers.forEach((mod) => {
-      if (SmoSelector.sameNote(mod.startSelector,selector)) {
+      if (mod.attrs.id !== modifier.attrs.id) {
+        mods.push(mod);
+      }
+    });
+    this.modifiers = mods;
+  }
+
+  // ### getModifiersAt
+  // get any modifiers at the selected location
+  getModifiersAt(selector) {
+    const rv = [];
+    this.modifiers.forEach((mod) => {
+      if (SmoSelector.sameNote(mod.startSelector, selector)) {
         rv.push(mod);
       }
     });
@@ -12649,415 +13756,417 @@ class SmoSystemStaff {
     });
   }
 
-    // ### getSlursStartingAt
-    // like it says.  Used by audio player to slur notes
-    getSlursStartingAt(selector) {
-        return this.modifiers.filter((mod) => {
-            return SmoSelector.sameNote(mod.startSelector,selector)
-               && mod.attrs.type == 'SmoSlur';
-        });
+  // ### getSlursStartingAt
+  // like it says.  Used by audio player to slur notes
+  getSlursStartingAt(selector) {
+    return this.modifiers.filter((mod) =>
+      SmoSelector.sameNote(mod.startSelector, selector) && mod.attrs.type === 'SmoSlur'
+    );
+  }
+
+  // ### getSlursEndingAt
+  // like it says.
+  getSlursEndingAt(selector) {
+    return this.modifiers.filter((mod) =>
+      SmoSelector.sameNote(mod.endSelector, selector)
+    );
+  }
+
+  // ### accesor getModifiers
+  getModifiers() {
+    return this.modifiers;
+  }
+
+  // ### applyBeams
+  // group all the measures' notes into beam groups.
+  applyBeams() {
+    for (let i = 0; i < this.measures.length; ++i) {
+      const measure = this.measures[i];
+      smoBeamerFactory.applyBeams(measure);
+    }
+  }
+
+  // ### getRenderedNote
+  // used by mapper to get the rendered note from it's SVG DOM ID.
+  getRenderedNote(id) {
+    let i = 0;
+    for (i = 0; i < this.measures.length; ++i) {
+      const measure = this.measures[i];
+      const note = measure.getRenderedNote(id);
+      if (note) {
+        return {
+          smoMeasure: measure,
+          smoNote: note.smoNote,
+          smoSystem: this,
+          selection: {
+            measureIndex: measure.measureNumber.measureIndex,
+            voice: measure.activeVoice,
+            tick: note.tick,
+            maxTickIndex: measure.notes.length,
+            maxMeasureIndex: this.measures.length
+          },
+          type: note.smoNote.attrs.type,
+          id: note.smoNote.attrs.id
+        };
+      }
+    }
+    return null;
+  }
+
+  // ### addRehearsalMark
+  // for all measures in the system, and also bump the
+  // auto-indexing
+  addRehearsalMark(index, parameters) {
+    let i = 0;
+    let symbol = '';
+    var mark = new SmoRehearsalMark(parameters);
+    if (!mark.increment) {
+      this.measures[index].addRehearsalMark(mark);
+      return;
     }
 
-    // ### getSlursEndingAt
-    // like it says.
-    getSlursEndingAt(selector) {
-        return this.modifiers.filter((mod) => {
-            return SmoSelector.sameNote(mod.endSelector,selector);
-        });
-    }
-
-    // ### accesor getModifiers
-    getModifiers() {
-        return this.modifiers;
-    }
-
-    // ### applyBeams
-    // group all the measures' notes into beam groups.
-    applyBeams() {
-        for (var i = 0; i < this.measures.length; ++i) {
-            var measure = this.measures[i];
-            smoBeamerFactory.applyBeams(measure);
+    symbol = mark.symbol;
+    for (i = 0; i < this.measures.length; ++i) {
+      const mm = this.measures[i];
+      if (i < index) {
+        const rm = mm.getRehearsalMark();
+        if (rm && rm.cardinality === mark.cardinality && rm.increment) {
+          symbol = rm.getIncrement();
+          mark.symbol = symbol;
         }
-    }
-
-    // ### getRenderedNote
-    // used by mapper to get the rendered note from it's SVG DOM ID.
-    getRenderedNote(id) {
-        for (var i = 0; i < this.measures.length; ++i) {
-            var measure = this.measures[i];
-            var note = measure.getRenderedNote(id);
-            if (note)
-                return {
-                    smoMeasure: measure,
-                    smoNote: note.smoNote,
-                    smoSystem: this,
-                    selection: {
-                        measureIndex: measure.measureNumber.measureIndex,
-                        voice: measure.activeVoice,
-                        tick: note.tick,
-                        maxTickIndex: measure.notes.length,
-                        maxMeasureIndex: this.measures.length
-                    },
-                    type: note.smoNote.attrs.type,
-                    id: note.smoNote.attrs.id
-                };
+      }
+      if (i === index) {
+        mm.addRehearsalMark(mark);
+        symbol = mark.getIncrement();
+      }
+      if (i > index) {
+        const rm = mm.getRehearsalMark();
+        if (rm && rm.cardinality === mark.cardinality && rm.increment) {
+          rm.symbol = symbol;
+          symbol = rm.getIncrement();
         }
-        return null;
+      }
     }
+  }
 
-    // ### addRehearsalMark
-    // for all measures in the system, and also bump the
-    // auto-indexing
-    addRehearsalMark(index,parameters) {
-        var mark = new SmoRehearsalMark(parameters);
-        if (!mark.increment) {
-            this.measures[index].addRehearsalMark(mark);
-            return;
+  removeTempo(index) {
+    this.measures[index].removeTempo();
+  }
+
+  addTempo(tempo, index) {
+    this.measures[index].addTempo(tempo);
+  }
+
+  // ### removeRehearsalMark
+  // for all measures in the system, and also decrement the
+  // auto-indexing
+  removeRehearsalMark(index) {
+    let ix = 0;
+    let symbol = null;
+    let card = null;
+    this.measures.forEach((measure) => {
+      if (ix === index) {
+        const mark = measure.getRehearsalMark();
+        if (mark) {
+          symbol = mark.symbol;
+          card = mark.cardinality;
         }
-
-        var symbol = mark.symbol;
-        for (var i=0;i<this.measures.length;++i) {
-            var mm = this.measures[i];
-            if (i < index) {
-                var rm = mm.getRehearsalMark();
-                if (rm && rm.cardinality==mark.cardinality && rm.increment) {
-                   symbol = rm.getIncrement();
-                   mark.symbol=symbol;
-                }
-            }
-            if (i === index) {
-                mm.addRehearsalMark(mark);
-                symbol = mark.getIncrement();
-            }
-            if (i > index) {
-                var rm = mm.getRehearsalMark();
-                if (rm && rm.cardinality==mark.cardinality && rm.increment) {
-                    rm.symbol = symbol;
-                    symbol = rm.getIncrement();
-                }
-            }
+        measure.removeRehearsalMark();
+      }
+      if (ix > index && symbol && card) {
+        const mark = measure.getRehearsalMark();
+        if (mark && mark.increment) {
+          mark.symbol = symbol;
+          symbol = mark.getIncrement();
         }
-    }
+      }
+      ix += 1;
+    });
+  }
 
-    removeTempo(index) {
-        this.measures[index].removeTempo();
-    }
-
-    addTempo(tempo,index) {
-        this.measures[index].addTempo(tempo);
-    }
-
-    // ### removeRehearsalMark
-    // for all measures in the system, and also decrement the
-    // auto-indexing
-    removeRehearsalMark(index) {
-        var ix = 0;
-        var symbol=null;
-        var card = null;
-        this.measures.forEach((measure) => {
-            if (ix == index) {
-                var mark = measure.getRehearsalMark();
-                if (mark) {
-                    symbol = mark.symbol;
-                    card = mark.cardinality;
-                }
-                measure.removeRehearsalMark();
-            }
-            if (ix > index && symbol && card) {
-                var mark = measure.getRehearsalMark();
-                if (mark && mark.increment) {
-                    mark.symbol = symbol;
-                    symbol = mark.getIncrement();
-                }
-            }
-
-            ix += 1;
-        });
-    }
-
-    // ### deleteMeasure
-    // delete the measure, and any staff modifiers that start/end there.
+  // ### deleteMeasure
+  // delete the measure, and any staff modifiers that start/end there.
   deleteMeasure(index) {
     if (this.measures.length < 2) {
       return; // don't delete last measure.
     }
-    var nm=[];
+    const nm = [];
     this.measures.forEach((measure) => {
-      if (measure.measureNumber.measureIndex != index) {
+      if (measure.measureNumber.measureIndex !== index) {
         nm.push(measure);
       }
     });
-    var sm=[];
-    this.modifiers.forEach((mod)=> {
-            // Bug: if we are deleting a measure before the selector, change the measure number.
-      if (mod.startSelector.measure != index && mod.endSelector.measure != index) {
-                if (index < mod.startSelector.measure) {
-                    mod.startSelector.measure -= 1;
-                }
-                if (index < mod.endSelector.measure) {
-                    mod.endSelector.measure -= 1;
-                }
+    const sm = [];
+    this.modifiers.forEach((mod) => {
+      // Bug: if we are deleting a measure before the selector, change the measure number.
+      if (mod.startSelector.measure !== index && mod.endSelector.measure !== index) {
+        if (index < mod.startSelector.measure) {
+          mod.startSelector.measure -= 1;
+        }
+        if (index < mod.endSelector.measure) {
+          mod.endSelector.measure -= 1;
+        }
         sm.push(mod);
       }
     });
-    this.measures=nm;
-    this.modifiers=sm;
+    this.measures = nm;
+    this.modifiers = sm;
     this.numberMeasures();
   }
 
-    // ### addKeySignature
-    // Add key signature to the given measure and update map so we know
-    // when it changes, cancels etc.
-    addKeySignature(measureIndex, key) {
-        this.keySignatureMap[measureIndex] = key;
-    var target = this.measures[measureIndex];
+  // ### addKeySignature
+  // Add key signature to the given measure and update map so we know
+  // when it changes, cancels etc.
+  addKeySignature(measureIndex, key) {
+    this.keySignatureMap[measureIndex] = key;
+    const target = this.measures[measureIndex];
     target.keySignature = key;
-        // this._updateKeySignatures();
+  }
+
+  // ### removeKeySignature
+  // remove key signature and update map so we know
+  // when it changes, cancels etc.
+  removeKeySignature(measureIndex) {
+    const keys = Object.keys(this.keySignatureMap);
+    const nmap = {};
+    keys.forEach((key) => {
+      if (key !== measureIndex) {
+        nmap[key] = this.keySignatureMap[key];
+      }
+    });
+    this.keySignatureMap = nmap;
+    this._updateKeySignatures();
+  }
+  _updateKeySignatures() {
+    let i = 0;
+    const currentSig = this.measures[0].keySignature;
+
+    for (i = 0; i < this.measures.length; ++i) {
+      const measure = this.measures[i];
+      const nextSig = this.keySignatureMap[i] ? this.keySignatureMap[i] : currentSig;
+      measure.setKeySignature(nextSig);
+    }
+  }
+
+  // ### numberMeasures
+  // After anything that might change the measure numbers, update them iteratively
+  numberMeasures() {
+    let currentOffset = 0;
+    let i = 0;
+    this.renumberIndex = this.startIndex;
+    if (this.measures[0].getTicksFromVoice(0) < smoMusic.timeSignatureToTicks(this.measures[0].timeSignature)) {
+      currentOffset = -1;
     }
 
-    // ### removeKeySignature
-    // remove key signature and update map so we know
-    // when it changes, cancels etc.
-    removeKeySignature(measureIndex) {
-        var keys = Object.keys(this.keySignatureMap);
-        var nmap = {};
-        keys.forEach((key) => {
-            if (key !== measureIndex) {
-                nmap[key] = this.keySignatureMap[key];
-            }
-        });
-        this.keySignatureMap = nmap;
-        this._updateKeySignatures();
-    }
-    _updateKeySignatures() {
-        var currentSig = this.measures[0].keySignature;
+    for (i = 0; i < this.measures.length; ++i) {
+      const measure = this.measures[i];
 
-        for (var i = 0; i < this.measures.length; ++i) {
-            var measure = this.measures[i];
-
-            var nextSig = this.keySignatureMap[i] ? this.keySignatureMap[i] : currentSig;
-            measure.setKeySignature(nextSig);
-        }
-    }
-
-    // ### numberMeasures
-    // After anything that might change the measure numbers, update them iteratively
-    numberMeasures() {
-        this.renumberIndex = this.startIndex;
-        var currentOffset = 0;
-        if (this.measures[0].getTicksFromVoice(0) < smoMusic.timeSignatureToTicks(this.measures[0].timeSignature)) {
-            currentOffset = -1;
-        }
-
-        for (var i = 0; i < this.measures.length; ++i) {
-            var measure = this.measures[i];
-
-            this.renumberIndex = this.renumberingMap[i] ? this.renumberingMap[i].startIndex : this.renumberIndex;
-            var localIndex = this.renumberIndex + i + currentOffset;
-            // If this is the first full measure, call it '1'
-            var numberObj = {
-                measureNumber: localIndex,
-                measureIndex: i + this.startIndex,
-                systemIndex: i,
-        staffId:this.staffId
-            }
-            measure.setMeasureNumber(numberObj);
+      this.renumberIndex = this.renumberingMap[i] ? this.renumberingMap[i].startIndex : this.renumberIndex;
+      const localIndex = this.renumberIndex + i + currentOffset;
+      // If this is the first full measure, call it '1'
+      const numberObj = {
+        measureNumber: localIndex,
+        measureIndex: i + this.startIndex,
+        systemIndex: i,
+        staffId: this.staffId
+      };
+      measure.setMeasureNumber(numberObj);
       // If we are renumbering measures, we assume we want to redo the layout so set measures to changed.
-      measure.changed=true;
-        }
+      measure.changed = true;
     }
-    getSelection(measureNumber, voice, tick, pitches) {
-        for (var i = 0; i < this.measures.length; ++i) {
-            var measure = this.measures[i];
-            if (measure.measureNumber.measureNumber === measureNumber) {
-                var target = this.measures[i].getSelection(voice, tick, pitches);
-                if (!target) {
-                    return null;
-                }
-                return ({
-                    measure: measure,
-                    note: target.note,
-                    selection: target.selection
-                });
-            }
-        }
-        return null;
-    }
+  }
 
-    addDefaultMeasure(index, params) {
-        var measure = SmoMeasure.getDefaultMeasure(params);
-        this.addMeasure(index, measure);
-    }
-
-    // ## addMeasure
-    // ## Description:
-    // Add the measure at the specified index, splicing the array as required.
-    addMeasure(index, measure) {
-
-        if (index === 0 && this.measures.length) {
-            measure.setMeasureNumber(this.measures[0].measureNumber);
+  getSelection(measureNumber, voice, tick, pitches) {
+    let i = 0;
+    for (i = 0; i < this.measures.length; ++i) {
+      const measure = this.measures[i];
+      if (measure.measureNumber.measureNumber === measureNumber) {
+        const target = this.measures[i].getSelection(voice, tick, pitches);
+        if (!target) {
+          return null;
         }
-        if (index >= this.measures.length) {
-            this.measures.push(measure);
-        } else {
-            this.measures.splice(index, 0, measure);
-        }
-        var modifiers = this.modifiers.filter((mod) => mod.startSelector.measure >= index);
-        modifiers.forEach((mod) => {
-            if (mod.startSelector.measure < this.measures.length) {
-                mod.startSelector.measure += 1;
-            }
-            if (mod.endSelector.measure < this.measures.length) {
-                mod.endSelector.measure += 1;
-            }
+        return ({
+          measure,
+          note: target.note,
+          selection: target.selection
         });
-
-        this.numberMeasures();
+      }
     }
+    return null;
+  }
+
+  addDefaultMeasure(index, params) {
+    const measure = SmoMeasure.getDefaultMeasure(params);
+    this.addMeasure(index, measure);
+  }
+
+  // ## addMeasure
+  // ## Description:
+  // Add the measure at the specified index, splicing the array as required.
+  addMeasure(index, measure) {
+    if (index === 0 && this.measures.length) {
+      measure.setMeasureNumber(this.measures[0].measureNumber);
+    }
+    if (index >= this.measures.length) {
+      this.measures.push(measure);
+    } else {
+      this.measures.splice(index, 0, measure);
+    }
+    const modifiers = this.modifiers.filter((mod) => mod.startSelector.measure >= index);
+    modifiers.forEach((mod) => {
+      if (mod.startSelector.measure < this.measures.length) {
+        mod.startSelector.measure += 1;
+      }
+      if (mod.endSelector.measure < this.measures.length) {
+        mod.endSelector.measure += 1;
+      }
+    });
+    this.numberMeasures();
+  }
 }
-;
+;// eslint-disable-next-line no-unused-vars
 class SmoTuplet {
   constructor(params) {
     this.notes = params.notes;
     Vex.Merge(this, SmoTuplet.defaults);
     smoSerialize.serializedMerge(SmoTuplet.parameterArray, params, this);
-    if (!this['attrs']) {
+    if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),
         type: 'SmoTuplet'
       };
-    } else {
     }
     this._adjustTicks();
   }
 
-	static get longestTuplet() {
-		return 8192;
-	}
+  static get longestTuplet() {
+    return 8192;
+  }
 
   get clonedParams() {
-    var paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap'];
-    var rv = {};
+    const paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap'];
+    const rv = {};
     smoSerialize.serializedMerge(paramAr, this, rv);
     return rv;
-
   }
 
   static get parameterArray() {
-    return ['stemTicks', 'ticks', 'totalTicks', 'durationMap','attrs','ratioed','bracketed','voice','startIndex'];
+    return ['stemTicks', 'ticks', 'totalTicks',
+      'durationMap', 'attrs', 'ratioed', 'bracketed', 'voice', 'startIndex'];
   }
 
   serialize() {
-    var params = {};
+    const params = {};
     smoSerialize.serializedMergeNonDefault(SmoTuplet.defaults,
-     SmoTuplet.parameterArray,this,params);
+      SmoTuplet.parameterArray, this, params);
     return params;
   }
 
-	static calculateStemTicks(totalTicks,numNotes) {
-    var stemValue = totalTicks / numNotes;
-    var stemTicks = SmoTuplet.longestTuplet;
+  static calculateStemTicks(totalTicks, numNotes) {
+    const stemValue = totalTicks / numNotes;
+    let stemTicks = SmoTuplet.longestTuplet;
 
     // The stem value is the type on the non-tuplet note, e.g. 1/8 note
     // for a triplet.
     while (stemValue < stemTicks) {
       stemTicks = stemTicks / 2;
     }
-		return stemTicks * 2;
-	}
+    return stemTicks * 2;
+  }
 
   static cloneTuplet(tuplet) {
-    var noteAr = tuplet.notes;
-    var durationMap = JSON.parse(JSON.stringify(tuplet.durationMap)); // deep copy array
+    let i = 0;
+    const noteAr = tuplet.notes;
+    const durationMap = JSON.parse(JSON.stringify(tuplet.durationMap)); // deep copy array
 
     // Add any remainders for oddlets
-    var totalTicks = noteAr.map((nn) => nn.ticks.numerator+nn.ticks.remainder).reduce((acc, nn) => acc+nn);
+    const totalTicks = noteAr.map((nn) => nn.ticks.numerator + nn.ticks.remainder)
+      .reduce((acc, nn) => acc + nn);
 
-    var numNotes = tuplet.numNotes;
-    var stemValue = totalTicks / numNotes;
-    var stemTicks = SmoTuplet.calculateStemTicks(totalTicks,numNotes);
+    const numNotes = tuplet.numNotes;
+    const stemTicks = SmoTuplet.calculateStemTicks(totalTicks, numNotes);
 
-    var tupletNotes = [];
+    const tupletNotes = [];
 
-    var i = 0;
     noteAr.forEach((note) => {
-      var textModifiers = note.textModifiers;
+      const textModifiers = note.textModifiers;
       // Note preserver remainder
       note = SmoNote.cloneWithDuration(note, {
-        numerator: stemTicks*tuplet.durationMap[i],
+        numerator: stemTicks * tuplet.durationMap[i],
         denominator: 1,
         remainder: note.ticks.remainder
       });
 
       // Don't clone modifiers, except for first one.
       if (i === 0) {
-        var ntmAr = [];
+        const ntmAr = [];
         textModifiers.forEach((tm) => {
-          var ntm = SmoNoteModifierBase.deserialize(tm);
+          const ntm = SmoNoteModifierBase.deserialize(tm);
           ntmAr.push(ntm);
         });
         note.textModifiers = ntmAr;
       }
       i += 1;
-
       tupletNotes.push(note);
     });
-    var rv = new SmoTuplet({
+    const rv = new SmoTuplet({
       notes: tupletNotes,
-      stemTicks: stemTicks,
-      totalTicks: totalTicks,
+      stemTicks,
+      totalTicks,
       ratioed: false,
       bracketed: true,
       startIndex: tuplet.startIndex,
-      durationMap: durationMap
+      durationMap
     });
     return rv;
   }
 
   _adjustTicks() {
-    var sum = this.durationSum;
-    for (var i = 0; i < this.notes.length; ++i) {
-      var note = this.notes[i];
-      var normTicks = smoMusic.durationToTicks(smoMusic.ticksToDuration[this.stemTicks]);
+    let i = 0;
+    const sum = this.durationSum;
+    for (i = 0; i < this.notes.length; ++i) {
+      const note = this.notes[i];
       // TODO:  notes_occupied needs to consider vex duration
-      var tupletBase = normTicks * this.note_ticks_occupied;
       note.ticks.denominator = 1;
       note.ticks.numerator = Math.floor((this.totalTicks * this.durationMap[i]) / sum);
-
       note.tuplet = this.attrs;
     }
 
-		// put all the remainder in the first note of the tuplet
-		var noteTicks = this.notes.map((nn) => {return nn.tickCount;}).reduce((acc,dd) => {return acc+dd;});
+    // put all the remainder in the first note of the tuplet
+    const noteTicks = this.notes.map((nn) => nn.tickCount)
+      .reduce((acc, dd) => acc + dd);
     // bug fix:  if this is a clones tuplet, remainder is already set
-		this.notes[0].ticks.remainder = this.notes[0].ticks.remainder + this.totalTicks-noteTicks;
+    this.notes[0].ticks.remainder =
+      this.notes[0].ticks.remainder + this.totalTicks - noteTicks;
   }
   getIndexOfNote(note) {
-    var rv = -1;
-    for (var i = 0; i < this.notes.length; ++i) {
-      var tn = this.notes[i];
+    let rv = -1;
+    let i = 0;
+    for (i = 0; i < this.notes.length; ++i) {
+      const tn = this.notes[i];
       if (note.attrs.id === tn.attrs.id) {
-          rv = i;
+        rv = i;
       }
     }
     return rv;
   }
 
   split(combineIndex) {
-    var multiplier = 0.5;
-    var nnotes = [];
-    var nmap = [];
+    let i = 0;
+    const multiplier = 0.5;
+    const nnotes = [];
+    const nmap = [];
 
-    for (var i = 0; i < this.notes.length; ++i) {
-      var note = this.notes[i];
+    for (i = 0; i < this.notes.length; ++i) {
+      const note = this.notes[i];
       if (i === combineIndex) {
         nmap.push(this.durationMap[i] * multiplier);
         nmap.push(this.durationMap[i] * multiplier);
         note.ticks.numerator *= multiplier;
 
-        var onote = SmoNote.clone(note);
+        const onote = SmoNote.clone(note);
         // remainder is for the whole tuplet, so don't duplicate that.
-        onote.ticks.remainder=0;
+        onote.ticks.remainder = 0;
         nnotes.push(note);
         nnotes.push(onote);
       } else {
@@ -13069,37 +14178,37 @@ class SmoTuplet {
     this.durationMap = nmap;
   }
   combine(startIndex, endIndex) {
+    let i = 0;
+    let base = 0.0;
+    let acc = 0.0;
     // can't combine in this way, too many notes
     if (this.notes.length <= endIndex || startIndex >= endIndex) {
       return this;
     }
-    var acc = 0.0;
-    var i;
-    var base = 0.0;
     for (i = startIndex; i <= endIndex; ++i) {
       acc += this.durationMap[i];
-      if (i == startIndex) {
+      if (i === startIndex) {
         base = this.durationMap[i];
-      } else if (this.durationMap[i] != base) {
+      } else if (this.durationMap[i] !== base) {
         // Can't combine non-equal tuplet notes
         return this;
       }
     }
     // how much each combined value will be multiplied by
-    var multiplier = acc / base;
+    const multiplier = acc / base;
 
-    var nmap = [];
-    var nnotes = [];
+    const nmap = [];
+    const nnotes = [];
     // adjust the duration map
     for (i = 0; i < this.notes.length; ++i) {
-      var note = this.notes[i];
+      const note = this.notes[i];
       // notes that don't change are unchanged
       if (i < startIndex || i > endIndex) {
         nmap.push(this.durationMap[i]);
         nnotes.push(note);
       }
       // changed note with combined duration
-      if (i == startIndex) {
+      if (i === startIndex) {
         note.ticks.numerator = note.ticks.numerator * multiplier;
         nmap.push(acc);
         nnotes.push(note);
@@ -13108,6 +14217,7 @@ class SmoTuplet {
     }
     this.notes = nnotes;
     this.durationMap = nmap;
+    return this;
   }
 
   // ### getStemDirection
@@ -13115,17 +14225,18 @@ class SmoTuplet {
   getStemDirection(clef) {
     const note = this.notes.find((nn) => nn.noteType === 'n');
     if (!note) {
-      return SmoNote.flagStates.down;;
+      return SmoNote.flagStates.down;
     }
-    if (note.flagState != SmoNote.flagStates.auto) {
+    if (note.flagState !== SmoNote.flagStates.auto) {
       return note.flagState;
     }
-    return smoMusic.pitchToLedgerLine(clef,note.pitches[0])
+    return smoMusic.pitchToLedgerLine(clef, note.pitches[0])
        >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
   }
   get durationSum() {
-    var acc = 0;
-    for (var i = 0; i < this.durationMap.length; ++i) {
+    let acc = 0;
+    let i = 0;
+    for (i = 0; i < this.durationMap.length; ++i) {
       acc += this.durationMap[i];
     }
     return Math.round(acc);
@@ -13140,9 +14251,10 @@ class SmoTuplet {
     return this.totalTicks / this.stemTicks;
   }
   get tickCount() {
-    var rv = 0;
-    for (var i = 0; i < this.notes.length; ++i) {
-      var note = this.notes[i];
+    let rv = 0;
+    let i = 0;
+    for (i = 0; i < this.notes.length; ++i) {
+      const note = this.notes[i];
       rv += (note.ticks.numerator / note.ticks.denominator) + note.ticks.remainder;
     }
     return rv;
@@ -13155,544 +14267,515 @@ class SmoTuplet {
       stemTicks: 2048, // the stem ticks, for drawing purposes.  >16th, draw as 8th etc.
       durationMap: [1.0, 1.0, 1.0],
       bracketed: true,
-      voice:0,
+      voice: 0,
       ratioed: false
+    };
+  }
+}
+;// eslint-disable-next-line no-unused-vars
+class smoBeamerFactory {
+  static applyBeams(measure) {
+    let i = 0;
+    for (i = 0; i < measure.voices.length; ++i) {
+      const beamer = new smoBeamModifier(measure, i);
+      const apply = new smoBeamerIterator(measure, beamer, i);
+      apply.run();
     }
   }
 }
-;
-class BeamModifierBase {
-    constructor() {}
-    beamNote(note, tickmap, accidentalMap) {}
-}
-
-class smoBeamerFactory {
-    static applyBeams(measure) {
-        for (var i = 0;i < measure.voices.length;++i) {
-            var beamer = new smoBeamModifier(measure,i);
-            var apply = new smoBeamerIterator(measure, beamer,i);
-            apply.run();
-        }
-    }
-}
 
 class smoBeamerIterator {
-    constructor(measure, actor,voice) {
-        this.actor = actor;
-        this.measure = measure;
-        this.voice = voice;
-    }
+  constructor(measure, actor, voice) {
+    this.actor = actor;
+    this.measure = measure;
+    this.voice = voice;
+  }
 
-    //  ### run
-    //  ###  Description:  start the iteration on this set of notes
-    run() {
-        var tickmap = this.measure.tickmapForVoice(this.voice);
-        for (var i = 0;i < tickmap.durationMap.length;++i) {
-            this.actor.beamNote(tickmap, i,this.measure.voices[this.voice].notes[i]);
-        }
+  //  ### run
+  //  ###  Description:  start the iteration on this set of notes
+  run() {
+    let i = 0;
+    const tickmap = this.measure.tickmapForVoice(this.voice);
+    for (i = 0; i < tickmap.durationMap.length; ++i) {
+      this.actor.beamNote(tickmap, i, this.measure.voices[this.voice].notes[i]);
     }
+  }
 }
 
-class smoBeamModifier extends BeamModifierBase {
-    constructor(measure,voice) {
-        super();
-        this.measure = measure;
-        this._removeVoiceBeam(measure,voice);
-        this.duration = 0;
-        this.timeSignature = measure.timeSignature;
-        this.meterNumbers = this.timeSignature.split('/').map(number => parseInt(number, 10));
-
-        this.duration = 0;
-        // beam on 1/4 notes in most meter, triple time dotted quarter
-        this.beamBeats = 2 * 2048;
-        if (this.meterNumbers[0] % 3 == 0) {
-            this.beamBeats = 3 * 2048;
-        }
-        this.skipNext = 0;
-        this.currentGroup = [];
+class smoBeamModifier {
+  constructor(measure, voice) {
+    this.measure = measure;
+    this._removeVoiceBeam(measure, voice);
+    this.duration = 0;
+    this.timeSignature = measure.timeSignature;
+    this.meterNumbers = this.timeSignature.split('/').map(number => parseInt(number, 10));
+    // beam on 1/4 notes in most meter, triple time dotted quarter
+    this.beamBeats = 2 * 2048;
+    if (this.meterNumbers[0] % 3 === 0) {
+      this.beamBeats = 3 * 2048;
     }
+    this.skipNext = 0;
+    this.currentGroup = [];
+  }
 
-    get beamGroups() {
-        return this.measure.beamGroups;
-    }
-    _removeVoiceBeam(measure,voice) {
-        var beamGroups = [];
-        measure.beamGroups.forEach((gr) => {
-            if (gr.voice != voice) {
-                beamGroups.push(gr);
-            }
-        });
-
-        measure.beamGroups = beamGroups;
-    }
-
-    _completeGroup(voice) {
-        // don't beam groups of 1
-        if (this.currentGroup.length > 1) {
-            this.measure.beamGroups.push(new SmoBeamGroup({
-                    notes: this.currentGroup,
-                    voice:voice
-                }));
-        }
-    }
-
-    _advanceGroup() {
-        this.currentGroup = [];
-        this.duration = 0;
-    }
-
-    // ### _isRemainingTicksBeamable
-    // look ahead, and see if we need to beam the tuplet now or if we
-    // can combine current beam with future notes.
-    _isRemainingTicksBeamable(tickmap,index) {
-      if (this.duration >= this.beamBeats) {
-        return false;
+  get beamGroups() {
+    return this.measure.beamGroups;
+  }
+  _removeVoiceBeam(measure, voice) {
+    const beamGroups = [];
+    measure.beamGroups.forEach((gr) => {
+      if (gr.voice !== voice) {
+        beamGroups.push(gr);
       }
-      var acc = this.duration;
-      for (var i = index + 1;i < tickmap.deltaMap.length; ++i) {
-        acc += tickmap.deltaMap[i]
-        if (acc === this.beamBeats) {
-          return true;
-        }
-        if (acc > this.beamBeats) {
-          return false;
-        }
-      }
+    });
+    measure.beamGroups = beamGroups;
+  }
+
+  _completeGroup(voice) {
+    // don't beam groups of 1
+    if (this.currentGroup.length > 1) {
+      this.measure.beamGroups.push(new SmoBeamGroup({
+        notes: this.currentGroup,
+        voice
+      }));
+    }
+  }
+
+  _advanceGroup() {
+    this.currentGroup = [];
+    this.duration = 0;
+  }
+
+  // ### _isRemainingTicksBeamable
+  // look ahead, and see if we need to beam the tuplet now or if we
+  // can combine current beam with future notes.
+  _isRemainingTicksBeamable(tickmap, index) {
+    let acc = 0;
+    let i = 0;
+    if (this.duration >= this.beamBeats) {
       return false;
     }
-    beamNote(tickmap, index, note, accidentalMap) {
-        this.beamBeats = note.beamBeats;
-
-        this.duration += tickmap.deltaMap[index];
-
-        // beam tuplets
-        if (note.isTuplet) {
-            var tuplet = this.measure.getTupletForNote(note);
-            var ult = tuplet.notes[tuplet.notes.length - 1];
-            var first = tuplet.notes[0];
-
-            if (first.endBeam) {
-                this._advanceGroup();
-                return note;
-            }
-
-            // is this beamable length-wise
-            var vexDuration = smoMusic.closestVexDuration(note.tickCount);
-            var stemTicks = VF.durationToTicks.durations[vexDuration];
-            if (stemTicks < 4096) {
-                this.currentGroup.push(note);
-            }
-            // Ultimate note in tuplet
-            if (ult.attrs.id === note.attrs.id && !this._isRemainingTicksBeamable(tickmap,index)) {
-                this._completeGroup(tickmap.voice);
-                this._advanceGroup();
-            }
-            return note;
-        }
-
-        // don't beam > 1/4 note in 4/4 time
-        if (tickmap.deltaMap[index] >= 4096) {
-			this._completeGroup(tickmap.voice);
-            this._advanceGroup();
-            return note;
-        }
-
-        this.currentGroup.push(note);
-        if (note.endBeam) {
-            this._completeGroup(tickmap.voice);
-            this._advanceGroup();
-        }
-
-        if (this.duration == this.beamBeats) {
-            this._completeGroup(tickmap.voice);
-            this._advanceGroup();
-            return note;
-        }
-
-        // If this does not align on a beat, don't beam it
-        if (this.duration > this.beamBeats) {
-            this._advanceGroup()
-            return note;
-        }
+    acc = this.duration;
+    for (i = index + 1; i < tickmap.deltaMap.length; ++i) {
+      acc += tickmap.deltaMap[i];
+      if (acc === this.beamBeats) {
+        return true;
+      }
+      if (acc > this.beamBeats) {
+        return false;
+      }
     }
+    return false;
+  }
+  beamNote(tickmap, index, note) {
+    this.beamBeats = note.beamBeats;
+    this.duration += tickmap.deltaMap[index];
+
+    // beam tuplets
+    if (note.isTuplet) {
+      const tuplet = this.measure.getTupletForNote(note);
+      const ult = tuplet.notes[tuplet.notes.length - 1];
+      const first = tuplet.notes[0];
+
+      if (first.endBeam) {
+        this._advanceGroup();
+        return;
+      }
+
+      // is this beamable length-wise
+      const vexDuration = smoMusic.closestVexDuration(note.tickCount);
+      const stemTicks = VF.durationToTicks.durations[vexDuration];
+      if (stemTicks < 4096) {
+        this.currentGroup.push(note);
+      }
+      // Ultimate note in tuplet
+      if (ult.attrs.id === note.attrs.id && !this._isRemainingTicksBeamable(tickmap, index)) {
+        this._completeGroup(tickmap.voice);
+        this._advanceGroup();
+      }
+      return;
+    }
+
+    // don't beam > 1/4 note in 4/4 time.  Don't beam rests.
+    if (tickmap.deltaMap[index] >= 4096 || note.isRest()) {
+      this._completeGroup(tickmap.voice);
+      this._advanceGroup();
+      return;
+    }
+
+    this.currentGroup.push(note);
+    if (note.endBeam) {
+      this._completeGroup(tickmap.voice);
+      this._advanceGroup();
+    }
+
+    if (this.duration === this.beamBeats) {
+      this._completeGroup(tickmap.voice);
+      this._advanceGroup();
+      return;
+    }
+
+    // If this does not align on a beat, don't beam it
+    if (this.duration > this.beamBeats) {
+      this._advanceGroup();
+    }
+  }
 }
-;
-
-
-// ## PasteBuffer
+;// ## PasteBuffer
 // ### Description:
 // Hold some music that can be pasted back to the score
+// eslint-disable-next-line no-unused-vars
 class PasteBuffer {
-	constructor() {
-		this.notes = [];
-		this.noteIndex = 0;
-		this.measures = [];
-		this.measureIndex = -1;
-		this.remainder = 0;
-	}
+  constructor() {
+    this.notes = [];
+    this.noteIndex = 0;
+    this.measures = [];
+    this.measureIndex = -1;
+    this.remainder = 0;
+    this.replacementMeasures = [];
+  }
 
-	setSelections(score, selections) {
-		this.notes = [];
-		this.noteIndex = 0;
-		var measureIndex = -1;
-		this.score = score;
-
-		if (selections.length < 1) {
-			return;
-		}
-
-		this.tupletNoteMap = {};
-		var first = selections[0];
-		var last = selections[selections.length - 1];
-
-		var startTuplet = first.measure.getTupletForNote(first.note);
-		if (startTuplet) {
-			if (startTuplet.getIndexOfNote(first.note) != 0) {
-				return; // can't paste from the middle of a tuplet
-			}
-		}
-		var endTuplet = last.measure.getTupletForNote(last.note);
-		if (endTuplet) {
-			if (endTuplet.getIndexOfNote(last.note) != endTuplet.notes.length - 1) {
-				return; // can't paste part of a tuplet.
-			}
-		}
-
-		this._populateSelectArray(selections);
-
-	}
-	// ### _populateSelectArray
-	// ### Description:
-	// copy the selected notes into the paste buffer with their original locations.
-	_populateSelectArray(selections) {
-		var currentTupletParameters = null;
-		var currentTupletNotes = [];
-        this.modifiers=[];
-		selections.forEach((selection) => {
-			var selector = JSON.parse(JSON.stringify(selection.selector));
-            var mod = selection.staff.getModifiersAt(selector);
-            if (mod.length) {
-                mod.forEach((modifier) => {
-                    var cp = StaffModifierBase.deserialize(modifier.serialize());
-                    cp.attrs.id = VF.Element.newID();
-                    this.modifiers.push(cp);
-                });
-            }
-			if (selection.note.isTuplet) {
-				var tuplet = selection.measure.getTupletForNote(selection.note);
-				var index = tuplet.getIndexOfNote(selection.note);
-				if (index == 0) {
-					var ntuplet = SmoTuplet.cloneTuplet(tuplet);
-					this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
-					ntuplet.notes.forEach((nnote) => {
-
-						this.notes.push({
-						selector:selector,note:nnote});
-						selector = JSON.parse(JSON.stringify(selector));
-						selector.tick += 1;
-					});
-				}
-			} else {
-
-				var note = SmoNote.clone(selection.note);
-				this.notes.push({
-					selector: selector,
-					note: note
-				});
-			}
-		});
-		this.notes.sort((a, b) => {
-			return SmoSelector.gt(a.selector, b.selector) ? 1 : -1;
-		});
-	}
-
-	clearSelections() {
-		this.notes = [];
-	}
-
-    _findModifier(selector) {
-        var rv = this.modifiers.filter((mod) => SmoSelector.eq(selector,mod.startSelector));
-        return (rv && rv.length) ? rv[0] : null;
+  setSelections(score, selections) {
+    this.notes = [];
+    this.noteIndex = 0;
+    this.score = score;
+    if (selections.length < 1) {
+      return;
     }
-    _findPlacedModifier(selector) {
-        var rv = this.modifiers.filter((mod) => SmoSelector.eq(selector,mod.endSelector));
-        return (rv && rv.length) ? rv[0] : null;
+    this.tupletNoteMap = {};
+    const first = selections[0];
+    const last = selections[selections.length - 1];
+
+    const startTuplet = first.measure.getTupletForNote(first.note);
+    if (startTuplet) {
+      if (startTuplet.getIndexOfNote(first.note) !== 0) {
+        return; // can't paste from the middle of a tuplet
+      }
     }
-
-	// ### _populateMeasureArray
-	// ### Description:
-	// Before pasting, populate an array of existing measures from the paste destination
-	// so we know how to place the notes.
-	_populateMeasureArray() {
-		this.measures = [];
-        this.staffSelectors = [];
-		var measureSelection = SmoSelection.measureSelection(this.score, this.destination.staff, this.destination.measure);
-		var measure = measureSelection.measure;
-		this.measures.push(measure);
-		var tickmap = measure.tickmapForVoice(this.destination.voice);
-		var startSel = this.notes[0].selector;
-		var currentDuration = tickmap.durationMap[this.destination.tick];
-		var rv = [];
-		this.notes.forEach((selection) => {
-			if (currentDuration + selection.note.tickCount > tickmap.totalDuration && measureSelection != null) {
-				// If this note will overlap the measure boundary, the note will be split in 2 with the
-				// remainder going to the next measure.  If they line up exactly, the remainder is 0.
-				var remainder = (currentDuration + selection.note.tickCount) - tickmap.totalDuration;
-				currentDuration = remainder;
-
-				measureSelection = SmoSelection.measureSelection(this.score,
-						measureSelection.selector.staff,
-						measureSelection.selector.measure + 1);
-
-				// If the paste buffer overlaps the end of the score, we can't paste (TODO:  add a measure in this case)
-				if (measureSelection != null) {
-					this.measures.push(measureSelection.measure);
-				}
-			} else if (measureSelection != null) {
-				currentDuration += selection.note.tickCount;
-			}
-		});
-	}
-
-	// ### _populatePre
-	// When we paste, we replace entire measures.  Populate the first measure up until the start of pasting.
-	_populatePre(voiceIndex, measure, startTick, tickmap) {
-		var voice = {
-			notes: []
-		};
-		var ticksToFill = tickmap.durationMap[startTick];
-		var filled = 0;
-		// TODO: bug here, need to handle tuplets in pre-part, create new tuplet
-		for (var i = 0; i < measure.voices[voiceIndex].notes.length; ++i) {
-
-			var note = measure.voices[voiceIndex].notes[i];
-			// IF this is a tuplet, clone all the notes at once.
-			if (note.isTuplet) {
-				var tuplet = measure.getTupletForNote(note);
-                if (!tuplet) {
-                    continue;  // we remove the tuplet after first iteration
-                }
-                var ntuplet = SmoTuplet.cloneTuplet(tuplet);
-                voice.notes = voice.notes.concat(ntuplet.notes);
-                measure.removeTupletForNote(note);
-                measure.tuplets.push(ntuplet);
-                ticksToFill -= tuplet.tickCount;
-			} else if (ticksToFill >= note.tickCount) {
-				ticksToFill -= note.tickCount;
-				voice.notes.push(SmoNote.clone(note));
-			} else {
-				var duration = note.tickCount - ticksToFill;
-                var durMap = smoMusic.gcdMap(duration);
-                durMap.forEach((dd) => {
-                    SmoNote.cloneWithDuration(note, {
-    					numerator: dd,
-    					denominator: 1,
-    					remainder: 0
-    				});
-                });
-				ticksToFill = 0;
-			}
-			if (ticksToFill < 1) {
-				break;
-			}
-		}
-		return voice;
-	}
-
-	// ### _populateVoice
-	// ### Description:
-	// Create a new voice for a new measure in the paste destination
-	_populateVoice(voiceIndex) {
-		this._populateMeasureArray();
-		var measures = this.measures;
-		this.measureIndex = 0;
-		var measureVoices = [];
-
-		var measure = measures[0];
-		var tickmap = measure.tickmapForVoice(this.destination.voice);
-		var startSelector = JSON.parse(JSON.stringify(this.destination));
-		var measureTuplets = [];
-		var voice = this._populatePre(voiceIndex, measure, this.destination.tick, tickmap);
-		measureVoices.push(voice);
-		while (this.measureIndex < measures.length) {
-			measure = measures[this.measureIndex];
-			tickmap = measure.tickmapForVoice(this.destination.voice);
-			this._populateNew(voice, voiceIndex, measure, tickmap, startSelector);
-			if (this.noteIndex < this.notes.length && this.measureIndex < measures.length) {
-				voice = {
-					notes: []
-				};
-				measureVoices.push(voice);
-				startSelector = {
-					staff: startSelector.staff,
-					measure: startSelector.measure,
-					voice: voiceIndex,
-					tick: 0
-				};
-				this.measureIndex += 1;
-                startSelector.measure += 1;
-			} else {
-				break;
-			}
-		}
-		this._populatePost(voice, voiceIndex, measure, tickmap, startSelector.tick);
-
-		return measureVoices;
-	}
-
-	static _countTicks(voice) {
-		var voiceTicks = 0;
-		voice.notes.forEach((note) => {
-			voiceTicks += note.tickCount;
-		});
-		return voiceTicks;
-	}
-
-    // ### _populateModifier
-    // If the destination contains a modifier start and end, copy and paste it.
-    _populateModifier(srcSelector,destSelector,staff) {
-        var mod = this._findModifier(srcSelector);
-        // If this is the starting point of a staff modifier, update the selector
-        if (mod) {
-            mod.startSelector = JSON.parse(JSON.stringify(destSelector));
-        }
-        // If this is the ending point of a staff modifier, paste the modifier
-        mod = this._findPlacedModifier(srcSelector);
-        if (mod) {
-            mod.endSelector = JSON.parse(JSON.stringify(destSelector));
-            mod.attrs.id = VF.Element.newID();
-            staff.addStaffModifier(mod);
-        }
+    const endTuplet = last.measure.getTupletForNote(last.note);
+    if (endTuplet) {
+      if (endTuplet.getIndexOfNote(last.note) !== endTuplet.notes.length - 1) {
+        return; // can't paste part of a tuplet.
+      }
     }
-
-	// ### _populateNew
-	// Start copying the paste buffer into the destination by copying the notes and working out
-	// the measure overlap
-	_populateNew(voice, voiceIndex, measure, tickmap, startSelector) {
-		var currentDuration = tickmap.durationMap[startSelector.tick];
-		var totalDuration = tickmap.totalDuration;
-		while (currentDuration < totalDuration && this.noteIndex < this.notes.length) {
-            var selection = this.notes[this.noteIndex];
-			var note = selection.note;
-            this._populateModifier(selection.selector,startSelector,this.score.staves[selection.selector.staff]);
-			if (note.isTuplet) {
-				var tuplet = this.tupletNoteMap[note.tuplet.id];
-                var ntuplet = SmoTuplet.cloneTuplet(tuplet);
-                this.noteIndex += ntuplet.notes.length;
-                startSelector.tick += ntuplet.notes.length;
-                currentDuration += tuplet.tickCount;
-                for (var i =  0;i < ntuplet.notes.length;++i) {
-                    var tn = ntuplet.notes[i];
-                    tn.clef = measure.clef;
-                    voice.notes.push(tn);
-                }
-                measure.tuplets.push(ntuplet);
-			} else if (currentDuration + note.tickCount <= totalDuration && this.remainder === 0) {
-				// The whole note fits in the measure, paste it.
-                var nnote = SmoNote.clone(note);
-                nnote.clef = measure.clef;
-				voice.notes.push(nnote);
-				currentDuration += note.tickCount;
-				this.noteIndex += 1;
-				startSelector.tick += 1;
-			} else if (this.remainder > 0) {
-				// This is a note that spilled over the last measure
-                var nnote = SmoNote.cloneWithDuration(note, {
-						numerator: this.remainder,
-						denominator: 1,
-						remainder: 0
-					});
-                nnote.clef = measure.clef;
-				voice.notes.push(nnote);
-
-				currentDuration += this.remainder;
-				this.remainder = 0;
-			} else {
-				// The note won't fit, so we split it in 2 and paste the remainder in the next measure.
-				// TODO:  tie the last note to this one.
-				var partial = totalDuration - currentDuration;
-                var dar = smoMusic.gcdMap(partial);
-                dar.forEach((ddd) => {
-                    voice.notes.push(SmoNote.cloneWithDuration(note, {
-    						numerator: ddd,
-    						denominator: 1,
-    						remainder: 0
-    					}));
-                });
-				currentDuration += partial;
-
-				// Set the remaining length of the current note, this will be added to the
-				// next measure with the previous note's pitches
-				this.remainder = note.tickCount - partial;
-			}
-		}
-	}
-
-	// ### _populatePost
-	// When we paste, we replace entire measures.  Populate the last measure from the end of paste to the
-	// end of the measure with notes in the existing measure.
-	_populatePost(voice, voiceIndex, measure, tickmap, endTick) {
-		var startTicks = PasteBuffer._countTicks(voice);
-		var notes = measure.voices[voiceIndex].notes;
-		var totalDuration = tickmap.totalDuration;
-		while (startTicks < totalDuration) {
-			// Find the point in the music where the paste area runs out, or as close as we can get.
-			var existingIndex = tickmap.durationMap.indexOf(startTicks);
-			existingIndex = (existingIndex < 0) ? measure.voices[voiceIndex].notes.length - 1 : existingIndex;
-			var note = measure.voices[voiceIndex].notes[existingIndex];
-            if (note.isTuplet) {
-                var tuplet = measure.getTupletForNote(note);
-                var ntuplet = null;
-                var ntuplet = SmoTuplet.cloneTuplet(tuplet);
-                startTicks += tuplet.tickCount;
-                voice.notes = voice.notes.concat(ntuplet.notes);
-                measure.tuplets.push(ntuplet);
-                measure.removeTupletForNote(note);
-            } else {
-    			var ticksLeft = totalDuration - startTicks;
-    			if (ticksLeft >= note.tickCount) {
-    				startTicks += note.tickCount;
-    				voice.notes.push(SmoNote.clone(note));
-    			} else {
-    				var remainder = totalDuration - startTicks;
-    				voice.notes.push(SmoNote.cloneWithDuration(note, {
-    						numerator: remainder,
-    						denominator: 1,
-    						remainder: 0
-    					}));
-    				startTicks = totalDuration;
-    			}
-            }
-		}
-	}
-
-    _pasteVoiceSer(ser,vobj,voiceIx) {
-        var voices = [];
-        var ix = 0;
-        ser.voices.forEach((vc) => {
-            if(ix != voiceIx) {
-                voices.push(vc);
-            } else {
-                voices.push(vobj);
-            }
-            ix += 1;
+    this._populateSelectArray(selections);
+  }
+  // ### _populateSelectArray
+  // copy the selected notes into the paste buffer with their original locations.
+  _populateSelectArray(selections) {
+    let selector = {};
+    this.modifiers = [];
+    selections.forEach((selection) => {
+      selector = JSON.parse(JSON.stringify(selection.selector));
+      const mod = selection.staff.getModifiersAt(selector);
+      if (mod.length) {
+        mod.forEach((modifier) => {
+          const cp = StaffModifierBase.deserialize(modifier.serialize());
+          cp.attrs.id = VF.Element.newID();
+          this.modifiers.push(cp);
         });
-        ser.voices = voices;
+      }
+      if (selection.note.isTuplet) {
+        const tuplet = selection.measure.getTupletForNote(selection.note);
+        const index = tuplet.getIndexOfNote(selection.note);
+        if (index === 0) {
+          const ntuplet = SmoTuplet.cloneTuplet(tuplet);
+          this.tupletNoteMap[ntuplet.attrs.id] = ntuplet;
+          ntuplet.notes.forEach((nnote) => {
+            this.notes.push({ selector, note: nnote });
+            selector = JSON.parse(JSON.stringify(selector));
+            selector.tick += 1;
+          });
+        }
+      } else {
+        const note = SmoNote.clone(selection.note);
+        this.notes.push({ selector, note });
+      }
+    });
+    this.notes.sort((a, b) =>
+      SmoSelector.gt(a.selector, b.selector) ? 1 : -1
+    );
+  }
+
+  clearSelections() {
+    this.notes = [];
+  }
+
+  _findModifier(selector) {
+    const rv = this.modifiers.filter((mod) => SmoSelector.eq(selector, mod.startSelector));
+    return (rv && rv.length) ? rv[0] : null;
+  }
+  _findPlacedModifier(selector) {
+    const rv = this.modifiers.filter((mod) => SmoSelector.eq(selector, mod.endSelector));
+    return (typeof(rv) !== 'undefined' && rv.length) ? rv[0] : null;
+  }
+
+  // ### _populateMeasureArray
+  // Before pasting, populate an array of existing measures from the paste destination
+  // so we know how to place the notes.
+  _populateMeasureArray() {
+    let measureSelection = SmoSelection.measureSelection(this.score, this.destination.staff, this.destination.measure);
+    const measure = measureSelection.measure;
+    const tickmap = measure.tickmapForVoice(this.destination.voice);
+    let currentDuration = tickmap.durationMap[this.destination.tick];
+    this.measures = [];
+    this.staffSelectors = [];
+    this.measures.push(measure);
+    this.notes.forEach((selection) => {
+      if (currentDuration + selection.note.tickCount > tickmap.totalDuration && measureSelection !== null) {
+        // If this note will overlap the measure boundary, the note will be split in 2 with the
+        // remainder going to the next measure.  If they line up exactly, the remainder is 0.
+        const remainder = (currentDuration + selection.note.tickCount) - tickmap.totalDuration;
+        currentDuration = remainder;
+
+        measureSelection = SmoSelection.measureSelection(this.score,
+          measureSelection.selector.staff,
+          measureSelection.selector.measure + 1);
+
+        // If the paste buffer overlaps the end of the score, we can't paste (TODO:  add a measure in this case)
+        if (measureSelection != null) {
+          this.measures.push(measureSelection.measure);
+        }
+      } else if (measureSelection != null) {
+        currentDuration += selection.note.tickCount;
+      }
+    });
+  }
+
+  // ### _populatePre
+  // When we paste, we replace entire measures.  Populate the first measure up until the start of pasting.
+  _populatePre(voiceIndex, measure, startTick, tickmap) {
+    const voice = {
+      notes: []
+    };
+    let i = 0;
+    let j = 0;
+    let ticksToFill = tickmap.durationMap[startTick];
+    // TODO: bug here, need to handle tuplets in pre-part, create new tuplet
+    for (i = 0; i < measure.voices[voiceIndex].notes.length; ++i) {
+      const note = measure.voices[voiceIndex].notes[i];
+      // If this is a tuplet, clone all the notes at once.
+      if (note.isTuplet) {
+        const tuplet = measure.getTupletForNote(note);
+        if (!tuplet) {
+          continue;  // we remove the tuplet after first iteration
+        }
+        const ntuplet = SmoTuplet.cloneTuplet(tuplet);
+        voice.notes = voice.notes.concat(ntuplet.notes);
+        measure.removeTupletForNote(note);
+        measure.tuplets.push(ntuplet);
+        ticksToFill -= tuplet.tickCount;
+      } else if (ticksToFill >= note.tickCount) {
+        ticksToFill -= note.tickCount;
+        voice.notes.push(SmoNote.clone(note));
+      } else {
+        const duration = note.tickCount - ticksToFill;
+        const durMap = smoMusic.gcdMap(duration);
+        for (j = 0; j < durMap.length; ++j) {
+          const dd = durMap[j];
+          SmoNote.cloneWithDuration(note, {
+            numerator: dd,
+            denominator: 1,
+            remainder: 0
+          });
+        }
+        ticksToFill = 0;
+      }
+      if (ticksToFill < 1) {
+        break;
+      }
     }
+    return voice;
+  }
 
-	pasteSelections(score, selector) {
-		this.destination = selector;
-		if (this.notes.length < 1) {
-			return;
-		}
+  // ### _populateVoice
+  // ### Description:
+  // Create a new voice for a new measure in the paste destination
+  _populateVoice(voiceIndex) {
+    this._populateMeasureArray();
+    const measures = this.measures;
+    let measure = measures[0];
+    let tickmap = measure.tickmapForVoice(this.destination.voice);
+    let voice = this._populatePre(voiceIndex, measure, this.destination.tick, tickmap);
+    let startSelector = JSON.parse(JSON.stringify(this.destination));
+    this.measureIndex = 0;
+    const measureVoices = [];
+    measureVoices.push(voice);
+    while (this.measureIndex < measures.length) {
+      measure = measures[this.measureIndex];
+      tickmap = measure.tickmapForVoice(this.destination.voice);
+      this._populateNew(voice, voiceIndex, measure, tickmap, startSelector);
+      if (this.noteIndex < this.notes.length && this.measureIndex < measures.length) {
+        voice = {
+          notes: []
+        };
+        measureVoices.push(voice);
+        startSelector = {
+          staff: startSelector.staff,
+          measure: startSelector.measure,
+          voice: voiceIndex,
+          tick: 0
+        };
+        this.measureIndex += 1;
+        startSelector.measure += 1;
+      } else {
+        break;
+      }
+    }
+    this._populatePost(voice, voiceIndex, measure, tickmap, startSelector.tick);
+    return measureVoices;
+  }
 
-		var voices = this._populateVoice(this.destination.voice);
-		var measureSel = JSON.parse(JSON.stringify(this.destination));
-		for (var i = 0; i < this.measures.length; ++i) {
-			var measure = this.measures[i];
-			var nvoice = voices[i];
-			var ser = measure.serialize();
+  static _countTicks(voice) {
+    let voiceTicks = 0;
+    voice.notes.forEach((note) => {
+      voiceTicks += note.tickCount;
+    });
+    return voiceTicks;
+  }
 
+  // ### _populateModifier
+  // If the destination contains a modifier start and end, copy and paste it.
+  _populateModifier(srcSelector, destSelector, staff) {
+    // If this is the ending point of a staff modifier, paste the modifier
+    const mod = this._findPlacedModifier(srcSelector);
+    if (mod) {
+      mod.endSelector = JSON.parse(JSON.stringify(destSelector));
+      mod.attrs.id = VF.Element.newID();
+      staff.addStaffModifier(mod);
+    }
+  }
+
+  // ### _populateNew
+  // Start copying the paste buffer into the destination by copying the notes and working out
+  // the measure overlap
+  _populateNew(voice, voiceIndex, measure, tickmap, startSelector) {
+    let currentDuration = tickmap.durationMap[startSelector.tick];
+    let i = 0;
+    let j = 0;
+    const totalDuration = tickmap.totalDuration;
+    while (currentDuration < totalDuration && this.noteIndex < this.notes.length) {
+      const selection = this.notes[this.noteIndex];
+      const note = selection.note;
+      this._populateModifier(selection.selector, startSelector, this.score.staves[selection.selector.staff]);
+      if (note.isTuplet) {
+        const tuplet = this.tupletNoteMap[note.tuplet.id];
+        const ntuplet = SmoTuplet.cloneTuplet(tuplet);
+        this.noteIndex += ntuplet.notes.length;
+        startSelector.tick += ntuplet.notes.length;
+        currentDuration += tuplet.tickCount;
+        for (i = 0; i < ntuplet.notes.length; ++i) {
+          const tn = ntuplet.notes[i];
+          tn.clef = measure.clef;
+          voice.notes.push(tn);
+        }
+        measure.tuplets.push(ntuplet);
+      } else if (currentDuration + note.tickCount <= totalDuration && this.remainder === 0) {
+        // The whole note fits in the measure, paste it.
+        const nnote = SmoNote.clone(note);
+        nnote.clef = measure.clef;
+        voice.notes.push(nnote);
+        currentDuration += note.tickCount;
+        this.noteIndex += 1;
+        startSelector.tick += 1;
+      } else if (this.remainder > 0) {
+        // This is a note that spilled over the last measure
+        const nnote = SmoNote.cloneWithDuration(note, {
+          numerator: this.remainder,
+          denominator: 1,
+          remainder: 0
+        });
+        nnote.clef = measure.clef;
+        voice.notes.push(nnote);
+        currentDuration += this.remainder;
+        this.remainder = 0;
+      } else {
+        // The note won't fit, so we split it in 2 and paste the remainder in the next measure.
+        // TODO:  tie the last note to this one.
+        const partial = totalDuration - currentDuration;
+        const dar = smoMusic.gcdMap(partial);
+        for (j = 0; j < dar.length; ++j) {
+          const ddd = dar[j];
+          const vnote = SmoNote.cloneWithDuration(note, {
+            numerator: ddd,
+            denominator: 1,
+            remainder: 0
+          });
+          voice.notes.push(vnote);
+        }
+        currentDuration += partial;
+
+        // Set the remaining length of the current note, this will be added to the
+        // next measure with the previous note's pitches
+        this.remainder = note.tickCount - partial;
+      }
+    }
+  }
+
+  // ### _populatePost
+  // When we paste, we replace entire measures.  Populate the last measure from the end of paste to the
+  // end of the measure with notes in the existing measure.
+  _populatePost(voice, voiceIndex, measure, tickmap) {
+    let startTicks = PasteBuffer._countTicks(voice);
+    let existingIndex = 0;
+    const totalDuration = tickmap.totalDuration;
+    while (startTicks < totalDuration) {
+      // Find the point in the music where the paste area runs out, or as close as we can get.
+      existingIndex = tickmap.durationMap.indexOf(startTicks);
+      existingIndex = (existingIndex < 0) ? measure.voices[voiceIndex].notes.length - 1 : existingIndex;
+      const note = measure.voices[voiceIndex].notes[existingIndex];
+      if (note.isTuplet) {
+        const tuplet = measure.getTupletForNote(note);
+        const ntuplet = SmoTuplet.cloneTuplet(tuplet);
+        startTicks += tuplet.tickCount;
+        voice.notes = voice.notes.concat(ntuplet.notes);
+        measure.tuplets.push(ntuplet);
+        measure.removeTupletForNote(note);
+      } else {
+        const ticksLeft = totalDuration - startTicks;
+        if (ticksLeft >= note.tickCount) {
+          startTicks += note.tickCount;
+          voice.notes.push(SmoNote.clone(note));
+        } else {
+          const remainder = totalDuration - startTicks;
+          voice.notes.push(SmoNote.cloneWithDuration(note, {
+            numerator: remainder,
+            denominator: 1,
+            remainder: 0
+          }));
+          startTicks = totalDuration;
+        }
+      }
+    }
+  }
+
+  _pasteVoiceSer(ser, vobj, voiceIx) {
+    const voices = [];
+    let ix = 0;
+    ser.voices.forEach((vc) => {
+      if (ix !== voiceIx) {
+        voices.push(vc);
+      } else {
+        voices.push(vobj);
+      }
+      ix += 1;
+    });
+    ser.voices = voices;
+  }
+
+  pasteSelections(score, selector) {
+    let i = 0;
+    this.destination = selector;
+    if (this.notes.length < 1) {
+      return;
+    }
+    const voices = this._populateVoice(this.destination.voice);
+    const measureSel = JSON.parse(JSON.stringify(this.destination));
+    const selectors = [];
+    for (i = 0; i < this.measures.length; ++i) {
+      const measure = this.measures[i];
+      const nvoice = voices[i];
+      const ser = measure.serialize();
       // deserialize column-mapped attributes, these are not normally serialized
       // since they are mapped to measures on a delta basis.
       SmoMeasure.columnMappedAttributes.forEach((attr) => {
@@ -13704,28 +14787,39 @@ class PasteBuffer {
           }
         }
       });
-			var vobj = {
-				notes: []
-			};
-			nvoice.notes.forEach((note) => {
-				vobj.notes.push(note.serialize());
-			});
-
-			// TODO: figure out how to do this with multiple voices
-      this._pasteVoiceSer(ser,vobj,this.destination.voice);
-			var nmeasure = SmoMeasure.deserialize(ser);
-      nmeasure.renderedBox = svgHelpers.smoBox(measure.renderedBox);
-      nmeasure.setBox(svgHelpers.smoBox(measure.logicalBox),'copypaste');
-      nmeasure.setX(measure.logicalBox.x,'copyPaste');
-      nmeasure.setWidth( measure.logicalBox.width,'copypaste');
-      nmeasure.setY(measure.logicalBox.y,'copypaste');
-      ['forceClef','forceKeySignature','forceTimeSignature','forceTempo'].forEach((flag) => {
-          nmeasure[flag] = measure[flag];
+      const vobj = {
+        notes: []
+      };
+      nvoice.notes.forEach((note) => {
+        vobj.notes.push(note.serialize());
       });
-			this.score.replaceMeasure(measureSel, nmeasure);
-			measureSel.measure += 1;
-		}
-	}
+
+      // TODO: figure out how to do this with multiple voices
+      this._pasteVoiceSer(ser, vobj, this.destination.voice);
+      const nmeasure = SmoMeasure.deserialize(ser);
+      // If this is the non-display buffer, don't try to reset the display rectangles.
+      // Is this even required since we are going to re-render?
+      if (typeof(measure.renderedBox) !== 'undefined') {
+        nmeasure.renderedBox = svgHelpers.smoBox(measure.renderedBox);
+        nmeasure.setBox(svgHelpers.smoBox(measure.logicalBox), 'copypaste');
+        nmeasure.setX(measure.logicalBox.x, 'copyPaste');
+        nmeasure.setWidth(measure.logicalBox.width, 'copypaste');
+        nmeasure.setY(measure.logicalBox.y, 'copypaste');
+      }
+      ['forceClef', 'forceKeySignature', 'forceTimeSignature', 'forceTempo'].forEach((flag) => {
+        nmeasure[flag] = measure[flag];
+      });
+      this.score.replaceMeasure(measureSel, nmeasure);
+      measureSel.measure += 1;
+      selectors.push(
+        { staff: selector.staff, measure: nmeasure.measureNumber.measureIndex }
+      );
+    }
+    this.replacementMeasures = [];
+    selectors.forEach((selector) => {
+      this.replacementMeasures.push(SmoSelection.measureSelection(this.score, selector.staff, selector.measure));
+    });
+  }
 }
 ;
 VF = Vex.Flow;
@@ -13984,16 +15078,16 @@ class smoTickIterator {
 // An operation works on a selection or set of selections to edit the music
 class SmoOperation {
 
-   static setForcePageBreak(score,selection,value) {
-       score.staves.forEach((staff) => {
-          staff.measures[selection.selector.measure].setForcePageBreak(value);
-       });
-   }
-   static setForceSystemBreak(score,selection,value) {
-       score.staves.forEach((staff) => {
-          staff.measures[selection.selector.measure].setForceSystemBreak(value);
-       });
-   }
+  static setForcePageBreak(score,selection,value) {
+    score.staves.forEach((staff) => {
+      staff.measures[selection.selector.measure].setForcePageBreak(value);
+    });
+  }
+  static setForceSystemBreak(score,selection,value) {
+    score.staves.forEach((staff) => {
+      staff.measures[selection.selector.measure].setForceSystemBreak(value);
+    });
+  }
 
   static setAutoJustify(score,selection,value) {
     score.staves.forEach((staff) => {
@@ -14017,8 +15111,8 @@ class SmoOperation {
   score.deleteMeasure(measureIndex);
   }
 
-  static addPickupMeasure(score,duration) {
-    score.addPickupMeasure(0,duration);
+  static addPickupMeasure(score, duration) {
+    score.addPickupMeasure(0, duration);
   }
 
   static addConnectorDown(score,selections,parameters) {
@@ -14040,127 +15134,134 @@ class SmoOperation {
     });
   }
 
-  static convertToPickupMeasure(score,duration) {
-      score.convertToPickupMeasure(0,duration);
+  static convertToPickupMeasure(score, duration) {
+    score.convertToPickupMeasure(0,duration);
   }
   static toggleBeamGroup(noteSelection) {
-  noteSelection.measure.setChanged();
-  noteSelection.note.endBeam = !(noteSelection.note.endBeam);
+    noteSelection.measure.setChanged();
+    noteSelection.note.endBeam = !(noteSelection.note.endBeam);
   }
 
-  static padMeasureLeft(selection,padding) {
+  static padMeasureLeft(selection, padding) {
     selection.measure.padLeft = padding;
     selection.measure.setChanged();
   }
 
-    static setActiveVoice(score,voiceIx) {
-        score.staves.forEach((staff) => {
-            staff.measures.forEach((measure) => {
-                measure.setActiveVoice(voiceIx);
-            });
-        });
-    }
+  static setActiveVoice(score, voiceIx) {
+    score.staves.forEach((staff) => {
+      staff.measures.forEach((measure) => {
+        measure.setActiveVoice(voiceIx);
+      });
+    });
+  }
 
-    static addRemoveMicrotone(ignore,selections,tone) {
-        selections.forEach((sel) => {
-            if (sel.note.tones.findIndex((tt) => tt.tone==tone.tone
-              && tt.pitch==tone.pitch) >= 0) {
-                  sel.note.removeMicrotone(tone);
-              } else {
-                  sel.note.addMicrotone(tone);
-              }
-              sel.measure.setChanged();
-        });
-    }
-
-    static moveStaffUpDown(score,selection,index) {
-        var index1 = selection.selector.staff;
-        var index2 = selection.selector.staff + index;
-        if (index2 < score.staves.length && index2 >= 0) {
-            score.swapStaves(index1,index2);
+  static addRemoveMicrotone(ignore, selections, tone) {
+    selections.forEach((sel) => {
+      if (sel.note.tones.findIndex((tt) => tt.tone === tone.tone
+        && tt.pitch === tone.pitch) >= 0) {
+          sel.note.removeMicrotone(tone);
+        } else {
+          sel.note.addMicrotone(tone);
         }
+        sel.measure.setChanged();
+    });
+  }
+
+  static moveStaffUpDown(score,selection,index) {
+    const index1 = selection.selector.staff;
+    const index2 = selection.selector.staff + index;
+    if (index2 < score.staves.length && index2 >= 0) {
+      score.swapStaves(index1,index2);
     }
+  }
 
-    static depopulateVoice(selection,voiceIx) {
-        var ix = 0;
-        var voices = [];
-        var measure = selection.measure;
-        measure.voices.forEach((voice) => {
-            if (measure.voices.length <2 || ix != voiceIx)  {
-                voices.push(voice);
-            }
-            ix += 1;
-        });
-        measure.voices = voices;
+  static depopulateVoice(selection,voiceIx) {
+    var ix = 0;
+    var voices = [];
+    var measure = selection.measure;
+    measure.voices.forEach((voice) => {
+      if (measure.voices.length <2 || ix != voiceIx)  {
+        voices.push(voice);
+      }
+      ix += 1;
+    });
+    measure.voices = voices;
 
-        if (measure.getActiveVoice() >= measure.voices.length) {
-            measure.setActiveVoice(0);
-        }
+    if (measure.getActiveVoice() >= measure.voices.length) {
+      measure.setActiveVoice(0);
     }
+  }
 
-    static populateVoice(selection,voiceIx) {
-        selection.measure.populateVoice(voiceIx);
-        selection.measure.setChanged();
-    }
+  static populateVoice(selection,voiceIx) {
+    selection.measure.populateVoice(voiceIx);
+  }
+  // ### setMeasureProportion
+  // Change the softmax factor.
+  static setMeasureProportion(selection, proportion) {
+    // TODO: there should be a setter for this
+    selection.measure.customProportion = proportion;
+  }
+  static setTimeSignature(score, selections, timeSignature) {
+    const selectors = [];
+    let nm = {};
+    let i = 0;
+    let ticks = 0;
+    selections.forEach((selection) => {
+      for (i = 0; i < score.staves.length; ++i) {
+        var measureSel = {
+          staff: i,
+          measure: selection.selector.measure
+        };
+        selectors.push(measureSel);
+      }
+    });
+    const tsTicks = smoMusic.timeSignatureToTicks(timeSignature);
 
-    static setTimeSignature(score,selections,timeSignature) {
-        var selectors = [];
-        selections.forEach((selection) => {
-            for (var i=0;i<score.staves.length;++i) {
-                var measureSel = {
-                    staff: i,
-                    measure: selection.selector.measure
-                };
-                selectors.push(measureSel);
-            }
-        });
-        var tsTicks = smoMusic.timeSignatureToTicks(timeSignature);
-
-        selectors.forEach((selector) => {
-            var params={};
-            var attrs = SmoMeasure.defaultAttributes.filter((aa) => aa != 'timeSignature');
-            var psel =  SmoSelection.measureSelection(score,selector.staff,selector.measure);
-            if (!psel['measure']) {
-                console.log('Error: score has changed in time signature change');
+    selectors.forEach((selector) => {
+      const params = {};
+      const voices = [];
+      let nm = {};
+      const attrs = SmoMeasure.defaultAttributes.filter((aa) => aa !== 'timeSignature');
+      const psel =  SmoSelection.measureSelection(score,selector.staff, selector.measure);
+      if (!psel['measure']) {
+        console.log('Error: score has changed in time signature change');
+      } else {
+        const proto = SmoSelection.measureSelection(score, selector.staff,selector.measure).measure;
+        smoSerialize.serializedMerge(attrs, proto, params);
+        params.timeSignature = timeSignature;
+        nm = SmoMeasure.getDefaultMeasure(params);
+        const spareNotes = SmoMeasure.getDefaultNotes(params);
+        ticks = 0;
+        proto.voices.forEach((voice) => {
+          const nvoice=[];
+          for (i = 0; i < voice.notes.length; ++i) {
+            const pnote = voice.notes[i];
+            const nnote = SmoNote.deserialize(pnote.serialize());
+            if (ticks + pnote.tickCount <= tsTicks) {
+              nnote.ticks = JSON.parse(JSON.stringify(pnote.ticks))
+              nvoice.push(nnote);
+              ticks += nnote.tickCount;
             } else {
-                var proto = SmoSelection.measureSelection(score,selector.staff,selector.measure).measure;
-                smoSerialize.serializedMerge(attrs,proto,params);
-                params.timeSignature = timeSignature;
-                var nm = SmoMeasure.getDefaultMeasure(params);
-                var spareNotes = SmoMeasure.getDefaultNotes(params);
-                var ticks = 0;
-                var voices = [];
-                proto.voices.forEach((voice) => {
-                    var nvoice=[];
-                    for (var i=0;i<voice.notes.length;++i) {
-                        var pnote = voice.notes[i];
-                        var nnote = SmoNote.deserialize(pnote.serialize());
-                        if (ticks + pnote.tickCount <= tsTicks) {
-                            nnote.ticks = JSON.parse(JSON.stringify(pnote.ticks))
-                            nvoice.push(nnote);
-                            ticks += nnote.tickCount;
-                        } else {
-                            var remain = (ticks + pnote.tickCount)-tsTicks;
-                            nnote.ticks = {numerator:remain,denominator:1,remainder:0};
-                            nvoice.push(nnote);
-                            ticks += nnote.tickCount;
-                        }
-                        if (ticks >= tsTicks) {
-                            break;
-                        }
-                    }
-                    if (ticks < tsTicks) {
-                        var adjNote = SmoNote.cloneWithDuration(nvoice[nvoice.length - 1],{numerator:tsTicks - ticks,denominator:1,remainder:0});
-                        nvoice.push(adjNote);
-                    }
-                    voices.push({notes:nvoice});
-
-                });
+              const remain = (ticks + pnote.tickCount)-tsTicks;
+              nnote.ticks = { numerator: remain, denominator: 1, remainder: 0};
+              nvoice.push(nnote);
+              ticks += nnote.tickCount;
             }
-            nm.voices=voices;
-            score.replaceMeasure(selector,nm);
+            if (ticks >= tsTicks) {
+              break;
+            }
+          }
+          if (ticks < tsTicks) {
+            const adjNote = SmoNote.cloneWithDuration(nvoice[nvoice.length - 1], { numerator: tsTicks - ticks, denominator: 1, remainder: 0 });
+            nvoice.push(adjNote);
+          }
+          voices.push({ notes: nvoice });
         });
-    }
+      }
+      nm.voices = voices;
+      score.replaceMeasure(selector, nm);
+    });
+  }
 
   static batchSelectionOperation(score, selections, operation) {
   var measureTicks = [];
@@ -14217,73 +15318,76 @@ class SmoOperation {
   // Replace the note with 2 notes of 1/2 duration, if possible
   // Works on tuplets also.
   static halveDuration(selection) {
-  var note = selection.note;
-  var measure = selection.measure;
-  var tuplet = measure.getTupletForNote(note);
-  var divisor = 2;
-  if (measure.numBeats % 3 === 0 && selection.note.tickCount === 6144) {
-  // special behavior, if this is dotted 1/4 in 6/8, split to 3
-  divisor = 3;
-  }
-  if (!tuplet) {
-  var nticks = note.tickCount / divisor;
-  if (!smoMusic.ticksToDuration[nticks]) {
-  return;
-  }
-  var actor = new SmoContractNoteActor({
-  startIndex: selection.selector.tick,
-  tickmap: measure.tickmapForVoice(selection.selector.voice),
-  newTicks: nticks
-  });
-  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-            smoBeamerFactory.applyBeams(measure);
-
-  } else {
-  var startIndex = measure.tupletIndex(tuplet) + tuplet.getIndexOfNote(note);
-  var actor = new SmoContractTupletActor({
-  changeIndex: startIndex,
-  measure: measure,
-                    voice:selection.selector.voice
-  });
-  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-  }
-  selection.measure.setChanged();
+    const note = selection.note;
+    let divisor = 2;
+    const measure = selection.measure;
+    const tuplet = measure.getTupletForNote(note);
+    if (measure.numBeats % 3 === 0 && selection.note.tickCount === 6144) {
+      // special behavior, if this is dotted 1/4 in 6/8, split to 3
+      divisor = 3;
+    }
+    if (!tuplet) {
+      const nticks = note.tickCount / divisor;
+      if (!smoMusic.ticksToDuration[nticks]) {
+        return;
+      }
+      var actor = new SmoContractNoteActor({
+        startIndex: selection.selector.tick,
+        tickmap: measure.tickmapForVoice(selection.selector.voice),
+        newTicks: nticks
+      });
+      SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
+      smoBeamerFactory.applyBeams(measure);
+    } else {
+      const startIndex = measure.tupletIndex(tuplet) + tuplet.getIndexOfNote(note);
+      const actor = new SmoContractTupletActor({
+        changeIndex: startIndex,
+        measure,
+        voice: selection.selector.voice
+      });
+      SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
+    }
+    selection.measure.setChanged();
   }
 
   // ## makeTuplet
   // ## Description
   // Makes a non-tuplet into a tuplet of equal value.
   static makeTuplet(selection, numNotes) {
-  var note = selection.note;
-  var measure = selection.measure;
+    const note = selection.note;
+    const measure = selection.measure;
 
-  if (measure.getTupletForNote(note))
-  return;
-  var nticks = note.tickCount;
+    if (measure.getTupletForNote(note)) {
+      return;
+    }
+    const nticks = note.tickCount;
 
-  var actor = new SmoMakeTupletActor({
-  index: selection.selector.tick,
-  totalTicks: nticks,
-  numNotes: numNotes,
-  selection: selection
-  });
-  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-  selection.measure.setChanged();
+    var actor = new SmoMakeTupletActor({
+      index: selection.selector.tick,
+      totalTicks: nticks,
+      numNotes: numNotes,
+      selection: selection
+    });
+    SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
+    selection.measure.setChanged();
 
-  return true;
+    return true;
   }
 
-    static removeStaffModifier(selection,modifier) {
-        selection.staff.removeStaffModifier(modifier);
-    }
+  static removeStaffModifier(selection, modifier) {
+    selection.staff.removeStaffModifier(modifier);
+  }
+  static addStaffModifier(selection, modifier) {
+    selection.staff.addStaffModifier(modifier);
+  }
 
   static makeRest(selection) {
-  selection.measure.setChanged();
-  selection.note.makeRest();
+    selection.measure.setChanged();
+    selection.note.makeRest();
   }
   static makeNote(selection) {
-  selection.measure.setChanged();
-  selection.note.makeNote();
+    selection.measure.setChanged();
+    selection.note.makeNote();
   }
   static setNoteHead(selections,noteHead) {
     selections.forEach((selection) => {
@@ -14291,13 +15395,12 @@ class SmoOperation {
     });
   }
 
-  static addGraceNote(selection,offset,g) {
-      selection.note.addGraceNote(offset,g);
-      selection.measure.changed= true;
+  static addGraceNote(selection, g, offset) {
+    selection.note.addGraceNote(g, offset);
   }
 
 
-  static removeGraceNote(selection,offset) {
+  static removeGraceNote(selection, offset) {
     selection.note.removeGraceNote(offset);
     selection.measure.changed= true;
   }
@@ -14321,18 +15424,29 @@ class SmoOperation {
     selection.measure.changed = true;
   }
 
-    static toggleGraceNoteCourtesy(selection,modifiers) {
-        if (!Array.isArray(modifiers)) {
-            modifiers=[modifiers];
-        }
-        modifiers.forEach((mm) => {
-            mm.modifiers.pitches.forEach((pitch)=> {
-                pitch.cautionary = pitch.cautionary ? false : true;
-            });
-        });
+  static toggleGraceNoteCourtesy(selection,modifiers) {
+    if (!Array.isArray(modifiers)) {
+      modifiers=[modifiers];
     }
+    modifiers.forEach((mm) => {
+      mm.modifiers.pitches.forEach((pitch)=> {
+        pitch.cautionary = pitch.cautionary ? false : true;
+      });
+    });
+  }
+  static toggleGraceNoteEnharmonic(selection, modifiers, offset) {
+    if (!Array.isArray(modifiers)) {
+      modifiers=[modifiers];
+    }
+    modifiers.forEach((mm) => {
+      var par = [];
+      mm.pitches.forEach((pitch)=> {
+        SmoNote.toggleEnharmonic(pitch);
+      });
+    });
+  }
 
-  static transposeGraceNotes(selection,modifiers,offset) {
+  static transposeGraceNotes(selection, modifiers, offset) {
     if (!Array.isArray(modifiers)) {
       modifiers=[modifiers];
     }
@@ -14429,60 +15543,67 @@ class SmoOperation {
   // Add the value of the last dot to the note, increasing length and
   // reducing the number of dots.
   static undotDuration(selection) {
-  var note = selection.note;
-  var measure = selection.measure;
-  var nticks = smoMusic.getPreviousDottedLevel(note.tickCount);
-  if (nticks == note.tickCount) {
-  return;
-  }
-  var actor = new SmoContractNoteActor({
-  startIndex: selection.selector.tick,
-  tickmap: measure.tickmapForVoice(selection.selector.voice),
-  newTicks: nticks
-  });
-  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-  selection.measure.setChanged();
-  return true;
+    const note = selection.note;
+    const measure = selection.measure;
+    const nticks = smoMusic.getPreviousDottedLevel(note.tickCount);
+    if (nticks == note.tickCount) {
+      return;
+    }
+    const actor = new SmoContractNoteActor({
+      startIndex: selection.selector.tick,
+      tickmap: measure.tickmapForVoice(selection.selector.voice),
+      newTicks: nticks
+    });
+    SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
+    selection.measure.setChanged();
+    return true;
   }
 
   // ## transpose
   // ## Description
   // Transpose the selected note, trying to find a key-signature friendly value
   static transpose(selection, offset) {
-  var measure = selection.measure;
-  var note = selection.note;
-  if (measure && note) {
-      var pitchar = [];
-      var pitchIx = 0;
-      var voiceIx = 0;
-      var accidentalMap = {};
-      var activeTm = measure.tickmapForVoice(measure.getActiveVoice());
-      var targetDuration = activeTm.durationMap[selection.selector.tick];
+    let pitchIx = 0;
+    let voiceIx = 0;
+    let trans = false;
+    let transInt = 0;
+    let i = 0;
+    if (typeof(selection.selector.pitches) === 'undefined') {
+      selection.selector.pitches = [];
+    }
+    const measure = selection.measure;
+    const note = selection.note;
+    if (measure && note) {
+      const pitchar = [];
+      pitchIx = 0;
+      voiceIx = 0;
+      const accidentalMap = {};
+      const activeTm = measure.tickmapForVoice(measure.getActiveVoice());
+      const targetDuration = activeTm.durationMap[selection.selector.tick];
 
       note.pitches.forEach((opitch) => {
         // Only translate selected pitches
-        var shouldXpose = selection.selector.pitches.length == 0 ||
+        const shouldXpose = selection.selector.pitches.length === 0 ||
           selection.selector.pitches.indexOf(pitchIx) >= 0;
 
         // Translate the pitch, ignoring enharmonic
-        var trans =  shouldXpose ? smoMusic.getKeyOffset(opitch,offset)
+        trans =  shouldXpose ? smoMusic.getKeyOffset(opitch, offset)
           : JSON.parse(JSON.stringify(opitch));
-        trans = smoMusic.getEnharmonicInKey(trans,measure.keySignature);
+        trans = smoMusic.getEnharmonicInKey(trans, measure.keySignature);
         if (!trans.accidental) {
           trans.accidental = 'n';
         }
-        var transInt = smoMusic.smoPitchToInt(trans);
+        transInt = smoMusic.smoPitchToInt(trans);
 
         // Look through the earlier notes in the measure and try
         // to find an equivalent note, and convert it if it exists.
-        var voiceIx = 0;
         measure.voices.forEach((voice) => {
-          for (var i = 0;i<selection.selector.tick
-            && i < voice.notes.length;++i)  {
-            var prevNote = voice.notes[i];
+          for (i = 0; i<selection.selector.tick
+            && i < voice.notes.length; ++i)  {
+            const prevNote = voice.notes[i];
             prevNote.pitches.forEach((prevPitch) => {
-                var prevInt = smoMusic.smoPitchToInt(prevPitch);
-                if (prevInt == transInt) {
+                const prevInt = smoMusic.smoPitchToInt(prevPitch);
+                if (prevInt === transInt) {
                   trans = JSON.parse(JSON.stringify(prevPitch));
                 }
              });
@@ -14492,10 +15613,9 @@ class SmoOperation {
           pitchIx += 1;
       });
       note.pitches = pitchar;
-  measure.setChanged();
-  return true;
-  }
-  return false;
+      return true;
+    }
+    return false;
   }
 
   // ## setPitch
@@ -14504,16 +15624,16 @@ class SmoOperation {
   // the letter value appropriate for the key signature is used, e.g. c in A major becomes
   // c#
   static setPitch(selection, pitches) {
-  var measure = selection.measure;
-  var note = selection.note;
+    var measure = selection.measure;
+    var note = selection.note;
     selection.note.makeNote();
-  measure.setChanged();
-  // TODO allow hint for octave
-  var octave = note.pitches[0].octave;
-  note.pitches = [];
-  if (!Array.isArray(pitches)) {
-  pitches = [pitches];
-  }
+    measure.setChanged();
+    // TODO allow hint for octave
+    var octave = note.pitches[0].octave;
+    note.pitches = [];
+    if (!Array.isArray(pitches)) {
+      pitches = [pitches];
+    }
     var earlierAccidental = (pitch) => {
       selection.measure.voices.forEach((voice) => {
         for (var i=0;i<selection.selector.tick
@@ -14530,64 +15650,62 @@ class SmoOperation {
         }
       });
     }
-  pitches.forEach((pitch) => {
-  var letter = pitch;
-  if (typeof(pitch) === 'string') {
-  var letter = smoMusic.getKeySignatureKey(pitch[0], measure.keySignature);
-  pitch = {
-  letter: letter[0],
-  accidental: letter.length > 1 ? letter.substring(1) : '',
-  octave: octave
-  };
-  }
-
+    pitches.forEach((pitch) => {
+      var letter = pitch;
+      if (typeof(pitch) === 'string') {
+        var letter = smoMusic.getKeySignatureKey(pitch[0], measure.keySignature);
+        pitch = {
+        letter: letter[0],
+        accidental: letter.length > 1 ? letter.substring(1) : '',
+        octave: octave
+        };
+      }
       earlierAccidental(pitch);
-  note.pitches.push(pitch);
-  });
-  return true;
+      note.pitches.push(pitch);
+    });
+    return true;
   }
 
   // ## addPitch
   // add a pitch to a note chord, avoiding duplicates.
   static addPitch(selection, pitches) {
-  var toAdd = [];
-  selection.note.makeNote();
-  pitches.forEach((pitch) => {
-  var found = false;
-  toAdd.forEach((np) => {
-  if (np.accidental === pitch.accidental && np.letter === pitch.letter && np.octave === pitch.octave) {
-  found = true;
-  }
-  });
-  if (!found) {
-  toAdd.push(pitch);
-  }
-  });
-  toAdd.sort(function (a, b) {
-  return smoMusic.smoPitchToInt(a) -
-  smoMusic.smoPitchToInt(b);
-  });
-  selection.note.pitches = JSON.parse(JSON.stringify(toAdd));
-  selection.measure.setChanged();
+    var toAdd = [];
+    selection.note.makeNote();
+    pitches.forEach((pitch) => {
+      var found = false;
+      toAdd.forEach((np) => {
+        if (np.accidental === pitch.accidental && np.letter === pitch.letter && np.octave === pitch.octave) {
+          found = true;
+        }
+      });
+    if (!found) {
+      toAdd.push(pitch);
+    }
+    });
+    toAdd.sort(function (a, b) {
+      return smoMusic.smoPitchToInt(a) -
+      smoMusic.smoPitchToInt(b);
+    });
+    selection.note.pitches = JSON.parse(JSON.stringify(toAdd));
+    selection.measure.setChanged();
   }
 
   static toggleCourtesyAccidental(selection) {
-  var toBe = false;
-  var i = 0;
-  if (!selection.selector['pitches'] || selection.selector.pitches.length === 0) {
-  var ps = [];
-  selection.note.pitches.forEach((pitch) => {
-  var p = JSON.parse(JSON.stringify(pitch));
-  ps.push(p);
-  p.cautionary = !(pitch.cautionary);
-  });
-  selection.note.pitches = ps;
-  } else {
-  toBe = !(selection.note.pitches[selection.selector.pitches[0]].cautionary);
-  }
-
-  SmoOperation.courtesyAccidental(selection, toBe);
-  selection.measure.setChanged();
+    var toBe = false;
+    var i = 0;
+    if (!selection.selector['pitches'] || selection.selector.pitches.length === 0) {
+      var ps = [];
+      selection.note.pitches.forEach((pitch) => {
+        var p = JSON.parse(JSON.stringify(pitch));
+        ps.push(p);
+        p.cautionary = !(pitch.cautionary);
+      });
+      selection.note.pitches = ps;
+    } else {
+      toBe = !(selection.note.pitches[selection.selector.pitches[0]].cautionary);
+    }
+    SmoOperation.courtesyAccidental(selection, toBe);
+    selection.measure.setChanged();
   }
 
   static courtesyAccidental(pitchSelection, toBe) {
@@ -14602,20 +15720,15 @@ class SmoOperation {
       pitchSelection.selector.pitches.push(0);
     }
     var pitch = pitchSelection.note.pitches[pitchSelection.selector.pitches[0]];
-    var lastLetter = pitch.letter;
-    var vexPitch = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch));
-    vexPitch = smoMusic.getEnharmonic(vexPitch);
-
-    pitch.letter = vexPitch[0];
-    pitch.accidental = vexPitch.length > 1 ?
-    vexPitch.substring(1, vexPitch.length) : 'n';
-    pitch.octave += smoMusic.letterChangedOctave(lastLetter, pitch.letter);
-    pitchSelection.measure.setChanged();
+    SmoNote.toggleEnharmonic(pitch);
   }
 
   static addDynamic(selection, dynamic) {
     selection.note.addModifier(dynamic);
-    selection.measure.setChanged();
+  }
+
+  static removeDynamic(selection, dynamic) {
+    selection.note.removeModifier(dynamic);
   }
 
   static beamSelections(selections) {
@@ -14641,51 +15754,61 @@ class SmoOperation {
     }
   }
 
-    static toggleBeamDirection(selections) {
-        selections[0].note.toggleFlagState();
-        selections.forEach((selection) => {
-            selection.note.flagState = selections[0].note.flagState;
-            selection.measure.setChanged()
-        });
-    }
+  static toggleBeamDirection(selections) {
+    selections[0].note.toggleFlagState();
+    selections.forEach((selection) => {
+      selection.note.flagState = selections[0].note.flagState;
+      selection.measure.setChanged()
+    });
+  }
 
-    static toggleOrnament(selection,ornament) {
-  selection.note.toggleOrnament(ornament);
-  selection.measure.setChanged();
-    }
+  static toggleOrnament(selection,ornament) {
+    selection.note.toggleOrnament(ornament);
+    selection.measure.setChanged();
+  }
 
   static toggleArticulation(selection, articulation) {
-  selection.note.toggleArticulation(articulation);
-  selection.measure.setChanged();
+    selection.note.toggleArticulation(articulation);
+    selection.measure.setChanged();
   }
 
   static addEnding(score, parameters) {
+    let m = 0;
+    let s = 0;
     var startMeasure = parameters.startBar;
     var endMeasure = parameters.endBar;
-    var s = 0;
 
     // Ending ID ties all the instances of an ending across staves
-    parameters.endingId=VF.Element.newID();
+    parameters.endingId = VF.Element.newID();
     score.staves.forEach((staff) => {
-      var m = 0;
+      m = 0;
       staff.measures.forEach((measure) => {
         if (m === startMeasure) {
-          var pp = JSON.parse(JSON.stringify(parameters));
+          const pp = JSON.parse(JSON.stringify(parameters));
           pp.startSelector = {
-          staff: s,
-          measure: startMeasure
+            staff: s,
+            measure: startMeasure
           };
           pp.endSelector = {
-          staff: s,
-          measure: endMeasure
+            staff: s,
+            measure: endMeasure
           };
-          var ending = new SmoVolta(pp);
+          const ending = new SmoVolta(pp);
           measure.addNthEnding(ending);
         }
         measure.setChanged();
         m += 1;
       });
       s += 1;
+    });
+  }
+
+  static removeEnding(score, ending) {
+    let i = 0;
+    score.staves.forEach((staff) => {
+      for (i = ending.startSelector.measure; i < ending.endSelector.measure; ++i) {
+        staff.measures[i].removeNthEnding(ending.number);
+      }
     });
   }
 
@@ -14705,141 +15828,140 @@ class SmoOperation {
   }
 
   static addMeasureText(score,selection,measureText) {
-        var current = selection.measure.getMeasureText();
-        // TODO: should we allow multiples per position
-        current.forEach((mod) => {
-            selection.measure.removeMeasureText(mod.attrs.id);
-        });
-  selection.measure.addMeasureText(measureText);
+    const current = selection.measure.getMeasureText();
+    // TODO: should we allow multiples per position
+    current.forEach((mod) => {
+        selection.measure.removeMeasureText(mod.attrs.id);
+    });
+    selection.measure.addMeasureText(measureText);
   }
 
   static removeMeasureText(score,selection,mt) {
-  selection.measure.removeMeasureText(mt.attrs.id);
+    selection.measure.removeMeasureText(mt.attrs.id);
   }
 
-  static addSystemText(score,selection,measureText) {
-  var mm = selection.selector.measure;
-  score.staves.forEach((staff) => {
-  var mt = new SmoMeasureText(measureText.serialize());
-  staff.measures[mm].addMeasureText(mt);
-  });
+  static addSystemText(score, selection, measureText) {
+    const mm = selection.selector.measure;
+    score.staves.forEach((staff) => {
+      const mt = new SmoMeasureText(measureText.serialize());
+      staff.measures[mm].addMeasureText(mt);
+    });
   }
 
-  static addRehearsalMark(score,selection,rehearsalMark) {
-  var mm = selection.selector.measure;
-  score.staves.forEach((staff) => {
-  var mt = new SmoRehearsalMark(rehearsalMark.serialize());
-            staff.addRehearsalMark(selection.selector.measure,mt);
-  });
+  static removeRehearsalMark(score, selection, rehearsalMark) {
+    score.staves.forEach((staff) => {
+      staff.removeRehearsalMark(selection.selector.measure);
+    });
   }
 
-    static addLyric(score,selection,lyric) {
-        selection.note.addLyric(lyric);
-    }
+  static addRehearsalMark(score, selection, rehearsalMark) {
+    const mm = selection.selector.measure;
+    score.staves.forEach((staff) => {
+      const mt = new SmoRehearsalMark(rehearsalMark.serialize());
+      staff.addRehearsalMark(selection.selector.measure, mt);
+    });
+  }
 
-    static removeLyric(score,selection,lyric) {
-        selection.note.removeLyric(lyric);
-    }
+  static addLyric(score, selection, lyric) {
+    selection.note.addLyric(lyric);
+  }
 
-    static addTempo(score,selection,tempo) {
-  score.staves.forEach((staff) => {
-            staff.addTempo(tempo,selection.selector.measure);
-  });
-    }
+  static removeLyric(score, selection, lyric) {
+    selection.note.removeLyric(lyric);
+  }
 
-    static removeTempo(score,selection) {
-  score.staves.forEach((staff) => {
-            staff.removeTempo();
-  });
-    }
+  static addTempo(score, selection, tempo) {
+    score.staves.forEach((staff) => {
+      staff.addTempo(tempo,selection.selector.measure);
+    });
+  }
 
-
-    static removeRehearsalMark(score,selection,rehearsalMark) {
-  score.staves.forEach((staff) => {
-            staff.removeRehearsalMark(selection.selector.measure);
-  });
+  static removeTempo(score, selection) {
+    score.staves.forEach((staff) => {
+      staff.removeTempo();
+    });
   }
 
   static setMeasureBarline(score, selection, barline) {
-  var mm = selection.selector.measure;
-  var ix = 0;
-  score.staves.forEach((staff) => {
-  var s2 = SmoSelection.measureSelection(score, ix, mm);
-  s2.measure.setBarline(barline);
-  s2.measure.setChanged();
-  ix += 1;
-  });
+    var mm = selection.selector.measure;
+    var ix = 0;
+    score.staves.forEach((staff) => {
+    var s2 = SmoSelection.measureSelection(score, ix, mm);
+    s2.measure.setBarline(barline);
+    s2.measure.setChanged();
+    ix += 1;
+    });
   }
 
   static setRepeatSymbol(score, selection, sym) {
-  var mm = selection.selector.measure;
-  var ix = 0;
-  score.staves.forEach((staff) => {
-  var s2 = SmoSelection.measureSelection(score, ix, mm);
-  s2.measure.setRepeatSymbol(sym);
-  s2.measure.setChanged();
-  ix += 1;
-  });
+    var mm = selection.selector.measure;
+    var ix = 0;
+    score.staves.forEach((staff) => {
+    var s2 = SmoSelection.measureSelection(score, ix, mm);
+    s2.measure.setRepeatSymbol(sym);
+    s2.measure.setChanged();
+    ix += 1;
+    });
   }
 
   // ## interval
   // Add a pitch at the specified interval to the chord in the selection.
   static interval(selection, interval) {
-  var measure = selection.measure;
-  var note = selection.note;
-  selection.measure.setChanged();
+    const measure = selection.measure;
+    const note = selection.note;
+    let pitch = {};
 
-  // TODO: figure out which pitch is selected
-  var pitch = note.pitches[0];
-  if (interval > 0) {
-  pitch = note.pitches[note.pitches.length - 1];
-  }
-  var pitch = smoMusic.getIntervalInKey(pitch, measure.keySignature, interval);
-  if (pitch) {
-  note.pitches.push(pitch);
-  note.pitches.sort((x, y) => {
-  return smoMusic.smoPitchToInt(x) - smoMusic.smoPitchToInt(y);
-  });
-  return true;
-  }
-  return false;
+    // TODO: figure out which pitch is selected
+    pitch = note.pitches[0];
+    if (interval > 0) {
+      pitch = note.pitches[note.pitches.length - 1];
+    }
+    pitch = smoMusic.getIntervalInKey(pitch, measure.keySignature, interval);
+    if (pitch) {
+      note.pitches.push(pitch);
+      note.pitches.sort((x, y) =>
+        smoMusic.smoPitchToInt(x) - smoMusic.smoPitchToInt(y)
+      );
+      return true;
+    }
+    return false;
   }
 
   static crescendo(fromSelection, toSelection) {
-  var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
-  var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
-  var modifier = new SmoStaffHairpin({
-  startSelector: fromSelector,
-  endSelector: toSelector,
-  hairpinType: SmoStaffHairpin.types.CRESCENDO,
-  position: SmoStaffHairpin.positions.BELOW
-  });
-  fromSelection.staff.addStaffModifier(modifier);
+    const fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+    const toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+    const modifier = new SmoStaffHairpin({
+      startSelector: fromSelector,
+      endSelector: toSelector,
+      hairpinType: SmoStaffHairpin.types.CRESCENDO,
+      position: SmoStaffHairpin.positions.BELOW
+    });
+    fromSelection.staff.addStaffModifier(modifier);
   }
 
   static decrescendo(fromSelection, toSelection) {
-  var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
-  var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
-  var modifier = new SmoStaffHairpin({
-  startSelector: fromSelector,
-  endSelector: toSelector,
-  hairpinType: SmoStaffHairpin.types.DECRESCENDO,
-  position: SmoStaffHairpin.positions.BELOW
-  });
-  fromSelection.staff.addStaffModifier(modifier);
+    const fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+    const toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+    const modifier = new SmoStaffHairpin({
+      startSelector: fromSelector,
+      endSelector: toSelector,
+      hairpinType: SmoStaffHairpin.types.DECRESCENDO,
+      position: SmoStaffHairpin.positions.BELOW
+    });
+    fromSelection.staff.addStaffModifier(modifier);
   }
 
   static slur(fromSelection, toSelection) {
-  var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
-  var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
-  var modifier = new SmoSlur({
-  startSelector: fromSelector,
-  endSelector: toSelector,
-  position: SmoStaffHairpin.positions.BELOW
-  });
-  fromSelection.staff.addStaffModifier(modifier);
-  fromSelection.measure.setChanged();
-  toSelection.measure.setChanged();
+    var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
+    var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
+    var modifier = new SmoSlur({
+      startSelector: fromSelector,
+      endSelector: toSelector,
+      position: SmoStaffHairpin.positions.BELOW
+    });
+    fromSelection.staff.addStaffModifier(modifier);
+    fromSelection.measure.setChanged();
+    toSelection.measure.setChanged();
   }
 
   static addStaff(score, parameters) {
@@ -14880,33 +16002,34 @@ class SmoOperation {
       }
     });
   }
-  static changeInstrument(score, instrument, selections) {
-    var measureHash = {};
+  static changeInstrument(instrument, selections) {
+    const measureHash = {};
+    let newKey = '';
     selections.forEach((selection) => {
       if (!measureHash[selection.selector.measure]) {
         measureHash[selection.selector.measure] = 1;
-        var netOffset = instrument.keyOffset - selection.measure.transposeIndex;
-        var newKey = smoMusic.pitchToVexKey(smoMusic.smoIntToPitch(
+        const netOffset = instrument.keyOffset - selection.measure.transposeIndex;
+        newKey = smoMusic.pitchToVexKey(smoMusic.smoIntToPitch(
           smoMusic.smoPitchToInt(
             smoMusic.vexToSmoPitch(selection.measure.keySignature)) + netOffset));
         newKey = smoMusic.toValidKeySignature(newKey);
         if (newKey.length > 1 && newKey[1] === 'n') {
           newKey = newKey[0];
         }
-        newKey = newKey[0].toUpperCase() + newKey.substr(1,newKey.length)
+        newKey = newKey[0].toUpperCase() + newKey.substr(1, newKey.length)
         selection.measure.keySignature = newKey;
         selection.measure.clef = instrument.clef;
         selection.measure.transposeIndex = instrument.keyOffset;
         selection.measure.voices.forEach((voice) => {
           voice.notes.forEach((note) => {
             if (note.noteType === 'n') {
-              var pitches = [];
+              const pitches = [];
               note.pitches.forEach((pitch) => {
-                var pint = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(pitch) + netOffset);
-                pitches.push(JSON.parse(JSON.stringify(smoMusic.getEnharmonicInKey(pint,newKey))));
+                const pint = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(pitch) + netOffset);
+                pitches.push(JSON.parse(JSON.stringify(smoMusic.getEnharmonicInKey(pint, newKey))));
               });
               note.pitches = pitches;
-              SmoOperation.transposeChords(note,netOffset,newKey);
+              SmoOperation.transposeChords(note, netOffset, newKey);
             }
             note.clef = instrument.clef;
           });
@@ -14916,7 +16039,7 @@ class SmoOperation {
   }
 
   static addMeasure(score, systemIndex, nmeasure) {
-  score.addMeasure(systemIndex, nmeasure);
+    score.addMeasure(systemIndex, nmeasure);
   }
 }
 ;/////////////////
@@ -14930,84 +16053,85 @@ class SmoOperation {
 // There are 2 parts to a selection: the actual musical bits that are selected, and the
 // indices that define what was selected.  This is the latter.  The actual object does not
 // have any methods so there is no constructor.
+// eslint-disable-next-line no-unused-vars
 class SmoSelector {
-	// TODO:  tick in selector s/b tickIndex
-	static sameNote(sel1, sel2) {
-		return (sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.voice == sel2.voice
-			 && sel1.tick == sel2.tick);
-	}
-	static sameMeasure(sel1, sel2) {
-		return (sel1.staff == sel2.staff && sel1.measure == sel2.measure);
-	}
+  // TODO:  tick in selector s/b tickIndex
+  static sameNote(sel1, sel2) {
+    return (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.voice === sel2.voice
+       && sel1.tick === sel2.tick);
+  }
+  static sameMeasure(sel1, sel2) {
+    return (sel1.staff === sel2.staff && sel1.measure === sel2.measure);
+  }
 
-	static sameStaff(sel1, sel2) {
-		return sel1.staff === sel2.staff;
-	}
+  static sameStaff(sel1, sel2) {
+    return sel1.staff === sel2.staff;
+  }
 
-	// ## return true if sel1 > sel2.
-	static gt(sel1, sel2) {
-		// Note: voice is not considered b/c it's more of a vertical component
-		return sel1.staff > sel2.staff ||
-		(sel1.staff == sel2.staff && sel1.measure > sel2.measure) ||
-		(sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.tick > sel2.tick);
-	}
+  // ## return true if sel1 > sel2.
+  static gt(sel1, sel2) {
+    // Note: voice is not considered b/c it's more of a vertical component
+    return sel1.staff > sel2.staff ||
+      (sel1.staff === sel2.staff && sel1.measure > sel2.measure) ||
+      (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.tick > sel2.tick);
+  }
 
-	static eq(sel1, sel2) {
-		return (sel1.staff == sel2.staff && sel1.measure == sel2.measure && sel1.tick == sel2.tick);
-	}
-	static neq(sel1,sel2) {
-		return !(SmoSelector.eq(sel1,sel2));
-	}
+  static eq(sel1, sel2) {
+    return (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.tick === sel2.tick);
+  }
+  static neq(sel1, sel2) {
+    return !(SmoSelector.eq(sel1, sel2));
+  }
 
-	static lt(sel1, sel2) {
-		return SmoSelector.gt(sel2, sel1);
-	}
+  static lt(sel1, sel2) {
+    return SmoSelector.gt(sel2, sel1);
+  }
 
-	static gteq(sel1, sel2) {
-		return SmoSelector.gt(sel1, sel2) || SmoSelector.eq(sel1, sel2);
-	}
-	static lteq(sel1, sel2) {
-		return SmoSelector.lt(sel1, sel2) || SmoSelector.eq(sel1, sel2);
-	}
+  static gteq(sel1, sel2) {
+    return SmoSelector.gt(sel1, sel2) || SmoSelector.eq(sel1, sel2);
+  }
+  static lteq(sel1, sel2) {
+    return SmoSelector.lt(sel1, sel2) || SmoSelector.eq(sel1, sel2);
+  }
 
-    // ### getNoteKey
-    // Get a key useful for a hash map of notes.
-    static getNoteKey(selector) {
-        return ''+selector.staff + '-' +selector.measure  + '-' + selector.voice + '-' + selector.tick;
-    }
+  // ### getNoteKey
+  // Get a key useful for a hash map of notes.
+  static getNoteKey(selector) {
+    return '' + selector.staff + '-' + selector.measure + '-' + selector.voice + '-' + selector.tick;
+  }
 
-    static getMeasureKey(selector) {
-        return ''+selector.staff + '-' +selector.measure;
-    }
+  static getMeasureKey(selector) {
+    return '' + selector.staff + '-' + selector.measure;
+  }
 
-	// ## applyOffset
-	// ### Description:
-	// offset 'selector' the difference between src and target, return the result
-	static applyOffset(src, target, selector) {
-		var rv = JSON.parse(JSON.stringify(selector));
-		rv.staff += target.staff - src.staff;
-		rv.measure += target.measure - src.measure;
-		rv.voice += target.voice - src.voice;
-		rv.note += target.staff - src.staff;
-		return rv;
-	}
+  // ## applyOffset
+  // ### Description:
+  // offset 'selector' the difference between src and target, return the result
+  static applyOffset(src, target, selector) {
+    const rv = JSON.parse(JSON.stringify(selector));
+    rv.staff += target.staff - src.staff;
+    rv.measure += target.measure - src.measure;
+    rv.voice += target.voice - src.voice;
+    rv.note += target.staff - src.staff;
+    return rv;
+  }
 
-	// return true if testSel is contained in the selStart to selEnd range.
-	static contains(testSel, selStart, selEnd) {
-		var geStart =
-			selStart.measure < testSel.measure ||
-			(selStart.measure === testSel.measure && selStart.tick <= testSel.tick);
-		var leEnd =
-			selEnd.measure > testSel.measure ||
-			(selEnd.measure === testSel.measure && testSel.tick <= selEnd.tick);
+  // return true if testSel is contained in the selStart to selEnd range.
+  static contains(testSel, selStart, selEnd) {
+    const geStart =
+      selStart.measure < testSel.measure ||
+      (selStart.measure === testSel.measure && selStart.tick <= testSel.tick);
+    const leEnd =
+      selEnd.measure > testSel.measure ||
+      (selEnd.measure === testSel.measure && testSel.tick <= selEnd.tick);
 
-		return geStart && leEnd;
-	}
+    return geStart && leEnd;
+  }
 
-	// create a hashmap key for a single note, used to organize modifiers
-	static selectorNoteKey(selector) {
-		return 'staff-' + selector.staff + '-measure-' + selector.measure + '-voice-' + selector.voice + '-tick-' + selector.tick;
-	}
+  // create a hashmap key for a single note, used to organize modifiers
+  static selectorNoteKey(selector) {
+    return 'staff-' + selector.staff + '-measure-' + selector.measure + '-voice-' + selector.voice + '-tick-' + selector.tick;
+  }
 }
 
 // ## SmoSelection
@@ -15016,57 +16140,57 @@ class SmoSelector {
 // The staff and measure are always a part of the selection, and possible a voice and note,
 // and one or more pitches.  Selections can also be made from the UI by clicking on an element
 // or navigating to an element with the keyboard.
+// eslint-disable-next-line no-unused-vars
 class SmoSelection {
+  // ### measureSelection
+  // A selection that does not contain a specific note
+  static measureSelection(score, staffIndex, measureIndex) {
+    staffIndex = staffIndex !== null ? staffIndex : score.activeStaff;
+    const selector = {
+      staff: staffIndex,
+      measure: measureIndex
+    };
+    if (score.staves.length <= staffIndex) {
+      return null;
+    }
+    const staff = score.staves[staffIndex];
+    if (staff.measures.length <= measureIndex) {
+      return null;
+    }
+    const measure = staff.measures[measureIndex];
 
-	// ### measureSelection
-	// A selection that does not contain a specific note
-	static measureSelection(score, staffIndex, measureIndex) {
-		staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
-		var selector = {
-			staff: staffIndex,
-			measure: measureIndex
-		};
-		if (score.staves.length <= staffIndex) {
-			return null;
-		}
-		var staff = score.staves[staffIndex];
-		if (staff.measures.length <= measureIndex) {
-			return null;
-		}
-		var measure = staff.measures[measureIndex];
+    return new SmoSelection({
+      selector,
+      _staff: staff,
+      _measure: measure,
+      type: 'measure'
+    });
+  }
 
-		return new SmoSelection
-		({
-			selector: selector,
-			_staff: staff,
-			_measure: measure,
-			type: 'measure'
-		});
-	}
-
-  static measuresInColumn(score,staffIndex) {
-    var rv = [];
-    for (var i = 0;i<score.staves.length;++i) {
-      rv.push(SmoSelection.measureSelection(score,i,staffIndex));
+  static measuresInColumn(score, staffIndex) {
+    let i = 0;
+    const rv = [];
+    for (i = 0; i < score.staves.length; ++i) {
+      rv.push(SmoSelection.measureSelection(score, i, staffIndex));
     }
     return rv;
   }
 
-	static noteFromSelection(score, selection) {
-		return SmoSelection(score, selection.staffIndex, selection.measureIndex, selection.voiceIndex, selection.tickIndex);
-	}
+  static noteFromSelection(score, selection) {
+    return SmoSelection(score, selection.staffIndex, selection.measureIndex, selection.voiceIndex, selection.tickIndex);
+  }
 
-	// ### noteSelection
-	// a selection that specifies a note in the score
-	static noteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
-		staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
-		measureIndex = measureIndex ? measureIndex : 0;
-		voiceIndex = voiceIndex ? voiceIndex : 0;
-		var staff = score.staves[staffIndex];
+  // ### noteSelection
+  // a selection that specifies a note in the score
+  static noteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
+    staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
+    measureIndex = typeof(measureIndex) !== 'undefined' ? measureIndex : 0;
+    voiceIndex = typeof(voiceIndex) !== 'undefined' ? voiceIndex : 0;
+    const staff = score.staves[staffIndex];
     if (!staff) {
       return null;
     }
-		var measure = staff.measures[measureIndex];
+    const measure = staff.measures[measureIndex];
     if (!measure) {
       return null;
     }
@@ -15076,114 +16200,118 @@ class SmoSelection {
     if (measure.voices[voiceIndex].notes.length <= tickIndex) {
       return null;
     }
-		var note = measure.voices[voiceIndex].notes[tickIndex];
-		var selector = {
-			staff: staffIndex,
-			measure: measureIndex,
-			voice: voiceIndex,
-			tick: tickIndex
-		};
-		return new SmoSelection({
-			selector: selector,
-			_staff: staff,
-			_measure: measure,
-			_note: note,
-			_pitches: [],
-			type: 'note'
-		});
-	}
-
-  static noteFromSelector(score,selector) {
-    return SmoSelection.noteSelection(score,
-      selector.staff,selector.measure,selector.voice,selector.tick);
+    const note = measure.voices[voiceIndex].notes[tickIndex];
+    const selector = {
+      staff: staffIndex,
+      measure: measureIndex,
+      voice: voiceIndex,
+      tick: tickIndex
+    };
+    return new SmoSelection({
+      selector,
+      _staff: staff,
+      _measure: measure,
+      _note: note,
+      _pitches: [],
+      type: 'note'
+    });
   }
 
-	// ### renderedNoteSelection
-	// this is a special selection that we associated with all he rendered notes, so that we
-	// can map from a place in the display to a place in the score.
-	static renderedNoteSelection(score, nel, box) {
-		var elementId = nel.getAttribute('id');
-		for (var i = 0; i < score.staves.length; ++i) {
-			var staff = score.staves[i];
-			for (var j = 0; j < staff.measures.length; ++j) {
-				var measure = staff.measures[j];
-				for (var k = 0; k < measure.voices.length; ++k) {
-					var voice = measure.voices[k];
-					for (var m = 0; m < voice.notes.length; ++m) {
-						var note = voice.notes[m];
-						if (note.renderId === elementId) {
-							var selector = {
-								staff: i,
-								measure: j,
-								voice: k,
-								tick: m,
-								pitches: []
-							};
-							// var box = document.getElementById(nel.id).getBBox();
-							var rv = new SmoSelection({
-									selector: selector,
-									_staff: staff,
-									_measure: measure,
-									_note: note,
-									_pitches: [],
-									box: box,
-									type: 'rendered'
-								});
+  static noteFromSelector(score, selector) {
+    return SmoSelection.noteSelection(score,
+      selector.staff, selector.measure, selector.voice, selector.tick);
+  }
 
-							return rv;
-						}
-					}
-				}
-			}
-		}
-		return null;
-	}
+  // ### renderedNoteSelection
+  // this is a special selection that we associated with all he rendered notes, so that we
+  // can map from a place in the display to a place in the score.
+  static renderedNoteSelection(score, nel, box) {
+    let i = 0;
+    let j = 0;
+    let k = 0;
+    let m = 0;
+    const elementId = nel.getAttribute('id');
+    for (i = 0; i < score.staves.length; ++i) {
+      const staff = score.staves[i];
+      for (j = 0; j < staff.measures.length; ++j) {
+        const measure = staff.measures[j];
+        for (k = 0; k < measure.voices.length; ++k) {
+          const voice = measure.voices[k];
+          for (m = 0; m < voice.notes.length; ++m) {
+            const note = voice.notes[m];
+            if (note.renderId === elementId) {
+              const selector = {
+                staff: i,
+                measure: j,
+                voice: k,
+                tick: m,
+                pitches: []
+              };
+              // var box = document.getElementById(nel.id).getBBox();
+              const rv = new SmoSelection({
+                selector,
+                _staff: staff,
+                _measure: measure,
+                _note: note,
+                _pitches: [],
+                box,
+                type: 'rendered'
+              });
 
-	static pitchSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex, pitches) {
-		staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
-		measureIndex = measureIndex ? measureIndex : 0;
-		voiceIndex = voiceIndex ? voiceIndex : 0;
-		var staff = score.staves[staffIndex];
-		var measure = staff.measures[measureIndex];
-		var note = measure.voices[voiceIndex].notes[tickIndex];
-		pitches = pitches ? pitches : [];
-		var pa = [];
-		pitches.forEach((ix) => {
-			pa.push(JSON.parse(JSON.stringify(note.pitches[ix])));
-		});
-		var selector = {
-			staff: staffIndex,
-			measure: measureIndex,
-			voice: voiceIndex,
-			tick: tickIndex,
-			pitches: pitches
-		};
-		return new SmoSelection({
-			selector: selector,
-			_staff: staff,
-			_measure: measure,
-			_note: note,
-			_pitches: pa,
-			type: 'pitches'
-		});
-	}
+              return rv;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
 
-	// ## nextNoteSelection
-	// ## Description:
-	// Return the next note in this measure, or the first note of the next measure, if it exists.
-	static nextNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
-		var nextTick = tickIndex + 1;
-		var nextMeasure = measureIndex + 1;
-		var staff = score.staves[staffIndex];
-		var measure = staff.measures[measureIndex];
-		if (measure.voices[voiceIndex].notes.length > nextTick) {
-			return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, nextTick);
-		}
-		if (staff.measures.length > nextMeasure) {
-			return SmoSelection.noteSelection(score, staffIndex, nextMeasure, voiceIndex, 0);
-		}
-		return null;
-	}
+  static pitchSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex, pitches) {
+    staffIndex = staffIndex !== null ? staffIndex : score.activeStaff;
+    measureIndex = typeof(measureIndex) !== 'undefined' ? measureIndex : 0;
+    voiceIndex = typeof(voiceIndex) !== 'undefined' ? voiceIndex : 0;
+    const staff = score.staves[staffIndex];
+    const measure = staff.measures[measureIndex];
+    const note = measure.voices[voiceIndex].notes[tickIndex];
+    pitches = typeof(pitches) !== 'undefined' ? pitches : [];
+    const pa = [];
+    pitches.forEach((ix) => {
+      pa.push(JSON.parse(JSON.stringify(note.pitches[ix])));
+    });
+    const selector = {
+      staff: staffIndex,
+      measure: measureIndex,
+      voice: voiceIndex,
+      tick: tickIndex,
+      pitches
+    };
+    return new SmoSelection({
+      selector,
+      _staff: staff,
+      _measure: measure,
+      _note: note,
+      _pitches: pa,
+      type: 'pitches'
+    });
+  }
+
+  // ## nextNoteSelection
+  // ## Description:
+  // Return the next note in this measure, or the first note of the next measure, if it exists.
+  static nextNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
+    const nextTick = tickIndex + 1;
+    const nextMeasure = measureIndex + 1;
+    const staff = score.staves[staffIndex];
+    const measure = staff.measures[measureIndex];
+    if (measure.voices[voiceIndex].notes.length > nextTick) {
+      return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, nextTick);
+    }
+    if (staff.measures.length > nextMeasure) {
+      return SmoSelection.noteSelection(score, staffIndex, nextMeasure, voiceIndex, 0);
+    }
+    return null;
+  }
 
   static nextNoteSelectionFromSelector(score, selector) {
     return SmoSelection.nextNoteSelection(score, selector.staff, selector.measure, selector.voice, selector.tick);
@@ -15192,120 +16320,123 @@ class SmoSelection {
     return SmoSelection.lastNoteSelection(score, selector.staff, selector.measure, selector.voice, selector.tick);
   }
 
-	// ### getMeasureList
-	// Gets the list of measures in an array from the selections
-	static getMeasureList(selections) {
-		var rv = [];
-		if (!selections.length) {
-			return rv;
-		}
-        var cur = selections[0].selector.measure;
-		for (var i=0;i<selections.length;++i) {
-			var sel = selections[i];
-			if (i == 0 ||
-                 (sel.selector.measure != cur)) {
-				rv.push({
-                    selector:{
-                        staff:sel.selector.staff,
-                        measure:sel.selector.measure
-                    },
-                    staff:sel.staff,
-                    measure:sel.measure
-                    });
-			}
-            cur = sel.selector.measure;
-		}
-		return rv;
-	}
+  // ### getMeasureList
+  // Gets the list of measures in an array from the selections
+  static getMeasureList(selections) {
+    let i = 0;
+    let cur = {};
+    const rv = [];
+    if (!selections.length) {
+      return rv;
+    }
+    cur = selections[0].selector.measure;
+    for (i = 0; i < selections.length; ++i) {
+      const sel = selections[i];
+      if (i === 0 || (sel.selector.measure !== cur)) {
+        rv.push({
+          selector: {
+            staff: sel.selector.staff,
+            measure: sel.selector.measure
+          },
+          staff: sel.staff,
+          measure: sel.measure
+        });
+      }
+      cur = sel.selector.measure;
+    }
+    return rv;
+  }
 
-	static lastNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
-		var lastTick = tickIndex - 1;
-		var lastMeasure = measureIndex - 1;
-		var staff = score.staves[staffIndex];
-		var measure = staff.measures[measureIndex];
-		if (tickIndex > 0) {
-			return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, lastTick);
-		}
-		if (lastMeasure >= 0) {
-			measure = staff.measures[lastMeasure];
-            if (voiceIndex >= measure.voices.length) {
-                return null;
-            }
-			var noteIndex = measure.voices[voiceIndex].notes.length - 1;
-			return SmoSelection.noteSelection(score, staffIndex, lastMeasure, voiceIndex, noteIndex);
-		}
-		return SmoSelection.noteSelection(score, staffIndex, 0, 0,0);
-	}
+  static lastNoteSelection(score, staffIndex, measureIndex, voiceIndex, tickIndex) {
+    const lastTick = tickIndex - 1;
+    const lastMeasure = measureIndex - 1;
+    const staff = score.staves[staffIndex];
+    let measure = staff.measures[measureIndex];
+    if (tickIndex > 0) {
+      return SmoSelection.noteSelection(score, staffIndex, measureIndex, voiceIndex, lastTick);
+    }
+    if (lastMeasure >= 0) {
+      measure = staff.measures[lastMeasure];
+      if (voiceIndex >= measure.voices.length) {
+        return null;
+      }
+      const noteIndex = measure.voices[voiceIndex].notes.length - 1;
+      return SmoSelection.noteSelection(score, staffIndex, lastMeasure, voiceIndex, noteIndex);
+    }
+    return SmoSelection.noteSelection(score, staffIndex, 0, 0, 0);
+  }
 
-	// ### selectionsSameMeasure
-	// Return true if the selections are all in the same measure.  Used to determine what
-	// type of undo we need.
-	static selectionsSameMeasure(selections) {
-		if (selections.length < 2) {
-			return true;
-		}
-		var sel1 = selections[0].selector;
-		for (var i = 1; i < selections.length; ++i) {
-			if (!SmoSelector.sameMeasure(sel1, selections[i].selector)) {
-				return false;
-			}
-		}
-		return true;
-	}
+  // ### selectionsSameMeasure
+  // Return true if the selections are all in the same measure.  Used to determine what
+  // type of undo we need.
+  static selectionsSameMeasure(selections) {
+    let i = 0;
+    if (selections.length < 2) {
+      return true;
+    }
+    const sel1 = selections[0].selector;
+    for (i = 1; i < selections.length; ++i) {
+      if (!SmoSelector.sameMeasure(sel1, selections[i].selector)) {
+        return false;
+      }
+    }
+    return true;
+  }
 
-	static selectionsSameStaff(selections) {
-		if (selections.length < 2) {
-			return true;
-		}
-		var sel1 = selections[0].selector;
-		for (var i = 1; i < selections.length; ++i) {
-			if (!SmoSelector.sameStaff(sel1, selections[i].selector)) {
-				return false;
-			}
-		}
-		return true;
-	}
+  static selectionsSameStaff(selections) {
+    let i = 0;
+    if (selections.length < 2) {
+      return true;
+    }
+    const sel1 = selections[0].selector;
+    for (i = 1; i < selections.length; ++i) {
+      if (!SmoSelector.sameStaff(sel1, selections[i].selector)) {
+        return false;
+      }
+    }
+    return true;
+  }
 
-	constructor(params) {
-		this.selector = {
-			staff: 0,
-			measure: 0,
-			voice: 0,
-			note: 0,
-			pitches: []
-		}
-		this._staff = null;
-		this._measure = null;
-		this._note = null;
-		this._pitches = [];
-		this._box = svgHelpers.pointBox(0, 0);
+  constructor(params) {
+    this.selector = {
+      staff: 0,
+      measure: 0,
+      voice: 0,
+      note: 0,
+      pitches: []
+    };
+    this._staff = null;
+    this._measure = null;
+    this._note = null;
+    this._pitches = [];
+    this._box = svgHelpers.pointBox(0, 0);
 
-		this.selectionGroup = {
-			id: VF.Element.newID(),
-			type: 'SmoSelection'
-		};
-		Vex.Merge(this, params);
-	}
+    this.selectionGroup = {
+      id: VF.Element.newID(),
+      type: 'SmoSelection'
+    };
+    Vex.Merge(this, params);
+  }
 
-	get staff() {
-		return this._staff;
-	}
-	get measure() {
-		return this._measure;
-	}
+  get staff() {
+    return this._staff;
+  }
+  get measure() {
+    return this._measure;
+  }
 
-	get note() {
-		return this._note;
-	}
-	get pitches() {
-		if (this._pitches.length) {
-			return this._pitches;
-		} else if (this._note) {
-			this._pitches = JSON.parse(JSON.stringify(this.note.pitches));
-			return this._pitches;
-		}
-		return [];
-	}
+  get note() {
+    return this._note;
+  }
+  get pitches() {
+    if (this._pitches.length) {
+      return this._pitches;
+    } else if (this._note) {
+      this._pitches = JSON.parse(JSON.stringify(this.note.pitches));
+      return this._pitches;
+    }
+    return [];
+  }
 }
 ;VF = Vex.Flow;
 Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
@@ -15773,9 +16904,7 @@ class SmoStretchNoteActor extends TickTransformBase {
         return null;
     }
 }
-;
-// ## UndoBuffer
-// ## Description:
+;// ## UndoBuffer
 // manage a set of undo or redo operations on a score.  The objects passed into
 // undo must implement serialize()/deserialize()
 // ## Buffer format:
@@ -15784,48 +16913,96 @@ class SmoStretchNoteActor extends TickTransformBase {
 // * A single staff
 // * the whole score.
 class UndoBuffer {
-    constructor() {
-        this.buffer = [];
-		this.opCount = 0;
-    }
-    static get bufferMax() {
-        return 100;
-    }
+  constructor() {
+    this.buffer = [];
+    this.opCount = 0;
+  }
+  static get bufferMax() {
+    return 100;
+  }
 
-    static get bufferTypes() {
-        return ['measure', 'staff', 'score'];
-    }
-
+  static get bufferTypes() {
+    return {
+      FIRST: 1,
+      MEASURE: 1, STAFF: 2, SCORE: 3, SCORE_MODIFIER: 4, COLUMN: 5, RECTANGLE: 6,
+      SCORE_ATTRIBUTES: 7, LAST: 7
+    };
+  }
+  static get bufferSubtypes() {
+    return {
+      NONE: 0, ADD: 1, REMOVE: 2, UPDATE: 3
+    };
+  }
+  static get bufferTypeLabel() {
+    return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER', 'COLUMN', 'RECTANGLE',
+      'SCORE_ATTRIBUTES'];
+  }
+  // ### serializeMeasure
+  // serialize a measure, preserving the column-mapped bits which aren't serialized on a full score save.
+  static serializeMeasure(measure) {
+    const attrColumnHash = {};
+    const attrCurrentValue  = {};
+    const json = measure.serialize();
+    measure.serializeColumnMapped(attrColumnHash, attrCurrentValue);
+    Object.keys(attrCurrentValue).forEach((key) => {
+      json[key] = attrCurrentValue[key];
+    });
+    return json;
+  }
   // ### addBuffer
   // Description:
   // Add the current state of the score required to undo the next operation we
   // are about to perform.  For instance, if we are adding a crescendo, we back up the
   // staff the crescendo will go on.
-  addBuffer(title, type, selector, obj) {
-    if (UndoBuffer.bufferTypes.indexOf(type) < 0) {
-      throw ('Undo failure: illegal buffer type ' + type);
+  addBuffer(title, type, selector, obj, subtype) {
+    let i = 0;
+    let j = 0;
+    if (typeof(type) !== 'number' || type < UndoBuffer.bufferTypes.FIRST || type > UndoBuffer.bufferTypes.LAST) {
+      throw 'Undo failure: illegal buffer type ' + type;
     }
-    var json = obj.serialize();
-
-    // If this is a measure, preserve the column-mapped attributes
-    if (obj.attrs && obj.attrs.type === 'SmoMeasure') {
-      var attrColumnHash = {};
-      var attrCurrentValue  = {};
-      obj.serializeColumnMapped(attrColumnHash,attrCurrentValue);
-      Object.keys(attrCurrentValue).forEach((key) => {
-        json[key] = attrCurrentValue[key];
-      });
-    }
-    var undoObj = {
-      title: title,
-      type: type,
-      selector: selector,
-      json: json
+    const undoObj = {
+      title,
+      type,
+      selector,
+      subtype
     };
-    if (this.buffer.length >= UndoBuffer.bufferMax) {
-      this.buffer.splice(0,1);
+    if (type === UndoBuffer.bufferTypes.RECTANGLE) {
+      // RECTANGLE obj is {score, topLeft, bottomRight}
+      // where the last 2 are selectors
+      const measures = [];
+      for (i = obj.topLeft.staff; i <= obj.bottomRight.staff; ++i) {
+        for (j = obj.topLeft.measure; j <= obj.bottomRight.measure; ++j) {
+          measures.push(UndoBuffer.serializeMeasure(obj.score.staves[i].measures[j]));
+        }
+      }
+      undoObj.json = { topLeft: JSON.parse(JSON.stringify(obj.topLeft)),
+        bottomRight: JSON.parse(JSON.stringify(obj.bottomRight)),
+        measures };
+    } else if (type === UndoBuffer.bufferTypes.SCORE_ATTRIBUTES) {
+      undoObj.json = {};
+      smoSerialize.serializedMerge(SmoScore.preferences, obj, undoObj.json);
+    } else if (type === UndoBuffer.bufferTypes.COLUMN) {
+      // COLUMN obj is { score, measureIndex }
+      const ix = obj.measureIndex;
+      const measures = [];
+      obj.score.staves.forEach((staff) => {
+        measures.push(UndoBuffer.serializeMeasure(staff.measures[ix]));
+      });
+      undoObj.json = { measureIndex: ix, measures };
+    } else if (type === UndoBuffer.bufferTypes.MEASURE) {
+      // If this is a measure, preserve the column-mapped attributes
+      undoObj.json = UndoBuffer.serializeMeasure(obj);
+    } else if (type === UndoBuffer.bufferTypes.SCORE_MODIFIER) {
+      // score modifier, already serialized
+      undoObj.json = obj;
+    } else {
+      // staff or score
+      undoObj.json = obj.serialize();
     }
-		this.opCount += 1;
+    if (this.buffer.length >= UndoBuffer.bufferMax) {
+      this.buffer.splice(0, 1);
+    }
+    this.opCount += 1;
     this.buffer.push(undoObj);
   }
 
@@ -15833,18 +17010,19 @@ class UndoBuffer {
   // ### Description:
   // Internal method to pop the top buffer off the stack.
   _pop() {
-
-      if (this.buffer.length < 1)
-          return null;
-      var buf = this.buffer.pop();
-      return buf;
+    if (this.buffer.length < 1) {
+      return null;
+    }
+    const buf = this.buffer.pop();
+    return buf;
   }
 
   // ## Before undoing, peek at the top action in the q
   // so it can be re-rendered
   peek() {
-    if (this.buffer.length < 1)
+    if (this.buffer.length < 1) {
       return null;
+    }
     return this.buffer[this.buffer.length - 1];
   }
 
@@ -15853,288 +17031,336 @@ class UndoBuffer {
   // Undo the operation at the top of the undo stack.  This is done by replacing
   // the music as it existed before the change was made.
   undo(score) {
-    var buf = this._pop();
-    if (!buf)
+    let i = 0;
+    let j = 0;
+    let mix = 0;
+    const buf = this._pop();
+    if (!buf) {
       return score;
-    if (buf.type === 'measure') {
-      var measure = SmoMeasure.deserialize(buf.json);
+    }
+    if (buf.type === UndoBuffer.bufferTypes.RECTANGLE) {
+      for (i = buf.json.topLeft.staff; i <= buf.json.bottomRight.staff; ++i) {
+        for (j = buf.json.topLeft.measure; j <= buf.json.bottomRight.measure; ++j) {
+          const measure = SmoMeasure.deserialize(buf.json.measures[mix]);
+          mix += 1;
+          score.replaceMeasure({ staff: i, measure: j }, measure);
+        }
+      }
+    } else if (buf.type === UndoBuffer.bufferTypes.SCORE_ATTRIBUTES) {
+      smoSerialize.serializedMerge(SmoScore.preferences, buf.json, score);
+    } else if (buf.type === UndoBuffer.bufferTypes.COLUMN) {
+      for (i = 0; i < score.staves.length; ++i) {
+        const measure = SmoMeasure.deserialize(buf.json.measures[i]);
+        score.replaceMeasure({ staff: i, measure: buf.json.measureIndex }, measure);
+      }
+    } else if (buf.type === UndoBuffer.bufferTypes.MEASURE) {
+      const measure = SmoMeasure.deserialize(buf.json);
       measure.setChanged();
       score.replaceMeasure(buf.selector, measure);
-    } else if (buf.type === 'score') {
+    } else if (buf.type === UndoBuffer.bufferTypes.SCORE) {
       // Score expects string, as deserialized score is how saving is done.
       score = SmoScore.deserialize(JSON.stringify(buf.json));
+    } else if (buf.type === UndoBuffer.bufferTypes.SCORE_MODIFIER) {
+      // Currently only one type like this: SmoTextGroup
+      if (buf.json.ctor === 'SmoTextGroup') {
+        const obj = SmoTextGroup.deserialize(buf.json);
+        obj.attrs.id = buf.json.attrs.id;
+        // undo of add is remove, undo of remove is add
+        if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.ADD) {
+          score.removeTextGroup(obj);
+        } if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.REMOVE) {
+          score.addTextGroup(obj);
+        }
+      }
     } else {
-      // TODO: test me
-      var staff = SmoSystemStaff.deserialize(buf.json);
+      const staff = SmoSystemStaff.deserialize(buf.json);
       score.replaceStaff(buf.selector.staff, staff);
     }
     return score;
   }
 }
 
-
 // ## SmoUndoable
-// ## Description:
 // Convenience functions to save the score state before operations so we can undo the operation.
 // Each undo-able knows which set of parameters the undo operation requires (measure, staff, score).
+// eslint-disable-next-line no-unused-vars
 class SmoUndoable {
-	static undoForSelections(score,selections,undoBuffer,operation) {
-	    var staffUndo = false;
-		var scoreUndo = false;
-		if (!selections.length)
-			return;
-		var measure=selections[0].selector.measure;
-		var staff = selections[0].selector.staff;
-		for (var i=0;i<selections.length;++i) {
-			var sel = selections[i];
-			if (sel.selector.measure != measure) {
-				staffUndo = true;
-			} else if (sel.selector.staff != staff) {
-				scoreUndo = true;
-				break;
-			}
-		}
-		if (scoreUndo) {
-			undoBuffer.addBuffer('score backup for '+operation, 'score', null, score);
-		} else if (staffUndo) {
-			undoBuffer.addBuffer('staff backup for '+operation, 'staff', selections[0].selector, score);
-		} else {
-			undoBuffer.addBuffer('measure backup for '+operation, 'measure', selections[0].selector, selections[0].measure);
-		}
-	}
-	// Add the measure/staff/score that will cover this list of selections
-	static batchDurationOperation(score,selections,operation,undoBuffer) {
-	    SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
-		SmoOperation.batchSelectionOperation(score,selections,operation);
-	}
-  static multiSelectionOperation(score,selections,operation,parameter,undoBuffer) {
-    SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
-    SmoOperation[operation](score,selections,parameter);
+  // ### undoScoreObject
+  // Called when a score object is being modified.  There is no need to update the score as it contains a
+  // reference to the object
+  static changeTextGroup(score, undoBuffer, object, subtype) {
+    undoBuffer.addBuffer('modify text',
+      UndoBuffer.bufferTypes.SCORE_MODIFIER, null, object, subtype);
+    if (subtype === UndoBuffer.bufferSubtypes.REMOVE) {
+      SmoOperation.removeTextGroup(score, object);
+    } else if (subtype === UndoBuffer.bufferSubtypes.ADD) {
+      SmoOperation.addTextGroup(score, object);
+    }
+    // Update operation, there is nothing to do since the text is already
+    // part of the score
   }
-  static addConnectorDown(score,selections,parameters,undoBuffer) {
-    SmoUndoable.undoForSelections(score,selections,undoBuffer,'Add Connector Below');
-    SmoOperation.addConnectorDown(score,selections,parameters);
+  // ### undoForSelections
+  // We want to undo a bunch of selections.
+  static undoForSelections(score, selections, undoBuffer, operation) {
+    let staffUndo = false;
+    let scoreUndo = false;
+    let i = 0;
+    if (!selections.length) {
+      return;
+    }
+    const measure = selections[0].selector.measure;
+    const staff = selections[0].selector.staff;
+    for (i = 0; i < selections.length; ++i) {
+      const sel = selections[i];
+      if (sel.selector.measure !== measure) {
+        staffUndo = true;
+      } else if (sel.selector.staff !== staff) {
+        scoreUndo = true;
+        break;
+      }
+    }
+    if (scoreUndo) {
+      undoBuffer.addBuffer('score backup for ' + operation, UndoBuffer.bufferTypes.SCORE, null, score);
+    } else if (staffUndo) {
+      undoBuffer.addBuffer('staff backup for ' + operation, UndoBuffer.bufferTypes.STAFF, selections[0].selector, score);
+    } else {
+      undoBuffer.addBuffer('measure backup for ' + operation, UndoBuffer.bufferTypes.MEASURE, selections[0].selector, selections[0].measure);
+    }
   }
-  static addGraceNote(selection,undoBuffer) {
+  // Add the measure/staff/score that will cover this list of selections
+  static batchDurationOperation(score, selections, operation, undoBuffer) {
+    SmoUndoable.undoForSelections(score, selections, undoBuffer, operation);
+    SmoOperation.batchSelectionOperation(score, selections, operation);
+  }
+  static multiSelectionOperation(score, selections, operation, parameter, undoBuffer) {
+    SmoUndoable.undoForSelections(score, selections, undoBuffer, operation);
+    SmoOperation[operation](score, selections, parameter);
+  }
+  static addConnectorDown(score, selections, parameters, undoBuffer) {
+    SmoUndoable.undoForSelections(score, selections, undoBuffer, 'Add Connector Below');
+    SmoOperation.addConnectorDown(score, selections, parameters);
+  }
+  static addGraceNote(selection, undoBuffer) {
     undoBuffer.addBuffer('grace note ' + JSON.stringify(selection.note.pitches, null, ' '),
-      'measure', selection.selector, selection.measure);
-    var pitches = JSON.parse(JSON.stringify(selection.note.pitches));
-    SmoOperation.addGraceNote(selection,new SmoGraceNote({pitches:pitches,ticks:{numerator:2048,denominator:1,remainder:0}}))
+      UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    const pitches = JSON.parse(JSON.stringify(selection.note.pitches));
+    SmoOperation.addGraceNote(selection, new SmoGraceNote({ pitches, ticks:
+      { numerator: 2048, denominator: 1, remainder: 0 } }));
   }
-  static removeGraceNote(selection,params,undoBuffer) {
-      undoBuffer.addBuffer('remove grace note',
-        'measure', selection.selector, selection.measure);
-      SmoOperation.removeGraceNote(selection,params.index);
+  static removeGraceNote(selection, params, undoBuffer) {
+    undoBuffer.addBuffer('remove grace note',
+      UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.removeGraceNote(selection, params.index);
   }
 
-  static slashGraceNotes(selections,undoBuffer) {
+  static slashGraceNotes(selections, undoBuffer) {
     undoBuffer.addBuffer('transpose grace note',
-      'measure', selections[0].selection.selector, selections[0].selection.measure);
+      UndoBuffer.bufferTypes.MEASURE, selections[0].selection.selector, selections[0].selection.measure);
     SmoOperation.slashGraceNotes(selections);
   }
 
-  static transposeGraceNotes(selection,params,undoBuffer) {
+  static transposeGraceNotes(selection, params, undoBuffer) {
     undoBuffer.addBuffer('transpose grace note',
-      'measure', selection.selector, selection.measure);
-    SmoOperation.transposeGraceNotes(selection,params.modifiers,params.offset);
+      UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.transposeGraceNotes(selection, params.modifiers, params.offset);
   }
-  static setNoteHead(score,selections,noteHead,undoBuffer) {
-    SmoUndoable.undoForSelections(score,selections,undoBuffer,'note head');
-    SmoOperation.setNoteHead(selections,noteHead);
+  static setNoteHead(score, selections, noteHead, undoBuffer) {
+    SmoUndoable.undoForSelections(score, selections, undoBuffer, 'note head');
+    SmoOperation.setNoteHead(selections, noteHead);
   }
 
-  static padMeasuresLeft(selections,padding,undoBuffer) {
+  static padMeasuresLeft(selections, padding, undoBuffer) {
     if (!Array.isArray(selections)) {
-      selections=[selections];
+      selections = [selections];
     }
     selections.forEach((selection) => {
-      undoBuffer.addBuffer('pad measure','measure',selection.selector,selection.measure);
-      SmoOperation.padMeasureLeft(selection,padding);
+      undoBuffer.addBuffer('pad measure', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+      SmoOperation.padMeasureLeft(selection, padding);
     });
   }
-  static doubleGraceNoteDuration(selection,modifier,undoBuffer) {
+  static doubleGraceNoteDuration(selection, modifier, undoBuffer) {
     undoBuffer.addBuffer('double grace note duration',
-      'measure', selection.selector, selection.measure);
-    SmoOperation.doubleGraceNoteDuration(selection,modifier);
+      UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.doubleGraceNoteDuration(selection, modifier);
   }
 
-  static halveGraceNoteDuration(selection,modifier,undoBuffer) {
+  static halveGraceNoteDuration(selection, modifier, undoBuffer) {
     undoBuffer.addBuffer('halve grace note duration',
-      'measure', selection.selector, selection.measure);
-    SmoOperation.halveGraceNoteDuration(selection,modifier);
+      UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.halveGraceNoteDuration(selection, modifier);
   }
   static setPitch(selection, pitches, undoBuffer)  {
     undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
-      'measure', selection.selector, selection.measure);
+      UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
     SmoOperation.setPitch(selection, pitches);
   }
   static addPitch(selection, pitches, undoBuffer)  {
     undoBuffer.addBuffer('pitch change ' + JSON.stringify(pitches, null, ' '),
-        'measure', selection.selector, selection.measure);
+      UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
     SmoOperation.addPitch(selection, pitches);
   }
   static doubleDuration(selection, undoBuffer) {
-    undoBuffer.addBuffer('double duration', 'measure', selection.selector, selection.measure);
+    undoBuffer.addBuffer('double duration', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
     SmoOperation.doubleDuration(selection);
   }
   static halveDuration(selection, undoBuffer) {
-    undoBuffer.addBuffer('halve note duration', 'measure', selection.selector, selection.measure);
+    undoBuffer.addBuffer('halve note duration', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
     SmoOperation.halveDuration(selection);
   }
   static makeTuplet(selection, numNotes, undoBuffer) {
-    undoBuffer.addBuffer(numNotes + '-let', 'measure', selection.selector, selection.measure);
+    undoBuffer.addBuffer(numNotes + '-let', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
     SmoOperation.makeTuplet(selection, numNotes);
   }
   static makeRest(selection, undoBuffer) {
-    undoBuffer.addBuffer('make rest', 'measure', selection.selector, selection.measure);
+    undoBuffer.addBuffer('make rest', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
     SmoOperation.makeRest(selection);
   }
   static makeNote(selection, undoBuffer) {
-    undoBuffer.addBuffer('make note', 'measure', selection.selector, selection.measure);
+    undoBuffer.addBuffer('make note', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
     SmoOperation.makeNote(selection);
   }
   static unmakeTuplet(selection, undoBuffer) {
-    undoBuffer.addBuffer('unmake tuplet', 'measure', selection.selector, selection.measure);
+    undoBuffer.addBuffer('unmake tuplet', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
     SmoOperation.unmakeTuplet(selection);
   }
-    static dotDuration(selection, undoBuffer) {
-        undoBuffer.addBuffer('dot duration', 'measure', selection.selector, selection.measure);
-        SmoOperation.dotDuration(selection);
-    }
-    static populateVoice(selections,voiceIx,undoBuffer) {
-        var measures = SmoSelection.getMeasureList(selections);
-        measures.forEach((selection) => {
-            undoBuffer.addBuffer('populate voice', 'measure',
-               selection.selector, selection.measure);
-            SmoOperation.populateVoice(selection,voiceIx);
-        });
-    }
+  static dotDuration(selection, undoBuffer) {
+    undoBuffer.addBuffer('dot duration', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.dotDuration(selection);
+  }
+  static populateVoice(selections, voiceIx, undoBuffer) {
+    const measures = SmoSelection.getMeasureList(selections);
+    measures.forEach((selection) => {
+      undoBuffer.addBuffer('populate voice', UndoBuffer.bufferTypes.MEASURE,
+        selection.selector, selection.measure);
+      SmoOperation.populateVoice(selection, voiceIx);
+    });
+  }
 
-    static depopulateVoice(selections,voiceIx,undoBuffer) {
-        var measures = SmoSelection.getMeasureList(selections);
-        measures.forEach((selection) => {
-            undoBuffer.addBuffer('populate voice', 'measure',
-               selection.selector, selection.measure);
-            SmoOperation.depopulateVoice(selection,voiceIx);
-        });
-    }
-    static toggleBeamGroups(selections, undoBuffer) {
-        var measureUndoHash = {};
-        selections.forEach((selection) => {
-            if (!measureUndoHash[selection.selector.measure]) {
-                measureUndoHash[selection.selector.measure] = true;
-                undoBuffer.addBuffer('toggleBeamGroups', 'measure', selection.selector, selection.measure);
-            }
-            SmoOperation.toggleBeamGroup(selection);
-        });
-    }
-    static toggleBeamDirection(selections,undoBuffer) {
-        undoBuffer.addBuffer('beam notes', 'measure', selections[0].selector, selections[0].measure);
-        SmoOperation.toggleBeamDirection(selections);
-    }
-    static beamSelections(selections,undoBuffer) {
-        undoBuffer.addBuffer('beam notes', 'measure', selections[0].selector, selections[0].measure);
-        SmoOperation.beamSelections(selections);
-    }
-    static undotDuration(selection, undoBuffer) {
-        undoBuffer.addBuffer('undot duration', 'measure', selection.selector, selection.measure);
-        SmoOperation.undotDuration(selection);
-    }
-    static transpose(selection, offset, undoBuffer) {
-        undoBuffer.addBuffer('transpose pitches ' + offset, 'measure', selection.selector, selection.measure);
-        SmoOperation.transpose(selection, offset);
-    }
-    static courtesyAccidental(pitchSelection, toBe, undoBuffer) {
-        undoBuffer.addBuffer('courtesy accidental ', 'measure', pitchSelection.selector, pitchSelection.measure);
-        SmoOperation.courtesyAccidental(pitchSelection, toBe);
-    }
-    static addDynamic(selection, dynamic, undoBuffer) {
-        undoBuffer.addBuffer('add dynamic', 'measure', selection.selector, selection.measure);
-        SmoOperation.addDynamic(selection, dynamic);
-    }
-	static toggleEnharmonic(pitchSelection,undoBuffer) {
-	     undoBuffer.addBuffer('toggle enharmonic', 'measure', pitchSelection.selector, pitchSelection.measure);
-		 SmoOperation.toggleEnharmonic(pitchSelection)
-	}
-    static interval(selection, interval, undoBuffer) {
-        undoBuffer.addBuffer('add interval ' + interval, 'measure', selection.selector, selection.measure);
-        SmoOperation.interval(selection, interval);
-    }
-    static crescendo(fromSelection, toSelection, undoBuffer) {
-        undoBuffer.addBuffer('crescendo', 'staff', fromSelection.selector, fromSelection.staff);
-        SmoOperation.crescendo(fromSelection, toSelection);
-    }
-    static decrescendo(fromSelection, toSelection, undoBuffer) {
-        undoBuffer.addBuffer('decrescendo', 'staff', fromSelection.selector, fromSelection.staff);
-        SmoOperation.decrescendo(fromSelection, toSelection);
-    }
-    static slur(fromSelection, toSelection, undoBuffer) {
-        undoBuffer.addBuffer('slur', 'staff', fromSelection.selector, fromSelection.staff);
-        SmoOperation.slur(fromSelection, toSelection);
-    }
-    // easy way to back up the score for a score-wide operation
-	static noop(score,undoBuffer,label) {
-        label = label ? label : 'Backup';
-        undoBuffer.addBuffer(label, 'score', null, score);
-	}
+  static depopulateVoice(selections, voiceIx, undoBuffer) {
+    var measures = SmoSelection.getMeasureList(selections);
+    measures.forEach((selection) => {
+      undoBuffer.addBuffer('populate voice', UndoBuffer.bufferTypes.MEASURE,
+        selection.selector, selection.measure);
+      SmoOperation.depopulateVoice(selection, voiceIx);
+    });
+  }
+  static toggleBeamGroups(selections, undoBuffer) {
+    var measureUndoHash = {};
+    selections.forEach((selection) => {
+      if (!measureUndoHash[selection.selector.measure]) {
+        measureUndoHash[selection.selector.measure] = true;
+        undoBuffer.addBuffer('toggleBeamGroups', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+      }
+      SmoOperation.toggleBeamGroup(selection);
+    });
+  }
+  static toggleBeamDirection(selections, undoBuffer) {
+    undoBuffer.addBuffer('beam notes', UndoBuffer.bufferTypes.MEASURE, selections[0].selector, selections[0].measure);
+    SmoOperation.toggleBeamDirection(selections);
+  }
+  static beamSelections(selections, undoBuffer) {
+    undoBuffer.addBuffer('beam notes', UndoBuffer.bufferTypes.MEASURE, selections[0].selector, selections[0].measure);
+    SmoOperation.beamSelections(selections);
+  }
+  static undotDuration(selection, undoBuffer) {
+    undoBuffer.addBuffer('undot duration', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.undotDuration(selection);
+  }
+  static transpose(selection, offset, undoBuffer) {
+    undoBuffer.addBuffer('transpose pitches ' + offset, UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.transpose(selection, offset);
+  }
+  static courtesyAccidental(pitchSelection, toBe, undoBuffer) {
+    undoBuffer.addBuffer('courtesy accidental ', UndoBuffer.bufferTypes.MEASURE, pitchSelection.selector, pitchSelection.measure);
+    SmoOperation.courtesyAccidental(pitchSelection, toBe);
+  }
+  static addDynamic(selection, dynamic, undoBuffer) {
+    undoBuffer.addBuffer('add dynamic', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.addDynamic(selection, dynamic);
+  }
+  static toggleEnharmonic(pitchSelection, undoBuffer) {
+    undoBuffer.addBuffer('toggle enharmonic', UndoBuffer.bufferTypes.MEASURE, pitchSelection.selector, pitchSelection.measure);
+    SmoOperation.toggleEnharmonic(pitchSelection);
+  }
+  static interval(selection, interval, undoBuffer) {
+    undoBuffer.addBuffer('add interval ' + interval, UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.interval(selection, interval);
+  }
+  static crescendo(fromSelection, toSelection, undoBuffer) {
+    undoBuffer.addBuffer('crescendo', UndoBuffer.bufferTypes.STAFF, fromSelection.selector, fromSelection.staff);
+    SmoOperation.crescendo(fromSelection, toSelection);
+  }
+  static decrescendo(fromSelection, toSelection, undoBuffer) {
+    undoBuffer.addBuffer('decrescendo', UndoBuffer.bufferTypes.STAFF, fromSelection.selector, fromSelection.staff);
+    SmoOperation.decrescendo(fromSelection, toSelection);
+  }
+  static slur(fromSelection, toSelection, undoBuffer) {
+    undoBuffer.addBuffer('slur', UndoBuffer.bufferTypes.STAFF, fromSelection.selector, fromSelection.staff);
+    SmoOperation.slur(fromSelection, toSelection);
+  }
+  // easy way to back up the score for a score-wide operation
+  static noop(score, undoBuffer, label) {
+    label = typeof(label) !== 'undefined' ? label : 'Backup';
+    undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE, null, score);
+  }
 
-	static measureSelectionOp(score,selection,op,params,undoBuffer,description) {
-		undoBuffer.addBuffer(description, 'measure', selection.selector, selection.measure);
-		SmoOperation[op](score,selection,params);
-	}
+  static measureSelectionOp(score, selection, op, params, undoBuffer, description) {
+    undoBuffer.addBuffer(description, UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation[op](score, selection, params);
+  }
 
-    static staffSelectionOp(score,selection,op,params,undoBuffer,description) {
-		undoBuffer.addBuffer(description, 'staff', selection.selector, selection.staff);
-		SmoOperation[op](selection,params);
-	}
+  static staffSelectionOp(score, selection, op, params, undoBuffer, description) {
+    undoBuffer.addBuffer(description, UndoBuffer.bufferTypes.STAFF, selection.selector, selection.staff);
+    SmoOperation[op](selection, params);
+  }
 
-	static scoreSelectionOp(score,selection,op,params,undoBuffer,description) {
-        undoBuffer.addBuffer(description, 'score', null, score);
-		SmoOperation[op](score,selection,params);
-	}
-	static scoreOp(score,op,params,undoBuffer,description) {
-		undoBuffer.addBuffer(description, 'score', null, score);
-		SmoOperation[op](score,params);
-	}
+  static scoreSelectionOp(score, selection, op, params, undoBuffer, description) {
+    undoBuffer.addBuffer(description, UndoBuffer.bufferTypes.SCORE, null, score);
+    SmoOperation[op](score, selection, params);
+  }
+  static scoreOp(score, op, params, undoBuffer, description) {
+    undoBuffer.addBuffer(description, UndoBuffer.bufferTypes.SCORE, null, score);
+    SmoOperation[op](score, params);
+  }
 
-    static addKeySignature(score, selection, keySignature, undoBuffer) {
-        undoBuffer.addBuffer('addKeySignature ' + keySignature, 'score', null, score);
-        SmoOperation.addKeySignature(score, selection, keySignature);
-    }
-    static addMeasure(score, systemIndex, nmeasure, undoBuffer) {
-        undoBuffer.addBuffer('add measure', 'score', null, score);
-        SmoOperation.addMeasure(score, systemIndex, nmeasure);
-    }
-    static deleteMeasure(score, selection, undoBuffer) {
-        undoBuffer.addBuffer('delete measure', 'score', null, score);
-        var measureIndex = selection.selector.measure;
-        score.deleteMeasure(measureIndex);
-    }
-    static addStaff(score, parameters, undoBuffer) {
-        undoBuffer.addBuffer('add instrument', 'score', null, score);
-        SmoOperation.addStaff(score, parameters);
-    }
-    static toggleGraceNoteCourtesyAccidental(selection,modifier,undoBuffer) {
-        undoBuffer.addBuffer('toggle grace courtesy ','measure', selection.selector, selection.measure);
-		SmoOperation.toggleGraceNoteCourtesy(selection,modifier);
-    }
-	static toggleCourtesyAccidental(selection,undoBuffer) {
-        undoBuffer.addBuffer('toggle courtesy ','measure', selection.selector, selection.measure);
-		SmoOperation.toggleCourtesyAccidental(selection);
-	}
-    static removeStaff(score, index, undoBuffer) {
-        undoBuffer.addBuffer('remove instrument', 'score', null, score);
-        SmoOperation.removeStaff(score, index);
-    }
-    static changeInstrument(score, instrument, selections, undoBuffer) {
-        undoBuffer.addBuffer('changeInstrument', 'staff', selections[0].selector, selections[0].staff);
-        SmoOperation.changeInstrument(score, instrument, selections);
-    }
-	static pasteBuffer(score,pasteBuffer,selections,undoBuffer,operation) {
-		SmoUndoable.undoForSelections(score,selections,undoBuffer,operation);
-		var pasteTarget = selections[0].selector;
-        pasteBuffer.pasteSelections(this.score, pasteTarget);
-	}
+  static addKeySignature(score, selection, keySignature, undoBuffer) {
+    undoBuffer.addBuffer('addKeySignature ' + keySignature, UndoBuffer.bufferTypes.SCORE, null, score);
+    SmoOperation.addKeySignature(score, selection, keySignature);
+  }
+  static addMeasure(score, systemIndex, nmeasure, undoBuffer) {
+    undoBuffer.addBuffer('add measure', UndoBuffer.bufferTypes.SCORE, null, score);
+    SmoOperation.addMeasure(score, systemIndex, nmeasure);
+  }
+  static deleteMeasure(score, selection, undoBuffer) {
+    undoBuffer.addBuffer('delete measure', UndoBuffer.bufferTypes.SCORE, null, score);
+    const measureIndex = selection.selector.measure;
+    score.deleteMeasure(measureIndex);
+  }
+  static addStaff(score, parameters, undoBuffer) {
+    undoBuffer.addBuffer('add instrument', UndoBuffer.bufferTypes.SCORE, null, score);
+    SmoOperation.addStaff(score, parameters);
+  }
+  static toggleGraceNoteCourtesyAccidental(selection, modifier, undoBuffer) {
+    undoBuffer.addBuffer('toggle grace courtesy ', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.toggleGraceNoteCourtesy(selection, modifier);
+  }
+  static toggleCourtesyAccidental(selection, undoBuffer) {
+    undoBuffer.addBuffer('toggle courtesy ', UndoBuffer.bufferTypes.MEASURE, selection.selector, selection.measure);
+    SmoOperation.toggleCourtesyAccidental(selection);
+  }
+  static removeStaff(score, index, undoBuffer) {
+    undoBuffer.addBuffer('remove instrument', UndoBuffer.bufferTypes.SCORE, null, score);
+    SmoOperation.removeStaff(score, index);
+  }
+  static changeInstrument(instrument, selections, undoBuffer) {
+    undoBuffer.addBuffer('changeInstrument', UndoBuffer.bufferTypes.STAFF, selections[0].selector, selections[0].staff);
+    SmoOperation.changeInstrument(instrument, selections);
+  }
+  static pasteBuffer(score, pasteBuffer, selections, undoBuffer, operation) {
+    SmoUndoable.undoForSelections(score, selections, undoBuffer, operation);
+    const pasteTarget = selections[0].selector;
+    pasteBuffer.pasteSelections(this.score, pasteTarget);
+  }
 }
 ;const ArialFont = {
   smufl: false,
@@ -22293,11 +23519,9 @@ class SmoUndoable {
     var params = suiController.keyBindingDefaults;
     params.eventSource = new browserEventSource(); // events come from the browser UI.
 
-    params.layout = SuiRenderScore.createScoreRenderer(document.getElementById(SmoConfig.vexDomContainer),score);
-    params.eventSource.setRenderElement(params.layout.renderElement);
-    params.scroller = new suiScroller();
-    params.tracker = new suiTracker(params.layout,params.scroller);
-    params.layout.setMeasureMapper(params.tracker);
+    const scoreRenderer = SuiScoreRender.createScoreRenderer(document.getElementById(SmoConfig.vexDomContainer), score);
+    params.eventSource.setRenderElement(scoreRenderer.renderElement);
+    params.view = new SuiScoreViewOperations(scoreRenderer, score);
     if (SmoConfig.keyCommands) {
       params.keyCommands = new SuiKeyCommands(params);
     }
@@ -22307,10 +23531,6 @@ class SmoUndoable {
     params.layoutDemon = new SuiRenderDemon(params);
     var ctor = eval(SmoConfig.controller);
     var controller = new ctor(params);
-    if (SmoConfig.menus) {
-      params.menus.undoBuffer = controller.undoBuffer;
-    }
-    params.layout.score = score;
     eval(SmoConfig.domSource).splash();
     this.controller = controller;
   }
@@ -22477,7 +23697,7 @@ class SmoUndoable {
   static _deferCreateTranslator(lang) {
     setTimeout(() => {
       var transDom =  SmoTranslationEditor.startEditor(lang);
-    },1);
+    }, 1);
   }
 
   static _deferLanguageSelection(lang) {
@@ -22508,56 +23728,52 @@ class SmoUndoable {
 // 5. tracker change events tracker-selection
 class suiController {
 
-	constructor(params) {
-		Vex.Merge(this, suiController.defaults);
-		Vex.Merge(this, params);
-		window.suiControllerInstance = this;
+  constructor(params) {
+    Vex.Merge(this, suiController.defaults);
+    Vex.Merge(this, params);
+    window.suiControllerInstance = this;
 
-
-		this.undoBuffer = new UndoBuffer();
+    this.view = params.view;
     this.eventSource = params.eventSource;
-		this.pasteBuffer = this.tracker.pasteBuffer;
-    this.tracker.setDialogModifier(this);
-		this.keyCommands.controller = this;
-		this.keyCommands.undoBuffer = this.undoBuffer;
-		this.keyCommands.pasteBuffer = this.pasteBuffer;
-		this.resizing = false;
-		this.undoStatus=0;
-		this.trackScrolling = false;
+    this.view.tracker.setDialogModifier(this);
+    this.tracker = this.view.tracker; // needed for key event handling
+    this.keyCommands.controller = this;
+    this.keyCommands.view = this.view;
+    this.resizing = false;
+    this.undoStatus=0;
+    this.trackScrolling = false;
 
     this.keyHandlerObj = null;
 
-		this.ribbon = new RibbonButtons({
-			ribbons: defaultRibbonLayout.ribbons,
-			ribbonButtons: defaultRibbonLayout.ribbonButtons,
-			menus: this.menus,
-			keyCommands: this.keyCommands,
-			tracker: this.tracker,
-			score: this.score,
-			controller: this,
-      layout:this.tracker.layout,
+    this.ribbon = new RibbonButtons({
+      ribbons: defaultRibbonLayout.ribbons,
+      ribbonButtons: defaultRibbonLayout.ribbonButtons,
+      menus: this.menus,
+      controller: this,
+      keyCommands: this.keyCommands,
+      view: this.view,
       eventSource:this.eventSource
-		});
+    });
 
     this.menus.setController(this);
 
-		// create globbal exception instance
-		this.exhandler = new SuiExceptionHandler(this);
+    // create globbal exception instance
+    this.exhandler = new SuiExceptionHandler(this);
 
-		this.bindEvents();
+    this.bindEvents();
 
     // Only display the ribbon one time b/c it's expensive operation
     this.ribbon.display();
-		this.bindResize();
-    this.layoutDemon.undoBuffer = this.undoBuffer;
+    this.bindResize();
+    this.layoutDemon.undoBuffer = this.view.undoBuffer;
     this.layoutDemon.startDemon();
 
-		this.createPiano();
-	}
+    this.createPiano();
+  }
 
-	static get scrollable() {
-		return '.musicRelief';
-	}
+  static get scrollable() {
+    return '.musicRelief';
+  }
 
   static get keyboardWidget() {
     return suiController._kbWidget;
@@ -22570,309 +23786,280 @@ class suiController {
     }
   }
 
-	get isLayoutQuiet() {
-		return ((this.layout.passState == SuiRenderState.passStates.clean && this.layout.dirty == false)
-		   || this.layout.passState == SuiRenderState.passStates.replace);
-	}
+  get isLayoutQuiet() {
+    return ((this.view.renderer.passState == SuiRenderState.passStates.clean && this.renderer.layout.dirty == false)
+       || this.view.renderer.passState == SuiRenderState.passStates.replace);
+  }
 
-	handleScrollEvent(ev) {
-		var self=this;
-		if (self.trackScrolling) {
-				return;
-		}
-		self.trackScrolling = true;
-		setTimeout(function() {
-            try {
-		    // wait until redraw is done to track scroll events.
-			self.trackScrolling = false;
+  handleScrollEvent(ev) {
+    const self = this;
+    if (self.trackScrolling) {
+        return;
+    }
+    self.trackScrolling = true;
+    setTimeout(function() {
+      try {
+        // wait until redraw is done to track scroll events.
+        self.trackScrolling = false;
+          // Thisi s a WIP...
+        self.view.tracker.scroller.handleScroll($(suiController.scrollable)[0].scrollLeft, $(suiController.scrollable)[0].scrollTop);
+      } catch(e) {
+        SuiExceptionHandler.instance.exceptionHandler(e);
+      }
+    },500);
+  }
 
-			// self.scrollRedrawStatus = true;
-            // self.tracker.updateMap(true);
-            // Thisi s a WIP...
-			self.scroller.handleScroll($(suiController.scrollable)[0].scrollLeft,$(suiController.scrollable)[0].scrollTop);
-            } catch(e) {
-                SuiExceptionHandler.instance.exceptionHandler(e);
-            }
-		},500);
-	}
-
-	createPiano() {
-		this.piano = new suiPiano(
+  createPiano() {
+    this.piano = new suiPiano(
     {
       elementId:'piano-svg',
-			ribbons: defaultRibbonLayout.ribbons,
-			ribbonButtons: defaultRibbonLayout.ribbonButtons,
-			menus: this.menus,
-			keyCommands: this.keyCommands,
-			tracker: this.tracker,
-			score: this.score,
-			controller: this,
-      layout:this.tracker.layout,
-      eventSource:this.eventSource,
-      undoBuffer:this.undoBuffer
-		});
+      ribbons: defaultRibbonLayout.ribbons,
+      ribbonButtons: defaultRibbonLayout.ribbonButtons,
+      menus: this.menus,
+      keyCommands: this.keyCommands,
+      controller: this,
+      view: this.view,
+      eventSource:this.eventSource
+    });
         // $('.close-piano').click();
-	}
+  }
   _setMusicDimensions() {
     $('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
-
   }
-	resizeEvent() {
-		var self = this;
-		if (this.resizing) {
-			return;
+  resizeEvent() {
+    var self = this;
+    if (this.resizing) {
+      return;
     }
     if ($('body').hasClass('printing')) {
       return;
     }
-		this.resizing = true;
-		setTimeout(function () {
-			console.log('resizing');
-			self.resizing = false;
+    this.resizing = true;
+    setTimeout(function () {
+      console.log('resizing');
+      self.resizing = false;
       self._setMusicDimensions();
-			self.piano.handleResize();
-		}, 500);
-	}
+      self.piano.handleResize();
+    }, 500);
+  }
 
   createModifierDialog(modifierSelection) {
     var parameters = {
-      modifier:modifierSelection.modifier, context:this.tracker.context, tracker:this.tracker, layout:this.layout, undoBuffer:this.undoBuffer,eventSource:this.eventSource,
-         completeNotifier:this,keyCommands:this.keyCommands
+      modifier: modifierSelection.modifier,
+        view: this.view, eventSource:this.eventSource,
+         completeNotifier:this, keyCommands:this.keyCommands
     }
-    SuiModifierDialogFactory.createDialog(modifierSelection.modifier,parameters);
+    return SuiModifierDialogFactory.createDialog(modifierSelection.modifier, parameters);
   }
 
-	// If the user has selected a modifier via the mouse/touch, bring up mod dialog
-	// for that modifier
-	trackerModifierSelect(ev) {
-		var modSelection = this.tracker.getSelectedModifier();
-		if (modSelection) {
-			var dialog = this.createModifierDialog(modSelection);
+  // If the user has selected a modifier via the mouse/touch, bring up mod dialog
+  // for that modifier
+  trackerModifierSelect(ev) {
+    var modSelection = this.view.tracker.getSelectedModifier();
+    if (modSelection) {
+      var dialog = this.createModifierDialog(modSelection);
       if (dialog) {
-        this.tracker.selectSuggestion(ev);
-  	    // this.unbindKeyboardForModal(dialog);
+        ev.stopPropagation();
+        // this.view.tracker.selectSuggestion(ev);
+        return;
+        // this.unbindKeyboardForModal(dialog);
       } else {
-        this.tracker.advanceModifierSelection(ev);
+        this.view.tracker.advanceModifierSelection(ev);
       }
-		} else {
-      this.tracker.selectSuggestion(ev);
+    } else {
+      this.view.tracker.selectSuggestion(ev);
     }
-    var modifier = this.tracker.getSelectedModifier();
-    // if (modifier) {
-    //   this.createModifierDialog(modifier);
-    // }
-		return;
-	}
+    return;
+  }
 
     // ### bindResize
-	// This handles both resizing of the music area (scrolling) and resizing of the window.
-	// The latter results in a redraw, the former just resets the client/logical map of elements
-	// in the tracker.
-	bindResize() {
-		var self = this;
-		var el = $(suiController.scrollable)[0];
-		// unit test programs don't have resize html
-		if (!el) {
-			return;
-		}
+  // This handles both resizing of the music area (scrolling) and resizing of the window.
+  // The latter results in a redraw, the former just resets the client/logical map of elements
+  // in the tracker.
+  bindResize() {
+    const self = this;
+    const el = $(suiController.scrollable)[0];
+    // unit test programs don't have resize html
+    if (!el) {
+      return;
+    }
     this._setMusicDimensions();
-		// $(suiController.scrollable).height(window.innerHeight - $('.musicRelief').offset().top);
+    // $(suiController.scrollable).height(window.innerHeight - $('.musicRelief').offset().top);
 
-		window.addEventListener('resize', function () {
-			self.resizeEvent();
-		});
+    window.addEventListener('resize', function () {
+      self.resizeEvent();
+    });
 
-		let scrollCallback = (ev) => {
+    let scrollCallback = (ev) => {
       self.handleScrollEvent(ev);
-		};
-		el.onscroll = scrollCallback;
-	}
-
-
-	// ### renderElement
-	// return render element that is the DOM parent of the svg
-	get renderElement() {
-		return this.layout.renderElement;
-	}
-
-	// ## keyBindingDefaults
-	// ### Description:
-	// Different applications can create their own key bindings, these are the defaults.
-	// Many editor commands can be reached by a single keystroke.  For more advanced things there
-	// are menus.
-	static get keyBindingDefaults() {
-		var editorKeys = suiController.editorKeyBindingDefaults;
-		editorKeys.forEach((key) => {
-			key.module = 'keyCommands'
-		});
-		var trackerKeys = suiController.trackerKeyBindingDefaults;
-		trackerKeys.forEach((key) => {
-			key.module = 'tracker'
-		});
-		return trackerKeys.concat(editorKeys);
-	}
-
-	// ## editorKeyBindingDefaults
-	// ## Description:
-	// execute a simple command on the editor, based on a keystroke.
-	static get editorKeyBindingDefaults() {
-		return defaultEditorKeys.keys;
-	}
-
-	// ## trackerKeyBindingDefaults
-	// ### Description:
-	// Key bindings for the tracker.  The tracker is the 'cursor' in the music
-	// that lets you select and edit notes.
-	static get trackerKeyBindingDefaults() {
-		return defaultTrackerKeys.keys;
-	}
-
-	helpControls() {
-		var self = this;
-		var rebind = function () {
-			self.bindEvents();
-		}
+    };
+    el.onscroll = scrollCallback;
   }
-	static set reentry(value) {
-		suiController._reentry = value;
-	}
-	static get reentry() {
-		if (typeof(suiController['_reentry']) == 'undefined') {
-			suiController._reentry = false;
-		}
-		return suiController._reentry;
-	}
 
-	menuHelp() {
-		SmoHelp.displayHelp();
-	}
 
-	static get defaults() {
-		return {
-			keyBind: suiController.keyBindingDefaults
-		};
-	}
+  // ### renderElement
+  // return render element that is the DOM parent of the svg
+  get renderElement() {
+    return this.view.renderer.renderElement;
+  }
 
-	showModifierDialog(modSelection) {
-		return SuiDialogFactory.createDialog(modSelection, this.tracker.context, this.tracker, this.layout,this.undoBuffer,this)
-	}
+  // ## keyBindingDefaults
+  // ### Description:
+  // Different applications can create their own key bindings, these are the defaults.
+  // Many editor commands can be reached by a single keystroke.  For more advanced things there
+  // are menus.
+  static get keyBindingDefaults() {
+    var editorKeys = suiController.editorKeyBindingDefaults;
+    editorKeys.forEach((key) => {
+      key.module = 'keyCommands'
+    });
+    var trackerKeys = suiController.trackerKeyBindingDefaults;
+    trackerKeys.forEach((key) => {
+      key.module = 'tracker'
+    });
+    return trackerKeys.concat(editorKeys);
+  }
+
+  // ## editorKeyBindingDefaults
+  // ## Description:
+  // execute a simple command on the editor, based on a keystroke.
+  static get editorKeyBindingDefaults() {
+    return defaultEditorKeys.keys;
+  }
+
+  // ## trackerKeyBindingDefaults
+  // ### Description:
+  // Key bindings for the tracker.  The tracker is the 'cursor' in the music
+  // that lets you select and edit notes.
+  static get trackerKeyBindingDefaults() {
+    return defaultTrackerKeys.keys;
+  }
+  helpControls() {
+    var self = this;
+    var rebind = function () {
+      self.bindEvents();
+    }
+  }
+  static set reentry(value) {
+    suiController._reentry = value;
+  }
+  static get reentry() {
+    if (typeof(suiController['_reentry']) == 'undefined') {
+      suiController._reentry = false;
+    }
+    return suiController._reentry;
+  }
+
+  menuHelp() {
+    SmoHelp.displayHelp();
+  }
+
+  static get defaults() {
+    return {
+      keyBind: suiController.keyBindingDefaults
+    };
+  }
+
+  showModifierDialog(modSelection) {
+    return SuiDialogFactory.createDialog(modSelection, this.view, this)
+  }
 
   // ### unbindKeyboardForModal
   // Global events from keyboard and pointer are handled by this object.  Modal
   // UI elements take over the events, and then let the controller know when
   // the modals go away.
-	unbindKeyboardForModal(dialog) {
-		var self=this;
+  unbindKeyboardForModal(dialog) {
+    const self = this;
     layoutDebug.addDialogDebug('controller: unbindKeyboardForModal')
-		var rebind = function () {
-			self.bindEvents();
+    const rebind = () => {
+      self.bindEvents();
       layoutDebug.addDialogDebug('controller: unbindKeyboardForModal resolve')
-		}
+    }
     this.eventSource.unbindKeydownHandler(this.keydownHandler);
     this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
     this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
 
-		dialog.closeModalPromise.then(rebind);
-	}
+    dialog.closeModalPromise.then(rebind);
+  }
 
-	evKey(evdata) {
-		var self = this;
+  evKey(evdata) {
     if ($('body').hasClass('translation-mode')) {
       return;
     }
 
-		console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
-			evdata.code + "'"
-			 + " shift='" + evdata.shiftKey + "' control='" + evdata.ctrlKey + "'" + " alt='" + evdata.altKey + "'");
-		evdata.preventDefault();
+    console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
+      evdata.code + "'"
+       + " shift='" + evdata.shiftKey + "' control='" + evdata.ctrlKey + "'" + " alt='" + evdata.altKey + "'");
+    evdata.preventDefault();
 
     if (suiController.keyboardWidget) {
       Qwerty.handleKeyEvent(evdata);
     }
-		if (evdata.key == '?') {
-			SmoHelp.displayHelp();
-		}
+    if (evdata.key == '?') {
+      SmoHelp.displayHelp();
+    }
 
-		if (evdata.key == '/') {
+    if (evdata.key == '/') {
       // set up menu DOM.
       this.menus.slashMenuMode(this);
-		}
+    }
 
-		if (evdata.key == 'Enter') {
-			self.trackerModifierSelect(evdata);
-      var modifier = this.tracker.getSelectedModifier();
-      if (modifier) {
-        this.createModifierDialog(modifier);
+    if (evdata.key == 'Enter') {
+      this.trackerModifierSelect(evdata);
+    }
+
+    var binding = this.keyBind.find((ev) =>
+      ev.event === 'keydown' && ev.key === evdata.key && ev.ctrlKey === evdata.ctrlKey &&
+      ev.altKey === evdata.altKey && evdata.shiftKey === ev.shiftKey);
+
+    if (binding) {
+      try {
+        this[binding.module][binding.action](evdata);
+      } catch (e) {
+        if (typeof(e) === 'string') {
+          console.error(e);
+        }
+        this.exhandler.exceptionHandler(e);
       }
-
-		}
-
-		var binding = this.keyBind.find((ev) =>
-				ev.event === 'keydown' && ev.key === evdata.key && ev.ctrlKey === evdata.ctrlKey &&
-				ev.altKey === evdata.altKey && evdata.shiftKey === ev.shiftKey);
-
-		if (binding) {
-			try {
-			this[binding.module][binding.action](evdata);
-			} catch (e) {
-				this.exhandler.exceptionHandler(e);
-			}
-		}
-	}
+    }
+  }
 
   mouseMove(ev) {
-    this.tracker.intersectingArtifact({
+    this.view.tracker.intersectingArtifact({
       x: ev.clientX,
       y: ev.clientY
     });
   }
 
   mouseClick(ev) {
-    this.tracker.selectSuggestion(ev);
-    var modifier = this.tracker.getSelectedModifier();
+    this.view.tracker.selectSuggestion(ev);
+    var modifier = this.view.tracker.getSelectedModifier();
     if (modifier) {
       this.createModifierDialog(modifier);
     }
   }
-	bindEvents() {
-		var self = this;
-		var tracker = this.tracker;
+  bindEvents() {
+    const self = this;
+    const tracker = this.view.tracker;
 
-		$('body').off('redrawScore').on('redrawScore',function() {
-			self.handleRedrawTimer();
-		});
-		$('body').off('forceScrollEvent').on('forceScrollEvent',function() {
-			self.handleScrollEvent();
-		});
-		$('body').off('forceResizeEvent').on('forceResizeEvent',function() {
-			self.resizeEvent();
-		});
-    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
-    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
+    $('body').off('redrawScore').on('redrawScore', function() {
+      self.handleRedrawTimer();
+    });
+    $('body').off('forceScrollEvent').on('forceScrollEvent', function() {
+      self.handleScrollEvent();
+    });
+    $('body').off('forceResizeEvent').on('forceResizeEvent', function() {
+      self.resizeEvent();
+    });
+    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
+    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
+    this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
 
-		/* $(this.renderElement).off('mousemove').on('mousemove', function (ev) {
-			tracker.intersectingArtifact({
-				x: ev.clientX,
-				y: ev.clientY
-			});
-		});
-
-		$(this.renderElement).off('click').on('click', function (ev) {
-      tracker.selectSuggestion(ev);
-      var modifier = tracker.getSelectedModifier();
-      if (modifier) {
-        self.createModifierDialog(modifier);
-      }
-		});   */
-
-    this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
-
-		this.helpControls();
-		window.addEventListener('error', function (e) {
-			SuiExceptionHandler.instance.exceptionHandler(e);
-		});
-	}
-
+    this.helpControls();
+    window.addEventListener('error', function (e) {
+      SuiExceptionHandler.instance.exceptionHandler(e);
+    });
+  }
 }
 ;// # Dialog base classes
 
@@ -22885,6 +24072,9 @@ class SuiModifierDialogFactory {
     let dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
     if (dbType === 'SuiLyricDialog' && modifier.parser === SmoLyric.parsers.chord) {
       dbType = 'SuiChordChangeDialog';
+    }
+    if (typeof(dbType) === 'undefined') {
+      return null;
     }
     const ctor = eval(dbType);
     return ctor.createAndDisplay({
@@ -22910,6 +24100,10 @@ class SuiModifierDialogFactory {
 // Base class for dialogs.
 // eslint-disable-next-line no-unused-vars
 class SuiDialogBase {
+  static get parameters() {
+    return ['eventSource', 'view',
+      'completeNotifier', 'keyCommands', 'modifier'];
+  }
   // ### SuiDialogBase ctor
   // Creates the DOM element for the dialog and gets some initial elements
   constructor(dialogElements, parameters) {
@@ -22939,20 +24133,13 @@ class SuiDialogBase {
     // If this dialog was spawned by a menu, wait for the menu to dismiss
     // before continuing.
     this.startPromise = parameters.closeMenuPromise;
-    this.eventSource = parameters.eventSource;
-    this.layout = parameters.layout;
-    this.context = this.layout.context;
     this.dialogElements = dialogElements;
-    this.tracker = parameters.tracker;
-    this.completeNotifier = parameters.completeNotifier;
-    this.undoBuffer = parameters.undoBuffer;
-    this.keyCommands = parameters.keyCommands;
-    this.label = this.staticText.label;
-    this.modifier = parameters.modifier;
-    this.activeScoreText = parameters.activeScoreText;
+    SuiDialogBase.parameters.forEach((param) => {
+      this[param] = parameters[param];
+    });
 
-    const top = parameters.top - this.tracker.scroller.netScroll.y;
-    const left = parameters.left - this.tracker.scroller.netScroll.x;
+    const top = parameters.top - this.view.tracker.scroller.netScroll.y;
+    const left = parameters.left - this.view.tracker.scroller.netScroll.x;
 
     this.dgDom = this._constructDialog(dialogElements, {
       id: 'dialog-' + this.id,
@@ -23033,7 +24220,7 @@ class SuiDialogBase {
   // Position the dialog near a selection.  If the dialog is not visible due
   // to scrolling, make sure it is visible.
   position(box) {
-    SuiDialogBase.position(box, this.dgDom, this.tracker.scroller);
+    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
   }
   // ### build the html for the dialog, based on the instance-specific components.
   _constructDialog(dialogElements, parameters) {
@@ -23069,16 +24256,6 @@ class SuiDialogBase {
       trapper
     };
   }
-
-  // ### _commit
-  // generic logic to commit changes to a momdifier.
-  _commit() {
-    this.modifier.restoreOriginal();
-    this.components.forEach((component) => {
-      this.modifier[component.smoName] = component.getValue();
-    });
-  }
-
   // ### Complete
   // Dialogs take over the keyboard, so release that and trigger an event
   // that the dialog is closing that can resolve any outstanding promises.
@@ -23111,7 +24288,7 @@ class SuiDialogBase {
     if (this.modifier && this.modifier.renderedBox) {
       this.position(this.modifier.renderedBox);
     }
-    this.tracker.scroller.scrollVisibleBox(
+    this.view.tracker.scroller.scrollVisibleBox(
       svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
     );
 
@@ -23149,12 +24326,10 @@ class SuiDialogBase {
     this.bindKeyboard();
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      self._commit();
       self.complete();
     });
 
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      self.modifier.restoreOriginal();
       self.complete();
     });
     $(dgDom.element).find('.remove-button').off('click').on('click', () => {
@@ -23639,64 +24814,59 @@ class SuiTextInputComponent extends SuiComponentBase {
     });
   }
 }
-;
+;// eslint-disable-next-line no-unused-vars
 class SuiFileDialog extends SuiDialogBase {
   constructor(parameters) {
-		var p = parameters;
+    var p = parameters;
     var ctor = eval(parameters.ctor);
     p.label = parameters.label ? parameters.label : 'Dialog Box';
     p.id = 'dialog-file';
-    p.top = (p.layout.score.layout.pageWidth / 2) - 200;
-    p.left = (p.layout.score.layout.pageHeight / 2) - 200;
+    p.top = (p.view.score.layout.pageWidth / 2) - 200;
+    p.left = (p.view.score.layout.pageHeight / 2) - 200;
 
-		super(ctor.dialogElements, p);
-
-    // File dialogs can be created from menu, get menu promise
-		this.layout = p.layout;
-    this.value='';
-	}
+    super(ctor.dialogElements, p);
+    this.value = '';
+  }
   display() {
     $('body').addClass('showAttributeDialog');
-		this.components.forEach((component) => {
-			component.bind();
-		});
-		this._bindElements();
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    this._bindElements();
 
     // make sure keyboard is unbound or we get dupicate key events.
-    var self=this;
-    function getKeys() {
-        self.completeNotifier.unbindKeyboardForModal(self);
-    }
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(this);
+    };
     this.startPromise.then(getKeys);
     this.position($(this.dgDom.element)[0].getBoundingClientRect());
-	}
+  }
 
   _bindElements() {
-  	var self = this;
-  	var dgDom = this.dgDom;
+    const dgDom = this.dgDom;
 
-  	$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-            self.commit();
-  	});
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.commit();
+    });
 
-  	$(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-  		self.complete();
-  	});
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.complete();
+    });
 
-  	$(dgDom.element).find('.remove-button').remove();
-        this.bindKeyboard();
-  	}
-    position(box) {
-  	var y = (window.innerHeight/3  + box.height);
-
-  	// TODO: adjust if db is clipped by the browser.
+    $(dgDom.element).find('.remove-button').remove();
+    this.bindKeyboard();
+  }
+  position(box) {
+    var y = (window.innerHeight / 3  + box.height);
+    // TODO: adjust if db is clipped by the browser.
     var dge = $(this.dgDom.element).find('.attributeModal');
 
-  	$(dge).css('top', '' + y + 'px');
-        var x = window.innerWidth - box.width/2;
-        $(dge).css('left', '' + x + 'px');
+    $(dge).css('top', '' + y + 'px');
+    const x = window.innerWidth - box.width / 2;
+    $(dge).css('left', '' + x + 'px');
   }
 }
+// eslint-disable-next-line no-unused-vars
 class SuiLoadFileDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiLoadFileDialog';
@@ -23705,58 +24875,53 @@ class SuiLoadFileDialog extends SuiFileDialog {
     return SuiLoadFileDialog.ctor;
   }
 
-    static get dialogElements() {
-      SuiLoadFileDialog._dialogElements = SuiLoadFileDialog._dialogElements ? SuiLoadFileDialog._dialogElements :
-		    [{
-  				smoName: 'loadFile',
-  				parameterName: 'jsonFile',
-  				defaultValue: '',
-  				control: 'SuiFileDownloadComponent',
-  				label:''
-			  },{staticText: [
-          {label: 'Load File'}
-        ]}
+  static get dialogElements() {
+    SuiLoadFileDialog._dialogElements = SuiLoadFileDialog._dialogElements ? SuiLoadFileDialog._dialogElements :
+      [{
+        smoName: 'loadFile',
+        parameterName: 'jsonFile',
+        defaultValue: '',
+        control: 'SuiFileDownloadComponent',
+        label: ''
+      }, { staticText: [
+        { label: 'Load File' }
+      ] }
       ];
-      return SuiLoadFileDialog._dialogElements;
+    return SuiLoadFileDialog._dialogElements;
+  }
+  changed() {
+    this.value = this.components[0].getValue();
+    $(this.dgDom.element).find('.ok-button').prop('disabled', false);
+  }
+  commit() {
+    let scoreWorks = false;
+    if (this.value) {
+      try {
+        const score = SmoScore.deserialize(this.value);
+        scoreWorks = true;
+        this.view.changeScore(score);
+        this.complete();
+      } catch (e) {
+        console.warn('unable to score ' + e);
+      }
+      if (!scoreWorks) {
+        this.complete();
+      }
     }
-
-    changed() {
-        this.value = this.components[0].getValue();
-        $(this.dgDom.element).find('.ok-button').prop('disabled',false);
-    }
-    commit() {
-        var scoreWorks = false;
-        if (this.value) {
-            try {
-                var score = SmoScore.deserialize(this.value);
-                scoreWorks=true;
-                this.layout.score = score;
-                this.layout.setViewport(true);
-                setTimeout(function() {
-                    $('body').trigger('forceResizeEvent');
-                },1);
-                this.complete();
-            } catch (e) {
-                console.log('unable to score '+e);
-            }
-            if (!scoreWorks) {
-                this.complete();
-            }
-        }
-    }
-    static createAndDisplay(params) {
-		var dg = new SuiLoadFileDialog(params);
-		dg.display();
-     // disable until file is selected
-    $(dg.dgDom.element).find('.ok-button').prop('disabled',true);
-	}
-    constructor(parameters) {
-        parameters.ctor='SuiLoadFileDialog';
-        super(parameters);
-	}
+  }
+  static createAndDisplay(params) {
+    const dg = new SuiLoadFileDialog(params);
+    dg.display();
+    // disable until file is selected
+    $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
+  }
+  constructor(parameters) {
+    parameters.ctor = 'SuiLoadFileDialog';
+    super(parameters);
+  }
 }
 
-
+// eslint-disable-next-line no-unused-vars
 class SuiPrintFileDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiPrintFileDialog';
@@ -23765,8 +24930,8 @@ class SuiPrintFileDialog extends SuiFileDialog {
     return SuiPrintFileDialog.ctor;
   }
   static get label() {
-    SuiPrintFileDialog._label = SuiPrintFileDialog._label ? SuiPrintFileDialog._label :
-       'Print Complete';
+    SuiPrintFileDialog._label = typeof(SuiPrintFileDialog._label) !== 'undefined' ? SuiPrintFileDialog._label :
+      'Print Complete';
     return SuiPrintFileDialog._label;
   }
   static set label(value) {
@@ -23774,34 +24939,34 @@ class SuiPrintFileDialog extends SuiFileDialog {
   }
 
   static get dialogElements() {
-	  return [
-      {staticText: [
-      {label: 'Print Complete'}
-    ]}];
+    return [
+      { staticText: [
+        { label: 'Print Complete' }
+      ] }];
   }
   static createAndDisplay(params) {
-		var dg = new SuiPrintFileDialog(params);
-		dg.display();
-	}
+    var dg = new SuiPrintFileDialog(params);
+    dg.display();
+  }
   constructor(parameters) {
-    parameters.ctor='SuiPrintFileDialog';
+    parameters.ctor = 'SuiPrintFileDialog';
     super(parameters);
-	}
+  }
   changed() {}
   _bindElements() {
-    var self = this;
-    var dgDom = this.dgDom;
-		$(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
+    const dgDom = this.dgDom;
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       $('body').removeClass('printing');
-      self.layout.restoreLayoutAfterPrint();
+      this.view.renderer.restoreLayoutAfterPrint();
       window.dispatchEvent(new Event('resize'));
-      self.complete();
-	  });
+      this.complete();
+    });
 
-		$(dgDom.element).find('.cancel-button').remove();
-		$(dgDom.element).find('.remove-button').remove();
-	}
+    $(dgDom.element).find('.cancel-button').remove();
+    $(dgDom.element).find('.remove-button').remove();
+  }
 }
+// eslint-disable-next-line no-unused-vars
 class SuiSaveFileDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiSaveFileDialog';
@@ -23811,20 +24976,20 @@ class SuiSaveFileDialog extends SuiFileDialog {
   }
 
   static get dialogElements() {
-    SuiSaveFileDialog._dialogElements = SuiSaveFileDialog._dialogElements ? SuiSaveFileDialog._dialogElements :
-	  [{
+    SuiSaveFileDialog._dialogElements = typeof(SuiSaveFileDialog._dialogElements) !== 'undefined' ?
+      SuiSaveFileDialog._dialogElements :
+      [{
         smoName: 'saveFileName',
         parameterName: 'saveFileName',
         defaultValue: '',
         control: 'SuiTextInputComponent',
-        label:'File Name'
-		},
-    {
-      staticText: [
-        {label : 'Save Score'}
-      ]
-    }];
-
+        label: 'File Name'
+      },
+      {
+        staticText: [
+          { label: 'Save Score' }
+        ]
+      }];
     return SuiSaveFileDialog._dialogElements;
   }
 
@@ -23832,27 +24997,34 @@ class SuiSaveFileDialog extends SuiFileDialog {
     this.value = this.components[0].getValue();
   }
   commit() {
-    var filename = this.value;
+    let filename = this.value;
     if (!filename) {
-        filename='myScore.json';
+      filename = 'myScore.json';
     }
     if (filename.indexOf('.json') < 0) {
-        filename = filename + '.json';
+      filename = filename + '.json';
     }
-    var txt = this.layout.score.serialize();
-    txt = JSON.stringify(txt);
-    htmlHelpers.addFileLink(filename,txt,$('.saveLink'));
-    $('.saveLink a')[0].click();
+    this.view.score.scoreInfo.version += 1;
+    this.view.saveScore(filename);
     this.complete();
   }
+  display() {
+    super.display();
+    this._bindComponentNames();
+    this.saveFileNameCtrl.setValue(this.value);
+  }
+  static createName(score) {
+    return score.scoreInfo.name + '-' + score.scoreInfo.version + '.json';
+  }
   static createAndDisplay(params) {
-		var dg = new SuiSaveFileDialog(params);
-		dg.display();
-	}
+    var dg = new SuiSaveFileDialog(params);
+    dg.display();
+  }
   constructor(parameters) {
-    parameters.ctor='SuiSaveFileDialog';
+    parameters.ctor = 'SuiSaveFileDialog';
     super(parameters);
-	}
+    this.value = SuiSaveFileDialog.createName(this.view.score);
+  }
 }
 ;// ## SuiFontComponent
 // Dialog component that lets user choose and customize fonts.
@@ -24184,51 +25356,57 @@ class SuiTextBlockComponent extends SuiComponentBase {
 ;// ## measureDialogs.js
 // This file contains dialogs that affect all measures at a certain position,
 // such as tempo or time signature.
-
+// eslint-disable-next-line no-unused-vars
 class SuiMeasureDialog extends SuiDialogBase {
-    static get attributes() {
-      return ['pickupMeasure', 'makePickup', 'padLeft', 'padAllInSystem',
-        'measureText','measureTextPosition'];
-    }
-    static get ctor() {
-      return 'SuiMeasureDialog';
-    }
-    get ctor() {
-      return SuiMeasureDialog.ctor;
-    }
-    static get dialogElements() {
-      SuiMeasureDialog._dialogElements = SuiMeasureDialog._dialogElements ? SuiMeasureDialog._dialogElements :
-        [
-          {
-            staticText: [
-              { label: 'Measure Properties' }]
-          },
-          {
-            smoName: 'pickupMeasure',
-            parameterName: 'pickupMeasure',
-            defaultValue: 2048,
-            control: 'SuiDropdownComponent',
-            label:'Pickup Measure',
-            options: [{
-              value: 2048,
-              label: 'Eighth Note'
-            }, {
-              value: 4096,
-              label: 'Quarter Note'
-            }, {
-              value: 6144,
-              label: 'Dotted Quarter'
-            }, {
-              value: 8192,
-              label: 'Half Note'
-          }
-        ]
-      }, {
-        smoName:'makePickup',
-        parameterName:'makePickup',
-        defaultValue: false,
-        control:'SuiToggleComponent',
-        label:'Convert to Pickup Measure'
+  static get attributes() {
+    return ['pickupMeasure', 'makePickup', 'padLeft', 'padAllInSystem',
+      'measureText', 'measureTextPosition'];
+  }
+  static get ctor() {
+    return 'SuiMeasureDialog';
+  }
+  get ctor() {
+    return SuiMeasureDialog.ctor;
+  }
+  static get dialogElements() {
+    SuiMeasureDialog._dialogElements = typeof(SuiMeasureDialog._dialogElements) !== 'undefined' ? SuiMeasureDialog._dialogElements :
+      [{
+        staticText: [
+          { label: 'Measure Properties' }]
+      },
+      {
+        smoName: 'pickup',
+        parameterName: 'pickup',
+        defaultValue: '',
+        control: CheckboxDropdownComponent,
+        label: 'Pickup',
+        toggleElement: {
+          smoName: 'makePickup',
+          parameterName: 'makePickup',
+          defaultValue: false,
+          control: 'SuiToggleComponent',
+          label: 'Convert to Pickup Measure'
+        },
+        dropdownElement: {
+          smoName: 'pickupMeasure',
+          parameterName: 'pickupMeasure',
+          defaultValue: 2048,
+          control: 'SuiDropdownComponent',
+          label: 'Pickup Measure',
+          options: [{
+            value: 2048,
+            label: 'Eighth Note'
+          }, {
+            value: 4096,
+            label: 'Quarter Note'
+          }, {
+            value: 6144,
+            label: 'Dotted Quarter'
+          }, {
+            value: 8192,
+            label: 'Half Note'
+          }]
+        }
       }, {
         parameterName: 'padLeft',
         smoName: 'padLeft',
@@ -24241,7 +25419,7 @@ class SuiMeasureDialog extends SuiDialogBase {
         defaultValue: 0,
         control: 'SuiRockerComponent',
         label: 'Stretch Contents'
-      },{
+      }, {
         parameterName: 'customProportion',
         smoName: 'customProportion',
         defaultValue: SmoMeasure.defaults.customProportion,
@@ -24249,118 +25427,97 @@ class SuiMeasureDialog extends SuiDialogBase {
         increment: 10,
         label: 'Adjust Proportional Spacing'
       }, {
-        smoName:'padAllInSystem',
-        parameterName:'padAllInSystem',
+        smoName: 'padAllInSystem',
+        parameterName: 'padAllInSystem',
         defaultValue: false,
-        control:'SuiToggleComponent',
-        label:'Pad all measures in system'
+        control: 'SuiToggleComponent',
+        label: 'Pad all measures in system'
       }, {
         smoName: 'autoJustify',
         parameterName: 'autoJustify',
         defaultValue: true,
         control: 'SuiToggleComponent',
         label: 'Justify Columns'
-      },  {
+      }, {
         smoName: 'noteFormatting',
         parameterName: 'noteFormatting',
         defaultValue: 0,
         control: 'SuiDropdownComponent',
-        label: 'Formatting Iterations',
+        label: 'Collision Avoidance',
         options: [{
-            value: 0,
-            label: 'None'
-          }, {
-            value: 2,
-            label: '2'
-          }, {
-            value: 5,
-            label: '5'
-          }, {
-            value: 10,
-            label: '10'
-          }
-        ]
+          value: 0,
+          label: 'Off'
+        }, {
+          value: 2,
+          label: '2x'
+        }, {
+          value: 5,
+          label: '5x'
+        }, {
+          value: 10,
+          label: '10x'
+        }]
       }, {
         smoName: 'measureTextPosition',
         parameterName: 'measureTextPosition',
         defaultValue: SmoMeasureText.positions.above,
         control: 'SuiDropdownComponent',
-        label:'Text Position',
+        label: 'Text Position',
         options: [{
-            value: SmoMeasureText.positions.left,
-            label: 'Left'
-          }, {
-            value: SmoMeasureText.positions.right,
-            label: 'Right'
-          }, {
-            value:SmoMeasureText.positions.above,
-            label: 'Above'
-          }, {
-            value: SmoMeasureText.positions.below,
-            label: 'Below'
-          }
-        ]
+          value: SmoMeasureText.positions.left,
+          label: 'Left'
+        }, {
+          value: SmoMeasureText.positions.right,
+          label: 'Right'
+        }, {
+          value: SmoMeasureText.positions.above,
+          label: 'Above'
+        }, {
+          value: SmoMeasureText.positions.below,
+          label: 'Below'
+        }]
       }, {
-        smoName:'systemBreak',
-        parameterName:'systemBreak',
+        smoName: 'systemBreak',
+        parameterName: 'systemBreak',
         defaultValue: false,
-        control:'SuiToggleComponent',
+        control: 'SuiToggleComponent',
         label: 'System break before this measure'
       }];
-
-      return SuiMeasureDialog._dialogElements;
-    }
-    static createAndDisplay(parameters) {
-      // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
-      //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
-      parameters.selection = parameters.tracker.selections[0];
-      var dg = new SuiMeasureDialog(parameters);
-      dg.display();
-      return dg;
-    }
+    return SuiMeasureDialog._dialogElements;
+  }
+  static createAndDisplay(parameters) {
+    // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
+    //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
+    parameters.selection = parameters.view.tracker.selections[0];
+    const dg = new SuiMeasureDialog(parameters);
+    dg.display();
+    return dg;
+  }
   changed() {
-    if (this.pickupMeasureCtrl.changeFlag || this.pickupMeasureCtrl.changeFlag) {
-      this.layout.unrenderColumn(this.measure);
-      SmoUndoable.scoreOp(this.layout.score, 'convertToPickupMeasure', this.pickupMeasureCtrl.getValue(), this.undoBuffer, 'Create pickup measure');
-      this.selection = SmoSelection.measureSelection(this.layout.score, this.selection.selector.staff, this.selection.selector.measure);
-      this.tracker.replaceSelectedMeasures();
-      this.measure = this.selection.measure;
+    if (this.pickupCtrl.changeFlag) {
+      if (this.pickupCtrl.toggleCtrl.getValue() === false) {
+        this.view.createPickup(smoMusic.timeSignatureToTicks(this.measure.timeSignature));
+      } else {
+        this.view.createPickup(this.pickupCtrl.dropdownCtrl.getValue());
+      }
     }
     if (this.customStretchCtrl.changeFlag) {
-      var delta = this.measure.customStretch;
-      this.measure.customStretch = this.customStretchCtrl.getValue();
-      this.measure.setWidth(this.measure.staffWidth - (delta - this.measure.customStretch));
-      this.tracker.replaceSelectedMeasures();
+      this.view.setMeasureStretch(this.measure.measureNumber.measureIndex, this.customStretchCtrl.getValue());
     }
     if (this.customProportionCtrl.changeFlag) {
-      this.measure.customProportion = this.customProportionCtrl.getValue();
-      this.tracker.replaceSelectedMeasures();
+      this.view.setMeasureProportion(this.customProportionCtrl.getValue());
     }
     if (this.systemBreakCtrl.changeFlag) {
-      SmoUndoable.scoreSelectionOp(this.layout.score,
-        this.tracker.selections[0],'setForceSystemBreak', this.systemBreakCtrl.getValue(),
-        this.undoBuffer,'change system break flag');
-      this.layout.setRefresh();
+      this.view.forceSystemBreak(this.systemBreakCtrl.getValue());
     }
     if (this.autoJustifyCtrl.changeFlag) {
-      SmoUndoable.scoreSelectionOp(this.layout.score,
-        this.tracker.selections[0], 'setAutoJustify', this.autoJustifyCtrl.getValue(),
-        this.undoBuffer, 'change the vertical note justification');
-      this.tracker.replaceSelectedMeasures();
+      this.view.setAutoJustify(this.autoJustifyCtrl.getValue());
     }
     if (this.noteFormattingCtrl.changeFlag) {
-      SmoUndoable.scoreSelectionOp(this.layout.score,
-        this.tracker.selections[0], 'setFormattingIterations', parseInt(this.noteFormattingCtrl.getValue(),10),
-        this.undoBuffer, 'change the horizontal justification');
-      this.tracker.replaceSelectedMeasures();
+      this.view.setCollisionAvoidance(parseInt(this.noteFormattingCtrl.getValue(), 10));
     }
     if (this.padLeftCtrl.changeFlag || this.padAllInSystemCtrl.changeFlag) {
-      this.layout.unrenderColumn(this.measure);
-      const selections = this.padAllInSystemCtrl.getValue() ?
-        SmoSelection.measuresInColumn(this.layout.score, this.selection.measure.measureNumber.measureIndex) :
-        SmoSelection.measureSelection(this.layout.score, this.selection.selector.staff, this.selection.selector.measure);
-      SmoUndoable.padMeasuresLeft(selections, this.padLeftCtrl.getValue(), this.undoBuffer);
-      this.tracker.replaceSelectedMeasures();
+      this.view.padMeasure(this.padLeftCtrl.getValue(), this.padAllInSystemCtrl.getValue());
     }
     //
     this._updateConditionals();
@@ -24375,15 +25532,11 @@ class SuiMeasureDialog extends SuiDialogBase {
       top: parameters.selection.measure.renderedBox.y,
       left: parameters.selection.measure.renderedBox.x,
       label: 'Measure Properties',
-      tracker:parameters.tracker,
-      undoBuffer: parameters.undoBuffer,
-      eventSource: parameters.eventSource,
-      completeNotifier : parameters.completeNotifier,
-      layout: parameters.layout
+      ...parameters
     });
-    this.startPromise=parameters.closeMenuPromise;
+    this.startPromise = parameters.closeMenuPromise;
     if (!this.startPromise) {
-      this.startPromise = new Promise((resolve,reject) => {
+      this.startPromise = new Promise((resolve) => {
         resolve();
       });
     }
@@ -24397,23 +25550,16 @@ class SuiMeasureDialog extends SuiDialogBase {
   }
   display() {
     super.display();
-    var self=this;
-    function getKeys() {
-        self.completeNotifier.unbindKeyboardForModal(self);
-    }
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(this);
+    };
     this.startPromise.then(getKeys);
   }
   _updateConditionals() {
-    if (this.padLeftCtrl.getValue() != 0 || this.padLeftCtrl.changeFlag) {
+    if (this.padLeftCtrl.getValue() !== 0 || this.padLeftCtrl.changeFlag) {
       $('.attributeDialog .attributeModal').addClass('pad-left-select');
     } else {
       $('.attributeDialog .attributeModal').removeClass('pad-left-select');
-    }
-
-    if (this.pickupMeasureCtrl.getValue()) {
-      $('.attributeDialog .attributeModal').addClass('pickup-select');
-    } else {
-      $('.attributeDialog .attributeModal').removeClass('pickup-select');
     }
   }
   populateInitial() {
@@ -24421,50 +25567,41 @@ class SuiMeasureDialog extends SuiDialogBase {
     this.autoJustifyCtrl.setValue(this.measure.autoJustify);
     this.originalStretch = this.measure.customStretch;
     this.originalProportion = this.measure.customProportion;
-    var isPickup = this.measure.isPickup();
+    const isPickup = this.measure.isPickup();
     this.customStretchCtrl.setValue(this.measure.customStretch);
     this.customProportionCtrl.setValue(this.measure.customProportion);
     this.noteFormattingCtrl.setValue(this.measure.getFormattingIterations());
-    this.pickupMeasureCtrl.setValue(isPickup);
+    this.pickupCtrl.toggleCtrl.setValue(isPickup);
     if (isPickup) {
-      this.pickupMeasureCtrl.setValue(this.measure.getTicksFromVoice())
+      this.pickupCtrl.dropdownCtrl.setValue(this.measure.getTicksFromVoice());
     }
 
-    var isSystemBreak = this.measure.getForceSystemBreak();
+    const isSystemBreak = this.measure.getForceSystemBreak();
     this.systemBreakCtrl.setValue(isSystemBreak);
     this._updateConditionals();
 
     // TODO: handle multiples (above/below)
-    var texts = this.measure.getMeasureText();
-  }
-  _cancelEdits() {
-    this.measure.customStretch = this.originalStretch;
-    this.measure.customProportion = this.originalProportion;
-    this.layout.setRefresh();
+    this.measure.getMeasureText();
   }
   _bindElements() {
-    this._bindComponentNames();
-    var self = this;
-    var dgDom = this.dgDom;
+    const dgDom = this.dgDom;
     this.bindKeyboard();
     this._bindComponentNames();
     this.populateInitial();
 
-    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-      self.tracker.replaceSelectedMeasures();
-      self.complete();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.complete();
     });
-
-    $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-      self._cancelEdits();
-      self.complete();
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.complete();
     });
-    $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-      self.complete();
+    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+      this.complete();
     });
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiInstrumentDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiInstrumentDialog';
@@ -24474,15 +25611,15 @@ class SuiInstrumentDialog extends SuiDialogBase {
   }
   static get applyTo() {
     return {
-      score: 0,selected:1, remaining: 3
+      score: 0, selected: 1, remaining: 3
     };
   }
   static get dialogElements() {
-    SuiInstrumentDialog._dialogElements = SuiInstrumentDialog._dialogElements ? SuiInstrumentDialog._dialogElements :
-    [
-      {
+    SuiInstrumentDialog._dialogElements = typeof(SuiInstrumentDialog._dialogElements) !== 'undefined' ?
+      SuiInstrumentDialog._dialogElements :
+      [{
         staticText: [
-          {label: 'Instrument Properties'}
+          { label: 'Instrument Properties' }
         ]
       },
       {
@@ -24490,42 +25627,27 @@ class SuiInstrumentDialog extends SuiDialogBase {
         parameterName: 'transposeIndex',
         defaultValue: 0,
         control: 'SuiRockerComponent',
-        label:'Transpose Index (1/2 steps)',
-      },{
+        label: 'Transpose Index (1/2 steps)',
+      }, {
         smoName: 'applyTo',
         parameterName: 'applyTo',
         defaultValue: SuiInstrumentDialog.applyTo.score,
         control: 'SuiDropdownComponent',
-        label:'Apply To',
+        label: 'Apply To',
         options: [{
-            value: SuiInstrumentDialog.applyTo.score,
-            label: 'Score'
-          }, {
-            value: SuiInstrumentDialog.applyTo.selected,
-            label: 'Selected Measures'
-          }, {
-            value: SuiInstrumentDialog.applyTo.remaining,
-            label: 'Remaining Measures'
-          }
-        ]
-      }
-    ];
+          value: SuiInstrumentDialog.applyTo.score,
+          label: 'Score'
+        }, {
+          value: SuiInstrumentDialog.applyTo.selected,
+          label: 'Selected Measures'
+        }, {
+          value: SuiInstrumentDialog.applyTo.remaining,
+          label: 'Remaining Measures'
+        }]
+      }];
     return SuiInstrumentDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
-    /* SuiLyricDialog.createAndDisplay(
-      {
-        buttonElement:this.buttonElement,
-        buttonData:this.buttonData,
-        completeNotifier:this.controller,
-        tracker: this.tracker,
-        layout:this.layout,
-        undoBuffer:this.editor.undoBuffer,
-        eventSource:this.eventSource,
-        editor:this.editor,
-        parser:SmoLyric.parsers.lyric
-      }
-    );  */
     var db = new SuiInstrumentDialog(parameters);
     db.display();
     return db;
@@ -24533,55 +25655,54 @@ class SuiInstrumentDialog extends SuiDialogBase {
   display() {
     $('body').addClass('showAttributeDialog');
     this.components.forEach((component) => {
-        component.bind();
+      component.bind();
     });
     this._bindComponentNames();
     this._bindElements();
     this.position(this.measure.renderedBox);
-    this.tracker.scroller.scrollVisibleBox(
+    this.view.tracker.scroller.scrollVisibleBox(
       svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
     );
 
-
-    var cb = function (x, y) {}
+    const cb = () => {};
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
       handle: $(this.dgDom.element).find('.jsDbMove'),
-      animateDiv:'.draganime',
-      cb: cb,
+      animateDiv: '.draganime',
+      cb,
       moveParent: true
     });
+    this.completeNotifier.unbindKeyboardForModal(this);
   }
   populateInitial() {
-    var ix = this.measure.transposeIndex;
+    const ix = this.measure.transposeIndex;
     this.transposeIndexCtrl.setValue(ix);
   }
 
   changed() {
-    var staffIx = this.measure.measureNumber.staffId;
-
-    var xpose = this.transposeIndexCtrl.getValue();
-    var selections = [];
-    for (var i = 0;i < this.score.staves[staffIx].measures.length;++i) {
+    let i = 0;
+    const staffIx = this.measure.measureNumber.staffId;
+    const xpose = this.transposeIndexCtrl.getValue();
+    const selections = [];
+    for (i = 0; i < this.score.staves[staffIx].measures.length; ++i) {
       selections.push(SmoSelection.measureSelection(this.score, staffIx, i));
     }
-    SmoUndoable.changeInstrument(this.score,
+    this.view.changeInstrument(
       {
         instrumentName: 'Treble Instrument',
         keyOffset: xpose,
         clef: this.measure.clef
       },
       selections,
-      this.undoBuffer);
-
-    this.layout.setRefresh();
+      this.undoBuffer
+    );
   }
 
   constructor(parameters) {
-    var selection = parameters.tracker.selections[0];
-    var measure = selection.measure;
+    const selection = parameters.view.tracker.selections[0];
+    const measure = selection.measure;
 
-    parameters = {selection:selection,measure:measure,...parameters};
+    parameters = { selection, measure, ...parameters };
 
     super(SuiInstrumentDialog.dialogElements, {
       id: 'time-signature-measure',
@@ -24592,29 +25713,26 @@ class SuiInstrumentDialog extends SuiDialogBase {
     this.measure = measure;
     this.score = this.keyCommands.score;
     this.refresh = false;
-    this.startPromise=parameters.closeMenuPromise;
+    this.startPromise = parameters.closeMenuPromise;
     Vex.Merge(this, parameters);
   }
   _bindElements() {
-    var self = this;
     var dgDom = this.dgDom;
     this.populateInitial();
 
-   $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-     self.complete();
-   });
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.complete();
+    });
 
-   $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-     self.complete();
-   });
-   $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-     self.complete();
-   });
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.complete();
+    });
+    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+      this.complete();
+    });
   }
-
 }
-
-
+// eslint-disable-next-line no-unused-vars
 class SuiTimeSignatureDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiTimeSignatureDialog';
@@ -24627,21 +25745,20 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
     SuiTimeSignatureDialog._dialogElements = SuiTimeSignatureDialog._dialogElements ? SuiTimeSignatureDialog._dialogElements :
       [
         { staticText: [
-            { label: 'Custom Time Signature' }
-          ]
-        },
+          { label: 'Custom Time Signature' }
+        ] },
         {
           smoName: 'numerator',
           parameterName: 'numerator',
           defaultValue: 3,
           control: 'SuiRockerComponent',
-          label:'Beats/Measure',
+          label: 'Beats/Measure',
         },
         {
           parameterName: 'denominator',
           smoName: 'denominator',
           defaultValue: 8,
-          dataType:'int',
+          dataType: 'int',
           control: 'SuiDropdownComponent',
           label: 'Beat Value',
           options: [{
@@ -24653,119 +25770,94 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
           }, {
             value: 2,
             label: '2'
-          }
-        ]
-      }
-    ];
-
+          }]
+        }];
     return SuiTimeSignatureDialog._dialogElements;
   }
   populateInitial() {
-     var num,den;
-     var nd = this.measure.timeSignature.split('/');
-     var num = parseInt(nd[0]);
-     var den = parseInt(nd[1]);
-
-     this.numeratorCtrl.setValue(num);
-     this.denominatorCtrl.setValue(den);
+    const nd = this.measure.timeSignature.split('/');
+    const num = parseInt(nd[0], 10);
+    const den = parseInt(nd[1], 10);
+    this.numeratorCtrl.setValue(num);
+    this.denominatorCtrl.setValue(den);
   }
 
   changed() {
     // no dynamic change for time  signatures
   }
- static createAndDisplay(params) {
-     // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
-     //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
+  static createAndDisplay(params) {
+    var dg = new SuiTimeSignatureDialog(
+      params
+    );
+    dg.display();
+    return dg;
+  }
 
-     var dg = new SuiTimeSignatureDialog({
-        selections: params.tracker.selections,
-        undoBuffer: params.undoBuffer,
-        layout: params.tracker.layout,
-        completeNotifier :params.completeNotifier,
-        closeMenuPromise:params.closeMenuPromise,
-        tracker: params.tracker
-      });
-      dg.display();
-      return dg;
-   }
-   changeTimeSignature() {
-    var ts = '' + this.numeratorCtrl.getValue() + '/'+this.denominatorCtrl.getValue();
-    SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
-      this.tracker.selections,
-      'setTimeSignature',ts,this.undoBuffer);
-      this.tracker.replaceSelectedMeasures();
-   }
-   _bindElements() {
-     var self = this;
-     var dgDom = this.dgDom;
-     this.numeratorCtrl = this.components.find((comp) => {return comp.smoName == 'numerator';});
-     this.denominatorCtrl = this.components.find((comp) => {return comp.smoName == 'denominator';});
-     this.populateInitial();
+  changeTimeSignature() {
+    const ts = '' + this.numeratorCtrl.getValue() + '/' + this.denominatorCtrl.getValue();
+    this.view.setTimeSignature(ts);
+  }
+  _bindElements() {
+    const dgDom = this.dgDom;
+    this.numeratorCtrl = this.components.find((comp) => comp.smoName === 'numerator');
+    this.denominatorCtrl = this.components.find((comp) => comp.smoName === 'denominator');
+    this.populateInitial();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.changeTimeSignature();
+      this.complete();
+    });
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.complete();
+    });
+    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+      this.complete();
+    });
+  }
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    this._bindElements();
+    this.position(this.measure.renderedBox);
+    this.view.tracker.scroller.scrollVisibleBox(
+      svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
+    );
 
-    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-          self.changeTimeSignature();
-      self.complete();
+    const cb = () => {};
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.jsDbMove'),
+      animateDiv: '.draganime',
+      cb,
+      moveParent: true
     });
 
-     $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-       self.complete();
-     });
-     $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-       self.complete();
-     });
-   }
-   display() {
-     $('body').addClass('showAttributeDialog');
-     this.components.forEach((component) => {
-         component.bind();
-     });
-     this._bindElements();
-     this.position(this.measure.renderedBox);
-     this.tracker.scroller.scrollVisibleBox(
-         svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
-     );
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(this);
+    };
+    this.startPromise.then(getKeys);
+  }
+  constructor(parameters) {
+    const measure = parameters.view.tracker.selections[0].measure;
 
-
-     var cb = function (x, y) {}
-     htmlHelpers.draggable({
-         parent: $(this.dgDom.element).find('.attributeModal'),
-         handle: $(this.dgDom.element).find('.jsDbMove'),
-          animateDiv:'.draganime',
-         cb: cb,
-         moveParent: true
-     });
-
-     var self=this;
-     function getKeys() {
-         self.completeNotifier.unbindKeyboardForModal(self);
-     }
-     this.startPromise.then(getKeys);
-   }
-   constructor(parameters) {
-       var measure = parameters.selections[0].measure;
-
-       super(SuiTimeSignatureDialog.dialogElements, {
-           id: 'time-signature-measure',
-           top: measure.renderedBox.y,
-           left: measure.renderedBox.x,
-           label: 'Custom Time Signature',
-       tracker:parameters.tracker,
-     undoBuffer: parameters.undoBuffer,
-     eventSource: parameters.eventSource,
-     completeNotifier : parameters.completeNotifier,
-     layout: parameters.layout
-
-       });
-       this.measure = measure;
-       this.refresh = false;
-       this.startPromise=parameters.closeMenuPromise;
-       Vex.Merge(this, parameters);
-   }
- }
-
+    super(SuiTimeSignatureDialog.dialogElements, {
+      id: 'time-signature-measure',
+      top: measure.renderedBox.y,
+      left: measure.renderedBox.x,
+      label: 'Custom Time Signature',
+      ...parameters
+    });
+    this.measure = measure;
+    this.refresh = false;
+    this.startPromise = parameters.closeMenuPromise;
+    Vex.Merge(this, parameters);
+  }
+}
 
 // ## SuiTempoDialog
 // Allow user to choose a tempo or tempo change.
+// eslint-disable-next-line no-unused-vars
 class SuiTempoDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiTempoDialog';
@@ -24774,22 +25866,22 @@ class SuiTempoDialog extends SuiDialogBase {
     return SuiTempoDialog.ctor;
   }
   static get attributes() {
-    return ['tempoMode', 'bpm', 'beatDuration', 'tempoText','yOffset'];
+    return ['tempoMode', 'bpm', 'beatDuration', 'tempoText', 'yOffset'];
   }
   static get dialogElements() {
     SuiTempoDialog._dialogElements = SuiTempoDialog._dialogElements ? SuiTempoDialog._dialogElements :
-     [
-       { staticText: [
-         { label: 'Tempo Properties'}
-       ]
-       },
-       {
-        smoName: 'tempoMode',
-        parameterName: 'tempoMode',
-        defaultValue: SmoTempoText.tempoModes.durationMode,
-        control: 'SuiDropdownComponent',
-        label:'Tempo Mode',
-        options: [{
+      [
+        { staticText: [
+          { label: 'Tempo Properties' }
+        ]
+        },
+        {
+          smoName: 'tempoMode',
+          parameterName: 'tempoMode',
+          defaultValue: SmoTempoText.tempoModes.durationMode,
+          control: 'SuiDropdownComponent',
+          label: 'Tempo Mode',
+          options: [{
             value: 'duration',
             label: 'Duration (Beats/Minute)'
           }, {
@@ -24799,23 +25891,23 @@ class SuiTempoDialog extends SuiDialogBase {
             value: 'custom',
             label: 'Specify text and duration'
           }
-        ]
-      },
-      {
-        parameterName: 'bpm',
-        smoName: 'bpm',
-        defaultValue: 120,
-        control: 'SuiRockerComponent',
-        label: 'Notes/Minute'
-      },
-      {
-        parameterName: 'duration',
-        smoName: 'beatDuration',
-        defaultValue: 4096,
-        dataType:'int',
-        control: 'SuiDropdownComponent',
-        label: 'Unit for Beat',
-        options: [{
+          ]
+        },
+        {
+          parameterName: 'bpm',
+          smoName: 'bpm',
+          defaultValue: 120,
+          control: 'SuiRockerComponent',
+          label: 'Notes/Minute'
+        },
+        {
+          parameterName: 'duration',
+          smoName: 'beatDuration',
+          defaultValue: 4096,
+          dataType: 'int',
+          control: 'SuiDropdownComponent',
+          label: 'Unit for Beat',
+          options: [{
             value: 4096,
             label: 'Quarter Note',
           }, {
@@ -24828,15 +25920,15 @@ class SuiTempoDialog extends SuiDialogBase {
             value: 8192,
             label: '1/2 note'
           }
-        ]
-      },
-      {
-        smoName: 'tempoText',
-        parameterName: 'tempoText',
-        defaultValue: SmoTempoText.tempoTexts.allegro,
-        control: 'SuiDropdownComponent',
-        label:'Tempo Text',
-        options: [{
+          ]
+        },
+        {
+          smoName: 'tempoText',
+          parameterName: 'tempoText',
+          defaultValue: SmoTempoText.tempoTexts.allegro,
+          control: 'SuiDropdownComponent',
+          label: 'Tempo Text',
+          options: [{
             value: SmoTempoText.tempoTexts.larghissimo,
             label: 'Larghissimo'
           }, {
@@ -24872,7 +25964,7 @@ class SuiTempoDialog extends SuiDialogBase {
           }, {
             value: SmoTempoText.tempoTexts.allegretto,
             label: 'Allegretto',
-          } ,{
+          }, {
             value: SmoTempoText.tempoTexts.allegro,
             label: 'Allegro'
           }, {
@@ -24885,82 +25977,76 @@ class SuiTempoDialog extends SuiDialogBase {
             value: SmoTempoText.tempoTexts.prestissimo,
             label: 'Prestissimo'
           }
-        ]
-      }, {
-        smoName:'applyToAll',
-        parameterName:'applyToAll',
-        defaultValue: false,
-        control:'SuiToggleComponent',
-        label:'Apply to all future measures?'
-      },{
-        smoName: 'display',
-        parameterName: 'display',
-        defaultValue: true,
-        control: 'SuiToggleComponent',
-        label: 'Display Tempo'
-      }, {
-        smoName: 'yOffset',
-        parameterName: 'yOffset',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Y Offset'
-      }
-    ];
+          ]
+        }, {
+          smoName: 'applyToAll',
+          parameterName: 'applyToAll',
+          defaultValue: false,
+          control: 'SuiToggleComponent',
+          label: 'Apply to all future measures?'
+        }, {
+          smoName: 'display',
+          parameterName: 'display',
+          defaultValue: true,
+          control: 'SuiToggleComponent',
+          label: 'Display Tempo'
+        }, {
+          smoName: 'yOffset',
+          parameterName: 'yOffset',
+          defaultValue: 0,
+          control: 'SuiRockerComponent',
+          label: 'Y Offset'
+        }
+      ];
     return SuiTempoDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
-    parameters.measures = SmoSelection.getMeasureList(parameters.tracker.selections)
-       .map((sel) => sel.measure);
-    var measure = parameters.measures[0];
+    parameters.measures = SmoSelection.getMeasureList(parameters.view.tracker.selections)
+      .map((sel) => sel.measure);
+    const measure = parameters.measures[0];
 
     // All measures have a default tempo, but it is not explicitly set unless it is
     // non-default
     parameters.modifier = measure.getTempo();
     if (!parameters.modifier) {
-        parameters.modifier = new SmoTempoText();
-        measure.addTempo(parameters.modifier);
+      parameters.modifier = new SmoTempoText();
     }
     if (!parameters.modifier.renderedBox) {
-        parameters.modifier.renderedBox = svgHelpers.copyBox(measure.renderedBox);
+      parameters.modifier.renderedBox = svgHelpers.copyBox(measure.renderedBox);
     }
-    var dg = new SuiTempoDialog(parameters);
+    const dg = new SuiTempoDialog(parameters);
     dg.display();
+    dg._bindComponentNames();
     return dg;
   }
-    constructor(parameters) {
-        if (!parameters.modifier || !parameters.measures) {
-            throw new Error('modifier attribute dialog must have modifier and selection');
-        }
+  constructor(parameters) {
+    if (!parameters.modifier || !parameters.measures) {
+      throw new Error('modifier attribute dialog must have modifier and selection');
+    }
 
-        super(SuiTempoDialog.dialogElements, {
-            id: 'dialog-tempo',
-            top: parameters.modifier.renderedBox.y,
-            left: parameters.modifier.renderedBox.x,
-            tracker:parameters.tracker,
-            undoBuffer: parameters.undoBuffer,
-            eventSource: parameters.eventSource,
-            completeNotifier : parameters.completeNotifier,
-            layout: parameters.layout
-        });
-        this.refresh = false;
-        Vex.Merge(this, parameters);
-    }
-    populateInitial() {
-        SmoTempoText.attributes.forEach((attr) => {
-            var comp = this.components.find((cc) => {
-                return cc.smoName == attr;
-            });
-            if (comp) {
-                comp.setValue(this.modifier[attr]);
-            }
-        });
+    super(SuiTempoDialog.dialogElements, {
+      id: 'dialog-tempo',
+      top: parameters.modifier.renderedBox.y,
+      left: parameters.modifier.renderedBox.x,
+      ...parameters
+    });
+    this.refresh = false;
+    Vex.Merge(this, parameters);
+  }
+  populateInitial() {
+    SmoTempoText.attributes.forEach((attr) => {
+      var comp = this.components.find((cc) => cc.smoName === attr);
+      if (comp) {
+        comp.setValue(this.modifier[attr]);
+      }
+    });
     this._updateModeClass();
-    }
+  }
   _updateModeClass() {
-        if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
+    if (this.modifier.tempoMode === SmoTempoText.tempoModes.textMode) {
       $('.attributeModal').addClass('tempoTextMode');
       $('.attributeModal').removeClass('tempoDurationMode');
-        } else if (this.modifier.tempoMode == SmoTempoText.tempoModes.durationMode) {
+    } else if (this.modifier.tempoMode === SmoTempoText.tempoModes.durationMode) {
       $('.attributeModal').addClass('tempoDurationMode');
       $('.attributeModal').removeClass('tempoTextMode');
     } else {
@@ -24968,91 +26054,232 @@ class SuiTempoDialog extends SuiDialogBase {
       $('.attributeModal').removeClass('tempoTextMode');
     }
   }
-    changed() {
-        this.components.forEach((component) => {
+  changed() {
+    this.components.forEach((component) => {
       if (SmoTempoText.attributes.indexOf(component.smoName) >= 0) {
-                this.modifier[component.smoName] = component.getValue();
+        this.modifier[component.smoName] = component.getValue();
       }
-        });
-        if (this.modifier.tempoMode == SmoTempoText.tempoModes.textMode) {
-            this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
-        }
+    });
+    if (this.modifier.tempoMode === SmoTempoText.tempoModes.textMode) {
+      this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
+    }
     this._updateModeClass();
-        this.refresh = true;
-    }
-    // ### handleFuture
-    // Update other measures in selection, or all future measures if the user chose that.
-    handleFuture() {
-        var fc = this.components.find((comp) => {return comp.smoName == 'applyToAll'});
-        var toModify = [];
-        if (fc.getValue()) {
-            this.layout.score.staves.forEach((staff) => {
-                var toAdd = staff.measures.filter((mm) => {
-                    return mm.measureNumber.measureIndex >= this.measures[0].measureNumber.measureIndex;
-                });
-                toModify = toModify.concat(toAdd);
-            });
-        } else {
-            this.measures.forEach((measure) => {
-                this.layout.score.staves.forEach((staff) => {
-                    toModify.push(staff.measures[measure.measureNumber.measureIndex]);
-                });
-            });
-        }
-        toModify.forEach((measure) => {
-            measure.changed = true;
-            var tempo = SmoMeasureModifierBase.deserialize(this.modifier.serialize());
-            tempo.attrs.id = VF.Element.newID();
-            measure.addTempo(tempo);
-        });
-        this.tracker.replaceSelectedMeasures();
-    }
-    // ### handleRemove
-    // Removing a tempo change is like changing the measure to the previous measure's tempo.
-    // If this is the first measure, use the default value.
-    handleRemove() {
-        if (this.measures[0].measureNumber.measureIndex > 0) {
-            var target = this.measures[0].measureNumber.measureIndex - 1;
-            this.modifier = this.layout.score.staves[0].measures[target].getTempo();
-            this.handleFuture();
-        } else {
-            this.modifier = new SmoTempoText();
-        }
-        this.handleFuture();
-    }
-    // ### _backup
-    // Backup the score before changing tempo which affects score.
-    _backup() {
-        if (this.refresh) {
-            SmoUndoable.noop(this.layout.score,this.undoBuffer,'Tempo change');
-            this.layout.setDirty();
-        }
-    }
-    // ### Populate the initial values and bind to the buttons.
-    _bindElements() {
-        var self = this;
-        this.populateInitial();
-    var dgDom = this.dgDom;
-        // Create promise to release the keyboard when dialog is closed
-        this.closeDialogPromise = new Promise((resolve) => {
-            $(dgDom.element).find('.cancel-button').remove();
-            $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-                self._backup();
-                self.handleFuture();
-                self.complete();
-                resolve();
-            });
-            $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-                self._backup();
-                self.handleRemove();
-                self.complete();
-                resolve();
-            });
-        });
-        this.completeNotifier.unbindKeyboardForModal(this);
-    }
+    this.view.updateTempoScore(this.modifier, this.applyToAllCtrl.getValue());
+  }
+  // ### handleRemove
+  // Removing a tempo change is like changing the measure to the previous measure's tempo.
+  // If this is the first measure, use the default value.
+  handleRemove() {
+    this.view.removeTempo(this.applyToAllCtrl());
+  }
+  // ### Populate the initial values and bind to the buttons.
+  _bindElements() {
+    this.populateInitial();
+    const dgDom = this.dgDom;
+    // Create promise to release the keyboard when dialog is closed
+    this.closeDialogPromise = new Promise((resolve) => {
+      $(dgDom.element).find('.cancel-button').remove();
+      $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+        this.complete();
+        resolve();
+      });
+      $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+        this.handleRemove();
+        this.complete();
+        resolve();
+      });
+    });
+    this.completeNotifier.unbindKeyboardForModal(this);
+  }
 }
-;// ## SuiLayoutDialog
+;// ## SuiScoreViewDialog
+// decide which rows of the score to look at
+// eslint-disable-next-line no-unused-vars
+class SuiScoreViewDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiScoreViewDialog';
+  }
+  get ctor() {
+    return SuiScoreViewDialog.ctor;
+  }
+  static get dialogElements() {
+    SuiScoreViewDialog._dialogElements = typeof(SuiScoreViewDialog._dialogElements) !== 'undefined' ? SuiScoreViewDialog._dialogElements :
+      [{
+        smoName: 'scoreView',
+        parameterName: 'scoreView',
+        defaultValue: [],
+        control: 'StaffCheckComponent',
+        label: 'Show staff',
+      }, {
+        staticText: [
+          { label: 'Score View' }
+        ]
+      }];
+    return SuiScoreViewDialog._dialogElements;
+  }
+  static createAndDisplay(parameters) {
+    const dg = new SuiScoreViewDialog(parameters);
+    dg.display();
+  }
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    const cb = () => {};
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.icon-move'),
+      animateDiv: '.draganime',
+      cb,
+      moveParent: true
+    });
+
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(self);
+    };
+    this.startPromise.then(getKeys);
+    this._bindElements();
+    this.scoreViewCtrl.setValue(this.view.getView());
+    const box = svgHelpers.boxPoints(250, 250, 1, 1);
+    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+  }
+  _bindElements() {
+    const self = this;
+    const dgDom = this.dgDom;
+    this._bindComponentNames();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      self.complete();
+    });
+
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      self.view.viewAll();
+      self.complete();
+    });
+
+    $(dgDom.element).find('.remove-button').remove();
+    this.bindKeyboard();
+  }
+
+  changed() {
+    this.view.setView(this.scoreViewCtrl.getValue());
+  }
+  constructor(parameters) {
+    var p = parameters;
+    super(SuiScoreViewDialog.dialogElements, {
+      id: 'dialog-layout',
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
+      ...parameters
+    });
+    this.startPromise = p.startPromise;
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
+class SuiScorePreferencesDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiScorePreferencesDialog';
+  }
+  get ctor() {
+    return SuiScorePreferencesDialog.ctor;
+  }
+  static get dialogElements() {
+    SuiScorePreferencesDialog._dialogElements = typeof(SuiScorePreferencesDialog._dialogElements)
+      !== 'undefined' ? SuiScorePreferencesDialog._dialogElements :
+      [{
+        smoName: 'scoreName',
+        parameterName: 'scoreName',
+        defaultValue: [],
+        control: 'SuiTextInputComponent',
+        label: 'Score Name',
+      }, {
+        smoName: 'autoPlay',
+        parameterName: 'autoPlay',
+        defaultValue: [],
+        control: 'SuiToggleComponent',
+        label: 'Play Selections',
+      }, {
+        smoName: 'autoAdvance',
+        parameterName: 'autoAdvance',
+        defaultValue: [],
+        control: 'SuiToggleComponent',
+        label: 'Auto-Advance Cursor',
+      }, {
+        staticText: [
+          { label: 'Score Preferences' }
+        ]
+      }];
+    return SuiScorePreferencesDialog._dialogElements;
+  }
+  static createAndDisplay(parameters) {
+    const dg = new SuiScorePreferencesDialog(parameters);
+    dg.display();
+  }
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    const cb = () => {};
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.icon-move'),
+      animateDiv: '.draganime',
+      cb,
+      moveParent: true
+    });
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(this);
+    };
+    this.startPromise.then(getKeys);
+    this._bindElements();
+    this.scoreNameCtrl.setValue(this.view.score.scoreInfo.name);
+    this.autoPlayCtrl.setValue(this.view.score.preferences.autoPlay);
+    this.autoAdvanceCtrl.setValue(this.view.score.preferences.autoAdvance);
+    const box = svgHelpers.boxPoints(250, 250, 1, 1);
+    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+  }
+  _bindElements() {
+    const dgDom = this.dgDom;
+    this._bindComponentNames();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.complete();
+    });
+
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.complete();
+    });
+
+    $(dgDom.element).find('.remove-button').remove();
+    this.bindKeyboard();
+  }
+
+  changed() {
+    if (this.scoreNameCtrl.changeFlag) {
+      this.view.score.scoreInfo.name = this.scoreNameCtrl.getValue();
+    }
+    if (this.autoPlayCtrl.changeFlag) {
+      this.view.score.preferences.autoPlay = this.autoPlayCtrl.getValue();
+    }
+    if (this.autoAdvanceCtrl.changeFlag) {
+      this.view.score.preferences.autoAdvance = this.autoAdvanceCtrl.getValue();
+    }
+    this.view.updateScorePreferences();
+  }
+  constructor(parameters) {
+    var p = parameters;
+    super(SuiScorePreferencesDialog.dialogElements, {
+      id: 'dialog-layout',
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
+      ...parameters
+    });
+    this.startPromise = p.startPromise;
+  }
+}
+
+// ## SuiLayoutDialog
 // The layout dialog has page layout and zoom logic.  It is not based on a selection but score-wide
 // eslint-disable-next-line no-unused-vars
 class SuiLayoutDialog extends SuiDialogBase {
@@ -25066,121 +26293,119 @@ class SuiLayoutDialog extends SuiDialogBase {
   // ### dialogElements
   // all dialogs have elements define the controls of the dialog.
   static get dialogElements() {
-    SuiLayoutDialog._dialogElements = SuiLayoutDialog._dialogElements ? SuiLayoutDialog._dialogElements :
-      [
-        {
-          smoName: 'pageSize',
-          parameterName: 'pageSize',
-          defaultValue: SmoScore.pageSizes.letter,
-          control: 'SuiDropdownComponent',
-          label: 'Page Size',
-          options: [
-            {
-              value: 'letter',
-              label: 'Letter'
-            }, {
-              value: 'tabloid',
-              label: 'Tabloid (11x17)'
-            }, {
-              value: 'A4',
-              label: 'A4'
-            }, {
-              value: 'custom',
-              label: 'Custom'
-            }]
-        }, {
-          smoName: 'pageWidth',
-          parameterName: 'pageWidth',
-          defaultValue: SmoScore.defaults.layout.pageWidth,
-          control: 'SuiRockerComponent',
-          label: 'Page Width (px)'
-        }, {
-          smoName: 'pageHeight',
-          parameterName: 'pageHeight',
-          defaultValue: SmoScore.defaults.layout.pageHeight,
-          control: 'SuiRockerComponent',
-          label: 'Page Height (px)'
-        }, {
-          smoName: 'orientation',
-          parameterName: 'orientation',
-          defaultValue: SmoScore.orientations.portrait,
-          control: 'SuiDropdownComponent',
-          label: 'Orientation',
-          dataType: 'int',
-          options: [{
-            value: SmoScore.orientations.portrait,
-            label: 'Portrait'
+    SuiLayoutDialog._dialogElements = typeof(SuiLayoutDialog._dialogElements) !== 'undefined' ? SuiLayoutDialog._dialogElements :
+      [{
+        smoName: 'pageSize',
+        parameterName: 'pageSize',
+        defaultValue: SmoScore.pageSizes.letter,
+        control: 'SuiDropdownComponent',
+        label: 'Page Size',
+        options: [
+          {
+            value: 'letter',
+            label: 'Letter'
           }, {
-            value: SmoScore.orientations.landscape,
-            label: 'Landscape'
+            value: 'tabloid',
+            label: 'Tabloid (11x17)'
+          }, {
+            value: 'A4',
+            label: 'A4'
+          }, {
+            value: 'custom',
+            label: 'Custom'
           }]
+      }, {
+        smoName: 'pageWidth',
+        parameterName: 'pageWidth',
+        defaultValue: SmoScore.defaults.layout.pageWidth,
+        control: 'SuiRockerComponent',
+        label: 'Page Width (px)'
+      }, {
+        smoName: 'pageHeight',
+        parameterName: 'pageHeight',
+        defaultValue: SmoScore.defaults.layout.pageHeight,
+        control: 'SuiRockerComponent',
+        label: 'Page Height (px)'
+      }, {
+        smoName: 'orientation',
+        parameterName: 'orientation',
+        defaultValue: SmoScore.orientations.portrait,
+        control: 'SuiDropdownComponent',
+        label: 'Orientation',
+        dataType: 'int',
+        options: [{
+          value: SmoScore.orientations.portrait,
+          label: 'Portrait'
         }, {
-          smoName: 'engravingFont',
-          parameterName: 'engravingFont',
-          defaultValue: SmoScore.engravingFonts.Bravura,
-          control: 'SuiDropdownComponent',
-          label: 'Engraving Font',
-          options: [{
-            value: 'Bravura',
-            label: 'Bravura'
-          }, {
-            value: 'Gonville',
-            label: 'Gonville'
-          }, {
-            value: 'Petaluma',
-            label: 'Petaluma'
-          }
-          ]
+          value: SmoScore.orientations.landscape,
+          label: 'Landscape'
+        }]
+      }, {
+        smoName: 'engravingFont',
+        parameterName: 'engravingFont',
+        defaultValue: SmoScore.engravingFonts.Bravura,
+        control: 'SuiDropdownComponent',
+        label: 'Engraving Font',
+        options: [{
+          value: 'Bravura',
+          label: 'Bravura'
         }, {
-          smoName: 'leftMargin',
-          parameterName: 'leftMargin',
-          defaultValue: SmoScore.defaults.layout.leftMargin,
-          control: 'SuiRockerComponent',
-          label: 'Left Margin (px)'
+          value: 'Gonville',
+          label: 'Gonville'
         }, {
-          smoName: 'rightMargin',
-          parameterName: 'rightMargin',
-          defaultValue: SmoScore.defaults.layout.rightMargin,
-          control: 'SuiRockerComponent',
-          label: 'Right Margin (px)'
-        }, {
-          smoName: 'topMargin',
-          parameterName: 'topMargin',
-          defaultValue: SmoScore.defaults.layout.topMargin,
-          control: 'SuiRockerComponent',
-          label: 'Top Margin (px)'
-        }, {
-          smoName: 'interGap',
-          parameterName: 'interGap',
-          defaultValue: SmoScore.defaults.layout.interGap,
-          control: 'SuiRockerComponent',
-          label: 'Inter-System Margin'
-        }, {
-          smoName: 'intraGap',
-          parameterName: 'intraGap',
-          defaultValue: SmoScore.defaults.layout.intraGap,
-          control: 'SuiRockerComponent',
-          label: 'Intra-System Margin'
-        }, {
-          smoName: 'zoomScale',
-          parameterName: 'zoomScale',
-          defaultValue: SmoScore.defaults.layout.zoomScale,
-          control: 'SuiRockerComponent',
-          label: '% Zoom',
-          type: 'percent'
-        }, {
-          smoName: 'svgScale',
-          parameterName: 'svgScale',
-          defaultValue: SmoScore.defaults.layout.svgScale,
-          control: 'SuiRockerComponent',
-          label: '% Note size',
-          type: 'percent'
-        },
-        { staticText: [
+          value: 'Petaluma',
+          label: 'Petaluma'
+        }
+        ]
+      }, {
+        smoName: 'leftMargin',
+        parameterName: 'leftMargin',
+        defaultValue: SmoScore.defaults.layout.leftMargin,
+        control: 'SuiRockerComponent',
+        label: 'Left Margin (px)'
+      }, {
+        smoName: 'rightMargin',
+        parameterName: 'rightMargin',
+        defaultValue: SmoScore.defaults.layout.rightMargin,
+        control: 'SuiRockerComponent',
+        label: 'Right Margin (px)'
+      }, {
+        smoName: 'topMargin',
+        parameterName: 'topMargin',
+        defaultValue: SmoScore.defaults.layout.topMargin,
+        control: 'SuiRockerComponent',
+        label: 'Top Margin (px)'
+      }, {
+        smoName: 'interGap',
+        parameterName: 'interGap',
+        defaultValue: SmoScore.defaults.layout.interGap,
+        control: 'SuiRockerComponent',
+        label: 'Inter-System Margin'
+      }, {
+        smoName: 'intraGap',
+        parameterName: 'intraGap',
+        defaultValue: SmoScore.defaults.layout.intraGap,
+        control: 'SuiRockerComponent',
+        label: 'Intra-System Margin'
+      }, {
+        smoName: 'zoomScale',
+        parameterName: 'zoomScale',
+        defaultValue: SmoScore.defaults.layout.zoomScale,
+        control: 'SuiRockerComponent',
+        label: '% Zoom',
+        type: 'percent'
+      }, {
+        smoName: 'svgScale',
+        parameterName: 'svgScale',
+        defaultValue: SmoScore.defaults.layout.svgScale,
+        control: 'SuiRockerComponent',
+        label: '% Note size',
+        type: 'percent'
+      }, {
+        staticText: [
           { label: 'Score Layout' }
-        ] }
-      ];
-
+        ]
+      }];
     return SuiLayoutDialog._dialogElements;
   }
 
@@ -25195,7 +26420,7 @@ class SuiLayoutDialog extends SuiDialogBase {
       component.bind();
     });
     this.components.forEach((component) => {
-      var val = this.modifier[component.parameterName];
+      const val = this.modifier[component.parameterName];
       component.setValue(val);
     });
     this._setPageSizeDefault();
@@ -25209,19 +26434,22 @@ class SuiLayoutDialog extends SuiDialogBase {
       cb,
       moveParent: true
     });
-    this.completeNotifier.unbindKeyboardForModal(this);
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(self);
+    };
+    this.startPromise.then(getKeys);
 
     const box = svgHelpers.boxPoints(250, 250, 1, 1);
-    SuiDialogBase.position(box, this.dgDom, this.tracker.scroller);
+    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
   }
   // ### _updateLayout
   // even if the layout is not changed, we re-render the entire score by resetting
   // the svg context.
   _updateLayout() {
-    this.layout.rerenderAll();
+    this.view.renderer.rerenderAll();
   }
   _handleCancel() {
-    this.layout.score.layout = this.backup;
+    this.view.score.layout = this.backup;
     this._updateLayout();
     this.complete();
   }
@@ -25232,7 +26460,7 @@ class SuiLayoutDialog extends SuiDialogBase {
     this._bindComponentNames();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       // TODO:  allow user to select a zoom mode.
-      self.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+      self.view.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
       self._updateLayout();
       self.complete();
     });
@@ -25244,10 +26472,10 @@ class SuiLayoutDialog extends SuiDialogBase {
     $(dgDom.element).find('.remove-button').remove();
   }
   _setPageSizeDefault() {
-    var value = 'custom';
-    var scoreDims = this.layout.score.layout;
+    let value = 'custom';
+    const scoreDims = this.view.score.layout;
     SmoScore.pageSizes.forEach((sz) => {
-      var dim = SmoScore.pageDimensions[sz];
+      const dim = SmoScore.pageDimensions[sz];
       if (scoreDims.pageWidth === dim.width && scoreDims.pageHeight === dim.height) {
         value = sz;
       } else if (scoreDims.pageHeight === dim.width && scoreDims.pageWidth === dim.height) {
@@ -25266,7 +26494,7 @@ class SuiLayoutDialog extends SuiDialogBase {
     } else {
       $('.attributeModal').removeClass('customPage');
       const dim = SmoScore.pageDimensions[sel];
-      const hComp = this.components.find((x) =>  x.parameterName === 'pageHeight');
+      const hComp = this.components.find((x) => x.parameterName === 'pageHeight');
       const wComp = this.components.find((x) => x.parameterName === 'pageWidth');
       hComp.setValue(dim.height);
       wComp.setValue(dim.width);
@@ -25277,17 +26505,16 @@ class SuiLayoutDialog extends SuiDialogBase {
   // One of the components has had a changed value.
   changed() {
     this._handlePageSizeChange();
+    const layout = this.view.score.layout;
     this.components.forEach((component) => {
-      if (typeof(this.layout.score.layout[component.smoName]) !== 'undefined') {
-        this.layout.score.layout[component.smoName] = component.getValue();
+      if (typeof(layout[component.smoName]) !== 'undefined') {
+        layout[component.smoName] = component.getValue();
       }
     });
     if (this.engravingFontCtrl.changeFlag)  {
-      const engrave = this.score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
-      engrave.family = this.engravingFontCtrl.getValue();
-      SuiRenderState.setFont(engrave.family);
+      this.view.setEngravingFontFamily(this.engravingFontCtrl.getValue());
     }
-    this.layout.setViewport();
+    this.view.setScoreLayout(layout);
   }
 
   // ### createAndDisplay
@@ -25300,42 +26527,138 @@ class SuiLayoutDialog extends SuiDialogBase {
     var p = parameters;
     super(SuiLayoutDialog.dialogElements, {
       id: 'dialog-layout',
-      top: (p.layout.score.layout.pageWidth / 2) - 200,
-      left: (p.layout.score.layout.pageHeight / 2) - 200,
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...parameters
     });
-    this.layout = p.layout;
-    this.score = p.layout.score;
-    this.modifier = this.layout.score.layout;
+    this.score = p.view.score;
+    this.modifier = this.view.score.layout;
+    this.startPromise = p.startPromise;
     this.backupOriginal();
   }
 }
-;class SuiStaffModifierDialog extends SuiDialogBase {
-	 handleRemove() {
-      $(this.context.svg).find('g.' + this.modifier.attrs.id).remove();
-      var selection = SmoSelection.measureSelection(this.layout.score,this.modifier.startSelector.staff,this.modifier.startSelector.measure);
-      SmoUndoable.staffSelectionOp(this.layout.score,selection,'removeStaffModifier',this.modifier,this.undoBuffer,'remove slur');
-      this.tracker.clearModifierSelections();
+;class CheckboxDropdownComponent extends SuiComponentBase {
+  // { dropdownElement: {...}, toggleElement: }
+  constructor(dialog, parameter) {
+    super(parameter);
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+    this.dialog = dialog;
+    parameter.toggleElement.parentControl = this;
+    parameter.dropdownElement.parentControl = this;
+    this.toggleCtrl = new SuiToggleComposite(this.dialog, parameter.toggleElement);
+    this.dropdownCtrl = new SuiDropdownComposite(this.dialog, parameter.dropdownElement);
+  }
+  get html() {
+    const b = htmlHelpers.buildDom;
+    const q = b('div').classes(this.makeClasses('multiControl smoControl checkboxDropdown'))
+      .attr('id',this.parameterId);
+    q.append(this.toggleCtrl.html);
+    q.append(this.dropdownCtrl.html);
+    return q;
+  }
+  get parameterId() {
+    return this.dialog.id + '-' + this.parameterName;
+  }
+  bind() {
+    this.toggleCtrl.bind();
+    this.dropdownCtrl.bind();
+  }
+  changed() {
+    if (this.toggleCtrl.getValue()) {
+      $('#'+this.parameterId).addClass('checked');
+    } else {
+      $('#'+this.parameterId).removeClass('checked');
     }
-
-    _preview() {
-        this.modifier.backupOriginal();
-        this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
-        });
-        this.layout.renderStaffModifierPreview(this.modifier)
-    }
-
-    changed() {
-        this.modifier.backupOriginal();
-        this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
-        });
-        this.layout.renderStaffModifierPreview(this.modifier);
-    }
+    this.handleChanged();
+  }
 }
 
+class StaffCheckComponent extends SuiComponentBase {
+  constructor(dialog, parameter) {
+    let i = 0;
+    super(parameter);
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+    if (!this.defaultValue) {
+      this.defaultValue = 0;
+    }
+    if (!this.dataType) {
+      this.dataType = 'string';
+    }
+    this.dialog = dialog;
+    this.view = this.dialog.view;
+    this.staffRows = [];
+    this.view.storeScore.staves.forEach((staff) => {
+      const name = 'View Staff ' + (i + 1);
+      const id = 'show-' + i;
+      const rowElement = new SuiToggleComponent(this.dialog, {
+        smoName: id,
+        parameterName: id,
+        defaultValue: true,
+        classes: 'hide-when-editing',
+        control: 'SuiToggleComponent',
+        label: name
+      });
+      this.staffRows.push({
+        showCtrl: rowElement
+      });
+      i += 1;
+    });
+  }
+  get html() {
+    const b = htmlHelpers.buildDom;
+    const q = b('div').classes(this.makeClasses('multiControl smoControl staffContainer'));
+    this.staffRows.forEach((row) => {
+      q.append(row.showCtrl.html);
+    });
+    return q;
+  }
+  // Is this used for compound controls?
+  _getInputElement() {
+    var pid = this.parameterId;
+    return $(this.dialog.dgDom.element).find('#' + pid).find('.staffContainer');
+  }
+  getValue() {
+    const rv = [];
+    let i = 0;
+    for (i = 0;i < this.staffRows.length; ++i) {
+      const show = this.staffRows[i].showCtrl.getValue();
+      rv.push({show: show});
+    }
+    return rv;
+  }
+  setValue(rows) {
+    let i = 0;
+    rows.forEach((row) => {
+      this.staffRows[i].showCtrl.setValue(row.show);
+      i += 1;
+    });
+  }
+  changed() {
+    this.handleChanged();
+  }
+  bind() {
+    this.staffRows.forEach((row) => {
+      row.showCtrl.bind();
+    });
+  }
+}
+;// eslint-disable-next-line no-unused-vars
+class SuiStaffModifierDialog extends SuiDialogBase {
+  handleRemove() {
+    this.view.removeStaffModifier(this.modifier);
+  }
 
+  changed() {
+    this.components.forEach((component) => {
+      this.modifier[component.smoName] = component.getValue();
+    });
+    this.view.addOrUpdateStaffModifier(this.modifier);
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
 class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiSlurAttributesDialog.ctor;
@@ -25346,8 +26669,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
 
   static get dialogElements() {
     SuiSlurAttributesDialog._dialogElements = SuiSlurAttributesDialog._dialogElements ? SuiSlurAttributesDialog._dialogElements :
-    [
-      {
+      [{
         staticText: [
           { label: 'Slur Properties' }
         ]
@@ -25380,13 +26702,12 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
         parameterName: 'position',
         defaultValue: SmoSlur.positions.HEAD,
         options: [{
-            value: SmoSlur.positions.HEAD,
-            label: 'Head'
-          }, {
-            value: SmoSlur.positions.TOP,
-            label: 'Top'
-          }
-        ],
+          value: SmoSlur.positions.HEAD,
+          label: 'Head'
+        }, {
+          value: SmoSlur.positions.TOP,
+          label: 'Top'
+        }],
         control: 'SuiDropdownComponent',
         label: 'Start Position'
       }, {
@@ -25399,8 +26720,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
         }, {
           value: SmoSlur.positions.TOP,
           label: 'Top'
-        }
-        ],
+        }],
         control: 'SuiDropdownComponent',
         label: 'End Position'
       }, {
@@ -25433,9 +26753,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
         defaultValue: 40,
         control: 'SuiRockerComponent',
         label: 'Control Point 2 Y'
-      }
-    ];
-
+      }];
     return SuiSlurAttributesDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
@@ -25445,7 +26763,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   }
   constructor(parameters) {
     if (!parameters.modifier) {
-        throw new Error('modifier attribute dialog must have modifier');
+      throw new Error('modifier attribute dialog must have modifier');
     }
 
     super(SuiSlurAttributesDialog.dialogElements, {
@@ -25453,14 +26771,14 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
       top: parameters.modifier.renderedBox.y,
       left: parameters.modifier.renderedBox.x,
       label: 'Slur Properties',
-     ...parameters
+      ...parameters
     });
     Vex.Merge(this, parameters);
     this.completeNotifier.unbindKeyboardForModal(this);
   }
   populateInitial() {
     this.components.forEach((comp) => {
-      if (typeof(this.modifier[comp.smoName]) != 'undefined') {
+      if (typeof(this.modifier[comp.smoName]) !== 'undefined') {
         comp.setValue(this.modifier[comp.smoName]);
       }
     });
@@ -25470,7 +26788,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
     this.populateInitial();
   }
 }
-
+// eslint-disable-next-line no-unused-vars
 class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiVoltaAttributeDialog.ctor;
@@ -25480,113 +26798,85 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
   }
   static get label() {
     SuiVoltaAttributeDialog._label = SuiVoltaAttributeDialog._label ?
-        SuiVoltaAttributeDialog._label : 'Volta Properties';
+      SuiVoltaAttributeDialog._label : 'Volta Properties';
     return SuiVoltaAttributeDialog._label;
   }
   static set label(value) {
     SuiVoltaAttributeDialog._label = value;
   }
 
- static get dialogElements() {
+  static get dialogElements() {
     SuiVoltaAttributeDialog._dialogElements = SuiVoltaAttributeDialog._dialogElements ? SuiVoltaAttributeDialog._dialogElements :
-      [
-        {
-          staticText: [
-            {label: 'Volta Properties'}
-          ]
-        },
-        {
+      [{
+        staticText: [
+          { label: 'Volta Properties' }
+        ]
+      }, {
         parameterName: 'number',
         smoName: 'number',
         defaultValue: 1,
         control: 'SuiRockerComponent',
         label: 'number'
-        }, {
+      }, {
         smoName: 'xOffsetStart',
         parameterName: 'xOffsetStart',
         defaultValue: 0,
         control: 'SuiRockerComponent',
         label: 'X1 Offset'
-        }, {
+      }, {
         smoName: 'xOffsetEnd',
         parameterName: 'xOffsetEnd',
         defaultValue: 0,
         control: 'SuiRockerComponent',
         label: 'X2 Offset'
-        }, {
+      }, {
         smoName: 'yOffset',
         parameterName: 'yOffset',
         defaultValue: 0,
         control: 'SuiRockerComponent',
         label: 'Y Offset'
-        }
-     ];
-
-     return SuiVoltaAttributeDialog._dialogElements;
- }
- static createAndDisplay(parameters) {
-    var dg = new SuiVoltaAttributeDialog(parameters);
+      }];
+    return SuiVoltaAttributeDialog._dialogElements;
+  }
+  static createAndDisplay(parameters) {
+    const dg = new SuiVoltaAttributeDialog(parameters);
     dg.display();
     return dg;
   }
-handleRemove() {
-  this.undoBuffer.addBuffer('Remove nth ending', 'score', null, this.layout.score);
-	this.layout.score.staves.forEach((staff) => {
-  	staff.measures.forEach((measure) => {
-  		if (measure.measureNumber.measureNumber === this.modifier.startBar) {
-  			measure.removeNthEnding(this.modifier.number);
-  		}
-  	 });
-	});
-  $(this.context.svg).find('g.' + this.modifier.endingId).remove();
-  this.selection.staff.removeStaffModifier(this.modifier);
- }
-  _commit() {
-    this.modifier.restoreOriginal();
-	  this.layout.score.staves.forEach((staff) => {
-  		staff.measures.forEach((measure) => {
-    		if (measure.measureNumber.measureNumber === this.modifier.startBar) {
-    			var endings = measure.getNthEndings().filter((mm) => {
-    			  return mm.endingId === this.modifier.endingId;
-    			});
-    			if (endings.length) {
-    			  endings.forEach((ending) => {
-      		    this.components.forEach((component) => {
-    			      ending[component.smoName] = component.getValue();
-    			    });
-    			  });
-    		  }
-    	  }
-      });
-	  });
-
-    this.layout.renderStaffModifierPreview(this.modifier);
+  handleRemove() {
+    this.view.removeEnding(this.modifier);
+  }
+  changed() {
+    this.components.forEach((component) => {
+      this.modifier[component.smoName] = component.getValue();
+    });
+    this.view.updateEnding(this.modifier);
   }
   constructor(parameters) {
     if (!parameters.modifier) {
-        throw new Error('modifier attribute dialog must have modifier');
+      throw new Error('modifier attribute dialog must have modifier');
     }
 
     super(SuiVoltaAttributeDialog.dialogElements, {
-        id: 'dialog-' + parameters.modifier.attrs.id,
-        top: parameters.modifier.renderedBox.y,
-        left: parameters.modifier.renderedBox.x,
-        ...parameters
+      id: 'dialog-' + parameters.modifier.attrs.id,
+      top: parameters.modifier.renderedBox.y,
+      left: parameters.modifier.renderedBox.x,
+      ...parameters
     });
     Vex.Merge(this, parameters);
-    this.selection = SmoSelection.measureSelection(this.layout.score,this.modifier.startSelector.staff,this.modifier.startSelector.measure);
+    this.selection = SmoSelection.measureSelection(this.view.score, this.modifier.startSelector.staff, this.modifier.startSelector.measure);
 
-  	SmoVolta.editableAttributes.forEach((attr) => {
-  		var comp = this.components.find((cc)=>{return cc.smoName===attr});
-  		if (comp) {
-  			comp.defaultValue=this.modifier[attr];
-  		}
-  	});
+    SmoVolta.editableAttributes.forEach((attr) => {
+      const comp = this.components.find((cc) => cc.smoName === attr);
+      if (comp) {
+        comp.defaultValue = this.modifier[attr];
+      }
+    });
 
     this.completeNotifier.unbindKeyboardForModal(this);
   }
 }
-
+// eslint-disable-next-line no-unused-vars
 class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiHairpinAttributesDialog.ctor;
@@ -25605,13 +26895,11 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   }
   static get dialogElements() {
     SuiHairpinAttributesDialog._dialogElements = SuiHairpinAttributesDialog._dialogElements ? SuiHairpinAttributesDialog._dialogElements :
-    [
-      {
+      [{
         staticText: [
           { label: 'Hairpin Properties' }
         ]
-      },
-      {
+      }, {
         parameterName: 'height',
         smoName: 'height',
         defaultValue: 10,
@@ -25635,8 +26923,7 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
         defaultValue: 0,
         control: 'SuiRockerComponent',
         label: 'Left Shift'
-      }
-    ];
+      }];
 
     return SuiHairpinAttributesDialog._dialogElements;
   }
@@ -25647,7 +26934,7 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   }
   constructor(parameters) {
     if (!parameters.modifier) {
-        throw new Error('modifier attribute dialog must have modifier');
+      throw new Error('modifier attribute dialog must have modifier');
     }
 
     super(SuiHairpinAttributesDialog.dialogElements, {
@@ -25657,13 +26944,12 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
       ...parameters
     });
     Vex.Merge(this, parameters);
-  	SmoStaffHairpin.editableAttributes.forEach((attr) => {
-  		var comp = this.components.find((cc)=>{return cc.smoName===attr});
-  		if (comp) {
-  			comp.defaultValue=this.modifier[attr];
-  		}
-  	});
-
+    SmoStaffHairpin.editableAttributes.forEach((attr) => {
+      var comp = this.components.find((cc) => cc.smoName === attr);
+      if (comp) {
+        comp.defaultValue = this.modifier[attr];
+      }
+    });
     this.completeNotifier.unbindKeyboardForModal(this);
   }
 }
@@ -25706,7 +26992,6 @@ class SuiTextInPlace extends SuiComponentBase {
     this.value='';
     var modifier = this.dialog.modifier;
 
-    this.activeScoreText = dialog.activeScoreText;
     this.value = modifier;
     this.altLabel = SuiTextTransformDialog.getStaticText('editorLabel');
   }
@@ -25734,13 +27019,14 @@ class SuiTextInPlace extends SuiComponentBase {
     this.dialog.modifier.skipRender = false;
 
     var render = () => {
-      this.dialog.layout.setRefresh();
+      this.dialog.view.renderer.setRefresh();
     }
     if (this.session) {
-      this.value=this.session.textGroup;
+      this.value = this.session.textGroup;
       this.session.stopSession().then(render);
     }
     $('body').removeClass('text-edit');
+    this.handleChanged();
   }
   get isRunning() {
     return this.session && this.session.isRunning;
@@ -25765,12 +27051,12 @@ class SuiTextInPlace extends SuiComponentBase {
   }
   _renderInactiveBlocks() {
     const modifier = this.dialog.modifier;
-    const context = this.dialog.layout.context;
+    const context = this.dialog.view.renderer.context;
     context.save();
     context.setFillStyle('#ddd');
     modifier.textBlocks.forEach((block) => {
       const st = block.text;
-      if (st.attrs.id !== this.activeScoreText.attrs.id) {
+      if (st.attrs.id !== this.dialog.activeScoreText.attrs.id) {
         const svgText = SuiInlineText.fromScoreText(st, context);
         if (st.logicalBox) {
           svgText.startX += st.logicalBox.x - st.x;
@@ -25790,19 +27076,17 @@ class SuiTextInPlace extends SuiComponentBase {
     $(this._getInputElement()).find('label').text(this.altLabel);
     var modifier = this.dialog.modifier;
     modifier.skipRender = true;
-    $(this.dialog.context.svg).find('#'+modifier.attrs.id).remove();
+    $(this.dialog.view.renderer.context.svg).find('#'+modifier.attrs.id).remove();
     this._renderInactiveBlocks();
     const ul = modifier.ul();
 
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
-    this.session = new SuiTextSession({context : this.dialog.layout.context,
-      scroller: this.dialog.tracker.scroller,
-      layout: this.dialog.layout,
-      score: this.dialog.layout.score,
+    this.session = new SuiTextSession({ renderer : this.dialog.view.renderer,
+      scroller: this.dialog.view.tracker.scroller,
       x: ul.x,
       y: ul.y,
       textGroup: modifier,
-      scoreText: this.activeScoreText
+      scoreText: this.dialog.activeScoreText
     });
     $('body').addClass('text-edit');
     this.value = this.session.textGroup;
@@ -25820,7 +27104,7 @@ class SuiTextInPlace extends SuiComponentBase {
 
   bind() {
     var self=this;
-    this.fontInfo = JSON.parse(JSON.stringify(this.activeScoreText.fontInfo));
+    this.fontInfo = JSON.parse(JSON.stringify(this.dialog.activeScoreText.fontInfo));
     this.value = this.dialog.modifier;
     $(this._getInputElement()).off('click').on('click',function(ev) {
       if (self.session && self.session.isRunning) {
@@ -25839,12 +27123,16 @@ class SuiNoteTextComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
 
-    this.selection = dialog.tracker.selections[0];
+    this.selection = dialog.view.tracker.selections[0];
     this.selector = JSON.parse(JSON.stringify(this.selection.selector));
     this.dialog = dialog;
   }
   get parameterId() {
     return this.dialog.id + '-' + this.parameterName;
+  }
+  setView(eventSource, view) {
+    this.eventSource = eventSource;
+    this.view = view;
   }
   mouseMove(ev) {
     if (this.session && this.session.isRunning) {
@@ -25872,7 +27160,7 @@ class SuiNoteTextComponent extends SuiComponentBase {
   }
 
   moveSelectionRight() {
-      this.session.advanceSelection(false);
+    this.session.advanceSelection(false);
   }
   moveSelectionLeft() {
     this.session.advanceSelection(true);
@@ -25909,8 +27197,8 @@ class SuiNoteTextComponent extends SuiComponentBase {
 // ## SuiLyricComponent
 // manage a lyric session that moves from note to note and adds lyrics.
 class SuiLyricComponent extends SuiNoteTextComponent {
-  constructor(dialog,parameter) {
-    super(dialog,parameter);
+  constructor(dialog, parameter) {
+    super(dialog, parameter);
     smoSerialize.filteredMerge(
         ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     if (!this.defaultValue) {
@@ -25951,28 +27239,23 @@ class SuiLyricComponent extends SuiNoteTextComponent {
     $(this._getInputElement()).find('label').text(this.label);
     const button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
-
-    var render = () => {
-      this.dialog.layout.setRefresh();
-    }
     if (this.session) {
-      this.value=this.session.textGroup;
-      this.session.stopSession().then(render);
+      this.value = this.session.textGroup;
+      this.session.stopSession();
     }
     $('body').removeClass('text-edit');
   }
 
   startEditSession() {
-    var self=this;
     $(this._getInputElement()).find('label').text(this.altLabel);
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiLyricSession({
-       context : this.dialog.layout.context,
+       renderer : this.dialog.view.renderer,
        selector: this.selector,
-       scroller: this.dialog.tracker.scroller,
-       layout: this.dialog.layout,
+       scroller: this.dialog.view.tracker.scroller,
        verse: this.verse,
-       score: this.dialog.layout.score
+       score: this.dialog.view.score,
+       view: this.view
        }
      );
     $('body').addClass('text-edit');
@@ -25999,7 +27282,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
     this.session = null;
     this.dialog = dialog;
 
-    this.selection = dialog.tracker.selections[0];
+    this.selection = dialog.view.tracker.selections[0];
     this.selector = JSON.parse(JSON.stringify(this.selection.selector));
     this.altLabel = SuiLyricDialog.getStaticText('doneEditing');
     if (!this.verse) {
@@ -26038,7 +27321,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
 
     var render = () => {
-      this.dialog.layout.setRefresh();
+      this.dialog.view.renderer.setRefresh();
     }
     if (this.session) {
       this.value=this.session.textGroup;
@@ -26053,12 +27336,12 @@ class SuiChordComponent extends SuiNoteTextComponent {
 
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiChordSession({
-       context : this.dialog.layout.context,
+       renderer : this.dialog.view.renderer,
        selector: this.selector,
-       scroller: this.dialog.tracker.scroller,
-       layout: this.dialog.layout,
+       scroller: this.dialog.view.tracker.scroller,
        verse: 0,
-       score: this.dialog.layout.score
+       view: this.view,
+       score: this.dialog.view.score
        }
      );
     $('body').addClass('text-edit');
@@ -26075,7 +27358,6 @@ class SuiChordComponent extends SuiNoteTextComponent {
   getTextType(type) {
     return this.session.textType;
   }
-
 }
 
 // ## SuiDragText
@@ -26090,7 +27372,7 @@ class SuiDragText extends SuiComponentBase {
     if (!this.defaultValue) {
         this.defaultValue = 0;
     }
-    this.dragging=false;
+    this.dragging = false;
     this.running = false;
 
     this.dialog = dialog;
@@ -26132,8 +27414,8 @@ class SuiDragText extends SuiComponentBase {
     $('body').addClass('text-move');
     this.session = new SuiDragSession({
       textGroup: this.dialog.modifier,
-      context: this.dialog.layout.context,
-      scroller: this.dialog.tracker.scroller
+      context: this.dialog.view.renderer.context,
+      scroller: this.dialog.view.tracker.scroller
     });
     $(this._getInputElement()).find('label').text(this.altLabel);
     $(this._getInputElement()).find('span.icon').removeClass('icon-enlarge').addClass('icon-checkmark');
@@ -26169,96 +27451,8 @@ class SuiDragText extends SuiComponentBase {
     });
   }
 }
-
-// ## Removing this for now...
-class SuiResizeTextBox extends SuiComponentBase {
-  constructor(dialog,parameter) {
-    super(parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
-    }
-    this.resizing = false;
-    this.running = false;
-
-    this.dialog = dialog;
-    this.value='';
-  }
-
-  get html() {
-    var b = htmlHelpers.buildDom;
-    var id = this.parameterId;
-    var r = b('div').classes(this.makeClasses('cbResizeTextBox smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
-      .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
-          .attr('id', id + '-input').append(
-          b('span').classes('icon icon-enlarge'))
-          .append(
-          b('label').attr('for', id + '-input').text(this.label)));
-    return r;
-  }
-  get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
-  }
-
-  stopEditSession() {
-    $('body').removeClass('text-resize');
-    if (this.session && this.session.dragging) {
-      this.session.dragging = false;
-      this.dragging = false;
-    }
-    this.running = false;
-  }
-  getValue() {
-    return this.value;
-  }
-  _getInputElement() {
-    var pid = this.parameterId;
-    return $(this.dialog.dgDom.element).find('#' + pid).find('button');
-  }
-  mouseUp(e) {
-    if (this.session && this.session.dragging) {
-      this.session.endDrag(e);
-      this.dragging = false;
-      this.session.changed();
-    }
-  }
-  mouseMove(e) {
-    if (this.session && this.session.dragging) {
-      this.session.mouseMove(e);
-    }
-  }
-
-  startEditSession() {
-    $('body').addClass('text-resize');
-    this.session = new SuiResizeTextSession({
-      textGroup: this.dialog.modifier,
-      context: this.dialog.layout.context,
-      scroller: this.dialog.tracker.scroller
-    });
-    this.running = true;
-    $(this._getInputElement()).find('label').text('Done Resizing Text Block');
-    $(this._getInputElement()).find('span.icon').removeClass('icon-enlarge').addClass('icon-checkmark');
-  }
-  mouseDown(e) {
-    if (this.session && !this.session.dragging) {
-      this.session.startDrag(e);
-      this.dragging = true;
-    }
-  }
-
-  bind() {
-      var self=this;
-      $(this._getInputElement()).off('click').on('click',function(ev) {
-        if (self.running) {
-          self.stopEditSession();
-        } else {
-          self.startEditSession();
-        }
-      });
-    }
-}
-;class SuiLyricDialog extends SuiDialogBase {
+;// eslint-disable-next-line no-unused-vars
+class SuiLyricDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiLyricDialog';
   }
@@ -26266,21 +27460,21 @@ class SuiResizeTextBox extends SuiComponentBase {
     return SuiLyricDialog.ctor;
   }
   static createAndDisplay(parameters) {
-  var dg = new SuiLyricDialog(parameters);
-  dg.display();
-      return dg;
+    const dg = new SuiLyricDialog(parameters);
+    dg.display();
+    return dg;
   }
   static get dialogElements() {
     SuiLyricDialog._dialogElements = SuiLyricDialog._dialogElements ? SuiLyricDialog._dialogElements :
-     [{
-      smoName: 'verse',
-      parameterName: 'verse',
-      defaultValue: 0,
-      control: 'SuiDropdownComponent',
-      label:'Verse',
-      classes: 'hide-when-editing',
-      startRow: true,
-      options: [{
+      [{
+        smoName: 'verse',
+        parameterName: 'verse',
+        defaultValue: 0,
+        control: 'SuiDropdownComponent',
+        label: 'Verse',
+        classes: 'hide-when-editing',
+        startRow: true,
+        options: [{
           value: 0,
           label: '1'
         }, {
@@ -26290,49 +27484,47 @@ class SuiResizeTextBox extends SuiComponentBase {
           value: 2,
           label: '3'
         }
-      ]
-    }, {
-      smoName: 'translateY',
-      parameterName: 'translateY',
-      classes: 'hide-when-editing',
-      defaultValue: 0,
-      control: 'SuiRockerComponent',
-      label: 'Y Adjustment (Px)',
-      type: 'int'
-    }, {
-      smoName: 'font',
-      parameterName: 'font',
-      classes: 'hide-when-editing',
-      defaultValue: 0,
-      control: 'SuiFontComponent',
-      label: 'Font'
-    }, {
-      smoName: 'lyricEditor',
-      parameterName: 'text',
-      defaultValue: 0,
-      classes: 'show-always',
-      control: 'SuiLyricComponent',
-      label:'Edit Lyrics',
-      options: []
-    }, {
-      smoName: 'adjustWidth',
-      parameterName: 'adjustNoteWidth',
-      defaultValue: true,
-      classes: 'hide-when-editing',
-      control: 'SuiToggleComponent',
-      label: 'Adjust Note Width',
-      options: []
-    }, {
-    staticText: [
-      {doneEditing: 'Done Editing Lyrics'},
-      {undo: 'Undo Lyrics'},
-      {label: 'Lyric Editor'}
-    ]}
-  ];
+        ] }, {
+        smoName: 'translateY',
+        parameterName: 'translateY',
+        classes: 'hide-when-editing',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Y Adjustment (Px)',
+        type: 'int'
+      }, {
+        smoName: 'font',
+        parameterName: 'font',
+        classes: 'hide-when-editing',
+        defaultValue: 0,
+        control: 'SuiFontComponent',
+        label: 'Font'
+      }, {
+        smoName: 'lyricEditor',
+        parameterName: 'text',
+        defaultValue: 0,
+        classes: 'show-always',
+        control: 'SuiLyricComponent',
+        label: 'Edit Lyrics',
+        options: []
+      }, {
+        smoName: 'adjustWidth',
+        parameterName: 'adjustNoteWidth',
+        defaultValue: true,
+        classes: 'hide-when-editing',
+        control: 'SuiToggleComponent',
+        label: 'Adjust Note Width',
+        options: []
+      }, {
+        staticText: [
+          { doneEditing: 'Done Editing Lyrics' },
+          { undo: 'Undo Lyrics' },
+          { label: 'Lyric Editor' }
+        ]
+      }];
 
     return SuiLyricDialog._dialogElements;
   }
-
 
   // ### getStaticText
   // given 'foo' return dialogElements.staticText value that has key of 'foo'
@@ -26341,15 +27533,15 @@ class SuiResizeTextBox extends SuiComponentBase {
   }
 
   constructor(parameters) {
-    parameters.ctor= parameters.ctor ? parameters.ctor : 'SuiLyricDialog';
-    var p = parameters;
+    parameters.ctor = typeof(parameters.ctor) !== 'undefined' ? parameters.ctor : 'SuiLyricDialog';
+    const p = parameters;
     const _class = eval(p.ctor);
-    const dialogElements = _class['dialogElements'];
+    const dialogElements = _class.dialogElements;
 
     super(dialogElements, {
       id: 'dialog-lyrics',
-      top: (p.layout.score.layout.pageWidth / 2) - 200,
-      left: (p.layout.score.layout.pageHeight / 2) - 200,
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...p
     });
 
@@ -26361,10 +27553,8 @@ class SuiResizeTextBox extends SuiComponentBase {
     } else {
       this.parser = parameters.parser; // lyrics or chord changes
     }
-    SmoUndoable.noop(this.layout.score,this.undoBuffer,'Undo lyrics');
   }
   display() {
-    let fontSize;
     $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');
     this.components.forEach((component) => {
@@ -26378,27 +27568,26 @@ class SuiResizeTextBox extends SuiComponentBase {
     this._bindElements();
 
     // make sure keyboard is unbound or we get dupicate key events.
-    var self=this;
     this.completeNotifier.unbindKeyboardForModal(this);
 
-    $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
-        if (!$(ctrl).hasClass('cbLyricEdit')) {
-          $(ctrl).addClass('fold-textedit');
-        }
+    $(this.dgDom.element).find('.smoControl').each((ix, ctrl) => {
+      if (!$(ctrl).hasClass('cbLyricEdit')) {
+        $(ctrl).addClass('fold-textedit');
+      }
     });
 
-    this.position(this.tracker.selections[0].note.renderedBox);
+    this.position(this.view.tracker.selections[0].note.renderedBox);
 
-    var cb = function (x, y) {}
+    const cb = () => {};
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
       handle: $(this.dgDom.element).find('.jsDbMove'),
-            animateDiv:'.draganime',
-            cb: cb,
+      animateDiv: '.draganime',
+      cb,
       moveParent: true
     });
-    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
-    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
+    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
+    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
 
     if (this.lyricEditorCtrl && this.lyricEditorCtrl.session && this.lyricEditorCtrl.session.lyric) {
       const lyric = this.lyricEditorCtrl.session.lyric;
@@ -26417,46 +27606,41 @@ class SuiResizeTextBox extends SuiComponentBase {
     if (this.lyricEditorCtrl.editor.selection &&
       this.lyricEditorCtrl.editor.selection.note &&
       this.lyricEditorCtrl.editor.selection.note.renderedBox) {
-      this.tracker.scroller.scrollVisibleBox(this.lyricEditorCtrl.editor.selection.note.renderedBox);
+      this.view.scroller.scrollVisibleBox(this.lyricEditorCtrl.editor.selection.note.renderedBox);
     }
   }
   changed() {
-    this.lyricEditorCtrl.verse = parseInt(this.verse.getValue());
+    this.lyricEditorCtrl.verse = parseInt(this.verse.getValue(), 10);
 
     // TODO: make these undoable
     if (this.fontCtrl.changeFlag) {
       const fontInfo = this.fontCtrl.getValue();
-      this.layout.score.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size.size });
+      this.view.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size.size });
     }
     if (this.adjustWidthCtrl.changeFlag) {
-      this.layout.score.setLyricAdjustWidth(this.adjustWidthCtrl.getValue());
+      this.view.setLyricAdjustWidth(this.adjustWidthCtrl.getValue());
     }
   }
   _bindElements() {
-    var self = this;
-    var dgDom = this.dgDom;
+    const dgDom = this.dgDom;
 
-    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-      self.tracker.replaceSelectedMeasures();
-      self.tracker.layout.setDirty();
-      self._complete();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this._complete();
     });
-    $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-      self.keyCommands.undo();
-      self.tracker.layout.setDirty();
-      self._complete();
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this._complete();
     });
     $(dgDom.element).find('.remove-button').remove();
     this.lyricEditorCtrl.eventSource = this.eventSource;
+    this.lyricEditorCtrl.setView(this.eventSource, this.view);
     this.lyricEditorCtrl.startEditSession();
   }
   // ### handleKeydown
   // allow a dialog to be dismissed by esc.
   evKey(evdata) {
-    if (evdata.key == 'Escape') {
+    if (evdata.key === 'Escape') {
       $(this.dgDom.element).find('.cancel-button').click();
       evdata.preventDefault();
-      return;
     } else {
       const edited = this.lyricEditorCtrl.evKey(evdata);
       if (edited) {
@@ -26466,7 +27650,6 @@ class SuiResizeTextBox extends SuiComponentBase {
   }
 
   _complete() {
-    this.layout.setDirty();
     if (this.lyricEditorCtrl.running) {
       this.lyricEditorCtrl.endSession();
     }
@@ -26489,9 +27672,8 @@ class SuiResizeTextBox extends SuiComponentBase {
       ev.stopPropagation();
     }
   }
-
 }
-
+// eslint-disable-next-line no-unused-vars
 class SuiChordChangeDialog  extends SuiDialogBase {
   static get ctor() {
     return 'SuiChordChangeDialog';
@@ -26509,12 +27691,12 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     parameters.ctor = 'SuiChordChangeDialog';
     const p = parameters;
     const _class = eval(p.ctor);
-    const dialogElements = _class['dialogElements'];
+    const dialogElements = _class.dialogElements;
 
     super(dialogElements, {
       id: 'dialog-chords',
-      top: (p.layout.score.layout.pageWidth / 2) - 200,
-      left: (p.layout.score.layout.pageHeight / 2) - 200,
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...p
     });
   }
@@ -26529,17 +27711,16 @@ class SuiChordChangeDialog  extends SuiDialogBase {
         classes: 'hide-when-editing',
         startRow: true,
         options: [{
-            value: 0,
-            label: '1'
-          }, {
-            value: 1,
-            label: '2'
-          }, {
-            value: 2,
-            label: '3'
-          }
-        ]
-      },{
+          value: 0,
+          label: '1'
+        }, {
+          value: 1,
+          label: '2'
+        }, {
+          value: 2,
+          label: '3'
+        }]
+      }, {
         smoName: 'translateY',
         parameterName: 'translateY',
         defaultValue: 0,
@@ -26553,73 +27734,69 @@ class SuiChordChangeDialog  extends SuiDialogBase {
         defaultValue: 0,
         classes: 'show-always',
         control: 'SuiChordComponent',
-        label:'Edit Text',
+        label: 'Edit Text',
         options: []
       }, {
-       smoName: 'chordSymbol',
-       parameterName: 'chordSymbol',
-       defaultValue: '',
-       classes: 'show-when-editing',
-       control: 'SuiDropdownComponent',
-       label: 'Chord Symbol',
-       startRow: true,
-       options: [{
-            value: 'csymDiminished',
-            label: 'Dim'
-         }, {
-            value: 'csymHalfDiminished',
-            label: 'Half dim'
-         }, {
-            value: 'csymDiagonalArrangementSlash',
-            label: 'Slash'
-          }, {
-             value: 'csymMajorSeventh',
-             label: 'Maj7'
-           }]
-         },
-         {
-         smoName: 'textPosition',
-         parameterName: 'textPosition',
-         defaultValue: SuiInlineText.textTypes.normal,
-         classes: 'show-when-editing',
-         control: 'SuiDropdownComponent',
-         label: 'Text Position',
-         startRow: true,
-         options: [{
-              value: SuiInlineText.textTypes.superScript,
-              label: 'Superscript'
-           }, {
-              value: SuiInlineText.textTypes.subScript,
-              label: 'Subscript'
-           }, {
-              value: SuiInlineText.textTypes.normal,
-              label: 'Normal'
-            }]
-           }, {
-             smoName: 'font',
-             parameterName: 'font',
-             classes: 'hide-when-editing',
-             defaultValue: 0,
-             control: 'SuiFontComponent',
-             label: 'Font'
-           },
-           {
-            smoName: 'adjustWidth',
-            parameterName: 'adjustNoteWidth',
-            defaultValue: true,
-            classes: 'hide-when-editing',
-            control: 'SuiToggleComponent',
-            label: 'Adjust Note Width',
-            options: []
-          },
-           {
+        smoName: 'chordSymbol',
+        parameterName: 'chordSymbol',
+        defaultValue: '',
+        classes: 'show-when-editing',
+        control: 'SuiDropdownComponent',
+        label: 'Chord Symbol',
+        startRow: true,
+        options: [{
+          value: 'csymDiminished',
+          label: 'Dim'
+        }, {
+          value: 'csymHalfDiminished',
+          label: 'Half dim'
+        }, {
+          value: 'csymDiagonalArrangementSlash',
+          label: 'Slash'
+        }, {
+          value: 'csymMajorSeventh',
+          label: 'Maj7'
+        }]
+      }, {
+        smoName: 'textPosition',
+        parameterName: 'textPosition',
+        defaultValue: SuiInlineText.textTypes.normal,
+        classes: 'show-when-editing',
+        control: 'SuiDropdownComponent',
+        label: 'Text Position',
+        startRow: true,
+        options: [{
+          value: SuiInlineText.textTypes.superScript,
+          label: 'Superscript'
+        }, {
+          value: SuiInlineText.textTypes.subScript,
+          label: 'Subscript'
+        }, {
+          value: SuiInlineText.textTypes.normal,
+          label: 'Normal'
+        }]
+      }, {
+        smoName: 'font',
+        parameterName: 'font',
+        classes: 'hide-when-editing',
+        defaultValue: 0,
+        control: 'SuiFontComponent',
+        label: 'Font'
+      }, {
+        smoName: 'adjustWidth',
+        parameterName: 'adjustNoteWidth',
+        defaultValue: true,
+        classes: 'hide-when-editing',
+        control: 'SuiToggleComponent',
+        label: 'Adjust Note Width',
+        options: []
+      }, {
         staticText: [
-          {label : 'Edit Chord Symbol'},
-          {undo: 'Undo Chord Symbols'},
-          {doneEditing : 'Done Editing Chord Symbols' }
+          { label: 'Edit Chord Symbol' },
+          { undo: 'Undo Chord Symbols' },
+          { doneEditing: 'Done Editing Chord Symbols' }
         ]
-      }
-    ];
+      }];
 
     return SuiChordChangeDialog._dialogElements;
   }
@@ -26635,16 +27812,16 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     }
     if (this.textPositionCtrl.changeFlag && this.chordEditorCtrl.running) {
       this.chordEditorCtrl.setTextType(this.textPositionCtrl.getValue());
-      $(this.textPositionCtrl._getInputElement())[0].selectedIndex = -1
+      $(this.textPositionCtrl._getInputElement())[0].selectedIndex = -1;
       $(this.textPositionCtrl._getInputElement()).blur();
     }
     if (this.fontCtrl.changeFlag) {
       const fontInfo = this.fontCtrl.getValue();
-      this.layout.score.setChordFont(
+      this.view.score.setChordFont(
         { 'family': fontInfo.family, size: fontInfo.size.size });
     }
     if (this.adjustWidthCtrl.changeFlag) {
-      this.layout.score.setChordAdjustWidth(this.adjustWidthCtrl.getValue());
+      this.view.score.setChordAdjustWidth(this.adjustWidthCtrl.getValue());
     }
   }
 
@@ -26662,27 +27839,26 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     this._bindElements();
 
     // make sure keyboard is unbound or we get dupicate key events.
-    var self=this;
     this.completeNotifier.unbindKeyboardForModal(this);
 
-    $(this.dgDom.element).find('.smoControl').each((ix,ctrl) => {
-        if (!$(ctrl).hasClass('cbLyricEdit')) {
-          $(ctrl).addClass('fold-textedit');
-        }
+    $(this.dgDom.element).find('.smoControl').each((ix, ctrl) => {
+      if (!$(ctrl).hasClass('cbLyricEdit')) {
+        $(ctrl).addClass('fold-textedit');
+      }
     });
 
-    this.position(this.tracker.selections[0].note.renderedBox);
+    this.position(this.view.tracker.selections[0].note.renderedBox);
 
-    var cb = function (x, y) {}
+    const cb = () => {};
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
       handle: $(this.dgDom.element).find('.jsDbMove'),
-            animateDiv:'.draganime',
-            cb: cb,
+      animateDiv: '.draganime',
+      cb,
       moveParent: true
     });
-    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
-    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
+    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
+    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
     if (this.chordEditorCtrl && this.chordEditorCtrl.session && this.chordEditorCtrl.session.lyric) {
       const lyric = this.chordEditorCtrl.session.lyric;
       this.adjustWidthCtrl.setValue(lyric.adjustNoteWidth);
@@ -26698,28 +27874,23 @@ class SuiChordChangeDialog  extends SuiDialogBase {
   }
 
   _bindElements() {
-    var self = this;
-    var dgDom = this.dgDom;
+    const dgDom = this.dgDom;
 
-    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-      self.tracker.replaceSelectedMeasures();
-      self.tracker.layout.setDirty();
-      self._complete();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this._complete();
     });
-    $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-      self.keyCommands.undo();
-      self.tracker.layout.setDirty();
-      self._complete();
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this._complete();
     });
     $(dgDom.element).find('.remove-button').remove();
-    this.chordEditorCtrl.eventSource = this.eventSource;
+    this.chordEditorCtrl.setView(this.eventSource, this.view);
     this.chordEditorCtrl.startEditSession();
   }
 
   // ### handleKeydown
   // allow a dialog to be dismissed by esc.
   evKey(evdata) {
-    if (evdata.key == 'Escape') {
+    if (evdata.key === 'Escape') {
       $(this.dgDom.element).find('.cancel-button').click();
       evdata.preventDefault();
     } else {
@@ -26734,7 +27905,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     if (this.chordEditorCtrl.running) {
       this.chordEditorCtrl.endSession();
     }
-    this.layout.setDirty();
+    this.view.renderer.setDirty();
     this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
     this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
     $('body').removeClass('showAttributeDialog');
@@ -26755,11 +27926,11 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     }
   }
 }
-
+// eslint-disable-next-line no-unused-vars
 class SuiTextTransformDialog  extends SuiDialogBase {
   static createAndDisplay(parameters) {
-  var dg = new SuiTextTransformDialog(parameters);
-  dg.display();
+    const dg = new SuiTextTransformDialog(parameters);
+    dg.display();
     return dg;
   }
 
@@ -26771,36 +27942,33 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
   static get dialogElements() {
     SuiTextTransformDialog._dialogElements = SuiTextTransformDialog._dialogElements ? SuiTextTransformDialog._dialogElements :
-      [
-      {
+      [{
         smoName: 'textEditor',
         parameterName: 'text',
         defaultValue: 0,
         control: 'SuiTextInPlace',
         classes: 'show-always hide-when-moving',
-        label:'Edit Text',
+        label: 'Edit Text',
         options: []
       }, {
-         smoName: 'insertCode',
-         parameterName: 'insertCode',
-         defaultValue: false,
-         classes: 'show-when-editing hide-when-moving',
-         control:'SuiDropdownComponent',
-         label: 'Insert Special',
-         options: [
-           { value: '@@@', label: 'Pages' },
-           { value: '###', label: 'Page Number' }
-         ]
-       }, {
+        smoName: 'insertCode',
+        parameterName: 'insertCode',
+        defaultValue: false,
+        classes: 'show-when-editing hide-when-moving',
+        control: 'SuiDropdownComponent',
+        label: 'Insert Special',
+        options: [
+          { value: '@@@', label: 'Pages' },
+          { value: '###', label: 'Page Number' }
+        ] }, {
         smoName: 'textDragger',
         parameterName: 'textLocation',
         classes: 'hide-when-editing show-when-moving',
         defaultValue: 0,
         control: 'SuiDragText',
-        label:'Move Text',
+        label: 'Move Text',
         options: []
-      },
-      {
+      }, {
         smoName: 'x',
         parameterName: 'x',
         defaultValue: 0,
@@ -26808,7 +27976,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         control: 'SuiRockerComponent',
         label: 'X Position (Px)',
         type: 'int'
-      },{
+      }, {
         smoName: 'y',
         parameterName: 'y',
         defaultValue: 0,
@@ -26816,14 +27984,13 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         control: 'SuiRockerComponent',
         label: 'Y Position (Px)',
         type: 'int'
-      },
-      {
+      }, {
         smoName: 'font',
         parameterName: 'font',
         classes: 'hide-when-editing hide-when-moving',
         defaultValue: SmoScoreText.fontFamilies.times,
         control: 'SuiFontComponent',
-        label:'Font Information'
+        label: 'Font Information'
       },
       {
         smoName: 'textBlock',
@@ -26831,7 +27998,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         classes: 'hide-when-editing hide-when-moving',
         defaultValue: '',
         control: 'SuiTextBlockComponent',
-        label:'Text Block Properties'
+        label: 'Text Block Properties'
       },
       { // {every:'every',even:'even',odd:'odd',once:'once'}
         smoName: 'pagination',
@@ -26839,8 +28006,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         defaultValue: SmoScoreText.paginations.every,
         classes: 'hide-when-editing hide-when-moving',
         control: 'SuiDropdownComponent',
-        label:'Page Behavior',
-        startRow:true,
+        label: 'Page Behavior',
+        startRow: true,
         options: [{ value: SmoTextGroup.paginations.ONCE, label: 'Once' },
           { value: SmoTextGroup.paginations.EVERY, label: 'Every' },
           { value: SmoTextGroup.paginations.EVEN, label: 'Even' },
@@ -26857,13 +28024,11 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         label: 'Attach to Selection'
       }, {
         staticText: [
-          {label : 'Text Properties' },
-          {editorLabel: 'Done Editing Text' },
-          {draggerLabel: 'Done Dragging Text'}
+          { label: 'Text Properties' },
+          { editorLabel: 'Done Editing Text' },
+          { draggerLabel: 'Done Dragging Text' }
         ]
-      }
-    ];
-
+      }];
     return SuiTextTransformDialog._dialogElements;
   }
   static getStaticText(label) {
@@ -26871,8 +28036,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
 
   display() {
-    console.log('text box creationg complete');
-    this.textElement=$(this.layout.context.svg).find('.' + this.modifier.attrs.id)[0];
+    this.textElement = $(this.view.renderer.context.svg).find('.' + this.modifier.attrs.id)[0];
 
     $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');
@@ -26881,14 +28045,12 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     this.components.forEach((component) => {
       component.bind();
     });
-    const dbFont = this.fontCtrl.getValue();
     this.textBlockCtrl.setValue({
       activeScoreText: this.activeScoreText,
       modifier: this.modifier
     });
 
     const fontFamily = this.activeScoreText.fontInfo.family;
-    var dbFontUnit  = 'pt';
     const fontSize = svgHelpers.getFontSize(this.activeScoreText.fontInfo.size);
     this.fontCtrl.setValue({
       family: fontFamily,
@@ -26899,24 +28061,24 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 
     this.attachToSelectorCtrl.setValue(this.modifier.attachToSelector);
 
-    this.paginationsComponent = this.components.find((c) => c.smoName == 'pagination');
+    this.paginationsComponent = this.components.find((c) => c.smoName === 'pagination');
     this.paginationsComponent.setValue(this.modifier.pagination);
 
     this._bindElements();
     if (!this.modifier.renderedBox) {
-      this.layout.renderTextGroup(this.modifier);
+      this.view.renderer.renderTextGroup(this.modifier);
     }
     this.position(this.modifier.renderedBox);
     const ul = this.modifier.ul();
     this.xCtrl.setValue(ul.x);
     this.yCtrl.setValue(ul.y);
 
-    var cb = function (x, y) {}
+    const cb = () => {};
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
       handle: $(this.dgDom.element).find('span.jsDbMove'),
-      animateDiv:'.draganime',
-      cb: cb,
+      animateDiv: '.draganime',
+      cb,
       moveParent: true
     });
 
@@ -26927,10 +28089,10 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       layoutDebug.addDialogDebug('text transform db: startEditSession');
       this.textEditorCtrl.startEditSession();
     }
-    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this,'mouseMove');
-    this.mouseUpHandler = this.eventSource.bindMouseUpHandler(this,'mouseUp');
-    this.mouseDownHandler = this.eventSource.bindMouseDownHandler(this,'mouseDown');
-    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this,'mouseClick');
+    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
+    this.mouseUpHandler = this.eventSource.bindMouseUpHandler(this, 'mouseUp');
+    this.mouseDownHandler = this.eventSource.bindMouseDownHandler(this, 'mouseDown');
+    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
   }
   _resetAttachToSelector() {
     this.modifier.attachToSelector = false;
@@ -27002,31 +28164,27 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       this.activeScoreText.fontInfo.weight = fontInfo.weight;
       this.activeScoreText.fontInfo.style = fontInfo.style;
     }
-
-
     // Use layout context because render may have reset svg.
-    this.layout.renderScoreModifiers();
+    this.view.updateTextGroup(this.previousModifier, this.modifier);
+    this.previousModifier = this.modifier.serialize();
   }
 
   // ### handleKeydown
   // allow a dialog to be dismissed by esc.
   evKey(evdata) {
-    if (evdata.key == 'Escape') {
+    if (evdata.key === 'Escape') {
       $(this.dgDom.element).find('.cancel-button').click();
       evdata.preventDefault();
-      return;
     } else {
       this.textEditorCtrl.evKey(evdata);
     }
-    return;
   }
 
   // ### Event handlers, passed from dialog
-  mouseUp(ev) {
+  mouseUp() {
     if (this.textResizerCtrl && this.textResizerCtrl.running) {
       this.textResizerCtrl.mouseUp();
-    }
-    else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
+    } else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
       this.textDraggerCtrl.mouseUp();
     }
   }
@@ -27034,8 +28192,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   mouseMove(ev) {
     if (this.textResizerCtrl && this.textResizerCtrl.running) {
       this.textResizerCtrl.mouseMove(ev);
-    }
-    else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
+    }  else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
       this.textDraggerCtrl.mouseMove(ev);
     } else if (this.textEditorCtrl && this.textEditorCtrl.isRunning) {
       this.textEditorCtrl.mouseMove(ev);
@@ -27052,19 +28209,18 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   mouseDown(ev) {
     if (this.textResizerCtrl && this.textResizerCtrl.running) {
       this.textResizerCtrl.mouseDown(ev);
-    }
-    else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
+    } else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
       this.textDraggerCtrl.mouseDown(ev);
     }
   }
 
   constructor(parameters) {
-    var tracker = parameters.tracker;
-    var layout = tracker.layout.score.layout;
+    const tracker = parameters.view.tracker;
+    const layout = parameters.view.score.layout;
 
     // Create a new text modifier, if required.
     if (!parameters.modifier) {
-      var newText =  new SmoScoreText({ position: SmoScoreText.positions.custom });
+      const newText =  new SmoScoreText({ position: SmoScoreText.positions.custom });
       newText.y += tracker.scroller.netScroll.y;
       if (tracker.selections.length > 0) {
         const sel = tracker.selections[0].measure;
@@ -27075,50 +28231,33 @@ class SuiTextTransformDialog  extends SuiDialogBase {
           }
         }
       }
-      var newGroup = new SmoTextGroup({blocks:[newText]});
+      const newGroup = new SmoTextGroup({ blocks: [newText] });
       parameters.modifier = newGroup;
-      parameters.activeScoreText = newText;
-      SmoUndoable.scoreOp(parameters.layout.score,'addTextGroup',
-        parameters.modifier,  parameters.undoBuffer,'Text Menu Command');
-      parameters.layout.setRefresh();
-    } else if (parameters.modifier.ctor === 'SmoScoreText') {
-      // This code promotes SmoScoreText to SmoTextGroup.  This should be done in
-      // deserialization code now, for legacy files.
-      var newGroup = new SmoTextGroup({blocks:[parameters.modifier]});
-      parameters.activeScoreText = newGroup.textBlocks[0].text;
-      parameters.modifier = newGroup;
-      tracker.layout.score.removeScoreText(parameters.activeScoreText);
-      tracker.layout.score.addTextGroup(newGroup);
-    } else if (!parameters.activeScoreText) {
-      parameters.activeScoreText = parameters.modifier.textBlocks[0].text;
+      parameters.modifier.setActiveBlock(newText);
+      parameters.view.addTextGroup(parameters.modifier);
+    } else {
+      // Make sure there is a score text to start the editing.
+      parameters.modifier.setActiveBlock(parameters.modifier.textBlocks[0].text);
     }
-    parameters.modifier.setActiveBlock(parameters.activeScoreText);
-
-    var scrollPosition = tracker.scroller.absScroll;
-    console.log('text ribbon: scroll y is '+scrollPosition.y);
-
+    const scrollPosition = tracker.scroller.absScroll;
     scrollPosition.y = scrollPosition.y / (layout.svgScale * layout.zoomScale);
     scrollPosition.x = scrollPosition.x / (layout.svgScale * layout.zoomScale);
-    console.log('text ribbon: converted scroll y is '+scrollPosition.y);
-
     super(SuiTextTransformDialog.dialogElements, {
       id: 'dialog-' + parameters.modifier.attrs.id,
       top: scrollPosition.y + 100,
       left: scrollPosition.x + 100,
       ...parameters
     });
-
+    this.previousModifier = this.modifier.serialize();
+    this.activeScoreText = this.modifier.getActiveBlock();
     Vex.Merge(this, parameters);
-    // Do we jump right into editing?
-    this.undo = parameters.undoBuffer;
-    this.modifier.backupParams();
     this.completeNotifier.unbindKeyboardForModal(this);
   }
 
   _complete() {
     this.modifier.setActiveBlock(null);
-    this.tracker.updateMap(); // update the text map
-    this.layout.setDirty();
+    this.view.tracker.updateMap(); // update the text map
+    this.view.renderer.setDirty();
     this.eventSource.unbindMouseDownHandler(this.mouseDownHandler);
     this.eventSource.unbindMouseUpHandler(this.mouseUpHandler);
     this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
@@ -27127,31 +28266,33 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     $('body').removeClass('textEditor');
     this.complete();
   }
+  _removeText() {
+    this.view.removeTextGroup(this.modifier);
+  }
 
   _bindElements() {
-    var self = this;
     this.bindKeyboard();
-    var dgDom = this.dgDom;
+    const dgDom = this.dgDom;
 
-    $(dgDom.element).find('.ok-button').off('click').on('click', function (ev) {
-      self._complete();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this._complete();
     });
 
-    $(dgDom.element).find('.cancel-button').off('click').on('click', function (ev) {
-      self.modifier.restoreParams();
-      self._complete();
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.modifier.restoreParams();
+      this._complete();
     });
-    $(dgDom.element).find('.remove-button').off('click').on('click', function (ev) {
-      SmoUndoable.scoreOp(self.layout.score,'removeTextGroup',self.modifier,self.undo,'remove text from dialog');
-      self._complete();
+    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+      this._removeText();
+      this._complete();
     });
   }
 }
 
-
-// ## SuiTextModifierDialog
+// ## SuiDynamicModifierDialog
 // This is a poorly named class, it just allows you to placeText
 // dynamic text so it doesn't collide with something.
+// eslint-disable-next-line no-unused-vars
 class SuiDynamicModifierDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiDynamicModifierDialog';
@@ -27161,7 +28302,7 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
   }
   static get label() {
     SuiDynamicModifierDialog._label = SuiDynamicModifierDialog._label ? SuiDynamicModifierDialog._label :
-       'Dynamics Properties';
+      'Dynamics Properties';
     return SuiDynamicModifierDialog._label;
   }
   static set label(value) {
@@ -27170,99 +28311,100 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
 
   static get dialogElements() {
     SuiDynamicModifierDialog._dialogElements = SuiDynamicModifierDialog._dialogElements ? SuiDynamicModifierDialog._dialogElements :
-    [{
-  smoName: 'yOffsetLine',
-  parameterName: 'yOffsetLine',
-  defaultValue: 11,
-  control: 'SuiRockerComponent',
-  label: 'Y Line'
-  }, {
-  smoName: 'yOffsetPixels',
-  parameterName: 'yOffsetPixels',
-  defaultValue: 0,
-  control: 'SuiRockerComponent',
-  label: 'Y Offset Px'
-  }, {
-  smoName: 'xOffset',
-  parameterName: 'yOffset',
-  defaultValue: 0,
-  control: 'SuiRockerComponent',
-  label: 'X Offset'
-  }, {
-  smoName: 'text',
-  parameterName: 'text',
-  defaultValue: SmoDynamicText.dynamics.P,
-  options: [{
-  value: SmoDynamicText.dynamics.P,
-  label: 'Piano'
-  }, {
-  value: SmoDynamicText.dynamics.PP,
-  label: 'Pianissimo'
-  }, {
-  value: SmoDynamicText.dynamics.MP,
-  label: 'Mezzo-Piano'
-  }, {
-  value: SmoDynamicText.dynamics.MF,
-  label: 'Mezzo-Forte'
-  }, {
-  value: SmoDynamicText.dynamics.F,
-  label: 'Forte'
-  }, {
-  value: SmoDynamicText.dynamics.FF,
-  label: 'Fortissimo'
-  }, {
-  value: SmoDynamicText.dynamics.SFZ,
-  label: 'Sforzando'
-  }
-  ],
-  control: 'SuiDropdownComponent',
-  label: 'Text'
-  },
-      {staticText: [
-        {label: 'Dynamics Properties'}
-      ]}
-  ];
+      [{
+        smoName: 'yOffsetLine',
+        parameterName: 'yOffsetLine',
+        defaultValue: 11,
+        control: 'SuiRockerComponent',
+        label: 'Y Line'
+      }, {
+        smoName: 'yOffsetPixels',
+        parameterName: 'yOffsetPixels',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Y Offset Px'
+      }, {
+        smoName: 'xOffset',
+        parameterName: 'yOffset',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'X Offset'
+      }, {
+        smoName: 'text',
+        parameterName: 'text',
+        defaultValue: SmoDynamicText.dynamics.P,
+        options: [{
+          value: SmoDynamicText.dynamics.P,
+          label: 'Piano'
+        }, {
+          value: SmoDynamicText.dynamics.PP,
+          label: 'Pianissimo'
+        }, {
+          value: SmoDynamicText.dynamics.MP,
+          label: 'Mezzo-Piano'
+        }, {
+          value: SmoDynamicText.dynamics.MF,
+          label: 'Mezzo-Forte'
+        }, {
+          value: SmoDynamicText.dynamics.F,
+          label: 'Forte'
+        }, {
+          value: SmoDynamicText.dynamics.FF,
+          label: 'Fortissimo'
+        }, {
+          value: SmoDynamicText.dynamics.SFZ,
+          label: 'Sforzando'
+        }],
+        control: 'SuiDropdownComponent',
+        label: 'Text'
+      },
+      { staticText: [
+        { label: 'Dynamics Properties' }
+      ] }
+      ];
     return SuiDynamicModifierDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
-  var dg = new SuiDynamicModifierDialog(parameters);
-  dg.display();
-  return dg;
+    const dg = new SuiDynamicModifierDialog(parameters);
+    dg.display();
+    return dg;
   }
 
   constructor(parameters) {
-  super(SuiDynamicModifierDialog.dialogElements, {
-  id: 'dialog-' + parameters.modifier.id,
-  top: parameters.modifier.renderedBox.y,
-  left: parameters.modifier.renderedBox.x,
+    super(SuiDynamicModifierDialog.dialogElements, {
+      id: 'dialog-' + parameters.modifier.id,
+      top: parameters.modifier.renderedBox.y,
+      left: parameters.modifier.renderedBox.x,
       ...parameters
-  });
-  Vex.Merge(this, parameters);
-    this.selection = this.tracker.selections[0];
-  this.components.find((x) => {
-  return x.parameterName == 'text'
-  }).defaultValue = parameters.modifier.text;
+    });
+    Vex.Merge(this, parameters);
+    this.components.find((x) => x.parameterName === 'text').defaultValue = parameters.modifier.text;
+  }
+  display() {
+    super.display();
+    // make sure keyboard is unbound or we get dupicate key events.
+    this.completeNotifier.unbindKeyboardForModal(this);
+    this._bindComponentNames();
+    this.textCtrl.setValue(this.modifier.text);
+    this.xOffsetCtrl.setValue(this.modifier.xOffset);
+    this.yOffsetLineCtrl.setValue(this.modifier.yOffsetLine);
+    this.yOffsetPixelsCtrl.setValue(this.modifier.yOffsetPixels);
   }
   handleRemove() {
-  $(this.context.svg).find('g.' + this.modifier.id).remove();
-    this.undoBuffer.addBuffer('remove dynamic', 'measure', this.selection.selector, this.selection.measure);
-  this.selection.note.removeModifier(this.modifier);
-  this.tracker.clearModifierSelections();
+    this.view.removeDynamic(this.modifier);
   }
   changed() {
-  this.modifier.backupOriginal();
-  this.components.forEach((component) => {
-  this.modifier[component.smoName] = component.getValue();
-  });
-  this.layout.renderNoteModifierPreview(this.modifier,this.selection);
+    this.components.forEach((component) => {
+      this.modifier[component.smoName] = component.getValue();
+    });
+    this.view.addDynamic(this.modifier);
   }
 }
-
+// eslint-disable-next-line no-unused-vars
 class helpModal {
-  constructor() {}
   static createAndDisplay() {
-  SmoHelp.displayHelp();
-  return htmlHelpers.closeDialogPromise();
+    SmoHelp.displayHelp();
+    return htmlHelpers.closeDialogPromise();
   }
 }
 ;
@@ -27508,100 +28650,96 @@ class browserEventSource {
 }
 ;
 class SuiExceptionHandler {
-    constructor(params) {
-        this.tracker = params.tracker;
-        this.layout = params.layout;
-        this.score = params.score;
-        this.undoBuffer = params.undoBuffer;
-        this.thrown = false;
-		SuiExceptionHandler._instance = this;
-    }
+  constructor(params) {
+    this.view = params.view;
+    this.thrown = false;
+	  SuiExceptionHandler._instance = this;
+  }
 	static get instance() {
 		return SuiExceptionHandler._instance;
 	}
-    exceptionHandler(e) {
-        var self = this;
-        if (this.thrown) {
-          return;
-        }
-        this.thrown = true;
-        if (window['suiController'] && window['suiController'].reentry) {
-            return;
-        }
-
-        if (window['suiController']) {
-            suiController.reentry = true;
-        }
-        var scoreString = 'Could not serialize score.';
-        try {
-            scoreString = this.layout.score.serialize();
-        } catch (e) {
-            scoreString += ' ' + e.message;
-        }
-        var message = e.message;
-        var stack = 'No stack trace available';
-
-        try {
-            if (e.error && e.error.stack) {
-                stack = e.error.stack;
-            } else if (e['stack']) {
-				stack = e.stack;
-			}
-        } catch (e2) {
-            stack = 'Error with stack: ' + e2.message;
-        }
-        var doing = 'Last operation not available.';
-
-        var lastOp = this.undoBuffer.peek();
-        if (lastOp) {
-            doing = lastOp.title;
-        }
-        var url = 'https://github.com/AaronDavidNewman/Smoosic/issues';
-        var bodyObject = JSON.stringify({
-                message: message,
-                stack: stack,
-                lastOperation: doing,
-                scoreString: scoreString
-            }, null, ' ');
-
-        var b = htmlHelpers.buildDom;
-        var r = b('div').classes('bug-modal').append(
-                b('img').attr('src', '../styles/images/logo.png').classes('bug-logo'))
-            .append(b('button').classes('icon icon-cross bug-dismiss-button'))
-            .append(b('span').classes('bug-title').text('oh nooooo!  You\'ve found a bug'))
-            .append(b('p').text('It would be helpful if you would submit a bug report, and copy the data below into an issue'))
-            .append(b('div')
-                .append(b('textarea').attr('id', 'bug-text-area').text(bodyObject))
-                .append(
-                    b('div').classes('button-container').append(b('button').classes('bug-submit-button').text('Submit Report'))));
-
-        $('.bugDialog').html('');
-        $('.bugDialog').append(r.dom());
-
-        $('.bug-dismiss-button').off('click').on('click', function () {
-            $('body').removeClass('bugReport');
-            if (lastOp) {
-                self.undoBuffer.undo(self.score);
-                self.layout.render();
-                suiController.reentry = false;
-            }
-        });
-        $('.bug-submit-button').off('click').on('click', function () {
-            var data = {
-                title: "automated bug report",
-                body: encodeURIComponent(bodyObject)
-            };
-            $('#bug-text-area').select();
-            document.execCommand('copy');
-            window.open(url, 'Report Smoosic issues');
-        });
-        $('body').addClass('bugReport');
-        if (!this.thrown) {
-            this.thrown = true;
-            throw(e);
-        }
-
+  exceptionHandler(e) {
+    var self = this;
+    if (this.thrown) {
+      return;
     }
+    this.thrown = true;
+    if (window['suiController'] && window['suiController'].reentry) {
+      return;
+    }
+
+    if (window['suiController']) {
+      suiController.reentry = true;
+    }
+    var scoreString = 'Could not serialize score.';
+    try {
+      scoreString = this.view.score.serialize();
+    } catch (e) {
+      scoreString += ' ' + e.message;
+    }
+    var message = e.message;
+    var stack = 'No stack trace available';
+
+    try {
+      if (e.error && e.error.stack) {
+        stack = e.error.stack;
+      } else if (e['stack']) {
+  	     stack = e.stack;
+      }
+    } catch (e2) {
+      stack = 'Error with stack: ' + e2.message;
+    }
+    var doing = 'Last operation not available.';
+
+    var lastOp = this.view.undoBuffer.peek();
+    if (lastOp) {
+      doing = lastOp.title;
+    }
+    var url = 'https://github.com/AaronDavidNewman/Smoosic/issues';
+    var bodyObject = JSON.stringify({
+        message: message,
+        stack: stack,
+        lastOperation: doing,
+        scoreString: scoreString
+      }, null, ' ');
+
+    var b = htmlHelpers.buildDom;
+    var r = b('div').classes('bug-modal').append(
+      b('img').attr('src', '../styles/images/logo.png').classes('bug-logo'))
+        .append(b('button').classes('icon icon-cross bug-dismiss-button'))
+        .append(b('span').classes('bug-title').text('oh nooooo!  You\'ve found a bug'))
+        .append(b('p').text('It would be helpful if you would submit a bug report, and copy the data below into an issue'))
+        .append(b('div')
+            .append(b('textarea').attr('id', 'bug-text-area').text(bodyObject))
+            .append(
+                b('div').classes('button-container').append(b('button').classes('bug-submit-button').text('Submit Report'))));
+
+    $('.bugDialog').html('');
+    $('.bugDialog').append(r.dom());
+
+    $('.bug-dismiss-button').off('click').on('click', function () {
+        $('body').removeClass('bugReport');
+        if (lastOp) {
+            self.view.undoBuffer.undo(self.view.score);
+            self.view.renderer.render();
+            suiController.reentry = false;
+        }
+    });
+    $('.bug-submit-button').off('click').on('click', function () {
+      var data = {
+        title: "automated bug report",
+        body: encodeURIComponent(bodyObject)
+      };
+      $('#bug-text-area').select();
+      document.execCommand('copy');
+      window.open(url, 'Report Smoosic issues');
+    });
+    $('body').addClass('bugReport');
+    if (!this.thrown) {
+      this.thrown = true;
+      throw(e);
+    }
+  }
 }
 ;
 
@@ -31312,7 +32450,8 @@ class SmoTranslator {
       'SuiKeySignatureMenu',
       'SuiStaffModifierMenu',
       'SuiDynamicsMenu',
-      'SuiLanguageMenu'
+      'SuiLanguageMenu',
+      'SuiScoreMenu'
     ]
   }
 
@@ -31332,7 +32471,11 @@ class SmoTranslator {
       'SuiHairpinAttributesDialog',
       'SuiLyricDialog',
       'SuiChordChangeDialog',
-      'SuiTextTransformDialog'
+      'SuiTextTransformDialog',
+      'SuiScoreViewDialog',
+      'SuiScorePreferencesDialog',
+      'SuiLyricDialog',
+      'SuiChordChangeDialog',
     ]
   }
   static get allHelpFiles() {
@@ -32326,151 +33469,55 @@ class SuiKeyCommands {
     this.slashMode = false;
   }
 
-	tempoDialog() {
-		SuiTempoDialog.createAndDisplay(
+  tempoDialog() {
+    SuiTempoDialog.createAndDisplay(
       {
-        buttonElement:this.buttonElement,
-        buttonData:this.buttonData,
-        completeNotifier:this.controller,
-        tracker: this.tracker,
-        layout:this.layout,
-        undoBuffer:this.undoBuffer,
-        eventSource:this.eventSource,
-        editor:this
+        buttonElement: this.buttonElement,
+        buttonData: this.buttonData,
+        completeNotifier: this.controller,
+        view: this.view,
+        eventSource: this.eventSource,
+        editor: this
       }
     );
-	}
-
-    // ## _render
-    // utility function to render the music and update the tracker map.
-    _render() {
-		this.tracker.replaceSelectedMeasures();
-    }
-
-	_refresh() {
-		this.layout.setRefresh();
-	}
+  }
 
   get score() {
-      return this.layout.score;
-  }
-
-  _renderAndAdvance() {
-    this.tracker.replaceSelectedMeasures();
-	  this.tracker.moveSelectionRight(null,true);
-  }
-  _rebeam() {
-      this.tracker.getSelectedMeasures().forEach((measure) => {
-        smoBeamerFactory.applyBeams(measure);
-      });
-  }
-  _batchDurationOperation(operation) {
-    SmoUndoable.batchDurationOperation(this.layout.score, this.tracker.selections, operation, this.undoBuffer);
-    this._rebeam();
-    this._render();
-  }
-
-	scoreSelectionOperation(selection,name,parameters,description) {
-		SmoUndoable.scoreSelectionOp(this.layout.score,selection,name,parameters,
-	    this.undoBuffer,description);
-		this._render();
-	}
-
-
-	scoreOperation(name,parameters,description) {
-		SmoUndoable.scoreOp(this.layout.score,name,parameters,this.undoBuffer,description);
-		this._render();
-	}
-
-  _selectionOperation(selection, name, parameters) {
-    if (parameters) {
-      SmoUndoable[name](selection, parameters, this.undoBuffer);
-    } else {
-      SmoUndoable[name](selection, this.undoBuffer);
-    }
-	  this._render();
+    return this.view.score;
   }
 
   undo() {
-    this.layout.undo(this.undoBuffer);
-  }
-
-  _singleSelectionOperation(name, parameters) {
-    var selection = this.tracker.selections[0];
-    if (parameters) {
-      SmoUndoable[name](selection, parameters, this.undoBuffer);
-    } else {
-      SmoUndoable[name](selection, this.undoBuffer);
-    }
-    suiOscillator.playSelectionNow(selection);
-    this._rebeam();
-    this._render();
-  }
-
-  _transpose(selection, offset, playSelection) {
-      this._selectionOperation(selection, 'transpose', offset);
-      if (playSelection) {
-          suiOscillator.playSelectionNow(selection);
-      }
+    this.view.undo();
   }
 
   copy() {
-      if (this.tracker.selections.length < 1) {
-          return;
-      }
-      this.pasteBuffer.setSelections(this.layout.score, this.tracker.selections);
+    this.view.copy();
   }
   paste() {
-      if (this.tracker.selections.length < 1) {
-          return;
-      }
-
-      SmoUndoable.pasteBuffer(this.layout.score, this.pasteBuffer, this.tracker.selections, this.undoBuffer, 'paste')
-      this._rebeam();
-      this._refresh();
+    this.view.paste();
   }
   toggleBeamGroup() {
-      if (this.tracker.selections.length < 1) {
-          return;
-      }
-      SmoUndoable.toggleBeamGroups(this.tracker.selections, this.undoBuffer);
-      this._rebeam();
-      this._render();
+    this.view.toggleBeamGroup();
   }
 
   beamSelections() {
-      if (this.tracker.selections.length < 1) {
-          return;
-      }
-      SmoUndoable.beamSelections(this.tracker.selections, this.undoBuffer);
-      this._rebeam();
-      this._render();
+    this.view.beamSelections();
   }
   toggleBeamDirection() {
-      if (this.tracker.selections.length < 1) {
-          return;
-      }
-      SmoUndoable.toggleBeamDirection(this.tracker.selections, this.undoBuffer);
-      this._render();
+    this.view.toggleBeamDirection();
   }
 
   collapseChord() {
-      SmoUndoable.noop(this.layout.score, this.undoBuffer);
-      this.tracker.selections.forEach((selection) => {
-          var p = selection.note.pitches[0];
-          p = JSON.parse(JSON.stringify(p));
-          selection.note.pitches = [p];
-      });
-      this._render();
+    this.view.collapseChord();
   }
 
   playScore() {
-    var mm = this.tracker.getExtremeSelection(-1);
+    var mm = this.view.tracker.getExtremeSelection(-1);
     if (suiAudioPlayer.playingInstance && suiAudioPlayer.playingInstance.paused) {
       suiAudioPlayer.playingInstance.play();
       return;
     }
-    new suiAudioPlayer({score:this.layout.score,startIndex:mm.selector.measure,tracker:this.tracker}).play();
+    new suiAudioPlayer({ score: this.view.score, startIndex: mm.selector.measure, tracker: this.view.tracker }).play();
   }
 
   stopPlayer() {
@@ -32481,11 +33528,11 @@ class SuiKeyCommands {
   }
 
   intervalAdd(interval, direction) {
-    this._singleSelectionOperation('interval', direction * interval);
+    this.view.setInterval(direction * interval);
   }
 
   interval(keyEvent) {
-    if (this.tracker.selections.length != 1)
+    if (this.view.tracker.selections.length != 1)
       return;
     // code='Digit3'
     var interval = parseInt(keyEvent.keyCode) - 49;  // 48 === '0', 0 indexed
@@ -32496,22 +33543,7 @@ class SuiKeyCommands {
   }
 
   transpose(offset) {
-      var grace = this.tracker.getSelectedGraceNotes();
-      if (grace.length) {
-          grace.forEach((artifact) => {
-              SmoUndoable.transposeGraceNotes(artifact.selection,{modifiers:artifact.modifier,offset:offset},this.undoBuffer);
-          });
-          this._render();
-
-          return;
-      }
-      // If there are lots of selections, just play the first note
-      var playSelection = true;
-      this.tracker.selections.forEach((selected) => {
-          this._transpose(selected, offset, playSelection);
-          playSelection = false;
-      });
-      this._render();
+    this.view.transposeSelections(offset);
   }
   transposeDown() {
     this.transpose(-1);
@@ -32526,173 +33558,49 @@ class SuiKeyCommands {
     this.transpose(-12);
   }
   makeRest() {
-      this.tracker.selections.forEach((selection) => {
-          this._selectionOperation(selection,'makeRest');
-      });
-      this.tracker.replaceSelectedMeasures();
+    this.view.makeRest();
   }
 
-  _setPitch(selected, letter) {
-    var selector = selected.selector;
-    var hintSel = SmoSelection.lastNoteSelection(this.layout.score,
-      selector.staff, selector.measure, selector.voice, selector.tick);
-    if (!hintSel) {
-      hintSel = SmoSelection.nextNoteSelection(this.layout.score,
-        selector.staff, selector.measure, selector.voice, selector.tick);
-    }
-    // The selection no longer exists, possibly deleted
-    if (!hintSel) {
-      return;
-    }
-
-    var hintNote = hintSel.note;
-    var hpitch = hintNote.pitches[0];
-    var pitch = JSON.parse(JSON.stringify(hpitch));
-    pitch.letter = letter;
-
-    // Make the key 'a' make 'Ab' in the key of Eb, for instance
-    var vexKsKey = smoMusic.getKeySignatureKey(letter, selected.measure.keySignature);
-    if (vexKsKey.length > 1) {
-        pitch.accidental = vexKsKey[1];
-    } else {
-        pitch.accidental = 'n';
-    }
-
-    // make the octave of the new note as close to previous (or next) note as possible.
-    var upv = ['bc', 'ac', 'bd', 'da', 'be', 'gc'];
-    var downv = ['cb', 'ca', 'db', 'da', 'eb', 'cg'];
-    var delta = hpitch.letter + pitch.letter;
-    if (upv.indexOf(delta) >= 0) {
-        pitch.octave += 1;
-    }
-    if (downv.indexOf(delta) >= 0) {
-      pitch.octave -= 1;
-    }
-    SmoUndoable['setPitch'](selected, pitch, this.undoBuffer);
-    suiOscillator.playSelectionNow(selected);
+  setPitchCommand(letter) {
+    this.view.setPitch(letter);
   }
 
-    setPitchCommand(letter) {
-        this.tracker.selections.forEach((selected) => this._setPitch(selected, letter));
-        this._renderAndAdvance();
-    }
+  setPitch(keyEvent) {
+    this.setPitchCommand(keyEvent.key.toLowerCase());
+  }
 
-    setPitch(keyEvent) {
-        this.setPitchCommand(keyEvent.key.toLowerCase());
-    }
+  dotDuration(keyEvent) {
+    this.view.batchDurationOperation('dotDuration');
+  }
 
-    dotDuration(keyEvent) {
-        this._batchDurationOperation('dotDuration');
-    }
+  undotDuration(keyEvent) {
+    this.view.batchDurationOperation('undotDuration');
+  }
 
-    undotDuration(keyEvent) {
-        this._batchDurationOperation('undotDuration');
-    }
+  doubleDuration(keyEvent) {
+    this.view.batchDurationOperation('doubleDuration');
+  }
 
-    doubleDuration(keyEvent) {
-        var grace = this.tracker.getSelectedGraceNotes();
-        if (grace.length) {
-            grace.forEach((artifact) => {
-                SmoUndoable.doubleGraceNoteDuration(artifact.selection,artifact.modifier,this.undoBuffer);
-            });
-            this._render();
+  halveDuration(keyEvent) {
+    this.view.batchDurationOperation('halveDuration');
+  }
 
-            return;
-        }
-        this._batchDurationOperation('doubleDuration');
-    }
-
-    halveDuration(keyEvent) {
-        var grace = this.tracker.getSelectedGraceNotes();
-        if (grace.length) {
-            grace.forEach((artifact) => {
-                SmoUndoable.halveGraceNoteDuration(artifact.selection,artifact.modifier,this.undoBuffer);
-            });
-            this._render();
-            return;
-        }
-        this._batchDurationOperation('halveDuration');
-    }
-
-    addMeasure(keyEvent) {
-        if (this.tracker.selections.length < 1) {
-            return;
-        }
-        var measure = this.tracker.getFirstMeasureOfSelection();
-        if (measure) {
-            var nmeasure = SmoMeasure.getDefaultMeasureWithNotes(measure);
-			var pos = measure.measureNumber.measureIndex;
-			if (keyEvent.shiftKey) {
-				pos += 1;
-			}
-            nmeasure.measureNumber.measureIndex = pos;
-            nmeasure.setActiveVoice(0);
-            SmoUndoable.addMeasure(this.layout.score, pos, nmeasure, this.undoBuffer);
-            this.layout.clearLine(measure);
-            this._refresh();
-        }
-    }
-	deleteMeasure() {
-    if (this.tracker.selections.length < 1) {
-      return;
-    }
-    // don't delete the last measure
-    if (this.layout.score.staves[0].measures.length < 2) {
-      return;
-    }
-    var selection = this.tracker.selections[0];
-    var ix = selection.selector.measure;
-    this.layout.score.staves.forEach((staff) => {
-      this.layout.unrenderMeasure(staff.measures[ix]);
-      this.layout.unrenderMeasure(staff.measures[staff.measures.length-1]);
-
-      // A little hacky - delete the modifiers if they start or end on
-      // the measure
-      staff.modifiers.forEach((modifier) => {
-        if (modifier.startSelector.measure == ix || modifier.endSelector.measure == ix) {
-  	        $(this.layout.renderer.getContext().svg).find('g.' + modifier.attrs.id).remove();
-        }
-        });
-    });
-    this.tracker.deleteMeasure(selection);
-    // this.layout.unrenderAll();
-
-    SmoUndoable.deleteMeasure(this.layout.score, selection, this.undoBuffer);
-    this.tracker.loadScore();
-    this._refresh();
+  addMeasure(keyEvent) {
+    this.view.addMeasure(keyEvent.shiftKey);
+  }
+  deleteMeasure() {
+   this.view.deleteMeasure();
   }
 
   toggleCourtesyAccidental() {
-    var grace = this.tracker.getSelectedGraceNotes();
-    if (grace.length) {
-      grace.forEach((artifact) => {
-        SmoUndoable.toggleGraceNoteCourtesyAccidental(artifact.selection,{modifiers:artifact.modifier},this.undoBuffer);
-      });
-      this._render();
-
-      return;
-    }
-    if (this.tracker.selections.length < 1) {
-      return;
-    }
-    this.tracker.selections.forEach((selection) => {
-      SmoUndoable.toggleCourtesyAccidental(selection, this.undoBuffer);
-    });
-    this._render();
+    this.view.toggleCourtesyAccidentals();
   }
   toggleEnharmonic() {
-    this.tracker.selections.forEach((selected) => this._selectionOperation(selected, 'toggleEnharmonic'));
-    this._render();
+    this.view.toggleEnharmonic();
   }
 
-  rerender(keyEvent) {
-    this.layout.unrenderAll();
-    SmoUndoable.noop(this.layout.score, this.undoBuffer);
-    this.undo();
-    this._render();
-  }
   makeTupletCommand(numNotes) {
-    this._singleSelectionOperation('makeTuplet', numNotes);
+    this.view.makeTuplet(numNotes);
   }
   makeTuplet(keyEvent) {
     var numNotes = parseInt(keyEvent.key);
@@ -32700,73 +33608,50 @@ class SuiKeyCommands {
   }
 
   unmakeTuplet(keyEvent) {
-    this._singleSelectionOperation('unmakeTuplet');
+    this.view.unmakeTuplet();
   }
   setNoteHead(keyEvent) {
-     SmoUndoable.setNoteHead(this.layout.score, this.tracker.selections, 'x2', this.undoBuffer);
-     this._render();
+    this.view.setNoteHead('x2');
   }
   removeGraceNote(keyEvent) {
-    this._singleSelectionOperation('removeGraceNote',{index:0});
+    this.view.removeGraceNote();
   }
   addGraceNote(keyEvent) {
-    this._singleSelectionOperation('addGraceNote');
+    this.view.addGraceNote();
   }
   slashGraceNotes(keyEvent) {
-    if (!this.tracker.modifierSelections.length) {
-      return;
-    }
-    this._selectionOperation(this.tracker.modifierSelections,'slashGraceNotes');
+    this.view.slashGraceNotes();
   }
 
   toggleArticulationCommand(articulation, ctor) {
-    this.undoBuffer.addBuffer('change articulation ' + articulation,
-      'staff', this.tracker.selections[0].selector, this.tracker.selections[0].staff);
-
-    this.tracker.selections.forEach((sel) => {
-
-      if (ctor === 'SmoArticulation') {
-        var aa = new SmoArticulation({
-            articulation: articulation
-        });
-       SmoOperation.toggleArticulation(sel, aa);
-      } else {
-        var aa = new SmoOrnament({
-            ornament: articulation
-        });
-        SmoOperation.toggleOrnament(sel, aa);
-      }
-    });
-    this._render();
+    this.view.toggleArticulation(articulation, ctor);
   }
 
-    addRemoveArticulation(keyEvent) {
-        if (this.tracker.selections.length < 1)
-            return;
-
-        var atyp = SmoArticulation.articulations.accent;
-
-        if (keyEvent.key.toLowerCase() === 'h') {
-            atyp = SmoArticulation.articulations.accent;
-        }
-        if (keyEvent.key.toLowerCase() === 'i') {
-            atyp = SmoArticulation.articulations.tenuto;
-        }
-        if (keyEvent.key.toLowerCase() === 'j') {
-            atyp = SmoArticulation.articulations.staccato;
-        }
-        if (keyEvent.key.toLowerCase() === 'k') {
-            atyp = SmoArticulation.articulations.marcato;
-        }
-        if (keyEvent.key.toLowerCase() === 'l') {
-            atyp = SmoArticulation.articulations.pizzicato;
-        }
-        this.toggleArticulationCommand(atyp, 'SmoArticulation');
-
+  addRemoveArticulation(keyEvent) {
+    if (this.view.tracker.selections.length < 1) {
+      return;
     }
+    var atyp = SmoArticulation.articulations.accent;
+
+    if (keyEvent.key.toLowerCase() === 'h') {
+      atyp = SmoArticulation.articulations.accent;
+    }
+    if (keyEvent.key.toLowerCase() === 'i') {
+      atyp = SmoArticulation.articulations.tenuto;
+    }
+    if (keyEvent.key.toLowerCase() === 'j') {
+      atyp = SmoArticulation.articulations.staccato;
+    }
+    if (keyEvent.key.toLowerCase() === 'k') {
+      atyp = SmoArticulation.articulations.marcato;
+    }
+    if (keyEvent.key.toLowerCase() === 'l') {
+      atyp = SmoArticulation.articulations.pizzicato;
+    }
+    this.toggleArticulationCommand(atyp, 'SmoArticulation');
+  }
 }
-;
-class suiMenuBase {
+;class suiMenuBase {
   constructor(params) {
     Vex.Merge(this, params);
     this.focusIndex = -1;
@@ -32776,29 +33661,30 @@ class suiMenuBase {
     return this.closePromise();
   }
   static printTranslate(_class) {
-    var xx = eval(_class);
-    var items = [];
-    xx['defaults'].menuItems.forEach((item) => {
-      items.push({value:item.value,text:item.text});
+    const xx = eval(_class);
+    const items = [];
+    xx.defaults.menuItems.forEach((item) => {
+      items.push({ value: item.value, text: item.text });
     });
-
-    return {ctor:xx['ctor'],label:xx['label'],menuItems:items};
+    return { ctor: xx.ctor, label: xx.label, menuItems: items };
   }
 
   complete() {
     $('body').trigger('menuDismiss');
   }
   // Most menus don't process their own events
-  keydown(ev) {}
+  keydown() {}
 }
 
+// eslint-disable-next-line no-unused-vars
 class suiMenuManager {
   constructor(params) {
     Vex.Merge(this, suiMenuManager.defaults);
     Vex.Merge(this, params);
     this.eventSource = params.eventSource;
+    this.view = params.view;
     this.bound = false;
-    this.hotkeyBindings={};
+    this.hotkeyBindings = {};
   }
 
   static get defaults() {
@@ -32813,11 +33699,11 @@ class suiMenuManager {
   }
 
   setController(c) {
-    this.controller=c;
+    this.controller = c;
   }
 
   get score() {
-    return this.layout.score;
+    return this.view.score;
   }
 
   // ### Description:
@@ -32826,68 +33712,68 @@ class suiMenuManager {
   static get menuKeyBindingDefaults() {
     return [
       {
-        event: "keydown",
-        key: "n",
+        event: 'keydown',
+        key: 'n',
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "SuiLanguageMenu"
+        action: 'SuiLanguageMenu'
       }, {
-        event: "keydown",
-        key: "k",
+        event: 'keydown',
+        key: 'k',
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "SuiKeySignatureMenu"
+        action: 'SuiKeySignatureMenu'
       }, {
-        event: "keydown",
-        key: "l",
+        event: 'keydown',
+        key: 'l',
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "SuiStaffModifierMenu"
+        action: 'SuiStaffModifierMenu'
       }, {
-        event: "keydown",
-        key: "d",
+        event: 'keydown',
+        key: 'd',
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "SuiDynamicsMenu"
+        action: 'SuiDynamicsMenu'
       }, {
-        event: "keydown",
-        key: "s",
+        event: 'keydown',
+        key: 's',
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "SuiAddStaffMenu"
-        }, {
-        event: "keydown",
-        key: "f",
-        ctrlKey: false,
-        altKey: false,
-        shiftKey: false,
-        action: "SuiFileMenu"
+        action: 'SuiAddStaffMenu'
       }, {
-        event: "keydown",
-        key: "m",
+        event: 'keydown',
+        key: 'f',
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "SuiTimeSignatureMenu"
+        action: 'SuiFileMenu'
       }, {
-        event: "keydown",
-        key: "a",
+        event: 'keydown',
+        key: 'm',
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "SuiMeasureMenu"
+        action: 'SuiTimeSignatureMenu'
+      }, {
+        event: 'keydown',
+        key: 'a',
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: 'SuiMeasureMenu'
       }
     ];
   }
   _advanceSelection(inc) {
-    var options = $('.menuContainer ul.menuElement li.menuOption');
-    inc = inc < 0 ? options.length - 1: 1;
-    this.menu.focusIndex = (this.menu.focusIndex+inc) % options.length;
+    const options = $('.menuContainer ul.menuElement li.menuOption');
+    inc = inc < 0 ? options.length - 1 : 1;
+    this.menu.focusIndex = (this.menu.focusIndex + inc) % options.length;
     $(options[this.menu.focusIndex]).find('button').focus();
   }
 
@@ -32904,27 +33790,26 @@ class suiMenuManager {
     this.menu = null;
   }
 
-  attach(el) {
-    var b = htmlHelpers.buildDom();
+  attach() {
+    let hotkey = 0;
 
     $(this.menuContainer).html('');
     $(this.menuContainer).attr('z-index', '12');
-    var b = htmlHelpers.buildDom;
-    var r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
-    .css('left', '' + this.menuPosition.x + 'px')
-    .css('top', '' + this.menuPosition.y + 'px');
-      var hotkey=0;
+    const b = htmlHelpers.buildDom;
+    const r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
+      .css('left', '' + this.menuPosition.x + 'px')
+      .css('top', '' + this.menuPosition.y + 'px');
     this.menu.menuItems.forEach((item) => {
-      var vkey = (hotkey < 10) ? String.fromCharCode(48+hotkey) :
+      var vkey = (hotkey < 10) ? String.fromCharCode(48 + hotkey) :
         String.fromCharCode(87 + hotkey);
 
       r.append(
         b('li').classes('menuOption').append(
-          b('button').attr('data-value',item.value).append(
+          b('button').attr('data-value', item.value).append(
             b('span').classes('menuText').text(item.text))
-          .append(b('span').classes('icon icon-' + item.icon))
-        .append(b('span').classes('menu-key').text(''+vkey))));
-      item.hotkey=vkey;
+            .append(b('span').classes('icon icon-' + item.icon))
+            .append(b('span').classes('menu-key').text('' + vkey))));
+      item.hotkey = vkey;
       hotkey += 1;
     });
     $(this.menuContainer).append(r.dom());
@@ -32937,8 +33822,8 @@ class suiMenuManager {
     this.bindEvents();
     layoutDebug.addDialogDebug('slash menu creating closeMenuPromise');
     // A menu asserts this event when it is done.
-    this.closeMenuPromise = new Promise((resolve, reject) => {
-      $('body').off('menuDismiss').on('menuDismiss', function () {
+    this.closeMenuPromise = new Promise((resolve) => {
+      $('body').off('menuDismiss').on('menuDismiss', () => {
         layoutDebug.addDialogDebug('menuDismiss received, resolve closeMenuPromise');
         self.unattach();
         $('body').removeClass('slash-menu');
@@ -32953,27 +33838,26 @@ class suiMenuManager {
     $('body').trigger('menuDismiss');
   }
 
-  createMenu(action,completeNotifier) {
-    this.menuPosition = {x:250,y:40,width:1,height:1};
-      // If we were called from the ribbon, we notify the controller that we are
-      // taking over the keyboard.  If this was a key-based command we already did.
-
+  createMenu(action) {
+    this.menuPosition = { x: 250, y: 40, width: 1, height: 1 };
+    // If we were called from the ribbon, we notify the controller that we are
+    // taking over the keyboard.  If this was a key-based command we already did.
     layoutDebug.addDialogDebug('createMenu creating ' + action);
-    var ctor = eval(action);
+    const ctor = eval(action);
     this.menu = new ctor({
       position: this.menuPosition,
       tracker: this.tracker,
       keyCommands: this.keyCommands,
       score: this.score,
-      completeNotifier:this.controller,
-      closePromise:this.closeMenuPromise,
-      layout: this.layout,
-      eventSource:this.eventSource,
+      completeNotifier: this.controller,
+      closePromise: this.closeMenuPromise,
+      view: this.view,
+      eventSource: this.eventSource,
       undoBuffer: this.undoBuffer
     });
     this.attach(this.menuContainer);
     this.menu.menuItems.forEach((item) => {
-      if (typeof(item.hotkey) != 'undefined') {
+      if (typeof(item.hotkey) !== 'undefined') {
         this.hotkeyBindings[item.hotkey] = item.value;
       }
     });
@@ -32983,35 +33867,28 @@ class suiMenuManager {
   // We have taken over menu commands from controller.  If there is a menu active, send the key
   // to it.  If there is not, see if the keystroke creates one.  If neither, dismissi the menu.
   evKey(event) {
-    console.log("KeyboardEvent: key='" + event.key + "' | code='" +
-    event.code + "'"
-     + " shift='" + event.shiftKey + "' control='" + event.ctrlKey + "'" + " alt='" + event.altKey + "'");
-
     if (['Tab', 'Enter'].indexOf(event.code) >= 0) {
       return;
     }
-
     event.preventDefault();
-
     if (event.code === 'Escape') {
       this.dismiss();
     }
     if (this.menu) {
-      if (event.code == 'ArrowUp') {
+      if (event.code === 'ArrowUp') {
         this._advanceSelection(-1);
-      }
-      else if (event.code == 'ArrowDown') {
+      } else if (event.code === 'ArrowDown') {
         this._advanceSelection(1);
       } else  if (this.hotkeyBindings[event.key]) {
-        $('button[data-value="'+this.hotkeyBindings[event.key]+'"]').click();
+        $('button[data-value="' + this.hotkeyBindings[event.key] + '"]').click();
       } else {
         this.menu.keydown(event);
       }
       return;
     }
-    var binding = this.menuBind.find((ev) => {
-      return ev.key === event.key
-    });
+    const binding = this.menuBind.find((ev) =>
+      ev.key === event.key
+    );
     if (!binding) {
       this.dismiss();
       return;
@@ -33020,33 +33897,104 @@ class suiMenuManager {
   }
 
   bindEvents() {
-  var self = this;
-    this.hotkeyBindings={};
+    const self = this;
+    this.hotkeyBindings = { };
     $('body').addClass('slash-menu');
-
     // We need to keep track of is bound, b/c the menu can be created from
     // different sources.
     if (!this.bound) {
-      this.keydownHandler = this.eventSource.bindKeydownHandler(this,'evKey');
+      this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
       this.bound = true;
     }
-
-  $(this.menuContainer).find('button').off('click').on('click', function (ev) {
-  if ($(ev.currentTarget).attr('data-value') == 'cancel') {
-  self.menu.complete();
-  return;
-  }
-  self.menu.selection(ev);
-  });
+    $(this.menuContainer).find('button').off('click').on('click', (ev) => {
+      if ($(ev.currentTarget).attr('data-value') === 'cancel') {
+        self.menu.complete();
+        return;
+      }
+      self.menu.selection(ev);
+    });
   }
 }
 
+// eslint-disable-next-line no-unused-vars
+class SuiScoreMenu extends suiMenuBase {
+  static get defaults() {
+    SuiScoreMenu._defaults = typeof(SuiScoreMenu._defaults) !== 'undefined' ? SuiScoreMenu._defaults : {
+      label: 'Score Settings',
+      menuItems: [{
+        icon: '',
+        text: 'Layout',
+        value: 'layout'
+      }, {
+        icon: '',
+        text: 'View',
+        value: 'view'
+      }, {
+        icon: '',
+        text: 'Preferences',
+        value: 'preferences'
+      }, {
+        icon: '',
+        text: 'Cancel',
+        value: 'cancel'
+      }]
+    };
+    return SuiScoreMenu._defaults;
+  }
+  constructor(params) {
+    params = (typeof(params) !== 'undefined' ? params : {});
+    Vex.Merge(params, SuiScoreMenu.defaults);
+    super(params);
+  }
 
-
+  execView() {
+    SuiScoreViewDialog.createAndDisplay(
+      {
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        completeNotifier: this.completeNotifier,
+        view: this.view,
+        startPromise: this.closePromise
+      });
+  }
+  execLayout() {
+    SuiLayoutDialog.createAndDisplay(
+      {
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        completeNotifier: this.completeNotifier,
+        view: this.view,
+        startPromise: this.closePromise
+      });
+  }
+  execPreferences() {
+    SuiScorePreferencesDialog.createAndDisplay(
+      {
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        completeNotifier: this.completeNotifier,
+        view: this.view,
+        startPromise: this.closePromise
+      });
+  }
+  selection(ev) {
+    const text = $(ev.currentTarget).attr('data-value');
+    if (text === 'view') {
+      this.execView();
+    } else if (text === 'layout') {
+      this.execLayout();
+    } else if (text === 'preferences') {
+      this.execPreferences();
+    }
+    this.complete();
+  }
+  keydown() {}
+}
+// eslint-disable-next-line no-unused-vars
 class SuiFileMenu extends suiMenuBase {
-    constructor(params) {
-  params = (params ? params : {});
-  Vex.Merge(params, SuiFileMenu.defaults);
+  constructor(params) {
+    params = (typeof(params) !== 'undefined' ? params : {});
+    Vex.Merge(params, SuiFileMenu.defaults);
     super(params);
   }
   static get ctor() {
@@ -33056,148 +34004,128 @@ class SuiFileMenu extends suiMenuBase {
     return SuiFileMenu.ctor;
   }
   static get defaults() {
-
-    SuiFileMenu._defaults = SuiFileMenu._defaults ? SuiFileMenu._defaults : {
-      label:'File',
-      menuItems: [
-        {
-          icon: 'folder-new',
-          text: 'New Score',
-          value: 'newFile'
-        },{
-          icon: 'folder-open',
-          text: 'Open',
-          value: 'openFile'
-        },{
-          icon: 'folder-save',
-          text: 'Save',
-          value: 'saveFile'
-        },{
-          icon: 'folder-save',
-          text: 'Quick Save',
-          value: 'quickSave'
-        },{
-          icon: '',
-          text: 'Print',
-          value: 'printScore'
-        },{
-          icon: '',
-          text: 'Bach Invention',
-          value: 'bach'
-        },{
-          icon: '',
-          text: 'Jesu Bambino',
-          value: 'bambino'
-        },{
-          icon: '',
-          text: 'Microtone Sample',
-          value: 'microtone'
-        },{
-          icon: '',
-          text: 'Precious Lord',
-          value: 'preciousLord'
-        },{
-          icon: '',
-          text: 'Yama',
-          value: 'yamaJson'
-        },	{
-          icon: '',
-          text: 'Cancel',
-          value: 'cancel'
-        }
-      ]
+    SuiFileMenu._defaults = typeof(SuiFileMenu._defaults) !== 'undefined' ? SuiFileMenu._defaults : {
+      label: 'File',
+      menuItems: [{
+        icon: 'folder-new',
+        text: 'New Score',
+        value: 'newFile'
+      }, {
+        icon: 'folder-open',
+        text: 'Open',
+        value: 'openFile'
+      }, {
+        icon: 'folder-save',
+        text: 'Save',
+        value: 'saveFile'
+      }, {
+        icon: 'folder-save',
+        text: 'Quick Save',
+        value: 'quickSave'
+      }, {
+        icon: '',
+        text: 'Print',
+        value: 'printScore'
+      }, {
+        icon: '',
+        text: 'Bach Invention',
+        value: 'bach'
+      }, {
+        icon: '',
+        text: 'Jesu Bambino',
+        value: 'bambino'
+      }, {
+        icon: '',
+        text: 'Microtone Sample',
+        value: 'microtone'
+      }, {
+        icon: '',
+        text: 'Precious Lord',
+        value: 'preciousLord'
+      }, {
+        icon: '',
+        text: 'Yama',
+        value: 'yamaJson'
+      }, {
+        icon: '',
+        text: 'Cancel',
+        value: 'cancel'
+      }]
     };
     return SuiFileMenu._defaults;
   }
 
   systemPrint() {
-   var self = this;
-   window.print();
-   SuiPrintFileDialog.createAndDisplay({
-       layout: self.layout,
-       completeNotifier:self.completeNotifier,
-       closeMenuPromise:self.closePromise,
-       tracker:self.tracker,
-       undoBuffer:self.undoBuffer,
-       });
+    const self = this;
+    window.print();
+    SuiPrintFileDialog.createAndDisplay({
+      view: self.view,
+      completeNotifier: self.completeNotifier,
+      closeMenuPromise: self.closePromise,
+      tracker: self.tracker,
+      undoBuffer: self.undoBuffer,
+    });
   }
   selection(ev) {
-    var text = $(ev.currentTarget).attr('data-value');
-    var self=this;
-    if (text == 'saveFile') {
+    const text = $(ev.currentTarget).attr('data-value');
+    const self = this;
+    if (text === 'saveFile') {
       SuiSaveFileDialog.createAndDisplay({
-        completeNotifier:this.completeNotifier,
-        tracker:this.tracker,
-        undoBuffer:this.keyCommands.undoBuffer,
-        eventSource:this.eventSource,
-        keyCommands:this.keyCommands,
-        layout:this.layout,
-        closeMenuPromise:this.closePromise
-    });
-    } else if (text == 'openFile') {
+        completeNotifier: this.completeNotifier,
+        tracker: this.tracker,
+        undoBuffer: this.keyCommands.undoBuffer,
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        view: this.view,
+        closeMenuPromise: this.closePromise
+      });
+    } else if (text === 'openFile') {
       SuiLoadFileDialog.createAndDisplay({
-        completeNotifier:this.completeNotifier,
-        tracker:this.tracker,
-        undoBuffer:this.undoBuffer,
-        eventSource:this.eventSource,
-        editor:this.keyCommands,
-        layout:this.layout,
-        closeMenuPromise:this.closePromise
-     });
-     } else if (text == 'newFile') {
-        this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
-        var score = SmoScore.getDefaultScore();
-        this.layout.score = score;
-        setTimeout(function() {
-        $('body').trigger('forceResizeEvent');
-        },1);
-
-      } else if (text == 'quickSave') {
-        var scoreStr = JSON.stringify(this.layout.score.serialize());
-        localStorage.setItem(smoSerialize.localScore,scoreStr);
-      } else if (text == 'printScore') {
-        var systemPrint = () => {
+        completeNotifier: this.completeNotifier,
+        tracker: this.tracker,
+        undoBuffer: this.undoBuffer,
+        eventSource: this.eventSource,
+        editor: this.keyCommands,
+        view: this.view,
+        closeMenuPromise: this.closePromise
+      });
+    } else if (text === 'newFile') {
+      const score = SmoScore.getDefaultScore();
+      this.view.changeScore(score);
+    } else if (text === 'quickSave') {
+      this.view.quickSave();
+    } else if (text === 'printScore') {
+      const systemPrint = () => {
         self.systemPrint();
-      }
-        this.layout.renderForPrintPromise().then(systemPrint);
-      } else if (text == 'bach') {
-  			this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
-  			var score = SmoScore.deserialize(inventionJson);
-  			this.layout.score = score;
-  			this.layout.setViewport(true);
-    } else if (text == 'yamaJson') {
-      this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
-      var score = SmoScore.deserialize(yamaJson);
-      this.layout.score = score;
-      this.layout.setViewport(true);
+      };
+      this.view.renderer.renderForPrintPromise().then(systemPrint);
+    } else if (text === 'bach') {
+      const score = SmoScore.deserialize(inventionJson);
+      this.view.changeScore(score);
+    } else if (text === 'yamaJson') {
+      const score = SmoScore.deserialize(yamaJson);
+      this.view.changeScore(score);
+    } else if (text === 'bambino') {
+      const score = SmoScore.deserialize(jesuBambino);
+      this.view.changeScore(score);
+    } else if (text === 'microtone') {
+      const score = SmoScore.deserialize(microJson);
+      this.view.changeScore(score);
+    }  else if (text === 'preciousLord') {
+      const score = SmoScore.deserialize(preciousLord);
+      this.view.changeScore(score);
     }
-      else if (text == 'bambino') {
-        this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
-        var score = SmoScore.deserialize(jesuBambino);
-        this.layout.score = score;
-        this.layout.setViewport(true);
-      } else if (text == 'microtone') {
-        this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
-        var score = SmoScore.deserialize(microJson);
-        this.layout.score = score;
-        this.layout.setViewport(true);
-      }     else if (text == 'preciousLord') {
-        this.undoBuffer.addBuffer('New Score', 'score', null, this.layout.score);
-        var score = SmoScore.deserialize(preciousLord);
-        this.layout.score = score;
-        this.layout.setViewport(true);
-    }
-  this.complete();
+    this.complete();
   }
-
-  keydown(ev) {}
+  keydown() {}
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiDynamicsMenu extends suiMenuBase {
   constructor(params) {
-  params = (params ? params : {});
-  Vex.Merge(params, SuiDynamicsMenu.defaults);
-  super(params);
+    params = (typeof(params) !== 'undefined' ? params : {});
+    Vex.Merge(params, SuiDynamicsMenu.defaults);
+    super(params);
   }
   static get ctor() {
     return 'SuiDynamicsMenu';
@@ -33207,156 +34135,137 @@ class SuiDynamicsMenu extends suiMenuBase {
   }
   static get defaults() {
     SuiDynamicsMenu._defaults = SuiDynamicsMenu._defaults ? SuiDynamicsMenu._defaults :
-    {
-      label:'Dynamics',
-      menuItems: [{
-        icon: 'pianissimo',
-        text: 'Pianissimo',
-        value: 'pp'
-      }, {
-        icon: 'piano',
-        text: 'Piano',
-        value: 'p'
-      }, {
-        icon: 'mezzopiano',
-        text: 'Mezzo-piano',
-        value: 'mp'
-      }, {
-        icon: 'mezzoforte',
-        text: 'Mezzo-forte',
-        value: 'mf'
-      }, {
-        icon: 'forte',
-        text: 'Forte',
-        value: 'f'
-      }, {
-        icon: 'fortissimo',
-        text: 'Fortissimo',
-        value: 'ff'
-      }, {
-        icon: 'sfz',
-        text: 'sfortzando',
-        value: 'sfz'
-      },
-       {
-        icon: '',
-        text: 'Cancel',
-        value: 'cancel'
-      }
-    ]
-    };
-
+      {
+        label: 'Dynamics',
+        menuItems: [{
+          icon: 'pianissimo',
+          text: 'Pianissimo',
+          value: 'pp'
+        }, {
+          icon: 'piano',
+          text: 'Piano',
+          value: 'p'
+        }, {
+          icon: 'mezzopiano',
+          text: 'Mezzo-piano',
+          value: 'mp'
+        }, {
+          icon: 'mezzoforte',
+          text: 'Mezzo-forte',
+          value: 'mf'
+        }, {
+          icon: 'forte',
+          text: 'Forte',
+          value: 'f'
+        }, {
+          icon: 'fortissimo',
+          text: 'Fortissimo',
+          value: 'ff'
+        }, {
+          icon: 'sfz',
+          text: 'sfortzando',
+          value: 'sfz'
+        }, {
+          icon: '',
+          text: 'Cancel',
+          value: 'cancel'
+        }]
+      };
     return SuiDynamicsMenu._defaults;
-
   }
 
   selection(ev) {
-  var text = $(ev.currentTarget).attr('data-value');
-
-  var ft = this.tracker.getExtremeSelection(-1);
-  if (!ft || !ft.note) {
-  return;
+    const text = $(ev.currentTarget).attr('data-value');
+    this.view.addDynamic(text);
+    this.complete();
   }
-
-  SmoUndoable.addDynamic(ft, new SmoDynamicText({
-  selector: ft.selector,
-  text: text,
-  yOffsetLine: 11,
-  fontSize: 38
-  }), this.keyCommands.undoBuffer);
-    this.tracker.replaceSelectedMeasures();
-  this.complete();
-  }
-  keydown(ev) {}
+  keydown() {}
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiTimeSignatureMenu extends suiMenuBase {
-    constructor(params) {
-  params = (params ? params : {});
-  Vex.Merge(params, SuiTimeSignatureMenu.defaults);
-  super(params);
+  constructor(params) {
+    params = (typeof(params) !== 'undefined' ? params : {});
+    Vex.Merge(params, SuiTimeSignatureMenu.defaults);
+    super(params);
   }
   static get ctor() {
     return 'SuiTimeSignatureMenu';
   }
-
   get ctor() {
     return SuiTimeSignatureMenu.ctor;
   }
   static get defaults() {
     SuiTimeSignatureMenu._defaults = SuiTimeSignatureMenu._defaults ? SuiTimeSignatureMenu._defaults :
-    {
-      label:'Time Sig',
-      menuItems: [
-        {
+      {
+        label: 'Time Sig',
+        menuItems: [{
           icon: 'sixeight',
           text: '6/8',
           value: '6/8',
-        },{
+        }, {
+          icon: 'fourfour',
+          text: '4/4',
+          value: '4/4',
+        }, {
           icon: 'threefour',
           text: '3/4',
           value: '3/4',
-        },{
+        }, {
           icon: 'twofour',
           text: '2/4',
           value: '2/4',
-        },{
+        }, {
           icon: 'twelveeight',
           text: '12/8',
           value: '12/8',
-        },{
+        }, {
           icon: 'seveneight',
           text: '7/8',
           value: '7/8',
-        },{
+        }, {
           icon: 'fiveeight',
           text: '5/8',
           value: '5/8',
-        },{
+        }, {
           icon: '',
           text: 'Other',
           value: 'TimeSigOther',
-        },{
+        }, {
           icon: '',
           text: 'Cancel',
           value: 'cancel'
-        }
-      ]
-    };
+        }]
+      };
     return SuiTimeSignatureMenu._defaults;
   }
 
   selection(ev) {
     var text = $(ev.currentTarget).attr('data-value');
 
-    if (text == 'TimeSigOther') {
+    if (text === 'TimeSigOther') {
       SuiTimeSignatureDialog.createAndDisplay({
-  			layout: this.layout,
-        tracker: this.tracker,
-        completeNotifier:this.completeNotifier,
-        closeMenuPromise:this.closePromise,
-        undoBuffer:this.undoBuffer,
-        eventSource:this.eventSource
-	    });
+        view: this.view,
+        completeNotifier: this.completeNotifier,
+        closeMenuPromise: this.closePromise,
+        undoBuffer: this.view.undoBuffer,
+        eventSource: this.eventSource
+      });
       this.complete();
       return;
     }
-    var timeSig = $(ev.currentTarget).attr('data-value');
-    this.layout.unrenderAll();
-    SmoUndoable.scoreSelectionOp(this.layout.score,this.tracker.selections,
-      'setTimeSignature',timeSig,this.undoBuffer,'change time signature');
-    this.layout.setRefresh();
+    this.view.setTimeSignature(text);
     this.complete();
   }
 
-  keydown(ev) {}
-  }
+  keydown() {}
+}
 
+// eslint-disable-next-line no-unused-vars
 class SuiKeySignatureMenu extends suiMenuBase {
-
   constructor(params) {
-  params = (params ? params : {});
-  Vex.Merge(params, SuiKeySignatureMenu.defaults);
+    params = (typeof(params) !== 'undefined' ? params : {});
+    Vex.Merge(params, SuiKeySignatureMenu.defaults);
     super(params);
   }
   static get ctor() {
@@ -33366,95 +34275,89 @@ class SuiKeySignatureMenu extends suiMenuBase {
     return SuiKeySignatureMenu.ctor;
   }
   static get defaults() {
-    SuiKeySignatureMenu._defaults = SuiKeySignatureMenu._defaults ? SuiKeySignatureMenu._defaults :
-   {
-     label:'Key',
-
-  menuItems: [{
-    icon: 'key-sig-c',
-    text: 'C Major',
-    value: 'KeyOfC',
-    }, {
-    icon: 'key-sig-f',
-    text: 'F Major',
-    value: 'KeyOfF',
-    }, {
-    icon: 'key-sig-g',
-    text: 'G Major',
-    value: 'KeyOfG',
-    }, {
-    icon: 'key-sig-bb',
-    text: 'Bb Major',
-    value: 'KeyOfBb'
-    }, {
-    icon: 'key-sig-d',
-    text: 'D Major',
-    value: 'KeyOfD'
-    }, {
-    icon: 'key-sig-eb',
-    text: 'Eb Major',
-    value: 'KeyOfEb'
-    }, {
-    icon: 'key-sig-a',
-    text: 'A Major',
-    value: 'KeyOfA'
-    }, {
-    icon: 'key-sig-ab',
-    text: 'Ab Major',
-    value: 'KeyOfAb'
-    }, {
-    icon: 'key-sig-e',
-    text: 'E Major',
-    value: 'KeyOfE'
-    }, {
-    icon: 'key-sig-bd',
-    text: 'Db Major',
-    value: 'KeyOfDb'
-    }, {
-    icon: 'key-sig-b',
-    text: 'B Major',
-    value: 'KeyOfB'
-    }, {
-    icon: 'key-sig-fs',
-    text: 'F# Major',
-    value: 'KeyOfF#'
-    }, {
-    icon: 'key-sig-cs',
-    text: 'C# Major',
-    value: 'KeyOfC#'
-    },
-     {
-    icon: '',
-    text: 'Cancel',
-    value: 'cancel'
-    }
-    ],
-    menuContainer: '.menuContainer'
-    };
+    SuiKeySignatureMenu._defaults = typeof(SuiKeySignatureMenu._defaults) !== 'undefined'
+      ? SuiKeySignatureMenu._defaults :
+      {
+        label: 'Key',
+        menuItems: [{
+          icon: 'key-sig-c',
+          text: 'C Major',
+          value: 'KeyOfC',
+        }, {
+          icon: 'key-sig-f',
+          text: 'F Major',
+          value: 'KeyOfF',
+        }, {
+          icon: 'key-sig-g',
+          text: 'G Major',
+          value: 'KeyOfG',
+        }, {
+          icon: 'key-sig-bb',
+          text: 'Bb Major',
+          value: 'KeyOfBb'
+        }, {
+          icon: 'key-sig-d',
+          text: 'D Major',
+          value: 'KeyOfD'
+        }, {
+          icon: 'key-sig-eb',
+          text: 'Eb Major',
+          value: 'KeyOfEb'
+        }, {
+          icon: 'key-sig-a',
+          text: 'A Major',
+          value: 'KeyOfA'
+        }, {
+          icon: 'key-sig-ab',
+          text: 'Ab Major',
+          value: 'KeyOfAb'
+        }, {
+          icon: 'key-sig-e',
+          text: 'E Major',
+          value: 'KeyOfE'
+        }, {
+          icon: 'key-sig-bd',
+          text: 'Db Major',
+          value: 'KeyOfDb'
+        }, {
+          icon: 'key-sig-b',
+          text: 'B Major',
+          value: 'KeyOfB'
+        }, {
+          icon: 'key-sig-fs',
+          text: 'F# Major',
+          value: 'KeyOfF#'
+        }, {
+          icon: 'key-sig-cs',
+          text: 'C# Major',
+          value: 'KeyOfC#'
+        },
+        {
+          icon: '',
+          text: 'Cancel',
+          value: 'cancel'
+        }],
+        menuContainer: '.menuContainer'
+      };
     return SuiKeySignatureMenu._defaults;
   }
 
   selection(ev) {
-    var keySig = $(ev.currentTarget).attr('data-value');
-    keySig = (keySig === 'cancel' ? keySig : keySig.substring(5,keySig.length));
-    var changed = [];
-    this.tracker.selections.forEach((sel) => {
-      if (changed.indexOf(sel.selector.measure) === -1) {
-        changed.push(sel.selector.measure);
-        SmoUndoable.addKeySignature(this.score, sel, keySig, this.keyCommands.undoBuffer);
-        }
-    });
-
-    this.layout.setRefresh();
+    let keySig = $(ev.currentTarget).attr('data-value');
+    keySig = (keySig === 'cancel' ? keySig : keySig.substring(5, keySig.length));
+    if (keySig === 'cancel') {
+      return;
+    }
+    this.view.addKeySignature(keySig);
     this.complete();
   }
-  keydown(ev) {}
+  keydown() {}
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiStaffModifierMenu extends suiMenuBase {
-
   constructor(params) {
-    params = (params ? params : {});
+    params = (typeof(params) !== 'undefined' ? params : {});
     Vex.Merge(params, SuiStaffModifierMenu.defaults);
     super(params);
   }
@@ -33466,67 +34369,57 @@ class SuiStaffModifierMenu extends suiMenuBase {
   }
 
   static get defaults() {
-    SuiStaffModifierMenu._defaults = SuiStaffModifierMenu._defaults ? SuiStaffModifierMenu._defaults :
-    {
-      label:'Lines',
-      menuItems: [{
-        icon: 'cresc',
-        text: 'Crescendo',
-        value: 'crescendo'
+    SuiStaffModifierMenu._defaults = typeof(SuiStaffModifierMenu._defaults) !== 'undefined' ? SuiStaffModifierMenu._defaults :
+      {
+        label: 'Lines',
+        menuItems: [{
+          icon: 'cresc',
+          text: 'Crescendo',
+          value: 'crescendo'
         }, {
-        icon: 'decresc',
-        text: 'Decrescendo',
-        value: 'decrescendo'
+          icon: 'decresc',
+          text: 'Decrescendo',
+          value: 'decrescendo'
         }, {
-        icon: 'slur',
-        text: 'Slur/Tie',
-        value: 'slur'
+          icon: 'slur',
+          text: 'Slur/Tie',
+          value: 'slur'
         }, {
-        icon: 'ending',
-        text: 'nth ending',
-        value: 'ending'
+          icon: 'ending',
+          text: 'nth ending',
+          value: 'ending'
         },
-         {
-        icon: '',
-        text: 'Cancel',
-        value: 'cancel'
-        }
-      ],
-      menuContainer: '.menuContainer'
-    };
+        {
+          icon: '',
+          text: 'Cancel',
+          value: 'cancel'
+        }],
+        menuContainer: '.menuContainer'
+      };
     return SuiStaffModifierMenu._defaults;
   }
   selection(ev) {
     var op = $(ev.currentTarget).attr('data-value');
-
-    var ft = this.tracker.getExtremeSelection(-1);
-    var tt = this.tracker.getExtremeSelection(1);
-
     if (op === 'ending') {
-      SmoUndoable.scoreOp(this.score,'addEnding',
-        new SmoVolta({startBar:ft.selector.measure,endBar:tt.selector.measure,number:1}),this.keyCommands.undoBuffer,'add ending');
-      this.complete();
-    return;
+      this.view.addEnding();
+    } else if (op === 'slur') {
+      this.view.slur();
+    } else if (op === 'crescendo') {
+      this.view.crescendo();
+    } else if (op === 'decrescendo') {
+      this.view.decrescendo();
     }
-    if (SmoSelector.sameNote(ft.selector, tt.selector)) {
-      this.complete();
-      return;
-    }
-
-    SmoUndoable[op](ft, tt, this.keyCommands.undoBuffer);
-    this.tracker.replaceSelectedMeasures();
+    // else cancel...
     this.complete();
   }
-
-  keydown(ev) {
-
+  keydown() {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiLanguageMenu extends suiMenuBase {
-
   constructor(params) {
-    params = (params ? params : {});
+    params = (typeof(params) !== 'undefined') ? params : {};
     Vex.Merge(params, SuiLanguageMenu.defaults);
     super(params);
   }
@@ -33536,31 +34429,29 @@ class SuiLanguageMenu extends suiMenuBase {
   get ctor() {
     return SuiLanguageMenu.ctor;
   }
-
   static get defaults() {
     SuiLanguageMenu._defaults = SuiLanguageMenu._defaults ? SuiLanguageMenu._defaults :
-    {
-      label:'Language',
-      menuItems: [{
-        icon: '',
-        text: 'English',
-        value: 'en'
+      {
+        label: 'Language',
+        menuItems: [{
+          icon: '',
+          text: 'English',
+          value: 'en'
         }, {
           icon: '',
           text: 'Deutsch',
           value: 'de'
         }, {
-        icon: '',
-        text: 'اَلْعَرَبِيَّةُ',
-        value: 'ar'
-      }, {
-        icon: '',
-        text: 'Cancel',
-        value: 'cancel'
-        }
-      ],
-      menuContainer: '.menuContainer'
-    };
+          icon: '',
+          text: 'اَلْعَرَبِيَّةُ',
+          value: 'ar'
+        }, {
+          icon: '',
+          text: 'Cancel',
+          value: 'cancel'
+        }],
+        menuContainer: '.menuContainer'
+      };
     return SuiLanguageMenu._defaults;
   }
   selection(ev) {
@@ -33569,17 +34460,15 @@ class SuiLanguageMenu extends suiMenuBase {
     SmoTranslator.setLanguage(op);
     this.complete();
   }
-
-  keydown(ev) {
-
+  keydown() {
   }
 }
+// eslint-disable-next-line no-unused-vars
 class SuiMeasureMenu extends suiMenuBase {
   static get defaults() {
     SuiMeasureMenu._defaults = SuiMeasureMenu._defaults ? SuiMeasureMenu._defaults : {
-      label:'Measure',
+      label: 'Measure',
       menuItems: [
-
         {
           icon: '',
           text: 'Add Measure Before',
@@ -33603,7 +34492,7 @@ class SuiMeasureMenu extends suiMenuBase {
           value: 'cancel'
         }
       ]
-    }
+    };
     return SuiMeasureMenu._defaults;
   }
   static get ctor() {
@@ -33614,31 +34503,28 @@ class SuiMeasureMenu extends suiMenuBase {
   }
 
   constructor(params) {
-    params = (params ? params : {});
+    params = (typeof(params) !== 'undefined') ? params : {};
     Vex.Merge(params, SuiMeasureMenu.defaults);
     super(params);
   }
   selection(ev) {
-    var text = $(ev.currentTarget).attr('data-value');
-
-    if (text == 'formatMeasureDialog') {
+    const text = $(ev.currentTarget).attr('data-value');
+    if (text === 'formatMeasureDialog') {
       SuiMeasureDialog.createAndDisplay({
-        layout: this.layout,
-        tracker: this.tracker,
-        completeNotifier:this.completeNotifier,
-        closeMenuPromise:this.closePromise,
-        undoBuffer:this.undoBuffer,
-        eventSource:this.eventSource
+        view: this.view,
+        completeNotifier: this.completeNotifier,
+        closeMenuPromise: this.closePromise,
+        eventSource: this.eventSource
       });
       this.complete();
       return;
     }
     if (text === 'addMenuBeforeCmd') {
-      this.keyCommands.addMeasure({shiftKey:false});
+      this.keyCommands.addMeasure({ shiftKey: false });
       this.complete();
     }
     if (text === 'addMenuAfterCmd') {
-      this.keyCommands.addMeasure({shiftKey:true});
+      this.keyCommands.addMeasure({ shiftKey: true });
       this.complete();
     }
     if (text === 'deleteSelected') {
@@ -33646,13 +34532,12 @@ class SuiMeasureMenu extends suiMenuBase {
     }
     this.complete();
   }
-
-
 }
 
+// eslint-disable-next-line no-unused-vars
 class SuiAddStaffMenu extends suiMenuBase {
   constructor(params) {
-    params = (params ? params : {});
+    params = (typeof(params) !== 'undefined' ? params : {});
     Vex.Merge(params, SuiAddStaffMenu.defaults);
     super(params);
   }
@@ -33665,7 +34550,7 @@ class SuiAddStaffMenu extends suiMenuBase {
 
   static get defaults() {
     SuiAddStaffMenu._defaults = SuiAddStaffMenu._defaults ? SuiAddStaffMenu._defaults : {
-      label: "Add Staff",
+      label: 'Add Staff',
       menuItems: [
         {
           icon: 'treble',
@@ -33701,62 +34586,55 @@ class SuiAddStaffMenu extends suiMenuBase {
     return {
       'trebleInstrument': {
         instrumentInfo: {
-        instrumentName: 'Treble Clef Staff',
-        keyOffset: 0,
-        clef: 'treble'
-      }
+          instrumentName: 'Treble Clef Staff',
+          keyOffset: 0,
+          clef: 'treble'
+        }
       },
       'bassInstrument': {
         instrumentInfo: {
-        instrumentName: 'Bass Clef Staff',
-        keyOffset: 0,
-        clef: 'bass'
-      }
+          instrumentName: 'Bass Clef Staff',
+          keyOffset: 0,
+          clef: 'bass'
+        }
       },
       'altoInstrument': {
         instrumentInfo: {
-        instrumentName: 'Alto Clef Staff',
-        keyOffset: 0,
-        clef: 'alto'
-      }
+          instrumentName: 'Alto Clef Staff',
+          keyOffset: 0,
+          clef: 'alto'
+        }
       },
       'tenorInstrument': {
         instrumentInfo: {
-        instrumentName: 'Tenor Clef Staff',
-        keyOffset: 0,
-        clef: 'tenor'
-      }
+          instrumentName: 'Tenor Clef Staff',
+          keyOffset: 0,
+          clef: 'tenor'
+        }
       },
       'remove': {
         instrumentInfo: {
-        instrumentName: 'Remove clef',
-        keyOffset: 0,
-        clef: 'tenor'
+          instrumentName: 'Remove clef',
+          keyOffset: 0,
+          clef: 'tenor'
+        }
       }
-    }
-  }
-
+    };
   }
   selection(ev) {
-    var op = $(ev.currentTarget).attr('data-value');
-    if (op == 'remove') {
-      if (this.score.staves.length > 1 && this.tracker.selections.length > 0) {
-        this.tracker.layout.unrenderAll();
-        SmoUndoable.removeStaff(this.score, this.tracker.selections[0].selector.staff, this.keyCommands.undoBuffer);
-        this.tracker.layout.setRefresh();
-      }
+    const op = $(ev.currentTarget).attr('data-value');
+    if (op === 'remove') {
+      this.view.removeStaff();
+      this.complete();
     } else if (op === 'cancel') {
       this.complete();
     } else {
-      var instrument = SuiAddStaffMenu.instrumentMap[op];
-      SmoUndoable.addStaff(this.score, instrument, this.keyCommands.undoBuffer);
-      this.tracker.layout.setRefresh();
+      const instrument = SuiAddStaffMenu.instrumentMap[op];
+      this.view.addStaff(instrument);
+      this.complete();
     }
-    this.layout.setRefresh();
-    this.complete();
   }
-  keydown(ev) {}
-
+  keydown() {}
 }
 ;
 class Qwerty {
@@ -33938,88 +34816,86 @@ class Qwerty {
 // ### RibbonButton methods
 // ---
 class RibbonButtons {
-	static get paramArray() {
-		return ['ribbonButtons', 'ribbons', 'keyCommands', 'controller', 'tracker', 'menus','layout','eventSource'];
-	}
-	static _buttonHtml(containerClass,buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
-		var b = htmlHelpers.buildDom;
-		var r = b('div').classes(containerClass).append(b('button').attr('id', buttonId).classes(buttonClass).append(
-					b('span').classes('left-text').append(
-					    b('span').classes('text-span').text(buttonText)).append(
-					b('span').classes('ribbon-button-text icon ' + buttonIcon))).append(
-					b('span').classes('ribbon-button-hotkey').text(buttonKey)));
-		return r.dom();
-	}
+  static get paramArray() {
+    return ['ribbonButtons', 'ribbons', 'keyCommands', 'controller', 'menus', 'eventSource', 'view'];
+  }
+  static _buttonHtml(containerClass, buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
+    const b = htmlHelpers.buildDom;
+    const r = b('div').classes(containerClass).append(b('button').attr('id', buttonId).classes(buttonClass).append(
+      b('span').classes('left-text').append(
+        b('span').classes('text-span').text(buttonText)).append(
+        b('span').classes('ribbon-button-text icon ' + buttonIcon))).append(
+      b('span').classes('ribbon-button-hotkey').text(buttonKey)));
+    return r.dom();
+  }
   static get translateButtons() {
     if (!RibbonButtons._translateButtons) {
       RibbonButtons._translateButtons = [];
     }
     return RibbonButtons._translateButtons;
   }
-	constructor(parameters) {
-		smoSerialize.filteredMerge(RibbonButtons.paramArray, parameters, this);
-		this.ribbonButtons = parameters.ribbonButtons;
-		this.ribbons = parameters.ribbons;
-		this.collapsables = [];
-		this.collapseChildren = [];
-	}
-	_executeButtonModal(buttonElement, buttonData) {
-		var ctor = eval(buttonData.ctor);
-		ctor.createAndDisplay(
+  constructor(parameters) {
+    smoSerialize.filteredMerge(RibbonButtons.paramArray, parameters, this);
+    this.ribbonButtons = parameters.ribbonButtons;
+    this.ribbons = parameters.ribbons;
+    this.collapsables = [];
+    this.collapseChildren = [];
+  }
+  _executeButtonModal(buttonElement, buttonData) {
+    const ctor = eval(buttonData.ctor);
+    ctor.createAndDisplay(
       {
-        tracker:this.tracker,
-        undoBuffer:this.keyCommands.undoBuffer,
-        eventSource:this.eventSource,
-        keyCommands:this.keyCommands,
+        undoBuffer: this.keyCommands.undoBuffer,
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
         completeNotifier: this.controller,
-        layout: this.layout
+        view: this.view
       }
     );
-	}
-	_executeButtonMenu(buttonElement, buttonData) {
-		var self = this;
+  }
+  _executeButtonMenu(buttonElement, buttonData) {
     this.menus.slashMenuMode(this.controller);
-		this.menus.createMenu(buttonData.ctor);
-	}
-	_rebindController() {
-		this.controller.render();
-		this.controller.bindEvents();
-	}
-	_executeButton(buttonElement, buttonData) {
-		if (buttonData.action === 'modal') {
-			this._executeButtonModal(buttonElement, buttonData);
-			return;
-		}
-		if (buttonData.action === 'menu' || buttonData.action === 'collapseChildMenu') {
-			this._executeButtonMenu(buttonElement, buttonData);
-			return;
-		}
-	}
+    this.menus.createMenu(buttonData.ctor);
+  }
+  _rebindController() {
+    this.controller.render();
+    this.controller.bindEvents();
+  }
+  _executeButton(buttonElement, buttonData) {
+    if (buttonData.action === 'modal') {
+      this._executeButtonModal(buttonElement, buttonData);
+      return;
+    }
+    if (buttonData.action === 'menu' || buttonData.action === 'collapseChildMenu') {
+      this._executeButtonMenu(buttonElement, buttonData);
+    }
+  }
 
-	_bindButton(buttonElement, buttonData) {
-    this.eventSource.domClick(buttonElement,this,'_executeButton',buttonData);
-	}
+  _bindButton(buttonElement, buttonData) {
+    this.eventSource.domClick(buttonElement, this, '_executeButton', buttonData);
+  }
   _createCollapsibleButtonGroups(selector) {
+    let containerClass = {};
     // Now all the button elements have been bound.  Join child and parent buttons
     // For all the children of a button group, add it to the parent group
     this.collapseChildren.forEach((b) => {
-      var containerClass = 'ribbonButtonContainer';
-      if (b.action == 'collapseGrandchild') {
-        containerClass = 'ribbonButtonContainerMore'
+      containerClass = 'ribbonButtonContainer';
+      if (b.action === 'collapseGrandchild') {
+        containerClass = 'ribbonButtonContainerMore';
       }
-      var buttonHtml = RibbonButtons._buttonHtml(
-        containerClass,b.id, b.classes, b.leftText, b.icon, b.rightText);
+      const buttonHtml = RibbonButtons._buttonHtml(
+        containerClass, b.id, b.classes, b.leftText, b.icon, b.rightText);
       if (b.dataElements) {
-        var bkeys = Object.keys(b.dataElements);
+        const bkeys = Object.keys(b.dataElements);
         bkeys.forEach((bkey) => {
           var de = b.dataElements[bkey];
           $(buttonHtml).find('button').attr('data-' + bkey, de);
         });
       }
       // Bind the child button actions
-      var parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
+      const parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
       $(parent).append(buttonHtml);
-      var el = $(selector).find('#' + b.id);
+      const el = $(selector).find('#' + b.id);
       this._bindButton(el, b);
     });
 
@@ -34029,493 +34905,407 @@ class RibbonButtons {
     });
   }
 
-    static isCollapsible(action) {
-        return ['collapseChild','collapseChildMenu','collapseGrandchild','collapseMore'].indexOf(action) >= 0;
-    }
+  static isCollapsible(action) {
+    return ['collapseChild', 'collapseChildMenu', 'collapseGrandchild', 'collapseMore'].indexOf(action) >= 0;
+  }
 
-    static isBindable(action) {
-        return ['collapseChildMenu','menu','modal'].indexOf(action) >= 0;
-    }
+  static isBindable(action) {
+    return ['collapseChildMenu', 'menu', 'modal'].indexOf(action) >= 0;
+  }
 
-    // ### _createButtonHtml
-    // For each button, create the html and bind the events based on
-    // the button's configured action.
-	_createRibbonHtml(buttonAr, selector) {
-		buttonAr.forEach((buttonId) => {
-			var buttonData = this.ribbonButtons.find((e) => {
-					return e.id === buttonId;
-				});
-			if (buttonData) {
+  // ### _createButtonHtml
+  // For each button, create the html and bind the events based on
+  // the button's configured action.
+  _createRibbonHtml(buttonAr, selector) {
+    let buttonClass = '';
+    buttonAr.forEach((buttonId) => {
+      const buttonData = this.ribbonButtons.find((e) =>
+        e.id === buttonId
+      );
+      if (buttonData) {
         if (buttonData.leftText) {
-          RibbonButtons.translateButtons.push({buttonId:buttonData.id,
-            buttonText:buttonData.leftText});
+          RibbonButtons.translateButtons.push({ buttonId: buttonData.id, buttonText: buttonData.leftText });
         }
-
         // collapse child is hidden until the parent button is selected, exposing the button group
-				if (RibbonButtons.isCollapsible(buttonData.action)) {
-					this.collapseChildren.push(buttonData);
+        if (RibbonButtons.isCollapsible(buttonData.action)) {
+          this.collapseChildren.push(buttonData);
         }
-				if (buttonData.action != 'collapseChild') {
-
+        if (buttonData.action !== 'collapseChild') {
           // else the button has a specific action, such as a menu or dialog, or a parent button
           // for translation, add the menu name to the button class
-          var buttonClass = buttonData.classes;
+          buttonClass = buttonData.classes;
           if (buttonData.action === 'menu' || buttonData.action === 'modal') {
-            buttonClass += ' ' +buttonData.ctor;
+            buttonClass += ' ' + buttonData.ctor;
           }
-					var buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer',
-              buttonData.id, buttonClass, buttonData.leftText, buttonData.icon, buttonData.rightText);
-					$(buttonHtml).attr('data-group', buttonData.group);
-
-					$(selector).append(buttonHtml);
-          var buttonElement = $('#' + buttonData.id);
-
+          const buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer',
+            buttonData.id, buttonClass, buttonData.leftText, buttonData.icon, buttonData.rightText);
+          $(buttonHtml).attr('data-group', buttonData.group);
+          $(selector).append(buttonHtml);
+          const buttonElement = $('#' + buttonData.id);
           // If this is a collabsable button, create it, otherwise bind its execute function.
-					if (buttonData.action == 'collapseParent') {
-						$(buttonHtml).addClass('collapseContainer');
-                  // collapseParent
-          		this.collapsables.push(new CollapseRibbonControl({
-          				ribbonButtons: this.ribbonButtons,
-                  layout:this.layout,
-                  undoBuffer:this.keyCommands.undoBuffer,
-          				menus: this.menus,
-                  eventSource:this.eventSource,
-          				tracker: this.tracker,
-          				controller: this.controller,
-          				keyCommands: this.keyCommands,
-          				buttonElement: buttonElement,
-          				buttonData: buttonData
-          			}));
-					} else {
-            this.eventSource.domClick(buttonElement,this,'_executeButton',buttonData);
+          if (buttonData.action === 'collapseParent') {
+            $(buttonHtml).addClass('collapseContainer');
+            // collapseParent
+            this.collapsables.push(new CollapseRibbonControl({
+              ribbonButtons: this.ribbonButtons,
+              view: this.view,
+              menus: this.menus,
+              eventSource: this.eventSource,
+              controller: this.controller,
+              keyCommands: this.keyCommands,
+              buttonElement,
+              buttonData
+            }));
+          } else {
+            this.eventSource.domClick(buttonElement, this, '_executeButton', buttonData);
           }
-				}
-			}
-		});
-	}
+        }
+      }
+    });
+  }
 
-  createRibbon(buttonDataArray,parentElement) {
+  createRibbon(buttonDataArray, parentElement) {
     this._createRibbonHtml(buttonDataArray, parentElement);
     this._createCollapsibleButtonGroups(parentElement);
   }
 
-	display() {
-		$('body .controls-left').html('');
-		$('body .controls-top').html('');
+  display() {
+    $('body .controls-left').html('');
+    $('body .controls-top').html('');
 
-		var buttonAr = this.ribbons['left'];
-		this.createRibbon(buttonAr, 'body .controls-left');
+    const lbuttons = this.ribbons.left;
+    this.createRibbon(lbuttons, 'body .controls-left');
 
-		buttonAr = this.ribbons['top'];
-		this.createRibbon(buttonAr, 'body .controls-top');
-	}
+    const tbuttons = this.ribbons.top;
+    this.createRibbon(tbuttons, 'body .controls-top');
+  }
 }
 
+// eslint-disable-next-line no-unused-vars
 class DebugButtons {
-	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
-	}
-	bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			$('body').trigger('redrawScore');
-		});
-    }
+  constructor(parameters) {
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.keyCommands = parameters.keyCommands;
+  }
+  bind() {
+    $(this.buttonElement).off('click').on('click', () => {
+      $('body').trigger('redrawScore');
+    });
+  }
 }
 
+// ## ExtendedCollapseParent
+// Muse-style '...' buttons for less-common operations
+// eslint-disable-next-line no-unused-vars
 class ExtendedCollapseParent {
-    constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
-	}
-    bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			$(this).closest('.collapseContainer').toggleClass('expanded-more');
-		});
-    }
+  constructor(parameters) {
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.keyCommands = parameters.keyCommands;
+  }
+  bind() {
+    $(this.buttonElement).off('click').on('click', () => {
+      $(this.buttonElement).closest('.collapseContainer').toggleClass('expanded-more');
+    });
+  }
 }
+// eslint-disable-next-line no-unused-vars
 class BeamButtons {
-	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
-	}
-    operation() {
-        if (this.buttonData.id === 'breakBeam') {
-			this.keyCommands.toggleBeamGroup();
-        } else if (this.buttonData.id === 'beamSelections') {
-            this.keyCommands.beamSelections();
-        } else if (this.buttonData.id === 'toggleBeamDirection') {
-            this.keyCommands.toggleBeamDirection();
-        }
+  constructor(parameters) {
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.keyCommands = parameters.keyCommands;
+  }
+  operation() {
+    if (this.buttonData.id === 'breakBeam') {
+      this.keyCommands.toggleBeamGroup();
+    } else if (this.buttonData.id === 'beamSelections') {
+      this.keyCommands.beamSelections();
+    } else if (this.buttonData.id === 'toggleBeamDirection') {
+      this.keyCommands.toggleBeamDirection();
     }
-	bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			self.operation();
-		});
-    }
+  }
+  bind() {
+    $(this.buttonElement).off('click').on('click', () => {
+      this.operation();
+    });
+  }
 }
+// eslint-disable-next-line no-unused-vars
 class MicrotoneButtons {
-    constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
-        this.tracker = parameters.tracker
-	}
-    applyButton(el) {
-        var pitch = 0;
-        if (this.tracker.selections.length == 1 &&
-            this.tracker.selections[0].selector.pitches &&
-            this.tracker.selections[0].selector.pitches.length
-        ) {
-            pitch = this.tracker.selections[0].selector.pitches[0];
-        }
-        var tn = new SmoMicrotone({tone:el.id,pitch:pitch});
-        SmoUndoable.multiSelectionOperation(this.tracker.layout.score,
-             this.tracker.selections,'addRemoveMicrotone',tn,this.keyCommands.undoBuffer);
-        suiOscillator.playSelectionNow(this.tracker.selections[0]);
-        this.tracker.layout.addToReplaceQueue(this.tracker.selections[0]);
+  constructor(parameters) {
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.keyCommands = parameters.keyCommands;
+    this.view = parameters.view;
+  }
+  applyButton(el) {
+    let pitch = 0;
+    if (this.view.tracker.selections.length === 1 &&
+      this.view.tracker.selections[0].selector.pitches &&
+      this.view.tracker.selections[0].selector.pitches.length
+    ) {
+      pitch = this.view.tracker.selections[0].selector.pitches[0];
     }
-    bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-            self.applyButton(self.buttonData);
-		});
-	}
-}
-class DurationButtons {
-	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
-	}
-	setDuration() {
-		if (this.buttonData.id === 'GrowDuration') {
-			this.keyCommands.doubleDuration();
-		} else if (this.buttonData.id === 'LessDuration') {
-			this.keyCommands.halveDuration();
-		} else if (this.buttonData.id === 'GrowDurationDot') {
-			this.keyCommands.dotDuration();
-		} else if (this.buttonData.id === 'LessDurationDot') {
-			this.keyCommands.undotDuration();
-		} else if (this.buttonData.id === 'TripletButton') {
-			this.keyCommands.makeTupletCommand(3);
-		} else if (this.buttonData.id === 'QuintupletButton') {
-			this.keyCommands.makeTupletCommand(5);
-		} else if (this.buttonData.id === 'SeptupletButton') {
-			this.keyCommands.makeTupletCommand(7);
-		} else if (this.buttonData.id === 'NoTupletButton') {
-			this.keyCommands.unmakeTuplet();
-		}
-	}
-	bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			self.setDuration();
-		});
-	}
+    const tn = new SmoMicrotone({ tone: el.id, pitch });
+    this.view.addRemoveMicrotone(tn);
+    suiOscillator.playSelectionNow(this.view.tracker.selections[0]);
+  }
+  bind() {
+    var self = this;
+    $(this.buttonElement).off('click').on('click', () => {
+      self.applyButton(self.buttonData);
+    });
+  }
 }
 
-class VoiceButtons {
-	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
-        this.tracker = parameters.tracker;
-	}
-    _depopulateVoice() {
-        var selections = SmoSelection.getMeasureList(this.tracker.selections);
-        selections.forEach((selection) => {
-            SmoUndoable.depopulateVoice([selection],selection.measure.getActiveVoice(),
-               this.keyCommands.undoBuffer);
-            selection.measure.setChanged();
-        });
-        this.tracker.replaceSelectedMeasures();
+// eslint-disable-next-line no-unused-vars
+class DurationButtons {
+  constructor(parameters) {
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.keyCommands = parameters.keyCommands;
+  }
+  setDuration() {
+    if (this.buttonData.id === 'GrowDuration') {
+      this.keyCommands.doubleDuration();
+    } else if (this.buttonData.id === 'LessDuration') {
+      this.keyCommands.halveDuration();
+    } else if (this.buttonData.id === 'GrowDurationDot') {
+      this.keyCommands.dotDuration();
+    } else if (this.buttonData.id === 'LessDurationDot') {
+      this.keyCommands.undotDuration();
+    } else if (this.buttonData.id === 'TripletButton') {
+      this.keyCommands.makeTupletCommand(3);
+    } else if (this.buttonData.id === 'QuintupletButton') {
+      this.keyCommands.makeTupletCommand(5);
+    } else if (this.buttonData.id === 'SeptupletButton') {
+      this.keyCommands.makeTupletCommand(7);
+    } else if (this.buttonData.id === 'NoTupletButton') {
+      this.keyCommands.unmakeTuplet();
     }
-	setPitch() {
-        var voiceIx = 0;
-		if (this.buttonData.id === 'V1Button') {
-            SmoOperation.setActiveVoice(this.tracker.layout.score,voiceIx);
-            var ml = SmoSelection.getMeasureList(this.tracker.selections);
-            ml.forEach((sel) => {
-                sel.measure.setChanged();
-            });
-            this.tracker.replaceSelectedMeasures();
-            return;
-		} else if (this.buttonData.id === 'V2Button') {
-			voiceIx = 1;
-		} else if (this.buttonData.id === 'V3Button') {
-			this.keyCommands.upOctave();
-            voiceIx = 2;
-		} else if (this.buttonData.id === 'V4Button') {
-			this.keyCommands.downOctave();
-            voiceIx = 3;
-		} else if (this.buttonData.id === 'VXButton') {
-        	return this._depopulateVoice();
-        }
-        SmoUndoable.populateVoice(this.tracker.selections,voiceIx,this.keyCommands.undoBuffer);
-        SmoOperation.setActiveVoice(this.tracker.layout.score,voiceIx);
-        this.tracker.replaceSelectedMeasures();
-    }
-	bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			self.setPitch();
-		});
-	}
+  }
+  bind() {
+    var self = this;
+    $(this.buttonElement).off('click').on('click', () => {
+      self.setDuration();
+    });
+  }
 }
+
+// eslint-disable-next-line no-unused-vars
+class VoiceButtons {
+  constructor(parameters) {
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.view = parameters.view;
+  }
+  doAction() {
+    let voiceIx = 0;
+    if (this.buttonData.id === 'V2Button') {
+      voiceIx = 1;
+    } else if (this.buttonData.id === 'V3Button') {
+      voiceIx = 2;
+    } else if (this.buttonData.id === 'V4Button') {
+      voiceIx = 3;
+    } else if (this.buttonData.id === 'VXButton') {
+      this.view.depopulateVoice();
+      return;
+    }
+    this.view.populateVoice(voiceIx);
+  }
+  bind() {
+    $(this.buttonElement).off('click').on('click', () => {
+      this.doAction();
+    });
+  }
+}
+// eslint-disable-next-line no-unused-vars
 class NoteButtons {
-	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
-	}
-	setPitch() {
-		if (this.buttonData.id === 'UpNoteButton') {
-			this.keyCommands.transposeUp();
-		} else if (this.buttonData.id === 'DownNoteButton') {
-			this.keyCommands.transposeDown();
-		} else if (this.buttonData.id === 'UpOctaveButton') {
-			this.keyCommands.upOctave();
-		} else if (this.buttonData.id === 'DownOctaveButton') {
-			this.keyCommands.downOctave();
-		} else if (this.buttonData.id === 'ToggleAccidental') {
-			this.keyCommands.toggleEnharmonic();
-		} else if (this.buttonData.id === 'ToggleCourtesy') {
-			this.keyCommands.toggleCourtesyAccidental();
-		} else if (this.buttonData.id === 'ToggleRestButton') {
-			this.keyCommands.makeRest();
-		} else if (this.buttonData.id === 'AddGraceNote') {
-			this.keyCommands.addGraceNote();
-		} else if (this.buttonData.id === 'SlashGraceNote') {
+  constructor(parameters) {
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.keyCommands = parameters.keyCommands;
+  }
+  setPitch() {
+    if (this.buttonData.id === 'UpNoteButton') {
+      this.keyCommands.transposeUp();
+    } else if (this.buttonData.id === 'DownNoteButton') {
+      this.keyCommands.transposeDown();
+    } else if (this.buttonData.id === 'UpOctaveButton') {
+      this.keyCommands.upOctave();
+    } else if (this.buttonData.id === 'DownOctaveButton') {
+      this.keyCommands.downOctave();
+    } else if (this.buttonData.id === 'ToggleAccidental') {
+      this.keyCommands.toggleEnharmonic();
+    } else if (this.buttonData.id === 'ToggleCourtesy') {
+      this.keyCommands.toggleCourtesyAccidental();
+    } else if (this.buttonData.id === 'ToggleRestButton') {
+      this.keyCommands.makeRest();
+    } else if (this.buttonData.id === 'AddGraceNote') {
+      this.keyCommands.addGraceNote();
+    } else if (this.buttonData.id === 'SlashGraceNote') {
       this.keyCommands.slashGraceNotes();
     } else if (this.buttonData.id === 'RemoveGraceNote') {
-			this.keyCommands.removeGraceNote();
-		} else if (this.buttonData.id === 'XNoteHead') {
+      this.keyCommands.removeGraceNote();
+    } else if (this.buttonData.id === 'XNoteHead') {
       this.keyCommands.setNoteHead();
     } else {
-			this.keyCommands.setPitchCommand(this.buttonData.rightText);
-		}
-	}
-	bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			self.setPitch();
-		});
-	}
-}
-
-class ChordButtons {
-	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
-		this.tracker = parameters.tracker;
-		this.score = parameters.score;
-		this.interval = parseInt($(this.buttonElement).attr('data-interval'));
-		this.direction = parseInt($(this.buttonElement).attr('data-direction'));
-	}
-	static get direction() {
-		return {
-			up: 1,
-			down: -1
-		}
-	}
-	static get intervalButtonMap() {}
-	collapseChord() {
-		this.keyCommands.collapseChord();
-	}
-	setInterval() {
-		this.keyCommands.intervalAdd(this.interval, this.direction);
-	}
-	bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function () {
-			if ($(self.buttonElement).attr('id') === 'CollapseChordButton') {
-				self.collapseChord();
-				return;
-			}
-			self.setInterval();
-		});
-	}
-}
-
-class StaveButtons {
-	constructor(parameters) {
-    Vex.Merge(this,parameters);
-    this.score = this.layout.score;
-	}
-	addClef(clef,clefName) {
-		var instrument = {
-			instrumentName:clefName,
-			keyOffset:0,
-			clef:clef
-		}
-		var staff = this.tracker.selections[0].selector.staff;
-		var measures = SmoSelection.getMeasureList(this.tracker.selections)
-            .map((sel) => sel.measure);
-		var selections=[];
-		measures.forEach((measure) => {
-			selections.push(SmoSelection.measureSelection(this.tracker.layout.score,staff,measure.measureNumber.measureIndex));
-		});
-		SmoUndoable.changeInstrument(this.tracker.layout.score,instrument,selections,this.keyCommands.undoBuffer);
-		this.tracker.replaceSelectedMeasures();
-	}
-	clefTreble() {
-		this.addClef('treble','Treble Instrument');
-	}
-	clefBass() {
-		this.addClef('bass','Bass Instrument');
-	}
-	clefAlto() {
-		this.addClef('alto','Alto Instrument');
-	}
-	clefTenor() {
-		this.addClef('tenor','Tenor Instrument');
-	}
-    _clefMove(index,direction) {
-        SmoUndoable.scoreSelectionOp(this.tracker.layout.score,this.tracker.selections[0],'moveStaffUpDown',
-           index,this.keyCommands.undoBuffer,'Move staff '+direction);
-        this.tracker.layout.rerenderAll();
+      this.keyCommands.setPitchCommand(this.buttonData.rightText);
     }
-    clefMoveUp() {
-        this._clefMove(-1,'up');
-    }
-    clefMoveDown() {
-        this._clefMove(1,'down');
-    }
-    _addStaffGroup(type) {
-        SmoUndoable.addConnectorDown(this.tracker.layout.score,
-            this.tracker.selections,
-        {mapType:SmoSystemGroup.mapTypes.allMeasures,leftConnector:type,
-            rightConnector:SmoSystemGroup.connectorTypes.single},
-            this.keyCommands.undoBuffer);
-    }
-    staffBraceLower() {
-        this._addStaffGroup(SmoSystemGroup.connectorTypes.brace);
-    }
-    staffBracketLower() {
-        this._addStaffGroup(SmoSystemGroup.connectorTypes.bracket);
-    }
-	bind() {
-		var self = this;
-		$(this.buttonElement).off('click').on('click', function (ev) {
-			 console.log('couch');
-			 var id = self.buttonData.id;
-			if (typeof(self[id]) === 'function') {
-				self[id]();
-			}
-		});
-	}
-}
-class MeasureButtons {
-	constructor(parameters) {
-    Vex.Merge(this,parameters);
-	}
-	/*
-	 static get barlines() {
-        return {
-            singleBar: 0,
-            doubleBar: 1,
-            endBar: 2,
-            startRepeat: 3,
-            endRepeat: 4,
-            none: 5
-        }
-    }*/
-	setEnding(startBar,endBar,number) {
-		this.keyCommands.scoreOperation('addEnding',new SmoVolta({startBar:startBar,endBar:endBar,number:number}));
-
-	}
-	setBarline(selection,position,barline,description) {
-		this.keyCommands.scoreSelectionOperation(selection, 'setMeasureBarline', new SmoBarline({position:position,barline:barline})
-		    ,description);
-	}
-	setSymbol(selection,position,symbol,description) {
-		this.keyCommands.scoreSelectionOperation(selection, 'setRepeatSymbol', new SmoRepeatSymbol({position:position,symbol:symbol})
-		    ,description);
-	}
-	endRepeat() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.endRepeat,'add repeat');
-	}
-	startRepeat() {
-		var selection = this.tracker.getExtremeSelection(-1);
-		this.setBarline(selection,SmoBarline.positions.start,SmoBarline.barlines.startRepeat,'add start repeat');
-	}
-	singleBarStart() {
-		var selection = this.tracker.getExtremeSelection(-1);
-		this.setBarline(selection,SmoBarline.positions.start,SmoBarline.barlines.singleBar,'single start bar');
-	}
-    singleBarEnd() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.singleBar,'single  bar');
-	}
-
-	doubleBar() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.doubleBar,'double  bar');
-	}
-	endBar() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setBarline(selection,SmoBarline.positions.end,SmoBarline.barlines.endBar,'final  bar');
-	}
-	coda() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.Coda);
-	}
-	toCoda() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.ToCoda);
-	}
-	segno() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.Segno);
-	}
-	dsAlCoda() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.DsAlCoda);
-	}
-	dcAlCoda() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.DcAlCoda);
-	}
-	dsAlFine() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.DsAlFine);
-	}
-	dcAlFine() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.DcAlFine);
-	}
-	fine() {
-		var selection = this.tracker.getExtremeSelection(1);
-		this.setSymbol(selection,SmoRepeatSymbol.positions.end,SmoRepeatSymbol.symbols.Fine);
-	}
-	nthEnding() {
-		var startSel = this.tracker.getExtremeSelection(-1);
-		var endSel = this.tracker.getExtremeSelection(1);
-		this.setEnding(startSel.selector.measure,endSel.selector.measure,1);
-	}
-  handleEvent(event,method) {
-    this[method]();
-    this.tracker.replaceSelectedMeasures();
   }
-
-	bind() {
-		var self = this;
-    this.eventSource.domClick(this.buttonElement,this,'handleEvent',this.buttonData.id);
-	}
+  bind() {
+    var self = this;
+    $(this.buttonElement).off('click').on('click', () => {
+      self.setPitch();
+    });
+  }
 }
 
+// eslint-disable-next-line no-unused-vars
+class ChordButtons {
+  constructor(parameters) {
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.keyCommands = parameters.keyCommands;
+    this.view = parameters.view;
+    this.interval = parseInt($(this.buttonElement).attr('data-interval'), 10);
+    this.direction = parseInt($(this.buttonElement).attr('data-direction'), 10);
+  }
+  collapseChord() {
+    this.keyCommands.collapseChord();
+  }
+  setInterval() {
+    this.keyCommands.intervalAdd(this.interval, this.direction);
+  }
+  bind() {
+    $(this.buttonElement).off('click').on('click', () => {
+      if ($(this.buttonElement).attr('id') === 'CollapseChordButton') {
+        this.collapseChord();
+        return;
+      }
+      self.setInterval();
+    });
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
+class StaveButtons {
+  constructor(parameters) {
+    Vex.Merge(this, parameters);
+  }
+  addClef(clef, clefName) {
+    var instrument = {
+      instrumentName: clefName,
+      keyOffset: 0,
+      clef
+    };
+    this.view.changeInstrument(instrument);
+  }
+  clefTreble() {
+    this.addClef('treble', 'Treble Instrument');
+  }
+  clefBass() {
+    this.addClef('bass', 'Bass Instrument');
+  }
+  clefAlto() {
+    this.addClef('alto', 'Alto Instrument');
+  }
+  clefTenor() {
+    this.addClef('tenor', 'Tenor Instrument');
+  }
+  _clefMove(index) {
+    this.view.moveStaffUpDown(index);
+  }
+  clefMoveUp() {
+    this._clefMove(-1, 'up');
+  }
+  clefMoveDown() {
+    this._clefMove(1, 'down');
+  }
+  _addStaffGroup(type) {
+    this.view.addStaffGroupDown(type);
+  }
+  staffBraceLower() {
+    this._addStaffGroup(SmoSystemGroup.connectorTypes.brace);
+  }
+  staffBracketLower() {
+    this._addStaffGroup(SmoSystemGroup.connectorTypes.bracket);
+  }
+  bind() {
+    const self = this;
+    $(this.buttonElement).off('click').on('click', () => {
+      const id = self.buttonData.id;
+      if (typeof(self[id]) === 'function') {
+        self[id]();
+      }
+    });
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
+class MeasureButtons {
+  constructor(parameters) {
+    Vex.Merge(this, parameters);
+  }
+  endRepeat() {
+    this.view.setBarline(SmoBarline.positions.end, SmoBarline.barlines.endRepeat);
+  }
+  startRepeat() {
+    this.view.setBarline(SmoBarline.positions.start, SmoBarline.barlines.startRepeat);
+  }
+  singleBarStart() {
+    this.view.setBarline(SmoBarline.positions.start, SmoBarline.barlines.singleBar);
+  }
+  singleBarEnd() {
+    this.view.setBarline(SmoBarline.positions.end, SmoBarline.barlines.singleBar);
+  }
+  doubleBar() {
+    this.view.setBarline(SmoBarline.positions.end, SmoBarline.barlines.doubleBar);
+  }
+  endBar() {
+    this.view.setBarline(SmoBarline.positions.end, SmoBarline.barlines.endBar);
+  }
+  coda() {
+    this.view.setRepeatSymbol(SmoRepeatSymbol.positions.end, SmoRepeatSymbol.symbols.Coda);
+  }
+  toCoda() {
+    this.view.setRepeatSymbol(SmoRepeatSymbol.positions.end, SmoRepeatSymbol.symbols.ToCoda);
+  }
+  segno() {
+    this.view.setRepeatSymbol(SmoRepeatSymbol.positions.end, SmoRepeatSymbol.symbols.Segno);
+  }
+  dsAlCoda() {
+    this.view.setRepeatSymbol(SmoRepeatSymbol.positions.end, SmoRepeatSymbol.symbols.DsAlCoda);
+  }
+  dcAlCoda() {
+    this.view.setRepeatSymbol(SmoRepeatSymbol.positions.end, SmoRepeatSymbol.symbols.DcAlCoda);
+  }
+  dsAlFine() {
+    this.view.setRepeatSymbol(SmoRepeatSymbol.positions.end, SmoRepeatSymbol.symbols.DsAlFine);
+  }
+  dcAlFine() {
+    this.view.setRepeatSymbol(SmoRepeatSymbol.positions.end, SmoRepeatSymbol.symbols.DcAlFine);
+  }
+  fine() {
+    this.view.setRepeatSymbol(SmoRepeatSymbol.positions.end, SmoRepeatSymbol.symbols.Fine);
+  }
+  nthEnding() {
+    this.view.addEnding();
+  }
+  handleEvent(event, method) {
+    this[method]();
+  }
+  bind() {
+    this.eventSource.domClick(this.buttonElement, this, 'handleEvent', this.buttonData.id);
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
 class PlayerButtons {
-	constructor(parameters) {
-    Vex.Merge(this,parameters);
+  constructor(parameters) {
+    Vex.Merge(this, parameters);
   }
   playButton() {
     this.keyCommands.playScore();
@@ -34527,30 +35317,31 @@ class PlayerButtons {
     this.keyCommands.pausePlayer();
   }
   bind() {
-    this.eventSource.domClick(this.buttonElement,this,this.buttonData.id);
+    this.eventSource.domClick(this.buttonElement, this, this.buttonData.id);
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class DisplaySettings {
   constructor(parameters) {
-    Vex.Merge(this,parameters);
+    Vex.Merge(this, parameters);
   }
 
   refresh() {
-      this.layout.setViewport(true);
-      this.layout.setRefresh();
+    this.view.renderer.setViewport(true);
+    this.view.renderer.setRefresh();
   }
   zoomout() {
-      this.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-      this.layout.score.layout.zoomScale = this.layout.score.layout.zoomScale * 1.1;
-      this.layout.setViewport();
-      this.layout.setRefresh();
+    this.view.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+    this.view.score.layout.zoomScale = this.view.score.layout.zoomScale * 1.1;
+    this.view.renderer.setViewport();
+    this.view.renderer.setRefresh();
   }
   zoomin() {
-      this.layout.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-      this.layout.score.layout.zoomScale = this.layout.score.layout.zoomScale / 1.1;
-      this.layout.setViewport();
-      this.layout.setRefresh();
+    this.view.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
+    this.view.score.layout.zoomScale = this.view.score.layout.zoomScale / 1.1;
+    this.view.renderer.setViewport();
+    this.view.renderer.setRefresh();
   }
   playButton2() {
     this.keyCommands.playScore();
@@ -34558,52 +35349,46 @@ class DisplaySettings {
   stopButton2() {
     this.keyCommands.stopPlayer();
   }
-
-
   bind() {
-    this.eventSource.domClick(this.buttonElement,this,this.buttonData.id);
+    this.eventSource.domClick(this.buttonElement, this, this.buttonData.id);
   }
 }
+// eslint-disable-next-line no-unused-vars
 class TextButtons {
-	constructor(parameters) {
-    Vex.Merge(this,parameters);
+  constructor(parameters) {
+    Vex.Merge(this, parameters);
     this.menus = this.controller.menus;
-	}
+  }
   lyrics() {
-	  SuiLyricDialog.createAndDisplay(
+    SuiLyricDialog.createAndDisplay(
       {
-        buttonElement:this.buttonElement,
-        buttonData:this.buttonData,
-        completeNotifier:this.controller,
-        tracker: this.tracker,
-        layout:this.layout,
-        undoBuffer:this.keyCommands.undoBuffer,
-        eventSource:this.eventSource,
-        keyCommands:this.keyCommands,
-        parser:SmoLyric.parsers.lyric
+        buttonElement: this.buttonElement,
+        buttonData: this.buttonData,
+        completeNotifier: this.controller,
+        view: this.view,
+        undoBuffer: this.keyCommands.undoBuffer,
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        parser: SmoLyric.parsers.lyric
       }
     );
-  	// tracker, selection, controller
+    // tracker, selection, controller
   }
   chordChanges() {
     SuiChordChangeDialog.createAndDisplay(
       {
-        buttonElement:this.buttonElement,
-        buttonData:this.buttonData,
-        completeNotifier:this.controller,
-        tracker: this.tracker,
-        layout:this.layout,
-        undoBuffer:this.keyCommands.undoBuffer,
-        eventSource:this.eventSource,
-        keyCommands:this.keyCommands,
-        parser:SmoLyric.parsers.chord
+        buttonElement: this.buttonElement,
+        buttonData: this.buttonData,
+        completeNotifier: this.controller,
+        view: this.view,
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        parser: SmoLyric.parsers.chord
       }
     );
   }
   rehearsalMark() {
-    var selection = this.tracker.getExtremeSelection(-1);
-    var cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
-    this.keyCommands.scoreSelectionOperation(selection, cmd, new SmoRehearsalMark());
+    this.view.toggleRehearsalMark();
   }
   _invokeMenu(cmd) {
     this.menus.slashMenuMode(this.controller);
@@ -34611,63 +35396,62 @@ class TextButtons {
   }
 
   addTextMenu() {
-    var dialog = SuiTextTransformDialog.createAndDisplay(
+    SuiTextTransformDialog.createAndDisplay(
       {
-        buttonElement:this.buttonElement,
-        buttonData:this.buttonData,
-        completeNotifier:this.controller,
+        buttonElement: this.buttonElement,
+        buttonData: this.buttonData,
+        completeNotifier: this.controller,
         tracker: this.tracker,
-        layout:this.layout,
-        undoBuffer:this.keyCommands.undoBuffer,
-        eventSource:this.eventSource,
-        keyCommands:this.keyCommands
-    });
+        view: this.view,
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands
+      });
   }
-	addDynamicsMenu() {
-        this._invokeMenu('SuiDynamicsMenu');
-	}
+  addDynamicsMenu() {
+    this._invokeMenu('SuiDynamicsMenu');
+  }
   bind() {
-    var self=this;
-    this.eventSource.domClick(this.buttonElement,this,self.buttonData.id);
-	}
+    this.eventSource.domClick(this.buttonElement, this, this.buttonData.id);
+  }
 }
 
+// eslint-disable-next-line no-unused-vars
 class NavigationButtons {
-	static get directionsTrackerMap() {
-		return {
-			navLeftButton: 'moveSelectionLeft',
-			navRightButton: 'moveSelectionRight',
-			navUpButton: 'moveSelectionUp',
-			navDownButton: 'moveSelectionDown',
-			navFastForward: 'moveSelectionRightMeasure',
-			navRewind: 'moveSelectionLeftMeasure',
-			navGrowLeft: 'growSelectionLeft',
-			navGrowRight: 'growSelectionRight'
-		};
-	}
-	constructor(parameters) {
-    Vex.Merge(this,parameters);
-	}
+  static get directionsTrackerMap() {
+    return {
+      navLeftButton: 'moveSelectionLeft',
+      navRightButton: 'moveSelectionRight',
+      navUpButton: 'moveSelectionUp',
+      navDownButton: 'moveSelectionDown',
+      navFastForward: 'moveSelectionRightMeasure',
+      navRewind: 'moveSelectionLeftMeasure',
+      navGrowLeft: 'growSelectionLeft',
+      navGrowRight: 'growSelectionRight'
+    };
+  }
+  constructor(parameters) {
+    Vex.Merge(this, parameters);
+  }
 
-	_moveTracker() {
-		this.tracker[NavigationButtons.directionsTrackerMap[this.buttonData.id]]();
-	}
-	bind() {
-		var self = this;
-    this.eventSource.domClick(this.buttonElement,this,'_moveTracker');
-	}
+  _moveTracker() {
+    this.tracker[NavigationButtons.directionsTrackerMap[this.buttonData.id]]();
+  }
+  bind() {
+    this.eventSource.domClick(this.buttonElement, this, '_moveTracker');
+  }
 }
+// eslint-disable-next-line no-unused-vars
 class ArticulationButtons {
-	static get articulationIdMap() {
-		return {
-			accentButton: SmoArticulation.articulations.accent,
-			tenutoButton: SmoArticulation.articulations.tenuto,
-			staccatoButton: SmoArticulation.articulations.staccato,
-			marcatoButton: SmoArticulation.articulations.marcato,
-			pizzicatoButton: SmoArticulation.articulations.pizzicato,
-			fermataButton: SmoArticulation.articulations.fermata,
+  static get articulationIdMap() {
+    return {
+      accentButton: SmoArticulation.articulations.accent,
+      tenutoButton: SmoArticulation.articulations.tenuto,
+      staccatoButton: SmoArticulation.articulations.staccato,
+      marcatoButton: SmoArticulation.articulations.marcato,
+      pizzicatoButton: SmoArticulation.articulations.pizzicato,
+      fermataButton: SmoArticulation.articulations.fermata,
       mordentButton: SmoOrnament.ornaments.mordent,
-      mordentInvertedButton:SmoOrnament.ornaments.mordentInverted,
+      mordentInvertedButton: SmoOrnament.ornaments.mordentInverted,
       trillButton: SmoOrnament.ornaments.trill,
       scoopButton: SmoOrnament.ornaments.scoop,
       dropButton: SmoOrnament.ornaments.fall_short,
@@ -34676,105 +35460,100 @@ class ArticulationButtons {
       doitLongButton: SmoOrnament.ornaments.doitLong,
       flipButton: SmoOrnament.ornaments.flip,
       smearButton: SmoOrnament.ornaments.smear
-		};
-	}
+    };
+  }
   static get constructors() {
     return {
-  		accentButton: 'SmoArticulation',
-  		tenutoButton: 'SmoArticulation',
-  		staccatoButton: 'SmoArticulation',
-  		marcatoButton: 'SmoArticulation',
-  		pizzicatoButton: 'SmoArticulation',
-  		fermataButton: 'SmoArticulation',
+      accentButton: 'SmoArticulation',
+      tenutoButton: 'SmoArticulation',
+      staccatoButton: 'SmoArticulation',
+      marcatoButton: 'SmoArticulation',
+      pizzicatoButton: 'SmoArticulation',
+      fermataButton: 'SmoArticulation',
       mordentButton: 'SmoOrnament',
-      mordentInvertedButton:'SmoOrnament',
-      trillButton:'SmoOrnament',
+      mordentInvertedButton: 'SmoOrnament',
+      trillButton: 'SmoOrnament',
       scoopButton: 'SmoOrnament',
       dropButton: 'SmoOrnament',
       dropLongButton: 'SmoOrnament',
       doitButton: 'SmoOrnament',
       doitLongButton: 'SmoOrnament',
       flipButton: 'SmoOrnament',
-      smearButton:'SmoOrnament'
-    }
+      smearButton: 'SmoOrnament'
+    };
   }
-	constructor(parameters) {
-		this.buttonElement = parameters.buttonElement;
-		this.buttonData = parameters.buttonData;
-		this.keyCommands = parameters.keyCommands;
-		this.articulation = ArticulationButtons.articulationIdMap[this.buttonData.id];
+  constructor(parameters) {
+    this.buttonElement = parameters.buttonElement;
+    this.buttonData = parameters.buttonData;
+    this.keyCommands = parameters.keyCommands;
+    this.articulation = ArticulationButtons.articulationIdMap[this.buttonData.id];
     this.eventSource = parameters.eventSource;
     this.ctor = ArticulationButtons.constructors[this.buttonData.id];
-	}
-	_toggleArticulation() {
-		this.showState = !this.showState;
-		this.keyCommands.toggleArticulationCommand(this.articulation, this.ctor);
-	}
-	bind() {
-		var self = this;
-    this.eventSource.domClick(this.buttonElement,this,'_toggleArticulation');
-	}
+  }
+  _toggleArticulation() {
+    this.showState = !this.showState;
+    this.keyCommands.toggleArticulationCommand(this.articulation, this.ctor);
+  }
+  bind() {
+    this.eventSource.domClick(this.buttonElement, this, '_toggleArticulation');
+  }
 }
 
-
+// eslint-disable-next-line no-unused-vars
 class CollapseRibbonControl {
-	static get paramArray() {
-		return ['ribbonButtons', 'keyCommands', 'controller', 'tracker', 'menus', 'buttonData', 'buttonElement',
-    'layout','eventSource','undoBuffer'];
-	}
-	constructor(parameters) {
-		smoSerialize.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
-		this.childButtons = parameters.ribbonButtons.filter((cb) => {
-				return cb.group === this.buttonData.group &&
-                    RibbonButtons.isCollapsible(cb.action)
-			});
-	}
-	_toggleExpand() {
-		this.childButtons.forEach((cb) => {
+  static get paramArray() {
+    return ['ribbonButtons', 'keyCommands', 'controller', 'view', 'menus', 'buttonData', 'buttonElement',
+      'eventSource'];
+  }
+  constructor(parameters) {
+    smoSerialize.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
+    this.childButtons = parameters.ribbonButtons.filter((cb) =>
+      cb.group === this.buttonData.group &&
+        RibbonButtons.isCollapsible(cb.action)
+    );
+  }
+  _toggleExpand() {
+    this.childButtons.forEach((cb) => {
+      const el = $('#' + cb.id);
+      $(el).toggleClass('collapsed');
+      $(el).toggleClass('expanded');
+    });
 
-			var el = $('#' + cb.id);
-			$(el).toggleClass('collapsed');
-			$(el).toggleClass('expanded');
-		});
-
-		this.buttonElement.closest('div').toggleClass('expanded');
-		this.buttonElement.toggleClass('expandedChildren');
-		if (this.buttonElement.hasClass('expandedChildren')) {
-			var leftSpan = $(this.buttonElement).find('.ribbon-button-text');
-			$(leftSpan).text('');
-			$(leftSpan).removeClass(this.buttonData.icon);
-			$(this.buttonElement).addClass('icon icon-circle-left');
-		} else {
-			$(this.buttonElement).removeClass('icon-circle-left');
-			var leftSpan = $(this.buttonElement).find('.ribbon-button-text');
-			$(leftSpan).addClass(this.buttonData.icon);
-			$(leftSpan).text(this.buttonData.leftText);
-		}
-  	// Expand may change music dom, redraw
-  	$('body').trigger('forceScrollEvent');
-	}
-	bind() {
-		var self = this;
-		$(this.buttonElement).closest('div').addClass('collapseContainer');
-    this.eventSource.domClick(this.buttonElement,this,'_toggleExpand');
-		this.childButtons.forEach((cb) => {
-			var ctor = eval(cb.ctor);
-			var el = $('#' + cb.id);
-			var btn = new ctor({
-					buttonData: cb,
-					buttonElement: el,
-					keyCommands: this.keyCommands,
-					tracker: this.tracker,
-					controller: this.controller,
-          layout:this.layout,
-          eventSource:this.eventSource,
-          undoBuffer:this.undoBuffer
-				});
-        if (typeof(btn.bind) == 'function') {
-          btn.bind();
-        }
-		});
-	}
+    this.buttonElement.closest('div').toggleClass('expanded');
+    this.buttonElement.toggleClass('expandedChildren');
+    if (this.buttonElement.hasClass('expandedChildren')) {
+      const leftSpan = $(this.buttonElement).find('.ribbon-button-text');
+      $(leftSpan).text('');
+      $(leftSpan).removeClass(this.buttonData.icon);
+      $(this.buttonElement).addClass('icon icon-circle-left');
+    } else {
+      $(this.buttonElement).removeClass('icon-circle-left');
+      const leftSpan = $(this.buttonElement).find('.ribbon-button-text');
+      $(leftSpan).addClass(this.buttonData.icon);
+      $(leftSpan).text(this.buttonData.leftText);
+    }
+    // Expand may change music dom, redraw
+    $('body').trigger('forceScrollEvent');
+  }
+  bind() {
+    $(this.buttonElement).closest('div').addClass('collapseContainer');
+    this.eventSource.domClick(this.buttonElement, this, '_toggleExpand');
+    this.childButtons.forEach((cb) => {
+      const ctor = eval(cb.ctor);
+      const el = $('#' + cb.id);
+      const btn = new ctor({
+        buttonData: cb,
+        buttonElement: el,
+        keyCommands: this.keyCommands,
+        view: this.view,
+        controller: this.controller,
+        eventSource: this.eventSource
+      });
+      if (typeof(btn.bind) === 'function') {
+        btn.bind();
+      }
+    });
+  }
 }
 ;
 
@@ -34810,7 +35589,7 @@ class defaultRibbonLayout {
 
 	static get leftRibbonIds() {
 		return ['helpDialog','languageMenu', 'fileMenu','addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2',
-    'instrumentModal','pianoModal','layoutModal'];
+    'instrumentModal','pianoModal','layoutMenu'];
 	}
 	static get noteButtonIds() {
 		return ['NoteButtons',
@@ -36352,14 +37131,14 @@ class defaultRibbonLayout {
 				id: 'pianoModal'
 			},
 			 {
-				leftText: 'Layout',
+				leftText: 'Score',
 				rightText: '',
 				icon: '',
 				classes: 'icon ',
-				action: 'modal',
-				ctor: 'SuiLayoutDialog',
+				action: 'menu',
+				ctor: 'SuiScoreMenu',
 				group: 'scoreEdit',
-				id: 'layoutModal'
+				id: 'layoutMenu'
 			}
 		];
 	}
@@ -36374,7 +37153,7 @@ class utController {
 		Vex.Merge(this, utController.defaults);
 		Vex.Merge(this, params);
 		this.bindEvents();
-    this.score = params.layout.score;
+    this.score = params.view.renderer.score;
 		this.undoBuffer = new UndoBuffer();
     this.layoutDemon.undoBuffer = this.undoBuffer;
     this.exhandler = new SuiExceptionHandler(this);
@@ -36396,8 +37175,8 @@ class utController {
 	}
 
 	render() {
-        var ix = 0;
-        this.layout.layout();
+    var ix = 0;
+    this.view.renderer.layout()
 	}
 
 	bindEvents() {}

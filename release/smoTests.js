@@ -385,10 +385,10 @@ class ClefTest {
   			keyOffset:0,
   			clef:'treble'
   		}
-  		var sel1 = SmoSelection.measureSelection(score,1,1);
-  		var sel2=SmoSelection.measureSelection(score,1,2);
+  		var sel1 = SmoSelection.measureSelection(score, 1, 1);
+  		var sel2=SmoSelection.measureSelection(score, 1, 2);
   		keys.view.renderer.unrenderAll();
-  		SmoOperation.changeInstrument(score,instrument,[sel1,sel2]);
+  		SmoOperation.changeInstrument(instrument, [sel1, sel2]);
   		keys.render()
       return timeTest();
   	}
@@ -531,7 +531,7 @@ class KeySignatureTest {
 		var changePitch = () => {
 			subTitle('change pitch');
 			var target = SmoSelection.pitchSelection(layout.score, 0, 2, 0, 1, [0]);
-			undo.addBuffer('undo pitch change', 'measure', target.selector, target.measure);
+			undo.addBuffer('undo pitch change', UndoBuffer.bufferTypes.MEASURE, target.selector, target.measure);
 			SmoOperation.setPitch(target, {
 				letter: 'e',
 				octave: 4,
@@ -547,7 +547,7 @@ class KeySignatureTest {
 		var changePitch2 = () => {
 			subTitle('change pitch 2');
 			var target = SmoSelection.pitchSelection(score, 0, 1, 0, 1, [0]);
-			undo.addBuffer('undo pitch change', 'measure', target.selector, target.measure);
+			undo.addBuffer('undo pitch change', UndoBuffer.bufferTypes.MEASURE, target.selector, target.measure);
 			SmoOperation.setPitch(target, {
 				letter: 'f',
 				octave: 4,
@@ -562,7 +562,7 @@ class KeySignatureTest {
 		var keySigTest = () => {
 			subTitle('key sig to C to A');
 			var selection = SmoSelection.measureSelection(score, 0, 1);
-			undo.addBuffer('undo key sig', 'staff', selection.selector, selection.staff);
+			undo.addBuffer('undo key sig', UndoBuffer.bufferTypes.STAFF, selection.selector, selection.staff);
 			SmoOperation.addKeySignature(score, selection, 'A');
 			// score.addKeySignature(1,'A');
 			var selection = SmoSelection.noteSelection(score, 0, 1, 0, 2);
@@ -573,7 +573,7 @@ class KeySignatureTest {
 		var keySigTest2 = () => {
 			subTitle('key sig to Bb');
 			var selection = SmoSelection.measureSelection(score, 0, 2);
-			undo.addBuffer('undo key sig', 'score', selection.selector, score);
+			undo.addBuffer('undo key sig', UndoBuffer.bufferTypes.SCORE, selection.selector, score);
 			SmoOperation.addKeySignature(score, selection, 'Bb');
 			keys.render()
             return timeTest();
@@ -2670,36 +2670,36 @@ class TrackerTest {
 
 		var selectionTest1 = () => {
 			subTitle('move selection right');
-			keys.tracker.moveSelectionRight(null)
+			keys.view.tracker.moveSelectionRight(null)
 			return timeTest();
 		}
 
 		var selectionTest2 = () => {
 			subTitle('move selection left');
-			keys.tracker.moveSelectionLeft();
+			keys.view.tracker.moveSelectionLeft();
 			return timeTest();
 		}
 		var selectionTest3 = () => {
 			subTitle('move selection over 5');
-			keys.tracker.moveSelectionOffset(5);
+			keys.view.tracker.moveSelectionOffset(5);
 			return timeTest();
 		}
 
 		var selectDown = () => {
 			subTitle('select staff below');
-			keys.tracker.moveSelectionDown();
+			keys.view.tracker.moveSelectionDown();
 			return timeTest();
 		}
 
 		var selectIncreaseRight = () => {
 			subTitle('grow selection right');
-			keys.tracker.growSelectionRight();
+			keys.view.tracker.growSelectionRight();
 			return timeTest();
 		}
 
 		var selectIncreaseLeft = () => {
 			subTitle('grow selection left');
-			keys.tracker.growSelectionLeft();
+			keys.view.tracker.growSelectionLeft();
 			return timeTest();
 		}
 
