@@ -5483,7 +5483,7 @@ class SuiScoreViewOperations extends SuiScoreView {
     const selection = this.tracker.selections[0];
     const rect = this._getRectangleFromStaffGroup(selection);
     this._undoRectangle('Set measure proportion', rect.startSelector, rect.endSelector);
-    const rs = _getRectangleSelections(rect.startSelector, rect.endSelector);
+    const rs = this._getRectangleSelections(rect.startSelector, rect.endSelector);
     rs.forEach((s) => {
       this.renderer.addToReplaceQueue(s.viewSelection);
       SmoOperation.setMeasureProportion(s.viewSelection, value);
@@ -5494,7 +5494,7 @@ class SuiScoreViewOperations extends SuiScoreView {
     const selection = this.tracker.selections[0];
     const rect = this._getRectangleFromStaffGroup(selection);
     this._undoRectangle('Set measure proportion', rect.startSelector, rect.endSelector);
-    const rs = _getRectangleSelections(rect.startSelector, rect.endSelector);
+    const rs = this._getRectangleSelections(rect.startSelector, rect.endSelector);
     rs.forEach((s) => {
       this.renderer.addToReplaceQueue(s.viewSelection);
       SmoOperation.setAutoJustify(this.score, s.viewSelection, value);
