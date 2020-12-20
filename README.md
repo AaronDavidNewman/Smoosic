@@ -6,8 +6,16 @@ easily embeddable and modifyable.  All that is required to use Smoosic in your o
 project from [GitHub Vex Flow](https://github.com/0xfe/vexflow) for rendering
 
 ---
+## Changes to Smoosic
+I have made a number of changes to the way Smoosic works, based on some feedback:
+1. Delete key no longer deletes measures.  This seemed to surprise people.  The insert key still inserts, though.
+2. You can now view any subset of the score in the score view dialog.
+3. Rests no longer play a pitch quietly.
+4. Rests no longer generate beams
+5. Default triple-meter duration is dotted 1/4 for new measure.
+6. You can specify auto-advance and auto-play preferences, as well as naming the score.
 
-You can see smoosic in action here:
+You can see Smoosic in action here:
 
 [Smoosic](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)
 
