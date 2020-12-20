@@ -92,9 +92,9 @@ class SuiScoreViewOperations extends SuiScoreView {
     const sel = this.tracker.selections[0];
     const altSel = this._getEquivalentSelection(sel);
     if (sel.note.isRest() && !sel.note.hidden) {
-      sel.note.fillStyle = '#eee';
+      sel.note.fillStyle = '#aaaaaa00';
       sel.note.hidden = true;
-      altSel.note.fillStyle = '#eee';
+      altSel.note.fillStyle = '#aaaaaa00';
       altSel.note.hidden = true;
     } else {
       sel.note.makeRest();
