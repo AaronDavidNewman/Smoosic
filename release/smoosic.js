@@ -28121,9 +28121,9 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
   _activateAttachToSelector() {
     this.modifier.attachToSelector = true;
-    this.modifier.selector = JSON.parse(JSON.stringify(this.tracker.selections[0].selector));
-    this.modifier.musicXOffset = this.modifier.logicalBox.x - this.tracker.selections[0].measure.logicalBox.x;
-    this.modifier.musicYOffset = this.modifier.logicalBox.y - this.tracker.selections[0].measure.logicalBox.y;
+    this.modifier.selector = JSON.parse(JSON.stringify(this.view.tracker.selections[0].selector));
+    this.modifier.musicXOffset = this.modifier.logicalBox.x - this.view.tracker.selections[0].measure.logicalBox.x;
+    this.modifier.musicYOffset = this.modifier.logicalBox.y - this.view.tracker.selections[0].measure.logicalBox.y;
   }
 
   changed() {
