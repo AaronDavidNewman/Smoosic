@@ -34555,7 +34555,7 @@ class SuiMeasureMenu extends suiMenuBase {
       this.complete();
     }
     if (text === 'deleteSelected') {
-      this.keyCommands.deleteMeasure();
+      this.view.deleteMeasure();
     }
     this.complete();
   }
