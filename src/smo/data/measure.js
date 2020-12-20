@@ -418,6 +418,9 @@ class SmoMeasure {
     measure.voices.push({
       notes: SmoMeasure.getDefaultNotes(params)
     });
+    // fix a bug.
+    // new measures only have 1 voice, make sure active voice is 0
+    measure.activeVoice = 0;
     return measure;
   }
 

@@ -320,62 +320,7 @@ class SuiRenderState {
     }
   }
 
-  // ### renderNoteModifierPreview
-  // For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
-  // changes can be undone before the buffer closes.
-  renderNoteModifierPreview(modifier, selection) {
-    selection =
-      SmoSelection.noteSelection(this._score, selection.selector.staff, selection.selector.measure, selection.selector.voice, selection.selector.tick);
-    if (!selection.measure.renderedBox) {
-      return;
-    }
-    const system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex, this.score);
-    system.renderMeasure(selection.measure, this.mapper);
-  }
-
-  // ### renderNoteModifierPreview
-  // For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
-  // changes can be undone before the buffer closes.
-  renderMeasureModifierPreview(modifier, measure) {
-    const ix = measure.measureNumber.measureIndex;
-    this._score.staves.forEach((staff) => {
-      const cm = staff.measures[ix];
-      const system = new VxSystem(this.context, cm.staffY, cm.lineIndex, this.score);
-      system.renderMeasure(staff.staffId, cm);
-    });
-  }
-
-  // ### renderStaffModifierPreview
-  // Similar to renderNoteModifierPreview, but lets you preveiw a change to a staff element.
-  // re-render a modifier for preview during modifier dialog
-  renderStaffModifierPreview(modifier) {
-    let system = null;
-    // get the first measure the modifier touches
-    var startSelection = SmoSelection.measureSelection(this._score, modifier.startSelector.staff, modifier.startSelector.measure);
-
-    // We can only render if we already have, or we don't know where things go.
-    if (!startSelection.measure.renderedBox) {
-      return;
-    }
-    system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex, this.score);
-    while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
-      smoBeamerFactory.applyBeams(startSelection.measure);
-      system.renderMeasure(startSelection.measure, null, true);
-      this._renderModifiers(startSelection.staff, system);
-
-      const nextSelection = SmoSelection.measureSelection(this._score, startSelection.selector.staff, startSelection.selector.measure + 1);
-
-      // If we go to new line, render this line part, then advance because the modifier is split
-      if (nextSelection && nextSelection.measure && nextSelection.measure.lineIndex !== startSelection.measure.lineIndex) {
-        this._renderModifiers(startSelection.staff, system);
-        system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex, this.score);
-      }
-      startSelection = nextSelection;
-    }
-  }
-
   // ### unrenderMeasure
-  // ### Description:
   // All SVG elements are associated with a logical SMO element.  We need to erase any SVG element before we change a SMO
   // element in such a way that some of the logical elements go away (e.g. when deleting a measure).
   unrenderMeasure(measure) {

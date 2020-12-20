@@ -550,6 +550,10 @@ class SmoOperation {
   static setPitch(selection, pitches) {
     var measure = selection.measure;
     var note = selection.note;
+    if (typeof(note) === 'undefined') {
+      console.warn('set Pitch on invalid note');
+      return;
+    }
     selection.note.makeNote();
     measure.setChanged();
     // TODO allow hint for octave

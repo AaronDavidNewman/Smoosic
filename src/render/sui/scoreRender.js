@@ -175,8 +175,8 @@ class SuiScoreRender extends SuiRenderState {
 
   renderAllMeasures() {
     const mscore = {};
-    $('.measure-format').remove();
     const printing = $('body').hasClass('print-render');
+    $('.measure-format').remove();
     this.score.staves.forEach((staff) => {
       staff.measures.forEach((measure) => {
         if (!mscore[measure.lineIndex]) {
@@ -199,7 +199,7 @@ class SuiScoreRender extends SuiRenderState {
       const colKeys = Object.keys(columns);
       colKeys.forEach((colKey) => {
         columns[colKey].forEach((measure) => {
-          vxSystem.renderMeasure(measure, this.measureMapper);
+          vxSystem.renderMeasure(measure, this.measureMapper, printing);
           const formatIndex = SmoMeasure.formattingOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
           if (formatIndex >= 0 && !printing) {
             const at = [];

@@ -325,11 +325,11 @@ class suiTracker extends suiMapper {
     this.selections.push(artifact);
   }
 
-  _updateMeasureNoteMap(artifact) {
+  _updateMeasureNoteMap(artifact, printing) {
     const noteKey = SmoSelector.getNoteKey(artifact.selector);
     const measureKey = SmoSelector.getMeasureKey(artifact.selector);
     const activeVoice = artifact.measure.getActiveVoice();
-    if (artifact.selector.voice !== activeVoice) {
+    if (artifact.selector.voice !== activeVoice && !artifact.note.fillStyle && !printing) {
       $('#' + artifact.note.renderId).find('.vf-notehead path').each((ix, el) => {
         el.setAttributeNS('', 'fill', 'rgb(128,128,128)');
       });
@@ -452,6 +452,9 @@ class suiTracker extends suiMapper {
   }
 
   growSelectionRight() {
+    this._growSelectionRight(false);
+  }
+  _growSelectionRight(skipPlay) {
     if (this.isGraceNoteSelected()) {
       this._growGraceNoteSelections(1);
       return 0;
@@ -465,13 +468,32 @@ class suiTracker extends suiMapper {
     if (this.selections.find((sel) => SmoSelector.sameNote(sel.selector, artifact.selector))) {
       return 0;
     }
-    if (!this.mapping && this.autoPlay) {
+    if (!this.mapping && this.autoPlay && skipPlay === false) {
       suiOscillator.playSelectionNow(artifact);
     }
     this.selections.push(artifact);
     this.highlightSelection();
     this._createLocalModifiersList();
     return artifact.note.tickCount;
+  }
+  growSelectionRightMeasure() {
+    let toSelect = 0;
+    const rightmost = this.getExtremeSelection(1);
+    const ticksLeft = rightmost.measure.voices[rightmost.measure.activeVoice]
+      .notes.length - rightmost.selector.tick;
+    if (ticksLeft === 0) {
+      if (rightmost.selector.measure < rightmost.staff.measures.length) {
+        const mix = rightmost.selector.measure + 1;
+        toSelect = rightmost.staff.measures[mix]
+          .voices[rightmost.staff.measures[mix].activeVoice].notes.length;
+      }
+    } else {
+      toSelect = ticksLeft;
+    }
+    while (toSelect > 0) {
+      this._growSelectionRight(true);
+      toSelect -= 1;
+    }
   }
 
   growSelectionLeft() {

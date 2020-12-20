@@ -59,7 +59,7 @@ class VxMeasure {
     if (this.smoMeasure.voices.length === 1 && flagState === SmoNote.flagStates.auto) {
       vxParams.auto_stem = true;
     } else if (flagState !== SmoNote.flagStates.auto) {
-      vxParams.stem_direction = SmoNote.flagState ===  SmoNote.flagStates.up ? 1 : -1;
+      vxParams.stem_direction = flagState ===  SmoNote.flagStates.up ? 1 : -1;
     } else if (voiceIx % 2) {
       vxParams.stem_direction = -1;
     } else {
@@ -196,7 +196,6 @@ class VxMeasure {
       if (toBeam) {
         grace.beamNotes();
       }
-
       vexNote.addModifier(0, grace);
     }
   }
@@ -225,6 +224,9 @@ class VxMeasure {
 
     this.applyStemDirection(noteParams, voiceIx, smoNote.flagState);
     const vexNote = new VF.StaveNote(noteParams);
+    if (smoNote.fillStyle) {
+      vexNote.setStyle({ fillStyle: smoNote.fillStyle });
+    }
     vexNote.attrs.classes = 'voice-' + voiceIx;
     if (smoNote.tickCount >= 4096) {
       const stemDirection = smoNote.flagState === SmoNote.flagStates.auto ?

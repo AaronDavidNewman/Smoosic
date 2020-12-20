@@ -268,7 +268,7 @@ class VxSystem {
   // ## Description:
   // Create the graphical (VX) notes and render them on svg.  Also render the tuplets and beam
   // groups
-  renderMeasure(smoMeasure, measureMapper, noJustify) {
+  renderMeasure(smoMeasure, measureMapper, printing) {
     let brackets = false;
     const staff = this.score.staves[smoMeasure.measureNumber.staffId];
     const staffId = staff.staffId;
@@ -285,7 +285,7 @@ class VxSystem {
     vxMeasure.preFormat();
     this.vxMeasures.push(vxMeasure);
 
-    const lastStaff = (staffId === this.score.staves.length - 1) || noJustify;
+    const lastStaff = (staffId === this.score.staves.length - 1);
     const smoGroupMap = {};
 
     // If this is the last staff in the column, render the column with justification
@@ -313,7 +313,7 @@ class VxSystem {
           // unit test codes don't have tracker.
           if (measureMapper) {
             const tmpStaff = this.staves.find((ss) => ss.staffId === vv.smoMeasure.measureNumber.staffId);
-            measureMapper.mapMeasure(tmpStaff, vv.smoMeasure);
+            measureMapper.mapMeasure(tmpStaff, vv.smoMeasure, printing);
           }
         }
       });

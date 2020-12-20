@@ -84,6 +84,17 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._removeDynamic(sel, dynamic);
     this.renderer.addToReplaceQueue(sel);
   }
+  // ### deleteNote
+  // we never really delete a note, but we will convert it into a rest and if it's
+  // already a rest we will try to hide it.
+  deleteNote() {
+    this._undoFirstMeasureSelection('delete note');
+    const sel = this.tracker.selections[0];
+    const altSel = this._getEquivalentSelection(sel);
+    sel.note.makeRest();
+    altSel.note.makeRest();
+    this.renderer.addToReplaceQueue(sel);
+  }
   // ### removeLyric
   // The lyric editor moves around, so we can't depend on the tracker for the
   // correct selection.  We get it directly from the editor.
@@ -703,24 +714,26 @@ class SuiScoreViewOperations extends SuiScoreView {
     if (this.storeScore.staves[0].measures.length < 2) {
       return;
     }
-    const selection = this.tracker.selections[0];
-    const index = selection.selector.measure;
-    // Unrender the deleted measure
-    this.score.staves.forEach((staff) => {
-      this.renderer.unrenderMeasure(staff.measures[index]);
-      this.renderer.unrenderMeasure(staff.measures[staff.measures.length - 1]);
-
-      // A little hacky - delete the modifiers if they start or end on
-      // the measure
-      staff.modifiers.forEach((modifier) => {
-        if (modifier.startSelector.measure === index || modifier.endSelector.measure === index) {
-          $(this.renderer.context.svg).find('g.' + modifier.attrs.id).remove();
-        }
+    const selections = SmoSelection.getMeasureList(this.tracker.selections);
+    // THe measures get renumbered, so keep the index at 0
+    const index = selections[0].selector.measure;
+    selections.forEach((selection) => {
+      // Unrender the deleted measure
+      this.score.staves.forEach((staff) => {
+        this.renderer.unrenderMeasure(staff.measures[index]);
+        this.renderer.unrenderMeasure(staff.measures[staff.measures.length - 1]);
+        // A little hacky - delete the modifiers if they start or end on
+        // the measure
+        staff.modifiers.forEach((modifier) => {
+          if (modifier.startSelector.measure === index || modifier.endSelector.measure === index) {
+            $(this.renderer.context.svg).find('g.' + modifier.attrs.id).remove();
+          }
+        });
       });
+      this.tracker.deleteMeasure(selection);
+      this.score.deleteMeasure(index);
+      this.storeScore.deleteMeasure(index);
     });
-    this.tracker.deleteMeasure(selection);
-    this.score.deleteMeasure(index);
-    this.storeScore.deleteMeasure(index);
     this.tracker.loadScore();
     this.renderer.setRefresh();
   }

@@ -48,6 +48,10 @@ class smoTickIterator {
 
         Vex.Merge(this, options);
         this.voice = typeof(options['voice']) == 'number' ? options.voice : measure.activeVoice;
+        if (measure.voices.length <= this.voice) {
+          console.warn('tickmap for invalid voice');
+          return;
+        }
         this.notes = measure.voices[this.voice].notes;
         this.index = 0;
         this.startIndex = 0;

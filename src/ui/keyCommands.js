@@ -128,8 +128,8 @@ class SuiKeyCommands {
   addMeasure(keyEvent) {
     this.view.addMeasure(keyEvent.shiftKey);
   }
-  deleteMeasure() {
-   this.view.deleteMeasure();
+  deleteNote() {
+   this.view.deleteNote();
   }
 
   toggleCourtesyAccidental() {

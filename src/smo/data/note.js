@@ -11,9 +11,6 @@ class SmoNote {
   constructor(params) {
     Vex.Merge(this, SmoNote.defaults);
     smoSerialize.serializedMerge(SmoNote.parameterArray, params, this);
-
-    // this.keys=JSON.parse(JSON.stringify(this.keys));
-
     if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),
@@ -25,7 +22,8 @@ class SmoNote {
     return { auto: 0, up: 1, down: 2 };
   }
   static get parameterArray() {
-    return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef', 'endBeam', 'beamBeats', 'flagState', 'noteHead'];
+    return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef',
+      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle'];
   }
 
   toggleFlagState() {
@@ -259,6 +257,8 @@ class SmoNote {
 
   makeNote() {
     this.noteType = 'n';
+    // clear fill style if we were hiding rests
+    this.fillStyle = '';
   }
 
   get isTuplet() {
@@ -383,6 +383,7 @@ class SmoNote {
       ornaments: [],
       tones: [],
       endBeam: false,
+      fillStyle: '',
       beamBeats: 4096,
       flagState: SmoNote.flagStates.auto,
       ticks: {

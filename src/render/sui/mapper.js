@@ -104,12 +104,12 @@ class suiMapper {
 
     // ### updateMeasure
     // A measure has changed.  Update the music geometry for it
-  mapMeasure(staff,measure) {
+  mapMeasure(staff, measure, printing) {
     if (!measure.renderedBox) {
         return;
     }
     // Keep track of any current selections in this measure, we will try to restore them.
-    var sels = this._copySelectionsByMeasure(staff.staffId,measure.measureNumber.measureIndex);
+    var sels = this._copySelectionsByMeasure(staff.staffId, measure.measureNumber.measureIndex);
     this.clearMeasureMap(staff,measure);
     var vix = measure.getActiveVoice();
     sels.selectors.forEach((sel) => {
@@ -131,7 +131,7 @@ class suiMapper {
           voice: voiceIx,
           tick: tick,
           pitches: []
-          };
+        };
 
         var voice = measure.getActiveVoice();
 
@@ -146,7 +146,7 @@ class suiMapper {
           type: 'rendered'
         });
         // and add it to the map
-        this._updateMeasureNoteMap(selection);
+        this._updateMeasureNoteMap(selection, printing);
 
         // If this note is the same location as something that was selected, reselect it
         if (sels.selectors.length && selection.selector.tick == sels.selectors[0].tick &&
