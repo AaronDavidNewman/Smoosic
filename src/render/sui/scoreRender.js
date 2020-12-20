@@ -84,6 +84,10 @@ class SuiScoreRender extends SuiRenderState {
     groupAr.forEach((newGroup) => {
       // If this text is attached to the measure, base the block location on the rendered measure location.
       if (newGroup.attachToSelector) {
+        // If this text is attached to a staff that is not visible, don't draw it.
+        if (!newGroup.selector || newGroup.selector.staff >= this.score.staves.length) {
+          return;
+        }
         const mm = SmoSelection.measureSelection(this.score, newGroup.selector.staff, newGroup.selector.measure).measure;
         if (typeof(mm.logicalBox) !== 'undefined') {
           const xoff = mm.logicalBox.x + newGroup.musicXOffset;

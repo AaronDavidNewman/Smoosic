@@ -225,13 +225,9 @@ class VxMeasure {
     };
 
     this.applyStemDirection(noteParams, voiceIx, smoNote.flagState);
-    if (smoNote.hidden && this.printing) {
-      vexNote = new VF.GhostNote(noteParams);
-    } else {
-      vexNote = new VF.StaveNote(noteParams);
-      if (smoNote.fillStyle) {
-        vexNote.setStyle({ fillStyle: smoNote.fillStyle });
-      }
+    vexNote = new VF.StaveNote(noteParams);
+    if (smoNote.fillStyle) {
+      vexNote.setStyle({ fillStyle: smoNote.fillStyle });
     }
     vexNote.attrs.classes = 'voice-' + voiceIx;
     if (smoNote.tickCount >= 4096) {
