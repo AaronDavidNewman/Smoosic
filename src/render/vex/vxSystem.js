@@ -279,7 +279,7 @@ class VxSystem {
       this.staves.push(staff);
     }
 
-    const vxMeasure = new VxMeasure(this.context, { selection });
+    const vxMeasure = new VxMeasure(this.context, { selection, printing });
 
     // create the vex notes, beam groups etc. for the measure
     vxMeasure.preFormat();

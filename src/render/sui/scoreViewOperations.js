@@ -91,8 +91,19 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._undoFirstMeasureSelection('delete note');
     const sel = this.tracker.selections[0];
     const altSel = this._getEquivalentSelection(sel);
-    sel.note.makeRest();
-    altSel.note.makeRest();
+    if (sel.note.isRest() && !sel.note.hidden) {
+      sel.note.fillStyle = '#eee';
+      sel.note.hidden = true;
+      altSel.note.fillStyle = '#eee';
+      altSel.note.hidden = true;
+    } else {
+      sel.note.makeRest();
+      altSel.note.makeRest();
+      altSel.note.fillStyle = '';
+      sel.note.fillStyle = '';
+      altSel.note.hidden = false;
+      sel.note.hidden = false;
+    }
     this.renderer.addToReplaceQueue(sel);
   }
   // ### removeLyric
@@ -420,9 +431,9 @@ class SuiScoreViewOperations extends SuiScoreView {
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('make rest');
     selections.forEach((selection) => {
-      SmoOperation.makeRest(selection);
+      SmoOperation.toggleRest(selection);
       const altSel = this._getEquivalentSelection(selection);
-      SmoOperation.makeRest(altSel);
+      SmoOperation.toggleRest(altSel);
     });
     this._renderChangedMeasures(measureSelections);
   }

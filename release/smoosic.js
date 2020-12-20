@@ -3260,12 +3260,12 @@ class suiMapper {
 
     // ### updateMeasure
     // A measure has changed.  Update the music geometry for it
-  mapMeasure(staff,measure) {
+  mapMeasure(staff, measure, printing) {
     if (!measure.renderedBox) {
         return;
     }
     // Keep track of any current selections in this measure, we will try to restore them.
-    var sels = this._copySelectionsByMeasure(staff.staffId,measure.measureNumber.measureIndex);
+    var sels = this._copySelectionsByMeasure(staff.staffId, measure.measureNumber.measureIndex);
     this.clearMeasureMap(staff,measure);
     var vix = measure.getActiveVoice();
     sels.selectors.forEach((sel) => {
@@ -3287,7 +3287,7 @@ class suiMapper {
           voice: voiceIx,
           tick: tick,
           pitches: []
-          };
+        };
 
         var voice = measure.getActiveVoice();
 
@@ -3302,7 +3302,7 @@ class suiMapper {
           type: 'rendered'
         });
         // and add it to the map
-        this._updateMeasureNoteMap(selection);
+        this._updateMeasureNoteMap(selection, printing);
 
         // If this note is the same location as something that was selected, reselect it
         if (sels.selectors.length && selection.selector.tick == sels.selectors[0].tick &&
@@ -4058,62 +4058,7 @@ class SuiRenderState {
     }
   }
 
-  // ### renderNoteModifierPreview
-  // For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
-  // changes can be undone before the buffer closes.
-  renderNoteModifierPreview(modifier, selection) {
-    selection =
-      SmoSelection.noteSelection(this._score, selection.selector.staff, selection.selector.measure, selection.selector.voice, selection.selector.tick);
-    if (!selection.measure.renderedBox) {
-      return;
-    }
-    const system = new VxSystem(this.context, selection.measure.staffY, selection.measure.lineIndex, this.score);
-    system.renderMeasure(selection.measure, this.mapper);
-  }
-
-  // ### renderNoteModifierPreview
-  // For dialogs that allow you to manually modify elements that are automatically rendered, we allow a preview so the
-  // changes can be undone before the buffer closes.
-  renderMeasureModifierPreview(modifier, measure) {
-    const ix = measure.measureNumber.measureIndex;
-    this._score.staves.forEach((staff) => {
-      const cm = staff.measures[ix];
-      const system = new VxSystem(this.context, cm.staffY, cm.lineIndex, this.score);
-      system.renderMeasure(staff.staffId, cm);
-    });
-  }
-
-  // ### renderStaffModifierPreview
-  // Similar to renderNoteModifierPreview, but lets you preveiw a change to a staff element.
-  // re-render a modifier for preview during modifier dialog
-  renderStaffModifierPreview(modifier) {
-    let system = null;
-    // get the first measure the modifier touches
-    var startSelection = SmoSelection.measureSelection(this._score, modifier.startSelector.staff, modifier.startSelector.measure);
-
-    // We can only render if we already have, or we don't know where things go.
-    if (!startSelection.measure.renderedBox) {
-      return;
-    }
-    system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex, this.score);
-    while (startSelection && startSelection.selector.measure <= modifier.endSelector.measure) {
-      smoBeamerFactory.applyBeams(startSelection.measure);
-      system.renderMeasure(startSelection.measure, null, true);
-      this._renderModifiers(startSelection.staff, system);
-
-      const nextSelection = SmoSelection.measureSelection(this._score, startSelection.selector.staff, startSelection.selector.measure + 1);
-
-      // If we go to new line, render this line part, then advance because the modifier is split
-      if (nextSelection && nextSelection.measure && nextSelection.measure.lineIndex !== startSelection.measure.lineIndex) {
-        this._renderModifiers(startSelection.staff, system);
-        system = new VxSystem(this.context, startSelection.measure.staffY, startSelection.measure.lineIndex, this.score);
-      }
-      startSelection = nextSelection;
-    }
-  }
-
   // ### unrenderMeasure
-  // ### Description:
   // All SVG elements are associated with a logical SMO element.  We need to erase any SVG element before we change a SMO
   // element in such a way that some of the logical elements go away (e.g. when deleting a measure).
   unrenderMeasure(measure) {
@@ -4457,8 +4402,8 @@ class SuiScoreRender extends SuiRenderState {
 
   renderAllMeasures() {
     const mscore = {};
-    $('.measure-format').remove();
     const printing = $('body').hasClass('print-render');
+    $('.measure-format').remove();
     this.score.staves.forEach((staff) => {
       staff.measures.forEach((measure) => {
         if (!mscore[measure.lineIndex]) {
@@ -4481,7 +4426,7 @@ class SuiScoreRender extends SuiRenderState {
       const colKeys = Object.keys(columns);
       colKeys.forEach((colKey) => {
         columns[colKey].forEach((measure) => {
-          vxSystem.renderMeasure(measure, this.measureMapper);
+          vxSystem.renderMeasure(measure, this.measureMapper, printing);
           const formatIndex = SmoMeasure.formattingOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
           if (formatIndex >= 0 && !printing) {
             const at = [];
@@ -5060,6 +5005,28 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._removeDynamic(sel, dynamic);
     this.renderer.addToReplaceQueue(sel);
   }
+  // ### deleteNote
+  // we never really delete a note, but we will convert it into a rest and if it's
+  // already a rest we will try to hide it.
+  deleteNote() {
+    this._undoFirstMeasureSelection('delete note');
+    const sel = this.tracker.selections[0];
+    const altSel = this._getEquivalentSelection(sel);
+    if (sel.note.isRest() && !sel.note.hidden) {
+      sel.note.fillStyle = '#eee';
+      sel.note.hidden = true;
+      altSel.note.fillStyle = '#eee';
+      altSel.note.hidden = true;
+    } else {
+      sel.note.makeRest();
+      altSel.note.makeRest();
+      altSel.note.fillStyle = '';
+      sel.note.fillStyle = '';
+      altSel.note.hidden = false;
+      sel.note.hidden = false;
+    }
+    this.renderer.addToReplaceQueue(sel);
+  }
   // ### removeLyric
   // The lyric editor moves around, so we can't depend on the tracker for the
   // correct selection.  We get it directly from the editor.
@@ -5385,9 +5352,9 @@ class SuiScoreViewOperations extends SuiScoreView {
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('make rest');
     selections.forEach((selection) => {
-      SmoOperation.makeRest(selection);
+      SmoOperation.toggleRest(selection);
       const altSel = this._getEquivalentSelection(selection);
-      SmoOperation.makeRest(altSel);
+      SmoOperation.toggleRest(altSel);
     });
     this._renderChangedMeasures(measureSelections);
   }
@@ -5679,24 +5646,26 @@ class SuiScoreViewOperations extends SuiScoreView {
     if (this.storeScore.staves[0].measures.length < 2) {
       return;
     }
-    const selection = this.tracker.selections[0];
-    const index = selection.selector.measure;
-    // Unrender the deleted measure
-    this.score.staves.forEach((staff) => {
-      this.renderer.unrenderMeasure(staff.measures[index]);
-      this.renderer.unrenderMeasure(staff.measures[staff.measures.length - 1]);
-
-      // A little hacky - delete the modifiers if they start or end on
-      // the measure
-      staff.modifiers.forEach((modifier) => {
-        if (modifier.startSelector.measure === index || modifier.endSelector.measure === index) {
-          $(this.renderer.context.svg).find('g.' + modifier.attrs.id).remove();
-        }
+    const selections = SmoSelection.getMeasureList(this.tracker.selections);
+    // THe measures get renumbered, so keep the index at 0
+    const index = selections[0].selector.measure;
+    selections.forEach((selection) => {
+      // Unrender the deleted measure
+      this.score.staves.forEach((staff) => {
+        this.renderer.unrenderMeasure(staff.measures[index]);
+        this.renderer.unrenderMeasure(staff.measures[staff.measures.length - 1]);
+        // A little hacky - delete the modifiers if they start or end on
+        // the measure
+        staff.modifiers.forEach((modifier) => {
+          if (modifier.startSelector.measure === index || modifier.endSelector.measure === index) {
+            $(this.renderer.context.svg).find('g.' + modifier.attrs.id).remove();
+          }
+        });
       });
+      this.tracker.deleteMeasure(selection);
+      this.score.deleteMeasure(index);
+      this.storeScore.deleteMeasure(index);
     });
-    this.tracker.deleteMeasure(selection);
-    this.score.deleteMeasure(index);
-    this.storeScore.deleteMeasure(index);
     this.tracker.loadScore();
     this.renderer.setRefresh();
   }
@@ -8085,11 +8054,11 @@ class suiTracker extends suiMapper {
     this.selections.push(artifact);
   }
 
-  _updateMeasureNoteMap(artifact) {
+  _updateMeasureNoteMap(artifact, printing) {
     const noteKey = SmoSelector.getNoteKey(artifact.selector);
     const measureKey = SmoSelector.getMeasureKey(artifact.selector);
     const activeVoice = artifact.measure.getActiveVoice();
-    if (artifact.selector.voice !== activeVoice) {
+    if (artifact.selector.voice !== activeVoice && !artifact.note.fillStyle && !printing) {
       $('#' + artifact.note.renderId).find('.vf-notehead path').each((ix, el) => {
         el.setAttributeNS('', 'fill', 'rgb(128,128,128)');
       });
@@ -8212,6 +8181,9 @@ class suiTracker extends suiMapper {
   }
 
   growSelectionRight() {
+    this._growSelectionRight(false);
+  }
+  _growSelectionRight(skipPlay) {
     if (this.isGraceNoteSelected()) {
       this._growGraceNoteSelections(1);
       return 0;
@@ -8225,13 +8197,32 @@ class suiTracker extends suiMapper {
     if (this.selections.find((sel) => SmoSelector.sameNote(sel.selector, artifact.selector))) {
       return 0;
     }
-    if (!this.mapping && this.autoPlay) {
+    if (!this.mapping && this.autoPlay && skipPlay === false) {
       suiOscillator.playSelectionNow(artifact);
     }
     this.selections.push(artifact);
     this.highlightSelection();
     this._createLocalModifiersList();
     return artifact.note.tickCount;
+  }
+  growSelectionRightMeasure() {
+    let toSelect = 0;
+    const rightmost = this.getExtremeSelection(1);
+    const ticksLeft = rightmost.measure.voices[rightmost.measure.activeVoice]
+      .notes.length - rightmost.selector.tick;
+    if (ticksLeft === 0) {
+      if (rightmost.selector.measure < rightmost.staff.measures.length) {
+        const mix = rightmost.selector.measure + 1;
+        toSelect = rightmost.staff.measures[mix]
+          .voices[rightmost.staff.measures[mix].activeVoice].notes.length;
+      }
+    } else {
+      toSelect = ticksLeft;
+    }
+    while (toSelect > 0) {
+      this._growSelectionRight(true);
+      toSelect -= 1;
+    }
   }
 
   growSelectionLeft() {
@@ -8922,7 +8913,8 @@ class VxMeasure {
   static get defaults() {
     // var defaultLayout = new smrfSimpleLayout();
     return {
-      smoMeasure: null
+      smoMeasure: null,
+      printing: false
     };
   }
   addCustomModifier(ctor, parameters) {
@@ -8946,7 +8938,7 @@ class VxMeasure {
     if (this.smoMeasure.voices.length === 1 && flagState === SmoNote.flagStates.auto) {
       vxParams.auto_stem = true;
     } else if (flagState !== SmoNote.flagStates.auto) {
-      vxParams.stem_direction = SmoNote.flagState ===  SmoNote.flagStates.up ? 1 : -1;
+      vxParams.stem_direction = flagState ===  SmoNote.flagStates.up ? 1 : -1;
     } else if (voiceIx % 2) {
       vxParams.stem_direction = -1;
     } else {
@@ -9083,7 +9075,6 @@ class VxMeasure {
       if (toBeam) {
         grace.beamNotes();
       }
-
       vexNote.addModifier(0, grace);
     }
   }
@@ -9091,6 +9082,7 @@ class VxMeasure {
   // ## Description:
   // convert a smoNote into a vxNote so it can be rasterized
   _createVexNote(smoNote, tickIndex, voiceIx, x_shift) {
+    let vexNote = {};
     // If this is a tuplet, we only get the duration so the appropriate stem
     // can be rendered.  Vex calculates the actual ticks later when the tuplet is made
     var duration =
@@ -9111,7 +9103,14 @@ class VxMeasure {
     };
 
     this.applyStemDirection(noteParams, voiceIx, smoNote.flagState);
-    const vexNote = new VF.StaveNote(noteParams);
+    if (smoNote.hidden && this.printing) {
+      vexNote = new VF.GhostNote(noteParams);
+    } else {
+      vexNote = new VF.StaveNote(noteParams);
+      if (smoNote.fillStyle) {
+        vexNote.setStyle({ fillStyle: smoNote.fillStyle });
+      }
+    }
     vexNote.attrs.classes = 'voice-' + voiceIx;
     if (smoNote.tickCount >= 4096) {
       const stemDirection = smoNote.flagState === SmoNote.flagStates.auto ?
@@ -9314,19 +9313,20 @@ class VxMeasure {
     this.smoMeasure.voices.forEach((voice) => {
       voice.notes.forEach((smoNote) =>  {
         var el = this.context.svg.getElementById(smoNote.renderId);
-        svgHelpers.updateArtifactBox(this.context.svg, el, smoNote);
-
-        // TODO: fix this, only works on the first line.
-        smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-          if (lyric.selector) {
-            svgHelpers.updateArtifactBox(this.context.svg, $(lyric.selector)[0], lyric);
-          }
-        });
-        smoNote.graceNotes.forEach((g) => {
-          var gel = this.context.svg.getElementById('vf-' + g.renderedId);
-          $(gel).addClass('grace-note');
-          svgHelpers.updateArtifactBox(this.context.svg, gel, g);
-        });
+        if (el) {
+          svgHelpers.updateArtifactBox(this.context.svg, el, smoNote);
+          // TODO: fix this, only works on the first line.
+          smoNote.getModifiers('SmoLyric').forEach((lyric) => {
+            if (lyric.selector) {
+              svgHelpers.updateArtifactBox(this.context.svg, $(lyric.selector)[0], lyric);
+            }
+          });
+          smoNote.graceNotes.forEach((g) => {
+            var gel = this.context.svg.getElementById('vf-' + g.renderedId);
+            $(gel).addClass('grace-note');
+            svgHelpers.updateArtifactBox(this.context.svg, gel, g);
+          });
+        }
       });
     });
   }
@@ -9728,7 +9728,7 @@ class VxSystem {
   // ## Description:
   // Create the graphical (VX) notes and render them on svg.  Also render the tuplets and beam
   // groups
-  renderMeasure(smoMeasure, measureMapper, noJustify) {
+  renderMeasure(smoMeasure, measureMapper, printing) {
     let brackets = false;
     const staff = this.score.staves[smoMeasure.measureNumber.staffId];
     const staffId = staff.staffId;
@@ -9739,13 +9739,13 @@ class VxSystem {
       this.staves.push(staff);
     }
 
-    const vxMeasure = new VxMeasure(this.context, { selection });
+    const vxMeasure = new VxMeasure(this.context, { selection, printing });
 
     // create the vex notes, beam groups etc. for the measure
     vxMeasure.preFormat();
     this.vxMeasures.push(vxMeasure);
 
-    const lastStaff = (staffId === this.score.staves.length - 1) || noJustify;
+    const lastStaff = (staffId === this.score.staves.length - 1);
     const smoGroupMap = {};
 
     // If this is the last staff in the column, render the column with justification
@@ -9773,7 +9773,7 @@ class VxSystem {
           // unit test codes don't have tracker.
           if (measureMapper) {
             const tmpStaff = this.staves.find((ss) => ss.staffId === vv.smoMeasure.measureNumber.staffId);
-            measureMapper.mapMeasure(tmpStaff, vv.smoMeasure);
+            measureMapper.mapMeasure(tmpStaff, vv.smoMeasure, printing);
           }
         }
       });
@@ -10299,6 +10299,9 @@ class SmoMeasure {
     measure.voices.push({
       notes: SmoMeasure.getDefaultNotes(params)
     });
+    // fix a bug.
+    // new measures only have 1 voice, make sure active voice is 0
+    measure.activeVoice = 0;
     return measure;
   }
 
@@ -11367,9 +11370,6 @@ class SmoNote {
   constructor(params) {
     Vex.Merge(this, SmoNote.defaults);
     smoSerialize.serializedMerge(SmoNote.parameterArray, params, this);
-
-    // this.keys=JSON.parse(JSON.stringify(this.keys));
-
     if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),
@@ -11381,7 +11381,8 @@ class SmoNote {
     return { auto: 0, up: 1, down: 2 };
   }
   static get parameterArray() {
-    return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef', 'endBeam', 'beamBeats', 'flagState', 'noteHead'];
+    return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef',
+      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden'];
   }
 
   toggleFlagState() {
@@ -11605,9 +11606,12 @@ class SmoNote {
     this.pitches.push(smoMusic.getKeyOffset(pitch, offset));
     SmoNote._sortPitches(this);
   }
+  toggleRest() {
+    this.noteType = (this.noteType === 'r' ? 'n' : 'r');
+  }
 
   makeRest() {
-    this.noteType = (this.noteType === 'r' ? 'n' : 'r');
+    this.noteType = 'r';
   }
   isRest() {
     return this.noteType === 'r';
@@ -11615,6 +11619,9 @@ class SmoNote {
 
   makeNote() {
     this.noteType = 'n';
+    // clear fill style if we were hiding rests
+    this.fillStyle = '';
+    this.hidden = false;
   }
 
   get isTuplet() {
@@ -11739,6 +11746,8 @@ class SmoNote {
       ornaments: [],
       tones: [],
       endBeam: false,
+      fillStyle: '',
+      hidden: false,
       beamBeats: 4096,
       flagState: SmoNote.flagStates.auto,
       ticks: {
@@ -14871,6 +14880,10 @@ class smoTickIterator {
 
         Vex.Merge(this, options);
         this.voice = typeof(options['voice']) == 'number' ? options.voice : measure.activeVoice;
+        if (measure.voices.length <= this.voice) {
+          console.warn('tickmap for invalid voice');
+          return;
+        }
         this.notes = measure.voices[this.voice].notes;
         this.index = 0;
         this.startIndex = 0;
@@ -15380,9 +15393,11 @@ class SmoOperation {
   static addStaffModifier(selection, modifier) {
     selection.staff.addStaffModifier(modifier);
   }
+  static toggleRest(selection) {
+    selection.note.toggleRest();
+  }
 
   static makeRest(selection) {
-    selection.measure.setChanged();
     selection.note.makeRest();
   }
   static makeNote(selection) {
@@ -15626,6 +15641,10 @@ class SmoOperation {
   static setPitch(selection, pitches) {
     var measure = selection.measure;
     var note = selection.note;
+    if (typeof(note) === 'undefined') {
+      console.warn('set Pitch on invalid note');
+      return;
+    }
     selection.note.makeNote();
     measure.setChanged();
     // TODO allow hint for octave
@@ -32888,577 +32907,585 @@ class SmoTranslationEditor {
 }
 ;class defaultEditorKeys {
 
-	static get keys() {
-		return [{
-				event: "keydown",
-				key: "=",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "transposeUp"
-			}, {
-				event: "keydown",
-				key: "-",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "transposeDown"
-			}, {
-				event: "keydown",
-				key: "+",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "upOctave"
-			}, {
-				event: "keydown",
-				key: "_",
-				ctrlKey:false,
-				altKey: false,
-				shiftKey: true,
-				action: "downOctave"
-			}, {
-				event: "keydown",
-				key: "F",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "toggleCourtesyAccidental"
-			}, {
-				event: "keydown",
-				key: ".",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "doubleDuration"
-			}, {
-				event: "keydown",
-				key: ",",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "halveDuration"
-			}, {
-				event: "keydown",
-				key: ">",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "dotDuration"
-			}, {
-				event: "keydown",
-				key: "<",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "undotDuration"
-			}, {
-				event: "keydown",
-				key: "a",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "setPitch"
-			}, {
-				event: "keydown",
-				key: "A",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "slashGraceNotes"
-			}, {
-				event: "keydown",
-				key: "b",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "setPitch"
-			}, {
-				event: "keydown",
-				key: "G",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "addGraceNote"
-			}, {
-				event: "keydown",
-				key: "g",
-				ctrlKey: false,
-				altKey: true,
-				shiftKey: false,
-				action: "removeGraceNote"
-			}, {
-				event: "keydown",
-				key: "c",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "setPitch"
-			}, {
-				event: "keydown",
-				key: "d",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "setPitch"
-			}, {
-				event: "keydown",
-				key: "e",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "setPitch"
-			}, {
-				event: "keydown",
-				key: "f",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "setPitch"
-			}, {
-				event: "keydown",
-				key: "g",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "setPitch"
-			}, {
-				event: "keydown",
-				key: "r",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "makeRest"
-			}, {
-				event: "keydown",
-				key: "r",
-				ctrlKey: false,
-				altKey: true,
-				shiftKey: false,
-				action: "rerender"
-			}, {
-				event: "keydown",
-				key: "p",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "playScore"
-			}, {
-				event: "keydown",
-				key: "P",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "pausePlayer"
-			},
+  static get keys() {
+    return [{
+        event: "keydown",
+        key: "=",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "transposeUp"
+      }, {
+        event: "keydown",
+        key: "-",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "transposeDown"
+      }, {
+        event: "keydown",
+        key: "+",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "upOctave"
+      }, {
+        event: "keydown",
+        key: "_",
+        ctrlKey:false,
+        altKey: false,
+        shiftKey: true,
+        action: "downOctave"
+      }, {
+        event: "keydown",
+        key: "F",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "toggleCourtesyAccidental"
+      }, {
+        event: "keydown",
+        key: ".",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "doubleDuration"
+      }, {
+        event: "keydown",
+        key: ",",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "halveDuration"
+      }, {
+        event: "keydown",
+        key: ">",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "dotDuration"
+      }, {
+        event: "keydown",
+        key: "<",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "undotDuration"
+      }, {
+        event: "keydown",
+        key: "a",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "setPitch"
+      }, {
+        event: "keydown",
+        key: "A",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "slashGraceNotes"
+      }, {
+        event: "keydown",
+        key: "b",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "setPitch"
+      }, {
+        event: "keydown",
+        key: "G",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "addGraceNote"
+      }, {
+        event: "keydown",
+        key: "g",
+        ctrlKey: false,
+        altKey: true,
+        shiftKey: false,
+        action: "removeGraceNote"
+      }, {
+        event: "keydown",
+        key: "c",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "setPitch"
+      }, {
+        event: "keydown",
+        key: "d",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "setPitch"
+      }, {
+        event: "keydown",
+        key: "e",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "setPitch"
+      }, {
+        event: "keydown",
+        key: "f",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "setPitch"
+      }, {
+        event: "keydown",
+        key: "g",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "setPitch"
+      }, {
+        event: "keydown",
+        key: "r",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "makeRest"
+      }, {
+        event: "keydown",
+        key: "r",
+        ctrlKey: false,
+        altKey: true,
+        shiftKey: false,
+        action: "rerender"
+      }, {
+        event: "keydown",
+        key: "p",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "playScore"
+      }, {
+        event: "keydown",
+        key: "P",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "pausePlayer"
+      },
             {
-				event: "keydown",
-				key: "s",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "stopPlayer"
-			},             {
-				event: "keydown",
-				key: "t",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "tempoDialog"
-			},
-			{
-				event: "keydown",
-				key: "3",
-				ctrlKey: true,
-				altKey: false,
-				shiftKey: false,
-				action: "makeTuplet"
-			}, {
-				event: "keydown",
-				key: "5",
-				ctrlKey: true,
-				altKey: false,
-				shiftKey: false,
-				action: "makeTuplet"
-			}, {
-				event: "keydown",
-				key: "7",
-				ctrlKey: true,
-				altKey: false,
-				shiftKey: false,
-				action: "makeTuplet"
-			},
-			// interval commands
-			{
-				event: "keydown",
-				key: "2",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "interval"
-			}, {
-				event: "keydown",
-				key: "3",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "interval"
-			}, {
-				event: "keydown",
-				key: "4",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "interval"
-			}, {
-				event: "keydown",
-				key: "5",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "interval"
-			}, {
-				event: "keydown",
-				key: "6",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "interval"
-			}, {
-				event: "keydown",
-				key: "7",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "interval"
-			}, {
-				event: "keydown",
-				key: "8",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "interval"
-			}, {
-				event: "keydown",
-				key: "@",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "interval"
-			}, {
-				event: "keydown",
-				key: "$",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "interval"
-			}, {
-				event: "keydown",
-				key: "#",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "interval"
-			}, {
-				event: "keydown",
-				key: "%",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "interval"
-			}, {
-				event: "keydown",
-				key: "^",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "interval"
-			}, {
-				event: "keydown",
-				key: "&",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "interval"
-			}, {
-				event: "keydown",
-				key: "*",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "interval"
-			}, {
-				event: "keydown",
-				key: "8",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "interval"
-			}, {
-				event: "keydown",
-				key: "0",
-				ctrlKey: true,
-				altKey: false,
-				shiftKey: false,
-				action: "unmakeTuplet"
-			}, {
-				event: "keydown",
-				key: "Insert",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "addMeasure"
-			},{
-				event: "keydown",
-				key: "Insert",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "addMeasure"
-			}, {
-				event: "keydown",
-				key: "i",
-				ctrlKey: true,
-				altKey: false,
-				shiftKey: false,
-				action: "addMeasure"
-			}, {
-				event: "keydown",
-				key: "I",
-				ctrlKey: true,
-				altKey: false,
-				shiftKey: true,
-				action: "addMeasure"
-			}, {
-				event: "keydown",
-				key: "B",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "toggleBeamDirection"
-			}, {
-				event: "keydown",
-				key: "Delete",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "deleteMeasure"
-			}, {
-				event: "keydown",
-				key: "d",
-				ctrlKey: true,
-				altKey: false,
-				shiftKey: false,
-				action: "deleteMeasure"
-			}, {
-				event: "keydown",
-				key: "z",
-				ctrlKey: true,
-				altKey: false,
-				shiftKey: false,
-				action: "undo"
-			}, {
-				event: "keydown",
-				key: "c",
-				ctrlKey: true,
-				altKey: false,
-				shiftKey: false,
-				action: "copy"
-			}, {
-				event: "keydown",
-				key: "x",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "toggleBeamGroup"
-			}, {
-				event: "keydown",
-				key: "X",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "beamSelections"
-			},{
-				event: "keydown",
-				key: "v",
-				ctrlKey: true,
-				altKey: false,
-				shiftKey: false,
-				action: "paste"
-			}, {
-				event: "keydown",
-				key: "h",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "addRemoveArticulation"
-			}, {
-				event: "keydown",
-				key: "i",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "addRemoveArticulation"
-			}, {
-				event: "keydown",
-				key: "j",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "addRemoveArticulation"
-			}, {
-				event: "keydown",
-				key: "k",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "addRemoveArticulation"
-			}, {
-				event: "keydown",
-				key: "l",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "addRemoveArticulation"
-			}, {
-				event: "keydown",
-				key: "H",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "addRemoveArticulation"
-			}, {
-				event: "keydown",
-				key: "I",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "addRemoveArticulation"
-			}, {
-				event: "keydown",
-				key: "J",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "addRemoveArticulation"
-			}, {
-				event: "keydown",
-				key: "K",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "addRemoveArticulation"
-			}, {
-				event: "keydown",
-				key: "L",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "addRemoveArticulation"
-			},{
-				event: "keydown",
-				key: "E",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "toggleEnharmonic"
-			}
-		];
-	}
+        event: "keydown",
+        key: "s",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "stopPlayer"
+      },             {
+        event: "keydown",
+        key: "t",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "tempoDialog"
+      },
+      {
+        event: "keydown",
+        key: "3",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: false,
+        action: "makeTuplet"
+      }, {
+        event: "keydown",
+        key: "5",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: false,
+        action: "makeTuplet"
+      }, {
+        event: "keydown",
+        key: "7",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: false,
+        action: "makeTuplet"
+      },
+      // interval commands
+      {
+        event: "keydown",
+        key: "2",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "interval"
+      }, {
+        event: "keydown",
+        key: "3",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "interval"
+      }, {
+        event: "keydown",
+        key: "4",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "interval"
+      }, {
+        event: "keydown",
+        key: "5",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "interval"
+      }, {
+        event: "keydown",
+        key: "6",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "interval"
+      }, {
+        event: "keydown",
+        key: "7",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "interval"
+      }, {
+        event: "keydown",
+        key: "8",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "interval"
+      }, {
+        event: "keydown",
+        key: "@",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "interval"
+      }, {
+        event: "keydown",
+        key: "$",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "interval"
+      }, {
+        event: "keydown",
+        key: "#",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "interval"
+      }, {
+        event: "keydown",
+        key: "%",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "interval"
+      }, {
+        event: "keydown",
+        key: "^",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "interval"
+      }, {
+        event: "keydown",
+        key: "&",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "interval"
+      }, {
+        event: "keydown",
+        key: "*",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "interval"
+      }, {
+        event: "keydown",
+        key: "8",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "interval"
+      }, {
+        event: "keydown",
+        key: "0",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: false,
+        action: "unmakeTuplet"
+      }, {
+        event: "keydown",
+        key: "Insert",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "addMeasure"
+      },{
+        event: "keydown",
+        key: "Insert",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "addMeasure"
+      }, {
+        event: "keydown",
+        key: "i",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: false,
+        action: "addMeasure"
+      }, {
+        event: "keydown",
+        key: "I",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: true,
+        action: "addMeasure"
+      }, {
+        event: "keydown",
+        key: "B",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "toggleBeamDirection"
+      }, {
+        event: "keydown",
+        key: "Delete",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "deleteNote"
+      }, {
+        event: "keydown",
+        key: "d",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: false,
+        action: "deleteNote"
+      }, {
+        event: "keydown",
+        key: "z",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: false,
+        action: "undo"
+      }, {
+        event: "keydown",
+        key: "c",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: false,
+        action: "copy"
+      }, {
+        event: "keydown",
+        key: "x",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "toggleBeamGroup"
+      }, {
+        event: "keydown",
+        key: "X",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "beamSelections"
+      },{
+        event: "keydown",
+        key: "v",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: false,
+        action: "paste"
+      }, {
+        event: "keydown",
+        key: "h",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "addRemoveArticulation"
+      }, {
+        event: "keydown",
+        key: "i",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "addRemoveArticulation"
+      }, {
+        event: "keydown",
+        key: "j",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "addRemoveArticulation"
+      }, {
+        event: "keydown",
+        key: "k",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "addRemoveArticulation"
+      }, {
+        event: "keydown",
+        key: "l",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "addRemoveArticulation"
+      }, {
+        event: "keydown",
+        key: "H",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "addRemoveArticulation"
+      }, {
+        event: "keydown",
+        key: "I",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "addRemoveArticulation"
+      }, {
+        event: "keydown",
+        key: "J",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "addRemoveArticulation"
+      }, {
+        event: "keydown",
+        key: "K",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "addRemoveArticulation"
+      }, {
+        event: "keydown",
+        key: "L",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "addRemoveArticulation"
+      },{
+        event: "keydown",
+        key: "E",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "toggleEnharmonic"
+      }
+    ];
+  }
 
 }
 ;
 class defaultTrackerKeys {
-	
-	static get keys() {
-		return [{
-				event: "keydown",
-				key: "ArrowRight",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "moveSelectionRight"
-			}, {
-				event: "keydown",
-				key: "ArrowRight",
-				ctrlKey: false,
-				altKey: true,
-				shiftKey: false,
-				action: "advanceModifierSelection"
-			}, {
-				event: "keydown",
-				key: "ArrowLeft",
-				ctrlKey: false,
-				altKey: true,
-				shiftKey: false,
-				action: "advanceModifierSelection"
-			},{
-				event: "keydown",
-				key: "ArrowLeft",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "moveSelectionLeft"
-			}, {
-				event: "keydown",
-				key: "ArrowRight",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "growSelectionRight"
-			}, {
-				event: "keydown",
-				key: "ArrowLeft",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "growSelectionLeft"
-			}, {
-				event: "keydown",
-				key: "ArrowUp",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "moveSelectionUp"
-			}, {
-				event: "keydown",
-				key: "ArrowDown",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: false,
-				action: "moveSelectionDown"
-			}, {
-				event: "keydown",
-				key: "ArrowRight",
-				ctrlKey: true,
-				altKey: false,
-				shiftKey: false,
-				action: "moveSelectionRightMeasure"
-			}, {
-				event: "keydown",
-				key: "ArrowLeft",
-				ctrlKey: true,
-				altKey: false,
-				shiftKey: false,
-				action: "moveSelectionLeftMeasure"
-			},{
-				event: "keydown",
-				key: "ArrowUp",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "moveSelectionPitchUp"
-			},{
-				event: "keydown",
-				key: "ArrowDown",
-				ctrlKey: false,
-				altKey: false,
-				shiftKey: true,
-				action: "moveSelectionPitchDown"
-			}
-			];
-	}
-};
+
+  static get keys() {
+    return [{
+        event: "keydown",
+        key: "ArrowRight",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "moveSelectionRight"
+      }, {
+        event: "keydown",
+        key: "ArrowRight",
+        ctrlKey: false,
+        altKey: true,
+        shiftKey: false,
+        action: "advanceModifierSelection"
+      }, {
+        event: "keydown",
+        key: "ArrowLeft",
+        ctrlKey: false,
+        altKey: true,
+        shiftKey: false,
+        action: "advanceModifierSelection"
+      },{
+        event: "keydown",
+        key: "ArrowLeft",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "moveSelectionLeft"
+      }, {
+        event: "keydown",
+        key: "ArrowRight",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "growSelectionRight"
+      }, {
+        event: "keydown",
+        key: "ArrowRight",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: true,
+        action: "growSelectionRightMeasure"
+      }, {
+        event: "keydown",
+        key: "ArrowLeft",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "growSelectionLeft"
+      }, {
+        event: "keydown",
+        key: "ArrowUp",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "moveSelectionUp"
+      }, {
+        event: "keydown",
+        key: "ArrowDown",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "moveSelectionDown"
+      }, {
+        event: "keydown",
+        key: "ArrowRight",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: false,
+        action: "moveSelectionRightMeasure"
+      }, {
+        event: "keydown",
+        key: "ArrowLeft",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: false,
+        action: "moveSelectionLeftMeasure"
+      },{
+        event: "keydown",
+        key: "ArrowUp",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "moveSelectionPitchUp"
+      },{
+        event: "keydown",
+        key: "ArrowDown",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "moveSelectionPitchDown"
+      }
+      ];
+  }
+}
+;
 
 // ## suiEditor
 // KeyCommands object handles key events and converts them into commands, updating the score and
@@ -33588,8 +33615,8 @@ class SuiKeyCommands {
   addMeasure(keyEvent) {
     this.view.addMeasure(keyEvent.shiftKey);
   }
-  deleteMeasure() {
-   this.view.deleteMeasure();
+  deleteNote() {
+   this.view.deleteNote();
   }
 
   toggleCourtesyAccidental() {

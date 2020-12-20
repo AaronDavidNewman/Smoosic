@@ -23,7 +23,7 @@ class SmoNote {
   }
   static get parameterArray() {
     return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef',
-      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle'];
+      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden'];
   }
 
   toggleFlagState() {
@@ -247,9 +247,12 @@ class SmoNote {
     this.pitches.push(smoMusic.getKeyOffset(pitch, offset));
     SmoNote._sortPitches(this);
   }
+  toggleRest() {
+    this.noteType = (this.noteType === 'r' ? 'n' : 'r');
+  }
 
   makeRest() {
-    this.noteType = (this.noteType === 'r' ? 'n' : 'r');
+    this.noteType = 'r';
   }
   isRest() {
     return this.noteType === 'r';
@@ -259,6 +262,7 @@ class SmoNote {
     this.noteType = 'n';
     // clear fill style if we were hiding rests
     this.fillStyle = '';
+    this.hidden = false;
   }
 
   get isTuplet() {
@@ -384,6 +388,7 @@ class SmoNote {
       tones: [],
       endBeam: false,
       fillStyle: '',
+      hidden: false,
       beamBeats: 4096,
       flagState: SmoNote.flagStates.auto,
       ticks: {

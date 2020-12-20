@@ -5012,8 +5012,19 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._undoFirstMeasureSelection('delete note');
     const sel = this.tracker.selections[0];
     const altSel = this._getEquivalentSelection(sel);
-    sel.note.makeRest();
-    altSel.note.makeRest();
+    if (sel.note.isRest() && !sel.note.hidden) {
+      sel.note.fillStyle = '#eee';
+      sel.note.hidden = true;
+      altSel.note.fillStyle = '#eee';
+      altSel.note.hidden = true;
+    } else {
+      sel.note.makeRest();
+      altSel.note.makeRest();
+      altSel.note.fillStyle = '';
+      sel.note.fillStyle = '';
+      altSel.note.hidden = false;
+      sel.note.hidden = false;
+    }
     this.renderer.addToReplaceQueue(sel);
   }
   // ### removeLyric
@@ -5341,9 +5352,9 @@ class SuiScoreViewOperations extends SuiScoreView {
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('make rest');
     selections.forEach((selection) => {
-      SmoOperation.makeRest(selection);
+      SmoOperation.toggleRest(selection);
       const altSel = this._getEquivalentSelection(selection);
-      SmoOperation.makeRest(altSel);
+      SmoOperation.toggleRest(altSel);
     });
     this._renderChangedMeasures(measureSelections);
   }
@@ -8902,7 +8913,8 @@ class VxMeasure {
   static get defaults() {
     // var defaultLayout = new smrfSimpleLayout();
     return {
-      smoMeasure: null
+      smoMeasure: null,
+      printing: false
     };
   }
   addCustomModifier(ctor, parameters) {
@@ -9070,6 +9082,7 @@ class VxMeasure {
   // ## Description:
   // convert a smoNote into a vxNote so it can be rasterized
   _createVexNote(smoNote, tickIndex, voiceIx, x_shift) {
+    let vexNote = {};
     // If this is a tuplet, we only get the duration so the appropriate stem
     // can be rendered.  Vex calculates the actual ticks later when the tuplet is made
     var duration =
@@ -9090,9 +9103,13 @@ class VxMeasure {
     };
 
     this.applyStemDirection(noteParams, voiceIx, smoNote.flagState);
-    const vexNote = new VF.StaveNote(noteParams);
-    if (smoNote.fillStyle) {
-      vexNote.setStyle({ fillStyle: smoNote.fillStyle });
+    if (smoNote.hidden && this.printing) {
+      vexNote = new VF.GhostNote(noteParams);
+    } else {
+      vexNote = new VF.StaveNote(noteParams);
+      if (smoNote.fillStyle) {
+        vexNote.setStyle({ fillStyle: smoNote.fillStyle });
+      }
     }
     vexNote.attrs.classes = 'voice-' + voiceIx;
     if (smoNote.tickCount >= 4096) {
@@ -9296,19 +9313,20 @@ class VxMeasure {
     this.smoMeasure.voices.forEach((voice) => {
       voice.notes.forEach((smoNote) =>  {
         var el = this.context.svg.getElementById(smoNote.renderId);
-        svgHelpers.updateArtifactBox(this.context.svg, el, smoNote);
-
-        // TODO: fix this, only works on the first line.
-        smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-          if (lyric.selector) {
-            svgHelpers.updateArtifactBox(this.context.svg, $(lyric.selector)[0], lyric);
-          }
-        });
-        smoNote.graceNotes.forEach((g) => {
-          var gel = this.context.svg.getElementById('vf-' + g.renderedId);
-          $(gel).addClass('grace-note');
-          svgHelpers.updateArtifactBox(this.context.svg, gel, g);
-        });
+        if (el) {
+          svgHelpers.updateArtifactBox(this.context.svg, el, smoNote);
+          // TODO: fix this, only works on the first line.
+          smoNote.getModifiers('SmoLyric').forEach((lyric) => {
+            if (lyric.selector) {
+              svgHelpers.updateArtifactBox(this.context.svg, $(lyric.selector)[0], lyric);
+            }
+          });
+          smoNote.graceNotes.forEach((g) => {
+            var gel = this.context.svg.getElementById('vf-' + g.renderedId);
+            $(gel).addClass('grace-note');
+            svgHelpers.updateArtifactBox(this.context.svg, gel, g);
+          });
+        }
       });
     });
   }
@@ -9721,7 +9739,7 @@ class VxSystem {
       this.staves.push(staff);
     }
 
-    const vxMeasure = new VxMeasure(this.context, { selection });
+    const vxMeasure = new VxMeasure(this.context, { selection, printing });
 
     // create the vex notes, beam groups etc. for the measure
     vxMeasure.preFormat();
@@ -11364,7 +11382,7 @@ class SmoNote {
   }
   static get parameterArray() {
     return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef',
-      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle'];
+      'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden'];
   }
 
   toggleFlagState() {
@@ -11588,9 +11606,12 @@ class SmoNote {
     this.pitches.push(smoMusic.getKeyOffset(pitch, offset));
     SmoNote._sortPitches(this);
   }
+  toggleRest() {
+    this.noteType = (this.noteType === 'r' ? 'n' : 'r');
+  }
 
   makeRest() {
-    this.noteType = (this.noteType === 'r' ? 'n' : 'r');
+    this.noteType = 'r';
   }
   isRest() {
     return this.noteType === 'r';
@@ -11600,6 +11621,7 @@ class SmoNote {
     this.noteType = 'n';
     // clear fill style if we were hiding rests
     this.fillStyle = '';
+    this.hidden = false;
   }
 
   get isTuplet() {
@@ -11725,6 +11747,7 @@ class SmoNote {
       tones: [],
       endBeam: false,
       fillStyle: '',
+      hidden: false,
       beamBeats: 4096,
       flagState: SmoNote.flagStates.auto,
       ticks: {
@@ -15370,9 +15393,11 @@ class SmoOperation {
   static addStaffModifier(selection, modifier) {
     selection.staff.addStaffModifier(modifier);
   }
+  static toggleRest(selection) {
+    selection.note.toggleRest();
+  }
 
   static makeRest(selection) {
-    selection.measure.setChanged();
     selection.note.makeRest();
   }
   static makeNote(selection) {

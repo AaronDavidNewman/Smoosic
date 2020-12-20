@@ -304,9 +304,11 @@ class SmoOperation {
   static addStaffModifier(selection, modifier) {
     selection.staff.addStaffModifier(modifier);
   }
+  static toggleRest(selection) {
+    selection.note.toggleRest();
+  }
 
   static makeRest(selection) {
-    selection.measure.setChanged();
     selection.note.makeRest();
   }
   static makeNote(selection) {
