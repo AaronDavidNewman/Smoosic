@@ -35,18 +35,134 @@ class CheckboxDropdownComponent extends SuiComponentBase {
   }
 }
 
+class StaffAddRemoveComponent extends SuiComponentBase {
+  get parameterId() {
+    return this.dialog.id + '-' + this.parameterName;
+  }
+  constructor(dialog, parameter) {
+    let i = 0;
+    super(parameter);
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+
+    this.dialog = dialog;
+    this.view = this.dialog.view;
+    this.createdShell = false;
+    this.staffRows = [];
+    this.label = SuiDialogBase.getStaticText(SuiStaffGroupDialog.dialogElements, 'includeStaff');
+  }
+  setControlRows() {
+    let i = this.modifier.startSelector.staff;
+    this.staffRows = [];
+    this.view.storeScore.staves.forEach((staff) => {
+      const name = this.label + ' ' + (staff.staffId + 1);
+      const id = 'show-' + i;
+      // Toggle add of last row + 1
+      if (staff.staffId === this.modifier.endSelector.staff + 1) {
+        const rowElement = new SuiToggleComposite(this.dialog, {
+          smoName: id,
+          parameterName: id,
+          defaultValue: false,
+          classes: 'toggle-add-row',
+          control: 'SuiToggleComponent',
+          label: name
+        });
+        rowElement.parentControl = this;
+        this.staffRows.push({
+          showCtrl: rowElement
+        });
+      } else if (staff.staffId > this.modifier.startSelector.staff &&
+        staff.staffId === this.modifier.endSelector.staff) {
+          // toggle remove of ultimate row, other than first row
+          const rowElement = new SuiToggleComposite(this.dialog, {
+            smoName: id,
+            parameterName: id,
+            defaultValue: true,
+            classes: 'toggle-remove-row',
+            control: 'SuiToggleComponent',
+            label: name
+          });
+        rowElement.parentControl = this;
+        this.staffRows.push({
+          showCtrl: rowElement
+        });
+      } else if ((staff.staffId <= this.modifier.endSelector.staff) &&
+        (staff.staffId >= this.modifier.startSelector.staff))
+      {
+        // toggle remove of ultimate row, other than first row
+        const rowElement = new SuiToggleComponent(this.dialog, {
+          smoName: id,
+          parameterName: id,
+          defaultValue: true,
+          classes: 'toggle-disabled',
+          control: 'SuiToggleComponent',
+          label: name
+        });
+      rowElement.parentControl = this;
+      this.staffRows.push({
+        showCtrl: rowElement
+      });
+      }
+      i += 1;
+    });
+  }
+  get html() {
+    const b = htmlHelpers.buildDom;
+    // a little hacky.  The first time we create an empty html shell for the control
+    // subsequent times, we fill the html with the row information
+    if (!this.createdShell) {
+      this.createdShell = true;
+      const q = b('div').classes(this.makeClasses('multiControl smoControl staffContainer')).attr('id',this.parameterId);
+      return q;
+    } else {
+      const q = b('div').classes(this.makeClasses('smoControl'));
+      this.staffRows.forEach((row) => {
+        q.append(row.showCtrl.html);
+      });
+      return q;
+    }
+  }
+  getInputElement() {
+    var pid = this.parameterId;
+    return $('#' + pid);
+  }
+  getValue() {
+    let nextStaff = this.modifier.startSelector.staff;
+    let i = 0;
+    const maxMeasure = this.modifier.endSelector.measure;
+    const maxStaff = this.modifier.endSelector.staff;
+    this.modifier.endSelector = JSON.parse(JSON.stringify(this.modifier.startSelector));
+    this.staffRows.forEach((staffRow) => {
+      if (this.staffRows[i].showCtrl.getValue()) {
+        this.modifier.endSelector = { staff: nextStaff, measure: maxMeasure };
+        nextStaff += 1;
+      }
+      i += 1;
+    });
+    return this.modifier;
+  }
+  setValue(staffGroup) {
+    this.modifier = staffGroup; // would this be used?
+    this.setControlRows();
+  }
+  changed() {
+    this.getValue(); // update modifier
+    this.handleChanged();
+    this.setControlRows();
+  }
+  bind() {
+    this.staffRows.forEach((row) => {
+      row.showCtrl.bind();
+    });
+  }
+}
+
 class StaffCheckComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     let i = 0;
     super(parameter);
     smoSerialize.filteredMerge(
       ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
-    }
-    if (!this.dataType) {
-      this.dataType = 'string';
-    }
     this.dialog = dialog;
     this.view = this.dialog.view;
     this.staffRows = [];

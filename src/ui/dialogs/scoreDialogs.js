@@ -83,6 +83,138 @@ class SuiScoreViewDialog extends SuiDialogBase {
 }
 
 // eslint-disable-next-line no-unused-vars
+class SuiStaffGroupDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiStaffGroupDialog';
+  }
+  get ctor() {
+    return SuiStaffGroupDialog.ctor;
+  }
+  static get dialogElements() {
+    SuiStaffGroupDialog._dialogElements = typeof(SuiStaffGroupDialog._dialogElements)
+      !== 'undefined' ? SuiStaffGroupDialog._dialogElements :
+      [{
+        smoName: 'staffGroups',
+        parameterName: 'staffGroups',
+        defaultValue: {},
+        control: 'StaffAddRemoveComponent',
+        label: 'Staves in Group',
+      }, {
+        smoName: 'leftConnector',
+        parameterName: 'leftConnector',
+        defaultValue: SmoScore.pageSizes.letter,
+        control: 'SuiDropdownComponent',
+        label: 'Left Connector',
+        options: [
+          {
+            value: SmoSystemGroup.connectorTypes.bracket,
+            label: 'Bracket'
+          }, {
+            value: SmoSystemGroup.connectorTypes.brace,
+            label: 'Brace'
+          }, {
+            value: SmoSystemGroup.connectorTypes.single,
+            label: 'Single'
+          }, {
+            value: SmoSystemGroup.connectorTypes.double,
+            label: 'Double'
+          }]
+      }, {
+        staticText: [
+          { label: 'Staff Group' },
+          { includeStaff: 'Include Staff' }
+        ]
+      }];
+    return SuiStaffGroupDialog._dialogElements;
+  }
+  static createAndDisplay(parameters) {
+    const dg = new SuiStaffGroupDialog(parameters);
+    dg.display();
+  }
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    const cb = () => {};
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.icon-move'),
+      animateDiv: '.draganime',
+      cb,
+      moveParent: true
+    });
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(this);
+    };
+    this.startPromise.then(getKeys);
+    this._bindElements();
+    this.staffGroupsCtrl.setValue(this.modifier);
+    this.leftConnectorCtrl.setValue(this.modifier.leftConnector);
+    this._updateGroupMembership();
+    const box = svgHelpers.boxPoints(250, 250, 1, 1);
+    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+  }
+  _bindElements() {
+    const dgDom = this.dgDom;
+
+    this._bindComponentNames();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.complete();
+    });
+
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.complete();
+    });
+
+    $(dgDom.element).find('.remove-button').remove();
+    this.bindKeyboard();
+  }
+  _updateGroupMembership() {
+    const updateEl = this.staffGroupsCtrl.getInputElement();
+    this.staffGroupsCtrl.setControlRows();
+    $(updateEl).html('');
+    $(updateEl).append(this.staffGroupsCtrl.html.dom());
+    this.staffGroupsCtrl.bind();
+    $(this.staffGroupsCtrl.getInputElement()).find('input').prop('disabled', false);
+    $(this.staffGroupsCtrl.getInputElement()).find('.toggle-disabled input').prop('disabled', true);
+  }
+
+  changed() {
+    if (this.leftConnectorCtrl.changeFlag) {
+      this.modifier.leftConnector = parseInt(this.leftConnectorCtrl.getValue(), 10);
+    }
+    if (this.staffGroupsCtrl.changeFlag) {
+      // Recreate the new staff group with updated values
+      this._updateGroupMembership();
+    }
+    this.view.addOrUpdateStaffGroup(this.modifier);
+  }
+  constructor(parameters) {
+    var p = parameters;
+    super(SuiStaffGroupDialog.dialogElements, {
+      id: 'dialog-layout',
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
+      ...parameters
+    });
+    this.startPromise = p.startPromise;
+    const measureCount = this.view.score.staves[0].measures.length;
+    const selection = this.view.tracker.selections[0];
+    // Reset the view so we can see all the staves
+    this.view.setView(this.view.defaultStaffMap);
+    this.modifier = this.view.score.getSystemGroupForStaff(selection);
+    if (!this.modifier) {
+      this.modifier = new SmoSystemGroup({
+        mapType: SmoSystemGroup.mapTypes.allMeasures,
+        startSelector: { staff: selection.selector.staff, measure: 0 },
+        endSelector: { staff: selection.selector.staff, measure: measureCount - 1 }
+      });
+    }
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
 class SuiScorePreferencesDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiScorePreferencesDialog';

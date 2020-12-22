@@ -36,6 +36,16 @@ class SmoSystemGroup extends SmoScoreModifierBase {
       };
     }
   }
+  static get connectorTypes() {
+    return { brace: 0, bracket: 1, single: 2, double: 3 };
+  }
+  static get mapTypes() {
+    return { allMeasures: 0, range: 1 };
+  }
+  static get attributes() {
+    return ['leftConnector', 'rightConnector', 'text', 'shortText', 'justify',
+      'startSelector', 'endSelector', 'mapType'];
+  }
   static get defaults() {
     return {
       leftConnector: SmoSystemGroup.connectorTypes.single,
@@ -82,16 +92,6 @@ class SmoSystemGroup extends SmoScoreModifierBase {
       default:
         return StaveConnector.type.DOUBLE_RIGHT;
     }
-  }
-  static get connectorTypes() {
-    return { brace: 0, bracket: 1, single: 2, double: 3 };
-  }
-  static get mapTypes() {
-    return { allMeasures: 0, range: 1 };
-  }
-  static get attributes() {
-    return ['leftConnector', 'rightConnector', 'text', 'shortText', 'justify',
-      'startSelector', 'endSelector', 'mapType'];
   }
   serialize() {
     const params = {};

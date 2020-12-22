@@ -916,6 +916,10 @@ class SuiAddStaffMenu extends suiMenuBase {
           text: 'Tenor Clef Staff',
           value: 'tenorInstrument'
         }, {
+          icon: '',
+          text: 'Staff Groups',
+          value: 'staffGroups'
+        }, {
           icon: 'cancel-circle',
           text: 'Remove Staff',
           value: 'remove'
@@ -968,10 +972,25 @@ class SuiAddStaffMenu extends suiMenuBase {
       }
     };
   }
+  execStaffGroups() {
+    SuiStaffGroupDialog.createAndDisplay(
+      {
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        completeNotifier: this.completeNotifier,
+        view: this.view,
+        startPromise: this.closePromise
+      }
+    );
+  }
+
   selection(ev) {
     const op = $(ev.currentTarget).attr('data-value');
     if (op === 'remove') {
       this.view.removeStaff();
+      this.complete();
+    } else if (op === 'staffGroups') {
+      this.execStaffGroups();
       this.complete();
     } else if (op === 'cancel') {
       this.complete();

@@ -41,6 +41,13 @@ class SuiDialogBase {
     return ['eventSource', 'view',
       'completeNotifier', 'keyCommands', 'modifier'];
   }
+  static getStaticText(dialogElements, label) {
+    const rv = dialogElements.find((x) => x.staticText).staticText.find((x) => x[label]);
+    if (rv !== null && rv[label]) {
+      return rv[label];
+    }
+    return 'text not found';
+  }
   // ### SuiDialogBase ctor
   // Creates the DOM element for the dialog and gets some initial elements
   constructor(dialogElements, parameters) {

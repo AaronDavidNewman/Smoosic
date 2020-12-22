@@ -5100,6 +5100,13 @@ class SuiScoreViewOperations extends SuiScoreView {
     const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
     this.changeScore(newScore);
   }
+  addOrUpdateStaffGroup(staffGroup) {
+    this._undoScore('group staves');
+    // Assume that the view is now set to full score
+    this.score.addOrReplaceSystemGroup(staffGroup);
+    this.storeScore.addOrReplaceSystemGroup(staffGroup);
+    this.renderer.setDirty();
+  }
   addStaffGroupDown(braceType) {
     this._undoScore('group staves');
     const ft = this._getEquivalentSelection(this.tracker.getExtremeSelection(-1));
@@ -12703,16 +12710,9 @@ class SmoScore {
   // Add a new staff grouping, or replace it if it overlaps and is different, or
   // remove it if it is identical (toggle)
   addOrReplaceSystemGroup(newGroup) {
-    let toAdd = true;
-    const existing = this.systemGroups.find((sg) => sg.overlaps(newGroup));
-    if (existing && existing.leftConnector === newGroup.leftConnector) {
-      toAdd = false;
-    }
     // Replace this group for any groups that overlap it.
     this.systemGroups = this.systemGroups.filter((sg) => !sg.overlaps(newGroup));
-    if (toAdd) {
-      this.systemGroups.push(newGroup);
-    }
+    this.systemGroups.push(newGroup);
   }
 
   // ### replace staff
@@ -12966,6 +12966,16 @@ class SmoSystemGroup extends SmoScoreModifierBase {
       };
     }
   }
+  static get connectorTypes() {
+    return { brace: 0, bracket: 1, single: 2, double: 3 };
+  }
+  static get mapTypes() {
+    return { allMeasures: 0, range: 1 };
+  }
+  static get attributes() {
+    return ['leftConnector', 'rightConnector', 'text', 'shortText', 'justify',
+      'startSelector', 'endSelector', 'mapType'];
+  }
   static get defaults() {
     return {
       leftConnector: SmoSystemGroup.connectorTypes.single,
@@ -13012,16 +13022,6 @@ class SmoSystemGroup extends SmoScoreModifierBase {
       default:
         return StaveConnector.type.DOUBLE_RIGHT;
     }
-  }
-  static get connectorTypes() {
-    return { brace: 0, bracket: 1, single: 2, double: 3 };
-  }
-  static get mapTypes() {
-    return { allMeasures: 0, range: 1 };
-  }
-  static get attributes() {
-    return ['leftConnector', 'rightConnector', 'text', 'shortText', 'justify',
-      'startSelector', 'endSelector', 'mapType'];
   }
   serialize() {
     const params = {};
@@ -24123,6 +24123,13 @@ class SuiDialogBase {
     return ['eventSource', 'view',
       'completeNotifier', 'keyCommands', 'modifier'];
   }
+  static getStaticText(dialogElements, label) {
+    const rv = dialogElements.find((x) => x.staticText).staticText.find((x) => x[label]);
+    if (rv !== null && rv[label]) {
+      return rv[label];
+    }
+    return 'text not found';
+  }
   // ### SuiDialogBase ctor
   // Creates the DOM element for the dialog and gets some initial elements
   constructor(dialogElements, parameters) {
@@ -26196,6 +26203,138 @@ class SuiScoreViewDialog extends SuiDialogBase {
 }
 
 // eslint-disable-next-line no-unused-vars
+class SuiStaffGroupDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiStaffGroupDialog';
+  }
+  get ctor() {
+    return SuiStaffGroupDialog.ctor;
+  }
+  static get dialogElements() {
+    SuiStaffGroupDialog._dialogElements = typeof(SuiStaffGroupDialog._dialogElements)
+      !== 'undefined' ? SuiStaffGroupDialog._dialogElements :
+      [{
+        smoName: 'staffGroups',
+        parameterName: 'staffGroups',
+        defaultValue: {},
+        control: 'StaffAddRemoveComponent',
+        label: 'Staves in Group',
+      }, {
+        smoName: 'leftConnector',
+        parameterName: 'leftConnector',
+        defaultValue: SmoScore.pageSizes.letter,
+        control: 'SuiDropdownComponent',
+        label: 'Left Connector',
+        options: [
+          {
+            value: SmoSystemGroup.connectorTypes.bracket,
+            label: 'Bracket'
+          }, {
+            value: SmoSystemGroup.connectorTypes.brace,
+            label: 'Brace'
+          }, {
+            value: SmoSystemGroup.connectorTypes.single,
+            label: 'Single'
+          }, {
+            value: SmoSystemGroup.connectorTypes.double,
+            label: 'Double'
+          }]
+      }, {
+        staticText: [
+          { label: 'Staff Group' },
+          { includeStaff: 'Include Staff' }
+        ]
+      }];
+    return SuiStaffGroupDialog._dialogElements;
+  }
+  static createAndDisplay(parameters) {
+    const dg = new SuiStaffGroupDialog(parameters);
+    dg.display();
+  }
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    const cb = () => {};
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.icon-move'),
+      animateDiv: '.draganime',
+      cb,
+      moveParent: true
+    });
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(this);
+    };
+    this.startPromise.then(getKeys);
+    this._bindElements();
+    this.staffGroupsCtrl.setValue(this.modifier);
+    this.leftConnectorCtrl.setValue(this.modifier.leftConnector);
+    this._updateGroupMembership();
+    const box = svgHelpers.boxPoints(250, 250, 1, 1);
+    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+  }
+  _bindElements() {
+    const dgDom = this.dgDom;
+
+    this._bindComponentNames();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.complete();
+    });
+
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.complete();
+    });
+
+    $(dgDom.element).find('.remove-button').remove();
+    this.bindKeyboard();
+  }
+  _updateGroupMembership() {
+    const updateEl = this.staffGroupsCtrl.getInputElement();
+    this.staffGroupsCtrl.setControlRows();
+    $(updateEl).html('');
+    $(updateEl).append(this.staffGroupsCtrl.html.dom());
+    this.staffGroupsCtrl.bind();
+    $(this.staffGroupsCtrl.getInputElement()).find('input').prop('disabled', false);
+    $(this.staffGroupsCtrl.getInputElement()).find('.toggle-disabled input').prop('disabled', true);
+  }
+
+  changed() {
+    if (this.leftConnectorCtrl.changeFlag) {
+      this.modifier.leftConnector = parseInt(this.leftConnectorCtrl.getValue(), 10);
+    }
+    if (this.staffGroupsCtrl.changeFlag) {
+      // Recreate the new staff group with updated values
+      this._updateGroupMembership();
+    }
+    this.view.addOrUpdateStaffGroup(this.modifier);
+  }
+  constructor(parameters) {
+    var p = parameters;
+    super(SuiStaffGroupDialog.dialogElements, {
+      id: 'dialog-layout',
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
+      ...parameters
+    });
+    this.startPromise = p.startPromise;
+    const measureCount = this.view.score.staves[0].measures.length;
+    const selection = this.view.tracker.selections[0];
+    // Reset the view so we can see all the staves
+    this.view.setView(this.view.defaultStaffMap);
+    this.modifier = this.view.score.getSystemGroupForStaff(selection);
+    if (!this.modifier) {
+      this.modifier = new SmoSystemGroup({
+        mapType: SmoSystemGroup.mapTypes.allMeasures,
+        startSelector: { staff: selection.selector.staff, measure: 0 },
+        endSelector: { staff: selection.selector.staff, measure: measureCount - 1 }
+      });
+    }
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
 class SuiScorePreferencesDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiScorePreferencesDialog';
@@ -26593,18 +26732,134 @@ class SuiLayoutDialog extends SuiDialogBase {
   }
 }
 
+class StaffAddRemoveComponent extends SuiComponentBase {
+  get parameterId() {
+    return this.dialog.id + '-' + this.parameterName;
+  }
+  constructor(dialog, parameter) {
+    let i = 0;
+    super(parameter);
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+
+    this.dialog = dialog;
+    this.view = this.dialog.view;
+    this.createdShell = false;
+    this.staffRows = [];
+    this.label = SuiDialogBase.getStaticText(SuiStaffGroupDialog.dialogElements, 'includeStaff');
+  }
+  setControlRows() {
+    let i = this.modifier.startSelector.staff;
+    this.staffRows = [];
+    this.view.storeScore.staves.forEach((staff) => {
+      const name = this.label + ' ' + (staff.staffId + 1);
+      const id = 'show-' + i;
+      // Toggle add of last row + 1
+      if (staff.staffId === this.modifier.endSelector.staff + 1) {
+        const rowElement = new SuiToggleComposite(this.dialog, {
+          smoName: id,
+          parameterName: id,
+          defaultValue: false,
+          classes: 'toggle-add-row',
+          control: 'SuiToggleComponent',
+          label: name
+        });
+        rowElement.parentControl = this;
+        this.staffRows.push({
+          showCtrl: rowElement
+        });
+      } else if (staff.staffId > this.modifier.startSelector.staff &&
+        staff.staffId === this.modifier.endSelector.staff) {
+          // toggle remove of ultimate row, other than first row
+          const rowElement = new SuiToggleComposite(this.dialog, {
+            smoName: id,
+            parameterName: id,
+            defaultValue: true,
+            classes: 'toggle-remove-row',
+            control: 'SuiToggleComponent',
+            label: name
+          });
+        rowElement.parentControl = this;
+        this.staffRows.push({
+          showCtrl: rowElement
+        });
+      } else if ((staff.staffId <= this.modifier.endSelector.staff) &&
+        (staff.staffId >= this.modifier.startSelector.staff))
+      {
+        // toggle remove of ultimate row, other than first row
+        const rowElement = new SuiToggleComponent(this.dialog, {
+          smoName: id,
+          parameterName: id,
+          defaultValue: true,
+          classes: 'toggle-disabled',
+          control: 'SuiToggleComponent',
+          label: name
+        });
+      rowElement.parentControl = this;
+      this.staffRows.push({
+        showCtrl: rowElement
+      });
+      }
+      i += 1;
+    });
+  }
+  get html() {
+    const b = htmlHelpers.buildDom;
+    // a little hacky.  The first time we create an empty html shell for the control
+    // subsequent times, we fill the html with the row information
+    if (!this.createdShell) {
+      this.createdShell = true;
+      const q = b('div').classes(this.makeClasses('multiControl smoControl staffContainer')).attr('id',this.parameterId);
+      return q;
+    } else {
+      const q = b('div').classes(this.makeClasses('smoControl'));
+      this.staffRows.forEach((row) => {
+        q.append(row.showCtrl.html);
+      });
+      return q;
+    }
+  }
+  getInputElement() {
+    var pid = this.parameterId;
+    return $('#' + pid);
+  }
+  getValue() {
+    let nextStaff = this.modifier.startSelector.staff;
+    let i = 0;
+    const maxMeasure = this.modifier.endSelector.measure;
+    const maxStaff = this.modifier.endSelector.staff;
+    this.modifier.endSelector = JSON.parse(JSON.stringify(this.modifier.startSelector));
+    this.staffRows.forEach((staffRow) => {
+      if (this.staffRows[i].showCtrl.getValue()) {
+        this.modifier.endSelector = { staff: nextStaff, measure: maxMeasure };
+        nextStaff += 1;
+      }
+      i += 1;
+    });
+    return this.modifier;
+  }
+  setValue(staffGroup) {
+    this.modifier = staffGroup; // would this be used?
+    this.setControlRows();
+  }
+  changed() {
+    this.getValue(); // update modifier
+    this.handleChanged();
+    this.setControlRows();
+  }
+  bind() {
+    this.staffRows.forEach((row) => {
+      row.showCtrl.bind();
+    });
+  }
+}
+
 class StaffCheckComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     let i = 0;
     super(parameter);
     smoSerialize.filteredMerge(
       ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
-    }
-    if (!this.dataType) {
-      this.dataType = 'string';
-    }
     this.dialog = dialog;
     this.view = this.dialog.view;
     this.staffRows = [];
@@ -34596,6 +34851,10 @@ class SuiAddStaffMenu extends suiMenuBase {
           text: 'Tenor Clef Staff',
           value: 'tenorInstrument'
         }, {
+          icon: '',
+          text: 'Staff Groups',
+          value: 'staffGroups'
+        }, {
           icon: 'cancel-circle',
           text: 'Remove Staff',
           value: 'remove'
@@ -34648,10 +34907,25 @@ class SuiAddStaffMenu extends suiMenuBase {
       }
     };
   }
+  execStaffGroups() {
+    SuiStaffGroupDialog.createAndDisplay(
+      {
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        completeNotifier: this.completeNotifier,
+        view: this.view,
+        startPromise: this.closePromise
+      }
+    );
+  }
+
   selection(ev) {
     const op = $(ev.currentTarget).attr('data-value');
     if (op === 'remove') {
       this.view.removeStaff();
+      this.complete();
+    } else if (op === 'staffGroups') {
+      this.execStaffGroups();
       this.complete();
     } else if (op === 'cancel') {
       this.complete();

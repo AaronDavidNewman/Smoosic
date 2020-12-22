@@ -175,6 +175,13 @@ class SuiScoreViewOperations extends SuiScoreView {
     const newScore = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
     this.changeScore(newScore);
   }
+  addOrUpdateStaffGroup(staffGroup) {
+    this._undoScore('group staves');
+    // Assume that the view is now set to full score
+    this.score.addOrReplaceSystemGroup(staffGroup);
+    this.storeScore.addOrReplaceSystemGroup(staffGroup);
+    this.renderer.setDirty();
+  }
   addStaffGroupDown(braceType) {
     this._undoScore('group staves');
     const ft = this._getEquivalentSelection(this.tracker.getExtremeSelection(-1));
