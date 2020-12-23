@@ -378,49 +378,49 @@ class SmoTempoText extends SmoMeasureModifierBase {
       bpm: 120,
       beatDuration: 4096,
       tempoText: SmoTempoText.tempoTexts.allegro,
-      yOffset:0,
-      display:false
+      yOffset: 0,
+      display: false
     };
   }
   static get attributes() {
-    return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText','yOffset'];
+    return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText', 'yOffset'];
   }
-    compare(instance) {
-        var rv = true;
-        SmoTempoText.attributes.forEach((attr) => {
-            if (this[attr] != instance[attr]) {
-                rv = false;
-            }
-        });
-        return rv;
-    }
-    _toVexTextTempo() {
-        return {name:this.tempoText};
-    }
+  compare(instance) {
+    var rv = true;
+    SmoTempoText.attributes.forEach((attr) => {
+      if (this[attr] != instance[attr]) {
+        rv = false;
+      }
+    });
+    return rv;
+  }
+  _toVexTextTempo() {
+    return {name:this.tempoText};
+  }
 
-    // ### eq
-    // Return equality wrt the tempo marking, e.g. 2 allegro in textMode will be equal but
-    // an allegro and duration 120bpm will not.
-    static eq (t1,t2) {
-      if (t1.tempoMode != t2.tempoMode) {
-        return false;
-      }
-      if (t1.tempoMode == SmoTempoText.tempoModes.durationMode) {
-        return t1.bpm == t2.bpm && t1.beatDuration == t2.beatDuration;
-      }
-      if (t1.tempoMode == SmoTempoText.tempoModes.textMode) {
-        return t1.tempoText == t2.tempoText;
-      } else {
-        return t1.bpm == t2.bpm && t1.beatDuration == t2.beatDuration &&
-            t1.tempoText == t2.tempoText;
-      }
+  // ### eq
+  // Return equality wrt the tempo marking, e.g. 2 allegro in textMode will be equal but
+  // an allegro and duration 120bpm will not.
+  static eq (t1,t2) {
+    if (t1.tempoMode !== t2.tempoMode) {
+      return false;
     }
+    if (t1.tempoMode === SmoTempoText.tempoModes.durationMode) {
+      return t1.bpm === t2.bpm && t1.beatDuration === t2.beatDuration;
+    }
+    if (t1.tempoMode === SmoTempoText.tempoModes.textMode) {
+      return t1.tempoText === t2.tempoText;
+    } else {
+      return t1.bpm === t2.bpm && t1.beatDuration === t2.beatDuration &&
+        t1.tempoText === t2.tempoText;
+    }
+  }
 
-    static get bpmFromText() {
-        // TODO: learn these
-        var rv = {};
-        rv[SmoTempoText.tempoTexts.larghissimo] = 40;
-        rv[SmoTempoText.tempoTexts.grave] = 40;
+  static get bpmFromText() {
+    // TODO: learn these
+    var rv = {};
+    rv[SmoTempoText.tempoTexts.larghissimo] = 40;
+    rv[SmoTempoText.tempoTexts.grave] = 40;
     rv[SmoTempoText.tempoTexts.lento] = 42;
     rv[SmoTempoText.tempoTexts.largo] = 46;
     rv[SmoTempoText.tempoTexts.larghetto] = 52;
@@ -435,37 +435,37 @@ class SmoTempoText extends SmoMeasureModifierBase {
     rv[SmoTempoText.tempoTexts.vivace] = 144;
     rv[SmoTempoText.tempoTexts.presto] = 168;
     rv[SmoTempoText.tempoTexts.prestissimo] = 240;
-        return rv;
-    }
+      return rv;
+  }
 
-    _toVexDurationTempo() {
-        var vd = smoMusic.ticksToDuration[this.beatDuration];
-        var dots = (vd.match(/d/g) || []).length;
-        vd=vd.replace(/d/g,'');
-        return {duration: vd, dots: dots, bpm: this.bpm };
+  _toVexDurationTempo() {
+    var vd = smoMusic.ticksToDuration[this.beatDuration];
+    var dots = (vd.match(/d/g) || []).length;
+    vd=vd.replace(/d/g,'');
+    return {duration: vd, dots: dots, bpm: this.bpm };
+  }
+  toVexTempo() {
+    if (this.tempoMode ==  SmoTempoText.tempoModes.durationMode) {
+      return this._toVexDurationTempo();
     }
-    toVexTempo() {
-        if (this.tempoMode ==  SmoTempoText.tempoModes.durationMode) {
-            return this._toVexDurationTempo();
-        }
-        return this._toVexTextTempo();
-    }
-    backupOriginal() {
-        this.backup = {};
-        smoSerialize.serializedMerge(SmoTempoText.attributes, this, this.backup);
-    }
-    restoreOriginal() {
-        smoSerialize.serializedMerge(SmoTempoText.attributes, this.backup, this);
-    }
-    serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoTempoText.defaults,SmoTempoText.attributes,this,params)
-        params.ctor = 'SmoTempoText';
-        return params;
+    return this._toVexTextTempo();
+  }
+  backupOriginal() {
+    this.backup = {};
+    smoSerialize.serializedMerge(SmoTempoText.attributes, this, this.backup);
+  }
+  restoreOriginal() {
+    smoSerialize.serializedMerge(SmoTempoText.attributes, this.backup, this);
+  }
+  serialize() {
+    var params = {};
+    smoSerialize.serializedMergeNonDefault(SmoTempoText.defaults, SmoTempoText.attributes, this, params)
+    params.ctor = 'SmoTempoText';
+    return params;
   }
   constructor(parameters) {
     super('SmoTempoText');
-        parameters = parameters ? parameters : {};
+    parameters = typeof(parameters) !== 'undefined' ? parameters : {};
     smoSerialize.serializedMerge(SmoTempoText.attributes, SmoTempoText.defaults, this);
     smoSerialize.serializedMerge(SmoTempoText.attributes, parameters, this);
   }

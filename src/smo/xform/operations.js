@@ -53,22 +53,17 @@ class SmoOperation {
       parameters.endSelector = {staff:msel[len].selector.staff + 1,measure:msel[len].selector.measure};
       score.addOrReplaceSystemGroup(new SmoSystemGroup(parameters));
     }
-    msel.forEach((mm) => {
-      mm.measure.setChanged();
-    });
   }
 
   static convertToPickupMeasure(score, duration) {
     score.convertToPickupMeasure(0,duration);
   }
   static toggleBeamGroup(noteSelection) {
-    noteSelection.measure.setChanged();
     noteSelection.note.endBeam = !(noteSelection.note.endBeam);
   }
 
   static padMeasureLeft(selection, padding) {
     selection.measure.padLeft = padding;
-    selection.measure.setChanged();
   }
 
   static setActiveVoice(score, voiceIx) {
@@ -87,7 +82,6 @@ class SmoOperation {
         } else {
           sel.note.addMicrotone(tone);
         }
-        sel.measure.setChanged();
     });
   }
 
@@ -188,53 +182,50 @@ class SmoOperation {
   }
 
   static batchSelectionOperation(score, selections, operation) {
-  var measureTicks = [];
-  selections.forEach((selection) => {
-  var measureSel = {
-  staff: selection.selector.staff,
-  measure: selection.selector.measure,
-  voice: selection.selector.voice
-  };
-  selection.measure.setChanged();
-  if (!measureTicks[measureSel]) {
-  var tm = selection.measure.tickmapForVoice(selection.selector.voice);
-  var tickOffset = tm.durationMap[selection.selector.tick];
-  var selector = JSON.parse(JSON.stringify(selection.selector));
-  measureTicks.push({
-  selector: selector,
-  tickOffset: tickOffset
-  });
-  }
-  });
-  measureTicks.forEach((measureTick) => {
-  var selection = SmoSelection.measureSelection(score, measureTick.selector.staff, measureTick.selector.measure);
-  var tickmap = selection.measure.tickmapForVoice(measureTick.selector.voice);
-  var ix = tickmap.durationMap.indexOf(measureTick.tickOffset);
-  if (ix >= 0) {
-  var nsel = SmoSelection.noteSelection(score, measureTick.selector.staff, measureTick.selector.measure,
-  measureTick.selector.voice, ix);
-  SmoOperation[operation](nsel);
-  }
-  });
+    var measureTicks = [];
+    selections.forEach((selection) => {
+    var measureSel = {
+      staff: selection.selector.staff,
+      measure: selection.selector.measure,
+      voice: selection.selector.voice
+    };
+    if (!measureTicks[measureSel]) {
+      var tm = selection.measure.tickmapForVoice(selection.selector.voice);
+      var tickOffset = tm.durationMap[selection.selector.tick];
+      var selector = JSON.parse(JSON.stringify(selection.selector));
+      measureTicks.push({
+        selector: selector,
+        tickOffset: tickOffset
+      });
+    }
+    });
+    measureTicks.forEach((measureTick) => {
+      var selection = SmoSelection.measureSelection(score, measureTick.selector.staff, measureTick.selector.measure);
+      var tickmap = selection.measure.tickmapForVoice(measureTick.selector.voice);
+      var ix = tickmap.durationMap.indexOf(measureTick.tickOffset);
+      if (ix >= 0) {
+        var nsel = SmoSelection.noteSelection(score, measureTick.selector.staff, measureTick.selector.measure,
+        measureTick.selector.voice, ix);
+        SmoOperation[operation](nsel);
+      }
+    });
   }
   // ## doubleDuration
   // ## Description
   // double the duration of a note in a measure, at the expense of the following
   // note, if possible.  Works on tuplets also.
   static doubleDuration(selection) {
-  var note = selection.note;
-  var measure = selection.measure;
-        var selector = selection.selector;
-        var notes = measure.voices[selector.voice].notes;
-  var tuplet = measure.getTupletForNote(note);
-  if (!tuplet) {
-            SmoDuration.doubleDurationNonTuplet(selection);
-
-  } else {
-            SmoDuration.doubleDurationTuplet(selection);
-  }
-  selection.measure.setChanged();
-  return true;
+    var note = selection.note;
+    var measure = selection.measure;
+    var selector = selection.selector;
+    var notes = measure.voices[selector.voice].notes;
+    var tuplet = measure.getTupletForNote(note);
+    if (!tuplet) {
+      SmoDuration.doubleDurationNonTuplet(selection);
+    } else {
+      SmoDuration.doubleDurationTuplet(selection);
+    }
+    return true;
   }
 
   // ## halveDuration
@@ -271,7 +262,6 @@ class SmoOperation {
       });
       SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
     }
-    selection.measure.setChanged();
   }
 
   // ## makeTuplet
@@ -293,7 +283,6 @@ class SmoOperation {
       selection: selection
     });
     SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-    selection.measure.setChanged();
 
     return true;
   }
@@ -312,7 +301,6 @@ class SmoOperation {
     selection.note.makeRest();
   }
   static makeNote(selection) {
-    selection.measure.setChanged();
     selection.note.makeNote();
   }
   static setNoteHead(selections,noteHead) {
@@ -401,24 +389,25 @@ class SmoOperation {
   // ## Description
   // Makes a tuplet into a single with the duration of the whole tuplet
   static unmakeTuplet(selection) {
-  var note = selection.note;
-  var measure = selection.measure;
-  if (!measure.getTupletForNote(note))
-  return;
-  var tuplet = measure.getTupletForNote(note);
-  if (tuplet === null)
-  return;
-  var startIndex = measure.tupletIndex(tuplet);
-  var endIndex = tuplet.notes.length + startIndex - 1;
+    var note = selection.note;
+    var measure = selection.measure;
+    if (!measure.getTupletForNote(note)) {
+      return;
+    }
+    var tuplet = measure.getTupletForNote(note);
+    if (tuplet === null) {
+      return;
+    }
+    var startIndex = measure.tupletIndex(tuplet);
+    var endIndex = tuplet.notes.length + startIndex - 1;
 
-  var actor = new SmoUnmakeTupletActor({
-  startIndex: startIndex,
-  endIndex: endIndex,
-  measure: measure
-  });
-  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-  measure.setChanged();
-  return true;
+    var actor = new SmoUnmakeTupletActor({
+      startIndex: startIndex,
+      endIndex: endIndex,
+      measure: measure
+    });
+    SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
+    return true;
   }
 
   // ## dotDuration
@@ -426,42 +415,38 @@ class SmoOperation {
   // Add a dot to a note, if possible, and make the note ahead of it shorter
   // to compensate.
   static dotDuration(selection) {
-
-  var note = selection.note;
-  var measure = selection.measure;
-  var nticks = smoMusic.getNextDottedLevel(note.tickCount);
-  if (nticks == note.tickCount) {
-  return;
-  }
-
-        // Don't dot if the thing on the right of the . is too small
-        var dotCount = smoMusic.smoTicksToVexDots(nticks);
-        var multiplier = Math.pow(2,dotCount);
-        var baseDot = VF.durationToTicks(smoMusic.closestVexDuration(nticks))/(multiplier*2);
-        if (baseDot <= 128) {
-            return;
-        }
-
-  // If this is the ultimate note in the measure, we can't increase the length
-  if (selection.selector.tick + 1 === selection.measure.voices[selection.selector.voice].notes.length) {
-  return;
-  }
-  if (selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount > selection.note.tickCount) {
-  console.log('too long');
-  return;
-  }
-  // is dot too short?
-  if (!smoMusic.ticksToDuration[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount/2]) {
-  return;
-  }
-  var actor = new SmoStretchNoteActor({
-  startIndex: selection.selector.tick,
-  tickmap: measure.tickmapForVoice(selection.selector.voice),
-  newTicks: nticks
-  });
-  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-  measure.setChanged();
-  return true;
+    var note = selection.note;
+    var measure = selection.measure;
+    var nticks = smoMusic.getNextDottedLevel(note.tickCount);
+    if (nticks == note.tickCount) {
+      return;
+    }
+    // Don't dot if the thing on the right of the . is too small
+    var dotCount = smoMusic.smoTicksToVexDots(nticks);
+    var multiplier = Math.pow(2, dotCount);
+    var baseDot = VF.durationToTicks(smoMusic.closestVexDuration(nticks)) / (multiplier * 2);
+    if (baseDot <= 128) {
+      return;
+    }
+    // If this is the ultimate note in the measure, we can't increase the length
+    if (selection.selector.tick + 1 === selection.measure.voices[selection.selector.voice].notes.length) {
+      return;
+    }
+    if (selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount > selection.note.tickCount) {
+      console.log('too long');
+      return;
+    }
+    // is dot too short?
+    if (!smoMusic.ticksToDuration[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount / 2]) {
+      return;
+    }
+    var actor = new SmoStretchNoteActor({
+      startIndex: selection.selector.tick,
+      tickmap: measure.tickmapForVoice(selection.selector.voice),
+      newTicks: nticks
+    });
+    SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
+    return true;
   }
 
   // ## undotDuration
@@ -480,8 +465,7 @@ class SmoOperation {
       tickmap: measure.tickmapForVoice(selection.selector.voice),
       newTicks: nticks
     });
-    SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-    selection.measure.setChanged();
+    SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
     return true;
   }
 
@@ -524,7 +508,7 @@ class SmoOperation {
         // Look through the earlier notes in the measure and try
         // to find an equivalent note, and convert it if it exists.
         measure.voices.forEach((voice) => {
-          for (i = 0; i<selection.selector.tick
+          for (i = 0; i < selection.selector.tick
             && i < voice.notes.length; ++i)  {
             const prevNote = voice.notes[i];
             prevNote.pitches.forEach((prevPitch) => {
@@ -550,6 +534,7 @@ class SmoOperation {
   // the letter value appropriate for the key signature is used, e.g. c in A major becomes
   // c#
   static setPitch(selection, pitches) {
+    let i = 0;
     var measure = selection.measure;
     var note = selection.note;
     if (typeof(note) === 'undefined') {
@@ -557,7 +542,6 @@ class SmoOperation {
       return;
     }
     selection.note.makeNote();
-    measure.setChanged();
     // TODO allow hint for octave
     var octave = note.pitches[0].octave;
     note.pitches = [];
@@ -566,14 +550,14 @@ class SmoOperation {
     }
     var earlierAccidental = (pitch) => {
       selection.measure.voices.forEach((voice) => {
-        for (var i=0;i<selection.selector.tick
-           && i < voice.notes.length;++i) {
+        for (i = 0; i < selection.selector.tick
+          && i < voice.notes.length; ++i) {
           var prevNote = voice.notes[i];
-          if (prevNote == null || prevNote.pitches == null) {
+          if (prevNote === null || prevNote.pitches === null) {
             console.log('this will die null');
           }
           prevNote.pitches.forEach((prevPitch) => {
-            if (prevNote.noteType == 'n' && prevPitch.letter == pitch.letter) {
+            if (prevNote.noteType === 'n' && prevPitch.letter === pitch.letter) {
               pitch.accidental = prevPitch.accidental;
             }
           });
@@ -585,9 +569,9 @@ class SmoOperation {
       if (typeof(pitch) === 'string') {
         var letter = smoMusic.getKeySignatureKey(pitch[0], measure.keySignature);
         pitch = {
-        letter: letter[0],
-        accidental: letter.length > 1 ? letter.substring(1) : '',
-        octave: octave
+          letter: letter[0],
+          accidental: letter.length > 1 ? letter.substring(1) : '',
+          octave: octave
         };
       }
       earlierAccidental(pitch);
@@ -608,16 +592,14 @@ class SmoOperation {
           found = true;
         }
       });
-    if (!found) {
-      toAdd.push(pitch);
-    }
+      if (!found) {
+        toAdd.push(pitch);
+      }
     });
     toAdd.sort(function (a, b) {
-      return smoMusic.smoPitchToInt(a) -
-      smoMusic.smoPitchToInt(b);
+      return smoMusic.smoPitchToInt(a) - smoMusic.smoPitchToInt(b);
     });
     selection.note.pitches = JSON.parse(JSON.stringify(toAdd));
-    selection.measure.setChanged();
   }
 
   static toggleCourtesyAccidental(selection) {
@@ -635,21 +617,19 @@ class SmoOperation {
       toBe = !(selection.note.pitches[selection.selector.pitches[0]].cautionary);
     }
     SmoOperation.courtesyAccidental(selection, toBe);
-    selection.measure.setChanged();
   }
 
   static courtesyAccidental(pitchSelection, toBe) {
-  pitchSelection.selector.pitches.forEach((pitchIx) => {
-  pitchSelection.note.pitches[pitchIx].cautionary = toBe;
-  });
-  pitchSelection.measure.setChanged();
+    pitchSelection.selector.pitches.forEach((pitchIx) => {
+      pitchSelection.note.pitches[pitchIx].cautionary = toBe;
+    });
   }
 
   static toggleEnharmonic(pitchSelection) {
     if (pitchSelection.selector.pitches.length === 0) {
       pitchSelection.selector.pitches.push(0);
     }
-    var pitch = pitchSelection.note.pitches[pitchSelection.selector.pitches[0]];
+    const pitch = pitchSelection.note.pitches[pitchSelection.selector.pitches[0]];
     SmoNote.toggleEnharmonic(pitch);
   }
 
@@ -669,7 +649,7 @@ class SmoOperation {
     selections.forEach((selection) => {
       if (SmoSelector.sameNote(start,selection.selector) ||
         (SmoSelector.sameMeasure(selection.selector,cur) &&
-         cur.tick == selection.selector.tick-1)) {
+         cur.tick === selection.selector.tick-1)) {
         ticks += selection.note.tickCount;
         cur = selection.selector;
         beamGroup.push(selection.note);
@@ -688,18 +668,15 @@ class SmoOperation {
     selections[0].note.toggleFlagState();
     selections.forEach((selection) => {
       selection.note.flagState = selections[0].note.flagState;
-      selection.measure.setChanged()
     });
   }
 
-  static toggleOrnament(selection,ornament) {
+  static toggleOrnament(selection, ornament) {
     selection.note.toggleOrnament(ornament);
-    selection.measure.setChanged();
   }
 
   static toggleArticulation(selection, articulation) {
     selection.note.toggleArticulation(articulation);
-    selection.measure.setChanged();
   }
 
   static addEnding(score, parameters) {
@@ -726,7 +703,6 @@ class SmoOperation {
           const ending = new SmoVolta(pp);
           measure.addNthEnding(ending);
         }
-        measure.setChanged();
         m += 1;
       });
       s += 1;
@@ -757,7 +733,7 @@ class SmoOperation {
     score.removeTextGroup(textGroup);
   }
 
-  static addMeasureText(score,selection,measureText) {
+  static addMeasureText(score, selection, measureText) {
     const current = selection.measure.getMeasureText();
     // TODO: should we allow multiples per position
     current.forEach((mod) => {
@@ -766,7 +742,7 @@ class SmoOperation {
     selection.measure.addMeasureText(measureText);
   }
 
-  static removeMeasureText(score,selection,mt) {
+  static removeMeasureText(score, selection, mt) {
     selection.measure.removeMeasureText(mt.attrs.id);
   }
 
@@ -818,7 +794,6 @@ class SmoOperation {
     score.staves.forEach((staff) => {
     var s2 = SmoSelection.measureSelection(score, ix, mm);
     s2.measure.setBarline(barline);
-    s2.measure.setChanged();
     ix += 1;
     });
   }
@@ -829,7 +804,6 @@ class SmoOperation {
     score.staves.forEach((staff) => {
     var s2 = SmoSelection.measureSelection(score, ix, mm);
     s2.measure.setRepeatSymbol(sym);
-    s2.measure.setChanged();
     ix += 1;
     });
   }
@@ -890,8 +864,6 @@ class SmoOperation {
       position: SmoStaffHairpin.positions.BELOW
     });
     fromSelection.staff.addStaffModifier(modifier);
-    fromSelection.measure.setChanged();
-    toSelection.measure.setChanged();
   }
 
   static addStaff(score, parameters) {

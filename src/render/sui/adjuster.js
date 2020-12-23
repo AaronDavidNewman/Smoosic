@@ -146,18 +146,18 @@ class suiLayoutAdjuster {
     return rv;
   }
 
-    // ### _highestLowestHead
-    // highest value is actually the one lowest on the page
-    static _highestLowestHead(measure,note) {
-        var hilo = {hi:0,lo:9999999};
-        note.pitches.forEach((pitch) => {
-            // 10 pixels per line
-            var px = 10*smoMusic.pitchToLedgerLine(measure.clef,pitch);
-            hilo.lo = Math.min(hilo.lo,px);
-            hilo.hi = Math.max(hilo.hi,px);
-        });
-        return hilo;
-    }
+  // ### _highestLowestHead
+  // highest value is actually the one lowest on the page
+  static _highestLowestHead(measure,note) {
+    const hilo = {hi:0,lo:9999999};
+    note.pitches.forEach((pitch) => {
+      // 10 pixels per line
+      const px = 10*smoMusic.pitchToLedgerLine(measure.clef, pitch);
+      hilo.lo = Math.min(hilo.lo, px);
+      hilo.hi = Math.max(hilo.hi, px);
+    });
+    return hilo;
+  }
 
   // ### estimateMeasureHeight
   // The baseline is the top line of the staff.  aboveBaseline is a negative number
@@ -165,41 +165,42 @@ class suiLayoutAdjuster {
   // is a positive number that indicates how far below the baseline the measure goes.
   // the height of the measure is below-above.  Vex always renders a staff such that
   // the y coordinate passed in for the stave is on the baseline.
-  static estimateMeasureHeight(measure,layout) {
-    var heightOffset = 50;  // assume 5 lines, todo is non-5-line staffs
-    var yOffset = 0;
+  static estimateMeasureHeight(measure, layout) {
+    let heightOffset = 50;  // assume 5 lines, todo is non-5-line staffs
+    let yOffset = 0;
+    let flag = '';
     if (measure.forceClef) {
       heightOffset += vexGlyph.clef(measure.clef).yTop + vexGlyph.clef(measure.clef).yBottom;
       yOffset = yOffset - vexGlyph.clef(measure.clef).yTop;
     }
 
     if (measure.forceTempo) {
-      yOffset = Math.min(-1*vexGlyph.tempo.yTop,yOffset);
+      yOffset = Math.min(-1 * vexGlyph.tempo.yTop, yOffset);
     }
     var hasDynamic = false;
 
     measure.voices.forEach((voice) => {
       voice.notes.forEach((note) => {
-        var bg = suiLayoutAdjuster._beamGroupForNote(measure,note);
-        var flag = SmoNote.flagStates.auto;
+        const bg = suiLayoutAdjuster._beamGroupForNote(measure, note);
+        flag = SmoNote.flagStates.auto;
         if (bg && note.noteType == 'n') {
           flag = bg.notes[0].flagState;
           // an  auto-flag note is up if the 1st note is middle line
-          if (flag == SmoNote.flagStates.auto) {
+          if (flag === SmoNote.flagStates.auto) {
             var pitch = bg.notes[0].pitches[0];
             flag = smoMusic.pitchToLedgerLine(measure.clef,pitch)
                >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
           }
         }  else {
-          var flag = note.flagState;
+          flag = note.flagState;
           // an  auto-flag note is up if the 1st note is middle line
-          if (flag == SmoNote.flagStates.auto) {
-            var pitch = note.pitches[0];
-            flag = smoMusic.pitchToLedgerLine(measure.clef,pitch)
-             >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+          if (flag === SmoNote.flagStates.auto) {
+            const pitch = note.pitches[0];
+            flag = smoMusic.pitchToLedgerLine(measure.clef, pitch)
+              >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
           }
         }
-        var hiloHead = suiLayoutAdjuster._highestLowestHead(measure,note);
+        const hiloHead = suiLayoutAdjuster._highestLowestHead(measure,note);
         if (flag == SmoNote.flagStates.down) {
           yOffset = Math.min(hiloHead.lo,yOffset);
           heightOffset = Math.max(hiloHead.hi + vexGlyph.stem.height,heightOffset);
@@ -209,11 +210,11 @@ class suiLayoutAdjuster {
         }
         var dynamics = note.getModifiers('SmoDynamicText');
         dynamics.forEach((dyn) => {
-          heightOffset = Math.max((10*dyn.yOffsetLine - 50) + 11,heightOffset);
-          yOffset = Math.min(10*dyn.yOffsetLine - 50,yOffset)
+          heightOffset = Math.max((10 * dyn.yOffsetLine - 50) + 11, heightOffset);
+          yOffset = Math.min(10 * dyn.yOffsetLine - 50, yOffset)
         });
       });
     });
-    return {belowBaseline:heightOffset,aboveBaseline:yOffset};
+    return { belowBaseline: heightOffset, aboveBaseline: yOffset };
   }
 }

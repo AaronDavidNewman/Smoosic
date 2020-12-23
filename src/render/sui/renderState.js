@@ -329,7 +329,6 @@ class SuiRenderState {
     }
     $(this.renderer.getContext().svg).find('g.' + measure.getClassId()).remove();
     measure.setYTop(0, 'unrender');
-    measure.setChanged();
   }
 
   unrenderColumn(measure) {

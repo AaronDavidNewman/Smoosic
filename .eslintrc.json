@@ -12,7 +12,8 @@
     "BeamModifierBase": true,
     "smoBeamerFactory": true,
     "smoBeamerIterator": true,
-    "smoBeamModifier": true
+    "smoBeamModifier": true,
+    "VF" : true
   },
   "rules": {
     "no-bitwise": [

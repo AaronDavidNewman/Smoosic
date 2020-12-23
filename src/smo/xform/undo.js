@@ -149,7 +149,6 @@ class UndoBuffer {
       }
     } else if (buf.type === UndoBuffer.bufferTypes.MEASURE) {
       const measure = SmoMeasure.deserialize(buf.json);
-      measure.setChanged();
       score.replaceMeasure(buf.selector, measure);
     } else if (buf.type === UndoBuffer.bufferTypes.SCORE) {
       // Score expects string, as deserialized score is how saving is done.

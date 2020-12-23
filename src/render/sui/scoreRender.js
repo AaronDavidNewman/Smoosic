@@ -85,10 +85,13 @@ class SuiScoreRender extends SuiRenderState {
       // If this text is attached to the measure, base the block location on the rendered measure location.
       if (newGroup.attachToSelector) {
         // If this text is attached to a staff that is not visible, don't draw it.
-        if (!newGroup.selector || newGroup.selector.staff >= this.score.staves.length) {
+        const mappedStaff = this.score.staves.find((staff) => staff.mappedStaffId === newGroup.selector.staff);
+        if (!mappedStaff) {
           return;
         }
-        const mm = SmoSelection.measureSelection(this.score, newGroup.selector.staff, newGroup.selector.measure).measure;
+        // Indicate the new map;
+        // newGroup.selector.staff = mappedStaff.staffId;
+        const mm = SmoSelection.measureSelection(this.score, mappedStaff.staffId, newGroup.selector.measure).measure;
         if (typeof(mm.logicalBox) !== 'undefined') {
           const xoff = mm.logicalBox.x + newGroup.musicXOffset;
           const yoff = mm.logicalBox.y - newGroup.musicYOffset;
@@ -138,17 +141,16 @@ class SuiScoreRender extends SuiRenderState {
     measure.forceTempo = false;
     const tempo = measure.getTempo();
     if (tempo && measure.measureNumber.measureIndex === 0) {
-      measure.forceTempo = tempo.display;
+      measure.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
     } else if (tempo && tempoLast) {
-      if (!SmoTempoText.eq(tempo, tempoLast)) {
+      if (!SmoTempoText.eq(tempo, tempoLast) && measure.svg.rowInSystem === 0) {
         measure.forceTempo = tempo.display;
       }
     } else if (tempo) {
-      measure.forceTempo = tempo.display;
+      measure.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
     }
     if (measureKeySig !== keySigLast) {
       measure.canceledKeySignature = keySigLast;
-      measure.setChanged();
       measure.forceKeySignature = true;
     } else if (systemIndex === 0 && measureKeySig !== 'C') {
       measure.forceKeySignature = true;

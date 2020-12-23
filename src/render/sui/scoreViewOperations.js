@@ -211,7 +211,7 @@ class SuiScoreViewOperations extends SuiScoreView {
       endSelection = this.tracker.getExtremeSelection(1);
     }
     measureIndex = startSelection.selector.measure;
-    while (measureIndex < endSelection.selector.measure) {
+    while (measureIndex <= endSelection.selector.measure) {
       const mi = measureIndex;
       this.score.staves.forEach((staff) => {
         SmoOperation.addTempo(this.score,
@@ -221,7 +221,7 @@ class SuiScoreViewOperations extends SuiScoreView {
       measureIndex++;
     }
     measureIndex = startSelection.selector.measure;
-    while (measureIndex < endSelection.selector.measure) {
+    while (measureIndex <= endSelection.selector.measure) {
       const mi = measureIndex;
       this.storeScore.staves.forEach((staff) => {
         SmoOperation.addTempo(this.storeScore,

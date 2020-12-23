@@ -14,11 +14,9 @@ class SmoMeasure {
     this.modifiers = [];
     this.pageGap = 0;
     this.changed = true;
-    this.timestamp = 0;
     this.prevY = 0;
     this.prevX = 0;
     this.padLeft = 0;
-    this.prevFrame = 0;
     this.svg.staffWidth = 200;
     this.svg.staffX = 0;
     this.svg.staffY = 0;
@@ -61,7 +59,8 @@ class SmoMeasure {
   }
 
   static get formattingOptions() {
-    return ['customStretch', 'customProportion', 'autoJustify', 'formattingIterations'];
+    return ['customStretch', 'customProportion', 'autoJustify', 'formattingIterations', 'systemBreak',
+      'pageBreak', 'padLeft'];
   }
   static get systemOptions() {
     return ['systemBreak', 'pageBreak'];
@@ -408,7 +407,14 @@ class SmoMeasure {
     const obj = {};
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, SmoMeasure.defaults, obj);
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, obj);
-    return new SmoMeasure(obj);
+    // Don't copy column-formatting options to new measure in new column
+    smoSerialize.serializedMerge(SmoMeasure.formattingOptions, SmoMeasure.defaults, obj);
+    // Don't redisplay tempo for a new measure
+    const rv = new SmoMeasure(obj);
+    if (rv.tempo && rv.tempo.display) {
+      rv.tempo.display = false;
+    }
+    return rv;
   }
 
   // ### SmoMeasure.getDefaultMeasureWithNotes
@@ -839,11 +845,9 @@ class SmoMeasure {
       mm.attrs.id === mod.attrs.id
     );
     if (exist.length) {
-      this.setChanged(); // already added but set changed===true to re-justify
       return;
     }
     this.modifiers.push(mod);
-    this.setChanged();
   }
 
   getMeasureText() {
@@ -853,7 +857,6 @@ class SmoMeasure {
   removeMeasureText(id) {
     var ar = this.modifiers.filter(obj => obj.attrs.id !== id);
     this.modifiers = ar;
-    this.setChanged();
   }
 
   setRepeatSymbol(rs) {
@@ -970,17 +973,11 @@ class SmoMeasure {
   }
   setKeySignature(sig) {
     this.keySignature = sig;
-    this.setChanged();
     this.voices.forEach((voice) => {
       voice.notes.forEach((note) => {
         note.keySignature = sig;
       });
     });
-  }
-  setChanged() {
-    this.changed = true;
-    this.prevFrame = 0;
-    this.timestamp = Date.now();
   }
   get beatValue() {
     return this.timeSignature.split('/').map(number => parseInt(number, 10))[1];

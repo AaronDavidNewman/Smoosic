@@ -213,8 +213,12 @@ class VxSystem {
   }
 
   renderEndings() {
-    let i = 0;
-    this.smoMeasures.forEach((smoMeasure) => {
+    let j = 0;
+    for (j = 0; j < this.smoMeasures.length; ++j) {
+      const smoMeasure = this.smoMeasures[j];
+      if (smoMeasure.svg.rowInSystem > 0) {
+        continue;
+      }
       const staffId = smoMeasure.measureNumber.staffId;
       const endings = smoMeasure.getNthEndings();
       endings.forEach((ending) => {
@@ -223,9 +227,11 @@ class VxSystem {
         const voAr = [];
         group.classList.add(ending.attrs.id);
         group.classList.add(ending.endingId);
+        let i = 0;
 
         for (i = ending.startBar; i <= ending.endBar; ++i) {
-          const endMeasure = this.getMeasureByIndex(i, staffId);
+          const mix = i;
+          const endMeasure = this.getMeasureByIndex(mix, staffId);
           if (!endMeasure) {
             continue;
           }
@@ -250,7 +256,7 @@ class VxSystem {
           }
         });
       });
-    });
+    }
   }
 
   getMeasureByIndex(measureIndex, staffId) {

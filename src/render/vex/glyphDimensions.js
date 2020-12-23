@@ -110,8 +110,8 @@ class vexGlyph {
       trebleClef: {
         width: 25.5,
         height: 68.32,
-        yTop: 14,
-        yBottom: 14,
+        yTop: 3,
+        yBottom: 20.56,
         spacingRight: 10,
       },
       bassClef: {

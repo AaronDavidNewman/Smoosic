@@ -192,6 +192,7 @@ class SuiScoreView {
     this.storeUndo = new UndoBuffer();
     this.staffMap = this.defaultStaffMap;
     SuiScoreView._instance = this;
+    this.setMappedStaffIds();
   }
   static debugSwapScore() {
     const dbg = SuiScoreView.Instance;
@@ -209,6 +210,11 @@ class SuiScoreView {
       rv.push({ show });
     }
     return rv;
+  }
+  setMappedStaffIds() {
+    this.score.staves.forEach((staff) => {
+      staff.mappedStaffId = this.staffMap[staff.staffId];
+    });
   }
 
   // ### setView
@@ -235,6 +241,9 @@ class SuiScoreView {
     nscore.numberStaves();
     this.staffMap = staffMap;
     this.score = nscore;
+    // Indicate which score staff view staves are mapped to, to decide to display
+    // modifiers.
+    this.setMappedStaffIds();
     this.renderer.score = nscore;
     this.renderer.setViewport(true);
     setTimeout(() => {

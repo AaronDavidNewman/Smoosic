@@ -27,6 +27,9 @@ class VxMeasure {
   static get adjLeftPixels() {
     return 5;
   }
+  static get fillStyle() {
+    return '#000';
+  }
 
   static get adjRightPixels() {
     return 5;
@@ -475,11 +478,7 @@ class VxMeasure {
     const staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
 
     this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - (1 + this.smoMeasure.padLeft),
-      { font: { family: SourceSansProFont.fontFamily, size: '12pt' } });
-    if (this.smoMeasure.prevFrame < VxMeasure.fps) {
-      this.smoMeasure.prevFrame += 1;
-    }
-
+      { font: { family: SourceSansProFont.fontFamily, size: '12pt' }, fill_style: VxMeasure.fillStyle });
     // If there is padLeft, draw an invisible box so the padding is included in the measure box
     if (this.smoMeasure.padLeft) {
       this.context.rect(this.smoMeasure.staffX, this.smoMeasure.staffY, this.smoMeasure.padLeft, 50, {
