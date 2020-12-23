@@ -5027,6 +5027,17 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._undoFirstMeasureSelection('delete note');
     const sel = this.tracker.selections[0];
     const altSel = this._getEquivalentSelection(sel);
+
+    // set the pitch to be a good position for the rest
+    const pitch = JSON.parse(JSON.stringify(
+      SmoMeasure.defaultPitchForClef[sel.measure.clef]));
+    const altPitch = JSON.parse(JSON.stringify(
+      SmoMeasure.defaultPitchForClef[altSel.measure.clef]));
+    SmoOperation.setPitch(sel, pitch);
+    SmoOperation.setPitch(altSel, altPitch);
+
+    // If the note is a note, make it into a rest.  If the note is a rest already,
+    // make it invisible.  If it is invisible already, make it back into a rest.
     if (sel.note.isRest() && !sel.note.hidden) {
       sel.note.fillStyle = '#aaaaaa00';
       sel.note.hidden = true;
@@ -14791,6 +14802,9 @@ class PasteBuffer {
     if (this.notes.length < 1) {
       return;
     }
+    this.noteIndex = 0;
+    this.measureIndex = -1;
+    this.remainder = 0;
     const voices = this._populateVoice(this.destination.voice);
     const measureSel = JSON.parse(JSON.stringify(this.destination));
     const selectors = [];

@@ -83,7 +83,7 @@ div.ribbonButtonContainer.expanded {
 .controls-left div.ribbonButtonContainer button {
   display:flex;
   flex: 1 1 0;
-  max-width:200px;
+  max-width: 160px;
   height: 25px;
 	padding-left: 3px;
 	font-family:serif;
@@ -96,10 +96,6 @@ div.ribbonButtonContainer.expanded {
 
 .controls-left button span.left-text {
   flex:1 1 auto;
-}
-
-.controls-left button span.left-text span.text-span {
-  display:flex;
 }
 
 .controls-left .ribbonButtonContainer button span.ribbon-button-hotkey {

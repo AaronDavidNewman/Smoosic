@@ -2890,18 +2890,18 @@ class suiLayoutAdjuster {
     return rv;
   }
 
-    // ### _highestLowestHead
-    // highest value is actually the one lowest on the page
-    static _highestLowestHead(measure,note) {
-        var hilo = {hi:0,lo:9999999};
-        note.pitches.forEach((pitch) => {
-            // 10 pixels per line
-            var px = 10*smoMusic.pitchToLedgerLine(measure.clef,pitch);
-            hilo.lo = Math.min(hilo.lo,px);
-            hilo.hi = Math.max(hilo.hi,px);
-        });
-        return hilo;
-    }
+  // ### _highestLowestHead
+  // highest value is actually the one lowest on the page
+  static _highestLowestHead(measure,note) {
+    const hilo = {hi:0,lo:9999999};
+    note.pitches.forEach((pitch) => {
+      // 10 pixels per line
+      const px = 10*smoMusic.pitchToLedgerLine(measure.clef, pitch);
+      hilo.lo = Math.min(hilo.lo, px);
+      hilo.hi = Math.max(hilo.hi, px);
+    });
+    return hilo;
+  }
 
   // ### estimateMeasureHeight
   // The baseline is the top line of the staff.  aboveBaseline is a negative number
@@ -2909,41 +2909,42 @@ class suiLayoutAdjuster {
   // is a positive number that indicates how far below the baseline the measure goes.
   // the height of the measure is below-above.  Vex always renders a staff such that
   // the y coordinate passed in for the stave is on the baseline.
-  static estimateMeasureHeight(measure,layout) {
-    var heightOffset = 50;  // assume 5 lines, todo is non-5-line staffs
-    var yOffset = 0;
+  static estimateMeasureHeight(measure, layout) {
+    let heightOffset = 50;  // assume 5 lines, todo is non-5-line staffs
+    let yOffset = 0;
+    let flag = '';
     if (measure.forceClef) {
       heightOffset += vexGlyph.clef(measure.clef).yTop + vexGlyph.clef(measure.clef).yBottom;
       yOffset = yOffset - vexGlyph.clef(measure.clef).yTop;
     }
 
     if (measure.forceTempo) {
-      yOffset = Math.min(-1*vexGlyph.tempo.yTop,yOffset);
+      yOffset = Math.min(-1 * vexGlyph.tempo.yTop, yOffset);
     }
     var hasDynamic = false;
 
     measure.voices.forEach((voice) => {
       voice.notes.forEach((note) => {
-        var bg = suiLayoutAdjuster._beamGroupForNote(measure,note);
-        var flag = SmoNote.flagStates.auto;
+        const bg = suiLayoutAdjuster._beamGroupForNote(measure, note);
+        flag = SmoNote.flagStates.auto;
         if (bg && note.noteType == 'n') {
           flag = bg.notes[0].flagState;
           // an  auto-flag note is up if the 1st note is middle line
-          if (flag == SmoNote.flagStates.auto) {
+          if (flag === SmoNote.flagStates.auto) {
             var pitch = bg.notes[0].pitches[0];
             flag = smoMusic.pitchToLedgerLine(measure.clef,pitch)
                >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
           }
         }  else {
-          var flag = note.flagState;
+          flag = note.flagState;
           // an  auto-flag note is up if the 1st note is middle line
-          if (flag == SmoNote.flagStates.auto) {
-            var pitch = note.pitches[0];
-            flag = smoMusic.pitchToLedgerLine(measure.clef,pitch)
-             >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+          if (flag === SmoNote.flagStates.auto) {
+            const pitch = note.pitches[0];
+            flag = smoMusic.pitchToLedgerLine(measure.clef, pitch)
+              >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
           }
         }
-        var hiloHead = suiLayoutAdjuster._highestLowestHead(measure,note);
+        const hiloHead = suiLayoutAdjuster._highestLowestHead(measure,note);
         if (flag == SmoNote.flagStates.down) {
           yOffset = Math.min(hiloHead.lo,yOffset);
           heightOffset = Math.max(hiloHead.hi + vexGlyph.stem.height,heightOffset);
@@ -2953,12 +2954,12 @@ class suiLayoutAdjuster {
         }
         var dynamics = note.getModifiers('SmoDynamicText');
         dynamics.forEach((dyn) => {
-          heightOffset = Math.max((10*dyn.yOffsetLine - 50) + 11,heightOffset);
-          yOffset = Math.min(10*dyn.yOffsetLine - 50,yOffset)
+          heightOffset = Math.max((10 * dyn.yOffsetLine - 50) + 11, heightOffset);
+          yOffset = Math.min(10 * dyn.yOffsetLine - 50, yOffset)
         });
       });
     });
-    return {belowBaseline:heightOffset,aboveBaseline:yOffset};
+    return { belowBaseline: heightOffset, aboveBaseline: yOffset };
   }
 }
 ;
@@ -4067,7 +4068,6 @@ class SuiRenderState {
     }
     $(this.renderer.getContext().svg).find('g.' + measure.getClassId()).remove();
     measure.setYTop(0, 'unrender');
-    measure.setChanged();
   }
 
   unrenderColumn(measure) {
@@ -4312,10 +4312,13 @@ class SuiScoreRender extends SuiRenderState {
       // If this text is attached to the measure, base the block location on the rendered measure location.
       if (newGroup.attachToSelector) {
         // If this text is attached to a staff that is not visible, don't draw it.
-        if (!newGroup.selector || newGroup.selector.staff >= this.score.staves.length) {
+        const mappedStaff = this.score.staves.find((staff) => staff.mappedStaffId === newGroup.selector.staff);
+        if (!mappedStaff) {
           return;
         }
-        const mm = SmoSelection.measureSelection(this.score, newGroup.selector.staff, newGroup.selector.measure).measure;
+        // Indicate the new map;
+        // newGroup.selector.staff = mappedStaff.staffId;
+        const mm = SmoSelection.measureSelection(this.score, mappedStaff.staffId, newGroup.selector.measure).measure;
         if (typeof(mm.logicalBox) !== 'undefined') {
           const xoff = mm.logicalBox.x + newGroup.musicXOffset;
           const yoff = mm.logicalBox.y - newGroup.musicYOffset;
@@ -4365,17 +4368,16 @@ class SuiScoreRender extends SuiRenderState {
     measure.forceTempo = false;
     const tempo = measure.getTempo();
     if (tempo && measure.measureNumber.measureIndex === 0) {
-      measure.forceTempo = tempo.display;
+      measure.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
     } else if (tempo && tempoLast) {
-      if (!SmoTempoText.eq(tempo, tempoLast)) {
+      if (!SmoTempoText.eq(tempo, tempoLast) && measure.svg.rowInSystem === 0) {
         measure.forceTempo = tempo.display;
       }
     } else if (tempo) {
-      measure.forceTempo = tempo.display;
+      measure.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
     }
     if (measureKeySig !== keySigLast) {
       measure.canceledKeySignature = keySigLast;
-      measure.setChanged();
       measure.forceKeySignature = true;
     } else if (systemIndex === 0 && measureKeySig !== 'C') {
       measure.forceKeySignature = true;
@@ -4842,6 +4844,7 @@ class SuiScoreView {
     this.storeUndo = new UndoBuffer();
     this.staffMap = this.defaultStaffMap;
     SuiScoreView._instance = this;
+    this.setMappedStaffIds();
   }
   static debugSwapScore() {
     const dbg = SuiScoreView.Instance;
@@ -4859,6 +4862,11 @@ class SuiScoreView {
       rv.push({ show });
     }
     return rv;
+  }
+  setMappedStaffIds() {
+    this.score.staves.forEach((staff) => {
+      staff.mappedStaffId = this.staffMap[staff.staffId];
+    });
   }
 
   // ### setView
@@ -4885,6 +4893,9 @@ class SuiScoreView {
     nscore.numberStaves();
     this.staffMap = staffMap;
     this.score = nscore;
+    // Indicate which score staff view staves are mapped to, to decide to display
+    // modifiers.
+    this.setMappedStaffIds();
     this.renderer.score = nscore;
     this.renderer.setViewport(true);
     setTimeout(() => {
@@ -5016,6 +5027,17 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._undoFirstMeasureSelection('delete note');
     const sel = this.tracker.selections[0];
     const altSel = this._getEquivalentSelection(sel);
+
+    // set the pitch to be a good position for the rest
+    const pitch = JSON.parse(JSON.stringify(
+      SmoMeasure.defaultPitchForClef[sel.measure.clef]));
+    const altPitch = JSON.parse(JSON.stringify(
+      SmoMeasure.defaultPitchForClef[altSel.measure.clef]));
+    SmoOperation.setPitch(sel, pitch);
+    SmoOperation.setPitch(altSel, altPitch);
+
+    // If the note is a note, make it into a rest.  If the note is a rest already,
+    // make it invisible.  If it is invisible already, make it back into a rest.
     if (sel.note.isRest() && !sel.note.hidden) {
       sel.note.fillStyle = '#aaaaaa00';
       sel.note.hidden = true;
@@ -5136,7 +5158,7 @@ class SuiScoreViewOperations extends SuiScoreView {
       endSelection = this.tracker.getExtremeSelection(1);
     }
     measureIndex = startSelection.selector.measure;
-    while (measureIndex < endSelection.selector.measure) {
+    while (measureIndex <= endSelection.selector.measure) {
       const mi = measureIndex;
       this.score.staves.forEach((staff) => {
         SmoOperation.addTempo(this.score,
@@ -5146,7 +5168,7 @@ class SuiScoreViewOperations extends SuiScoreView {
       measureIndex++;
     }
     measureIndex = startSelection.selector.measure;
-    while (measureIndex < endSelection.selector.measure) {
+    while (measureIndex <= endSelection.selector.measure) {
       const mi = measureIndex;
       this.storeScore.staves.forEach((staff) => {
         SmoOperation.addTempo(this.storeScore,
@@ -8791,8 +8813,8 @@ class vexGlyph {
       trebleClef: {
         width: 25.5,
         height: 68.32,
-        yTop: 14,
-        yBottom: 14,
+        yTop: 3,
+        yBottom: 20.56,
         spacingRight: 10,
       },
       bassClef: {
@@ -8915,6 +8937,9 @@ class VxMeasure {
 
   static get adjLeftPixels() {
     return 5;
+  }
+  static get fillStyle() {
+    return '#000';
   }
 
   static get adjRightPixels() {
@@ -9364,11 +9389,7 @@ class VxMeasure {
     const staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
 
     this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - (1 + this.smoMeasure.padLeft),
-      { font: { family: SourceSansProFont.fontFamily, size: '12pt' } });
-    if (this.smoMeasure.prevFrame < VxMeasure.fps) {
-      this.smoMeasure.prevFrame += 1;
-    }
-
+      { font: { family: SourceSansProFont.fontFamily, size: '12pt' }, fill_style: VxMeasure.fillStyle });
     // If there is padLeft, draw an invisible box so the padding is included in the measure box
     if (this.smoMeasure.padLeft) {
       this.context.rect(this.smoMeasure.staffX, this.smoMeasure.staffY, this.smoMeasure.padLeft, 50, {
@@ -9680,8 +9701,12 @@ class VxSystem {
   }
 
   renderEndings() {
-    let i = 0;
-    this.smoMeasures.forEach((smoMeasure) => {
+    let j = 0;
+    for (j = 0; j < this.smoMeasures.length; ++j) {
+      const smoMeasure = this.smoMeasures[j];
+      if (smoMeasure.svg.rowInSystem > 0) {
+        continue;
+      }
       const staffId = smoMeasure.measureNumber.staffId;
       const endings = smoMeasure.getNthEndings();
       endings.forEach((ending) => {
@@ -9690,9 +9715,11 @@ class VxSystem {
         const voAr = [];
         group.classList.add(ending.attrs.id);
         group.classList.add(ending.endingId);
+        let i = 0;
 
         for (i = ending.startBar; i <= ending.endBar; ++i) {
-          const endMeasure = this.getMeasureByIndex(i, staffId);
+          const mix = i;
+          const endMeasure = this.getMeasureByIndex(mix, staffId);
           if (!endMeasure) {
             continue;
           }
@@ -9717,7 +9744,7 @@ class VxSystem {
           }
         });
       });
-    });
+    }
   }
 
   getMeasureByIndex(measureIndex, staffId) {
@@ -9902,11 +9929,9 @@ class SmoMeasure {
     this.modifiers = [];
     this.pageGap = 0;
     this.changed = true;
-    this.timestamp = 0;
     this.prevY = 0;
     this.prevX = 0;
     this.padLeft = 0;
-    this.prevFrame = 0;
     this.svg.staffWidth = 200;
     this.svg.staffX = 0;
     this.svg.staffY = 0;
@@ -9949,7 +9974,8 @@ class SmoMeasure {
   }
 
   static get formattingOptions() {
-    return ['customStretch', 'customProportion', 'autoJustify', 'formattingIterations'];
+    return ['customStretch', 'customProportion', 'autoJustify', 'formattingIterations', 'systemBreak',
+      'pageBreak', 'padLeft'];
   }
   static get systemOptions() {
     return ['systemBreak', 'pageBreak'];
@@ -10296,7 +10322,14 @@ class SmoMeasure {
     const obj = {};
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, SmoMeasure.defaults, obj);
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, obj);
-    return new SmoMeasure(obj);
+    // Don't copy column-formatting options to new measure in new column
+    smoSerialize.serializedMerge(SmoMeasure.formattingOptions, SmoMeasure.defaults, obj);
+    // Don't redisplay tempo for a new measure
+    const rv = new SmoMeasure(obj);
+    if (rv.tempo && rv.tempo.display) {
+      rv.tempo.display = false;
+    }
+    return rv;
   }
 
   // ### SmoMeasure.getDefaultMeasureWithNotes
@@ -10727,11 +10760,9 @@ class SmoMeasure {
       mm.attrs.id === mod.attrs.id
     );
     if (exist.length) {
-      this.setChanged(); // already added but set changed===true to re-justify
       return;
     }
     this.modifiers.push(mod);
-    this.setChanged();
   }
 
   getMeasureText() {
@@ -10741,7 +10772,6 @@ class SmoMeasure {
   removeMeasureText(id) {
     var ar = this.modifiers.filter(obj => obj.attrs.id !== id);
     this.modifiers = ar;
-    this.setChanged();
   }
 
   setRepeatSymbol(rs) {
@@ -10858,17 +10888,11 @@ class SmoMeasure {
   }
   setKeySignature(sig) {
     this.keySignature = sig;
-    this.setChanged();
     this.voices.forEach((voice) => {
       voice.notes.forEach((note) => {
         note.keySignature = sig;
       });
     });
-  }
-  setChanged() {
-    this.changed = true;
-    this.prevFrame = 0;
-    this.timestamp = Date.now();
   }
   get beatValue() {
     return this.timeSignature.split('/').map(number => parseInt(number, 10))[1];
@@ -11272,49 +11296,49 @@ class SmoTempoText extends SmoMeasureModifierBase {
       bpm: 120,
       beatDuration: 4096,
       tempoText: SmoTempoText.tempoTexts.allegro,
-      yOffset:0,
-      display:false
+      yOffset: 0,
+      display: false
     };
   }
   static get attributes() {
-    return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText','yOffset'];
+    return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText', 'yOffset'];
   }
-    compare(instance) {
-        var rv = true;
-        SmoTempoText.attributes.forEach((attr) => {
-            if (this[attr] != instance[attr]) {
-                rv = false;
-            }
-        });
-        return rv;
-    }
-    _toVexTextTempo() {
-        return {name:this.tempoText};
-    }
+  compare(instance) {
+    var rv = true;
+    SmoTempoText.attributes.forEach((attr) => {
+      if (this[attr] != instance[attr]) {
+        rv = false;
+      }
+    });
+    return rv;
+  }
+  _toVexTextTempo() {
+    return {name:this.tempoText};
+  }
 
-    // ### eq
-    // Return equality wrt the tempo marking, e.g. 2 allegro in textMode will be equal but
-    // an allegro and duration 120bpm will not.
-    static eq (t1,t2) {
-      if (t1.tempoMode != t2.tempoMode) {
-        return false;
-      }
-      if (t1.tempoMode == SmoTempoText.tempoModes.durationMode) {
-        return t1.bpm == t2.bpm && t1.beatDuration == t2.beatDuration;
-      }
-      if (t1.tempoMode == SmoTempoText.tempoModes.textMode) {
-        return t1.tempoText == t2.tempoText;
-      } else {
-        return t1.bpm == t2.bpm && t1.beatDuration == t2.beatDuration &&
-            t1.tempoText == t2.tempoText;
-      }
+  // ### eq
+  // Return equality wrt the tempo marking, e.g. 2 allegro in textMode will be equal but
+  // an allegro and duration 120bpm will not.
+  static eq (t1,t2) {
+    if (t1.tempoMode !== t2.tempoMode) {
+      return false;
     }
+    if (t1.tempoMode === SmoTempoText.tempoModes.durationMode) {
+      return t1.bpm === t2.bpm && t1.beatDuration === t2.beatDuration;
+    }
+    if (t1.tempoMode === SmoTempoText.tempoModes.textMode) {
+      return t1.tempoText === t2.tempoText;
+    } else {
+      return t1.bpm === t2.bpm && t1.beatDuration === t2.beatDuration &&
+        t1.tempoText === t2.tempoText;
+    }
+  }
 
-    static get bpmFromText() {
-        // TODO: learn these
-        var rv = {};
-        rv[SmoTempoText.tempoTexts.larghissimo] = 40;
-        rv[SmoTempoText.tempoTexts.grave] = 40;
+  static get bpmFromText() {
+    // TODO: learn these
+    var rv = {};
+    rv[SmoTempoText.tempoTexts.larghissimo] = 40;
+    rv[SmoTempoText.tempoTexts.grave] = 40;
     rv[SmoTempoText.tempoTexts.lento] = 42;
     rv[SmoTempoText.tempoTexts.largo] = 46;
     rv[SmoTempoText.tempoTexts.larghetto] = 52;
@@ -11329,37 +11353,37 @@ class SmoTempoText extends SmoMeasureModifierBase {
     rv[SmoTempoText.tempoTexts.vivace] = 144;
     rv[SmoTempoText.tempoTexts.presto] = 168;
     rv[SmoTempoText.tempoTexts.prestissimo] = 240;
-        return rv;
-    }
+      return rv;
+  }
 
-    _toVexDurationTempo() {
-        var vd = smoMusic.ticksToDuration[this.beatDuration];
-        var dots = (vd.match(/d/g) || []).length;
-        vd=vd.replace(/d/g,'');
-        return {duration: vd, dots: dots, bpm: this.bpm };
+  _toVexDurationTempo() {
+    var vd = smoMusic.ticksToDuration[this.beatDuration];
+    var dots = (vd.match(/d/g) || []).length;
+    vd=vd.replace(/d/g,'');
+    return {duration: vd, dots: dots, bpm: this.bpm };
+  }
+  toVexTempo() {
+    if (this.tempoMode ==  SmoTempoText.tempoModes.durationMode) {
+      return this._toVexDurationTempo();
     }
-    toVexTempo() {
-        if (this.tempoMode ==  SmoTempoText.tempoModes.durationMode) {
-            return this._toVexDurationTempo();
-        }
-        return this._toVexTextTempo();
-    }
-    backupOriginal() {
-        this.backup = {};
-        smoSerialize.serializedMerge(SmoTempoText.attributes, this, this.backup);
-    }
-    restoreOriginal() {
-        smoSerialize.serializedMerge(SmoTempoText.attributes, this.backup, this);
-    }
-    serialize() {
-        var params = {};
-        smoSerialize.serializedMergeNonDefault(SmoTempoText.defaults,SmoTempoText.attributes,this,params)
-        params.ctor = 'SmoTempoText';
-        return params;
+    return this._toVexTextTempo();
+  }
+  backupOriginal() {
+    this.backup = {};
+    smoSerialize.serializedMerge(SmoTempoText.attributes, this, this.backup);
+  }
+  restoreOriginal() {
+    smoSerialize.serializedMerge(SmoTempoText.attributes, this.backup, this);
+  }
+  serialize() {
+    var params = {};
+    smoSerialize.serializedMergeNonDefault(SmoTempoText.defaults, SmoTempoText.attributes, this, params)
+    params.ctor = 'SmoTempoText';
+    return params;
   }
   constructor(parameters) {
     super('SmoTempoText');
-        parameters = parameters ? parameters : {};
+    parameters = typeof(parameters) !== 'undefined' ? parameters : {};
     smoSerialize.serializedMerge(SmoTempoText.attributes, SmoTempoText.defaults, this);
     smoSerialize.serializedMerge(SmoTempoText.attributes, parameters, this);
   }
@@ -14778,6 +14802,9 @@ class PasteBuffer {
     if (this.notes.length < 1) {
       return;
     }
+    this.noteIndex = 0;
+    this.measureIndex = -1;
+    this.remainder = 0;
     const voices = this._populateVoice(this.destination.voice);
     const measureSel = JSON.parse(JSON.stringify(this.destination));
     const selectors = [];
@@ -15142,22 +15169,17 @@ class SmoOperation {
       parameters.endSelector = {staff:msel[len].selector.staff + 1,measure:msel[len].selector.measure};
       score.addOrReplaceSystemGroup(new SmoSystemGroup(parameters));
     }
-    msel.forEach((mm) => {
-      mm.measure.setChanged();
-    });
   }
 
   static convertToPickupMeasure(score, duration) {
     score.convertToPickupMeasure(0,duration);
   }
   static toggleBeamGroup(noteSelection) {
-    noteSelection.measure.setChanged();
     noteSelection.note.endBeam = !(noteSelection.note.endBeam);
   }
 
   static padMeasureLeft(selection, padding) {
     selection.measure.padLeft = padding;
-    selection.measure.setChanged();
   }
 
   static setActiveVoice(score, voiceIx) {
@@ -15176,7 +15198,6 @@ class SmoOperation {
         } else {
           sel.note.addMicrotone(tone);
         }
-        sel.measure.setChanged();
     });
   }
 
@@ -15277,53 +15298,50 @@ class SmoOperation {
   }
 
   static batchSelectionOperation(score, selections, operation) {
-  var measureTicks = [];
-  selections.forEach((selection) => {
-  var measureSel = {
-  staff: selection.selector.staff,
-  measure: selection.selector.measure,
-  voice: selection.selector.voice
-  };
-  selection.measure.setChanged();
-  if (!measureTicks[measureSel]) {
-  var tm = selection.measure.tickmapForVoice(selection.selector.voice);
-  var tickOffset = tm.durationMap[selection.selector.tick];
-  var selector = JSON.parse(JSON.stringify(selection.selector));
-  measureTicks.push({
-  selector: selector,
-  tickOffset: tickOffset
-  });
-  }
-  });
-  measureTicks.forEach((measureTick) => {
-  var selection = SmoSelection.measureSelection(score, measureTick.selector.staff, measureTick.selector.measure);
-  var tickmap = selection.measure.tickmapForVoice(measureTick.selector.voice);
-  var ix = tickmap.durationMap.indexOf(measureTick.tickOffset);
-  if (ix >= 0) {
-  var nsel = SmoSelection.noteSelection(score, measureTick.selector.staff, measureTick.selector.measure,
-  measureTick.selector.voice, ix);
-  SmoOperation[operation](nsel);
-  }
-  });
+    var measureTicks = [];
+    selections.forEach((selection) => {
+    var measureSel = {
+      staff: selection.selector.staff,
+      measure: selection.selector.measure,
+      voice: selection.selector.voice
+    };
+    if (!measureTicks[measureSel]) {
+      var tm = selection.measure.tickmapForVoice(selection.selector.voice);
+      var tickOffset = tm.durationMap[selection.selector.tick];
+      var selector = JSON.parse(JSON.stringify(selection.selector));
+      measureTicks.push({
+        selector: selector,
+        tickOffset: tickOffset
+      });
+    }
+    });
+    measureTicks.forEach((measureTick) => {
+      var selection = SmoSelection.measureSelection(score, measureTick.selector.staff, measureTick.selector.measure);
+      var tickmap = selection.measure.tickmapForVoice(measureTick.selector.voice);
+      var ix = tickmap.durationMap.indexOf(measureTick.tickOffset);
+      if (ix >= 0) {
+        var nsel = SmoSelection.noteSelection(score, measureTick.selector.staff, measureTick.selector.measure,
+        measureTick.selector.voice, ix);
+        SmoOperation[operation](nsel);
+      }
+    });
   }
   // ## doubleDuration
   // ## Description
   // double the duration of a note in a measure, at the expense of the following
   // note, if possible.  Works on tuplets also.
   static doubleDuration(selection) {
-  var note = selection.note;
-  var measure = selection.measure;
-        var selector = selection.selector;
-        var notes = measure.voices[selector.voice].notes;
-  var tuplet = measure.getTupletForNote(note);
-  if (!tuplet) {
-            SmoDuration.doubleDurationNonTuplet(selection);
-
-  } else {
-            SmoDuration.doubleDurationTuplet(selection);
-  }
-  selection.measure.setChanged();
-  return true;
+    var note = selection.note;
+    var measure = selection.measure;
+    var selector = selection.selector;
+    var notes = measure.voices[selector.voice].notes;
+    var tuplet = measure.getTupletForNote(note);
+    if (!tuplet) {
+      SmoDuration.doubleDurationNonTuplet(selection);
+    } else {
+      SmoDuration.doubleDurationTuplet(selection);
+    }
+    return true;
   }
 
   // ## halveDuration
@@ -15360,7 +15378,6 @@ class SmoOperation {
       });
       SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
     }
-    selection.measure.setChanged();
   }
 
   // ## makeTuplet
@@ -15382,7 +15399,6 @@ class SmoOperation {
       selection: selection
     });
     SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-    selection.measure.setChanged();
 
     return true;
   }
@@ -15401,7 +15417,6 @@ class SmoOperation {
     selection.note.makeRest();
   }
   static makeNote(selection) {
-    selection.measure.setChanged();
     selection.note.makeNote();
   }
   static setNoteHead(selections,noteHead) {
@@ -15490,24 +15505,25 @@ class SmoOperation {
   // ## Description
   // Makes a tuplet into a single with the duration of the whole tuplet
   static unmakeTuplet(selection) {
-  var note = selection.note;
-  var measure = selection.measure;
-  if (!measure.getTupletForNote(note))
-  return;
-  var tuplet = measure.getTupletForNote(note);
-  if (tuplet === null)
-  return;
-  var startIndex = measure.tupletIndex(tuplet);
-  var endIndex = tuplet.notes.length + startIndex - 1;
+    var note = selection.note;
+    var measure = selection.measure;
+    if (!measure.getTupletForNote(note)) {
+      return;
+    }
+    var tuplet = measure.getTupletForNote(note);
+    if (tuplet === null) {
+      return;
+    }
+    var startIndex = measure.tupletIndex(tuplet);
+    var endIndex = tuplet.notes.length + startIndex - 1;
 
-  var actor = new SmoUnmakeTupletActor({
-  startIndex: startIndex,
-  endIndex: endIndex,
-  measure: measure
-  });
-  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-  measure.setChanged();
-  return true;
+    var actor = new SmoUnmakeTupletActor({
+      startIndex: startIndex,
+      endIndex: endIndex,
+      measure: measure
+    });
+    SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
+    return true;
   }
 
   // ## dotDuration
@@ -15515,42 +15531,38 @@ class SmoOperation {
   // Add a dot to a note, if possible, and make the note ahead of it shorter
   // to compensate.
   static dotDuration(selection) {
-
-  var note = selection.note;
-  var measure = selection.measure;
-  var nticks = smoMusic.getNextDottedLevel(note.tickCount);
-  if (nticks == note.tickCount) {
-  return;
-  }
-
-        // Don't dot if the thing on the right of the . is too small
-        var dotCount = smoMusic.smoTicksToVexDots(nticks);
-        var multiplier = Math.pow(2,dotCount);
-        var baseDot = VF.durationToTicks(smoMusic.closestVexDuration(nticks))/(multiplier*2);
-        if (baseDot <= 128) {
-            return;
-        }
-
-  // If this is the ultimate note in the measure, we can't increase the length
-  if (selection.selector.tick + 1 === selection.measure.voices[selection.selector.voice].notes.length) {
-  return;
-  }
-  if (selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount > selection.note.tickCount) {
-  console.log('too long');
-  return;
-  }
-  // is dot too short?
-  if (!smoMusic.ticksToDuration[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount/2]) {
-  return;
-  }
-  var actor = new SmoStretchNoteActor({
-  startIndex: selection.selector.tick,
-  tickmap: measure.tickmapForVoice(selection.selector.voice),
-  newTicks: nticks
-  });
-  SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-  measure.setChanged();
-  return true;
+    var note = selection.note;
+    var measure = selection.measure;
+    var nticks = smoMusic.getNextDottedLevel(note.tickCount);
+    if (nticks == note.tickCount) {
+      return;
+    }
+    // Don't dot if the thing on the right of the . is too small
+    var dotCount = smoMusic.smoTicksToVexDots(nticks);
+    var multiplier = Math.pow(2, dotCount);
+    var baseDot = VF.durationToTicks(smoMusic.closestVexDuration(nticks)) / (multiplier * 2);
+    if (baseDot <= 128) {
+      return;
+    }
+    // If this is the ultimate note in the measure, we can't increase the length
+    if (selection.selector.tick + 1 === selection.measure.voices[selection.selector.voice].notes.length) {
+      return;
+    }
+    if (selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount > selection.note.tickCount) {
+      console.log('too long');
+      return;
+    }
+    // is dot too short?
+    if (!smoMusic.ticksToDuration[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount / 2]) {
+      return;
+    }
+    var actor = new SmoStretchNoteActor({
+      startIndex: selection.selector.tick,
+      tickmap: measure.tickmapForVoice(selection.selector.voice),
+      newTicks: nticks
+    });
+    SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
+    return true;
   }
 
   // ## undotDuration
@@ -15569,8 +15581,7 @@ class SmoOperation {
       tickmap: measure.tickmapForVoice(selection.selector.voice),
       newTicks: nticks
     });
-    SmoTickTransformer.applyTransform(measure, actor,selection.selector.voice);
-    selection.measure.setChanged();
+    SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
     return true;
   }
 
@@ -15613,7 +15624,7 @@ class SmoOperation {
         // Look through the earlier notes in the measure and try
         // to find an equivalent note, and convert it if it exists.
         measure.voices.forEach((voice) => {
-          for (i = 0; i<selection.selector.tick
+          for (i = 0; i < selection.selector.tick
             && i < voice.notes.length; ++i)  {
             const prevNote = voice.notes[i];
             prevNote.pitches.forEach((prevPitch) => {
@@ -15639,6 +15650,7 @@ class SmoOperation {
   // the letter value appropriate for the key signature is used, e.g. c in A major becomes
   // c#
   static setPitch(selection, pitches) {
+    let i = 0;
     var measure = selection.measure;
     var note = selection.note;
     if (typeof(note) === 'undefined') {
@@ -15646,7 +15658,6 @@ class SmoOperation {
       return;
     }
     selection.note.makeNote();
-    measure.setChanged();
     // TODO allow hint for octave
     var octave = note.pitches[0].octave;
     note.pitches = [];
@@ -15655,14 +15666,14 @@ class SmoOperation {
     }
     var earlierAccidental = (pitch) => {
       selection.measure.voices.forEach((voice) => {
-        for (var i=0;i<selection.selector.tick
-           && i < voice.notes.length;++i) {
+        for (i = 0; i < selection.selector.tick
+          && i < voice.notes.length; ++i) {
           var prevNote = voice.notes[i];
-          if (prevNote == null || prevNote.pitches == null) {
+          if (prevNote === null || prevNote.pitches === null) {
             console.log('this will die null');
           }
           prevNote.pitches.forEach((prevPitch) => {
-            if (prevNote.noteType == 'n' && prevPitch.letter == pitch.letter) {
+            if (prevNote.noteType === 'n' && prevPitch.letter === pitch.letter) {
               pitch.accidental = prevPitch.accidental;
             }
           });
@@ -15674,9 +15685,9 @@ class SmoOperation {
       if (typeof(pitch) === 'string') {
         var letter = smoMusic.getKeySignatureKey(pitch[0], measure.keySignature);
         pitch = {
-        letter: letter[0],
-        accidental: letter.length > 1 ? letter.substring(1) : '',
-        octave: octave
+          letter: letter[0],
+          accidental: letter.length > 1 ? letter.substring(1) : '',
+          octave: octave
         };
       }
       earlierAccidental(pitch);
@@ -15697,16 +15708,14 @@ class SmoOperation {
           found = true;
         }
       });
-    if (!found) {
-      toAdd.push(pitch);
-    }
+      if (!found) {
+        toAdd.push(pitch);
+      }
     });
     toAdd.sort(function (a, b) {
-      return smoMusic.smoPitchToInt(a) -
-      smoMusic.smoPitchToInt(b);
+      return smoMusic.smoPitchToInt(a) - smoMusic.smoPitchToInt(b);
     });
     selection.note.pitches = JSON.parse(JSON.stringify(toAdd));
-    selection.measure.setChanged();
   }
 
   static toggleCourtesyAccidental(selection) {
@@ -15724,21 +15733,19 @@ class SmoOperation {
       toBe = !(selection.note.pitches[selection.selector.pitches[0]].cautionary);
     }
     SmoOperation.courtesyAccidental(selection, toBe);
-    selection.measure.setChanged();
   }
 
   static courtesyAccidental(pitchSelection, toBe) {
-  pitchSelection.selector.pitches.forEach((pitchIx) => {
-  pitchSelection.note.pitches[pitchIx].cautionary = toBe;
-  });
-  pitchSelection.measure.setChanged();
+    pitchSelection.selector.pitches.forEach((pitchIx) => {
+      pitchSelection.note.pitches[pitchIx].cautionary = toBe;
+    });
   }
 
   static toggleEnharmonic(pitchSelection) {
     if (pitchSelection.selector.pitches.length === 0) {
       pitchSelection.selector.pitches.push(0);
     }
-    var pitch = pitchSelection.note.pitches[pitchSelection.selector.pitches[0]];
+    const pitch = pitchSelection.note.pitches[pitchSelection.selector.pitches[0]];
     SmoNote.toggleEnharmonic(pitch);
   }
 
@@ -15758,7 +15765,7 @@ class SmoOperation {
     selections.forEach((selection) => {
       if (SmoSelector.sameNote(start,selection.selector) ||
         (SmoSelector.sameMeasure(selection.selector,cur) &&
-         cur.tick == selection.selector.tick-1)) {
+         cur.tick === selection.selector.tick-1)) {
         ticks += selection.note.tickCount;
         cur = selection.selector;
         beamGroup.push(selection.note);
@@ -15777,18 +15784,15 @@ class SmoOperation {
     selections[0].note.toggleFlagState();
     selections.forEach((selection) => {
       selection.note.flagState = selections[0].note.flagState;
-      selection.measure.setChanged()
     });
   }
 
-  static toggleOrnament(selection,ornament) {
+  static toggleOrnament(selection, ornament) {
     selection.note.toggleOrnament(ornament);
-    selection.measure.setChanged();
   }
 
   static toggleArticulation(selection, articulation) {
     selection.note.toggleArticulation(articulation);
-    selection.measure.setChanged();
   }
 
   static addEnding(score, parameters) {
@@ -15815,7 +15819,6 @@ class SmoOperation {
           const ending = new SmoVolta(pp);
           measure.addNthEnding(ending);
         }
-        measure.setChanged();
         m += 1;
       });
       s += 1;
@@ -15846,7 +15849,7 @@ class SmoOperation {
     score.removeTextGroup(textGroup);
   }
 
-  static addMeasureText(score,selection,measureText) {
+  static addMeasureText(score, selection, measureText) {
     const current = selection.measure.getMeasureText();
     // TODO: should we allow multiples per position
     current.forEach((mod) => {
@@ -15855,7 +15858,7 @@ class SmoOperation {
     selection.measure.addMeasureText(measureText);
   }
 
-  static removeMeasureText(score,selection,mt) {
+  static removeMeasureText(score, selection, mt) {
     selection.measure.removeMeasureText(mt.attrs.id);
   }
 
@@ -15907,7 +15910,6 @@ class SmoOperation {
     score.staves.forEach((staff) => {
     var s2 = SmoSelection.measureSelection(score, ix, mm);
     s2.measure.setBarline(barline);
-    s2.measure.setChanged();
     ix += 1;
     });
   }
@@ -15918,7 +15920,6 @@ class SmoOperation {
     score.staves.forEach((staff) => {
     var s2 = SmoSelection.measureSelection(score, ix, mm);
     s2.measure.setRepeatSymbol(sym);
-    s2.measure.setChanged();
     ix += 1;
     });
   }
@@ -15979,8 +15980,6 @@ class SmoOperation {
       position: SmoStaffHairpin.positions.BELOW
     });
     fromSelection.staff.addStaffModifier(modifier);
-    fromSelection.measure.setChanged();
-    toSelection.measure.setChanged();
   }
 
   static addStaff(score, parameters) {
@@ -16464,71 +16463,71 @@ VX = Vex.Xform;
 
 
 class SmoDuration {
-    static doubleDurationNonTuplet(selection) {
-        var note = selection.note;
-		var measure = selection.measure;
-        var selector = selection.selector;
-        var notes = measure.voices[selector.voice].notes;
-		var tuplet = measure.getTupletForNote(note);
-        var i;
-        var nticks = note.tickCount * 2;
-        var replNote = SmoNote.cloneWithDuration(note,nticks);
-        var ticksUsed = note.tickCount;
-        var newNotes = [];
-        for (i = 0;i < selector.tick;++i) {
-            newNotes.push(notes[i]);
-        }
-        for (i = selector.tick + 1;i < notes.length;++i) {
-            var nnote = notes[i];
-            ticksUsed += nnote.tickCount;
-            if (ticksUsed >= nticks) {
-                break;
-            }
-        }
-        var remainder = ticksUsed - nticks;
-        if (remainder < 0) {
-            return;
-        }
-        newNotes.push(replNote);
-        if (remainder > 0) {
-            var lmap = smoMusic.gcdMap(remainder);
-            lmap.forEach((duration) => {
-                newNotes.push(SmoNote.cloneWithDuration(note,duration));
-            });
-        }
-
-        for (i = i + 1;i<notes.length;++i) {
-            newNotes.push(notes[i]);
-        }
-        measure.voices[selector.voice].notes = newNotes;
+  static doubleDurationNonTuplet(selection) {
+    var note = selection.note;
+    var measure = selection.measure;
+    var selector = selection.selector;
+    var notes = measure.voices[selector.voice].notes;
+    var tuplet = measure.getTupletForNote(note);
+    var i;
+    var nticks = note.tickCount * 2;
+    var replNote = SmoNote.cloneWithDuration(note,nticks);
+    var ticksUsed = note.tickCount;
+    var newNotes = [];
+    for (i = 0;i < selector.tick;++i) {
+      newNotes.push(notes[i]);
+    }
+    for (i = selector.tick + 1;i < notes.length;++i) {
+      var nnote = notes[i];
+      ticksUsed += nnote.tickCount;
+      if (ticksUsed >= nticks) {
+        break;
+      }
+    }
+    var remainder = ticksUsed - nticks;
+    if (remainder < 0) {
+      return;
+    }
+    newNotes.push(replNote);
+    if (remainder > 0) {
+      var lmap = smoMusic.gcdMap(remainder);
+      lmap.forEach((duration) => {
+        newNotes.push(SmoNote.cloneWithDuration(note,duration));
+      });
     }
 
-    static doubleDurationTuplet(selection) {
-        var notes = selection.measure.voices[selection.selector.voice].notes;
-        var tuplet = selection.measure.getTupletForNote(selection.note);
-        var measure = selection.measure
-        var startIndex = selection.selector.tick - tuplet.startIndex;
-        var tupletIndex = measure.tupletIndex(tuplet);
-
-        var startLength = tuplet.notes.length;
-        tuplet.combine(startIndex,startIndex + 1);
-        if (tuplet.notes.length >= startLength) {
-            return;
-        }
-        var newNotes = [];
-        var i;
-
-        for (i = 0;i < tuplet.startIndex;++i) {
-            newNotes.push(notes[i]);
-        }
-        tuplet.notes.forEach((note) => {
-            newNotes.push(note);
-        });
-        for (i = i+tuplet.notes.length+1;i<notes.length;++i) {
-            newNotes.push(notes[i]);
-        }
-        measure.voices[selection.selector.voice].notes=newNotes;
+    for (i = i + 1;i<notes.length;++i) {
+      newNotes.push(notes[i]);
     }
+    measure.voices[selector.voice].notes = newNotes;
+  }
+
+  static doubleDurationTuplet(selection) {
+    var notes = selection.measure.voices[selection.selector.voice].notes;
+    var tuplet = selection.measure.getTupletForNote(selection.note);
+    var measure = selection.measure
+    var startIndex = selection.selector.tick - tuplet.startIndex;
+    var tupletIndex = measure.tupletIndex(tuplet);
+
+    var startLength = tuplet.notes.length;
+    tuplet.combine(startIndex,startIndex + 1);
+    if (tuplet.notes.length >= startLength) {
+      return;
+    }
+    var newNotes = [];
+    var i;
+
+    for (i = 0;i < tuplet.startIndex;++i) {
+      newNotes.push(notes[i]);
+    }
+    tuplet.notes.forEach((note) => {
+      newNotes.push(note);
+    });
+    for (i = i+tuplet.notes.length+1;i<notes.length;++i) {
+      newNotes.push(notes[i]);
+    }
+    measure.voices[selection.selector.voice].notes=newNotes;
+  }
 }
 // this file contains utilities that change the duration of notes in a measure.
 
@@ -16536,28 +16535,28 @@ class SmoDuration {
 //  Base class for duration transformations.  I call them transformations because this can
 //  create and delete notes, as opposed to modifiers which act on existing notes.
 class SmoTickTransformer {
-    constructor(measure, actors, voiceIndex) {
-        this.notes = measure.voices[voiceIndex].notes;
-        this.measure = measure;
-        this.voice = typeof(voiceIndex) === 'number' ?  voiceIndex : 0;
-        this.vxNotes = [];
-        this.actors = actors ? actors : [];
-        this.keySignature = 'C';
-        this.accidentalMap = [];
-    }
-    static nullActor(note) {
-        return note;
-    }
-	// ## applyTransform
-	// create a transform with the given actors and run it against the supplied measure
-	static applyTransform(measure,actors,voiceIndex) {
-		var actAr = (Array.isArray(actors)) ? actors : [actors];
-		measure.clearBeamGroups();
+  constructor(measure, actors, voiceIndex) {
+    this.notes = measure.voices[voiceIndex].notes;
+    this.measure = measure;
+    this.voice = typeof(voiceIndex) === 'number' ?  voiceIndex : 0;
+    this.vxNotes = [];
+    this.actors = actors ? actors : [];
+    this.keySignature = 'C';
+    this.accidentalMap = [];
+  }
+  static nullActor(note) {
+    return note;
+  }
+  // ## applyTransform
+  // create a transform with the given actors and run it against the supplied measure
+  static applyTransform(measure,actors,voiceIndex) {
+    var actAr = (Array.isArray(actors)) ? actors : [actors];
+    measure.clearBeamGroups();
         var transformer = new SmoTickTransformer(measure, actAr,voiceIndex);
         transformer.run();
         var vix = measure.getActiveVoice();
         measure.voices[vix].notes = transformer.notes;
-	}
+  }
     // ## transformNote
     // call the actors for each note, and put the result in the note array.
     // The note from the original array is copied and sent to each actor.
@@ -16576,10 +16575,10 @@ class SmoTickTransformer {
         var self = this;
 
         for (var i = 0; i < this.actors.length; ++i) {
-			var actor=this.actors[i];
+      var actor=this.actors[i];
             var newNote = actor.transformTick(note, tickmap, index);
             if (newNote == null) {
-				this.vxNotes.push(note); // no change
+        this.vxNotes.push(note); // no change
                 continue;
             }
             if (Array.isArray(newNote)) {
@@ -16618,50 +16617,57 @@ class TickTransformBase {
 // or rest.
 //
 class SmoContractNoteActor extends TickTransformBase {
-    constructor(params) {
-        super();
-        Vex.Merge(this, params);
-    }
-    transformTick(note, tickmap, index) {
-        if (index == this.startIndex) {
-            var notes = [];
-            var noteCount = Math.floor(note.ticks.numerator / this.newTicks);
-            var notes = [];
-			var remainder = note.ticks.numerator;
-            /**
-             *  Replace 1 note with noteCOunt notes of newTIcks duration
-             *      old map:
-             *     d  .  d  .  .
-             *     new map:
-             *     d  d  d  .  .
-             */
-            for (var i = 0; i < noteCount; ++i) {
-                notes.push(new SmoNote({
-                        clef: note.clef,
-                        pitches: JSON.parse(JSON.stringify(note.pitches)),
-                        ticks: {numerator:this.newTicks,denominator:1,remainder:0},
-                        beamBeats:note.beamBeats
-                    }));
-				remainder = remainder - this.newTicks;
-            }
-
-            // make sure remnainder is not too short
-			if (remainder > 0) {
-                if (remainder < 128) {
-                    return null;
-                }
-				notes.push(new SmoNote({
-                        clef: note.clef,
-                        pitches: JSON.parse(JSON.stringify(note.pitches)),
-                        ticks: {numerator:remainder,denominator:1,remainder:0},
-                        beamBeats:note.beamBeats
-                    }));
-			}
-            return notes;
+  constructor(params) {
+    super();
+    Vex.Merge(this, params);
+  }
+  transformTick(note, tickmap, index) {
+    if (index == this.startIndex) {
+      var notes = [];
+      var noteCount = Math.floor(note.ticks.numerator / this.newTicks);
+      var notes = [];
+      var remainder = note.ticks.numerator;
+      /**
+       *  Replace 1 note with noteCOunt notes of newTIcks duration
+       *      old map:
+       *     d  .  d  .  .
+       *     new map:
+       *     d  d  d  .  .
+       */
+      for (var i = 0; i < noteCount; ++i) {
+        // first note, retain modifiers so clone.  Otherwise just
+        // retain pitches
+        if (i === 0) {
+          const nn = SmoNote.clone(note);
+          nn.ticks = { numerator: this.newTicks, denominator: 1, remainder: 0 }
+          notes.push(nn);
+        } else {
+          notes.push(new SmoNote({
+            clef: note.clef,
+            pitches: JSON.parse(JSON.stringify(note.pitches)),
+            ticks: { numerator: this.newTicks, denominator: 1, remainder: 0},
+            beamBeats: note.beamBeats
+          }));
         }
+        remainder = remainder - this.newTicks;
+      }
 
-        return null;
+      // make sure remnainder is not too short
+      if (remainder > 0) {
+        if (remainder < 128) {
+          return null;
+        }
+        notes.push(new SmoNote({
+          clef: note.clef,
+          pitches: JSON.parse(JSON.stringify(note.pitches)),
+          ticks: {numerator:remainder,denominator:1,remainder:0},
+          beamBeats:note.beamBeats
+        }));
+      }
+      return notes;
     }
+    return null;
+  }
 }
 
 // ## VxStretchTupletActor
@@ -16776,8 +16782,8 @@ class SmoMakeTupletActor extends TickTransformBase {
             this.durationMap.push(1.0);
             sum += 1.0;
         }
-		/*
-		var stemValue = this.totalTicks / this.numNotes;
+    /*
+    var stemValue = this.totalTicks / this.numNotes;
         var stemTicks = 8192;
 
         // The stem value is the type on the non-tuplet note, e.g. 1/8 note
@@ -16787,7 +16793,7 @@ class SmoMakeTupletActor extends TickTransformBase {
         }
 
         this.stemTicks = stemTicks * 2;
-		*/
+    */
         this.stemTicks = SmoTuplet.calculateStemTicks(this.totalTicks ,this.numNotes);
 
         this.rangeToSkip = this._rangeToSkip();
@@ -16832,8 +16838,8 @@ class SmoMakeTupletActor extends TickTransformBase {
         for (var i = 0; i < this.numNotes; ++i) {
             note = SmoNote.cloneWithDuration(note, {numerator:this.stemTicks,denominator:1,remainder:0});
 
-			// Don't clone modifiers, except for first one.
-			note.textModifiers = i===0 ? note.textModifiers : [];
+      // Don't clone modifiers, except for first one.
+      note.textModifiers = i===0 ? note.textModifiers : [];
 
             this.tuplet.push(note);
         }
@@ -16858,7 +16864,7 @@ class SmoStretchNoteActor extends TickTransformBase {
     super();
     Vex.Merge(this, parameters);
     this.startTick = this.tickmap.durationMap[this.startIndex];
-		var currentTicks = this.tickmap.deltaMap[this.startIndex];
+    var currentTicks = this.tickmap.deltaMap[this.startIndex];
 
     var endTick = this.tickmap.durationMap[this.startIndex] + this.newTicks;
     this.divisor = -1;
@@ -16886,18 +16892,18 @@ class SmoStretchNoteActor extends TickTransformBase {
     if (mapIx < 0) {
       var npos = this.tickmap.durationMap[this.startIndex + 1];
       var ndelta = this.tickmap.deltaMap[this.startIndex + 1];
-			var needed = this.newTicks - currentTicks;
-			var exp = ndelta/needed;
+      var needed = this.newTicks - currentTicks;
+      var exp = ndelta/needed;
 
-			// Next tick does not divide evenly into this, or next tick is shorter than this
-			if (Math.round(ndelta/exp)-ndelta/exp != 0 || ndelta < 256) {
-				this.durationMap = [];
-			}
+      // Next tick does not divide evenly into this, or next tick is shorter than this
+      if (Math.round(ndelta/exp)-ndelta/exp != 0 || ndelta < 256) {
+        this.durationMap = [];
+      }
       else if (ndelta / exp + this.startTick + this.newTicks <= this.tickmap.totalDuration) {
         this.durationMap.push(ndelta - (ndelta / exp));
       } else {
         // there is no way to do this...
-  			this.durationMap = [];
+        this.durationMap = [];
       }
     } else {
       // If this note now takes up the space of other notes, remove those notes
@@ -17074,7 +17080,6 @@ class UndoBuffer {
       }
     } else if (buf.type === UndoBuffer.bufferTypes.MEASURE) {
       const measure = SmoMeasure.deserialize(buf.json);
-      measure.setChanged();
       score.replaceMeasure(buf.selector, measure);
     } else if (buf.type === UndoBuffer.bufferTypes.SCORE) {
       // Score expects string, as deserialized score is how saving is done.

@@ -346,6 +346,9 @@ class PasteBuffer {
     if (this.notes.length < 1) {
       return;
     }
+    this.noteIndex = 0;
+    this.measureIndex = -1;
+    this.remainder = 0;
     const voices = this._populateVoice(this.destination.voice);
     const measureSel = JSON.parse(JSON.stringify(this.destination));
     const selectors = [];
