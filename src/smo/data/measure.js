@@ -79,6 +79,9 @@ class SmoMeasure {
   }
 
   static get defaults() {
+    if (typeof(SmoMeasure._defaults) !== 'undefined') {
+      return SmoMeasure._defaults;
+    }
     // var noteDefault = SmoMeasure.defaultVoice44;
     const modifiers = [];
     modifiers.push(new SmoBarline({
@@ -94,7 +97,7 @@ class SmoMeasure {
       symbol: SmoRepeatSymbol.symbols.None
     }));
 
-    return {
+    SmoMeasure._defaults = {
       timeSignature: '4/4',
       keySignature: 'C',
       canceledKeySignature: null,
@@ -107,7 +110,7 @@ class SmoMeasure {
       tuplets: [],
       transposeIndex: 0,
       customStretch: 0,
-      customProportion: 2,
+      customProportion: 12,
       modifiers,
       autoJustify: true,
       formattingIterations: 0,
@@ -129,6 +132,7 @@ class SmoMeasure {
       activeVoice: 0,
       tempo: new SmoTempoText()
     };
+    return SmoMeasure._defaults;
   }
 
   // ### serializeColumnMapped

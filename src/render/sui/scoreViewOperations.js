@@ -36,6 +36,12 @@ class SuiScoreViewOperations extends SuiScoreView {
     // TODO: only render the one TG.
     this.renderer.renderScoreModifiers();
   }
+  updateProportionDefault(oldValue, newValue) {
+    this._undoScorePreferences('Update proportion');
+    SmoOperation.updateProportionDefault(this.score, oldValue, newValue);
+    SmoOperation.updateProportionDefault(this.storeScore, oldValue, newValue);
+    this.renderer.setDirty();
+  }
   // ### updateScorePreferences
   // The score preferences for view score have changed, sync them
   updateScorePreferences() {

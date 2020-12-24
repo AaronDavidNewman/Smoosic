@@ -56,7 +56,8 @@ class SmoScore {
         autoPlay: true,
         autoAdvance: true,
         defaultDupleDuration: 4096,
-        defaultTripleDuration: 6144
+        defaultTripleDuration: 6144,
+        customProportion: 12
       },
       startIndex: 0,
       renumberingMap: {},
@@ -186,6 +187,9 @@ class SmoScore {
 
     // Explode the sparse arrays of attributes into the measures
     SmoScore.deserializeColumnMapped(jsonObj);
+    if (typeof(jsonObj.score.preferences) !== 'undefined' && typeof(jsonObj.score.preferences.customProportion) === 'number') {
+      SmoMeasure.defaults.customProportion = jsonObj.score.preferences.customProportion;
+    }
     smoSerialize.serializedMerge(
       SmoScore.defaultAttributes,
       jsonObj.score, params);

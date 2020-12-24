@@ -113,10 +113,10 @@ class VxSystem {
       });
       const vkey = Object.keys(lyricVerseMap).sort((a, b) => a - b);
       vkey.forEach((verse) => {
-        verseLimits[verse] = { highest: -1, bottom: -1 };
+        verseLimits[verse] = { highest: lyricVerseMap[0][0].logicalBox.y + 1000, bottom: -1 };
         lyricVerseMap[verse].forEach((ll) => {
-          verseLimits[verse].highest = Math.round(Math.max(ll.logicalBox.height, verseLimits[verse].highest));
-          verseLimits[verse].bottom = Math.round(Math.max(ll.logicalBox.y + ll.logicalBox.height, verseLimits[verse].bottom));
+          verseLimits[verse].highest = Math.round(Math.min(ll.logicalBox.height, verseLimits[verse].highest));
+          verseLimits[verse].bottom = Math.round(Math.max(ll.logicalBox.y - ll.logicalBox.height / 2, verseLimits[verse].bottom));
         });
       });
       for (j = 1; j < vkey.length; ++j) {
@@ -124,6 +124,10 @@ class VxSystem {
       }
       lyrics.forEach((lyric) => {
         lyric.adjY = Math.round(verseLimits[lyric.verse].bottom - lyric.logicalBox.y);
+        // vexRenderY is the offset for this measure.
+        if (lyric.vexRenderY) {
+          lyric.adjY += lyric.vexRenderY;
+        }
         const dom = $(this.context.svg).find(lyric.selector)[0];
         if (typeof(dom) !== 'undefined') {
           dom.setAttributeNS('', 'transform', 'translate(' + lyric.adjX + ' ' + lyric.adjY + ')');

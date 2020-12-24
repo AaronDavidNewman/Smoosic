@@ -19,6 +19,20 @@ class SmoOperation {
     });
   }
 
+  static updateProportionDefault(score, oldValue, newValue) {
+    score.preferences.customProportion = newValue;
+    SmoMeasure.defaults.customProportion = newValue;
+    // since we are setting a default that has already been written locally, update the
+    // measures.
+    score.staves.forEach((staff) => {
+      staff.measures.forEach((measure) => {
+        if (measure.customProportion === oldValue) {
+          measure.customProportion = newValue;
+        }
+      });
+    });
+  }
+
   static setFormattingIterations(score, selection, value) {
     score.staves.forEach((staff) => {
       staff.measures[selection.selector.measure].setFormattingIterations(value);

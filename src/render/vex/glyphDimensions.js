@@ -106,12 +106,13 @@ class vexGlyph {
         width: 5,
         height: 5,
         spacingRight: 2
-      },
+      }, // This isn't accurate, but I don't
+      // want to add extra space just for clef.
       trebleClef: {
         width: 25.5,
         height: 68.32,
         yTop: 3,
-        yBottom: 20.56,
+        yBottom: 3,
         spacingRight: 10,
       },
       bassClef: {

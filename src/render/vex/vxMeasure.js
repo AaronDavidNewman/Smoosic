@@ -130,13 +130,14 @@ class VxMeasure {
     if (lyric.skipRender) {
       return;
     }
-    const y = lyric.verse * 10;
+    const fontInfo = suiLayoutAdjuster.textFont(lyric);
+    const y = (lyric.verse + 1) * fontInfo.maxHeight;
+    lyric.vexRenderY = y;
     const vexL = new VF.Annotation(lyric.getText()).setReportWidth(lyric.adjustNoteWidth);
     vexL.setAttribute(lyric.attrs.id); //
 
     // If we adjusted this note for the lyric, adjust the lyric as well.
     vexL.setFont(lyric.fontInfo.family, lyric.fontInfo.size, lyric.fontInfo.weight);
-    vexL.setYShift(y); // need this?
     vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
     vexNote.addAnnotation(0, vexL);
     const classString = 'lyric lyric-' + lyric.verse;
