@@ -94,34 +94,35 @@ class SuiScoreViewOperations extends SuiScoreView {
   // we never really delete a note, but we will convert it into a rest and if it's
   // already a rest we will try to hide it.
   deleteNote() {
-    this._undoFirstMeasureSelection('delete note');
-    const sel = this.tracker.selections[0];
-    const altSel = this._getEquivalentSelection(sel);
+    const measureSelections = this._undoTrackerMeasureSelections('delete note');
+    this.tracker.selections.forEach((sel) => {
+      const altSel = this._getEquivalentSelection(sel);
 
-    // set the pitch to be a good position for the rest
-    const pitch = JSON.parse(JSON.stringify(
-      SmoMeasure.defaultPitchForClef[sel.measure.clef]));
-    const altPitch = JSON.parse(JSON.stringify(
-      SmoMeasure.defaultPitchForClef[altSel.measure.clef]));
-    SmoOperation.setPitch(sel, pitch);
-    SmoOperation.setPitch(altSel, altPitch);
+      // set the pitch to be a good position for the rest
+      const pitch = JSON.parse(JSON.stringify(
+        SmoMeasure.defaultPitchForClef[sel.measure.clef]));
+      const altPitch = JSON.parse(JSON.stringify(
+        SmoMeasure.defaultPitchForClef[altSel.measure.clef]));
+      SmoOperation.setPitch(sel, pitch);
+      SmoOperation.setPitch(altSel, altPitch);
 
-    // If the note is a note, make it into a rest.  If the note is a rest already,
-    // make it invisible.  If it is invisible already, make it back into a rest.
-    if (sel.note.isRest() && !sel.note.hidden) {
-      sel.note.fillStyle = '#aaaaaa00';
-      sel.note.hidden = true;
-      altSel.note.fillStyle = '#aaaaaa00';
-      altSel.note.hidden = true;
-    } else {
-      sel.note.makeRest();
-      altSel.note.makeRest();
-      altSel.note.fillStyle = '';
-      sel.note.fillStyle = '';
-      altSel.note.hidden = false;
-      sel.note.hidden = false;
-    }
-    this.renderer.addToReplaceQueue(sel);
+      // If the note is a note, make it into a rest.  If the note is a rest already,
+      // make it invisible.  If it is invisible already, make it back into a rest.
+      if (sel.note.isRest() && !sel.note.hidden) {
+        sel.note.fillStyle = '#aaaaaa00';
+        sel.note.hidden = true;
+        altSel.note.fillStyle = '#aaaaaa00';
+        altSel.note.hidden = true;
+      } else {
+        sel.note.makeRest();
+        altSel.note.makeRest();
+        altSel.note.fillStyle = '';
+        sel.note.fillStyle = '';
+        altSel.note.hidden = false;
+        sel.note.hidden = false;
+      }
+    });
+    this._renderChangedMeasures(measureSelections);
   }
   // ### removeLyric
   // The lyric editor moves around, so we can't depend on the tracker for the
@@ -549,26 +550,40 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.setNoteHead(this._getEquivalentSelections(selections), head);
     this._renderChangedMeasures(measureSelections);
   }
+  // For these rectangle ones, treat view score and store score differently
+  // b/c the rectangles may be different
   setMeasureProportion(value) {
     const selection = this.tracker.selections[0];
-    const rect = this._getRectangleFromStaffGroup(selection);
-    this._undoRectangle('Set measure proportion', rect.startSelector, rect.endSelector);
-    const rs = this._getRectangleSelections(rect.startSelector, rect.endSelector);
+    const altSelection = this._getEquivalentSelection(selection);
+    const rect = this._getRectangleFromStaffGroup(selection, this.staffMap);
+    const altRect = this._getRectangleFromStaffGroup(altSelection, this.defaultStaffMap);
+    this._undoRectangle('Set measure proportion', rect.startSelector, rect.endSelector, this.score, this.undoBuffer);
+    this._undoRectangle('Set measure proportion', altRect.startSelector, altRect.endSelector, this.storeScore, this.storeUndo);
+    const rs = this._getRectangleSelections(rect.startSelector, rect.endSelector, this.score);
+    const altRs = this._getRectangleSelections(altRect.startSelector, altRect.endSelector, this.storeScore);
     rs.forEach((s) => {
       this.renderer.addToReplaceQueue(s.viewSelection);
-      SmoOperation.setMeasureProportion(s.viewSelection, value);
-      SmoOperation.setMeasureProportion(s.storeSelection, value);
+      SmoOperation.setMeasureProportion(s, value);
+    });
+    altRs.forEach((s) => {
+      SmoOperation.setMeasureProportion(s, value);
     });
   }
   setAutoJustify(value) {
     const selection = this.tracker.selections[0];
-    const rect = this._getRectangleFromStaffGroup(selection);
-    this._undoRectangle('Set measure proportion', rect.startSelector, rect.endSelector);
-    const rs = this._getRectangleSelections(rect.startSelector, rect.endSelector);
+    const altSelection = this._getEquivalentSelection(selection);
+    const rect = this._getRectangleFromStaffGroup(selection, this.staffMap);
+    const altRect = this._getRectangleFromStaffGroup(altSelection, this.defaultStaffMap);
+    this._undoRectangle('Set measure proportion', rect.startSelector, rect.endSelector, this.score, this.undoBuffer);
+    this._undoRectangle('Set measure proportion', altRect.startSelector, altRect.endSelector, this.storeScore, this.storeUndo);
+    const rs = this._getRectangleSelections(rect.startSelector, rect.endSelector, this.score);
+    const altRs = this._getRectangleSelections(altRect.startSelector, altRect.endSelector, this.storeScore);
     rs.forEach((s) => {
-      this.renderer.addToReplaceQueue(s.viewSelection);
-      SmoOperation.setAutoJustify(this.score, s.viewSelection, value);
-      SmoOperation.setAutoJustify(this.storeScore, s.storeSelection, value);
+      this.renderer.addToReplaceQueue(s);
+      SmoOperation.setAutoJustify(this.score, s, value);
+    });
+    altRs.forEach((s) => {
+      SmoOperation.setAutoJustify(this.storeScore, s, value);
     });
   }
   setCollisionAvoidance(value) {
@@ -673,7 +688,14 @@ class SuiScoreViewOperations extends SuiScoreView {
   }
   removeStaffModifier(modifier) {
     this._undoRectangle('Set measure proportion', modifier.startSelector,
-      modifier.endSelector);
+      modifier.endSelector, this.score, this.undoBuffer);
+    const altStaff = this.staffMap[modifier.startSelector.staff];
+    const altStart = JSON.parse(JSON.stringify(modifier.startSelector));
+    const altEnd = JSON.parse(JSON.stringify(modifier.endSelector));
+    altStart.staff = altStaff;
+    altEnd.staff = altStaff;
+    this._undoRectangle('Set measure proportion', altStart,
+      altEnd, this.storeScore, this.storeUndo);
     const sel = SmoSelection.noteFromSelector(this.score, modifier.startSelector);
     const altSel = this._getEquivalentSelection(sel);
     this._removeStaffModifier(sel, altSel, modifier);
@@ -681,7 +703,15 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
   }
   addOrUpdateStaffModifier(modifier) {
-    this._undoRectangle('Set measure proportion', modifier.startSelector, modifier.endSelector);
+    this._undoRectangle('Set measure proportion', modifier.startSelector, modifier.endSelector,
+      this.score, this.undoBuffer);
+    const altStaff = this.staffMap[modifier.startSelector.staff];
+    const altStart = JSON.parse(JSON.stringify(modifier.startSelector));
+    const altEnd = JSON.parse(JSON.stringify(modifier.endSelector));
+    altStart.staff = altStaff;
+    altEnd.staff = altStaff;
+    this._undoRectangle('Set measure proportion', altStart, altEnd,
+      this.storeScore, this.storeUndo);
     const sel = SmoSelection.noteFromSelector(this.score, modifier.startSelector);
     const altSel = this._getEquivalentSelection(sel);
     this._removeStaffModifier(sel, altSel, modifier);

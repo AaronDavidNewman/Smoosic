@@ -46,13 +46,8 @@ class SuiScoreView {
   // ### _undoRectangle
   // Create a rectangle undo, like a multiple columns but not necessarily the whole
   // score.
-  _undoRectangle(label, startSelector, endSelector) {
-    const startSelection = SmoSelection.measureSelection(this.score, startSelector.staff, startSelector.measure);
-    const endSelection = SmoSelection.measureSelection(this.score, endSelector.staff, endSelector.measure);
-    const altStart = this._getEquivalentSelection(startSelection);
-    const altEnd = this._getEquivalentSelection(endSelection);
-    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.RECTANGLE, null, { score: this.score, topLeft: startSelector, bottomRight: endSelector });
-    this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.RECTANGLE, null, { score: this.storeScore, topLeft: altStart.selector, bottomRight: altEnd.selector });
+  _undoRectangle(label, startSelector, endSelector, score, undoBuffer) {
+    undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.RECTANGLE, null, { score, topLeft: startSelector, bottomRight: endSelector });
   }
   _undoColumn(label, measureIndex) {
     this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.COLUMN, null, { score: this.score, measureIndex });
@@ -65,13 +60,22 @@ class SuiScoreView {
   // ### _getRectangleFromStaffGroup
   // For selections that affect a system of staves, find the rectangle based on one of the
   // staves and return the selectors.
-  _getRectangleFromStaffGroup(selection) {
+  _getRectangleFromStaffGroup(selection, staffMap) {
     let startSelector = {};
     let endSelector = {};
+    let staffFilter = [];
     const sygrp = this.score.getSystemGroupForStaff(selection);
     if (sygrp) {
       startSelector = { staff: sygrp.startSelector.staff, measure: selection.selector.measure };
       endSelector = { staff: sygrp.endSelector.staff, measure: selection.selector.measure };
+      // Because of the staff map, some staves may not be in the view,
+      // so only include staves actually in the map.
+      // staffFilter is all the staves eligible for the group in the view.
+      staffFilter = staffMap.filter((map) => map >= sygrp.startSelector.staff && map <= sygrp.endSelector.staff);
+      // min is start staff
+      startSelector.staff = staffFilter.reduce((a, b) => a < b ? a : b);
+      // max is end staff
+      endSelector.staff = staffFilter.reduce((a, b) => a > b ? a : b);
     } else {
       startSelector = { staff: selection.selector.staff, measure: selection.selector.measure };
       endSelector = JSON.parse(JSON.stringify(startSelector));
@@ -147,15 +151,14 @@ class SuiScoreView {
   _getEquivalentGraceNote(selection, gn) {
     return selection.note.getGraceNotes().find((gg) => gg.attrs.id === gn.attrs.id);
   }
-  _getRectangleSelections(startSelector, endSelector) {
+  _getRectangleSelections(startSelector, endSelector, score) {
     const rv = [];
     let i = 0;
     let j = 0;
     for (i = startSelector.staff; i <= endSelector.staff; i++) {
       for (j = startSelector.measure; j <= endSelector.measure; j++) {
-        const target = SmoSelection.measureSelection(this.score, i, j);
-        const altTarget = this._getEquivalentSelection(target);
-        rv.push({ viewSelection: target, storeSelection: altTarget });
+        const target = SmoSelection.measureSelection(score, i, j);
+        rv.push(target);
       }
     }
     return rv;
