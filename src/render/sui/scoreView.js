@@ -121,8 +121,8 @@ class SuiScoreView {
     });
   }
   _renderRectangle(fromSelector, toSelector) {
-    this._getRectangleSelections(fromSelector, toSelector).forEach((s) => {
-      this.renderer.addToReplaceQueue(s.viewSelection);
+    this._getRectangleSelections(fromSelector, toSelector, this.score).forEach((s) => {
+      this.renderer.addToReplaceQueue(s);
     });
   }
 

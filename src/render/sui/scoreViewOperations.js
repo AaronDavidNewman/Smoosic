@@ -562,7 +562,7 @@ class SuiScoreViewOperations extends SuiScoreView {
     const rs = this._getRectangleSelections(rect.startSelector, rect.endSelector, this.score);
     const altRs = this._getRectangleSelections(altRect.startSelector, altRect.endSelector, this.storeScore);
     rs.forEach((s) => {
-      this.renderer.addToReplaceQueue(s.viewSelection);
+      this.renderer.addToReplaceQueue(s);
       SmoOperation.setMeasureProportion(s, value);
     });
     altRs.forEach((s) => {
