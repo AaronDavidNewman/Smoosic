@@ -591,7 +591,7 @@ class TextButtons {
         buttonElement: this.buttonElement,
         buttonData: this.buttonData,
         completeNotifier: this.controller,
-        tracker: this.tracker,
+        tracker: this.view.tracker,
         view: this.view,
         eventSource: this.eventSource,
         keyCommands: this.keyCommands
@@ -624,7 +624,7 @@ class NavigationButtons {
   }
 
   _moveTracker() {
-    this.tracker[NavigationButtons.directionsTrackerMap[this.buttonData.id]]();
+    this.view.tracker[NavigationButtons.directionsTrackerMap[this.buttonData.id]]();
   }
   bind() {
     this.eventSource.domClick(this.buttonElement, this, '_moveTracker');
