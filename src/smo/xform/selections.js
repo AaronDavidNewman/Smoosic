@@ -179,6 +179,19 @@ class SmoSelection {
   }
 
   // ### renderedNoteSelection
+  // return the appropriate type of selection from the selector, based on the selector.
+  static selectionFromSelector(score, selector) {
+    if (typeof(selector.pitches) !== 'undefined' && selector.pitches.length) {
+      return SmoSelection.pitchSelection(score,
+        selector.staff, selector.measure, selector.voice, selector.tick, selector.pitch);
+    }
+    if (typeof(selector.tick) === 'number') {
+      return SmoSelection.noteFromSelector(score, selector);
+    }
+    return SmoSelection.measureSelection(score, selector.staff, selector.measure);
+  }
+
+  // ### renderedNoteSelection
   // this is a special selection that we associated with all he rendered notes, so that we
   // can map from a place in the display to a place in the score.
   static renderedNoteSelection(score, nel, box) {

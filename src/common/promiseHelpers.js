@@ -5,7 +5,7 @@ class PromiseHelpers {
   // when endCondition is met, calling preResolveMethod first.   On
   // polls where the end condition is not met, call pollMethod
   // Resolve method and pollMethod are optional
-  static makePromise(instance,endCondition,preResolveMethod,pollMethod,pollTime) {
+  static makePromise(instance, endCondition, preResolveMethod, pollMethod, pollTime) {
     return new Promise((resolve) => {
       var checkit = () => {
         setTimeout(() => {
@@ -21,13 +21,13 @@ class PromiseHelpers {
             }
             checkit();
           }
-        },pollTime);
+        }, pollTime);
       }
       checkit();
     });
   }
 
-  static makePromiseObj(instance,endCondition,preResolveMethod,pollMethod,pollTime) {
+  static makePromiseObj(instance, endCondition, preResolveMethod, pollMethod, pollTime) {
     return {
       instance: instance,
       endCondition: endCondition,
@@ -51,7 +51,6 @@ class PromiseHelpers {
   static async promiseChainThen(promiseParameters) {
     const promiseArray = [];
     promiseParameters.forEach((promiseParameter) => {
-
       promiseArray.push(
         async () => {
           return PromiseHelpers.makePromise(

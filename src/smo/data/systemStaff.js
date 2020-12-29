@@ -106,7 +106,9 @@ class SmoSystemStaff {
   removeStaffModifier(modifier) {
     const mods = [];
     this.modifiers.forEach((mod) => {
-      if (mod.attrs.id !== modifier.attrs.id) {
+      if (mod.attrs.type !== modifier.attrs.type ||
+        SmoSelector.neq(mod.startSelector, modifier.startSelector) ||
+        SmoSelector.neq(mod.endSelector, modifier.endSelector)) {
         mods.push(mod);
       }
     });
@@ -135,7 +137,11 @@ class SmoSystemStaff {
       measure.setLyricAdjustWidth(adjustNoteWidth);
     });
   }
-
+  setChordFont(fontInfo) {
+    this.measures.forEach((measure) => {
+      measure.setChordFont(fontInfo);
+    });
+  }
   setChordAdjustWidth(adjustNoteWidth) {
     this.measures.forEach((measure) => {
       measure.setChordAdjustWidth(adjustNoteWidth);

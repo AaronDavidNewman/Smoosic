@@ -365,8 +365,16 @@ class SuiFileMenu extends suiMenuBase {
         icon: 'folder-save',
         text: 'Save',
         value: 'saveFile'
-      }, {
+      },  {
         icon: 'folder-save',
+        text: 'Save Actions',
+        value: 'saveActions'
+      }, {
+        icon: 'icon-play3',
+        text: 'Play Actions',
+        value: 'playActions'
+      }, {
+        icon: '',
         text: 'Quick Save',
         value: 'quickSave'
       }, {
@@ -401,7 +409,6 @@ class SuiFileMenu extends suiMenuBase {
     };
     return SuiFileMenu._defaults;
   }
-
   systemPrint() {
     const self = this;
     window.print();
@@ -418,6 +425,26 @@ class SuiFileMenu extends suiMenuBase {
     const self = this;
     if (text === 'saveFile') {
       SuiSaveFileDialog.createAndDisplay({
+        completeNotifier: this.completeNotifier,
+        tracker: this.tracker,
+        undoBuffer: this.keyCommands.undoBuffer,
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        view: this.view,
+        closeMenuPromise: this.closePromise
+      });
+    } else if (text === 'saveActions') {
+      SuiSaveActionsDialog.createAndDisplay({
+        completeNotifier: this.completeNotifier,
+        tracker: this.tracker,
+        undoBuffer: this.keyCommands.undoBuffer,
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        view: this.view,
+        closeMenuPromise: this.closePromise
+      });
+    }  else if (text === 'playActions') {
+      SuiLoadActionsDialog.createAndDisplay({
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.keyCommands.undoBuffer,

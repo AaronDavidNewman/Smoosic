@@ -209,7 +209,7 @@ class suiMapper {
       var first = this.selections[0];
       var tickSelected = first.note.tickCount;
       while (tickSelected < ticksSelectedCopy && first) {
-        var delta = this.growSelectionRight();
+        var delta = this._growSelectionRight(true);
         if (!delta)  {
           break;
         }

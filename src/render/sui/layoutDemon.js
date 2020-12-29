@@ -1,9 +1,6 @@
 
 class SuiRenderDemon {
   constructor(parameters) {
-    this.pollTime = 100;
-
-    this.idleRedrawTime = 2500;
     this.idleLayoutTimer = 0;
     this.undoStatus=0;
 
@@ -34,7 +31,7 @@ class SuiRenderDemon {
       }
   	} else if (this.view.renderer.passState === SuiRenderState.passStates.replace) {
   		// Do we need to refresh the score?
-  		if (Date.now() - this.idleLayoutTimer > this.idleRedrawTime) {
+  		if (Date.now() - this.idleLayoutTimer > SmoConfig.idleRedrawTime) {
   			this.view.renderer.setRefresh();
   		}
   	}
@@ -47,7 +44,7 @@ class SuiRenderDemon {
 		setTimeout(function() {
 			self.handleRedrawTimer();
 			self.pollRedraw();
-		},self.pollTime);
+		}, SmoConfig.demonPollTime);
 	}
 
   startDemon() {

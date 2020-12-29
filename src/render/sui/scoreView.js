@@ -194,17 +194,22 @@ class SuiScoreView {
     this.undoBuffer = new UndoBuffer();
     this.storeUndo = new UndoBuffer();
     this.staffMap = this.defaultStaffMap;
-    SuiScoreView._instance = this;
+    SuiScoreView._instance = this; // for debugging
     this.setMappedStaffIds();
+    this.actionBuffer = new SmoActionRecord();
+    this.tracker.recordBuffer = this.actionBuffer;
   }
-  static debugSwapScore() {
+  static debugUnitTest() {
     const dbg = SuiScoreView.Instance;
     if (dbg === null) {
       return;
     }
-    const newScore = SmoScore.deserialize(JSON.stringify(dbg.storeScore.serialize()));
-    dbg.changeScore(newScore);
+    dbg.changeScore(SmoScore.getDefaultScore());
+    dbg.actionBuffer.actions = JSON.parse(testCase1);
+    dbg.actionBuffer.executeIndex = SuiScoreView.Instance.actionBuffer.actions.length;
+    dbg.replayActions();
   }
+
   getView() {
     const rv = [];
     let i = 0;
@@ -213,6 +218,15 @@ class SuiScoreView {
       rv.push({ show });
     }
     return rv;
+  }
+  playActions(actionJson) {
+    if (!this.actionBuffer.endCondition) {
+      return;
+    }
+    this.oldActions = JSON.parse(JSON.stringify(this.actionBuffer.actions));
+    this.actionBuffer.actions = actionJson;
+    this.actionBuffer.resetRunner();
+    this.replayActions();
   }
   setMappedStaffIds() {
     this.score.staves.forEach((staff) => {
@@ -264,12 +278,13 @@ class SuiScoreView {
   // ### changeScore
   // Update the view after loading or restoring a completely new score
   changeScore(score) {
-    this._undoScore();
+    this._undoScore('load new score');
     this.renderer.score = score;
     this.renderer.setViewport(true);
     this.storeScore = SmoScore.deserialize(JSON.stringify(score.serialize()));
     this.score = score;
     this.staffMap = this.defaultStaffMap;
+    this.actionBuffer.clearActions();
     setTimeout(() => {
       $('body').trigger('forceResizeEvent');
     }, 1);

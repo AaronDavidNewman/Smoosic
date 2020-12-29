@@ -4,6 +4,20 @@ class defaultTrackerKeys {
   static get keys() {
     return [{
         event: "keydown",
+        key: "Home",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "moveHome"
+      }, {
+        event: "keydown",
+        key: "End",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: "moveEnd"
+      }, {
+        event: "keydown",
         key: "ArrowRight",
         ctrlKey: false,
         altKey: false,

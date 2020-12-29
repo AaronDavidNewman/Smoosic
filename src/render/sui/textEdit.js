@@ -880,7 +880,7 @@ class SuiLyricSession {
       this.lyric = new SmoLyric({  _text: '', verse: this.verse, fontInfo });
     }
     this.text = this.lyric._text;
-    this.view.addOrUpdateLyric(this.selection, this.lyric);
+    this.view.addOrUpdateLyric(this.selection.selector, this.lyric);
   }
 
   // ### _endLyricCondition
@@ -993,7 +993,7 @@ class SuiLyricSession {
 
   removeLyric() {
     if (this.selection && this.lyric) {
-      this.view.removeLyric(this.selection, this.lyric);
+      this.view.removeLyric(this.selection.selector, this.lyric);
       this.lyric.deleted = true;
       this.lyric.skipRender = true;
       this.advanceSelection();
@@ -1008,7 +1008,7 @@ class SuiLyricSession {
     this.lyric.skipRender = false;
     this.editor.stopEditor();
     if (!this.lyric.deleted) {
-      this.view.addOrUpdateLyric(this.selection, this.lyric);
+      this.view.addOrUpdateLyric(this.selection.selector, this.lyric);
     }
   }
   // ### evKey

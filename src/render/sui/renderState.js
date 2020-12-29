@@ -410,6 +410,7 @@ class SuiRenderState {
       modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd, startNote, endNote);
       modifier.logicalBox = svgHelpers.clientToLogical(svg, modifier.renderedBox);
     });
+    // Silently remove modifiers from the score if the endpoints no longer exist
     removedModifiers.forEach((mod) => {
       staff.removeStaffModifier(mod);
     });

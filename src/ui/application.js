@@ -1,38 +1,39 @@
 class SuiApplication {
-
   static createUtApplication(config) {
     if (!config) {
       config = {};
     }
     var _config = {
-      scoreLoadOrder:['library'],
-      scoreLoadJson:'emptyScoreJson',
-      ribbon:false,
-      keyCommands:false,
-      menus:false,
-      controller:'utController',
-      domSource:'UtDom',
-      languageDir:'ltr'
+      scoreLoadOrder: ['library'],
+      scoreLoadJson: 'emptyScoreJson',
+      ribbon: false,
+      keyCommands: false,
+      menus: false,
+      controller: 'utController',
+      domSource: 'UtDom',
+      languageDir: 'ltr'
     };
     Vex.Merge(_config,config);
     return new SuiApplication(_config);
   }
   static get defaultConfig() {
     return {
-      smoPath:'..',
-      language:'en',
-      scoreLoadOrder:['query','local','library'],
-      scoreLoadJson:'basicJson',
-      eventsSource:'browserEventSource',
-      controller:'suiController',
-      smoDomContainer:'smoo',
-      vexDomContainer:'boo',
-      domSource:'SuiDom',
-      ribbon:true,
-      keyCommands:true,
-      menus:true,
-      title:'Smoosic',
-      languageDir:'ltr'
+      smoPath: '..',
+      language: 'en',
+      scoreLoadOrder: ['query', 'local', 'library'],
+      scoreLoadJson: 'basicJson',
+      eventsSource: 'browserEventSource',
+      controller: 'suiController',
+      smoDomContainer: 'smoo',
+      vexDomContainer: 'boo',
+      domSource:' SuiDom',
+      ribbon: true,
+      keyCommands: true,
+      menus: true,
+      title: 'Smoosic',
+      languageDir: 'ltr',
+      demonPollTime: 100,
+      idleRedrawTime: 2500,
     }
   }
 

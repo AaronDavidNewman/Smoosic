@@ -106,6 +106,62 @@ class SuiLoadFileDialog extends SuiFileDialog {
 }
 
 // eslint-disable-next-line no-unused-vars
+class SuiLoadActionsDialog extends SuiFileDialog {
+  static get ctor() {
+    return 'SuiLoadActionsDialog';
+  }
+  get ctor() {
+    return SuiLoadActionsDialog.ctor;
+  }
+
+  static get dialogElements() {
+    SuiLoadActionsDialog._dialogElements = SuiLoadActionsDialog._dialogElements ? SuiLoadActionsDialog._dialogElements :
+      [{
+        smoName: 'loadFile',
+        parameterName: 'jsonFile',
+        defaultValue: '',
+        control: 'SuiFileDownloadComponent',
+        label: ''
+      }, { staticText: [
+        { label: 'Load Action File' }
+      ] }
+      ];
+    return SuiLoadActionsDialog._dialogElements;
+  }
+  changed() {
+    this.value = this.loadFileCtrl.getValue();
+    $(this.dgDom.element).find('.ok-button').prop('disabled', false);
+  }
+  commit() {
+    let scoreWorks = false;
+    if (this.value) {
+      try {
+        const json = JSON.parse(this.value);
+        this.view.playActions(json);
+        scoreWorks = true;
+        this.complete();
+      } catch (e) {
+        console.warn('unable to score ' + e);
+      }
+      if (!scoreWorks) {
+        this.complete();
+      }
+    }
+  }
+  static createAndDisplay(params) {
+    const dg = new SuiLoadActionsDialog(params);
+    dg.display();
+    dg._bindComponentNames();
+    // disable until file is selected
+    $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
+  }
+  constructor(parameters) {
+    parameters.ctor = 'SuiLoadActionsDialog';
+    super(parameters);
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
 class SuiPrintFileDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiPrintFileDialog';
@@ -208,5 +264,66 @@ class SuiSaveFileDialog extends SuiFileDialog {
     parameters.ctor = 'SuiSaveFileDialog';
     super(parameters);
     this.value = SuiSaveFileDialog.createName(this.view.score);
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
+class SuiSaveActionsDialog extends SuiFileDialog {
+  static get ctor() {
+    return 'SuiSaveActionsDialog';
+  }
+  get ctor() {
+    return SuiSaveActionsDialog.ctor;
+  }
+
+  static get dialogElements() {
+    SuiSaveActionsDialog._dialogElements = typeof(SuiSaveActionsDialog._dialogElements) !== 'undefined' ?
+      SuiSaveActionsDialog._dialogElements :
+      [{
+        smoName: 'saveFileName',
+        parameterName: 'saveFileName',
+        defaultValue: '',
+        control: 'SuiTextInputComponent',
+        label: 'File Name'
+      },
+      {
+        staticText: [
+          { label: 'Save Score' }
+        ]
+      }];
+    return SuiSaveActionsDialog._dialogElements;
+  }
+
+  changed() {
+    this.value = this.components[0].getValue();
+  }
+  commit() {
+    let filename = this.value;
+    if (!filename) {
+      filename = 'myScore.json';
+    }
+    if (filename.indexOf('.json') < 0) {
+      filename = filename + '.json';
+    }
+    this.view.score.scoreInfo.version += 1;
+    this.view.saveActions(filename);
+    this.complete();
+  }
+  display() {
+    super.display();
+    this._bindComponentNames();
+    this.saveFileNameCtrl.setValue(this.value);
+  }
+  static createName(score) {
+    return score.scoreInfo.name + '-' + score.scoreInfo.version + '-actions.json';
+  }
+  static createAndDisplay(params) {
+    var dg = new SuiSaveActionsDialog(params);
+    dg.display();
+  }
+  constructor(parameters) {
+    parameters.ctor = 'SuiSaveActionsDialog';
+    super(parameters);
+    this.value = SuiSaveActionsDialog.createName(this.view.score);
   }
 }

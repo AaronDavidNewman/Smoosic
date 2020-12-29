@@ -291,6 +291,12 @@ class suiTracker extends suiMapper {
   }
 
   advanceModifierSelection(keyEv) {
+    if (this.recordBuffer) {
+      const evKey = {};
+      smoSerialize.serializedMerge(['type', 'shiftKey', 'ctrlKey'], keyEv, evKey);
+      this.recordBuffer.addAction('advanceModifierSelection', evKey);
+    }
+
     this.eraseRect('staffModifier');
     const offset = keyEv.key === 'ArrowLeft' ? -1 : 1;
 
@@ -452,6 +458,9 @@ class suiTracker extends suiMapper {
   }
 
   growSelectionRight() {
+    if (this.recordBuffer) {
+      this.recordBuffer.addAction('growSelectionRight');
+    }
     this._growSelectionRight(false);
   }
   _growSelectionRight(skipPlay) {
@@ -476,11 +485,43 @@ class suiTracker extends suiMapper {
     this._createLocalModifiersList();
     return artifact.note.tickCount;
   }
+  moveHome() {
+    if (this.recordBuffer) {
+      this.recordBuffer.addAction('moveHome');
+    }
+    const mm = this.score.staves[0].measures[0];
+    const sel = this._getClosestTick({ staff: 0, measure: 0, voice: mm.getActiveVoice(), tick: 0 });
+    this.selections = [sel];
+    this.highlightSelection();
+    this._createLocalModifiersList();
+    if (sel.measure.renderedBox) {
+      this.scroller.scrollVisibleBox(sel.measure.renderedBox);
+    }
+  }
+  moveEnd() {
+    if (this.recordBuffer) {
+      this.recordBuffer.addAction('moveEnd');
+    }
+    const ls = this.score.staves[this.score.staves.length - 1];
+    const lm = ls.measures[ls.measures.length - 1];
+    const ticks = lm.voices[lm.getActiveVoice()].notes.length;
+    const sel = this._getClosestTick({ staff: this.score.staves.length - 1,
+      measure: ls.measures.length - 1, voice: lm.getActiveVoice(), tick: ticks - 1 });
+    this.selections = [sel];
+    this.highlightSelection();
+    this._createLocalModifiersList();
+    if (sel.measure.renderedBox) {
+      this.scroller.scrollVisibleBox(sel.measure.renderedBox);
+    }
+  }
   growSelectionRightMeasure() {
     let toSelect = 0;
     const rightmost = this.getExtremeSelection(1);
     const ticksLeft = rightmost.measure.voices[rightmost.measure.activeVoice]
       .notes.length - rightmost.selector.tick;
+    if (this.recordBuffer) {
+      this.recordBuffer.addAction('growSelectionRightMeasure');
+    }
     if (ticksLeft === 0) {
       if (rightmost.selector.measure < rightmost.staff.measures.length) {
         const mix = rightmost.selector.measure + 1;
@@ -500,6 +541,9 @@ class suiTracker extends suiMapper {
     if (this.isGraceNoteSelected()) {
       this._growGraceNoteSelections(-1);
       return 0;
+    }
+    if (this.recordBuffer) {
+      this.recordBuffer.addAction('growSelectionLeft');
     }
     const nselect = this._getOffsetSelection(-1);
     // already selected
@@ -524,6 +568,9 @@ class suiTracker extends suiMapper {
     if (this.selections.length === 0) {
       return;
     }
+    if (this.recordBuffer) {
+      this.recordBuffer.addAction('moveSelectionRight');
+    }
     const nselect = this._getOffsetSelection(1);
     this._replaceSelection(nselect, skipPLay);
   }
@@ -532,13 +579,22 @@ class suiTracker extends suiMapper {
     if (this.selections.length === 0) {
       return;
     }
+    if (this.recordBuffer) {
+      this.recordBuffer.addAction('moveSelectionLeft');
+    }
     const nselect = this._getOffsetSelection(-1);
     this._replaceSelection(nselect);
   }
   moveSelectionLeftMeasure() {
+    if (this.recordBuffer) {
+      this.recordBuffer.addAction('moveSelectionLeftMeasure');
+    }
     this._moveSelectionMeasure(-1);
   }
   moveSelectionRightMeasure() {
+    if (this.recordBuffer) {
+      this.recordBuffer.addAction('moveSelectionRightMeasure');
+    }
     this._moveSelectionMeasure(1);
   }
   moveSelectionOffset(offset) {
@@ -601,19 +657,31 @@ class suiTracker extends suiMapper {
     this._highlightPitchSelection(note, this.pitchIndex);
   }
   moveSelectionPitchUp() {
+    if (this.recordBuffer) {
+      this.recordBuffer.addAction('moveSelectionPitchUp');
+    }
     this._moveSelectionPitch(1);
   }
   moveSelectionPitchDown() {
     if (!this.selections.length) {
       return;
     }
+    if (this.recordBuffer) {
+      this.recordBuffer.addAction('moveSelectionPitchDown');
+    }
     this._moveSelectionPitch(this.selections[0].note.pitches.length - 1);
   }
 
   moveSelectionUp() {
+    if (this.recordBuffer) {
+      this.recordBuffer.addAction('moveSelectionUp');
+    }
     this._moveStaffOffset(-1);
   }
   moveSelectionDown() {
+    if (this.recordBuffer) {
+      this.recordBuffer.addAction('moveSelectionDown');
+    }
     this._moveStaffOffset(1);
   }
 
@@ -703,6 +771,23 @@ class suiTracker extends suiMapper {
     this.selections = ar;
   }
 
+  recordSelectSuggestion(ev, selector) {
+    if (this.recordBuffer) {
+      const evKey = {};
+      smoSerialize.serializedMerge(['type', 'shiftKey', 'ctrlKey'], ev, evKey);
+      this.recordBuffer.addAction('selectSuggestionNote', selector, evKey);
+    }
+  }
+  recordModifierSelectSuggestion(ev) {
+    if (this.recordBuffer) {
+      const evKey = {};
+      const artifact = this.modifierTabs[this.modifierSuggestion];
+      smoSerialize.serializedMerge(['type', 'shiftKey', 'ctrlKey'], ev, evKey);
+      const modKey = artifact.modifier.serialize();
+      const selector = artifact.selection.selector;
+      this.recordBuffer.addAction('selectSuggestionModifier', selector, evKey, modKey);
+    }
+  }
   selectSuggestion(ev) {
     if (!this.suggestion.measure && this.modifierSuggestion < 0) {
       return;
@@ -712,6 +797,7 @@ class suiTracker extends suiMapper {
       if (this.suggestFadeTimer) {
         clearTimeout(this.suggestFadeTimer);
       }
+      this.recordModifierSelectSuggestion(ev);
       this.modifierIndex = -1;
       this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
       this.modifierSuggestion = -1;
@@ -725,6 +811,7 @@ class suiTracker extends suiMapper {
     if (ev.shiftKey) {
       const sel1 = this.getExtremeSelection(-1);
       if (sel1.selector.staff === this.suggestion.selector.staff) {
+        this.recordSelectSuggestion(ev, this.suggestion.selector);
         const min = SmoSelector.gt(sel1.selector, this.suggestion.selector) ? this.suggestion : sel1;
         const max = SmoSelector.lt(min.selector, this.suggestion.selector) ? this.suggestion : sel1;
         this._selectFromToInStaff(min, max);
@@ -735,6 +822,7 @@ class suiTracker extends suiMapper {
     }
 
     if (ev.ctrlKey) {
+      this.recordSelectSuggestion(ev, this.suggestion.selector);
       this._addSelection(this.suggestion);
       this._createLocalModifiersList();
       this.highlightSelection();
@@ -750,7 +838,9 @@ class suiTracker extends suiMapper {
     if (preselected && this.selections[0].note.pitches.length > 1) {
       this.pitchIndex =  (this.pitchIndex + 1) % this.selections[0].note.pitches.length;
       this.selections[0].selector.pitches = [this.pitchIndex];
+      this.recordSelectSuggestion(ev, this.selections[0].selector);
     } else {
+      this.recordSelectSuggestion(ev, this.suggestion.selector);
       this.selections = [this.suggestion];
     }
     if (preselected && this.modifierTabs.length) {
@@ -763,9 +853,6 @@ class suiTracker extends suiMapper {
       }
     }
     this.score.setActiveStaff(this.selections[0].selector.staff);
-    if (this.selections.length === 0) {
-      return;
-    }
     this.highlightSelection();
     this._createLocalModifiersList();
   }

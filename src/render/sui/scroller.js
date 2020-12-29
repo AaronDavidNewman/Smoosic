@@ -25,6 +25,11 @@ class suiScroller  {
     var scroller = $('.musicRelief');
     this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
     this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+    this.viewport = svgHelpers.boxPoints(
+      $('.musicRelief').offset().left,
+      $('.musicRelief').offset().top,
+      $('.musicRelief').width(),
+      $('.musicRelief').height());
   }
 
   // ### handleScroll

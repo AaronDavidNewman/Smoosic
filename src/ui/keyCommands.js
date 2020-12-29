@@ -72,8 +72,6 @@ class SuiKeyCommands {
   }
 
   interval(keyEvent) {
-    if (this.view.tracker.selections.length != 1)
-      return;
     // code='Digit3'
     var interval = parseInt(keyEvent.keyCode) - 49;  // 48 === '0', 0 indexed
     if (isNaN(interval) || interval < 1 || interval > 7) {

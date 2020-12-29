@@ -553,18 +553,18 @@ class svgHelpers {
     };
   }
 
-    // ### adjustScroll
-    // Add the scroll to the screen coordinates so we can find the mapped
-    // location of something.
-    static adjustScroll(box,scroll) {
-        // WIP...
-        if (typeof(box) == 'undefined' || typeof(scroll) == 'undefined') {
-            console.log('bad values to scroll thing');
-            return;
-        }
-        return svgHelpers.boxPoints(box.x - scroll.x,box.y-scroll.y,box.width,box.height);
-        // return box;
+  // ### adjustScroll
+  // Add the scroll to the screen coordinates so we can find the mapped
+  // location of something.
+  static adjustScroll(box, scroll) {
+    // WIP...
+    if (typeof(box) == 'undefined' || typeof(scroll) == 'undefined') {
+      console.log('bad values to scroll thing');
+      return;
     }
+    return svgHelpers.boxPoints(box.x - scroll.x,box.y-scroll.y,box.width,box.height);
+    // return box;
+  }
 
   static boxPoints(x, y, w, h) {
     return ({

@@ -543,6 +543,7 @@ class SmoMeasure {
   }
 
   pickupMeasure(duration) {
+    const timeSig = this.timeSignature;
     const proto = SmoMeasure.deserialize(this.serialize());
     proto.attrs.id =  VF.Element.newID();
     const note = proto.voices[0].notes[0];
@@ -551,6 +552,7 @@ class SmoMeasure {
     note.ticks.numerator = duration;
     note.makeRest();
     proto.voices.push({ notes: [note] });
+    proto.timeSignature = timeSig;
     return proto;
   }
 
