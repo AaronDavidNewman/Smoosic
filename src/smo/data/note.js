@@ -298,6 +298,27 @@ class SmoNote {
   transpose(pitchArray, offset, keySignature) {
     return SmoNote._transpose(this, pitchArray, offset, keySignature);
   }
+  // ### addPitch
+  // used to add chord and pitch by piano widget
+  toggleAddPitch(pitch) {
+    const pitches = [];
+    let exists = false;
+    this.pitches.forEach((o) => {
+      if (o.letter !== pitch.letter ||
+        o.octave !== pitch.octave ||
+        o.accidental !== pitch.accidental) {
+        pitches.push(o);
+      } else {
+        exists = true;
+      }
+    });
+    this.pitches = pitches;
+    if (!exists) {
+      this.pitches.push(JSON.parse(JSON.stringify(pitch)));
+      this.noteType = 'n';
+    }
+    SmoNote._sortPitches(this);
+  }
   static _transpose(note, pitchArray, offset, keySignature) {
     let index = 0;
     let j = 0;

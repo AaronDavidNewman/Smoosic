@@ -529,14 +529,34 @@ class SuiScoreViewOperations extends SuiScoreView {
     });
     this._renderChangedMeasures(measureSelections);
   }
+  setPitchPiano(pitch, chordPedal) {
+    this.actionBuffer.addAction('setAbsolutePitch', pitch);
+    const measureSelections = this._undoTrackerMeasureSelections(
+      'setAbsolutePitch ' + pitch.letter + '/' + pitch.accidental);
+    this.tracker.selections.forEach((selected) => {
+      const npitch = { letter: pitch.letter,
+        accidental: pitch.accidental, octave: pitch.octave };
+      const octave = SmoMeasure.defaultPitchForClef[selected.measure.clef].octave;
+      npitch.octave += octave;
+      const altSel = this._getEquivalentSelection(selected);
+      if (chordPedal) {
+        selected.note.toggleAddPitch(npitch);
+        altSel.note.toggleAddPitch(npitch);
+      } else {
+        SmoOperation.setPitch(selected, npitch);
+        SmoOperation.setPitch(altSel, npitch);
+      }
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
 
   setPitch(letter) {
     this.actionBuffer.addAction('setPitch', letter);
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('set pitch ' + letter);
     selections.forEach((selected) => {
-      var selector = selected.selector;
-      var hintSel = SmoSelection.lastNoteSelection(this.score,
+      const selector = selected.selector;
+      let hintSel = SmoSelection.lastNoteSelection(this.score,
         selector.staff, selector.measure, selector.voice, selector.tick);
       if (!hintSel) {
         hintSel = SmoSelection.nextNoteSelection(this.score,
