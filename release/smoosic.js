@@ -3114,7 +3114,7 @@ class layoutDebug {
 class SuiRenderDemon {
   constructor(parameters) {
     this.idleLayoutTimer = 0;
-    this.undoStatus=0;
+    this.undoStatus = 0;
 
     Vex.Merge(this, parameters);
   }
@@ -3123,15 +3123,16 @@ class SuiRenderDemon {
 		return ((this.view.renderer.passState == SuiRenderState.passStates.clean && this.view.renderer.dirty == false)
 		   || this.view.renderer.passState == SuiRenderState.passStates.replace);
 	}
+  resetIdleTimer() {
+    	this.idleLayoutTimer = Date.now();
+  }
 
   handleRedrawTimer() {
     // If there has been a change, redraw the score
-  	if (this.undoStatus != this.undoBuffer.opCount || this.view.renderer.dirty) {
-  		this.view.renderer.dirty=true;
+  	if (this.undoStatus !== this.undoBuffer.opCount || this.view.renderer.dirty) {
+  		this.view.renderer.dirty = true;
   		this.undoStatus = this.undoBuffer.opCount;
   		this.idleLayoutTimer = Date.now();
-      var state = this.view.renderer.passState;
-      // this.tracker.updateMap(); why do this before rendering?
 
       // indicate the display is 'dirty' and we will be refreshing it.
       $('body').addClass('refresh-1');
@@ -3142,6 +3143,8 @@ class SuiRenderDemon {
         SuiExceptionHandler.instance.exceptionHandler(ex);
       }
   	} else if (this.view.renderer.passState === SuiRenderState.passStates.replace) {
+      // Consider navigation as activity when deciding to refresh
+      this.idleLayoutTimer = Math.max(this.idleLayoutTimer, this.view.tracker.idleTimer);
   		// Do we need to refresh the score?
   		if (Date.now() - this.idleLayoutTimer > SmoConfig.idleRedrawTime) {
   			this.view.renderer.setRefresh();
@@ -3165,7 +3168,7 @@ class SuiRenderDemon {
 
   render() {
 		this.view.renderer.render();
-    if (this.view.renderer.passState == SuiRenderState.passStates.clean && this.view.renderer.dirty == false) {
+    if (this.view.renderer.passState === SuiRenderState.passStates.clean && this.view.renderer.dirty === false) {
        this.view.tracker.updateMap();
 
        // indicate the display is 'clean' and up-to-date with the score
@@ -3217,11 +3220,11 @@ class suiMapper {
 
   // ### _clearMeasureArtifacts
   // clear the measure from the measure and note maps so we can rebuild it.
-  clearMeasureMap(staff,measure) {
+  clearMeasureMap(staff, measure) {
     var selector = {staff:measure.measureNumber.staffId,measure:measure.measureNumber.measureIndex};
     var measureKey = SmoSelector.getMeasureKey(selector);
     if (this.measureMap[measureKey]) {
-      var nkeys = Object.keys(this.measureMap[measureKey].keys);
+      const nkeys = Object.keys(this.measureMap[measureKey].keys);
       nkeys.forEach((key) => {
         delete this.measureNoteMap[key];
       });
@@ -5026,11 +5029,7 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._renderChangedMeasures(measureSelections);
   }
   addDynamic(dynamic) {
-    this.actionBuffer.addAction('addDynamic', dynamic);
-    this._undoFirstMeasureSelection('add dynamic');
     const sel = this.tracker.selections[0];
-    this._removeDynamic(sel, dynamic);
-    const equiv = this._getEquivalentSelection(sel);
     if (typeof(dynamic) === 'string') {
       dynamic = new SmoDynamicText({
         selector: sel.selector,
@@ -5039,6 +5038,10 @@ class SuiScoreViewOperations extends SuiScoreView {
         fontSize: 38
       });
     }
+    this.actionBuffer.addAction('addDynamic', dynamic);
+    this._undoFirstMeasureSelection('add dynamic');
+    this._removeDynamic(sel, dynamic);
+    const equiv = this._getEquivalentSelection(sel);
     SmoOperation.addDynamic(sel, dynamic);
     SmoOperation.addDynamic(equiv, SmoNoteModifierBase.deserialize(dynamic.serialize()));
     this.renderer.addToReplaceQueue(sel);
@@ -5835,6 +5838,7 @@ class SuiScoreViewOperations extends SuiScoreView {
           }
         });
       });
+      // Remove the SVG artifacts mapped to this measure.
       this.tracker.deleteMeasure(selection);
       this.score.deleteMeasure(index);
       this.storeScore.deleteMeasure(index);
@@ -5958,13 +5962,13 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.actionBuffer.executePromise(this).then(recover);
   }
 
-  moveHome() {
-    this.tracker.moveHome();
+  // Tracker operations, used for macro replay
+  moveHome(ev) {
+    this.tracker.moveHome(ev);
   }
-  moveEnd() {
-    this.tracker.moveEnd();
+  moveEnd(ev) {
+    this.tracker.moveEnd(ev);
   }
-  // Tracker operations, used for macro recording
   growSelectionLeft() {
     this.tracker.growSelectionLeft();
   }
@@ -5977,8 +5981,8 @@ class SuiScoreViewOperations extends SuiScoreView {
   growSelectionRightMeasure() {
     this.tracker.growSelectionRightMeasure();
   }
-  moveSelectionRight() {
-    this.tracker.moveSelectionRight();
+  moveSelectionRight(ev) {
+    this.tracker.moveSelectionRight(ev);
   }
   moveSelectionLeft() {
     this.tracker.moveSelectionLeft();
@@ -8015,6 +8019,10 @@ class SuiTextBlock {
 // ---
 // eslint-disable-next-line no-unused-vars
 class suiTracker extends suiMapper {
+  constructor(renderer, scroller, pasteBuffer) {
+    super(renderer, scroller, pasteBuffer);
+    this.idleTimer = Date.now();
+  }
   _fullRenderPromise() {
     var self = this;
     return new Promise((resolve) => {
@@ -8296,14 +8304,18 @@ class suiTracker extends suiMapper {
       });
     });
   }
+  static serializeEvent(evKey) {
+    const rv = {};
+    smoSerialize.serializedMerge(['type', 'shiftKey', 'ctrlKey'], evKey, rv);
+    return rv;
+  }
 
   advanceModifierSelection(keyEv) {
     if (this.recordBuffer) {
-      const evKey = {};
-      smoSerialize.serializedMerge(['type', 'shiftKey', 'ctrlKey'], keyEv, evKey);
-      this.recordBuffer.addAction('advanceModifierSelection', evKey);
+      this.recordBuffer.addAction('advanceModifierSelection', suiTracker.serializeEvent(keyEv));
     }
 
+    this.idleTimer = Date.now();
     this.eraseRect('staffModifier');
     const offset = keyEv.key === 'ArrowLeft' ? -1 : 1;
 
@@ -8445,6 +8457,7 @@ class suiTracker extends suiMapper {
   }
 
   _growGraceNoteSelections(offset) {
+    this.idleTimer = Date.now();
     const far = this.modifierSelections.filter((mm) => mm.modifier.attrs.type === 'SmoGraceNote');
     if (!far.length) {
       return;
@@ -8471,6 +8484,7 @@ class suiTracker extends suiMapper {
     this._growSelectionRight(false);
   }
   _growSelectionRight(skipPlay) {
+    this.idleTimer = Date.now();
     if (this.isGraceNoteSelected()) {
       this._growGraceNoteSelections(1);
       return 0;
@@ -8492,33 +8506,87 @@ class suiTracker extends suiMapper {
     this._createLocalModifiersList();
     return artifact.note.tickCount;
   }
-  moveHome() {
+  moveHome(evKey) {
+    evKey = typeof(evKey) === 'undefined' || evKey === null ? {} : evKey;
     if (this.recordBuffer) {
-      this.recordBuffer.addAction('moveHome');
+      this.recordBuffer.addAction('moveHome', suiTracker.serializeEvent(evKey));
     }
-    const mm = this.score.staves[0].measures[0];
-    const sel = this._getClosestTick({ staff: 0, measure: 0, voice: mm.getActiveVoice(), tick: 0 });
-    this.selections = [sel];
-    this.highlightSelection();
-    this._createLocalModifiersList();
-    if (sel.measure.renderedBox) {
-      this.scroller.scrollVisibleBox(sel.measure.renderedBox);
+    this.idleTimer = Date.now();
+    const ls = this.selections[0].staff;
+    if (evKey.ctrlKey) {
+      const mm = ls.measures[0];
+      const homeSel = this._getClosestTick({ staff: ls.staffId,
+        measure: 0, voice: mm.getActiveVoice(), tick: 0 });
+      if (evKey.shiftKey) {
+        this._selectBetweenSelections(this.selections[0], homeSel);
+      } else {
+        this.selections = [homeSel];
+        this.highlightSelection();
+        this._createLocalModifiersList();
+        if (homeSel.measure.renderedBox) {
+          this.scroller.scrollVisibleBox(homeSel.measure.renderedBox);
+        }
+      }
+    } else {
+      const system = this.selections[0].measure.lineIndex;
+      const lm = ls.measures.find((mm) =>
+        mm.lineIndex === system && mm.measureNumber.systemIndex === 0);
+      const homeSel = this._getClosestTick({ staff: ls.staffId,
+        measure: lm.measureNumber.measureIndex, voice: lm.getActiveVoice(),
+        tick: 0 });
+      if (evKey.shiftKey) {
+        this._selectBetweenSelections(this.selections[0], homeSel);
+      } else {
+        this.selections = [homeSel];
+        this.scroller.scrollVisibleBox(homeSel.measure.renderedBox);
+        this.highlightSelection();
+        this._createLocalModifiersList();
+      }
     }
   }
-  moveEnd() {
+  moveEnd(evKey) {
+    evKey = typeof(evKey) === 'undefined' || evKey === null ? {} : evKey;
     if (this.recordBuffer) {
-      this.recordBuffer.addAction('moveEnd');
+      this.recordBuffer.addAction('moveEnd', suiTracker.serializeEvent(evKey));
     }
-    const ls = this.score.staves[this.score.staves.length - 1];
-    const lm = ls.measures[ls.measures.length - 1];
-    const ticks = lm.voices[lm.getActiveVoice()].notes.length;
-    const sel = this._getClosestTick({ staff: this.score.staves.length - 1,
-      measure: ls.measures.length - 1, voice: lm.getActiveVoice(), tick: ticks - 1 });
-    this.selections = [sel];
-    this.highlightSelection();
-    this._createLocalModifiersList();
-    if (sel.measure.renderedBox) {
-      this.scroller.scrollVisibleBox(sel.measure.renderedBox);
+    this.idleTimer = Date.now();
+    const ls = this.selections[0].staff;
+    if (evKey.ctrlKey) {
+      const lm = ls.measures[ls.measures.length - 1];
+      const voiceIx = lm.getActiveVoice();
+      const voice = lm.voices[voiceIx];
+      const endSel = this._getClosestTick({ staff: ls.staffId,
+        measure: ls.measures.length - 1, voice: voiceIx, tick: voice.notes.length - 1 });
+      if (evKey.shiftKey) {
+        this._selectBetweenSelections(this.selections[0], endSel);
+      } else {
+        this.selections = [endSel];
+        this.highlightSelection();
+        this._createLocalModifiersList();
+        if (endSel.measure.renderedBox) {
+          this.scroller.scrollVisibleBox(endSel.measure.renderedBox);
+        }
+      }
+    } else {
+      const system = this.selections[0].measure.lineIndex;
+      // find the largest measure index on this staff in this system
+      const measures = ls.measures.filter((mm) =>
+        mm.lineIndex === system);
+      const lm = measures.reduce((a, b) =>
+        b.measureNumber.measureIndex > a.measureNumber.measureIndex ? b : a);
+      const ticks = lm.voices[lm.getActiveVoice()].notes.length;
+      const endSel = this._getClosestTick({ staff: ls.staffId,
+        measure: lm.measureNumber.measureIndex, voice: lm.getActiveVoice(), tick: ticks - 1 });
+      if (evKey.shiftKey) {
+        this._selectBetweenSelections(this.selections[0], endSel);
+      } else {
+        this.selections = [endSel];
+        this.highlightSelection();
+        this._createLocalModifiersList();
+        if (endSel.measure.renderedBox) {
+          this.scroller.scrollVisibleBox(endSel.measure.renderedBox);
+        }
+      }
     }
   }
   growSelectionRightMeasure() {
@@ -8552,6 +8620,7 @@ class suiTracker extends suiMapper {
     if (this.recordBuffer) {
       this.recordBuffer.addAction('growSelectionLeft');
     }
+    this.idleTimer = Date.now();
     const nselect = this._getOffsetSelection(-1);
     // already selected
     const artifact = this._getClosestTick(nselect);
@@ -8571,15 +8640,16 @@ class suiTracker extends suiMapper {
   }
 
   // if we are being moved right programmatically, avoid playing the selected note.
-  moveSelectionRight(evKey, skipPLay) {
+  moveSelectionRight(evKey, skipPlay) {
+    evKey = typeof(evKey) === 'undefined' || evKey === null ? {} : evKey;
     if (this.selections.length === 0) {
       return;
     }
     if (this.recordBuffer) {
-      this.recordBuffer.addAction('moveSelectionRight');
+      this.recordBuffer.addAction('moveSelectionRight', suiTracker.serializeEvent(evKey));
     }
     const nselect = this._getOffsetSelection(1);
-    this._replaceSelection(nselect, skipPLay);
+    this._replaceSelection(nselect, skipPlay);
   }
 
   moveSelectionLeft() {
@@ -8615,6 +8685,7 @@ class suiTracker extends suiMapper {
 
   _moveSelectionMeasure(offset) {
     let selection = this.getExtremeSelection(Math.sign(offset));
+    this.idleTimer = Date.now();
     selection = JSON.parse(JSON.stringify(selection.selector));
     selection.measure += offset;
     selection.tick = 0;
@@ -8628,6 +8699,7 @@ class suiTracker extends suiMapper {
 
   setSelection(selection) {
     const selObj = this._getClosestTick(selection);
+    this.idleTimer = Date.now();
     if (selObj) {
       this.selections = [selObj];
     }
@@ -8638,7 +8710,7 @@ class suiTracker extends suiMapper {
     if (this.selections.length === 0) {
       return;
     }
-
+    this.idleTimer = Date.now();
     const nselector = JSON.parse(JSON.stringify(this.selections[0].selector));
     nselector.staff = this.score.incrementActiveStaff(offset);
     this.selections = [this._getClosestTick(nselector)];
@@ -8649,6 +8721,7 @@ class suiTracker extends suiMapper {
   // ### _moveSelectionPitch
   // Suggest a specific pitch in a chord, so we can transpose just the one note vs. the whole chord.
   _moveSelectionPitch(index) {
+    this.idleTimer = Date.now();
     if (!this.selections.length) {
       return;
     }
@@ -8756,6 +8829,7 @@ class suiTracker extends suiMapper {
 
   _selectFromToInStaff(sel1, sel2) {
     this.selections = [];
+    this.idleTimer = Date.now();
     const order = [sel1, sel2].sort((a, b) => SmoSelector.lteq(a.selector, b.selector) ? -1 : 1);
 
     // TODO: we could iterate directly over the selectors, that would be faster
@@ -8780,25 +8854,30 @@ class suiTracker extends suiMapper {
 
   recordSelectSuggestion(ev, selector) {
     if (this.recordBuffer) {
-      const evKey = {};
-      smoSerialize.serializedMerge(['type', 'shiftKey', 'ctrlKey'], ev, evKey);
-      this.recordBuffer.addAction('selectSuggestionNote', selector, evKey);
+      this.recordBuffer.addAction('selectSuggestionNote', selector, suiTracker.serializeEvent(ev));
     }
   }
   recordModifierSelectSuggestion(ev) {
     if (this.recordBuffer) {
-      const evKey = {};
       const artifact = this.modifierTabs[this.modifierSuggestion];
-      smoSerialize.serializedMerge(['type', 'shiftKey', 'ctrlKey'], ev, evKey);
       const modKey = artifact.modifier.serialize();
       const selector = artifact.selection.selector;
-      this.recordBuffer.addAction('selectSuggestionModifier', selector, evKey, modKey);
+      this.recordBuffer.addAction('selectSuggestionModifier', selector,
+        suiTracker.serializeEvent(ev), modKey);
     }
+  }
+  _selectBetweenSelections(s1, s2) {
+    const min = SmoSelector.gt(s1.selector, s2.selector) ? s2 : s1;
+    const max = SmoSelector.lt(min.selector, s2.selector) ? s2 : s1;
+    this._selectFromToInStaff(min, max);
+    this._createLocalModifiersList();
+    this.highlightSelection();
   }
   selectSuggestion(ev) {
     if (!this.suggestion.measure && this.modifierSuggestion < 0) {
       return;
     }
+    this.idleTimer = Date.now();
 
     if (this.modifierSuggestion >= 0) {
       if (this.suggestFadeTimer) {
@@ -8819,11 +8898,7 @@ class suiTracker extends suiMapper {
       const sel1 = this.getExtremeSelection(-1);
       if (sel1.selector.staff === this.suggestion.selector.staff) {
         this.recordSelectSuggestion(ev, this.suggestion.selector);
-        const min = SmoSelector.gt(sel1.selector, this.suggestion.selector) ? this.suggestion : sel1;
-        const max = SmoSelector.lt(min.selector, this.suggestion.selector) ? this.suggestion : sel1;
-        this._selectFromToInStaff(min, max);
-        this._createLocalModifiersList();
-        this.highlightSelection();
+        this._selectBetweenSelections(sel1, this.suggestion);
         return;
       }
     }
@@ -8972,6 +9047,7 @@ class suiTracker extends suiMapper {
     let i = 0;
     let prevSel = {};
     let curBox = {};
+    this.idleTimer = Date.now();
     const grace = this.getSelectedGraceNotes();
     // If this is not a note with grace notes, logically unselect the grace notes
     if (grace.length) {
@@ -15313,13 +15389,15 @@ class PasteBuffer {
       this._pasteVoiceSer(ser, vobj, this.destination.voice);
       const nmeasure = SmoMeasure.deserialize(ser);
       // If this is the non-display buffer, don't try to reset the display rectangles.
-      // Is this even required since we are going to re-render?
+      // Q: Is this even required since we are going to re-render?
+      // A: yes, because until we do, the replaced measure needs the formatting info
       if (typeof(measure.renderedBox) !== 'undefined') {
         nmeasure.renderedBox = svgHelpers.smoBox(measure.renderedBox);
         nmeasure.setBox(svgHelpers.smoBox(measure.logicalBox), 'copypaste');
         nmeasure.setX(measure.logicalBox.x, 'copyPaste');
         nmeasure.setWidth(measure.logicalBox.width, 'copypaste');
         nmeasure.setY(measure.logicalBox.y, 'copypaste');
+        nmeasure.lineIndex = measure.lineIndex;
       }
       ['forceClef', 'forceKeySignature', 'forceTimeSignature', 'forceTempo'].forEach((flag) => {
         nmeasure[flag] = measure[flag];
@@ -24023,8 +24101,8 @@ class SmoUndoable {
       menus: true,
       title: 'Smoosic',
       languageDir: 'ltr',
-      demonPollTime: 100,
-      idleRedrawTime: 2500,
+      demonPollTime: 50,
+      idleRedrawTime: 3000,
     }
   }
 
@@ -34309,10 +34387,52 @@ class defaultTrackerKeys {
         action: "moveHome"
       }, {
         event: "keydown",
+        key: "Home",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: false,
+        action: "moveHome"
+      }, {
+        event: "keydown",
+        key: "Home",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "moveHome"
+      }, {
+        event: "keydown",
+        key: "Home",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: true,
+        action: "moveHome"
+      }, {
+        event: "keydown",
         key: "End",
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
+        action: "moveEnd"
+      }, {
+        event: "keydown",
+        key: "End",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "moveHome"
+      }, {
+        event: "keydown",
+        key: "End",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: false,
+        action: "moveEnd"
+      }, {
+        event: "keydown",
+        key: "End",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: true,
         action: "moveEnd"
       }, {
         event: "keydown",

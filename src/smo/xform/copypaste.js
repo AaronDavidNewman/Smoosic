@@ -378,13 +378,15 @@ class PasteBuffer {
       this._pasteVoiceSer(ser, vobj, this.destination.voice);
       const nmeasure = SmoMeasure.deserialize(ser);
       // If this is the non-display buffer, don't try to reset the display rectangles.
-      // Is this even required since we are going to re-render?
+      // Q: Is this even required since we are going to re-render?
+      // A: yes, because until we do, the replaced measure needs the formatting info
       if (typeof(measure.renderedBox) !== 'undefined') {
         nmeasure.renderedBox = svgHelpers.smoBox(measure.renderedBox);
         nmeasure.setBox(svgHelpers.smoBox(measure.logicalBox), 'copypaste');
         nmeasure.setX(measure.logicalBox.x, 'copyPaste');
         nmeasure.setWidth(measure.logicalBox.width, 'copypaste');
         nmeasure.setY(measure.logicalBox.y, 'copypaste');
+        nmeasure.lineIndex = measure.lineIndex;
       }
       ['forceClef', 'forceKeySignature', 'forceTimeSignature', 'forceTempo'].forEach((flag) => {
         nmeasure[flag] = measure[flag];

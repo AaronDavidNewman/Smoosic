@@ -11,10 +11,52 @@ class defaultTrackerKeys {
         action: "moveHome"
       }, {
         event: "keydown",
+        key: "Home",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: false,
+        action: "moveHome"
+      }, {
+        event: "keydown",
+        key: "Home",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "moveHome"
+      }, {
+        event: "keydown",
+        key: "Home",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: true,
+        action: "moveHome"
+      }, {
+        event: "keydown",
         key: "End",
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
+        action: "moveEnd"
+      }, {
+        event: "keydown",
+        key: "End",
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+        action: "moveHome"
+      }, {
+        event: "keydown",
+        key: "End",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: false,
+        action: "moveEnd"
+      }, {
+        event: "keydown",
+        key: "End",
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: true,
         action: "moveEnd"
       }, {
         event: "keydown",

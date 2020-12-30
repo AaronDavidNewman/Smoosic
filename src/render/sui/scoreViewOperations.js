@@ -66,11 +66,7 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._renderChangedMeasures(measureSelections);
   }
   addDynamic(dynamic) {
-    this.actionBuffer.addAction('addDynamic', dynamic);
-    this._undoFirstMeasureSelection('add dynamic');
     const sel = this.tracker.selections[0];
-    this._removeDynamic(sel, dynamic);
-    const equiv = this._getEquivalentSelection(sel);
     if (typeof(dynamic) === 'string') {
       dynamic = new SmoDynamicText({
         selector: sel.selector,
@@ -79,6 +75,10 @@ class SuiScoreViewOperations extends SuiScoreView {
         fontSize: 38
       });
     }
+    this.actionBuffer.addAction('addDynamic', dynamic);
+    this._undoFirstMeasureSelection('add dynamic');
+    this._removeDynamic(sel, dynamic);
+    const equiv = this._getEquivalentSelection(sel);
     SmoOperation.addDynamic(sel, dynamic);
     SmoOperation.addDynamic(equiv, SmoNoteModifierBase.deserialize(dynamic.serialize()));
     this.renderer.addToReplaceQueue(sel);
@@ -875,6 +875,7 @@ class SuiScoreViewOperations extends SuiScoreView {
           }
         });
       });
+      // Remove the SVG artifacts mapped to this measure.
       this.tracker.deleteMeasure(selection);
       this.score.deleteMeasure(index);
       this.storeScore.deleteMeasure(index);
@@ -998,13 +999,13 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.actionBuffer.executePromise(this).then(recover);
   }
 
-  moveHome() {
-    this.tracker.moveHome();
+  // Tracker operations, used for macro replay
+  moveHome(ev) {
+    this.tracker.moveHome(ev);
   }
-  moveEnd() {
-    this.tracker.moveEnd();
+  moveEnd(ev) {
+    this.tracker.moveEnd(ev);
   }
-  // Tracker operations, used for macro recording
   growSelectionLeft() {
     this.tracker.growSelectionLeft();
   }
@@ -1017,8 +1018,8 @@ class SuiScoreViewOperations extends SuiScoreView {
   growSelectionRightMeasure() {
     this.tracker.growSelectionRightMeasure();
   }
-  moveSelectionRight() {
-    this.tracker.moveSelectionRight();
+  moveSelectionRight(ev) {
+    this.tracker.moveSelectionRight(ev);
   }
   moveSelectionLeft() {
     this.tracker.moveSelectionLeft();

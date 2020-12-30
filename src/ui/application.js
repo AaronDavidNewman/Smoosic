@@ -32,8 +32,8 @@ class SuiApplication {
       menus: true,
       title: 'Smoosic',
       languageDir: 'ltr',
-      demonPollTime: 100,
-      idleRedrawTime: 2500,
+      demonPollTime: 50,
+      idleRedrawTime: 3000,
     }
   }
 

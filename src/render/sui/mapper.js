@@ -42,11 +42,11 @@ class suiMapper {
 
   // ### _clearMeasureArtifacts
   // clear the measure from the measure and note maps so we can rebuild it.
-  clearMeasureMap(staff,measure) {
+  clearMeasureMap(staff, measure) {
     var selector = {staff:measure.measureNumber.staffId,measure:measure.measureNumber.measureIndex};
     var measureKey = SmoSelector.getMeasureKey(selector);
     if (this.measureMap[measureKey]) {
-      var nkeys = Object.keys(this.measureMap[measureKey].keys);
+      const nkeys = Object.keys(this.measureMap[measureKey].keys);
       nkeys.forEach((key) => {
         delete this.measureNoteMap[key];
       });

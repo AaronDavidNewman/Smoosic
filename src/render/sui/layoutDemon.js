@@ -2,7 +2,7 @@
 class SuiRenderDemon {
   constructor(parameters) {
     this.idleLayoutTimer = 0;
-    this.undoStatus=0;
+    this.undoStatus = 0;
 
     Vex.Merge(this, parameters);
   }
@@ -11,15 +11,16 @@ class SuiRenderDemon {
 		return ((this.view.renderer.passState == SuiRenderState.passStates.clean && this.view.renderer.dirty == false)
 		   || this.view.renderer.passState == SuiRenderState.passStates.replace);
 	}
+  resetIdleTimer() {
+    	this.idleLayoutTimer = Date.now();
+  }
 
   handleRedrawTimer() {
     // If there has been a change, redraw the score
-  	if (this.undoStatus != this.undoBuffer.opCount || this.view.renderer.dirty) {
-  		this.view.renderer.dirty=true;
+  	if (this.undoStatus !== this.undoBuffer.opCount || this.view.renderer.dirty) {
+  		this.view.renderer.dirty = true;
   		this.undoStatus = this.undoBuffer.opCount;
   		this.idleLayoutTimer = Date.now();
-      var state = this.view.renderer.passState;
-      // this.tracker.updateMap(); why do this before rendering?
 
       // indicate the display is 'dirty' and we will be refreshing it.
       $('body').addClass('refresh-1');
@@ -30,6 +31,8 @@ class SuiRenderDemon {
         SuiExceptionHandler.instance.exceptionHandler(ex);
       }
   	} else if (this.view.renderer.passState === SuiRenderState.passStates.replace) {
+      // Consider navigation as activity when deciding to refresh
+      this.idleLayoutTimer = Math.max(this.idleLayoutTimer, this.view.tracker.idleTimer);
   		// Do we need to refresh the score?
   		if (Date.now() - this.idleLayoutTimer > SmoConfig.idleRedrawTime) {
   			this.view.renderer.setRefresh();
@@ -53,7 +56,7 @@ class SuiRenderDemon {
 
   render() {
 		this.view.renderer.render();
-    if (this.view.renderer.passState == SuiRenderState.passStates.clean && this.view.renderer.dirty == false) {
+    if (this.view.renderer.passState === SuiRenderState.passStates.clean && this.view.renderer.dirty === false) {
        this.view.tracker.updateMap();
 
        // indicate the display is 'clean' and up-to-date with the score
