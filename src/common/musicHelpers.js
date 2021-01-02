@@ -18,7 +18,6 @@
 //
 // `VexFlow` uses a letter duration ('4' for 1/4 note) and 'd' for dot.
 // I try to indicate whether I am using vex or smo notation
-// ## smoMusic static methods:
 // ---
 class smoMusic {
   // ### vexToCannonical

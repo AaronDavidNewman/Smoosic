@@ -106,6 +106,63 @@ class SuiLoadFileDialog extends SuiFileDialog {
 }
 
 // eslint-disable-next-line no-unused-vars
+class SuiLoadMxmlDialog extends SuiFileDialog {
+  static get ctor() {
+    return 'SuiLoadMxmlDialog';
+  }
+  get ctor() {
+    return SuiLoadMxmlDialog.ctor;
+  }
+
+  static get dialogElements() {
+    SuiLoadMxmlDialog._dialogElements = SuiLoadMxmlDialog._dialogElements ? SuiLoadMxmlDialog._dialogElements :
+      [{
+        smoName: 'loadFile',
+        parameterName: 'jsonFile',
+        defaultValue: '',
+        control: 'SuiFileDownloadComponent',
+        label: ''
+      }, { staticText: [
+        { label: 'Load File' }
+      ] }
+      ];
+    return SuiLoadMxmlDialog._dialogElements;
+  }
+  changed() {
+    this.value = this.components[0].getValue();
+    $(this.dgDom.element).find('.ok-button').prop('disabled', false);
+  }
+  commit() {
+    let scoreWorks = false;
+    if (this.value) {
+      try {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(this.value, 'text/xml');
+        const score = mxmlScore.smoScoreFromXml(xml);
+        scoreWorks = true;
+        this.view.changeScore(score);
+        this.complete();
+      } catch (e) {
+        console.warn('unable to score ' + e);
+      }
+      if (!scoreWorks) {
+        this.complete();
+      }
+    }
+  }
+  static createAndDisplay(params) {
+    const dg = new SuiLoadMxmlDialog(params);
+    dg.display();
+    // disable until file is selected
+    $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
+  }
+  constructor(parameters) {
+    parameters.ctor = 'SuiLoadMxmlDialog';
+    super(parameters);
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
 class SuiLoadActionsDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiLoadActionsDialog';

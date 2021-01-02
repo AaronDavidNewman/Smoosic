@@ -362,6 +362,10 @@ class SuiFileMenu extends suiMenuBase {
         text: 'Open',
         value: 'openFile'
       }, {
+        icon: '',
+        text: 'Import MusicXML',
+        value: 'importMxml'
+      }, {
         icon: 'folder-save',
         text: 'Save',
         value: 'saveFile'
@@ -455,6 +459,16 @@ class SuiFileMenu extends suiMenuBase {
       });
     } else if (text === 'openFile') {
       SuiLoadFileDialog.createAndDisplay({
+        completeNotifier: this.completeNotifier,
+        tracker: this.tracker,
+        undoBuffer: this.undoBuffer,
+        eventSource: this.eventSource,
+        editor: this.keyCommands,
+        view: this.view,
+        closeMenuPromise: this.closePromise
+      });
+    } else if (text === 'importMxml') {
+      SuiLoadMxmlDialog.createAndDisplay({
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
