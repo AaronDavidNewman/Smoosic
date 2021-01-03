@@ -270,7 +270,6 @@ class draggable {
 //
 // `VexFlow` uses a letter duration ('4' for 1/4 note) and 'd' for dot.
 // I try to indicate whether I am using vex or smo notation
-// ## smoMusic static methods:
 // ---
 class smoMusic {
   // ### vexToCannonical
@@ -2170,6 +2169,4832 @@ var sixTestJson = `{"a":{"b":{"c":30,"d":30,"e":40,"f":40,"g":816,"h":1056,"i":0
 ;var inventionJson = `{"a":{"b":{"c":30,"d":30,"e":120,"f":40,"g":816,"h":1056,"i":0,"j":30,"k":20,"l":0.6,"m":1.4641000000000006,"n":2,"o":2,"p":"letter"},"q":0,"r":{},"me":[{"ne":"engraving","oe":1,"xb":"Gonville","wb":1,"pe":false},{"ne":"score","oe":2,"xb":"Merriweather","wb":14,"pe":false},{"ne":"chords","oe":3,"xb":"Roboto Slab","wb":14,"pe":false},{"ne":"lyrics","oe":4,"xb":"Merriweather","wb":12,"pe":false}]},"s":[{"t":0,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Instrument","ca":"0","da":"treble"},"ea":[{"fa":{"ga":0,"ha":4,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":4,"ia":0,"ja":1,"ka":[]},"ma":-3,"na":34,"oa":17,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":5,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":5,"ia":0,"ja":12,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":10,"ia":0,"ja":4,"ka":[]},"ma":0,"uc":true,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":5,"ka":[]},"la":{"ga":0,"ha":11,"ia":0,"ja":0,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":11,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":11,"ia":0,"ja":6,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":15,"ia":0,"ja":8,"ka":[]},"la":{"ga":0,"ha":16,"ia":0,"ja":0,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":17,"ia":0,"ja":8,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":0,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":0,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":0,"ia":0,"ja":11,"ka":[]},"sa":"SmoStaffHairpin"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":11,"ka":[]},"sa":"SmoStaffHairpin"},{"fa":{"ga":0,"ha":6,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":6,"ia":0,"ja":10,"ka":[]},"ta":-40,"sa":"SmoStaffHairpin"},{"fa":{"ga":0,"ha":7,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":7,"ia":0,"ja":10,"ka":[]},"sa":"SmoStaffHairpin"},{"fa":{"ga":0,"ha":16,"ia":0,"ja":8,"ka":[]},"la":{"ga":0,"ha":17,"ia":0,"ja":0,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"}],"va":[{"ya":{"ya":0,"za":0,"ab":0,"t":0},"bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","rb":true,"qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":8192,"fd":[{"hd":"mordent_inverted","sa":"SmoOrnament"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":1,"za":1,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":8192,"fd":[{"hd":"mordent_inverted","sa":"SmoOrnament"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":2,"za":2,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":3,"za":3,"ab":0,"t":0},"bb":41.5,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":4,"za":4,"ab":1,"t":0},"bb":6,"be":28,"de":22,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","fd":[{"hd":"mordent_inverted","sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":5,"za":5,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","fd":[{"sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":6,"za":6,"ab":0,"t":0},"bb":41.5,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":7,"za":7,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":8,"za":8,"ab":2,"t":0},"bb":41.5,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":9,"za":9,"ab":0,"t":0},"bb":41.5,"be":26,"de":12,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":10,"za":10,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","rb":true,"qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"da":"treble","rb":true,"qb":8192,"tc":1}]}],"ea":[]},{"ya":{"ya":11,"za":11,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":4}],"da":"treble","qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","rb":true,"qb":8192,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","tc":1},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","tc":1}]}],"ea":[]},{"ya":{"ya":12,"za":12,"ab":0,"t":0},"bb":41.5,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":13,"za":13,"ab":1,"t":0},"bb":6,"be":-28,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","fd":[{"sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":14,"za":14,"ab":2,"t":0},"bb":6,"be":32,"de":12,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qc":[{"ua":"below","rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":15,"za":15,"ab":0,"t":0},"bb":41.5,"be":-20,"de":12,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","tc":2},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":16,"za":16,"ab":1,"t":0},"bb":6,"be":-18,"de":12,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":17,"za":17,"ab":2,"t":0},"bb":6,"de":32,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":18,"za":18,"ab":0,"t":0},"bb":41.5,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":19,"za":19,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":20,"za":20,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":21,"za":21,"ab":3,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":16384,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4},{"jb":"c","lb":"n","kb":5}],"da":"treble"}]}],"ea":[{"kd":2,"sa":"SmoBarline"}]}]},{"t":1,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Bass Clef Staff","ca":0,"da":"bass"},"ea":[{"fa":{"ga":1,"ha":1,"ia":0,"ja":0,"ka":[0]},"la":{"ga":1,"ha":1,"ia":0,"ja":1,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":2,"ia":0,"ja":1,"ka":[]},"la":{"ga":1,"ha":2,"ia":0,"ja":4,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":2,"ia":0,"ja":5,"ka":[]},"la":{"ga":1,"ha":3,"ia":0,"ja":0,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":3,"ia":0,"ja":1,"ka":[]},"la":{"ga":1,"ha":3,"ia":0,"ja":6,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":15,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":15,"ia":0,"ja":1,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":16,"ia":0,"ja":0,"ka":[0]},"la":{"ga":1,"ha":16,"ia":0,"ja":1,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":3,"ia":0,"ja":4,"ka":[]},"la":{"ga":1,"ha":3,"ia":0,"ja":6,"ka":[]},"sa":"SmoStaffHairpin"},{"fa":{"ga":1,"ha":17,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":17,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":0,"za":0,"ab":0,"t":1},"da":"bass","bb":59.980000000000004,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"oc":"r","da":"bass","rb":true,"qb":1024},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass","rb":true}]}],"ea":[]},{"ya":{"ya":1,"za":1,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","rb":true}]}],"ea":[]},{"ya":{"ya":2,"za":2,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","rb":true,"qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":3,"za":3,"ab":0,"t":1},"da":"bass","bb":41.5,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":4,"za":4,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":5,"za":5,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":2}],"da":"bass","tc":1,"qc":[{"ua":"below","rc":"staccato","sa":"SmoArticulation"}]}]}],"ea":[]},{"ya":{"ya":6,"za":6,"ab":0,"t":1},"da":"bass","bb":41.5,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"oc":"r","da":"bass","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":7,"za":7,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qc":[{"rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":8,"za":8,"ab":2,"t":1},"bb":41.5,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"treble","qc":[{"ua":"below","rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4,"pc":true}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","rb":true,"qb":8192}]}],"ea":[]},{"ld":true,"ya":{"ya":9,"za":9,"ab":0,"t":1},"bb":41.5,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":10,"za":10,"ab":1,"t":1},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":11,"za":11,"ab":2,"t":1},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":12,"za":12,"ab":0,"t":1},"da":"bass","bb":41.5,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3,"pc":true}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":13,"za":13,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":14,"za":14,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"oc":"r","da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"}]}],"ea":[]},{"ld":true,"ya":{"ya":15,"za":15,"ab":0,"t":1},"da":"bass","bb":41.5,"be":-14,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":16,"za":16,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":17,"za":17,"ab":2,"t":1},"da":"bass","bb":6,"be":-8,"de":12,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ld":true,"ya":{"ya":18,"za":18,"ab":0,"t":1},"da":"bass","bb":41.5,"be":-15,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","rb":true,"qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":8192},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","rb":true,"qb":8192}]}],"ea":[]},{"ya":{"ya":19,"za":19,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":20,"za":20,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qc":[{"rc":"staccato","sa":"SmoArticulation"}]}]}],"ea":[]},{"ya":{"ya":21,"za":21,"ab":3,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":16384,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":2},{"jb":"c","lb":"n","kb":3}],"da":"bass"}]}],"ea":[{"kd":2,"sa":"SmoBarline"}]}]}],"yc":[],"ge":[{"he":[{"tb":{"sa":"SmoScoreText","pa":{"qa":"auto10872","ra":"SmoScoreText"},"zc":{},"ad":false,"jc":450,"kc":142,"tb":"15 Inventions à 2 voix.","bd":"every","ua":"custom","vb":{"wb":"24pt","xb":"Source Serif Pro","yb":"normal","zb":"normal","te":24},"ac":"score-text auto3276 auto1875 auto1874 auto1873 auto7616 auto65353 auto1996 auto10872","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false,"ic":{"jc":832.68,"kc":-719.28,"lc":276.9,"mc":35.01},"nc":{"jc":450,"kc":112.39,"lc":315.23,"mc":39.86}},"ua":4}],"bd":1,"sa":"SmoTextGroup"},{"he":[{"tb":{"sa":"SmoScoreText","pa":{"qa":"auto10874","ra":"SmoScoreText"},"zc":{},"ad":false,"jc":1055.3413208007814,"kc":94.0898252563477,"tb":"JS Bach","bd":"once","ua":"custom","vb":{"wb":"16pt","xb":"Merriweather","yb":"normal","zb":"normal","te":16},"ac":"score-text auto177204 auto1875 auto10874","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false,"ic":{"jc":1363.41,"kc":-753.35,"lc":69.67,"mc":23.02},"nc":{"jc":1054.19,"kc":73.59,"lc":79.31,"mc":26.2}},"ua":2},{"tb":{"sa":"SmoScoreText","pa":{"qa":"auto10875","ra":"SmoScoreText"},"zc":{},"ad":false,"jc":1055.3413208007814,"kc":94.0898252563477,"tb":"Page ### of @@@","bd":"once","ua":"custom","vb":{"wb":"16pt","xb":"Merriweather","yb":"normal","zb":"normal","te":16},"ac":"score-text auto177204 auto235769 auto1876 auto10875","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false,"ic":{"jc":1364.41,"kc":-727.29,"lc":95.88,"mc":24.01},"nc":{"jc":1055.33,"kc":103.27,"lc":109.16,"mc":27.33}},"ua":2}],"ue":10,"bd":1,"sa":"SmoTextGroup"}],"yd":[{"zd":0,"la":{"ga":1,"ha":0},"sa":"SmoSystemGroup"}],"ee":{"wa":{"0":"4/4"},"xa":{"0":"C"},"fe":{"0":{"sa":"SmoTempoText","pa":{"qa":"auto10019","ra":"SmoTempoText"},"id":"text","nb":96,"ob":true,"pb":4096,"jd":"Moderato","ta":0}}},"dictionary":{"a":"score","b":"layout","c":"leftMargin","d":"rightMargin","e":"topMargin","f":"bottomMargin","g":"pageWidth","h":"pageHeight","i":"orientation","j":"interGap","k":"intraGap","l":"svgScale","m":"zoomScale","n":"zoomMode","o":"pages","p":"pageSize","q":"startIndex","r":"renumberingMap","s":"staves","t":"staffId","u":"staffX","v":"staffY","w":"adjY","x":"staffWidth","y":"staffHeight","z":"keySignatureMap","aa":"instrumentInfo","ba":"instrumentName","ca":"keyOffset","da":"clef","ea":"modifiers","fa":"startSelector","ga":"staff","ha":"measure","ia":"voice","ja":"tick","ka":"pitches","la":"endSelector","ma":"xOffset","na":"cp1y","oa":"cp2y","pa":"attrs","qa":"id","ra":"type","sa":"ctor","ta":"yOffset","ua":"position","va":"measures","wa":"timeSignature","xa":"keySignature","ya":"measureNumber","za":"measureIndex","ab":"systemIndex","bb":"adjX","cb":"tuplets","db":"voices","eb":"notes","fb":"ticks","gb":"numerator","hb":"denominator","ib":"remainder","jb":"letter","kb":"octave","lb":"accidental","mb":"symbol","nb":"bpm","ob":"display","pb":"beatDuration","qb":"beamBeats","rb":"endBeam","sb":"textModifiers","tb":"text","ub":"endChar","vb":"fontInfo","wb":"size","xb":"family","yb":"style","zb":"weight","ac":"classes","bc":"verse","cc":"fill","dc":"scaleX","ec":"scaleY","fc":"translateX","gc":"translateY","hc":"selector","ic":"renderedBox","jc":"x","kc":"y","lc":"width","mc":"height","nc":"logicalBox","oc":"noteType","pc":"cautionary","qc":"articulations","rc":"articulation","sc":"activeVoice","tc":"flagState","uc":"invert","vc":"fontSize","wc":"yOffsetLine","xc":"yOffsetPixels","yc":"scoreText","zc":"backup","ad":"edited","bd":"pagination","cd":"boxModel","dd":"justification","ed":"autoLayout","fd":"ornaments","gd":"offset","hd":"ornament","id":"tempoMode","jd":"tempoText","kd":"barline","ld":"systemBreak","md":"graceNotes","nd":"tones","od":"tuplet","pd":"beam_group","qd":"renderId","rd":"numNotes","sd":"totalTicks","td":"stemTicks","ud":"durationMap","vd":"bracketed","wd":"ratioed","xd":"location","yd":"systemGroups","zd":"leftConnector","ae":"padLeft","be":"customStretch","ce":"engravingFont","de":"customProportion","ee":"columnAttributeMap","fe":"tempo","ge":"textGroups","he":"textBlocks","ie":"backupBlocks","je":"blocks","ke":"_text","le":"parser","me":"fonts","ne":"name","oe":"purpose","pe":"custom","qe":"transposeIndex","re":"noteHead","se":"slash","te":"pointSize","ue":"spacing","ve":"relativePosition"}}`;
 ;var jesuBambino = `{"a":{"b":{"c":50,"d":50,"e":72,"f":40,"g":816,"h":1056,"i":0,"j":40,"k":30,"l":0.65,"m":1.5,"n":2,"o":7,"p":"letter"},"q":0,"r":{},"me":[{"ne":"engraving","oe":1,"xb":"Bravura","wb":1,"pe":false},{"ne":"score","oe":2,"xb":"Merriweather","wb":14,"pe":false},{"ne":"chords","oe":3,"xb":"Roboto Slab","wb":14,"pe":false},{"ne":"lyrics","oe":4,"xb":"Merriweather","wb":12,"pe":false}]},"s":[{"t":0,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Instrument","ca":"0","da":"treble"},"ea":[{"fa":{"ga":0,"ha":1,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":1,"ka":[]},"ma":0,"na":10,"oa":10,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":3,"ka":[]},"ma":0,"ta":14,"na":10,"oa":30,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":1,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":3,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":5,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":7,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":4,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":4,"ia":0,"ja":1,"ka":[]},"ma":0,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":4,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":4,"ia":0,"ja":3,"ka":[]},"ma":0,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":4,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":4,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":4,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":4,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":16,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":17,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":21,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":21,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":21,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":21,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":21,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":21,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":21,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":21,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":22,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":22,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":22,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":22,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":22,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":22,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":22,"ia":0,"ja":6,"ka":[]},"la":{"ga":0,"ha":22,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":27,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":27,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":0},"bb":92.30000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":"2048","hb":1,"ib":0},"ka":[{"jb":"d","kb":5,"lb":"n"}],"da":"treble","sb":[{"vb":{"ne":"lyrics","oe":4,"xb":"Merriweather","wb":12,"pe":false},"sa":"SmoLyric","ke":""}]}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":1,"za":2,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5},{"jb":"a","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":0,"t":0},"bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":5,"za":6,"ab":0,"t":0},"bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":7,"za":8,"ab":0,"t":0},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":1,"t":0},"bb":6,"de":102,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4},{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":4,"pc":false}],"da":"treble","rb":true,"qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":0,"t":0},"bb":60.34,"de":22,"cb":[],"db":[{"eb":[{"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4},{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5},{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":0,"t":0},"bb":85.22,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":1,"t":0},"bb":6,"de":12,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":3,"t":0},"bb":6,"de":12,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":15,"za":16,"ab":0,"t":0},"bb":66.38,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":16,"za":17,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":17,"za":18,"ab":0,"t":0},"bb":85.22,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":18,"za":19,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":19,"za":20,"ab":0,"t":0},"bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":20,"za":21,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":21,"za":22,"ab":0,"t":0},"bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":22,"za":23,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"tb":"f","sa":"SmoDynamicText"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":23,"za":24,"ab":0,"t":0},"bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"a","lb":"b","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144}]}],"ea":[]},{"ya":{"ya":24,"za":25,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":25,"za":26,"ab":0,"t":0},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":26,"za":27,"ab":1,"t":0},"bb":24.48,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":27,"za":28,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"treble","qb":6144,"qc":[{"rc":"fermata","sa":"SmoArticulation"}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":28,"za":29,"ab":0,"t":0},"bb":92.30000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5},{"jb":"a","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":29,"za":30,"ab":1,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144}]}],"ea":[{"ua":1,"tb":"a tempo","sa":"SmoMeasureText"}]},{"ya":{"ya":30,"za":31,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":5}],"da":"treble","qb":6144,"qc":[{"rc":"fermata","sa":"SmoArticulation"}]}]}],"ea":[]}]},{"t":1,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Bass Clef Staff","ca":0,"da":"bass"},"ea":[{"fa":{"ga":1,"ha":3,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":3,"ia":0,"ja":3,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":4,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":4,"ia":0,"ja":3,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":5,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":5,"ia":0,"ja":3,"ka":[]},"ma":0,"ua":4,"na":40,"oa":40,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":20,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":20,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":21,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":21,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":22,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":22,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":22,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":22,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":22,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":22,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":23,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":23,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":27,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":27,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":1,"ha":30,"ia":0,"ja":2,"ka":[]},"la":{"ga":1,"ha":31,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":1},"da":"bass","bb":92.30000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":"2048","hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":1,"za":2,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":0,"t":1},"da":"bass","bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":5,"za":6,"ab":0,"t":1},"da":"bass","bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":7,"za":8,"ab":0,"t":1},"da":"bass","bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":0,"t":1},"da":"bass","bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144},{"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"oc":"r","da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":0,"t":1},"da":"bass","bb":85.22,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":3,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":15,"za":16,"ab":0,"t":1},"sc":1,"da":"bass","bb":66.38,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2}]},{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1}]}],"ea":[]},{"ya":{"ya":16,"za":17,"ab":1,"t":1},"sc":1,"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":2}]},{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144,"tc":1},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144,"tc":1}]}],"ea":[]},{"ld":true,"ya":{"ya":17,"za":18,"ab":0,"t":1},"da":"bass","bb":85.22,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":18,"za":19,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":19,"za":20,"ab":0,"t":1},"da":"bass","bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":20,"za":21,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":21,"za":22,"ab":0,"t":1},"da":"bass","bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":22,"za":23,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"},{"tb":"f","sa":"SmoDynamicText"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":23,"za":24,"ab":0,"t":1},"da":"bass","bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","rb":true,"qb":6144},{"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass","qb":6144},{"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":2}],"da":"bass","qb":6144},{"ka":[{"jb":"b","lb":"b","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":24,"za":25,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"a","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","rb":true,"qb":6144},{"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass","rb":true,"qb":6144},{"ka":[{"jb":"c","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":2}],"da":"bass","qb":6144},{"ka":[{"jb":"b","lb":"b","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2}],"da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":25,"za":26,"ab":0,"t":1},"da":"bass","bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":26,"za":27,"ab":1,"t":1},"da":"bass","bb":24.48,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":27,"za":28,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"oc":"r","da":"bass","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":28,"za":29,"ab":0,"t":1},"da":"bass","bb":92.30000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass","qb":6144,"qc":[{"rc":"fermata","sa":"SmoArticulation"}]}]}],"ea":[]},{"ya":{"ya":29,"za":30,"ab":1,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]},{"ya":{"ya":30,"za":31,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"bass","qb":6144}]}],"ea":[]}]},{"t":2,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Clef Staff","ca":0,"da":"treble"},"ea":[{"fa":{"ga":2,"ha":3,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":3,"ia":0,"ja":1,"ka":[]},"ma":-10,"na":10,"oa":10,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":3,"ia":0,"ja":3,"ka":[]},"la":{"ga":2,"ha":3,"ia":0,"ja":4,"ka":[]},"ma":-10,"ua":"2","na":10,"oa":10,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":3,"ia":0,"ja":6,"ka":[]},"la":{"ga":2,"ha":3,"ia":0,"ja":7,"ka":[]},"ma":-10,"na":10,"oa":10,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":4,"ia":0,"ja":5,"ka":[]},"la":{"ga":2,"ha":4,"ia":0,"ja":6,"ka":[]},"sa":"SmoSlur"},{"fa":{"ga":2,"ha":9,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":9,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":8,"ia":0,"ja":6,"ka":[]},"la":{"ga":2,"ha":9,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":11,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":11,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":11,"ia":0,"ja":1,"ka":[]},"la":{"ga":2,"ha":11,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":7,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":7,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":7,"ia":0,"ja":3,"ka":[]},"la":{"ga":2,"ha":7,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":8,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":8,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":8,"ia":0,"ja":3,"ka":[]},"la":{"ga":2,"ha":8,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":19,"ia":0,"ja":5,"ka":[]},"la":{"ga":2,"ha":19,"ia":0,"ja":6,"ka":[]},"ma":-14,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":21,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":21,"ia":0,"ja":1,"ka":[]},"ma":-14,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":20,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":20,"ia":0,"ja":9,"ka":[]},"uc":true,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":21,"ia":0,"ja":3,"ka":[]},"la":{"ga":2,"ha":21,"ia":0,"ja":4,"ka":[]},"ma":-10,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":21,"ia":0,"ja":6,"ka":[]},"la":{"ga":2,"ha":21,"ia":0,"ja":7,"ka":[]},"ma":-12,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":24,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":24,"ia":0,"ja":1,"ka":[]},"ma":-10,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":28,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":28,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":2,"ha":29,"ia":0,"ja":0,"ka":[]},"la":{"ga":2,"ha":29,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":2},"bb":92.30000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":"2048","hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":1,"za":2,"ab":2,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Ne-"}]}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":" ll'u-"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"u   "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni   "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mile-"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"i   "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"cap-"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"a   "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"nna"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"nel "}]}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":0,"t":2},"bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"fre- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ddo  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"e  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"po- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ver- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ta  "}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":5,"za":6,"ab":0,"t":2},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"O- "}]}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"sa- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"nna  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"O  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"sa- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"nna  "}]},{"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"can  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ta- "}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"no  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"con  "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":7,"za":8,"ab":0,"t":2},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"gui- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"bi  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":" lan-"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te  "}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"cor "}]}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":1,"t":2},"bb":6,"de":92,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"I  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"tuo  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"i  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"pa- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"sto- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ri  "}]}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":0,"t":2},"bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"an- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"gel- "}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"i  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"o  "}]},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"di  "}]},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"luce  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"e'a  "}]}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"more "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":6144,"qc":[{"ua":"below","rc":"fermata","sa":"SmoArticulation"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":0,"t":2},"bb":85.22,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":2,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":3,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":15,"za":16,"ab":0,"t":2},"bb":66.38,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":16,"za":17,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Ah- "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":17,"za":18,"ab":0,"t":2},"bb":85.22,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Ve "}]}]}],"ea":[]},{"ya":{"ya":18,"za":19,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"a- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"do- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mus "}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Ah!  "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":19,"za":20,"ab":0,"t":2},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"a- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"do  "}]}]}],"ea":[]},{"ya":{"ya":20,"za":21,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mus  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Do- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mi- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"num "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ve- "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":21,"za":22,"ab":0,"t":2},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te "}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ve- "},{"wc":2,"tb":"p","sa":"SmoDynamicText"}]}]}],"ea":[]},{"ya":{"ya":22,"za":23,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni- "}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":23,"za":24,"ab":0,"t":2},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ve- "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"a  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"dor- "}]}]}],"ea":[]},{"ya":{"ya":24,"za":25,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mus "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":25,"za":26,"ab":0,"t":2},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"A- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"do- "}]}]}],"ea":[]},{"ya":{"ya":26,"za":27,"ab":1,"t":2},"bb":24.48,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re- "}]}]}],"ea":[]},{"ya":{"ya":27,"za":28,"ab":2,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mus "}],"qc":[{"rc":"fermata","sa":"SmoArticulation"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":28,"za":29,"ab":0,"t":2},"bb":92.30000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Do  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mi  "}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"num "}],"qc":[{"rc":"fermata","sa":"SmoArticulation"}]}]}],"ea":[]},{"ya":{"ya":29,"za":30,"ab":1,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":30,"za":31,"ab":2,"t":2},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]}]},{"t":3,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Clef Staff","ca":0,"da":"treble"},"ea":[{"fa":{"ga":3,"ha":6,"ia":0,"ja":6,"ka":[]},"la":{"ga":3,"ha":6,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":6,"ia":0,"ja":6,"ka":[]},"la":{"ga":3,"ha":6,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":11,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":11,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":11,"ia":0,"ja":1,"ka":[]},"la":{"ga":3,"ha":11,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":7,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":7,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":7,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":7,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":8,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":8,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":8,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":8,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":20,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":20,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":22,"ia":0,"ja":6,"ka":[]},"la":{"ga":3,"ha":22,"ia":0,"ja":7,"ka":[]},"ma":-9,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":24,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":24,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":25,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":25,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":18,"ia":0,"ja":4,"ka":[]},"la":{"ga":3,"ha":19,"ia":0,"ja":3,"ka":[]},"uc":true,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":28,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":28,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":20,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":20,"ia":0,"ja":8,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":29,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":29,"ia":0,"ja":4,"ka":[]},"sa":"SmoSlur"},{"fa":{"ga":3,"ha":22,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":22,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":22,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":22,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":23,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":23,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":23,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":23,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":5,"ia":0,"ja":0,"ka":[]},"la":{"ga":3,"ha":5,"ia":0,"ja":1,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":5,"ia":0,"ja":3,"ka":[]},"la":{"ga":3,"ha":5,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":3,"ha":5,"ia":0,"ja":6,"ka":[]},"la":{"ga":3,"ha":5,"ia":0,"ja":7,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":3},"bb":92.30000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":"2048","hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":1,"za":2,"ab":2,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":0,"t":3},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"e  "}]}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"na- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"to  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"il  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Sa- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"nto  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"pa- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"rgo- "}]},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"lo  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"che- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"il "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":5,"za":6,"ab":0,"t":3},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mo- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ndo  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"a- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"do- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re  "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ra  "}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"},{"tb":"f","sa":"SmoDynamicText"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"O- "}]}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"sa- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"nna  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"O  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"sa- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"na  "}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"can- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ta- "}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"no  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"con  "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":7,"za":8,"ab":0,"t":3},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"gui- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"bi  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"lan- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te  "}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":" cor "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"con  "}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"bui- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"bi- "}]}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"la- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"nte  "}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"core  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"I  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"tuo- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"   "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"i  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"pa- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"sto-  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ri  "}]}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":0,"t":3},"bb":60.34,"cb":[],"db":[{"eb":[{"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"an-  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"gel-  "}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"i   "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"o  "}]},{"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re-  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"di   "}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"luce  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"e'a  "}]}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"more "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"qc":[{"rc":"fermata","sa":"SmoArticulation"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":0,"t":3},"bb":85.22,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":2,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":3,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":15,"za":16,"ab":0,"t":3},"bb":66.38,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":16,"za":17,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ld":true,"ya":{"ya":17,"za":18,"ab":0,"t":3},"bb":85.22,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Ah- "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":18,"za":19,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Ve- "}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"a- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"do  "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":19,"za":20,"ab":0,"t":3},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re- "}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mus  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Ah- "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":20,"za":21,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","rb":true,"qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ve- "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":21,"za":22,"ab":0,"t":3},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te  "}]},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ve- "},{"wc":2,"tb":"p","sa":"SmoDynamicText"}]}]}],"ea":[]},{"ya":{"ya":22,"za":23,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":23,"za":24,"ab":0,"t":3},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ve- "}]},{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"ni- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"te- "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"a  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"dor  "}]}]}],"ea":[]},{"ya":{"ya":24,"za":25,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4,"pc":true}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":" re-"}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mus "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":2048},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":2048}]}],"ea":[]},{"ld":true,"ya":{"ya":25,"za":26,"ab":0,"t":3},"bb":60.34,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"A  "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"do- "}]}]}],"ea":[]},{"ya":{"ya":26,"za":27,"ab":1,"t":3},"bb":24.48,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"re- "}]}]}],"ea":[]},{"ya":{"ya":27,"za":28,"ab":2,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mus  "}],"qc":[{"rc":"fermata","sa":"SmoArticulation"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric"}]}]}],"ea":[]},{"ld":true,"ya":{"ya":28,"za":29,"ab":0,"t":3},"bb":92.30000000000001,"cb":[],"db":[{"eb":[{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"Do  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","qb":6144,"tc":2,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"mi  "}]},{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","qb":6144,"sb":[{"vb":{"xb":"Merriweather","wb":11},"sa":"SmoLyric","ke":"num "}],"qc":[{"rc":"fermata","sa":"SmoArticulation"}]}]}],"ea":[]},{"ya":{"ya":29,"za":30,"ab":1,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]},{"ya":{"ya":30,"za":31,"ab":2,"t":3},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":24576,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":6144}]}],"ea":[]}]}],"yc":[],"ge":[{"he":[{"tb":{"sa":"SmoScoreText","pa":{"qa":"auto130786","ra":"SmoScoreText"},"zc":{},"ad":false,"jc":995,"kc":46,"tb":"© Pietro Yon","bd":"every","ua":"custom","vb":{"wb":"1em","xb":"Merriweather","yb":"normal","zb":"normal"},"ac":"score-text auto8948 auto268034 auto3068 auto130786","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false,"ic":{"jc":1382.94,"kc":-3391.16,"lc":117.02,"mc":23.02},"nc":{"jc":984.64,"kc":27.53,"lc":120.02,"mc":23.61}},"ua":2},{"tb":{"sa":"SmoScoreText","pa":{"qa":"auto130787","ra":"SmoScoreText"},"zc":{},"ad":false,"jc":995,"kc":46,"tb":"Page ### of @@@","bd":"every","ua":"custom","vb":{"wb":"1em","xb":"Merriweather","yb":"normal","zb":"normal"},"ac":"score-text auto8948 auto268034 auto475951 auto3069 auto130787","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false,"ic":{"jc":1393.04,"kc":-3366.98,"lc":93.27,"mc":23.02},"nc":{"jc":995,"kc":52.33,"lc":95.66,"mc":23.61}},"ua":2}],"dd":3,"ve":2,"ue":10,"bd":1,"sa":"SmoTextGroup"},{"he":[{"tb":{"sa":"SmoScoreText","pa":{"qa":"auto130789","ra":"SmoScoreText"},"zc":{},"ad":false,"jc":527,"kc":66,"tb":"Gesu Bambino","bd":"every","ua":"title","vb":{"wb":"1.8em","xb":"Merriweather","yb":"normal","zb":"normal","te":21.6},"ac":"score-text auto8947 auto268036 auto3071 auto130789","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":true,"ic":{"jc":936.73,"kc":-3381.65,"lc":199.68,"mc":36.02},"nc":{"jc":527,"kc":37.28,"lc":204.8,"mc":36.94}},"ua":4}],"sa":"SmoTextGroup"}],"yd":[{"zd":0,"fa":{"ga":0,"ha":1},"la":{"ga":1,"ha":1},"sa":"SmoSystemGroup"},{"zd":1,"fa":{"ga":2,"ha":0},"la":{"ga":3,"ha":0},"sa":"SmoSystemGroup"}],"ee":{"wa":{"0":"12/8","27":"9/8","29":"12/8"},"xa":{"0":"G","12":"Bb","18":"G"},"fe":{"0":{"sa":"SmoTempoText","pa":{"qa":"auto128726","ra":"SmoTempoText"},"id":"duration","nb":56,"ob":true,"pb":6144,"jd":"Allegro","ta":0},"9":{"sa":"SmoTempoText","pa":{"qa":"auto128868","ra":"SmoTempoText"},"id":"duration","nb":56,"ob":false,"pb":6144,"jd":"Allegro","ta":0},"30":{"sa":"SmoTempoText","pa":{"qa":"auto129183","ra":"SmoTempoText"},"id":"duration","nb":62,"ob":true,"pb":6144,"jd":"Allegro","ta":0}}},"dictionary":{"a":"score","b":"layout","c":"leftMargin","d":"rightMargin","e":"topMargin","f":"bottomMargin","g":"pageWidth","h":"pageHeight","i":"orientation","j":"interGap","k":"intraGap","l":"svgScale","m":"zoomScale","n":"zoomMode","o":"pages","p":"pageSize","q":"startIndex","r":"renumberingMap","s":"staves","t":"staffId","u":"staffX","v":"staffY","w":"adjY","x":"staffWidth","y":"staffHeight","z":"keySignatureMap","aa":"instrumentInfo","ba":"instrumentName","ca":"keyOffset","da":"clef","ea":"modifiers","fa":"startSelector","ga":"staff","ha":"measure","ia":"voice","ja":"tick","ka":"pitches","la":"endSelector","ma":"xOffset","na":"cp1y","oa":"cp2y","pa":"attrs","qa":"id","ra":"type","sa":"ctor","ta":"yOffset","ua":"position","va":"measures","wa":"timeSignature","xa":"keySignature","ya":"measureNumber","za":"measureIndex","ab":"systemIndex","bb":"adjX","cb":"tuplets","db":"voices","eb":"notes","fb":"ticks","gb":"numerator","hb":"denominator","ib":"remainder","jb":"letter","kb":"octave","lb":"accidental","mb":"symbol","nb":"bpm","ob":"display","pb":"beatDuration","qb":"beamBeats","rb":"endBeam","sb":"textModifiers","tb":"text","ub":"endChar","vb":"fontInfo","wb":"size","xb":"family","yb":"style","zb":"weight","ac":"classes","bc":"verse","cc":"fill","dc":"scaleX","ec":"scaleY","fc":"translateX","gc":"translateY","hc":"selector","ic":"renderedBox","jc":"x","kc":"y","lc":"width","mc":"height","nc":"logicalBox","oc":"noteType","pc":"cautionary","qc":"articulations","rc":"articulation","sc":"activeVoice","tc":"flagState","uc":"invert","vc":"fontSize","wc":"yOffsetLine","xc":"yOffsetPixels","yc":"scoreText","zc":"backup","ad":"edited","bd":"pagination","cd":"boxModel","dd":"justification","ed":"autoLayout","fd":"ornaments","gd":"offset","hd":"ornament","id":"tempoMode","jd":"tempoText","kd":"barline","ld":"systemBreak","md":"graceNotes","nd":"tones","od":"tuplet","pd":"beam_group","qd":"renderId","rd":"numNotes","sd":"totalTicks","td":"stemTicks","ud":"durationMap","vd":"bracketed","wd":"ratioed","xd":"location","yd":"systemGroups","zd":"leftConnector","ae":"padLeft","be":"customStretch","ce":"engravingFont","de":"customProportion","ee":"columnAttributeMap","fe":"tempo","ge":"textGroups","he":"textBlocks","ie":"backupBlocks","je":"blocks","ke":"_text","le":"parser","me":"fonts","ne":"name","oe":"purpose","pe":"custom","qe":"transposeIndex","re":"noteHead","se":"slash","te":"pointSize","ue":"spacing","ve":"relativePosition"}}`;
 ;var microJson = `{"score":{"layout":{"leftMargin":30,"rightMargin":30,"topMargin":40,"bottomMargin":40,"pageWidth":816,"pageHeight":1056,"orientation":0,"interGap":30,"intraGap":10,"svgScale":1,"zoomScale":2.107843137254902,"zoomMode":0,"pages":1},"startIndex":0,"renumberingMap":{}},"staves":[{"staffId":0,"staffX":10,"staffY":40,"adjY":0,"staffWidth":1600,"staffHeight":90,"startIndex":0,"renumberingMap":{},"keySignatureMap":{},"instrumentInfo":{"instrumentName":"Treble Instrument","keyOffset":"0","clef":"treble"},"modifiers":[],"measures":[{"measureNumber":{"measureNumber":0,"measureIndex":0,"systemIndex":0,"staffId":0},"adjX":64.98,"adjRight":11,"tuplets":[],"voices":[{"notes":[{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6268","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6269","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto6679","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"flat75sz","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6273","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6274","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto7062","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"flat25sz","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6279","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6280","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto8606","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"flat25ar","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6286","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto6287","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto9475","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"sharp75","pitch":0}]}]}],"modifiers":[{"position":0,"barline":0,"ctor":"SmoBarline"},{"position":1,"barline":0,"ctor":"SmoBarline"},{"symbol":0,"xOffset":0,"yOffset":30,"position":0,"ctor":"SmoRepeatSymbol"}]},{"measureNumber":{"measureNumber":1,"measureIndex":1,"systemIndex":1,"staffId":0},"adjX":11,"adjRight":11,"tuplets":[],"voices":[{"notes":[{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9944","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9945","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto10352","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"sharp125","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9949","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9950","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto10728","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"sharp25","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9955","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9956","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto11106","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"sori","pitch":0}]},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9962","type":"SmoNote"},"clef":"treble"},{"ticks":{"numerator":2048,"denominator":1,"remainder":0},"pitches":[{"letter":"c","accidental":"n","octave":5}],"attrs":{"id":"auto9963","type":"SmoNote"},"clef":"treble","tones":[{"attrs":{"id":"auto11486","type":"SmoMicrotone"},"ctor":"SmoMicrotone","tone":"koron","pitch":0}]}]}],"modifiers":[{"position":0,"barline":0,"ctor":"SmoBarline"},{"position":1,"barline":0,"ctor":"SmoBarline"},{"symbol":0,"xOffset":0,"yOffset":30,"position":0,"ctor":"SmoRepeatSymbol"}]}]}],"scoreText":[]}`;
+;
+var mozartXml = `<?xml version="1.0" encoding="UTF-8"?>
+<score-partwise version="2.0">
+  <work>
+    <work-number>K. 476</work-number>
+    <work-title>Das Veilchen (Page 1)</work-title>
+  </work>
+  <identification>
+    <creator type="composer">Wolfgang Amadeus Mozart</creator>
+    <creator type="lyricist">Johann Wolfgang von Goethe</creator>
+    <rights>Copyright © 2002 Recordare LLC</rights>
+    <encoding>
+      <software>Finale 2011 for Windows</software>
+      <software>Dolet 5.5 for Finale</software>
+      <encoding-date>2010-12-10</encoding-date>
+      <supports attribute="new-system" element="print" type="yes" value="yes"/>
+      <supports attribute="new-page" element="print" type="yes" value="yes"/>
+    </encoding>
+  </identification>
+  <defaults>
+    <scaling>
+      <millimeters>6.35</millimeters>
+      <tenths>40</tenths>
+    </scaling>
+    <page-layout>
+      <page-height>1760</page-height>
+      <page-width>1360</page-width>
+      <page-margins type="both">
+        <left-margin>80</left-margin>
+        <right-margin>80</right-margin>
+        <top-margin>80</top-margin>
+        <bottom-margin>80</bottom-margin>
+      </page-margins>
+    </page-layout>
+    <system-layout>
+      <system-margins>
+        <left-margin>0</left-margin>
+        <right-margin>0</right-margin>
+      </system-margins>
+      <system-distance>130</system-distance>
+      <top-system-distance>70</top-system-distance>
+    </system-layout>
+    <staff-layout>
+      <staff-distance>80</staff-distance>
+    </staff-layout>
+    <appearance>
+      <line-width type="stem">0.8333</line-width>
+      <line-width type="beam">5</line-width>
+      <line-width type="staff">1.25</line-width>
+      <line-width type="light barline">1.875</line-width>
+      <line-width type="heavy barline">5</line-width>
+      <line-width type="leger">1.875</line-width>
+      <line-width type="ending">1.25</line-width>
+      <line-width type="wedge">0.8333</line-width>
+      <line-width type="enclosure">1.25</line-width>
+      <line-width type="tuplet bracket">0.8333</line-width>
+      <note-size type="grace">60</note-size>
+      <note-size type="cue">60</note-size>
+    </appearance>
+    <music-font font-family="Maestro,music" font-size="18"/>
+    <word-font font-family="Times New Roman" font-size="9"/>
+    <lyric-font font-family="Times New Roman" font-size="10"/>
+  </defaults>
+  <credit page="1">
+    <credit-words default-x="80" default-y="1680" font-size="12" valign="top">2</credit-words>
+  </credit>
+  <credit page="1">
+    <credit-words default-x="680" default-y="80" font-size="9" halign="center" valign="bottom">Copyright © 2002 Recordare LLC</credit-words>
+  </credit>
+  <credit page="1">
+    <credit-words default-x="680" default-y="1640" font-size="24" justify="center" valign="top">Das Veilchen</credit-words>
+  </credit>
+  <credit page="1">
+    <credit-words default-x="680" default-y="1580" font-size="14" halign="center" valign="top">K. 476</credit-words>
+  </credit>
+  <credit page="1">
+    <credit-words default-x="80" default-y="1500" font-size="10" halign="left" justify="center" valign="bottom">Johann Wolfgang von Goethe</credit-words>
+  </credit>
+  <credit page="1">
+    <credit-words default-x="1280" default-y="1500" font-size="10" halign="right" justify="center" valign="bottom">Wolfgang Amadeus Mozart</credit-words>
+  </credit>
+  <part-list>
+    <score-part id="P1">
+      <part-name>Voice</part-name>
+      <score-instrument id="P1-I2">
+        <instrument-name>Voice</instrument-name>
+      </score-instrument>
+      <midi-instrument id="P1-I2">
+        <midi-channel>1</midi-channel>
+        <midi-program>53</midi-program>
+        <volume>80</volume>
+        <pan>0</pan>
+      </midi-instrument>
+    </score-part>
+    <score-part id="P2">
+      <part-name>Piano</part-name>
+      <score-instrument id="P2-I3">
+        <instrument-name>Piano</instrument-name>
+      </score-instrument>
+      <midi-instrument id="P2-I3">
+        <midi-channel>2</midi-channel>
+        <midi-program>1</midi-program>
+        <volume>80</volume>
+        <pan>0</pan>
+      </midi-instrument>
+    </score-part>
+  </part-list>
+  <!--=========================================================-->
+  <part id="P1">
+    <measure implicit="yes" number="0">
+      <print>
+        <measure-numbering>system</measure-numbering>
+      </print>
+      <attributes>
+        <divisions>4</divisions>
+        <key>
+          <fifths>1</fifths>
+          <mode>major</mode>
+        </key>
+        <time>
+          <beats>2</beats>
+          <beat-type>4</beat-type>
+        </time>
+        <clef>
+          <sign>G</sign>
+          <line>2</line>
+        </clef>
+        <staff-details print-object="no"/>
+      </attributes>
+      <note>
+        <rest/>
+        <duration>2</duration>
+        <voice>1</voice>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="1">
+      <print new-system="no"/>
+      <note>
+        <rest/>
+        <duration>8</duration>
+        <voice>1</voice>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="2">
+      <print new-system="no"/>
+      <note>
+        <rest/>
+        <duration>8</duration>
+        <voice>1</voice>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="3">
+      <print new-system="no"/>
+      <note>
+        <rest/>
+        <duration>8</duration>
+        <voice>1</voice>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="4">
+      <print new-system="no"/>
+      <note>
+        <rest/>
+        <duration>8</duration>
+        <voice>1</voice>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="5">
+      <print new-system="no"/>
+      <note>
+        <rest/>
+        <duration>8</duration>
+        <voice>1</voice>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="6" width="234">
+      <print new-system="yes">
+        <system-layout>
+          <system-distance>100</system-distance>
+        </system-layout>
+      </print>
+      <attributes>
+        <staff-details print-object="yes"/>
+      </attributes>
+      <note>
+        <rest/>
+        <duration>8</duration>
+        <voice>1</voice>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="7" width="125">
+      <print new-system="no"/>
+      <note default-x="15">
+        <rest/>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+      </note>
+      <note default-x="60">
+        <rest/>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+      </note>
+      <note default-x="92">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="6">up</stem>
+        <lyric default-y="-80" number="1">
+          <syllabic>single</syllabic>
+          <text>Ein</text>
+        </lyric>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="8" width="215">
+      <print new-system="no"/>
+      <note default-x="27">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-53">down</stem>
+        <beam number="1">begin</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>begin</syllabic>
+          <text>Veil</text>
+        </lyric>
+      </note>
+      <note default-x="74">
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-53">down</stem>
+        <beam number="1">continue</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>end</syllabic>
+          <text>chen</text>
+        </lyric>
+      </note>
+      <note default-x="121">
+        <pitch>
+          <step>C</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-53">down</stem>
+        <beam number="1">continue</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>single</syllabic>
+          <text>auf</text>
+        </lyric>
+      </note>
+      <note default-x="167">
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-53">down</stem>
+        <beam number="1">end</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>single</syllabic>
+          <text>der</text>
+        </lyric>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="9" width="215">
+      <print new-system="no"/>
+      <note default-x="13">
+        <grace steal-time-following="33"/>
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="16">up</stem>
+        <notations>
+          <slur bezier-x="-3" bezier-y="-6" default-x="5" default-y="-9" number="1" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="30">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>3</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <dot/>
+        <stem default-y="-47">down</stem>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur bezier-x="-3" bezier-y="-2" default-x="-4" default-y="-15" number="1" type="stop"/>
+        </notations>
+        <lyric default-y="-80" number="1">
+          <syllabic>begin</syllabic>
+          <text>Wie</text>
+        </lyric>
+      </note>
+      <note default-x="87">
+        <pitch>
+          <step>C</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-50">down</stem>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>end</syllabic>
+          <text>se</text>
+        </lyric>
+      </note>
+      <note default-x="123">
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-55.5">down</stem>
+        <lyric default-y="-80" number="1" relative-x="5">
+          <syllabic>single</syllabic>
+          <text>stand,</text>
+        </lyric>
+      </note>
+      <note default-x="158">
+        <rest/>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+      </note>
+      <note default-x="184">
+        <pitch>
+          <step>G</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-30.5">down</stem>
+        <lyric default-y="-80" number="1">
+          <syllabic>begin</syllabic>
+          <text>ge</text>
+        </lyric>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="10" width="215">
+      <print new-system="no"/>
+      <note default-x="16">
+        <grace steal-time-following="50"/>
+        <pitch>
+          <step>G</step>
+          <octave>5</octave>
+        </pitch>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="26">up</stem>
+        <notations>
+          <slur bezier-x="-3" bezier-y="-6" default-x="5" default-y="1" number="1" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="33">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-32">down</stem>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur bezier-x="-5" bezier-y="-4" default-x="-3" default-y="-6" number="1" type="stop"/>
+        </notations>
+        <lyric default-y="-80" number="1">
+          <syllabic>end</syllabic>
+          <text>bückt</text>
+        </lyric>
+      </note>
+      <note default-x="66">
+        <rest>
+          <display-step>F</display-step>
+          <display-octave>5</display-octave>
+        </rest>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+      </note>
+      <note default-x="93">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>5</octave>
+        </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-32">down</stem>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>single</syllabic>
+          <text>in</text>
+        </lyric>
+      </note>
+      <note default-x="113">
+        <grace steal-time-following="50"/>
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>5</octave>
+        </pitch>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="21">up</stem>
+        <notations>
+          <slur number="1" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="129">
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-40">down</stem>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+        <lyric default-y="-80" number="1">
+          <syllabic>single</syllabic>
+          <text>sich</text>
+        </lyric>
+      </note>
+      <note default-x="162">
+        <rest>
+          <display-step>F</display-step>
+          <display-octave>5</display-octave>
+        </rest>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+      </note>
+      <note default-x="188">
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-40">down</stem>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>single</syllabic>
+          <text>und</text>
+        </lyric>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="11" width="197">
+      <print new-system="no"/>
+      <note default-x="13">
+        <grace steal-time-following="33"/>
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="16">up</stem>
+        <notations>
+          <slur bezier-x="-2" bezier-y="-5" default-x="5" default-y="-10" number="1" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="29">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>3</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <dot/>
+        <stem default-y="-47">down</stem>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur bezier-x="-4" bezier-y="-3" default-x="-4" default-y="-16" number="1" type="stop"/>
+        </notations>
+        <lyric default-y="-80" number="1">
+          <syllabic>begin</syllabic>
+          <text>un</text>
+        </lyric>
+      </note>
+      <note default-x="89">
+        <pitch>
+          <step>C</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-50">down</stem>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>middle</syllabic>
+          <text>be</text>
+        </lyric>
+      </note>
+      <note default-x="123">
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-55.5">down</stem>
+        <lyric default-y="-80" number="1" relative-x="12">
+          <syllabic>end</syllabic>
+          <text>kannt:</text>
+        </lyric>
+      </note>
+      <note default-x="162">
+        <rest/>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="12" width="231">
+      <print new-system="yes">
+        <system-layout>
+          <system-distance>100</system-distance>
+        </system-layout>
+      </print>
+      <note default-x="81">
+        <rest/>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+      </note>
+      <note default-x="114">
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-57">down</stem>
+        <beam number="1">begin</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>single</syllabic>
+          <text>es</text>
+        </lyric>
+      </note>
+      <note default-x="154">
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-54">down</stem>
+        <beam number="1">continue</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>single</syllabic>
+          <text>war</text>
+        </lyric>
+      </note>
+      <note default-x="194">
+        <pitch>
+          <step>C</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-50">down</stem>
+        <beam number="1">end</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>single</syllabic>
+          <text>ein</text>
+        </lyric>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="13" width="185">
+      <print new-system="no"/>
+      <note default-x="23">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>3</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <dot/>
+        <stem default-y="20">up</stem>
+        <beam number="1">begin</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>begin</syllabic>
+          <text>her</text>
+        </lyric>
+      </note>
+      <note default-x="72">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="10">up</stem>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>end</syllabic>
+          <text>zig’s</text>
+        </lyric>
+      </note>
+      <note default-x="116">
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="13">up</stem>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" placement="below" type="start"/>
+        </notations>
+        <lyric default-y="-80" number="1" relative-x="3">
+          <syllabic>begin</syllabic>
+          <text>Veil</text>
+        </lyric>
+      </note>
+      <note default-x="153">
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="10">up</stem>
+        <beam number="1">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="14" width="136">
+      <print new-system="no"/>
+      <note default-x="32">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <stem default-y="6">up</stem>
+        <lyric default-y="-80" number="1">
+          <syllabic>end</syllabic>
+          <text>chen.</text>
+        </lyric>
+      </note>
+      <note default-x="74">
+        <rest/>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+      </note>
+      <note default-x="105">
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="11">up</stem>
+        <lyric default-y="-80" number="1">
+          <syllabic>single</syllabic>
+          <text>Da</text>
+        </lyric>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="15" width="192">
+      <print new-system="no"/>
+      <note default-x="28">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-52">down</stem>
+        <beam number="1">begin</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>single</syllabic>
+          <text>kam</text>
+        </lyric>
+      </note>
+      <note default-x="73">
+        <pitch>
+          <step>C</step>
+          <alter>1</alter>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <accidental>sharp</accidental>
+        <stem default-y="-52">down</stem>
+        <beam number="1">continue</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>single</syllabic>
+          <text>ein’</text>
+        </lyric>
+      </note>
+      <note default-x="116">
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-52">down</stem>
+        <beam number="1">continue</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>begin</syllabic>
+          <text>jun</text>
+        </lyric>
+      </note>
+      <note default-x="155">
+        <pitch>
+          <step>C</step>
+          <alter>1</alter>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-52">down</stem>
+        <beam number="1">end</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>end</syllabic>
+          <text>ge</text>
+        </lyric>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="16" width="180">
+      <print new-system="no"/>
+      <note default-x="29">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>3</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <dot/>
+        <stem default-y="-45">down</stem>
+        <beam number="1">begin</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>begin</syllabic>
+          <text>Schä</text>
+        </lyric>
+      </note>
+      <note default-x="77">
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-57">down</stem>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>middle</syllabic>
+          <text>fer</text>
+        </lyric>
+      </note>
+      <note default-x="107">
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="5">up</stem>
+        <beam number="1">begin</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>end</syllabic>
+          <text>in</text>
+        </lyric>
+      </note>
+      <note default-x="144">
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="5">up</stem>
+        <beam number="1">end</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>single</syllabic>
+          <text>mit</text>
+        </lyric>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="17" width="275">
+      <print new-system="no"/>
+      <note default-x="21">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-42">down</stem>
+        <beam number="1">begin</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>begin</syllabic>
+          <text>leich</text>
+        </lyric>
+      </note>
+      <note default-x="81">
+        <rest>
+          <display-step>D</display-step>
+          <display-octave>5</display-octave>
+        </rest>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+      </note>
+      <note default-x="110">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-42">down</stem>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+        <lyric default-y="-80" number="1" relative-x="-2">
+          <syllabic>end</syllabic>
+          <text>tem</text>
+        </lyric>
+      </note>
+      <note default-x="152">
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-42">down</stem>
+        <beam number="1">begin</beam>
+        <lyric default-y="-80" number="1" relative-x="9">
+          <syllabic>single</syllabic>
+          <text>Schritt</text>
+        </lyric>
+      </note>
+      <note default-x="211">
+        <rest>
+          <display-step>D</display-step>
+          <display-octave>5</display-octave>
+        </rest>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+      </note>
+      <note default-x="241">
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-42">down</stem>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>single</syllabic>
+          <text>und</text>
+        </lyric>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="18" width="333">
+      <print new-system="yes">
+        <system-layout>
+          <system-distance>100</system-distance>
+        </system-layout>
+      </print>
+      <note default-x="93">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-42">down</stem>
+        <beam number="1">begin</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>begin</syllabic>
+          <text>mun</text>
+        </lyric>
+      </note>
+      <note default-x="156">
+        <rest>
+          <display-step>D</display-step>
+          <display-octave>5</display-octave>
+        </rest>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+      </note>
+      <note default-x="191">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>5</octave>
+        </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-42">down</stem>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+        <lyric default-y="-80" number="1" relative-x="-2">
+          <syllabic>end</syllabic>
+          <text>term</text>
+        </lyric>
+      </note>
+      <note default-x="238">
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-45">down</stem>
+        <beam number="1">begin</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>single</syllabic>
+          <text>Sinn</text>
+        </lyric>
+      </note>
+      <note default-x="288">
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-57">down</stem>
+        <beam number="1">end</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>begin</syllabic>
+          <text>da</text>
+        </lyric>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="19" width="253">
+      <print new-system="no"/>
+      <note default-x="24">
+        <pitch>
+          <step>G</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>6</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <dot/>
+        <stem default-y="-30.5">down</stem>
+        <lyric default-y="-80" number="1" relative-x="3">
+          <syllabic>end</syllabic>
+          <text>her,</text>
+        </lyric>
+      </note>
+      <note default-x="197">
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-40.5">down</stem>
+        <lyric default-y="-80" number="1">
+          <syllabic>begin</syllabic>
+          <text>da</text>
+        </lyric>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="20" width="246">
+      <print new-system="no"/>
+      <note default-x="24">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-40">down</stem>
+        <beam number="1">begin</beam>
+        <lyric default-y="-80" number="1" relative-x="3">
+          <syllabic>end</syllabic>
+          <text>her,</text>
+        </lyric>
+      </note>
+      <note default-x="79">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-42">down</stem>
+        <beam number="1">end</beam>
+        <lyric default-y="-80" number="1">
+          <syllabic>single</syllabic>
+          <text>die</text>
+        </lyric>
+      </note>
+      <note default-x="134">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-50">down</stem>
+        <beam number="1">begin</beam>
+        <lyric default-y="-80" number="1" relative-x="3">
+          <syllabic>begin</syllabic>
+          <text>Wie</text>
+        </lyric>
+      </note>
+      <note default-x="189">
+        <pitch>
+          <step>C</step>
+          <alter>1</alter>
+          <octave>5</octave>
+        </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <accidental>sharp</accidental>
+        <stem default-y="-50">down</stem>
+        <beam number="1">continue</beam>
+        <beam number="2">begin</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+        <lyric default-y="-80" number="1">
+          <syllabic>end</syllabic>
+          <text>se</text>
+          <extend/>
+        </lyric>
+      </note>
+      <note default-x="217">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-50">down</stem>
+        <beam number="1">end</beam>
+        <beam number="2">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="21" width="177">
+      <print new-system="no"/>
+      <note default-x="15">
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-40.5">down</stem>
+        <lyric default-y="-80" number="1" relative-x="3">
+          <syllabic>single</syllabic>
+          <text>her,</text>
+        </lyric>
+      </note>
+      <note default-x="55">
+        <rest/>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+      </note>
+      <note default-x="93">
+        <pitch>
+          <step>C</step>
+          <alter>1</alter>
+          <octave>5</octave>
+        </pitch>
+        <duration>3</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <dot/>
+        <accidental>sharp</accidental>
+        <stem default-y="-45">down</stem>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+        <lyric default-y="-80" number="1">
+          <syllabic>single</syllabic>
+          <text>und</text>
+          <extend/>
+        </lyric>
+      </note>
+      <note default-x="148">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-42">down</stem>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="22" width="191">
+      <print new-system="no"/>
+      <note default-x="30">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <stem default-y="-45.5">down</stem>
+        <lyric default-y="-80" number="1" relative-x="3">
+          <syllabic>single</syllabic>
+          <text>sang.</text>
+        </lyric>
+      </note>
+      <note default-x="103">
+        <rest/>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+      </note>
+    </measure>
+  </part>
+  <!--=========================================================-->
+  <part id="P2">
+    <measure implicit="yes" number="0" width="165">
+      <print page-number="2">
+        <system-layout>
+          <system-margins>
+            <left-margin>120</left-margin>
+            <right-margin>0</right-margin>
+          </system-margins>
+          <top-system-distance>230</top-system-distance>
+        </system-layout>
+        <measure-numbering>none</measure-numbering>
+      </print>
+      <attributes>
+        <divisions>8</divisions>
+        <key>
+          <fifths>1</fifths>
+          <mode>major</mode>
+        </key>
+        <time>
+          <beats>2</beats>
+          <beat-type>4</beat-type>
+        </time>
+        <staves>2</staves>
+        <clef number="1">
+          <sign>G</sign>
+          <line>2</line>
+        </clef>
+        <clef number="2">
+          <sign>F</sign>
+          <line>4</line>
+        </clef>
+      </attributes>
+      <direction directive="yes" placement="above">
+        <direction-type>
+          <words default-y="15" font-size="10.5" font-weight="bold">Allegretto</words>
+        </direction-type>
+        <staff>1</staff>
+        <sound tempo="60"/>
+      </direction>
+      <direction placement="below">
+        <direction-type>
+          <dynamics default-y="-75" relative-x="-5">
+            <p/>
+          </dynamics>
+        </direction-type>
+        <staff>1</staff>
+        <sound dynamics="54"/>
+      </direction>
+      <note default-x="122">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="6">up</stem>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>4</duration>
+      </backup>
+      <note default-x="122">
+        <pitch>
+          <step>G</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-40.5">down</stem>
+        <staff>2</staff>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="1" width="153">
+      <print new-system="no"/>
+      <note default-x="15">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="20">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="49">
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="21">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+      </note>
+      <note default-x="83">
+        <pitch>
+          <step>C</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="22">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+      </note>
+      <note default-x="117">
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="23">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="15">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>16</duration>
+        <voice>2</voice>
+        <type>half</type>
+        <stem default-y="-60.5">down</stem>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="15">
+        <pitch>
+          <step>B</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-40">down</stem>
+        <staff>2</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="49">
+        <pitch>
+          <step>G</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-40">down</stem>
+        <staff>2</staff>
+        <beam number="1">continue</beam>
+      </note>
+      <note default-x="83">
+        <pitch>
+          <step>A</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-40">down</stem>
+        <staff>2</staff>
+        <beam number="1">continue</beam>
+      </note>
+      <note default-x="117">
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-40">down</stem>
+        <staff>2</staff>
+        <beam number="1">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="2" width="220">
+      <print new-system="no"/>
+      <note default-x="20">
+        <grace steal-time-following="33"/>
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="16">up</stem>
+        <staff>1</staff>
+        <notations>
+          <slur bezier-x="0" bezier-y="-6" default-x="5" default-y="-9" number="1" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="37">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>6</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <dot/>
+        <stem default-y="23">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur bezier-x="-4" bezier-y="-4" default-x="0" default-y="-15" number="1" type="stop"/>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="92">
+        <pitch>
+          <step>C</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="20">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+      </note>
+      <note default-x="121">
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="23">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="161">
+        <rest>
+          <display-step>F</display-step>
+          <display-octave>5</display-octave>
+        </rest>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <staff>1</staff>
+      </note>
+      <note default-x="189">
+        <pitch>
+          <step>G</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="38">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="37">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>2</voice>
+        <type>quarter</type>
+        <stem default-y="-60.5">down</stem>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>8</duration>
+      </backup>
+      <note default-x="20">
+        <grace steal-time-following="33"/>
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="31">up</stem>
+        <staff>2</staff>
+        <notations>
+          <slur bezier-x="-2" bezier-y="-6" default-x="4" default-y="6" number="2" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="37">
+        <pitch>
+          <step>B</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>6</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <dot/>
+        <stem default-y="-30">down</stem>
+        <staff>2</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur bezier-x="-5" bezier-y="-4" default-x="-2" default-y="-2" number="2" type="stop"/>
+          <slur number="2" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="92">
+        <pitch>
+          <step>A</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>5</voice>
+        <type>16th</type>
+        <stem default-y="-32">down</stem>
+        <staff>2</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+      </note>
+      <note default-x="121">
+        <pitch>
+          <step>G</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-40.5">down</stem>
+        <staff>2</staff>
+        <notations>
+          <slur number="2" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="161">
+        <rest>
+          <display-step>C</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>2</duration>
+        <voice>5</voice>
+        <type>16th</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="189">
+        <pitch>
+          <step>E</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>5</voice>
+        <type>16th</type>
+        <stem default-y="51">up</stem>
+        <staff>2</staff>
+        <notations>
+          <slur number="2" placement="above" type="start"/>
+        </notations>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <forward>
+        <duration>8</duration>
+        <voice>6</voice>
+        <staff>2</staff>
+      </forward>
+      <forward>
+        <duration>4</duration>
+        <voice>6</voice>
+        <staff>2</staff>
+      </forward>
+      <note default-x="161">
+        <rest>
+          <display-step>B</display-step>
+          <display-octave>2</display-octave>
+        </rest>
+        <duration>4</duration>
+        <voice>6</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="3" width="202">
+      <print new-system="no"/>
+      <note default-x="18">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>5</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="33">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="55">
+        <rest>
+          <display-step>F</display-step>
+          <display-octave>5</display-octave>
+        </rest>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <staff>1</staff>
+      </note>
+      <note default-x="82">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="33">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="109">
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="33">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="147">
+        <rest>
+          <display-step>F</display-step>
+          <display-octave>5</display-octave>
+        </rest>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <staff>1</staff>
+      </note>
+      <note default-x="173">
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="33">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="18">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>2</voice>
+        <type>eighth</type>
+        <stem default-y="-60.5">down</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="55">
+        <rest>
+          <display-step>E</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>4</duration>
+        <voice>2</voice>
+        <type>eighth</type>
+        <staff>1</staff>
+      </note>
+      <note default-x="109">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>2</voice>
+        <type>eighth</type>
+        <stem default-y="-60.5">down</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="147">
+        <rest>
+          <display-step>E</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>4</duration>
+        <voice>2</voice>
+        <type>eighth</type>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="18">
+        <pitch>
+          <step>D</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="45">up</stem>
+        <staff>2</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="2" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="55">
+        <rest>
+          <display-step>C</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>2</duration>
+        <voice>5</voice>
+        <type>16th</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="82">
+        <pitch>
+          <step>D</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>5</voice>
+        <type>16th</type>
+        <stem default-y="45">up</stem>
+        <staff>2</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="109">
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="43">up</stem>
+        <staff>2</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="147">
+        <rest>
+          <display-step>C</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>2</duration>
+        <voice>5</voice>
+        <type>16th</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="173">
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>5</voice>
+        <type>16th</type>
+        <stem default-y="43">up</stem>
+        <staff>2</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="18">
+        <pitch>
+          <step>G</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>6</voice>
+        <type>eighth</type>
+        <stem default-y="-40.5">down</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="55">
+        <rest>
+          <display-step>B</display-step>
+          <display-octave>2</display-octave>
+        </rest>
+        <duration>4</duration>
+        <voice>6</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="109">
+        <pitch>
+          <step>G</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>6</voice>
+        <type>eighth</type>
+        <stem default-y="-40.5">down</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="147">
+        <rest>
+          <display-step>B</display-step>
+          <display-octave>2</display-octave>
+        </rest>
+        <duration>4</duration>
+        <voice>6</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="4" width="188">
+      <print new-system="no"/>
+      <note default-x="20">
+        <grace steal-time-following="33"/>
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="16">up</stem>
+        <staff>1</staff>
+        <notations>
+          <slur bezier-x="0" bezier-y="-6" default-x="5" default-y="-9" number="1" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="37">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>6</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <dot/>
+        <stem default-y="23">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur bezier-x="-4" bezier-y="-4" default-x="0" default-y="-15" number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="87">
+        <pitch>
+          <step>C</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="20">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+      </note>
+      <note default-x="113">
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="16">up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="149">
+        <rest>
+          <display-step>B</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="37">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>2</voice>
+        <type>quarter</type>
+        <stem default-y="-60.5">down</stem>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>8</duration>
+      </backup>
+      <note default-x="20">
+        <grace steal-time-following="33"/>
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="31">up</stem>
+        <staff>2</staff>
+        <notations>
+          <slur bezier-x="-3" bezier-y="-7" default-x="4" default-y="8" number="1" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="37">
+        <pitch>
+          <step>B</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>6</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <dot/>
+        <stem default-y="40">up</stem>
+        <staff>2</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur bezier-x="-2" bezier-y="-5" default-x="-1" default-y="-1" number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="87">
+        <pitch>
+          <step>A</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>5</voice>
+        <type>16th</type>
+        <stem default-y="38">up</stem>
+        <staff>2</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+      </note>
+      <note default-x="113">
+        <pitch>
+          <step>G</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="26">up</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="149">
+        <rest>
+          <display-step>D</display-step>
+          <display-octave>3</display-octave>
+        </rest>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="37">
+        <pitch>
+          <step>G</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>6</voice>
+        <type>quarter</type>
+        <stem default-y="-40.5">down</stem>
+        <staff>2</staff>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="5" width="154">
+      <print new-system="no"/>
+      <direction placement="below">
+        <direction-type>
+          <dynamics default-y="-80">
+            <f/>
+          </dynamics>
+        </direction-type>
+        <offset sound="yes">1</offset>
+        <staff>1</staff>
+        <sound dynamics="98"/>
+      </direction>
+      <note default-x="15">
+        <rest>
+          <display-step>B</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <staff>1</staff>
+      </note>
+      <note default-x="50">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="10">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="50">
+        <chord/>
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="84">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="14">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+      </note>
+      <note default-x="84">
+        <chord/>
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="117">
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="18">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="117">
+        <chord/>
+        <pitch>
+          <step>C</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <forward>
+        <duration>4</duration>
+        <voice>2</voice>
+        <staff>1</staff>
+      </forward>
+      <note default-x="50">
+        <pitch>
+          <step>D</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>12</duration>
+        <voice>2</voice>
+        <type>quarter</type>
+        <dot/>
+        <stem default-y="-70.5">down</stem>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="15">
+        <rest/>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="50">
+        <pitch>
+          <step>C</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-55">down</stem>
+        <staff>2</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="50">
+        <chord/>
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem>down</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="84">
+        <pitch>
+          <step>B</step>
+          <octave>2</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-59">down</stem>
+        <staff>2</staff>
+        <beam number="1">continue</beam>
+      </note>
+      <note default-x="84">
+        <chord/>
+        <pitch>
+          <step>B</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem>down</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="117">
+        <pitch>
+          <step>A</step>
+          <octave>2</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-62">down</stem>
+        <staff>2</staff>
+        <beam number="1">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="117">
+        <chord/>
+        <pitch>
+          <step>A</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem>down</stem>
+        <staff>2</staff>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="6" width="234">
+      <print new-system="yes">
+        <staff-layout number="1">
+          <staff-distance>100</staff-distance>
+        </staff-layout>
+        <staff-layout number="2">
+          <staff-distance>70</staff-distance>
+        </staff-layout>
+      </print>
+      <note default-x="81">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="20">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+      </note>
+      <note default-x="81">
+        <chord/>
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="116">
+        <rest>
+          <display-step>B</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <staff>1</staff>
+      </note>
+      <direction placement="below">
+        <direction-type>
+          <dynamics default-y="-75" relative-x="-12">
+            <p/>
+          </dynamics>
+        </direction-type>
+        <staff>1</staff>
+        <sound dynamics="54"/>
+      </direction>
+      <note default-x="139">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="10">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+      </note>
+      <note default-x="163">
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="13">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="198">
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="10">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="81">
+        <pitch>
+          <step>D</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>2</voice>
+        <type>eighth</type>
+        <stem default-y="-75.5">down</stem>
+        <staff>1</staff>
+      </note>
+      <forward>
+        <duration>4</duration>
+        <voice>2</voice>
+        <staff>1</staff>
+      </forward>
+      <note default-x="163">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>2</voice>
+        <type>eighth</type>
+        <stem default-y="-60">down</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+      </note>
+      <note default-x="198">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>2</voice>
+        <type>eighth</type>
+        <stem default-y="-62">down</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="81">
+        <pitch>
+          <step>B</step>
+          <octave>2</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-60.5">down</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="81">
+        <chord/>
+        <pitch>
+          <step>B</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem>down</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="116">
+        <rest/>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="163">
+        <pitch>
+          <step>D</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-45">down</stem>
+        <staff>2</staff>
+        <beam number="1">begin</beam>
+      </note>
+      <note default-x="198">
+        <pitch>
+          <step>D</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-52">down</stem>
+        <staff>2</staff>
+        <beam number="1">end</beam>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="7" width="125">
+      <print new-system="no"/>
+      <note default-x="15">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <stem default-y="6">up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="60">
+        <rest>
+          <display-step>B</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <staff>1</staff>
+      </note>
+      <note default-x="92">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="6">up</stem>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <forward>
+        <duration>8</duration>
+        <voice>2</voice>
+        <staff>1</staff>
+      </forward>
+      <backup>
+        <duration>8</duration>
+      </backup>
+      <note default-x="15">
+        <pitch>
+          <step>G</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>5</voice>
+        <type>quarter</type>
+        <stem default-y="-40.5">down</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="60">
+        <rest/>
+        <duration>8</duration>
+        <voice>5</voice>
+        <type>quarter</type>
+        <staff>2</staff>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="8" width="215">
+      <print new-system="no"/>
+      <note default-x="27">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="20">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="74">
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="21">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+      </note>
+      <note default-x="121">
+        <pitch>
+          <step>C</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="22">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+      </note>
+      <note default-x="167">
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="23">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="27">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>16</duration>
+        <voice>2</voice>
+        <type>half</type>
+        <stem default-y="-60.5">down</stem>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="27">
+        <pitch>
+          <step>B</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-40">down</stem>
+        <staff>2</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="74">
+        <pitch>
+          <step>G</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-40">down</stem>
+        <staff>2</staff>
+        <beam number="1">continue</beam>
+      </note>
+      <note default-x="121">
+        <pitch>
+          <step>A</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-40">down</stem>
+        <staff>2</staff>
+        <beam number="1">continue</beam>
+      </note>
+      <note default-x="167">
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-40">down</stem>
+        <staff>2</staff>
+        <beam number="1">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="9" width="215">
+      <print new-system="no"/>
+      <note default-x="13">
+        <grace steal-time-following="33"/>
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="16">up</stem>
+        <staff>1</staff>
+        <notations>
+          <slur bezier-x="-1" bezier-y="-6" default-x="5" default-y="-10" number="1" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="30">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>6</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <dot/>
+        <stem default-y="23">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur bezier-x="-3" bezier-y="-4" default-x="0" default-y="-16" number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="87">
+        <pitch>
+          <step>C</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="20">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+      </note>
+      <note default-x="123">
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="16">up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="158">
+        <rest>
+          <display-step>B</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <staff>1</staff>
+      </note>
+      <note default-x="184">
+        <pitch>
+          <step>G</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="36">up</stem>
+        <staff>1</staff>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="30">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>2</voice>
+        <type>quarter</type>
+        <stem default-y="-60.5">down</stem>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>8</duration>
+      </backup>
+      <note default-x="13">
+        <grace steal-time-following="33"/>
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="31">up</stem>
+        <staff>2</staff>
+        <notations>
+          <slur bezier-x="-3" bezier-y="-7" default-x="4" default-y="8" number="2" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="30">
+        <pitch>
+          <step>B</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>6</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <dot/>
+        <stem default-y="40">up</stem>
+        <staff>2</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur bezier-x="-2" bezier-y="-5" default-x="-1" default-y="-1" number="2" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="87">
+        <pitch>
+          <step>A</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>5</voice>
+        <type>16th</type>
+        <stem default-y="38">up</stem>
+        <staff>2</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+      </note>
+      <note default-x="123">
+        <pitch>
+          <step>G</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="26">up</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="158">
+        <rest>
+          <display-step>A</display-step>
+          <display-octave>3</display-octave>
+        </rest>
+        <duration>2</duration>
+        <voice>5</voice>
+        <type>16th</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="184">
+        <pitch>
+          <step>E</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>5</voice>
+        <type>16th</type>
+        <stem default-y="51">up</stem>
+        <staff>2</staff>
+        <notations>
+          <slur number="2" placement="above" type="start"/>
+        </notations>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="30">
+        <pitch>
+          <step>G</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>6</voice>
+        <type>quarter</type>
+        <stem default-y="-40.5">down</stem>
+        <staff>2</staff>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="10" width="215">
+      <print new-system="no"/>
+      <note default-x="33">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>5</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="33">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="67">
+        <rest>
+          <display-step>F</display-step>
+          <display-octave>5</display-octave>
+        </rest>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <staff>1</staff>
+      </note>
+      <note default-x="93">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="33">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="129">
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="33">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="162">
+        <rest>
+          <display-step>F</display-step>
+          <display-octave>5</display-octave>
+        </rest>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <staff>1</staff>
+      </note>
+      <note default-x="188">
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="33">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="33">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>2</voice>
+        <type>eighth</type>
+        <stem default-y="-60.5">down</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="67">
+        <rest>
+          <display-step>E</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>4</duration>
+        <voice>2</voice>
+        <type>eighth</type>
+        <staff>1</staff>
+      </note>
+      <note default-x="129">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>2</voice>
+        <type>eighth</type>
+        <stem default-y="-60.5">down</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="162">
+        <rest>
+          <display-step>E</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>4</duration>
+        <voice>2</voice>
+        <type>eighth</type>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="33">
+        <pitch>
+          <step>D</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="45">up</stem>
+        <staff>2</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="2" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="67">
+        <rest>
+          <display-step>C</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>2</duration>
+        <voice>5</voice>
+        <type>16th</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="93">
+        <pitch>
+          <step>D</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>5</voice>
+        <type>16th</type>
+        <stem default-y="45">up</stem>
+        <staff>2</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="129">
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="43">up</stem>
+        <staff>2</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="162">
+        <rest>
+          <display-step>C</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>2</duration>
+        <voice>5</voice>
+        <type>16th</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="188">
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>5</voice>
+        <type>16th</type>
+        <stem default-y="43">up</stem>
+        <staff>2</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="33">
+        <pitch>
+          <step>G</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>6</voice>
+        <type>eighth</type>
+        <stem default-y="-40.5">down</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="67">
+        <rest>
+          <display-step>B</display-step>
+          <display-octave>2</display-octave>
+        </rest>
+        <duration>4</duration>
+        <voice>6</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="129">
+        <pitch>
+          <step>G</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>6</voice>
+        <type>eighth</type>
+        <stem default-y="-40.5">down</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="162">
+        <rest>
+          <display-step>B</display-step>
+          <display-octave>2</display-octave>
+        </rest>
+        <duration>4</duration>
+        <voice>6</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="11" width="197">
+      <print new-system="no"/>
+      <note default-x="13">
+        <grace steal-time-following="33"/>
+        <pitch>
+          <step>E</step>
+          <octave>5</octave>
+        </pitch>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="16">up</stem>
+        <staff>1</staff>
+        <notations>
+          <slur bezier-x="0" bezier-y="-6" default-x="5" default-y="-9" number="1" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="29">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>6</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <dot/>
+        <stem default-y="23">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur bezier-x="-4" bezier-y="-4" default-x="0" default-y="-15" number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="89">
+        <pitch>
+          <step>C</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="20">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+      </note>
+      <note default-x="123">
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="16">up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="162">
+        <rest>
+          <display-step>B</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="29">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>2</voice>
+        <type>quarter</type>
+        <stem default-y="-60.5">down</stem>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>8</duration>
+      </backup>
+      <note default-x="13">
+        <grace steal-time-following="33"/>
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="31">up</stem>
+        <staff>2</staff>
+        <notations>
+          <slur bezier-x="-3" bezier-y="-7" default-x="4" default-y="8" number="1" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="29">
+        <pitch>
+          <step>B</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>6</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <dot/>
+        <stem default-y="40">up</stem>
+        <staff>2</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur bezier-x="-2" bezier-y="-5" default-x="-1" default-y="-1" number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="89">
+        <pitch>
+          <step>A</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>5</voice>
+        <type>16th</type>
+        <stem default-y="38">up</stem>
+        <staff>2</staff>
+        <beam number="1">end</beam>
+        <beam number="2">backward hook</beam>
+      </note>
+      <note default-x="123">
+        <pitch>
+          <step>G</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="26">up</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="162">
+        <rest>
+          <display-step>D</display-step>
+          <display-octave>3</display-octave>
+        </rest>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="29">
+        <pitch>
+          <step>G</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>6</voice>
+        <type>quarter</type>
+        <stem default-y="-40.5">down</stem>
+        <staff>2</staff>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="12" width="231">
+      <print new-system="yes">
+        <staff-layout number="2">
+          <staff-distance>60</staff-distance>
+        </staff-layout>
+      </print>
+      <direction placement="below">
+        <direction-type>
+          <dynamics default-y="-75">
+            <f/>
+          </dynamics>
+        </direction-type>
+        <offset sound="yes">1</offset>
+        <staff>1</staff>
+        <sound dynamics="98"/>
+      </direction>
+      <note default-x="81">
+        <rest>
+          <display-step>B</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <staff>1</staff>
+      </note>
+      <note default-x="114">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="10">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="114">
+        <chord/>
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="154">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="14">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+      </note>
+      <note default-x="154">
+        <chord/>
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="194">
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="18">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="194">
+        <chord/>
+        <pitch>
+          <step>C</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <forward>
+        <duration>4</duration>
+        <voice>2</voice>
+        <staff>1</staff>
+      </forward>
+      <note default-x="114">
+        <pitch>
+          <step>D</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>12</duration>
+        <voice>2</voice>
+        <type>quarter</type>
+        <dot/>
+        <stem default-y="-70.5">down</stem>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="81">
+        <rest/>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="114">
+        <pitch>
+          <step>C</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-55">down</stem>
+        <staff>2</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="114">
+        <chord/>
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem>down</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="154">
+        <pitch>
+          <step>B</step>
+          <octave>2</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-59">down</stem>
+        <staff>2</staff>
+        <beam number="1">continue</beam>
+      </note>
+      <note default-x="154">
+        <chord/>
+        <pitch>
+          <step>B</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem>down</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="194">
+        <pitch>
+          <step>A</step>
+          <octave>2</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-62">down</stem>
+        <staff>2</staff>
+        <beam number="1">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="194">
+        <chord/>
+        <pitch>
+          <step>A</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem>down</stem>
+        <staff>2</staff>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="13" width="185">
+      <print new-system="no"/>
+      <note default-x="23">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="21">up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="23">
+        <chord/>
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="56">
+        <rest>
+          <display-step>B</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <staff>1</staff>
+      </note>
+      <direction placement="below">
+        <direction-type>
+          <dynamics default-y="-75">
+            <p/>
+          </dynamics>
+        </direction-type>
+        <staff>1</staff>
+        <sound dynamics="54"/>
+      </direction>
+      <note default-x="116">
+        <pitch>
+          <step>D</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="13">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="116">
+        <chord/>
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="116">
+        <chord/>
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="153">
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="10">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="153">
+        <chord/>
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="153">
+        <chord/>
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="23">
+        <pitch>
+          <step>D</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>2</voice>
+        <type>eighth</type>
+        <stem default-y="-75.5">down</stem>
+        <staff>1</staff>
+      </note>
+      <forward>
+        <duration>4</duration>
+        <voice>2</voice>
+        <staff>1</staff>
+      </forward>
+      <forward>
+        <duration>8</duration>
+        <voice>2</voice>
+        <staff>1</staff>
+      </forward>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="23">
+        <pitch>
+          <step>B</step>
+          <octave>2</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-60.5">down</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="23">
+        <chord/>
+        <pitch>
+          <step>B</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem>down</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="56">
+        <rest/>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="116">
+        <pitch>
+          <step>D</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="13">up</stem>
+        <staff>2</staff>
+        <beam number="1">begin</beam>
+      </note>
+      <note default-x="153">
+        <pitch>
+          <step>D</step>
+          <octave>2</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="3">up</stem>
+        <staff>2</staff>
+        <beam number="1">end</beam>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="14" width="136">
+      <print new-system="no"/>
+      <note default-x="32">
+        <pitch>
+          <step>B</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <stem default-y="6">up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="32">
+        <chord/>
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="74">
+        <rest/>
+        <duration>8</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="32">
+        <pitch>
+          <step>G</step>
+          <octave>2</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>5</voice>
+        <type>quarter</type>
+        <stem default-y="-4">up</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="74">
+        <rest/>
+        <duration>8</duration>
+        <voice>5</voice>
+        <type>quarter</type>
+        <staff>2</staff>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="15" width="192">
+      <print new-system="no"/>
+      <note default-x="28">
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>16</duration>
+        <voice>1</voice>
+        <type>half</type>
+        <stem default-y="11">up</stem>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="28">
+        <pitch>
+          <step>D</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>2</voice>
+        <type>quarter</type>
+        <stem default-y="-70.5">down</stem>
+        <staff>1</staff>
+        <notations>
+          <slur number="1" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="28">
+        <chord/>
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>4</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>2</voice>
+        <type>quarter</type>
+        <stem>down</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="116">
+        <pitch>
+          <step>E</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>2</voice>
+        <type>quarter</type>
+        <stem default-y="-65.5">down</stem>
+        <staff>1</staff>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="116">
+        <chord/>
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>2</voice>
+        <type>quarter</type>
+        <stem>down</stem>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="28">
+        <pitch>
+          <step>D</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>5</voice>
+        <type>quarter</type>
+        <stem default-y="-55.5">down</stem>
+        <staff>2</staff>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="116">
+        <pitch>
+          <step>A</step>
+          <octave>2</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>5</voice>
+        <type>quarter</type>
+        <stem default-y="1">up</stem>
+        <staff>2</staff>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="16" width="180">
+      <print new-system="no"/>
+      <note default-x="29">
+        <pitch>
+          <step>D</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <stem default-y="11">up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="29">
+        <chord/>
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>4</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="29">
+        <chord/>
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="107">
+        <rest>
+          <display-step>B</display-step>
+          <display-octave>4</display-octave>
+        </rest>
+        <duration>8</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="29">
+        <pitch>
+          <step>D</step>
+          <octave>2</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>5</voice>
+        <type>quarter</type>
+        <stem default-y="-19">up</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="107">
+        <rest/>
+        <duration>8</duration>
+        <voice>5</voice>
+        <type>quarter</type>
+        <staff>2</staff>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="17" width="275">
+      <print new-system="no"/>
+      <note default-x="21">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="10">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <beam number="2">begin</beam>
+        <notations>
+          <articulations>
+            <staccato default-x="2" default-y="-49" placement="below"/>
+          </articulations>
+        </notations>
+      </note>
+      <note default-x="51">
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="8">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+        <beam number="2">continue</beam>
+        <notations>
+          <articulations>
+            <staccato default-x="3" default-y="-37" placement="below"/>
+          </articulations>
+        </notations>
+      </note>
+      <note default-x="81">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="5">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+        <beam number="2">continue</beam>
+        <notations>
+          <articulations>
+            <staccato default-x="3" default-y="-49" placement="below"/>
+          </articulations>
+        </notations>
+      </note>
+      <note default-x="110">
+        <pitch>
+          <step>D</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="2">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">end</beam>
+        <notations>
+          <articulations>
+            <staccato default-x="3" default-y="-59" placement="below"/>
+          </articulations>
+        </notations>
+      </note>
+      <note default-x="152">
+        <pitch>
+          <step>C</step>
+          <alter>1</alter>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <accidental>sharp</accidental>
+        <stem default-y="3">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <beam number="2">begin</beam>
+        <notations>
+          <articulations>
+            <staccato default-x="3" default-y="-64" placement="below"/>
+          </articulations>
+        </notations>
+      </note>
+      <note default-x="181">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="3">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+        <beam number="2">continue</beam>
+        <notations>
+          <articulations>
+            <staccato default-x="3" default-y="-47" placement="below"/>
+          </articulations>
+        </notations>
+      </note>
+      <note default-x="211">
+        <pitch>
+          <step>E</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="3">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+        <beam number="2">continue</beam>
+        <notations>
+          <articulations>
+            <staccato default-x="3" default-y="-54" placement="below"/>
+          </articulations>
+        </notations>
+      </note>
+      <note default-x="241">
+        <pitch>
+          <step>C</step>
+          <alter>1</alter>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="3">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">end</beam>
+        <notations>
+          <articulations>
+            <staccato default-x="3" default-y="-64" placement="below"/>
+          </articulations>
+        </notations>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="21">
+        <pitch>
+          <step>D</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-55.5">down</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="81">
+        <rest/>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="152">
+        <pitch>
+          <step>A</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-35.5">down</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="211">
+        <rest/>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="18" width="333">
+      <print new-system="yes">
+        <staff-layout number="2">
+          <staff-distance>60</staff-distance>
+        </staff-layout>
+      </print>
+      <note default-x="93">
+        <pitch>
+          <step>D</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="3">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <beam number="2">begin</beam>
+        <notations>
+          <articulations>
+            <staccato default-x="4" default-y="-59" placement="below"/>
+          </articulations>
+        </notations>
+      </note>
+      <note default-x="126">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="9.5">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+        <beam number="2">continue</beam>
+        <notations>
+          <articulations>
+            <staccato default-x="4" default-y="-49" placement="below"/>
+          </articulations>
+        </notations>
+      </note>
+      <note default-x="156">
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="16">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+        <beam number="2">continue</beam>
+        <notations>
+          <articulations>
+            <staccato default-x="4" default-y="-37" placement="below"/>
+          </articulations>
+        </notations>
+      </note>
+      <note default-x="191">
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="23">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">end</beam>
+        <notations>
+          <articulations>
+            <staccato default-x="4" default-y="-27" placement="below"/>
+          </articulations>
+        </notations>
+      </note>
+      <note default-x="238">
+        <pitch>
+          <step>C</step>
+          <alter>1</alter>
+          <octave>5</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <accidental>sharp</accidental>
+        <stem default-y="-50.5">down</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="288">
+        <rest/>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="93">
+        <pitch>
+          <step>D</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-55.5">down</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="156">
+        <rest/>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="238">
+        <pitch>
+          <step>A</step>
+          <octave>2</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="1">up</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="288">
+        <rest/>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="19" width="253">
+      <print new-system="no"/>
+      <note default-x="24">
+        <pitch>
+          <step>A</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-10">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <beam number="2">begin</beam>
+        <notations>
+          <slur number="1" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="57">
+        <pitch>
+          <step>C</step>
+          <alter>1</alter>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <accidental>sharp</accidental>
+        <stem default-y="-9">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+        <beam number="2">continue</beam>
+      </note>
+      <note default-x="85">
+        <pitch>
+          <step>E</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-8">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+        <beam number="2">continue</beam>
+      </note>
+      <note default-x="112">
+        <pitch>
+          <step>C</step>
+          <alter>1</alter>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-8">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">end</beam>
+      </note>
+      <note default-x="142">
+        <pitch>
+          <step>A</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-8">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <beam number="2">begin</beam>
+      </note>
+      <note default-x="170">
+        <pitch>
+          <step>E</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-4">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+        <beam number="2">continue</beam>
+      </note>
+      <note default-x="197">
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-0.5">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+        <beam number="2">continue</beam>
+      </note>
+      <note default-x="223">
+        <pitch>
+          <step>E</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="2">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="24">
+        <rest/>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="85">
+        <pitch>
+          <step>E</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-45">down</stem>
+        <staff>2</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="142">
+        <pitch>
+          <step>C</step>
+          <alter>1</alter>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <accidental>sharp</accidental>
+        <stem default-y="-54">down</stem>
+        <staff>2</staff>
+        <beam number="1">continue</beam>
+      </note>
+      <note default-x="197">
+        <pitch>
+          <step>A</step>
+          <octave>2</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-62">down</stem>
+        <staff>2</staff>
+        <beam number="1">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="20" width="246">
+      <print new-system="no"/>
+      <note default-x="24">
+        <pitch>
+          <step>A</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-10">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <beam number="2">begin</beam>
+        <notations>
+          <slur number="1" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="51">
+        <pitch>
+          <step>D</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-6.5">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+        <beam number="2">continue</beam>
+      </note>
+      <note default-x="79">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-3">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+        <beam number="2">continue</beam>
+      </note>
+      <note default-x="106">
+        <pitch>
+          <step>D</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="0">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="134">
+        <pitch>
+          <step>D</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="3">up</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <beam number="2">begin</beam>
+        <notations>
+          <slur number="1" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="162">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="5">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+        <beam number="2">continue</beam>
+      </note>
+      <note default-x="189">
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="8">up</stem>
+        <staff>1</staff>
+        <beam number="1">continue</beam>
+        <beam number="2">continue</beam>
+      </note>
+      <note default-x="217">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="10">up</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="24">
+        <rest/>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="79">
+        <pitch>
+          <step>D</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-52">down</stem>
+        <staff>2</staff>
+        <beam number="1">begin</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="134">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-52">down</stem>
+        <staff>2</staff>
+        <beam number="1">continue</beam>
+      </note>
+      <note default-x="189">
+        <pitch>
+          <step>D</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-52">down</stem>
+        <staff>2</staff>
+        <beam number="1">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="21" width="177">
+      <print new-system="no"/>
+      <note default-x="15">
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="-55.5">down</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="55">
+        <rest/>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <staff>1</staff>
+      </note>
+      <note default-x="93">
+        <pitch>
+          <step>E</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <stem default-y="18">up</stem>
+        <staff>1</staff>
+        <notations>
+          <slur number="1" placement="below" type="start"/>
+        </notations>
+      </note>
+      <note default-x="93">
+        <chord/>
+        <pitch>
+          <step>G</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="93">
+        <chord/>
+        <pitch>
+          <step>C</step>
+          <alter>1</alter>
+          <octave>5</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <accidental>sharp</accidental>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="15">
+        <pitch>
+          <step>G</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-40.5">down</stem>
+        <staff>2</staff>
+      </note>
+      <note default-x="55">
+        <rest/>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="93">
+        <pitch>
+          <step>A</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>8</duration>
+        <voice>5</voice>
+        <type>quarter</type>
+        <stem default-y="-35.5">down</stem>
+        <staff>2</staff>
+        <notations>
+          <slur number="2" placement="above" type="start"/>
+        </notations>
+      </note>
+    </measure>
+    <!--=======================================================-->
+    <measure number="22" width="191">
+      <print new-system="no"/>
+      <note default-x="30">
+        <pitch>
+          <step>F</step>
+          <alter>1</alter>
+          <octave>4</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem default-y="21">up</stem>
+        <staff>1</staff>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="30">
+        <chord/>
+        <pitch>
+          <step>D</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <stem>up</stem>
+        <staff>1</staff>
+      </note>
+      <note default-x="66">
+        <rest/>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <staff>1</staff>
+      </note>
+      <note default-x="103">
+        <rest/>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+        <staff>1</staff>
+      </note>
+      <note default-x="139">
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-57">down</stem>
+        <staff>1</staff>
+        <beam number="1">begin</beam>
+        <beam number="2">begin</beam>
+        <notations>
+          <slur number="1" placement="above" type="start"/>
+        </notations>
+      </note>
+      <note default-x="164">
+        <pitch>
+          <step>A</step>
+          <octave>5</octave>
+        </pitch>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem default-y="-50">down</stem>
+        <staff>1</staff>
+        <beam number="1">end</beam>
+        <beam number="2">end</beam>
+        <notations>
+          <slur number="1" type="stop"/>
+        </notations>
+      </note>
+      <backup>
+        <duration>16</duration>
+      </backup>
+      <note default-x="30">
+        <pitch>
+          <step>D</step>
+          <octave>3</octave>
+        </pitch>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <stem default-y="-55.5">down</stem>
+        <staff>2</staff>
+        <notations>
+          <slur number="2" type="stop"/>
+        </notations>
+      </note>
+      <note default-x="66">
+        <rest/>
+        <duration>4</duration>
+        <voice>5</voice>
+        <type>eighth</type>
+        <staff>2</staff>
+      </note>
+      <note default-x="103">
+        <rest/>
+        <duration>8</duration>
+        <voice>5</voice>
+        <type>quarter</type>
+        <staff>2</staff>
+      </note>
+      <attributes>
+        <clef number="2">
+          <sign>G</sign>
+          <line>2</line>
+        </clef>
+      </attributes>
+    </measure>
+  </part>
+  <!--=========================================================-->
+</score-partwise>`;
 ;var preciousLord = `{"a":{"b":{"c":30,"d":30,"e":121,"f":40,"g":816,"h":1056,"i":0,"j":50,"k":40,"l":0.65,"m":1.742019121698266,"n":2,"o":1,"p":"letter"},"q":0,"r":{},"me":[{"ne":"engraving","oe":1,"xb":"Bravura","wb":1,"pe":false},{"ne":"score","oe":2,"xb":"Merriweather","wb":14,"pe":false},{"ne":"chords","oe":3,"xb":"Roboto Slab","wb":14,"pe":false},{"ne":"lyrics","oe":4,"xb":"Merriweather","wb":12,"pe":false}],"hf":{"if":true,"jf":true,"kf":4096,"lf":6144,"de":2},"mf":{"ne":"Precious Lord","nf":2}},"s":[{"t":0,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Instrument","ca":"0","da":"treble"},"ea":[{"fa":{"ga":0,"ha":15,"ia":0,"ja":0,"ka":[]},"la":{"ga":0,"ha":16,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":0},"bb":77.42,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"Pre- "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"cious  "}]}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":0},"bb":11,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"Lord,  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"dark- "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"take  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"ness "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"Gm^7"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"my "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"a-  "}]}]}],"ea":[{"ua":0,"kd":3,"sa":"SmoBarline"}]},{"ya":{"ya":1,"za":2,"ab":2,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"hand, "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"pears  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"lead  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"and  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"me  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"the  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F^@csymAugmented@5"}]}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"on,  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"night  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"Gm^7"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"let  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"dra- "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"B@accidentalFlat@"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"me  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"ws  "}]}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":4,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"sta- "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":" ne- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"nd "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"ar   "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"I  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"when   "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"B^@csymDiminished@"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"am  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"my   "}]}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":5,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"tired "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"life   "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"I  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"am  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"is- "}]}]}],"ea":[]},{"ya":{"ya":5,"za":6,"ab":6,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"weak "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"al-  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"I   "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"most  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"G^7"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":3},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"am "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"  "}]}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":7,"t":0},"bb":58.94,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"worn  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"gone"},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"C"}]},{"ka":[{"jb":"b","lb":"n","kb":3},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"- "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"- "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"G^7"}]}]}],"ea":[]},{"ya":{"ya":7,"za":8,"ab":8,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"- "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"- "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"C"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"Through  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"at  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4},{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"the  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"the  "}]}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":9,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"storm,  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"riv- "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4},{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"through  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"er  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4},{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"the  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"I  "}]}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":10,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"night  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"stand,  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"lead  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"guide  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F^7"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"me  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"me  "}]}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":11,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"on  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"feet,  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"Gm^7"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"to  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"hold  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"B@accidentalFlat@"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"the  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"my  "}]}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":12,"t":0},"bb":58.94,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3},{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"li- "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"ha- "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"ght  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"nd  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"Take  "},{"vb":{"xb":"Merriweather","wb":11},"bc":1,"adjustNoteWidthLyric":false,"sa":"SmoLyric"},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"B^@csymDiminished@"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"my  "}]}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":13,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"ha- "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"nd  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"pre- "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"Dm"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"cious  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"A^@csymAugmented@5"}]}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":14,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4},{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"Lord,  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"lead  "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"C^@csymParensLeftTall@sus4@csymParensRightTall@"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"me  "}]}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":15,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"home- "},{"vb":{"xb":"Roboto Slab","wb":14},"le":2,"sa":"SmoLyric","ke":"F"}]}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ya":{"ya":15,"za":16,"ab":16,"t":0},"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4},{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"When  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"treble","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"the "}]}]}],"ea":[{"kd":4,"sa":"SmoBarline"},{"mb":9,"ma":-40,"sa":"SmoRepeatSymbol"}]}]},{"t":1,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Bass Clef Staff","ca":0,"da":"bass"},"ea":[{"fa":{"ga":1,"ha":15,"ia":0,"ja":0,"ka":[]},"la":{"ga":1,"ha":16,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":-1,"za":0,"ab":0,"t":1},"da":"bass","bb":77.42,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2}]}],"ea":[]},{"ya":{"ya":0,"za":1,"ab":1,"t":1},"da":"bass","bb":11,"ae":1,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2},{"jb":"e","lb":"n","kb":3}],"da":"bass","tc":2,"sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric"}]}]}],"ea":[{"ua":0,"kd":3,"sa":"SmoBarline"}]},{"ya":{"ya":1,"za":2,"ab":2,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2,"sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2}]}],"ea":[]},{"ya":{"ya":2,"za":3,"ab":3,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3},{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3},{"jb":"f","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":3,"za":4,"ab":4,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"d","lb":"n","kb":3}],"da":"bass","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":4,"za":5,"ab":5,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"f","lb":"n","kb":3}],"da":"bass","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric","ke":"  "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"e","lb":"n","kb":3}],"da":"bass","sb":[{"vb":{"xb":"Merriweather","wb":11},"adjustNoteWidthLyric":false,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"e","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":5,"za":6,"ab":6,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2}]}],"ea":[]},{"ya":{"ya":6,"za":7,"ab":7,"t":1},"da":"bass","bb":58.94,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"e","lb":"n","kb":3}],"da":"bass"},{"ka":[{"jb":"d","lb":"n","kb":3},{"jb":"f","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":7,"za":8,"ab":8,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":3},{"jb":"g","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":8,"za":9,"ab":9,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":9,"za":10,"ab":10,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":10,"za":11,"ab":11,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"b","lb":"b","kb":3}],"da":"bass"}]}],"ea":[]},{"ld":true,"ya":{"ya":11,"za":12,"ab":12,"t":1},"da":"bass","bb":58.94,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":2},{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2},{"jb":"a","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":2},{"jb":"g","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":12,"za":13,"ab":13,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":3},{"jb":"b","lb":"n","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":13,"za":14,"ab":14,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"c","lb":"n","kb":4}],"da":"bass"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"bass"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":3},{"jb":"b","lb":"b","kb":3}],"da":"bass"}]}],"ea":[]},{"ya":{"ya":14,"za":15,"ab":15,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"bass"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ya":{"ya":15,"za":16,"ab":16,"t":1},"da":"bass","bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":3},{"jb":"a","lb":"n","kb":3}],"da":"bass"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":2},{"jb":"f","lb":"n","kb":3}],"da":"bass","tc":2}]}],"ea":[{"kd":4,"sa":"SmoBarline"},{"mb":9,"ma":-40,"sa":"SmoRepeatSymbol"}]}]}],"yc":[],"ge":[{"he":[{"tb":{"sa":"SmoScoreText","pa":{"qa":"auto2164","ra":"SmoScoreText"},"zc":{},"ad":false,"jc":476,"kc":64,"tb":"Precious Lord","bd":"once","ua":"title","vb":{"wb":"1.8em","xb":"Merriweather","yb":"normal","zb":"normal"},"ac":"score-text auto1575 auto19265 auto90198 auto1464 auto7469 auto10183 auto37910 auto415606 auto421729 auto28921 auto1800 auto2164","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":true},"ua":4}],"sa":"SmoTextGroup","pa":{"qa":"auto2165","ra":"SmoTextGroup"}}],"yd":[{"zd":0,"fa":{"ga":0,"ha":2},"la":{"ga":1,"ha":2},"sa":"SmoSystemGroup"}],"ee":{"wa":{"0":"3/4"},"xa":{"0":"f"},"fe":{"0":{"sa":"SmoTempoText","pa":{"qa":"auto1810","ra":"SmoTempoText"},"id":"duration","nb":120,"ob":false,"pb":4096,"jd":"Allegro","ta":0}}},"dictionary":{"a":"score","b":"layout","c":"leftMargin","d":"rightMargin","e":"topMargin","f":"bottomMargin","g":"pageWidth","h":"pageHeight","i":"orientation","j":"interGap","k":"intraGap","l":"svgScale","m":"zoomScale","n":"zoomMode","o":"pages","p":"pageSize","q":"startIndex","r":"renumberingMap","s":"staves","t":"staffId","u":"staffX","v":"staffY","w":"adjY","x":"staffWidth","y":"staffHeight","z":"keySignatureMap","aa":"instrumentInfo","ba":"instrumentName","ca":"keyOffset","da":"clef","ea":"modifiers","fa":"startSelector","ga":"staff","ha":"measure","ia":"voice","ja":"tick","ka":"pitches","la":"endSelector","ma":"xOffset","na":"cp1y","oa":"cp2y","pa":"attrs","qa":"id","ra":"type","sa":"ctor","ta":"yOffset","ua":"position","va":"measures","wa":"timeSignature","xa":"keySignature","ya":"measureNumber","za":"measureIndex","ab":"systemIndex","bb":"adjX","cb":"tuplets","db":"voices","eb":"notes","fb":"ticks","gb":"numerator","hb":"denominator","ib":"remainder","jb":"letter","kb":"octave","lb":"accidental","mb":"symbol","nb":"bpm","ob":"display","pb":"beatDuration","qb":"beamBeats","rb":"endBeam","sb":"textModifiers","tb":"text","ub":"endChar","vb":"fontInfo","wb":"size","xb":"family","yb":"style","zb":"weight","ac":"classes","bc":"verse","cc":"fill","dc":"scaleX","ec":"scaleY","fc":"translateX","gc":"translateY","hc":"selector","ic":"renderedBox","jc":"x","kc":"y","lc":"width","mc":"height","nc":"logicalBox","oc":"noteType","pc":"cautionary","qc":"articulations","rc":"articulation","sc":"activeVoice","tc":"flagState","uc":"invert","vc":"fontSize","wc":"yOffsetLine","xc":"yOffsetPixels","yc":"scoreText","zc":"backup","ad":"edited","bd":"pagination","cd":"boxModel","dd":"justification","ed":"autoLayout","fd":"ornaments","gd":"offset","hd":"ornament","id":"tempoMode","jd":"tempoText","kd":"barline","ld":"systemBreak","md":"graceNotes","nd":"tones","od":"tuplet","pd":"beam_group","qd":"renderId","rd":"numNotes","sd":"totalTicks","td":"stemTicks","ud":"durationMap","vd":"bracketed","wd":"ratioed","xd":"location","yd":"systemGroups","zd":"leftConnector","ae":"padLeft","be":"customStretch","ce":"engravingFont","de":"customProportion","ee":"columnAttributeMap","fe":"tempo","ge":"textGroups","he":"textBlocks","ie":"backupBlocks","je":"blocks","ke":"_text","le":"parser","me":"fonts","ne":"name","oe":"purpose","pe":"custom","qe":"transposeIndex","re":"noteHead","se":"slash","te":"pointSize","ue":"spacing","ve":"relativePosition","we":"activeText","xe":"attachToSelector","ye":"musicXOffset","ze":"musicYOffset","af":"formattingIterations","bf":"startBar","cf":"endBar","df":"endingId","ef":"autoJustify","ff":"thickness","gf":"number","hf":"preferences","if":"autoPlay","jf":"autoAdvance","kf":"defaultDupleDuration","lf":"defaultTripleDuration","mf":"scoreInfo","nf":"version"}}`;
 ;var testCase1 = `[{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[12]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"crescendo","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"addStaff","parameters":[{"instrumentInfo":{"instrumentName":"Bass Clef Staff","keyOffset":0,"clef":"bass"}}]},{"method":"moveSelectionDown","parameters":[]},{"method":"batchDurationOperation","parameters":["doubleDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"addMeasure","parameters":[true]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionUp","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"transposeSelections","parameters":[12]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"toggleArticulation","parameters":["mordent_inverted","SmoOrnament"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeftMeasure","parameters":[]},{"method":"moveSelectionDown","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"batchDurationOperation","parameters":["undotDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[12]},{"method":"growSelectionRight","parameters":[]},{"method":"slur","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"toggleArticulation","parameters":["staccato","SmoArticulation"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"deleteNote","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"batchDurationOperation","parameters":["doubleDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"setScoreLayout","parameters":[{"leftMargin":30,"rightMargin":30,"topMargin":40,"bottomMargin":40,"pageWidth":816,"pageHeight":1056,"orientation":0,"interGap":30,"intraGap":10,"svgScale":0.55,"zoomScale":2.107843137254902,"zoomMode":0,"pages":1}]},{"method":"setScoreLayout","parameters":[{"leftMargin":30,"rightMargin":30,"topMargin":40,"bottomMargin":40,"pageWidth":816,"pageHeight":1056,"orientation":0,"interGap":30,"intraGap":10,"svgScale":0.55,"zoomScale":2.107843137254902,"zoomMode":0,"pages":1}]},{"method":"selectSuggestionNote","parameters":[{"staff":1,"measure":2,"voice":0,"tick":1,"pitches":[]},{"type":"click","shiftKey":false,"ctrlKey":false}]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionUp","parameters":[]},{"method":"forceSystemBreak","parameters":[true]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionDown","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["doubleDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["doubleDuration"]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"crescendo","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"slur","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"slur","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"selectSuggestionNote","parameters":[{"staff":1,"measure":1,"voice":0,"tick":9,"pitches":[]},{"type":"click","shiftKey":false,"ctrlKey":false}]},{"method":"selectSuggestionNote","parameters":[{"staff":1,"measure":1,"voice":0,"tick":9,"pitches":[]},{"type":"click","shiftKey":false,"ctrlKey":false}]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"advanceModifierSelection","parameters":[{"type":"keydown","shiftKey":false,"ctrlKey":false}]},{"method":"advanceModifierSelection","parameters":[{"type":"keydown","shiftKey":false,"ctrlKey":false}]},{"method":"advanceModifierSelection","parameters":[{"type":"keydown","shiftKey":false,"ctrlKey":false}]},{"method":"moveSelectionRight","parameters":[]},{"method":"advanceModifierSelection","parameters":[{"type":"keydown","shiftKey":false,"ctrlKey":false}]},{"method":"removeStaffModifier","parameters":[{"startSelector":{"staff":1,"measure":2,"voice":0,"tick":7,"pitches":[]},"endSelector":{"staff":1,"measure":3,"voice":0,"tick":0,"pitches":[]},"position":4,"ctor":"SmoSlur"}]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"slur","parameters":[]},{"method":"addTextGroup","parameters":[{"textBlocks":[{"text":{"ctor":"SmoScoreText","attrs":{"id":"auto277566","type":"SmoScoreText"},"backup":{},"edited":false,"x":893,"y":180.95,"text":"Smoosic","pagination":"once","position":"custom","fontInfo":{"size":"1em","family":"Merriweather","style":"normal","weight":"normal"},"classes":"score-text auto277566","boxModel":"none","justification":"left","fill":"black","width":0,"height":0,"scaleX":1,"scaleY":1,"translateX":0,"translateY":0,"autoLayout":false,"renderedBox":{"x":1209.73,"y":-229.95,"width":89.9,"height":27.02},"logicalBox":{"x":893,"y":162.83,"width":77.56,"height":23.31}},"position":4,"activeText":true}],"ctor":"SmoTextGroup","attrs":{"id":"auto277567","type":"SmoTextGroup"}}]},{"method":"updateTextGroup","parameters":[{"textBlocks":[{"text":{"ctor":"SmoScoreText","attrs":{"id":"auto277566","type":"SmoScoreText"},"backup":{},"edited":false,"x":893,"y":180.95,"text":"Smoosic","pagination":"once","position":"custom","fontInfo":{"size":"1em","family":"Merriweather","style":"normal","weight":"normal"},"classes":"score-text auto277566","boxModel":"none","justification":"left","fill":"black","width":0,"height":0,"scaleX":1,"scaleY":1,"translateX":0,"translateY":0,"autoLayout":false,"renderedBox":{"x":1209.73,"y":371.05,"width":89.9,"height":27.02},"logicalBox":{"x":893,"y":162.83,"width":77.56,"height":23.31}},"position":4,"activeText":true}],"ctor":"SmoTextGroup","attrs":{"id":"auto277567","type":"SmoTextGroup"}},{"textBlocks":[{"text":{"ctor":"SmoScoreText","attrs":{"id":"auto277566","type":"SmoScoreText"},"backup":{},"edited":false,"x":893,"y":180.95,"text":"15 Inventions a 2 voix.","pagination":"once","position":"custom","fontInfo":{"size":"1em","family":"Merriweather","style":"normal","weight":"normal"},"classes":"score-text auto277566","boxModel":"none","justification":"left","fill":"black","width":0,"height":0,"scaleX":1,"scaleY":1,"translateX":0,"translateY":0,"autoLayout":false,"renderedBox":{"x":1209.73,"y":371.05,"width":89.9,"height":27.02},"logicalBox":{"x":893,"y":162.83,"width":77.56,"height":23.31}},"position":4,"activeText":true}],"ctor":"SmoTextGroup","attrs":{"id":"auto277567","type":"SmoTextGroup"}}]},{"method":"updateTextGroup","parameters":[{"textBlocks":[{"text":{"ctor":"SmoScoreText","attrs":{"id":"auto277566","type":"SmoScoreText"},"backup":{},"edited":false,"x":893,"y":180.95,"text":"15 Inventions a 2 voix.","pagination":"once","position":"custom","fontInfo":{"size":"1em","family":"Merriweather","style":"normal","weight":"normal"},"classes":"score-text auto277566","boxModel":"none","justification":"left","fill":"black","width":0,"height":0,"scaleX":1,"scaleY":1,"translateX":0,"translateY":0,"autoLayout":false,"renderedBox":{"x":1209.73,"y":371.05,"width":235.12,"height":27.02},"logicalBox":{"x":893,"y":162.83,"width":202.86,"height":23.31}},"position":4,"activeText":true}],"ctor":"SmoTextGroup","attrs":{"id":"auto277567","type":"SmoTextGroup"}},{"textBlocks":[{"text":{"ctor":"SmoScoreText","attrs":{"id":"auto277566","type":"SmoScoreText"},"backup":{},"edited":false,"x":591.4853515625,"y":50.08321900431312,"text":"15 Inventions a 2 voix.","pagination":"once","position":"custom","fontInfo":{"size":"1em","family":"Merriweather","style":"normal","weight":"normal"},"classes":"score-text auto277566","boxModel":"none","justification":"left","fill":"black","width":0,"height":0,"scaleX":1,"scaleY":1,"translateX":0,"translateY":0,"autoLayout":false,"renderedBox":{"x":1209.73,"y":371.05,"width":235.12,"height":27.02},"logicalBox":{"x":893,"y":162.83,"width":202.86,"height":23.31}},"position":4,"activeText":true}],"ctor":"SmoTextGroup","attrs":{"id":"auto277567","type":"SmoTextGroup"}}]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionUp","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"batchDurationOperation","parameters":["dotDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[12]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionDown","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionUp","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"slur","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"toggleArticulation","parameters":["mordent","SmoOrnament"]},{"method":"toggleArticulation","parameters":["mordent","SmoOrnament"]},{"method":"toggleArticulation","parameters":["mordent","SmoOrnament"]},{"method":"toggleArticulation","parameters":["mordent","SmoOrnament"]},{"method":"moveSelectionRight","parameters":[]},{"method":"toggleArticulation","parameters":["mordent","SmoOrnament"]},{"method":"moveSelectionDown","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["dotDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveHome","parameters":[]},{"method":"updateTempoScore","parameters":[{"tempoMode":"text","ctor":"SmoTempoText"},false]},{"method":"updateTempoScore","parameters":[{"tempoMode":"text","bpm":96,"tempoText":"Moderato","ctor":"SmoTempoText"},false]},{"method":"updateTempoScore","parameters":[{"tempoMode":"text","bpm":96,"tempoText":"Moderato","ctor":"SmoTempoText"},true]},{"method":"updateTempoScore","parameters":[{"tempoMode":"text","bpm":96,"display":true,"tempoText":"Moderato","ctor":"SmoTempoText"},true]},{"method":"moveEnd","parameters":[]},{"method":"addMeasure","parameters":[true]},{"method":"selectSuggestionNote","parameters":[{"staff":0,"measure":6,"voice":0,"tick":0,"pitches":[]},{"type":"click","shiftKey":false,"ctrlKey":false}]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"deleteNote","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionDown","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"advanceModifierSelection","parameters":[{"type":"keydown","shiftKey":false,"ctrlKey":false}]},{"method":"moveSelectionLeftMeasure","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"forceSystemBreak","parameters":[true]},{"method":"selectSuggestionNote","parameters":[{"staff":0,"measure":6,"voice":0,"tick":1,"pitches":[]},{"type":"click","shiftKey":false,"ctrlKey":false}]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveEnd","parameters":[]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionUp","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionRight","parameters":[]},{"method":"deleteNote","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionDown","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[12]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"toggleArticulation","parameters":["staccato","SmoArticulation"]},{"method":"moveSelectionUp","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"crescendo","parameters":[]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"deleteNote","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionDown","parameters":[]},{"method":"changeInstrument","parameters":[{"instrumentName":"Treble Instrument","keyOffset":0,"clef":"treble"}]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionUp","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"deleteNote","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"toggleEnharmonic","parameters":[]},{"method":"toggleEnharmonic","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionDown","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"forceSystemBreak","parameters":[true]},{"method":"selectSuggestionNote","parameters":[{"staff":0,"measure":9,"voice":0,"tick":10,"pitches":[]},{"type":"click","shiftKey":false,"ctrlKey":false}]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"toggleEnharmonic","parameters":[]},{"method":"toggleEnharmonic","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionDown","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-1]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[-1]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionUp","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"toggleEnharmonic","parameters":[]},{"method":"toggleEnharmonic","parameters":[]},{"method":"toggleEnharmonic","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"slur","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"toggleBeamDirection","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"toggleBeamDirection","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"slur","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"slur","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"toggleBeamDirection","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"advanceModifierSelection","parameters":[{"type":"keydown","shiftKey":false,"ctrlKey":false}]},{"method":"addOrUpdateStaffModifier","parameters":[{"startSelector":{"staff":0,"measure":10,"voice":0,"tick":1,"pitches":[]},"endSelector":{"staff":0,"measure":10,"voice":0,"tick":4,"pitches":[]},"invert":true,"ctor":"SmoSlur"}]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionDown","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"toggleEnharmonic","parameters":[]},{"method":"toggleEnharmonic","parameters":[]},{"method":"toggleEnharmonic","parameters":[]}]`;
 ;var yamaJson = `{"a":{"b":{"c":30,"d":30,"e":50,"f":40,"g":816,"h":1056,"i":0,"j":30,"k":10,"l":0.65,"m":1.9162210338680927,"n":2,"o":2},"q":0,"r":{},"me":[{"ne":"engraving","oe":1,"xb":"Petaluma","wb":1,"pe":false},{"ne":"score","oe":2,"xb":"Merriweather","wb":14,"pe":false},{"ne":"chords","oe":3,"xb":"Roboto Slab","wb":14,"pe":false},{"ne":"lyrics","oe":4,"xb":"Merriweather","wb":12,"pe":false}]},"s":[{"t":0,"u":10,"v":40,"w":0,"x":1600,"y":90,"q":0,"r":{},"z":{},"aa":{"ba":"Treble Instrument","ca":"0","da":"treble"},"ea":[{"fa":{"ga":0,"ha":0,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":0,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":2,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":2,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":2,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":2,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":5,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":5,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":6,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":6,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":1,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":1,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":3,"ia":0,"ja":2,"ka":[]},"la":{"ga":0,"ha":3,"ia":0,"ja":3,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":7,"ia":0,"ja":3,"ka":[]},"la":{"ga":0,"ha":7,"ia":0,"ja":4,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":10,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":10,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":10,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":11,"ia":0,"ja":4,"ka":[]},"la":{"ga":0,"ha":11,"ia":0,"ja":5,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":15,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":15,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":16,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":16,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":17,"ia":0,"ja":12,"ka":[]},"la":{"ga":0,"ha":17,"ia":0,"ja":13,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":17,"ia":0,"ja":14,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":0,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":18,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":18,"ia":0,"ja":10,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":20,"ia":0,"ja":15,"ka":[]},"la":{"ga":0,"ha":20,"ia":0,"ja":16,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":25,"ia":0,"ja":12,"ka":[]},"la":{"ga":0,"ha":25,"ia":0,"ja":13,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":24,"ia":0,"ja":8,"ka":[]},"la":{"ga":0,"ha":24,"ia":0,"ja":9,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":25,"ia":0,"ja":8,"ka":[]},"la":{"ga":0,"ha":25,"ia":0,"ja":9,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":26,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":26,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":26,"ia":0,"ja":11,"ka":[]},"la":{"ga":0,"ha":26,"ia":0,"ja":12,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":29,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":29,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":36,"ia":0,"ja":1,"ka":[]},"la":{"ga":0,"ha":36,"ia":0,"ja":2,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":36,"ia":0,"ja":9,"ka":[]},"la":{"ga":0,"ha":36,"ia":0,"ja":10,"ka":[]},"ua":4,"sa":"SmoSlur"},{"fa":{"ga":0,"ha":36,"ia":0,"ja":11,"ka":[]},"la":{"ga":0,"ha":36,"ia":0,"ja":12,"ka":[]},"ua":4,"sa":"SmoSlur"}],"va":[{"ya":{"ya":0,"za":0,"ab":0,"t":0},"qe":2,"bb":77.42,"cb":[{"pa":{"qa":"auto196875","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto203439","ra":"SmoTuplet"},"q":6},{"ud":[2,1],"pa":{"qa":"auto210860","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":8,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto210860","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto210860","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":12,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble","re":""},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto196875","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto203439","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":1,"za":1,"ab":1,"t":0},"qe":2,"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto11224","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto11233","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto11240","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":13,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto11224","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto11224","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":9,"sa":"SmoLyric","ke":"C7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto11233","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto11240","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":2,"za":2,"ab":2,"t":0},"qe":2,"bb":6,"be":83,"cb":[{"ud":[2,1],"pa":{"qa":"auto8246","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto8256","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto8263","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto8246","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto8246","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":9,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto8256","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto8263","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":3,"za":3,"ab":3,"t":0},"qe":2,"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto31809","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto31819","ra":"SmoTuplet"},"q":3},{"pa":{"qa":"auto31826","ra":"SmoTuplet"},"q":6}],"db":[{"eb":[{"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto31809","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto31809","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":10,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto31819","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto31826","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ld":true,"ya":{"ya":4,"za":4,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"F^Maj7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[{"sa":"SmoRehearsalMark"}]},{"ya":{"ya":5,"za":5,"ab":1,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","re":"x2","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":6,"za":6,"ab":2,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Db^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4,"pc":true}],"da":"treble","re":"x2","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Ab^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":7,"za":7,"ab":3,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":8,"za":8,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[],"db":[{"eb":[{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}],"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"D^7+5 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":9,"za":9,"ab":1,"t":0},"qe":2,"bb":6,"cb":[{"pa":{"qa":"auto100919","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto100919","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Ab^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":10,"za":10,"ab":2,"t":0},"qe":2,"bb":6,"be":10,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"F^Maj7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":11,"za":11,"ab":3,"t":0},"qe":2,"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto303621","ra":"SmoTuplet"},"q":0},{"pa":{"qa":"auto320948","ra":"SmoTuplet"},"q":6},{"pa":{"qa":"auto10785","ra":"SmoTuplet"},"q":2}],"db":[{"eb":[{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto303621","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":14,"sa":"SmoLyric","ke":"Eb^7 "}],"qc":[{"ua":"below","rc":"staccato","sa":"SmoArticulation"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto303621","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto10785","ra":"SmoTuplet"},"da":"treble"},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"a","lb":"b","kb":4}],"oc":"r","od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1366,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":7,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1365,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto320948","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":1365}]}],"ea":[]},{"ld":true,"ya":{"ya":12,"za":12,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[{"ud":[1,2],"pa":{"qa":"auto46986","ra":"SmoTuplet"},"q":3}],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"tc":1,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto46986","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":2730,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto46986","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":13,"za":13,"ab":1,"t":0},"qe":2,"bb":6,"cb":[{"td":1024,"ud":[1,1,1,1,1],"pa":{"qa":"auto147967","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"fb":{"gb":12288,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"F^7 "}]},{"fb":{"gb":819,"hb":1,"ib":1},"ka":[{"jb":"d","lb":"b","kb":5}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Bb^7 "}]},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":819,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto147967","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":14,"za":14,"ab":2,"t":0},"qe":2,"bb":6,"cb":[{"ud":[2,1],"pa":{"qa":"auto127112","ra":"SmoTuplet"},"q":1},{"pa":{"qa":"auto127379","ra":"SmoTuplet"},"q":4}],"db":[{"eb":[{"fb":{"gb":8192,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":2730,"hb":1,"ib":1},"ka":[{"jb":"c","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto127112","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":14,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto127112","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto127379","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":15,"za":15,"ab":3,"t":0},"qe":2,"bb":6,"cb":[{"pa":{"qa":"auto239480","ra":"SmoTuplet"},"q":3}],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048},{"ka":[{"jb":"g","lb":"n","kb":4}],"od":{},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":10,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto239480","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":16,"za":16,"ab":4,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":6144,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":1,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}]},{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ld":true,"ya":{"ya":17,"za":17,"ab":0,"t":0},"qe":2,"bb":58.94,"be":-25,"cb":[{"ud":[1,1,0.5,0.5],"pa":{"qa":"auto32682","ra":"SmoTuplet"},"q":8}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1365,"hb":1,"ib":2},"ka":[{"jb":"g","lb":"n","kb":5}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":9,"sa":"SmoLyric","ke":"F^Maj7 "}]},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto32682","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":18,"za":18,"ab":1,"t":0},"qe":2,"bb":6,"be":55,"de":12,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto439759","ra":"SmoTuplet"},"q":1},{"ud":[1,2],"pa":{"qa":"auto152250","ra":"SmoTuplet"},"q":6},{"td":1024,"sd":2048,"pa":{"qa":"auto193687","ra":"SmoTuplet"},"q":5}],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":10,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto439759","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto193687","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"e","lb":"n","kb":4}],"od":{"qa":"auto152250","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":16,"sa":"SmoLyric","ke":"C^7 "}],"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":2730,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"od":{"qa":"auto152250","ra":"SmoTuplet"},"da":"treble"},{"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":19,"za":19,"ab":2,"t":0},"qe":2,"bb":6,"be":41,"de":12,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Db^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Ab^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":20,"za":20,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto52582","ra":"SmoTuplet"},"q":5},{"td":1024,"sd":2048,"pa":{"qa":"auto273903","ra":"SmoTuplet"},"q":10}],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true,"qb":1024,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto52582","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"#","kb":4}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto273903","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":21,"za":21,"ab":1,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":6,"sa":"SmoLyric","ke":"D^7+5 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":22,"za":22,"ab":2,"t":0},"qe":2,"bb":6,"de":-8,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Db^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Ab-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble"}]}],"ea":[]},{"ya":{"ya":23,"za":23,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":13,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"F^Maj7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":24,"za":24,"ab":1,"t":0},"qe":2,"bb":6,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto639348","ra":"SmoTuplet"},"q":0},{"td":1024,"sd":2048,"pa":{"qa":"auto1649531","ra":"SmoTuplet"},"q":4},{"td":1024,"sd":2048,"pa":{"qa":"auto1805448","ra":"SmoTuplet"},"q":10}],"db":[{"eb":[{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":17,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto639348","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto1649531","ra":"SmoTuplet"},"da":"treble","qb":684},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto1649531","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":682},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"od":{"qa":"auto1649531","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":682},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","rb":true,"qb":2048},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto1805448","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1805448","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto1805448","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":25,"za":25,"ab":2,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":9,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"oc":"r","da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":5,"sa":"SmoLyric","ke":"C^7 "}],"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":26,"za":26,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto2041825","ra":"SmoTuplet"},"q":11}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"F^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Bb^7 "}],"md":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"se":true,"sa":"SmoGraceNote"}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto2041825","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto2041825","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto2041825","ra":"SmoTuplet"},"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"oc":"r","od":{},"da":"treble"}]}],"ea":[]},{"ya":{"ya":27,"za":27,"ab":1,"t":0},"qe":2,"bb":6,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto2138794","ra":"SmoTuplet"},"q":7},{"td":1024,"sd":2048,"pa":{"qa":"auto2410639","ra":"SmoTuplet"},"q":10}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"oc":"r","da":"treble","rb":true,"qb":1024,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto2138794","ra":"SmoTuplet"},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":20,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto2138794","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto2138794","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"#","kb":4}],"od":{"qa":"auto2410639","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto2410639","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto2410639","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble","rb":true}]}],"ea":[]},{"ld":true,"ya":{"ya":28,"za":28,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[{"pa":{"qa":"auto310764","ra":"SmoTuplet"},"q":1},{"td":1024,"sd":2048,"pa":{"qa":"auto1286701","ra":"SmoTuplet"},"q":8},{"td":1024,"sd":2048,"pa":{"qa":"auto1323888","ra":"SmoTuplet"},"q":11}],"db":[{"eb":[{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"d","lb":"n","kb":5}],"oc":"r","od":{"qa":"auto310764","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"od":{"qa":"auto310764","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"od":{"qa":"auto310764","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"e","lb":"n","kb":5}],"od":{"qa":"auto1286701","ra":"SmoTuplet"},"da":"treble","md":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"#","kb":5}],"se":true,"sa":"SmoGraceNote"}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"oc":"r","od":{"qa":"auto1286701","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto1286701","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto1323888","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1323888","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto1323888","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":29,"za":29,"ab":1,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}],"md":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"se":true,"sa":"SmoGraceNote"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":6}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ld":true,"ya":{"ya":30,"za":30,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"F^Maj "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":31,"za":31,"ab":1,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]}]}],"ea":[]},{"ya":{"ya":32,"za":32,"ab":2,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Db^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}],"fd":[{"hd":"FALL_SHORT","sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":1024,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":4}],"da":"treble","qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","rb":true,"qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Ab^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5,"pc":true}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5,"pc":true}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048}]}],"ea":[]},{"ya":{"ya":33,"za":33,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":6}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":34,"za":34,"ab":1,"t":0},"qe":2,"bb":6,"be":9,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto2828176","ra":"SmoTuplet"},"q":1}],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"e","lb":"n","kb":5}],"od":{"qa":"auto2828176","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto2828176","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto2828176","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":3072,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"D^7+5 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"#","kb":4}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"oc":"r","da":"treble"}]}],"ea":[]},{"ya":{"ya":35,"za":35,"ab":2,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":4}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble","rb":true},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":5,"pc":true}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Ab^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4,"pc":false}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"}]}],"ea":[]},{"ld":true,"ya":{"ya":36,"za":36,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto1152853","ra":"SmoTuplet"},"q":4}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048,"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble","qb":2048},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble","qb":2048},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1152853","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto1152853","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1152853","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":4}],"oc":"r","da":"treble","rb":true},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":3072,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":6,"sa":"SmoLyric","ke":"F^Maj7 "}],"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","rb":true,"qb":3072},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":37,"za":37,"ab":1,"t":0},"qe":2,"bb":6,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto2273973","ra":"SmoTuplet"},"q":0},{"td":1024,"sd":2048,"pa":{"qa":"auto2275359","ra":"SmoTuplet"},"q":3},{"td":1024,"sd":2048,"pa":{"qa":"auto2447172","ra":"SmoTuplet"},"q":6},{"td":1024,"sd":2048,"pa":{"qa":"auto2571791","ra":"SmoTuplet"},"q":9},{"td":1024,"sd":2048,"pa":{"qa":"auto2694259","ra":"SmoTuplet"},"q":15},{"td":1024,"sd":2048,"ud":[1,2],"pa":{"qa":"auto2816339","ra":"SmoTuplet"},"q":16},{"td":1024,"sd":2048,"ud":[2,1],"pa":{"qa":"auto2924730","ra":"SmoTuplet"},"q":18}],"db":[{"eb":[{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","od":{"qa":"auto2273973","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":2048,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":9,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","od":{"qa":"auto2273973","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":2048},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"od":{"qa":"auto2273973","ra":"SmoTuplet"},"da":"treble","qb":2048},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"d","lb":"b","kb":4}],"od":{"qa":"auto2275359","ra":"SmoTuplet"},"da":"treble","qb":2048},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"b","kb":4}],"od":{"qa":"auto2275359","ra":"SmoTuplet"},"da":"treble","qb":2048},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":4}],"od":{"qa":"auto2275359","ra":"SmoTuplet"},"da":"treble","rb":true,"qb":2048},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto2447172","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto2447172","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"oc":"r","od":{"qa":"auto2447172","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto2571791","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"oc":"r","od":{"qa":"auto2571791","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto2571791","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":4}],"od":{},"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"f","lb":"#","kb":4}],"od":{"qa":"auto2694259","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"od":{"qa":"auto2694259","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto2694259","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":1},"ka":[{"jb":"e","lb":"b","kb":5,"pc":true}],"od":{"qa":"auto2816339","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"od":{"qa":"auto2816339","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1365,"hb":1,"ib":1},"ka":[{"jb":"d","lb":"n","kb":5}],"od":{"qa":"auto2924730","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"od":{"qa":"auto2924730","ra":"SmoTuplet"},"da":"treble"}]}],"ea":[]},{"ya":{"ya":38,"za":38,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[],"db":[{"eb":[{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}],"md":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"#","kb":5}],"sa":"SmoGraceNote"}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble","md":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"#","kb":5}],"sa":"SmoGraceNote"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":39,"za":39,"ab":1,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"F^7 "}]},{"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Bb^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":40,"za":40,"ab":2,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"Eb^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"b","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"gc":10,"sa":"SmoLyric","ke":"D^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":512,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"f","lb":"#","kb":5,"pc":false}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":5}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":41,"za":41,"ab":0,"t":0},"qe":2,"bb":58.94,"cb":[{"td":1024,"sd":2048,"pa":{"qa":"auto1143660","ra":"SmoTuplet"},"q":4}],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":2},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1143660","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":4}],"od":{"qa":"auto1143660","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":682,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"od":{"qa":"auto1143660","ra":"SmoTuplet"},"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":5}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}],"fd":[{"hd":"SCOOP","sa":"SmoOrnament"}]},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"}]}],"ea":[]},{"ya":{"ya":42,"za":42,"ab":1,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":1024},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"d","lb":"n","kb":4}],"da":"treble","rb":true,"qb":1024,"sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"G^-7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":1024},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"b","lb":"b","kb":3}],"da":"treble","rb":true,"qb":1024},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":3}],"da":"treble"},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"c","lb":"n","kb":4}],"da":"treble","sb":[{"vb":{"xb":"Petaluma Script","wb":14},"le":2,"sa":"SmoLyric","ke":"C^7 "}]},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"oc":"r","da":"treble","rb":true,"qb":1024},{"fb":{"gb":2048,"hb":1,"ib":0},"ka":[{"jb":"a","lb":"n","kb":4}],"da":"treble"},{"fb":{"gb":1024,"hb":1,"ib":0},"ka":[{"jb":"e","lb":"n","kb":4}],"da":"treble"}]}],"ea":[{"kd":1,"sa":"SmoBarline"}]},{"ya":{"ya":43,"za":43,"ab":2,"t":0},"qe":2,"bb":6,"cb":[],"db":[{"eb":[{"ka":[{"jb":"g","lb":"n","kb":4}],"da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"},{"ka":[{"jb":"b","lb":"n","kb":4}],"oc":"r","da":"treble"}]}],"ea":[]}]}],"yc":[],"ge":[{"he":[{"tb":{"sa":"SmoScoreText","pa":{"qa":"auto216651","ra":"SmoScoreText"},"zc":{},"ad":false,"jc":616,"kc":54,"tb":"Yama","bd":"once","ua":"custom","vb":{"wb":"1.8000000000000007em","xb":"Times New Roman","yb":"normal","zb":"normal"},"ac":"score-text auto29633 auto57045 auto216651","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false,"ic":{"jc":1019.78,"kc":-787.25,"lc":96.14,"mc":46.01},"nc":{"jc":616,"kc":24.28,"lc":77.2,"mc":36.95}},"ua":4}],"sa":"SmoTextGroup"},{"he":[{"tb":{"sa":"SmoScoreText","pa":{"qa":"auto216653","ra":"SmoScoreText"},"zc":{},"ad":false,"jc":692,"kc":48,"tb":"(as played by Lee Morgan)","bd":"once","ua":"custom","vb":{"wb":"1em","xb":"Merriweather","yb":"normal","zb":"normal"},"ac":"score-text auto29634 auto57047 auto216653","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false,"ic":{"jc":1114.41,"kc":-780.73,"lc":300.31,"mc":30.02},"nc":{"jc":692,"kc":29.52,"lc":241.17,"mc":24.11}},"ua":4}],"sa":"SmoTextGroup"},{"he":[{"tb":{"sa":"SmoScoreText","pa":{"qa":"auto216655","ra":"SmoScoreText"},"zc":{},"ad":false,"jc":1006,"kc":44,"tb":"Bb Trumpet","bd":"once","ua":"custom","vb":{"wb":"1em","xb":"Merriweather","yb":"normal","zb":"normal"},"ac":"score-text auto29635 auto57049 auto216655","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false,"ic":{"jc":1505.41,"kc":-785.71,"lc":137.32,"mc":29.03},"nc":{"jc":1006,"kc":25.52,"lc":110.28,"mc":23.31}},"ua":4}],"sa":"SmoTextGroup"},{"he":[{"tb":{"sa":"SmoScoreText","pa":{"qa":"auto216657","ra":"SmoScoreText"},"zc":{"jc":168.86,"kc":1149.35,"tb":"-----Lay Back","bd":"once","ua":"custom","vb":{"wb":"16pt","xb":"Petaluma Script","yb":"normal","zb":"normal","te":16},"ac":"score-text auto110460 auto216657","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false},"ad":false,"jc":168.86,"kc":1149.35,"tb":"--------------------------Lay Back","bd":"once","ua":"custom","vb":{"wb":"16pt","xb":"Petaluma Script","yb":"normal","zb":"normal","te":16},"ac":"score-text auto110460 auto216657","cd":"none","dd":"left","cc":"black","lc":0,"mc":0,"dc":1,"ec":1,"fc":0,"gc":0,"ed":false,"ic":{"jc":462.99,"kc":584.69,"lc":387.13,"mc":44.03},"nc":{"jc":168.86,"kc":1126.05,"lc":310.89,"mc":35.36}},"ua":4,"we":false}],"xe":true,"hc":{"ga":0,"ha":28,"ia":0,"ja":1,"ka":[]},"ye":122.86000000000001,"ze":-5.079999999999927,"sa":"SmoTextGroup"}],"yd":[],"ee":{"wa":{"0":"4/4"},"xa":{"0":"F"},"fe":{"0":{"sa":"SmoTempoText","pa":{"qa":"auto215637","ra":"SmoTempoText"},"id":"duration","nb":96,"ob":true,"pb":4096,"jd":"Allegro","ta":24},"1":{"sa":"SmoTempoText","pa":{"qa":"auto215661","ra":"SmoTempoText"},"id":"duration","nb":96,"ob":true,"pb":4096,"jd":"Allegro","ta":0}}},"dictionary":{"a":"score","b":"layout","c":"leftMargin","d":"rightMargin","e":"topMargin","f":"bottomMargin","g":"pageWidth","h":"pageHeight","i":"orientation","j":"interGap","k":"intraGap","l":"svgScale","m":"zoomScale","n":"zoomMode","o":"pages","p":"pageSize","q":"startIndex","r":"renumberingMap","s":"staves","t":"staffId","u":"staffX","v":"staffY","w":"adjY","x":"staffWidth","y":"staffHeight","z":"keySignatureMap","aa":"instrumentInfo","ba":"instrumentName","ca":"keyOffset","da":"clef","ea":"modifiers","fa":"startSelector","ga":"staff","ha":"measure","ia":"voice","ja":"tick","ka":"pitches","la":"endSelector","ma":"xOffset","na":"cp1y","oa":"cp2y","pa":"attrs","qa":"id","ra":"type","sa":"ctor","ta":"yOffset","ua":"position","va":"measures","wa":"timeSignature","xa":"keySignature","ya":"measureNumber","za":"measureIndex","ab":"systemIndex","bb":"adjX","cb":"tuplets","db":"voices","eb":"notes","fb":"ticks","gb":"numerator","hb":"denominator","ib":"remainder","jb":"letter","kb":"octave","lb":"accidental","mb":"symbol","nb":"bpm","ob":"display","pb":"beatDuration","qb":"beamBeats","rb":"endBeam","sb":"textModifiers","tb":"text","ub":"endChar","vb":"fontInfo","wb":"size","xb":"family","yb":"style","zb":"weight","ac":"classes","bc":"verse","cc":"fill","dc":"scaleX","ec":"scaleY","fc":"translateX","gc":"translateY","hc":"selector","ic":"renderedBox","jc":"x","kc":"y","lc":"width","mc":"height","nc":"logicalBox","oc":"noteType","pc":"cautionary","qc":"articulations","rc":"articulation","sc":"activeVoice","tc":"flagState","uc":"invert","vc":"fontSize","wc":"yOffsetLine","xc":"yOffsetPixels","yc":"scoreText","zc":"backup","ad":"edited","bd":"pagination","cd":"boxModel","dd":"justification","ed":"autoLayout","fd":"ornaments","gd":"offset","hd":"ornament","id":"tempoMode","jd":"tempoText","kd":"barline","ld":"systemBreak","md":"graceNotes","nd":"tones","od":"tuplet","pd":"beam_group","qd":"renderId","rd":"numNotes","sd":"totalTicks","td":"stemTicks","ud":"durationMap","vd":"bracketed","wd":"ratioed","xd":"location","yd":"systemGroups","zd":"leftConnector","ae":"padLeft","be":"customStretch","ce":"engravingFont","de":"customProportion","ee":"columnAttributeMap","fe":"tempo","ge":"textGroups","he":"textBlocks","ie":"backupBlocks","je":"blocks","ke":"_text","le":"parser","me":"fonts","ne":"name","oe":"purpose","pe":"custom","qe":"transposeIndex","re":"noteHead","se":"slash","te":"pointSize","ue":"spacing","ve":"relativePosition","we":"activeText","xe":"attachToSelector","ye":"musicXOffset","ze":"musicYOffset"}}`;
@@ -14756,6 +19581,549 @@ class SmoTuplet {
     };
   }
 }
+;// eslint-disable-next-line no-unused-vars
+class mxmlHelpers {
+  static get noteTypesToSmoMap() {
+    return {
+      'quarter': 4096,
+      'eigth': 2048,
+      '16th': 1024,
+      '32nd': 512,
+      '64th': 256,
+      '128th': 128
+    };
+  }
+  static get beamStates() {
+    return { BEGIN: 1,
+      END: 2,
+      AUTO: 3
+    };
+  }
+  static getNumberFromElement(parent, path, defaults) {
+    let rv = (typeof(defaults) === 'undefined' || defaults === null)
+      ? 0 : defaults;
+    const tval = mxmlHelpers.getTextFromElement(parent, path, defaults);
+    if (!tval) {
+      return rv;
+    }
+    if (typeof(tval) === 'number') {
+      return tval;
+    }
+    if (tval.indexOf('.')) {
+      const tf = parseFloat(tval);
+      rv = isNaN(tf) ? rv : tf;
+    } else {
+      const ff = parseInt(tval, 10);
+      rv = isNaN(ff) ? rv : ff;
+    }
+    return rv;
+  }
+  static getTextFromElement(parent, path, defaults) {
+    const rv = (typeof(defaults) === 'undefined' || defaults === null)
+      ? 0 : defaults;
+    const el = [...parent.getElementsByTagName(path)];
+    if (!el.length) {
+      return rv;
+    }
+    return el[0].textContent;
+  }
+  static getChildrenFromPath(parent, pathAr) {
+    let i = 0;
+    let node = parent;
+    for (i = 0; i < pathAr.length; ++i) {
+      const tag = pathAr[i];
+      node = [...node.getElementsByTagName(tag)];
+      if (node.length === 0) {
+        return [];
+      }
+      if (i < pathAr.length - 1) {
+        node = node[0];
+      }
+    }
+    return node;
+  }
+  static assignDefaults(node, defObj, parameters) {
+    parameters.forEach((param) => {
+      if (!isNaN(parseInt(defObj[param.smo], 10))) {
+        const smoParam = param.smo;
+        const xmlParam = param.xml;
+        defObj[smoParam] = mxmlHelpers.getNumberFromElement(node, xmlParam, defObj[smoParam]);
+      }
+    });
+  }
+  static nodeAttributes(node) {
+    const rv = {};
+    node.getAttributeNames().forEach((attr) => {
+      rv[attr] = node.getAttribute(attr);
+    });
+    return rv;
+  }
+  // Some measures have staff ID, some don't.
+  // convert xml 1 index to array 0 index
+  static getStaffId(node) {
+    const staff = [...node.getElementsByTagName('staff')];
+    if (staff.length) {
+      return parseInt(staff[0].textContent, 10) - 1;
+    }
+    return 0;
+  }
+  static noteBeamState(noteNode) {
+    const beamNodes = [...noteNode.getElementsByTagName('beam')];
+    if (!beamNodes.length) {
+      return mxmlHelpers.beamStates.AUTO;
+    }
+    const beamText = beamNodes[0].textContent;
+    if (beamText === 'begin') {
+      return mxmlHelpers.beamStates.BEGIN;
+    } else if (beamText === 'end') {
+      return mxmlHelpers.beamStates.END;
+    }
+    return mxmlHelpers.beamStates.AUTO;
+  }
+  // same with notes and voices.  same convert
+  static getVoiceId(node) {
+    const voice = [...node.getElementsByTagName('voice')];
+    if (voice.length) {
+      return parseInt(voice[0].textContent, 10) - 1;
+    }
+    return 0;
+  }
+  static smoPitchFromNote(noteNode, defaultPitch) {
+    const accidentals = ['bb', 'b', 'n', '#', '##'];
+    const letter = mxmlHelpers.getTextFromElement(noteNode, 'step', defaultPitch.letter).toLowerCase();
+    const octave = mxmlHelpers.getNumberFromElement(noteNode, 'octave', defaultPitch.octave);
+    const xaccidental = mxmlHelpers.getNumberFromElement(noteNode, 'alter', 0);
+    return { letter, accidental: accidentals[xaccidental + 2], octave };
+  }
+  static isGrace(noteNode) {
+    const path = mxmlHelpers.getChildrenFromPath(noteNode, ['grace']);
+    return path.length > 0;
+  }
+  static isSystemBreak(measureNode) {
+    const printNodes = measureNode.getElementsByTagName('print');
+    if (printNodes.length) {
+      const attrs = mxmlHelpers.nodeAttributes(printNodes[0]);
+      if (typeof(attrs['new-system']) !== 'undefined') {
+        return attrs['new-system'] === 'yes';
+      }
+    }
+    return false;
+  }
+  static getSlurData(noteNode) {
+    const rv = [];
+    const nNodes = [...noteNode.getElementsByTagName('notations')];
+    nNodes.forEach((nNode) => {
+      const slurNodes = [...nNode.getElementsByTagName('slur')];
+      slurNodes.forEach((slurNode) => {
+        const number = parseInt(slurNode.getAttribute('number'), 10);
+        const type = slurNode.getAttribute('type');
+        rv.push({ number, type });
+      });
+    });
+    return rv;
+  }
+}
+// eslint-disable-next-line no-unused-vars
+class mxmlScore {
+  static get mmPerPixel() {
+    return 0.264583;
+  }
+  static get pageLayoutMap() {
+    return [
+      { xml: 'page-height', smo: 'pageHeight' },
+      { xml: 'page-width', smo: 'pageWidth' }
+    ];
+  }
+  static get pageMarginMap() {
+    return [
+      { xml: 'left-margin', smo: 'leftMargin' },
+      { xml: 'right-margin', smo: 'rightMargin' },
+      { xml: 'top-margin', smo: 'topMargin' },
+      { xml: 'bottom-margin', smo: 'bottomMargin' }
+    ];
+  }
+  static get demoDoc() {
+    const parser = new DOMParser();
+    return parser.parseFromString(mozartXml, 'text/xml');
+  }
+  static smoScoreFromXml(xmlDoc) {
+    try {
+      // Default scale for mxml
+      let scale = 1 / 7;
+      let comp = 'Imported Smoosic';
+      const scoreeNode = [...xmlDoc.getElementsByTagName('score-partwise')];
+      if (!scoreeNode.length) {
+        return SmoScore.deserialize(emptyScoreJson);
+      }
+
+      const scoreElement = scoreeNode[0];
+      const scoreNameNode = [...xmlDoc.getElementsByTagName('work-title')];
+      if (scoreNameNode.length) {
+        comp = scoreNameNode[0].textContent;
+      }
+      const parts = [...scoreeNode[0].getElementsByTagName('part')];
+      const scoreDefaults = JSON.parse(JSON.stringify(SmoScore.defaults));
+      scoreDefaults.scoreInfo.name = comp;
+      const pageLayoutNode = mxmlHelpers.getChildrenFromPath(scoreElement,
+        ['defaults', 'page-layout']);
+      if (pageLayoutNode.length) {
+        mxmlHelpers.assignDefaults(pageLayoutNode[0], scoreDefaults.layout, mxmlScore.pageLayoutMap);
+      }
+      const pageMarginNode = mxmlHelpers.getChildrenFromPath(scoreElement,
+        ['defaults', 'page-layout', 'page-margins']);
+      if (pageMarginNode.length) {
+        mxmlHelpers.assignDefaults(pageMarginNode[0], scoreDefaults.layout, mxmlScore.pageMarginMap);
+      }
+
+      const scaleNode =  mxmlHelpers.getChildrenFromPath(scoreElement,
+        ['defaults', 'scaling']);
+      if (scaleNode.length) {
+        const mm = mxmlHelpers.getNumberFromElement(scaleNode[0], 'millimeters', 1);
+        const tn = mxmlHelpers.getNumberFromElement(scaleNode[0], 'tenths', 7);
+        if (tn > 0 && mm > 0) {
+          scale = mm / tn;
+        }
+      }
+      // Convert from mm to pixels, this is our default svg scale
+      // mm per tenth * pixels / mm gives us pixels per tenth
+      scoreDefaults.layout.svgScale =  scale / mxmlScore.mmPerPixel;
+      scoreDefaults.staves = mxmlScore.createStaves(parts);
+      const rv = new SmoScore(scoreDefaults);
+      // Fix tempo to be column mapped
+      rv.staves[0].measures.forEach((measure) => {
+        const tempo = rv.staves.find((ss) => ss.measures[measure.measureNumber.measureIndex].tempo.display === true);
+        if (tempo) {
+          rv.staves.forEach((ss) => {
+            ss.measures[measure.measureNumber.measureIndex].tempo.display = true;
+          });
+        }
+      });
+      return rv;
+    } catch (exc) {
+      console.warn(exc);
+      return SmoScore.deserialize(emptyScoreJson);
+    }
+  }
+  static createStaves(partElements) {
+    let smoStaves = [];
+    const xmlState = { divisions: 1, tempo: new SmoTempoText(), timeSignature: '4/4', keySignature: 'C',
+      clefInfo: [] };
+    partElements.forEach((partElement) => {
+      let staffId = smoStaves.length;
+      xmlState.slurs = {};
+      const stavesForPart = [];
+      xmlState.staffVoiceHash = {};
+      xmlState.measureIndex = 0;
+      const measureElements = [...partElement.getElementsByTagName('measure')];
+      measureElements.forEach((measureElement) => {
+        const newStaves = mxmlScore.parseMeasureElement(measureElement, xmlState);
+        newStaves.forEach((staffMeasure) => {
+          if (stavesForPart.length <= staffMeasure.clefInfo.staffId) {
+            stavesForPart.push(new SmoSystemStaff({ staffId }));
+            staffId += 1;
+          }
+          const smoStaff = stavesForPart[staffMeasure.clefInfo.staffId];
+          smoStaff.measures.push(staffMeasure.measure);
+        });
+        const oldStaffId = staffId - stavesForPart.length;
+        xmlState.completedSlurs.forEach((slur) => {
+          const staffIx = slur.start.staff;
+          slur.start.voice = xmlState.staffVoiceHash[slur.start.staff].indexOf(slur.start.voice);
+          slur.end.voice = xmlState.staffVoiceHash[slur.end.staff].indexOf(slur.end.voice);
+          slur.start.staff += oldStaffId;
+          slur.end.staff += oldStaffId;
+          const smoSlur = new SmoSlur({
+            startSelector: JSON.parse(JSON.stringify(slur.start)),
+            endSelector: JSON.parse(JSON.stringify(slur.end))
+          });
+          stavesForPart[staffIx].addStaffModifier(smoSlur);
+        });
+        xmlState.measureIndex += 1;
+      });
+      console.log(JSON.stringify(xmlState.staffVoiceHash, null, ' '));
+      smoStaves = smoStaves.concat(stavesForPart);
+      /* smoStaves.forEach((staff) => {
+        staff.staffId = staffId;
+        staffId += 1;
+      });  */
+    });
+    return smoStaves;
+  }
+  /* static smoDynamics(measureElement) {
+    const rv = [];
+    const dynNode = mxmlHelpers.getChildrenFromPath(measureElement,
+      ['direction', 'dynamics']);
+    if (dynNode.length) {
+      const text = [...dynNode[0].childNodes].find((dd) => dd.nodeType === 1).tagName;
+      const smoD = new SmoDynamicText({ text });
+      const direction = [...sound[0].parentElement.getElementsByTagName('direction')];
+      const staffId = mxmlHelpers.getStaffId(direction);
+      const dynamic = new SmoDynamicText({ text };
+      return [{ staffId, dynamic }];
+    }
+    return rv;
+  }   */
+  static smoTempo(measureElement) {
+    let tempoText = '';
+    const rv = [];
+    const soundNodes = mxmlHelpers.getChildrenFromPath(measureElement,
+      ['direction', 'sound']);
+    soundNodes.forEach((sound) => {
+      let tempoMode = SmoTempoText.tempoModes.durationMode;
+      tempoText = sound.getAttribute('tempo');
+      if (tempoText) {
+        const direction = sound.parentElement;
+        const bpm = parseInt(tempoText, 10);
+        const wordNode =
+          [...direction.getElementsByTagName('words')];
+        tempoText = wordNode.length ? wordNode[0].textContent :
+          tempoText.toString();
+        if (isNaN(tempoText)) {
+          tempoMode = SmoTempoText.tempoModes.textMode;
+        }
+        const tempo = new SmoTempoText({
+          tempoMode, bpm, tempoText, display: true
+        });
+        const staffId = mxmlHelpers.getStaffId(direction);
+        rv.push({ staffId, tempo });
+      }
+    });
+    return rv;
+  }
+  static attributesFromMeasure(measureElement, xmlState) {
+    let smoKey = {};
+    const attributesNodes = mxmlHelpers.getChildrenFromPath(measureElement, ['attributes']);
+    if (!attributesNodes.length) {
+      return;
+    }
+    const attributesNode = attributesNodes[0];
+    xmlState.divisions = mxmlHelpers.getNumberFromElement(attributesNode, 'divisions', xmlState.divisions);
+
+    const keyNode = mxmlHelpers.getChildrenFromPath(attributesNode, ['key']);
+    // MusicXML expresses keys in 'fifths' from C.
+    if (keyNode.length) {
+      const fifths = mxmlHelpers.getNumberFromElement(keyNode[0], 'fifths', 0);
+      if (fifths < 0) {
+        smoKey = smoMusic.circleOfFifths[smoMusic.circleOfFifths.length + fifths];
+      } else {
+        smoKey = smoMusic.circleOfFifths[fifths];
+      }
+      xmlState.keySignature = smoKey.letter.toUpperCase();
+      if (smoKey.accidental !== 'n') {
+        xmlState.keySignature += smoKey.accidental;
+      }
+    }
+
+    const currentTime = xmlState.timeSignature.split('/');
+    const timeNodes = mxmlHelpers.getChildrenFromPath(attributesNode, ['time']);
+    if (timeNodes.length) {
+      const timeNode = timeNodes[0];
+      const num = mxmlHelpers.getNumberFromElement(timeNode, 'beats', currentTime[0]);
+      const den = mxmlHelpers.getNumberFromElement(timeNode, 'beat-type', currentTime[1]);
+      xmlState.timeSignature = '' + num + '/' + den;
+    }
+
+    const clefNodes =  mxmlHelpers.getChildrenFromPath(attributesNode, ['clef']);
+    if (clefNodes.length) {
+      // We expect the number of clefs to equal the number of staves in each measure
+      clefNodes.forEach((clefNode) => {
+        let clefNum = 0;
+        let clef = 'treble';
+        const clefAttrs = mxmlHelpers.nodeAttributes(clefNode);
+        if (typeof(clefAttrs.number) !== 'undefined') {
+          // staff numbers index from 1 in mxml
+          clefNum = parseInt(clefAttrs.number, 10) - 1;
+        }
+        const clefType = mxmlHelpers.getTextFromElement(clefNode, 'sign', 'G');
+        const clefLine = mxmlHelpers.getNumberFromElement(clefNode, 'line', 2);
+        // mxml supports a zillion clefs, just implement the basics.
+        if (clefType === 'F') {
+          clef = 'bass';
+        } else if (clefType === 'C') {
+          if (clefLine === 4) {
+            clef = 'alto';
+          } else if (clefLine === 3) {
+            clef = 'tenor';
+          } else if (clefLine === 1) {
+            clef = 'soprano';
+          }
+        } else if (clefType === 'percussion') {
+          clef = 'percussion';
+        }
+        if (xmlState.clefInfo.length <= clefNum) {
+          xmlState.clefInfo.push({ clef, staffId: clefNum });
+        } else {
+          xmlState.clefInfo[clefNum].clef = clef;
+        }
+      });
+    }
+  }
+  static backtrackBeamGroup(voice, beamLength) {
+    let i = 0;
+    let beamBeats = 0;
+    for (i = 0; i < beamLength; ++i) {
+      const note = voice.notes[voice.notes.length - (i + 1)];
+      beamBeats += note.ticks.numerator;
+    }
+    for (i = 0; i < beamLength; ++i) {
+      const note = voice.notes[voice.notes.length - (i + 1)];
+      note.endBeam = i === 0;
+      note.beamBeats = beamBeats;
+    }
+  }
+  static updateSlurStates(xmlState, slurInfos,
+    staffIndex, measureNumber, voiceIndex, tick) {
+    slurInfos.forEach((slurInfo) =>  {
+      if (slurInfo.type === 'start') {
+        xmlState.slurs[slurInfo.number] = { start: {
+          staff: staffIndex, voice: voiceIndex,
+          measure: measureNumber, tick }
+        };
+      } else if (slurInfo.type === 'stop') {
+        xmlState.slurs[slurInfo.number].end = {
+          staff: staffIndex, voice: voiceIndex,
+          measure: measureNumber, tick
+        };
+        xmlState.completedSlurs.push(JSON.parse(JSON.stringify(xmlState.slurs[slurInfo.number])));
+      }
+    });
+  }
+  // ### parseMeasureElement
+  // A measure in music xml might represent several measures in SMO at the same
+  // column in the score
+  static parseMeasureElement(measureElement, xmlState) {
+    let previousNote = {};
+    const staffArray = [];
+    const measureNumber = parseInt(measureElement.getAttribute('number'), 10) - 1;
+    let graceNotes = [];
+    let noteData = {};
+    let grIx = 0;
+    xmlState.beamGroups = {};
+    xmlState.completedSlurs = [];
+    const elements = [...measureElement.children];
+    elements.forEach((element) => {
+      if (element.tagName === 'attributes') {
+        // update the running state of the XML with new information from this measure
+        // if an XML attributes element is present
+        mxmlScore.attributesFromMeasure(measureElement, xmlState);
+      } else if (element.tagName === 'direction') {
+        // TODO: other direction elements like dynamics
+        const tempo = mxmlScore.smoTempo(measureElement);
+        // Only display tempo if changes.
+        if (tempo.length) {
+          // TODO: staff ID is with tempo, but tempo is per column in SMO
+          if (!SmoTempoText.eq(xmlState.tempo, tempo[0].tempo)) {
+            xmlState.tempo = tempo[0].tempo;
+            xmlState.tempo.display = true;
+          }
+        } else {
+          xmlState.tempo = SmoMeasureModifierBase.deserialize(xmlState.tempo.serialize());
+          xmlState.tempo.display = false;
+        }
+      } else if (element.tagName === 'note') {
+        const noteNode = element;
+        const staffIndex = mxmlHelpers.getStaffId(noteNode);
+        // We assume the clef information from attributes comes before the notes
+        if (staffArray.length <= staffIndex) {
+          // mxml has measures for all staves in a part interleaved.  In SMO they are
+          // each in a separate stave object.  Base the staves we expect based on
+          // the number of clefs in the xml state object
+          xmlState.clefInfo.forEach((clefInfo) => {
+            staffArray.push({ clefInfo, voices: { } });
+          });
+        }
+        const divisions = xmlState.divisions;
+        const isGrace = mxmlHelpers.isGrace(noteNode);
+        const restNode = mxmlHelpers.getChildrenFromPath(noteNode, ['rest']);
+        const noteType = restNode.length ? 'r' : 'n';
+        const duration = mxmlHelpers.getNumberFromElement(noteNode, 'duration', 1);
+        const tickCount = 4096 * (duration / divisions);
+        const chordNode = mxmlHelpers.getChildrenFromPath(noteNode, ['chord']);
+        const voiceIndex = mxmlHelpers.getVoiceId(noteNode);
+        const beamState = mxmlHelpers.noteBeamState(noteNode);
+        const slurInfos = mxmlHelpers.getSlurData(noteNode);
+
+        // voices are not sequential, seem to have artitrary numbers and
+        // persist per part (same with staff IDs)
+        if (typeof(staffArray[staffIndex].voices[voiceIndex]) === 'undefined') {
+          staffArray[staffIndex].voices[voiceIndex] = { notes: [] };
+          // keep track of 0-indexed voice for slurs and other modifiers
+          if (!xmlState.staffVoiceHash[staffIndex]) {
+            xmlState.staffVoiceHash[staffIndex] = [];
+          }
+          if (xmlState.staffVoiceHash[staffIndex].indexOf(voiceIndex) < 0) {
+            xmlState.staffVoiceHash[staffIndex].push(voiceIndex);
+          }
+          xmlState.beamGroups[voiceIndex] = 0;
+        }
+        const voice = staffArray[staffIndex].voices[voiceIndex];
+        const pitch = mxmlHelpers.smoPitchFromNote(noteNode,
+          SmoMeasure.defaultPitchForClef[staffArray[staffIndex].clefInfo.clef]);
+        if (isGrace === false) {
+          if (chordNode.length) {
+            previousNote.pitches.push(pitch);
+          } else {
+            noteData = JSON.parse(JSON.stringify(SmoNote.defaults));
+            noteData.noteType = noteType;
+            noteData.pitches = [pitch];
+            noteData.ticks = { numerator: tickCount, denominator: 1, remainder: 0 };
+            previousNote = new SmoNote(noteData);
+            for (grIx = 0; grIx < graceNotes.length; ++grIx) {
+              previousNote.addGraceNote(graceNotes[grIx], grIx);
+            }
+            graceNotes = [];
+            mxmlScore.updateSlurStates(xmlState, slurInfos,
+              staffIndex, xmlState.measureIndex, voiceIndex, voice.notes.length);
+            voice.notes.push(previousNote);
+            if (beamState === mxmlHelpers.beamStates.BEGIN) {
+              xmlState.beamGroups[voiceIndex] = 1;
+            } else if (xmlState.beamGroups[voiceIndex]) {
+              xmlState.beamGroups[voiceIndex] += 1;
+              if (beamState === mxmlHelpers.beamStates.END) {
+                mxmlScore.backtrackBeamGroup(voice, xmlState.beamGroups[voiceIndex]);
+                xmlState.beamGroups[voiceIndex] = 0;
+              }
+            }
+          }
+        } else {
+          if (chordNode.length) {
+            graceNotes[graceNotes.length - 1].pitches.push(pitch);
+          } else {
+            // grace note durations don't seem to have explicit duration, so
+            // get it from note type
+            mxmlScore.updateSlurStates(xmlState, slurInfos,
+              staffIndex, measureNumber, voiceIndex, voice.notes.length);
+            graceNotes.push(new SmoGraceNote({
+              pitches: [pitch]
+            }));
+          }
+        }
+      }
+    });
+
+    staffArray.forEach((staffData) => {
+      const smoMeasure = SmoMeasure.getDefaultMeasure({
+        clef: staffData.clefInfo.clef
+      });
+      smoMeasure.systemBreak = mxmlHelpers.isSystemBreak(measureElement);
+      smoMeasure.tempo = xmlState.tempo;
+      smoMeasure.keySignature = xmlState.keySignature;
+      smoMeasure.timeSignature = xmlState.timeSignature;
+      // voices not in array, put them in an array
+      Object.keys(staffData.voices).forEach((voiceKey) => {
+        const voice = staffData.voices[voiceKey];
+        voice.notes.forEach((note) => {
+          if (!note.clef) {
+            note.clef = smoMeasure.clef;
+          }
+        });
+        smoMeasure.voices.push(voice);
+      });
+      staffData.measure = smoMeasure;
+    });
+    return staffArray;
+  }
+}
 ;// ## SmoActionRecord
 // Record a list of actions, for playback or unit testing.
 // eslint-disable-next-line no-unused-vars
@@ -25538,6 +30906,63 @@ class SuiLoadFileDialog extends SuiFileDialog {
 }
 
 // eslint-disable-next-line no-unused-vars
+class SuiLoadMxmlDialog extends SuiFileDialog {
+  static get ctor() {
+    return 'SuiLoadMxmlDialog';
+  }
+  get ctor() {
+    return SuiLoadMxmlDialog.ctor;
+  }
+
+  static get dialogElements() {
+    SuiLoadMxmlDialog._dialogElements = SuiLoadMxmlDialog._dialogElements ? SuiLoadMxmlDialog._dialogElements :
+      [{
+        smoName: 'loadFile',
+        parameterName: 'jsonFile',
+        defaultValue: '',
+        control: 'SuiFileDownloadComponent',
+        label: ''
+      }, { staticText: [
+        { label: 'Load File' }
+      ] }
+      ];
+    return SuiLoadMxmlDialog._dialogElements;
+  }
+  changed() {
+    this.value = this.components[0].getValue();
+    $(this.dgDom.element).find('.ok-button').prop('disabled', false);
+  }
+  commit() {
+    let scoreWorks = false;
+    if (this.value) {
+      try {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(this.value, 'text/xml');
+        const score = mxmlScore.smoScoreFromXml(xml);
+        scoreWorks = true;
+        this.view.changeScore(score);
+        this.complete();
+      } catch (e) {
+        console.warn('unable to score ' + e);
+      }
+      if (!scoreWorks) {
+        this.complete();
+      }
+    }
+  }
+  static createAndDisplay(params) {
+    const dg = new SuiLoadMxmlDialog(params);
+    dg.display();
+    // disable until file is selected
+    $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
+  }
+  constructor(parameters) {
+    parameters.ctor = 'SuiLoadMxmlDialog';
+    super(parameters);
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
 class SuiLoadActionsDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiLoadActionsDialog';
@@ -35084,6 +40509,10 @@ class SuiFileMenu extends suiMenuBase {
         text: 'Open',
         value: 'openFile'
       }, {
+        icon: '',
+        text: 'Import MusicXML',
+        value: 'importMxml'
+      }, {
         icon: 'folder-save',
         text: 'Save',
         value: 'saveFile'
@@ -35177,6 +40606,16 @@ class SuiFileMenu extends suiMenuBase {
       });
     } else if (text === 'openFile') {
       SuiLoadFileDialog.createAndDisplay({
+        completeNotifier: this.completeNotifier,
+        tracker: this.tracker,
+        undoBuffer: this.undoBuffer,
+        eventSource: this.eventSource,
+        editor: this.keyCommands,
+        view: this.view,
+        closeMenuPromise: this.closePromise
+      });
+    } else if (text === 'importMxml') {
+      SuiLoadMxmlDialog.createAndDisplay({
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
