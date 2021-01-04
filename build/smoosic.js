@@ -19585,8 +19585,11 @@ class SmoTuplet {
 class mxmlHelpers {
   static get noteTypesToSmoMap() {
     return {
+      'breve': 8192 * 4,
+      'whole': 8192 * 2,
+      'half': 8192,
       'quarter': 4096,
-      'eigth': 2048,
+      'eighth': 2048,
       '16th': 1024,
       '32nd': 512,
       '64th': 256,
@@ -19709,6 +19712,37 @@ class mxmlHelpers {
     }
     return false;
   }
+  // ### durationFromType
+  // Get the SMO tick duration of a note, based on the XML type element (quarter, etc)
+  static durationFromType(noteNode, def) {
+    const typeNodes = [...noteNode.getElementsByTagName('type')];
+    if (typeNodes.length) {
+      const txt = typeNodes[0].textContent;
+      if (txt && mxmlHelpers.noteTypesToSmoMap[txt]) {
+        return mxmlHelpers.noteTypesToSmoMap[txt];
+      }
+    }
+    return def;
+  }
+  static durationFromNode(noteNode, divisions, def) {
+    let tickCount = def;
+    const durationNodes = [...noteNode.getElementsByTagName('duration')];
+    const timeAlteration = mxmlHelpers.getTimeAlteration(noteNode);
+    // different ways to declare note duration - from type is the graphical
+    // type, SMO uses ticks for everything
+    if (durationNodes.length) {
+      const duration = parseInt(durationNodes[0].textContent, 10);
+      tickCount = 4096 * (duration / divisions);
+    } else {
+      tickCount = mxmlHelpers.durationFromType(noteNode, def);
+    }
+    // If this is a tuplet, we adjust the note duration back to the graphical type
+    // and SMO will create the tuplet after
+    if (timeAlteration) {
+      tickCount = (tickCount * timeAlteration.noteCount) / timeAlteration.noteDuration;
+    }
+    return tickCount;
+  }
   static getSlurData(noteNode) {
     const rv = [];
     const nNodes = [...noteNode.getElementsByTagName('notations')];
@@ -19721,6 +19755,28 @@ class mxmlHelpers {
       });
     });
     return rv;
+  }
+  static getTupletData(noteNode) {
+    const rv = [];
+    const nNodes = [...noteNode.getElementsByTagName('notations')];
+    nNodes.forEach((nNode) => {
+      const slurNodes = [...nNode.getElementsByTagName('tuplet')];
+      slurNodes.forEach((slurNode) => {
+        const number = parseInt(slurNode.getAttribute('number'), 10);
+        const type = slurNode.getAttribute('type');
+        rv.push({ number, type });
+      });
+    });
+    return rv;
+  }
+
+  static getTimeAlteration(noteNode) {
+    const timeNodes = mxmlHelpers.getChildrenFromPath(noteNode, ['time-modification']);
+    if (timeNodes.length) {
+      return { noteCount: mxmlHelpers.getNumberFromElement(timeNodes[0], 'actual-notes'),
+        noteDuration: mxmlHelpers.getNumberFromElement(timeNodes[0], 'normal-notes') };
+    }
+    return null;
   }
 }
 // eslint-disable-next-line no-unused-vars
@@ -19810,12 +19866,14 @@ class mxmlScore {
       clefInfo: [] };
     partElements.forEach((partElement) => {
       let staffId = smoStaves.length;
+      console.log('part ' + partElement.getAttribute('id'));
       xmlState.slurs = {};
       const stavesForPart = [];
       xmlState.staffVoiceHash = {};
       xmlState.measureIndex = 0;
       const measureElements = [...partElement.getElementsByTagName('measure')];
       measureElements.forEach((measureElement) => {
+        xmlState.tuplets = {};
         const newStaves = mxmlScore.parseMeasureElement(measureElement, xmlState);
         newStaves.forEach((staffMeasure) => {
           if (stavesForPart.length <= staffMeasure.clefInfo.staffId) {
@@ -19840,7 +19898,6 @@ class mxmlScore {
         });
         xmlState.measureIndex += 1;
       });
-      console.log(JSON.stringify(xmlState.staffVoiceHash, null, ' '));
       smoStaves = smoStaves.concat(stavesForPart);
       /* smoStaves.forEach((staff) => {
         staff.staffId = staffId;
@@ -19963,6 +20020,10 @@ class mxmlScore {
     let beamBeats = 0;
     for (i = 0; i < beamLength; ++i) {
       const note = voice.notes[voice.notes.length - (i + 1)];
+      if (!note) {
+        console.warn('no note for beam group');
+        return;
+      }
       beamBeats += note.ticks.numerator;
     }
     for (i = 0; i < beamLength; ++i) {
@@ -19980,11 +20041,53 @@ class mxmlScore {
           measure: measureNumber, tick }
         };
       } else if (slurInfo.type === 'stop') {
-        xmlState.slurs[slurInfo.number].end = {
-          staff: staffIndex, voice: voiceIndex,
-          measure: measureNumber, tick
+        if (xmlState.slurs[slurInfo.number]) {
+          xmlState.slurs[slurInfo.number].end = {
+            staff: staffIndex, voice: voiceIndex,
+            measure: measureNumber, tick
+          };
+          xmlState.completedSlurs.push(
+            JSON.parse(JSON.stringify(xmlState.slurs[slurInfo.number])));
+        }
+      }
+    });
+  }
+  static backtrackTuplets(xmlState, voice, tupletState) {
+    let i = tupletState.start.tick;
+    const notes = [];
+    const durationMap = [];
+    while (i < voice.notes.length) {
+      const note = voice.notes[i];
+      notes.push(note);
+      if (i === tupletState.start.tick) {
+        durationMap.push(1.0);
+      } else {
+        const prev = voice.notes[i - 1];
+        durationMap.push(note.ticks.numerator / prev.ticks.numerator);
+      }
+      i += 1;
+    }
+    const tuplet = new SmoTuplet({
+      notes,
+      durationMap
+    });
+    return tuplet;
+  }
+  static updateTupletStates(xmlState, tupletInfos, voice,
+    staffIndex, voiceIndex) {
+    const tick = voice.notes.length - 1;
+    tupletInfos.forEach((tupletInfo) =>  {
+      if (tupletInfo.type === 'start') {
+        xmlState.tuplets[tupletInfo.number] = {
+          start: { staff: staffIndex, voice: voiceIndex, tick }
         };
-        xmlState.completedSlurs.push(JSON.parse(JSON.stringify(xmlState.slurs[slurInfo.number])));
+      } else if (tupletInfo.type === 'stop') {
+        xmlState.tuplets[tupletInfo.number].end = {
+          staff: staffIndex, voice: voiceIndex, tick
+        };
+        xmlState.completedTuplets.push(
+          mxmlScore.backtrackTuplets(
+            xmlState, voice, xmlState.tuplets[tupletInfo.number]));
       }
     });
   }
@@ -20000,6 +20103,8 @@ class mxmlScore {
     let grIx = 0;
     xmlState.beamGroups = {};
     xmlState.completedSlurs = [];
+    xmlState.completedTuplets = [];
+    console.log('measure ' + xmlState.measureIndex);
     const elements = [...measureElement.children];
     elements.forEach((element) => {
       if (element.tagName === 'attributes') {
@@ -20036,12 +20141,12 @@ class mxmlScore {
         const isGrace = mxmlHelpers.isGrace(noteNode);
         const restNode = mxmlHelpers.getChildrenFromPath(noteNode, ['rest']);
         const noteType = restNode.length ? 'r' : 'n';
-        const duration = mxmlHelpers.getNumberFromElement(noteNode, 'duration', 1);
-        const tickCount = 4096 * (duration / divisions);
+        const tickCount = mxmlHelpers.durationFromNode(noteNode, divisions, 4096);
         const chordNode = mxmlHelpers.getChildrenFromPath(noteNode, ['chord']);
         const voiceIndex = mxmlHelpers.getVoiceId(noteNode);
         const beamState = mxmlHelpers.noteBeamState(noteNode);
         const slurInfos = mxmlHelpers.getSlurData(noteNode);
+        const tupletInfos = mxmlHelpers.getTupletData(noteNode);
 
         // voices are not sequential, seem to have artitrary numbers and
         // persist per part (same with staff IDs)
@@ -20066,12 +20171,14 @@ class mxmlScore {
             noteData = JSON.parse(JSON.stringify(SmoNote.defaults));
             noteData.noteType = noteType;
             noteData.pitches = [pitch];
+            // If this is a non-grace note, add any grace notes to the note since SMO
+            // treats them as note modifiers
             noteData.ticks = { numerator: tickCount, denominator: 1, remainder: 0 };
             previousNote = new SmoNote(noteData);
             for (grIx = 0; grIx < graceNotes.length; ++grIx) {
               previousNote.addGraceNote(graceNotes[grIx], grIx);
             }
-            graceNotes = [];
+            graceNotes = []; // clear the grace note array
             mxmlScore.updateSlurStates(xmlState, slurInfos,
               staffIndex, xmlState.measureIndex, voiceIndex, voice.notes.length);
             voice.notes.push(previousNote);
@@ -20084,6 +20191,8 @@ class mxmlScore {
                 xmlState.beamGroups[voiceIndex] = 0;
               }
             }
+            mxmlScore.updateTupletStates(xmlState, tupletInfos, voice,
+              staffIndex, voiceIndex);
           }
         } else {
           if (chordNode.length) {
@@ -20094,7 +20203,8 @@ class mxmlScore {
             mxmlScore.updateSlurStates(xmlState, slurInfos,
               staffIndex, measureNumber, voiceIndex, voice.notes.length);
             graceNotes.push(new SmoGraceNote({
-              pitches: [pitch]
+              pitches: [pitch],
+              ticks: { numerator: tickCount, denominator: 1, remainder: 0 }
             }));
           }
         }
@@ -20119,6 +20229,10 @@ class mxmlScore {
         });
         smoMeasure.voices.push(voice);
       });
+      xmlState.completedTuplets.forEach((tuplet) => {
+        smoMeasure.tuplets.push(tuplet);
+      });
+      xmlState.completedTuplets = [];
       staffData.measure = smoMeasure;
     });
     return staffArray;
