@@ -19,6 +19,24 @@ class mxmlHelpers {
       AUTO: 3
     };
   }
+  static get ornamentXmlToSmoMap() {
+    return {
+      staccato: { ctor: 'SmoArticulation', params: { articulation: SmoArticulation.articulations.staccato } },
+      tenuto: { ctor: 'SmoArticulation', params: { articulation: SmoArticulation.articulations.tenuto } },
+      marcato: { ctor: 'SmoArticulation', params: { articulation: SmoArticulation.articulations.marcato } },
+      accent: { ctor: 'SmoArticulation', params: { articulation: SmoArticulation.articulations.accent } },
+      doit: { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.doitLong } },
+      falloff: { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.fall } },
+      scoop: { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.scoop } },
+      'delayed-turn': { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.turn, offset: SmoOrnament.offsets.after } },
+      turn: { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.turn, offset: SmoOrnament.offsets.on } },
+      'inverted-turn': { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.turnInverted } },
+      mordent: { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.mordent } },
+      'inveterd-mordent': { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.mordentInverted } },
+      shake: { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.mordentInverted } },
+      'trill-mark': { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.trill } },
+    };
+  }
   static getNumberFromElement(parent, path, defaults) {
     let rv = (typeof(defaults) === 'undefined' || defaults === null)
       ? 0 : defaults;
@@ -186,6 +204,34 @@ class mxmlHelpers {
     });
     return rv;
   }
+  static articulationsAndOrnaments(noteNode) {
+    const rv = [];
+    const nNodes = [...noteNode.getElementsByTagName('notations')];
+    nNodes.forEach((nNode) => {
+      ['articulations', 'ornaments'].forEach((typ) => {
+        const articulations = [...nNode.getElementsByTagName(typ)];
+        articulations.forEach((articulation) => {
+          Object.keys(mxmlHelpers.ornamentXmlToSmoMap).forEach((key) => {
+            if ([...articulation.getElementsByTagName(key)].length) {
+              const ctor = eval(mxmlHelpers.ornamentXmlToSmoMap[key].ctor);
+              rv.push(new ctor(mxmlHelpers.ornamentXmlToSmoMap[key].params));
+            }
+          });
+        });
+      });
+    });
+    return rv;
+  }
+  static lyrics(noteNode) {
+    const rv = [];
+    const nNodes = [...noteNode.getElementsByTagName('lyric')];
+    nNodes.forEach((nNode) => {
+      const text = mxmlHelpers.getTextFromElement(nNode, 'text', '_');
+      const verse = parseInt(nNode.getAttribute('number'), 10) - 1;
+      rv.push(new SmoLyric({ _text: text, verse }));
+    });
+    return rv;
+  }
 
   static getTimeAlteration(noteNode) {
     const timeNodes = mxmlHelpers.getChildrenFromPath(noteNode, ['time-modification']);
@@ -260,8 +306,10 @@ class mxmlScore {
       // Convert from mm to pixels, this is our default svg scale
       // mm per tenth * pixels / mm gives us pixels per tenth
       scoreDefaults.layout.svgScale =  scale / mxmlScore.mmPerPixel;
-      scoreDefaults.staves = mxmlScore.createStaves(parts);
+      const partData = mxmlScore.createStaves(parts);
+      scoreDefaults.staves = partData.staves;
       const rv = new SmoScore(scoreDefaults);
+      rv.systemGroups = partData.staffGroups;
       // Fix tempo to be column mapped
       rv.staves[0].measures.forEach((measure) => {
         const tempo = rv.staves.find((ss) => ss.measures[measure.measureNumber.measureIndex].tempo.display === true);
@@ -271,6 +319,7 @@ class mxmlScore {
           });
         }
       });
+
       return rv;
     } catch (exc) {
       console.warn(exc);
@@ -280,7 +329,7 @@ class mxmlScore {
   static createStaves(partElements) {
     let smoStaves = [];
     const xmlState = { divisions: 1, tempo: new SmoTempoText(), timeSignature: '4/4', keySignature: 'C',
-      clefInfo: [] };
+      clefInfo: [], staffGroups: [] };
     partElements.forEach((partElement) => {
       let staffId = smoStaves.length;
       console.log('part ' + partElement.getAttribute('id'));
@@ -292,6 +341,9 @@ class mxmlScore {
       measureElements.forEach((measureElement) => {
         xmlState.tuplets = {};
         const newStaves = mxmlScore.parseMeasureElement(measureElement, xmlState);
+        if (newStaves.length > 1 && stavesForPart.length <= newStaves[0].clefInfo.staffId) {
+          xmlState.staffGroups.push({ start: staffId, length: newStaves.length });
+        }
         newStaves.forEach((staffMeasure) => {
           if (stavesForPart.length <= staffMeasure.clefInfo.staffId) {
             stavesForPart.push(new SmoSystemStaff({ staffId }));
@@ -321,7 +373,17 @@ class mxmlScore {
         staffId += 1;
       });  */
     });
-    return smoStaves;
+    const staffGroups = [];
+    xmlState.staffGroups.forEach((staffGroup) => {
+      const len = smoStaves[staffGroup.start].measures.length;
+      const startSelector = { staff: staffGroup.start, measure: 0 };
+      const endSelector = { staff: staffGroup.start + (staffGroup.length - 1),
+        measure: len };
+      staffGroups.push(new SmoSystemGroup({
+        startSelector, endSelector, leftConnector: SmoSystemGroup.connectorTypes.brace
+      }));
+    });
+    return { staves: smoStaves, staffGroups };
   }
   /* static smoDynamics(measureElement) {
     const rv = [];
@@ -564,6 +626,8 @@ class mxmlScore {
         const beamState = mxmlHelpers.noteBeamState(noteNode);
         const slurInfos = mxmlHelpers.getSlurData(noteNode);
         const tupletInfos = mxmlHelpers.getTupletData(noteNode);
+        const ornaments = mxmlHelpers.articulationsAndOrnaments(noteNode);
+        const lyrics = mxmlHelpers.lyrics(noteNode);
 
         // voices are not sequential, seem to have artitrary numbers and
         // persist per part (same with staff IDs)
@@ -592,6 +656,16 @@ class mxmlScore {
             // treats them as note modifiers
             noteData.ticks = { numerator: tickCount, denominator: 1, remainder: 0 };
             previousNote = new SmoNote(noteData);
+            ornaments.forEach((ornament) => {
+              if (ornament.ctor === 'SmoOrnament') {
+                previousNote.toggleOrnament(ornament);
+              } else if (ornament.ctor === 'SmoArticulation') {
+                previousNote.toggleArticulation(ornament);
+              }
+            });
+            lyrics.forEach((lyric) => {
+              previousNote.addLyric(lyric);
+            });
             for (grIx = 0; grIx < graceNotes.length; ++grIx) {
               previousNote.addGraceNote(graceNotes[grIx], grIx);
             }
@@ -646,6 +720,9 @@ class mxmlScore {
         });
         smoMeasure.voices.push(voice);
       });
+      if (smoMeasure.voices.length === 0) {
+        smoMeasure.voices.push({ notes: SmoMeasure.getDefaultNotes(smoMeasure) });
+      }
       xmlState.completedTuplets.forEach((tuplet) => {
         smoMeasure.tuplets.push(tuplet);
       });

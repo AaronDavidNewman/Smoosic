@@ -112,8 +112,8 @@ class SuiScoreViewOperations extends SuiScoreView {
         SmoMeasure.defaultPitchForClef[sel.measure.clef]));
       const altPitch = JSON.parse(JSON.stringify(
         SmoMeasure.defaultPitchForClef[altSel.measure.clef]));
-      SmoOperation.setPitch(sel, pitch);
-      SmoOperation.setPitch(altSel, altPitch);
+      sel.note.pitches = [pitch];
+      altSel.note.pitches = [altPitch];
 
       // If the note is a note, make it into a rest.  If the note is a rest already,
       // make it invisible.  If it is invisible already, make it back into a rest.

@@ -32,7 +32,7 @@ class SmoSystemGroup extends SmoScoreModifierBase {
     if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),
-        type: 'SmoStaffHairpin'
+        type: 'SmoSystemGroup'
       };
     }
   }
