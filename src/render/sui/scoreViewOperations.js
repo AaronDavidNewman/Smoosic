@@ -945,8 +945,8 @@ class SuiScoreViewOperations extends SuiScoreView {
     const measureIndex = sel.selector.measure;
     this._undoColumn('create pickup', measureIndex);
     this.actionBuffer.addAction('createPickup', duration);
-    this.score.convertToPickupMeasure(0, duration);
-    this.storeScore.convertToPickupMeasure(0, duration);
+    this.score.convertToPickupMeasure(sel.selector.measure, duration);
+    this.storeScore.convertToPickupMeasure(sel.selector.measure, duration);
     this.renderer.setRefresh();
   }
   // ### stretchWidth

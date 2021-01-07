@@ -377,7 +377,15 @@ class SmoLyric extends SmoNoteModifierBase {
     this._text = text;
   }
 
+  isHyphenated() {
+    return this.parser === SmoLyric.parsers.lyric &&
+      this._text[this._text.length - 1] === '-';
+  }
+
   getText() {
+    if (this.isHyphenated()) {
+      return this._text.substr(0, this._text.length - 1);
+    }
     return this._text;
   }
 

@@ -83,6 +83,7 @@ class VxSystem {
       const tmpI = i;
       const lyricsDash = [];
       const verseLimits = {};
+      const lyricHyphens = [];
       const lyricVerseMap = {};
       const lyrics = [];
       // is this necessary? They should all be from the current line
@@ -100,10 +101,10 @@ class VxSystem {
           voice.notes.forEach((note) => {
             this._updateChordOffsets(note);
             note.getTrueLyrics().forEach((ll) => {
-              if (ll._text.trim().length > 0 && !lyricVerseMap[ll.verse]) {
+              if (ll.getText().trim().length > 0 && !lyricVerseMap[ll.verse]) {
                 lyricVerseMap[ll.verse] = [];
               }
-              if (ll._text.trim().length > 0 && ll.logicalBox) {
+              if (ll.getText().trim().length > 0 && ll.logicalBox) {
                 lyricVerseMap[ll.verse].push(ll);
                 lyrics.push(ll);
               }
@@ -113,9 +114,29 @@ class VxSystem {
       });
       const vkey = Object.keys(lyricVerseMap).sort((a, b) => a - b);
       vkey.forEach((verse) => {
-        verseLimits[verse] = { highest: lyricVerseMap[0][0].logicalBox.y + 1000, bottom: -1 };
+        verseLimits[verse] = { highest: lyricVerseMap[vkey[0]][0].logicalBox.y + 1000, bottom: -1 };
+        let hyphenLyric = null;
+        const lastVerse = lyricVerseMap[verse][lyricVerseMap[verse].length - 1].attrs.id;
         lyricVerseMap[verse].forEach((ll) => {
-          verseLimits[verse].highest = Math.round(Math.min(ll.logicalBox.height, verseLimits[verse].highest));
+          if (hyphenLyric !== null) {
+            const x = ll.logicalBox.x - (ll.logicalBox.x -
+              (hyphenLyric.logicalBox.x + hyphenLyric.logicalBox.width)) / 2;
+            ll.hyphenX = x;
+            lyricHyphens.push(ll);
+          }
+          if (ll.isHyphenated()) {
+            if (ll.attrs.id === lastVerse) {
+              // Last word on the system, place the hyphen after the word
+              ll.hyphenX = ll.logicalBox.x + ll.logicalBox.width + ll.fontInfo.size / 2;
+              lyricHyphens.push(ll);
+            } else {
+              // place the hyphen 1/2 between next word and this one.
+              hyphenLyric = ll;
+            }
+          } else {
+            hyphenLyric = null;
+          }
+          verseLimits[verse].highest = Math.round(Math.min(ll.logicalBox.height / 2, verseLimits[verse].highest));
           verseLimits[verse].bottom = Math.round(Math.max(ll.logicalBox.y - ll.logicalBox.height / 2, verseLimits[verse].bottom));
         });
       });
@@ -132,27 +153,38 @@ class VxSystem {
         if (typeof(dom) !== 'undefined') {
           dom.setAttributeNS('', 'transform', 'translate(' + lyric.adjX + ' ' + lyric.adjY + ')');
           // Keep track of lyrics that are 'dash'
-          if (lyric.getText().trim() === '-') {
+          if (lyric.getText().length === 0 && lyric.isHyphenated()) {
             lyricsDash.push(lyric);
           }
         }
       });
-
+      lyricHyphens.forEach((lyric) => {
+        const parent = $(this.context.svg).find(lyric.selector)[0];
+        if (parent) {
+          const text = document.createElementNS(svgHelpers.namespace, 'text');
+          text.textContent = '-';
+          text.setAttributeNS('', 'x', lyric.hyphenX);
+          text.setAttributeNS('', 'y', lyric.logicalBox.y + (lyric.logicalBox.height * 2) / 3);
+          parent.appendChild(text);
+        }
+      });
       lyricsDash.forEach((lyric) => {
         const parent = $(this.context.svg).find(lyric.selector)[0];
-        const line = document.createElementNS(svgHelpers.namespace, 'line');
-        const ymax = Math.round(lyric.logicalBox.y + lyric.logicalBox.height / 2);
-        const offset = Math.round(lyric.logicalBox.width / 2);
-        line.setAttributeNS('', 'x1', lyric.logicalBox.x - offset);
-        line.setAttributeNS('', 'y1', ymax);
-        line.setAttributeNS('', 'x2', lyric.logicalBox.x + lyric.logicalBox.width + offset);
-        line.setAttributeNS('', 'y2', ymax);
-        line.setAttributeNS('', 'stroke-width', 1);
-        line.setAttributeNS('', 'fill', 'none');
-        line.setAttributeNS('', 'stroke', '#999999');
-        parent.appendChild(line);
-        const text = $(this.context.svg).find(lyric.selector).find('text')[0];
-        text.setAttributeNS('', 'fill', '#fff');
+        if (parent) {
+          const line = document.createElementNS(svgHelpers.namespace, 'line');
+          const ymax = Math.round(lyric.logicalBox.y + lyric.logicalBox.height / 2);
+          const offset = Math.round(lyric.logicalBox.width / 2);
+          line.setAttributeNS('', 'x1', lyric.logicalBox.x - offset);
+          line.setAttributeNS('', 'y1', ymax);
+          line.setAttributeNS('', 'x2', lyric.logicalBox.x + lyric.logicalBox.width + offset);
+          line.setAttributeNS('', 'y2', ymax);
+          line.setAttributeNS('', 'stroke-width', 1);
+          line.setAttributeNS('', 'fill', 'none');
+          line.setAttributeNS('', 'stroke', '#999999');
+          parent.appendChild(line);
+          const text = $(this.context.svg).find(lyric.selector).find('text')[0];
+          text.setAttributeNS('', 'fill', '#fff');
+        }
       });
     }
   }

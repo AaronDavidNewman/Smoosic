@@ -218,7 +218,7 @@ class SuiMeasureDialog extends SuiDialogBase {
     this.noteFormattingCtrl.setValue(this.measure.getFormattingIterations());
     this.pickupCtrl.toggleCtrl.setValue(isPickup);
     if (isPickup) {
-      this.pickupCtrl.dropdownCtrl.setValue(this.measure.getTicksFromVoice());
+      this.pickupCtrl.dropdownCtrl.setValue(this.measure.getTicksFromVoice(0));
     }
 
     const isSystemBreak = this.measure.getForceSystemBreak();

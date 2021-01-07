@@ -12,7 +12,6 @@ class suiLayoutAdjuster {
       var width = 0;
       var duration = 0;
       var tm = tmObj.tickmaps[voiceIx];
-
       voice.notes.forEach((note) => {
         var tuplet = smoMeasure.getTupletForNote(note);
         if (tuplet && tuplet.notes[0].attrs.id === note.attrs.id) {
@@ -27,37 +26,43 @@ class suiLayoutAdjuster {
         note.pitches.forEach((pitch) => {
           var keyAccidental = smoMusic.getAccidentalForKeySignature(pitch,smoMeasure.keySignature);
           var accidentals = tmObj.accidentalArray.filter((ar) =>
-              ar.duration < duration && ar.pitches[pitch.letter]);
+            ar.duration < duration && ar.pitches[pitch.letter]);
           var acLen = accidentals.length;
           var declared = acLen > 0 ?
-              accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental: keyAccidental;
+            accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental: keyAccidental;
+          if (declared != pitch.accidental || pitch.cautionary) {
+            noteWidth += vexGlyph.accidental(pitch.accidental).width;
+          }
+        });
 
-          if (declared != pitch.accidental
-              || pitch.cautionary) {
-          noteWidth += vexGlyph.accidental(pitch.accidental).width;
-        }
-      });
-
-      var verse = 0;
-      var lyric;
-      while (lyric = note.getLyricForVerse(verse,SmoLyric.parsers.lyric)) {
+        var verse = 0;
+        var lyric;
+        while (lyric = note.getLyricForVerse(verse,SmoLyric.parsers.lyric)) {
+          let lyricWidth = 0;
+          let i = 0;
           // TODO: kerning and all that...
           if (!lyric.length) {
-              break;
+            break;
           }
           // why did I make this return an array?
           // oh...because of voices
-          var lyricWidth = 7*lyric[0].getText().length + 10;
-          noteWidth = Math.max(lyricWidth,noteWidth);
+          const textFont =
+            VF.TextFont.getTextFontFromVexFontData({ family: lyric[0].fontInfo.family,
+              size: lyric[0].fontInfo.size, weight: 'normal' });
+          textFont.setFontSize(lyric[0].fontInfo.size);
+          const lyricText = lyric[0].getText();
+          for (i = 0;i < lyricText.length; ++i) {
+            lyricWidth += textFont.getWidthForCharacter(lyricText[i]) * (72 / 96);
+          }
+          noteWidth = Math.max(lyricWidth, noteWidth);
           verse += 1;
         }
-
         tickIndex += 1;
         duration += note.tickCount;
         width += noteWidth;
       });
-      voiceIx += 1;
-      widths.push(width);
+    voiceIx += 1;
+    widths.push(width);
     });
     widths.sort((a,b) => a > b ? -1 : 1);
     return widths[0];

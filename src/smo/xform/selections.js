@@ -332,6 +332,9 @@ class SmoSelection {
       const noteIndex = measure.voices[voiceIndex].notes.length - 1;
       return SmoSelection.noteSelection(score, staffIndex, lastMeasure, voiceIndex, noteIndex);
     }
+    if (measureIndex === 0 && voiceIndex === 0 && tickIndex === 0) {
+      return null;
+    }
     return SmoSelection.noteSelection(score, staffIndex, 0, 0, 0);
   }
 

@@ -159,7 +159,17 @@ class mxmlHelpers {
     }
     return def;
   }
-  static durationFromNode(noteNode, divisions, def) {
+  // ### durationFromNode
+  // the true duration value, used to handle forward/backward
+  static durationFromNode(noteNode, def) {
+    const durationNodes = [...noteNode.getElementsByTagName('duration')];
+    if (durationNodes.length) {
+      const duration = parseInt(durationNodes[0].textContent, 10);
+      return duration;
+    }
+    return def;
+  }
+  static ticksFromDuration(noteNode, divisions, def) {
     let tickCount = def;
     const durationNodes = [...noteNode.getElementsByTagName('duration')];
     const timeAlteration = mxmlHelpers.getTimeAlteration(noteNode);
@@ -580,12 +590,19 @@ class mxmlScore {
     let graceNotes = [];
     let noteData = {};
     let grIx = 0;
+    let currentDuration = 0;
     xmlState.beamGroups = {};
     xmlState.completedSlurs = [];
     xmlState.completedTuplets = [];
     console.log('measure ' + xmlState.measureIndex);
     const elements = [...measureElement.children];
     elements.forEach((element) => {
+      if (element.tagName === 'backup') {
+        currentDuration -= mxmlHelpers.durationFromNode(element);
+      }
+      if (element.tagName === 'forward') {
+        currentDuration += mxmlHelpers.durationFromNode(element);
+      }
       if (element.tagName === 'attributes') {
         // update the running state of the XML with new information from this measure
         // if an XML attributes element is present
@@ -620,8 +637,12 @@ class mxmlScore {
         const isGrace = mxmlHelpers.isGrace(noteNode);
         const restNode = mxmlHelpers.getChildrenFromPath(noteNode, ['rest']);
         const noteType = restNode.length ? 'r' : 'n';
-        const tickCount = mxmlHelpers.durationFromNode(noteNode, divisions, 4096);
+        const tickCount = mxmlHelpers.ticksFromDuration(noteNode, divisions, 4096);
         const chordNode = mxmlHelpers.getChildrenFromPath(noteNode, ['chord']);
+        if (chordNode.length === 0) {
+          currentDuration += mxmlHelpers.durationFromNode(noteNode, 0);
+        }
+        const tickCursor = (currentDuration / divisions) * 4096;
         const voiceIndex = mxmlHelpers.getVoiceId(noteNode);
         const beamState = mxmlHelpers.noteBeamState(noteNode);
         const slurInfos = mxmlHelpers.getSlurData(noteNode);
@@ -633,6 +654,7 @@ class mxmlScore {
         // persist per part (same with staff IDs)
         if (typeof(staffArray[staffIndex].voices[voiceIndex]) === 'undefined') {
           staffArray[staffIndex].voices[voiceIndex] = { notes: [] };
+          staffArray[staffIndex].voices[voiceIndex].ticksUsed = 0;
           // keep track of 0-indexed voice for slurs and other modifiers
           if (!xmlState.staffVoiceHash[staffIndex]) {
             xmlState.staffVoiceHash[staffIndex] = [];
@@ -642,13 +664,18 @@ class mxmlScore {
           }
           xmlState.beamGroups[voiceIndex] = 0;
         }
+        if (chordNode.length === 0) {
+          staffArray[staffIndex].voices[voiceIndex].ticksUsed += tickCount;
+        }
         const voice = staffArray[staffIndex].voices[voiceIndex];
         const pitch = mxmlHelpers.smoPitchFromNote(noteNode,
           SmoMeasure.defaultPitchForClef[staffArray[staffIndex].clefInfo.clef]);
         if (isGrace === false) {
           if (chordNode.length) {
+            // If this is a note in a chord, just add the pitch to previous note.
             previousNote.pitches.push(pitch);
           } else {
+            // Create a new note
             noteData = JSON.parse(JSON.stringify(SmoNote.defaults));
             noteData.noteType = noteType;
             noteData.pitches = [pitch];
@@ -670,6 +697,17 @@ class mxmlScore {
               previousNote.addGraceNote(graceNotes[grIx], grIx);
             }
             graceNotes = []; // clear the grace note array
+            // If this note starts later than the cursor due to forward, pad with rests
+            if (tickCursor > staffArray[staffIndex].voices[voiceIndex].ticksUsed) {
+              const pads = smoMusic.splitIntoValidDurations(
+                tickCursor - tickCount);
+              pads.forEach((pad) => {
+                voice.notes.push(SmoMeasure.createRestNoteWithDuration(pad,
+                  staffArray[staffIndex].clefInfo.clef));
+              });
+              // then reset the cursor since we are now in sync
+              staffArray[staffIndex].voices[voiceIndex].ticksUsed = tickCursor;
+            }
             mxmlScore.updateSlurStates(xmlState, slurInfos,
               staffIndex, xmlState.measureIndex, voiceIndex, voice.notes.length);
             voice.notes.push(previousNote);
@@ -728,6 +766,24 @@ class mxmlScore {
       });
       xmlState.completedTuplets = [];
       staffData.measure = smoMeasure;
+    });
+    // Pad incomplete measures/voices with rests
+    const maxTicks = staffArray.map((staffData) => staffData.measure.getMaxTicksVoice())
+      .reduce((a, b) => a > b ? a : b);
+    staffArray.forEach((staffData) => {
+      let i = 0;
+      let j = 0;
+      for (i = 0; i < staffData.measure.voices.length; ++i) {
+        const curTicks = staffData.measure.getTicksFromVoice(i);
+        if (curTicks < maxTicks) {
+          const tickAr = smoMusic.splitIntoValidDurations(maxTicks - curTicks);
+          for (j = 0; j < tickAr.length; ++j) {
+            staffData.measure.voices[i].notes.push(
+              SmoMeasure.createRestNoteWithDuration(tickAr[j], staffData.measure.clef)
+            );
+          }
+        }
+      }
     });
     return staffArray;
   }

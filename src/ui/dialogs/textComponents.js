@@ -254,6 +254,7 @@ class SuiLyricComponent extends SuiNoteTextComponent {
     if (!this.verse) {
       this.verse = 0;
     }
+    this.started = false;
   }
 
   get html() {
@@ -281,6 +282,8 @@ class SuiLyricComponent extends SuiNoteTextComponent {
 
   endSession() {
     var self = this;
+    this.started = false;
+    console.log('ending text session');
     $(this._getInputElement()).find('label').text(this.label);
     const button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
@@ -293,6 +296,10 @@ class SuiLyricComponent extends SuiNoteTextComponent {
 
   startEditSession() {
     $(this._getInputElement()).find('label').text(this.altLabel);
+    console.log('starting text session');
+    if (this.started) {
+      return;
+    }
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiLyricSession({
        renderer : this.dialog.view.renderer,
@@ -303,6 +310,7 @@ class SuiLyricComponent extends SuiNoteTextComponent {
        view: this.view
        }
      );
+     this.started = true;
     $('body').addClass('text-edit');
     var button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');

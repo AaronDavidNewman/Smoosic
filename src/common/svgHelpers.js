@@ -215,7 +215,7 @@ class svgHelpers {
     return rect;
   }
 
-  static line(svg,x1,y1,x2,y2,attrs,classes) {
+  static line(svg, x1, y1, x2, y2, attrs, classes) {
     var line = document.createElementNS(svgHelpers.namespace,'line');
     x1 = typeof(x1) == 'string' ? x1 : x1.toString();
     y1 = typeof(y1) == 'string' ? y1 : y1.toString();

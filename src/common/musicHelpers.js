@@ -593,19 +593,18 @@ class smoMusic {
     return smoMusic.keySignatureLength[key];
   }
 
-    static timeSignatureToTicks(timeSignature) {
-        var nd = timeSignature.split('/');
-        var num = parseInt(nd[0]);
-        var den = parseInt(nd[1]);
-
-        var base = 2048*(8/den);
-        return base*num;
-    }
-    static smoTicksToVexDots(ticks) {
-        var vd = smoMusic.ticksToDuration[ticks];
-        var dots = (vd.match(/d/g) || []).length;
-        return dots;
-    }
+  static timeSignatureToTicks(timeSignature) {
+    var nd = timeSignature.split('/');
+    var num = parseInt(nd[0]);
+    var den = parseInt(nd[1]);
+    var base = 2048 * (8 / den);
+    return base*num;
+  }
+  static smoTicksToVexDots(ticks) {
+    var vd = smoMusic.ticksToDuration[ticks];
+    var dots = (vd.match(/d/g) || []).length;
+    return dots;
+  }
   // ## closestVexDuration
   // ## Description:
   // return the closest vex duration >= to the actual number of ticks. Used in beaming
@@ -625,6 +624,27 @@ class smoMusic {
         return x >= ticks
       });
     return smoMusic.ticksToDuration[durations[ix]];
+  }
+
+  // ### closestDurationTickLtEq
+  // Price is right style, closest tick value without going over.  Used to pad
+  // rests when reading musicXML.
+  static closestDurationTickLtEq(ticks) {
+    const sorted = Object.keys(smoMusic.ticksToDuration)
+      .map((key) => parseInt(key, 10))
+        .filter((key) => key <= ticks);
+    return sorted[sorted.length - 1];
+  }
+
+  static splitIntoValidDurations(ticks) {
+    const rv = [];
+    let closest = 0;
+    while (ticks > 128) {
+      closest = smoMusic.closestDurationTickLtEq(ticks);
+      ticks -= closest;
+      rv.push(closest);
+    }
+    return rv;
   }
 
   // ### getKeySignatureKey

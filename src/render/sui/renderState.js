@@ -393,15 +393,17 @@ class SuiRenderState {
       if (vxEnd && !vxStart) {
         lastNote = SmoSelection.lastNoteSelection(this._score,
           modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
-        testNote = system.getVxNote(lastNote.note);
-        while (testNote) {
-          vxStart = testNote;
-          lastNote = SmoSelection.lastNoteSelection(this._score,
-            lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
-          if (!lastNote) {
-            break;
-          }
+        if (lastNote) {
           testNote = system.getVxNote(lastNote.note);
+          while (testNote) {
+            vxStart = testNote;
+            lastNote = SmoSelection.lastNoteSelection(this._score,
+              lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
+            if (!lastNote) {
+              break;
+            }
+            testNote = system.getVxNote(lastNote.note);
+          }
         }
       }
       if (!vxStart && !vxEnd) {

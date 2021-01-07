@@ -296,6 +296,7 @@ class SuiScoreRender extends SuiRenderState {
     let lineIndex = 0;
     let currentLine = []; // the system we are esimating
     let measureEstimate = {};
+    $('head title').text(this.score.scoreInfo.name);
 
     layoutDebug.clearDebugBoxes('pre');
     layoutDebug.clearDebugBoxes('post');

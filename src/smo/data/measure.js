@@ -640,17 +640,34 @@ class SmoMeasure {
       accidentalArray
     };
   }
+  static createRestNoteWithDuration(duration, clef) {
+    const pitch = JSON.parse(JSON.stringify(
+      SmoMeasure.defaultPitchForClef[clef]));
+    const note = new SmoNote({  pitches: [pitch], noteType: 'r', ticks:
+      { numerator: duration, denominator: 1, remainder: 0 } });
+    return note;
+  }
 
-  getTicksFromVoice() {
+  getMaxTicksVoice() {
+    let i = 0;
+    let max = 0;
+    for (i = 0; i < this.voices.length; ++i) {
+      const voiceTicks = this.getTicksFromVoice(i);
+      max = Math.max(voiceTicks, max);
+    }
+    return max;
+  }
+
+  getTicksFromVoice(voice) {
     let ticks = 0;
-    this.voices[0].notes.forEach((note) => {
+    this.voices[voice].notes.forEach((note) => {
       ticks += note.tickCount;
     });
     return ticks;
   }
 
   isPickup() {
-    const ticks = this.getTicksFromVoice();
+    const ticks = this.getTicksFromVoice(0);
     const goal = smoMusic.timeSignatureToTicks(this.timeSignature);
     return (ticks < goal);
   }

@@ -30,6 +30,9 @@ class SuiLyricDialog extends SuiDialogBase {
         }, {
           value: 2,
           label: '3'
+        }, {
+          value: 3,
+          label: '4'
         }
         ] }, {
         smoName: 'translateY',

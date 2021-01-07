@@ -344,8 +344,13 @@ class suiTracker extends suiMapper {
     const measureKey = SmoSelector.getMeasureKey(artifact.selector);
     const activeVoice = artifact.measure.getActiveVoice();
     if (artifact.selector.voice !== activeVoice && !artifact.note.fillStyle && !printing) {
+      const vvv = artifact.selector.voice;
+      const r = 128 + ((vvv * 32767 | vvv * 157) % 127);
+      const g = 128 / vvv;
+      const b = 128 - ((vvv * 32767 | vvv * 157) % 127);
+      const fill = 'rgb(' + r + ',' + g + ',' + b + ')';
       $('#' + artifact.note.renderId).find('.vf-notehead path').each((ix, el) => {
-        el.setAttributeNS('', 'fill', 'rgb(128,128,128)');
+        el.setAttributeNS('', 'fill', fill);
       });
     }
 
@@ -850,6 +855,9 @@ class suiTracker extends suiMapper {
     if (this.recordBuffer) {
       const artifact = this.modifierTabs[this.modifierSuggestion];
       const modKey = artifact.modifier.serialize();
+      if (artifact === null || artifact.selection === null) {
+        return;
+      }
       const selector = artifact.selection.selector;
       this.recordBuffer.addAction('selectSuggestionModifier', selector,
         suiTracker.serializeEvent(ev), modKey);

@@ -98,7 +98,7 @@ class SmoNote {
       return null;
     }
     return tms.reduce((m1, m2) =>
-      m1.text.length > m2.text.length
+      m1.getText().length > m2.getText().length ? m1 : m2
     );
   }
 

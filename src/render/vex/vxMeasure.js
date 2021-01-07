@@ -127,6 +127,7 @@ class VxMeasure {
     });
   }
   _addLyricAnnotationToNote(vexNote, lyric) {
+    let classString = 'lyric lyric-' + lyric.verse;
     if (lyric.skipRender) {
       return;
     }
@@ -140,7 +141,9 @@ class VxMeasure {
     vexL.setFont(lyric.fontInfo.family, lyric.fontInfo.size, lyric.fontInfo.weight);
     vexL.setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
     vexNote.addAnnotation(0, vexL);
-    const classString = 'lyric lyric-' + lyric.verse;
+    if (lyric.isHyphenated()) {
+      classString += ' lyric-hyphen';
+    }
     vexL.addClass(classString);
   }
 
