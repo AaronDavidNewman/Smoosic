@@ -201,6 +201,15 @@ class mxmlHelpers {
     });
     return rv;
   }
+  static getCrescendoData(directionElement) {
+    let rv = {};
+    const nNodes = mxmlHelpers.getChildrenFromPath(directionElement,
+      ['direction-type', 'wedge']);
+    nNodes.forEach((nNode) => {
+      rv = { type: nNode.getAttribute('type') };
+    });
+    return rv;
+  }
   static getTupletData(noteNode) {
     const rv = [];
     const nNodes = [...noteNode.getElementsByTagName('notations')];
@@ -279,20 +288,23 @@ class mxmlScore {
     try {
       // Default scale for mxml
       let scale = 1 / 7;
-      let comp = 'Imported Smoosic';
       const scoreeNode = [...xmlDoc.getElementsByTagName('score-partwise')];
       if (!scoreeNode.length) {
         return SmoScore.deserialize(emptyScoreJson);
       }
 
       const scoreElement = scoreeNode[0];
-      const scoreNameNode = [...xmlDoc.getElementsByTagName('work-title')];
-      if (scoreNameNode.length) {
-        comp = scoreNameNode[0].textContent;
-      }
       const parts = [...scoreeNode[0].getElementsByTagName('part')];
       const scoreDefaults = JSON.parse(JSON.stringify(SmoScore.defaults));
-      scoreDefaults.scoreInfo.name = comp;
+      scoreDefaults.scoreInfo.name = 'Imported Smoosic';
+      const scoreNameNode = [...xmlDoc.getElementsByTagName('work-title')];
+      if (scoreNameNode.length) {
+        scoreDefaults.scoreInfo.name = scoreNameNode[0].textContent;
+      }
+      const titleNodes = [...scoreeNode[0].getElementsByTagName('movement-title')];
+      if (titleNodes.length) {
+        scoreDefaults.scoreInfo.name = titleNodes[0].textContent;
+      }
       const pageLayoutNode = mxmlHelpers.getChildrenFromPath(scoreElement,
         ['defaults', 'page-layout']);
       if (pageLayoutNode.length) {
@@ -344,16 +356,21 @@ class mxmlScore {
       let staffId = smoStaves.length;
       console.log('part ' + partElement.getAttribute('id'));
       xmlState.slurs = {};
+      xmlState.wedges = {};
+      xmlState.hairpins = [];
+      xmlState.globalCursor = 0;
       const stavesForPart = [];
       xmlState.staffVoiceHash = {};
       xmlState.measureIndex = 0;
       const measureElements = [...partElement.getElementsByTagName('measure')];
       measureElements.forEach((measureElement) => {
         xmlState.tuplets = {};
+        xmlState.tickCursor = 0;
         const newStaves = mxmlScore.parseMeasureElement(measureElement, xmlState);
         if (newStaves.length > 1 && stavesForPart.length <= newStaves[0].clefInfo.staffId) {
           xmlState.staffGroups.push({ start: staffId, length: newStaves.length });
         }
+        xmlState.globalCursor += xmlState.tickCursor;
         newStaves.forEach((staffMeasure) => {
           if (stavesForPart.length <= staffMeasure.clefInfo.staffId) {
             stavesForPart.push(new SmoSystemStaff({ staffId }));
@@ -361,6 +378,37 @@ class mxmlScore {
           }
           const smoStaff = stavesForPart[staffMeasure.clefInfo.staffId];
           smoStaff.measures.push(staffMeasure.measure);
+          xmlState.hairpins.forEach((hairpin) => {
+            let hpMeasureIndex = xmlState.measureIndex;
+            let hpMeasure = staffMeasure.measure;
+            let startTick = staffMeasure.measure.voices[0].notes.length - 1;
+            let hpTickCount = hairpin.end - hairpin.start;
+            const endSelector = {
+              staff: staffId - 1, measure: hpMeasureIndex, voice: 0,
+              tick: startTick
+            };
+            while (hpMeasureIndex >= 0 && hpTickCount >= 0) {
+              hpTickCount -= hpMeasure.voices[0].notes[startTick].ticks.numerator;
+              if (hpTickCount > 0) {
+                startTick -= 1;
+                if (startTick <= 0) {
+                  hpMeasureIndex -= 1;
+                  hpMeasure = smoStaff.measures[hpMeasureIndex];
+                  startTick = hpMeasure.voices[0].notes.length - 1;
+                }
+              }
+            }
+            const startSelector = {
+              staff: staffId - 1, measure: hpMeasureIndex, voice: 0, tick: startTick
+            };
+            const smoHp = new SmoStaffHairpin({
+              startSelector, endSelector, hairpinType: hairpin.type === 'crescendo' ?
+                SmoStaffHairpin.types.CRESCENDO :
+                SmoStaffHairpin.types.DECRESCENDO
+            });
+            smoStaff.modifiers.push(smoHp);
+          });
+          xmlState.hairpins = [];
         });
         const oldStaffId = staffId - stavesForPart.length;
         xmlState.completedSlurs.forEach((slur) => {
@@ -435,6 +483,32 @@ class mxmlScore {
       }
     });
     return rv;
+  }
+  static smoDynamic(measureElement, xmlState, divisions) {
+    let offset = 1;
+    const dynamicNodes = mxmlHelpers.getChildrenFromPath(measureElement,
+      ['direction', 'direction-type', 'dynamics']);
+    const offsetNodes = mxmlHelpers.getChildrenFromPath(measureElement,
+      ['direction', 'offset']);
+    if (offsetNodes.length) {
+      offset = parseInt(offsetNodes[0].textContent, 10);
+    }
+    dynamicNodes.forEach((dynamic) => {
+      xmlState.dynamics.push({ dynamic: dynamic.children[0].tagName,
+        offset: (offset / divisions) * 4096 });
+    });
+  }
+  static updateDynamics(xmlState, smoNote, tickCursor) {
+    const newArray = [];
+    xmlState.dynamics.forEach((dynamic) => {
+      if (tickCursor >= dynamic.offset) {
+        // TODO: change the smonote name of this interface
+        smoNote.addModifier(new SmoDynamicText({ text: dynamic.dynamic }));
+      } else {
+        newArray.push(dynamic);
+      }
+    });
+    xmlState.dynamics = newArray;
   }
   static attributesFromMeasure(measureElement, xmlState) {
     let smoKey = {};
@@ -594,6 +668,7 @@ class mxmlScore {
     xmlState.beamGroups = {};
     xmlState.completedSlurs = [];
     xmlState.completedTuplets = [];
+    xmlState.dynamics = [];
     console.log('measure ' + xmlState.measureIndex);
     const elements = [...measureElement.children];
     elements.forEach((element) => {
@@ -621,6 +696,20 @@ class mxmlScore {
           xmlState.tempo = SmoMeasureModifierBase.deserialize(xmlState.tempo.serialize());
           xmlState.tempo.display = false;
         }
+        // parse dynamic node
+        mxmlScore.smoDynamic(measureElement, xmlState, xmlState.divisions);
+        const crescInfo = mxmlHelpers.getCrescendoData(element);
+        if (crescInfo.type) {
+          if (xmlState.wedges.type) {
+            xmlState.hairpins.push({ type: xmlState.wedges.type,
+              start: xmlState.wedges.start,
+              end: xmlState.tickCursor + xmlState.globalCursor });
+            xmlState.wedges = {};
+          } else {
+            xmlState.wedges.type = crescInfo.type;
+            xmlState.wedges.start = xmlState.tickCursor + xmlState.globalCursor;
+          }
+        }
       } else if (element.tagName === 'note') {
         const noteNode = element;
         const staffIndex = mxmlHelpers.getStaffId(noteNode);
@@ -643,6 +732,7 @@ class mxmlScore {
           currentDuration += mxmlHelpers.durationFromNode(noteNode, 0);
         }
         const tickCursor = (currentDuration / divisions) * 4096;
+        xmlState.tickCursor = tickCursor;
         const voiceIndex = mxmlHelpers.getVoiceId(noteNode);
         const beamState = mxmlHelpers.noteBeamState(noteNode);
         const slurInfos = mxmlHelpers.getSlurData(noteNode);
@@ -683,6 +773,7 @@ class mxmlScore {
             // treats them as note modifiers
             noteData.ticks = { numerator: tickCount, denominator: 1, remainder: 0 };
             previousNote = new SmoNote(noteData);
+            mxmlScore.updateDynamics(xmlState, previousNote, tickCursor);
             ornaments.forEach((ornament) => {
               if (ornament.ctor === 'SmoOrnament') {
                 previousNote.toggleOrnament(ornament);
