@@ -20027,6 +20027,42 @@ class mxmlScore {
       return SmoScore.deserialize(emptyScoreJson);
     }
   }
+  static backtrackHairpins(xmlState, smoStaff, staffId) {
+    xmlState.hairpins.forEach((hairpin) => {
+      let hpMeasureIndex = xmlState.measureIndex;
+      let hpMeasure = smoStaff.measures[hpMeasureIndex];
+      let startTick = hpMeasure.voices[0].notes.length - 1;
+      let hpTickCount = hairpin.end;
+      const endSelector = {
+        staff: staffId - 1, measure: hpMeasureIndex, voice: 0,
+        tick: -1
+      };
+      while (hpMeasureIndex >= 0 && hpTickCount > hairpin.start) {
+        if (endSelector.tick < 0 && hpTickCount <= hairpin.end) {
+          endSelector.tick = startTick;
+        }
+        hpTickCount -= hpMeasure.voices[0].notes[startTick].ticks.numerator;
+        if (hpTickCount > hairpin.start) {
+          startTick -= 1;
+          if (startTick < 0) {
+            hpMeasureIndex -= 1;
+            hpMeasure = smoStaff.measures[hpMeasureIndex];
+            startTick = hpMeasure.voices[0].notes.length - 1;
+          }
+        }
+      }
+      const startSelector = {
+        staff: staffId - 1, measure: hpMeasureIndex, voice: 0, tick: startTick
+      };
+      const smoHp = new SmoStaffHairpin({
+        startSelector, endSelector, hairpinType: hairpin.type === 'crescendo' ?
+          SmoStaffHairpin.types.CRESCENDO :
+          SmoStaffHairpin.types.DECRESCENDO
+      });
+      smoStaff.modifiers.push(smoHp);
+    });
+    xmlState.hairpins = [];
+  }
   static createStaves(partElements) {
     let smoStaves = [];
     const xmlState = { divisions: 1, tempo: new SmoTempoText(), timeSignature: '4/4', keySignature: 'C',
@@ -20049,7 +20085,7 @@ class mxmlScore {
         if (newStaves.length > 1 && stavesForPart.length <= newStaves[0].clefInfo.staffId) {
           xmlState.staffGroups.push({ start: staffId, length: newStaves.length });
         }
-        xmlState.globalCursor += xmlState.tickCursor;
+        xmlState.globalCursor += newStaves[0].measure.getMaxTicksVoice();
         newStaves.forEach((staffMeasure) => {
           if (stavesForPart.length <= staffMeasure.clefInfo.staffId) {
             stavesForPart.push(new SmoSystemStaff({ staffId }));
@@ -20057,39 +20093,9 @@ class mxmlScore {
           }
           const smoStaff = stavesForPart[staffMeasure.clefInfo.staffId];
           smoStaff.measures.push(staffMeasure.measure);
-          xmlState.hairpins.forEach((hairpin) => {
-            let hpMeasureIndex = xmlState.measureIndex;
-            let hpMeasure = staffMeasure.measure;
-            let startTick = staffMeasure.measure.voices[0].notes.length - 1;
-            let hpTickCount = hairpin.end - hairpin.start;
-            const endSelector = {
-              staff: staffId - 1, measure: hpMeasureIndex, voice: 0,
-              tick: startTick
-            };
-            while (hpMeasureIndex >= 0 && hpTickCount >= 0) {
-              hpTickCount -= hpMeasure.voices[0].notes[startTick].ticks.numerator;
-              if (hpTickCount > 0) {
-                startTick -= 1;
-                if (startTick <= 0) {
-                  hpMeasureIndex -= 1;
-                  hpMeasure = smoStaff.measures[hpMeasureIndex];
-                  startTick = hpMeasure.voices[0].notes.length - 1;
-                }
-              }
-            }
-            const startSelector = {
-              staff: staffId - 1, measure: hpMeasureIndex, voice: 0, tick: startTick
-            };
-            const smoHp = new SmoStaffHairpin({
-              startSelector, endSelector, hairpinType: hairpin.type === 'crescendo' ?
-                SmoStaffHairpin.types.CRESCENDO :
-                SmoStaffHairpin.types.DECRESCENDO
-            });
-            smoStaff.modifiers.push(smoHp);
-          });
-          xmlState.hairpins = [];
         });
         const oldStaffId = staffId - stavesForPart.length;
+        mxmlScore.backtrackHairpins(xmlState, stavesForPart[0], oldStaffId + 1);
         xmlState.completedSlurs.forEach((slur) => {
           const staffIx = slur.start.staff;
           slur.start.voice = xmlState.staffVoiceHash[slur.start.staff].indexOf(slur.start.voice);
