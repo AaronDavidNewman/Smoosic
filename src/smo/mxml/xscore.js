@@ -334,10 +334,12 @@ class mxmlScore {
       rv.systemGroups = partData.staffGroups;
       // Fix tempo to be column mapped
       rv.staves[0].measures.forEach((measure) => {
-        const tempo = rv.staves.find((ss) => ss.measures[measure.measureNumber.measureIndex].tempo.display === true);
-        if (tempo) {
+        const tempoStaff = rv.staves.find((ss) => ss.measures[measure.measureNumber.measureIndex].tempo.display === true);
+        if (tempoStaff) {
+          const tempo = tempoStaff.measures[measure.measureNumber.measureIndex].tempo;
           rv.staves.forEach((ss) => {
-            ss.measures[measure.measureNumber.measureIndex].tempo.display = true;
+            ss.measures[measure.measureNumber.measureIndex].tempo =
+              SmoMeasureModifierBase.deserialize(tempo);
           });
         }
       });
@@ -402,6 +404,8 @@ class mxmlScore {
       measureElements.forEach((measureElement) => {
         xmlState.tuplets = {};
         xmlState.tickCursor = 0;
+        xmlState.tempo = SmoMeasureModifierBase.deserialize(xmlState.tempo.serialize());
+        xmlState.tempo.display = false;
         const newStaves = mxmlScore.parseMeasureElement(measureElement, xmlState);
         if (newStaves.length > 1 && stavesForPart.length <= newStaves[0].clefInfo.staffId) {
           xmlState.staffGroups.push({ start: staffId, length: newStaves.length });
@@ -463,28 +467,33 @@ class mxmlScore {
     }
     return rv;
   }   */
-  static smoTempo(measureElement) {
+  static smoTempo(element) {
     let tempoText = '';
+    let customText = tempoText;
     const rv = [];
-    const soundNodes = mxmlHelpers.getChildrenFromPath(measureElement,
-      ['direction', 'sound']);
+    const soundNodes = mxmlHelpers.getChildrenFromPath(element,
+      ['sound']);
     soundNodes.forEach((sound) => {
       let tempoMode = SmoTempoText.tempoModes.durationMode;
       tempoText = sound.getAttribute('tempo');
       if (tempoText) {
-        const direction = sound.parentElement;
         const bpm = parseInt(tempoText, 10);
         const wordNode =
-          [...direction.getElementsByTagName('words')];
+          [...element.getElementsByTagName('words')];
         tempoText = wordNode.length ? wordNode[0].textContent :
           tempoText.toString();
         if (isNaN(tempoText)) {
-          tempoMode = SmoTempoText.tempoModes.textMode;
+          if (SmoTempoText.tempoTexts[tempoText.toLowerCase()]) {
+            tempoMode = SmoTempoText.tempoModes.textMode;
+          } else {
+            tempoMode = SmoTempoText.tempoModes.customMode;
+            customText = tempoText;
+          }
         }
         const tempo = new SmoTempoText({
-          tempoMode, bpm, tempoText, display: true
+          tempoMode, bpm, tempoText, customText, display: true
         });
-        const staffId = mxmlHelpers.getStaffId(direction);
+        const staffId = mxmlHelpers.getStaffId(element);
         rv.push({ staffId, tempo });
       }
     });
@@ -690,7 +699,7 @@ class mxmlScore {
         mxmlScore.attributesFromMeasure(measureElement, xmlState);
       } else if (element.tagName === 'direction') {
         // TODO: other direction elements like dynamics
-        const tempo = mxmlScore.smoTempo(measureElement);
+        const tempo = mxmlScore.smoTempo(element);
         // Only display tempo if changes.
         if (tempo.length) {
           // TODO: staff ID is with tempo, but tempo is per column in SMO
@@ -698,9 +707,6 @@ class mxmlScore {
             xmlState.tempo = tempo[0].tempo;
             xmlState.tempo.display = true;
           }
-        } else {
-          xmlState.tempo = SmoMeasureModifierBase.deserialize(xmlState.tempo.serialize());
-          xmlState.tempo.display = false;
         }
         // parse dynamic node
         mxmlScore.smoDynamic(measureElement, xmlState, xmlState.divisions);

@@ -16630,11 +16630,12 @@ class SmoTempoText extends SmoMeasureModifierBase {
       beatDuration: 4096,
       tempoText: SmoTempoText.tempoTexts.allegro,
       yOffset: 0,
-      display: false
+      display: false,
+      customText: ''
     };
   }
   static get attributes() {
-    return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText', 'yOffset'];
+    return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText', 'yOffset', 'customText'];
   }
   compare(instance) {
     var rv = true;
@@ -16646,7 +16647,7 @@ class SmoTempoText extends SmoMeasureModifierBase {
     return rv;
   }
   _toVexTextTempo() {
-    return {name:this.tempoText};
+    return { name: this.tempoText };
   }
 
   // ### eq
@@ -16670,33 +16671,38 @@ class SmoTempoText extends SmoMeasureModifierBase {
   static get bpmFromText() {
     // TODO: learn these
     var rv = {};
-    rv[SmoTempoText.tempoTexts.larghissimo] = 40;
+    rv[SmoTempoText.tempoTexts.larghissimo] = 24;
     rv[SmoTempoText.tempoTexts.grave] = 40;
-    rv[SmoTempoText.tempoTexts.lento] = 42;
-    rv[SmoTempoText.tempoTexts.largo] = 46;
-    rv[SmoTempoText.tempoTexts.larghetto] = 52;
+    rv[SmoTempoText.tempoTexts.lento] = 45;
+    rv[SmoTempoText.tempoTexts.largo] = 40;
+    rv[SmoTempoText.tempoTexts.larghetto] = 60;
     rv[SmoTempoText.tempoTexts.adagio] = 72;
     rv[SmoTempoText.tempoTexts.adagietto] = 72;
     rv[SmoTempoText.tempoTexts.andante_moderato] = 72;
-    rv[SmoTempoText.tempoTexts.andante] = 72;
-    rv[SmoTempoText.tempoTexts.andantino] = 84;
+    rv[SmoTempoText.tempoTexts.andante] = 84;
+    rv[SmoTempoText.tempoTexts.andantino] = 92;
     rv[SmoTempoText.tempoTexts.moderator] = 96;
     rv[SmoTempoText.tempoTexts.allegretto] = 96;
     rv[SmoTempoText.tempoTexts.allegro] = 120;
     rv[SmoTempoText.tempoTexts.vivace] = 144;
     rv[SmoTempoText.tempoTexts.presto] = 168;
     rv[SmoTempoText.tempoTexts.prestissimo] = 240;
-      return rv;
+    return rv;
   }
 
   _toVexDurationTempo() {
     var vd = smoMusic.ticksToDuration[this.beatDuration];
     var dots = (vd.match(/d/g) || []).length;
-    vd=vd.replace(/d/g,'');
-    return {duration: vd, dots: dots, bpm: this.bpm };
+    vd = vd.replace(/d/g, '');
+    const rv = { duration: vd, dots: dots, bpm: this.bpm };
+    if (this.customText.length) {
+      rv.name = this.customText;
+    }
+    return rv;
   }
   toVexTempo() {
-    if (this.tempoMode ==  SmoTempoText.tempoModes.durationMode) {
+    if (this.tempoMode === SmoTempoText.tempoModes.durationMode ||
+      this.tempoMode === SmoTempoText.tempoModes.customMode) {
       return this._toVexDurationTempo();
     }
     return this._toVexTextTempo();
@@ -20013,10 +20019,12 @@ class mxmlScore {
       rv.systemGroups = partData.staffGroups;
       // Fix tempo to be column mapped
       rv.staves[0].measures.forEach((measure) => {
-        const tempo = rv.staves.find((ss) => ss.measures[measure.measureNumber.measureIndex].tempo.display === true);
-        if (tempo) {
+        const tempoStaff = rv.staves.find((ss) => ss.measures[measure.measureNumber.measureIndex].tempo.display === true);
+        if (tempoStaff) {
+          const tempo = tempoStaff.measures[measure.measureNumber.measureIndex].tempo;
           rv.staves.forEach((ss) => {
-            ss.measures[measure.measureNumber.measureIndex].tempo.display = true;
+            ss.measures[measure.measureNumber.measureIndex].tempo =
+              SmoMeasureModifierBase.deserialize(tempo);
           });
         }
       });
@@ -20081,6 +20089,8 @@ class mxmlScore {
       measureElements.forEach((measureElement) => {
         xmlState.tuplets = {};
         xmlState.tickCursor = 0;
+        xmlState.tempo = SmoMeasureModifierBase.deserialize(xmlState.tempo.serialize());
+        xmlState.tempo.display = false;
         const newStaves = mxmlScore.parseMeasureElement(measureElement, xmlState);
         if (newStaves.length > 1 && stavesForPart.length <= newStaves[0].clefInfo.staffId) {
           xmlState.staffGroups.push({ start: staffId, length: newStaves.length });
@@ -20142,28 +20152,33 @@ class mxmlScore {
     }
     return rv;
   }   */
-  static smoTempo(measureElement) {
+  static smoTempo(element) {
     let tempoText = '';
+    let customText = tempoText;
     const rv = [];
-    const soundNodes = mxmlHelpers.getChildrenFromPath(measureElement,
-      ['direction', 'sound']);
+    const soundNodes = mxmlHelpers.getChildrenFromPath(element,
+      ['sound']);
     soundNodes.forEach((sound) => {
       let tempoMode = SmoTempoText.tempoModes.durationMode;
       tempoText = sound.getAttribute('tempo');
       if (tempoText) {
-        const direction = sound.parentElement;
         const bpm = parseInt(tempoText, 10);
         const wordNode =
-          [...direction.getElementsByTagName('words')];
+          [...element.getElementsByTagName('words')];
         tempoText = wordNode.length ? wordNode[0].textContent :
           tempoText.toString();
         if (isNaN(tempoText)) {
-          tempoMode = SmoTempoText.tempoModes.textMode;
+          if (SmoTempoText.tempoTexts[tempoText.toLowerCase()]) {
+            tempoMode = SmoTempoText.tempoModes.textMode;
+          } else {
+            tempoMode = SmoTempoText.tempoModes.customMode;
+            customText = tempoText;
+          }
         }
         const tempo = new SmoTempoText({
-          tempoMode, bpm, tempoText, display: true
+          tempoMode, bpm, tempoText, customText, display: true
         });
-        const staffId = mxmlHelpers.getStaffId(direction);
+        const staffId = mxmlHelpers.getStaffId(element);
         rv.push({ staffId, tempo });
       }
     });
@@ -20369,7 +20384,7 @@ class mxmlScore {
         mxmlScore.attributesFromMeasure(measureElement, xmlState);
       } else if (element.tagName === 'direction') {
         // TODO: other direction elements like dynamics
-        const tempo = mxmlScore.smoTempo(measureElement);
+        const tempo = mxmlScore.smoTempo(element);
         // Only display tempo if changes.
         if (tempo.length) {
           // TODO: staff ID is with tempo, but tempo is per column in SMO
@@ -20377,9 +20392,6 @@ class mxmlScore {
             xmlState.tempo = tempo[0].tempo;
             xmlState.tempo.display = true;
           }
-        } else {
-          xmlState.tempo = SmoMeasureModifierBase.deserialize(xmlState.tempo.serialize());
-          xmlState.tempo.display = false;
         }
         // parse dynamic node
         mxmlScore.smoDynamic(measureElement, xmlState, xmlState.divisions);
@@ -32495,6 +32507,14 @@ class SuiTempoDialog extends SuiDialogBase {
           ]
         },
         {
+          smoName: 'customText',
+          parameterName: 'customText',
+          defaultValue: '',
+          control: 'SuiTextInputComponent',
+          label: 'Custom Text',
+          classes: 'hide-when-text-mode'
+        },
+        {
           parameterName: 'bpm',
           smoName: 'bpm',
           defaultValue: 120,
@@ -32529,6 +32549,7 @@ class SuiTempoDialog extends SuiDialogBase {
           defaultValue: SmoTempoText.tempoTexts.allegro,
           control: 'SuiDropdownComponent',
           label: 'Tempo Text',
+          classes: 'hide-when-not-text-mode',
           options: [{
             value: SmoTempoText.tempoTexts.larghissimo,
             label: 'Larghissimo'
@@ -32663,6 +32684,9 @@ class SuiTempoDialog extends SuiDialogBase {
     });
     if (this.modifier.tempoMode === SmoTempoText.tempoModes.textMode) {
       this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
+    }
+    if (this.customTextCtrl.changeFlag) {
+      this.modifier.customText = this.customTextCtrl.getValue();
     }
     this._updateModeClass();
     this.view.updateTempoScore(this.modifier, this.applyToAllCtrl.getValue());

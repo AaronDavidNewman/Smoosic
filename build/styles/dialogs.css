@@ -5,19 +5,31 @@
 }
 
 .draganime {
-	display:block;
-	border:blue 2px solid;
-	position:absolute;
-	z-index:11;
+	display: block;
+	border: blue 2px solid;
+	position: absolute;
+	z-index: 11;
 }
 
 body .attributeModal .show-when-editing {
   display:none;
 }
 
+.tempoTextMode .hide-when-not-text-mode  {
+  display: flex;
+}
+
+.tempoTextMode .hide-when-text-mode {
+  display: none;
+}
+
+.tempoDurationMode .hide-when-not-text-mode {
+  display: none;
+}
+
 body.text-edit .hide-when-editing,
 body.text-move .hide-when-moving {
-    display:none;
+  display:none;
 }
 
 body.text-edit .show-when-editing,

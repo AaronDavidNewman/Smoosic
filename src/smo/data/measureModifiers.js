@@ -379,11 +379,12 @@ class SmoTempoText extends SmoMeasureModifierBase {
       beatDuration: 4096,
       tempoText: SmoTempoText.tempoTexts.allegro,
       yOffset: 0,
-      display: false
+      display: false,
+      customText: ''
     };
   }
   static get attributes() {
-    return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText', 'yOffset'];
+    return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText', 'yOffset', 'customText'];
   }
   compare(instance) {
     var rv = true;
@@ -395,7 +396,7 @@ class SmoTempoText extends SmoMeasureModifierBase {
     return rv;
   }
   _toVexTextTempo() {
-    return {name:this.tempoText};
+    return { name: this.tempoText };
   }
 
   // ### eq
@@ -419,33 +420,38 @@ class SmoTempoText extends SmoMeasureModifierBase {
   static get bpmFromText() {
     // TODO: learn these
     var rv = {};
-    rv[SmoTempoText.tempoTexts.larghissimo] = 40;
+    rv[SmoTempoText.tempoTexts.larghissimo] = 24;
     rv[SmoTempoText.tempoTexts.grave] = 40;
-    rv[SmoTempoText.tempoTexts.lento] = 42;
-    rv[SmoTempoText.tempoTexts.largo] = 46;
-    rv[SmoTempoText.tempoTexts.larghetto] = 52;
+    rv[SmoTempoText.tempoTexts.lento] = 45;
+    rv[SmoTempoText.tempoTexts.largo] = 40;
+    rv[SmoTempoText.tempoTexts.larghetto] = 60;
     rv[SmoTempoText.tempoTexts.adagio] = 72;
     rv[SmoTempoText.tempoTexts.adagietto] = 72;
     rv[SmoTempoText.tempoTexts.andante_moderato] = 72;
-    rv[SmoTempoText.tempoTexts.andante] = 72;
-    rv[SmoTempoText.tempoTexts.andantino] = 84;
+    rv[SmoTempoText.tempoTexts.andante] = 84;
+    rv[SmoTempoText.tempoTexts.andantino] = 92;
     rv[SmoTempoText.tempoTexts.moderator] = 96;
     rv[SmoTempoText.tempoTexts.allegretto] = 96;
     rv[SmoTempoText.tempoTexts.allegro] = 120;
     rv[SmoTempoText.tempoTexts.vivace] = 144;
     rv[SmoTempoText.tempoTexts.presto] = 168;
     rv[SmoTempoText.tempoTexts.prestissimo] = 240;
-      return rv;
+    return rv;
   }
 
   _toVexDurationTempo() {
     var vd = smoMusic.ticksToDuration[this.beatDuration];
     var dots = (vd.match(/d/g) || []).length;
-    vd=vd.replace(/d/g,'');
-    return {duration: vd, dots: dots, bpm: this.bpm };
+    vd = vd.replace(/d/g, '');
+    const rv = { duration: vd, dots: dots, bpm: this.bpm };
+    if (this.customText.length) {
+      rv.name = this.customText;
+    }
+    return rv;
   }
   toVexTempo() {
-    if (this.tempoMode ==  SmoTempoText.tempoModes.durationMode) {
+    if (this.tempoMode === SmoTempoText.tempoModes.durationMode ||
+      this.tempoMode === SmoTempoText.tempoModes.customMode) {
       return this._toVexDurationTempo();
     }
     return this._toVexTextTempo();

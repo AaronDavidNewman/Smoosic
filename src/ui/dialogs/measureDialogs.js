@@ -539,6 +539,14 @@ class SuiTempoDialog extends SuiDialogBase {
           ]
         },
         {
+          smoName: 'customText',
+          parameterName: 'customText',
+          defaultValue: '',
+          control: 'SuiTextInputComponent',
+          label: 'Custom Text',
+          classes: 'hide-when-text-mode'
+        },
+        {
           parameterName: 'bpm',
           smoName: 'bpm',
           defaultValue: 120,
@@ -573,6 +581,7 @@ class SuiTempoDialog extends SuiDialogBase {
           defaultValue: SmoTempoText.tempoTexts.allegro,
           control: 'SuiDropdownComponent',
           label: 'Tempo Text',
+          classes: 'hide-when-not-text-mode',
           options: [{
             value: SmoTempoText.tempoTexts.larghissimo,
             label: 'Larghissimo'
@@ -707,6 +716,9 @@ class SuiTempoDialog extends SuiDialogBase {
     });
     if (this.modifier.tempoMode === SmoTempoText.tempoModes.textMode) {
       this.modifier.bpm = SmoTempoText.bpmFromText[this.modifier.tempoText];
+    }
+    if (this.customTextCtrl.changeFlag) {
+      this.modifier.customText = this.customTextCtrl.getValue();
     }
     this._updateModeClass();
     this.view.updateTempoScore(this.modifier, this.applyToAllCtrl.getValue());
