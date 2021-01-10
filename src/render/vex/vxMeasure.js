@@ -275,9 +275,11 @@ class VxMeasure {
     group.classList.add(textObj.attrs.id);
     textObj.text.split('').forEach((ch) => {
       const glyphCode = VF.TextDynamics.GLYPHS[ch];
-      const glyph = new VF.Glyph(glyphCode.code, textObj.fontSize);
-      glyph.render(this.context, x, y);
-      x += VF.TextDynamics.GLYPHS[ch].width;
+      if (glyphCode) {
+        const glyph = new VF.Glyph(glyphCode.code, textObj.fontSize);
+        glyph.render(this.context, x, y);
+        x += VF.TextDynamics.GLYPHS[ch].width;
+      }
     });
     textObj.renderedBox = svgHelpers.smoBox(group.getBoundingClientRect());
     this.context.closeGroup();
