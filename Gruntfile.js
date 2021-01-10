@@ -4,7 +4,7 @@ module.exports = function (grunt) {
   'src/smo/xform/beamers.js',
   'src/smo/data/noteModifiers.js','src/smo/data/systemStaff.js','src/smo/data/scoreModifiers.js',
   'src/smo/data/tuplet.js','src/smo/data/staffModifiers.js',
-  'src/smo/mxml/xscore.js',
+  'src/smo/mxml/xmlScore.js','src/smo/mxml/xmlState.js',
   'src/smo/xform/undo.js', 'src/smo/xform/actions.js',
   'src/smo/xform/copypaste.js','src/smo/xform/selections.js',
   'src/render/vex/vxMeasure.js','src/render/sui/renderState.js', 'src/render/sui/scoreRender.js',
