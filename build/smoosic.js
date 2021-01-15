@@ -1288,7 +1288,14 @@ class smoSerialize {
       "kf": "defaultDupleDuration",
       "lf": "defaultTripleDuration",
       "mf": "scoreInfo",
-      "nf": "version"
+      "nf": "version",
+      "of": "title",
+      "pf": "subTitle",
+      "qf": "composer",
+      "rf": "copyright",
+      "sf": "localIndex",
+      "tf": "hairpinType",
+      "uf": "customText"
       }`;
      return JSON.parse(_tm);
     }
@@ -1394,6 +1401,10 @@ class smoSerialize {
       }
     };
     const _tokenRecurse = (obj) =>  {
+      if (!obj) {
+        console.warn('failure to parse');
+        return;
+      }
       const keys = Object.keys(obj);
       keys.forEach((key) => {
         const val = obj[key];
@@ -1987,14 +1998,6 @@ class svgHelpers {
     rv['px'] = 96.0;
     rv['em'] = 6.0;
     return rv;
-  }
-
-  // ### getFontSize
-  // Given '1em' return {size:1.0,unit:em}
-  static getFontSize(fs) {
-    var size=parseFloat(fs);
-    var measure = fs.substr(fs.length - 2, 2);
-    return { size:size, unit:measure };
   }
 
   static convertFont(size,o,n) {
@@ -5025,7 +5028,6 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, this.storeScore.textGroups[index], UndoBuffer.bufferSubtypes.UPDATE);
     const altNew = SmoTextGroup.deserialize(newVersion.serialize());
     this.storeScore.textGroups[index] = altNew;
-
     // TODO: only render the one TG.
     this.renderer.renderScoreModifiers();
   }
@@ -5042,6 +5044,15 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._undoScorePreferences('Update preferences');
     // TODO: add action buffer here?
     smoSerialize.serializedMerge(SmoScore.preferences, this.score, this.storeScore);
+    this.renderer.setDirty();
+  }
+  // ### updateScorePreferences
+  // The score preferences for view score have changed, sync them
+  updateScoreInfo(scoreInfo) {
+    this._undoScorePreferences('Update preferences');
+    // TODO: add action buffer here?
+    this.score.scoreInfo = scoreInfo;
+    this.storeScore.scoreInfo = JSON.parse(JSON.stringify(scoreInfo));
     this.renderer.setDirty();
   }
 
@@ -7022,6 +7033,7 @@ class SuiTextSession {
   stopSession() {
     if (this.editor) {
       this.scoreText.text = this.editor.getText();
+      this.scoreText.tryParseUnicode(); // convert unicode chars
       this.editor.stopEditor();
     }
     return PromiseHelpers.makePromise(this, '_isRendered', '_markStopped', null, 100);
@@ -12968,7 +12980,11 @@ class SmoScore {
       ],
       staffWidth: 1600,
       scoreInfo: {
-        name: 'Smoosical',
+        name: 'Smoosical', // deprecated
+        title: 'Smoosical',
+        subTitle: '(Op. 1)',
+        composer: 'Me',
+        copyright: '',
         version: 1,
       },
       preferences: {
@@ -13408,8 +13424,8 @@ class SmoScore {
   addTextGroup(textGroup) {
     this._updateTextGroup(textGroup, true);
   }
-  getTextGroup() {
-    return this.textGroups.find((tg) => tg.tgid === tg.attrs.id);
+  getTextGroups() {
+    return this.textGroups;
   }
 
   removeTextGroup(textGroup) {
@@ -13619,6 +13635,108 @@ class SmoTextGroup extends SmoScoreModifierBase {
     return { EVERY: 1, EVENT: 2, ODD: 3, ONCE: 4, SUBSEQUENT: 5 };
   }
 
+  // The position of block n relative to block n-1.  Each block
+  // has it's own position.  Justification is inter-block.
+  static get relativePositions() {
+    return { ABOVE: 1, BELOW: 2, LEFT: 3, RIGHT: 4 };
+  }
+
+  static get purposes() {
+    return {
+      NONE: 1, TITLE: 2, SUBTITLE: 3, COMPOSER: 4, COPYRIGHT: 5
+    };
+  }
+  static get attributes() {
+    return ['textBlocks', 'justification', 'relativePosition', 'spacing', 'pagination', 'attachToSelector', 'selector', 'musicXOffset', 'musicYOffset'];
+  }
+  static get purposeToFont() {
+    const rv = {};
+    rv[SmoTextGroup.purposes.TITLE] = {
+      fontFamily: 'Merriweather',
+      fontSize: 18,
+      justification: SmoTextGroup.justifications.CENTER,
+      xPlacement: 0.5,
+      yOffset: 4
+    };
+    rv[SmoTextGroup.purposes.SUBTITLE] = {
+      fontFamily: 'Merriweather',
+      fontSize: 16,
+      justification: SmoTextGroup.justifications.CENTER,
+      xPlacement: 0.5,
+      yOffset: 20,
+    };
+    rv[SmoTextGroup.purposes.COMPOSER] = {
+      fontFamily: 'Merriweather',
+      fontSize: 12,
+      justification: SmoTextGroup.justifications.RIGHT,
+      xPlacement: 0.8,
+      yOffset: 10
+    };
+    rv[SmoTextGroup.purposes.COPYRIGHT] = {
+      fontFamily: 'Merriweather',
+      fontSize: 12,
+      xPlacement: 0.5,
+      justification: SmoTextGroup.justifications.CENTER,
+      yOffset: -12
+    };
+    return rv;
+  }
+  // ### createTextForLayout
+  // Create a specific score text type (title etc.) based on the supplied
+  // score layout
+  static createTextForLayout(purpose, text, layout) {
+    let x = 0;
+    const textAttr = SmoTextGroup.purposeToFont[purpose];
+    const pageWidth = layout.pageWidth / layout.svgScale;
+    const pageHeight = layout.pageHeight / layout.svgScale;
+    const bottomMargin = layout.bottomMargin / layout.svgScale;
+    const topMargin = layout.topMargin / layout.svgScale;
+    x = textAttr.xPlacement > 0 ? pageWidth * textAttr.xPlacement
+      : pageWidth - (pageWidth * textAttr.xPlacement);
+    const y = textAttr.yOffset > 0 ?
+      topMargin + textAttr.yOffset :
+      pageHeight + textAttr.yOffset - bottomMargin;
+    const st = new SmoScoreText({ text, x, y,
+      fontInfo: { family: textAttr.fontFamily, size: textAttr.fontSize } });
+    const width = st.estimateWidth();
+    x -= width / 2;
+    const tg = new SmoTextGroup({ blocks: [st], purpose, pagination: SmoTextGroup.paginations.EVERY });
+    return tg;
+  }
+
+  static get defaults() {
+    return { textBlocks: [],
+      justification: SmoTextGroup.justifications.LEFT,
+      relativePosition: SmoTextGroup.relativePositions.RIGHT,
+      pagination: SmoTextGroup.paginations.ONCE,
+      purpose: SmoTextGroup.purposes.NONE,
+      spacing: 0,
+      attachToSelector: false,
+      selector: null,
+      musicXOffset: 0,
+      musicYOffset: 0
+    };
+  }
+  static deserialize(jObj) {
+    const blocks = [];
+    const params = {};
+
+    // Create new scoreText object for the text blocks
+    jObj.textBlocks.forEach((st) => {
+      const tx = new SmoScoreText(st.text);
+      blocks.push({ text: tx, position: st.position });
+    });
+    // fill in the textBlock configuration
+    SmoTextGroup.attributes.forEach((attr) => {
+      if (attr !== 'textBlocks') {
+        if (typeof(jObj[attr]) !== 'undefined') {
+          params[attr] = jObj[attr];
+        }
+      }
+    });
+    params.blocks = blocks;
+    return new SmoTextGroup(params);
+  }
   // ### getPagedTextGroups
   // If this text is repeated on page, create duplicates for each page, and
   // resolve page numbers;
@@ -13659,47 +13777,6 @@ class SmoTextGroup extends SmoScoreModifierBase {
     }
     return rv;
   }
-
-  // The position of block n relative to block n-1.  Each block
-  // has it's own position.  Justification is inter-block.
-  static get relativePositions() {
-    return { ABOVE: 1, BELOW: 2, LEFT: 3, RIGHT: 4 };
-  }
-  static get defaults() {
-    return { textBlocks: [],
-      justification: SmoTextGroup.justifications.LEFT,
-      relativePosition: SmoTextGroup.relativePositions.RIGHT,
-      pagination: SmoTextGroup.paginations.ONCE,
-      spacing: 0,
-      attachToSelector: false,
-      selector: null,
-      musicXOffset: 0,
-      musicYOffset: 0
-    };
-  }
-  static get attributes() {
-    return ['textBlocks', 'justification', 'relativePosition', 'spacing', 'pagination', 'attachToSelector', 'selector', 'musicXOffset', 'musicYOffset'];
-  }
-  static deserialize(jObj) {
-    const blocks = [];
-    const params = {};
-
-    // Create new scoreText object for the text blocks
-    jObj.textBlocks.forEach((st) => {
-      const tx = new SmoScoreText(st.text);
-      blocks.push({ text: tx, position: st.position });
-    });
-    // fill in the textBlock configuration
-    SmoTextGroup.attributes.forEach((attr) => {
-      if (attr !== 'textBlocks') {
-        if (typeof(jObj[attr]) !== 'undefined') {
-          params[attr] = jObj[attr];
-        }
-      }
-    });
-    params.blocks = blocks;
-    return new SmoTextGroup(params);
-  }
   serialize() {
     const params = {};
     smoSerialize.serializedMergeNonDefault(SmoTextGroup.defaults, SmoTextGroup.attributes, this, params);
@@ -13730,6 +13807,20 @@ class SmoTextGroup extends SmoScoreModifierBase {
         }
       });
     }
+  }
+  // ### tryParseUnicode
+  // Try to parse unicode strings.
+  tryParseUnicode() {
+    this.textBlocks.forEach((tb) => {
+      tb.text.tryParseUnicode();
+    });
+  }
+  estimateWidth() {
+    let rv = 0;
+    this.textBlocks.forEach((tb) => {
+      rv += tb.text.estimateWidth();
+    });
+    return rv;
   }
   // avoid saving text that can't be deleted
   isTextVisible() {
@@ -13915,7 +14006,7 @@ class SmoScoreText extends SmoScoreModifierBase {
       height: 0,
       text: 'Smoosic',
       fontInfo: {
-        size: '1em',
+        size: 14,
         family: SmoScoreText.fontFamilies.serif,
         style: 'normal',
         weight: 'normal'
@@ -13961,6 +14052,21 @@ class SmoScoreText extends SmoScoreModifierBase {
   getText() {
     return this.text;
   }
+  estimateWidth() {
+    let i = 0;
+    let rv = 0;
+    const textFont = VF.TextFont.getTextFontFromVexFontData({
+      family: this.fontInfo.family,
+      size: this.fontInfo.size,
+      weight: this.fontInfo.weight,
+      style: this.fontInfo.style
+    });
+    textFont.setFontSize(this.fontInfo.size);
+    for (i = 0; i < this.text.length; ++i) {
+      rv += textFont.getWidthForCharacter(this.text[i]);
+    }
+    return rv;
+  }
 
   toSvgAttributes() {
     return SmoScoreText.toSvgAttributes(this);
@@ -13974,6 +14080,16 @@ class SmoScoreText extends SmoScoreModifierBase {
     return this.backup;
   }
 
+  tryParseUnicode() {
+    let rv = '';
+    rv = this.text;
+    try {
+      eval('rv="' + this.text + '"');
+      this.text = rv;
+    } catch (ex) {
+      console.log('bad unicode');
+    }
+  }
   restoreParams() {
     smoSerialize.serializedMerge(SmoScoreText.attributes, this.backup, this);
   }
@@ -14012,6 +14128,7 @@ class SmoScoreText extends SmoScoreModifierBase {
     this.translateY = deltay;
   }
   constructor(parameters) {
+    let rx = '';
     super('SmoScoreText');
     this.backup = {};
     this.edited = false; // indicate to UI that the actual text has not been edited.
@@ -14027,21 +14144,14 @@ class SmoScoreText extends SmoScoreModifierBase {
     if (this.boxModel === SmoScoreText.boxModels.wrap) {
       this.width = parameters.width ? this.width : 200;
       this.height = parameters.height ? this.height : 150;
-      if (!parameters.justification) {
-        this.justification = this.position === SmoScoreText.positions.copyright
-          ? SmoScoreText.justifications.right : SmoScoreText.justifications.center;
-      }
-    }
-    if (this.position !== SmoScoreText.positions.custom && !parameters.autoLayout) {
-      this.autoLayout = true;
-      if (this.position === SmoScoreText.positions.title) {
-        this.fontInfo.size = '1.8em';
-      } else {
-        this.fontInfo.size = '.6em';
-      }
     }
     const weight = parameters.fontInfo ? parameters.fontInfo.weight : 'normal';
     this.fontInfo.weight = SmoScoreText.weightString(weight);
+    if (this.text) {
+      rx = this.text;
+      eval('rx="' + this.text + '"');
+      this.text = rx;
+    }
   }
 }
 ;// ## StaffModifiers
@@ -15149,6 +15259,9 @@ class mxmlScore {
       { xml: 'bottom-margin', smo: 'bottomMargin' }
     ];
   }
+  static get scoreInfoFields() {
+    return ['title', 'subTitle', 'composer', 'copyright'];
+  }
   // ### smoScoreFromXml
   // Main entry point for Smoosic mxml parser
   static smoScoreFromXml(xmlDoc) {
@@ -15163,15 +15276,29 @@ class mxmlScore {
       const scoreDefaults = JSON.parse(JSON.stringify(SmoScore.defaults));
       const xmlState = new XmlState();
       scoreDefaults.scoreInfo.name = 'Imported Smoosic';
+      mxmlScore.scoreInfoFields.forEach((field) => {
+        scoreDefaults.scoreInfo[field] = '';
+      });
       const childNodes = [...scoreRoot.children];
       childNodes.forEach((scoreElement) => {
         if (scoreElement.tagName === 'work') {
           const scoreNameNode = [...scoreElement.getElementsByTagName('work-title')];
           if (scoreNameNode.length) {
-            scoreDefaults.scoreInfo.name = scoreNameNode[0].textContent;
+            scoreDefaults.scoreInfo.title = scoreNameNode[0].textContent;
           }
+        } else if (scoreElement.tagName === 'identification') {
+          const creators = [...scoreElement.getElementsByTagName('creator')];
+          creators.forEach((creator) => {
+            if (creator.getAttribute('type') === 'composer') {
+              scoreDefaults.scoreInfo.composer = creator.textContent;
+            }
+          });
         } else if (scoreElement.tagName === 'movement-title') {
-          scoreDefaults.scoreInfo.name = scoreElement.textContent;
+          if (scoreDefaults.scoreInfo.text) {
+            scoreDefaults.scoreInfo.subTitle = scoreElement.textContent;
+          } else {
+            scoreDefaults.scoreInfo.title = scoreElement.textContent;
+          }
         } else if (scoreElement.tagName === 'defaults') {
           mxmlScore.defaults(scoreElement, scoreDefaults);
         } else if (scoreElement.tagName === 'part') {
@@ -15196,6 +15323,21 @@ class mxmlScore {
           });
         }
       });
+      if (rv.scoreInfo.title) {
+        rv.addTextGroup(SmoTextGroup.createTextForLayout(
+          SmoTextGroup.purposes.TITLE, rv.scoreInfo.title, rv.layout
+        ));
+      }
+      if (rv.scoreInfo.subTitle) {
+        rv.addTextGroup(SmoTextGroup.createTextForLayout(
+          SmoTextGroup.purposes.SUBTITLE, rv.scoreInfo.subTitle, rv.layout
+        ));
+      }
+      if (rv.scoreInfo.composer) {
+        rv.addTextGroup(SmoTextGroup.createTextForLayout(
+          SmoTextGroup.purposes.COMPOSER, rv.scoreInfo.composer, rv.layout
+        ));
+      }
       return rv;
     } catch (exc) {
       console.warn(exc);
@@ -15523,7 +15665,6 @@ class mxmlScore {
   // column in the score
   static measure(measureElement, xmlState) {
     xmlState.initializeForMeasure(measureElement);
-    console.log('measure ' + xmlState.measureIndex);
     const elements = [...measureElement.children];
     elements.forEach((element) => {
       if (element.tagName === 'backup') {
@@ -15617,8 +15758,12 @@ class XmlState {
   // reset state for a new measure:  beam groups, tuplets
   // etc. that don't cross measure boundaries
   initializeForMeasure(measureElement) {
+    const oldMeasure = this.measureNumber;
     this.measureNumber =
       parseInt(measureElement.getAttribute('number'), 10) - 1;
+    if (isNaN(this.measureNumber)) {
+      this.measureNumber = oldMeasure + 1;
+    }
     this.tuplets = {};
     this.tickCursor = 0;
     this.tempo = SmoMeasureModifierBase.deserialize(this.tempo.serialize());
@@ -15780,6 +15925,7 @@ class XmlState {
   // slur or start a new one.
   updateSlurStates(slurInfos,
     staffIndex, voiceIndex, tick) {
+    let add = true;
     slurInfos.forEach((slurInfo) =>  {
       if (slurInfo.type === 'start') {
         this.slurs[slurInfo.number] = { start: {
@@ -15792,8 +15938,17 @@ class XmlState {
             staff: staffIndex, voice: voiceIndex,
             measure: this.measureNumber, tick
           };
-          this.completedSlurs.push(
-            JSON.parse(JSON.stringify(this.slurs[slurInfo.number])));
+          ['staff', 'voice', 'measure', 'tick'].forEach((field) => {
+            if (typeof(this.slurs[slurInfo.number].start[field]) !== 'number' ||
+              typeof(this.slurs[slurInfo.number].end[field]) !== 'number') {
+              console.warn('bad slur in xml, dropping');
+              add = false;
+            }
+          });
+          if (add) {
+            this.completedSlurs.push(
+              JSON.parse(JSON.stringify(this.slurs[slurInfo.number])));
+          }
         }
       }
     });
@@ -16079,6 +16234,10 @@ class smoBeamModifier {
     // beam tuplets
     if (note.isTuplet) {
       const tuplet = this.measure.getTupletForNote(note);
+      // The underlying notes must have been deleted.
+      if (!tuplet) {
+        return;
+      }
       const ult = tuplet.notes[tuplet.notes.length - 1];
       const first = tuplet.notes[0];
 
@@ -26550,6 +26709,20 @@ class SuiTextInputComponent extends SuiComponentBase {
     });
   }
 }
+
+// eslint-disable-next-line no-unused-vars
+class SuiTextInputComposite extends SuiTextInputComponent {
+  constructor(dialog, parameters) {
+    super(dialog, parameters);
+    this.parentControl = parameters.parentControl;
+  }
+
+  handleChanged() {
+    this.changeFlag = true;
+    this.parentControl.changed();
+    this.changeFlag = false;
+  }
+}
 ;// eslint-disable-next-line no-unused-vars
 class SuiFileDialog extends SuiDialogBase {
   constructor(parameters) {
@@ -27038,16 +27211,17 @@ class SuiFontComponent extends SuiComponentBase {
   getValue() {
     return {
       family: this.familyPart.getValue(),
-      size: {
-        size: this.sizePart.getValue(),
-        unit: 'pt'
-      },
+      size: this.sizePart.getValue(),
       weight: this.boldCtrl.getValue() ? 'bold' : 'normal',
       style: this.italicsCtrl.getValue() ? 'italics' : 'normal'
     };
   }
   setValue(value) {
     let italics = false;
+    // upconvert font size, all font sizes now in points.
+    if (typeof(value.size) !== 'number') {
+      value.size = SmoScoreText.fontPointSize(value.size);
+    }
     if (value.style && value.style === 'italics') {
       italics = true;
     }
@@ -27056,8 +27230,7 @@ class SuiFontComponent extends SuiComponentBase {
     this.boldCtrl.setValue(bold);
     this.italicsCtrl.setValue(italics);
     this.familyPart.setValue(value.family);
-    this.sizePart.setValue(
-      svgHelpers.convertFont(value.size.size, value.size.unit, 'pt'));
+    this.sizePart.setValue(value.size);
   }
 
   bind() {
@@ -28190,7 +28363,10 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
 
   changed() {
     if (this.scoreNameCtrl.changeFlag) {
-      this.view.score.scoreInfo.name = this.scoreNameCtrl.getValue();
+      const newInfo = JSON.parse(JSON.stringify(this.view.score.scoreInfo));
+      newInfo.name = this.scoreNameCtrl.getValue();
+      this.view.updateScoreInfo(newInfo);
+      return;
     }
     if (this.autoPlayCtrl.changeFlag) {
       this.view.score.preferences.autoPlay = this.autoPlayCtrl.getValue();
@@ -28219,6 +28395,193 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
       ...parameters
     });
     this.startPromise = p.startPromise;
+  }
+}
+
+// ## SuiScorePreferencesDialog
+// change editor and formatting defaults for this score.
+// eslint-disable-next-line no-unused-vars
+class SuiScoreIdentificationDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiScoreIdentificationDialog';
+  }
+  get ctor() {
+    return SuiScoreIdentificationDialog.ctor;
+  }
+  static get dialogElements() {
+    SuiScoreIdentificationDialog._dialogElements = typeof(SuiScoreIdentificationDialog._dialogElements)
+      !== 'undefined' ? SuiScoreIdentificationDialog._dialogElements :
+      [{
+        smoName: 'title',
+        parameterName: 'title',
+        defaultValue: '',
+        control: 'TextCheckComponent',
+        label: 'Title',
+      }, {
+        smoName: 'subTitle',
+        parameterName: 'subTitle',
+        defaultValue: [],
+        control: 'TextCheckComponent',
+        label: 'Sub Title',
+      }, {
+        smoName: 'composer',
+        parameterName: 'composer',
+        defaultValue: [],
+        control: 'TextCheckComponent',
+        label: 'Composer',
+      }, {
+        smoName: 'copyright',
+        parameterName: 'copyright',
+        defaultValue: SmoScore.defaults.preferences.customProportion,
+        control: 'TextCheckComponent',
+        label: 'Copyright'
+      }, {
+        staticText: [
+          { label: 'Score Preferences' },
+          { titleText: 'Title' },
+          { subTitleText: 'Sub-title' },
+          { copyrightText: 'Copyright' },
+          { composerText: 'Composer' },
+          { show: 'Show' }
+        ]
+      }];
+    return SuiScoreIdentificationDialog._dialogElements;
+  }
+  get purposeToFont() {
+    const rv = {};
+    rv[SmoTextGroup.purposes.TITLE] = {
+      fontFamily: 'Merriweather',
+      fontSize: 18,
+      justification: SmoTextGroup.justifications.CENTER,
+      xPlacement: 0.5,
+      yOffset: 4
+    };
+    rv[SmoTextGroup.purposes.SUBTITLE] = {
+      fontFamily: 'Merriweather',
+      fontSize: 16,
+      justification: SmoTextGroup.justifications.CENTER,
+      xPlacement: 0.5,
+      yOffset: 20,
+    };
+    rv[SmoTextGroup.purposes.COMPOSER] = {
+      fontFamily: 'Merriweather',
+      fontSize: 12,
+      justification: SmoTextGroup.justifications.RIGHT,
+      xPlacement: 0.8,
+      yOffset: 10
+    };
+    rv[SmoTextGroup.purposes.COPYRIGHT] = {
+      fontFamily: 'Merriweather',
+      fontSize: 12,
+      xPlacement: 0.5,
+      justification: SmoTextGroup.justifications.CENTER,
+      yOffset: -12
+    };
+    return rv;
+  }
+  static createAndDisplay(parameters) {
+    const dg = new SuiScoreIdentificationDialog(parameters);
+    dg.display();
+  }
+  _setInitialValues() {
+    const titleText = this.score.getTextGroups().find((tg) => tg.purpose === SmoTextGroup.purposes.TITLE);
+    const subText = this.score.getTextGroups().find((tg) => tg.purpose === SmoTextGroup.purposes.SUBTITLE);
+    const composerText = this.score.getTextGroups().find((tg) => tg.purpose === SmoTextGroup.purposes.COMPOSER);
+    const copyrightText = this.score.getTextGroups().find((tg) => tg.purpose === SmoTextGroup.purposes.COPYRIGHT);
+    this.titleCtrl.setValue({ text: this.scoreInfo.title, checked: titleText !== null });
+    this.subTitleCtrl.setValue({ text: this.scoreInfo.subTitle, checked: subText !== null });
+    this.composerCtrl.setValue({ text: this.scoreInfo.composer, checked: composerText !== null });
+    this.copyrightCtrl.setValue({ text: this.scoreInfo.copyright, checked: copyrightText !== null });
+  }
+  _createText(purpose, text) {
+    const existing = this.score.getTextGroups().find((tg) => tg.purpose === purpose);
+    if (existing) {
+      const copy = SmoTextGroup.deserialize(existing.serialize());
+      copy.attrs.id = existing.attrs.id;
+      copy.firstBlock().text = text;
+      this.view.updateTextGroup(existing, copy);
+      return;
+    }
+    const tg = SmoTextGroup.createTextForLayout(purpose, text, this.score.layout);
+    this.view.addTextGroup(tg);
+  }
+  _removeText(purpose) {
+    const existing = this.score.getTextGroups().find((tg) => tg.purpose === purpose);
+    if (existing) {
+      this.view.removeTextGroup(existing);
+    }
+  }
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    const cb = () => {};
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.icon-move'),
+      animateDiv: '.draganime',
+      cb,
+      moveParent: true
+    });
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(this);
+    };
+    this.startPromise.then(getKeys);
+    this._bindElements();
+    this._setInitialValues();
+    const box = svgHelpers.boxPoints(250, 250, 1, 1);
+    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+  }
+  _bindElements() {
+    const dgDom = this.dgDom;
+    this._bindComponentNames();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.complete();
+    });
+
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.complete();
+    });
+
+    $(dgDom.element).find('.remove-button').remove();
+    this.bindKeyboard();
+  }
+
+  changed() {
+    const params = [
+      { control: 'titleCtrl', purpose: SmoTextGroup.purposes.TITLE, scoreField: 'title' },
+      { control: 'subTitleCtrl', purpose: SmoTextGroup.purposes.SUBTITLE, scoreField: 'subTitle' },
+      { control: 'composerCtrl', purpose: SmoTextGroup.purposes.COMPOSER, scoreField: 'composer' },
+      { control: 'copyrightCtrl', purpose: SmoTextGroup.purposes.COPYRIGHT, scoreField: 'copyright' },
+    ];
+    params.forEach((param) => {
+      if (this[param.control].changeFlag) {
+        const val = this[param.control].getValue();
+        if (val.checked === true) {
+          this._createText(param.purpose, val.text);
+        } else {
+          this._removeText(param.purpose, val.text);
+        }
+        const scoreInfo = JSON.parse(JSON.stringify(this.scoreInfo));
+        scoreInfo.name = scoreInfo.title;
+        scoreInfo[param.scoreField] = val.text;
+        this.view.updateScoreInfo(scoreInfo);
+        this.scoreInfo = this.score.scoreInfo;
+      }
+    });
+  }
+  constructor(parameters) {
+    var p = parameters;
+    super(SuiScoreIdentificationDialog.dialogElements, {
+      id: 'dialog-layout',
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
+      ...parameters
+    });
+    this.startPromise = p.startPromise;
+    this.scoreInfo = this.view.score.scoreInfo;
+    this.score = this.view.score;
   }
 }
 
@@ -28701,6 +29064,65 @@ class StaffCheckComponent extends SuiComponentBase {
     this.staffRows.forEach((row) => {
       row.showCtrl.bind();
     });
+  }
+}
+
+class TextCheckComponent extends SuiComponentBase {
+  constructor(dialog, parameter) {
+    super(parameter);
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+    this.dialog = dialog;
+    this.view = this.dialog.view;
+    const toggleName = this.smoName + 'Toggle';
+    const textName = this.smoName + 'Text';
+    const label = this.dialog.staticText[textName];
+    const show = this.dialog.staticText['show'];
+    this.toggleCtrl = new SuiToggleComposite(this.dialog, {
+      smoName: toggleName,
+      parameterName: toggleName,
+      defaultValue: false,
+      control: 'SuiToggleComposite',
+      label: show,
+      parentControl: this
+    });
+    this.textCtrl = new SuiTextInputComposite(this.dialog, {
+      smoName: textName,
+      parameterName: textName,
+      defaultValue: this.defaultValue,
+      control: 'SuiTextInputComposite',
+      label: label,
+      parentControl: this
+    });
+  }
+  get html() {
+    const b = htmlHelpers.buildDom;
+    const q = b('div').classes(this.makeClasses('multiControl smoControl textCheckContainer'))
+      .attr('id',this.parameterId);
+    q.append(this.textCtrl.html);
+    q.append(this.toggleCtrl.html);
+    return q;
+  }
+  getInputElement() {
+    var pid = this.parameterId;
+    return $('#' + pid);
+  }
+  getValue() {
+    return {
+      checked: this.toggleCtrl.getValue(),
+      text: this.textCtrl.getValue()
+    }
+  }
+  setValue(val) {
+    this.toggleCtrl.setValue(val.checked);
+    this.textCtrl.setValue(val.text);
+  }
+  changed() {
+    this.handleChanged();
+  }
+  bind() {
+    this.toggleCtrl.bind();
+    this.textCtrl.bind();
   }
 }
 ;// ## SuiStaffModifierDialog
@@ -29218,6 +29640,7 @@ class SuiTextInPlace extends SuiComponentBase {
       this.dialog.view.renderer.setRefresh();
     }
     if (this.session) {
+      this.session.textGroup.tryParseUnicode();
       this.value = this.session.textGroup;
       this.session.stopSession().then(render);
     }
@@ -29801,10 +30224,7 @@ class SuiLyricDialog extends SuiDialogBase {
       this.adjustWidthCtrl.setValue(lyric.adjustNoteWidth);
       this.fontCtrl.setValue({
         family: lyric.fontInfo.family,
-        size: {
-          size: lyric.fontInfo.size,
-          unit: 'pt'
-        }
+        size: lyric.fontInfo.size,
       });
     }
     this.bindKeyboard();
@@ -29822,7 +30242,7 @@ class SuiLyricDialog extends SuiDialogBase {
     // TODO: make these undoable
     if (this.fontCtrl.changeFlag) {
       const fontInfo = this.fontCtrl.getValue();
-      this.view.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size.size });
+      this.view.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size });
     }
     if (this.adjustWidthCtrl.changeFlag) {
       this.view.setLyricAdjustWidth(this.adjustWidthCtrl.getValue());
@@ -29849,6 +30269,9 @@ class SuiLyricDialog extends SuiDialogBase {
       $(this.dgDom.element).find('.cancel-button').click();
       evdata.preventDefault();
     } else {
+      if (!this.lyricEditorCtrl.running) {
+        return;
+      }
       const edited = this.lyricEditorCtrl.evKey(evdata);
       if (edited) {
         evdata.stopPropagation();
@@ -30025,7 +30448,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     if (this.fontCtrl.changeFlag) {
       const fontInfo = this.fontCtrl.getValue();
       this.view.score.setChordFont(
-        { 'family': fontInfo.family, size: fontInfo.size.size });
+        { 'family': fontInfo.family, size: fontInfo.size });
     }
     if (this.adjustWidthCtrl.changeFlag) {
       this.view.score.setChordAdjustWidth(this.adjustWidthCtrl.getValue());
@@ -30071,10 +30494,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       this.adjustWidthCtrl.setValue(lyric.adjustNoteWidth);
       this.fontCtrl.setValue({
         family: lyric.fontInfo.family,
-        size: {
-          size: lyric.fontInfo.size,
-          unit: 'pt'
-        }
+        size: lyric.fontInfo.size
       });
     }
     this.bindKeyboard();
@@ -30101,6 +30521,9 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       $(this.dgDom.element).find('.cancel-button').click();
       evdata.preventDefault();
     } else {
+      if (!this.chordEditorCtrl.running) {
+        return;
+      }
       const edited = this.chordEditorCtrl.evKey(evdata);
       if (edited) {
         evdata.stopPropagation();
@@ -30258,7 +30681,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     });
 
     const fontFamily = this.activeScoreText.fontInfo.family;
-    const fontSize = svgHelpers.getFontSize(this.activeScoreText.fontInfo.size);
+    const fontSize = this.activeScoreText.fontInfo.size;
     this.fontCtrl.setValue({
       family: fontFamily,
       size: fontSize,
@@ -30366,8 +30789,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       const fontInfo = this.fontCtrl.getValue();
       this.activeScoreText.fontInfo.family = fontInfo.family;
       // transitioning away from non-point-based font size units
-      this.activeScoreText.fontInfo.size = '' + fontInfo.size.size + fontInfo.size.unit;
-      this.activeScoreText.fontInfo.pointSize = fontInfo.size.size;
+      this.activeScoreText.fontInfo.size = fontInfo.size;
       this.activeScoreText.fontInfo.weight = fontInfo.weight;
       this.activeScoreText.fontInfo.style = fontInfo.style;
     }
@@ -36200,6 +36622,10 @@ class SuiScoreMenu extends suiMenuBase {
         value: 'view'
       }, {
         icon: '',
+        text: 'Score Info',
+        value: 'identification'
+      }, {
+        icon: '',
         text: 'Preferences',
         value: 'preferences'
       }, {
@@ -36218,6 +36644,16 @@ class SuiScoreMenu extends suiMenuBase {
 
   execView() {
     SuiScoreViewDialog.createAndDisplay(
+      {
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        completeNotifier: this.completeNotifier,
+        view: this.view,
+        startPromise: this.closePromise
+      });
+  }
+  execScoreId() {
+    SuiScoreIdentificationDialog.createAndDisplay(
       {
         eventSource: this.eventSource,
         keyCommands: this.keyCommands,
@@ -36254,6 +36690,8 @@ class SuiScoreMenu extends suiMenuBase {
       this.execLayout();
     } else if (text === 'preferences') {
       this.execPreferences();
+    } else if (text === 'identification') {
+      this.execScoreId();
     }
     this.complete();
   }

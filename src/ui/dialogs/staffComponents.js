@@ -221,3 +221,62 @@ class StaffCheckComponent extends SuiComponentBase {
     });
   }
 }
+
+class TextCheckComponent extends SuiComponentBase {
+  constructor(dialog, parameter) {
+    super(parameter);
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+    this.dialog = dialog;
+    this.view = this.dialog.view;
+    const toggleName = this.smoName + 'Toggle';
+    const textName = this.smoName + 'Text';
+    const label = this.dialog.staticText[textName];
+    const show = this.dialog.staticText['show'];
+    this.toggleCtrl = new SuiToggleComposite(this.dialog, {
+      smoName: toggleName,
+      parameterName: toggleName,
+      defaultValue: false,
+      control: 'SuiToggleComposite',
+      label: show,
+      parentControl: this
+    });
+    this.textCtrl = new SuiTextInputComposite(this.dialog, {
+      smoName: textName,
+      parameterName: textName,
+      defaultValue: this.defaultValue,
+      control: 'SuiTextInputComposite',
+      label: label,
+      parentControl: this
+    });
+  }
+  get html() {
+    const b = htmlHelpers.buildDom;
+    const q = b('div').classes(this.makeClasses('multiControl smoControl textCheckContainer'))
+      .attr('id',this.parameterId);
+    q.append(this.textCtrl.html);
+    q.append(this.toggleCtrl.html);
+    return q;
+  }
+  getInputElement() {
+    var pid = this.parameterId;
+    return $('#' + pid);
+  }
+  getValue() {
+    return {
+      checked: this.toggleCtrl.getValue(),
+      text: this.textCtrl.getValue()
+    }
+  }
+  setValue(val) {
+    this.toggleCtrl.setValue(val.checked);
+    this.textCtrl.setValue(val.text);
+  }
+  changed() {
+    this.handleChanged();
+  }
+  bind() {
+    this.toggleCtrl.bind();
+    this.textCtrl.bind();
+  }
+}

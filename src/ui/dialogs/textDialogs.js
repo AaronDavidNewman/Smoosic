@@ -144,10 +144,7 @@ class SuiLyricDialog extends SuiDialogBase {
       this.adjustWidthCtrl.setValue(lyric.adjustNoteWidth);
       this.fontCtrl.setValue({
         family: lyric.fontInfo.family,
-        size: {
-          size: lyric.fontInfo.size,
-          unit: 'pt'
-        }
+        size: lyric.fontInfo.size,
       });
     }
     this.bindKeyboard();
@@ -165,7 +162,7 @@ class SuiLyricDialog extends SuiDialogBase {
     // TODO: make these undoable
     if (this.fontCtrl.changeFlag) {
       const fontInfo = this.fontCtrl.getValue();
-      this.view.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size.size });
+      this.view.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size });
     }
     if (this.adjustWidthCtrl.changeFlag) {
       this.view.setLyricAdjustWidth(this.adjustWidthCtrl.getValue());
@@ -192,6 +189,9 @@ class SuiLyricDialog extends SuiDialogBase {
       $(this.dgDom.element).find('.cancel-button').click();
       evdata.preventDefault();
     } else {
+      if (!this.lyricEditorCtrl.running) {
+        return;
+      }
       const edited = this.lyricEditorCtrl.evKey(evdata);
       if (edited) {
         evdata.stopPropagation();
@@ -368,7 +368,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     if (this.fontCtrl.changeFlag) {
       const fontInfo = this.fontCtrl.getValue();
       this.view.score.setChordFont(
-        { 'family': fontInfo.family, size: fontInfo.size.size });
+        { 'family': fontInfo.family, size: fontInfo.size });
     }
     if (this.adjustWidthCtrl.changeFlag) {
       this.view.score.setChordAdjustWidth(this.adjustWidthCtrl.getValue());
@@ -414,10 +414,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       this.adjustWidthCtrl.setValue(lyric.adjustNoteWidth);
       this.fontCtrl.setValue({
         family: lyric.fontInfo.family,
-        size: {
-          size: lyric.fontInfo.size,
-          unit: 'pt'
-        }
+        size: lyric.fontInfo.size
       });
     }
     this.bindKeyboard();
@@ -444,6 +441,9 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       $(this.dgDom.element).find('.cancel-button').click();
       evdata.preventDefault();
     } else {
+      if (!this.chordEditorCtrl.running) {
+        return;
+      }
       const edited = this.chordEditorCtrl.evKey(evdata);
       if (edited) {
         evdata.stopPropagation();
@@ -601,7 +601,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     });
 
     const fontFamily = this.activeScoreText.fontInfo.family;
-    const fontSize = svgHelpers.getFontSize(this.activeScoreText.fontInfo.size);
+    const fontSize = this.activeScoreText.fontInfo.size;
     this.fontCtrl.setValue({
       family: fontFamily,
       size: fontSize,
@@ -709,8 +709,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       const fontInfo = this.fontCtrl.getValue();
       this.activeScoreText.fontInfo.family = fontInfo.family;
       // transitioning away from non-point-based font size units
-      this.activeScoreText.fontInfo.size = '' + fontInfo.size.size + fontInfo.size.unit;
-      this.activeScoreText.fontInfo.pointSize = fontInfo.size.size;
+      this.activeScoreText.fontInfo.size = fontInfo.size;
       this.activeScoreText.fontInfo.weight = fontInfo.weight;
       this.activeScoreText.fontInfo.style = fontInfo.style;
     }

@@ -355,7 +355,6 @@ body.showAttributeDialog .attributeDialog {
 	display:block;
 }
 
-
 .buttonContainer {
 	text-align:center;
 	margin-top:3px;
@@ -370,10 +369,18 @@ body.showAttributeDialog .attributeDialog {
     flex-flow: row wrap;
 }
 .attributeModal .smoControl.multiControl {
-  flex: 1 0 100%;
+  flex: 1 1 100%;
   flex-flow: row wrap;
   justify-content: space-around;
   border: 2px #ddd outset;
+}
+.attributeModal .smoControl.multiControl.textCheckContainer .smoControl {
+  margin: 5px;
+}
+.attributeModal .smoControl.multiControl.textCheckContainer .text-input.smoControl {
+  flex-flow: column-reverse;
+  flex: 1 1 70px;
+  align-items: center;
 }
 .attributeModal .smoControl.multiControl .smoControl {
   flex-flow: row nowrap;

@@ -474,3 +474,17 @@ class SuiTextInputComponent extends SuiComponentBase {
     });
   }
 }
+
+// eslint-disable-next-line no-unused-vars
+class SuiTextInputComposite extends SuiTextInputComponent {
+  constructor(dialog, parameters) {
+    super(dialog, parameters);
+    this.parentControl = parameters.parentControl;
+  }
+
+  handleChanged() {
+    this.changeFlag = true;
+    this.parentControl.changed();
+    this.changeFlag = false;
+  }
+}

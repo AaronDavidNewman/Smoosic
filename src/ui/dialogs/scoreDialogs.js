@@ -174,7 +174,10 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
 
   changed() {
     if (this.scoreNameCtrl.changeFlag) {
-      this.view.score.scoreInfo.name = this.scoreNameCtrl.getValue();
+      const newInfo = JSON.parse(JSON.stringify(this.view.score.scoreInfo));
+      newInfo.name = this.scoreNameCtrl.getValue();
+      this.view.updateScoreInfo(newInfo);
+      return;
     }
     if (this.autoPlayCtrl.changeFlag) {
       this.view.score.preferences.autoPlay = this.autoPlayCtrl.getValue();
@@ -203,6 +206,193 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
       ...parameters
     });
     this.startPromise = p.startPromise;
+  }
+}
+
+// ## SuiScorePreferencesDialog
+// change editor and formatting defaults for this score.
+// eslint-disable-next-line no-unused-vars
+class SuiScoreIdentificationDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiScoreIdentificationDialog';
+  }
+  get ctor() {
+    return SuiScoreIdentificationDialog.ctor;
+  }
+  static get dialogElements() {
+    SuiScoreIdentificationDialog._dialogElements = typeof(SuiScoreIdentificationDialog._dialogElements)
+      !== 'undefined' ? SuiScoreIdentificationDialog._dialogElements :
+      [{
+        smoName: 'title',
+        parameterName: 'title',
+        defaultValue: '',
+        control: 'TextCheckComponent',
+        label: 'Title',
+      }, {
+        smoName: 'subTitle',
+        parameterName: 'subTitle',
+        defaultValue: [],
+        control: 'TextCheckComponent',
+        label: 'Sub Title',
+      }, {
+        smoName: 'composer',
+        parameterName: 'composer',
+        defaultValue: [],
+        control: 'TextCheckComponent',
+        label: 'Composer',
+      }, {
+        smoName: 'copyright',
+        parameterName: 'copyright',
+        defaultValue: SmoScore.defaults.preferences.customProportion,
+        control: 'TextCheckComponent',
+        label: 'Copyright'
+      }, {
+        staticText: [
+          { label: 'Score Preferences' },
+          { titleText: 'Title' },
+          { subTitleText: 'Sub-title' },
+          { copyrightText: 'Copyright' },
+          { composerText: 'Composer' },
+          { show: 'Show' }
+        ]
+      }];
+    return SuiScoreIdentificationDialog._dialogElements;
+  }
+  get purposeToFont() {
+    const rv = {};
+    rv[SmoTextGroup.purposes.TITLE] = {
+      fontFamily: 'Merriweather',
+      fontSize: 18,
+      justification: SmoTextGroup.justifications.CENTER,
+      xPlacement: 0.5,
+      yOffset: 4
+    };
+    rv[SmoTextGroup.purposes.SUBTITLE] = {
+      fontFamily: 'Merriweather',
+      fontSize: 16,
+      justification: SmoTextGroup.justifications.CENTER,
+      xPlacement: 0.5,
+      yOffset: 20,
+    };
+    rv[SmoTextGroup.purposes.COMPOSER] = {
+      fontFamily: 'Merriweather',
+      fontSize: 12,
+      justification: SmoTextGroup.justifications.RIGHT,
+      xPlacement: 0.8,
+      yOffset: 10
+    };
+    rv[SmoTextGroup.purposes.COPYRIGHT] = {
+      fontFamily: 'Merriweather',
+      fontSize: 12,
+      xPlacement: 0.5,
+      justification: SmoTextGroup.justifications.CENTER,
+      yOffset: -12
+    };
+    return rv;
+  }
+  static createAndDisplay(parameters) {
+    const dg = new SuiScoreIdentificationDialog(parameters);
+    dg.display();
+  }
+  _setInitialValues() {
+    const titleText = this.score.getTextGroups().find((tg) => tg.purpose === SmoTextGroup.purposes.TITLE);
+    const subText = this.score.getTextGroups().find((tg) => tg.purpose === SmoTextGroup.purposes.SUBTITLE);
+    const composerText = this.score.getTextGroups().find((tg) => tg.purpose === SmoTextGroup.purposes.COMPOSER);
+    const copyrightText = this.score.getTextGroups().find((tg) => tg.purpose === SmoTextGroup.purposes.COPYRIGHT);
+    this.titleCtrl.setValue({ text: this.scoreInfo.title, checked: titleText !== null });
+    this.subTitleCtrl.setValue({ text: this.scoreInfo.subTitle, checked: subText !== null });
+    this.composerCtrl.setValue({ text: this.scoreInfo.composer, checked: composerText !== null });
+    this.copyrightCtrl.setValue({ text: this.scoreInfo.copyright, checked: copyrightText !== null });
+  }
+  _createText(purpose, text) {
+    const existing = this.score.getTextGroups().find((tg) => tg.purpose === purpose);
+    if (existing) {
+      const copy = SmoTextGroup.deserialize(existing.serialize());
+      copy.attrs.id = existing.attrs.id;
+      copy.firstBlock().text = text;
+      this.view.updateTextGroup(existing, copy);
+      return;
+    }
+    const tg = SmoTextGroup.createTextForLayout(purpose, text, this.score.layout);
+    this.view.addTextGroup(tg);
+  }
+  _removeText(purpose) {
+    const existing = this.score.getTextGroups().find((tg) => tg.purpose === purpose);
+    if (existing) {
+      this.view.removeTextGroup(existing);
+    }
+  }
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    const cb = () => {};
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.icon-move'),
+      animateDiv: '.draganime',
+      cb,
+      moveParent: true
+    });
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(this);
+    };
+    this.startPromise.then(getKeys);
+    this._bindElements();
+    this._setInitialValues();
+    const box = svgHelpers.boxPoints(250, 250, 1, 1);
+    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+  }
+  _bindElements() {
+    const dgDom = this.dgDom;
+    this._bindComponentNames();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.complete();
+    });
+
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.complete();
+    });
+
+    $(dgDom.element).find('.remove-button').remove();
+    this.bindKeyboard();
+  }
+
+  changed() {
+    const params = [
+      { control: 'titleCtrl', purpose: SmoTextGroup.purposes.TITLE, scoreField: 'title' },
+      { control: 'subTitleCtrl', purpose: SmoTextGroup.purposes.SUBTITLE, scoreField: 'subTitle' },
+      { control: 'composerCtrl', purpose: SmoTextGroup.purposes.COMPOSER, scoreField: 'composer' },
+      { control: 'copyrightCtrl', purpose: SmoTextGroup.purposes.COPYRIGHT, scoreField: 'copyright' },
+    ];
+    params.forEach((param) => {
+      if (this[param.control].changeFlag) {
+        const val = this[param.control].getValue();
+        if (val.checked === true) {
+          this._createText(param.purpose, val.text);
+        } else {
+          this._removeText(param.purpose, val.text);
+        }
+        const scoreInfo = JSON.parse(JSON.stringify(this.scoreInfo));
+        scoreInfo.name = scoreInfo.title;
+        scoreInfo[param.scoreField] = val.text;
+        this.view.updateScoreInfo(scoreInfo);
+        this.scoreInfo = this.score.scoreInfo;
+      }
+    });
+  }
+  constructor(parameters) {
+    var p = parameters;
+    super(SuiScoreIdentificationDialog.dialogElements, {
+      id: 'dialog-layout',
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
+      ...parameters
+    });
+    this.startPromise = p.startPromise;
+    this.scoreInfo = this.view.score.scoreInfo;
+    this.score = this.view.score;
   }
 }
 

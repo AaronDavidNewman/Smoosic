@@ -49,7 +49,11 @@ class SmoScore {
       ],
       staffWidth: 1600,
       scoreInfo: {
-        name: 'Smoosical',
+        name: 'Smoosical', // deprecated
+        title: 'Smoosical',
+        subTitle: '(Op. 1)',
+        composer: 'Me',
+        copyright: '',
         version: 1,
       },
       preferences: {
@@ -489,8 +493,8 @@ class SmoScore {
   addTextGroup(textGroup) {
     this._updateTextGroup(textGroup, true);
   }
-  getTextGroup() {
-    return this.textGroups.find((tg) => tg.tgid === tg.attrs.id);
+  getTextGroups() {
+    return this.textGroups;
   }
 
   removeTextGroup(textGroup) {

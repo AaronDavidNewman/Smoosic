@@ -35,7 +35,6 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, this.storeScore.textGroups[index], UndoBuffer.bufferSubtypes.UPDATE);
     const altNew = SmoTextGroup.deserialize(newVersion.serialize());
     this.storeScore.textGroups[index] = altNew;
-
     // TODO: only render the one TG.
     this.renderer.renderScoreModifiers();
   }
@@ -52,6 +51,15 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._undoScorePreferences('Update preferences');
     // TODO: add action buffer here?
     smoSerialize.serializedMerge(SmoScore.preferences, this.score, this.storeScore);
+    this.renderer.setDirty();
+  }
+  // ### updateScorePreferences
+  // The score preferences for view score have changed, sync them
+  updateScoreInfo(scoreInfo) {
+    this._undoScorePreferences('Update preferences');
+    // TODO: add action buffer here?
+    this.score.scoreInfo = scoreInfo;
+    this.storeScore.scoreInfo = JSON.parse(JSON.stringify(scoreInfo));
     this.renderer.setDirty();
   }
 

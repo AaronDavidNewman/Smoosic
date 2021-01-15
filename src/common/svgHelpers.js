@@ -468,14 +468,6 @@ class svgHelpers {
     return rv;
   }
 
-  // ### getFontSize
-  // Given '1em' return {size:1.0,unit:em}
-  static getFontSize(fs) {
-    var size=parseFloat(fs);
-    var measure = fs.substr(fs.length - 2, 2);
-    return { size:size, unit:measure };
-  }
-
   static convertFont(size,o,n) {
     return size * (svgHelpers.unitsPerInch[n] / svgHelpers.unitsPerInch[o]);
   }

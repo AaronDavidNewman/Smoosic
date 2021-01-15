@@ -823,6 +823,7 @@ class SuiTextSession {
   stopSession() {
     if (this.editor) {
       this.scoreText.text = this.editor.getText();
+      this.scoreText.tryParseUnicode(); // convert unicode chars
       this.editor.stopEditor();
     }
     return PromiseHelpers.makePromise(this, '_isRendered', '_markStopped', null, 100);

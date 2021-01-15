@@ -100,16 +100,17 @@ class SuiFontComponent extends SuiComponentBase {
   getValue() {
     return {
       family: this.familyPart.getValue(),
-      size: {
-        size: this.sizePart.getValue(),
-        unit: 'pt'
-      },
+      size: this.sizePart.getValue(),
       weight: this.boldCtrl.getValue() ? 'bold' : 'normal',
       style: this.italicsCtrl.getValue() ? 'italics' : 'normal'
     };
   }
   setValue(value) {
     let italics = false;
+    // upconvert font size, all font sizes now in points.
+    if (typeof(value.size) !== 'number') {
+      value.size = SmoScoreText.fontPointSize(value.size);
+    }
     if (value.style && value.style === 'italics') {
       italics = true;
     }
@@ -118,8 +119,7 @@ class SuiFontComponent extends SuiComponentBase {
     this.boldCtrl.setValue(bold);
     this.italicsCtrl.setValue(italics);
     this.familyPart.setValue(value.family);
-    this.sizePart.setValue(
-      svgHelpers.convertFont(value.size.size, value.size.unit, 'pt'));
+    this.sizePart.setValue(value.size);
   }
 
   bind() {

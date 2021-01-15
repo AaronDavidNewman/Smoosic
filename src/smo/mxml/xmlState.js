@@ -24,8 +24,12 @@ class XmlState {
   // reset state for a new measure:  beam groups, tuplets
   // etc. that don't cross measure boundaries
   initializeForMeasure(measureElement) {
+    const oldMeasure = this.measureNumber;
     this.measureNumber =
       parseInt(measureElement.getAttribute('number'), 10) - 1;
+    if (isNaN(this.measureNumber)) {
+      this.measureNumber = oldMeasure + 1;
+    }
     this.tuplets = {};
     this.tickCursor = 0;
     this.tempo = SmoMeasureModifierBase.deserialize(this.tempo.serialize());
@@ -187,6 +191,7 @@ class XmlState {
   // slur or start a new one.
   updateSlurStates(slurInfos,
     staffIndex, voiceIndex, tick) {
+    let add = true;
     slurInfos.forEach((slurInfo) =>  {
       if (slurInfo.type === 'start') {
         this.slurs[slurInfo.number] = { start: {
@@ -199,8 +204,17 @@ class XmlState {
             staff: staffIndex, voice: voiceIndex,
             measure: this.measureNumber, tick
           };
-          this.completedSlurs.push(
-            JSON.parse(JSON.stringify(this.slurs[slurInfo.number])));
+          ['staff', 'voice', 'measure', 'tick'].forEach((field) => {
+            if (typeof(this.slurs[slurInfo.number].start[field]) !== 'number' ||
+              typeof(this.slurs[slurInfo.number].end[field]) !== 'number') {
+              console.warn('bad slur in xml, dropping');
+              add = false;
+            }
+          });
+          if (add) {
+            this.completedSlurs.push(
+              JSON.parse(JSON.stringify(this.slurs[slurInfo.number])));
+          }
         }
       }
     });

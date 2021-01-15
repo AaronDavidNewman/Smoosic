@@ -191,7 +191,14 @@ class smoSerialize {
       "kf": "defaultDupleDuration",
       "lf": "defaultTripleDuration",
       "mf": "scoreInfo",
-      "nf": "version"
+      "nf": "version",
+      "of": "title",
+      "pf": "subTitle",
+      "qf": "composer",
+      "rf": "copyright",
+      "sf": "localIndex",
+      "tf": "hairpinType",
+      "uf": "customText"
       }`;
      return JSON.parse(_tm);
     }
@@ -297,6 +304,10 @@ class smoSerialize {
       }
     };
     const _tokenRecurse = (obj) =>  {
+      if (!obj) {
+        console.warn('failure to parse');
+        return;
+      }
       const keys = Object.keys(obj);
       keys.forEach((key) => {
         const val = obj[key];

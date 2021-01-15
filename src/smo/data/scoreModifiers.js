@@ -117,6 +117,108 @@ class SmoTextGroup extends SmoScoreModifierBase {
     return { EVERY: 1, EVENT: 2, ODD: 3, ONCE: 4, SUBSEQUENT: 5 };
   }
 
+  // The position of block n relative to block n-1.  Each block
+  // has it's own position.  Justification is inter-block.
+  static get relativePositions() {
+    return { ABOVE: 1, BELOW: 2, LEFT: 3, RIGHT: 4 };
+  }
+
+  static get purposes() {
+    return {
+      NONE: 1, TITLE: 2, SUBTITLE: 3, COMPOSER: 4, COPYRIGHT: 5
+    };
+  }
+  static get attributes() {
+    return ['textBlocks', 'justification', 'relativePosition', 'spacing', 'pagination', 'attachToSelector', 'selector', 'musicXOffset', 'musicYOffset'];
+  }
+  static get purposeToFont() {
+    const rv = {};
+    rv[SmoTextGroup.purposes.TITLE] = {
+      fontFamily: 'Merriweather',
+      fontSize: 18,
+      justification: SmoTextGroup.justifications.CENTER,
+      xPlacement: 0.5,
+      yOffset: 4
+    };
+    rv[SmoTextGroup.purposes.SUBTITLE] = {
+      fontFamily: 'Merriweather',
+      fontSize: 16,
+      justification: SmoTextGroup.justifications.CENTER,
+      xPlacement: 0.5,
+      yOffset: 20,
+    };
+    rv[SmoTextGroup.purposes.COMPOSER] = {
+      fontFamily: 'Merriweather',
+      fontSize: 12,
+      justification: SmoTextGroup.justifications.RIGHT,
+      xPlacement: 0.8,
+      yOffset: 10
+    };
+    rv[SmoTextGroup.purposes.COPYRIGHT] = {
+      fontFamily: 'Merriweather',
+      fontSize: 12,
+      xPlacement: 0.5,
+      justification: SmoTextGroup.justifications.CENTER,
+      yOffset: -12
+    };
+    return rv;
+  }
+  // ### createTextForLayout
+  // Create a specific score text type (title etc.) based on the supplied
+  // score layout
+  static createTextForLayout(purpose, text, layout) {
+    let x = 0;
+    const textAttr = SmoTextGroup.purposeToFont[purpose];
+    const pageWidth = layout.pageWidth / layout.svgScale;
+    const pageHeight = layout.pageHeight / layout.svgScale;
+    const bottomMargin = layout.bottomMargin / layout.svgScale;
+    const topMargin = layout.topMargin / layout.svgScale;
+    x = textAttr.xPlacement > 0 ? pageWidth * textAttr.xPlacement
+      : pageWidth - (pageWidth * textAttr.xPlacement);
+    const y = textAttr.yOffset > 0 ?
+      topMargin + textAttr.yOffset :
+      pageHeight + textAttr.yOffset - bottomMargin;
+    const st = new SmoScoreText({ text, x, y,
+      fontInfo: { family: textAttr.fontFamily, size: textAttr.fontSize } });
+    const width = st.estimateWidth();
+    x -= width / 2;
+    const tg = new SmoTextGroup({ blocks: [st], purpose, pagination: SmoTextGroup.paginations.EVERY });
+    return tg;
+  }
+
+  static get defaults() {
+    return { textBlocks: [],
+      justification: SmoTextGroup.justifications.LEFT,
+      relativePosition: SmoTextGroup.relativePositions.RIGHT,
+      pagination: SmoTextGroup.paginations.ONCE,
+      purpose: SmoTextGroup.purposes.NONE,
+      spacing: 0,
+      attachToSelector: false,
+      selector: null,
+      musicXOffset: 0,
+      musicYOffset: 0
+    };
+  }
+  static deserialize(jObj) {
+    const blocks = [];
+    const params = {};
+
+    // Create new scoreText object for the text blocks
+    jObj.textBlocks.forEach((st) => {
+      const tx = new SmoScoreText(st.text);
+      blocks.push({ text: tx, position: st.position });
+    });
+    // fill in the textBlock configuration
+    SmoTextGroup.attributes.forEach((attr) => {
+      if (attr !== 'textBlocks') {
+        if (typeof(jObj[attr]) !== 'undefined') {
+          params[attr] = jObj[attr];
+        }
+      }
+    });
+    params.blocks = blocks;
+    return new SmoTextGroup(params);
+  }
   // ### getPagedTextGroups
   // If this text is repeated on page, create duplicates for each page, and
   // resolve page numbers;
@@ -157,47 +259,6 @@ class SmoTextGroup extends SmoScoreModifierBase {
     }
     return rv;
   }
-
-  // The position of block n relative to block n-1.  Each block
-  // has it's own position.  Justification is inter-block.
-  static get relativePositions() {
-    return { ABOVE: 1, BELOW: 2, LEFT: 3, RIGHT: 4 };
-  }
-  static get defaults() {
-    return { textBlocks: [],
-      justification: SmoTextGroup.justifications.LEFT,
-      relativePosition: SmoTextGroup.relativePositions.RIGHT,
-      pagination: SmoTextGroup.paginations.ONCE,
-      spacing: 0,
-      attachToSelector: false,
-      selector: null,
-      musicXOffset: 0,
-      musicYOffset: 0
-    };
-  }
-  static get attributes() {
-    return ['textBlocks', 'justification', 'relativePosition', 'spacing', 'pagination', 'attachToSelector', 'selector', 'musicXOffset', 'musicYOffset'];
-  }
-  static deserialize(jObj) {
-    const blocks = [];
-    const params = {};
-
-    // Create new scoreText object for the text blocks
-    jObj.textBlocks.forEach((st) => {
-      const tx = new SmoScoreText(st.text);
-      blocks.push({ text: tx, position: st.position });
-    });
-    // fill in the textBlock configuration
-    SmoTextGroup.attributes.forEach((attr) => {
-      if (attr !== 'textBlocks') {
-        if (typeof(jObj[attr]) !== 'undefined') {
-          params[attr] = jObj[attr];
-        }
-      }
-    });
-    params.blocks = blocks;
-    return new SmoTextGroup(params);
-  }
   serialize() {
     const params = {};
     smoSerialize.serializedMergeNonDefault(SmoTextGroup.defaults, SmoTextGroup.attributes, this, params);
@@ -228,6 +289,20 @@ class SmoTextGroup extends SmoScoreModifierBase {
         }
       });
     }
+  }
+  // ### tryParseUnicode
+  // Try to parse unicode strings.
+  tryParseUnicode() {
+    this.textBlocks.forEach((tb) => {
+      tb.text.tryParseUnicode();
+    });
+  }
+  estimateWidth() {
+    let rv = 0;
+    this.textBlocks.forEach((tb) => {
+      rv += tb.text.estimateWidth();
+    });
+    return rv;
   }
   // avoid saving text that can't be deleted
   isTextVisible() {
@@ -413,7 +488,7 @@ class SmoScoreText extends SmoScoreModifierBase {
       height: 0,
       text: 'Smoosic',
       fontInfo: {
-        size: '1em',
+        size: 14,
         family: SmoScoreText.fontFamilies.serif,
         style: 'normal',
         weight: 'normal'
@@ -459,6 +534,21 @@ class SmoScoreText extends SmoScoreModifierBase {
   getText() {
     return this.text;
   }
+  estimateWidth() {
+    let i = 0;
+    let rv = 0;
+    const textFont = VF.TextFont.getTextFontFromVexFontData({
+      family: this.fontInfo.family,
+      size: this.fontInfo.size,
+      weight: this.fontInfo.weight,
+      style: this.fontInfo.style
+    });
+    textFont.setFontSize(this.fontInfo.size);
+    for (i = 0; i < this.text.length; ++i) {
+      rv += textFont.getWidthForCharacter(this.text[i]);
+    }
+    return rv;
+  }
 
   toSvgAttributes() {
     return SmoScoreText.toSvgAttributes(this);
@@ -472,6 +562,16 @@ class SmoScoreText extends SmoScoreModifierBase {
     return this.backup;
   }
 
+  tryParseUnicode() {
+    let rv = '';
+    rv = this.text;
+    try {
+      eval('rv="' + this.text + '"');
+      this.text = rv;
+    } catch (ex) {
+      console.log('bad unicode');
+    }
+  }
   restoreParams() {
     smoSerialize.serializedMerge(SmoScoreText.attributes, this.backup, this);
   }
@@ -510,6 +610,7 @@ class SmoScoreText extends SmoScoreModifierBase {
     this.translateY = deltay;
   }
   constructor(parameters) {
+    let rx = '';
     super('SmoScoreText');
     this.backup = {};
     this.edited = false; // indicate to UI that the actual text has not been edited.
@@ -525,20 +626,13 @@ class SmoScoreText extends SmoScoreModifierBase {
     if (this.boxModel === SmoScoreText.boxModels.wrap) {
       this.width = parameters.width ? this.width : 200;
       this.height = parameters.height ? this.height : 150;
-      if (!parameters.justification) {
-        this.justification = this.position === SmoScoreText.positions.copyright
-          ? SmoScoreText.justifications.right : SmoScoreText.justifications.center;
-      }
-    }
-    if (this.position !== SmoScoreText.positions.custom && !parameters.autoLayout) {
-      this.autoLayout = true;
-      if (this.position === SmoScoreText.positions.title) {
-        this.fontInfo.size = '1.8em';
-      } else {
-        this.fontInfo.size = '.6em';
-      }
     }
     const weight = parameters.fontInfo ? parameters.fontInfo.weight : 'normal';
     this.fontInfo.weight = SmoScoreText.weightString(weight);
+    if (this.text) {
+      rx = this.text;
+      eval('rx="' + this.text + '"');
+      this.text = rx;
+    }
   }
 }

@@ -67,6 +67,7 @@ class SuiTextInPlace extends SuiComponentBase {
       this.dialog.view.renderer.setRefresh();
     }
     if (this.session) {
+      this.session.textGroup.tryParseUnicode();
       this.value = this.session.textGroup;
       this.session.stopSession().then(render);
     }

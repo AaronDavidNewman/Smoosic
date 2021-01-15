@@ -100,6 +100,10 @@ class smoBeamModifier {
     // beam tuplets
     if (note.isTuplet) {
       const tuplet = this.measure.getTupletForNote(note);
+      // The underlying notes must have been deleted.
+      if (!tuplet) {
+        return;
+      }
       const ult = tuplet.notes[tuplet.notes.length - 1];
       const first = tuplet.notes[0];
 

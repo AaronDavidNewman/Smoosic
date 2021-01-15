@@ -288,6 +288,9 @@ class mxmlScore {
       { xml: 'bottom-margin', smo: 'bottomMargin' }
     ];
   }
+  static get scoreInfoFields() {
+    return ['title', 'subTitle', 'composer', 'copyright'];
+  }
   // ### smoScoreFromXml
   // Main entry point for Smoosic mxml parser
   static smoScoreFromXml(xmlDoc) {
@@ -302,15 +305,29 @@ class mxmlScore {
       const scoreDefaults = JSON.parse(JSON.stringify(SmoScore.defaults));
       const xmlState = new XmlState();
       scoreDefaults.scoreInfo.name = 'Imported Smoosic';
+      mxmlScore.scoreInfoFields.forEach((field) => {
+        scoreDefaults.scoreInfo[field] = '';
+      });
       const childNodes = [...scoreRoot.children];
       childNodes.forEach((scoreElement) => {
         if (scoreElement.tagName === 'work') {
           const scoreNameNode = [...scoreElement.getElementsByTagName('work-title')];
           if (scoreNameNode.length) {
-            scoreDefaults.scoreInfo.name = scoreNameNode[0].textContent;
+            scoreDefaults.scoreInfo.title = scoreNameNode[0].textContent;
           }
+        } else if (scoreElement.tagName === 'identification') {
+          const creators = [...scoreElement.getElementsByTagName('creator')];
+          creators.forEach((creator) => {
+            if (creator.getAttribute('type') === 'composer') {
+              scoreDefaults.scoreInfo.composer = creator.textContent;
+            }
+          });
         } else if (scoreElement.tagName === 'movement-title') {
-          scoreDefaults.scoreInfo.name = scoreElement.textContent;
+          if (scoreDefaults.scoreInfo.text) {
+            scoreDefaults.scoreInfo.subTitle = scoreElement.textContent;
+          } else {
+            scoreDefaults.scoreInfo.title = scoreElement.textContent;
+          }
         } else if (scoreElement.tagName === 'defaults') {
           mxmlScore.defaults(scoreElement, scoreDefaults);
         } else if (scoreElement.tagName === 'part') {
@@ -335,6 +352,21 @@ class mxmlScore {
           });
         }
       });
+      if (rv.scoreInfo.title) {
+        rv.addTextGroup(SmoTextGroup.createTextForLayout(
+          SmoTextGroup.purposes.TITLE, rv.scoreInfo.title, rv.layout
+        ));
+      }
+      if (rv.scoreInfo.subTitle) {
+        rv.addTextGroup(SmoTextGroup.createTextForLayout(
+          SmoTextGroup.purposes.SUBTITLE, rv.scoreInfo.subTitle, rv.layout
+        ));
+      }
+      if (rv.scoreInfo.composer) {
+        rv.addTextGroup(SmoTextGroup.createTextForLayout(
+          SmoTextGroup.purposes.COMPOSER, rv.scoreInfo.composer, rv.layout
+        ));
+      }
       return rv;
     } catch (exc) {
       console.warn(exc);
@@ -662,7 +694,6 @@ class mxmlScore {
   // column in the score
   static measure(measureElement, xmlState) {
     xmlState.initializeForMeasure(measureElement);
-    console.log('measure ' + xmlState.measureIndex);
     const elements = [...measureElement.children];
     elements.forEach((element) => {
       if (element.tagName === 'backup') {

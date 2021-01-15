@@ -278,6 +278,10 @@ class SuiScoreMenu extends suiMenuBase {
         value: 'view'
       }, {
         icon: '',
+        text: 'Score Info',
+        value: 'identification'
+      }, {
+        icon: '',
         text: 'Preferences',
         value: 'preferences'
       }, {
@@ -296,6 +300,16 @@ class SuiScoreMenu extends suiMenuBase {
 
   execView() {
     SuiScoreViewDialog.createAndDisplay(
+      {
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        completeNotifier: this.completeNotifier,
+        view: this.view,
+        startPromise: this.closePromise
+      });
+  }
+  execScoreId() {
+    SuiScoreIdentificationDialog.createAndDisplay(
       {
         eventSource: this.eventSource,
         keyCommands: this.keyCommands,
@@ -332,6 +346,8 @@ class SuiScoreMenu extends suiMenuBase {
       this.execLayout();
     } else if (text === 'preferences') {
       this.execPreferences();
+    } else if (text === 'identification') {
+      this.execScoreId();
     }
     this.complete();
   }
