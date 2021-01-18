@@ -1,16 +1,16 @@
 // ## UndoBuffer
 // manage a set of undo or redo operations on a score.  The objects passed into
 // undo must implement serialize()/deserialize()
-// ## Buffer format:
-// A buffer is one of 3 things:
+// ### Buffer format:
+// A buffer is one of 7 things:
 // * A single measure,
 // * A single staff
-// * the whole score.
+// * the whole score
+// * a score modifier (text)
+// * score attributes (layout, etc)
+// * column - all the measures at one index
+// * rectangle - a rectangle of measures
 class UndoBuffer {
-  constructor() {
-    this.buffer = [];
-    this.opCount = 0;
-  }
   static get bufferMax() {
     return 100;
   }
@@ -19,7 +19,7 @@ class UndoBuffer {
     return {
       FIRST: 1,
       MEASURE: 1, STAFF: 2, SCORE: 3, SCORE_MODIFIER: 4, COLUMN: 5, RECTANGLE: 6,
-      SCORE_ATTRIBUTES: 7, LAST: 7
+      SCORE_ATTRIBUTES: 7, STAFF_MODIFIER: 8, LAST: 8
     };
   }
   static get bufferSubtypes() {
@@ -29,7 +29,7 @@ class UndoBuffer {
   }
   static get bufferTypeLabel() {
     return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER', 'COLUMN', 'RECTANGLE',
-      'SCORE_ATTRIBUTES'];
+      'SCORE_ATTRIBUTES', 'STAFF_MODIFIER'];
   }
   // ### serializeMeasure
   // serialize a measure, preserving the column-mapped bits which aren't serialized on a full score save.
@@ -42,6 +42,26 @@ class UndoBuffer {
       json[key] = attrCurrentValue[key];
     });
     return json;
+  }
+  constructor() {
+    this.buffer = [];
+    this.opCount = 0;
+    this._grouping = false;
+  }
+  get grouping() {
+    return this._grouping;
+  }
+  // Allows a set of operations to be bunched into a single group
+  set grouping(val) {
+    if (this._grouping === true && val === false) {
+      const buf = this.peek();
+      // If we have been grouping, indicate that the last buffer is the
+      // fist part of a group
+      if (buf) {
+        buf.firstInGroup = true;
+      }
+    }
+    this._grouping = val;
   }
   // ### addBuffer
   // Description:
@@ -58,7 +78,9 @@ class UndoBuffer {
       title,
       type,
       selector,
-      subtype
+      subtype,
+      grouped: this._grouping,
+      firstInGroup: false
     };
     if (type === UndoBuffer.bufferTypes.RECTANGLE) {
       // RECTANGLE obj is {score, topLeft, bottomRight}
@@ -86,11 +108,12 @@ class UndoBuffer {
     } else if (type === UndoBuffer.bufferTypes.MEASURE) {
       // If this is a measure, preserve the column-mapped attributes
       undoObj.json = UndoBuffer.serializeMeasure(obj);
-    } else if (type === UndoBuffer.bufferTypes.SCORE_MODIFIER) {
+    } else if (type === UndoBuffer.bufferTypes.SCORE_MODIFIER ||
+      type === UndoBuffer.bufferTypes.STAFF_MODIFIER) {
       // score modifier, already serialized
       undoObj.json = obj;
     } else {
-      // staff or score
+      // staff or score or staffModifier
       undoObj.json = obj.serialize();
     }
     if (this.buffer.length >= UndoBuffer.bufferMax) {
@@ -128,46 +151,65 @@ class UndoBuffer {
     let i = 0;
     let j = 0;
     let mix = 0;
-    const buf = this._pop();
+    let buf = this._pop();
     if (!buf) {
       return score;
     }
-    if (buf.type === UndoBuffer.bufferTypes.RECTANGLE) {
-      for (i = buf.json.topLeft.staff; i <= buf.json.bottomRight.staff; ++i) {
-        for (j = buf.json.topLeft.measure; j <= buf.json.bottomRight.measure; ++j) {
-          const measure = SmoMeasure.deserialize(buf.json.measures[mix]);
-          mix += 1;
-          score.replaceMeasure({ staff: i, measure: j }, measure);
+    const grouping = buf.firstInGroup;
+    while (buf) {
+      if (buf.type === UndoBuffer.bufferTypes.RECTANGLE) {
+        for (i = buf.json.topLeft.staff; i <= buf.json.bottomRight.staff; ++i) {
+          for (j = buf.json.topLeft.measure; j <= buf.json.bottomRight.measure; ++j) {
+            const measure = SmoMeasure.deserialize(buf.json.measures[mix]);
+            mix += 1;
+            score.replaceMeasure({ staff: i, measure: j }, measure);
+          }
         }
-      }
-    } else if (buf.type === UndoBuffer.bufferTypes.SCORE_ATTRIBUTES) {
-      smoSerialize.serializedMerge(SmoScore.preferences, buf.json, score);
-    } else if (buf.type === UndoBuffer.bufferTypes.COLUMN) {
-      for (i = 0; i < score.staves.length; ++i) {
-        const measure = SmoMeasure.deserialize(buf.json.measures[i]);
-        score.replaceMeasure({ staff: i, measure: buf.json.measureIndex }, measure);
-      }
-    } else if (buf.type === UndoBuffer.bufferTypes.MEASURE) {
-      const measure = SmoMeasure.deserialize(buf.json);
-      score.replaceMeasure(buf.selector, measure);
-    } else if (buf.type === UndoBuffer.bufferTypes.SCORE) {
-      // Score expects string, as deserialized score is how saving is done.
-      score = SmoScore.deserialize(JSON.stringify(buf.json));
-    } else if (buf.type === UndoBuffer.bufferTypes.SCORE_MODIFIER) {
-      // Currently only one type like this: SmoTextGroup
-      if (buf.json.ctor === 'SmoTextGroup') {
-        const obj = SmoTextGroup.deserialize(buf.json);
-        obj.attrs.id = buf.json.attrs.id;
-        // undo of add is remove, undo of remove is add
-        if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.ADD) {
-          score.removeTextGroup(obj);
-        } if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.REMOVE) {
-          score.addTextGroup(obj);
+      } else if (buf.type === UndoBuffer.bufferTypes.STAFF_MODIFIER)  {
+        const modifier = StaffModifierBase.deserialize(buf.json);
+        const staff = score.staves[modifier.startSelector.staff];
+        const existing = staff.getModifier(modifier);
+        if (existing) {
+          staff.removeStaffModifier(existing);
         }
+        // If we undo an add, we just remove it.
+        if (buf.subtype !== UndoBuffer.bufferSubtypes.ADD) {
+          staff.addStaffModifier(modifier);
+        }
+      } else if (buf.type === UndoBuffer.bufferTypes.SCORE_ATTRIBUTES) {
+        smoSerialize.serializedMerge(SmoScore.preferences, buf.json, score);
+      } else if (buf.type === UndoBuffer.bufferTypes.COLUMN) {
+        for (i = 0; i < score.staves.length; ++i) {
+          const measure = SmoMeasure.deserialize(buf.json.measures[i]);
+          score.replaceMeasure({ staff: i, measure: buf.json.measureIndex }, measure);
+        }
+      } else if (buf.type === UndoBuffer.bufferTypes.MEASURE) {
+        const measure = SmoMeasure.deserialize(buf.json);
+        score.replaceMeasure(buf.selector, measure);
+      } else if (buf.type === UndoBuffer.bufferTypes.SCORE) {
+        // Score expects string, as deserialized score is how saving is done.
+        score = SmoScore.deserialize(JSON.stringify(buf.json));
+      } else if (buf.type === UndoBuffer.bufferTypes.SCORE_MODIFIER) {
+        // Currently only one type like this: SmoTextGroup
+        if (buf.json.ctor === 'SmoTextGroup') {
+          const obj = SmoTextGroup.deserialize(buf.json);
+          obj.attrs.id = buf.json.attrs.id;
+          // undo of add is remove, undo of remove is add
+          if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.ADD) {
+            score.removeTextGroup(obj);
+          } if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.REMOVE) {
+            score.addTextGroup(obj);
+          }
+        }
+      } else {
+        const staff = SmoSystemStaff.deserialize(buf.json);
+        score.replaceStaff(buf.selector.staff, staff);
       }
-    } else {
-      const staff = SmoSystemStaff.deserialize(buf.json);
-      score.replaceStaff(buf.selector.staff, staff);
+      if (grouping && this.peek() && this.peek().grouped) {
+        buf = this._pop();
+      } else {
+        buf = null;
+      }
     }
     return score;
   }

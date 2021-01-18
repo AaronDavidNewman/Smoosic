@@ -261,24 +261,4 @@ class SuiDialogBase {
     this.boundKeyboard = true;
     this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
   }
-
-  // ### _bindElements
-  // bing the generic controls in most dialogs.
-  _bindElements() {
-    var self = this;
-    var dgDom = this.dgDom;
-    this.bindKeyboard();
-
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      self.complete();
-    });
-
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      self.complete();
-    });
-    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-      self.handleRemove();
-      self.complete();
-    });
-  }
 }

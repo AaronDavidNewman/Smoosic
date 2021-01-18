@@ -618,26 +618,7 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.setNoteHead(this._getEquivalentSelections(selections), head);
     this._renderChangedMeasures(measureSelections);
   }
-  // For these rectangle ones, treat view score and store score differently
-  // b/c the rectangles may be different
-  setMeasureProportion(value) {
-    this.actionBuffer.addAction('setMeasureProportion', value);
-    const selection = this.tracker.selections[0];
-    const altSelection = this._getEquivalentSelection(selection);
-    const rect = this._getRectangleFromStaffGroup(selection, this.staffMap);
-    const altRect = this._getRectangleFromStaffGroup(altSelection, this.defaultStaffMap);
-    this._undoRectangle('Set measure proportion', rect.startSelector, rect.endSelector, this.score, this.undoBuffer);
-    this._undoRectangle('Set measure proportion', altRect.startSelector, altRect.endSelector, this.storeScore, this.storeUndo);
-    const rs = this._getRectangleSelections(rect.startSelector, rect.endSelector, this.score);
-    const altRs = this._getRectangleSelections(altRect.startSelector, altRect.endSelector, this.storeScore);
-    rs.forEach((s) => {
-      this.renderer.addToReplaceQueue(s);
-      SmoOperation.setMeasureProportion(s, value);
-    });
-    altRs.forEach((s) => {
-      SmoOperation.setMeasureProportion(s, value);
-    });
-  }
+
   setAutoJustify(value) {
     this.actionBuffer.addAction('setAutoJustify', value);
     const selection = this.tracker.selections[0];
@@ -655,15 +636,6 @@ class SuiScoreViewOperations extends SuiScoreView {
     altRs.forEach((s) => {
       SmoOperation.setAutoJustify(this.storeScore, s, value);
     });
-  }
-  setCollisionAvoidance(value) {
-    this.actionBuffer.addAction('setCollisionAvoidance', value);
-    const selection = this.tracker.selections[0];
-    this._undoColumn('set collision iterations', selection.selector.measure);
-    const altSelection = this._getEquivalentSelection(selection);
-    SmoOperation.setFormattingIterations(this.score, selection, value);
-    SmoOperation.setFormattingIterations(this.storeScore, altSelection, value);
-    this._renderChangedMeasures(selection);
   }
   // ### padMeasure
   // spacing to the left, and column means all measures in system.
@@ -749,63 +721,37 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation[cmd](this.storeScore, altSelection, new SmoRehearsalMark());
     this._renderChangedMeasures(selection);
   }
-  _removeStaffModifier(viewSelection, scoreSelection, modifier) {
-    SmoOperation.removeStaffModifier(viewSelection, modifier);
-
-    // Look up the selector based on the start/end selector of the view score
-    // modifier, adjusted for any staff offset
-    const testSelector = JSON.parse(JSON.stringify(modifier.endSelector));
-    testSelector.staff = scoreSelection.selector.staff;
-    const altMod = scoreSelection.staff.getModifiersAt(
-      scoreSelection.selector)
-      .find((mod) => mod.attrs.type === modifier.attrs.type &&
-        SmoSelector.eq(testSelector, mod.endSelector));
-    if (altMod) {
-      SmoOperation.removeStaffModifier(scoreSelection, altMod);
-    }
+  _removeStaffModifier(modifier) {
+    this.score.staves[modifier.startSelector.staff].removeStaffModifier(modifier);
+    const altModifier = StaffModifierBase.deserialize(modifier.serialize());
+    altModifier.startSelector = this._getEquivalentSelector(altModifier.startSelector);
+    altModifier.endSelector = this._getEquivalentSelector(altModifier.endSelector);
+    this.storeScore.staves[altModifier.startSelector.staff].removeStaffModifier(altModifier);
   }
   removeStaffModifier(modifier) {
     this.actionBuffer.addAction('removeStaffModifier', modifier);
-    this._undoRectangle('Set measure proportion', modifier.startSelector,
-      modifier.endSelector, this.score, this.undoBuffer);
-    const altStaff = this.staffMap[modifier.startSelector.staff];
-    const altStart = JSON.parse(JSON.stringify(modifier.startSelector));
-    const altEnd = JSON.parse(JSON.stringify(modifier.endSelector));
-    altStart.staff = altStaff;
-    altEnd.staff = altStaff;
-    this._undoRectangle('Set measure proportion', altStart,
-      altEnd, this.storeScore, this.storeUndo);
-    const sel = SmoSelection.noteFromSelector(this.score, modifier.startSelector);
-    const altSel = this._getEquivalentSelection(sel);
-    this._removeStaffModifier(sel, altSel, modifier);
+    this._undoStaffModifier('Set measure proportion', modifier,
+      UndoBuffer.bufferSubtypes.REMOVE);
+    this._removeStaffModifier(modifier);
     this._removeStandardModifier(modifier);
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
   }
-  addOrUpdateStaffModifier(modifier) {
+  addOrUpdateStaffModifier(original, modifier) {
     this.actionBuffer.addAction('addOrUpdateStaffModifier', modifier);
-    this._undoRectangle('Set measure proportion', modifier.startSelector, modifier.endSelector,
-      this.score, this.undoBuffer);
-    const altStaff = this.staffMap[modifier.startSelector.staff];
-    const altStart = JSON.parse(JSON.stringify(modifier.startSelector));
-    const altEnd = JSON.parse(JSON.stringify(modifier.endSelector));
-    altStart.staff = altStaff;
-    altEnd.staff = altStaff;
-    this._undoRectangle('Set measure proportion', altStart, altEnd,
-      this.storeScore, this.storeUndo);
+    const existing = this.score.staves[modifier.startSelector.staff]
+      .getModifier(modifier);
+    const subtype = existing === null ? UndoBuffer.bufferSubtypes.ADD :
+      UndoBuffer.bufferSubtypes.UPDATE;
+    this._undoStaffModifier('Set measure proportion', original,
+      subtype);
+    this._removeStaffModifier(modifier);
+    const copy = StaffModifierBase.deserialize(modifier.serialize());
+    copy.startSelector = this._getEquivalentSelector(copy.startSelector);
+    copy.endSelector = this._getEquivalentSelector(copy.endSelector);
     const sel = SmoSelection.noteFromSelector(this.score, modifier.startSelector);
     const altSel = this._getEquivalentSelection(sel);
-    this._removeStaffModifier(sel, altSel, modifier);
     SmoOperation.addStaffModifier(sel, modifier);
-
-    // Create a modifier but with the model score staff ids
-    const altFrom = JSON.parse(JSON.stringify(modifier.startSelector));
-    const altTo = JSON.parse(JSON.stringify(modifier.endSelector));
-    altFrom.staff = altSel.selector.staff;
-    altTo.staff = altSel.selector.staff;
-    const altModifier = StaffModifierBase.deserialize(modifier.serialize());
-    altModifier.startSelector = altFrom;
-    SmoOperation.addStaffModifier(altSel, modifier);
-    altModifier.endSelector = altTo;
+    SmoOperation.addStaffModifier(altSel, copy);
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
   }
   _lineOperation(op) {
@@ -817,8 +763,9 @@ class SuiScoreViewOperations extends SuiScoreView {
     const tt = this.tracker.getExtremeSelection(1);
     const ftAlt = this._getEquivalentSelection(ft);
     const ttAlt = this._getEquivalentSelection(tt);
-    SmoOperation[op](ft, tt);
+    const modifier = SmoOperation[op](ft, tt);
     SmoOperation[op](ftAlt, ttAlt);
+    this._undoStaffModifier('add ' + op, modifier, UndoBuffer.bufferSubtypes.ADD);
     this._renderChangedMeasures(measureSelections);
   }
   crescendo() {
@@ -957,33 +904,36 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.storeScore.convertToPickupMeasure(sel.selector.measure, duration);
     this.renderer.setRefresh();
   }
+  _columnAction(label, value, method) {
+    this.actionBuffer.addAction(label, value);
+    const fromSelector = this.tracker.getExtremeSelection(-1).selector;
+    const toSelector = this.tracker.getExtremeSelection(1).selector;
+    const measureSelections = this.tracker.getSelectedMeasures();
+    measureSelections.forEach((m) => {
+      this._undoColumn(label + value.toString(), m.selector.measure);
+      SmoOperation[method](this.score, m, value);
+      const alt = this._getEquivalentSelection(m);
+      SmoOperation[method](this.storeScore, alt, value);
+    });
+    this._renderRectangle(fromSelector, toSelector);
+  }
+  setCollisionAvoidance(value) {
+    this._columnAction('Collision avoidance', value, 'setFormattingIterations');
+  }
+
   // ### stretchWidth
   // Stretch the width of a measure, including all columns in the measure since they are all
   // the same width
-  setMeasureStretch(measureIndex, stretch) {
-    this.actionBuffer.addAction('setMeasureStretch', measureIndex, stretch);
-    this._undoColumn('Stretch measure', measureIndex);
-    this.storeScore.staves.forEach((staff) => {
-      const selection = SmoSelection.measureSelection(this.storeScore, staff.staffId, measureIndex);
-      const delta = selection.measure.customStretch;
-      selection.measure.customStretch = stretch;
-      const nwidth = selection.measure.staffWidth - (delta - selection.measure.customStretch);
-      selection.measure.setWidth(nwidth);
-      const viewSelection = this._reverseMapSelection(selection);
-      if (viewSelection) {
-        viewSelection.measure.customStretch = stretch;
-        viewSelection.measure.setWidth(nwidth);
-        this.renderer.addToReplaceQueue(viewSelection);
-      }
-    });
+  setMeasureStretch(stretch) {
+    this._columnAction('Stretch Measure', stretch, 'setMeasureStretch');
   }
   forceSystemBreak(value) {
-    this.actionBuffer.addAction('forceSystemBreak', value);
-    const measureSelection = this.tracker.selections[0];
-    this._undoColumn('System break', measureSelection.selector.measure);
-    SmoOperation.setForceSystemBreak(this.score, measureSelection, value);
-    SmoOperation.setForceSystemBreak(this.storeScore, this._getEquivalentSelection(measureSelection), value);
-    this.renderer.setRefresh();
+    this._columnAction('forceSystemBreak', value, 'setForceSystemBreak');
+  }
+  // For these rectangle ones, treat view score and store score differently
+  // b/c the rectangles may be different
+  setMeasureProportion(value) {
+    this._columnAction('Measure proportion', value, 'setMeasureProportion');
   }
 
   replayActions() {

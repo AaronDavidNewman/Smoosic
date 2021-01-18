@@ -43,6 +43,15 @@ class SuiScoreView {
     });
     return rv;
   }
+  _undoStaffModifier(label, staffModifier, subtype) {
+    const copy = StaffModifierBase.deserialize(staffModifier.serialize());
+    copy.startSelector = this._getEquivalentSelector(copy.startSelector);
+    copy.endSelector = this._getEquivalentSelector(copy.endSelector);
+    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.STAFF_MODIFIER, null,
+      staffModifier.serialize(), subtype);
+    this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.STAFF_MODIFIER, null,
+      copy.serialize(), subtype);
+  }
   // ### _undoRectangle
   // Create a rectangle undo, like a multiple columns but not necessarily the whole
   // score.
@@ -132,7 +141,11 @@ class SuiScoreView {
     this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE, null, this.score);
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.SCORE, null, this.storeScore);
   }
-
+  _getEquivalentSelector(selector) {
+    const rv = JSON.parse(JSON.stringify(selector));
+    rv.staff = this.staffMap[selector.staff];
+    return rv;
+  }
   _getEquivalentSelection(selection) {
     if (typeof(selection.selector.tick) === 'undefined') {
       return SmoSelection.measureSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure);
@@ -170,6 +183,13 @@ class SuiScoreView {
     }
     return null;
   }
+  // ### groupUndo
+  // Indicate we want to group the undo operations into one undo
+  groupUndo(val) {
+    this.undoBuffer.grouping = val;
+    this.storeUndo.grouping = val;
+  }
+
   // ### defaultStaffMap
   // Show all staves, 1:1 mapping of view score staff to stored score staff
   get defaultStaffMap() {

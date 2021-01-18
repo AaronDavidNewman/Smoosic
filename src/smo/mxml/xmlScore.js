@@ -303,7 +303,10 @@ class mxmlScore {
 
       const scoreRoot = scoreRoots[0];
       const scoreDefaults = JSON.parse(JSON.stringify(SmoScore.defaults));
+      scoreDefaults.layout.svgScale = 0.5; // if no scale given in score, default to
+      // something small.
       const xmlState = new XmlState();
+      xmlState.newTitle = false;
       scoreDefaults.scoreInfo.name = 'Imported Smoosic';
       mxmlScore.scoreInfoFields.forEach((field) => {
         scoreDefaults.scoreInfo[field] = '';
@@ -314,6 +317,8 @@ class mxmlScore {
           const scoreNameNode = [...scoreElement.getElementsByTagName('work-title')];
           if (scoreNameNode.length) {
             scoreDefaults.scoreInfo.title = scoreNameNode[0].textContent;
+            scoreDefaults.scoreInfo.name = scoreDefaults.scoreInfo.title;
+            xmlState.newTitle = true;
           }
         } else if (scoreElement.tagName === 'identification') {
           const creators = [...scoreElement.getElementsByTagName('creator')];
@@ -323,10 +328,12 @@ class mxmlScore {
             }
           });
         } else if (scoreElement.tagName === 'movement-title') {
-          if (scoreDefaults.scoreInfo.text) {
+          if (xmlState.newTitle) {
             scoreDefaults.scoreInfo.subTitle = scoreElement.textContent;
           } else {
             scoreDefaults.scoreInfo.title = scoreElement.textContent;
+            scoreDefaults.scoreInfo.name = scoreDefaults.scoreInfo.title;
+            xmlState.newTitle = true;
           }
         } else if (scoreElement.tagName === 'defaults') {
           mxmlScore.defaults(scoreElement, scoreDefaults);
@@ -660,7 +667,7 @@ class mxmlScore {
         // If this note starts later than the cursor due to forward, pad with rests
         if (xmlState.tickCursor > xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed) {
           const pads = smoMusic.splitIntoValidDurations(
-            xmlState.tickCursor - tickCount);
+            xmlState.tickCursor - xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed);
           pads.forEach((pad) => {
             voice.notes.push(SmoMeasure.createRestNoteWithDuration(pad,
               xmlState.staffArray[staffIndex].clefInfo.clef));

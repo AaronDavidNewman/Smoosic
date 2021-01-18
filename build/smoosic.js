@@ -4153,15 +4153,19 @@ class SuiRenderState {
       if (vxStart && !vxEnd) {
         nextNote = SmoSelection.nextNoteSelection(this._score,
           modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-        testNote = system.getVxNote(nextNote.note);
-        while (testNote) {
-          vxEnd = testNote;
-          nextNote = SmoSelection.nextNoteSelection(this._score,
-            nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
-          if (!nextNote) {
-            break;
-          }
+        if (nextNote === null) {
+          console.warn('bad selector ' + JSON.stringify(modifier.startSelector, null, ' '));
+        } else {
           testNote = system.getVxNote(nextNote.note);
+          while (testNote) {
+            vxEnd = testNote;
+            nextNote = SmoSelection.nextNoteSelection(this._score,
+              nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
+            if (!nextNote) {
+              break;
+            }
+            testNote = system.getVxNote(nextNote.note);
+          }
         }
       }
       if (vxEnd && !vxStart) {
@@ -4734,6 +4738,15 @@ class SuiScoreView {
     });
     return rv;
   }
+  _undoStaffModifier(label, staffModifier, subtype) {
+    const copy = StaffModifierBase.deserialize(staffModifier.serialize());
+    copy.startSelector = this._getEquivalentSelector(copy.startSelector);
+    copy.endSelector = this._getEquivalentSelector(copy.endSelector);
+    this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.STAFF_MODIFIER, null,
+      staffModifier.serialize(), subtype);
+    this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.STAFF_MODIFIER, null,
+      copy.serialize(), subtype);
+  }
   // ### _undoRectangle
   // Create a rectangle undo, like a multiple columns but not necessarily the whole
   // score.
@@ -4823,7 +4836,11 @@ class SuiScoreView {
     this.undoBuffer.addBuffer(label, UndoBuffer.bufferTypes.SCORE, null, this.score);
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.SCORE, null, this.storeScore);
   }
-
+  _getEquivalentSelector(selector) {
+    const rv = JSON.parse(JSON.stringify(selector));
+    rv.staff = this.staffMap[selector.staff];
+    return rv;
+  }
   _getEquivalentSelection(selection) {
     if (typeof(selection.selector.tick) === 'undefined') {
       return SmoSelection.measureSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure);
@@ -4861,6 +4878,13 @@ class SuiScoreView {
     }
     return null;
   }
+  // ### groupUndo
+  // Indicate we want to group the undo operations into one undo
+  groupUndo(val) {
+    this.undoBuffer.grouping = val;
+    this.storeUndo.grouping = val;
+  }
+
   // ### defaultStaffMap
   // Show all staves, 1:1 mapping of view score staff to stored score staff
   get defaultStaffMap() {
@@ -5611,26 +5635,7 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.setNoteHead(this._getEquivalentSelections(selections), head);
     this._renderChangedMeasures(measureSelections);
   }
-  // For these rectangle ones, treat view score and store score differently
-  // b/c the rectangles may be different
-  setMeasureProportion(value) {
-    this.actionBuffer.addAction('setMeasureProportion', value);
-    const selection = this.tracker.selections[0];
-    const altSelection = this._getEquivalentSelection(selection);
-    const rect = this._getRectangleFromStaffGroup(selection, this.staffMap);
-    const altRect = this._getRectangleFromStaffGroup(altSelection, this.defaultStaffMap);
-    this._undoRectangle('Set measure proportion', rect.startSelector, rect.endSelector, this.score, this.undoBuffer);
-    this._undoRectangle('Set measure proportion', altRect.startSelector, altRect.endSelector, this.storeScore, this.storeUndo);
-    const rs = this._getRectangleSelections(rect.startSelector, rect.endSelector, this.score);
-    const altRs = this._getRectangleSelections(altRect.startSelector, altRect.endSelector, this.storeScore);
-    rs.forEach((s) => {
-      this.renderer.addToReplaceQueue(s);
-      SmoOperation.setMeasureProportion(s, value);
-    });
-    altRs.forEach((s) => {
-      SmoOperation.setMeasureProportion(s, value);
-    });
-  }
+
   setAutoJustify(value) {
     this.actionBuffer.addAction('setAutoJustify', value);
     const selection = this.tracker.selections[0];
@@ -5648,15 +5653,6 @@ class SuiScoreViewOperations extends SuiScoreView {
     altRs.forEach((s) => {
       SmoOperation.setAutoJustify(this.storeScore, s, value);
     });
-  }
-  setCollisionAvoidance(value) {
-    this.actionBuffer.addAction('setCollisionAvoidance', value);
-    const selection = this.tracker.selections[0];
-    this._undoColumn('set collision iterations', selection.selector.measure);
-    const altSelection = this._getEquivalentSelection(selection);
-    SmoOperation.setFormattingIterations(this.score, selection, value);
-    SmoOperation.setFormattingIterations(this.storeScore, altSelection, value);
-    this._renderChangedMeasures(selection);
   }
   // ### padMeasure
   // spacing to the left, and column means all measures in system.
@@ -5742,63 +5738,37 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation[cmd](this.storeScore, altSelection, new SmoRehearsalMark());
     this._renderChangedMeasures(selection);
   }
-  _removeStaffModifier(viewSelection, scoreSelection, modifier) {
-    SmoOperation.removeStaffModifier(viewSelection, modifier);
-
-    // Look up the selector based on the start/end selector of the view score
-    // modifier, adjusted for any staff offset
-    const testSelector = JSON.parse(JSON.stringify(modifier.endSelector));
-    testSelector.staff = scoreSelection.selector.staff;
-    const altMod = scoreSelection.staff.getModifiersAt(
-      scoreSelection.selector)
-      .find((mod) => mod.attrs.type === modifier.attrs.type &&
-        SmoSelector.eq(testSelector, mod.endSelector));
-    if (altMod) {
-      SmoOperation.removeStaffModifier(scoreSelection, altMod);
-    }
+  _removeStaffModifier(modifier) {
+    this.score.staves[modifier.startSelector.staff].removeStaffModifier(modifier);
+    const altModifier = StaffModifierBase.deserialize(modifier.serialize());
+    altModifier.startSelector = this._getEquivalentSelector(altModifier.startSelector);
+    altModifier.endSelector = this._getEquivalentSelector(altModifier.endSelector);
+    this.storeScore.staves[altModifier.startSelector.staff].removeStaffModifier(altModifier);
   }
   removeStaffModifier(modifier) {
     this.actionBuffer.addAction('removeStaffModifier', modifier);
-    this._undoRectangle('Set measure proportion', modifier.startSelector,
-      modifier.endSelector, this.score, this.undoBuffer);
-    const altStaff = this.staffMap[modifier.startSelector.staff];
-    const altStart = JSON.parse(JSON.stringify(modifier.startSelector));
-    const altEnd = JSON.parse(JSON.stringify(modifier.endSelector));
-    altStart.staff = altStaff;
-    altEnd.staff = altStaff;
-    this._undoRectangle('Set measure proportion', altStart,
-      altEnd, this.storeScore, this.storeUndo);
-    const sel = SmoSelection.noteFromSelector(this.score, modifier.startSelector);
-    const altSel = this._getEquivalentSelection(sel);
-    this._removeStaffModifier(sel, altSel, modifier);
+    this._undoStaffModifier('Set measure proportion', modifier,
+      UndoBuffer.bufferSubtypes.REMOVE);
+    this._removeStaffModifier(modifier);
     this._removeStandardModifier(modifier);
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
   }
-  addOrUpdateStaffModifier(modifier) {
+  addOrUpdateStaffModifier(original, modifier) {
     this.actionBuffer.addAction('addOrUpdateStaffModifier', modifier);
-    this._undoRectangle('Set measure proportion', modifier.startSelector, modifier.endSelector,
-      this.score, this.undoBuffer);
-    const altStaff = this.staffMap[modifier.startSelector.staff];
-    const altStart = JSON.parse(JSON.stringify(modifier.startSelector));
-    const altEnd = JSON.parse(JSON.stringify(modifier.endSelector));
-    altStart.staff = altStaff;
-    altEnd.staff = altStaff;
-    this._undoRectangle('Set measure proportion', altStart, altEnd,
-      this.storeScore, this.storeUndo);
+    const existing = this.score.staves[modifier.startSelector.staff]
+      .getModifier(modifier);
+    const subtype = existing === null ? UndoBuffer.bufferSubtypes.ADD :
+      UndoBuffer.bufferSubtypes.UPDATE;
+    this._undoStaffModifier('Set measure proportion', original,
+      subtype);
+    this._removeStaffModifier(modifier);
+    const copy = StaffModifierBase.deserialize(modifier.serialize());
+    copy.startSelector = this._getEquivalentSelector(copy.startSelector);
+    copy.endSelector = this._getEquivalentSelector(copy.endSelector);
     const sel = SmoSelection.noteFromSelector(this.score, modifier.startSelector);
     const altSel = this._getEquivalentSelection(sel);
-    this._removeStaffModifier(sel, altSel, modifier);
     SmoOperation.addStaffModifier(sel, modifier);
-
-    // Create a modifier but with the model score staff ids
-    const altFrom = JSON.parse(JSON.stringify(modifier.startSelector));
-    const altTo = JSON.parse(JSON.stringify(modifier.endSelector));
-    altFrom.staff = altSel.selector.staff;
-    altTo.staff = altSel.selector.staff;
-    const altModifier = StaffModifierBase.deserialize(modifier.serialize());
-    altModifier.startSelector = altFrom;
-    SmoOperation.addStaffModifier(altSel, modifier);
-    altModifier.endSelector = altTo;
+    SmoOperation.addStaffModifier(altSel, copy);
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
   }
   _lineOperation(op) {
@@ -5810,8 +5780,9 @@ class SuiScoreViewOperations extends SuiScoreView {
     const tt = this.tracker.getExtremeSelection(1);
     const ftAlt = this._getEquivalentSelection(ft);
     const ttAlt = this._getEquivalentSelection(tt);
-    SmoOperation[op](ft, tt);
+    const modifier = SmoOperation[op](ft, tt);
     SmoOperation[op](ftAlt, ttAlt);
+    this._undoStaffModifier('add ' + op, modifier, UndoBuffer.bufferSubtypes.ADD);
     this._renderChangedMeasures(measureSelections);
   }
   crescendo() {
@@ -5950,33 +5921,36 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.storeScore.convertToPickupMeasure(sel.selector.measure, duration);
     this.renderer.setRefresh();
   }
+  _columnAction(label, value, method) {
+    this.actionBuffer.addAction(label, value);
+    const fromSelector = this.tracker.getExtremeSelection(-1).selector;
+    const toSelector = this.tracker.getExtremeSelection(1).selector;
+    const measureSelections = this.tracker.getSelectedMeasures();
+    measureSelections.forEach((m) => {
+      this._undoColumn(label + value.toString(), m.selector.measure);
+      SmoOperation[method](this.score, m, value);
+      const alt = this._getEquivalentSelection(m);
+      SmoOperation[method](this.storeScore, alt, value);
+    });
+    this._renderRectangle(fromSelector, toSelector);
+  }
+  setCollisionAvoidance(value) {
+    this._columnAction('Collision avoidance', value, 'setFormattingIterations');
+  }
+
   // ### stretchWidth
   // Stretch the width of a measure, including all columns in the measure since they are all
   // the same width
-  setMeasureStretch(measureIndex, stretch) {
-    this.actionBuffer.addAction('setMeasureStretch', measureIndex, stretch);
-    this._undoColumn('Stretch measure', measureIndex);
-    this.storeScore.staves.forEach((staff) => {
-      const selection = SmoSelection.measureSelection(this.storeScore, staff.staffId, measureIndex);
-      const delta = selection.measure.customStretch;
-      selection.measure.customStretch = stretch;
-      const nwidth = selection.measure.staffWidth - (delta - selection.measure.customStretch);
-      selection.measure.setWidth(nwidth);
-      const viewSelection = this._reverseMapSelection(selection);
-      if (viewSelection) {
-        viewSelection.measure.customStretch = stretch;
-        viewSelection.measure.setWidth(nwidth);
-        this.renderer.addToReplaceQueue(viewSelection);
-      }
-    });
+  setMeasureStretch(stretch) {
+    this._columnAction('Stretch Measure', stretch, 'setMeasureStretch');
   }
   forceSystemBreak(value) {
-    this.actionBuffer.addAction('forceSystemBreak', value);
-    const measureSelection = this.tracker.selections[0];
-    this._undoColumn('System break', measureSelection.selector.measure);
-    SmoOperation.setForceSystemBreak(this.score, measureSelection, value);
-    SmoOperation.setForceSystemBreak(this.storeScore, this._getEquivalentSelection(measureSelection), value);
-    this.renderer.setRefresh();
+    this._columnAction('forceSystemBreak', value, 'setForceSystemBreak');
+  }
+  // For these rectangle ones, treat view score and store score differently
+  // b/c the rectangles may be different
+  setMeasureProportion(value) {
+    this._columnAction('Measure proportion', value, 'setMeasureProportion');
   }
 
   replayActions() {
@@ -8861,8 +8835,8 @@ class suiTracker extends suiMapper {
     const set = [];
     const rv = [];
     this.selections.forEach((sel) => {
-      const measure = SmoSelection.measureSelection(this.score, sel.selector.staff, sel.selector.measure).measure;
-      const ix = measure.measureNumber.measureIndex;
+      const measure = SmoSelection.measureSelection(this.score, sel.selector.staff, sel.selector.measure);
+      const ix = measure.selector.measure;
       if (set.indexOf(ix) === -1) {
         set.push(ix);
         rv.push(measure);
@@ -8920,6 +8894,16 @@ class suiTracker extends suiMapper {
     this._createLocalModifiersList();
     this.highlightSelection();
   }
+  // ### _matchSelectionToModifier
+  // assumes a modifier is selected
+  _matchSelectionToModifier() {
+    const mod = this.modifierSelections[0].modifier;
+    if (mod.startSelector && mod.endSelector) {
+      const s1 = SmoSelection.noteFromSelector(this.score, mod.startSelector);
+      const s2 = SmoSelection.noteFromSelector(this.score, mod.endSelector);
+      this._selectBetweenSelections(s1, s2);
+    }
+  }
   selectSuggestion(ev) {
     if (!this.suggestion.measure && this.modifierSuggestion < 0) {
       return;
@@ -8934,6 +8918,9 @@ class suiTracker extends suiMapper {
       this.modifierIndex = -1;
       this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
       this.modifierSuggestion = -1;
+      // If we selected due to a mouse click, move the selection to the
+      // selected modifier
+      this._matchSelectionToModifier();
       this._highlightModifier();
       return;
     } else if (ev.type === 'click') {
@@ -9254,11 +9241,11 @@ class vexGlyph {
         spacingRight: 5,
       },
       noteHead: {
-        width: 12.02,
+        width: 15.3,
         height: 10.48,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 10,
+        spacingRight: 15.3,
       },
       dot: {
         width: 5,
@@ -9267,14 +9254,14 @@ class vexGlyph {
       }, // This isn't accurate, but I don't
       // want to add extra space just for clef.
       trebleClef: {
-        width: 25.5,
+        width: 35,
         height: 68.32,
         yTop: 3,
         yBottom: 3,
         spacingRight: 10,
       },
       bassClef: {
-        width: 25,
+        width: 36,
         height: 31.88,
         yTop: 0,
         yBottom: 0,
@@ -9295,7 +9282,7 @@ class vexGlyph {
         spacingRight: 10
       },
       timeSignature: {
-        width: 13.48,
+        width: 22.36,
         height: 85,
         yTop: 0,
         yBottom: 0,
@@ -9309,7 +9296,7 @@ class vexGlyph {
         spacingRight: 0
       },
       flat: {
-        width: 7.44,
+        width: 15,
         height: 23.55,
         yTop: 0,
         yBottom: 0,
@@ -9323,7 +9310,7 @@ class vexGlyph {
         spacingRight: 10
       },
       sharp: {
-        width: 8.84,
+        width: 17,
         height: 62,
         yTop: 0,
         yBottom: 0,
@@ -9440,15 +9427,26 @@ class VxMeasure {
 
   // We add microtones to the notes, without regard really to how they interact
   _createMicrotones(smoNote, vexNote) {
+    let added = false;
     const tones = smoNote.getMicrotones();
     tones.forEach((tone) => {
       const acc = new VF.Accidental(tone.toVex);
       vexNote.addAccidental(tone.pitch, acc);
+      added = true;
     });
+    if (added) {
+      this._addSpacingAnnotation(vexNote);
+    }
+  }
+  _addSpacingAnnotation(vexNote) {
+    const vexL = new VF.Annotation('  ').setVerticalJustification('CENTER')
+      .setJustification('RIGHT');
+    vexNote.addAnnotation(0, vexL);
   }
 
   _createAccidentals(smoNote, vexNote, tickIndex, voiceIx) {
     let i = 0;
+    let added = false;
     for (i = 0; i < smoNote.pitches.length; ++i) {
       const pitch = smoNote.pitches[i];
       const duration = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex];
@@ -9467,10 +9465,14 @@ class VxMeasure {
           acc.setAsCautionary();
         }
         vexNote.addAccidental(i, acc);
+        added = true;
       }
     }
     for (i = 0; i < smoNote.dots; ++i) {
       vexNote.addDotToAll();
+    }
+    if (added) {
+      this._addSpacingAnnotation(vexNote);
     }
     this._createMicrotones(smoNote, vexNote);
   }
@@ -13929,18 +13931,6 @@ class SmoTextGroup extends SmoScoreModifierBase {
       block.text.scaleYInPlace(factor);
     });
   }
-
-  backupParams() {
-    this.textBlocks.forEach((block) => {
-      block.text.backupParams();
-    });
-  }
-
-  restoreParams() {
-    this.textBlocks.forEach((block) => {
-      block.text.restoreParams();
-    });
-  }
 }
 // ## SmoScoreText
 // Identify some text in the score, not associated with any musical element, like page
@@ -14430,6 +14420,10 @@ class SmoSystemStaff {
       }
     });
     return rv;
+  }
+  getModifier(modData) {
+    return this.getModifiers().find((mod) =>
+      SmoSelector.eq(mod.startSelector, modData.startSelector) && mod.attrs.type === modData.attrs.type);
   }
 
   setLyricFont(fontInfo) {
@@ -15274,7 +15268,10 @@ class mxmlScore {
 
       const scoreRoot = scoreRoots[0];
       const scoreDefaults = JSON.parse(JSON.stringify(SmoScore.defaults));
+      scoreDefaults.layout.svgScale = 0.5; // if no scale given in score, default to
+      // something small.
       const xmlState = new XmlState();
+      xmlState.newTitle = false;
       scoreDefaults.scoreInfo.name = 'Imported Smoosic';
       mxmlScore.scoreInfoFields.forEach((field) => {
         scoreDefaults.scoreInfo[field] = '';
@@ -15285,6 +15282,8 @@ class mxmlScore {
           const scoreNameNode = [...scoreElement.getElementsByTagName('work-title')];
           if (scoreNameNode.length) {
             scoreDefaults.scoreInfo.title = scoreNameNode[0].textContent;
+            scoreDefaults.scoreInfo.name = scoreDefaults.scoreInfo.title;
+            xmlState.newTitle = true;
           }
         } else if (scoreElement.tagName === 'identification') {
           const creators = [...scoreElement.getElementsByTagName('creator')];
@@ -15294,10 +15293,12 @@ class mxmlScore {
             }
           });
         } else if (scoreElement.tagName === 'movement-title') {
-          if (scoreDefaults.scoreInfo.text) {
+          if (xmlState.newTitle) {
             scoreDefaults.scoreInfo.subTitle = scoreElement.textContent;
           } else {
             scoreDefaults.scoreInfo.title = scoreElement.textContent;
+            scoreDefaults.scoreInfo.name = scoreDefaults.scoreInfo.title;
+            xmlState.newTitle = true;
           }
         } else if (scoreElement.tagName === 'defaults') {
           mxmlScore.defaults(scoreElement, scoreDefaults);
@@ -15631,7 +15632,7 @@ class mxmlScore {
         // If this note starts later than the cursor due to forward, pad with rests
         if (xmlState.tickCursor > xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed) {
           const pads = smoMusic.splitIntoValidDurations(
-            xmlState.tickCursor - tickCount);
+            xmlState.tickCursor - xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed);
           pads.forEach((pad) => {
             voice.notes.push(SmoMeasure.createRestNoteWithDuration(pad,
               xmlState.staffArray[staffIndex].clefInfo.clef));
@@ -16951,18 +16952,27 @@ class smoTickIterator {
 // An operation works on a selection or set of selections to edit the music
 class SmoOperation {
 
-  static setForcePageBreak(score,selection,value) {
+  static setForcePageBreak(score, selection, value) {
     score.staves.forEach((staff) => {
       staff.measures[selection.selector.measure].setForcePageBreak(value);
     });
   }
-  static setForceSystemBreak(score,selection,value) {
+  static setForceSystemBreak(score, selection, value) {
     score.staves.forEach((staff) => {
       staff.measures[selection.selector.measure].setForceSystemBreak(value);
     });
   }
+  static setMeasureStretch(score, selection, value) {
+    score.staves.forEach((staff) => {
+      const measure = staff.measures[selection.selector.measure];
+      const delta = measure.customStretch;
+      measure.customStretch = value;
+      const nwidth = measure.staffWidth - (delta - measure.customStretch);
+      measure.setWidth(nwidth);
+    });
+  }
 
-  static setAutoJustify(score,selection,value) {
+  static setAutoJustify(score, selection, value) {
     score.staves.forEach((staff) => {
       staff.measures[selection.selector.measure].setAutoJustify(value);
     });
@@ -17078,9 +17088,10 @@ class SmoOperation {
   }
   // ### setMeasureProportion
   // Change the softmax factor.
-  static setMeasureProportion(selection, proportion) {
-    // TODO: there should be a setter for this
-    selection.measure.customProportion = proportion;
+  static setMeasureProportion(score, selection, proportion) {
+    score.staves.forEach((staff) => {
+      staff.measures[selection.selector.measure].customProportion = proportion;
+    });
   }
   static setTimeSignature(score, selections, timeSignature) {
     const selectors = [];
@@ -17804,6 +17815,7 @@ class SmoOperation {
       position: SmoStaffHairpin.positions.BELOW
     });
     fromSelection.staff.addStaffModifier(modifier);
+    return modifier;
   }
 
   static decrescendo(fromSelection, toSelection) {
@@ -17816,6 +17828,7 @@ class SmoOperation {
       position: SmoStaffHairpin.positions.BELOW
     });
     fromSelection.staff.addStaffModifier(modifier);
+    return modifier;
   }
 
   static slur(fromSelection, toSelection) {
@@ -17827,6 +17840,7 @@ class SmoOperation {
       position: SmoStaffHairpin.positions.BELOW
     });
     fromSelection.staff.addStaffModifier(modifier);
+    return modifier;
   }
 
   static addStaff(score, parameters) {
@@ -18795,16 +18809,16 @@ class SmoStretchNoteActor extends TickTransformBase {
 ;// ## UndoBuffer
 // manage a set of undo or redo operations on a score.  The objects passed into
 // undo must implement serialize()/deserialize()
-// ## Buffer format:
-// A buffer is one of 3 things:
+// ### Buffer format:
+// A buffer is one of 7 things:
 // * A single measure,
 // * A single staff
-// * the whole score.
+// * the whole score
+// * a score modifier (text)
+// * score attributes (layout, etc)
+// * column - all the measures at one index
+// * rectangle - a rectangle of measures
 class UndoBuffer {
-  constructor() {
-    this.buffer = [];
-    this.opCount = 0;
-  }
   static get bufferMax() {
     return 100;
   }
@@ -18813,7 +18827,7 @@ class UndoBuffer {
     return {
       FIRST: 1,
       MEASURE: 1, STAFF: 2, SCORE: 3, SCORE_MODIFIER: 4, COLUMN: 5, RECTANGLE: 6,
-      SCORE_ATTRIBUTES: 7, LAST: 7
+      SCORE_ATTRIBUTES: 7, STAFF_MODIFIER: 8, LAST: 8
     };
   }
   static get bufferSubtypes() {
@@ -18823,7 +18837,7 @@ class UndoBuffer {
   }
   static get bufferTypeLabel() {
     return ['INVALID', 'MEASURE', 'STAFF', 'SCORE', 'SCORE_MODIFIER', 'COLUMN', 'RECTANGLE',
-      'SCORE_ATTRIBUTES'];
+      'SCORE_ATTRIBUTES', 'STAFF_MODIFIER'];
   }
   // ### serializeMeasure
   // serialize a measure, preserving the column-mapped bits which aren't serialized on a full score save.
@@ -18836,6 +18850,26 @@ class UndoBuffer {
       json[key] = attrCurrentValue[key];
     });
     return json;
+  }
+  constructor() {
+    this.buffer = [];
+    this.opCount = 0;
+    this._grouping = false;
+  }
+  get grouping() {
+    return this._grouping;
+  }
+  // Allows a set of operations to be bunched into a single group
+  set grouping(val) {
+    if (this._grouping === true && val === false) {
+      const buf = this.peek();
+      // If we have been grouping, indicate that the last buffer is the
+      // fist part of a group
+      if (buf) {
+        buf.firstInGroup = true;
+      }
+    }
+    this._grouping = val;
   }
   // ### addBuffer
   // Description:
@@ -18852,7 +18886,9 @@ class UndoBuffer {
       title,
       type,
       selector,
-      subtype
+      subtype,
+      grouped: this._grouping,
+      firstInGroup: false
     };
     if (type === UndoBuffer.bufferTypes.RECTANGLE) {
       // RECTANGLE obj is {score, topLeft, bottomRight}
@@ -18880,11 +18916,12 @@ class UndoBuffer {
     } else if (type === UndoBuffer.bufferTypes.MEASURE) {
       // If this is a measure, preserve the column-mapped attributes
       undoObj.json = UndoBuffer.serializeMeasure(obj);
-    } else if (type === UndoBuffer.bufferTypes.SCORE_MODIFIER) {
+    } else if (type === UndoBuffer.bufferTypes.SCORE_MODIFIER ||
+      type === UndoBuffer.bufferTypes.STAFF_MODIFIER) {
       // score modifier, already serialized
       undoObj.json = obj;
     } else {
-      // staff or score
+      // staff or score or staffModifier
       undoObj.json = obj.serialize();
     }
     if (this.buffer.length >= UndoBuffer.bufferMax) {
@@ -18922,46 +18959,65 @@ class UndoBuffer {
     let i = 0;
     let j = 0;
     let mix = 0;
-    const buf = this._pop();
+    let buf = this._pop();
     if (!buf) {
       return score;
     }
-    if (buf.type === UndoBuffer.bufferTypes.RECTANGLE) {
-      for (i = buf.json.topLeft.staff; i <= buf.json.bottomRight.staff; ++i) {
-        for (j = buf.json.topLeft.measure; j <= buf.json.bottomRight.measure; ++j) {
-          const measure = SmoMeasure.deserialize(buf.json.measures[mix]);
-          mix += 1;
-          score.replaceMeasure({ staff: i, measure: j }, measure);
+    const grouping = buf.firstInGroup;
+    while (buf) {
+      if (buf.type === UndoBuffer.bufferTypes.RECTANGLE) {
+        for (i = buf.json.topLeft.staff; i <= buf.json.bottomRight.staff; ++i) {
+          for (j = buf.json.topLeft.measure; j <= buf.json.bottomRight.measure; ++j) {
+            const measure = SmoMeasure.deserialize(buf.json.measures[mix]);
+            mix += 1;
+            score.replaceMeasure({ staff: i, measure: j }, measure);
+          }
         }
-      }
-    } else if (buf.type === UndoBuffer.bufferTypes.SCORE_ATTRIBUTES) {
-      smoSerialize.serializedMerge(SmoScore.preferences, buf.json, score);
-    } else if (buf.type === UndoBuffer.bufferTypes.COLUMN) {
-      for (i = 0; i < score.staves.length; ++i) {
-        const measure = SmoMeasure.deserialize(buf.json.measures[i]);
-        score.replaceMeasure({ staff: i, measure: buf.json.measureIndex }, measure);
-      }
-    } else if (buf.type === UndoBuffer.bufferTypes.MEASURE) {
-      const measure = SmoMeasure.deserialize(buf.json);
-      score.replaceMeasure(buf.selector, measure);
-    } else if (buf.type === UndoBuffer.bufferTypes.SCORE) {
-      // Score expects string, as deserialized score is how saving is done.
-      score = SmoScore.deserialize(JSON.stringify(buf.json));
-    } else if (buf.type === UndoBuffer.bufferTypes.SCORE_MODIFIER) {
-      // Currently only one type like this: SmoTextGroup
-      if (buf.json.ctor === 'SmoTextGroup') {
-        const obj = SmoTextGroup.deserialize(buf.json);
-        obj.attrs.id = buf.json.attrs.id;
-        // undo of add is remove, undo of remove is add
-        if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.ADD) {
-          score.removeTextGroup(obj);
-        } if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.REMOVE) {
-          score.addTextGroup(obj);
+      } else if (buf.type === UndoBuffer.bufferTypes.STAFF_MODIFIER)  {
+        const modifier = StaffModifierBase.deserialize(buf.json);
+        const staff = score.staves[modifier.startSelector.staff];
+        const existing = staff.getModifier(modifier);
+        if (existing) {
+          staff.removeStaffModifier(existing);
         }
+        // If we undo an add, we just remove it.
+        if (buf.subtype !== UndoBuffer.bufferSubtypes.ADD) {
+          staff.addStaffModifier(modifier);
+        }
+      } else if (buf.type === UndoBuffer.bufferTypes.SCORE_ATTRIBUTES) {
+        smoSerialize.serializedMerge(SmoScore.preferences, buf.json, score);
+      } else if (buf.type === UndoBuffer.bufferTypes.COLUMN) {
+        for (i = 0; i < score.staves.length; ++i) {
+          const measure = SmoMeasure.deserialize(buf.json.measures[i]);
+          score.replaceMeasure({ staff: i, measure: buf.json.measureIndex }, measure);
+        }
+      } else if (buf.type === UndoBuffer.bufferTypes.MEASURE) {
+        const measure = SmoMeasure.deserialize(buf.json);
+        score.replaceMeasure(buf.selector, measure);
+      } else if (buf.type === UndoBuffer.bufferTypes.SCORE) {
+        // Score expects string, as deserialized score is how saving is done.
+        score = SmoScore.deserialize(JSON.stringify(buf.json));
+      } else if (buf.type === UndoBuffer.bufferTypes.SCORE_MODIFIER) {
+        // Currently only one type like this: SmoTextGroup
+        if (buf.json.ctor === 'SmoTextGroup') {
+          const obj = SmoTextGroup.deserialize(buf.json);
+          obj.attrs.id = buf.json.attrs.id;
+          // undo of add is remove, undo of remove is add
+          if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.ADD) {
+            score.removeTextGroup(obj);
+          } if (buf.subtype === UndoBuffer.bufferSubtypes.UPDATE || buf.subtype === UndoBuffer.bufferSubtypes.REMOVE) {
+            score.addTextGroup(obj);
+          }
+        }
+      } else {
+        const staff = SmoSystemStaff.deserialize(buf.json);
+        score.replaceStaff(buf.selector.staff, staff);
       }
-    } else {
-      const staff = SmoSystemStaff.deserialize(buf.json);
-      score.replaceStaff(buf.selector.staff, staff);
+      if (grouping && this.peek() && this.peek().grouped) {
+        buf = this._pop();
+      } else {
+        buf = null;
+      }
     }
     return score;
   }
@@ -26212,26 +26268,6 @@ class SuiDialogBase {
     this.boundKeyboard = true;
     this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
   }
-
-  // ### _bindElements
-  // bing the generic controls in most dialogs.
-  _bindElements() {
-    var self = this;
-    var dgDom = this.dgDom;
-    this.bindKeyboard();
-
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      self.complete();
-    });
-
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      self.complete();
-    });
-    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-      self.handleRemove();
-      self.complete();
-    });
-  }
 }
 ;// # dbComponents - components of modal dialogs.
 // eslint-disable-next-line no-unused-vars
@@ -27531,6 +27567,9 @@ class SuiMeasureDialog extends SuiDialogBase {
           value: 0,
           label: 'Off'
         }, {
+          value: 1,
+          label: '1x'
+        }, {
           value: 2,
           label: '2x'
         }, {
@@ -27577,6 +27616,7 @@ class SuiMeasureDialog extends SuiDialogBase {
     return dg;
   }
   changed() {
+    this.edited = true;
     if (this.pickupCtrl.changeFlag) {
       if (this.pickupCtrl.toggleCtrl.getValue() === false) {
         this.view.createPickup(smoMusic.timeSignatureToTicks(this.measure.timeSignature));
@@ -27585,7 +27625,7 @@ class SuiMeasureDialog extends SuiDialogBase {
       }
     }
     if (this.customStretchCtrl.changeFlag) {
-      this.view.setMeasureStretch(this.measure.measureNumber.measureIndex, this.customStretchCtrl.getValue());
+      this.view.setMeasureStretch(this.customStretchCtrl.getValue());
     }
     if (this.customProportionCtrl.changeFlag) {
       this.view.setMeasureProportion(this.customProportionCtrl.getValue());
@@ -27617,6 +27657,8 @@ class SuiMeasureDialog extends SuiDialogBase {
       label: 'Measure Properties',
       ...parameters
     });
+    this.view.groupUndo(true);
+    this.edited = false;
     this.startPromise = parameters.closeMenuPromise;
     if (!this.startPromise) {
       this.startPromise = new Promise((resolve) => {
@@ -27673,12 +27715,18 @@ class SuiMeasureDialog extends SuiDialogBase {
     this.populateInitial();
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
       this.complete();
     });
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
+      if (this.edited) {
+        this.view.undo();
+      }
       this.complete();
     });
     $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+      this.groupUndo(false);
       this.complete();
     });
   }
@@ -28731,6 +28779,8 @@ class SuiLayoutDialog extends SuiDialogBase {
     });
     this._setPageSizeDefault();
     this._bindElements();
+    const engraving = this.view.score.fonts.find((ff) => ff.name === 'engraving');
+    this.engravingFontCtrl.setValue(engraving.family);
 
     const cb = () => {};
     htmlHelpers.draggable({
@@ -29129,15 +29179,49 @@ class TextCheckComponent extends SuiComponentBase {
 // Edit the attributes of a staff modifier (connects notes in the same staff)
 // eslint-disable-next-line no-unused-vars
 class SuiStaffModifierDialog extends SuiDialogBase {
+  constructor(elements, params) {
+    super(elements, params);
+    this.original = StaffModifierBase.deserialize(params.modifier);
+    this.edited = false;
+    this.view.groupUndo(true);
+  }
+
   handleRemove() {
     this.view.removeStaffModifier(this.modifier);
   }
 
   changed() {
+    this.edited = true;
     this.components.forEach((component) => {
       this.modifier[component.smoName] = component.getValue();
     });
-    this.view.addOrUpdateStaffModifier(this.modifier);
+    this.view.addOrUpdateStaffModifier(this.original, this.modifier);
+    this.original = this.modifier;
+  }
+
+  // ### _bindElements
+  // bing the generic controls in most dialogs.
+  _bindElements() {
+    var dgDom = this.dgDom;
+    this.bindKeyboard();
+
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
+      this.complete();
+    });
+
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
+      if (this.edited) {
+        this.view.undo();
+      }
+      this.complete();
+    });
+    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
+      this.handleRemove();
+      this.complete();
+    });
   }
 }
 
@@ -30738,6 +30822,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
 
   changed() {
+    this.edited = true;
     if (this.insertCodeCtrl.changeFlag && this.textEditorCtrl.session) {
       const val = this.insertCodeCtrl.getValue().split('');
       val.forEach((key) => {
@@ -30844,10 +30929,11 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
 
   constructor(parameters) {
+    let edited = false;
     const tracker = parameters.view.tracker;
     const layout = parameters.view.score.layout;
 
-    // Create a new text modifier, if required.
+    // Create a new text modifier, if this is new text.   Else use selection
     if (!parameters.modifier) {
       const newText =  new SmoScoreText({ position: SmoScoreText.positions.custom });
       newText.y += tracker.scroller.netScroll.y;
@@ -30864,6 +30950,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       parameters.modifier = newGroup;
       parameters.modifier.setActiveBlock(newText);
       parameters.view.addTextGroup(parameters.modifier);
+      edited = true;
     } else {
       // Make sure there is a score text to start the editing.
       parameters.modifier.setActiveBlock(parameters.modifier.textBlocks[0].text);
@@ -30877,6 +30964,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       left: scrollPosition.x + 100,
       ...parameters
     });
+    this.edited = edited;
+    this.view.groupUndo(true);
     this.previousModifier = this.modifier.serialize();
     this.activeScoreText = this.modifier.getActiveBlock();
     Vex.Merge(this, parameters);
@@ -30884,6 +30973,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
 
   _complete() {
+    this.view.groupUndo(false);
     this.modifier.setActiveBlock(null);
     this.view.tracker.updateMap(); // update the text map
     this.view.renderer.setDirty();
@@ -30908,7 +30998,10 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     });
 
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      this.modifier.restoreParams();
+      this.view.groupUndo(false);
+      if (this.edited) {
+        this.view.undo();
+      }
       this._complete();
     });
     $(dgDom.element).find('.remove-button').off('click').on('click', () => {
@@ -31007,6 +31100,8 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
       ...parameters
     });
     Vex.Merge(this, parameters);
+    this.edited = false;
+    this.view.groupUndo(true);
     this.components.find((x) => x.parameterName === 'text').defaultValue = parameters.modifier.text;
   }
   display() {
@@ -31019,10 +31114,35 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
     this.yOffsetLineCtrl.setValue(this.modifier.yOffsetLine);
     this.yOffsetPixelsCtrl.setValue(this.modifier.yOffsetPixels);
   }
+  // ### _bindElements
+  // bing the generic controls in most dialogs.
+  _bindElements() {
+    var dgDom = this.dgDom;
+    this.bindKeyboard();
+
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
+      this.complete();
+    });
+
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
+      if (this.edited) {
+        this.view.undo();
+      }
+      this.complete();
+    });
+    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
+      self.handleRemove();
+      self.complete();
+    });
+  }
   handleRemove() {
     this.view.removeDynamic(this.modifier);
   }
   changed() {
+    this.edited = true;
     this.components.forEach((component) => {
       this.modifier[component.smoName] = component.getValue();
     });

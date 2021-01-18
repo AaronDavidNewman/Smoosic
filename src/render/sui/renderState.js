@@ -379,15 +379,19 @@ class SuiRenderState {
       if (vxStart && !vxEnd) {
         nextNote = SmoSelection.nextNoteSelection(this._score,
           modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-        testNote = system.getVxNote(nextNote.note);
-        while (testNote) {
-          vxEnd = testNote;
-          nextNote = SmoSelection.nextNoteSelection(this._score,
-            nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
-          if (!nextNote) {
-            break;
-          }
+        if (nextNote === null) {
+          console.warn('bad selector ' + JSON.stringify(modifier.startSelector, null, ' '));
+        } else {
           testNote = system.getVxNote(nextNote.note);
+          while (testNote) {
+            vxEnd = testNote;
+            nextNote = SmoSelection.nextNoteSelection(this._score,
+              nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
+            if (!nextNote) {
+              break;
+            }
+            testNote = system.getVxNote(nextNote.note);
+          }
         }
       }
       if (vxEnd && !vxStart) {

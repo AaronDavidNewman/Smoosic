@@ -93,6 +93,9 @@ class SuiMeasureDialog extends SuiDialogBase {
           value: 0,
           label: 'Off'
         }, {
+          value: 1,
+          label: '1x'
+        }, {
           value: 2,
           label: '2x'
         }, {
@@ -139,6 +142,7 @@ class SuiMeasureDialog extends SuiDialogBase {
     return dg;
   }
   changed() {
+    this.edited = true;
     if (this.pickupCtrl.changeFlag) {
       if (this.pickupCtrl.toggleCtrl.getValue() === false) {
         this.view.createPickup(smoMusic.timeSignatureToTicks(this.measure.timeSignature));
@@ -147,7 +151,7 @@ class SuiMeasureDialog extends SuiDialogBase {
       }
     }
     if (this.customStretchCtrl.changeFlag) {
-      this.view.setMeasureStretch(this.measure.measureNumber.measureIndex, this.customStretchCtrl.getValue());
+      this.view.setMeasureStretch(this.customStretchCtrl.getValue());
     }
     if (this.customProportionCtrl.changeFlag) {
       this.view.setMeasureProportion(this.customProportionCtrl.getValue());
@@ -179,6 +183,8 @@ class SuiMeasureDialog extends SuiDialogBase {
       label: 'Measure Properties',
       ...parameters
     });
+    this.view.groupUndo(true);
+    this.edited = false;
     this.startPromise = parameters.closeMenuPromise;
     if (!this.startPromise) {
       this.startPromise = new Promise((resolve) => {
@@ -210,8 +216,6 @@ class SuiMeasureDialog extends SuiDialogBase {
   populateInitial() {
     this.padLeftCtrl.setValue(this.measure.padLeft);
     this.autoJustifyCtrl.setValue(this.measure.autoJustify);
-    this.originalStretch = this.measure.customStretch;
-    this.originalProportion = this.measure.customProportion;
     const isPickup = this.measure.isPickup();
     this.customStretchCtrl.setValue(this.measure.customStretch);
     this.customProportionCtrl.setValue(this.measure.customProportion);
@@ -235,12 +239,18 @@ class SuiMeasureDialog extends SuiDialogBase {
     this.populateInitial();
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
       this.complete();
     });
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
+      if (this.edited) {
+        this.view.undo();
+      }
       this.complete();
     });
     $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+      this.groupUndo(false);
       this.complete();
     });
   }

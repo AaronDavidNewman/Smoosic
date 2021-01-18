@@ -2,18 +2,27 @@
 // An operation works on a selection or set of selections to edit the music
 class SmoOperation {
 
-  static setForcePageBreak(score,selection,value) {
+  static setForcePageBreak(score, selection, value) {
     score.staves.forEach((staff) => {
       staff.measures[selection.selector.measure].setForcePageBreak(value);
     });
   }
-  static setForceSystemBreak(score,selection,value) {
+  static setForceSystemBreak(score, selection, value) {
     score.staves.forEach((staff) => {
       staff.measures[selection.selector.measure].setForceSystemBreak(value);
     });
   }
+  static setMeasureStretch(score, selection, value) {
+    score.staves.forEach((staff) => {
+      const measure = staff.measures[selection.selector.measure];
+      const delta = measure.customStretch;
+      measure.customStretch = value;
+      const nwidth = measure.staffWidth - (delta - measure.customStretch);
+      measure.setWidth(nwidth);
+    });
+  }
 
-  static setAutoJustify(score,selection,value) {
+  static setAutoJustify(score, selection, value) {
     score.staves.forEach((staff) => {
       staff.measures[selection.selector.measure].setAutoJustify(value);
     });
@@ -129,9 +138,10 @@ class SmoOperation {
   }
   // ### setMeasureProportion
   // Change the softmax factor.
-  static setMeasureProportion(selection, proportion) {
-    // TODO: there should be a setter for this
-    selection.measure.customProportion = proportion;
+  static setMeasureProportion(score, selection, proportion) {
+    score.staves.forEach((staff) => {
+      staff.measures[selection.selector.measure].customProportion = proportion;
+    });
   }
   static setTimeSignature(score, selections, timeSignature) {
     const selectors = [];
@@ -855,6 +865,7 @@ class SmoOperation {
       position: SmoStaffHairpin.positions.BELOW
     });
     fromSelection.staff.addStaffModifier(modifier);
+    return modifier;
   }
 
   static decrescendo(fromSelection, toSelection) {
@@ -867,6 +878,7 @@ class SmoOperation {
       position: SmoStaffHairpin.positions.BELOW
     });
     fromSelection.staff.addStaffModifier(modifier);
+    return modifier;
   }
 
   static slur(fromSelection, toSelection) {
@@ -878,6 +890,7 @@ class SmoOperation {
       position: SmoStaffHairpin.positions.BELOW
     });
     fromSelection.staff.addStaffModifier(modifier);
+    return modifier;
   }
 
   static addStaff(score, parameters) {

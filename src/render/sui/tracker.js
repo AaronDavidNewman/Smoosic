@@ -811,8 +811,8 @@ class suiTracker extends suiMapper {
     const set = [];
     const rv = [];
     this.selections.forEach((sel) => {
-      const measure = SmoSelection.measureSelection(this.score, sel.selector.staff, sel.selector.measure).measure;
-      const ix = measure.measureNumber.measureIndex;
+      const measure = SmoSelection.measureSelection(this.score, sel.selector.staff, sel.selector.measure);
+      const ix = measure.selector.measure;
       if (set.indexOf(ix) === -1) {
         set.push(ix);
         rv.push(measure);
@@ -870,6 +870,16 @@ class suiTracker extends suiMapper {
     this._createLocalModifiersList();
     this.highlightSelection();
   }
+  // ### _matchSelectionToModifier
+  // assumes a modifier is selected
+  _matchSelectionToModifier() {
+    const mod = this.modifierSelections[0].modifier;
+    if (mod.startSelector && mod.endSelector) {
+      const s1 = SmoSelection.noteFromSelector(this.score, mod.startSelector);
+      const s2 = SmoSelection.noteFromSelector(this.score, mod.endSelector);
+      this._selectBetweenSelections(s1, s2);
+    }
+  }
   selectSuggestion(ev) {
     if (!this.suggestion.measure && this.modifierSuggestion < 0) {
       return;
@@ -884,6 +894,9 @@ class suiTracker extends suiMapper {
       this.modifierIndex = -1;
       this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
       this.modifierSuggestion = -1;
+      // If we selected due to a mouse click, move the selection to the
+      // selected modifier
+      this._matchSelectionToModifier();
       this._highlightModifier();
       return;
     } else if (ev.type === 'click') {

@@ -73,15 +73,26 @@ class VxMeasure {
 
   // We add microtones to the notes, without regard really to how they interact
   _createMicrotones(smoNote, vexNote) {
+    let added = false;
     const tones = smoNote.getMicrotones();
     tones.forEach((tone) => {
       const acc = new VF.Accidental(tone.toVex);
       vexNote.addAccidental(tone.pitch, acc);
+      added = true;
     });
+    if (added) {
+      this._addSpacingAnnotation(vexNote);
+    }
+  }
+  _addSpacingAnnotation(vexNote) {
+    const vexL = new VF.Annotation('  ').setVerticalJustification('CENTER')
+      .setJustification('RIGHT');
+    vexNote.addAnnotation(0, vexL);
   }
 
   _createAccidentals(smoNote, vexNote, tickIndex, voiceIx) {
     let i = 0;
+    let added = false;
     for (i = 0; i < smoNote.pitches.length; ++i) {
       const pitch = smoNote.pitches[i];
       const duration = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex];
@@ -100,10 +111,14 @@ class VxMeasure {
           acc.setAsCautionary();
         }
         vexNote.addAccidental(i, acc);
+        added = true;
       }
     }
     for (i = 0; i < smoNote.dots; ++i) {
       vexNote.addDotToAll();
+    }
+    if (added) {
+      this._addSpacingAnnotation(vexNote);
     }
     this._createMicrotones(smoNote, vexNote);
   }

@@ -658,6 +658,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
 
   changed() {
+    this.edited = true;
     if (this.insertCodeCtrl.changeFlag && this.textEditorCtrl.session) {
       const val = this.insertCodeCtrl.getValue().split('');
       val.forEach((key) => {
@@ -764,10 +765,11 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
 
   constructor(parameters) {
+    let edited = false;
     const tracker = parameters.view.tracker;
     const layout = parameters.view.score.layout;
 
-    // Create a new text modifier, if required.
+    // Create a new text modifier, if this is new text.   Else use selection
     if (!parameters.modifier) {
       const newText =  new SmoScoreText({ position: SmoScoreText.positions.custom });
       newText.y += tracker.scroller.netScroll.y;
@@ -784,6 +786,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       parameters.modifier = newGroup;
       parameters.modifier.setActiveBlock(newText);
       parameters.view.addTextGroup(parameters.modifier);
+      edited = true;
     } else {
       // Make sure there is a score text to start the editing.
       parameters.modifier.setActiveBlock(parameters.modifier.textBlocks[0].text);
@@ -797,6 +800,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       left: scrollPosition.x + 100,
       ...parameters
     });
+    this.edited = edited;
+    this.view.groupUndo(true);
     this.previousModifier = this.modifier.serialize();
     this.activeScoreText = this.modifier.getActiveBlock();
     Vex.Merge(this, parameters);
@@ -804,6 +809,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
 
   _complete() {
+    this.view.groupUndo(false);
     this.modifier.setActiveBlock(null);
     this.view.tracker.updateMap(); // update the text map
     this.view.renderer.setDirty();
@@ -828,7 +834,10 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     });
 
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      this.modifier.restoreParams();
+      this.view.groupUndo(false);
+      if (this.edited) {
+        this.view.undo();
+      }
       this._complete();
     });
     $(dgDom.element).find('.remove-button').off('click').on('click', () => {
@@ -927,6 +936,8 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
       ...parameters
     });
     Vex.Merge(this, parameters);
+    this.edited = false;
+    this.view.groupUndo(true);
     this.components.find((x) => x.parameterName === 'text').defaultValue = parameters.modifier.text;
   }
   display() {
@@ -939,10 +950,35 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
     this.yOffsetLineCtrl.setValue(this.modifier.yOffsetLine);
     this.yOffsetPixelsCtrl.setValue(this.modifier.yOffsetPixels);
   }
+  // ### _bindElements
+  // bing the generic controls in most dialogs.
+  _bindElements() {
+    var dgDom = this.dgDom;
+    this.bindKeyboard();
+
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
+      this.complete();
+    });
+
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
+      if (this.edited) {
+        this.view.undo();
+      }
+      this.complete();
+    });
+    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
+      self.handleRemove();
+      self.complete();
+    });
+  }
   handleRemove() {
     this.view.removeDynamic(this.modifier);
   }
   changed() {
+    this.edited = true;
     this.components.forEach((component) => {
       this.modifier[component.smoName] = component.getValue();
     });

@@ -96,11 +96,11 @@ class vexGlyph {
         spacingRight: 5,
       },
       noteHead: {
-        width: 12.02,
+        width: 15.3,
         height: 10.48,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 10,
+        spacingRight: 15.3,
       },
       dot: {
         width: 5,
@@ -109,14 +109,14 @@ class vexGlyph {
       }, // This isn't accurate, but I don't
       // want to add extra space just for clef.
       trebleClef: {
-        width: 25.5,
+        width: 35,
         height: 68.32,
         yTop: 3,
         yBottom: 3,
         spacingRight: 10,
       },
       bassClef: {
-        width: 25,
+        width: 36,
         height: 31.88,
         yTop: 0,
         yBottom: 0,
@@ -137,7 +137,7 @@ class vexGlyph {
         spacingRight: 10
       },
       timeSignature: {
-        width: 13.48,
+        width: 22.36,
         height: 85,
         yTop: 0,
         yBottom: 0,
@@ -151,7 +151,7 @@ class vexGlyph {
         spacingRight: 0
       },
       flat: {
-        width: 7.44,
+        width: 15,
         height: 23.55,
         yTop: 0,
         yBottom: 0,
@@ -165,7 +165,7 @@ class vexGlyph {
         spacingRight: 10
       },
       sharp: {
-        width: 8.84,
+        width: 17,
         height: 62,
         yTop: 0,
         yBottom: 0,

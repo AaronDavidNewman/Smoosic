@@ -2,15 +2,49 @@
 // Edit the attributes of a staff modifier (connects notes in the same staff)
 // eslint-disable-next-line no-unused-vars
 class SuiStaffModifierDialog extends SuiDialogBase {
+  constructor(elements, params) {
+    super(elements, params);
+    this.original = StaffModifierBase.deserialize(params.modifier);
+    this.edited = false;
+    this.view.groupUndo(true);
+  }
+
   handleRemove() {
     this.view.removeStaffModifier(this.modifier);
   }
 
   changed() {
+    this.edited = true;
     this.components.forEach((component) => {
       this.modifier[component.smoName] = component.getValue();
     });
-    this.view.addOrUpdateStaffModifier(this.modifier);
+    this.view.addOrUpdateStaffModifier(this.original, this.modifier);
+    this.original = this.modifier;
+  }
+
+  // ### _bindElements
+  // bing the generic controls in most dialogs.
+  _bindElements() {
+    var dgDom = this.dgDom;
+    this.bindKeyboard();
+
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
+      this.complete();
+    });
+
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
+      if (this.edited) {
+        this.view.undo();
+      }
+      this.complete();
+    });
+    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
+      this.handleRemove();
+      this.complete();
+    });
   }
 }
 

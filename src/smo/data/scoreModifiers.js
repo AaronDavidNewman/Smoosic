@@ -411,18 +411,6 @@ class SmoTextGroup extends SmoScoreModifierBase {
       block.text.scaleYInPlace(factor);
     });
   }
-
-  backupParams() {
-    this.textBlocks.forEach((block) => {
-      block.text.backupParams();
-    });
-  }
-
-  restoreParams() {
-    this.textBlocks.forEach((block) => {
-      block.text.restoreParams();
-    });
-  }
 }
 // ## SmoScoreText
 // Identify some text in the score, not associated with any musical element, like page

@@ -126,6 +126,10 @@ class SmoSystemStaff {
     });
     return rv;
   }
+  getModifier(modData) {
+    return this.getModifiers().find((mod) =>
+      SmoSelector.eq(mod.startSelector, modData.startSelector) && mod.attrs.type === modData.attrs.type);
+  }
 
   setLyricFont(fontInfo) {
     this.measures.forEach((measure) => {

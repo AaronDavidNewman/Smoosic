@@ -542,6 +542,8 @@ class SuiLayoutDialog extends SuiDialogBase {
     });
     this._setPageSizeDefault();
     this._bindElements();
+    const engraving = this.view.score.fonts.find((ff) => ff.name === 'engraving');
+    this.engravingFontCtrl.setValue(engraving.family);
 
     const cb = () => {};
     htmlHelpers.draggable({
