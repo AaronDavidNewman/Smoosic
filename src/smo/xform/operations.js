@@ -681,8 +681,8 @@ class SmoOperation {
     });
     if (beamGroup.length) {
       beamGroup.forEach((note) => {
-        note.beamBeats=ticks;
-        note.endBeam=false;
+        note.beamBeats = ticks;
+        note.endBeam = false;
       });
       beamGroup[beamGroup.length - 1].endBeam=true;
     }

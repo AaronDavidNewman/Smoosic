@@ -264,6 +264,10 @@ class SmoNote {
     this.fillStyle = '';
     this.hidden = false;
   }
+  makeHidden(val) {
+    this.hidden = val;
+    this.fillStyle = val ? '#aaaaaa0f' : '';
+  }
 
   get isTuplet() {
     return this.tuplet && this.tuplet.id;

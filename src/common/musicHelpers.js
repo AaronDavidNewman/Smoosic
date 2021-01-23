@@ -18,6 +18,7 @@
 //
 // `VexFlow` uses a letter duration ('4' for 1/4 note) and 'd' for dot.
 // I try to indicate whether I am using vex or smo notation
+// Duration methods start around line 600
 // ---
 class smoMusic {
   // ### vexToCannonical
@@ -646,6 +647,15 @@ class smoMusic {
     }
     return rv;
   }
+  // ### vexStemType
+  // return the vex stem type (no dots)
+  static vexStemType(ticks) {
+    const str = smoMusic.ticksToDuration[smoMusic.splitIntoValidDurations(ticks)[0]];
+    if (str.indexOf('d') >= 0) {
+      return str.substr(0,str.indexOf('d'));
+    }
+    return str;
+  }
 
   // ### getKeySignatureKey
   // given a letter pitch (a,b,c etc.), and a key signature, return the actual note
@@ -746,27 +756,25 @@ class smoMusic {
 
 
   static gcdMap(duration) {
-        var keys = Object.keys(smoMusic.ticksToDuration).map((x) => parseInt(x));
-        var dar = [];
-
-        var gcd = function(td) {
-            var rv = keys[0];
-            for (var k = 1;k<keys.length;++k) {
-                if (td % keys[k] == 0) {
-                    rv = keys[k]
-                }
+    var keys = Object.keys(smoMusic.ticksToDuration).map((x) => parseInt(x));
+    var dar = [];
+    var gcd = function(td) {
+        var rv = keys[0];
+        for (var k = 1 ;k < keys.length; ++k) {
+            if (td % keys[k] === 0) {
+                rv = keys[k];
             }
-            return rv;
         }
-        while (duration > 0 && !smoMusic.ticksToDuration[duration]) {
-            var div = gcd(duration);
-            duration = duration - div;
-            dar.push(div);
-        }
-        if (duration > 0) {
-            dar.push(duration);
-        }
-        return dar.sort((a,b) => a > b ? -1 : 1);
+        return rv;
     }
-
+    while (duration > 0 && !smoMusic.ticksToDuration[duration]) {
+        var div = gcd(duration);
+        duration = duration - div;
+        dar.push(div);
+    }
+    if (duration > 0) {
+        dar.push(duration);
+    }
+    return dar.sort((a,b) => a > b ? -1 : 1);
+  }
 }

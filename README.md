@@ -7,6 +7,9 @@ project from [GitHub Vex Flow](https://github.com/0xfe/vexflow) for rendering
 
 ---
 ## Changes to Smoosic
+
+Music XML (Jan, 2020)
+
 I have made a number of changes to the way Smoosic works, based on some feedback:
 1. Delete key no longer deletes measures.  This seemed to surprise people.  The insert key still inserts, though.
 2. You can now view any subset of the score in the score view dialog.
@@ -20,10 +23,8 @@ You can see Smoosic in action here:
 [Smoosic](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)
 
 ---
-
-If you want to use it in your own projects, a good place to start are the unit tests.  They are here:
-
-[Editor Tests](https://aarondavidnewman.github.io/Smoosic/release/html/tests.html)
+Note: unit tests have been removed for now.  Editor actions will be used to create a new set of
+unit tests for the modern age.
 
 ---
 

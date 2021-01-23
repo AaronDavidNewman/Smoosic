@@ -640,11 +640,14 @@ class SmoMeasure {
       accidentalArray
     };
   }
+  // ### createRestNoteWithDuration
+  // pad some duration of music with rests.
   static createRestNoteWithDuration(duration, clef) {
     const pitch = JSON.parse(JSON.stringify(
       SmoMeasure.defaultPitchForClef[clef]));
-    const note = new SmoNote({  pitches: [pitch], noteType: 'r', ticks:
-      { numerator: duration, denominator: 1, remainder: 0 } });
+    const note = new SmoNote({
+      pitches: [pitch], noteType: 'r', hidden: true,
+      ticks: { numerator: duration, denominator: 1, remainder: 0 } });
     return note;
   }
 

@@ -126,17 +126,13 @@ class SuiScoreViewOperations extends SuiScoreView {
       // If the note is a note, make it into a rest.  If the note is a rest already,
       // make it invisible.  If it is invisible already, make it back into a rest.
       if (sel.note.isRest() && !sel.note.hidden) {
-        sel.note.fillStyle = '#aaaaaa00';
-        sel.note.hidden = true;
-        altSel.note.fillStyle = '#aaaaaa00';
-        altSel.note.hidden = true;
+        sel.makeHidden(true);
+        altSel.makeHidden(true);
       } else {
         sel.note.makeRest();
         altSel.note.makeRest();
-        altSel.note.fillStyle = '';
-        sel.note.fillStyle = '';
-        altSel.note.hidden = false;
-        sel.note.hidden = false;
+        sel.makeHidden(false);
+        altSel.makeHidden(false);
       }
     });
     this._renderChangedMeasures(measureSelections);
@@ -884,6 +880,13 @@ class SuiScoreViewOperations extends SuiScoreView {
     const json = this.storeScore.serialize();
     const jsonText = JSON.stringify(json);
     htmlHelpers.addFileLink(filename, jsonText, $('.saveLink'));
+    $('.saveLink a')[0].click();
+  }
+  saveXml(filename) {
+    const dom = SmoToXml.convert(this.storeScore);
+    const ser = new XMLSerializer();
+    const xmlText = ser.serializeToString(dom);
+    htmlHelpers.addFileLink(filename, xmlText, $('.saveLink'));
     $('.saveLink a')[0].click();
   }
   saveActions(filename) {

@@ -157,19 +157,13 @@ class XmlState {
   // note beam length
   backtrackBeamGroup(voice, beamLength) {
     let i = 0;
-    let beamBeats = 0;
     for (i = 0; i < beamLength; ++i) {
       const note = voice.notes[voice.notes.length - (i + 1)];
       if (!note) {
         console.warn('no note for beam group');
         return;
       }
-      beamBeats += note.ticks.numerator;
-    }
-    for (i = 0; i < beamLength; ++i) {
-      const note = voice.notes[voice.notes.length - (i + 1)];
       note.endBeam = i === 0;
-      note.beamBeats = beamBeats;
     }
   }
   // ### updateBeamState
