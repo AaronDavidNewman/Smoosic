@@ -57,6 +57,9 @@ class mxmlHelpers {
       'trill-mark': { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.trill } },
     };
   }
+  // ### createRootElement
+  // Create score-partwise document with prelude
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=318086
   static createRootElement() {
     const doc = document.implementation.createDocument('', '', null);
     const rootElem = doc.createElement('score-partwise');

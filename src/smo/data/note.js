@@ -266,7 +266,7 @@ class SmoNote {
   }
   makeHidden(val) {
     this.hidden = val;
-    this.fillStyle = val ? '#aaaaaa0f' : '';
+    this.fillStyle = val ? '#aaaaaa7f' : '';
   }
 
   get isTuplet() {

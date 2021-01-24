@@ -5151,13 +5151,13 @@ class SuiScoreViewOperations extends SuiScoreView {
       // If the note is a note, make it into a rest.  If the note is a rest already,
       // make it invisible.  If it is invisible already, make it back into a rest.
       if (sel.note.isRest() && !sel.note.hidden) {
-        sel.makeHidden(true);
-        altSel.makeHidden(true);
+        sel.note.makeHidden(true);
+        altSel.note.makeHidden(true);
       } else {
         sel.note.makeRest();
         altSel.note.makeRest();
-        sel.makeHidden(false);
-        altSel.makeHidden(false);
+        sel.note.makeHidden(false);
+        altSel.note.makeHidden(false);
       }
     });
     this._renderChangedMeasures(measureSelections);
@@ -12199,7 +12199,7 @@ class SmoNote {
   }
   makeHidden(val) {
     this.hidden = val;
-    this.fillStyle = val ? '#aaaaaa0f' : '';
+    this.fillStyle = val ? '#aaaaaa7f' : '';
   }
 
   get isTuplet() {
@@ -15366,6 +15366,9 @@ class mxmlHelpers {
       'trill-mark': { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.trill } },
     };
   }
+  // ### createRootElement
+  // Create score-partwise document with prelude
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=318086
   static createRootElement() {
     const doc = document.implementation.createDocument('', '', null);
     const rootElem = doc.createElement('score-partwise');

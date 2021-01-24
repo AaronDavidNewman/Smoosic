@@ -126,13 +126,13 @@ class SuiScoreViewOperations extends SuiScoreView {
       // If the note is a note, make it into a rest.  If the note is a rest already,
       // make it invisible.  If it is invisible already, make it back into a rest.
       if (sel.note.isRest() && !sel.note.hidden) {
-        sel.makeHidden(true);
-        altSel.makeHidden(true);
+        sel.note.makeHidden(true);
+        altSel.note.makeHidden(true);
       } else {
         sel.note.makeRest();
         altSel.note.makeRest();
-        sel.makeHidden(false);
-        altSel.makeHidden(false);
+        sel.note.makeHidden(false);
+        altSel.note.makeHidden(false);
       }
     });
     this._renderChangedMeasures(measureSelections);

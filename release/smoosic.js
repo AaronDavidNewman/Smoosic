@@ -270,6 +270,7 @@ class draggable {
 //
 // `VexFlow` uses a letter duration ('4' for 1/4 note) and 'd' for dot.
 // I try to indicate whether I am using vex or smo notation
+// Duration methods start around line 600
 // ---
 class smoMusic {
   // ### vexToCannonical
@@ -898,6 +899,15 @@ class smoMusic {
     }
     return rv;
   }
+  // ### vexStemType
+  // return the vex stem type (no dots)
+  static vexStemType(ticks) {
+    const str = smoMusic.ticksToDuration[smoMusic.splitIntoValidDurations(ticks)[0]];
+    if (str.indexOf('d') >= 0) {
+      return str.substr(0,str.indexOf('d'));
+    }
+    return str;
+  }
 
   // ### getKeySignatureKey
   // given a letter pitch (a,b,c etc.), and a key signature, return the actual note
@@ -998,29 +1008,27 @@ class smoMusic {
 
 
   static gcdMap(duration) {
-        var keys = Object.keys(smoMusic.ticksToDuration).map((x) => parseInt(x));
-        var dar = [];
-
-        var gcd = function(td) {
-            var rv = keys[0];
-            for (var k = 1;k<keys.length;++k) {
-                if (td % keys[k] == 0) {
-                    rv = keys[k]
-                }
+    var keys = Object.keys(smoMusic.ticksToDuration).map((x) => parseInt(x));
+    var dar = [];
+    var gcd = function(td) {
+        var rv = keys[0];
+        for (var k = 1 ;k < keys.length; ++k) {
+            if (td % keys[k] === 0) {
+                rv = keys[k];
             }
-            return rv;
         }
-        while (duration > 0 && !smoMusic.ticksToDuration[duration]) {
-            var div = gcd(duration);
-            duration = duration - div;
-            dar.push(div);
-        }
-        if (duration > 0) {
-            dar.push(duration);
-        }
-        return dar.sort((a,b) => a > b ? -1 : 1);
+        return rv;
     }
-
+    while (duration > 0 && !smoMusic.ticksToDuration[duration]) {
+        var div = gcd(duration);
+        duration = duration - div;
+        dar.push(div);
+    }
+    if (duration > 0) {
+        dar.push(duration);
+    }
+    return dar.sort((a,b) => a > b ? -1 : 1);
+  }
 }
 ;
 class PromiseHelpers {
@@ -5143,17 +5151,13 @@ class SuiScoreViewOperations extends SuiScoreView {
       // If the note is a note, make it into a rest.  If the note is a rest already,
       // make it invisible.  If it is invisible already, make it back into a rest.
       if (sel.note.isRest() && !sel.note.hidden) {
-        sel.note.fillStyle = '#aaaaaa00';
-        sel.note.hidden = true;
-        altSel.note.fillStyle = '#aaaaaa00';
-        altSel.note.hidden = true;
+        sel.note.makeHidden(true);
+        altSel.note.makeHidden(true);
       } else {
         sel.note.makeRest();
         altSel.note.makeRest();
-        altSel.note.fillStyle = '';
-        sel.note.fillStyle = '';
-        altSel.note.hidden = false;
-        sel.note.hidden = false;
+        sel.note.makeHidden(false);
+        altSel.note.makeHidden(false);
       }
     });
     this._renderChangedMeasures(measureSelections);
@@ -5901,6 +5905,13 @@ class SuiScoreViewOperations extends SuiScoreView {
     const json = this.storeScore.serialize();
     const jsonText = JSON.stringify(json);
     htmlHelpers.addFileLink(filename, jsonText, $('.saveLink'));
+    $('.saveLink a')[0].click();
+  }
+  saveXml(filename) {
+    const dom = SmoToXml.convert(this.storeScore);
+    const ser = new XMLSerializer();
+    const xmlText = ser.serializeToString(dom);
+    htmlHelpers.addFileLink(filename, xmlText, $('.saveLink'));
     $('.saveLink a')[0].click();
   }
   saveActions(filename) {
@@ -11055,11 +11066,14 @@ class SmoMeasure {
       accidentalArray
     };
   }
+  // ### createRestNoteWithDuration
+  // pad some duration of music with rests.
   static createRestNoteWithDuration(duration, clef) {
     const pitch = JSON.parse(JSON.stringify(
       SmoMeasure.defaultPitchForClef[clef]));
-    const note = new SmoNote({  pitches: [pitch], noteType: 'r', ticks:
-      { numerator: duration, denominator: 1, remainder: 0 } });
+    const note = new SmoNote({
+      pitches: [pitch], noteType: 'r', hidden: true,
+      ticks: { numerator: duration, denominator: 1, remainder: 0 } });
     return note;
   }
 
@@ -12182,6 +12196,10 @@ class SmoNote {
     // clear fill style if we were hiding rests
     this.fillStyle = '';
     this.hidden = false;
+  }
+  makeHidden(val) {
+    this.hidden = val;
+    this.fillStyle = val ? '#aaaaaa7f' : '';
   }
 
   get isTuplet() {
@@ -14964,7 +14982,337 @@ class SmoTuplet {
   }
 }
 ;// eslint-disable-next-line no-unused-vars
+class SmoToXml {
+  static get beamStates() {
+    return {
+      none: 1, start: 2, continue: 3, stop: 4
+    };
+  }
+  static convert(score) {
+    const nn = mxmlHelpers.createTextElementChild;
+    const dom = mxmlHelpers.createRootElement();
+    const root = dom.children[0];
+    const work = nn(root, 'work');
+    nn(work, 'work-title', score.scoreInfo, 'title');
+    const identification = nn(root, 'identification');
+    const creator = nn(identification, 'creator', score.scoreInfo, 'composer');
+    mxmlHelpers.createAttributes(creator, { type: 'composer' });
+    const encoding = nn(identification, 'encoding');
+    nn(encoding, 'software', { software: 'Some pre-release version of Smoosic' }, 'software');
+    nn(encoding, 'encoding-date', { date: new Date().toDateString() }, 'date');
+    const defaults = nn(root, 'defaults');
+    const scaling = nn(root, 'scaling');
+    // reverse this:
+    // scoreDefaults.layout.svgScale =  (scale * 42 / 40) / mxmlScore.mmPerPixel;
+    const mm = mxmlScore.mmPerPixel * 42 * score.layout.svgScale;
+    nn(scaling, 'millimeters', { mm }, 'mm');
+    nn(scaling, 'tenths', { tenths: 40 }, 'tenths');
+    const pageLayout = nn(defaults, 'page-layout');
+    mxmlScore.pageLayoutMap.forEach((map) => {
+      nn(pageLayout, map.xml, score.layout, map.smo);
+    });
+    const pageMargins = nn(pageLayout, 'page-margins');
+    mxmlScore.pageMarginMap.forEach((map) => {
+      nn(pageMargins, map.xml, score.layout, map.smo);
+    });
+    const partList =  nn(root, 'part-list');
+    score.staves.forEach((staff) => {
+      const id = 'P' + staff.staffId;
+      const scorePart = nn(partList, 'score-part');
+      mxmlHelpers.createAttributes(scorePart, { id });
+      nn(scorePart, 'part-name', { name: staff.instrumentInfo.instrumentName }, 'name');
+    });
+    const smoState = {};
+    score.staves.forEach((staff) => {
+      const part = nn(root, 'part');
+      const id = 'P' + staff.staffId;
+      mxmlHelpers.createAttributes(part, { id });
+      smoState.measureNumber = 1;
+      smoState.tickCount = 0;
+      smoState.staff = staff;
+      smoState.slurs = [];
+      smoState.slurNumber = 1;
+      staff.measures.forEach((measure) => {
+        smoState.measureTicks = 0;
+        smoState.measure = measure;
+        const measureElement = nn(part, 'measure');
+        SmoToXml.measure(measureElement, smoState);
+        smoState.measureNumber += 1;
+      });
+    });
+    return dom;
+  }
+  // ### measure
+  // .../part/measure
+  static measure(measureElement, smoState) {
+    const measure = smoState.measure;
+    if (smoState.measureNumber === 1 && measure.isPickup()) {
+      smoState.measureNumber = 0;
+    }
+    mxmlHelpers.createAttributes(measureElement, { number: smoState.measureNumber });
+    SmoToXml.attributes(measureElement, smoState);
+    smoState.voiceIndex = 1;
+    smoState.beamState = SmoToXml.beamStates.none;
+    smoState.beamTicks = 0;
+    measure.voices.forEach((voice) => {
+      smoState.voiceTickIndex = 0;
+      smoState.voice = voice;
+      voice.notes.forEach((note) => {
+        smoState.note = note;
+        SmoToXml.note(measureElement, smoState);
+      });
+      if (measure.voices.length > smoState.voiceIndex) {
+        smoState.voiceIndex += 1;
+        const backupElement = nn(measureElement, 'backup');
+        nn(backupElement, 'duration', { duration: smoState.measureTicks }, 'duration');
+      } else {
+        smoState.tickCount += smoState.measureTicks;
+      }
+      smoState.measureTicks = 0;
+    });
+  }
+  // ### slur
+  // /score-partwise/part/measure/note/notations/slur
+  static slur(notationsElement, smoState) {
+    const nn = mxmlHelpers.createTextElementChild;
+    const staff = smoState.staff;
+    const measure = smoState.measure;
+    const selector = {
+      staff: staff.staffId,
+      measure: measure.measureNumber.measureIndex,
+      voice: smoState.voiceIndex - 1,
+      tick: smoState.voiceTickIndex
+    };
+    const starts = smoState.staff.getSlursStartingAt(selector);
+    const ends = smoState.staff.getSlursEndingAt(selector);
+    const remove = [];
+    const newSlurs = [];
+    ends.forEach((slur) => {
+      const match = smoState.slurs.find((ss) => SmoSelector.eq(ss.startSelector, slur.startSelector) &&
+        SmoSelector.eq(ss.endSelector, slur.endSelector));
+      if (match) {
+        remove.push(match);
+        const slurElement = nn(notationsElement, 'slur');
+        mxmlHelpers.createAttributes(slurElement, { number: match.number, type: 'stop' });
+      }
+    });
+    smoState.slurs.forEach((slur) => {
+      if (remove.findIndex((rr) => rr.number === slur.number) <= 0) {
+        newSlurs.push(slur);
+      }
+    });
+    smoState.slurs = newSlurs;
+    smoState.slurNumber = 1;
+    if (smoState.slurs.length > 0) {
+      // set next slur number to 1+ highest slur number in the 'waiting to resolve' list
+      smoState.slurNumber = smoState.slurs.map((slur) => slur.number).reduce((a, b) => a > b ? a : b) + 1;
+    }
+    starts.forEach((slur) => {
+      smoState.slurs.push({ startSelector: slur.startSelector,
+        endSelector: slur.endSelector,
+        number: smoState.slurNumber });
+      const slurElement = nn(notationsElement, 'slur');
+      mxmlHelpers.createAttributes(slurElement, { number: smoState.slurNumber, type: 'start' });
+      smoState.slurNumber += 1;
+    });
+  }
+  static tuplet(noteElement, notationsElement, smoState) {
+    const nn = mxmlHelpers.createTextElementChild;
+    const measure = smoState.measure;
+    const note = smoState.note;
+    const tuplet = measure.getTupletForNote(note);
+    if (!tuplet) {
+      return;
+    }
+    const obj = {
+      actualNotes: tuplet.numNotes, normalNotes: 4096 / tuplet.stemTicks
+    };
+    const timeModification = nn(noteElement, 'time-modification');
+    nn(timeModification, 'actual-notes', obj, 'actualNotes');
+    nn(timeModification, 'normal-notes', obj, 'normalNotes');
+    if (tuplet.getIndexOfNote(note) === 0) {
+      const tupletElement = nn(notationsElement, 'tuplet');
+      mxmlHelpers.createAttributes(tupletElement, {
+        number: 1, type: 'start'
+      });
+    } else if (tuplet.getIndexOfNote(note) === tuplet.notes.length - 1) {
+      const tupletElement = nn(notationsElement, 'tuplet');
+      mxmlHelpers.createAttributes(tupletElement, {
+        number: 1, type: 'stop'
+      });
+    }
+  }
+  static pitch(pitch, noteElement) {
+    const nn = mxmlHelpers.createTextElementChild;
+    const accidentalOffset = ['bb', 'b', 'n', '#', '##'];
+    const adjust = accidentalOffset.indexOf(pitch.accidental) - 2;
+    const pitchElement = nn(noteElement, 'pitch');
+    nn(pitchElement, 'step', { letter: pitch.letter.toUpperCase() }, 'letter');
+    nn(pitchElement, 'octave', pitch, 'octave');
+    nn(pitchElement, 'adjust', { adjust }, 'adjust');
+  }
+  static beamNote(noteElement, smoState) {
+    const nn = mxmlHelpers.createTextElementChild;
+    const note = smoState.note;
+    const nextNote = (smoState.voiceTickIndex + 1) >= smoState.voice.notes.length ?
+      null : smoState.voice.notes[smoState.voiceTickIndex + 1];
+    const exceedTicks = smoState.beamTicks + note.tickCount >= note.beamBeats;
+    // don't start a beam on a rest
+    if (note.isRest() && smoState.beamState === SmoToXml.beamStates.none) {
+      return;
+    }
+    let toBeam = SmoToXml.beamStates.none;
+    if (note.tickCount <= 2048 && !exceedTicks) {
+      // Explicit end beam, or no more notes to beam, so stop beam
+      if (note.endBeam || nextNote === null) {
+        if (smoState.beamState !== SmoToXml.beamStates.none) {
+          toBeam = SmoToXml.beamStates.stop;
+        }
+      } else {
+        // else if the next note is beamable, start or continue the beam
+        if (nextNote.tickCount <= 2048) {
+          toBeam = smoState.beamState === SmoToXml.beamStates.continue ?
+            SmoToXml.beamStates.continue : SmoToXml.beamStates.start;
+        }
+      }
+    }
+    if (toBeam === SmoToXml.beamStates.start || toBeam === SmoToXml.beamStates.continue) {
+      smoState.beamTicks += smoState.note.tickCount;
+    } else {
+      smoState.beamTicks = 0;
+    }
+    // slur is start/stop, beam is begin, end, gf
+    if (toBeam === SmoToXml.beamStates.start) {
+      const beamElement = nn(noteElement, 'beam', { type: 'begin' }, 'type');
+      mxmlHelpers.createAttributes(beamElement, { number: 1 });
+      smoState.beamState = SmoToXml.beamStates.continue;
+    } else if (toBeam === SmoToXml.beamStates.continue) {
+      const beamElement = nn(noteElement, 'beam', { type: 'continue' }, 'type');
+      mxmlHelpers.createAttributes(beamElement, { number: 1 });
+    } else if ((toBeam === SmoToXml.beamStates.stop) ||
+      (toBeam === SmoToXml.beamStates.none && smoState.beamState !== SmoToXml.beamStates.none)) {
+      const beamElement = nn(noteElement, 'beam', { type: 'end' }, 'type');
+      mxmlHelpers.createAttributes(beamElement, { number: 1 });
+      smoState.beamState = SmoToXml.beamStates.none;
+    }
+  }
+  // ### /score-partwise/measure/note
+  static note(measureElement, smoState) {
+    const note = smoState.note;
+    const nn = mxmlHelpers.createTextElementChild;
+    let i = 0;
+    for (i = 0; i < note.pitches.length; ++i) {
+      const noteElement = nn(measureElement, 'note');
+      if (i > 0) {
+        nn(noteElement, 'chord');
+      } else {
+        SmoToXml.beamNote(noteElement, smoState);
+        nn(noteElement, 'type', { type: mxmlHelpers.closestStemType(note.tickCount) },
+          'type');
+      }
+      if (note.isRest()) {
+        nn(noteElement, 'rest');
+      }
+      nn(noteElement, 'voice', { voice: smoState.voiceIndex }, 'voice');
+      SmoToXml.pitch(note.pitches[i], noteElement);
+      const duration = note.tickCount;
+      smoState.measureTicks += duration;
+      nn(noteElement, 'duration', { duration }, 'duration');
+      const notationsElement = noteElement.ownerDocument.createElement('notations');
+      SmoToXml.tuplet(noteElement, notationsElement, smoState);
+      SmoToXml.slur(notationsElement, smoState);
+      if (notationsElement.children.length) {
+        noteElement.appendChild(notationsElement);
+      }
+      if (i === 0) {
+        smoState.voiceTickIndex += 1;
+      }
+    }
+  }
+  // ### /score-partwise/measure/attributes/key
+  static key(attributesElement, smoState) {
+    let fifths = 0;
+    const measure = smoState.measure;
+    if (smoState.keySignature && measure.keySignature === smoState.keySignature) {
+      return; // no key change
+    }
+    const flats = smoMusic.getFlatsInKeySignature(measure.keySignature);
+    const nn = mxmlHelpers.createTextElementChild;
+    if (flats > 0) {
+      fifths = -1 * flats;
+    } else {
+      fifths = smoMusic.getSharpsInKeySignature(measure.keySignature);
+    }
+    const keyElement = nn(attributesElement, 'key');
+    nn(keyElement, 'fifths', { fifths }, 'fifths');
+    nn(keyElement, 'mode', { mode: 'major' }, 'major');
+    smoState.keySignature = measure.keySignature;
+  }
+  // ### time
+  // score-partwise/part/measure/attributes/time
+  static time(attributesElement, smoState) {
+    const nn = mxmlHelpers.createTextElementChild;
+    const measure = smoState.measure;
+    if (smoState.timeSignature && smoState.timeSignature === measure.timeSignature) {
+      return;
+    }
+    const timeAr = measure.timeSignature.split('/');
+    const time = { beat: parseInt(timeAr[0], 10), beatType: parseInt(timeAr[1], 10) };
+    const timeElement = nn(attributesElement, 'time');
+    nn(timeElement, 'beat', time, 'beat');
+    nn(timeElement, 'beat-type', time, 'beatType');
+    smoState.timeSignature = measure.timeSignature;
+  }
+  // ### clef
+  // /score-partwise/part/measure/attributes/clef
+  static clef(attributesElement, smoState) {
+    const measure = smoState.measure;
+    if (smoState.clef && smoState.clef === measure.clef) {
+      return; // no change
+    }
+    const nn = mxmlHelpers.createTextElementChild;
+    const clef = {};
+    if (measure.clef === 'treble') {
+      clef.sign = 'G';
+      clef.line = 2;
+    } else if (measure.clef === 'bass') {
+      clef.sign = 'F';
+      clef.line = 4;
+    } else {
+      clef.sign = 'C';
+      if (measure.clef === 'tenor') {
+        clef.sign = 3;
+      } else {
+        clef.sign = 4; // todo: other clefs
+      }
+    }
+    const clefElement = nn(attributesElement, 'clef');
+    nn(clefElement, 'sign', clef, 'sign');
+    nn(clefElement, 'line', clef, 'line');
+    smoState.clef = measure.clef;
+  }
+  static attributes(measureElement, smoState) {
+    const nn = mxmlHelpers.createTextElementChild;
+    const attributesElement = measureElement.ownerDocument.createElement('attributes');
+    if (!smoState.divisions) {
+      nn(attributesElement, 'divisions', { divisions: 4096 }, 'divisions');
+      smoState.divisions = 4096;
+    }
+    SmoToXml.key(attributesElement, smoState);
+    SmoToXml.time(attributesElement, smoState);
+    SmoToXml.clef(attributesElement, smoState);
+    if (attributesElement.children.length > 0) {
+      // don't add an empty attributes element
+      measureElement.appendChild(attributesElement);
+    }
+  }
+}
+;// ## mxmlHelpers
+// Utilities for parsing and serialzing musicXML.
+// eslint-disable-next-line no-unused-vars
 class mxmlHelpers {
+  // ### noteTypesToSmoMap
+  // mxml note 'types', really s/b stem types.
   // For grace notes, we use the note type and not duration
   // to get the flag
   static get noteTypesToSmoMap() {
@@ -14980,8 +15328,22 @@ class mxmlHelpers {
       '128th': 128
     };
   }
+  static get ticksToNoteTypeMap() {
+    if (mxmlHelpers._ticksToNoteTypeMap) {
+      return mxmlHelpers._ticksToNoteTypeMap;
+    }
+    mxmlHelpers._ticksToNoteTypeMap = smoSerialize.reverseMap(mxmlHelpers.noteTypesToSmoMap);
+    return mxmlHelpers._ticksToNoteTypeMap;
+  }
+  // ### closestStemType
+  // smo infers the stem type from the duration, but other applications don't
+  static closestStemType(ticks) {
+    const nticks = VF.durationToTicks(smoMusic.vexStemType(ticks));
+    return mxmlHelpers.ticksToNoteTypeMap[nticks];
+  }
   static get beamStates() {
-    return { BEGIN: 1,
+    return {
+      BEGIN: 1,
       END: 2,
       AUTO: 3
     };
@@ -15003,6 +15365,18 @@ class mxmlHelpers {
       shake: { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.mordentInverted } },
       'trill-mark': { ctor: 'SmoOrnament', params: { ornament: SmoOrnament.ornaments.trill } },
     };
+  }
+  // ### createRootElement
+  // Create score-partwise document with prelude
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=318086
+  static createRootElement() {
+    const doc = document.implementation.createDocument('', '', null);
+    const rootElem = doc.createElement('score-partwise');
+    const piElement = doc.createProcessingInstruction('xml', 'version="1.0" encoding="UTF8"');
+    rootElem.setAttribute('version', '2.0');
+    doc.appendChild(rootElem);
+    doc.insertBefore(piElement, rootElem);
+    return doc;
   }
   // Parse an element whose child has a number in the textContent
   static getNumberFromElement(parent, path, defaults) {
@@ -15034,6 +15408,9 @@ class mxmlHelpers {
     }
     return el[0].textContent;
   }
+  // ### getChildrenFromPath
+  // Like xpath, given ['foo', 'bar'] and parent element
+  // 'moo' return any element /moo/foo/bar as an array of elements
   static getChildrenFromPath(parent, pathAr) {
     let i = 0;
     let node = parent;
@@ -15233,7 +15610,28 @@ class mxmlHelpers {
     }
     return null;
   }
+  // ### createTextElementChild
+  // In:  ../parent
+  // Out: ../parent/elementName/obj[field]
+  // returns elementName element.  If obj is null, just creates and returns child
+  static createTextElementChild(parentElement, elementName, obj, field) {
+    const el = parentElement.ownerDocument.createElement(elementName);
+    if (obj) {
+      el.textContent = obj[field];
+    }
+    parentElement.appendChild(el);
+    return el;
+  }
+  static createAttributes(element, obj) {
+    Object.keys(obj).forEach((key) => {
+      const attr = element.ownerDocument.createAttribute(key);
+      attr.value = obj[key];
+      element.setAttributeNode(attr);
+    });
+  }
 }
+;// ## mxmlScore
+// Parse music xml into a smoosic score object
 // eslint-disable-next-line no-unused-vars
 class mxmlScore {
   static get mmPerPixel() {
@@ -15575,6 +15973,8 @@ class mxmlScore {
       });
     }
     const divisions = xmlState.divisions;
+    const printText = noteElement.getAttribute('print-object');
+    const hideNote = typeof(printText) === 'string' && printText === 'no';
     const isGrace = mxmlHelpers.isGrace(noteElement);
     const restNode = mxmlHelpers.getChildrenFromPath(noteElement, ['rest']);
     const noteType = restNode.length ? 'r' : 'n';
@@ -15614,6 +16014,9 @@ class mxmlScore {
         // treats them as note modifiers
         noteData.ticks = { numerator: tickCount, denominator: 1, remainder: 0 };
         xmlState.previousNote = new SmoNote(noteData);
+        if (hideNote) {
+          xmlState.previousNote.makeHidden(true);
+        }
         xmlState.updateDynamics();
         ornaments.forEach((ornament) => {
           if (ornament.ctor === 'SmoOrnament') {
@@ -15634,8 +16037,10 @@ class mxmlScore {
           const pads = smoMusic.splitIntoValidDurations(
             xmlState.tickCursor - xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed);
           pads.forEach((pad) => {
-            voice.notes.push(SmoMeasure.createRestNoteWithDuration(pad,
-              xmlState.staffArray[staffIndex].clefInfo.clef));
+            const padNote = SmoMeasure.createRestNoteWithDuration(pad,
+              xmlState.staffArray[staffIndex].clefInfo.clef);
+            padNote.makeHidden(true);
+            voice.notes.push(padNote);
           });
           // then reset the cursor since we are now in sync
           xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed = xmlState.tickCursor;
@@ -15892,19 +16297,13 @@ class XmlState {
   // note beam length
   backtrackBeamGroup(voice, beamLength) {
     let i = 0;
-    let beamBeats = 0;
     for (i = 0; i < beamLength; ++i) {
       const note = voice.notes[voice.notes.length - (i + 1)];
       if (!note) {
         console.warn('no note for beam group');
         return;
       }
-      beamBeats += note.ticks.numerator;
-    }
-    for (i = 0; i < beamLength; ++i) {
-      const note = voice.notes[voice.notes.length - (i + 1)];
       note.endBeam = i === 0;
-      note.beamBeats = beamBeats;
     }
   }
   // ### updateBeamState
@@ -17631,8 +18030,8 @@ class SmoOperation {
     });
     if (beamGroup.length) {
       beamGroup.forEach((note) => {
-        note.beamBeats=ticks;
-        note.endBeam=false;
+        note.beamBeats = ticks;
+        note.endBeam = false;
       });
       beamGroup[beamGroup.length - 1].endBeam=true;
     }
@@ -27086,6 +27485,67 @@ class SuiSaveFileDialog extends SuiFileDialog {
 }
 
 // eslint-disable-next-line no-unused-vars
+class SuiSaveXmlDialog extends SuiFileDialog {
+  static get ctor() {
+    return 'SuiSaveXmlDialog';
+  }
+  get ctor() {
+    return SuiSaveXmlDialog.ctor;
+  }
+
+  static get dialogElements() {
+    SuiSaveXmlDialog._dialogElements = typeof(SuiSaveXmlDialog._dialogElements) !== 'undefined' ?
+      SuiSaveXmlDialog._dialogElements :
+      [{
+        smoName: 'saveFileName',
+        parameterName: 'saveFileName',
+        defaultValue: '',
+        control: 'SuiTextInputComponent',
+        label: 'File Name'
+      },
+      {
+        staticText: [
+          { label: 'Save Score' }
+        ]
+      }];
+    return SuiSaveXmlDialog._dialogElements;
+  }
+
+  changed() {
+    this.value = this.components[0].getValue();
+  }
+  commit() {
+    let filename = this.value;
+    if (!filename) {
+      filename = 'myScore.xml';
+    }
+    if (filename.indexOf('.xml') < 0) {
+      filename = filename + '.xml';
+    }
+    this.view.score.scoreInfo.version += 1;
+    this.view.saveXml(filename);
+    this.complete();
+  }
+  display() {
+    super.display();
+    this._bindComponentNames();
+    this.saveFileNameCtrl.setValue(this.value);
+  }
+  static createName(score) {
+    return score.scoreInfo.name + '-' + score.scoreInfo.version + '.xml';
+  }
+  static createAndDisplay(params) {
+    var dg = new SuiSaveXmlDialog(params);
+    dg.display();
+  }
+  constructor(parameters) {
+    parameters.ctor = 'SuiSaveXmlDialog';
+    super(parameters);
+    this.value = SuiSaveXmlDialog.createName(this.view.score);
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
 class SuiSaveActionsDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiSaveActionsDialog';
@@ -27690,8 +28150,6 @@ class SuiMeasureDialog extends SuiDialogBase {
   populateInitial() {
     this.padLeftCtrl.setValue(this.measure.padLeft);
     this.autoJustifyCtrl.setValue(this.measure.autoJustify);
-    this.originalStretch = this.measure.customStretch;
-    this.originalProportion = this.measure.customProportion;
     const isPickup = this.measure.isPickup();
     this.customStretchCtrl.setValue(this.measure.customStretch);
     this.customProportionCtrl.setValue(this.measure.customProportion);
@@ -36846,10 +37304,14 @@ class SuiFileMenu extends suiMenuBase {
         text: 'Import MusicXML',
         value: 'importMxml'
       }, {
+        icon: '',
+        text: 'Export MusicXML',
+        value: 'exportXml'
+      }, {
         icon: 'folder-save',
         text: 'Save',
         value: 'saveFile'
-      },  {
+      }, {
         icon: 'folder-save',
         text: 'Save Actions',
         value: 'saveActions'
@@ -36939,6 +37401,16 @@ class SuiFileMenu extends suiMenuBase {
       });
     } else if (text === 'openFile') {
       SuiLoadFileDialog.createAndDisplay({
+        completeNotifier: this.completeNotifier,
+        tracker: this.tracker,
+        undoBuffer: this.undoBuffer,
+        eventSource: this.eventSource,
+        editor: this.keyCommands,
+        view: this.view,
+        closeMenuPromise: this.closePromise
+      });
+    } else if (text === 'exportXml') {
+      SuiSaveXmlDialog.createAndDisplay({
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
