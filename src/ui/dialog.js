@@ -22,6 +22,7 @@ class SuiModifierDialogFactory {
   static get modifierDialogMap() {
     return {
       SmoStaffHairpin: 'SuiHairpinAttributesDialog',
+      SmoTie: 'SuiTieAttributesDialog',
       SmoSlur: 'SuiSlurAttributesDialog',
       SmoDynamicText: 'SuiDynamicModifierDialog',
       SmoVolta: 'SuiVoltaAttributeDialog',

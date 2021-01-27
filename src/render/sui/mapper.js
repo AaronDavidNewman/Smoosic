@@ -102,8 +102,8 @@ class suiMapper {
       (measureKey ? this.measureNoteMap[measureKey] : firstObj);
   }
 
-    // ### updateMeasure
-    // A measure has changed.  Update the music geometry for it
+  // ### updateMeasure
+  // A measure has changed.  Update the music geometry for it
   mapMeasure(staff, measure, printing) {
     if (!measure.renderedBox) {
         return;

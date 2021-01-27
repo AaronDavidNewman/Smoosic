@@ -1086,7 +1086,7 @@ class suiTracker extends suiMapper {
     const sorted = this.selections.sort((a, b) => SmoSelector.gt(a.selector, b.selector) ? 1 : -1);
     prevSel = sorted[0];
     // rendered yet?
-    if (!prevSel.box) {
+    if (!prevSel || !prevSel.box) {
       return;
     }
     curBox = svgHelpers.smoBox(prevSel.box);

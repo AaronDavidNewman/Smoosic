@@ -800,8 +800,12 @@ class SuiStaffModifierMenu extends suiMenuBase {
           value: 'decrescendo'
         }, {
           icon: 'slur',
-          text: 'Slur/Tie',
+          text: 'Slur',
           value: 'slur'
+        }, {
+          icon: 'slur',
+          text: 'Tie',
+          value: 'tie'
         }, {
           icon: 'ending',
           text: 'nth ending',
@@ -822,6 +826,8 @@ class SuiStaffModifierMenu extends suiMenuBase {
       this.view.addEnding();
     } else if (op === 'slur') {
       this.view.slur();
+    }  else if (op === 'tie') {
+      this.view.tie();
     } else if (op === 'crescendo') {
       this.view.crescendo();
     } else if (op === 'decrescendo') {

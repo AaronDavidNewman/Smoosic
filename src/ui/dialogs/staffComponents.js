@@ -1,3 +1,6 @@
+// ## CheckboxDropdownComponent
+// A checkbox that enables a dropdown component, for optional or dependent parameter
+// eslint-disable-next-line no-unused-vars
 class CheckboxDropdownComponent extends SuiComponentBase {
   // { dropdownElement: {...}, toggleElement: }
   constructor(dialog, parameter) {
@@ -13,7 +16,7 @@ class CheckboxDropdownComponent extends SuiComponentBase {
   get html() {
     const b = htmlHelpers.buildDom;
     const q = b('div').classes(this.makeClasses('multiControl smoControl checkboxDropdown'))
-      .attr('id',this.parameterId);
+      .attr('id', this.parameterId);
     q.append(this.toggleCtrl.html);
     q.append(this.dropdownCtrl.html);
     return q;
@@ -27,20 +30,120 @@ class CheckboxDropdownComponent extends SuiComponentBase {
   }
   changed() {
     if (this.toggleCtrl.getValue()) {
-      $('#'+this.parameterId).addClass('checked');
+      $('#' + this.parameterId).addClass('checked');
     } else {
-      $('#'+this.parameterId).removeClass('checked');
+      $('#' + this.parameterId).removeClass('checked');
     }
     this.handleChanged();
   }
 }
 
+// ## TieMappingComponent
+// Represent the pitches in 2 notes that can be individually tied together
+// eslint-disable-next-line no-unused-vars
+class TieMappingComponent extends SuiComponentBase {
+  // { dropdownElement: {...}, toggleElement: }
+  constructor(dialog, parameter) {
+    let i = 0;
+    super(parameter);
+    this.dialog = dialog;
+    this.startSelection = SmoSelection.noteFromSelector(
+      this.dialog.view.score, this.dialog.modifier.startSelector);
+    this.endSelection = SmoSelection.noteFromSelector(
+      this.dialog.view.score, this.dialog.modifier.endSelector);
+    const pitchCount = Math.max(this.startSelection.note.pitches.length, this.endSelection.note.pitches.length);
+
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+    this.controlRows = [];
+    for (i = 0; i < pitchCount; ++i) {
+      const smoName = 'Line-' + (i + 1);
+      const defaultValue = -1;
+      const leftControl = new SuiDropdownComposite(this.dialog, {
+        smoName: smoName + '-left',
+        parameterName: smoName + '-left',
+        classes: 'leftControl',
+        defaultValue,
+        label: SuiDialogBase.getStaticText(SuiTieAttributesDialog.dialogElements, 'fromNote'),
+        options: this._generateOptions(this.startSelection.note),
+        parentControl: this
+      });
+      const rightControl = new SuiDropdownComposite(this.dialog, {
+        smoName: smoName + '-right',
+        parameterName: smoName + '-right',
+        classes: 'rightControl',
+        label: SuiDialogBase.getStaticText(SuiTieAttributesDialog.dialogElements, 'toNote'),
+        defaultValue,
+        options: this._generateOptions(this.endSelection.note),
+        parentControl: this
+      });
+      this.controlRows.push({ leftControl, rightControl });
+    }
+  }
+  bind() {
+    this.controlRows.forEach((row) => {
+      row.rightControl.bind();
+      row.leftControl.bind();
+    });
+  }
+
+  _generateOptions(note) {
+    const options = [];
+    let index = 0;
+    let label = '';
+    options.push({ value: -1, label: 'No Line' });
+    note.pitches.forEach((pitch) => {
+      const value = index;
+      label = pitch.letter.toUpperCase();
+      if (pitch.accidental !== 'n') {
+        label += pitch.accidental;
+      }
+      label += pitch.octave;
+      options.push({ value, label });
+      index += 1;
+    });
+    return options;
+  }
+  getValue() {
+    const lines = [];
+    this.controlRows.forEach((row) => {
+      const left = row.leftControl.getValue();
+      const right = row.rightControl.getValue();
+      if (left >= 0 && right >= 0) {
+        lines.push({ from: left, to: right });
+      }
+    });
+    return lines;
+  }
+  setValue(modifier) {
+    let i = 0;
+    for (i = 0; i < this.controlRows.length; ++i) {
+      const row = this.controlRows[i];
+      if (modifier.lines.length > i) {
+        row.leftControl.setValue(modifier.lines[i].from);
+        row.rightControl.setValue(modifier.lines[i].to);
+      }
+    }
+  }
+  changed() {
+    this.handleChanged();
+  }
+  get html() {
+    const b = htmlHelpers.buildDom;
+    const q = b('div').classes(this.makeClasses('multiControl smoControl dropdownPair'))
+      .attr('id', this.parameterId);
+    this.controlRows.forEach((row) => {
+      q.append(row.leftControl.html).append(row.rightControl.html);
+    });
+    return q;
+  }
+}
+// eslint-disable-next-line no-unused-vars
 class StaffAddRemoveComponent extends SuiComponentBase {
   get parameterId() {
     return this.dialog.id + '-' + this.parameterName;
   }
   constructor(dialog, parameter) {
-    let i = 0;
     super(parameter);
     smoSerialize.filteredMerge(
       ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
@@ -73,22 +176,21 @@ class StaffAddRemoveComponent extends SuiComponentBase {
         });
       } else if (staff.staffId > this.modifier.startSelector.staff &&
         staff.staffId === this.modifier.endSelector.staff) {
-          // toggle remove of ultimate row, other than first row
-          const rowElement = new SuiToggleComposite(this.dialog, {
-            smoName: id,
-            parameterName: id,
-            defaultValue: true,
-            classes: 'toggle-remove-row',
-            control: 'SuiToggleComponent',
-            label: name
-          });
+        // toggle remove of ultimate row, other than first row
+        const rowElement = new SuiToggleComposite(this.dialog, {
+          smoName: id,
+          parameterName: id,
+          defaultValue: true,
+          classes: 'toggle-remove-row',
+          control: 'SuiToggleComponent',
+          label: name
+        });
         rowElement.parentControl = this;
         this.staffRows.push({
           showCtrl: rowElement
         });
       } else if ((staff.staffId <= this.modifier.endSelector.staff) &&
-        (staff.staffId >= this.modifier.startSelector.staff))
-      {
+        (staff.staffId >= this.modifier.startSelector.staff)) {
         // toggle remove of ultimate row, other than first row
         const rowElement = new SuiToggleComponent(this.dialog, {
           smoName: id,
@@ -98,10 +200,10 @@ class StaffAddRemoveComponent extends SuiComponentBase {
           control: 'SuiToggleComponent',
           label: name
         });
-      rowElement.parentControl = this;
-      this.staffRows.push({
-        showCtrl: rowElement
-      });
+        rowElement.parentControl = this;
+        this.staffRows.push({
+          showCtrl: rowElement
+        });
       }
       i += 1;
     });
@@ -112,7 +214,7 @@ class StaffAddRemoveComponent extends SuiComponentBase {
     // subsequent times, we fill the html with the row information
     if (!this.createdShell) {
       this.createdShell = true;
-      const q = b('div').classes(this.makeClasses('multiControl smoControl staffContainer')).attr('id',this.parameterId);
+      const q = b('div').classes(this.makeClasses('multiControl smoControl staffContainer')).attr('id', this.parameterId);
       return q;
     } else {
       const q = b('div').classes(this.makeClasses('smoControl'));
@@ -128,16 +230,13 @@ class StaffAddRemoveComponent extends SuiComponentBase {
   }
   getValue() {
     let nextStaff = this.modifier.startSelector.staff;
-    let i = 0;
     const maxMeasure = this.modifier.endSelector.measure;
-    const maxStaff = this.modifier.endSelector.staff;
     this.modifier.endSelector = JSON.parse(JSON.stringify(this.modifier.startSelector));
     this.staffRows.forEach((staffRow) => {
-      if (this.staffRows[i].showCtrl.getValue()) {
+      if (staffRow.showCtrl.getValue()) {
         this.modifier.endSelector = { staff: nextStaff, measure: maxMeasure };
         nextStaff += 1;
       }
-      i += 1;
     });
     return this.modifier;
   }
@@ -157,9 +256,9 @@ class StaffAddRemoveComponent extends SuiComponentBase {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class StaffCheckComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
-    let i = 0;
     super(parameter);
     smoSerialize.filteredMerge(
       ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
@@ -167,8 +266,8 @@ class StaffCheckComponent extends SuiComponentBase {
     this.view = this.dialog.view;
     this.staffRows = [];
     this.view.storeScore.staves.forEach((staff) => {
-      const name = 'View Staff ' + (i + 1);
-      const id = 'show-' + i;
+      const name = 'View Staff ' + (staff.staffId + 1);
+      const id = 'show-' + staff.staffId;
       const rowElement = new SuiToggleComponent(this.dialog, {
         smoName: id,
         parameterName: id,
@@ -180,7 +279,6 @@ class StaffCheckComponent extends SuiComponentBase {
       this.staffRows.push({
         showCtrl: rowElement
       });
-      i += 1;
     });
   }
   get html() {
@@ -199,9 +297,9 @@ class StaffCheckComponent extends SuiComponentBase {
   getValue() {
     const rv = [];
     let i = 0;
-    for (i = 0;i < this.staffRows.length; ++i) {
+    for (i = 0; i < this.staffRows.length; ++i) {
       const show = this.staffRows[i].showCtrl.getValue();
-      rv.push({show: show});
+      rv.push({ show });
     }
     return rv;
   }
@@ -222,6 +320,7 @@ class StaffCheckComponent extends SuiComponentBase {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class TextCheckComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
@@ -232,7 +331,7 @@ class TextCheckComponent extends SuiComponentBase {
     const toggleName = this.smoName + 'Toggle';
     const textName = this.smoName + 'Text';
     const label = this.dialog.staticText[textName];
-    const show = this.dialog.staticText['show'];
+    const show = this.dialog.staticText.show;
     this.toggleCtrl = new SuiToggleComposite(this.dialog, {
       smoName: toggleName,
       parameterName: toggleName,
@@ -246,14 +345,14 @@ class TextCheckComponent extends SuiComponentBase {
       parameterName: textName,
       defaultValue: this.defaultValue,
       control: 'SuiTextInputComposite',
-      label: label,
+      label,
       parentControl: this
     });
   }
   get html() {
     const b = htmlHelpers.buildDom;
     const q = b('div').classes(this.makeClasses('multiControl smoControl textCheckContainer'))
-      .attr('id',this.parameterId);
+      .attr('id', this.parameterId);
     q.append(this.textCtrl.html);
     q.append(this.toggleCtrl.html);
     return q;
@@ -266,7 +365,7 @@ class TextCheckComponent extends SuiComponentBase {
     return {
       checked: this.toggleCtrl.getValue(),
       text: this.textCtrl.getValue()
-    }
+    };
   }
   setValue(val) {
     this.toggleCtrl.setValue(val.checked);

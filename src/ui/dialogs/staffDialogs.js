@@ -178,6 +178,74 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
     this.populateInitial();
   }
 }
+
+// eslint-disable-next-line no-unused-vars
+class SuiTieAttributesDialog extends SuiStaffModifierDialog {
+  get ctor() {
+    return SuiTieAttributesDialog.ctor;
+  }
+  static get ctor() {
+    return 'SuiTieAttributesDialog';
+  }
+
+  static get dialogElements() {
+    SuiTieAttributesDialog._dialogElements = SuiTieAttributesDialog._dialogElements ? SuiTieAttributesDialog._dialogElements :
+      [{
+        staticText: [
+          { label: 'Tie Properties' },
+          { fromNote: 'From Note' },
+          { toNote: 'To Note' }
+        ]
+      }, {
+        parameterName: 'lines',
+        smoName: 'lines',
+        defaultValue: [],
+        control: 'TieMappingComponent',
+        label: 'Lines'
+      }];
+    return SuiTieAttributesDialog._dialogElements;
+  }
+  static createAndDisplay(parameters) {
+    var dg = new SuiTieAttributesDialog(parameters);
+    dg.display();
+    return dg;
+  }
+  staticText(label) {
+    return SuiDialogBase.getStaticText(SuiTieAttributesDialog.dialogElements, label);
+  }
+  constructor(parameters) {
+    if (!parameters.modifier) {
+      throw new Error('modifier attribute dialog must have modifier');
+    }
+
+    super(SuiTieAttributesDialog.dialogElements, {
+      id: 'dialog-' + parameters.modifier.attrs.id,
+      top: parameters.modifier.renderedBox.y,
+      left: parameters.modifier.renderedBox.x,
+      label: 'Slur Properties',
+      ...parameters
+    });
+    Vex.Merge(this, parameters);
+    this.completeNotifier.unbindKeyboardForModal(this);
+  }
+  populateInitial() {
+    this.linesCtrl.setValue(this.modifier);
+  }
+  changed() {
+    if (this.linesCtrl.changeFlag) {
+      this.modifier.lines = JSON.parse(JSON.stringify(this.linesCtrl.getValue()));
+      this.view.addOrUpdateStaffModifier(this.original, this.modifier);
+      this.original = this.modifier;
+      this.edited = true;
+    }
+  }
+  display() {
+    super.display();
+    this._bindComponentNames();
+    this.populateInitial();
+  }
+}
+
 // ## SuiVoltaAttributeDialog
 // aka first and second endings
 // eslint-disable-next-line no-unused-vars

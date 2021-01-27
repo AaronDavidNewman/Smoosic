@@ -191,7 +191,7 @@ class VxSystem {
 
   // ### renderModifier
   // render a line-type modifier that is associated with a staff (e.g. slur)
-  renderModifier(modifier, vxStart, vxEnd, smoStart) {
+  renderModifier(modifier, vxStart, vxEnd, smoStart, smoEnd) {
     let xoffset = 0;
     // if it is split between lines, render one artifact for each line, with a common class for
     // both if it is removed.
@@ -238,6 +238,22 @@ class VxSystem {
           position: modifier.position
         });
       curve.setContext(this.context).draw();
+    } else if (modifier.ctor === 'SmoTie') {
+      if (modifier.lines.length > 0) {
+        // Hack: if a chord changed, the ties may no longer be valid.  We should check
+        // this when it changes.
+        modifier.checkLines(smoStart, smoEnd);
+        const fromLines = modifier.lines.map((ll) => ll.from);
+        const toLines = modifier.lines.map((ll) => ll.to);
+        const tie = new VF.StaveTie({
+          first_note: vxStart,
+          last_note: vxEnd,
+          first_indices: fromLines,
+          last_indices: toLines
+        });
+        Vex.Merge(tie.render_options, modifier.vexOptions);
+        tie.setContext(this.context).draw();
+      }
     }
 
     this.context.closeGroup();

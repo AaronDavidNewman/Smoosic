@@ -147,3 +147,77 @@ class SmoSlur extends StaffModifierBase {
     }
   }
 }
+
+// ## SmoTie
+// like slur but multiple pitches
+// ---
+// eslint-disable-next-line no-unused-vars
+class SmoTie extends StaffModifierBase {
+  static get defaults() {
+    return {
+      invert: false,
+      cp1: 8,
+      cp2: 12,
+      first_x_shift: 0,
+      last_x_shift: 0,
+      lines: []
+    };
+  }
+
+  static get parameterArray() {
+    return ['startSelector', 'endSelector', 'invert', 'lines', 'cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
+  }
+  static get vexParameters() {
+    return ['cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
+  }
+  static createLines(fromNote, toNote) {
+    const maxPitches = Math.max(fromNote.pitches.length, toNote.pitches.length);
+    let i = 0;
+    const lines = [];
+    // By default, just tie all the pitches to all the other pitches in order
+    for (i = 0; i < maxPitches; ++i) {
+      const from = i < fromNote.pitches.length ? i : fromNote.pitches.length - 1;
+      const to = i < toNote.pitches.length ? i : toNote.pitches.length - 1;
+      lines.push({ from, to });
+    }
+    return lines;
+  }
+  get vexOptions() {
+    const rv = {};
+    rv.direction = this.invert ? VF.Stem.DOWN : VF.Stem.UP;
+    SmoTie.vexParameters.forEach((p) => {
+      rv[p] = this[p];
+    });
+    return rv;
+  }
+
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoTie.defaults,
+      SmoTie.parameterArray, this, params);
+
+    params.ctor = 'SmoTie';
+    return params;
+  }
+  // ### checkLines
+  // If the note chords have changed, the lines may no longer be valid so update them
+  checkLines(fromNote, toNote) {
+    const maxTo = this.lines.map((ll) => ll.to).reduce((a, b) => a > b ? a : b);
+    const maxFrom = this.lines.map((ll) => ll.from).reduce((a, b) => a > b ? a : b);
+    if (maxTo < toNote.pitches.length && maxFrom < fromNote.pitches.length) {
+      return;
+    }
+    this.lines = SmoTie.createLines(fromNote, toNote);
+  }
+  constructor(params) {
+    super('SmoTie');
+    smoSerialize.serializedMerge(SmoTie.parameterArray, SmoTie.defaults, this);
+    smoSerialize.serializedMerge(SmoTie.parameterArray, params, this);
+    if (!this.attrs) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoTie'
+      };
+    }
+  }
+}

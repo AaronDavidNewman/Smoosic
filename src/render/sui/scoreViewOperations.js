@@ -776,6 +776,10 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.actionBuffer.addAction('slur');
     this._lineOperation('slur');
   }
+  tie() {
+    this.actionBuffer.addAction('tie');
+    this._lineOperation('tie');
+  }
   setScoreLayout(layout) {
     this.actionBuffer.addAction('setScoreLayout', layout);
     this.score.layout = JSON.parse(JSON.stringify(layout));

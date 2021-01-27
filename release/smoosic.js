@@ -3315,8 +3315,8 @@ class suiMapper {
       (measureKey ? this.measureNoteMap[measureKey] : firstObj);
   }
 
-    // ### updateMeasure
-    // A measure has changed.  Update the music geometry for it
+  // ### updateMeasure
+  // A measure has changed.  Update the music geometry for it
   mapMeasure(staff, measure, printing) {
     if (!measure.renderedBox) {
         return;
@@ -5800,6 +5800,10 @@ class SuiScoreViewOperations extends SuiScoreView {
   slur() {
     this.actionBuffer.addAction('slur');
     this._lineOperation('slur');
+  }
+  tie() {
+    this.actionBuffer.addAction('tie');
+    this._lineOperation('tie');
   }
   setScoreLayout(layout) {
     this.actionBuffer.addAction('setScoreLayout', layout);
@@ -9121,7 +9125,7 @@ class suiTracker extends suiMapper {
     const sorted = this.selections.sort((a, b) => SmoSelector.gt(a.selector, b.selector) ? 1 : -1);
     prevSel = sorted[0];
     // rendered yet?
-    if (!prevSel.box) {
+    if (!prevSel || !prevSel.box) {
       return;
     }
     curBox = svgHelpers.smoBox(prevSel.box);
@@ -10154,7 +10158,7 @@ class VxSystem {
 
   // ### renderModifier
   // render a line-type modifier that is associated with a staff (e.g. slur)
-  renderModifier(modifier, vxStart, vxEnd, smoStart) {
+  renderModifier(modifier, vxStart, vxEnd, smoStart, smoEnd) {
     let xoffset = 0;
     // if it is split between lines, render one artifact for each line, with a common class for
     // both if it is removed.
@@ -10201,6 +10205,22 @@ class VxSystem {
           position: modifier.position
         });
       curve.setContext(this.context).draw();
+    } else if (modifier.ctor === 'SmoTie') {
+      if (modifier.lines.length > 0) {
+        // Hack: if a chord changed, the ties may no longer be valid.  We should check
+        // this when it changes.
+        modifier.checkLines(smoStart, smoEnd);
+        const fromLines = modifier.lines.map((ll) => ll.from);
+        const toLines = modifier.lines.map((ll) => ll.to);
+        const tie = new VF.StaveTie({
+          first_note: vxStart,
+          last_note: vxEnd,
+          first_indices: fromLines,
+          last_indices: toLines
+        });
+        Vex.Merge(tie.render_options, modifier.vexOptions);
+        tie.setContext(this.context).draw();
+      }
     }
 
     this.context.closeGroup();
@@ -14311,6 +14331,80 @@ class SmoSlur extends StaffModifierBase {
     }
   }
 }
+
+// ## SmoTie
+// like slur but multiple pitches
+// ---
+// eslint-disable-next-line no-unused-vars
+class SmoTie extends StaffModifierBase {
+  static get defaults() {
+    return {
+      invert: false,
+      cp1: 8,
+      cp2: 12,
+      first_x_shift: 0,
+      last_x_shift: 0,
+      lines: []
+    };
+  }
+
+  static get parameterArray() {
+    return ['startSelector', 'endSelector', 'invert', 'lines', 'cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
+  }
+  static get vexParameters() {
+    return ['cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
+  }
+  static createLines(fromNote, toNote) {
+    const maxPitches = Math.max(fromNote.pitches.length, toNote.pitches.length);
+    let i = 0;
+    const lines = [];
+    // By default, just tie all the pitches to all the other pitches in order
+    for (i = 0; i < maxPitches; ++i) {
+      const from = i < fromNote.pitches.length ? i : fromNote.pitches.length - 1;
+      const to = i < toNote.pitches.length ? i : toNote.pitches.length - 1;
+      lines.push({ from, to });
+    }
+    return lines;
+  }
+  get vexOptions() {
+    const rv = {};
+    rv.direction = this.invert ? VF.Stem.DOWN : VF.Stem.UP;
+    SmoTie.vexParameters.forEach((p) => {
+      rv[p] = this[p];
+    });
+    return rv;
+  }
+
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoTie.defaults,
+      SmoTie.parameterArray, this, params);
+
+    params.ctor = 'SmoTie';
+    return params;
+  }
+  // ### checkLines
+  // If the note chords have changed, the lines may no longer be valid so update them
+  checkLines(fromNote, toNote) {
+    const maxTo = this.lines.map((ll) => ll.to).reduce((a, b) => a > b ? a : b);
+    const maxFrom = this.lines.map((ll) => ll.from).reduce((a, b) => a > b ? a : b);
+    if (maxTo < toNote.pitches.length && maxFrom < fromNote.pitches.length) {
+      return;
+    }
+    this.lines = SmoTie.createLines(fromNote, toNote);
+  }
+  constructor(params) {
+    super('SmoTie');
+    smoSerialize.serializedMerge(SmoTie.parameterArray, SmoTie.defaults, this);
+    smoSerialize.serializedMerge(SmoTie.parameterArray, params, this);
+    if (!this.attrs) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoTie'
+      };
+    }
+  }
+}
 ;// ## SmoSystemStaff
 // A staff is a line of music that can span multiple measures.
 // A system is a line of music for each staff in the score.  So a staff
@@ -14472,12 +14566,22 @@ class SmoSystemStaff {
       SmoSelector.sameNote(mod.startSelector, selector) && mod.attrs.type === 'SmoSlur'
     );
   }
-
   // ### getSlursEndingAt
   // like it says.
   getSlursEndingAt(selector) {
     return this.modifiers.filter((mod) =>
       SmoSelector.sameNote(mod.endSelector, selector)
+    );
+  }
+
+  getTieStartingAt(selector) {
+    return this.modifiers.filter((mod) =>
+      SmoSelector.sameNote(mod.startSelector, selector) && mod.attrs.type === 'SmoTie'
+    );
+  }
+  getTieEndingAt(selector) {
+    return this.modifiers.filter((mod) =>
+      SmoSelector.sameNote(mod.endSelector, selector) && mod.attrs.type === 'SmoTie'
     );
   }
 
@@ -18229,7 +18333,17 @@ class SmoOperation {
     fromSelection.staff.addStaffModifier(modifier);
     return modifier;
   }
-
+  static tie(fromSelection, toSelection) {
+    // By default, just tie all the pitches to all the other pitches in order
+    const lines = SmoTie.createLines(fromSelection.note, toSelection.note);
+    const modifier = new SmoTie({
+      startSelector: fromSelection.selector,
+      endSelector: toSelection.selector,
+      lines
+    });
+    fromSelection.staff.addStaffModifier(modifier);
+    return modifier;
+  }
   static slur(fromSelection, toSelection) {
     var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
     var toSelector = JSON.parse(JSON.stringify(toSelection.selector));
@@ -26428,6 +26542,7 @@ class SuiModifierDialogFactory {
   static get modifierDialogMap() {
     return {
       SmoStaffHairpin: 'SuiHairpinAttributesDialog',
+      SmoTie: 'SuiTieAttributesDialog',
       SmoSlur: 'SuiSlurAttributesDialog',
       SmoDynamicText: 'SuiDynamicModifierDialog',
       SmoVolta: 'SuiVoltaAttributeDialog',
@@ -29351,7 +29466,10 @@ class SuiLayoutDialog extends SuiDialogBase {
     this.backupOriginal();
   }
 }
-;class CheckboxDropdownComponent extends SuiComponentBase {
+;// ## CheckboxDropdownComponent
+// A checkbox that enables a dropdown component, for optional or dependent parameter
+// eslint-disable-next-line no-unused-vars
+class CheckboxDropdownComponent extends SuiComponentBase {
   // { dropdownElement: {...}, toggleElement: }
   constructor(dialog, parameter) {
     super(parameter);
@@ -29366,7 +29484,7 @@ class SuiLayoutDialog extends SuiDialogBase {
   get html() {
     const b = htmlHelpers.buildDom;
     const q = b('div').classes(this.makeClasses('multiControl smoControl checkboxDropdown'))
-      .attr('id',this.parameterId);
+      .attr('id', this.parameterId);
     q.append(this.toggleCtrl.html);
     q.append(this.dropdownCtrl.html);
     return q;
@@ -29380,20 +29498,120 @@ class SuiLayoutDialog extends SuiDialogBase {
   }
   changed() {
     if (this.toggleCtrl.getValue()) {
-      $('#'+this.parameterId).addClass('checked');
+      $('#' + this.parameterId).addClass('checked');
     } else {
-      $('#'+this.parameterId).removeClass('checked');
+      $('#' + this.parameterId).removeClass('checked');
     }
     this.handleChanged();
   }
 }
 
+// ## TieMappingComponent
+// Represent the pitches in 2 notes that can be individually tied together
+// eslint-disable-next-line no-unused-vars
+class TieMappingComponent extends SuiComponentBase {
+  // { dropdownElement: {...}, toggleElement: }
+  constructor(dialog, parameter) {
+    let i = 0;
+    super(parameter);
+    this.dialog = dialog;
+    this.startSelection = SmoSelection.noteFromSelector(
+      this.dialog.view.score, this.dialog.modifier.startSelector);
+    this.endSelection = SmoSelection.noteFromSelector(
+      this.dialog.view.score, this.dialog.modifier.endSelector);
+    const pitchCount = Math.max(this.startSelection.note.pitches.length, this.endSelection.note.pitches.length);
+
+    smoSerialize.filteredMerge(
+      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+    this.controlRows = [];
+    for (i = 0; i < pitchCount; ++i) {
+      const smoName = 'Line-' + (i + 1);
+      const defaultValue = -1;
+      const leftControl = new SuiDropdownComposite(this.dialog, {
+        smoName: smoName + '-left',
+        parameterName: smoName + '-left',
+        classes: 'leftControl',
+        defaultValue,
+        label: SuiDialogBase.getStaticText(SuiTieAttributesDialog.dialogElements, 'fromNote'),
+        options: this._generateOptions(this.startSelection.note),
+        parentControl: this
+      });
+      const rightControl = new SuiDropdownComposite(this.dialog, {
+        smoName: smoName + '-right',
+        parameterName: smoName + '-right',
+        classes: 'rightControl',
+        label: SuiDialogBase.getStaticText(SuiTieAttributesDialog.dialogElements, 'toNote'),
+        defaultValue,
+        options: this._generateOptions(this.endSelection.note),
+        parentControl: this
+      });
+      this.controlRows.push({ leftControl, rightControl });
+    }
+  }
+  bind() {
+    this.controlRows.forEach((row) => {
+      row.rightControl.bind();
+      row.leftControl.bind();
+    });
+  }
+
+  _generateOptions(note) {
+    const options = [];
+    let index = 0;
+    let label = '';
+    options.push({ value: -1, label: 'No Line' });
+    note.pitches.forEach((pitch) => {
+      const value = index;
+      label = pitch.letter.toUpperCase();
+      if (pitch.accidental !== 'n') {
+        label += pitch.accidental;
+      }
+      label += pitch.octave;
+      options.push({ value, label });
+      index += 1;
+    });
+    return options;
+  }
+  getValue() {
+    const lines = [];
+    this.controlRows.forEach((row) => {
+      const left = row.leftControl.getValue();
+      const right = row.rightControl.getValue();
+      if (left >= 0 && right >= 0) {
+        lines.push({ from: left, to: right });
+      }
+    });
+    return lines;
+  }
+  setValue(modifier) {
+    let i = 0;
+    for (i = 0; i < this.controlRows.length; ++i) {
+      const row = this.controlRows[i];
+      if (modifier.lines.length > i) {
+        row.leftControl.setValue(modifier.lines[i].from);
+        row.rightControl.setValue(modifier.lines[i].to);
+      }
+    }
+  }
+  changed() {
+    this.handleChanged();
+  }
+  get html() {
+    const b = htmlHelpers.buildDom;
+    const q = b('div').classes(this.makeClasses('multiControl smoControl dropdownPair'))
+      .attr('id', this.parameterId);
+    this.controlRows.forEach((row) => {
+      q.append(row.leftControl.html).append(row.rightControl.html);
+    });
+    return q;
+  }
+}
+// eslint-disable-next-line no-unused-vars
 class StaffAddRemoveComponent extends SuiComponentBase {
   get parameterId() {
     return this.dialog.id + '-' + this.parameterName;
   }
   constructor(dialog, parameter) {
-    let i = 0;
     super(parameter);
     smoSerialize.filteredMerge(
       ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
@@ -29426,22 +29644,21 @@ class StaffAddRemoveComponent extends SuiComponentBase {
         });
       } else if (staff.staffId > this.modifier.startSelector.staff &&
         staff.staffId === this.modifier.endSelector.staff) {
-          // toggle remove of ultimate row, other than first row
-          const rowElement = new SuiToggleComposite(this.dialog, {
-            smoName: id,
-            parameterName: id,
-            defaultValue: true,
-            classes: 'toggle-remove-row',
-            control: 'SuiToggleComponent',
-            label: name
-          });
+        // toggle remove of ultimate row, other than first row
+        const rowElement = new SuiToggleComposite(this.dialog, {
+          smoName: id,
+          parameterName: id,
+          defaultValue: true,
+          classes: 'toggle-remove-row',
+          control: 'SuiToggleComponent',
+          label: name
+        });
         rowElement.parentControl = this;
         this.staffRows.push({
           showCtrl: rowElement
         });
       } else if ((staff.staffId <= this.modifier.endSelector.staff) &&
-        (staff.staffId >= this.modifier.startSelector.staff))
-      {
+        (staff.staffId >= this.modifier.startSelector.staff)) {
         // toggle remove of ultimate row, other than first row
         const rowElement = new SuiToggleComponent(this.dialog, {
           smoName: id,
@@ -29451,10 +29668,10 @@ class StaffAddRemoveComponent extends SuiComponentBase {
           control: 'SuiToggleComponent',
           label: name
         });
-      rowElement.parentControl = this;
-      this.staffRows.push({
-        showCtrl: rowElement
-      });
+        rowElement.parentControl = this;
+        this.staffRows.push({
+          showCtrl: rowElement
+        });
       }
       i += 1;
     });
@@ -29465,7 +29682,7 @@ class StaffAddRemoveComponent extends SuiComponentBase {
     // subsequent times, we fill the html with the row information
     if (!this.createdShell) {
       this.createdShell = true;
-      const q = b('div').classes(this.makeClasses('multiControl smoControl staffContainer')).attr('id',this.parameterId);
+      const q = b('div').classes(this.makeClasses('multiControl smoControl staffContainer')).attr('id', this.parameterId);
       return q;
     } else {
       const q = b('div').classes(this.makeClasses('smoControl'));
@@ -29481,16 +29698,13 @@ class StaffAddRemoveComponent extends SuiComponentBase {
   }
   getValue() {
     let nextStaff = this.modifier.startSelector.staff;
-    let i = 0;
     const maxMeasure = this.modifier.endSelector.measure;
-    const maxStaff = this.modifier.endSelector.staff;
     this.modifier.endSelector = JSON.parse(JSON.stringify(this.modifier.startSelector));
     this.staffRows.forEach((staffRow) => {
-      if (this.staffRows[i].showCtrl.getValue()) {
+      if (staffRow.showCtrl.getValue()) {
         this.modifier.endSelector = { staff: nextStaff, measure: maxMeasure };
         nextStaff += 1;
       }
-      i += 1;
     });
     return this.modifier;
   }
@@ -29510,9 +29724,9 @@ class StaffAddRemoveComponent extends SuiComponentBase {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class StaffCheckComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
-    let i = 0;
     super(parameter);
     smoSerialize.filteredMerge(
       ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
@@ -29520,8 +29734,8 @@ class StaffCheckComponent extends SuiComponentBase {
     this.view = this.dialog.view;
     this.staffRows = [];
     this.view.storeScore.staves.forEach((staff) => {
-      const name = 'View Staff ' + (i + 1);
-      const id = 'show-' + i;
+      const name = 'View Staff ' + (staff.staffId + 1);
+      const id = 'show-' + staff.staffId;
       const rowElement = new SuiToggleComponent(this.dialog, {
         smoName: id,
         parameterName: id,
@@ -29533,7 +29747,6 @@ class StaffCheckComponent extends SuiComponentBase {
       this.staffRows.push({
         showCtrl: rowElement
       });
-      i += 1;
     });
   }
   get html() {
@@ -29552,9 +29765,9 @@ class StaffCheckComponent extends SuiComponentBase {
   getValue() {
     const rv = [];
     let i = 0;
-    for (i = 0;i < this.staffRows.length; ++i) {
+    for (i = 0; i < this.staffRows.length; ++i) {
       const show = this.staffRows[i].showCtrl.getValue();
-      rv.push({show: show});
+      rv.push({ show });
     }
     return rv;
   }
@@ -29575,6 +29788,7 @@ class StaffCheckComponent extends SuiComponentBase {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 class TextCheckComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
@@ -29585,7 +29799,7 @@ class TextCheckComponent extends SuiComponentBase {
     const toggleName = this.smoName + 'Toggle';
     const textName = this.smoName + 'Text';
     const label = this.dialog.staticText[textName];
-    const show = this.dialog.staticText['show'];
+    const show = this.dialog.staticText.show;
     this.toggleCtrl = new SuiToggleComposite(this.dialog, {
       smoName: toggleName,
       parameterName: toggleName,
@@ -29599,14 +29813,14 @@ class TextCheckComponent extends SuiComponentBase {
       parameterName: textName,
       defaultValue: this.defaultValue,
       control: 'SuiTextInputComposite',
-      label: label,
+      label,
       parentControl: this
     });
   }
   get html() {
     const b = htmlHelpers.buildDom;
     const q = b('div').classes(this.makeClasses('multiControl smoControl textCheckContainer'))
-      .attr('id',this.parameterId);
+      .attr('id', this.parameterId);
     q.append(this.textCtrl.html);
     q.append(this.toggleCtrl.html);
     return q;
@@ -29619,7 +29833,7 @@ class TextCheckComponent extends SuiComponentBase {
     return {
       checked: this.toggleCtrl.getValue(),
       text: this.textCtrl.getValue()
-    }
+    };
   }
   setValue(val) {
     this.toggleCtrl.setValue(val.checked);
@@ -29813,6 +30027,74 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
     this.populateInitial();
   }
 }
+
+// eslint-disable-next-line no-unused-vars
+class SuiTieAttributesDialog extends SuiStaffModifierDialog {
+  get ctor() {
+    return SuiTieAttributesDialog.ctor;
+  }
+  static get ctor() {
+    return 'SuiTieAttributesDialog';
+  }
+
+  static get dialogElements() {
+    SuiTieAttributesDialog._dialogElements = SuiTieAttributesDialog._dialogElements ? SuiTieAttributesDialog._dialogElements :
+      [{
+        staticText: [
+          { label: 'Tie Properties' },
+          { fromNote: 'From Note' },
+          { toNote: 'To Note' }
+        ]
+      }, {
+        parameterName: 'lines',
+        smoName: 'lines',
+        defaultValue: [],
+        control: 'TieMappingComponent',
+        label: 'Lines'
+      }];
+    return SuiTieAttributesDialog._dialogElements;
+  }
+  static createAndDisplay(parameters) {
+    var dg = new SuiTieAttributesDialog(parameters);
+    dg.display();
+    return dg;
+  }
+  staticText(label) {
+    return SuiDialogBase.getStaticText(SuiTieAttributesDialog.dialogElements, label);
+  }
+  constructor(parameters) {
+    if (!parameters.modifier) {
+      throw new Error('modifier attribute dialog must have modifier');
+    }
+
+    super(SuiTieAttributesDialog.dialogElements, {
+      id: 'dialog-' + parameters.modifier.attrs.id,
+      top: parameters.modifier.renderedBox.y,
+      left: parameters.modifier.renderedBox.x,
+      label: 'Slur Properties',
+      ...parameters
+    });
+    Vex.Merge(this, parameters);
+    this.completeNotifier.unbindKeyboardForModal(this);
+  }
+  populateInitial() {
+    this.linesCtrl.setValue(this.modifier);
+  }
+  changed() {
+    if (this.linesCtrl.changeFlag) {
+      this.modifier.lines = JSON.parse(JSON.stringify(this.linesCtrl.getValue()));
+      this.view.addOrUpdateStaffModifier(this.original, this.modifier);
+      this.original = this.modifier;
+      this.edited = true;
+    }
+  }
+  display() {
+    super.display();
+    this._bindComponentNames();
+    this.populateInitial();
+  }
+}
+
 // ## SuiVoltaAttributeDialog
 // aka first and second endings
 // eslint-disable-next-line no-unused-vars
@@ -37722,8 +38004,12 @@ class SuiStaffModifierMenu extends suiMenuBase {
           value: 'decrescendo'
         }, {
           icon: 'slur',
-          text: 'Slur/Tie',
+          text: 'Slur',
           value: 'slur'
+        }, {
+          icon: 'slur',
+          text: 'Tie',
+          value: 'tie'
         }, {
           icon: 'ending',
           text: 'nth ending',
@@ -37744,6 +38030,8 @@ class SuiStaffModifierMenu extends suiMenuBase {
       this.view.addEnding();
     } else if (op === 'slur') {
       this.view.slur();
+    }  else if (op === 'tie') {
+      this.view.tie();
     } else if (op === 'crescendo') {
       this.view.crescendo();
     } else if (op === 'decrescendo') {

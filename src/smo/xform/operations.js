@@ -880,7 +880,17 @@ class SmoOperation {
     fromSelection.staff.addStaffModifier(modifier);
     return modifier;
   }
-
+  static tie(fromSelection, toSelection) {
+    // By default, just tie all the pitches to all the other pitches in order
+    const lines = SmoTie.createLines(fromSelection.note, toSelection.note);
+    const modifier = new SmoTie({
+      startSelector: fromSelection.selector,
+      endSelector: toSelection.selector,
+      lines
+    });
+    fromSelection.staff.addStaffModifier(modifier);
+    return modifier;
+  }
   static slur(fromSelection, toSelection) {
     var fromSelector = JSON.parse(JSON.stringify(fromSelection.selector));
     var toSelector = JSON.parse(JSON.stringify(toSelection.selector));

@@ -159,12 +159,22 @@ class SmoSystemStaff {
       SmoSelector.sameNote(mod.startSelector, selector) && mod.attrs.type === 'SmoSlur'
     );
   }
-
   // ### getSlursEndingAt
   // like it says.
   getSlursEndingAt(selector) {
     return this.modifiers.filter((mod) =>
       SmoSelector.sameNote(mod.endSelector, selector)
+    );
+  }
+
+  getTieStartingAt(selector) {
+    return this.modifiers.filter((mod) =>
+      SmoSelector.sameNote(mod.startSelector, selector) && mod.attrs.type === 'SmoTie'
+    );
+  }
+  getTieEndingAt(selector) {
+    return this.modifiers.filter((mod) =>
+      SmoSelector.sameNote(mod.endSelector, selector) && mod.attrs.type === 'SmoTie'
     );
   }
 
