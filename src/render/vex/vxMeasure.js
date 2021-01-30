@@ -199,7 +199,10 @@ class VxMeasure {
         const gr = new VF.GraceNote(g.toVexGraceNote());
         for (i = 0; i < g.pitches.length; ++i) {
           const pitch = g.pitches[i];
-          if (pitch.accidental !== 'n' || pitch.cautionary)  {
+          if (!pitch.accidental) {
+            console.warn('no accidental in grace note');
+          }
+          if (pitch.accidental && pitch.accidental !== 'n' || pitch.cautionary)  {
             const accidental = new VF.Accidental(pitch.accidental);
             if (pitch.cautionary) {
               accidental.setAsCautionary();
@@ -567,34 +570,39 @@ class VxMeasure {
     var group = this.context.openGroup();
     var mmClass = this.smoMeasure.getClassId();
     var j = 0;
-    group.classList.add(this.smoMeasure.attrs.id);
-    group.classList.add(mmClass);
-    group.id = this.smoMeasure.attrs.id;
+    try {
+      group.classList.add(this.smoMeasure.attrs.id);
+      group.classList.add(mmClass);
+      group.id = this.smoMeasure.attrs.id;
 
-    this.stave.draw();
+      this.stave.draw();
 
-    for (j = 0; j < this.voiceAr.length; ++j) {
-      this.voiceAr[j].draw(this.context, this.stave);
+      for (j = 0; j < this.voiceAr.length; ++j) {
+        this.voiceAr[j].draw(this.context, this.stave);
+      }
+
+      this.vexBeamGroups.forEach((b) => {
+        b.setContext(self.context).draw();
+      });
+
+      this.vexTuplets.forEach((tuplet) => {
+        tuplet.setContext(self.context).draw();
+      });
+      this._updateLyricDomSelectors();
+      this._setModifierBoxes();
+      this.renderDynamics();
+      // this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
+
+      this.context.closeGroup();
+      const box = svgHelpers.smoBox(group.getBoundingClientRect());
+      const lbox = svgHelpers.smoBox(group.getBBox());
+      this.smoMeasure.renderedBox = box;
+      this.smoMeasure.setBox(lbox, 'vxMeasure bounding box');
+      this.smoMeasure.changed = false;
+      this.rendered = true;
+    } catch (exc) {
+      console.warn('unable to render measure ' + this.smoMeasure.measureNumber.measureIndex);
+      this.context.closeGroup();
     }
-
-    this.vexBeamGroups.forEach((b) => {
-      b.setContext(self.context).draw();
-    });
-
-    this.vexTuplets.forEach((tuplet) => {
-      tuplet.setContext(self.context).draw();
-    });
-    this._updateLyricDomSelectors();
-    this._setModifierBoxes();
-    this.renderDynamics();
-    // this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
-
-    this.context.closeGroup();
-    const box = svgHelpers.smoBox(group.getBoundingClientRect());
-    const lbox = svgHelpers.smoBox(group.getBBox());
-    this.smoMeasure.renderedBox = box;
-    this.smoMeasure.setBox(lbox, 'vxMeasure bounding box');
-    this.smoMeasure.changed = false;
-    this.rendered = true;
   }
 }

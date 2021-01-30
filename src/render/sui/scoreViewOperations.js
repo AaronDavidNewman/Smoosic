@@ -298,7 +298,7 @@ class SuiScoreViewOperations extends SuiScoreView {
       SmoOperation.addGraceNote(selection, grace, index);
 
       const altPitches = JSON.parse(JSON.stringify(selection.note.pitches));
-      const altGrace =  new SmoGraceNote({ altPitches, ticks:
+      const altGrace =  new SmoGraceNote({ pitches: altPitches, ticks:
         { numerator: 2048, denominator: 1, remainder: 0 } });
       altGrace.attrs.id = grace.attrs.id;
       const altSelection = this._getEquivalentSelection(selection);

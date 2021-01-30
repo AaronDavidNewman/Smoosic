@@ -390,10 +390,14 @@ class SmoOperation {
     }
     modifiers.forEach((mm) => {
       var par = [];
+      if (!mm) {
+        console.warn('bad modifier grace note');
+        return;
+      }
       mm.pitches.forEach((pitch)=> {
           par.push(par.length);
       });
-      SmoNote._transpose(mm,par, offset, selection.measure.keySignature);
+      SmoNote._transpose(mm, par, offset, selection.measure.keySignature);
     });
   }
 
