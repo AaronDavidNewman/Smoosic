@@ -14,11 +14,14 @@ class XmlState {
   // likc hairpins and slurs
   initializeForPart() {
     this.slurs = {};
+    this.ties = {};
     this.wedges = {};
     this.hairpins = [];
     this.globalCursor = 0;
     this.staffVoiceHash = {};
     this.measureIndex = -1;
+    this.completedSlurs = [];
+    this.completedTies = [];
   }
   // ### initializeForMeasure
   // reset state for a new measure:  beam groups, tuplets
@@ -38,7 +41,6 @@ class XmlState {
     this.graceNotes = [];
     this.currentDuration = 0;
     this.beamGroups = {};
-    this.completedSlurs = [];
     this.completedTuplets = [];
     this.dynamics = [];
     this.previousNote = {};
@@ -59,7 +61,8 @@ class XmlState {
       if (this.staffVoiceHash[staffIndex].indexOf(voiceIndex) < 0) {
         this.staffVoiceHash[staffIndex].push(voiceIndex);
       }
-      this.beamGroups[voiceIndex] = 0;
+      // The smo 0-indexed voice index, used in selectors
+      this.beamGroups[voiceIndex] = null;
     }
   }
   // ### updateStaffGroups
@@ -155,62 +158,80 @@ class XmlState {
   }
   // For the given voice, beam the notes according to the
   // note beam length
-  backtrackBeamGroup(voice, beamLength) {
+  backtrackBeamGroup(voice, beamGroup) {
     let i = 0;
-    for (i = 0; i < beamLength; ++i) {
+    for (i = 0; i < beamGroup.notes; ++i) {
       const note = voice.notes[voice.notes.length - (i + 1)];
       if (!note) {
         console.warn('no note for beam group');
         return;
       }
       note.endBeam = i === 0;
+      note.beamBeats = beamGroup.ticks;
     }
   }
   // ### updateBeamState
   // Keep track of beam instructions found while parsing note element
   updateBeamState(beamState, voice, voiceIndex) {
+    const note = voice.notes[voice.notes.length - 1];
     if (beamState === mxmlHelpers.beamStates.BEGIN) {
-      this.beamGroups[voiceIndex] = 1;
+      this.beamGroups[voiceIndex] = { ticks: note.tickCount, notes: 1 };
     } else if (this.beamGroups[voiceIndex]) {
-      this.beamGroups[voiceIndex] += 1;
+      this.beamGroups[voiceIndex].ticks += note.tickCount;
+      this.beamGroups[voiceIndex].notes += 1;
       if (beamState === mxmlHelpers.beamStates.END) {
         this.backtrackBeamGroup(voice, this.beamGroups[voiceIndex]);
-        this.beamGroups[voiceIndex] = 0;
+        this.beamGroups[voiceIndex] = null;
       }
     }
+  }
+  updateTieStates(tieInfos) {
+    tieInfos.forEach((tieInfo) => {
+      // tieInfo = { number, type, orientation, selector, pitchIndex }
+      if (tieInfo.type === 'start') {
+        this.ties[tieInfo.number] = JSON.parse(JSON.stringify(tieInfo));
+      } else if (tieInfo.type === 'stop') {
+        if (this.ties[tieInfo.number]) {
+          this.completedTies.push({
+            startSelector: JSON.parse(JSON.stringify(this.ties[tieInfo.number].selector)),
+            endSelector: JSON.parse(JSON.stringify(tieInfo.selector)),
+            fromPitch: this.ties[tieInfo.number].pitchIndex,
+            toPitch: tieInfo.pitchIndex
+          });
+        }
+      }
+    });
   }
   // ### updateSlurStates
   // While parsing a measure,
   // on a slur element, either complete a started
   // slur or start a new one.
-  updateSlurStates(slurInfos,
-    staffIndex, voiceIndex, tick) {
-    let add = true;
+  updateSlurStates(slurInfos) {
     slurInfos.forEach((slurInfo) =>  {
+      // slurInfo = { number, type, selector }
       if (slurInfo.type === 'start') {
-        this.slurs[slurInfo.number] = { start: {
-          staff: staffIndex, voice: voiceIndex,
-          measure: this.measureNumber, tick }
-        };
+        this.slurs[slurInfo.number] = JSON.parse(JSON.stringify(slurInfo));
       } else if (slurInfo.type === 'stop') {
         if (this.slurs[slurInfo.number]) {
-          this.slurs[slurInfo.number].end = {
-            staff: staffIndex, voice: voiceIndex,
-            measure: this.measureNumber, tick
-          };
-          ['staff', 'voice', 'measure', 'tick'].forEach((field) => {
-            if (typeof(this.slurs[slurInfo.number].start[field]) !== 'number' ||
-              typeof(this.slurs[slurInfo.number].end[field]) !== 'number') {
-              console.warn('bad slur in xml, dropping');
-              add = false;
-            }
+          this.completedSlurs.push({
+            startSelector: JSON.parse(JSON.stringify(this.slurs[slurInfo.number].selector)),
+            endSelector: slurInfo.selector
           });
-          if (add) {
-            this.completedSlurs.push(
-              JSON.parse(JSON.stringify(this.slurs[slurInfo.number])));
-          }
         }
       }
+    });
+  }
+  // ### completeTies
+  completeTies() {
+    this.completedTies.forEach((tie) => {
+      const smoTie = new SmoTie({
+        startSelector: tie.startSelector,
+        endSelector: tie.endSelector
+      });
+      smoTie.lines = [{
+        from: tie.fromPitch, to: tie.toPitch
+      }];
+      this.smoStaves[tie.startSelector.staff].addStaffModifier(smoTie);
     });
   }
   // ### completeSlurs
@@ -218,18 +239,13 @@ class XmlState {
   // into SmoSlur and add them to the SmoSystemGroup objects.
   // staffIndexOffset is the offset from the xml staffId and the score staff Id
   // (i.e. the staves that have already been parsed in other parts)
-  completeSlurs(stavesForPart, staffIndexOffset) {
+  completeSlurs() {
     this.completedSlurs.forEach((slur) => {
-      const staffIx = slur.start.staff;
-      slur.start.voice = this.staffVoiceHash[slur.start.staff].indexOf(slur.start.voice);
-      slur.end.voice = this.staffVoiceHash[slur.end.staff].indexOf(slur.end.voice);
-      slur.start.staff += staffIndexOffset;
-      slur.end.staff += staffIndexOffset;
       const smoSlur = new SmoSlur({
-        startSelector: JSON.parse(JSON.stringify(slur.start)),
-        endSelector: JSON.parse(JSON.stringify(slur.end))
+        startSelector: slur.startSelector,
+        endSelector: slur.endSelector
       });
-      stavesForPart[staffIx].addStaffModifier(smoSlur);
+      this.smoStaves[slur.startSelector.staff].addStaffModifier(smoSlur);
     });
   }
   // ### backtrackTuplets

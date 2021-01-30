@@ -8307,7 +8307,6 @@ class suiTracker extends suiMapper {
 
   _createLocalModifiersList() {
     this.localModifiers = [];
-    const staffSelMap = {};
     this.selections.forEach((sel) => {
       sel.note.getGraceNotes().forEach((gg) => {
         this.localModifiers.push({ selection: sel, modifier: gg, box: gg.renderedBox });
@@ -8323,11 +8322,12 @@ class suiTracker extends suiMapper {
       });
       sel.staff.getModifiers().forEach((mod) => {
         if (SmoSelector.gteq(sel.selector, mod.startSelector) &&
-          SmoSelector.lteq(sel.selector, mod.endSelector) &&
-          !staffSelMap[mod.startSelector] && mod.renderedBox)  {
-          this.localModifiers.push({ selection: sel, modifier: mod, box: mod.renderedBox });
-          // avoid duplicates
-          staffSelMap[mod.startSelector] = true;
+          SmoSelector.lteq(sel.selector, mod.endSelector) && mod.renderedBox)  {
+          const exists = this.localModifiers.find((mm) => mm.isStaffModifier &&
+            mm.ctor === mod.ctor);
+          if (!exists) {
+            this.localModifiers.push({ selection: sel, modifier: mod, box: mod.renderedBox });
+          }
         }
       });
     });
@@ -9687,8 +9687,7 @@ class VxMeasure {
   createVexNotes(voiceIx) {
     let i = 0;
     const shiftIndex = 0;
-    this.vexNotes = [];
-    this.noteToVexMap = {};
+    this.voiceNotes = [];
     const voice =  this.smoMeasure.voices[voiceIx];
     for (i = 0;
       i < voice.notes.length; ++i) {
@@ -9696,6 +9695,7 @@ class VxMeasure {
       const vexNote = this._createVexNote(smoNote, i, voiceIx, shiftIndex);
       this.noteToVexMap[smoNote.attrs.id] = vexNote;
       this.vexNotes.push(vexNote);
+      this.voiceNotes.push(vexNote);
       if (isNaN(smoNote.ticks.numerator) || isNaN(smoNote.ticks.denominator)
           || isNaN(smoNote.ticks.remainder)) {
         throw ('vxMeasure: NaN in ticks');
@@ -9900,6 +9900,8 @@ class VxMeasure {
     this.tickmapObject = this.smoMeasure.createMeasureTickmaps();
 
     this.voiceAr = [];
+    this.vexNotes = [];
+    this.noteToVexMap = {};
 
     // If there are multiple voices, add them all to the formatter at the same time so they don't collide
     for (j = 0; j < this.smoMeasure.voices.length; ++j) {
@@ -9912,7 +9914,7 @@ class VxMeasure {
         num_beats: this.smoMeasure.numBeats,
         beat_value: this.smoMeasure.beatValue
       }).setMode(VF.Voice.Mode.SOFT);
-      voice.addTickables(this.vexNotes);
+      voice.addTickables(this.voiceNotes);
       this.voiceAr.push(voice);
     }
 
@@ -14201,6 +14203,9 @@ class StaffModifierBase {
     const rv = new ctor(params);
     return rv;
   }
+  get isStaffModifier() {
+    return true;
+  }
 }
 
 // ## SmoStaffHairpin
@@ -15149,6 +15154,7 @@ class SmoToXml {
   // ### measure
   // .../part/measure
   static measure(measureElement, smoState) {
+    const nn = mxmlHelpers.createTextElementChild;
     const measure = smoState.measure;
     if (smoState.measureNumber === 1 && measure.isPickup()) {
       smoState.measureNumber = 0;
@@ -15642,7 +15648,25 @@ class mxmlHelpers {
     }
     return tickCount;
   }
-  static getSlurData(noteNode) {
+  static getTieData(noteNode, selector, pitchIndex) {
+    const rv = [];
+    let number = 0;
+    const nNodes = [...noteNode.getElementsByTagName('notations')];
+    nNodes.forEach((nNode) => {
+      const slurNodes = [...nNode.getElementsByTagName('tied')];
+      slurNodes.forEach((slurNode) => {
+        const orientation = slurNode.getAttribute('orientation');
+        const type = slurNode.getAttribute('type');
+        number = parseInt(slurNode.getAttribute('number'), 10);
+        if (isNaN(number)) {
+          number = 1;
+        }
+        rv.push({ number, type, orientation, selector, pitchIndex });
+      });
+    });
+    return rv;
+  }
+  static getSlurData(noteNode, selector) {
     const rv = [];
     const nNodes = [...noteNode.getElementsByTagName('notations')];
     nNodes.forEach((nNode) => {
@@ -15650,7 +15674,7 @@ class mxmlHelpers {
       slurNodes.forEach((slurNode) => {
         const number = parseInt(slurNode.getAttribute('number'), 10);
         const type = slurNode.getAttribute('type');
-        rv.push({ number, type });
+        rv.push({ number, type, selector });
       });
     });
     return rv;
@@ -15903,9 +15927,10 @@ class mxmlScore {
       });
       const oldStaffId = staffId - stavesForPart.length;
       xmlState.backtrackHairpins(stavesForPart[0], oldStaffId + 1);
-      xmlState.completeSlurs(stavesForPart, oldStaffId);
     });
     xmlState.smoStaves = xmlState.smoStaves.concat(stavesForPart);
+    xmlState.completeSlurs();
+    xmlState.completeTies();
   }
   // ### tempo
   // /score-partwise/measure/direction/sound:tempo
@@ -16076,6 +16101,25 @@ class mxmlScore {
         xmlState.staffArray.push({ clefInfo, voices: { } });
       });
     }
+    const chordNode = mxmlHelpers.getChildrenFromPath(noteElement, ['chord']);
+    if (chordNode.length === 0) {
+      xmlState.currentDuration += mxmlHelpers.durationFromNode(noteElement, 0);
+    }
+    // voices are not sequential, seem to have artitrary numbers and
+    // persist per part (same with staff IDs).  Update XML state if these are new
+    // staves
+    const voiceIndex = mxmlHelpers.getVoiceId(noteElement);
+    xmlState.initializeStaff(staffIndex, voiceIndex);
+    const voice = xmlState.staffArray[staffIndex].voices[voiceIndex];
+    // Calculate the tick and staff index for selectors
+    const tickIndex = chordNode.length < 1 ? voice.notes.length : voice.notes.length - 1;
+    const smoVoiceIndex = xmlState.staffVoiceHash[staffIndex].indexOf(voiceIndex);
+    const pitchIndex = chordNode.length ? xmlState.previousNote.pitches.length : 0;
+    const smoStaffIndex = xmlState.smoStaves.length + staffIndex;
+    const selector = {
+      staff: smoStaffIndex, measure: xmlState.measureIndex, voice: smoVoiceIndex,
+      tick: tickIndex
+    };
     const divisions = xmlState.divisions;
     const printText = noteElement.getAttribute('print-object');
     const hideNote = typeof(printText) === 'string' && printText === 'no';
@@ -16083,32 +16127,24 @@ class mxmlScore {
     const restNode = mxmlHelpers.getChildrenFromPath(noteElement, ['rest']);
     const noteType = restNode.length ? 'r' : 'n';
     const tickCount = mxmlHelpers.ticksFromDuration(noteElement, divisions, 4096);
-    const chordNode = mxmlHelpers.getChildrenFromPath(noteElement, ['chord']);
     if (chordNode.length === 0) {
-      xmlState.currentDuration += mxmlHelpers.durationFromNode(noteElement, 0);
+      xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed += tickCount;
     }
     xmlState.tickCursor = (xmlState.currentDuration / divisions) * 4096;
-    const voiceIndex = mxmlHelpers.getVoiceId(noteElement);
     const beamState = mxmlHelpers.noteBeamState(noteElement);
-    const slurInfos = mxmlHelpers.getSlurData(noteElement);
+    const slurInfos = mxmlHelpers.getSlurData(noteElement, selector);
+    const tieInfos = mxmlHelpers.getTieData(noteElement, selector, pitchIndex);
     const tupletInfos = mxmlHelpers.getTupletData(noteElement);
     const ornaments = mxmlHelpers.articulationsAndOrnaments(noteElement);
     const lyrics = mxmlHelpers.lyrics(noteElement);
 
-    // voices are not sequential, seem to have artitrary numbers and
-    // persist per part (same with staff IDs).  Update XML state if these are new
-    // staves
-    xmlState.initializeStaff(staffIndex, voiceIndex);
-    if (chordNode.length === 0) {
-      xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed += tickCount;
-    }
-    const voice = xmlState.staffArray[staffIndex].voices[voiceIndex];
     const pitch = mxmlHelpers.smoPitchFromNote(noteElement,
       SmoMeasure.defaultPitchForClef[xmlState.staffArray[staffIndex].clefInfo.clef]);
     if (isGrace === false) {
       if (chordNode.length) {
         // If this is a note in a chord, just add the pitch to previous note.
         xmlState.previousNote.pitches.push(pitch);
+        xmlState.updateTieStates(tieInfos, selector);
       } else {
         // Create a new note
         noteData = JSON.parse(JSON.stringify(SmoNote.defaults));
@@ -16149,7 +16185,8 @@ class mxmlScore {
           // then reset the cursor since we are now in sync
           xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed = xmlState.tickCursor;
         }
-        xmlState.updateSlurStates(slurInfos, staffIndex, voiceIndex, voice.notes.length);
+        xmlState.updateSlurStates(slurInfos);
+        xmlState.updateTieStates(tieInfos);
         voice.notes.push(xmlState.previousNote);
         xmlState.updateBeamState(beamState, voice, voiceIndex);
         xmlState.updateTupletStates(tupletInfos, voice,
@@ -16161,7 +16198,8 @@ class mxmlScore {
       } else {
         // grace note durations don't seem to have explicit duration, so
         // get it from note type
-        xmlState.updateSlurStates(slurInfos, staffIndex, voiceIndex, voice.notes.length);
+        xmlState.updateSlurStates(slurInfos);
+        xmlState.updateTieStates(tieInfos);
         xmlState.graceNotes.push(new SmoGraceNote({
           pitches: [pitch],
           ticks: { numerator: tickCount, denominator: 1, remainder: 0 }
@@ -16258,11 +16296,14 @@ class XmlState {
   // likc hairpins and slurs
   initializeForPart() {
     this.slurs = {};
+    this.ties = {};
     this.wedges = {};
     this.hairpins = [];
     this.globalCursor = 0;
     this.staffVoiceHash = {};
     this.measureIndex = -1;
+    this.completedSlurs = [];
+    this.completedTies = [];
   }
   // ### initializeForMeasure
   // reset state for a new measure:  beam groups, tuplets
@@ -16282,7 +16323,6 @@ class XmlState {
     this.graceNotes = [];
     this.currentDuration = 0;
     this.beamGroups = {};
-    this.completedSlurs = [];
     this.completedTuplets = [];
     this.dynamics = [];
     this.previousNote = {};
@@ -16303,7 +16343,8 @@ class XmlState {
       if (this.staffVoiceHash[staffIndex].indexOf(voiceIndex) < 0) {
         this.staffVoiceHash[staffIndex].push(voiceIndex);
       }
-      this.beamGroups[voiceIndex] = 0;
+      // The smo 0-indexed voice index, used in selectors
+      this.beamGroups[voiceIndex] = null;
     }
   }
   // ### updateStaffGroups
@@ -16399,62 +16440,80 @@ class XmlState {
   }
   // For the given voice, beam the notes according to the
   // note beam length
-  backtrackBeamGroup(voice, beamLength) {
+  backtrackBeamGroup(voice, beamGroup) {
     let i = 0;
-    for (i = 0; i < beamLength; ++i) {
+    for (i = 0; i < beamGroup.notes; ++i) {
       const note = voice.notes[voice.notes.length - (i + 1)];
       if (!note) {
         console.warn('no note for beam group');
         return;
       }
       note.endBeam = i === 0;
+      note.beamBeats = beamGroup.ticks;
     }
   }
   // ### updateBeamState
   // Keep track of beam instructions found while parsing note element
   updateBeamState(beamState, voice, voiceIndex) {
+    const note = voice.notes[voice.notes.length - 1];
     if (beamState === mxmlHelpers.beamStates.BEGIN) {
-      this.beamGroups[voiceIndex] = 1;
+      this.beamGroups[voiceIndex] = { ticks: note.tickCount, notes: 1 };
     } else if (this.beamGroups[voiceIndex]) {
-      this.beamGroups[voiceIndex] += 1;
+      this.beamGroups[voiceIndex].ticks += note.tickCount;
+      this.beamGroups[voiceIndex].notes += 1;
       if (beamState === mxmlHelpers.beamStates.END) {
         this.backtrackBeamGroup(voice, this.beamGroups[voiceIndex]);
-        this.beamGroups[voiceIndex] = 0;
+        this.beamGroups[voiceIndex] = null;
       }
     }
+  }
+  updateTieStates(tieInfos) {
+    tieInfos.forEach((tieInfo) => {
+      // tieInfo = { number, type, orientation, selector, pitchIndex }
+      if (tieInfo.type === 'start') {
+        this.ties[tieInfo.number] = JSON.parse(JSON.stringify(tieInfo));
+      } else if (tieInfo.type === 'stop') {
+        if (this.ties[tieInfo.number]) {
+          this.completedTies.push({
+            startSelector: JSON.parse(JSON.stringify(this.ties[tieInfo.number].selector)),
+            endSelector: JSON.parse(JSON.stringify(tieInfo.selector)),
+            fromPitch: this.ties[tieInfo.number].pitchIndex,
+            toPitch: tieInfo.pitchIndex
+          });
+        }
+      }
+    });
   }
   // ### updateSlurStates
   // While parsing a measure,
   // on a slur element, either complete a started
   // slur or start a new one.
-  updateSlurStates(slurInfos,
-    staffIndex, voiceIndex, tick) {
-    let add = true;
+  updateSlurStates(slurInfos) {
     slurInfos.forEach((slurInfo) =>  {
+      // slurInfo = { number, type, selector }
       if (slurInfo.type === 'start') {
-        this.slurs[slurInfo.number] = { start: {
-          staff: staffIndex, voice: voiceIndex,
-          measure: this.measureNumber, tick }
-        };
+        this.slurs[slurInfo.number] = JSON.parse(JSON.stringify(slurInfo));
       } else if (slurInfo.type === 'stop') {
         if (this.slurs[slurInfo.number]) {
-          this.slurs[slurInfo.number].end = {
-            staff: staffIndex, voice: voiceIndex,
-            measure: this.measureNumber, tick
-          };
-          ['staff', 'voice', 'measure', 'tick'].forEach((field) => {
-            if (typeof(this.slurs[slurInfo.number].start[field]) !== 'number' ||
-              typeof(this.slurs[slurInfo.number].end[field]) !== 'number') {
-              console.warn('bad slur in xml, dropping');
-              add = false;
-            }
+          this.completedSlurs.push({
+            startSelector: JSON.parse(JSON.stringify(this.slurs[slurInfo.number].selector)),
+            endSelector: slurInfo.selector
           });
-          if (add) {
-            this.completedSlurs.push(
-              JSON.parse(JSON.stringify(this.slurs[slurInfo.number])));
-          }
         }
       }
+    });
+  }
+  // ### completeTies
+  completeTies() {
+    this.completedTies.forEach((tie) => {
+      const smoTie = new SmoTie({
+        startSelector: tie.startSelector,
+        endSelector: tie.endSelector
+      });
+      smoTie.lines = [{
+        from: tie.fromPitch, to: tie.toPitch
+      }];
+      this.smoStaves[tie.startSelector.staff].addStaffModifier(smoTie);
     });
   }
   // ### completeSlurs
@@ -16462,18 +16521,13 @@ class XmlState {
   // into SmoSlur and add them to the SmoSystemGroup objects.
   // staffIndexOffset is the offset from the xml staffId and the score staff Id
   // (i.e. the staves that have already been parsed in other parts)
-  completeSlurs(stavesForPart, staffIndexOffset) {
+  completeSlurs() {
     this.completedSlurs.forEach((slur) => {
-      const staffIx = slur.start.staff;
-      slur.start.voice = this.staffVoiceHash[slur.start.staff].indexOf(slur.start.voice);
-      slur.end.voice = this.staffVoiceHash[slur.end.staff].indexOf(slur.end.voice);
-      slur.start.staff += staffIndexOffset;
-      slur.end.staff += staffIndexOffset;
       const smoSlur = new SmoSlur({
-        startSelector: JSON.parse(JSON.stringify(slur.start)),
-        endSelector: JSON.parse(JSON.stringify(slur.end))
+        startSelector: slur.startSelector,
+        endSelector: slur.endSelector
       });
-      stavesForPart[staffIx].addStaffModifier(smoSlur);
+      this.smoStaves[slur.startSelector.staff].addStaffModifier(smoSlur);
     });
   }
   // ### backtrackTuplets
@@ -16765,7 +16819,7 @@ class smoBeamModifier {
     }
 
     // don't beam > 1/4 note in 4/4 time.  Don't beam rests.
-    if (tickmap.deltaMap[index] >= 4096 || note.isRest()) {
+    if (tickmap.deltaMap[index] >= 4096 || (note.isRest() && this.currentGroup.length === 0)) {
       this._completeGroup(tickmap.voice);
       this._advanceGroup();
       return;

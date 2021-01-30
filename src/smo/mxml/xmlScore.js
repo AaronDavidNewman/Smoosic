@@ -167,9 +167,10 @@ class mxmlScore {
       });
       const oldStaffId = staffId - stavesForPart.length;
       xmlState.backtrackHairpins(stavesForPart[0], oldStaffId + 1);
-      xmlState.completeSlurs(stavesForPart, oldStaffId);
     });
     xmlState.smoStaves = xmlState.smoStaves.concat(stavesForPart);
+    xmlState.completeSlurs();
+    xmlState.completeTies();
   }
   // ### tempo
   // /score-partwise/measure/direction/sound:tempo
@@ -340,6 +341,25 @@ class mxmlScore {
         xmlState.staffArray.push({ clefInfo, voices: { } });
       });
     }
+    const chordNode = mxmlHelpers.getChildrenFromPath(noteElement, ['chord']);
+    if (chordNode.length === 0) {
+      xmlState.currentDuration += mxmlHelpers.durationFromNode(noteElement, 0);
+    }
+    // voices are not sequential, seem to have artitrary numbers and
+    // persist per part (same with staff IDs).  Update XML state if these are new
+    // staves
+    const voiceIndex = mxmlHelpers.getVoiceId(noteElement);
+    xmlState.initializeStaff(staffIndex, voiceIndex);
+    const voice = xmlState.staffArray[staffIndex].voices[voiceIndex];
+    // Calculate the tick and staff index for selectors
+    const tickIndex = chordNode.length < 1 ? voice.notes.length : voice.notes.length - 1;
+    const smoVoiceIndex = xmlState.staffVoiceHash[staffIndex].indexOf(voiceIndex);
+    const pitchIndex = chordNode.length ? xmlState.previousNote.pitches.length : 0;
+    const smoStaffIndex = xmlState.smoStaves.length + staffIndex;
+    const selector = {
+      staff: smoStaffIndex, measure: xmlState.measureIndex, voice: smoVoiceIndex,
+      tick: tickIndex
+    };
     const divisions = xmlState.divisions;
     const printText = noteElement.getAttribute('print-object');
     const hideNote = typeof(printText) === 'string' && printText === 'no';
@@ -347,32 +367,24 @@ class mxmlScore {
     const restNode = mxmlHelpers.getChildrenFromPath(noteElement, ['rest']);
     const noteType = restNode.length ? 'r' : 'n';
     const tickCount = mxmlHelpers.ticksFromDuration(noteElement, divisions, 4096);
-    const chordNode = mxmlHelpers.getChildrenFromPath(noteElement, ['chord']);
     if (chordNode.length === 0) {
-      xmlState.currentDuration += mxmlHelpers.durationFromNode(noteElement, 0);
+      xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed += tickCount;
     }
     xmlState.tickCursor = (xmlState.currentDuration / divisions) * 4096;
-    const voiceIndex = mxmlHelpers.getVoiceId(noteElement);
     const beamState = mxmlHelpers.noteBeamState(noteElement);
-    const slurInfos = mxmlHelpers.getSlurData(noteElement);
+    const slurInfos = mxmlHelpers.getSlurData(noteElement, selector);
+    const tieInfos = mxmlHelpers.getTieData(noteElement, selector, pitchIndex);
     const tupletInfos = mxmlHelpers.getTupletData(noteElement);
     const ornaments = mxmlHelpers.articulationsAndOrnaments(noteElement);
     const lyrics = mxmlHelpers.lyrics(noteElement);
 
-    // voices are not sequential, seem to have artitrary numbers and
-    // persist per part (same with staff IDs).  Update XML state if these are new
-    // staves
-    xmlState.initializeStaff(staffIndex, voiceIndex);
-    if (chordNode.length === 0) {
-      xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed += tickCount;
-    }
-    const voice = xmlState.staffArray[staffIndex].voices[voiceIndex];
     const pitch = mxmlHelpers.smoPitchFromNote(noteElement,
       SmoMeasure.defaultPitchForClef[xmlState.staffArray[staffIndex].clefInfo.clef]);
     if (isGrace === false) {
       if (chordNode.length) {
         // If this is a note in a chord, just add the pitch to previous note.
         xmlState.previousNote.pitches.push(pitch);
+        xmlState.updateTieStates(tieInfos, selector);
       } else {
         // Create a new note
         noteData = JSON.parse(JSON.stringify(SmoNote.defaults));
@@ -413,7 +425,8 @@ class mxmlScore {
           // then reset the cursor since we are now in sync
           xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed = xmlState.tickCursor;
         }
-        xmlState.updateSlurStates(slurInfos, staffIndex, voiceIndex, voice.notes.length);
+        xmlState.updateSlurStates(slurInfos);
+        xmlState.updateTieStates(tieInfos);
         voice.notes.push(xmlState.previousNote);
         xmlState.updateBeamState(beamState, voice, voiceIndex);
         xmlState.updateTupletStates(tupletInfos, voice,
@@ -425,7 +438,8 @@ class mxmlScore {
       } else {
         // grace note durations don't seem to have explicit duration, so
         // get it from note type
-        xmlState.updateSlurStates(slurInfos, staffIndex, voiceIndex, voice.notes.length);
+        xmlState.updateSlurStates(slurInfos);
+        xmlState.updateTieStates(tieInfos);
         xmlState.graceNotes.push(new SmoGraceNote({
           pitches: [pitch],
           ticks: { numerator: tickCount, denominator: 1, remainder: 0 }

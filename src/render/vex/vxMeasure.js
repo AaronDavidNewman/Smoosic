@@ -318,8 +318,7 @@ class VxMeasure {
   createVexNotes(voiceIx) {
     let i = 0;
     const shiftIndex = 0;
-    this.vexNotes = [];
-    this.noteToVexMap = {};
+    this.voiceNotes = [];
     const voice =  this.smoMeasure.voices[voiceIx];
     for (i = 0;
       i < voice.notes.length; ++i) {
@@ -327,6 +326,7 @@ class VxMeasure {
       const vexNote = this._createVexNote(smoNote, i, voiceIx, shiftIndex);
       this.noteToVexMap[smoNote.attrs.id] = vexNote;
       this.vexNotes.push(vexNote);
+      this.voiceNotes.push(vexNote);
       if (isNaN(smoNote.ticks.numerator) || isNaN(smoNote.ticks.denominator)
           || isNaN(smoNote.ticks.remainder)) {
         throw ('vxMeasure: NaN in ticks');
@@ -531,6 +531,8 @@ class VxMeasure {
     this.tickmapObject = this.smoMeasure.createMeasureTickmaps();
 
     this.voiceAr = [];
+    this.vexNotes = [];
+    this.noteToVexMap = {};
 
     // If there are multiple voices, add them all to the formatter at the same time so they don't collide
     for (j = 0; j < this.smoMeasure.voices.length; ++j) {
@@ -543,7 +545,7 @@ class VxMeasure {
         num_beats: this.smoMeasure.numBeats,
         beat_value: this.smoMeasure.beatValue
       }).setMode(VF.Voice.Mode.SOFT);
-      voice.addTickables(this.vexNotes);
+      voice.addTickables(this.voiceNotes);
       this.voiceAr.push(voice);
     }
 

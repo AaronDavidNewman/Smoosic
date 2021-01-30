@@ -268,7 +268,6 @@ class suiTracker extends suiMapper {
 
   _createLocalModifiersList() {
     this.localModifiers = [];
-    const staffSelMap = {};
     this.selections.forEach((sel) => {
       sel.note.getGraceNotes().forEach((gg) => {
         this.localModifiers.push({ selection: sel, modifier: gg, box: gg.renderedBox });
@@ -284,11 +283,12 @@ class suiTracker extends suiMapper {
       });
       sel.staff.getModifiers().forEach((mod) => {
         if (SmoSelector.gteq(sel.selector, mod.startSelector) &&
-          SmoSelector.lteq(sel.selector, mod.endSelector) &&
-          !staffSelMap[mod.startSelector] && mod.renderedBox)  {
-          this.localModifiers.push({ selection: sel, modifier: mod, box: mod.renderedBox });
-          // avoid duplicates
-          staffSelMap[mod.startSelector] = true;
+          SmoSelector.lteq(sel.selector, mod.endSelector) && mod.renderedBox)  {
+          const exists = this.localModifiers.find((mm) => mm.isStaffModifier &&
+            mm.ctor === mod.ctor);
+          if (!exists) {
+            this.localModifiers.push({ selection: sel, modifier: mod, box: mod.renderedBox });
+          }
         }
       });
     });

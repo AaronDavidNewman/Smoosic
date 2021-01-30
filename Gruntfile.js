@@ -18,7 +18,6 @@ module.exports = function (grunt) {
    'src/ui/dialogs/measureDialogs.js','src/ui/dialogs/staffDialogs.js',
    'src/ui/dialogs/fileDialogs.js']
   const SOURCES = ['src/**/*.js','!src/test/*.js'];
-  const TESTSRC = ['src/test/*.js']
 
     // Project configuration.
   grunt.initConfig({
@@ -32,11 +31,6 @@ module.exports = function (grunt) {
       src: [SOURCES],
       dest: 'build/<%= pkg.name %>.js'
     },
-    tests: {
-        src: [TESTSRC],
-        dest: 'build/smoTests.js'
-
-    }
   },
   eslint: {
     target: LINTS,

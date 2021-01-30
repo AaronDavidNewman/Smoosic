@@ -62,6 +62,7 @@ class SmoToXml {
   // ### measure
   // .../part/measure
   static measure(measureElement, smoState) {
+    const nn = mxmlHelpers.createTextElementChild;
     const measure = smoState.measure;
     if (smoState.measureNumber === 1 && measure.isPickup()) {
       smoState.measureNumber = 0;

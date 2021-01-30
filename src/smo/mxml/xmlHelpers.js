@@ -229,7 +229,25 @@ class mxmlHelpers {
     }
     return tickCount;
   }
-  static getSlurData(noteNode) {
+  static getTieData(noteNode, selector, pitchIndex) {
+    const rv = [];
+    let number = 0;
+    const nNodes = [...noteNode.getElementsByTagName('notations')];
+    nNodes.forEach((nNode) => {
+      const slurNodes = [...nNode.getElementsByTagName('tied')];
+      slurNodes.forEach((slurNode) => {
+        const orientation = slurNode.getAttribute('orientation');
+        const type = slurNode.getAttribute('type');
+        number = parseInt(slurNode.getAttribute('number'), 10);
+        if (isNaN(number)) {
+          number = 1;
+        }
+        rv.push({ number, type, orientation, selector, pitchIndex });
+      });
+    });
+    return rv;
+  }
+  static getSlurData(noteNode, selector) {
     const rv = [];
     const nNodes = [...noteNode.getElementsByTagName('notations')];
     nNodes.forEach((nNode) => {
@@ -237,7 +255,7 @@ class mxmlHelpers {
       slurNodes.forEach((slurNode) => {
         const number = parseInt(slurNode.getAttribute('number'), 10);
         const type = slurNode.getAttribute('type');
-        rv.push({ number, type });
+        rv.push({ number, type, selector });
       });
     });
     return rv;

@@ -127,7 +127,7 @@ class smoBeamModifier {
     }
 
     // don't beam > 1/4 note in 4/4 time.  Don't beam rests.
-    if (tickmap.deltaMap[index] >= 4096 || note.isRest()) {
+    if (tickmap.deltaMap[index] >= 4096 || (note.isRest() && this.currentGroup.length === 0)) {
       this._completeGroup(tickmap.voice);
       this._advanceGroup();
       return;

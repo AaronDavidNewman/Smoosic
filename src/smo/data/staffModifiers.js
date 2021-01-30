@@ -17,6 +17,9 @@ class StaffModifierBase {
     const rv = new ctor(params);
     return rv;
   }
+  get isStaffModifier() {
+    return true;
+  }
 }
 
 // ## SmoStaffHairpin
