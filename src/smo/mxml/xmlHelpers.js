@@ -211,23 +211,26 @@ class mxmlHelpers {
     return def;
   }
   static ticksFromDuration(noteNode, divisions, def) {
-    let tickCount = def;
+    const rv = { tickCount: def };
     const durationNodes = [...noteNode.getElementsByTagName('duration')];
     const timeAlteration = mxmlHelpers.getTimeAlteration(noteNode);
+    rv.alteration = { noteCount: 1, noteDuration: 1 };
     // different ways to declare note duration - from type is the graphical
     // type, SMO uses ticks for everything
     if (durationNodes.length) {
-      const duration = parseInt(durationNodes[0].textContent, 10);
-      tickCount = 4096 * (duration / divisions);
+      rv.duration = parseInt(durationNodes[0].textContent, 10);
+      rv.tickCount = 4096 * (rv.duration / divisions);
     } else {
-      tickCount = mxmlHelpers.durationFromType(noteNode, def);
+      rv.tickCount = mxmlHelpers.durationFromType(noteNode, def);
+      rv.duration = (divisions / 4096) * rv.tickCount;
     }
     // If this is a tuplet, we adjust the note duration back to the graphical type
-    // and SMO will create the tuplet after
+    // and SMO will create the tuplet after.  We keep track of tuplet data though for beaming
     if (timeAlteration) {
-      tickCount = (tickCount * timeAlteration.noteCount) / timeAlteration.noteDuration;
+      rv.tickCount = (rv.tickCount * timeAlteration.noteCount) / timeAlteration.noteDuration;
+      rv.alteration = timeAlteration;
     }
-    return tickCount;
+    return rv;
   }
   static getTieData(noteNode, selector, pitchIndex) {
     const rv = [];
@@ -305,8 +308,8 @@ class mxmlHelpers {
     const nNodes = [...noteNode.getElementsByTagName('lyric')];
     nNodes.forEach((nNode) => {
       const text = mxmlHelpers.getTextFromElement(nNode, 'text', '_');
-      const verse = parseInt(nNode.getAttribute('number'), 10) - 1;
-      rv.push(new SmoLyric({ _text: text, verse }));
+      const verse = nNode.getAttribute('number');
+      rv.push({ _text: text, verse });
     });
     return rv;
   }

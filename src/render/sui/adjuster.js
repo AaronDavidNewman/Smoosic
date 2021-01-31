@@ -3,7 +3,7 @@
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
 class suiLayoutAdjuster {
 
-  static estimateMusicWidth(smoMeasure) {
+  static estimateMusicWidth(smoMeasure, noteSpacing) {
     var widths = [];
     var voiceIx = 0;
     var tmObj = smoMeasure.createMeasureTickmaps();
@@ -19,7 +19,7 @@ class suiLayoutAdjuster {
         }
         var noteWidth = 0;
         var dots = (note.dots ? note.dots : 0);
-        noteWidth += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight;
+        noteWidth += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight * noteSpacing;
         // TODO: Consider engraving font and adjust grace note size?
         noteWidth += (vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight) * note.graceNotes.length;
         noteWidth += vexGlyph.dimensions.dot.width * dots + vexGlyph.dimensions.dot.spacingRight * dots;
@@ -119,10 +119,10 @@ class suiLayoutAdjuster {
     return svgHelpers.boxPoints(xoff, 0, width, 0);
   }
 
-  static estimateMeasureWidth(measure) {
+  static estimateMeasureWidth(measure, noteSpacing) {
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
     var prevWidth = measure.staffWidth;
-    var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
+    var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure, noteSpacing);
     measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
     measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
     measureWidth += measure.adjX + measure.adjRight + measure.customStretch;

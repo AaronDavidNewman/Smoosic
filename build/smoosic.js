@@ -1342,15 +1342,18 @@ class smoSerialize {
           const dkey = smoKey(key);
           if (typeof(val) == 'string' || typeof(val) == 'number' || typeof(val) == 'boolean') {
             output[dkey] = val;
+            // console.log('240: output[' + dkey + '] = ' + val);
           }
           if (typeof(val) == 'object' && key != 'dictionary') {
             if (Array.isArray(val)) {
               output[dkey] = [];
+              // console.log('245: processing array ' + dkey);
               val.forEach((arobj) => {
-                if (typeof(arobj) == 'string' || typeof(arobj) == 'number' || typeof(arobj) == 'boolean') {
+                if (typeof(arobj) === 'string' || typeof(arobj) === 'number' || typeof(arobj) === 'boolean') {
                   output[dkey].push(arobj);
+                  // console.log('249: ar element ' + arobj);
                 }
-                else if (arobj && typeof(arobj) == 'object') {
+                else if (arobj && typeof(arobj) === 'object') {
                   const nobj = {};
                   _tokenRecurse(arobj,nobj);
                   output[dkey].push(nobj);
@@ -1358,6 +1361,7 @@ class smoSerialize {
               });
             } else {
               const nobj = {};
+              // console.log('259: processing child object of ' + dkey);
               _tokenRecurse(val,nobj);
               output[dkey] = nobj;
             }
@@ -2777,7 +2781,7 @@ class suiAudioPlayer {
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
 class suiLayoutAdjuster {
 
-  static estimateMusicWidth(smoMeasure) {
+  static estimateMusicWidth(smoMeasure, noteSpacing) {
     var widths = [];
     var voiceIx = 0;
     var tmObj = smoMeasure.createMeasureTickmaps();
@@ -2793,7 +2797,7 @@ class suiLayoutAdjuster {
         }
         var noteWidth = 0;
         var dots = (note.dots ? note.dots : 0);
-        noteWidth += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight;
+        noteWidth += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight * noteSpacing;
         // TODO: Consider engraving font and adjust grace note size?
         noteWidth += (vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight) * note.graceNotes.length;
         noteWidth += vexGlyph.dimensions.dot.width * dots + vexGlyph.dimensions.dot.spacingRight * dots;
@@ -2893,10 +2897,10 @@ class suiLayoutAdjuster {
     return svgHelpers.boxPoints(xoff, 0, width, 0);
   }
 
-  static estimateMeasureWidth(measure) {
+  static estimateMeasureWidth(measure, noteSpacing) {
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
     var prevWidth = measure.staffWidth;
-    var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure);
+    var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure, noteSpacing);
     measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
     measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
     measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
@@ -4683,7 +4687,7 @@ class SuiScoreRender extends SuiRenderState {
 
       // Add custom width to measure:
       measure.setBox(svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline));
-      suiLayoutAdjuster.estimateMeasureWidth(measure);
+      suiLayoutAdjuster.estimateMeasureWidth(measure, this.score.layout.noteSpacing);
       y = y + measure.logicalBox.height + scoreLayout.intraGap;
       rowInSystem += 1;
     });
@@ -9260,7 +9264,7 @@ class vexGlyph {
         height: 10.48,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 15.3,
+        spacingRight: 10.71,
       },
       dot: {
         width: 5,
@@ -13020,6 +13024,7 @@ class SmoScore {
         svgScale: 1.0,
         zoomScale: 2.0,
         zoomMode: SmoScore.zoomModes.fitWidth,
+        noteSpacing: 1.0,
         pages: 1
       },
       fonts: [
@@ -13175,9 +13180,13 @@ class SmoScore {
     if (typeof(jsonObj.score.preferences) !== 'undefined' && typeof(jsonObj.score.preferences.customProportion) === 'number') {
       SmoMeasure.defaults.customProportion = jsonObj.score.preferences.customProportion;
     }
+
     smoSerialize.serializedMerge(
       SmoScore.defaultAttributes,
       jsonObj.score, params);
+    if (!params.layout.noteSpacing) {
+      params.layout.noteSpacing = SmoScore.defaults.layout.noteSpacing;
+    }
     jsonObj.staves.forEach((staffObj) => {
       const staff = SmoSystemStaff.deserialize(staffObj);
       staves.push(staff);
@@ -15638,23 +15647,26 @@ class mxmlHelpers {
     return def;
   }
   static ticksFromDuration(noteNode, divisions, def) {
-    let tickCount = def;
+    const rv = { tickCount: def };
     const durationNodes = [...noteNode.getElementsByTagName('duration')];
     const timeAlteration = mxmlHelpers.getTimeAlteration(noteNode);
+    rv.alteration = { noteCount: 1, noteDuration: 1 };
     // different ways to declare note duration - from type is the graphical
     // type, SMO uses ticks for everything
     if (durationNodes.length) {
-      const duration = parseInt(durationNodes[0].textContent, 10);
-      tickCount = 4096 * (duration / divisions);
+      rv.duration = parseInt(durationNodes[0].textContent, 10);
+      rv.tickCount = 4096 * (rv.duration / divisions);
     } else {
-      tickCount = mxmlHelpers.durationFromType(noteNode, def);
+      rv.tickCount = mxmlHelpers.durationFromType(noteNode, def);
+      rv.duration = (divisions / 4096) * rv.tickCount;
     }
     // If this is a tuplet, we adjust the note duration back to the graphical type
-    // and SMO will create the tuplet after
+    // and SMO will create the tuplet after.  We keep track of tuplet data though for beaming
     if (timeAlteration) {
-      tickCount = (tickCount * timeAlteration.noteCount) / timeAlteration.noteDuration;
+      rv.tickCount = (rv.tickCount * timeAlteration.noteCount) / timeAlteration.noteDuration;
+      rv.alteration = timeAlteration;
     }
-    return tickCount;
+    return rv;
   }
   static getTieData(noteNode, selector, pitchIndex) {
     const rv = [];
@@ -15732,8 +15744,8 @@ class mxmlHelpers {
     const nNodes = [...noteNode.getElementsByTagName('lyric')];
     nNodes.forEach((nNode) => {
       const text = mxmlHelpers.getTextFromElement(nNode, 'text', '_');
-      const verse = parseInt(nNode.getAttribute('number'), 10) - 1;
-      rv.push(new SmoLyric({ _text: text, verse }));
+      const verse = nNode.getAttribute('number');
+      rv.push({ _text: text, verse });
     });
     return rv;
   }
@@ -16134,7 +16146,8 @@ class mxmlScore {
     const isGrace = mxmlHelpers.isGrace(noteElement);
     const restNode = mxmlHelpers.getChildrenFromPath(noteElement, ['rest']);
     const noteType = restNode.length ? 'r' : 'n';
-    const tickCount = mxmlHelpers.ticksFromDuration(noteElement, divisions, 4096);
+    const durationData = mxmlHelpers.ticksFromDuration(noteElement, divisions, 4096);
+    const tickCount = durationData.tickCount;
     if (chordNode.length === 0) {
       xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed += tickCount;
     }
@@ -16174,7 +16187,7 @@ class mxmlScore {
           }
         });
         lyrics.forEach((lyric) => {
-          xmlState.previousNote.addLyric(lyric);
+          xmlState.addLyric(xmlState.previousNote, lyric);
         });
         for (grIx = 0; grIx < xmlState.graceNotes.length; ++grIx) {
           xmlState.previousNote.addGraceNote(xmlState.graceNotes[grIx], grIx);
@@ -16196,7 +16209,7 @@ class mxmlScore {
         xmlState.updateSlurStates(slurInfos);
         xmlState.updateTieStates(tieInfos);
         voice.notes.push(xmlState.previousNote);
-        xmlState.updateBeamState(beamState, voice, voiceIndex);
+        xmlState.updateBeamState(beamState, durationData.alteration, voice, voiceIndex);
         xmlState.updateTupletStates(tupletInfos, voice,
           staffIndex, voiceIndex);
       }
@@ -16222,6 +16235,7 @@ class mxmlScore {
   static measure(measureElement, xmlState) {
     xmlState.initializeForMeasure(measureElement);
     const elements = [...measureElement.children];
+    let hasNotes = false;
     elements.forEach((element) => {
       if (element.tagName === 'backup') {
         xmlState.currentDuration -= mxmlHelpers.durationFromNode(element);
@@ -16237,9 +16251,15 @@ class mxmlScore {
         mxmlScore.direction(element, xmlState);
       } else if (element.tagName === 'note') {
         mxmlScore.note(element, xmlState);
+        hasNotes = true;
       }
     });
-
+    // If a measure has no notes, just make one with the defaults
+    if (hasNotes === false && xmlState.staffArray.length < 1 && xmlState.clefInfo.length >= 1) {
+      xmlState.clefInfo.forEach((clefInfo) => {
+        xmlState.staffArray.push({ clefInfo, voices: { } });
+      });
+    }
     xmlState.staffArray.forEach((staffData) => {
       const smoMeasure = SmoMeasure.getDefaultMeasure({
         clef: staffData.clefInfo.clef
@@ -16312,6 +16332,7 @@ class XmlState {
     this.measureIndex = -1;
     this.completedSlurs = [];
     this.completedTies = [];
+    this.verseMap = {};
   }
   // ### initializeForMeasure
   // reset state for a new measure:  beam groups, tuplets
@@ -16370,6 +16391,15 @@ class XmlState {
         })
       );
     });
+  }
+  addLyric(note, lyricData) {
+    if (!this.verseMap[lyricData.verse]) {
+      const keys = Object.keys(this.verseMap);
+      this.verseMap[lyricData.verse] = keys.length;
+    }
+    lyricData.verse = this.verseMap[lyricData.verse];
+    const lyric = new SmoLyric(lyricData);
+    note.addLyric(lyric);
   }
   // ### processWedge (hairpin)
   processWedge(wedgeInfo) {
@@ -16462,10 +16492,12 @@ class XmlState {
   }
   // ### updateBeamState
   // Keep track of beam instructions found while parsing note element
-  updateBeamState(beamState, voice, voiceIndex) {
+  // includes time alteration from tuplets
+  updateBeamState(beamState, alteration, voice, voiceIndex) {
     const note = voice.notes[voice.notes.length - 1];
     if (beamState === mxmlHelpers.beamStates.BEGIN) {
-      this.beamGroups[voiceIndex] = { ticks: note.tickCount, notes: 1 };
+      this.beamGroups[voiceIndex] = { ticks: (note.tickCount * alteration.noteCount) / alteration.noteDuration,
+        notes: 1 };
     } else if (this.beamGroups[voiceIndex]) {
       this.beamGroups[voiceIndex].ticks += note.tickCount;
       this.beamGroups[voiceIndex].notes += 1;
@@ -16758,8 +16790,11 @@ class smoBeamModifier {
   }
 
   _completeGroup(voice) {
+    const nrCount = this.currentGroup.filter((nn) =>
+      nn.isRest() === false
+    );
     // don't beam groups of 1
-    if (this.currentGroup.length > 1) {
+    if (nrCount.length > 1) {
       this.measure.beamGroups.push(new SmoBeamGroup({
         notes: this.currentGroup,
         voice
@@ -29380,6 +29415,13 @@ class SuiLayoutDialog extends SuiDialogBase {
         defaultValue: SmoScore.defaults.layout.intraGap,
         control: 'SuiRockerComponent',
         label: 'Intra-System Margin'
+      }, {
+        smoName: 'noteSpacing',
+        parameterName: 'noteSpacing',
+        defaultValue: SmoScore.defaults.layout.noteSpacing,
+        control: 'SuiRockerComponent',
+        label: 'Note Spacing',
+        type: 'percent'
       }, {
         smoName: 'zoomScale',
         parameterName: 'zoomScale',

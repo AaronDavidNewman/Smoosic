@@ -22,6 +22,7 @@ class XmlState {
     this.measureIndex = -1;
     this.completedSlurs = [];
     this.completedTies = [];
+    this.verseMap = {};
   }
   // ### initializeForMeasure
   // reset state for a new measure:  beam groups, tuplets
@@ -80,6 +81,15 @@ class XmlState {
         })
       );
     });
+  }
+  addLyric(note, lyricData) {
+    if (!this.verseMap[lyricData.verse]) {
+      const keys = Object.keys(this.verseMap);
+      this.verseMap[lyricData.verse] = keys.length;
+    }
+    lyricData.verse = this.verseMap[lyricData.verse];
+    const lyric = new SmoLyric(lyricData);
+    note.addLyric(lyric);
   }
   // ### processWedge (hairpin)
   processWedge(wedgeInfo) {
@@ -172,10 +182,12 @@ class XmlState {
   }
   // ### updateBeamState
   // Keep track of beam instructions found while parsing note element
-  updateBeamState(beamState, voice, voiceIndex) {
+  // includes time alteration from tuplets
+  updateBeamState(beamState, alteration, voice, voiceIndex) {
     const note = voice.notes[voice.notes.length - 1];
     if (beamState === mxmlHelpers.beamStates.BEGIN) {
-      this.beamGroups[voiceIndex] = { ticks: note.tickCount, notes: 1 };
+      this.beamGroups[voiceIndex] = { ticks: (note.tickCount * alteration.noteCount) / alteration.noteDuration,
+        notes: 1 };
     } else if (this.beamGroups[voiceIndex]) {
       this.beamGroups[voiceIndex].ticks += note.tickCount;
       this.beamGroups[voiceIndex].notes += 1;

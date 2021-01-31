@@ -58,8 +58,11 @@ class smoBeamModifier {
   }
 
   _completeGroup(voice) {
+    const nrCount = this.currentGroup.filter((nn) =>
+      nn.isRest() === false
+    );
     // don't beam groups of 1
-    if (this.currentGroup.length > 1) {
+    if (nrCount.length > 1) {
       this.measure.beamGroups.push(new SmoBeamGroup({
         notes: this.currentGroup,
         voice

@@ -39,6 +39,7 @@ class SmoScore {
         svgScale: 1.0,
         zoomScale: 2.0,
         zoomMode: SmoScore.zoomModes.fitWidth,
+        noteSpacing: 1.0,
         pages: 1
       },
       fonts: [
@@ -194,9 +195,13 @@ class SmoScore {
     if (typeof(jsonObj.score.preferences) !== 'undefined' && typeof(jsonObj.score.preferences.customProportion) === 'number') {
       SmoMeasure.defaults.customProportion = jsonObj.score.preferences.customProportion;
     }
+
     smoSerialize.serializedMerge(
       SmoScore.defaultAttributes,
       jsonObj.score, params);
+    if (!params.layout.noteSpacing) {
+      params.layout.noteSpacing = SmoScore.defaults.layout.noteSpacing;
+    }
     jsonObj.staves.forEach((staffObj) => {
       const staff = SmoSystemStaff.deserialize(staffObj);
       staves.push(staff);

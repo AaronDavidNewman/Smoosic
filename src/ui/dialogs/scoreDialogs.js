@@ -505,6 +505,13 @@ class SuiLayoutDialog extends SuiDialogBase {
         control: 'SuiRockerComponent',
         label: 'Intra-System Margin'
       }, {
+        smoName: 'noteSpacing',
+        parameterName: 'noteSpacing',
+        defaultValue: SmoScore.defaults.layout.noteSpacing,
+        control: 'SuiRockerComponent',
+        label: 'Note Spacing',
+        type: 'percent'
+      }, {
         smoName: 'zoomScale',
         parameterName: 'zoomScale',
         defaultValue: SmoScore.defaults.layout.zoomScale,

@@ -366,7 +366,8 @@ class mxmlScore {
     const isGrace = mxmlHelpers.isGrace(noteElement);
     const restNode = mxmlHelpers.getChildrenFromPath(noteElement, ['rest']);
     const noteType = restNode.length ? 'r' : 'n';
-    const tickCount = mxmlHelpers.ticksFromDuration(noteElement, divisions, 4096);
+    const durationData = mxmlHelpers.ticksFromDuration(noteElement, divisions, 4096);
+    const tickCount = durationData.tickCount;
     if (chordNode.length === 0) {
       xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed += tickCount;
     }
@@ -406,7 +407,7 @@ class mxmlScore {
           }
         });
         lyrics.forEach((lyric) => {
-          xmlState.previousNote.addLyric(lyric);
+          xmlState.addLyric(xmlState.previousNote, lyric);
         });
         for (grIx = 0; grIx < xmlState.graceNotes.length; ++grIx) {
           xmlState.previousNote.addGraceNote(xmlState.graceNotes[grIx], grIx);
@@ -428,7 +429,7 @@ class mxmlScore {
         xmlState.updateSlurStates(slurInfos);
         xmlState.updateTieStates(tieInfos);
         voice.notes.push(xmlState.previousNote);
-        xmlState.updateBeamState(beamState, voice, voiceIndex);
+        xmlState.updateBeamState(beamState, durationData.alteration, voice, voiceIndex);
         xmlState.updateTupletStates(tupletInfos, voice,
           staffIndex, voiceIndex);
       }
@@ -454,6 +455,7 @@ class mxmlScore {
   static measure(measureElement, xmlState) {
     xmlState.initializeForMeasure(measureElement);
     const elements = [...measureElement.children];
+    let hasNotes = false;
     elements.forEach((element) => {
       if (element.tagName === 'backup') {
         xmlState.currentDuration -= mxmlHelpers.durationFromNode(element);
@@ -469,9 +471,15 @@ class mxmlScore {
         mxmlScore.direction(element, xmlState);
       } else if (element.tagName === 'note') {
         mxmlScore.note(element, xmlState);
+        hasNotes = true;
       }
     });
-
+    // If a measure has no notes, just make one with the defaults
+    if (hasNotes === false && xmlState.staffArray.length < 1 && xmlState.clefInfo.length >= 1) {
+      xmlState.clefInfo.forEach((clefInfo) => {
+        xmlState.staffArray.push({ clefInfo, voices: { } });
+      });
+    }
     xmlState.staffArray.forEach((staffData) => {
       const smoMeasure = SmoMeasure.getDefaultMeasure({
         clef: staffData.clefInfo.clef

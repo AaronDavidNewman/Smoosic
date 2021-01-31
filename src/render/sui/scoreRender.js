@@ -406,7 +406,7 @@ class SuiScoreRender extends SuiRenderState {
 
       // Add custom width to measure:
       measure.setBox(svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline));
-      suiLayoutAdjuster.estimateMeasureWidth(measure);
+      suiLayoutAdjuster.estimateMeasureWidth(measure, this.score.layout.noteSpacing);
       y = y + measure.logicalBox.height + scoreLayout.intraGap;
       rowInSystem += 1;
     });

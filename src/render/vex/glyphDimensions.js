@@ -100,7 +100,7 @@ class vexGlyph {
         height: 10.48,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 15.3,
+        spacingRight: 10.71,
       },
       dot: {
         width: 5,

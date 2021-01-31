@@ -237,15 +237,18 @@ class smoSerialize {
           const dkey = smoKey(key);
           if (typeof(val) == 'string' || typeof(val) == 'number' || typeof(val) == 'boolean') {
             output[dkey] = val;
+            // console.log('240: output[' + dkey + '] = ' + val);
           }
           if (typeof(val) == 'object' && key != 'dictionary') {
             if (Array.isArray(val)) {
               output[dkey] = [];
+              // console.log('245: processing array ' + dkey);
               val.forEach((arobj) => {
-                if (typeof(arobj) == 'string' || typeof(arobj) == 'number' || typeof(arobj) == 'boolean') {
+                if (typeof(arobj) === 'string' || typeof(arobj) === 'number' || typeof(arobj) === 'boolean') {
                   output[dkey].push(arobj);
+                  // console.log('249: ar element ' + arobj);
                 }
-                else if (arobj && typeof(arobj) == 'object') {
+                else if (arobj && typeof(arobj) === 'object') {
                   const nobj = {};
                   _tokenRecurse(arobj,nobj);
                   output[dkey].push(nobj);
@@ -253,6 +256,7 @@ class smoSerialize {
               });
             } else {
               const nobj = {};
+              // console.log('259: processing child object of ' + dkey);
               _tokenRecurse(val,nobj);
               output[dkey] = nobj;
             }
