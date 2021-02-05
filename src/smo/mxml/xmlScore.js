@@ -5,6 +5,9 @@ class mxmlScore {
   static get mmPerPixel() {
     return 0.264583;
   }
+  static get customProportionDefault() {
+    return 42;
+  }
   static get pageLayoutMap() {
     return [
       { xml: 'page-height', smo: 'pageHeight' },
@@ -137,7 +140,7 @@ class mxmlScore {
     }
     // Convert from mm to pixels, this is our default svg scale
     // mm per tenth * pixels / mm gives us pixels per tenth
-    scoreDefaults.layout.svgScale =  (scale * 42 / 40) / mxmlScore.mmPerPixel;
+    scoreDefaults.layout.svgScale =  (scale * 45 / 40) / mxmlScore.mmPerPixel;
   }
 
   // ### part
@@ -332,7 +335,9 @@ class mxmlScore {
     let noteData = {};
     let grIx = 0;
     const staffIndex = mxmlHelpers.getStaffId(noteElement);
+    xmlState.staffIndex = staffIndex;
     // We assume the clef information from attributes comes before the notes
+    // xmlState.staffArray[staffIndex] = { clefInfo: { clef }, voices[voiceIndex]: notes[] }
     if (xmlState.staffArray.length <= staffIndex) {
       // mxml has measures for all staves in a part interleaved.  In SMO they are
       // each in a separate stave object.  Base the staves we expect based on
@@ -349,6 +354,7 @@ class mxmlScore {
     // persist per part (same with staff IDs).  Update XML state if these are new
     // staves
     const voiceIndex = mxmlHelpers.getVoiceId(noteElement);
+    xmlState.voiceIndex = voiceIndex;
     xmlState.initializeStaff(staffIndex, voiceIndex);
     const voice = xmlState.staffArray[staffIndex].voices[voiceIndex];
     // Calculate the tick and staff index for selectors
@@ -378,6 +384,7 @@ class mxmlScore {
     const tupletInfos = mxmlHelpers.getTupletData(noteElement);
     const ornaments = mxmlHelpers.articulationsAndOrnaments(noteElement);
     const lyrics = mxmlHelpers.lyrics(noteElement);
+    const flagState = mxmlHelpers.getStemType(noteElement);
 
     const pitch = mxmlHelpers.smoPitchFromNote(noteElement,
       SmoMeasure.defaultPitchForClef[xmlState.staffArray[staffIndex].clefInfo.clef]);
@@ -394,6 +401,7 @@ class mxmlScore {
         // If this is a non-grace note, add any grace notes to the note since SMO
         // treats them as note modifiers
         noteData.ticks = { numerator: tickCount, denominator: 1, remainder: 0 };
+        noteData.flagState = flagState;
         xmlState.previousNote = new SmoNote(noteData);
         if (hideNote) {
           xmlState.previousNote.makeHidden(true);
@@ -423,6 +431,15 @@ class mxmlScore {
             padNote.makeHidden(true);
             voice.notes.push(padNote);
           });
+          // Offset any partially-completed ties or slurs with the padding
+          slurInfos.forEach((slurInfo) => {
+            slurInfo.selector.tick += pads.length;
+          });
+          tieInfos.forEach((tieInfo) => {
+            tieInfo.selector.tick += pads.length;
+          });
+          selector.tick += pads.length;
+          console.log('Added ' + pads.length + ' ticks to ' + JSON.stringify(selector, null, ' '));
           // then reset the cursor since we are now in sync
           xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed = xmlState.tickCursor;
         }
@@ -486,6 +503,7 @@ class mxmlScore {
       });
       smoMeasure.systemBreak = mxmlHelpers.isSystemBreak(measureElement);
       smoMeasure.tempo = xmlState.tempo;
+      smoMeasure.customProportion = mxmlScore.customProportionDefault;
       smoMeasure.keySignature = xmlState.keySignature;
       smoMeasure.timeSignature = xmlState.timeSignature;
       smoMeasure.measureNumber.measureNumber = xmlState.measureNumber;

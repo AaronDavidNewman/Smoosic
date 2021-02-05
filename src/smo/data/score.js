@@ -98,6 +98,10 @@ class SmoScore {
     return ['layout', 'startIndex', 'renumberingMap', 'renumberIndex', 'fonts',
       'preferences', 'scoreInfo'];
   }
+  static get layoutAttributes() {
+    return ['leftMargin', 'rightMargin', 'topMargin', 'bottomMargin',
+      'pageWidth', 'pageHeight', 'orientation', 'interGap', 'intraGap', 'svgScale', 'zoomScale', 'zoomMode', 'noteSpacing', 'pages'];
+  }
   static get preferences() {
     return ['preferences', 'fonts', 'scoreInfo', 'layout'];
   }
@@ -195,13 +199,18 @@ class SmoScore {
     if (typeof(jsonObj.score.preferences) !== 'undefined' && typeof(jsonObj.score.preferences.customProportion) === 'number') {
       SmoMeasure.defaults.customProportion = jsonObj.score.preferences.customProportion;
     }
-
+    params.layout = JSON.parse(JSON.stringify(SmoScore.defaults.layout));
     smoSerialize.serializedMerge(
       SmoScore.defaultAttributes,
       jsonObj.score, params);
-    if (!params.layout.noteSpacing) {
+    SmoScore.layoutAttributes.forEach((attr) => {
+      if (typeof(params.layout[attr]) === 'undefined') {
+        params.layout[attr] = SmoScore.defaults.layout[attr];
+      }
+    });
+    /* if (!params.layout.noteSpacing) {
       params.layout.noteSpacing = SmoScore.defaults.layout.noteSpacing;
-    }
+    }  should not need this */
     jsonObj.staves.forEach((staffObj) => {
       const staff = SmoSystemStaff.deserialize(staffObj);
       staves.push(staff);
@@ -259,6 +268,12 @@ class SmoScore {
     return score;
   }
 
+  setLayout(layout) {
+    const param = {};
+    smoSerialize.serializedMerge(SmoScore.layoutAttributes, SmoScore.defaults.layout, param);
+    smoSerialize.serializedMerge(SmoScore.layoutAttributes, layout, param);
+    this.layout = JSON.parse(JSON.stringify(param));
+  }
   // ### numberStaves
   // recursively renumber staffs and measures.
   numberStaves() {

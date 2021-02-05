@@ -488,6 +488,9 @@ class SmoMeasure {
     if (layoutDebug.flagSet('measureHistory')) {
       this.svg.history.push('setWidth ' + this.staffWidth + '=> ' + width + ' ' + description);
     }
+    if (isNaN(width)) {
+      throw ('NAN in setWidth');
+    }
     this.svg.staffWidth = width;
   }
 
@@ -496,6 +499,9 @@ class SmoMeasure {
   }
 
   setX(x, description) {
+    if (isNaN(x)) {
+      throw ('NAN in setX');
+    }
     layoutDebug.measureHistory(this, 'staffX', x, description);
     this.svg.staffX = Math.round(x);
   }
@@ -505,6 +511,9 @@ class SmoMeasure {
   }
 
   setY(y, description) {
+    if (isNaN(y)) {
+      throw ('NAN in setY');
+    }
     layoutDebug.measureHistory(this, 'staffY', y, description);
     this.svg.staffY = Math.round(y);
   }

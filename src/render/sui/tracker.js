@@ -896,7 +896,7 @@ class suiTracker extends suiMapper {
       this.modifierSuggestion = -1;
       // If we selected due to a mouse click, move the selection to the
       // selected modifier
-      this._matchSelectionToModifier();
+      // this._matchSelectionToModifier();
       this._highlightModifier();
       return;
     } else if (ev.type === 'click') {

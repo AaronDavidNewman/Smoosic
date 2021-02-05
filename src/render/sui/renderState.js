@@ -194,7 +194,7 @@ class SuiRenderState {
 
   restoreLayoutAfterPrint() {
     if (this._backupLayout) {
-      this.score.layout  = this._backupLayout;
+      this.score.setLayout(this._backupLayout);
       this.setViewport(true);
       this.setRefresh();
       this._backupLayout = null;
@@ -483,12 +483,16 @@ class SuiRenderState {
       this.setViewport(true);
       this._resetViewport = false;
     }
-    if (SuiRenderState.passStates.replace === this.passState) {
-      this._replaceMeasures();
-    } else if (SuiRenderState.passStates.initial === this.passState) {
-      this.layout();
-      this._drawPageLines();
-      this.setPassState(SuiRenderState.passStates.clean, 'rs: complete render');
+    try {
+      if (SuiRenderState.passStates.replace === this.passState) {
+        this._replaceMeasures();
+      } else if (SuiRenderState.passStates.initial === this.passState) {
+        this.layout();
+        this._drawPageLines();
+        this.setPassState(SuiRenderState.passStates.clean, 'rs: complete render');
+      }
+    } catch (excp) {
+      console.warn('exception in render: ' + excp);
     }
     this.dirty = false;
   }

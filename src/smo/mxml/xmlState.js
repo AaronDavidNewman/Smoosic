@@ -1,3 +1,5 @@
+// ## XmlState
+// Keep state of musical objects while parsing music xml
 // eslint-disable-next-line no-unused-vars
 class XmlState {
   static get defaults() {
@@ -214,21 +216,60 @@ class XmlState {
       }
     });
   }
+  static slurDirectionFromNote(clef, note, orientation) {
+    const rv = { invert: false, yOffset: SmoSlur.defaults.yOffset };
+    const flagState = smoMusic.flagStateFromNote(clef, note);
+    if (flagState === SmoNote.flagStates.up && orientation === 'over') {
+      rv.invert = true;
+      rv.yOffset += 50;
+    }
+    if (flagState === SmoNote.flagStates.down && orientation === 'under') {
+      rv.invert = true;
+      rv.yOffset -= 50;
+    }
+    return rv;
+  }
   // ### updateSlurStates
   // While parsing a measure,
   // on a slur element, either complete a started
   // slur or start a new one.
   updateSlurStates(slurInfos) {
+    const clef = this.staffArray[this.staffIndex].clefInfo.clef;
+    const note = this.previousNote;
     slurInfos.forEach((slurInfo) =>  {
       // slurInfo = { number, type, selector }
       if (slurInfo.type === 'start') {
-        this.slurs[slurInfo.number] = JSON.parse(JSON.stringify(slurInfo));
+        if (this.slurs[slurInfo.number] && this.slurs[slurInfo.number].type === 'stop') {
+          // if start and stop come out of order
+          const slurParams = {
+            endSelector: JSON.parse(JSON.stringify(this.slurs[slurInfo.number].selector)),
+            startSelector: slurInfo.selector
+          };
+          const alter = XmlState.slurDirectionFromNote(clef, note, slurInfo.orientation);
+          slurParams.yOffset = alter.yOffset;
+          slurParams.invert = alter.invert;
+          console.log('complete slur stop first ' + slurInfo.number + JSON.stringify(slurParams, null, ' '));
+          this.completedSlurs.push(slurParams);
+          this.slurs[slurInfo.number] = null;
+        } else {
+          const alter = XmlState.slurDirectionFromNote(clef, note, slurInfo.orientation);
+          this.slurs[slurInfo.number] = JSON.parse(JSON.stringify(slurInfo));
+          this.slurs[slurInfo.number].yOffset = alter.yOffset;
+          this.slurs[slurInfo.number].invert = alter.invert;
+        }
       } else if (slurInfo.type === 'stop') {
-        if (this.slurs[slurInfo.number]) {
-          this.completedSlurs.push({
+        if (this.slurs[slurInfo.number] && this.slurs[slurInfo.number].type === 'start') {
+          const slurParams = {
             startSelector: JSON.parse(JSON.stringify(this.slurs[slurInfo.number].selector)),
-            endSelector: slurInfo.selector
-          });
+            endSelector: slurInfo.selector,
+            yOffset: this.slurs[slurInfo.number].yOffset,
+            invert: this.slurs[slurInfo.number].invert
+          };
+          console.log('complete slur ' + slurInfo.number + JSON.stringify(slurParams, null, ' '));
+          this.completedSlurs.push(slurParams);
+          this.slurs[slurInfo.number] = null;
+        } else {
+          this.slurs[slurInfo.number] = JSON.parse(JSON.stringify(slurInfo));
         }
       }
     });
@@ -255,7 +296,9 @@ class XmlState {
     this.completedSlurs.forEach((slur) => {
       const smoSlur = new SmoSlur({
         startSelector: slur.startSelector,
-        endSelector: slur.endSelector
+        endSelector: slur.endSelector,
+        yOffset: slur.yOffset,
+        invert: slur.invert
       });
       this.smoStaves[slur.startSelector.staff].addStaffModifier(smoSlur);
     });

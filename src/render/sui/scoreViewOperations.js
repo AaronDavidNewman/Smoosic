@@ -733,6 +733,15 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
   }
   addOrUpdateStaffModifier(original, modifier) {
+    if (!modifier) {
+      if (original) {
+        // Handle legacy API changed
+        modifier = StaffModifierBase.deserialize(original);
+      } else {
+        console.warn('update modifier: bad modifier');
+        return;
+      }
+    }
     this.actionBuffer.addAction('addOrUpdateStaffModifier', modifier);
     const existing = this.score.staves[modifier.startSelector.staff]
       .getModifier(modifier);
@@ -782,8 +791,8 @@ class SuiScoreViewOperations extends SuiScoreView {
   }
   setScoreLayout(layout) {
     this.actionBuffer.addAction('setScoreLayout', layout);
-    this.score.layout = JSON.parse(JSON.stringify(layout));
-    this.storeScore.layout = JSON.parse(JSON.stringify(layout));
+    this.score.setLayout(layout);
+    this.storeScore.setLayout(layout);
     this.renderer.setViewport();
   }
   setEngravingFontFamily(family) {

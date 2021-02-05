@@ -117,6 +117,15 @@ class mxmlHelpers {
     }
     return node;
   }
+  static getStemType(noteElement) {
+    const tt = mxmlHelpers.getTextFromElement(noteElement, 'stem', '');
+    if (tt === 'up') {
+      return SmoNote.flagStates.up;
+    } else if (tt === 'down') {
+      return SmoNote.flagStates.down;
+    }
+    return SmoNote.flagStates.auto;
+  }
   // ### assignDefaults
   // Map SMO layout data from xml layout data (default node)
   static assignDefaults(node, defObj, parameters) {
@@ -232,6 +241,22 @@ class mxmlHelpers {
     }
     return rv;
   }
+  // Get placement or orientation of a tie or slur.  Xml docs
+  // a little unclear on what to expect and what each mean.
+  static getCurveDirection(node) {
+    const orientation = node.getAttribute('orientation');
+    const placement = node.getAttribute('placement');
+    if (orientation) {
+      return orientation;
+    }
+    if (placement && placement === 'above') {
+      return 'over';
+    }
+    if (placement && placement === 'below') {
+      return 'under';
+    }
+    return 'auto';
+  }
   static getTieData(noteNode, selector, pitchIndex) {
     const rv = [];
     let number = 0;
@@ -239,7 +264,7 @@ class mxmlHelpers {
     nNodes.forEach((nNode) => {
       const slurNodes = [...nNode.getElementsByTagName('tied')];
       slurNodes.forEach((slurNode) => {
-        const orientation = slurNode.getAttribute('orientation');
+        const orientation = mxmlHelpers.getCurveDirection(slurNode);
         const type = slurNode.getAttribute('type');
         number = parseInt(slurNode.getAttribute('number'), 10);
         if (isNaN(number)) {
@@ -258,7 +283,10 @@ class mxmlHelpers {
       slurNodes.forEach((slurNode) => {
         const number = parseInt(slurNode.getAttribute('number'), 10);
         const type = slurNode.getAttribute('type');
-        rv.push({ number, type, selector });
+        const orientation = mxmlHelpers.getCurveDirection(slurNode);
+        const slurInfo = { number, type, orientation, selector };
+        console.log('slur data: ', JSON.stringify(slurInfo, null, ' '));
+        rv.push(slurInfo);
       });
     });
     return rv;

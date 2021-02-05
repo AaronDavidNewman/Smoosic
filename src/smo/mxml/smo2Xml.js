@@ -67,6 +67,10 @@ class SmoToXml {
     if (smoState.measureNumber === 1 && measure.isPickup()) {
       smoState.measureNumber = 0;
     }
+    if (smoState.measure.systemBreak) {
+      const printElement = nn(measureElement, 'print');
+      mxmlHelpers.createAttributes(printElement, { 'new-system': 'yes' });
+    }
     mxmlHelpers.createAttributes(measureElement, { number: smoState.measureNumber });
     SmoToXml.attributes(measureElement, smoState);
     smoState.voiceIndex = 1;
@@ -134,6 +138,8 @@ class SmoToXml {
       smoState.slurNumber += 1;
     });
   }
+  // ### /score-partwise/measure/note/time-modification
+  // ### /score-partwise/measure/note/tuplet
   static tuplet(noteElement, notationsElement, smoState) {
     const nn = mxmlHelpers.createTextElementChild;
     const measure = smoState.measure;
@@ -160,6 +166,7 @@ class SmoToXml {
       });
     }
   }
+  // ### /score-partwise/measure/note/pitch
   static pitch(pitch, noteElement) {
     const nn = mxmlHelpers.createTextElementChild;
     const accidentalOffset = ['bb', 'b', 'n', '#', '##'];
@@ -169,6 +176,7 @@ class SmoToXml {
     nn(pitchElement, 'octave', pitch, 'octave');
     nn(pitchElement, 'adjust', { adjust }, 'adjust');
   }
+  // ### /score-partwise/measure/beam
   static beamNote(noteElement, smoState) {
     const nn = mxmlHelpers.createTextElementChild;
     const note = smoState.note;
@@ -227,6 +235,12 @@ class SmoToXml {
         SmoToXml.beamNote(noteElement, smoState);
         nn(noteElement, 'type', { type: mxmlHelpers.closestStemType(note.tickCount) },
           'type');
+        if (note.flagState === SmoNote.flagStates.up) {
+          nn(noteElement, 'stem', { direction: 'up' }, 'direction');
+        }
+        if (note.flagState === SmoNote.flagStates.down) {
+          nn(noteElement, 'stem', { direction: 'down' }, 'direction');
+        }
       }
       if (note.isRest()) {
         nn(noteElement, 'rest');

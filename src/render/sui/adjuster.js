@@ -152,7 +152,7 @@ class suiLayoutAdjuster {
   // ### _highestLowestHead
   // highest value is actually the one lowest on the page
   static _highestLowestHead(measure,note) {
-    const hilo = {hi:0,lo:9999999};
+    const hilo = { hi: 0, lo: 9999999 };
     note.pitches.forEach((pitch) => {
       // 10 pixels per line
       const ledger = smoMusic.pitchToLedgerLine(measure.clef, pitch);

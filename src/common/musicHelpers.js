@@ -175,6 +175,16 @@ class smoMusic {
     return -1.0 * (VF.keyProperties(smoMusic.pitchToVexKey(pitch, clef)).line - 4.5)
      - VF.clefProperties.values[clef].line_shift;
   }
+  // ### flagStateFromNote
+  // return hard-coded flag state, or flag state as based on pitch and clef
+  static flagStateFromNote(clef, note) {
+    let fs = note.flagState;
+    if (fs ===  SmoNote.flagStates.auto) {
+      fs = smoMusic.pitchToLedgerLine(clef, note.pitches[0])
+        >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+    }
+    return fs;
+  }
 
   // ### pitchToVexKey
   // convert from SMO to VEX format so we can use the VexFlow tables and methods

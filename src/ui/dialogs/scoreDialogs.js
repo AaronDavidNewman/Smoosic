@@ -575,7 +575,7 @@ class SuiLayoutDialog extends SuiDialogBase {
     this.view.renderer.rerenderAll();
   }
   _handleCancel() {
-    this.view.score.layout = this.backup;
+    this.view.score.setLayout(this.backup);
     this._updateLayout();
     this.complete();
   }

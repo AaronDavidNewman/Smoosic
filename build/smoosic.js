@@ -427,6 +427,16 @@ class smoMusic {
     return -1.0 * (VF.keyProperties(smoMusic.pitchToVexKey(pitch, clef)).line - 4.5)
      - VF.clefProperties.values[clef].line_shift;
   }
+  // ### flagStateFromNote
+  // return hard-coded flag state, or flag state as based on pitch and clef
+  static flagStateFromNote(clef, note) {
+    let fs = note.flagState;
+    if (fs ===  SmoNote.flagStates.auto) {
+      fs = smoMusic.pitchToLedgerLine(clef, note.pitches[0])
+        >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+    }
+    return fs;
+  }
 
   // ### pitchToVexKey
   // convert from SMO to VEX format so we can use the VexFlow tables and methods
@@ -2930,7 +2940,7 @@ class suiLayoutAdjuster {
   // ### _highestLowestHead
   // highest value is actually the one lowest on the page
   static _highestLowestHead(measure,note) {
-    const hilo = {hi:0,lo:9999999};
+    const hilo = { hi: 0, lo: 9999999 };
     note.pitches.forEach((pitch) => {
       // 10 pixels per line
       const ledger = smoMusic.pitchToLedgerLine(measure.clef, pitch);
@@ -3980,7 +3990,7 @@ class SuiRenderState {
 
   restoreLayoutAfterPrint() {
     if (this._backupLayout) {
-      this.score.layout  = this._backupLayout;
+      this.score.setLayout(this._backupLayout);
       this.setViewport(true);
       this.setRefresh();
       this._backupLayout = null;
@@ -4269,12 +4279,16 @@ class SuiRenderState {
       this.setViewport(true);
       this._resetViewport = false;
     }
-    if (SuiRenderState.passStates.replace === this.passState) {
-      this._replaceMeasures();
-    } else if (SuiRenderState.passStates.initial === this.passState) {
-      this.layout();
-      this._drawPageLines();
-      this.setPassState(SuiRenderState.passStates.clean, 'rs: complete render');
+    try {
+      if (SuiRenderState.passStates.replace === this.passState) {
+        this._replaceMeasures();
+      } else if (SuiRenderState.passStates.initial === this.passState) {
+        this.layout();
+        this._drawPageLines();
+        this.setPassState(SuiRenderState.passStates.clean, 'rs: complete render');
+      }
+    } catch (excp) {
+      console.warn('exception in render: ' + excp);
     }
     this.dirty = false;
   }
@@ -5762,6 +5776,15 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
   }
   addOrUpdateStaffModifier(original, modifier) {
+    if (!modifier) {
+      if (original) {
+        // Handle legacy API changed
+        modifier = StaffModifierBase.deserialize(original);
+      } else {
+        console.warn('update modifier: bad modifier');
+        return;
+      }
+    }
     this.actionBuffer.addAction('addOrUpdateStaffModifier', modifier);
     const existing = this.score.staves[modifier.startSelector.staff]
       .getModifier(modifier);
@@ -5811,8 +5834,8 @@ class SuiScoreViewOperations extends SuiScoreView {
   }
   setScoreLayout(layout) {
     this.actionBuffer.addAction('setScoreLayout', layout);
-    this.score.layout = JSON.parse(JSON.stringify(layout));
-    this.storeScore.layout = JSON.parse(JSON.stringify(layout));
+    this.score.setLayout(layout);
+    this.storeScore.setLayout(layout);
     this.renderer.setViewport();
   }
   setEngravingFontFamily(family) {
@@ -8939,7 +8962,7 @@ class suiTracker extends suiMapper {
       this.modifierSuggestion = -1;
       // If we selected due to a mouse click, move the selection to the
       // selected modifier
-      this._matchSelectionToModifier();
+      // this._matchSelectionToModifier();
       this._highlightModifier();
       return;
     } else if (ev.type === 'click') {
@@ -10948,6 +10971,9 @@ class SmoMeasure {
     if (layoutDebug.flagSet('measureHistory')) {
       this.svg.history.push('setWidth ' + this.staffWidth + '=> ' + width + ' ' + description);
     }
+    if (isNaN(width)) {
+      throw ('NAN in setWidth');
+    }
     this.svg.staffWidth = width;
   }
 
@@ -10956,6 +10982,9 @@ class SmoMeasure {
   }
 
   setX(x, description) {
+    if (isNaN(x)) {
+      throw ('NAN in setX');
+    }
     layoutDebug.measureHistory(this, 'staffX', x, description);
     this.svg.staffX = Math.round(x);
   }
@@ -10965,6 +10994,9 @@ class SmoMeasure {
   }
 
   setY(y, description) {
+    if (isNaN(y)) {
+      throw ('NAN in setY');
+    }
     layoutDebug.measureHistory(this, 'staffY', y, description);
     this.svg.staffY = Math.round(y);
   }
@@ -13083,6 +13115,10 @@ class SmoScore {
     return ['layout', 'startIndex', 'renumberingMap', 'renumberIndex', 'fonts',
       'preferences', 'scoreInfo'];
   }
+  static get layoutAttributes() {
+    return ['leftMargin', 'rightMargin', 'topMargin', 'bottomMargin',
+      'pageWidth', 'pageHeight', 'orientation', 'interGap', 'intraGap', 'svgScale', 'zoomScale', 'zoomMode', 'noteSpacing', 'pages'];
+  }
   static get preferences() {
     return ['preferences', 'fonts', 'scoreInfo', 'layout'];
   }
@@ -13180,13 +13216,18 @@ class SmoScore {
     if (typeof(jsonObj.score.preferences) !== 'undefined' && typeof(jsonObj.score.preferences.customProportion) === 'number') {
       SmoMeasure.defaults.customProportion = jsonObj.score.preferences.customProportion;
     }
-
+    params.layout = JSON.parse(JSON.stringify(SmoScore.defaults.layout));
     smoSerialize.serializedMerge(
       SmoScore.defaultAttributes,
       jsonObj.score, params);
-    if (!params.layout.noteSpacing) {
+    SmoScore.layoutAttributes.forEach((attr) => {
+      if (typeof(params.layout[attr]) === 'undefined') {
+        params.layout[attr] = SmoScore.defaults.layout[attr];
+      }
+    });
+    /* if (!params.layout.noteSpacing) {
       params.layout.noteSpacing = SmoScore.defaults.layout.noteSpacing;
-    }
+    }  should not need this */
     jsonObj.staves.forEach((staffObj) => {
       const staff = SmoSystemStaff.deserialize(staffObj);
       staves.push(staff);
@@ -13244,6 +13285,12 @@ class SmoScore {
     return score;
   }
 
+  setLayout(layout) {
+    const param = {};
+    smoSerialize.serializedMerge(SmoScore.layoutAttributes, SmoScore.defaults.layout, param);
+    smoSerialize.serializedMerge(SmoScore.layoutAttributes, layout, param);
+    this.layout = JSON.parse(JSON.stringify(param));
+  }
   // ### numberStaves
   // recursively renumber staffs and measures.
   numberStaves() {
@@ -15176,6 +15223,10 @@ class SmoToXml {
     if (smoState.measureNumber === 1 && measure.isPickup()) {
       smoState.measureNumber = 0;
     }
+    if (smoState.measure.systemBreak) {
+      const printElement = nn(measureElement, 'print');
+      mxmlHelpers.createAttributes(printElement, { 'new-system': 'yes' });
+    }
     mxmlHelpers.createAttributes(measureElement, { number: smoState.measureNumber });
     SmoToXml.attributes(measureElement, smoState);
     smoState.voiceIndex = 1;
@@ -15243,6 +15294,8 @@ class SmoToXml {
       smoState.slurNumber += 1;
     });
   }
+  // ### /score-partwise/measure/note/time-modification
+  // ### /score-partwise/measure/note/tuplet
   static tuplet(noteElement, notationsElement, smoState) {
     const nn = mxmlHelpers.createTextElementChild;
     const measure = smoState.measure;
@@ -15269,6 +15322,7 @@ class SmoToXml {
       });
     }
   }
+  // ### /score-partwise/measure/note/pitch
   static pitch(pitch, noteElement) {
     const nn = mxmlHelpers.createTextElementChild;
     const accidentalOffset = ['bb', 'b', 'n', '#', '##'];
@@ -15278,6 +15332,7 @@ class SmoToXml {
     nn(pitchElement, 'octave', pitch, 'octave');
     nn(pitchElement, 'adjust', { adjust }, 'adjust');
   }
+  // ### /score-partwise/measure/beam
   static beamNote(noteElement, smoState) {
     const nn = mxmlHelpers.createTextElementChild;
     const note = smoState.note;
@@ -15336,6 +15391,12 @@ class SmoToXml {
         SmoToXml.beamNote(noteElement, smoState);
         nn(noteElement, 'type', { type: mxmlHelpers.closestStemType(note.tickCount) },
           'type');
+        if (note.flagState === SmoNote.flagStates.up) {
+          nn(noteElement, 'stem', { direction: 'up' }, 'direction');
+        }
+        if (note.flagState === SmoNote.flagStates.down) {
+          nn(noteElement, 'stem', { direction: 'down' }, 'direction');
+        }
       }
       if (note.isRest()) {
         nn(noteElement, 'rest');
@@ -15553,6 +15614,15 @@ class mxmlHelpers {
     }
     return node;
   }
+  static getStemType(noteElement) {
+    const tt = mxmlHelpers.getTextFromElement(noteElement, 'stem', '');
+    if (tt === 'up') {
+      return SmoNote.flagStates.up;
+    } else if (tt === 'down') {
+      return SmoNote.flagStates.down;
+    }
+    return SmoNote.flagStates.auto;
+  }
   // ### assignDefaults
   // Map SMO layout data from xml layout data (default node)
   static assignDefaults(node, defObj, parameters) {
@@ -15668,6 +15738,22 @@ class mxmlHelpers {
     }
     return rv;
   }
+  // Get placement or orientation of a tie or slur.  Xml docs
+  // a little unclear on what to expect and what each mean.
+  static getCurveDirection(node) {
+    const orientation = node.getAttribute('orientation');
+    const placement = node.getAttribute('placement');
+    if (orientation) {
+      return orientation;
+    }
+    if (placement && placement === 'above') {
+      return 'over';
+    }
+    if (placement && placement === 'below') {
+      return 'under';
+    }
+    return 'auto';
+  }
   static getTieData(noteNode, selector, pitchIndex) {
     const rv = [];
     let number = 0;
@@ -15675,7 +15761,7 @@ class mxmlHelpers {
     nNodes.forEach((nNode) => {
       const slurNodes = [...nNode.getElementsByTagName('tied')];
       slurNodes.forEach((slurNode) => {
-        const orientation = slurNode.getAttribute('orientation');
+        const orientation = mxmlHelpers.getCurveDirection(slurNode);
         const type = slurNode.getAttribute('type');
         number = parseInt(slurNode.getAttribute('number'), 10);
         if (isNaN(number)) {
@@ -15694,7 +15780,10 @@ class mxmlHelpers {
       slurNodes.forEach((slurNode) => {
         const number = parseInt(slurNode.getAttribute('number'), 10);
         const type = slurNode.getAttribute('type');
-        rv.push({ number, type, selector });
+        const orientation = mxmlHelpers.getCurveDirection(slurNode);
+        const slurInfo = { number, type, orientation, selector };
+        console.log('slur data: ', JSON.stringify(slurInfo, null, ' '));
+        rv.push(slurInfo);
       });
     });
     return rv;
@@ -15784,6 +15873,9 @@ class mxmlHelpers {
 class mxmlScore {
   static get mmPerPixel() {
     return 0.264583;
+  }
+  static get customProportionDefault() {
+    return 42;
   }
   static get pageLayoutMap() {
     return [
@@ -15917,7 +16009,7 @@ class mxmlScore {
     }
     // Convert from mm to pixels, this is our default svg scale
     // mm per tenth * pixels / mm gives us pixels per tenth
-    scoreDefaults.layout.svgScale =  (scale * 42 / 40) / mxmlScore.mmPerPixel;
+    scoreDefaults.layout.svgScale =  (scale * 45 / 40) / mxmlScore.mmPerPixel;
   }
 
   // ### part
@@ -16112,7 +16204,9 @@ class mxmlScore {
     let noteData = {};
     let grIx = 0;
     const staffIndex = mxmlHelpers.getStaffId(noteElement);
+    xmlState.staffIndex = staffIndex;
     // We assume the clef information from attributes comes before the notes
+    // xmlState.staffArray[staffIndex] = { clefInfo: { clef }, voices[voiceIndex]: notes[] }
     if (xmlState.staffArray.length <= staffIndex) {
       // mxml has measures for all staves in a part interleaved.  In SMO they are
       // each in a separate stave object.  Base the staves we expect based on
@@ -16129,6 +16223,7 @@ class mxmlScore {
     // persist per part (same with staff IDs).  Update XML state if these are new
     // staves
     const voiceIndex = mxmlHelpers.getVoiceId(noteElement);
+    xmlState.voiceIndex = voiceIndex;
     xmlState.initializeStaff(staffIndex, voiceIndex);
     const voice = xmlState.staffArray[staffIndex].voices[voiceIndex];
     // Calculate the tick and staff index for selectors
@@ -16158,6 +16253,7 @@ class mxmlScore {
     const tupletInfos = mxmlHelpers.getTupletData(noteElement);
     const ornaments = mxmlHelpers.articulationsAndOrnaments(noteElement);
     const lyrics = mxmlHelpers.lyrics(noteElement);
+    const flagState = mxmlHelpers.getStemType(noteElement);
 
     const pitch = mxmlHelpers.smoPitchFromNote(noteElement,
       SmoMeasure.defaultPitchForClef[xmlState.staffArray[staffIndex].clefInfo.clef]);
@@ -16174,6 +16270,7 @@ class mxmlScore {
         // If this is a non-grace note, add any grace notes to the note since SMO
         // treats them as note modifiers
         noteData.ticks = { numerator: tickCount, denominator: 1, remainder: 0 };
+        noteData.flagState = flagState;
         xmlState.previousNote = new SmoNote(noteData);
         if (hideNote) {
           xmlState.previousNote.makeHidden(true);
@@ -16203,6 +16300,15 @@ class mxmlScore {
             padNote.makeHidden(true);
             voice.notes.push(padNote);
           });
+          // Offset any partially-completed ties or slurs with the padding
+          slurInfos.forEach((slurInfo) => {
+            slurInfo.selector.tick += pads.length;
+          });
+          tieInfos.forEach((tieInfo) => {
+            tieInfo.selector.tick += pads.length;
+          });
+          selector.tick += pads.length;
+          console.log('Added ' + pads.length + ' ticks to ' + JSON.stringify(selector, null, ' '));
           // then reset the cursor since we are now in sync
           xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed = xmlState.tickCursor;
         }
@@ -16266,6 +16372,7 @@ class mxmlScore {
       });
       smoMeasure.systemBreak = mxmlHelpers.isSystemBreak(measureElement);
       smoMeasure.tempo = xmlState.tempo;
+      smoMeasure.customProportion = mxmlScore.customProportionDefault;
       smoMeasure.keySignature = xmlState.keySignature;
       smoMeasure.timeSignature = xmlState.timeSignature;
       smoMeasure.measureNumber.measureNumber = xmlState.measureNumber;
@@ -16308,7 +16415,9 @@ class mxmlScore {
     });
   }
 }
-;// eslint-disable-next-line no-unused-vars
+;// ## XmlState
+// Keep state of musical objects while parsing music xml
+// eslint-disable-next-line no-unused-vars
 class XmlState {
   static get defaults() {
     return {
@@ -16524,21 +16633,60 @@ class XmlState {
       }
     });
   }
+  static slurDirectionFromNote(clef, note, orientation) {
+    const rv = { invert: false, yOffset: SmoSlur.defaults.yOffset };
+    const flagState = smoMusic.flagStateFromNote(clef, note);
+    if (flagState === SmoNote.flagStates.up && orientation === 'over') {
+      rv.invert = true;
+      rv.yOffset += 50;
+    }
+    if (flagState === SmoNote.flagStates.down && orientation === 'under') {
+      rv.invert = true;
+      rv.yOffset -= 50;
+    }
+    return rv;
+  }
   // ### updateSlurStates
   // While parsing a measure,
   // on a slur element, either complete a started
   // slur or start a new one.
   updateSlurStates(slurInfos) {
+    const clef = this.staffArray[this.staffIndex].clefInfo.clef;
+    const note = this.previousNote;
     slurInfos.forEach((slurInfo) =>  {
       // slurInfo = { number, type, selector }
       if (slurInfo.type === 'start') {
-        this.slurs[slurInfo.number] = JSON.parse(JSON.stringify(slurInfo));
+        if (this.slurs[slurInfo.number] && this.slurs[slurInfo.number].type === 'stop') {
+          // if start and stop come out of order
+          const slurParams = {
+            endSelector: JSON.parse(JSON.stringify(this.slurs[slurInfo.number].selector)),
+            startSelector: slurInfo.selector
+          };
+          const alter = XmlState.slurDirectionFromNote(clef, note, slurInfo.orientation);
+          slurParams.yOffset = alter.yOffset;
+          slurParams.invert = alter.invert;
+          console.log('complete slur stop first ' + slurInfo.number + JSON.stringify(slurParams, null, ' '));
+          this.completedSlurs.push(slurParams);
+          this.slurs[slurInfo.number] = null;
+        } else {
+          const alter = XmlState.slurDirectionFromNote(clef, note, slurInfo.orientation);
+          this.slurs[slurInfo.number] = JSON.parse(JSON.stringify(slurInfo));
+          this.slurs[slurInfo.number].yOffset = alter.yOffset;
+          this.slurs[slurInfo.number].invert = alter.invert;
+        }
       } else if (slurInfo.type === 'stop') {
-        if (this.slurs[slurInfo.number]) {
-          this.completedSlurs.push({
+        if (this.slurs[slurInfo.number] && this.slurs[slurInfo.number].type === 'start') {
+          const slurParams = {
             startSelector: JSON.parse(JSON.stringify(this.slurs[slurInfo.number].selector)),
-            endSelector: slurInfo.selector
-          });
+            endSelector: slurInfo.selector,
+            yOffset: this.slurs[slurInfo.number].yOffset,
+            invert: this.slurs[slurInfo.number].invert
+          };
+          console.log('complete slur ' + slurInfo.number + JSON.stringify(slurParams, null, ' '));
+          this.completedSlurs.push(slurParams);
+          this.slurs[slurInfo.number] = null;
+        } else {
+          this.slurs[slurInfo.number] = JSON.parse(JSON.stringify(slurInfo));
         }
       }
     });
@@ -16565,7 +16713,9 @@ class XmlState {
     this.completedSlurs.forEach((slur) => {
       const smoSlur = new SmoSlur({
         startSelector: slur.startSelector,
-        endSelector: slur.endSelector
+        endSelector: slur.endSelector,
+        yOffset: slur.yOffset,
+        invert: slur.invert
       });
       this.smoStaves[slur.startSelector.staff].addStaffModifier(smoSlur);
     });
@@ -29486,7 +29636,7 @@ class SuiLayoutDialog extends SuiDialogBase {
     this.view.renderer.rerenderAll();
   }
   _handleCancel() {
-    this.view.score.layout = this.backup;
+    this.view.score.setLayout(this.backup);
     this._updateLayout();
     this.complete();
   }
