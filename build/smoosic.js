@@ -26211,7 +26211,6 @@ class SmoUndoable {
     Vex.Merge(config, params);
     window.SmoConfig = config;
     this.registerFonts();
-    this.startApplication();
     if (config.mode === 'application') {
       this.startApplication();
     }
@@ -37564,6 +37563,13 @@ class suiMenuManager {
         action: 'SuiFileMenu'
       }, {
         event: 'keydown',
+        key: 'L',
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: 'SuiLibraryMenu'
+      }, {
+        event: 'keydown',
         key: 'm',
         ctrlKey: false,
         altKey: false,
@@ -37841,6 +37847,18 @@ class SuiFileMenu extends suiMenuBase {
         value: 'openFile'
       }, {
         icon: '',
+        text: 'Quick Save',
+        value: 'quickSave'
+      }, {
+        icon: 'folder-save',
+        text: 'Save',
+        value: 'saveFile'
+      }, {
+        icon: '',
+        text: 'Print',
+        value: 'printScore'
+      }, {
+        icon: '',
         text: 'Import MusicXML',
         value: 'importMxml'
       }, {
@@ -37849,44 +37867,12 @@ class SuiFileMenu extends suiMenuBase {
         value: 'exportXml'
       }, {
         icon: 'folder-save',
-        text: 'Save',
-        value: 'saveFile'
-      }, {
-        icon: 'folder-save',
         text: 'Save Actions',
         value: 'saveActions'
       }, {
         icon: 'icon-play3',
         text: 'Play Actions',
         value: 'playActions'
-      }, {
-        icon: '',
-        text: 'Quick Save',
-        value: 'quickSave'
-      }, {
-        icon: '',
-        text: 'Print',
-        value: 'printScore'
-      }, {
-        icon: '',
-        text: 'Bach Invention',
-        value: 'bach'
-      }, {
-        icon: '',
-        text: 'Jesu Bambino',
-        value: 'bambino'
-      }, {
-        icon: '',
-        text: 'Microtone Sample',
-        value: 'microtone'
-      }, {
-        icon: '',
-        text: 'Precious Lord',
-        value: 'preciousLord'
-      }, {
-        icon: '',
-        text: 'Yama',
-        value: 'yamaJson'
       }, {
         icon: '',
         text: 'Cancel',
@@ -37949,6 +37935,16 @@ class SuiFileMenu extends suiMenuBase {
         view: this.view,
         closeMenuPromise: this.closePromise
       });
+    } else if (text === 'newFile') {
+      const score = SmoScore.getDefaultScore();
+      this.view.changeScore(score);
+    } else if (text === 'quickSave') {
+      this.view.quickSave();
+    } else if (text === 'printScore') {
+      const systemPrint = () => {
+        self.systemPrint();
+      };
+      this.view.renderer.renderForPrintPromise().then(systemPrint);
     } else if (text === 'exportXml') {
       SuiSaveXmlDialog.createAndDisplay({
         completeNotifier: this.completeNotifier,
@@ -37969,31 +37965,115 @@ class SuiFileMenu extends suiMenuBase {
         view: this.view,
         closeMenuPromise: this.closePromise
       });
-    } else if (text === 'newFile') {
-      const score = SmoScore.getDefaultScore();
+    }
+    this.complete();
+  }
+  keydown() {}
+}
+
+// eslint-disable-next-line no-unused-vars
+class SuiLibraryMenu extends suiMenuBase {
+  constructor(params) {
+    params = (typeof(params) !== 'undefined' ? params : {});
+    Vex.Merge(params, SuiLibraryMenu.defaults);
+    super(params);
+  }
+  static get ctor() {
+    return 'SuiFileMenu';
+  }
+  get ctor() {
+    return SuiFileMenu.ctor;
+  }
+  static get defaults() {
+    SuiLibraryMenu._defaults = typeof(SuiLibraryMenu._defaults) !== 'undefined' ? SuiLibraryMenu._defaults : {
+      label: 'Score',
+      menuItems: [{
+        icon: '',
+        text: 'Bach Invention',
+        value: 'bach'
+      }, {
+        icon: '',
+        text: 'Jesu Bambino',
+        value: 'bambino'
+      }, {
+        icon: '',
+        text: 'Handel Messiah 1-1',
+        value: 'handel'
+      }, {
+        icon: '',
+        text: 'Precious Lord',
+        value: 'preciousLord'
+      }, {
+        icon: '',
+        text: 'Yama',
+        value: 'yamaJson'
+      }, {
+        icon: '',
+        text: 'Dichterliebe (xml)',
+        value: 'dichterliebe'
+      }, {
+        icon: '',
+        text: 'Beethoven - An die ferne Gliebte (xml)',
+        value: 'beethoven'
+      }, {
+        icon: '',
+        text: 'Mozart - An Chloe (xml)',
+        value: 'mozart'
+      }, {
+        icon: '',
+        text: 'Joplin - The Entertainer (xml)',
+        value: 'joplin'
+      }, {
+        icon: '',
+        text: 'Cancel',
+        value: 'cancel'
+      }]
+    };
+    return SuiLibraryMenu._defaults;
+  }
+  _loadJsonAndComplete(path) {
+    const req = new XMLHttpRequest();
+    req.addEventListener('load', () => {
+      const score = SmoScore.deserialize(req.responseText);
       this.view.changeScore(score);
-    } else if (text === 'quickSave') {
-      this.view.quickSave();
-    } else if (text === 'printScore') {
-      const systemPrint = () => {
-        self.systemPrint();
-      };
-      this.view.renderer.renderForPrintPromise().then(systemPrint);
-    } else if (text === 'bach') {
-      const score = SmoScore.deserialize(inventionJson);
+      this.complete();
+    });
+    req.open('GET', path);
+    req.send();
+  }
+  _loadXmlAndComplete(path) {
+    const req = new XMLHttpRequest();
+    req.addEventListener('load', () => {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(req.responseText, 'text/xml');
+      const score = mxmlScore.smoScoreFromXml(xml);
       this.view.changeScore(score);
+      this.complete();
+    });
+    req.open('GET', path);
+    req.send();
+  }
+
+  selection(ev) {
+    const text = $(ev.currentTarget).attr('data-value');
+    if (text === 'bach') {
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/BachInvention.json');
     } else if (text === 'yamaJson') {
-      const score = SmoScore.deserialize(yamaJson);
-      this.view.changeScore(score);
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Yama.json');
+    } else if (text === 'handel') {
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Messiah1-1.json');
     } else if (text === 'bambino') {
-      const score = SmoScore.deserialize(jesuBambino);
-      this.view.changeScore(score);
-    } else if (text === 'microtone') {
-      const score = SmoScore.deserialize(microJson);
-      this.view.changeScore(score);
-    }  else if (text === 'preciousLord') {
-      const score = SmoScore.deserialize(preciousLord);
-      this.view.changeScore(score);
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/GesuBambino.json');
+    } else if (text === 'preciousLord') {
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/PreciousLord.json');
+    } else if (text === 'dichterliebe') {
+      this._loadXmlAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Dichterliebe01.xml');
+    } else if (text === 'beethoven') {
+      this._loadXmlAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Beethoven_AnDieFerneGeliebte.xml');
+    } else if (text === 'mozart') {
+      this._loadXmlAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Mozart_AnChloe.xml');
+    } else if (text === 'joplin') {
+      this._loadXmlAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/ScottJoplin_The_Entertainer.xml');
     }
     this.complete();
   }
@@ -39464,83 +39544,84 @@ class CollapseRibbonControl {
 
 class defaultRibbonLayout {
 
-	static get ribbons() {
-		var left = defaultRibbonLayout.leftRibbonIds;
-		var top = defaultRibbonLayout.displayIds.concat(defaultRibbonLayout.noteButtonIds).concat(defaultRibbonLayout.navigateButtonIds)
+  static get ribbons() {
+    var left = defaultRibbonLayout.leftRibbonIds;
+    var top = defaultRibbonLayout.displayIds.concat(defaultRibbonLayout.noteButtonIds).concat(defaultRibbonLayout.navigateButtonIds)
         .concat(defaultRibbonLayout.articulateButtonIds).concat(defaultRibbonLayout.microtoneIds)
-		    .concat(defaultRibbonLayout.durationIds)
+        .concat(defaultRibbonLayout.durationIds)
             .concat(defaultRibbonLayout.beamIds).concat(defaultRibbonLayout.measureIds).concat(defaultRibbonLayout.staveIds)
               .concat(defaultRibbonLayout.textIds).concat(defaultRibbonLayout.playerIds)
               .concat(defaultRibbonLayout.voiceButtonIds).concat(defaultRibbonLayout.debugIds);
 
-		return {
-			left: left,
-			top:top
-		};
-	}
+    return {
+      left: left,
+      top:top
+    };
+  }
 
-	static get ribbonButtons() {
-		return defaultRibbonLayout.leftRibbonButtons.concat(
-			defaultRibbonLayout.navigationButtons).concat(
-			defaultRibbonLayout.noteRibbonButtons).concat(
-			defaultRibbonLayout.articulationButtons).concat(
+  static get ribbonButtons() {
+    return defaultRibbonLayout.leftRibbonButtons.concat(
+      defaultRibbonLayout.navigationButtons).concat(
+      defaultRibbonLayout.noteRibbonButtons).concat(
+      defaultRibbonLayout.articulationButtons).concat(
             defaultRibbonLayout.microtoneButtons).concat(
-			defaultRibbonLayout.chordButtons).concat(
-			defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.beamRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
-			.concat(defaultRibbonLayout.staveRibbonButtons)
+      defaultRibbonLayout.chordButtons).concat(
+      defaultRibbonLayout.durationRibbonButtons).concat(defaultRibbonLayout.beamRibbonButtons).concat(defaultRibbonLayout.measureRibbonButtons)
+      .concat(defaultRibbonLayout.staveRibbonButtons)
             .concat(defaultRibbonLayout.textRibbonButtons).concat(defaultRibbonLayout.playerButtons)
             .concat(defaultRibbonLayout.voiceRibbonButtons).concat(defaultRibbonLayout.displayButtons).concat(defaultRibbonLayout.debugRibbonButtons);
-	}
+  }
 
-	static get leftRibbonIds() {
-		return ['helpDialog','languageMenu', 'fileMenu','addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2',
+  static get leftRibbonIds() {
+    return ['helpDialog','languageMenu', 'fileMenu','libraryMenu',
+    'addStaffMenu','measureModal','tempoModal','timeSignatureMenu','keyMenu', 'staffModifierMenu', 'staffModifierMenu2',
     'instrumentModal','pianoModal','layoutMenu'];
-	}
-	static get noteButtonIds() {
-		return ['NoteButtons',
+  }
+  static get noteButtonIds() {
+    return ['NoteButtons',
             'UpNoteButton', 'DownNoteButton','AddGraceNote','RemoveGraceNote','SlashGraceNote','XNoteHead',
-				'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
-	}
+        'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
+  }
   static get voiceButtonIds() {
       return ['VoiceButtons','V1Button','V2Button','V3Button','V4Button','VXButton'];
   }
-	static get navigateButtonIds()  {
-		return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'moreNavButtons','navFastForward', 'navRewind',
-				'navGrowLeft', 'navGrowRight'];
-	}
-	static get articulateButtonIds()  {
-		return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton', 'fermataButton', 'pizzicatoButton','mordentButton','mordentInvertedButton','trillButton'
+  static get navigateButtonIds()  {
+    return ['NavigationButtons', 'navLeftButton', 'navRightButton', 'navUpButton', 'navDownButton', 'moreNavButtons','navFastForward', 'navRewind',
+        'navGrowLeft', 'navGrowRight'];
+  }
+  static get articulateButtonIds()  {
+    return ['articulationButtons', 'accentButton', 'tenutoButton', 'staccatoButton', 'marcatoButton', 'fermataButton', 'pizzicatoButton','mordentButton','mordentInvertedButton','trillButton'
       ,'scoopButton','dropButton','dropLongButton','doitButton','doitLongButton','flipButton','smearButton'];
-	}
+  }
 
-	static get intervalIds()  {
-		return ['CreateChordButtons', 'SecondUpButton', 'SecondDownButton', 'ThirdUpButton', 'ThirdDownButton', 'FourthUpButton', 'FourthDownButton',
-				'FifthUpButton', 'FifthDownButton','SixthUpButton', 'SixthDownButton'
-				,'SeventhUpButton', 'SeventhDownButton','OctaveUpButton','OctaveDownButton','CollapseChordButton'];
-	}
+  static get intervalIds()  {
+    return ['CreateChordButtons', 'SecondUpButton', 'SecondDownButton', 'ThirdUpButton', 'ThirdDownButton', 'FourthUpButton', 'FourthDownButton',
+        'FifthUpButton', 'FifthDownButton','SixthUpButton', 'SixthDownButton'
+        ,'SeventhUpButton', 'SeventhDownButton','OctaveUpButton','OctaveDownButton','CollapseChordButton'];
+  }
 
-	static get debugIds() {
-		return ['DebugGroup','DebugButton2'];
-	}
-	static get durationIds() {
-		return ['DurationButtons','GrowDuration','LessDuration','GrowDurationDot','LessDurationDot','TripletButton','QuintupletButton','SeptupletButton','NoTupletButton'];
-	}
-	static get measureIds() {
-		return ['MeasureButtons','endRepeat','startRepeat','endBar','doubleBar','singleBarEnd','singleBarStart','nthEnding','dcAlCoda','dsAlCoda','dcAlFine','dsAlFine','coda','toCoda','segno','toSegno','fine'];
-	}
+  static get debugIds() {
+    return ['DebugGroup','DebugButton2'];
+  }
+  static get durationIds() {
+    return ['DurationButtons','GrowDuration','LessDuration','GrowDurationDot','LessDurationDot','TripletButton','QuintupletButton','SeptupletButton','NoTupletButton'];
+  }
+  static get measureIds() {
+    return ['MeasureButtons','endRepeat','startRepeat','endBar','doubleBar','singleBarEnd','singleBarStart','nthEnding','dcAlCoda','dsAlCoda','dcAlFine','dsAlFine','coda','toCoda','segno','toSegno','fine'];
+  }
 
     static get textIds() {
-		return ['TextButtons','addTextMenu','rehearsalMark','lyrics','chordChanges','addDynamicsMenu'];
-	}
+    return ['TextButtons','addTextMenu','rehearsalMark','lyrics','chordChanges','addDynamicsMenu'];
+  }
 
     static get beamIds() {
-		return ['BeamButtons','breakBeam','beamSelections','toggleBeamDirection'];
-	}
+    return ['BeamButtons','breakBeam','beamSelections','toggleBeamDirection'];
+  }
     static get staveIds() {
-		return ['StaveButtons','clefTreble','clefBass','clefAddRemove','clefMoveUp','clefMoveDown','moreStaffButtons',
+    return ['StaveButtons','clefTreble','clefBass','clefAddRemove','clefMoveUp','clefMoveDown','moreStaffButtons',
         'clefTenor','clefAlto',
            'staffBracketLower','staffBraceLower','staffDoubleConnectorLower','staffSingleConnectorLower'];
-	}
+  }
 
   static get playerIds() {
       return ['playerButtons','playButton','pauseButton','stopButton'];
@@ -39611,19 +39692,19 @@ class defaultRibbonLayout {
         ctor: 'TextButtons',
         group: 'textEdit',
         id: 'addDynamicsMenu'
-	    }
+      }
     ];
   }
   static get displayButtons() {
     return [{
-    	leftText: '',
-  		rightText: '',
-  		classes: 'icon  hide',
-  		icon: 'icon-zoomplus',
-  		action: 'collapseParent',
-  		ctor: 'CollapseRibbonControl',
-  		group: 'displaySettings',
-  		id: 'displaySettings'
+      leftText: '',
+      rightText: '',
+      classes: 'icon  hide',
+      icon: 'icon-zoomplus',
+      action: 'collapseParent',
+      ctor: 'CollapseRibbonControl',
+      group: 'displaySettings',
+      id: 'displaySettings'
     },{
       leftText: '',
       rightText: '',
@@ -39644,178 +39725,178 @@ class defaultRibbonLayout {
       id: 'zoomout'
     },{
       leftText: '',
-  		rightText: '',
-  		classes: 'icon   refresh',
-  		icon: 'icon-zoomminus',
-  		action: 'collapseChild',
-  		ctor: 'DisplaySettings',
-  		group: 'displaySettings',
-  		id: 'zoomin'
+      rightText: '',
+      classes: 'icon   refresh',
+      icon: 'icon-zoomminus',
+      action: 'collapseChild',
+      ctor: 'DisplaySettings',
+      group: 'displaySettings',
+      id: 'zoomin'
     },{
       leftText: '',
-  		rightText: '',
-  		classes: 'icon   play',
-  		icon: 'icon-play3',
-  		action: 'collapseChild',
-  		ctor: 'DisplaySettings',
-  		group: 'displaySettings',
-  		id: 'playButton2'
+      rightText: '',
+      classes: 'icon   play',
+      icon: 'icon-play3',
+      action: 'collapseChild',
+      ctor: 'DisplaySettings',
+      group: 'displaySettings',
+      id: 'playButton2'
     },{
       leftText: '',
-  		rightText: '',
-  		classes: 'icon   stop2',
-  		icon: 'icon-stop2',
-  		action: 'collapseChild',
-  		ctor: 'DisplaySettings',
-  		group: 'displaySettings',
-  		id: 'stopButton2'
+      rightText: '',
+      classes: 'icon   stop2',
+      icon: 'icon-stop2',
+      action: 'collapseChild',
+      ctor: 'DisplaySettings',
+      group: 'displaySettings',
+      id: 'stopButton2'
     }
   ];
   }
 
     static get microtoneButtons() {
         return [{
-			leftText: '',
-				rightText: '',
-				classes: 'icon  collapseParent microtones',
-				icon: 'icon-microtone',
-				action: 'collapseParent',
-				ctor: 'CollapseRibbonControl',
-				group: 'microtone',
-				id: 'MicrotoneButtons'
-		}, {
+      leftText: '',
+        rightText: '',
+        classes: 'icon  collapseParent microtones',
+        icon: 'icon-microtone',
+        action: 'collapseParent',
+        ctor: 'CollapseRibbonControl',
+        group: 'microtone',
+        id: 'MicrotoneButtons'
+    }, {
             leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed microtones',
-				icon: 'icon-flat25sz',
-				action: 'collapseChild',
-				ctor: 'MicrotoneButtons',
-				group: 'microtone',
-				id: 'flat25sz'
+        rightText: '',
+        classes: 'icon  collapsed microtones',
+        icon: 'icon-flat25sz',
+        action: 'collapseChild',
+        ctor: 'MicrotoneButtons',
+        group: 'microtone',
+        id: 'flat25sz'
         }, {
             leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed microtones',
-				icon: 'icon-flat75sz',
-				action: 'collapseChild',
-				ctor: 'MicrotoneButtons',
-				group: 'microtone',
-				id: 'flat75sz'
+        rightText: '',
+        classes: 'icon  collapsed microtones',
+        icon: 'icon-flat75sz',
+        action: 'collapseChild',
+        ctor: 'MicrotoneButtons',
+        group: 'microtone',
+        id: 'flat75sz'
         },{
             leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed microtones',
-				icon: 'icon-flat25ar',
-				action: 'collapseChild',
-				ctor: 'MicrotoneButtons',
-				group: 'microtone',
-				id: 'flat25ar'
+        rightText: '',
+        classes: 'icon  collapsed microtones',
+        icon: 'icon-flat25ar',
+        action: 'collapseChild',
+        ctor: 'MicrotoneButtons',
+        group: 'microtone',
+        id: 'flat25ar'
         },{
             leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed microtones',
-				icon: 'icon-sharp75',
-				action: 'collapseChild',
-				ctor: 'MicrotoneButtons',
-				group: 'microtone',
-				id: 'sharp75'
+        rightText: '',
+        classes: 'icon  collapsed microtones',
+        icon: 'icon-sharp75',
+        action: 'collapseChild',
+        ctor: 'MicrotoneButtons',
+        group: 'microtone',
+        id: 'sharp75'
         },{
             leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed microtones',
-				icon: 'icon-sharp125',
-				action: 'collapseChild',
-				ctor: 'MicrotoneButtons',
-				group: 'microtone',
-				id: 'sharp125'
+        rightText: '',
+        classes: 'icon  collapsed microtones',
+        icon: 'icon-sharp125',
+        action: 'collapseChild',
+        ctor: 'MicrotoneButtons',
+        group: 'microtone',
+        id: 'sharp125'
         },{
             leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed microtones',
-				icon: 'icon-sharp25',
-				action: 'collapseChild',
-				ctor: 'MicrotoneButtons',
-				group: 'microtone',
-				id: 'sharp25'
+        rightText: '',
+        classes: 'icon  collapsed microtones',
+        icon: 'icon-sharp25',
+        action: 'collapseChild',
+        ctor: 'MicrotoneButtons',
+        group: 'microtone',
+        id: 'sharp25'
         },{
             leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed microtones',
-				icon: 'icon-sori',
-				action: 'collapseChild',
-				ctor: 'MicrotoneButtons',
-				group: 'microtone',
-				id: 'sori'
+        rightText: '',
+        classes: 'icon  collapsed microtones',
+        icon: 'icon-sori',
+        action: 'collapseChild',
+        ctor: 'MicrotoneButtons',
+        group: 'microtone',
+        id: 'sori'
         },{
             leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed microtones',
-				icon: 'icon-koron',
-				action: 'collapseChild',
-				ctor: 'MicrotoneButtons',
-				group: 'microtone',
-				id: 'koron'
+        rightText: '',
+        classes: 'icon  collapsed microtones',
+        icon: 'icon-koron',
+        action: 'collapseChild',
+        ctor: 'MicrotoneButtons',
+        group: 'microtone',
+        id: 'koron'
         }];
     }
 
-	static get staveRibbonButtons() {
-		return [{
-			leftText: '',
-				rightText: '',
-				classes: 'icon  collapseParent staves',
-				icon: 'icon-treble',
-				action: 'collapseParent',
-				ctor: 'CollapseRibbonControl',
-				group: 'staves',
-				id: 'StaveButtons'
-		},{
-			leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed staves',
-				icon: 'icon-treble',
-				action: 'collapseChild',
-				ctor: 'StaveButtons',
-				group: 'staves',
-				id: 'clefTreble'
-		},{
-			leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed staves',
-				icon: 'icon-bass',
-				action: 'collapseChild',
-				ctor: 'StaveButtons',
-				group: 'staves',
-				id: 'clefBass'
-		}
+  static get staveRibbonButtons() {
+    return [{
+      leftText: '',
+        rightText: '',
+        classes: 'icon  collapseParent staves',
+        icon: 'icon-treble',
+        action: 'collapseParent',
+        ctor: 'CollapseRibbonControl',
+        group: 'staves',
+        id: 'StaveButtons'
+    },{
+      leftText: '',
+        rightText: '',
+        classes: 'icon  collapsed staves',
+        icon: 'icon-treble',
+        action: 'collapseChild',
+        ctor: 'StaveButtons',
+        group: 'staves',
+        id: 'clefTreble'
+    },{
+      leftText: '',
+        rightText: '',
+        classes: 'icon  collapsed staves',
+        icon: 'icon-bass',
+        action: 'collapseChild',
+        ctor: 'StaveButtons',
+        group: 'staves',
+        id: 'clefBass'
+    }
         ,{
-			leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed staves',
-				icon: 'icon-plus',
-				action: 'collapseChildMenu',
-				ctor: 'SuiAddStaffMenu',
-				group: 'staves',
-				id: 'clefAddRemove'
-		},
+      leftText: '',
+        rightText: '',
+        classes: 'icon  collapsed staves',
+        icon: 'icon-plus',
+        action: 'collapseChildMenu',
+        ctor: 'SuiAddStaffMenu',
+        group: 'staves',
+        id: 'clefAddRemove'
+    },
         {
-			leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed staves',
-				icon: 'icon-arrow-up',
-				action: 'collapseChild',
-				ctor: 'StaveButtons',
-				group: 'staves',
-				id: 'clefMoveUp'
-		},{
-			leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed staves',
-				icon: 'icon-arrow-down',
-				action: 'collapseChild',
-				ctor: 'StaveButtons',
-				group: 'staves',
-				id: 'clefMoveDown'
-		},
+      leftText: '',
+        rightText: '',
+        classes: 'icon  collapsed staves',
+        icon: 'icon-arrow-up',
+        action: 'collapseChild',
+        ctor: 'StaveButtons',
+        group: 'staves',
+        id: 'clefMoveUp'
+    },{
+      leftText: '',
+        rightText: '',
+        classes: 'icon  collapsed staves',
+        icon: 'icon-arrow-down',
+        action: 'collapseChild',
+        ctor: 'StaveButtons',
+        group: 'staves',
+        id: 'clefMoveDown'
+    },
         {
             leftText: '...',
             rightText: '',
@@ -39826,360 +39907,360 @@ class defaultRibbonLayout {
             group: 'staves',
             id: 'moreStaffButtons'
         },{
-			leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed staves',
-				icon: 'icon-tenor',
-				action: 'collapseGrandchild',
-				ctor: 'StaveButtons',
-				group: 'staves',
-				id: 'clefTenor'
-		},{
-			leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed staves',
-				icon: 'icon-alto',
-				action: 'collapseGrandchild',
-				ctor: 'StaveButtons',
-				group: 'staves',
-				id: 'clefAlto'
-		},{
-			leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed staves',
-				icon: 'icon-brace',
-				action: 'collapseGrandchild',
-				ctor: 'StaveButtons',
-				group: 'staves',
-				id: 'staffBraceLower'
-		},{
-			leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed staves',
-				icon: 'icon-bracket',
-				action: 'collapseGrandchild',
-				ctor: 'StaveButtons',
-				group: 'staves',
-				id: 'staffBracketLower'
-		}
+      leftText: '',
+        rightText: '',
+        classes: 'icon  collapsed staves',
+        icon: 'icon-tenor',
+        action: 'collapseGrandchild',
+        ctor: 'StaveButtons',
+        group: 'staves',
+        id: 'clefTenor'
+    },{
+      leftText: '',
+        rightText: '',
+        classes: 'icon  collapsed staves',
+        icon: 'icon-alto',
+        action: 'collapseGrandchild',
+        ctor: 'StaveButtons',
+        group: 'staves',
+        id: 'clefAlto'
+    },{
+      leftText: '',
+        rightText: '',
+        classes: 'icon  collapsed staves',
+        icon: 'icon-brace',
+        action: 'collapseGrandchild',
+        ctor: 'StaveButtons',
+        group: 'staves',
+        id: 'staffBraceLower'
+    },{
+      leftText: '',
+        rightText: '',
+        classes: 'icon  collapsed staves',
+        icon: 'icon-bracket',
+        action: 'collapseGrandchild',
+        ctor: 'StaveButtons',
+        group: 'staves',
+        id: 'staffBracketLower'
+    }
 
-		];
-	}
+    ];
+  }
 
     static get beamRibbonButtons() {
         return [{
-			leftText: '',
-				rightText: '',
-				classes: 'icon  collapseParent beams',
-				icon: 'icon-flag',
-				action: 'collapseParent',
-				ctor: 'CollapseRibbonControl',
-				group: 'beams',
-				id: 'BeamButtons'
-		},{
-				leftText: '',
-				rightText: 'x',
-				icon: 'icon-beamBreak',
-				classes: 'collapsed beams',
-				action: 'collapseChild',
-				ctor: 'BeamButtons',
-				group: 'beams',
-				id: 'breakBeam'
-			},
+      leftText: '',
+        rightText: '',
+        classes: 'icon  collapseParent beams',
+        icon: 'icon-flag',
+        action: 'collapseParent',
+        ctor: 'CollapseRibbonControl',
+        group: 'beams',
+        id: 'BeamButtons'
+    },{
+        leftText: '',
+        rightText: 'x',
+        icon: 'icon-beamBreak',
+        classes: 'collapsed beams',
+        action: 'collapseChild',
+        ctor: 'BeamButtons',
+        group: 'beams',
+        id: 'breakBeam'
+      },
             {
-				leftText: '',
-				rightText: 'Shift-X',
-				icon: 'icon-beam',
-				classes: 'collapsed beams',
-				action: 'collapseChild',
-				ctor: 'BeamButtons',
-				group: 'beams',
-				id: 'beamSelections'
-			},
+        leftText: '',
+        rightText: 'Shift-X',
+        icon: 'icon-beam',
+        classes: 'collapsed beams',
+        action: 'collapseChild',
+        ctor: 'BeamButtons',
+        group: 'beams',
+        id: 'beamSelections'
+      },
             {
-				leftText: '',
-				rightText: 'Shift-B',
-				icon: 'icon-flagFlip',
-				classes: 'collapsed beams',
-				action: 'collapseChild',
-				ctor: 'BeamButtons',
-				group: 'beams',
-				id: 'toggleBeamDirection'
-			}
+        leftText: '',
+        rightText: 'Shift-B',
+        icon: 'icon-flagFlip',
+        classes: 'collapsed beams',
+        action: 'collapseChild',
+        ctor: 'BeamButtons',
+        group: 'beams',
+        id: 'toggleBeamDirection'
+      }
         ];
     }
 
-	static get measureRibbonButtons() {
-		return [{
-			leftText: '',
-				rightText: '',
-				classes: 'icon  collapseParent measure',
-				icon: 'icon-end_rpt',
-				action: 'collapseParent',
-				ctor: 'CollapseRibbonControl',
-				group: 'measure',
-				id: 'MeasureButtons'
-		},{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-end_rpt',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'endRepeat'
-			},
-			{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-start_rpt',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'startRepeat'
-			}
-			,
-			{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-end_bar',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'endBar'
-			},
-			{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-double_bar',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'doubleBar'
-			},
-			{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-single_bar',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'singleBarEnd'
-			},
-			{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-single_bar_start',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'singleBarStart'
-			},
-			{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-ending',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'nthEnding'
-			},
-			{
-				leftText: 'DC Al Coda',
-				rightText: '',
-				icon: '',
-				classes: 'collapsed repetext',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'dcAlCoda'
-			},
-			{
-				leftText: 'DS Al Coda',
-				rightText: '',
-				icon: '',
-				classes: 'collapsed repetext',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'dsAlCoda'
-			},
-			{
-				leftText: 'DC Al Fine',
-				rightText: '',
-				icon: '',
-				classes: 'collapsed repetext',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'dcAlFine'
-			},
-			{
-				leftText: 'DS Al Fine',
-				rightText: '',
-				icon: '',
-				classes: 'collapsed repetext',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'dsAlFine'
-			},
-			{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-coda',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'coda'
-			},
-			{
-				leftText: 'to ',
-				rightText: '',
-				icon: 'icon-coda',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'toCoda'
-			},
-			{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-segno',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'segno'
-			},
-			{
-				leftText: 'Fine',
-				rightText: '',
-				icon: '',
-				classes: 'collapsed repetext',
-				action: 'collapseChild',
-				ctor: 'MeasureButtons',
-				group: 'measure',
-				id: 'fine'
-			}
-		];
-	}
-	static get debugRibbonButtons() {
-		return [{
-				leftText: '',
-				rightText: '',
-				classes: 'icon  collapseParent',
-				icon: 'icon-new-tab',
-				action: 'collapseParent',
-				ctor: 'CollapseRibbonControl',
-				group: 'debug',
-				id: 'DebugGroup'
-			},{
-				leftText: '',
-				rightText: '',
-				classes: 'icon  collapsed',
-				icon: 'icon-new-tab',
-				action: 'collapseChild',
-				ctor: 'DebugButtons',
-				group: 'debug',
-				id: 'DebugButton2'
-			}];
-	}
+  static get measureRibbonButtons() {
+    return [{
+      leftText: '',
+        rightText: '',
+        classes: 'icon  collapseParent measure',
+        icon: 'icon-end_rpt',
+        action: 'collapseParent',
+        ctor: 'CollapseRibbonControl',
+        group: 'measure',
+        id: 'MeasureButtons'
+    },{
+        leftText: '',
+        rightText: '',
+        icon: 'icon-end_rpt',
+        classes: 'collapsed duration',
+        action: 'collapseChild',
+        ctor: 'MeasureButtons',
+        group: 'measure',
+        id: 'endRepeat'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-start_rpt',
+        classes: 'collapsed duration',
+        action: 'collapseChild',
+        ctor: 'MeasureButtons',
+        group: 'measure',
+        id: 'startRepeat'
+      }
+      ,
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-end_bar',
+        classes: 'collapsed duration',
+        action: 'collapseChild',
+        ctor: 'MeasureButtons',
+        group: 'measure',
+        id: 'endBar'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-double_bar',
+        classes: 'collapsed duration',
+        action: 'collapseChild',
+        ctor: 'MeasureButtons',
+        group: 'measure',
+        id: 'doubleBar'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-single_bar',
+        classes: 'collapsed duration',
+        action: 'collapseChild',
+        ctor: 'MeasureButtons',
+        group: 'measure',
+        id: 'singleBarEnd'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-single_bar_start',
+        classes: 'collapsed duration',
+        action: 'collapseChild',
+        ctor: 'MeasureButtons',
+        group: 'measure',
+        id: 'singleBarStart'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-ending',
+        classes: 'collapsed duration',
+        action: 'collapseChild',
+        ctor: 'MeasureButtons',
+        group: 'measure',
+        id: 'nthEnding'
+      },
+      {
+        leftText: 'DC Al Coda',
+        rightText: '',
+        icon: '',
+        classes: 'collapsed repetext',
+        action: 'collapseChild',
+        ctor: 'MeasureButtons',
+        group: 'measure',
+        id: 'dcAlCoda'
+      },
+      {
+        leftText: 'DS Al Coda',
+        rightText: '',
+        icon: '',
+        classes: 'collapsed repetext',
+        action: 'collapseChild',
+        ctor: 'MeasureButtons',
+        group: 'measure',
+        id: 'dsAlCoda'
+      },
+      {
+        leftText: 'DC Al Fine',
+        rightText: '',
+        icon: '',
+        classes: 'collapsed repetext',
+        action: 'collapseChild',
+        ctor: 'MeasureButtons',
+        group: 'measure',
+        id: 'dcAlFine'
+      },
+      {
+        leftText: 'DS Al Fine',
+        rightText: '',
+        icon: '',
+        classes: 'collapsed repetext',
+        action: 'collapseChild',
+        ctor: 'MeasureButtons',
+        group: 'measure',
+        id: 'dsAlFine'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-coda',
+        classes: 'collapsed duration',
+        action: 'collapseChild',
+        ctor: 'MeasureButtons',
+        group: 'measure',
+        id: 'coda'
+      },
+      {
+        leftText: 'to ',
+        rightText: '',
+        icon: 'icon-coda',
+        classes: 'collapsed duration',
+        action: 'collapseChild',
+        ctor: 'MeasureButtons',
+        group: 'measure',
+        id: 'toCoda'
+      },
+      {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-segno',
+        classes: 'collapsed duration',
+        action: 'collapseChild',
+        ctor: 'MeasureButtons',
+        group: 'measure',
+        id: 'segno'
+      },
+      {
+        leftText: 'Fine',
+        rightText: '',
+        icon: '',
+        classes: 'collapsed repetext',
+        action: 'collapseChild',
+        ctor: 'MeasureButtons',
+        group: 'measure',
+        id: 'fine'
+      }
+    ];
+  }
+  static get debugRibbonButtons() {
+    return [{
+        leftText: '',
+        rightText: '',
+        classes: 'icon  collapseParent',
+        icon: 'icon-new-tab',
+        action: 'collapseParent',
+        ctor: 'CollapseRibbonControl',
+        group: 'debug',
+        id: 'DebugGroup'
+      },{
+        leftText: '',
+        rightText: '',
+        classes: 'icon  collapsed',
+        icon: 'icon-new-tab',
+        action: 'collapseChild',
+        ctor: 'DebugButtons',
+        group: 'debug',
+        id: 'DebugButton2'
+      }];
+  }
 
-	static get durationRibbonButtons() {
-		return [{
-				leftText: '',
-				rightText: '',
-				classes: 'icon  collapseParent duration',
-				icon: 'icon-duration',
-				action: 'collapseParent',
-				ctor: 'CollapseRibbonControl',
-				group: 'duration',
-				id: 'DurationButtons'
-			},{
-				leftText: '',
-				rightText: '.',
-				icon: 'icon-duration_grow',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'DurationButtons',
-				group: 'duration',
-				id: 'GrowDuration'
-			},{
-				leftText: '',
-				rightText: ',',
-				icon: 'icon-duration_less',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'DurationButtons',
-				group: 'duration',
-				id: 'LessDuration'
-			},{
-				leftText: '',
-				rightText: '>',
-				icon: 'icon-duration_grow_dot',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'DurationButtons',
-				group: 'duration',
-				id: 'GrowDurationDot'
-			},{
-				leftText: '',
-				rightText: '<',
-				icon: 'icon-duration_less_dot',
-				classes: 'collapsed duration',
-				action: 'collapseChild',
-				ctor: 'DurationButtons',
-				group: 'duration',
-				id: 'LessDurationDot'
-			},{
-				leftText: '',
-				rightText: 'Ctrl-3',
-				icon: 'icon-triplet',
-				classes: 'collapsed duration tuplet',
-				action: 'collapseChild',
-				ctor: 'DurationButtons',
-				group: 'duration',
-				id: 'TripletButton'
-			},{
-				leftText: '',
-				rightText: 'Ctrl-5',
-				icon: 'icon-quint',
-				classes: 'collapsed duration tuplet',
-				action: 'collapseChild',
-				ctor: 'DurationButtons',
-				group: 'duration',
-				id: 'QuintupletButton'
-			},{
-				leftText: '',
-				rightText: 'Ctrl-7',
-				icon: 'icon-septuplet',
-				classes: 'collapsed duration tuplet',
-				action: 'collapseChild',
-				ctor: 'DurationButtons',
-				group: 'duration',
-				id: 'SeptupletButton'
-			},
-			{
-				leftText: '',
-				rightText: 'Ctrl-0',
-				icon: 'icon-no_tuplet',
-				classes: 'collapsed duration tuplet',
-				action: 'collapseChild',
-				ctor: 'DurationButtons',
-				group: 'duration',
-				id: 'NoTupletButton'
-			}
-			];
-	}
+  static get durationRibbonButtons() {
+    return [{
+        leftText: '',
+        rightText: '',
+        classes: 'icon  collapseParent duration',
+        icon: 'icon-duration',
+        action: 'collapseParent',
+        ctor: 'CollapseRibbonControl',
+        group: 'duration',
+        id: 'DurationButtons'
+      },{
+        leftText: '',
+        rightText: '.',
+        icon: 'icon-duration_grow',
+        classes: 'collapsed duration',
+        action: 'collapseChild',
+        ctor: 'DurationButtons',
+        group: 'duration',
+        id: 'GrowDuration'
+      },{
+        leftText: '',
+        rightText: ',',
+        icon: 'icon-duration_less',
+        classes: 'collapsed duration',
+        action: 'collapseChild',
+        ctor: 'DurationButtons',
+        group: 'duration',
+        id: 'LessDuration'
+      },{
+        leftText: '',
+        rightText: '>',
+        icon: 'icon-duration_grow_dot',
+        classes: 'collapsed duration',
+        action: 'collapseChild',
+        ctor: 'DurationButtons',
+        group: 'duration',
+        id: 'GrowDurationDot'
+      },{
+        leftText: '',
+        rightText: '<',
+        icon: 'icon-duration_less_dot',
+        classes: 'collapsed duration',
+        action: 'collapseChild',
+        ctor: 'DurationButtons',
+        group: 'duration',
+        id: 'LessDurationDot'
+      },{
+        leftText: '',
+        rightText: 'Ctrl-3',
+        icon: 'icon-triplet',
+        classes: 'collapsed duration tuplet',
+        action: 'collapseChild',
+        ctor: 'DurationButtons',
+        group: 'duration',
+        id: 'TripletButton'
+      },{
+        leftText: '',
+        rightText: 'Ctrl-5',
+        icon: 'icon-quint',
+        classes: 'collapsed duration tuplet',
+        action: 'collapseChild',
+        ctor: 'DurationButtons',
+        group: 'duration',
+        id: 'QuintupletButton'
+      },{
+        leftText: '',
+        rightText: 'Ctrl-7',
+        icon: 'icon-septuplet',
+        classes: 'collapsed duration tuplet',
+        action: 'collapseChild',
+        ctor: 'DurationButtons',
+        group: 'duration',
+        id: 'SeptupletButton'
+      },
+      {
+        leftText: '',
+        rightText: 'Ctrl-0',
+        icon: 'icon-no_tuplet',
+        classes: 'collapsed duration tuplet',
+        action: 'collapseChild',
+        ctor: 'DurationButtons',
+        group: 'duration',
+        id: 'NoTupletButton'
+      }
+      ];
+  }
 
     static get voiceRibbonButtons() {
         return [{
@@ -40239,333 +40320,333 @@ class defaultRibbonLayout {
             }
         ];
     }
-	static get noteRibbonButtons() {
-		return [{
-				leftText: '',
-				rightText: '',
-				classes: 'icon  collapseParent',
-				icon: 'icon-note',
-				action: 'collapseParent',
-				ctor: 'CollapseRibbonControl',
-				group: 'notes',
-				id: 'NoteButtons'
-			}, {
-				leftText: 'A',
-				rightText: 'a',
-				icon: '',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'ANoteButton'
-			}, {
-				leftText: 'B',
-				rightText: 'b',
-				icon: '',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'BNoteButton'
-			}, {
-				leftText: 'C',
-				rightText: 'c',
-				icon: '',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'CNoteButton'
-			}, {
-				leftText: 'D',
-				rightText: 'd',
-				icon: '',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'DNoteButton'
-			}, {
-				leftText: 'E',
-				rightText: 'e',
-				icon: '',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'ENoteButton'
-			}, {
-				leftText: 'F',
-				rightText: 'f',
-				icon: '',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'FNoteButton'
-			}, {
-				leftText: 'G',
-				rightText: 'g',
-				icon: '',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'GNoteButton'
-			}, {
-				leftText: '',
-				rightText: '-',
-				icon: 'icon-sharp',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'UpNoteButton'
-			}, {
-				leftText: '',
-				rightText: '=',
-				icon: 'icon-flat',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'DownNoteButton'
-			}, {
-				leftText: '',
-				rightText: 'r',
-				icon: 'icon-rest',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'ToggleRestButton'
-			},{
-				leftText: '...',
-				rightText: '',
-				icon: 'icon-circle-left',
-				classes: 'collapsed expander',
-				action: 'collapseMore',
-				ctor: 'ExtendedCollapseParent',
-				group: 'notes',
-				id: 'moreNoteButtons'
-			}, {
-				leftText: '',
-				rightText: 'G',
-				icon: 'icon-grace_note',
-				classes: 'collapsed graceIcon',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'AddGraceNote'
-			}, {
-				leftText: '',
-				rightText: '',
-				icon: 'icon-grace_slash',
-				classes: 'collapsed graceIcon',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'SlashGraceNote'
-			},{
-				leftText: '',
-				rightText: 'alt-g',
-				icon: 'icon-grace_remove',
-				classes: 'collapsed graceIcon',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'RemoveGraceNote'
-			},{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-notex',
-				classes: 'collapsed graceIcon',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'XNoteHead'
-			},{
-				leftText: '8va',
-				rightText: 'Shift=',
-				icon: '',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'UpOctaveButton'
-			}, {
-				leftText: '8vb',
-				rightText: 'Shift-',
-				icon: '',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'DownOctaveButton'
-			}, {
-				leftText: '',
-				rightText: 'ShiftE',
-				icon: 'icon-accident',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'ToggleAccidental'
-			}, {
-				leftText: '',
-				rightText: 'ShiftF',
-				icon: 'icon-courtesy',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NoteButtons',
-				group: 'notes',
-				id: 'ToggleCourtesy'
-			}
+  static get noteRibbonButtons() {
+    return [{
+        leftText: '',
+        rightText: '',
+        classes: 'icon  collapseParent',
+        icon: 'icon-note',
+        action: 'collapseParent',
+        ctor: 'CollapseRibbonControl',
+        group: 'notes',
+        id: 'NoteButtons'
+      }, {
+        leftText: 'A',
+        rightText: 'a',
+        icon: '',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'ANoteButton'
+      }, {
+        leftText: 'B',
+        rightText: 'b',
+        icon: '',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'BNoteButton'
+      }, {
+        leftText: 'C',
+        rightText: 'c',
+        icon: '',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'CNoteButton'
+      }, {
+        leftText: 'D',
+        rightText: 'd',
+        icon: '',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'DNoteButton'
+      }, {
+        leftText: 'E',
+        rightText: 'e',
+        icon: '',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'ENoteButton'
+      }, {
+        leftText: 'F',
+        rightText: 'f',
+        icon: '',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'FNoteButton'
+      }, {
+        leftText: 'G',
+        rightText: 'g',
+        icon: '',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'GNoteButton'
+      }, {
+        leftText: '',
+        rightText: '-',
+        icon: 'icon-sharp',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'UpNoteButton'
+      }, {
+        leftText: '',
+        rightText: '=',
+        icon: 'icon-flat',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'DownNoteButton'
+      }, {
+        leftText: '',
+        rightText: 'r',
+        icon: 'icon-rest',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'ToggleRestButton'
+      },{
+        leftText: '...',
+        rightText: '',
+        icon: 'icon-circle-left',
+        classes: 'collapsed expander',
+        action: 'collapseMore',
+        ctor: 'ExtendedCollapseParent',
+        group: 'notes',
+        id: 'moreNoteButtons'
+      }, {
+        leftText: '',
+        rightText: 'G',
+        icon: 'icon-grace_note',
+        classes: 'collapsed graceIcon',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'AddGraceNote'
+      }, {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-grace_slash',
+        classes: 'collapsed graceIcon',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'SlashGraceNote'
+      },{
+        leftText: '',
+        rightText: 'alt-g',
+        icon: 'icon-grace_remove',
+        classes: 'collapsed graceIcon',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'RemoveGraceNote'
+      },{
+        leftText: '',
+        rightText: '',
+        icon: 'icon-notex',
+        classes: 'collapsed graceIcon',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'XNoteHead'
+      },{
+        leftText: '8va',
+        rightText: 'Shift=',
+        icon: '',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'UpOctaveButton'
+      }, {
+        leftText: '8vb',
+        rightText: 'Shift-',
+        icon: '',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'DownOctaveButton'
+      }, {
+        leftText: '',
+        rightText: 'ShiftE',
+        icon: 'icon-accident',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'ToggleAccidental'
+      }, {
+        leftText: '',
+        rightText: 'ShiftF',
+        icon: 'icon-courtesy',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'ToggleCourtesy'
+      }
 
-		];
-	}
-	static get playerButtons() {
+    ];
+  }
+  static get playerButtons() {
         // .icon-play3
         return [{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-equalizer2',
-				classes: 'icon collapseParent player',
-				action: 'collapseParent',
-				ctor: 'CollapseRibbonControl',
-				group: 'playerButtons',
-				id: 'playerButtons'
-			}, {
-				leftText: '',
-				rightText: 'p',
-				icon: 'icon-play3',
-				classes: 'icon collapsed player',
-				action: 'collapseChild',
-				ctor: 'PlayerButtons',
-				group: 'playerButtons',
-				id: 'playButton'
-			},
+        leftText: '',
+        rightText: '',
+        icon: 'icon-equalizer2',
+        classes: 'icon collapseParent player',
+        action: 'collapseParent',
+        ctor: 'CollapseRibbonControl',
+        group: 'playerButtons',
+        id: 'playerButtons'
+      }, {
+        leftText: '',
+        rightText: 'p',
+        icon: 'icon-play3',
+        classes: 'icon collapsed player',
+        action: 'collapseChild',
+        ctor: 'PlayerButtons',
+        group: 'playerButtons',
+        id: 'playButton'
+      },
             {
-				leftText: '',
-				rightText: 's',
-				icon: 'icon-stop2',
-				classes: 'icon collapsed player',
-				action: 'collapseChild',
-				ctor: 'PlayerButtons',
-				group: 'playerButtons',
-				id: 'stopButton'
-			},
+        leftText: '',
+        rightText: 's',
+        icon: 'icon-stop2',
+        classes: 'icon collapsed player',
+        action: 'collapseChild',
+        ctor: 'PlayerButtons',
+        group: 'playerButtons',
+        id: 'stopButton'
+      },
             {
-				leftText: '',
-				rightText: 'P',
-				icon: 'icon-pause2',
-				classes: 'icon collapsed player',
-				action: 'collapseChild',
-				ctor: 'PlayerButtons',
-				group: 'playerButtons',
-				id: 'pauseButton'
-			}];
+        leftText: '',
+        rightText: 'P',
+        icon: 'icon-pause2',
+        classes: 'icon collapsed player',
+        action: 'collapseChild',
+        ctor: 'PlayerButtons',
+        group: 'playerButtons',
+        id: 'pauseButton'
+      }];
     }
     static get articulationButtons() {
-		return [{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-articulation',
-				classes: 'icon collapseParent articulation',
-				action: 'collapseParent',
-				ctor: 'CollapseRibbonControl',
-				group: 'articulations',
-				id: 'articulationButtons'
-			}, {
-				leftText: '',
-				rightText: 'h',
-				icon: 'icon-accent_above',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'accentButton'
-			},{
-				leftText: '',
-				rightText: 'i',
-				icon: 'icon-tenuto_above',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'tenutoButton'
-			}, {
-				leftText: '',
-				rightText: 'j',
-				icon: 'icon-staccato_above',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'staccatoButton'
-			}, {
-				leftText: '',
-				rightText: 'k',
-				icon: 'icon-marcato_above',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'marcatoButton'
-			}, {
-				leftText: '',
-				rightText: '',
-				icon: 'icon-fermata',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'fermataButton'
-			},  {
-				leftText: '',
-				rightText: 'l',
-				icon: 'icon-pitz_above',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'pizzicatoButton'
-			}, {
-				leftText: '',
-				rightText: '',
-				icon: 'icon-mordent-inv',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'mordentInvertedButton'
+    return [{
+        leftText: '',
+        rightText: '',
+        icon: 'icon-articulation',
+        classes: 'icon collapseParent articulation',
+        action: 'collapseParent',
+        ctor: 'CollapseRibbonControl',
+        group: 'articulations',
+        id: 'articulationButtons'
       }, {
-				leftText: '',
-				rightText: '',
-				icon: 'icon-mordent',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'mordentButton'
+        leftText: '',
+        rightText: 'h',
+        icon: 'icon-accent_above',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'accentButton'
+      },{
+        leftText: '',
+        rightText: 'i',
+        icon: 'icon-tenuto_above',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'tenutoButton'
       }, {
-				leftText: '',
-				rightText: '',
-				icon: 'icon-trill',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'trillButton'
+        leftText: '',
+        rightText: 'j',
+        icon: 'icon-staccato_above',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'staccatoButton'
       }, {
-				leftText: '',
-				rightText: '',
-				icon: 'icon-scoop',
-				classes: 'icon collapsed articulation',
-				action: 'collapseChild',
-				ctor: 'ArticulationButtons',
-				group: 'articulations',
-				id: 'scoopButton'
+        leftText: '',
+        rightText: 'k',
+        icon: 'icon-marcato_above',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'marcatoButton'
+      }, {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-fermata',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'fermataButton'
+      },  {
+        leftText: '',
+        rightText: 'l',
+        icon: 'icon-pitz_above',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'pizzicatoButton'
+      }, {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-mordent-inv',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'mordentInvertedButton'
+      }, {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-mordent',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'mordentButton'
+      }, {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-trill',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'trillButton'
+      }, {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-scoop',
+        classes: 'icon collapsed articulation',
+        action: 'collapseChild',
+        ctor: 'ArticulationButtons',
+        group: 'articulations',
+        id: 'scoopButton'
       },
       {
         leftText: '',
@@ -40627,364 +40708,372 @@ class defaultRibbonLayout {
         group: 'articulations',
         id: 'smearButton'
       }
-		];
-	}
-	static get navigationButtons() {
-		return [{
-				leftText: '',
-				rightText: '',
-				classes: 'icon  collapseParent',
-				icon: 'icon-navigate',
-				action: 'collapseParent',
-				ctor: 'CollapseRibbonControl',
-				group: 'navigation',
-				id: 'NavigationButtons'
-			}, {
-				leftText: '',
-				rightText: '',
-				icon: 'icon-arrow-left',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NavigationButtons',
-				group: 'navigation',
-				id: 'navLeftButton'
-			}, {
-				leftText: '',
-				rightText: '',
-				icon: 'icon-arrow-right',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NavigationButtons',
-				group: 'navigation',
-				id: 'navRightButton'
-			}, {
-				leftText: '',
-				rightText: '',
-				icon: 'icon-arrow-up',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NavigationButtons',
-				group: 'navigation',
-				id: 'navUpButton'
-			}, {
-				leftText: '',
-				rightText: '',
-				icon: 'icon-arrow-down',
-				classes: 'collapsed',
-				action: 'collapseChild',
-				ctor: 'NavigationButtons',
-				group: 'navigation',
-				id: 'navDownButton'
-			}, {
-				leftText: '...',
-				rightText: '',
-				icon: '',
-				classes: 'collapsed expander',
-				action: 'collapseMore',
-				ctor: 'ExtendedCollapseParent',
-				group: 'navigation',
-				id: 'moreNavButtons'
-			},{
-				leftText: '',
-				rightText: '',
-				icon: 'icon-fforward',
-				classes: 'collapsed',
-				action: 'collapseGrandchild',
-				ctor: 'NavigationButtons',
-				group: 'navigation',
-				id: 'navFastForward'
-			}, {
-				leftText: '',
-				rightText: '',
-				icon: 'icon-rewind',
-				classes: 'collapsed',
-				action: 'collapseGrandchild',
-				ctor: 'NavigationButtons',
-				group: 'navigation',
-				id: 'navRewind'
-			}, {
-				leftText: '',
-				rightText: '',
-				icon: 'icon-note_select_left',
-				classes: 'collapsed selection-icon',
-				action: 'collapseGrandchild',
-				ctor: 'NavigationButtons',
-				group: 'navigation',
-				id: 'navGrowLeft'
-			}, {
-				leftText: '',
-				rightText: '',
-				icon: 'icon-note_select_right',
-				classes: 'collapsed selection-icon',
-				action: 'collapseGrandchild',
-				ctor: 'NavigationButtons',
-				group: 'navigation',
-				id: 'navGrowRight'
-			}
-		];
-	}
-	static get chordButtons() {
-		return [{
-				icon: 'icon-chords',
-				leftText: '',
-				rightText: '',
-				classes: 'icon collapseParent',
-				action: 'collapseParent',
-				ctor: 'CollapseRibbonControl',
-				group: 'chords',
-				id: 'CreateChordButtons'
-			}, {
-				icon: 'icon-arrow-up',
-				leftText: '2nd',
-				rightText: '2',
-				classes: 'collapsed addChord',
-				action: 'collapseChild',
-				dataElements: {
-					interval: '1',
-					direction: '1'
-				},
-				ctor: 'ChordButtons',
-				group: 'chords',
-				id: 'SecondUpButton'
-			}, {
-				icon: 'icon-arrow-down',
-				leftText: '2nd',
-				rightText: 'Shift 2',
-				classes: 'collapsed addChord dirdown',
-				action: 'collapseChild',
-				dataElements: {
-					interval: '1',
-					direction: '1'
-				},
-				ctor: 'ChordButtons',
-				group: 'chords',
-				id: 'SecondDownButton'
-			}, {
-				icon: 'icon-arrow-up',
-				leftText: '3rd',
-				rightText: '3',
-				classes: 'collapsed addChord',
-				action: 'collapseChild',
-				dataElements: {
-					interval: '2',
-					direction: '1'
-				},
-				ctor: 'ChordButtons',
-				group: 'chords',
-				id: 'ThirdUpButton'
-			}, {
-				icon: 'icon-arrow-down',
-				leftText: '3rd',
-				rightText: 'Shift 3',
-				classes: 'collapsed addChord dirdown',
-				action: 'collapseChild',
-				dataElements: {
-					interval: '2',
-					direction: '-1'
-				},
-				ctor: 'ChordButtons',
-				group: 'chords',
-				id: 'ThirdDownButton'
-			}, {
-				icon: 'icon-arrow-up',
-				leftText: '4th',
-				rightText: '4',
-				classes: 'collapsed addChord',
-				action: 'collapseChild',
-				dataElements: {
-					interval: '3',
-					direction: '1'
-				},
-				ctor: 'ChordButtons',
-				group: 'chords',
-				id: 'FourthUpButton'
-			}, {
-				icon: 'icon-arrow-down',
-				leftText: '4th',
-				rightText: 'Shift 4',
-				classes: 'collapsed addChord dirdown',
-				action: 'collapseChild',
-				dataElements: {
-					interval: '3',
-					direction: '-1'
-				},
-				ctor: 'ChordButtons',
-				group: 'chords',
-				id: 'FourthDownButton'
-			}, {
-				icon: 'icon-arrow-up',
-				leftText: '5th',
-				rightText: '5',
-				classes: 'collapsed addChord dirdown',
-				action: 'collapseChild',
-				dataElements: {
-					interval: '4',
-					direction: '1'
-				},
-				ctor: 'ChordButtons',
-				group: 'chords',
-				id: 'FifthUpButton'
-			}, {
-				icon: 'icon-arrow-down',
-				leftText: '5th',
-				rightText: 'Shift 5',
-				classes: 'collapsed addChord dirdown',
-				action: 'collapseChild',
-				dataElements: {
-					interval: '4',
-					direction: '-1'
-				},
-				ctor: 'ChordButtons',
-				group: 'chords',
-				id: 'FifthDownButton'
-			}, {
-				icon: 'icon-arrow-up',
-				leftText: '6th',
-				rightText: '6',
-				classes: 'collapsed addChord dirdown',
-				action: 'collapseChild',
-				dataElements: {
-					interval: '5',
-					direction: '1'
-				},
-				ctor: 'ChordButtons',
-				group: 'chords',
-				id: 'SixthUpButton'
-			}, {
-				icon: 'icon-arrow-down',
-				leftText: '6th',
-				rightText: 'Shift 6',
-				classes: 'collapsed addChord dirdown',
-				action: 'collapseChild',
-				dataElements: {
-					interval: '5',
-					direction: '-1'
-				},
-				ctor: 'ChordButtons',
-				group: 'chords',
-				id: 'SixthDownButton'
-			}, {
-				icon: 'icon-arrow-up',
-				leftText: '7th',
-				rightText: '7',
-				classes: 'collapsed addChord dirdown',
-				action: 'collapseChild',
-				dataElements: {
-					interval: '6',
-					direction: '1'
-				},
-				ctor: 'ChordButtons',
-				group: 'chords',
-				id: 'SeventhUpButton'
-			}, {
-				icon: 'icon-arrow-down',
-				leftText: '7th',
-				rightText: 'Shift 7',
-				classes: 'collapsed addChord dirdown',
-				action: 'collapseChild',
-				dataElements: {
-					interval: '6',
-					direction: '-1'
-				},
-				ctor: 'ChordButtons',
-				group: 'chords',
-				id: 'SeventhDownButton'
-			}, {
-				icon: 'icon-arrow-up',
-				leftText: '8va',
-				rightText: '8',
-				classes: 'collapsed addChord dirdown',
-				action: 'collapseChild',
-				dataElements: {
-					interval: '7',
-					direction: '1'
-				},
-				ctor: 'ChordButtons',
-				group: 'chords',
-				id: 'OctaveUpButton'
-			}, {
-				icon: 'icon-arrow-down',
-				leftText: '7th',
-				rightText: 'Shift 7',
-				classes: 'collapsed addChord dirdown',
-				action: 'collapseChild',
-				dataElements: {
-					interval: '7',
-					direction: '-1'
-				},
-				ctor: 'ChordButtons',
-				group: 'chords',
-				id: 'OctaveDownButton'
-			}, {
-				icon: '',
-				leftText: 'Collapse',
-				rightText: '',
-				classes: 'collapsed addChord dirdown',
-				action: 'collapseChild',
-				ctor: 'ChordButtons',
-				group: 'chords',
-				id: 'CollapseChordButton'
-			}
-		];
-	}
+    ];
+  }
+  static get navigationButtons() {
+    return [{
+        leftText: '',
+        rightText: '',
+        classes: 'icon  collapseParent',
+        icon: 'icon-navigate',
+        action: 'collapseParent',
+        ctor: 'CollapseRibbonControl',
+        group: 'navigation',
+        id: 'NavigationButtons'
+      }, {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-arrow-left',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NavigationButtons',
+        group: 'navigation',
+        id: 'navLeftButton'
+      }, {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-arrow-right',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NavigationButtons',
+        group: 'navigation',
+        id: 'navRightButton'
+      }, {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-arrow-up',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NavigationButtons',
+        group: 'navigation',
+        id: 'navUpButton'
+      }, {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-arrow-down',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NavigationButtons',
+        group: 'navigation',
+        id: 'navDownButton'
+      }, {
+        leftText: '...',
+        rightText: '',
+        icon: '',
+        classes: 'collapsed expander',
+        action: 'collapseMore',
+        ctor: 'ExtendedCollapseParent',
+        group: 'navigation',
+        id: 'moreNavButtons'
+      },{
+        leftText: '',
+        rightText: '',
+        icon: 'icon-fforward',
+        classes: 'collapsed',
+        action: 'collapseGrandchild',
+        ctor: 'NavigationButtons',
+        group: 'navigation',
+        id: 'navFastForward'
+      }, {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-rewind',
+        classes: 'collapsed',
+        action: 'collapseGrandchild',
+        ctor: 'NavigationButtons',
+        group: 'navigation',
+        id: 'navRewind'
+      }, {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-note_select_left',
+        classes: 'collapsed selection-icon',
+        action: 'collapseGrandchild',
+        ctor: 'NavigationButtons',
+        group: 'navigation',
+        id: 'navGrowLeft'
+      }, {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-note_select_right',
+        classes: 'collapsed selection-icon',
+        action: 'collapseGrandchild',
+        ctor: 'NavigationButtons',
+        group: 'navigation',
+        id: 'navGrowRight'
+      }
+    ];
+  }
+  static get chordButtons() {
+    return [{
+        icon: 'icon-chords',
+        leftText: '',
+        rightText: '',
+        classes: 'icon collapseParent',
+        action: 'collapseParent',
+        ctor: 'CollapseRibbonControl',
+        group: 'chords',
+        id: 'CreateChordButtons'
+      }, {
+        icon: 'icon-arrow-up',
+        leftText: '2nd',
+        rightText: '2',
+        classes: 'collapsed addChord',
+        action: 'collapseChild',
+        dataElements: {
+          interval: '1',
+          direction: '1'
+        },
+        ctor: 'ChordButtons',
+        group: 'chords',
+        id: 'SecondUpButton'
+      }, {
+        icon: 'icon-arrow-down',
+        leftText: '2nd',
+        rightText: 'Shift 2',
+        classes: 'collapsed addChord dirdown',
+        action: 'collapseChild',
+        dataElements: {
+          interval: '1',
+          direction: '1'
+        },
+        ctor: 'ChordButtons',
+        group: 'chords',
+        id: 'SecondDownButton'
+      }, {
+        icon: 'icon-arrow-up',
+        leftText: '3rd',
+        rightText: '3',
+        classes: 'collapsed addChord',
+        action: 'collapseChild',
+        dataElements: {
+          interval: '2',
+          direction: '1'
+        },
+        ctor: 'ChordButtons',
+        group: 'chords',
+        id: 'ThirdUpButton'
+      }, {
+        icon: 'icon-arrow-down',
+        leftText: '3rd',
+        rightText: 'Shift 3',
+        classes: 'collapsed addChord dirdown',
+        action: 'collapseChild',
+        dataElements: {
+          interval: '2',
+          direction: '-1'
+        },
+        ctor: 'ChordButtons',
+        group: 'chords',
+        id: 'ThirdDownButton'
+      }, {
+        icon: 'icon-arrow-up',
+        leftText: '4th',
+        rightText: '4',
+        classes: 'collapsed addChord',
+        action: 'collapseChild',
+        dataElements: {
+          interval: '3',
+          direction: '1'
+        },
+        ctor: 'ChordButtons',
+        group: 'chords',
+        id: 'FourthUpButton'
+      }, {
+        icon: 'icon-arrow-down',
+        leftText: '4th',
+        rightText: 'Shift 4',
+        classes: 'collapsed addChord dirdown',
+        action: 'collapseChild',
+        dataElements: {
+          interval: '3',
+          direction: '-1'
+        },
+        ctor: 'ChordButtons',
+        group: 'chords',
+        id: 'FourthDownButton'
+      }, {
+        icon: 'icon-arrow-up',
+        leftText: '5th',
+        rightText: '5',
+        classes: 'collapsed addChord dirdown',
+        action: 'collapseChild',
+        dataElements: {
+          interval: '4',
+          direction: '1'
+        },
+        ctor: 'ChordButtons',
+        group: 'chords',
+        id: 'FifthUpButton'
+      }, {
+        icon: 'icon-arrow-down',
+        leftText: '5th',
+        rightText: 'Shift 5',
+        classes: 'collapsed addChord dirdown',
+        action: 'collapseChild',
+        dataElements: {
+          interval: '4',
+          direction: '-1'
+        },
+        ctor: 'ChordButtons',
+        group: 'chords',
+        id: 'FifthDownButton'
+      }, {
+        icon: 'icon-arrow-up',
+        leftText: '6th',
+        rightText: '6',
+        classes: 'collapsed addChord dirdown',
+        action: 'collapseChild',
+        dataElements: {
+          interval: '5',
+          direction: '1'
+        },
+        ctor: 'ChordButtons',
+        group: 'chords',
+        id: 'SixthUpButton'
+      }, {
+        icon: 'icon-arrow-down',
+        leftText: '6th',
+        rightText: 'Shift 6',
+        classes: 'collapsed addChord dirdown',
+        action: 'collapseChild',
+        dataElements: {
+          interval: '5',
+          direction: '-1'
+        },
+        ctor: 'ChordButtons',
+        group: 'chords',
+        id: 'SixthDownButton'
+      }, {
+        icon: 'icon-arrow-up',
+        leftText: '7th',
+        rightText: '7',
+        classes: 'collapsed addChord dirdown',
+        action: 'collapseChild',
+        dataElements: {
+          interval: '6',
+          direction: '1'
+        },
+        ctor: 'ChordButtons',
+        group: 'chords',
+        id: 'SeventhUpButton'
+      }, {
+        icon: 'icon-arrow-down',
+        leftText: '7th',
+        rightText: 'Shift 7',
+        classes: 'collapsed addChord dirdown',
+        action: 'collapseChild',
+        dataElements: {
+          interval: '6',
+          direction: '-1'
+        },
+        ctor: 'ChordButtons',
+        group: 'chords',
+        id: 'SeventhDownButton'
+      }, {
+        icon: 'icon-arrow-up',
+        leftText: '8va',
+        rightText: '8',
+        classes: 'collapsed addChord dirdown',
+        action: 'collapseChild',
+        dataElements: {
+          interval: '7',
+          direction: '1'
+        },
+        ctor: 'ChordButtons',
+        group: 'chords',
+        id: 'OctaveUpButton'
+      }, {
+        icon: 'icon-arrow-down',
+        leftText: '7th',
+        rightText: 'Shift 7',
+        classes: 'collapsed addChord dirdown',
+        action: 'collapseChild',
+        dataElements: {
+          interval: '7',
+          direction: '-1'
+        },
+        ctor: 'ChordButtons',
+        group: 'chords',
+        id: 'OctaveDownButton'
+      }, {
+        icon: '',
+        leftText: 'Collapse',
+        rightText: '',
+        classes: 'collapsed addChord dirdown',
+        action: 'collapseChild',
+        ctor: 'ChordButtons',
+        group: 'chords',
+        id: 'CollapseChordButton'
+      }
+    ];
+  }
 
-	static get leftRibbonButtons() {
-		return [{
-				icon: '',
-				leftText: 'Help',
-				rightText: '?',
-				classes: 'help-button',
-				action: 'modal',
-				ctor: 'helpModal',
-				group: 'scoreEdit',
-				id: 'helpDialog'
-			}, {
-				leftText: 'Language',
-				rightText: '/n',
-				icon: '',
-				classes: 'language-select menu-select',
-				action: 'menu',
-				ctor: 'SuiLanguageMenu',
-				group: 'scoreEdit',
-				id: 'languageMenu'
-			}, {
-				leftText: 'File',
-				rightText: '/f',
-				icon: '',
-				classes: 'file-modify menu-select',
-				action: 'menu',
-				ctor: 'SuiFileMenu',
-				group: 'scoreEdit',
-				id: 'fileMenu'
-			},
-			 {
-				leftText: 'Tempo',
-				rightText: 't',
-				icon: '',
-				classes: 'icon ',
-				action: 'modal',
-				ctor: 'SuiTempoDialog',
-				group: 'scoreEdit',
-				id: 'tempoModal'
-			},{
-				leftText: 'Time Signature',
-				rightText: '/m',
-				icon: '',
-				classes: 'staff-modify menu-select',
-				action: 'menu',
-				ctor: 'SuiTimeSignatureMenu',
-				group: 'scoreEdit',
-				id: 'timeSignatureMenu'
-			}, {
-				leftText: 'Staves',
-				rightText: '/s',
-				icon: '',
-				classes: 'staff-modify',
-				action: 'menu',
-				ctor: 'SuiAddStaffMenu',
-				group: 'scoreEdit',
-				id: 'addStaffMenu'
-			},
+  static get leftRibbonButtons() {
+    return [{
+        icon: '',
+        leftText: 'Help',
+        rightText: '?',
+        classes: 'help-button',
+        action: 'modal',
+        ctor: 'helpModal',
+        group: 'scoreEdit',
+        id: 'helpDialog'
+      }, {
+        leftText: 'Language',
+        rightText: '/n',
+        icon: '',
+        classes: 'language-select menu-select',
+        action: 'menu',
+        ctor: 'SuiLanguageMenu',
+        group: 'scoreEdit',
+        id: 'languageMenu'
+      }, {
+        leftText: 'File',
+        rightText: '/f',
+        icon: '',
+        classes: 'file-modify menu-select',
+        action: 'menu',
+        ctor: 'SuiFileMenu',
+        group: 'scoreEdit',
+        id: 'fileMenu'
+      }, {
+        leftText: 'Library',
+        rightText: '/L',
+        icon: '',
+        classes: 'file-modify menu-select',
+        action: 'menu',
+        ctor: 'SuiLibraryMenu',
+        group: 'scoreEdit',
+        id: 'libraryMenu'
+      }, {
+        leftText: 'Tempo',
+        rightText: 't',
+        icon: '',
+        classes: 'icon ',
+        action: 'modal',
+        ctor: 'SuiTempoDialog',
+        group: 'scoreEdit',
+        id: 'tempoModal'
+      },{
+        leftText: 'Time Signature',
+        rightText: '/m',
+        icon: '',
+        classes: 'staff-modify menu-select',
+        action: 'menu',
+        ctor: 'SuiTimeSignatureMenu',
+        group: 'scoreEdit',
+        id: 'timeSignatureMenu'
+      }, {
+        leftText: 'Staves',
+        rightText: '/s',
+        icon: '',
+        classes: 'staff-modify',
+        action: 'menu',
+        ctor: 'SuiAddStaffMenu',
+        group: 'scoreEdit',
+        id: 'addStaffMenu'
+      },
       {
          leftText: 'Measure',
          rightText: '/a',
@@ -40996,15 +41085,15 @@ class defaultRibbonLayout {
          id: 'measureModal'
       },
       {
-				leftText: 'Key',
-				rightText: '/k',
-				icon: '',
-				classes: 'note-modify menu-select',
-				action: 'menu',
-				ctor: 'SuiKeySignatureMenu',
-				group: 'scoreEdit',
-				id: 'keyMenu'
-			},
+        leftText: 'Key',
+        rightText: '/k',
+        icon: '',
+        classes: 'note-modify menu-select',
+        action: 'menu',
+        ctor: 'SuiKeySignatureMenu',
+        group: 'scoreEdit',
+        id: 'keyMenu'
+      },
       {
        leftText: 'Instrument',
        rightText: '',
@@ -41016,37 +41105,37 @@ class defaultRibbonLayout {
        id: 'instrumentModal'
      },
       {
-				leftText: 'Lines',
-				rightText: '/l',
-				icon: '',
-				classes: 'icon note-modify menu-select',
-				action: 'menu',
-				ctor: 'SuiStaffModifierMenu',
-				group: 'scoreEdit',
-				id: 'staffModifierMenu'
-			},
-			 {
-				leftText: 'Piano',
-				rightText: '',
-				icon: '',
-				classes: 'icon keyboard',
-				action: 'modal',
-				ctor: 'suiPiano',
-				group: 'scoreEdit',
-				id: 'pianoModal'
-			},
-			 {
-				leftText: 'Score',
-				rightText: '',
-				icon: '',
-				classes: 'icon ',
-				action: 'menu',
-				ctor: 'SuiScoreMenu',
-				group: 'scoreEdit',
-				id: 'layoutMenu'
-			}
-		];
-	}
+        leftText: 'Lines',
+        rightText: '/l',
+        icon: '',
+        classes: 'icon note-modify menu-select',
+        action: 'menu',
+        ctor: 'SuiStaffModifierMenu',
+        group: 'scoreEdit',
+        id: 'staffModifierMenu'
+      },
+       {
+        leftText: 'Piano',
+        rightText: '',
+        icon: '',
+        classes: 'icon keyboard',
+        action: 'modal',
+        ctor: 'suiPiano',
+        group: 'scoreEdit',
+        id: 'pianoModal'
+      },
+       {
+        leftText: 'Score',
+        rightText: '',
+        icon: '',
+        classes: 'icon ',
+        action: 'menu',
+        ctor: 'SuiScoreMenu',
+        group: 'scoreEdit',
+        id: 'layoutMenu'
+      }
+    ];
+  }
 }
 ;
 // ## utController
