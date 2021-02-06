@@ -200,11 +200,11 @@ class SuiScoreView {
     }
     return rv;
   }
-  constructor(renderer, score) {
+  constructor(renderer, score, scrollSelector) {
     this.score = score;
     this.renderer = renderer;
     const scoreJson = score.serialize();
-    const scroller = new suiScroller();
+    const scroller = new suiScroller(scrollSelector);
     this.pasteBuffer = new PasteBuffer();
     this.storePaste = new PasteBuffer();
     this.tracker = new suiTracker(this.renderer, scroller, this.pasteBuffer);

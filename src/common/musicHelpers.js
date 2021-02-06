@@ -512,7 +512,7 @@ class smoMusic {
     return rv;
   }
 
-  // ### vexToSmoPitch
+  // ### vexToSmoKey
   // Convert to smo pitch, without octave
   // ``['f#'] => [{letter:'f',accidental:'#'}]``
   static vexToSmoKey(vexPitch) {

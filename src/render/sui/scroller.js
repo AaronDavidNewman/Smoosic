@@ -3,49 +3,53 @@
 // ## suiScroller
 // Respond to scroll events, and handle the scroll of the viewport
 //
-// ### class methods:
+//
 // ---
 class suiScroller  {
-  constructor() {
-    this._scroll = {x:0,y:0};
-    this._scrollInitial = {x:0,y:0};
-    var scroller = $('.musicRelief');
-    this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+  // ### constructor
+  // selector is the scrollable DOM container of the music container
+  // (grandparent of svg element)
+  constructor(selector) {
+    this.selector = selector;
+    this._scroll = { x: 0, y: 0 };
+    this._scrollInitial = { x: 0, y: 0 };
+    var scroller = $(selector);
+    this._offsetInitial = { x: $(scroller).offset().left, y: $(scroller).offset().top };
 
     this.viewport = svgHelpers.boxPoints(
-      $('.musicRelief').offset().left,
-      $('.musicRelief').offset().top,
-      $('.musicRelief').width(),
-      $('.musicRelief').height());
+      $(selector).offset().left,
+      $(selector).offset().top,
+      $(selector).width(),
+      $(selector).height());
    }
 
   // ### setScrollInitial
   // tracker is going to remap the music, make sure we take the current scroll into account.
   setScrollInitial() {
-    var scroller = $('.musicRelief');
-    this._scrollInitial = {x:$(scroller)[0].scrollLeft,y:$(scroller)[0].scrollTop};
-    this._offsetInitial = {x:$(scroller).offset().left,y:$(scroller).offset().top};
+    var scroller = $(this.selector);
+    this._scrollInitial = { x: $(scroller)[0].scrollLeft, y: $(scroller)[0].scrollTop };
+    this._offsetInitial = { x: $(scroller).offset().left, y: $(scroller).offset().top };
     this.viewport = svgHelpers.boxPoints(
-      $('.musicRelief').offset().left,
-      $('.musicRelief').offset().top,
-      $('.musicRelief').width(),
-      $('.musicRelief').height());
+      $(this.selector).offset().left,
+      $(this.selector).offset().top,
+      $(this.selector).width(),
+      $(this.selector).height());
   }
 
   // ### handleScroll
-  // handle scroll events.
-  handleScroll(x,y) {
-    this._scroll = {x:x,y:y};
+  // update viewport in response to scroll events
+  handleScroll(x, y) {
+    this._scroll = { x: x, y: y };
     this.viewport = svgHelpers.boxPoints(
-      $('.musicRelief').offset().left,
-      $('.musicRelief').offset().top,
-      $('.musicRelief').width(),
-      $('.musicRelief').height());
+      $(this.selector).offset().left,
+      $(this.selector).offset().top,
+      $(this.selector).width(),
+      $(this.selector).height());
   }
 
   scrollAbsolute(x,y) {
-    $('.musicRelief')[0].scrollLeft = x;
-    $('.musicRelief')[0].scrollTop = y;
+    $(this.selector)[0].scrollLeft = x;
+    $(this.selector)[0].scrollTop = y;
     this.netScroll.x = x;
     this.netScroll.y = y;
   }
@@ -95,8 +99,8 @@ class suiScroller  {
   }
 
   get absScroll() {
-    var x = $('.musicRelief').offset().left + $('.musicRelief')[0].scrollLeft;
-    var y = $('.musicRelief').offset().top + $('.musicRelief')[0].scrollTop;
+    var x = $(this.selector).offset().left + $(this.selector)[0].scrollLeft;
+    var y = $(this.selector).offset().top + $(this.selector)[0].scrollTop;
     return svgHelpers.boxPoints(x,
       y,
       this.viewport.width,
@@ -111,12 +115,12 @@ class suiScroller  {
     const cur = { x: this._scroll.x, y: this._scroll.y };
     setTimeout(() => {
       if (x) {
-        $('.musicRelief')[0].scrollLeft = cur.x + x;
+        $(this.selector)[0].scrollLeft = cur.x + x;
       }
       if (y) {
-        $('.musicRelief')[0].scrollTop = cur.y + y;
+        $(this.selector)[0].scrollTop = cur.y + y;
       }
-      self.handleScroll( $('.musicRelief')[0].scrollLeft, $('.musicRelief')[0].scrollTop);
+      self.handleScroll( $(this.selector)[0].scrollLeft, $(this.selector)[0].scrollTop);
     }, 1);
   }
 
@@ -124,8 +128,8 @@ class suiScroller  {
   // return the net amount we've scrolled, based on when the maps were make (initial)
   // , the offset of the container, and the absolute coordinates of the scrollbar.
   get netScroll() {
-    var xoffset = $('.musicRelief').offset().left - this._offsetInitial.x;
-    var yoffset = $('.musicRelief').offset().top - this._offsetInitial.y;
+    var xoffset = $(this.selector).offset().left - this._offsetInitial.x;
+    var yoffset = $(this.selector).offset().top - this._offsetInitial.y;
     return { x: this._scroll.x -
       (this._scrollInitial.x + xoffset), y: this._scroll.y - (this._scrollInitial.y + yoffset)};
   }

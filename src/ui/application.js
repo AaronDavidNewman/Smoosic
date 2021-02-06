@@ -72,7 +72,7 @@ class SuiApplication {
 
     const scoreRenderer = SuiScoreRender.createScoreRenderer(document.getElementById(SmoConfig.vexDomContainer), score);
     params.eventSource.setRenderElement(scoreRenderer.renderElement);
-    params.view = new SuiScoreViewOperations(scoreRenderer, score);
+    params.view = new SuiScoreViewOperations(scoreRenderer, score, '.musicRelief');
     if (SmoConfig.keyCommands) {
       params.keyCommands = new SuiKeyCommands(params);
     }
