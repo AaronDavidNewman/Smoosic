@@ -102,6 +102,13 @@ class suiMenuManager {
         action: 'SuiFileMenu'
       }, {
         event: 'keydown',
+        key: 'L',
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        action: 'SuiLibraryMenu'
+      }, {
+        event: 'keydown',
         key: 'm',
         ctrlKey: false,
         altKey: false,
@@ -379,6 +386,18 @@ class SuiFileMenu extends suiMenuBase {
         value: 'openFile'
       }, {
         icon: '',
+        text: 'Quick Save',
+        value: 'quickSave'
+      }, {
+        icon: 'folder-save',
+        text: 'Save',
+        value: 'saveFile'
+      }, {
+        icon: '',
+        text: 'Print',
+        value: 'printScore'
+      }, {
+        icon: '',
         text: 'Import MusicXML',
         value: 'importMxml'
       }, {
@@ -387,44 +406,12 @@ class SuiFileMenu extends suiMenuBase {
         value: 'exportXml'
       }, {
         icon: 'folder-save',
-        text: 'Save',
-        value: 'saveFile'
-      }, {
-        icon: 'folder-save',
         text: 'Save Actions',
         value: 'saveActions'
       }, {
         icon: 'icon-play3',
         text: 'Play Actions',
         value: 'playActions'
-      }, {
-        icon: '',
-        text: 'Quick Save',
-        value: 'quickSave'
-      }, {
-        icon: '',
-        text: 'Print',
-        value: 'printScore'
-      }, {
-        icon: '',
-        text: 'Bach Invention',
-        value: 'bach'
-      }, {
-        icon: '',
-        text: 'Jesu Bambino',
-        value: 'bambino'
-      }, {
-        icon: '',
-        text: 'Microtone Sample',
-        value: 'microtone'
-      }, {
-        icon: '',
-        text: 'Precious Lord',
-        value: 'preciousLord'
-      }, {
-        icon: '',
-        text: 'Yama',
-        value: 'yamaJson'
       }, {
         icon: '',
         text: 'Cancel',
@@ -487,6 +474,16 @@ class SuiFileMenu extends suiMenuBase {
         view: this.view,
         closeMenuPromise: this.closePromise
       });
+    } else if (text === 'newFile') {
+      const score = SmoScore.getDefaultScore();
+      this.view.changeScore(score);
+    } else if (text === 'quickSave') {
+      this.view.quickSave();
+    } else if (text === 'printScore') {
+      const systemPrint = () => {
+        self.systemPrint();
+      };
+      this.view.renderer.renderForPrintPromise().then(systemPrint);
     } else if (text === 'exportXml') {
       SuiSaveXmlDialog.createAndDisplay({
         completeNotifier: this.completeNotifier,
@@ -507,31 +504,115 @@ class SuiFileMenu extends suiMenuBase {
         view: this.view,
         closeMenuPromise: this.closePromise
       });
-    } else if (text === 'newFile') {
-      const score = SmoScore.getDefaultScore();
+    }
+    this.complete();
+  }
+  keydown() {}
+}
+
+// eslint-disable-next-line no-unused-vars
+class SuiLibraryMenu extends suiMenuBase {
+  constructor(params) {
+    params = (typeof(params) !== 'undefined' ? params : {});
+    Vex.Merge(params, SuiLibraryMenu.defaults);
+    super(params);
+  }
+  static get ctor() {
+    return 'SuiFileMenu';
+  }
+  get ctor() {
+    return SuiFileMenu.ctor;
+  }
+  static get defaults() {
+    SuiLibraryMenu._defaults = typeof(SuiLibraryMenu._defaults) !== 'undefined' ? SuiLibraryMenu._defaults : {
+      label: 'Score',
+      menuItems: [{
+        icon: '',
+        text: 'Bach Invention',
+        value: 'bach'
+      }, {
+        icon: '',
+        text: 'Jesu Bambino',
+        value: 'bambino'
+      }, {
+        icon: '',
+        text: 'Handel Messiah 1-1',
+        value: 'handel'
+      }, {
+        icon: '',
+        text: 'Precious Lord',
+        value: 'preciousLord'
+      }, {
+        icon: '',
+        text: 'Yama',
+        value: 'yamaJson'
+      }, {
+        icon: '',
+        text: 'Dichterliebe (xml)',
+        value: 'dichterliebe'
+      }, {
+        icon: '',
+        text: 'Beethoven - An die ferne Gliebte (xml)',
+        value: 'beethoven'
+      }, {
+        icon: '',
+        text: 'Mozart - An Chloe (xml)',
+        value: 'mozart'
+      }, {
+        icon: '',
+        text: 'Joplin - The Entertainer (xml)',
+        value: 'joplin'
+      }, {
+        icon: '',
+        text: 'Cancel',
+        value: 'cancel'
+      }]
+    };
+    return SuiLibraryMenu._defaults;
+  }
+  _loadJsonAndComplete(path) {
+    const req = new XMLHttpRequest();
+    req.addEventListener('load', () => {
+      const score = SmoScore.deserialize(req.responseText);
       this.view.changeScore(score);
-    } else if (text === 'quickSave') {
-      this.view.quickSave();
-    } else if (text === 'printScore') {
-      const systemPrint = () => {
-        self.systemPrint();
-      };
-      this.view.renderer.renderForPrintPromise().then(systemPrint);
-    } else if (text === 'bach') {
-      const score = SmoScore.deserialize(inventionJson);
+      this.complete();
+    });
+    req.open('GET', path);
+    req.send();
+  }
+  _loadXmlAndComplete(path) {
+    const req = new XMLHttpRequest();
+    req.addEventListener('load', () => {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(req.responseText, 'text/xml');
+      const score = mxmlScore.smoScoreFromXml(xml);
       this.view.changeScore(score);
+      this.complete();
+    });
+    req.open('GET', path);
+    req.send();
+  }
+
+  selection(ev) {
+    const text = $(ev.currentTarget).attr('data-value');
+    if (text === 'bach') {
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/BachInvention.json');
     } else if (text === 'yamaJson') {
-      const score = SmoScore.deserialize(yamaJson);
-      this.view.changeScore(score);
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json');
+    } else if (text === 'handel') {
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Messiah1-1.json');
     } else if (text === 'bambino') {
-      const score = SmoScore.deserialize(jesuBambino);
-      this.view.changeScore(score);
-    } else if (text === 'microtone') {
-      const score = SmoScore.deserialize(microJson);
-      this.view.changeScore(score);
-    }  else if (text === 'preciousLord') {
-      const score = SmoScore.deserialize(preciousLord);
-      this.view.changeScore(score);
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/GesuBambino.json');
+    } else if (text === 'preciousLord') {
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/PreciousLord.json');
+    } else if (text === 'dichterliebe') {
+      this._loadXmlAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Dichterliebe01.xml');
+    } else if (text === 'beethoven') {
+      this._loadXmlAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Beethoven_AnDieFerneGeliebte.xml');
+    } else if (text === 'mozart') {
+      this._loadXmlAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Mozart_AnChloe.xml');
+    } else if (text === 'joplin') {
+      this._loadXmlAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/ScottJoplin_The_Entertainer.xml');
     }
     this.complete();
   }

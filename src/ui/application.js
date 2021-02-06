@@ -43,7 +43,6 @@ class SuiApplication {
     Vex.Merge(config, params);
     window.SmoConfig = config;
     this.registerFonts();
-    this.startApplication();
     if (config.mode === 'application') {
       this.startApplication();
     }
