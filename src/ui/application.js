@@ -39,16 +39,27 @@ class SuiApplication {
 
   constructor(params) {
     var config = {};
-    Vex.Merge(config,SuiApplication.defaultConfig);
-    Vex.Merge(config,params);
+    Vex.Merge(config, SuiApplication.defaultConfig);
+    Vex.Merge(config, params);
     window.SmoConfig = config;
     this.registerFonts();
-    this.start();
-    // const self = this;
-    // Sample-based playback, experimental
-    // suiOscillator.samplePromise().then(() => {
-    //   self.start();
-    // });
+    if (config.mode === 'application') {
+      this.startApplication();
+    }
+  }
+  startApplication() {
+    var score = null;
+    for (var i = 0; i < SmoConfig.scoreLoadOrder.length; ++i) {
+      const loader = SmoConfig.scoreLoadOrder[i];
+      const method = loader + 'ScoreLoad';
+      const ss = this[method]();
+      if (ss) {
+        score = ss;
+        break;
+      }
+    }
+    // var controller =
+    this.createUi(score);
   }
 
   // ## createUi
@@ -184,19 +195,7 @@ class SuiApplication {
     }
     return rv;
   }
-  start() {
-    var score = null;
-    for (var i = 0;i < SmoConfig.scoreLoadOrder.length; ++i) {
-      var loader = SmoConfig.scoreLoadOrder[i];
-      var method = loader+'ScoreLoad';
-      var ss = this[method]();
-      if (ss) {
-        score = ss;
-        break;
-      }
-    }
-    var controller =this.createUi(score);
-  }
+
 
   localScoreLoad() {
     var score = null;
