@@ -931,7 +931,7 @@ class SmoOperation {
           }
           // Transpose the key, as if it were a key signature (octave has no meaning)
           var nkey = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(
-            smoMusic.vexToSmoPitch(newText)) + offset);
+            smoMusic.vexToSmoKey(newText)) + offset);
           nkey = JSON.parse(JSON.stringify(smoMusic.getEnharmonicInKey(nkey,key)));
           newText = nkey.letter.toUpperCase();
 
@@ -954,7 +954,7 @@ class SmoOperation {
         const netOffset = instrument.keyOffset - selection.measure.transposeIndex;
         newKey = smoMusic.pitchToVexKey(smoMusic.smoIntToPitch(
           smoMusic.smoPitchToInt(
-            smoMusic.vexToSmoPitch(selection.measure.keySignature)) + netOffset));
+            smoMusic.vexToSmoKey(selection.measure.keySignature)) + netOffset));
         newKey = smoMusic.toValidKeySignature(newKey);
         if (newKey.length > 1 && newKey[1] === 'n') {
           newKey = newKey[0];

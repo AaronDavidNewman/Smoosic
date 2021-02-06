@@ -327,8 +327,8 @@ class smoMusic {
   // ### circleOfFifthsIndex
   // gives the index into circle-of-fifths array for a pitch, considering enharmonics.
   static circleOfFifthsIndex(smoPitch) {
-    const en1 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch)));
-    const en2 = smoMusic.vexToSmoPitch(smoMusic.getEnharmonic(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch))));
+    const en1 = smoMusic.vexToSmoKey(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch)));
+    const en2 = smoMusic.vexToSmoKey(smoMusic.getEnharmonic(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch))));
     const ix = smoMusic.circleOfFifths.findIndex((el) =>
         (el.letter === smoPitch.letter && el.accidental === smoPitch.accidental) ||
         (el.letter === en1.letter && el.accidental === en1.accidental) ||
@@ -504,8 +504,8 @@ class smoMusic {
   // e.g. Eb for Bb instruments is F.
   static vexKeySigWithOffset(vexKey, offset) {
     let newKey = smoMusic.pitchToVexKey(smoMusic.smoIntToPitch(
-        smoMusic.smoPitchToInt(
-          smoMusic.vexToSmoPitch(vexKey)) + offset));
+      smoMusic.smoPitchToInt(
+        smoMusic.vexToSmoKey(vexKey)) + offset));
     newKey = smoMusic.toValidKeySignature(newKey);
     return newKey;
   }
@@ -580,7 +580,7 @@ class smoMusic {
   }
   static closestTonic(smoPitch, vexKey, direction) {
     direction = Math.sign(direction) < 0 ? -1 : 1;
-    var tonic = smoMusic.vexToSmoPitch(vexKey);
+    var tonic = smoMusic.vexToSmoKey(vexKey);
     tonic.octave=smoPitch.octave;
     var iix = smoMusic.smoPitchToInt(smoPitch);
     var smint=smoMusic.smoPitchToInt(tonic);
@@ -644,7 +644,7 @@ class smoMusic {
         }
       }
     });
-    var smoRv = smoMusic.vexToSmoPitch(rv);
+    var smoRv = smoMusic.vexToSmoKey(rv);
     smoRv.octave = smoPitch.octave;
     var rvi = smoMusic.smoPitchToInt(smoRv);
     var ori = smoMusic.smoPitchToInt(smoPitch);
@@ -708,7 +708,7 @@ class smoMusic {
     return pitch;
   }
   static vexKeySignatureTranspose(key, transposeIndex) {
-    var key = smoMusic.vexToSmoPitch(key);
+    var key = smoMusic.vexToSmoKey(key);
     key = smoMusic.smoPitchesToVexKeys([key], transposeIndex)[0];
     key = smoMusic.stripVexOctave(key);
     key = key[0].toUpperCase() + key.substring(1, key.length);
@@ -750,13 +750,28 @@ class smoMusic {
 
   }
 
-  // ### vexToSmoPitch
-  // #### Example:
-  // ['f#'] => [{letter:'f',accidental:'#'}]
   static vexToSmoPitch(vexPitch) {
+    let octave = 0;
+    const po = vexPitch.split('/');
+    const rv = smoMusic.vexToSmoKey(po[0]);
+    if (po.length > 1) {
+      octave = parseInt(po[1], 10);
+      octave = isNaN(octave) ? 4 : octave;
+    } else {
+      octave = 4;
+    }
+    rv.octave = octave;
+    return rv;
+  }
+
+  // ### vexToSmoPitch
+  // Convert to smo pitch, without octave
+  // ``['f#'] => [{letter:'f',accidental:'#'}]``
+  static vexToSmoKey(vexPitch) {
     var accidental = vexPitch.length < 2 ? 'n' : vexPitch.substring(1, vexPitch.length);
+    var pp = vexPitch.split('/')[0];
     return {
-      letter: vexPitch[0].toLowerCase(),
+      letter: pp[0].toLowerCase(),
       accidental: accidental
     };
   }
@@ -18631,7 +18646,7 @@ class SmoOperation {
           }
           // Transpose the key, as if it were a key signature (octave has no meaning)
           var nkey = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(
-            smoMusic.vexToSmoPitch(newText)) + offset);
+            smoMusic.vexToSmoKey(newText)) + offset);
           nkey = JSON.parse(JSON.stringify(smoMusic.getEnharmonicInKey(nkey,key)));
           newText = nkey.letter.toUpperCase();
 
@@ -18654,7 +18669,7 @@ class SmoOperation {
         const netOffset = instrument.keyOffset - selection.measure.transposeIndex;
         newKey = smoMusic.pitchToVexKey(smoMusic.smoIntToPitch(
           smoMusic.smoPitchToInt(
-            smoMusic.vexToSmoPitch(selection.measure.keySignature)) + netOffset));
+            smoMusic.vexToSmoKey(selection.measure.keySignature)) + netOffset));
         newKey = smoMusic.toValidKeySignature(newKey);
         if (newKey.length > 1 && newKey[1] === 'n') {
           newKey = newKey[0];
