@@ -38059,7 +38059,7 @@ class SuiLibraryMenu extends suiMenuBase {
     if (text === 'bach') {
       this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/BachInvention.json');
     } else if (text === 'yamaJson') {
-      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Yama.json');
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json');
     } else if (text === 'handel') {
       this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Messiah1-1.json');
     } else if (text === 'bambino') {
