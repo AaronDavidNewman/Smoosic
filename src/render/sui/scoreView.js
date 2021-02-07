@@ -212,12 +212,16 @@ class SuiScoreView {
 
     this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));
     this.undoBuffer = new UndoBuffer();
+    this.layoutDemon = new SuiRenderDemon({ view: this, undoBuffer: this.undoBuffer });
     this.storeUndo = new UndoBuffer();
     this.staffMap = this.defaultStaffMap;
     SuiScoreView._instance = this; // for debugging
     this.setMappedStaffIds();
     this.actionBuffer = new SmoActionRecord();
     this.tracker.recordBuffer = this.actionBuffer;
+  }
+  startRenderingEngine() {
+    this.layoutDemon.startDemon();
   }
   static debugUnitTest() {
     const dbg = SuiScoreView.Instance;

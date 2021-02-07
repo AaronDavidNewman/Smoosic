@@ -50,9 +50,7 @@ class suiController {
     // Only display the ribbon one time b/c it's expensive operation
     this.ribbon.display();
     this.bindResize();
-    this.layoutDemon.undoBuffer = this.view.undoBuffer;
-    this.layoutDemon.startDemon();
-
+    this.view.startRenderingEngine();
     this.createPiano();
   }
 

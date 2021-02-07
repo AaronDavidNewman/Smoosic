@@ -3177,68 +3177,66 @@ class layoutDebug {
 ;
 class SuiRenderDemon {
   constructor(parameters) {
-    this.idleLayoutTimer = 0;
+    this.idleLayoutTimer = 0; // how long the score has been idle
     this.undoStatus = 0;
 
     Vex.Merge(this, parameters);
   }
 
   get isLayoutQuiet() {
-		return ((this.view.renderer.passState == SuiRenderState.passStates.clean && this.view.renderer.dirty == false)
-		   || this.view.renderer.passState == SuiRenderState.passStates.replace);
-	}
+    return ((this.view.renderer.passState == SuiRenderState.passStates.clean && this.view.renderer.dirty == false)
+       || this.view.renderer.passState == SuiRenderState.passStates.replace);
+  }
   resetIdleTimer() {
-    	this.idleLayoutTimer = Date.now();
+      this.idleLayoutTimer = Date.now();
   }
 
   handleRedrawTimer() {
     // If there has been a change, redraw the score
-  	if (this.undoStatus !== this.undoBuffer.opCount || this.view.renderer.dirty) {
-  		this.view.renderer.dirty = true;
-  		this.undoStatus = this.undoBuffer.opCount;
-  		this.idleLayoutTimer = Date.now();
+    if (this.undoStatus !== this.undoBuffer.opCount || this.view.renderer.dirty) {
+      this.view.renderer.dirty = true;
+      this.undoStatus = this.undoBuffer.opCount;
+      this.idleLayoutTimer = Date.now();
 
       // indicate the display is 'dirty' and we will be refreshing it.
       $('body').addClass('refresh-1');
       try {
-  		  this.render();
+        this.render();
       } catch (ex) {
         console.error(ex);
         SuiExceptionHandler.instance.exceptionHandler(ex);
       }
-  	} else if (this.view.renderer.passState === SuiRenderState.passStates.replace) {
+    } else if (this.view.renderer.passState === SuiRenderState.passStates.replace) {
       // Consider navigation as activity when deciding to refresh
       this.idleLayoutTimer = Math.max(this.idleLayoutTimer, this.view.tracker.idleTimer);
-  		// Do we need to refresh the score?
-  		if (Date.now() - this.idleLayoutTimer > SmoConfig.idleRedrawTime) {
-  			this.view.renderer.setRefresh();
-  		}
-  	}
+      // Do we need to refresh the score?
+      if (Date.now() - this.idleLayoutTimer > SmoConfig.idleRedrawTime) {
+        this.view.renderer.setRefresh();
+      }
+    }
 }
 
     // ### pollRedraw
-	// if anything has changed over some period, prepare to redraw everything.
-	pollRedraw() {
-		var self=this;
-		setTimeout(function() {
-			self.handleRedrawTimer();
-			self.pollRedraw();
-		}, SmoConfig.demonPollTime);
-	}
+  // if anything has changed over some period, prepare to redraw everything.
+  pollRedraw() {
+    setTimeout(() => {
+      this.handleRedrawTimer();
+      this.pollRedraw();
+    }, SmoConfig.demonPollTime);
+  }
 
   startDemon() {
       this.pollRedraw();
   }
 
   render() {
-		this.view.renderer.render();
+    this.view.renderer.render();
     if (this.view.renderer.passState === SuiRenderState.passStates.clean && this.view.renderer.dirty === false) {
        this.view.tracker.updateMap();
-
        // indicate the display is 'clean' and up-to-date with the score
        $('body').removeClass('refresh-1');
     }
-	}
+  }
 }
 ;// ## suiMapper
 // Map the notes in the svg so they can respond to events and interact
@@ -4948,12 +4946,16 @@ class SuiScoreView {
 
     this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));
     this.undoBuffer = new UndoBuffer();
+    this.layoutDemon = new SuiRenderDemon({ view: this, undoBuffer: this.undoBuffer });
     this.storeUndo = new UndoBuffer();
     this.staffMap = this.defaultStaffMap;
     SuiScoreView._instance = this; // for debugging
     this.setMappedStaffIds();
     this.actionBuffer = new SmoActionRecord();
     this.tracker.recordBuffer = this.actionBuffer;
+  }
+  startRenderingEngine() {
+    this.layoutDemon.startDemon();
   }
   static debugUnitTest() {
     const dbg = SuiScoreView.Instance;
@@ -26219,8 +26221,8 @@ class SmoUndoable {
       menus: true,
       title: 'Smoosic',
       languageDir: 'ltr',
-      demonPollTime: 50,
-      idleRedrawTime: 3000,
+      demonPollTime: 50, // how often we poll the score to see if it changed
+      idleRedrawTime: 3000, // maximum time between score modification and render
     }
   }
 
@@ -26491,9 +26493,7 @@ class suiController {
     // Only display the ribbon one time b/c it's expensive operation
     this.ribbon.display();
     this.bindResize();
-    this.layoutDemon.undoBuffer = this.view.undoBuffer;
-    this.layoutDemon.startDemon();
-
+    this.view.startRenderingEngine();
     this.createPiano();
   }
 

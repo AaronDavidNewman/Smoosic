@@ -32,8 +32,8 @@ class SuiApplication {
       menus: true,
       title: 'Smoosic',
       languageDir: 'ltr',
-      demonPollTime: 50,
-      idleRedrawTime: 3000,
+      demonPollTime: 50, // how often we poll the score to see if it changed
+      idleRedrawTime: 3000, // maximum time between score modification and render
     }
   }
 
