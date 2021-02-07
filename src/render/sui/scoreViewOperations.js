@@ -1017,7 +1017,7 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.tracker.moveSelectionDown();
   }
   setSelection(selector) {
-    view.tracker.selections = [SmoSelection.selectionFromSelector(selector)];
+    view.tracker.selections = [SmoSelection.selectionFromSelector(this.score, selector)];
   }
   selectSuggestionNote(selector, evData) {
     const key = SmoSelector.getNoteKey(selector);
