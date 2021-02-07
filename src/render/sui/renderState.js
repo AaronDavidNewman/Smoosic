@@ -80,6 +80,23 @@ class SuiRenderState {
     this.setRefresh();
   }
 
+  // ### renderPromise
+  // return a promise that resolves when the score is in a fully rendered state.
+  renderPromise() {
+    return new Promise((resolve) => {
+      const checkit = () => {
+        setTimeout(() => {
+          if (renderer.passState === SuiRenderState.passStates.clean) {
+            resolve();
+          } else {
+            checkit();
+          }
+        }, SmoConfig.demonPollTime);
+      };
+      checkit();
+    });
+  }
+
   // Number the measures at the first measure in each system.
   numberMeasures() {
     const printing = $('body').hasClass('print-render');

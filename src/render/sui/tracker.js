@@ -12,22 +12,6 @@ class suiTracker extends suiMapper {
     super(renderer, scroller, pasteBuffer);
     this.idleTimer = Date.now();
   }
-  _fullRenderPromise() {
-    var self = this;
-    return new Promise((resolve) => {
-      var f = () => {
-        setTimeout(() => {
-          if (self.renderer.passState === SuiRenderState.passStates.clean) {
-            resolve();
-          } else {
-            f();
-          }
-        }, 50);
-      };
-      f();
-    });
-  }
-
   // ### _checkBoxOffset
   // If the mapped note and actual note don't match, re-render the notes so they do.
   // Otherwise the selections are off.
@@ -46,7 +30,7 @@ class suiTracker extends suiMapper {
       if (!preventScroll) {
         console.log('prevent scroll conflicting map');
         $('body').addClass('modal');
-        this._fullRenderPromise().then(() => {
+        this.renderer.renderPromise().then(() => {
           $('body').removeClass('modal');
         });
       }

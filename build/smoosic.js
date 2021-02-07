@@ -1127,6 +1127,22 @@ class PromiseHelpers {
 
 		return result;
   }
+  static renderPromise(renderer) {
+    const renderPromise = () => {
+      return new Promise((resolve) => {
+        const checkit = () => {
+          setTimeout(() => {
+            if (renderer.passState === SuiRenderState.passStates.clean) {
+              resolve();
+            } else {
+        	    checkit();
+            }
+          }, 500);
+        }
+        checkit();
+      });
+    }
+  }
 }
 ;// ## smoSerialize
 // Helper functions that perform serialized merges, general JSON
@@ -3889,6 +3905,23 @@ class SuiRenderState {
     this.setRefresh();
   }
 
+  // ### renderPromise
+  // return a promise that resolves when the score is in a fully rendered state.
+  renderPromise() {
+    return new Promise((resolve) => {
+      const checkit = () => {
+        setTimeout(() => {
+          if (renderer.passState === SuiRenderState.passStates.clean) {
+            resolve();
+          } else {
+            checkit();
+          }
+        }, SmoConfig.demonPollTime);
+      };
+      checkit();
+    });
+  }
+
   // Number the measures at the first measure in each system.
   numberMeasures() {
     const printing = $('body').hasClass('print-render');
@@ -6076,6 +6109,9 @@ class SuiScoreViewOperations extends SuiScoreView {
   moveSelectionDown() {
     this.tracker.moveSelectionDown();
   }
+  setSelection(selector) {
+    view.tracker.selections = [SmoSelection.selectionFromSelector(selector)];
+  }
   selectSuggestionNote(selector, evData) {
     const key = SmoSelector.getNoteKey(selector);
     if (typeof(this.tracker.measureNoteMap[key]) !== 'undefined') {
@@ -8099,22 +8135,6 @@ class suiTracker extends suiMapper {
     super(renderer, scroller, pasteBuffer);
     this.idleTimer = Date.now();
   }
-  _fullRenderPromise() {
-    var self = this;
-    return new Promise((resolve) => {
-      var f = () => {
-        setTimeout(() => {
-          if (self.renderer.passState === SuiRenderState.passStates.clean) {
-            resolve();
-          } else {
-            f();
-          }
-        }, 50);
-      };
-      f();
-    });
-  }
-
   // ### _checkBoxOffset
   // If the mapped note and actual note don't match, re-render the notes so they do.
   // Otherwise the selections are off.
@@ -8133,7 +8153,7 @@ class suiTracker extends suiMapper {
       if (!preventScroll) {
         console.log('prevent scroll conflicting map');
         $('body').addClass('modal');
-        this._fullRenderPromise().then(() => {
+        this.renderer.renderPromise().then(() => {
           $('body').removeClass('modal');
         });
       }
