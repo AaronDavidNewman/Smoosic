@@ -86,7 +86,7 @@ class SuiRenderState {
     return new Promise((resolve) => {
       const checkit = () => {
         setTimeout(() => {
-          if (renderer.passState === SuiRenderState.passStates.clean) {
+          if (this.passState === SuiRenderState.passStates.clean) {
             resolve();
           } else {
             checkit();
