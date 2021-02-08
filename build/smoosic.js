@@ -8196,7 +8196,11 @@ class suiTracker extends suiMapper {
     const ticks = rv.length < 1 ? 0 : rv.map((sel) => sel.note.tickCount).reduce((a, b) => a + b);
     const selectors = [];
     rv.forEach((sel) => {
-      selectors.push(JSON.parse(JSON.stringify(sel.selector)));
+      const nsel = JSON.parse(JSON.stringify(sel.selector));
+      if (!nsel.pitches) {
+        nsel.pitches = [];
+      }
+      selectors.push(nsel);
     });
     return { ticks, selectors };
   }
