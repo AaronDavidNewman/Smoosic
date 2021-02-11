@@ -2817,6 +2817,76 @@ class suiAudioPlayer {
         this._populatePlayArray();
     }
 }
+;// ## SuiActionPlayback
+// play back the action records.
+// eslint-disable-next-line no-unused-vars
+class SuiActionPlayback {
+  constructor(actionRecord, view) {
+    this.view = view;
+    this.actions = actionRecord;
+    this.running = false;
+    this.currentAction = null;
+  }
+  static actionPromise(view, method, args) {
+    view[method](...args);
+    return view.renderer.updatePromise();
+  }
+  static actionPromises(view, method, args, count) {
+    const fc = (count) => {
+      if (count > 0) {
+        actionPromise(view, method, args).then(() => {
+          fc(count - 1);
+        });
+      }
+    };
+    fc(count);
+  }
+  get stopped() {
+    return !this.running;
+  }
+  playNextAction() {
+    let promise = {};
+    if (this.currentAction === null || this.currentAction.count < 1) {
+      this.currentAction = this.actions.callNextAction();
+    }
+    // No actions left, stop running
+    if (!this.currentAction) {
+      this.running = false;
+    } else {
+      this.currentAction.count -= 1;
+      const ts = new Date().valueOf();
+      const refresh = ts - this.timestamp > SmoConfig.idleRedrawTime;
+      promise = SuiActionPlayback.actionPromise(this.view, this.currentAction.method, this.currentAction.args);
+      if (refresh) {
+        // Periodically refresh the whole screen and scroll
+        promise = this.view.renderer.renderPromise();
+        this.view.renderer.rerenderAll();
+        this.timestamp = ts;
+        promise.then(() => {
+          const ls = this.view.score.staves[this.view.score.staves.length - 1];
+          const lm = ls.measures[ls.measures.length - 1];
+          if (lm.renderedBox) {
+            this.view.tracker.scroller.scrollVisibleBox(lm.renderedBox);
+          }
+          this.playNextAction();
+        });
+      } else {
+        // Usually, just perform the action and play the next action when any
+        // redrawing has completed.
+        promise.then(() => {
+          this.playNextAction();
+        });
+      }
+    }
+  }
+  start() {
+    this.running = true;
+    this.timestamp = new Date().valueOf();
+    this.actions.executeIndex = 0;
+    this.playNextAction();
+    return PromiseHelpers.makePromise(this, 'stopped', null, null, 50);
+  }
+}
 ;
 // ## suiAdjuster
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
@@ -3904,24 +3974,25 @@ class SuiRenderState {
     this.partialRender = false;
     this.setRefresh();
   }
+  get renderStateClean() {
+    return this.passState === SuiRenderState.passStates.clean;
+  }
+  get renderStateRendered() {
+    return this.passState === SuiRenderState.passStates.clean ||
+      (this.passState === SuiRenderState.passStates.replace && this.replaceQ.length === 0);
+  }
 
   // ### renderPromise
   // return a promise that resolves when the score is in a fully rendered state.
   renderPromise() {
-    return new Promise((resolve) => {
-      const checkit = () => {
-        setTimeout(() => {
-          if (this.passState === SuiRenderState.passStates.clean) {
-            resolve();
-          } else {
-            checkit();
-          }
-        }, SmoConfig.demonPollTime);
-      };
-      checkit();
-    });
+    return PromiseHelpers.makePromise(this, 'renderStateClean', null, null, SmoConfig.demonPollTime);
   }
 
+  // ### renderPromise
+  // return a promise that resolves when the score is in a fully rendered state.
+  updatePromise() {
+    return PromiseHelpers.makePromise(this, 'renderStateRendered', null, null, SmoConfig.demonPollTime);
+  }
   // Number the measures at the first measure in each system.
   numberMeasures() {
     const printing = $('body').hasClass('print-render');
@@ -6053,17 +6124,18 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.storeScore.preferences.autoPlay = false;
     this.storeScore.preferences.autoAdvance = false;
     this.score.preferences = JSON.parse(JSON.stringify(this.storeScore.preferences));
+    const oldPollTime = SmoConfig.demonPollTime;
+    const oldRedrawTime = SmoConfig.idleRedrawTime;
     const recover = () => {
       this.score.preferences = prefs;
       this.storeScore.preferences = JSON.parse(JSON.stringify(prefs));
       SmoConfig.demonPollTime = oldPollTime;
       SmoConfig.idleRedrawTime = oldRedrawTime;
     };
-    const oldPollTime = SmoConfig.demonPollTime;
-    const oldRedrawTime = SmoConfig.idleRedrawTime;
-    SmoConfig.demonPollTime = 1;
-    SmoConfig.idleRedrawTime = 250;
-    this.actionBuffer.executePromise(this).then(recover);
+    SmoConfig.demonPollTime = 50;
+    SmoConfig.idleRedrawTime = 3000;
+    const playback = new SuiActionPlayback(this.actionBuffer, this);
+    playback.start().then(recover);
   }
 
   // Tracker operations, used for macro replay
@@ -8406,7 +8478,7 @@ class suiTracker extends suiMapper {
   }
   static serializeEvent(evKey) {
     const rv = {};
-    smoSerialize.serializedMerge(['type', 'shiftKey', 'ctrlKey'], evKey, rv);
+    smoSerialize.serializedMerge(['type', 'shiftKey', 'ctrlKey', 'altKey', 'key', 'keyCode'], evKey, rv);
     return rv;
   }
 
@@ -16858,6 +16930,19 @@ class SmoActionRecord {
         }
       }
     });
+    if (this.actions.length > 0) {
+      const lastAction = this.actions[this.actions.length - 1];
+      if (lastAction.method === obj.method) {
+        const lastStr = JSON.stringify(lastAction.parameters);
+        const thisStr = JSON.stringify(obj.parameters);
+        if (lastStr === thisStr) {
+          this._refreshing = false;
+          lastAction.count += 1;
+          return;
+        }
+      }
+    }
+    obj.count = 1;
     this.actions.push(obj);
     this.executeIndex = this.actions.length;
     this._refreshing = false;
@@ -16877,28 +16962,7 @@ class SmoActionRecord {
   }
   callNextAction() {
     if (this.endCondition) {
-      return false;
-    }
-    const timeStamp = new Date().valueOf();
-    // This sort of breaks encapsulation.  We pause to let the screen refresh
-    // sometimes.
-    if (timeStamp - this.refreshTime > SmoActionRecord.refreshTimer) {
-      if (this._target.renderer.passState !== SuiRenderState.passStates.clean) {
-        if (!this._refreshing) {
-          this._target.renderer.setViewport(true);
-          this._refreshing = true;
-        }
-        return true;
-      } else {
-        // scroll so the bottom of the screen is visible
-        this._refreshing = false;
-        const ls = this._target.score.staves[this._target.score.staves.length - 1];
-        const lm = ls.measures[ls.measures.length - 1];
-        if (lm.renderedBox) {
-          this._target.tracker.scroller.scrollVisibleBox(lm.renderedBox);
-        }
-        this.refreshTime = timeStamp;
-      }
+      return null;
     }
     const action = this.actions[this.executeIndex];
     const args = [];
@@ -16914,15 +16978,11 @@ class SmoActionRecord {
         args.push(param);
       }
     });
-    this._target[action.method](...args);
+    if (typeof(action.count) === 'undefined' || isNaN(action.count)) {
+      action.count = 1;
+    }
     this.executeIndex += 1;
-    return true;
-  }
-  executePromise(target) {
-    this._target = target;
-    this.executeIndex = 0;
-    this.refreshTime = new Date().valueOf();
-    return PromiseHelpers.makePromise(this, 'endCondition', null, 'callNextAction', SmoActionRecord.actionInterval);
+    return { method: action.method, args, count: action.count };
   }
 }
 ;// eslint-disable-next-line no-unused-vars
@@ -26609,7 +26669,6 @@ class suiController {
     if (modSelection) {
       var dialog = this.createModifierDialog(modSelection);
       if (dialog) {
-        ev.stopPropagation();
         // this.view.tracker.selectSuggestion(ev);
         return;
         // this.unbindKeyboardForModal(dialog);
@@ -26745,33 +26804,37 @@ class suiController {
     if (suiController.keyboardWidget) {
       Qwerty.handleKeyEvent(evdata);
     }
-    if (evdata.key == '?') {
-      SmoHelp.displayHelp();
-    }
-
-    if (evdata.key == '/') {
-      // set up menu DOM.
-      this.menus.slashMenuMode(this);
-    }
-
-    if (evdata.key == 'Enter') {
-      this.trackerModifierSelect(evdata);
-    }
-
-    var binding = this.keyBind.find((ev) =>
-      ev.event === 'keydown' && ev.key === evdata.key && ev.ctrlKey === evdata.ctrlKey &&
-      ev.altKey === evdata.altKey && evdata.shiftKey === ev.shiftKey);
-
-    if (binding) {
-      try {
-        this[binding.module][binding.action](evdata);
-      } catch (e) {
-        if (typeof(e) === 'string') {
-          console.error(e);
-        }
-        this.exhandler.exceptionHandler(e);
+    const dataCopy = suiTracker.serializeEvent(evdata);
+    this.view.renderer.updatePromise().then(() => {
+      if (dataCopy.key == '?') {
+        SmoHelp.displayHelp();
       }
-    }
+
+      if (dataCopy.key == '/') {
+        // set up menu DOM.
+        this.menus.slashMenuMode(this);
+      }
+
+      if (dataCopy.key == 'Enter') {
+        this.trackerModifierSelect(dataCopy);
+      }
+
+      var binding = this.keyBind.find((ev) =>
+        ev.event === 'keydown' && ev.key === dataCopy.key &&
+        ev.ctrlKey === dataCopy.ctrlKey &&
+        ev.altKey === dataCopy.altKey && dataCopy.shiftKey === ev.shiftKey);
+
+      if (binding) {
+        try {
+          this[binding.module][binding.action](dataCopy);
+        } catch (e) {
+          if (typeof(e) === 'string') {
+            console.error(e);
+          }
+          this.exhandler.exceptionHandler(e);
+        }
+      }
+    });
   }
 
   mouseMove(ev) {
@@ -26782,11 +26845,14 @@ class suiController {
   }
 
   mouseClick(ev) {
-    this.view.tracker.selectSuggestion(ev);
-    var modifier = this.view.tracker.getSelectedModifier();
-    if (modifier) {
-      this.createModifierDialog(modifier);
-    }
+    const dataCopy = suiTracker.serializeEvent(ev);
+    this.view.renderer.updatePromise().then(() => {
+      this.view.tracker.selectSuggestion(dataCopy);
+      var modifier = this.view.tracker.getSelectedModifier();
+      if (modifier) {
+        this.createModifierDialog(modifier);
+      }
+    });
   }
   bindEvents() {
     const self = this;

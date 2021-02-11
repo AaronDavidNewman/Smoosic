@@ -142,7 +142,6 @@ class suiController {
     if (modSelection) {
       var dialog = this.createModifierDialog(modSelection);
       if (dialog) {
-        ev.stopPropagation();
         // this.view.tracker.selectSuggestion(ev);
         return;
         // this.unbindKeyboardForModal(dialog);
@@ -278,33 +277,37 @@ class suiController {
     if (suiController.keyboardWidget) {
       Qwerty.handleKeyEvent(evdata);
     }
-    if (evdata.key == '?') {
-      SmoHelp.displayHelp();
-    }
-
-    if (evdata.key == '/') {
-      // set up menu DOM.
-      this.menus.slashMenuMode(this);
-    }
-
-    if (evdata.key == 'Enter') {
-      this.trackerModifierSelect(evdata);
-    }
-
-    var binding = this.keyBind.find((ev) =>
-      ev.event === 'keydown' && ev.key === evdata.key && ev.ctrlKey === evdata.ctrlKey &&
-      ev.altKey === evdata.altKey && evdata.shiftKey === ev.shiftKey);
-
-    if (binding) {
-      try {
-        this[binding.module][binding.action](evdata);
-      } catch (e) {
-        if (typeof(e) === 'string') {
-          console.error(e);
-        }
-        this.exhandler.exceptionHandler(e);
+    const dataCopy = suiTracker.serializeEvent(evdata);
+    this.view.renderer.updatePromise().then(() => {
+      if (dataCopy.key == '?') {
+        SmoHelp.displayHelp();
       }
-    }
+
+      if (dataCopy.key == '/') {
+        // set up menu DOM.
+        this.menus.slashMenuMode(this);
+      }
+
+      if (dataCopy.key == 'Enter') {
+        this.trackerModifierSelect(dataCopy);
+      }
+
+      var binding = this.keyBind.find((ev) =>
+        ev.event === 'keydown' && ev.key === dataCopy.key &&
+        ev.ctrlKey === dataCopy.ctrlKey &&
+        ev.altKey === dataCopy.altKey && dataCopy.shiftKey === ev.shiftKey);
+
+      if (binding) {
+        try {
+          this[binding.module][binding.action](dataCopy);
+        } catch (e) {
+          if (typeof(e) === 'string') {
+            console.error(e);
+          }
+          this.exhandler.exceptionHandler(e);
+        }
+      }
+    });
   }
 
   mouseMove(ev) {
@@ -315,11 +318,14 @@ class suiController {
   }
 
   mouseClick(ev) {
-    this.view.tracker.selectSuggestion(ev);
-    var modifier = this.view.tracker.getSelectedModifier();
-    if (modifier) {
-      this.createModifierDialog(modifier);
-    }
+    const dataCopy = suiTracker.serializeEvent(ev);
+    this.view.renderer.updatePromise().then(() => {
+      this.view.tracker.selectSuggestion(dataCopy);
+      var modifier = this.view.tracker.getSelectedModifier();
+      if (modifier) {
+        this.createModifierDialog(modifier);
+      }
+    });
   }
   bindEvents() {
     const self = this;

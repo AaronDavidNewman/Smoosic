@@ -35,6 +35,19 @@ class SmoActionRecord {
         }
       }
     });
+    if (this.actions.length > 0) {
+      const lastAction = this.actions[this.actions.length - 1];
+      if (lastAction.method === obj.method) {
+        const lastStr = JSON.stringify(lastAction.parameters);
+        const thisStr = JSON.stringify(obj.parameters);
+        if (lastStr === thisStr) {
+          this._refreshing = false;
+          lastAction.count += 1;
+          return;
+        }
+      }
+    }
+    obj.count = 1;
     this.actions.push(obj);
     this.executeIndex = this.actions.length;
     this._refreshing = false;
@@ -54,28 +67,7 @@ class SmoActionRecord {
   }
   callNextAction() {
     if (this.endCondition) {
-      return false;
-    }
-    const timeStamp = new Date().valueOf();
-    // This sort of breaks encapsulation.  We pause to let the screen refresh
-    // sometimes.
-    if (timeStamp - this.refreshTime > SmoActionRecord.refreshTimer) {
-      if (this._target.renderer.passState !== SuiRenderState.passStates.clean) {
-        if (!this._refreshing) {
-          this._target.renderer.setViewport(true);
-          this._refreshing = true;
-        }
-        return true;
-      } else {
-        // scroll so the bottom of the screen is visible
-        this._refreshing = false;
-        const ls = this._target.score.staves[this._target.score.staves.length - 1];
-        const lm = ls.measures[ls.measures.length - 1];
-        if (lm.renderedBox) {
-          this._target.tracker.scroller.scrollVisibleBox(lm.renderedBox);
-        }
-        this.refreshTime = timeStamp;
-      }
+      return null;
     }
     const action = this.actions[this.executeIndex];
     const args = [];
@@ -91,14 +83,10 @@ class SmoActionRecord {
         args.push(param);
       }
     });
-    this._target[action.method](...args);
+    if (typeof(action.count) === 'undefined' || isNaN(action.count)) {
+      action.count = 1;
+    }
     this.executeIndex += 1;
-    return true;
-  }
-  executePromise(target) {
-    this._target = target;
-    this.executeIndex = 0;
-    this.refreshTime = new Date().valueOf();
-    return PromiseHelpers.makePromise(this, 'endCondition', null, 'callNextAction', SmoActionRecord.actionInterval);
+    return { method: action.method, args, count: action.count };
   }
 }

@@ -960,17 +960,18 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.storeScore.preferences.autoPlay = false;
     this.storeScore.preferences.autoAdvance = false;
     this.score.preferences = JSON.parse(JSON.stringify(this.storeScore.preferences));
+    const oldPollTime = SmoConfig.demonPollTime;
+    const oldRedrawTime = SmoConfig.idleRedrawTime;
     const recover = () => {
       this.score.preferences = prefs;
       this.storeScore.preferences = JSON.parse(JSON.stringify(prefs));
       SmoConfig.demonPollTime = oldPollTime;
       SmoConfig.idleRedrawTime = oldRedrawTime;
     };
-    const oldPollTime = SmoConfig.demonPollTime;
-    const oldRedrawTime = SmoConfig.idleRedrawTime;
-    SmoConfig.demonPollTime = 1;
-    SmoConfig.idleRedrawTime = 250;
-    this.actionBuffer.executePromise(this).then(recover);
+    SmoConfig.demonPollTime = 50;
+    SmoConfig.idleRedrawTime = 3000;
+    const playback = new SuiActionPlayback(this.actionBuffer, this);
+    playback.start().then(recover);
   }
 
   // Tracker operations, used for macro replay

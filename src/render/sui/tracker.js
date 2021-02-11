@@ -283,7 +283,7 @@ class suiTracker extends suiMapper {
   }
   static serializeEvent(evKey) {
     const rv = {};
-    smoSerialize.serializedMerge(['type', 'shiftKey', 'ctrlKey'], evKey, rv);
+    smoSerialize.serializedMerge(['type', 'shiftKey', 'ctrlKey', 'altKey', 'key', 'keyCode'], evKey, rv);
     return rv;
   }
 

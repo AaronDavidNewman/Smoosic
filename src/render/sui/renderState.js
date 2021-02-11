@@ -79,24 +79,25 @@ class SuiRenderState {
     this.partialRender = false;
     this.setRefresh();
   }
+  get renderStateClean() {
+    return this.passState === SuiRenderState.passStates.clean;
+  }
+  get renderStateRendered() {
+    return this.passState === SuiRenderState.passStates.clean ||
+      (this.passState === SuiRenderState.passStates.replace && this.replaceQ.length === 0);
+  }
 
   // ### renderPromise
   // return a promise that resolves when the score is in a fully rendered state.
   renderPromise() {
-    return new Promise((resolve) => {
-      const checkit = () => {
-        setTimeout(() => {
-          if (this.passState === SuiRenderState.passStates.clean) {
-            resolve();
-          } else {
-            checkit();
-          }
-        }, SmoConfig.demonPollTime);
-      };
-      checkit();
-    });
+    return PromiseHelpers.makePromise(this, 'renderStateClean', null, null, SmoConfig.demonPollTime);
   }
 
+  // ### renderPromise
+  // return a promise that resolves when the score is in a fully rendered state.
+  updatePromise() {
+    return PromiseHelpers.makePromise(this, 'renderStateRendered', null, null, SmoConfig.demonPollTime);
+  }
   // Number the measures at the first measure in each system.
   numberMeasures() {
     const printing = $('body').hasClass('print-render');
