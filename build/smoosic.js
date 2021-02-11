@@ -2840,6 +2840,7 @@ class SuiActionPlayback {
       }
     };
     fc(count);
+    return view.renderer.updatePromise();
   }
   get stopped() {
     return !this.running;
