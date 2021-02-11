@@ -2834,7 +2834,7 @@ class SuiActionPlayback {
   static actionPromises(view, method, args, count) {
     const fc = (count) => {
       if (count > 0) {
-        actionPromise(view, method, args).then(() => {
+        SuiActionPlayback.actionPromise(view, method, args).then(() => {
           fc(count - 1);
         });
       }
