@@ -2821,16 +2821,22 @@ class suiAudioPlayer {
 // play back the action records.
 // eslint-disable-next-line no-unused-vars
 class SuiActionPlayback {
+  // In the application, the object plays the actions back.
   constructor(actionRecord, view) {
     this.view = view;
     this.actions = actionRecord;
     this.running = false;
     this.currentAction = null;
   }
+  // ### actionPromise
+  // Render a single action, and return a promise that resolves when rendered
   static actionPromise(view, method, args) {
     view[method](...args);
     return view.renderer.updatePromise();
   }
+  // ### actionPromises
+  // Library convenience function that performs the same action `'`count`'` times
+  // Good for navigation (left 3 etc)
   static actionPromises(view, method, args, count) {
     const promise = new Promise((resolve) => {
       const fc = (count) => {
@@ -2846,9 +2852,31 @@ class SuiActionPlayback {
     });
     return promise;
   }
+  // promise resolve condition
   get stopped() {
     return !this.running;
   }
+  // ### setPitches
+  // Convenience function to set a bunch of pitches on consecutive notes
+  static setPitches(view, pitches) {
+    const pitchAr = pitches.split('');
+    const promise = new Promise((resolve) => {
+      const fcn =  (ix) => {
+        if (ix < pitchAr.length) {
+          SuiActionPlayback.actionPromises(view, 'setPitch', [pitchAr[ix]], 1).then(() => {
+            fcn(ix + 1);
+          });
+        } else {
+          resolve();
+        }
+      };
+      fcn(0);
+    });
+    return promise;
+  }
+  // ### playNextAction
+  // Get the next action, and execute it.  Periodically refresh the entire score
+  // if there are a  lot of actions.
   playNextAction() {
     let promise = {};
     if (this.currentAction === null || this.currentAction.count < 1) {
@@ -2884,6 +2912,9 @@ class SuiActionPlayback {
       }
     }
   }
+  // ### start
+  // Start playing all the actions in the buffer.  Stop when stopped or we run out
+  // of things to do.
   start() {
     this.running = true;
     this.timestamp = new Date().valueOf();
