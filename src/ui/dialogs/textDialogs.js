@@ -970,8 +970,8 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
     });
     $(dgDom.element).find('.remove-button').off('click').on('click', () => {
       this.view.groupUndo(false);
-      self.handleRemove();
-      self.complete();
+      this.handleRemove();
+      this.complete();
     });
   }
   handleRemove() {

@@ -2832,15 +2832,19 @@ class SuiActionPlayback {
     return view.renderer.updatePromise();
   }
   static actionPromises(view, method, args, count) {
-    const fc = (count) => {
-      if (count > 0) {
-        SuiActionPlayback.actionPromise(view, method, args).then(() => {
-          fc(count - 1);
-        });
-      }
-    };
-    fc(count);
-    return view.renderer.updatePromise();
+    const promise = new Promise((resolve) => {
+      const fc = (count) => {
+        if (count > 0) {
+          SuiActionPlayback.actionPromise(view, method, arg, count).then(() => {
+            fc(count - 1);
+          });
+        } else {
+          resolve();
+        }
+      };
+      fc(count);
+    });
+    return promise;
   }
   get stopped() {
     return !this.running;
@@ -5265,11 +5269,15 @@ class SuiScoreViewOperations extends SuiScoreView {
     }
   }
   removeDynamic(dynamic) {
+    const sel = this.tracker.modifierSelections[0];
+    if (!sel) {
+      return;
+    }
+    this.tracker.selections = [sel.selection];
     this.actionBuffer.addAction('removeDynamic', dynamic);
-    const sel = this.tracker.selections[0];
     this._undoFirstMeasureSelection('remove dynamic');
-    this._removeDynamic(sel, dynamic);
-    this.renderer.addToReplaceQueue(sel);
+    this._removeDynamic(sel.selection, dynamic);
+    this.renderer.addToReplaceQueue(sel.selection);
   }
   // ### deleteNote
   // we never really delete a note, but we will convert it into a rest and if it's
@@ -5685,8 +5693,8 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.actionBuffer.addAction('beamSelections');
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('beam selections');
-    SmoOperation.beamSelections(selections);
-    SmoOperation.beamSelections(this._getEquivalentSelections(selections));
+    SmoOperation.beamSelections(this.score, selections);
+    SmoOperation.beamSelections(this.storeScore, this._getEquivalentSelections(selections));
     this._renderChangedMeasures(measureSelections);
   }
   addKeySignature(keySignature) {
@@ -5955,10 +5963,15 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._lineOperation('tie');
   }
   setScoreLayout(layout) {
+    const oldLayout = JSON.stringify(this.score.layout);
+    const curLayout = JSON.stringify(layout);
+    if (oldLayout === curLayout) {
+      return;
+    }
     this.actionBuffer.addAction('setScoreLayout', layout);
     this.score.setLayout(layout);
     this.storeScore.setLayout(layout);
-    this.renderer.setViewport();
+    this.renderer.rerenderAll();
   }
   setEngravingFontFamily(family) {
     this.actionBuffer.addAction('setEngravingFontFamily', family);
@@ -18475,15 +18488,15 @@ class SmoOperation {
     selection.note.removeModifier(dynamic);
   }
 
-  static beamSelections(selections) {
+  static beamSelections(score, selections) {
     var start = selections[0].selector;
     var cur = selections[0].selector;
     var beamGroup = [];
     var ticks = 0;
     selections.forEach((selection) => {
-      if (SmoSelector.sameNote(start,selection.selector) ||
-        (SmoSelector.sameMeasure(selection.selector,cur) &&
-         cur.tick === selection.selector.tick-1)) {
+      if (SmoSelector.sameNote(start, selection.selector) ||
+        (SmoSelector.sameMeasure(selection.selector, cur) &&
+         cur.tick === selection.selector.tick - 1)) {
         ticks += selection.note.tickCount;
         cur = selection.selector;
         beamGroup.push(selection.note);
@@ -18495,6 +18508,15 @@ class SmoOperation {
         note.endBeam = false;
       });
       beamGroup[beamGroup.length - 1].endBeam=true;
+      // Make sure the last note of the previous beam is the end of this beam group.
+      if (selections[0].selector.tick > 0) {
+        const ps = JSON.parse(JSON.stringify(selections[0].selector));
+        ps.tick -= 1;
+        const previous = SmoSelection.noteFromSelector(score, ps);
+        if (previous.note.tickCount < 4096) {
+          previous.note.endBeam = true;
+        }
+      }
     }
   }
 
@@ -29642,8 +29664,7 @@ class SuiLayoutDialog extends SuiDialogBase {
         }, {
           value: 'Petaluma',
           label: 'Petaluma'
-        }
-        ]
+        }]
       }, {
         smoName: 'leftMargin',
         parameterName: 'leftMargin',
@@ -29679,8 +29700,8 @@ class SuiLayoutDialog extends SuiDialogBase {
         parameterName: 'noteSpacing',
         defaultValue: SmoScore.defaults.layout.noteSpacing,
         control: 'SuiRockerComponent',
-        label: 'Note Spacing',
-        type: 'percent'
+        type: 'percent',
+        label: 'Note Spacing'
       }, {
         smoName: 'zoomScale',
         parameterName: 'zoomScale',
@@ -29717,6 +29738,7 @@ class SuiLayoutDialog extends SuiDialogBase {
       const val = this.modifier[component.parameterName];
       component.setValue(val);
     });
+    this._bindComponentNames();
     this._setPageSizeDefault();
     this._bindElements();
     const engraving = this.view.score.fonts.find((ff) => ff.name === 'engraving');
@@ -29753,7 +29775,6 @@ class SuiLayoutDialog extends SuiDialogBase {
     const self = this;
     const dgDom = this.dgDom;
     this.bindKeyboard();
-    this._bindComponentNames();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       // TODO:  allow user to select a zoom mode.
       self.view.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
@@ -29778,22 +29799,23 @@ class SuiLayoutDialog extends SuiDialogBase {
         value = sz;
       }
     });
-    this.components.find((x) => x.parameterName === 'pageSize').setValue(value);
+    const orientation = scoreDims.pageWidth > scoreDims.pageHeight ?
+      SmoScore.orientations.landscape : SmoScore.orientations.portrait;
+    this.orientationCtrl.setValue(orientation);
+    this.pageSizeCtrl.setValue(value);
+    this._handlePageSizeChange();
   }
   // ### _handlePageSizeChange
   // see if the dimensions have changed.
   _handlePageSizeChange() {
-    const pageSizeComp = this.components.find((x) => x.parameterName === 'pageSize');
-    const sel = pageSizeComp.getValue();
+    const sel = this.pageSizeCtrl.getValue();
     if (sel === 'custom') {
       $('.attributeModal').addClass('customPage');
     } else {
       $('.attributeModal').removeClass('customPage');
       const dim = SmoScore.pageDimensions[sel];
-      const hComp = this.components.find((x) => x.parameterName === 'pageHeight');
-      const wComp = this.components.find((x) => x.parameterName === 'pageWidth');
-      hComp.setValue(dim.height);
-      wComp.setValue(dim.width);
+      this.pageHeightCtrl.setValue(dim.height);
+      this.pageWidthCtrl.setValue(dim.width);
     }
   }
 
@@ -29801,7 +29823,7 @@ class SuiLayoutDialog extends SuiDialogBase {
   // One of the components has had a changed value.
   changed() {
     this._handlePageSizeChange();
-    const layout = this.view.score.layout;
+    const layout = JSON.parse(JSON.stringify(this.view.score.layout));
     this.components.forEach((component) => {
       if (typeof(layout[component.smoName]) !== 'undefined') {
         layout[component.smoName] = component.getValue();
@@ -32241,8 +32263,8 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
     });
     $(dgDom.element).find('.remove-button').off('click').on('click', () => {
       this.view.groupUndo(false);
-      self.handleRemove();
-      self.complete();
+      this.handleRemove();
+      this.complete();
     });
   }
   handleRemove() {

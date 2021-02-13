@@ -13,15 +13,19 @@ class SuiActionPlayback {
     return view.renderer.updatePromise();
   }
   static actionPromises(view, method, args, count) {
-    const fc = (count) => {
-      if (count > 0) {
-        SuiActionPlayback.actionPromise(view, method, args).then(() => {
-          fc(count - 1);
-        });
-      }
-    };
-    fc(count);
-    return view.renderer.updatePromise();
+    const promise = new Promise((resolve) => {
+      const fc = (count) => {
+        if (count > 0) {
+          SuiActionPlayback.actionPromise(view, method, arg, count).then(() => {
+            fc(count - 1);
+          });
+        } else {
+          resolve();
+        }
+      };
+      fc(count);
+    });
+    return promise;
   }
   get stopped() {
     return !this.running;

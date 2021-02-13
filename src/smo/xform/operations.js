@@ -669,15 +669,15 @@ class SmoOperation {
     selection.note.removeModifier(dynamic);
   }
 
-  static beamSelections(selections) {
+  static beamSelections(score, selections) {
     var start = selections[0].selector;
     var cur = selections[0].selector;
     var beamGroup = [];
     var ticks = 0;
     selections.forEach((selection) => {
-      if (SmoSelector.sameNote(start,selection.selector) ||
-        (SmoSelector.sameMeasure(selection.selector,cur) &&
-         cur.tick === selection.selector.tick-1)) {
+      if (SmoSelector.sameNote(start, selection.selector) ||
+        (SmoSelector.sameMeasure(selection.selector, cur) &&
+         cur.tick === selection.selector.tick - 1)) {
         ticks += selection.note.tickCount;
         cur = selection.selector;
         beamGroup.push(selection.note);
@@ -689,6 +689,15 @@ class SmoOperation {
         note.endBeam = false;
       });
       beamGroup[beamGroup.length - 1].endBeam=true;
+      // Make sure the last note of the previous beam is the end of this beam group.
+      if (selections[0].selector.tick > 0) {
+        const ps = JSON.parse(JSON.stringify(selections[0].selector));
+        ps.tick -= 1;
+        const previous = SmoSelection.noteFromSelector(score, ps);
+        if (previous.note.tickCount < 4096) {
+          previous.note.endBeam = true;
+        }
+      }
     }
   }
 

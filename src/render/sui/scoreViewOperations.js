@@ -100,11 +100,15 @@ class SuiScoreViewOperations extends SuiScoreView {
     }
   }
   removeDynamic(dynamic) {
+    const sel = this.tracker.modifierSelections[0];
+    if (!sel) {
+      return;
+    }
+    this.tracker.selections = [sel.selection];
     this.actionBuffer.addAction('removeDynamic', dynamic);
-    const sel = this.tracker.selections[0];
     this._undoFirstMeasureSelection('remove dynamic');
-    this._removeDynamic(sel, dynamic);
-    this.renderer.addToReplaceQueue(sel);
+    this._removeDynamic(sel.selection, dynamic);
+    this.renderer.addToReplaceQueue(sel.selection);
   }
   // ### deleteNote
   // we never really delete a note, but we will convert it into a rest and if it's
@@ -520,8 +524,8 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.actionBuffer.addAction('beamSelections');
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('beam selections');
-    SmoOperation.beamSelections(selections);
-    SmoOperation.beamSelections(this._getEquivalentSelections(selections));
+    SmoOperation.beamSelections(this.score, selections);
+    SmoOperation.beamSelections(this.storeScore, this._getEquivalentSelections(selections));
     this._renderChangedMeasures(measureSelections);
   }
   addKeySignature(keySignature) {
@@ -790,10 +794,15 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._lineOperation('tie');
   }
   setScoreLayout(layout) {
+    const oldLayout = JSON.stringify(this.score.layout);
+    const curLayout = JSON.stringify(layout);
+    if (oldLayout === curLayout) {
+      return;
+    }
     this.actionBuffer.addAction('setScoreLayout', layout);
     this.score.setLayout(layout);
     this.storeScore.setLayout(layout);
-    this.renderer.setViewport();
+    this.renderer.rerenderAll();
   }
   setEngravingFontFamily(family) {
     this.actionBuffer.addAction('setEngravingFontFamily', family);

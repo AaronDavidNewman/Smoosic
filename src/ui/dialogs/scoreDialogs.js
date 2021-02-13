@@ -472,8 +472,7 @@ class SuiLayoutDialog extends SuiDialogBase {
         }, {
           value: 'Petaluma',
           label: 'Petaluma'
-        }
-        ]
+        }]
       }, {
         smoName: 'leftMargin',
         parameterName: 'leftMargin',
@@ -509,8 +508,8 @@ class SuiLayoutDialog extends SuiDialogBase {
         parameterName: 'noteSpacing',
         defaultValue: SmoScore.defaults.layout.noteSpacing,
         control: 'SuiRockerComponent',
-        label: 'Note Spacing',
-        type: 'percent'
+        type: 'percent',
+        label: 'Note Spacing'
       }, {
         smoName: 'zoomScale',
         parameterName: 'zoomScale',
@@ -547,6 +546,7 @@ class SuiLayoutDialog extends SuiDialogBase {
       const val = this.modifier[component.parameterName];
       component.setValue(val);
     });
+    this._bindComponentNames();
     this._setPageSizeDefault();
     this._bindElements();
     const engraving = this.view.score.fonts.find((ff) => ff.name === 'engraving');
@@ -583,7 +583,6 @@ class SuiLayoutDialog extends SuiDialogBase {
     const self = this;
     const dgDom = this.dgDom;
     this.bindKeyboard();
-    this._bindComponentNames();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       // TODO:  allow user to select a zoom mode.
       self.view.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
@@ -608,22 +607,23 @@ class SuiLayoutDialog extends SuiDialogBase {
         value = sz;
       }
     });
-    this.components.find((x) => x.parameterName === 'pageSize').setValue(value);
+    const orientation = scoreDims.pageWidth > scoreDims.pageHeight ?
+      SmoScore.orientations.landscape : SmoScore.orientations.portrait;
+    this.orientationCtrl.setValue(orientation);
+    this.pageSizeCtrl.setValue(value);
+    this._handlePageSizeChange();
   }
   // ### _handlePageSizeChange
   // see if the dimensions have changed.
   _handlePageSizeChange() {
-    const pageSizeComp = this.components.find((x) => x.parameterName === 'pageSize');
-    const sel = pageSizeComp.getValue();
+    const sel = this.pageSizeCtrl.getValue();
     if (sel === 'custom') {
       $('.attributeModal').addClass('customPage');
     } else {
       $('.attributeModal').removeClass('customPage');
       const dim = SmoScore.pageDimensions[sel];
-      const hComp = this.components.find((x) => x.parameterName === 'pageHeight');
-      const wComp = this.components.find((x) => x.parameterName === 'pageWidth');
-      hComp.setValue(dim.height);
-      wComp.setValue(dim.width);
+      this.pageHeightCtrl.setValue(dim.height);
+      this.pageWidthCtrl.setValue(dim.width);
     }
   }
 
@@ -631,7 +631,7 @@ class SuiLayoutDialog extends SuiDialogBase {
   // One of the components has had a changed value.
   changed() {
     this._handlePageSizeChange();
-    const layout = this.view.score.layout;
+    const layout = JSON.parse(JSON.stringify(this.view.score.layout));
     this.components.forEach((component) => {
       if (typeof(layout[component.smoName]) !== 'undefined') {
         layout[component.smoName] = component.getValue();
