@@ -16,7 +16,7 @@ class SuiActionPlayback {
     const promise = new Promise((resolve) => {
       const fc = (count) => {
         if (count > 0) {
-          SuiActionPlayback.actionPromise(view, method, arg, count).then(() => {
+          SuiActionPlayback.actionPromise(view, method, args).then(() => {
             fc(count - 1);
           });
         } else {
