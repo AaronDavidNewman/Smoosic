@@ -15,7 +15,10 @@ Therefore...
 ## Changes to Smoosic
 
 Smoosic API (Feb, 2020)
+
 Introducing...the Smoosic API.  I've made a few minor tweaks in the initialzaiton that make it possible to create a library version of Smoosic.  This has no native GUI, so you can create your own, or just call the API and render some music.  
+
+I created the following pens to help demonstrate how to use it.
 
 [Smoosic API](https://codepen.io/aarondavidnewman/pen/gOLgNEv)  This creates a simple HTML container, and renders a score in it.  It demonstrates the mimimal objects you need to create, and how to update the model in such a way that your changes get rendered.
 
