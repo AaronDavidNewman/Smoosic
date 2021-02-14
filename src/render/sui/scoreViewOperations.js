@@ -1026,6 +1026,12 @@ class SuiScoreViewOperations extends SuiScoreView {
   moveSelectionDown() {
     this.tracker.moveSelectionDown();
   }
+  selectSuggestion(evData) {
+    this.tracker.selectSuggestion(evData);
+  }
+  intersectingArtifact(evData) {
+    this.tracker.intersectingArtifact(evData);
+  }
   setSelection(selector) {
     view.tracker.selections = [SmoSelection.selectionFromSelector(this.score, selector)];
   }

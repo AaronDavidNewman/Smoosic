@@ -36,16 +36,17 @@ class SuiApplication {
       idleRedrawTime: 3000, // maximum time between score modification and render
     }
   }
-
-  constructor(params) {
+  static configure(params) {
     var config = {};
     Vex.Merge(config, SuiApplication.defaultConfig);
     Vex.Merge(config, params);
     window.SmoConfig = config;
-    this.registerFonts();
-    if (config.mode === 'application') {
-      this.startApplication();
-    }
+    SuiApplication.registerFonts();
+  }
+
+  constructor(params) {
+    SuiApplication.configure(params);
+    this.startApplication();
   }
   startApplication() {
     var score = null;
@@ -85,7 +86,7 @@ class SuiApplication {
     eval(SmoConfig.domSource).splash();
     this.controller = controller;
   }
-  registerFonts() {
+  static registerFonts() {
     VF.TextFont.registerFont({
       name: ArialFont.name,
       resolution: ArialFont.resolution,
@@ -112,7 +113,7 @@ class SuiApplication {
       maxSizeGlyph: 'H',
       superscriptOffset: 0.66,
       subscriptOffset: 0.66,
-      description: 'Built-in sans font',
+      description: 'Built-in serif font',
     });
     VF.TextFont.registerFont({
       name: Commissioner_MediumFont.name,
@@ -195,7 +196,6 @@ class SuiApplication {
     }
     return rv;
   }
-
 
   localScoreLoad() {
     var score = null;

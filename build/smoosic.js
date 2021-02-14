@@ -6226,6 +6226,12 @@ class SuiScoreViewOperations extends SuiScoreView {
   moveSelectionDown() {
     this.tracker.moveSelectionDown();
   }
+  selectSuggestion(evData) {
+    this.tracker.selectSuggestion(evData);
+  }
+  intersectingArtifact(evData) {
+    this.tracker.intersectingArtifact(evData);
+  }
   setSelection(selector) {
     view.tracker.selections = [SmoSelection.selectionFromSelector(this.score, selector)];
   }
@@ -26363,16 +26369,17 @@ class SmoUndoable {
       idleRedrawTime: 3000, // maximum time between score modification and render
     }
   }
-
-  constructor(params) {
+  static configure(params) {
     var config = {};
     Vex.Merge(config, SuiApplication.defaultConfig);
     Vex.Merge(config, params);
     window.SmoConfig = config;
-    this.registerFonts();
-    if (config.mode === 'application') {
-      this.startApplication();
-    }
+    SuiApplication.registerFonts();
+  }
+
+  constructor(params) {
+    SuiApplication.configure(params);
+    this.startApplication();
   }
   startApplication() {
     var score = null;
@@ -26412,7 +26419,7 @@ class SmoUndoable {
     eval(SmoConfig.domSource).splash();
     this.controller = controller;
   }
-  registerFonts() {
+  static registerFonts() {
     VF.TextFont.registerFont({
       name: ArialFont.name,
       resolution: ArialFont.resolution,
