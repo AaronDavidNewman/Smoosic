@@ -4,7 +4,7 @@ Smoosic is a _still_ a simple (?) but fully-functional-aspirant editor for music
 
 But...
 
-I've been thinking lately.  My goal was to create a flexible music creation API that works in a variety of contexts.  In some ways, the application is just a demo of the API.  As the application gets more complicated, it becomes less customizable and embeddable.  So I need to distinguish between Smoosic the application from Smoosic the API.  
+I've been thinking lately.  My goal was to create a flexible music creation API that works in a variety of contexts.  In some ways, the application is just a demo of the API.  As the application gets more complicated, it becomes less customizable and embeddable.  So I need to distinguish between Smoosic the application and Smoosic the API.  
 
 In some ways, Smoosic is similar to technologies like Vue or Angular, in that they update a DOM view based on changes to a document state, and visa-versa.  In this case, the document is SMO, the JSON structure that represents the score.  The DOM is the rendered music in the SVG.  You can map events from the DOM and map them to artifacts in your musical model, and make changes to the model and have it rendered.
 
