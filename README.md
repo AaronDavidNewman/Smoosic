@@ -14,7 +14,7 @@ Therefore...
 
 ## Changes to Smoosic
 
-Smoosic API (Feb, 2020)
+Smoosic API (Feb, 2021)
 
 Introducing...the Smoosic API.  I've made a few minor tweaks in the initialzaiton that make it possible to create a library version of Smoosic.  This has no native GUI, so you can create your own, or just call the API and render some music.  
 
@@ -30,7 +30,7 @@ I created the following pens to help demonstrate how to use it.
 
 ---
 
-Music XML (Jan, 2020)
+Music XML (Jan, 2021)
 
 I have made a number of changes to the way Smoosic works, based on some feedback:
 1. Delete key no longer deletes measures.  This seemed to surprise people.  The insert key still inserts, though.
