@@ -147,15 +147,20 @@ class SuiScoreView {
     return rv;
   }
   _getEquivalentSelection(selection) {
-    if (typeof(selection.selector.tick) === 'undefined') {
-      return SmoSelection.measureSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure);
+    try {
+      if (typeof(selection.selector.tick) === 'undefined') {
+        return SmoSelection.measureSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure);
+      }
+      if (typeof(selection.selector.pitches) === 'undefined') {
+        return SmoSelection.noteSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
+          selection.selector.tick);
+      }
+      return SmoSelection.pitchSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
+        selection.selector.tick, selection.selector.pitches);
+    } catch (ex) {
+      console.warn(ex);
+      return null;
     }
-    if (typeof(selection.selector.pitches) === 'undefined') {
-      return SmoSelection.noteSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
-        selection.selector.tick);
-    }
-    return SmoSelection.pitchSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
-      selection.selector.tick, selection.selector.pitches);
   }
   _removeStandardModifier(modifier) {
     $(this.renderer.context.svg).find('g.' + modifier.attrs.id).remove();

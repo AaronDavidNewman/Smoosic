@@ -198,7 +198,10 @@ class smoSerialize {
       "rf": "copyright",
       "sf": "localIndex",
       "tf": "hairpinType",
-      "uf": "customText"
+      "uf": "customText",
+      "vf": "noteSpacing",
+      "wf": "lines",
+      "xf": "from"
       }`;
      return JSON.parse(_tm);
     }

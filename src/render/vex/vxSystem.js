@@ -193,6 +193,12 @@ class VxSystem {
   // render a line-type modifier that is associated with a staff (e.g. slur)
   renderModifier(modifier, vxStart, vxEnd, smoStart, smoEnd) {
     let xoffset = 0;
+    const setSameIfNull = (a, b) => {
+      if (typeof(a) === 'undefined' || a === null) {
+        return b;
+      }
+      return a;
+    };
     // if it is split between lines, render one artifact for each line, with a common class for
     // both if it is removed.
     if (vxStart) {
@@ -204,10 +210,12 @@ class VxSystem {
     group.classList.add(artifactId);
     if ((modifier.ctor === 'SmoStaffHairpin' && modifier.hairpinType === SmoStaffHairpin.types.CRESCENDO) ||
       (modifier.ctor === 'SmoStaffHairpin' && modifier.hairpinType === SmoStaffHairpin.types.DECRESCENDO)) {
-      if (!vxStart || !vxEnd) {
+      if (!vxStart && !vxEnd) {
         this.context.closeGroup();
         return svgHelpers.pointBox(1, 1);
       }
+      vxStart = setSameIfNull(vxStart, vxEnd);
+      vxEnd = setSameIfNull(vxEnd, vxStart);
       const hairpin = new VF.StaveHairpin({
         first_note: vxStart,
         last_note: vxEnd

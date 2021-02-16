@@ -472,6 +472,9 @@ class SuiLayoutDialog extends SuiDialogBase {
         }, {
           value: 'Petaluma',
           label: 'Petaluma'
+        }, {
+          value: 'Leland',
+          label: 'Leland'
         }]
       }, {
         smoName: 'leftMargin',

@@ -1344,7 +1344,10 @@ class smoSerialize {
       "rf": "copyright",
       "sf": "localIndex",
       "tf": "hairpinType",
-      "uf": "customText"
+      "uf": "customText",
+      "vf": "noteSpacing",
+      "wf": "lines",
+      "xf": "from"
       }`;
      return JSON.parse(_tm);
     }
@@ -3964,7 +3967,8 @@ class SuiRenderState {
     return {
       Bravura: [VF.Fonts.Bravura, VF.Fonts.Gonville, VF.Fonts.Custom],
       Gonville: [VF.Fonts.Gonville, VF.Fonts.Bravura, VF.Fonts.Custom],
-      Petaluma: [VF.Fonts.Petaluma, VF.Fonts.Gonville, VF.Fonts.Custom]
+      Petaluma: [VF.Fonts.Petaluma, VF.Fonts.Gonville, VF.Fonts.Custom],
+      Leland: [VF.Fonts.Leland, VF.Fonts.Bravura, VF.Fonts.Gonville, VF.Fonts.Custom]
     };
   }
 
@@ -5021,15 +5025,20 @@ class SuiScoreView {
     return rv;
   }
   _getEquivalentSelection(selection) {
-    if (typeof(selection.selector.tick) === 'undefined') {
-      return SmoSelection.measureSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure);
+    try {
+      if (typeof(selection.selector.tick) === 'undefined') {
+        return SmoSelection.measureSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure);
+      }
+      if (typeof(selection.selector.pitches) === 'undefined') {
+        return SmoSelection.noteSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
+          selection.selector.tick);
+      }
+      return SmoSelection.pitchSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
+        selection.selector.tick, selection.selector.pitches);
+    } catch (ex) {
+      console.warn(ex);
+      return null;
     }
-    if (typeof(selection.selector.pitches) === 'undefined') {
-      return SmoSelection.noteSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
-        selection.selector.tick);
-    }
-    return SmoSelection.pitchSelection(this.storeScore, this.staffMap[selection.selector.staff], selection.selector.measure, selection.selector.voice,
-      selection.selector.tick, selection.selector.pitches);
   }
   _removeStandardModifier(modifier) {
     $(this.renderer.context.svg).find('g.' + modifier.attrs.id).remove();
@@ -5483,8 +5492,9 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.actionBuffer.addAction('removeTempo', scoreMode);
     const startSelection = this.tracker.selections[0];
     if (startSelection.selector.measure > 0) {
-      const target = this.measures[0].measureNumber.measureIndex - 1;
-      const tempo = this.score.staves[0].measures[target].getTempo();
+      const measureIx = startSelection.selector.measure - 1;
+      const target = startSelection.staff.measures[measureIx];
+      const tempo = target.getTempo();
       this.updateTempoScore(tempo, scoreMode);
     } else {
       this.updateTempoScore(new SmoTempoText(), scoreMode);
@@ -5964,9 +5974,9 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
   }
   _lineOperation(op) {
-    if (this.tracker.selections.length < 2) {
-      return;
-    }
+    // if (this.tracker.selections.length < 2) {
+    //   return;
+    // }
     const measureSelections = this._undoTrackerMeasureSelections(op);
     const ft = this.tracker.getExtremeSelection(-1);
     const tt = this.tracker.getExtremeSelection(1);
@@ -10365,6 +10375,12 @@ class VxSystem {
   // render a line-type modifier that is associated with a staff (e.g. slur)
   renderModifier(modifier, vxStart, vxEnd, smoStart, smoEnd) {
     let xoffset = 0;
+    const setSameIfNull = (a, b) => {
+      if (typeof(a) === 'undefined' || a === null) {
+        return b;
+      }
+      return a;
+    };
     // if it is split between lines, render one artifact for each line, with a common class for
     // both if it is removed.
     if (vxStart) {
@@ -10376,10 +10392,12 @@ class VxSystem {
     group.classList.add(artifactId);
     if ((modifier.ctor === 'SmoStaffHairpin' && modifier.hairpinType === SmoStaffHairpin.types.CRESCENDO) ||
       (modifier.ctor === 'SmoStaffHairpin' && modifier.hairpinType === SmoStaffHairpin.types.DECRESCENDO)) {
-      if (!vxStart || !vxEnd) {
+      if (!vxStart && !vxEnd) {
         this.context.closeGroup();
         return svgHelpers.pointBox(1, 1);
       }
+      vxStart = setSameIfNull(vxStart, vxEnd);
+      vxEnd = setSameIfNull(vxEnd, vxStart);
       const hairpin = new VF.StaveHairpin({
         first_note: vxStart,
         last_note: vxEnd
@@ -18018,6 +18036,7 @@ class SmoOperation {
     selectors.forEach((selector) => {
       const params = {};
       const voices = [];
+      const rowSelection = SmoSelection.measureSelection(score, selector.staff, selector.measure);
       let nm = {};
       const attrs = SmoMeasure.defaultAttributes.filter((aa) => aa !== 'timeSignature');
       const psel =  SmoSelection.measureSelection(score,selector.staff, selector.measure);
@@ -18029,6 +18048,12 @@ class SmoOperation {
         params.timeSignature = timeSignature;
         nm = SmoMeasure.getDefaultMeasure(params);
         const spareNotes = SmoMeasure.getDefaultNotes(params);
+        nm.setX(rowSelection.measure.staffX);
+        nm.setY(rowSelection.measure.staffY);
+        nm.setWidth(rowSelection.measure.staffWidth);
+        ['forceKeySignature', 'forceTimeSignature', 'forceTempo', 'forceClef'].forEach((attr) => {
+          nm[attr] = rowSelection.measure[attr];
+        });
         ticks = 0;
         proto.voices.forEach((voice) => {
           const nvoice=[];
@@ -26446,7 +26471,7 @@ class SmoUndoable {
       maxSizeGlyph: 'H',
       superscriptOffset: 0.66,
       subscriptOffset: 0.66,
-      description: 'Built-in sans font',
+      description: 'Built-in serif font',
     });
     VF.TextFont.registerFont({
       name: Commissioner_MediumFont.name,
@@ -26529,7 +26554,6 @@ class SmoUndoable {
     }
     return rv;
   }
-
 
   localScoreLoad() {
     var score = null;
@@ -29206,7 +29230,7 @@ class SuiTempoDialog extends SuiDialogBase {
   // Removing a tempo change is like changing the measure to the previous measure's tempo.
   // If this is the first measure, use the default value.
   handleRemove() {
-    this.view.removeTempo(this.applyToAllCtrl());
+    this.view.removeTempo(this.applyToAllCtrl.getValue());
   }
   // ### Populate the initial values and bind to the buttons.
   _bindElements() {
@@ -29702,6 +29726,9 @@ class SuiLayoutDialog extends SuiDialogBase {
         }, {
           value: 'Petaluma',
           label: 'Petaluma'
+        }, {
+          value: 'Leland',
+          label: 'Leland'
         }]
       }, {
         smoName: 'leftMargin',

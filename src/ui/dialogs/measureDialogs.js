@@ -737,7 +737,7 @@ class SuiTempoDialog extends SuiDialogBase {
   // Removing a tempo change is like changing the measure to the previous measure's tempo.
   // If this is the first measure, use the default value.
   handleRemove() {
-    this.view.removeTempo(this.applyToAllCtrl());
+    this.view.removeTempo(this.applyToAllCtrl.getValue());
   }
   // ### Populate the initial values and bind to the buttons.
   _bindElements() {

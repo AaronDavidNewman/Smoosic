@@ -162,6 +162,7 @@ class SmoOperation {
     selectors.forEach((selector) => {
       const params = {};
       const voices = [];
+      const rowSelection = SmoSelection.measureSelection(score, selector.staff, selector.measure);
       let nm = {};
       const attrs = SmoMeasure.defaultAttributes.filter((aa) => aa !== 'timeSignature');
       const psel =  SmoSelection.measureSelection(score,selector.staff, selector.measure);
@@ -173,6 +174,12 @@ class SmoOperation {
         params.timeSignature = timeSignature;
         nm = SmoMeasure.getDefaultMeasure(params);
         const spareNotes = SmoMeasure.getDefaultNotes(params);
+        nm.setX(rowSelection.measure.staffX);
+        nm.setY(rowSelection.measure.staffY);
+        nm.setWidth(rowSelection.measure.staffWidth);
+        ['forceKeySignature', 'forceTimeSignature', 'forceTempo', 'forceClef'].forEach((attr) => {
+          nm[attr] = rowSelection.measure[attr];
+        });
         ticks = 0;
         proto.voices.forEach((voice) => {
           const nvoice=[];

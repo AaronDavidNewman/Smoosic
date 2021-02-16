@@ -283,8 +283,9 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.actionBuffer.addAction('removeTempo', scoreMode);
     const startSelection = this.tracker.selections[0];
     if (startSelection.selector.measure > 0) {
-      const target = this.measures[0].measureNumber.measureIndex - 1;
-      const tempo = this.score.staves[0].measures[target].getTempo();
+      const measureIx = startSelection.selector.measure - 1;
+      const target = startSelection.staff.measures[measureIx];
+      const tempo = target.getTempo();
       this.updateTempoScore(tempo, scoreMode);
     } else {
       this.updateTempoScore(new SmoTempoText(), scoreMode);
@@ -764,9 +765,9 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
   }
   _lineOperation(op) {
-    if (this.tracker.selections.length < 2) {
-      return;
-    }
+    // if (this.tracker.selections.length < 2) {
+    //   return;
+    // }
     const measureSelections = this._undoTrackerMeasureSelections(op);
     const ft = this.tracker.getExtremeSelection(-1);
     const tt = this.tracker.getExtremeSelection(1);

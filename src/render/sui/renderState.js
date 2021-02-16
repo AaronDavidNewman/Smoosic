@@ -33,7 +33,8 @@ class SuiRenderState {
     return {
       Bravura: [VF.Fonts.Bravura, VF.Fonts.Gonville, VF.Fonts.Custom],
       Gonville: [VF.Fonts.Gonville, VF.Fonts.Bravura, VF.Fonts.Custom],
-      Petaluma: [VF.Fonts.Petaluma, VF.Fonts.Gonville, VF.Fonts.Custom]
+      Petaluma: [VF.Fonts.Petaluma, VF.Fonts.Gonville, VF.Fonts.Custom],
+      Leland: [VF.Fonts.Leland, VF.Fonts.Bravura, VF.Fonts.Gonville, VF.Fonts.Custom]
     };
   }
 
