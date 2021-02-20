@@ -81,7 +81,11 @@ class SmoToXml {
       smoState.voice = voice;
       voice.notes.forEach((note) => {
         smoState.note = note;
+        // Start wedge before note starts
+        SmoToXml.direction(measureElement, smoState, true);
         SmoToXml.note(measureElement, smoState);
+        // End wedge on next tick
+        SmoToXml.direction(measureElement, smoState, false);
       });
       if (measure.voices.length > smoState.voiceIndex) {
         smoState.voiceIndex += 1;
@@ -93,6 +97,7 @@ class SmoToXml {
       smoState.measureTicks = 0;
     });
   }
+
   // ### slur
   // /score-partwise/part/measure/note/notations/slur
   static slur(notationsElement, smoState) {
@@ -222,6 +227,45 @@ class SmoToXml {
       smoState.beamState = SmoToXml.beamStates.none;
     }
   }
+  // ### /score-partwise/measure/direction/direction-type
+  static direction(measureElement, smoState, beforeNote) {
+    let addDirection = false;
+    const nn = mxmlHelpers.createTextElementChild;
+    const directionElement = measureElement.ownerDocument.createElement('direction');
+    const dtype  = nn(directionElement, 'direction-type');
+    const staff = smoState.staff;
+    const measure = smoState.measure;
+    const selector = {
+      staff: staff.staffId,
+      measure: measure.measureNumber.measureIndex,
+      voice: smoState.voiceIndex - 1,
+      tick: smoState.voiceTickIndex
+    };
+    if (!beforeNote) {
+      selector.tick -= 1;
+    }
+    const startWedge = staff.modifiers.find((mod) =>
+      SmoSelector.sameNote(mod.startSelector, selector) &&
+      (mod.attrs.type === 'SmoStaffHairpin'));
+    const endWedge =  staff.modifiers.find((mod) =>
+      SmoSelector.sameNote(mod.endSelector, selector) &&
+      (mod.attrs.type === 'SmoStaffHairpin'));
+    if (endWedge && !beforeNote) {
+      const wedgeElement = nn(dtype, 'wedge');
+      mxmlHelpers.createAttributes(wedgeElement, { type: 'stop', spread: '20' });
+      addDirection = true;
+    }
+    if (startWedge && beforeNote) {
+      const wedgeElement = nn(dtype, 'wedge');
+      const wedgeType = startWedge.hairpinType === SmoStaffHairpin.types.CRESCENDO ?
+        'crescendo' : 'diminuendo';
+      mxmlHelpers.createAttributes(wedgeElement, { type: wedgeType });
+      addDirection = true;
+    }
+    if (addDirection) {
+      measureElement.appendChild(directionElement);
+    }
+  }
   // ### /score-partwise/measure/note
   static note(measureElement, smoState) {
     const note = smoState.note;
@@ -256,10 +300,8 @@ class SmoToXml {
       if (notationsElement.children.length) {
         noteElement.appendChild(notationsElement);
       }
-      if (i === 0) {
-        smoState.voiceTickIndex += 1;
-      }
     }
+    smoState.voiceTickIndex += 1;
   }
   // ### /score-partwise/measure/attributes/key
   static key(attributesElement, smoState) {

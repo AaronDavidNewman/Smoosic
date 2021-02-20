@@ -9098,6 +9098,10 @@ class suiTracker extends suiMapper {
   recordModifierSelectSuggestion(ev) {
     if (this.recordBuffer) {
       const artifact = this.modifierTabs[this.modifierSuggestion];
+      if (!artifact) {
+        this.clearModifierSelections();
+        return; // in SVG but not in model, ignore.
+      }
       const modKey = artifact.modifier.serialize();
       if (artifact === null || artifact.selection === null) {
         return;
@@ -14505,6 +14509,14 @@ class SmoStaffHairpin extends StaffModifierBase {
     super('SmoStaffHairpin');
     Vex.Merge(this, SmoStaffHairpin.defaults);
     smoSerialize.filteredMerge(SmoStaffHairpin.attributes, params, this);
+    // If start/end selector on same note, make sure the hairpin extends
+    if (SmoSelector.eq(this.startSelector, this.endSelector)) {
+      if (this.xOffsetRight === SmoStaffHairpin.defaults.xOffsetRight
+        && this.xOffsetLeft === SmoStaffHairpin.defaults.xOffsetLeft) {
+        this.xOffsetLeft = -10;
+        this.xOffsetRight = 10;
+      }
+    }
 
     if (!this.attrs) {
       this.attrs = {
@@ -15423,7 +15435,11 @@ class SmoToXml {
       smoState.voice = voice;
       voice.notes.forEach((note) => {
         smoState.note = note;
+        // Start wedge before note starts
+        SmoToXml.direction(measureElement, smoState, true);
         SmoToXml.note(measureElement, smoState);
+        // End wedge on next tick
+        SmoToXml.direction(measureElement, smoState, false);
       });
       if (measure.voices.length > smoState.voiceIndex) {
         smoState.voiceIndex += 1;
@@ -15435,6 +15451,7 @@ class SmoToXml {
       smoState.measureTicks = 0;
     });
   }
+
   // ### slur
   // /score-partwise/part/measure/note/notations/slur
   static slur(notationsElement, smoState) {
@@ -15564,6 +15581,45 @@ class SmoToXml {
       smoState.beamState = SmoToXml.beamStates.none;
     }
   }
+  // ### /score-partwise/measure/direction/direction-type
+  static direction(measureElement, smoState, beforeNote) {
+    let addDirection = false;
+    const nn = mxmlHelpers.createTextElementChild;
+    const directionElement = measureElement.ownerDocument.createElement('direction');
+    const dtype  = nn(directionElement, 'direction-type');
+    const staff = smoState.staff;
+    const measure = smoState.measure;
+    const selector = {
+      staff: staff.staffId,
+      measure: measure.measureNumber.measureIndex,
+      voice: smoState.voiceIndex - 1,
+      tick: smoState.voiceTickIndex
+    };
+    if (!beforeNote) {
+      selector.tick -= 1;
+    }
+    const startWedge = staff.modifiers.find((mod) =>
+      SmoSelector.sameNote(mod.startSelector, selector) &&
+      (mod.attrs.type === 'SmoStaffHairpin'));
+    const endWedge =  staff.modifiers.find((mod) =>
+      SmoSelector.sameNote(mod.endSelector, selector) &&
+      (mod.attrs.type === 'SmoStaffHairpin'));
+    if (endWedge && !beforeNote) {
+      const wedgeElement = nn(dtype, 'wedge');
+      mxmlHelpers.createAttributes(wedgeElement, { type: 'stop', spread: '20' });
+      addDirection = true;
+    }
+    if (startWedge && beforeNote) {
+      const wedgeElement = nn(dtype, 'wedge');
+      const wedgeType = startWedge.hairpinType === SmoStaffHairpin.types.CRESCENDO ?
+        'crescendo' : 'diminuendo';
+      mxmlHelpers.createAttributes(wedgeElement, { type: wedgeType });
+      addDirection = true;
+    }
+    if (addDirection) {
+      measureElement.appendChild(directionElement);
+    }
+  }
   // ### /score-partwise/measure/note
   static note(measureElement, smoState) {
     const note = smoState.note;
@@ -15598,10 +15654,8 @@ class SmoToXml {
       if (notationsElement.children.length) {
         noteElement.appendChild(notationsElement);
       }
-      if (i === 0) {
-        smoState.voiceTickIndex += 1;
-      }
     }
+    smoState.voiceTickIndex += 1;
   }
   // ### /score-partwise/measure/attributes/key
   static key(attributesElement, smoState) {
@@ -16722,7 +16776,7 @@ class XmlState {
       let hpMeasureIndex = this.measureIndex;
       let hpMeasure = smoStaff.measures[hpMeasureIndex];
       let startTick = hpMeasure.voices[0].notes.length - 1;
-      let hpTickCount = hairpin.end;
+      let hpTickCount = this.globalCursor; // All ticks read so far
       const endSelector = {
         staff: staffId - 1, measure: hpMeasureIndex, voice: 0,
         tick: -1

@@ -69,6 +69,14 @@ class SmoStaffHairpin extends StaffModifierBase {
     super('SmoStaffHairpin');
     Vex.Merge(this, SmoStaffHairpin.defaults);
     smoSerialize.filteredMerge(SmoStaffHairpin.attributes, params, this);
+    // If start/end selector on same note, make sure the hairpin extends
+    if (SmoSelector.eq(this.startSelector, this.endSelector)) {
+      if (this.xOffsetRight === SmoStaffHairpin.defaults.xOffsetRight
+        && this.xOffsetLeft === SmoStaffHairpin.defaults.xOffsetLeft) {
+        this.xOffsetLeft = -10;
+        this.xOffsetRight = 10;
+      }
+    }
 
     if (!this.attrs) {
       this.attrs = {

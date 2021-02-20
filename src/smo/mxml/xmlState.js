@@ -119,7 +119,7 @@ class XmlState {
       let hpMeasureIndex = this.measureIndex;
       let hpMeasure = smoStaff.measures[hpMeasureIndex];
       let startTick = hpMeasure.voices[0].notes.length - 1;
-      let hpTickCount = hairpin.end;
+      let hpTickCount = this.globalCursor; // All ticks read so far
       const endSelector = {
         staff: staffId - 1, measure: hpMeasureIndex, voice: 0,
         tick: -1

@@ -842,6 +842,10 @@ class suiTracker extends suiMapper {
   recordModifierSelectSuggestion(ev) {
     if (this.recordBuffer) {
       const artifact = this.modifierTabs[this.modifierSuggestion];
+      if (!artifact) {
+        this.clearModifierSelections();
+        return; // in SVG but not in model, ignore.
+      }
       const modKey = artifact.modifier.serialize();
       if (artifact === null || artifact.selection === null) {
         return;
