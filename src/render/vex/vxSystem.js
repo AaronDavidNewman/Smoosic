@@ -298,9 +298,9 @@ class VxSystem {
           voAr.push(endMeasure);
           const vxMeasure = this.getVxMeasure(endMeasure);
           const vtype = ending.toVexVolta(endMeasure.measureNumber.measureNumber);
-          const vxVolta = new VF.Volta(vtype, ending.number, ending.xOffsetStart, ending.yOffset);
+          const vxVolta = new VF.Volta(vtype, ending.number, endMeasure.staffX + ending.xOffsetStart, ending.yOffset);
           vxMeasure.stave.modifiers.push(vxVolta);
-          vxVolta.setContext(this.context).draw(vxMeasure.stave, endMeasure.staffX);
+          vxVolta.setContext(this.context).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
         }
         this.context.closeGroup();
         ending.renderedBox = svgHelpers.smoBox(group.getBoundingClientRect());

@@ -4683,11 +4683,12 @@ class SuiScoreRender extends SuiRenderState {
   // ### _justifyY
   // when we have finished a line of music, adjust the measures in the system so the
   // top of the staff lines up.
-  _justifyY(svg, scoreLayout, measureEstimate, currentLine) {
+  _justifyY(svg, scoreLayout, measureEstimate, currentLine, lastSystem) {
     let i = 0;
     // We estimate the staves at the same absolute y value.
     // Now, move them down so the top of the staves align for all measures in a  row.
     for (i = 0; i < measureEstimate.measures.length; ++i) {
+      let justifyX = 0;
       const index = i;
       const rowAdj = currentLine.filter((mm) => mm.svg.rowInSystem === index);
       // lowest staff has greatest staffY value.
@@ -4703,8 +4704,10 @@ class SuiScoreRender extends SuiRenderState {
       const rightStaff = rowAdj.reduce((a, b) =>
         a.staffX + a.staffWidth > b.staffX + b.staffWidth ?  a : b);
 
-      const justifyX = Math.round((scoreLayout.pageWidth - (scoreLayout.leftMargin + scoreLayout.rightMargin + rightStaff.staffX + rightStaff.staffWidth))
-           / rowAdj.length);
+      if (!lastSystem) {
+        justifyX = Math.round((scoreLayout.pageWidth - (scoreLayout.leftMargin + scoreLayout.rightMargin + rightStaff.staffX + rightStaff.staffWidth))
+          / rowAdj.length);
+      }
       const ld = layoutDebug;
       rowAdj.forEach((measure) => {
         measure.setWidth(measure.staffWidth + justifyX, '_estimateMeasureDimensions justify');
@@ -4768,7 +4771,7 @@ class SuiScoreRender extends SuiRenderState {
 
       if (systemIndex > 0 &&
         (measureEstimate.measures[0].getForceSystemBreak() || measureEstimate.x > (scoreLayout.pageWidth - scoreLayout.leftMargin))) {
-        this._justifyY(svg, scoreLayout, measureEstimate, currentLine);
+        this._justifyY(svg, scoreLayout, measureEstimate, currentLine, false);
         // find the measure with the lowest y extend (greatest y value), not necessarily one with lowest
         // start of staff.
         const bottomMeasure = currentLine.reduce((a, b) =>
@@ -4807,7 +4810,7 @@ class SuiScoreRender extends SuiRenderState {
       // If this is the last measure but we have not filled the x extent,
       // still justify the vertical staves and check for page break.
       if (measureIx >= this.score.staves[0].measures.length) {
-        this._justifyY(svg, scoreLayout, measureEstimate, currentLine);
+        this._justifyY(svg, scoreLayout, measureEstimate, currentLine, true);
         const bottomMeasure = currentLine.reduce((a, b) =>
           a.logicalBox.y + a.logicalBox.height > b.logicalBox.y + b.logicalBox.height ? a : b
         );
@@ -10484,9 +10487,9 @@ class VxSystem {
           voAr.push(endMeasure);
           const vxMeasure = this.getVxMeasure(endMeasure);
           const vtype = ending.toVexVolta(endMeasure.measureNumber.measureNumber);
-          const vxVolta = new VF.Volta(vtype, ending.number, ending.xOffsetStart, ending.yOffset);
+          const vxVolta = new VF.Volta(vtype, ending.number, endMeasure.staffX + ending.xOffsetStart, ending.yOffset);
           vxMeasure.stave.modifiers.push(vxVolta);
-          vxVolta.setContext(this.context).draw(vxMeasure.stave, endMeasure.staffX);
+          vxVolta.setContext(this.context).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
         }
         this.context.closeGroup();
         ending.renderedBox = svgHelpers.smoBox(group.getBoundingClientRect());
@@ -18684,7 +18687,7 @@ class SmoOperation {
   static removeEnding(score, ending) {
     let i = 0;
     score.staves.forEach((staff) => {
-      for (i = ending.startSelector.measure; i < ending.endSelector.measure; ++i) {
+      for (i = ending.startSelector.measure; i <= ending.endSelector.measure; ++i) {
         staff.measures[i].removeNthEnding(ending.number);
       }
     });

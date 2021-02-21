@@ -756,7 +756,7 @@ class SmoOperation {
   static removeEnding(score, ending) {
     let i = 0;
     score.staves.forEach((staff) => {
-      for (i = ending.startSelector.measure; i < ending.endSelector.measure; ++i) {
+      for (i = ending.startSelector.measure; i <= ending.endSelector.measure; ++i) {
         staff.measures[i].removeNthEnding(ending.number);
       }
     });
