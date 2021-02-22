@@ -2931,20 +2931,27 @@ class SuiActionPlayback {
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
 class suiLayoutAdjuster {
 
-  static estimateMusicWidth(smoMeasure, noteSpacing) {
+  static estimateMusicWidth(smoMeasure, noteSpacing, accidentMap) {
     var widths = [];
     var voiceIx = 0;
+    // Accidental map:
+    // If we accidentals on different notes in a justified column, need to increase width
+    // for both.
+    //     |          |
+    //    #o  x   x   o
+    //     |  x   x   |
+    //     o  x   x  #o
     var tmObj = smoMeasure.createMeasureTickmaps();
     smoMeasure.voices.forEach((voice) => {
+      let accidentJustify = 0;
+      Object.keys(accidentMap).forEach((k) => {
+        accidentJustify += accidentMap[k];
+      });
       var tickIndex = 0;
       var width = 0;
       var duration = 0;
       var tm = tmObj.tickmaps[voiceIx];
       voice.notes.forEach((note) => {
-        var tuplet = smoMeasure.getTupletForNote(note);
-        if (tuplet && tuplet.notes[0].attrs.id === note.attrs.id) {
-          // width += vexGlyph.tupletBeam.width + vexGlyph.tupletBeam.spacingRight;
-        }
         var noteWidth = 0;
         var dots = (note.dots ? note.dots : 0);
         noteWidth += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight * noteSpacing;
@@ -2960,6 +2967,12 @@ class suiLayoutAdjuster {
             accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental: keyAccidental;
           if (declared != pitch.accidental || pitch.cautionary) {
             noteWidth += vexGlyph.accidental(pitch.accidental).width;
+            if (!accidentMap[duration]) {
+              accidentMap[duration] = vexGlyph.accidental(pitch.accidental).width;
+            } else {
+              // if accidentals are aligned, don't count width twice
+              accidentJustify -= vexGlyph.accidental(pitch.accidental).width;
+            }
           }
         });
 
@@ -2989,8 +3002,11 @@ class suiLayoutAdjuster {
         duration += note.tickCount;
         width += noteWidth;
       });
-    voiceIx += 1;
-    widths.push(width);
+      if (accidentJustify > 0) {
+        width += accidentJustify;
+      }
+      voiceIx += 1;
+      widths.push(width);
     });
     widths.sort((a,b) => a > b ? -1 : 1);
     return widths[0];
@@ -3047,10 +3063,10 @@ class suiLayoutAdjuster {
     return svgHelpers.boxPoints(xoff, 0, width, 0);
   }
 
-  static estimateMeasureWidth(measure, noteSpacing) {
+  static estimateMeasureWidth(measure, noteSpacing, accidentMap) {
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
     var prevWidth = measure.staffWidth;
-    var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure, noteSpacing);
+    var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure, noteSpacing, accidentMap);
     measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
     measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
     measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
@@ -4834,6 +4850,8 @@ class SuiScoreRender extends SuiRenderState {
     let measureToLeft = {};
     const measures = this._getMeasuresInColumn(measureIx);
     let rowInSystem = 0;
+    // Keep running tab of accidental widths for justification
+    const accidentalMap = {};
     measures.forEach((measure) => {
       smoBeamerFactory.applyBeams(measure);
       measure.measureNumber.systemIndex = systemIndex;
@@ -4861,7 +4879,7 @@ class SuiScoreRender extends SuiRenderState {
 
       // Add custom width to measure:
       measure.setBox(svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline));
-      suiLayoutAdjuster.estimateMeasureWidth(measure, this.score.layout.noteSpacing);
+      suiLayoutAdjuster.estimateMeasureWidth(measure, this.score.layout.noteSpacing, accidentalMap);
       y = y + measure.logicalBox.height + scoreLayout.intraGap;
       rowInSystem += 1;
     });

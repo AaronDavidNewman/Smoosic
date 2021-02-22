@@ -382,6 +382,8 @@ class SuiScoreRender extends SuiRenderState {
     let measureToLeft = {};
     const measures = this._getMeasuresInColumn(measureIx);
     let rowInSystem = 0;
+    // Keep running tab of accidental widths for justification
+    const accidentalMap = {};
     measures.forEach((measure) => {
       smoBeamerFactory.applyBeams(measure);
       measure.measureNumber.systemIndex = systemIndex;
@@ -409,7 +411,7 @@ class SuiScoreRender extends SuiRenderState {
 
       // Add custom width to measure:
       measure.setBox(svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline));
-      suiLayoutAdjuster.estimateMeasureWidth(measure, this.score.layout.noteSpacing);
+      suiLayoutAdjuster.estimateMeasureWidth(measure, this.score.layout.noteSpacing, accidentalMap);
       y = y + measure.logicalBox.height + scoreLayout.intraGap;
       rowInSystem += 1;
     });
