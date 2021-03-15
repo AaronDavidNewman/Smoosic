@@ -450,10 +450,20 @@ class smoMusic {
     } else {
       vexKey = vexKey + smoPitch.accidental;
     }
-    if (smoPitch['octave']) {
+    if (smoPitch.octave) {
       vexKey = vexKey + '/' + smoPitch.octave;
     }
     return vexKey;
+  }
+
+  static pitchToEasyScore(smoPitch) {
+    let vexKey = smoPitch.letter.toLowerCase();
+    if (smoPitch.accidental.length === 0) {
+      vexKey = vexKey + 'n';
+    } else {
+      vexKey = vexKey + smoPitch.accidental;
+    }
+    return vexKey + smoPitch.octave;
   }
 
   static pitchToVexKey(smoPitch, head) {
@@ -944,10 +954,10 @@ class smoMusic {
     return km.scaleMap[letter];
   }
 
-    static getAccidentalForKeySignature(smoPitch,keySignature) {
-        var vexKey = smoMusic.getKeySignatureKey(smoPitch.letter,keySignature);
-        return vexKey.length == 1 ? 'n' : vexKey.substr(1,vexKey.length - 1);
-    }
+  static getAccidentalForKeySignature(smoPitch, keySignature) {
+      var vexKey = smoMusic.getKeySignatureKey(smoPitch.letter,keySignature);
+      return vexKey.length == 1 ? 'n' : vexKey.substr(1,vexKey.length - 1);
+  }
 
     // ### isPitchInKeySignature
     // Return true if the pitch is not an accidental in the give key, e.g.
@@ -2990,10 +3000,14 @@ class suiLayoutAdjuster {
           const textFont =
             VF.TextFont.getTextFontFromVexFontData({ family: lyric[0].fontInfo.family,
               size: lyric[0].fontInfo.size, weight: 'normal' });
-          textFont.setFontSize(lyric[0].fontInfo.size);
           const lyricText = lyric[0].getText();
           for (i = 0;i < lyricText.length; ++i) {
-            lyricWidth += textFont.getWidthForCharacter(lyricText[i]) * (72 / 96);
+            lyricWidth += textFont.getWidthForCharacter(lyricText[i]);
+          }
+          if (lyric[0].isHyphenated()) {
+            lyricWidth +=  2 * textFont.getWidthForCharacter('-');
+          } else {
+            lyricWidth +=  2 * textFont.getWidthForCharacter('H');
           }
           noteWidth = Math.max(lyricWidth, noteWidth);
           verse += 1;
@@ -3322,6 +3336,7 @@ class SuiRenderDemon {
     this.undoStatus = 0;
 
     Vex.Merge(this, parameters);
+    this.handling = false;
   }
 
   get isLayoutQuiet() {
@@ -3333,6 +3348,10 @@ class SuiRenderDemon {
   }
 
   handleRedrawTimer() {
+    if (this.handling) {
+      return;
+    }
+    this.handling = true;
     // If there has been a change, redraw the score
     if (this.undoStatus !== this.undoBuffer.opCount || this.view.renderer.dirty) {
       this.view.renderer.dirty = true;
@@ -3346,6 +3365,7 @@ class SuiRenderDemon {
       } catch (ex) {
         console.error(ex);
         SuiExceptionHandler.instance.exceptionHandler(ex);
+        this.handling = false;
       }
     } else if (this.view.renderer.passState === SuiRenderState.passStates.replace) {
       // Consider navigation as activity when deciding to refresh
@@ -3355,6 +3375,7 @@ class SuiRenderDemon {
         this.view.renderer.setRefresh();
       }
     }
+    this.handling = false;
 }
 
     // ### pollRedraw
@@ -9493,7 +9514,7 @@ class vexGlyph {
         spacingRight: 10.71,
       },
       dot: {
-        width: 5,
+        width: 15,
         height: 5,
         spacingRight: 2
       }, // This isn't accurate, but I don't
@@ -9562,7 +9583,7 @@ class vexGlyph {
         spacingRight: 2
       },
       natural: {
-        width: 6.54,
+        width: 15,
         height: 53.35,
         yTop: 0,
         yBottom: 0,
@@ -9672,26 +9693,19 @@ class VxMeasure {
 
   // We add microtones to the notes, without regard really to how they interact
   _createMicrotones(smoNote, vexNote) {
-    let added = false;
+    // let added = false;
     const tones = smoNote.getMicrotones();
     tones.forEach((tone) => {
       const acc = new VF.Accidental(tone.toVex);
       vexNote.addAccidental(tone.pitch, acc);
       added = true;
     });
-    if (added) {
-      this._addSpacingAnnotation(vexNote);
-    }
+    // if (added) {
+    //   this._addSpacingAnnotation(vexNote);
+    // }
   }
-  _addSpacingAnnotation(vexNote) {
-    const vexL = new VF.Annotation('  ').setVerticalJustification('CENTER')
-      .setJustification('RIGHT');
-    vexNote.addAnnotation(0, vexL);
-  }
-
   _createAccidentals(smoNote, vexNote, tickIndex, voiceIx) {
     let i = 0;
-    let added = false;
     for (i = 0; i < smoNote.pitches.length; ++i) {
       const pitch = smoNote.pitches[i];
       const duration = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex];
@@ -9710,14 +9724,10 @@ class VxMeasure {
           acc.setAsCautionary();
         }
         vexNote.addAccidental(i, acc);
-        added = true;
       }
     }
     for (i = 0; i < smoNote.dots; ++i) {
       vexNote.addDotToAll();
-    }
-    if (added) {
-      this._addSpacingAnnotation(vexNote);
     }
     this._createMicrotones(smoNote, vexNote);
   }
@@ -9748,7 +9758,7 @@ class VxMeasure {
     const fontInfo = suiLayoutAdjuster.textFont(lyric);
     const y = (lyric.verse + 1) * fontInfo.maxHeight;
     lyric.vexRenderY = y;
-    const vexL = new VF.Annotation(lyric.getText()).setReportWidth(lyric.adjustNoteWidth);
+    const vexL = new VF.Annotation(lyric.getText()); // .setReportWidth(lyric.adjustNoteWidth);
     vexL.setAttribute(lyric.attrs.id); //
 
     // If we adjusted this note for the lyric, adjust the lyric as well.
@@ -10100,7 +10110,7 @@ class VxMeasure {
 
     const staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
 
-    this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - (1 + this.smoMeasure.padLeft),
+    this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - this.smoMeasure.padLeft,
       { font: { family: SourceSansProFont.fontFamily, size: '12pt' }, fill_style: VxMeasure.fillStyle });
     // If there is padLeft, draw an invisible box so the padding is included in the measure box
     if (this.smoMeasure.padLeft) {
@@ -10152,13 +10162,16 @@ class VxMeasure {
     }
 
     // Need to format for x position, then set y position before drawing dynamics.
-    this.formatter = new VF.Formatter({ softmaxFactor: this.smoMeasure.customProportion }).joinVoices(this.voiceAr);
+    this.formatter = new VF.Formatter({ softmaxFactor: this.smoMeasure.customProportion, maxIterations: 5 });
+    this.voiceAr.forEach((voice) => {
+      this.formatter.joinVoices([voice]);
+    });
   }
   format(voices) {
     let i = 0;
     this.formatter.format(voices,
       this.smoMeasure.staffWidth -
-      (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft));
+      (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft) - 10);
     const iterations = this.smoMeasure.getFormattingIterations();
     for (i = 0; i < iterations; ++i) {
       this.formatter.tune();
@@ -10360,7 +10373,7 @@ class VxSystem {
         if (typeof(dom) !== 'undefined') {
           dom.setAttributeNS('', 'transform', 'translate(' + lyric.adjX + ' ' + lyric.adjY + ')');
           // Keep track of lyrics that are 'dash'
-          if (lyric.getText().length === 0 && lyric.isHyphenated()) {
+          if (lyric.isDash()) {
             lyricsDash.push(lyric);
           }
         }
@@ -13060,15 +13073,22 @@ class SmoLyric extends SmoNoteModifierBase {
   }
 
   isHyphenated() {
+    const text = this._text.trim();
     return this.parser === SmoLyric.parsers.lyric &&
-      this._text[this._text.length - 1] === '-';
+      text.length &&
+      text[text.length - 1] === '-';
   }
 
   getText() {
+    const text = this._text.trim();
     if (this.isHyphenated()) {
-      return this._text.substr(0, this._text.length - 1);
+      return text.substr(0, text.length - 1).trim();
     }
-    return this._text;
+    return text;
+  }
+
+  isDash() {
+    return this.getText().length === 0 && this.isHyphenated();
   }
 
   static _chordGlyphFromCode(code) {
@@ -15423,6 +15443,7 @@ class SmoToXml {
       smoState.tickCount = 0;
       smoState.staff = staff;
       smoState.slurs = [];
+      smoState.lyricState = {};
       smoState.slurNumber = 1;
       staff.measures.forEach((measure) => {
         smoState.measureTicks = 0;
@@ -15641,6 +15662,35 @@ class SmoToXml {
       measureElement.appendChild(directionElement);
     }
   }
+  // ### /score-partwise/measure/note/lyric
+  static lyric(noteElement, smoState) {
+    const smoNote = smoState.note;
+    const nn = mxmlHelpers.createTextElementChild;
+    const lyrics = smoNote.getTrueLyrics();
+    lyrics.forEach((lyric) => {
+      let syllabic = 'single';
+      if (lyric.isHyphenated() === false && lyric.isDash() === false) {
+        if (smoState.lyricState[lyric.verse] === 'begin') {
+          syllabic = 'end';
+        } // else stays single
+      } else {
+        if (lyric.isHyphenated()) {
+          syllabic = smoState.lyricState[lyric.verse] === 'begin' ?
+            'middle' : 'begin';
+        } else if (lyric.isDash()) {
+          syllabic = 'middle';
+        }
+      }
+      smoState.lyricState[lyric.verse] = syllabic;
+      const lyricElement = nn(noteElement, 'lyric');
+      mxmlHelpers.createAttribute(lyricElement, 'number', lyric.verse + 1);
+      mxmlHelpers.createAttribute(lyricElement, 'placement', 'below');
+      mxmlHelpers.createAttribute(lyricElement, 'default-y',
+        -80 - 10 * lyric.verse);
+      nn(lyricElement, 'syllabic', syllabic);
+      nn(lyricElement, 'text', lyric.getText());
+    });
+  }
   // ### /score-partwise/measure/note
   static note(measureElement, smoState) {
     const note = smoState.note;
@@ -15652,6 +15702,7 @@ class SmoToXml {
         nn(noteElement, 'chord');
       } else {
         SmoToXml.beamNote(noteElement, smoState);
+        SmoToXml.lyric(noteElement, smoState);
         nn(noteElement, 'type', { type: mxmlHelpers.closestStemType(note.tickCount) },
           'type');
         if (note.flagState === SmoNote.flagStates.up) {
@@ -16112,10 +16163,15 @@ class mxmlHelpers {
   // In:  ../parent
   // Out: ../parent/elementName/obj[field]
   // returns elementName element.  If obj is null, just creates and returns child
+  // if obj is a string, it uses it as the text value
   static createTextElementChild(parentElement, elementName, obj, field) {
     const el = parentElement.ownerDocument.createElement(elementName);
     if (obj) {
-      el.textContent = obj[field];
+      if (typeof(obj) === 'string') {
+        el.textContent = obj;
+      } else {
+        el.textContent = obj[field];
+      }
     }
     parentElement.appendChild(el);
     return el;
@@ -16126,6 +16182,11 @@ class mxmlHelpers {
       attr.value = obj[key];
       element.setAttributeNode(attr);
     });
+  }
+  static createAttribute(element, name, value) {
+    const obj = {};
+    obj[name] = value;
+    mxmlHelpers.createAttributes(element, obj);
   }
 }
 ;// ## mxmlScore
@@ -19834,6 +19895,54 @@ class SmoStretchNoteActor extends TickTransformBase {
         }
         return null;
     }
+}
+;// ## SmoToVex
+// Simple serialize class that produced VEX note and voice objects
+// for vex EasyScore (for easier bug reports and test cases)
+// eslint-disable-next-line no-unused-vars
+class SmoToVex {
+  static convert(smoScore) {
+    smoScore.staves.forEach((smoStaff) => {
+      smoStaff.measures.forEach((smoMeasure) => {
+        const voiceStrings = [];
+        const lyricsHash = {};
+        smoMeasure.voices.forEach((smoVoice, vix) => {
+          let keyString = '';
+          voiceStrings.push([]);
+          smoVoice.notes.forEach((smoNote, nix) => {
+            const noteId = 'v' + vix + 'n' + nix;
+            const duration = smoMusic.ticksToDuration[smoMusic.closestDurationTickLtEq(smoNote.tickCount)];
+            if (smoNote.pitches.length > 1) {
+              keyString += '(';
+            }
+            smoNote.pitches.forEach((smoPitch) => {
+              const pitch = { key: smoMusic.pitchToVexKey(smoPitch) };
+              if (!smoMusic.isPitchInKeySignature(smoPitch, smoMeasure.keySignature)) {
+                pitch.accidental = smoPitch.accidental;
+              }
+              keyString += smoMusic.pitchToEasyScore(smoPitch) + ' ';
+              if (pitch.accidental) {
+                keyString += pitch.accidental;
+              }
+            });
+            if (smoNote.pitches.length > 1) {
+              keyString += ')';
+            }
+            keyString +=  '/' + duration + "[id='" + noteId + "'],";
+            smoNote.getTrueLyrics().forEach((lyric) => {
+              if (typeof lyricsHash[noteId] === 'undefined') {
+                lyricsHash[noteId] = [];
+              }
+              lyricsHash[noteId].push(lyric.getText());
+            });
+          });
+          voiceStrings.push(keyString);
+        });
+        console.log(JSON.stringify(voiceStrings, null, ''));
+        console.log(JSON.stringify(lyricsHash), null, '');
+      });
+    });
+  }
 }
 ;// ## UndoBuffer
 // manage a set of undo or redo operations on a score.  The objects passed into

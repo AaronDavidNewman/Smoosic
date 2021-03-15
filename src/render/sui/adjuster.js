@@ -62,10 +62,14 @@ class suiLayoutAdjuster {
           const textFont =
             VF.TextFont.getTextFontFromVexFontData({ family: lyric[0].fontInfo.family,
               size: lyric[0].fontInfo.size, weight: 'normal' });
-          textFont.setFontSize(lyric[0].fontInfo.size);
           const lyricText = lyric[0].getText();
           for (i = 0;i < lyricText.length; ++i) {
-            lyricWidth += textFont.getWidthForCharacter(lyricText[i]) * (72 / 96);
+            lyricWidth += textFont.getWidthForCharacter(lyricText[i]);
+          }
+          if (lyric[0].isHyphenated()) {
+            lyricWidth +=  2 * textFont.getWidthForCharacter('-');
+          } else {
+            lyricWidth +=  2 * textFont.getWidthForCharacter('H');
           }
           noteWidth = Math.max(lyricWidth, noteWidth);
           verse += 1;

@@ -73,26 +73,19 @@ class VxMeasure {
 
   // We add microtones to the notes, without regard really to how they interact
   _createMicrotones(smoNote, vexNote) {
-    let added = false;
+    // let added = false;
     const tones = smoNote.getMicrotones();
     tones.forEach((tone) => {
       const acc = new VF.Accidental(tone.toVex);
       vexNote.addAccidental(tone.pitch, acc);
       added = true;
     });
-    if (added) {
-      this._addSpacingAnnotation(vexNote);
-    }
+    // if (added) {
+    //   this._addSpacingAnnotation(vexNote);
+    // }
   }
-  _addSpacingAnnotation(vexNote) {
-    const vexL = new VF.Annotation('  ').setVerticalJustification('CENTER')
-      .setJustification('RIGHT');
-    vexNote.addAnnotation(0, vexL);
-  }
-
   _createAccidentals(smoNote, vexNote, tickIndex, voiceIx) {
     let i = 0;
-    let added = false;
     for (i = 0; i < smoNote.pitches.length; ++i) {
       const pitch = smoNote.pitches[i];
       const duration = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex];
@@ -111,14 +104,10 @@ class VxMeasure {
           acc.setAsCautionary();
         }
         vexNote.addAccidental(i, acc);
-        added = true;
       }
     }
     for (i = 0; i < smoNote.dots; ++i) {
       vexNote.addDotToAll();
-    }
-    if (added) {
-      this._addSpacingAnnotation(vexNote);
     }
     this._createMicrotones(smoNote, vexNote);
   }
@@ -149,7 +138,7 @@ class VxMeasure {
     const fontInfo = suiLayoutAdjuster.textFont(lyric);
     const y = (lyric.verse + 1) * fontInfo.maxHeight;
     lyric.vexRenderY = y;
-    const vexL = new VF.Annotation(lyric.getText()).setReportWidth(lyric.adjustNoteWidth);
+    const vexL = new VF.Annotation(lyric.getText()); // .setReportWidth(lyric.adjustNoteWidth);
     vexL.setAttribute(lyric.attrs.id); //
 
     // If we adjusted this note for the lyric, adjust the lyric as well.
@@ -501,7 +490,7 @@ class VxMeasure {
 
     const staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
 
-    this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - (1 + this.smoMeasure.padLeft),
+    this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - this.smoMeasure.padLeft,
       { font: { family: SourceSansProFont.fontFamily, size: '12pt' }, fill_style: VxMeasure.fillStyle });
     // If there is padLeft, draw an invisible box so the padding is included in the measure box
     if (this.smoMeasure.padLeft) {
@@ -553,13 +542,16 @@ class VxMeasure {
     }
 
     // Need to format for x position, then set y position before drawing dynamics.
-    this.formatter = new VF.Formatter({ softmaxFactor: this.smoMeasure.customProportion }).joinVoices(this.voiceAr);
+    this.formatter = new VF.Formatter({ softmaxFactor: this.smoMeasure.customProportion, maxIterations: 5 });
+    this.voiceAr.forEach((voice) => {
+      this.formatter.joinVoices([voice]);
+    });
   }
   format(voices) {
     let i = 0;
     this.formatter.format(voices,
       this.smoMeasure.staffWidth -
-      (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft));
+      (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft) - 10);
     const iterations = this.smoMeasure.getFormattingIterations();
     for (i = 0; i < iterations; ++i) {
       this.formatter.tune();

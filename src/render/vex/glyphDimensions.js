@@ -103,7 +103,7 @@ class vexGlyph {
         spacingRight: 10.71,
       },
       dot: {
-        width: 5,
+        width: 15,
         height: 5,
         spacingRight: 2
       }, // This isn't accurate, but I don't
@@ -172,7 +172,7 @@ class vexGlyph {
         spacingRight: 2
       },
       natural: {
-        width: 6.54,
+        width: 15,
         height: 53.35,
         yTop: 0,
         yBottom: 0,

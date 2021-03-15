@@ -198,10 +198,20 @@ class smoMusic {
     } else {
       vexKey = vexKey + smoPitch.accidental;
     }
-    if (smoPitch['octave']) {
+    if (smoPitch.octave) {
       vexKey = vexKey + '/' + smoPitch.octave;
     }
     return vexKey;
+  }
+
+  static pitchToEasyScore(smoPitch) {
+    let vexKey = smoPitch.letter.toLowerCase();
+    if (smoPitch.accidental.length === 0) {
+      vexKey = vexKey + 'n';
+    } else {
+      vexKey = vexKey + smoPitch.accidental;
+    }
+    return vexKey + smoPitch.octave;
   }
 
   static pitchToVexKey(smoPitch, head) {
@@ -692,10 +702,10 @@ class smoMusic {
     return km.scaleMap[letter];
   }
 
-    static getAccidentalForKeySignature(smoPitch,keySignature) {
-        var vexKey = smoMusic.getKeySignatureKey(smoPitch.letter,keySignature);
-        return vexKey.length == 1 ? 'n' : vexKey.substr(1,vexKey.length - 1);
-    }
+  static getAccidentalForKeySignature(smoPitch, keySignature) {
+      var vexKey = smoMusic.getKeySignatureKey(smoPitch.letter,keySignature);
+      return vexKey.length == 1 ? 'n' : vexKey.substr(1,vexKey.length - 1);
+  }
 
     // ### isPitchInKeySignature
     // Return true if the pitch is not an accidental in the give key, e.g.

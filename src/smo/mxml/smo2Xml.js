@@ -48,6 +48,7 @@ class SmoToXml {
       smoState.tickCount = 0;
       smoState.staff = staff;
       smoState.slurs = [];
+      smoState.lyricState = {};
       smoState.slurNumber = 1;
       staff.measures.forEach((measure) => {
         smoState.measureTicks = 0;
@@ -266,6 +267,35 @@ class SmoToXml {
       measureElement.appendChild(directionElement);
     }
   }
+  // ### /score-partwise/measure/note/lyric
+  static lyric(noteElement, smoState) {
+    const smoNote = smoState.note;
+    const nn = mxmlHelpers.createTextElementChild;
+    const lyrics = smoNote.getTrueLyrics();
+    lyrics.forEach((lyric) => {
+      let syllabic = 'single';
+      if (lyric.isHyphenated() === false && lyric.isDash() === false) {
+        if (smoState.lyricState[lyric.verse] === 'begin') {
+          syllabic = 'end';
+        } // else stays single
+      } else {
+        if (lyric.isHyphenated()) {
+          syllabic = smoState.lyricState[lyric.verse] === 'begin' ?
+            'middle' : 'begin';
+        } else if (lyric.isDash()) {
+          syllabic = 'middle';
+        }
+      }
+      smoState.lyricState[lyric.verse] = syllabic;
+      const lyricElement = nn(noteElement, 'lyric');
+      mxmlHelpers.createAttribute(lyricElement, 'number', lyric.verse + 1);
+      mxmlHelpers.createAttribute(lyricElement, 'placement', 'below');
+      mxmlHelpers.createAttribute(lyricElement, 'default-y',
+        -80 - 10 * lyric.verse);
+      nn(lyricElement, 'syllabic', syllabic);
+      nn(lyricElement, 'text', lyric.getText());
+    });
+  }
   // ### /score-partwise/measure/note
   static note(measureElement, smoState) {
     const note = smoState.note;
@@ -277,6 +307,7 @@ class SmoToXml {
         nn(noteElement, 'chord');
       } else {
         SmoToXml.beamNote(noteElement, smoState);
+        SmoToXml.lyric(noteElement, smoState);
         nn(noteElement, 'type', { type: mxmlHelpers.closestStemType(note.tickCount) },
           'type');
         if (note.flagState === SmoNote.flagStates.up) {

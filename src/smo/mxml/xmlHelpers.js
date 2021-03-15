@@ -354,10 +354,15 @@ class mxmlHelpers {
   // In:  ../parent
   // Out: ../parent/elementName/obj[field]
   // returns elementName element.  If obj is null, just creates and returns child
+  // if obj is a string, it uses it as the text value
   static createTextElementChild(parentElement, elementName, obj, field) {
     const el = parentElement.ownerDocument.createElement(elementName);
     if (obj) {
-      el.textContent = obj[field];
+      if (typeof(obj) === 'string') {
+        el.textContent = obj;
+      } else {
+        el.textContent = obj[field];
+      }
     }
     parentElement.appendChild(el);
     return el;
@@ -368,5 +373,10 @@ class mxmlHelpers {
       attr.value = obj[key];
       element.setAttributeNode(attr);
     });
+  }
+  static createAttribute(element, name, value) {
+    const obj = {};
+    obj[name] = value;
+    mxmlHelpers.createAttributes(element, obj);
   }
 }

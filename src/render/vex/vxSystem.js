@@ -153,7 +153,7 @@ class VxSystem {
         if (typeof(dom) !== 'undefined') {
           dom.setAttributeNS('', 'transform', 'translate(' + lyric.adjX + ' ' + lyric.adjY + ')');
           // Keep track of lyrics that are 'dash'
-          if (lyric.getText().length === 0 && lyric.isHyphenated()) {
+          if (lyric.isDash()) {
             lyricsDash.push(lyric);
           }
         }

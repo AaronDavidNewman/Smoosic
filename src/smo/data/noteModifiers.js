@@ -378,15 +378,22 @@ class SmoLyric extends SmoNoteModifierBase {
   }
 
   isHyphenated() {
+    const text = this._text.trim();
     return this.parser === SmoLyric.parsers.lyric &&
-      this._text[this._text.length - 1] === '-';
+      text.length &&
+      text[text.length - 1] === '-';
   }
 
   getText() {
+    const text = this._text.trim();
     if (this.isHyphenated()) {
-      return this._text.substr(0, this._text.length - 1);
+      return text.substr(0, text.length - 1).trim();
     }
-    return this._text;
+    return text;
+  }
+
+  isDash() {
+    return this.getText().length === 0 && this.isHyphenated();
   }
 
   static _chordGlyphFromCode(code) {

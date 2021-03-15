@@ -5,6 +5,7 @@ class SuiRenderDemon {
     this.undoStatus = 0;
 
     Vex.Merge(this, parameters);
+    this.handling = false;
   }
 
   get isLayoutQuiet() {
@@ -16,6 +17,10 @@ class SuiRenderDemon {
   }
 
   handleRedrawTimer() {
+    if (this.handling) {
+      return;
+    }
+    this.handling = true;
     // If there has been a change, redraw the score
     if (this.undoStatus !== this.undoBuffer.opCount || this.view.renderer.dirty) {
       this.view.renderer.dirty = true;
@@ -29,6 +34,7 @@ class SuiRenderDemon {
       } catch (ex) {
         console.error(ex);
         SuiExceptionHandler.instance.exceptionHandler(ex);
+        this.handling = false;
       }
     } else if (this.view.renderer.passState === SuiRenderState.passStates.replace) {
       // Consider navigation as activity when deciding to refresh
@@ -38,6 +44,7 @@ class SuiRenderDemon {
         this.view.renderer.setRefresh();
       }
     }
+    this.handling = false;
 }
 
     // ### pollRedraw
