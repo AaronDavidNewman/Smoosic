@@ -3204,130 +3204,178 @@ class suiLayoutAdjuster {
 }
 ;
 class layoutDebug {
-    static get values() {
-        return {
-            pre:1,
-            post:2,
-            adjust:4,
-            system:8,
-            note:16,
-            adjustHeight:32,
-            measureHistory:64,
-            textEditorHistory:128,
-            dialogEvents:256
-        }
-    }
+  static get values() {
+    return {
+      pre: 1,
+      post: 2,
+      adjust: 4,
+      system: 8,
+      note: 16,
+      adjustHeight: 32,
+      measureHistory: 64,
+      textEditorHistory: 128,
+      dialogEvents: 256
+    };
+  }
 
     static get classes() {
-        return {
-            pre:'measure-place-dbg',
-            post:'measure-render-dbg',
-            adjust:'measure-adjust-dbg',
-            system:'system-place-dbg',
-            note:'measure-note-dbg',
-            adjustHeight:'measure-adjustHeight-dbg',
-            measureHistory:'',
-            textEditorHistory:'',
-            dialogEvents:''
-        }
+      return {
+        pre: 'measure-place-dbg',
+        post: 'measure-render-dbg',
+        adjust: 'measure-adjust-dbg',
+        system: 'system-place-dbg',
+        note: 'measure-note-dbg',
+        adjustHeight: 'measure-adjustHeight-dbg',
+        measureHistory: '',
+        textEditorHistory: '',
+        dialogEvents: ''
+      };
+    }
+    static get codeRegions() {
+      return {
+        COMPUTE: 0,
+        PREFORMATA: 1,
+        PREFORMATB: 2,
+        PREFORMATC: 3,
+        FORMAT: 4,
+        RENDER: 5,
+        POST_RENDER: 6,
+        MAP: 7,
+        LAST: 7
+      };
+    }
+    static get codeRegionStrings() {
+      return ['COMPUTE', 'PREFORMATA', 'PREFORMATB', 'PREFORMATC', 'FORMAT', 'RENDER', 'POST_RENDER', 'MAP'];
     }
 
 	static get mask() {
-        if (typeof(layoutDebug._flags) == 'undefined') {
-            layoutDebug._flags = 0;
-        }
-        return layoutDebug._flags;
+    if (typeof(layoutDebug._flags) === 'undefined') {
+      layoutDebug._flags = 0;
+    }
+    return layoutDebug._flags;
 	}
+  static get timestampHash() {
+    if (typeof(layoutDebug.timestampInstance) === 'undefined') {
+      layoutDebug.timestampInstance = {};
+      layoutDebug.clearTimestamps();
+    }
+    return layoutDebug.timestampInstance;
+  }
+  static clearTimestamps() {
+    for (var i = 0; i <= layoutDebug.codeRegions.LAST; ++i) {
+      layoutDebug.timestampHash[i] = 0;
+    }
+  }
 
-    static set mask(value) {
-        layoutDebug._flags = value;
+  static setTimestamp(region, millis) {
+    layoutDebug.timestampHash[region] += millis;
+  }
+  static printTimeReport() {
+    let total = 0;
+    let report = {};
+    let i = 0;
+    for (i = 0;i <= layoutDebug.codeRegions.LAST; ++i) {
+      total += layoutDebug.timestampHash[i];
+      report[layoutDebug.codeRegionStrings[i]] = {
+        time: layoutDebug.timestampHash[i], percent: 0
+      };
     }
+    report.total = total;
+    for (i = 0; i <= layoutDebug.codeRegions.LAST; ++i) {
+      report[layoutDebug.codeRegionStrings[i]].percent =
+        Math.round((report[layoutDebug.codeRegionStrings[i]].time * 100) / report.total);
+    }
+    console.log(JSON.stringify(report, null, ' '));
+  }
 
-    static flagSet(value) {
-        return layoutDebug.mask & layoutDebug.values[value];
-    }
+  static set mask(value) {
+    layoutDebug._flags = value;
+  }
 
-    static clearAll(svg) {
-        layoutDebug._flags = 0;
-    }
-    static setAll() {
-        layoutDebug._flags = 1+2+4+8+16+32+64+128+256;
-    }
-    static setRenderFlags() {
-      layoutDebug._flags = 1+2+4+8+16+32;
-    }
-    static clearDebugBoxes(value) {
-        if (layoutDebug.flagSet(value)) {
-            var selector = 'g.'+layoutDebug.classes[value];
-            $(selector).remove();
-        }
-    }
-    static debugBox(svg,box,flag) {
-        if (!box) {
-            return;
-        }
-        if (!box.height) {
-            box.height=1;
-        }
-        if (layoutDebug.flagSet(flag)) {
-            svgHelpers.debugBox(svg, box, layoutDebug.classes[flag]);
-        }
-    }
-    static clearFlag(value) {
-        clearFlagSvg(value);
+  static flagSet(value) {
+    return layoutDebug.mask & layoutDebug.values[value];
+  }
 
-        var flag = layoutDebug.values[value];
-        if (typeof(layoutDebug._flags) == 'undefined') {
-            layoutDebug._flags = 0;
-        }
-        layoutDebug._flags = layoutDebug._flags & (~flag);
+  static clearAll(svg) {
+    layoutDebug._flags = 0;
+  }
+  static setAll() {
+    layoutDebug._flags = 1+2+4+8+16+32+64+128+256;
+  }
+  static setRenderFlags() {
+    layoutDebug._flags = 1+2+4+8+16+32;
+  }
+  static clearDebugBoxes(value) {
+    if (layoutDebug.flagSet(value)) {
+      var selector = 'g.'+layoutDebug.classes[value];
+      $(selector).remove();
     }
+  }
+  static debugBox(svg,box,flag) {
+    if (!box) {
+      return;
+    }
+    if (!box.height) {
+      box.height=1;
+    }
+    if (layoutDebug.flagSet(flag)) {
+      svgHelpers.debugBox(svg, box, layoutDebug.classes[flag]);
+    }
+  }
+  static clearFlag(value) {
+    clearFlagSvg(value);
+    var flag = layoutDebug.values[value];
+    if (typeof(layoutDebug._flags) == 'undefined') {
+      layoutDebug._flags = 0;
+    }
+    layoutDebug._flags = layoutDebug._flags & (~flag);
+  }
 
 	static setFlag(value) {
-        var flag = layoutDebug.values[value];
-        if (typeof(layoutDebug._flags) == 'undefined') {
-            layoutDebug._flags = flag;
-            return;
-        }
-        layoutDebug._flags |= flag;
+    var flag = layoutDebug.values[value];
+    if (typeof(layoutDebug._flags) == 'undefined') {
+        layoutDebug._flags = flag;
+        return;
+    }
+    layoutDebug._flags |= flag;
 	}
 
-    static get textDebug() {
-        if (!layoutDebug['_textDebug']) {
-            layoutDebug['_textDebug'] = [];
-        }
-        return layoutDebug['_textDebug']
+  static get textDebug() {
+    if (!layoutDebug['_textDebug']) {
+      layoutDebug['_textDebug'] = [];
     }
+    return layoutDebug['_textDebug']
+  }
 
-    static addTextDebug(value) {
-        if (!layoutDebug.mask & layoutDebug.textEditorHistory) {
-            return;
-        }
-        if (!layoutDebug['_textDebug']) {
-            layoutDebug['_textDebug'] = [];
-        }
-        layoutDebug['_textDebug'].push(value);
-        console.log(value);
+  static addTextDebug(value) {
+    if (!layoutDebug.mask & layoutDebug.textEditorHistory) {
+      return;
     }
+    if (!layoutDebug['_textDebug']) {
+      layoutDebug['_textDebug'] = [];
+    }
+    layoutDebug['_textDebug'].push(value);
+    console.log(value);
+  }
 
-    static addDialogDebug(value) {
-      if (!layoutDebug.mask & layoutDebug.dialogEvents) {
-          return;
-      }
-      if (!layoutDebug['_dialogEvents']) {
-          layoutDebug['_dialogEvents'] = [];
-      }
-      layoutDebug['_dialogEvents'].push(value);
-      console.log(value);
+  static addDialogDebug(value) {
+    if (!layoutDebug.mask & layoutDebug.dialogEvents) {
+      return;
     }
+    if (!layoutDebug['_dialogEvents']) {
+      layoutDebug['_dialogEvents'] = [];
+    }
+    layoutDebug['_dialogEvents'].push(value);
+    console.log(value);
+  }
 
-    static measureHistory(measure,oldVal,newVal,description) {
-        if (layoutDebug.flagSet('measureHistory')) {
-            var oldExp = (typeof(measure.svg[oldVal]) == 'object') ? JSON.stringify(measure.svg[oldVal]).replace(/"/g,'') : measure.svg[oldVal];
-            var newExp = (typeof(newVal) == 'object') ? JSON.stringify(newVal).replace(/"/g,'') : newVal;
-            measure.svg.history.push(oldVal + ': '+oldExp +'=> '+newExp + ' ' + description);
-        }
+  static measureHistory(measure,oldVal,newVal,description) {
+    if (layoutDebug.flagSet('measureHistory')) {
+      var oldExp = (typeof(measure.svg[oldVal]) == 'object') ? JSON.stringify(measure.svg[oldVal]).replace(/"/g,'') : measure.svg[oldVal];
+      var newExp = (typeof(newVal) == 'object') ? JSON.stringify(newVal).replace(/"/g,'') : newVal;
+      measure.svg.history.push(oldVal + ': '+oldExp +'=> '+newExp + ' ' + description);
     }
+  }
 }
 ;
 class SuiRenderDemon {
@@ -3510,6 +3558,7 @@ class suiMapper {
     if (!measure.renderedBox) {
         return;
     }
+    const timestamp = new Date().valueOf();
     // Keep track of any current selections in this measure, we will try to restore them.
     var sels = this._copySelectionsByMeasure(staff.staffId, measure.measureNumber.measureIndex);
     this.clearMeasureMap(staff,measure);
@@ -3581,6 +3630,7 @@ class suiMapper {
     if (selectionChanged) {
         this.highlightSelection();
     }
+    layoutDebug.setTimestamp(layoutDebug.codeRegions.MAP, new Date().valueOf() - timestamp);
   }
 
   // ### updateMap
@@ -4706,12 +4756,13 @@ class SuiScoreRender extends SuiRenderState {
           }
         });
       });
-
+      const timestamp = new Date().valueOf();
       vxSystem.renderEndings();
       vxSystem.updateLyricOffsets();
       this._score.staves.forEach((stf) => {
         this._renderModifiers(stf, vxSystem);
       });
+      layoutDebug.setTimestamp(layoutDebug.codeRegions.POST_RENDER, new Date().valueOf() - timestamp);
     });
     this.renderScoreModifiers();
     this.numberMeasures();
@@ -4795,6 +4846,8 @@ class SuiScoreRender extends SuiRenderState {
     layoutDebug.clearDebugBoxes('adjust');
     layoutDebug.clearDebugBoxes('system');
     layoutDebug.clearDebugBoxes('note');
+    const timestamp = new Date().valueOf();
+
     const svg = this.context.svg;
     const scoreLayout = this.scaledScoreLayout;
     scoreLayout.pages = 1;
@@ -4858,6 +4911,7 @@ class SuiScoreRender extends SuiRenderState {
       this.score.layout.pages = scoreLayout.pages;
       this.setViewport(true);
     }
+    layoutDebug.setTimestamp(layoutDebug.codeRegions.COMPUTE, new Date().valueOf() - timestamp);
     this.renderAllMeasures();
   }
 
@@ -9839,6 +9893,7 @@ class VxMeasure {
   // convert a smoNote into a vxNote so it can be rasterized
   _createVexNote(smoNote, tickIndex, voiceIx, x_shift) {
     let vexNote = {};
+    let timestamp = new Date().valueOf();
     // If this is a tuplet, we only get the duration so the appropriate stem
     // can be rendered.  Vex calculates the actual ticks later when the tuplet is made
     var duration =
@@ -9859,16 +9914,20 @@ class VxMeasure {
     };
 
     this.applyStemDirection(noteParams, voiceIx, smoNote.flagState);
+    layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATA, new Date().valueOf() - timestamp);
+    timestamp = new Date().valueOf();
     vexNote = new VF.StaveNote(noteParams);
+    layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATB, new Date().valueOf() - timestamp);
+    timestamp = new Date().valueOf();
     if (smoNote.fillStyle) {
       vexNote.setStyle({ fillStyle: smoNote.fillStyle });
     }
     vexNote.attrs.classes = 'voice-' + voiceIx;
-    if (smoNote.tickCount >= 4096) {
+    /* if (smoNote.tickCount >= 4096) {
       const stemDirection = smoNote.flagState === SmoNote.flagStates.auto ?
         vexNote.getStemDirection() : smoNote.toVexStemDirection();
       vexNote.setStemDirection(stemDirection);
-    }
+    }  */
     smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
 
     this._createAccidentals(smoNote, vexNote, tickIndex, voiceIx);
@@ -9876,6 +9935,7 @@ class VxMeasure {
     this._createOrnaments(smoNote, vexNote);
     this._createJazzOrnaments(smoNote, vexNote);
     this._createGraceNotes(smoNote, vexNote);
+    layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATC, new Date().valueOf() - timestamp);
 
     return vexNote;
   }
@@ -10169,6 +10229,7 @@ class VxMeasure {
   }
   format(voices) {
     let i = 0;
+    const timestamp = new Date().valueOf();
     this.formatter.format(voices,
       this.smoMeasure.staffWidth -
       (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft) - 10);
@@ -10176,12 +10237,14 @@ class VxMeasure {
     for (i = 0; i < iterations; ++i) {
       this.formatter.tune();
     }
+    layoutDebug.setTimestamp(layoutDebug.codeRegions.FORMAT, new Date().valueOf() - timestamp);
   }
   render() {
     var self = this;
     var group = this.context.openGroup();
     var mmClass = this.smoMeasure.getClassId();
     var j = 0;
+    const timestamp = new Date().valueOf();
     try {
       group.classList.add(this.smoMeasure.attrs.id);
       group.classList.add(mmClass);
@@ -10206,6 +10269,7 @@ class VxMeasure {
       // this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
 
       this.context.closeGroup();
+      layoutDebug.setTimestamp(layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
       const box = svgHelpers.smoBox(group.getBoundingClientRect());
       const lbox = svgHelpers.smoBox(group.getBBox());
       this.smoMeasure.renderedBox = box;
@@ -38442,11 +38506,11 @@ class SuiLibraryMenu extends suiMenuBase {
     } else if (text === 'yamaJson') {
       this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json');
     } else if (text === 'handel') {
-      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Messiah1-1.json');
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Messiah Pt 1-1.json');
     } else if (text === 'bambino') {
-      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/GesuBambino.json');
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Gesu Bambino.json');
     } else if (text === 'preciousLord') {
-      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/PreciousLord.json');
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Precious Lord.json');
     } else if (text === 'dichterliebe') {
       this._loadXmlAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Dichterliebe01.xml');
     } else if (text === 'beethoven') {
