@@ -217,12 +217,13 @@ class SuiScoreRender extends SuiRenderState {
           }
         });
       });
-
+      const timestamp = new Date().valueOf();
       vxSystem.renderEndings();
       vxSystem.updateLyricOffsets();
       this._score.staves.forEach((stf) => {
         this._renderModifiers(stf, vxSystem);
       });
+      layoutDebug.setTimestamp(layoutDebug.codeRegions.POST_RENDER, new Date().valueOf() - timestamp);
     });
     this.renderScoreModifiers();
     this.numberMeasures();
@@ -306,6 +307,8 @@ class SuiScoreRender extends SuiRenderState {
     layoutDebug.clearDebugBoxes('adjust');
     layoutDebug.clearDebugBoxes('system');
     layoutDebug.clearDebugBoxes('note');
+    const timestamp = new Date().valueOf();
+
     const svg = this.context.svg;
     const scoreLayout = this.scaledScoreLayout;
     scoreLayout.pages = 1;
@@ -369,6 +372,7 @@ class SuiScoreRender extends SuiRenderState {
       this.score.layout.pages = scoreLayout.pages;
       this.setViewport(true);
     }
+    layoutDebug.setTimestamp(layoutDebug.codeRegions.COMPUTE, new Date().valueOf() - timestamp);
     this.renderAllMeasures();
   }
 

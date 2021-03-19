@@ -600,11 +600,11 @@ class SuiLibraryMenu extends suiMenuBase {
     } else if (text === 'yamaJson') {
       this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json');
     } else if (text === 'handel') {
-      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Messiah1-1.json');
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Messiah Pt 1-1.json');
     } else if (text === 'bambino') {
-      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/GesuBambino.json');
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Gesu Bambino.json');
     } else if (text === 'preciousLord') {
-      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/PreciousLord.json');
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Precious Lord.json');
     } else if (text === 'dichterliebe') {
       this._loadXmlAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Dichterliebe01.xml');
     } else if (text === 'beethoven') {

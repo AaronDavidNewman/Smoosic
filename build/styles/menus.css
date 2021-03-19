@@ -80,6 +80,6 @@ body.modal .overlay,body.showAttributeDialog .overlay {
 	background: #333;
 }
 
-body.modal .overlay,body.showAttributeDialog.textEditor .overlay {
+body.showAttributeDialog.textEditor .overlay {
 	display:none;
 }

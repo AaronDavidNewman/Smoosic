@@ -219,6 +219,7 @@ class VxMeasure {
   // convert a smoNote into a vxNote so it can be rasterized
   _createVexNote(smoNote, tickIndex, voiceIx, x_shift) {
     let vexNote = {};
+    let timestamp = new Date().valueOf();
     // If this is a tuplet, we only get the duration so the appropriate stem
     // can be rendered.  Vex calculates the actual ticks later when the tuplet is made
     var duration =
@@ -239,16 +240,15 @@ class VxMeasure {
     };
 
     this.applyStemDirection(noteParams, voiceIx, smoNote.flagState);
+    layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATA, new Date().valueOf() - timestamp);
+    timestamp = new Date().valueOf();
     vexNote = new VF.StaveNote(noteParams);
+    layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATB, new Date().valueOf() - timestamp);
+    timestamp = new Date().valueOf();
     if (smoNote.fillStyle) {
       vexNote.setStyle({ fillStyle: smoNote.fillStyle });
     }
     vexNote.attrs.classes = 'voice-' + voiceIx;
-    if (smoNote.tickCount >= 4096) {
-      const stemDirection = smoNote.flagState === SmoNote.flagStates.auto ?
-        vexNote.getStemDirection() : smoNote.toVexStemDirection();
-      vexNote.setStemDirection(stemDirection);
-    }
     smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
 
     this._createAccidentals(smoNote, vexNote, tickIndex, voiceIx);
@@ -256,6 +256,7 @@ class VxMeasure {
     this._createOrnaments(smoNote, vexNote);
     this._createJazzOrnaments(smoNote, vexNote);
     this._createGraceNotes(smoNote, vexNote);
+    layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATC, new Date().valueOf() - timestamp);
 
     return vexNote;
   }
@@ -549,6 +550,7 @@ class VxMeasure {
   }
   format(voices) {
     let i = 0;
+    const timestamp = new Date().valueOf();
     this.formatter.format(voices,
       this.smoMeasure.staffWidth -
       (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft) - 10);
@@ -556,12 +558,14 @@ class VxMeasure {
     for (i = 0; i < iterations; ++i) {
       this.formatter.tune();
     }
+    layoutDebug.setTimestamp(layoutDebug.codeRegions.FORMAT, new Date().valueOf() - timestamp);
   }
   render() {
     var self = this;
     var group = this.context.openGroup();
     var mmClass = this.smoMeasure.getClassId();
     var j = 0;
+    const timestamp = new Date().valueOf();
     try {
       group.classList.add(this.smoMeasure.attrs.id);
       group.classList.add(mmClass);
@@ -586,6 +590,7 @@ class VxMeasure {
       // this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
 
       this.context.closeGroup();
+      layoutDebug.setTimestamp(layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
       const box = svgHelpers.smoBox(group.getBoundingClientRect());
       const lbox = svgHelpers.smoBox(group.getBBox());
       this.smoMeasure.renderedBox = box;

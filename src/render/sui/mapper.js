@@ -108,6 +108,7 @@ class suiMapper {
     if (!measure.renderedBox) {
         return;
     }
+    const timestamp = new Date().valueOf();
     // Keep track of any current selections in this measure, we will try to restore them.
     var sels = this._copySelectionsByMeasure(staff.staffId, measure.measureNumber.measureIndex);
     this.clearMeasureMap(staff,measure);
@@ -179,6 +180,7 @@ class suiMapper {
     if (selectionChanged) {
         this.highlightSelection();
     }
+    layoutDebug.setTimestamp(layoutDebug.codeRegions.MAP, new Date().valueOf() - timestamp);
   }
 
   // ### updateMap
