@@ -4867,7 +4867,6 @@ class SuiScoreRender extends SuiRenderState {
         const bottomMeasure = currentLine.reduce((a, b) =>
           a.logicalBox.y + a.logicalBox.height > b.logicalBox.y + b.logicalBox.height ? a : b
         );
-
         this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
 
         const ld = layoutDebug;
@@ -5183,10 +5182,10 @@ class SuiScoreView {
     this.score = score;
     this.renderer = renderer;
     const scoreJson = score.serialize();
-    const scroller = new suiScroller(scrollSelector);
+    this.scroller = new suiScroller(scrollSelector);
     this.pasteBuffer = new PasteBuffer();
     this.storePaste = new PasteBuffer();
-    this.tracker = new suiTracker(this.renderer, scroller, this.pasteBuffer);
+    this.tracker = new suiTracker(this.renderer, this.scroller, this.pasteBuffer);
     this.renderer.setMeasureMapper(this.tracker);
 
     this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));
@@ -6419,8 +6418,8 @@ class suiScroller  {
   scrollAbsolute(x,y) {
     $(this.selector)[0].scrollLeft = x;
     $(this.selector)[0].scrollTop = y;
-    this.netScroll.x = x;
-    this.netScroll.y = y;
+    this.netScroll.x = this._scroll.x = x;
+    this.netScroll.y = this._scroll.y = y;
   }
 
   // ### scrollVisible
@@ -6997,7 +6996,10 @@ class SuiLyricEditor extends SuiTextEditor {
   // params: {lyric: SmoLyric,...}
   constructor(params) {
     super(params);
-    this.text = params.lyric._text;
+    this.text = params.lyric.getText();
+    if (params.lyric.isHyphenated()) {
+      this.text += '-';
+    }
     this.lyric = params.lyric;
     this.parseBlocks();
   }
@@ -8537,7 +8539,9 @@ class suiTracker extends suiMapper {
         }
       });
       selection.note.textModifiers.forEach((modifier) => {
-        ix = this._updateNoteModifier(selection, modMap, modifier, ix);
+        if (modifier.renderedBox) {
+          ix = this._updateNoteModifier(selection, modMap, modifier, ix);
+        }
       });
 
       selection.note.graceNotes.forEach((modifier) => {
@@ -9806,13 +9810,19 @@ class VxMeasure {
   }
   _addLyricAnnotationToNote(vexNote, lyric) {
     let classString = 'lyric lyric-' + lyric.verse;
+    let text = lyric.getText();
     if (lyric.skipRender) {
       return;
     }
-    const fontInfo = suiLayoutAdjuster.textFont(lyric);
-    const y = (lyric.verse + 1) * fontInfo.maxHeight;
-    lyric.vexRenderY = y;
-    const vexL = new VF.Annotation(lyric.getText()); // .setReportWidth(lyric.adjustNoteWidth);
+    lyric.vexRenderY = 0;
+    if (!text.length && lyric.isHyphenated()) {
+      text = '-';
+    }
+    // no text, no hyphen, don't add it.
+    if (!text.length) {
+      return;
+    }
+    const vexL = new VF.Annotation(text); // .setReportWidth(lyric.adjustNoteWidth);
     vexL.setAttribute(lyric.attrs.id); //
 
     // If we adjusted this note for the lyric, adjust the lyric as well.
@@ -9842,13 +9852,13 @@ class VxMeasure {
   }
 
   _createLyric(smoNote, vexNote) {
-    const lyrics = smoNote.getModifiers('SmoLyric');
+    const lyrics = smoNote.getTrueLyrics();
     lyrics.forEach((ll) => {
-      if (ll.parser === SmoLyric.parsers.lyric) {
-        this._addLyricAnnotationToNote(vexNote, ll);
-      } else {
-        this._addChordChangeToNote(vexNote, ll);
-      }
+      this._addLyricAnnotationToNote(vexNote, ll);
+    });
+    const chords = smoNote.getChords();
+    chords.forEach((chord) => {
+      this._addChordChangeToNote(vexNote, chord);
     });
   }
 
@@ -9923,11 +9933,6 @@ class VxMeasure {
       vexNote.setStyle({ fillStyle: smoNote.fillStyle });
     }
     vexNote.attrs.classes = 'voice-' + voiceIx;
-    /* if (smoNote.tickCount >= 4096) {
-      const stemDirection = smoNote.flagState === SmoNote.flagStates.auto ?
-        vexNote.getStemDirection() : smoNote.toVexStemDirection();
-      vexNote.setStemDirection(stemDirection);
-    }  */
     smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
 
     this._createAccidentals(smoNote, vexNote, tickIndex, voiceIx);
@@ -10131,7 +10136,7 @@ class VxMeasure {
           svgHelpers.updateArtifactBox(this.context.svg, el, smoNote);
           // TODO: fix this, only works on the first line.
           smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-            if (lyric.selector) {
+            if (lyric.selector && (lyric.getText().length || lyric.isHyphenated())) {
               svgHelpers.updateArtifactBox(this.context.svg, $(lyric.selector)[0], lyric);
             }
           });
@@ -10355,6 +10360,35 @@ class VxSystem {
       });
     }
   }
+  _lowestYLowestVerse(lyrics) {
+    let lowVerse = 5;
+    let lowestY = 0;
+    lyrics.forEach((lyric) => {
+      if (lyric.logicalBox && lyric.verse < lowVerse) {
+        lowestY = lyric.logicalBox.y;
+        lowVerse = lyric.verse;
+      }
+      if (lyric.verse === lowVerse && lyric.logicalBox && lyric.logicalBox.y > lowestY) {
+        lowestY = lyric.logicalBox.y;
+      }
+    });
+    this.vxMeasures.forEach((vxMeasure) => {
+      vxMeasure.smoMeasure.voices.forEach((voice) => {
+        voice.notes.forEach((note) => {
+          const lyrics = note.getTrueLyrics();
+          if (lyrics.length) {
+            const topVerse = lyrics.reduce((a, b) => a.verse < b.verse ? a : b);
+            if (topVerse && topVerse.logicalBox) {
+              const offset =  lowestY - topVerse.logicalBox.y;
+              lyrics.forEach((lyric) => {
+                lyric.adjY = offset + lyric.translateY;
+              });
+            }
+          }
+        });
+      });
+    });
+  }
 
   // ### updateLyricOffsets
   // Adjust the y position for all lyrics in the line so they are even.
@@ -10362,11 +10396,9 @@ class VxSystem {
   /* global svgHelpers */
   updateLyricOffsets() {
     let i = 0;
-    let j = 0;
     for (i = 0; i < this.score.staves.length; ++i) {
       const tmpI = i;
       const lyricsDash = [];
-      const verseLimits = {};
       const lyricHyphens = [];
       const lyricVerseMap = {};
       const lyrics = [];
@@ -10385,10 +10417,11 @@ class VxSystem {
           voice.notes.forEach((note) => {
             this._updateChordOffsets(note);
             note.getTrueLyrics().forEach((ll) => {
-              if (ll.getText().trim().length > 0 && !lyricVerseMap[ll.verse]) {
+              const hasLyric = ll.getText().length > 0 || ll.isHyphenated();
+              if (hasLyric && !lyricVerseMap[ll.verse]) {
                 lyricVerseMap[ll.verse] = [];
               }
-              if (ll.getText().trim().length > 0 && ll.logicalBox) {
+              if (hasLyric && ll.logicalBox) {
                 lyricVerseMap[ll.verse].push(ll);
                 lyrics.push(ll);
               }
@@ -10396,9 +10429,10 @@ class VxSystem {
           });
         });
       });
+      // calculate y offset so the lyrics all line up
+      this._lowestYLowestVerse(lyrics);
       const vkey = Object.keys(lyricVerseMap).sort((a, b) => a - b);
       vkey.forEach((verse) => {
-        verseLimits[verse] = { highest: lyricVerseMap[vkey[0]][0].logicalBox.y + 1000, bottom: -1 };
         let hyphenLyric = null;
         const lastVerse = lyricVerseMap[verse][lyricVerseMap[verse].length - 1].attrs.id;
         lyricVerseMap[verse].forEach((ll) => {
@@ -10413,26 +10447,16 @@ class VxSystem {
               // Last word on the system, place the hyphen after the word
               ll.hyphenX = ll.logicalBox.x + ll.logicalBox.width + ll.fontInfo.size / 2;
               lyricHyphens.push(ll);
-            } else {
+            } else if (ll.getText().length) {
               // place the hyphen 1/2 between next word and this one.
               hyphenLyric = ll;
             }
           } else {
             hyphenLyric = null;
           }
-          verseLimits[verse].highest = Math.round(Math.min(ll.logicalBox.height / 2, verseLimits[verse].highest));
-          verseLimits[verse].bottom = Math.round(Math.max(ll.logicalBox.y - ll.logicalBox.height / 2, verseLimits[verse].bottom));
         });
       });
-      for (j = 1; j < vkey.length; ++j) {
-        verseLimits[j].bottom = verseLimits[j - 1].bottom + verseLimits[j - 1].highest;
-      }
       lyrics.forEach((lyric) => {
-        lyric.adjY = Math.round(verseLimits[lyric.verse].bottom - lyric.logicalBox.y);
-        // vexRenderY is the offset for this measure.
-        if (lyric.vexRenderY) {
-          lyric.adjY += lyric.vexRenderY;
-        }
         const dom = $(this.context.svg).find(lyric.selector)[0];
         if (typeof(dom) !== 'undefined') {
           dom.setAttributeNS('', 'transform', 'translate(' + lyric.adjX + ' ' + lyric.adjY + ')');
@@ -12400,8 +12424,8 @@ class SmoNote {
 
   getTrueLyrics() {
     const ms = this.textModifiers.filter((mod) =>
-      mod.attrs.type === 'SmoLyric' && mod.parser === SmoLyric.parsers.lyric
-    );
+      mod.attrs.type === 'SmoLyric' && mod.parser === SmoLyric.parsers.lyric);
+    ms.sort((a, b) => a.verse - b.verse);
     return ms;
   }
 
@@ -13374,7 +13398,7 @@ class SmoScore {
         autoAdvance: true,
         defaultDupleDuration: 4096,
         defaultTripleDuration: 6144,
-        customProportion: 12
+        customProportion: 100
       },
       startIndex: 0,
       renumberingMap: {},
@@ -31303,12 +31327,19 @@ class SuiNoteTextComponent extends SuiComponentBase {
     }
     return false;
   }
+  setDialogLyric() {
+    if (this.session && this.session.lyric) {
+      this.dialog.setLyric(this.session.lyric);
+    }
+  }
 
   moveSelectionRight() {
     this.session.advanceSelection(false);
+    this.setDialogLyric();
   }
   moveSelectionLeft() {
     this.session.advanceSelection(true);
+    this.setDialogLyric();
   }
   removeText() {
     this.session.removeLyric();
@@ -31410,11 +31441,12 @@ class SuiLyricComponent extends SuiNoteTextComponent {
        view: this.view
        }
      );
-     this.started = true;
+    this.started = true;
     $('body').addClass('text-edit');
     var button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
     this.session.startSession();
+    this.setDialogLyric();
   }
 
   bind() {
@@ -31731,9 +31763,7 @@ class SuiLyricDialog extends SuiDialogBase {
         $(ctrl).addClass('fold-textedit');
       }
     });
-
     this.position(this.view.tracker.selections[0].note.renderedBox);
-
     const cb = () => {};
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
@@ -31755,6 +31785,10 @@ class SuiLyricDialog extends SuiDialogBase {
     }
     this.bindKeyboard();
   }
+  setLyric(lyric) {
+    this.lyric = lyric;
+    this.translateYCtrl.setValue(lyric.translateY);
+  }
   _focusSelection() {
     if (this.lyricEditorCtrl.editor.selection &&
       this.lyricEditorCtrl.editor.selection.note &&
@@ -31772,6 +31806,9 @@ class SuiLyricDialog extends SuiDialogBase {
     }
     if (this.adjustWidthCtrl.changeFlag) {
       this.view.setLyricAdjustWidth(this.adjustWidthCtrl.getValue());
+    }
+    if (this.translateYCtrl && this.lyric) {
+      this.lyric.translateY = this.translateYCtrl.getValue();
     }
   }
   _bindElements() {
@@ -31980,7 +32017,10 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       this.view.score.setChordAdjustWidth(this.adjustWidthCtrl.getValue());
     }
   }
-
+  setLyric(lyric) {
+    this.lyric = lyric;
+    this.translateYCtrl.setValue(lyric.translateY);
+  }
   display() {
     $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');
@@ -32632,6 +32672,7 @@ class SuiDom {
       .append(b('div').classes('textEdit hide'))
       .append(b('div').classes('translation-editor'))
       .append(b('div').classes('attributeDialog'))
+      .append(b('progress').attr('id','renderProgress').attr('value','0'))
       .append(b('div').classes('qwertyKb'))
       .append(b('div').classes('saveLink'))
       .append(b('div').classes('bugDialog'))
@@ -39758,8 +39799,12 @@ class DisplaySettings {
   }
 
   refresh() {
+    const scrollPoint = this.view.scroller.netScroll;
     this.view.renderer.setViewport(true);
     this.view.renderer.setRefresh();
+    this.view.renderer.renderPromise().then(() => {
+      this.view.scroller.scrollAbsolute(scrollPoint.x, scrollPoint.y);
+    });
   }
   zoomout() {
     this.view.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;

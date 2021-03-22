@@ -132,13 +132,19 @@ class VxMeasure {
   }
   _addLyricAnnotationToNote(vexNote, lyric) {
     let classString = 'lyric lyric-' + lyric.verse;
+    let text = lyric.getText();
     if (lyric.skipRender) {
       return;
     }
-    const fontInfo = suiLayoutAdjuster.textFont(lyric);
-    const y = (lyric.verse + 1) * fontInfo.maxHeight;
-    lyric.vexRenderY = y;
-    const vexL = new VF.Annotation(lyric.getText()); // .setReportWidth(lyric.adjustNoteWidth);
+    lyric.vexRenderY = 0;
+    if (!text.length && lyric.isHyphenated()) {
+      text = '-';
+    }
+    // no text, no hyphen, don't add it.
+    if (!text.length) {
+      return;
+    }
+    const vexL = new VF.Annotation(text); // .setReportWidth(lyric.adjustNoteWidth);
     vexL.setAttribute(lyric.attrs.id); //
 
     // If we adjusted this note for the lyric, adjust the lyric as well.
@@ -168,13 +174,13 @@ class VxMeasure {
   }
 
   _createLyric(smoNote, vexNote) {
-    const lyrics = smoNote.getModifiers('SmoLyric');
+    const lyrics = smoNote.getTrueLyrics();
     lyrics.forEach((ll) => {
-      if (ll.parser === SmoLyric.parsers.lyric) {
-        this._addLyricAnnotationToNote(vexNote, ll);
-      } else {
-        this._addChordChangeToNote(vexNote, ll);
-      }
+      this._addLyricAnnotationToNote(vexNote, ll);
+    });
+    const chords = smoNote.getChords();
+    chords.forEach((chord) => {
+      this._addChordChangeToNote(vexNote, chord);
     });
   }
 
@@ -452,7 +458,7 @@ class VxMeasure {
           svgHelpers.updateArtifactBox(this.context.svg, el, smoNote);
           // TODO: fix this, only works on the first line.
           smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-            if (lyric.selector) {
+            if (lyric.selector && (lyric.getText().length || lyric.isHyphenated())) {
               svgHelpers.updateArtifactBox(this.context.svg, $(lyric.selector)[0], lyric);
             }
           });

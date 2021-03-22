@@ -185,7 +185,9 @@ class suiTracker extends suiMapper {
         }
       });
       selection.note.textModifiers.forEach((modifier) => {
-        ix = this._updateNoteModifier(selection, modMap, modifier, ix);
+        if (modifier.renderedBox) {
+          ix = this._updateNoteModifier(selection, modMap, modifier, ix);
+        }
       });
 
       selection.note.graceNotes.forEach((modifier) => {

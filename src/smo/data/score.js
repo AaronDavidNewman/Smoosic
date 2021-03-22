@@ -62,7 +62,7 @@ class SmoScore {
         autoAdvance: true,
         defaultDupleDuration: 4096,
         defaultTripleDuration: 6144,
-        customProportion: 12
+        customProportion: 100
       },
       startIndex: 0,
       renumberingMap: {},

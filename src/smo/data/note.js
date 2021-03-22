@@ -113,8 +113,8 @@ class SmoNote {
 
   getTrueLyrics() {
     const ms = this.textModifiers.filter((mod) =>
-      mod.attrs.type === 'SmoLyric' && mod.parser === SmoLyric.parsers.lyric
-    );
+      mod.attrs.type === 'SmoLyric' && mod.parser === SmoLyric.parsers.lyric);
+    ms.sort((a, b) => a.verse - b.verse);
     return ms;
   }
 

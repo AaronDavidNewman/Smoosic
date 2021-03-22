@@ -712,3 +712,22 @@ button.translate-submit-button {
   border: 2px #9d9 solid;
   border-radius: 4px;
 }
+
+#renderProgress {
+  display: none;
+  width:190px;
+  height:20px;
+  padding:15px 0 0 0;
+  margin:0;
+  background:none;
+  border: 0;
+  border-radius: 15px;
+  text-align: left;
+  position:relative;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.8em;
+}
+
+body.show-render-progress #renderProgress {
+  display: inline-block;
+}

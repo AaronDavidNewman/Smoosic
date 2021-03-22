@@ -209,10 +209,10 @@ class SuiScoreView {
     this.score = score;
     this.renderer = renderer;
     const scoreJson = score.serialize();
-    const scroller = new suiScroller(scrollSelector);
+    this.scroller = new suiScroller(scrollSelector);
     this.pasteBuffer = new PasteBuffer();
     this.storePaste = new PasteBuffer();
-    this.tracker = new suiTracker(this.renderer, scroller, this.pasteBuffer);
+    this.tracker = new suiTracker(this.renderer, this.scroller, this.pasteBuffer);
     this.renderer.setMeasureMapper(this.tracker);
 
     this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));

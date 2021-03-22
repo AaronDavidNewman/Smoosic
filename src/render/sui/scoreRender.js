@@ -328,7 +328,6 @@ class SuiScoreRender extends SuiRenderState {
         const bottomMeasure = currentLine.reduce((a, b) =>
           a.logicalBox.y + a.logicalBox.height > b.logicalBox.y + b.logicalBox.height ? a : b
         );
-
         this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
 
         const ld = layoutDebug;

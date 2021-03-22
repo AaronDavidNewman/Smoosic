@@ -204,12 +204,19 @@ class SuiNoteTextComponent extends SuiComponentBase {
     }
     return false;
   }
+  setDialogLyric() {
+    if (this.session && this.session.lyric) {
+      this.dialog.setLyric(this.session.lyric);
+    }
+  }
 
   moveSelectionRight() {
     this.session.advanceSelection(false);
+    this.setDialogLyric();
   }
   moveSelectionLeft() {
     this.session.advanceSelection(true);
+    this.setDialogLyric();
   }
   removeText() {
     this.session.removeLyric();
@@ -311,11 +318,12 @@ class SuiLyricComponent extends SuiNoteTextComponent {
        view: this.view
        }
      );
-     this.started = true;
+    this.started = true;
     $('body').addClass('text-edit');
     var button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
     this.session.startSession();
+    this.setDialogLyric();
   }
 
   bind() {

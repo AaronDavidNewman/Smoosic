@@ -125,9 +125,7 @@ class SuiLyricDialog extends SuiDialogBase {
         $(ctrl).addClass('fold-textedit');
       }
     });
-
     this.position(this.view.tracker.selections[0].note.renderedBox);
-
     const cb = () => {};
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
@@ -149,6 +147,10 @@ class SuiLyricDialog extends SuiDialogBase {
     }
     this.bindKeyboard();
   }
+  setLyric(lyric) {
+    this.lyric = lyric;
+    this.translateYCtrl.setValue(lyric.translateY);
+  }
   _focusSelection() {
     if (this.lyricEditorCtrl.editor.selection &&
       this.lyricEditorCtrl.editor.selection.note &&
@@ -166,6 +168,9 @@ class SuiLyricDialog extends SuiDialogBase {
     }
     if (this.adjustWidthCtrl.changeFlag) {
       this.view.setLyricAdjustWidth(this.adjustWidthCtrl.getValue());
+    }
+    if (this.translateYCtrl && this.lyric) {
+      this.lyric.translateY = this.translateYCtrl.getValue();
     }
   }
   _bindElements() {
@@ -374,7 +379,10 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       this.view.score.setChordAdjustWidth(this.adjustWidthCtrl.getValue());
     }
   }
-
+  setLyric(lyric) {
+    this.lyric = lyric;
+    this.translateYCtrl.setValue(lyric.translateY);
+  }
   display() {
     $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');

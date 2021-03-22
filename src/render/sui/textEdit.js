@@ -485,7 +485,10 @@ class SuiLyricEditor extends SuiTextEditor {
   // params: {lyric: SmoLyric,...}
   constructor(params) {
     super(params);
-    this.text = params.lyric._text;
+    this.text = params.lyric.getText();
+    if (params.lyric.isHyphenated()) {
+      this.text += '-';
+    }
     this.lyric = params.lyric;
     this.parseBlocks();
   }

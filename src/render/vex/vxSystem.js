@@ -71,6 +71,35 @@ class VxSystem {
       });
     }
   }
+  _lowestYLowestVerse(lyrics) {
+    let lowVerse = 5;
+    let lowestY = 0;
+    lyrics.forEach((lyric) => {
+      if (lyric.logicalBox && lyric.verse < lowVerse) {
+        lowestY = lyric.logicalBox.y;
+        lowVerse = lyric.verse;
+      }
+      if (lyric.verse === lowVerse && lyric.logicalBox && lyric.logicalBox.y > lowestY) {
+        lowestY = lyric.logicalBox.y;
+      }
+    });
+    this.vxMeasures.forEach((vxMeasure) => {
+      vxMeasure.smoMeasure.voices.forEach((voice) => {
+        voice.notes.forEach((note) => {
+          const lyrics = note.getTrueLyrics();
+          if (lyrics.length) {
+            const topVerse = lyrics.reduce((a, b) => a.verse < b.verse ? a : b);
+            if (topVerse && topVerse.logicalBox) {
+              const offset =  lowestY - topVerse.logicalBox.y;
+              lyrics.forEach((lyric) => {
+                lyric.adjY = offset + lyric.translateY;
+              });
+            }
+          }
+        });
+      });
+    });
+  }
 
   // ### updateLyricOffsets
   // Adjust the y position for all lyrics in the line so they are even.
@@ -78,11 +107,9 @@ class VxSystem {
   /* global svgHelpers */
   updateLyricOffsets() {
     let i = 0;
-    let j = 0;
     for (i = 0; i < this.score.staves.length; ++i) {
       const tmpI = i;
       const lyricsDash = [];
-      const verseLimits = {};
       const lyricHyphens = [];
       const lyricVerseMap = {};
       const lyrics = [];
@@ -101,10 +128,11 @@ class VxSystem {
           voice.notes.forEach((note) => {
             this._updateChordOffsets(note);
             note.getTrueLyrics().forEach((ll) => {
-              if (ll.getText().trim().length > 0 && !lyricVerseMap[ll.verse]) {
+              const hasLyric = ll.getText().length > 0 || ll.isHyphenated();
+              if (hasLyric && !lyricVerseMap[ll.verse]) {
                 lyricVerseMap[ll.verse] = [];
               }
-              if (ll.getText().trim().length > 0 && ll.logicalBox) {
+              if (hasLyric && ll.logicalBox) {
                 lyricVerseMap[ll.verse].push(ll);
                 lyrics.push(ll);
               }
@@ -112,9 +140,10 @@ class VxSystem {
           });
         });
       });
+      // calculate y offset so the lyrics all line up
+      this._lowestYLowestVerse(lyrics);
       const vkey = Object.keys(lyricVerseMap).sort((a, b) => a - b);
       vkey.forEach((verse) => {
-        verseLimits[verse] = { highest: lyricVerseMap[vkey[0]][0].logicalBox.y + 1000, bottom: -1 };
         let hyphenLyric = null;
         const lastVerse = lyricVerseMap[verse][lyricVerseMap[verse].length - 1].attrs.id;
         lyricVerseMap[verse].forEach((ll) => {
@@ -129,26 +158,16 @@ class VxSystem {
               // Last word on the system, place the hyphen after the word
               ll.hyphenX = ll.logicalBox.x + ll.logicalBox.width + ll.fontInfo.size / 2;
               lyricHyphens.push(ll);
-            } else {
+            } else if (ll.getText().length) {
               // place the hyphen 1/2 between next word and this one.
               hyphenLyric = ll;
             }
           } else {
             hyphenLyric = null;
           }
-          verseLimits[verse].highest = Math.round(Math.min(ll.logicalBox.height / 2, verseLimits[verse].highest));
-          verseLimits[verse].bottom = Math.round(Math.max(ll.logicalBox.y - ll.logicalBox.height / 2, verseLimits[verse].bottom));
         });
       });
-      for (j = 1; j < vkey.length; ++j) {
-        verseLimits[j].bottom = verseLimits[j - 1].bottom + verseLimits[j - 1].highest;
-      }
       lyrics.forEach((lyric) => {
-        lyric.adjY = Math.round(verseLimits[lyric.verse].bottom - lyric.logicalBox.y);
-        // vexRenderY is the offset for this measure.
-        if (lyric.vexRenderY) {
-          lyric.adjY += lyric.vexRenderY;
-        }
         const dom = $(this.context.svg).find(lyric.selector)[0];
         if (typeof(dom) !== 'undefined') {
           dom.setAttributeNS('', 'transform', 'translate(' + lyric.adjX + ' ' + lyric.adjY + ')');

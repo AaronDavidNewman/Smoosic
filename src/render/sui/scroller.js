@@ -50,8 +50,8 @@ class suiScroller  {
   scrollAbsolute(x,y) {
     $(this.selector)[0].scrollLeft = x;
     $(this.selector)[0].scrollTop = y;
-    this.netScroll.x = x;
-    this.netScroll.y = y;
+    this.netScroll.x = this._scroll.x = x;
+    this.netScroll.y = this._scroll.y = y;
   }
 
   // ### scrollVisible
