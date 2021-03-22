@@ -362,9 +362,9 @@ class SmoToXml {
       return;
     }
     const timeAr = measure.timeSignature.split('/');
-    const time = { beat: parseInt(timeAr[0], 10), beatType: parseInt(timeAr[1], 10) };
+    const time = { beats: parseInt(timeAr[0], 10), beatType: parseInt(timeAr[1], 10) };
     const timeElement = nn(attributesElement, 'time');
-    nn(timeElement, 'beat', time, 'beat');
+    nn(timeElement, 'beats', time, 'beats');
     nn(timeElement, 'beat-type', time, 'beatType');
     smoState.timeSignature = measure.timeSignature;
   }

@@ -324,7 +324,8 @@ class XmlState {
     }
     const tuplet = new SmoTuplet({
       notes,
-      durationMap
+      durationMap,
+      voice: voiceId
     });
     // Store the tuplet with the staff ID and voice so we
     // can add it to the right measure when it's created.
