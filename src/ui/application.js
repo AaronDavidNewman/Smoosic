@@ -33,7 +33,7 @@ class SuiApplication {
       title: 'Smoosic',
       languageDir: 'ltr',
       demonPollTime: 50, // how often we poll the score to see if it changed
-      idleRedrawTime: 3000, // maximum time between score modification and render
+      idleRedrawTime: 1000, // maximum time between score modification and render
     }
   }
   static configure(params) {

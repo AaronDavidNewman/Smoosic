@@ -133,7 +133,7 @@ class SmoOperation {
     }
   }
 
-  static populateVoice(selection,voiceIx) {
+  static populateVoice(selection, voiceIx) {
     selection.measure.populateVoice(voiceIx);
   }
   // ### setMeasureProportion

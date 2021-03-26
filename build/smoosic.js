@@ -5484,15 +5484,31 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.setActiveVoice(this.score, 0);
     this._renderChangedMeasures(measureSelections);
   }
+  _changeActiveVoice(index) {
+    const measuresToAdd = [];
+    const measureSelections = SmoSelection.getMeasureList(this.tracker.selections);
+    measureSelections.forEach((measureSelection) => {
+      if (index === measureSelection.measure.voices.length) {
+        measuresToAdd.push(measureSelection);
+      }
+    });
+    return measuresToAdd;
+  }
   populateVoice(index) {
+    const measuresToAdd = this._changeActiveVoice(index);
+    if (measuresToAdd.length === 0) {
+      SmoOperation.setActiveVoice(this.score, index);
+      this.tracker.selectActiveVoice();
+      return;
+    }
     this.actionBuffer.addAction('populateVoice', index);
-    const measureSelections = this._undoTrackerMeasureSelections('populate voice');
-    measureSelections.forEach((selection) => {
+    measuresToAdd.forEach((selection) => {
+      this._undoSelection('popualteVoice', selection);
       SmoOperation.populateVoice(selection, index);
       SmoOperation.populateVoice(this._getEquivalentSelection(selection), index);
     });
     SmoOperation.setActiveVoice(this.score, index);
-    this._renderChangedMeasures(measureSelections);
+    this._renderChangedMeasures(measuresToAdd);
   }
   changeInstrument(instrument) {
     this.actionBuffer.addAction('changeInstrument', instrument);
@@ -9399,6 +9415,14 @@ class suiTracker extends suiMapper {
     }
     const c2 = 'v' + (selector.voice + 1).toString() + '-active';
     $('body').addClass(c2);
+  }
+  // The user has just switched voices, select the active voice
+  selectActiveVoice() {
+    const selection = this.selections[0];
+    const selector = JSON.parse(JSON.stringify(selection.selector));
+    selector.voice = selection.measure.activeVoice;
+    this.selections = [this._getClosestTick(selector)];
+    this.highlightSelection();
   }
 
   highlightSelection() {
@@ -18232,7 +18256,7 @@ class SmoOperation {
     }
   }
 
-  static populateVoice(selection,voiceIx) {
+  static populateVoice(selection, voiceIx) {
     selection.measure.populateVoice(voiceIx);
   }
   // ### setMeasureProportion
@@ -26664,7 +26688,7 @@ class SmoUndoable {
       title: 'Smoosic',
       languageDir: 'ltr',
       demonPollTime: 50, // how often we poll the score to see if it changed
-      idleRedrawTime: 3000, // maximum time between score modification and render
+      idleRedrawTime: 1000, // maximum time between score modification and render
     }
   }
   static configure(params) {

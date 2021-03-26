@@ -1046,6 +1046,14 @@ class suiTracker extends suiMapper {
     const c2 = 'v' + (selector.voice + 1).toString() + '-active';
     $('body').addClass(c2);
   }
+  // The user has just switched voices, select the active voice
+  selectActiveVoice() {
+    const selection = this.selections[0];
+    const selector = JSON.parse(JSON.stringify(selection.selector));
+    selector.voice = selection.measure.activeVoice;
+    this.selections = [this._getClosestTick(selector)];
+    this.highlightSelection();
+  }
 
   highlightSelection() {
     let i = 0;
