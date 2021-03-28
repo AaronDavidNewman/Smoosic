@@ -30,7 +30,11 @@ class SuiRenderDemon {
       // indicate the display is 'dirty' and we will be refreshing it.
       $('body').addClass('refresh-1');
       try {
-        this.view.preserveScroll();
+        // Sort of a hack.  If the viewport changed, the scroll state is already reset
+        // so we can't preserver the scroll state.
+        if (!this.view.renderer.viewportChanged) {
+          this.view.preserveScroll();
+        }
         this.render();
       } catch (ex) {
         console.error(ex);

@@ -25,8 +25,9 @@
 // Edit the text in an SVG element, in the same scale etc. as the text in the score SVG DOM.
 // This component just manages the text editing component of hte renderer.
 class SuiTextInPlace extends SuiComponentBase {
-  constructor(dialog,parameter) {
+  constructor(dialog, parameter) {
     super(parameter);
+    this.scroller = dialog.scroller;
     smoSerialize.filteredMerge(
         ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     if (!this.defaultValue) {
@@ -103,7 +104,7 @@ class SuiTextInPlace extends SuiComponentBase {
     modifier.textBlocks.forEach((block) => {
       const st = block.text;
       if (st.attrs.id !== this.dialog.activeScoreText.attrs.id) {
-        const svgText = SuiInlineText.fromScoreText(st, context);
+        const svgText = SuiInlineText.fromScoreText(st, context, this.scroller);
         if (st.logicalBox) {
           svgText.startX += st.logicalBox.x - st.x;
           svgText.startY += (st.y - st.logicalBox.y) - st.logicalBox.height / 2;

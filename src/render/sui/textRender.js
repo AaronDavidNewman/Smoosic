@@ -107,16 +107,20 @@ class SuiInlineText {
     if (!this.context) {
       throw 'context for SVG must be set';
     }
+    if (!this.scroller) {
+      throw 'scroller for inline text must be set';
+    }
     this.updateFontInfo();
   }
 
-  static fromScoreText(scoreText, context) {
+  static fromScoreText(scoreText, context, scroller) {
     var pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
       : SmoScoreText.fontPointSize(scoreText.fontInfo.size);
     const params = { fontFamily: scoreText.fontInfo.family,
       fontWeight: scoreText.fontInfo.weight,
       fontStyle: scoreText.fontInfo.style,
       startX: scoreText.x, startY: scoreText.y,
+      scroller,
       fontSize: pointSize, context };
     const rv = new SuiInlineText(params);
     rv.attrs.id = scoreText.attrs.id;
@@ -408,8 +412,8 @@ class SuiInlineText {
       ix += 1;
     });
     this.context.closeGroup();
-    this.renderedBox = svgHelpers.smoBox(group.getBoundingClientRect());
     this.logicalBox = svgHelpers.smoBox(group.getBBox());
+    this.renderedBox = svgHelpers.logicalToClient(this.context.svg, this.logicalBox, this.scroller);
   }
 
   _drawBlock(block) {
@@ -467,6 +471,10 @@ class SuiTextBlock {
   }
   constructor(params) {
     this.inlineBlocks = [];
+    if (!typeof(params.scroller) === 'object') {
+      throw 'bad text block, no scroller';
+    }
+    this.scroller = params.scroller;
     this.spacing = 0;
     if (typeof(params.spacing) !== 'undefined') {
       this.spacing = params.spacing;
@@ -554,16 +562,16 @@ class SuiTextBlock {
     return rv;
   }
 
-  static inlineParamsFromScoreText(scoreText, context) {
+  static inlineParamsFromScoreText(scoreText, context, scroller) {
     const pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
       : SmoScoreText.fontPointSize(scoreText.fontInfo.size);
     const rv = { fontFamily: scoreText.fontInfo.family,
       startX: scoreText.x, startY: scoreText.y,
-      fontSize: pointSize, context };
+      fontSize: pointSize, context, scroller };
     return rv;
   }
-  static blockFromScoreText(scoreText, context, position) {
-    var inlineText = SuiInlineText.fromScoreText(scoreText, context);
+  static blockFromScoreText(scoreText, context, position, scroller) {
+    var inlineText = SuiInlineText.fromScoreText(scoreText, context, scroller);
     return  { text: inlineText, position };
   }
 
@@ -571,7 +579,7 @@ class SuiTextBlock {
     return this._calculateBoundingClientRect();
   }
   getRenderedBox() {
-    return svgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect());
+    return svgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect(), this.scroller);
   }
   _calculateBoundingClientRect() {
     var rv = {};
@@ -585,17 +593,17 @@ class SuiTextBlock {
     rv.y = rv.y - rv.height;
     return rv;
   }
-  static fromTextGroup(tg, context) {
+  static fromTextGroup(tg, context, scroller) {
     const blocks = [];
 
     // Create an inline block for each ScoreText
     tg.textBlocks.forEach((stBlock) => {
       const st = stBlock.text;
-      const newText = SuiTextBlock.blockFromScoreText(st, context, stBlock.position);
+      const newText = SuiTextBlock.blockFromScoreText(st, context, stBlock.position, scroller);
       newText.activeText = stBlock.activeText;
       blocks.push(newText);
     });
-    const rv = new SuiTextBlock({ blocks, justification: tg.justification, spacing: tg.spacing, context });
+    const rv = new SuiTextBlock({ blocks, justification: tg.justification, spacing: tg.spacing, context, scroller });
     rv._justify();
     return rv;
   }

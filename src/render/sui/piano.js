@@ -5,6 +5,7 @@ class suiPiano {
     this.render();
     this.octaveOffset = 0;
     this.chordPedal = false;
+    this.scroller = new suiScroller('.piano-keys');
   }
 
   static get dimensions() {
@@ -63,103 +64,101 @@ class suiPiano {
       }, 1000);
   }
   bind() {
-    var self = this;
-    $('body').off('show-piano-event').on('show-piano-event',function() {
+    $('body').off('show-piano-event').on('show-piano-event', () => {
         $('body').toggleClass('show-piano');
-        self._mapKeys();
+        this._mapKeys();
     });
-    $('#piano-8va-button').off('click').on('click',function() {
+    $('#piano-8va-button').off('click').on('click', (ev) => {
       $('#piano-8vb-button').removeClass('activated');
-      if (self.octaveOffset === 0) {
-        $(this).addClass('activated');
-        self.octaveOffset = 1;
+      if (this.octaveOffset === 0) {
+        $(ev.currentTarget).addClass('activated');
+        this.octaveOffset = 1;
       } else {
-        $(this).removeClass('activated');
-        self.octaveOffset = 0;
+        $(ev.currentTarget).removeClass('activated');
+        this.octaveOffset = 0;
       }
     });
-    $('#piano-8vb-button').off('click').on('click',function() {
+    $('#piano-8vb-button').off('click').on('click', (ev) => {
       $('#piano-8va-button').removeClass('activated');
-      if (self.octaveOffset === 0) {
-        $(this).addClass('activated');
-        self.octaveOffset = -1;
+      if (this.octaveOffset === 0) {
+        $(ev.currentTarget).addClass('activated');
+        this.octaveOffset = -1;
       } else {
-        $(this).removeClass('activated');
-        self.octaveOffset = 0;
+        $(ev.currentTarget).removeClass('activated');
+        this.octaveOffset = 0;
       }
     });
-    $('#piano-xpose-up').off('click').on('click',function() {
-      self.keyCommands.transposeUp();
+    $('#piano-xpose-up').off('click').on('click', () => {
+      this.keyCommands.transposeUp();
     });
-    $('#piano-xpose-down').off('click').on('click',function() {
-      self.keyCommands.transposeDown();
+    $('#piano-xpose-down').off('click').on('click', () => {
+      this.keyCommands.transposeDown();
     });
-    $('#piano-enharmonic').off('click').on('click',function() {
-      self.keyCommands.toggleEnharmonic();
+    $('#piano-enharmonic').off('click').on('click', () => {
+      this.keyCommands.toggleEnharmonic();
     });
-    $('button.jsLeft').off('click').on('click',function() {
-      self.view.tracker.moveSelectionLeft();
+    $('button.jsLeft').off('click').on('click', () => {
+      this.view.tracker.moveSelectionLeft();
     });
-    $('button.jsRight').off('click').on('click',function() {
-      self.view.tracker.moveSelectionRight();
+    $('button.jsRight').off('click').on('click', () => {
+      this.view.tracker.moveSelectionRight();
     });
-    $('button.jsGrowDuration').off('click').on('click',function() {
-      self.keyCommands.doubleDuration();
+    $('button.jsGrowDuration').off('click').on('click', () => {
+      this.keyCommands.doubleDuration();
     });
-    $('button.jsGrowDot').off('click').on('click',function() {
-      self.keyCommands.dotDuration();
+    $('button.jsGrowDot').off('click').on('click', () => {
+      this.keyCommands.dotDuration();
     });
-    $('button.jsShrinkDuration').off('click').on('click',function() {
-      self.keyCommands.halveDuration();
+    $('button.jsShrinkDuration').off('click').on('click', () => {
+      this.keyCommands.halveDuration();
     });
-    $('button.jsShrinkDot').off('click').on('click',function() {
-      self.keyCommands.undotDuration();
+    $('button.jsShrinkDot').off('click').on('click', () => {
+      this.keyCommands.undotDuration();
     });
-    $('button.jsChord').off('click').on('click',function() {
-      $(this).toggleClass('activated');
-      self.chordPedal = !self.chordPedal;
+    $('button.jsChord').off('click').on('click', (ev) => {
+      $(ev.currentTarget).toggleClass('activated');
+      this.chordPedal = !this.chordPedal;
     });
-
-
-    $(this.renderElement).off('mousemove').on('mousemove', function (ev) {
-      if (Math.abs(self.objects[0].box.x - self.objects[0].keyElement.getBoundingClientRect().x)
-        > self.objects[0].box.width/2) {
+    $(this.renderElement).off('mousemove').on('mousemove', (ev) => {
+      if (Math.abs(this.objects[0].box.x - this.objects[0].keyElement.getBoundingClientRect().x)
+        > this.objects[0].box.width / 2) {
           console.log('remap piano');
-          self._mapKeys();
-        }
+          this._mapKeys();
+      }
       var keyPressed = svgHelpers.findSmallestIntersection({
         x: ev.clientX,
         y: ev.clientY
-      }, self.objects,{x:0,y:0});
+        }, this.objects, this.scroller.scrollState);
       if (!keyPressed) {
         return;
       }
-      var el = self.renderElement.getElementById(keyPressed.id);
+      var el = this.renderElement.getElementById(keyPressed.id);
       if ($(el).hasClass('glow-key')) {
         return;
       }
-      self._removeGlow();
+      this._removeGlow();
       $(el).addClass('glow-key');
-      self._fadeGlow(el);
+      this._fadeGlow(el);
     });
-    $(this.renderElement).off('blur').on('blur',function(ev) {
-      self._removeGlow();
+    $(this.renderElement).off('blur').on('blur', (ev) => {
+      this._removeGlow();
     });
-    $(this.renderElement).off('click').on('click', function (ev) {
-      self._updateSelections(ev);
+    $(this.renderElement).off('click').on('click', (ev) => {
+      this._updateSelections(ev);
     });
 
-    $('.close-piano').off('click').on('click', function () {
+    $('.close-piano').off('click').on('click', () => {
       $('body').removeClass('show-piano');
       // resize the work area.
       $('body').trigger('forceScrollEvent');
     });
   }
   _updateSelections(ev) {
+    // fake a scroller (piano scroller w/b cool tho...)
     var keyPressed = svgHelpers.findSmallestIntersection({
         x: ev.clientX,
         y: ev.clientY
-      }, this.objects,{x:0,y:0});
+      }, this.objects, this.scroller.scrollState);
     if (!keyPressed) {
       return;
     }

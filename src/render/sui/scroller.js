@@ -29,24 +29,7 @@ class suiScroller  {
     return { initial, scroll };
   }
   restoreScrollState(state) {
-    const stateX = (state.scroll.x + state.initial.x) -
-      (this._scroll.x + this._scrollInitial.x);
-    const stateY = (state.scroll.y + state.initial.y) -
-      (this._scroll.x + this._scrollInitial.x);
-    this.scrollOffset(stateX, stateY);
-  }
-
-  // ### setScrollInitial
-  // tracker is going to remap the music, make sure we take the current scroll into account.
-  setScrollInitial() {
-    var scroller = $(this.selector);
-    this._scrollInitial = { x: $(scroller)[0].scrollLeft, y: $(scroller)[0].scrollTop };
-    this._offsetInitial = { x: $(scroller).offset().left, y: $(scroller).offset().top };
-    this.viewport = svgHelpers.boxPoints(
-      $(this.selector).offset().left,
-      $(this.selector).offset().top,
-      $(this.selector).width(),
-      $(this.selector).height());
+    this.scrollOffset(state.scroll.x - this._scroll.x, state.scroll.y - this._scroll.y);
   }
 
   // ### handleScroll
@@ -143,8 +126,7 @@ class suiScroller  {
   get netScroll() {
     var xoffset = $(this.selector).offset().left - this._offsetInitial.x;
     var yoffset = $(this.selector).offset().top - this._offsetInitial.y;
-    return { x: this._scroll.x -
-      (this._scrollInitial.x + xoffset), y: this._scroll.y - (this._scrollInitial.y + yoffset)};
+    return { x: this._scroll.x - xoffset, y: this._scroll.y - yoffset };
   }
 
   // ### invScroll

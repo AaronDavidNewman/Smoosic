@@ -90,35 +90,63 @@ class suiMapper {
     // given a musical selector, find the note artifact that is closest to it,
     // if an exact match is not available
   _getClosestTick(selector) {
-    var measureKey = Object.keys(this.measureNoteMap).find((k) => {
-      return SmoSelector.sameMeasure(this.measureNoteMap[k].selector, selector)
-   && this.measureNoteMap[k].selector.tick === 0;
-    });
-    var tickKey = Object.keys(this.measureNoteMap).find((k) => {
-        return SmoSelector.sameNote(this.measureNoteMap[k].selector,selector);
-    });
-  var firstObj = this.measureNoteMap[Object.keys(this.measureNoteMap)[0]];
-  return tickKey ? this.measureNoteMap[tickKey]:
+    var measureKey = Object.keys(this.measureNoteMap).find((k) =>
+      SmoSelector.sameMeasure(this.measureNoteMap[k].selector, selector)
+        && this.measureNoteMap[k].selector.tick === 0);
+    var tickKey = Object.keys(this.measureNoteMap).find((k) =>
+      SmoSelector.sameNote(this.measureNoteMap[k].selector,selector));
+    var firstObj = this.measureNoteMap[Object.keys(this.measureNoteMap)[0]];
+    return tickKey ? this.measureNoteMap[tickKey]:
       (measureKey ? this.measureNoteMap[measureKey] : firstObj);
+  }
+
+  // ### _setModifierBoxes
+  // Create the DOM modifiers for the lyrics and other modifiers
+  _setModifierBoxes(measure) {
+    measure.voices.forEach((voice) => {
+      voice.notes.forEach((smoNote) =>  {
+        var el = this.renderer.svg.getElementById(smoNote.renderId);
+        if (el) {
+          svgHelpers.updateArtifactBox(this.renderer.svg, el, smoNote, this.scroller);
+          // TODO: fix this, only works on the first line.
+          smoNote.getModifiers('SmoLyric').forEach((lyric) => {
+            if (lyric.getText().length || lyric.isHyphenated()) {
+              lyric.selector = '#' + smoNote.renderId + ' ' + lyric.getClassSelector();
+              svgHelpers.updateArtifactBox(this.renderer.svg, $(lyric.selector)[0], lyric, this.scroller);
+            }
+          });
+          smoNote.graceNotes.forEach((g) => {
+            var gel = this.context.svg.getElementById('vf-' + g.renderedId);
+            $(gel).addClass('grace-note');
+            svgHelpers.updateArtifactBox(this.renderer.svg, gel, g, this.scroller);
+          });
+          smoNote.textModifiers.forEach((modifier) => {
+            const modEl = $('.' + modifier.attrs.id);
+            if (modifier.logicalBox && modEl.length) {
+              svgHelpers.updateArtifactBox(this.renderer.svg, modEl[0], modifier, this.scroller);
+            }
+          });
+        }
+      });
+    });
   }
 
   // ### updateMeasure
   // A measure has changed.  Update the music geometry for it
   mapMeasure(staff, measure, printing) {
-    if (!measure.renderedBox) {
-        return;
+    if (!measure.logicalBox) {
+      return;
     }
+    measure.renderedBox = svgHelpers.logicalToClient(this.renderer.svg, measure.logicalBox, this.scroller);
+    this._setModifierBoxes(measure);
     const timestamp = new Date().valueOf();
     // Keep track of any current selections in this measure, we will try to restore them.
     var sels = this._copySelectionsByMeasure(staff.staffId, measure.measureNumber.measureIndex);
     this.clearMeasureMap(staff,measure);
     var vix = measure.getActiveVoice();
     sels.selectors.forEach((sel) => {
-        sel.voice = vix;
+      sel.voice = vix;
     });
-
-    // keep track of the scroll position when we render the music.
-    this.scroller.setScrollInitial();
 
     var voiceIx = 0;
     var selectionChanged = false;
@@ -143,7 +171,7 @@ class suiMapper {
           _measure: measure,
           _note: note,
           _pitches: [],
-          box: svgHelpers.logicalToClient(this.renderer.svg, note.logicalBox),
+          box: svgHelpers.logicalToClient(this.renderer.svg, note.logicalBox, this.scroller),
           type: 'rendered'
         });
         // and add it to the map
@@ -234,10 +262,10 @@ class suiMapper {
   // given a bounding box, find any rendered elements that intersect with it
   intersectingArtifact(bb) {
     bb = svgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
-    var artifacts = svgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, this.scroller.netScroll);
+    var artifacts = svgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, this.scroller.scrollState);
     // TODO: handle overlapping suggestions
     if (!artifacts.length) {
-      var sel = svgHelpers.findIntersectingArtifact(bb, this.modifierTabs, this.scroller.netScroll);
+      var sel = svgHelpers.findIntersectingArtifact(bb, this.modifierTabs, this.scroller.scrollState);
       if (sel.length) {
         sel = sel[0];
         this._setModifierAsSuggestion(bb, sel);

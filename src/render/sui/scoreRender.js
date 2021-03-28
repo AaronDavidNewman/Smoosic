@@ -99,7 +99,7 @@ class SuiScoreRender extends SuiRenderState {
           newGroup.textBlocks[0].text.y = yoff;
         }
       }
-      const block = SuiTextBlock.fromTextGroup(newGroup, this.renderer.getContext());
+      const block = SuiTextBlock.fromTextGroup(newGroup, this.renderer.getContext(), this.measureMapper.scroller);
       block.render();
       // For the first one we render, use that as the bounding box for all the text, for
       // purposes of mapper/tracker

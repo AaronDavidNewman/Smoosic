@@ -1742,13 +1742,13 @@ class svgHelpers {
   // ### boxNote
   // update the note geometry based on current viewbox conditions.
   // This may not be the appropriate place for this...maybe in layout
-  static updateArtifactBox(svg,element,artifact) {
+  static updateArtifactBox(svg, element, artifact, scroller) {
     if (typeof(element) === 'undefined') {
       console.log('updateArtifactBox: undefined element!');
       return;
     }
-    artifact.renderedBox = svgHelpers.smoBox(element.getBoundingClientRect());
     artifact.logicalBox = svgHelpers.smoBox(element.getBBox());
+    artifact.renderedBox = svgHelpers.logicalToClient(svg, artifact.logicalBox, scroller);
   }
 
   // ### eraseOutline
@@ -1759,7 +1759,7 @@ class svgHelpers {
 
   static _outlineRect(params) {
     const stroke = params.outlineStroke;
-    const scroller = params.scroller;
+    const scroller = params.scroller.scrollState;
     const context = params.context;
     svgHelpers.eraseOutline(context,params.classes);
     // Don't highlight in print mode.
@@ -1774,7 +1774,7 @@ class svgHelpers {
         var strokeObj = params.outlineStroke;
         var margin = 5;
         if (params.clientToLogical === true) {
-          box = svgHelpers.clientToLogical(context.svg, svgHelpers.adjustScroll(box,scroller.netScroll));
+          box = svgHelpers.clientToLogical(context.svg, svgHelpers.adjustScroll(box, scroller.scroll));
         }
         context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
       }
@@ -1947,22 +1947,21 @@ class svgHelpers {
     return e;
   }
 
-    // ### findIntersectingArtifactFromMap
-    // Same as findIntersectionArtifact but uses a map of keys instead of an array
-    static findIntersectingArtifactFromMap(clientBox,map,netScroll) {
-        var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
-
+  // ### findIntersectingArtifactFromMap
+  // Same as findIntersectionArtifact but uses a map of keys instead of an array
+  static findIntersectingArtifactFromMap(clientBox, map, scrollState) {
+    var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
     // box.y = box.y - this.renderElement.offsetTop;
     // box.x = box.x - this.renderElement.offsetLeft;
     var rv = [];
 
     Object.keys(map).forEach((k) => {
-            var object = map[k];
+      var object = map[k];
       // Measure has been updated, but not drawn.
       if (!object.box) {
-        // console.log('there is no box');
+      // console.log('there is no box');
       } else {
-        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box),netScroll);
+        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState.scroll);
         var i1 = box.x - obox.x; // handle edge not believe in x and y
         var i2 = box.y - obox.y;
         if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
@@ -1970,13 +1969,11 @@ class svgHelpers {
         }
       }
     });
-
     return rv;
+  }
 
-    }
-
-  static containsPoint(box,point, netScroll) {
-    var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(box),netScroll);
+  static containsPoint(box, point, scrollState) {
+    var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(box), scrollState.scroll);
     const i1 = point.x - box.x; // handle edge not believe in x and y
     const i2 = point.y - box.y;
     if (i1 > 0 && i1 < obox.width && i2 > 0 && i2 < obox.height) {
@@ -1987,21 +1984,18 @@ class svgHelpers {
 
   // ### findIntersectionArtifact
   // find all object that intersect with the rectangle
-  static findIntersectingArtifact(clientBox, objects,netScroll) {
+  static findIntersectingArtifact(clientBox, objects, scrollState) {
     var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
     // box.y = box.y - this.renderElement.offsetTop;
     // box.x = box.x - this.renderElement.offsetLeft;
     var rv = [];
-    if (typeof(objects['forEach']) != 'function') {
-      console.log('corrupt objects in findIntersectingArtifact');
-    }
     objects.forEach((object) => {
       // Measure has been updated, but not drawn.
       if (!object.box) {
         // console.log('there is no box');
       } else {
-        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box),netScroll);
+        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState.scroll);
         var i1 = box.x - obox.x; // handle edge not believe in x and y
         var i2 = box.y - obox.y;
         if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
@@ -2012,8 +2006,8 @@ class svgHelpers {
 
     return rv;
   }
-  static findSmallestIntersection(clientBox, objects, netScroll) {
-    var ar = svgHelpers.findIntersectingArtifact(clientBox, objects, netScroll);
+  static findSmallestIntersection(clientBox, objects, scrollState) {
+    var ar = svgHelpers.findIntersectingArtifact(clientBox, objects, scrollState);
     if (!ar.length) {
       return null;
     }
@@ -2029,9 +2023,9 @@ class svgHelpers {
     return rv;
   }
 
-    static translateElement(g,x,y) {
-        g.setAttributeNS('','transform','translate('+x+' '+y+')');
-    }
+  static translateElement(g,x,y) {
+    g.setAttributeNS('','transform','translate('+x+' '+y+')');
+  }
 
   // ### measureBBox
   // Return the bounding box of the measure
@@ -2152,7 +2146,7 @@ class svgHelpers {
       console.log('bad values to scroll thing');
       return;
     }
-    return svgHelpers.boxPoints(box.x - scroll.x,box.y-scroll.y,box.width,box.height);
+    return svgHelpers.boxPoints(box.x + scroll.x, box.y - scroll.y, box.width, box.height);
     // return box;
   }
 
@@ -2227,15 +2221,16 @@ class svgHelpers {
 
   // ### logicalToClient
   // return a box or point in screen coordinates from svg coordinates
-  static logicalToClient(svg, point) {
+  static logicalToClient(svg, point, scroller) {
     var pt = svg.createSVGPoint();
+    const ss = scroller.scrollState;
     pt.x = point.x;
     pt.y = point.y;
     var sp = pt.matrixTransform(svg.getScreenCTM());
     if (!point['width']) {
       return {
-        x: sp.x,
-        y: sp.y
+        x: sp.x + ss.scroll.x,
+        y: sp.y + ss.scroll.y
       };
     }
     var endPt = svg.createSVGPoint();
@@ -2243,8 +2238,8 @@ class svgHelpers {
     endPt.y = pt.y + point.height;
     var ep = endPt.matrixTransform(svg.getScreenCTM());
     return {
-      x: sp.x,
-      y: sp.y,
+      x: sp.x + ss.scroll.x,
+      y: sp.y + ss.scroll.y,
       width: ep.x - sp.x,
       height: ep.y - sp.y
     };
@@ -3409,7 +3404,11 @@ class SuiRenderDemon {
       // indicate the display is 'dirty' and we will be refreshing it.
       $('body').addClass('refresh-1');
       try {
-        this.view.preserveScroll();
+        // Sort of a hack.  If the viewport changed, the scroll state is already reset
+        // so we can't preserver the scroll state.
+        if (!this.view.renderer.viewportChanged) {
+          this.view.preserveScroll();
+        }
         this.render();
       } catch (ex) {
         console.error(ex);
@@ -3541,35 +3540,63 @@ class suiMapper {
     // given a musical selector, find the note artifact that is closest to it,
     // if an exact match is not available
   _getClosestTick(selector) {
-    var measureKey = Object.keys(this.measureNoteMap).find((k) => {
-      return SmoSelector.sameMeasure(this.measureNoteMap[k].selector, selector)
-   && this.measureNoteMap[k].selector.tick === 0;
-    });
-    var tickKey = Object.keys(this.measureNoteMap).find((k) => {
-        return SmoSelector.sameNote(this.measureNoteMap[k].selector,selector);
-    });
-  var firstObj = this.measureNoteMap[Object.keys(this.measureNoteMap)[0]];
-  return tickKey ? this.measureNoteMap[tickKey]:
+    var measureKey = Object.keys(this.measureNoteMap).find((k) =>
+      SmoSelector.sameMeasure(this.measureNoteMap[k].selector, selector)
+        && this.measureNoteMap[k].selector.tick === 0);
+    var tickKey = Object.keys(this.measureNoteMap).find((k) =>
+      SmoSelector.sameNote(this.measureNoteMap[k].selector,selector));
+    var firstObj = this.measureNoteMap[Object.keys(this.measureNoteMap)[0]];
+    return tickKey ? this.measureNoteMap[tickKey]:
       (measureKey ? this.measureNoteMap[measureKey] : firstObj);
+  }
+
+  // ### _setModifierBoxes
+  // Create the DOM modifiers for the lyrics and other modifiers
+  _setModifierBoxes(measure) {
+    measure.voices.forEach((voice) => {
+      voice.notes.forEach((smoNote) =>  {
+        var el = this.renderer.svg.getElementById(smoNote.renderId);
+        if (el) {
+          svgHelpers.updateArtifactBox(this.renderer.svg, el, smoNote, this.scroller);
+          // TODO: fix this, only works on the first line.
+          smoNote.getModifiers('SmoLyric').forEach((lyric) => {
+            if (lyric.getText().length || lyric.isHyphenated()) {
+              lyric.selector = '#' + smoNote.renderId + ' ' + lyric.getClassSelector();
+              svgHelpers.updateArtifactBox(this.renderer.svg, $(lyric.selector)[0], lyric, this.scroller);
+            }
+          });
+          smoNote.graceNotes.forEach((g) => {
+            var gel = this.context.svg.getElementById('vf-' + g.renderedId);
+            $(gel).addClass('grace-note');
+            svgHelpers.updateArtifactBox(this.renderer.svg, gel, g, this.scroller);
+          });
+          smoNote.textModifiers.forEach((modifier) => {
+            const modEl = $('.' + modifier.attrs.id);
+            if (modifier.logicalBox && modEl.length) {
+              svgHelpers.updateArtifactBox(this.renderer.svg, modEl[0], modifier, this.scroller);
+            }
+          });
+        }
+      });
+    });
   }
 
   // ### updateMeasure
   // A measure has changed.  Update the music geometry for it
   mapMeasure(staff, measure, printing) {
-    if (!measure.renderedBox) {
-        return;
+    if (!measure.logicalBox) {
+      return;
     }
+    measure.renderedBox = svgHelpers.logicalToClient(this.renderer.svg, measure.logicalBox, this.scroller);
+    this._setModifierBoxes(measure);
     const timestamp = new Date().valueOf();
     // Keep track of any current selections in this measure, we will try to restore them.
     var sels = this._copySelectionsByMeasure(staff.staffId, measure.measureNumber.measureIndex);
     this.clearMeasureMap(staff,measure);
     var vix = measure.getActiveVoice();
     sels.selectors.forEach((sel) => {
-        sel.voice = vix;
+      sel.voice = vix;
     });
-
-    // keep track of the scroll position when we render the music.
-    this.scroller.setScrollInitial();
 
     var voiceIx = 0;
     var selectionChanged = false;
@@ -3594,7 +3621,7 @@ class suiMapper {
           _measure: measure,
           _note: note,
           _pitches: [],
-          box: svgHelpers.logicalToClient(this.renderer.svg, note.logicalBox),
+          box: svgHelpers.logicalToClient(this.renderer.svg, note.logicalBox, this.scroller),
           type: 'rendered'
         });
         // and add it to the map
@@ -3685,10 +3712,10 @@ class suiMapper {
   // given a bounding box, find any rendered elements that intersect with it
   intersectingArtifact(bb) {
     bb = svgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
-    var artifacts = svgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, this.scroller.netScroll);
+    var artifacts = svgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, this.scroller.scrollState);
     // TODO: handle overlapping suggestions
     if (!artifacts.length) {
-      var sel = svgHelpers.findIntersectingArtifact(bb, this.modifierTabs, this.scroller.netScroll);
+      var sel = svgHelpers.findIntersectingArtifact(bb, this.modifierTabs, this.scroller.scrollState);
       if (sel.length) {
         sel = sel[0];
         this._setModifierAsSuggestion(bb, sel);
@@ -3747,6 +3774,7 @@ class suiMapper {
     this.render();
     this.octaveOffset = 0;
     this.chordPedal = false;
+    this.scroller = new suiScroller('.piano-keys');
   }
 
   static get dimensions() {
@@ -3805,103 +3833,101 @@ class suiMapper {
       }, 1000);
   }
   bind() {
-    var self = this;
-    $('body').off('show-piano-event').on('show-piano-event',function() {
+    $('body').off('show-piano-event').on('show-piano-event', () => {
         $('body').toggleClass('show-piano');
-        self._mapKeys();
+        this._mapKeys();
     });
-    $('#piano-8va-button').off('click').on('click',function() {
+    $('#piano-8va-button').off('click').on('click', (ev) => {
       $('#piano-8vb-button').removeClass('activated');
-      if (self.octaveOffset === 0) {
-        $(this).addClass('activated');
-        self.octaveOffset = 1;
+      if (this.octaveOffset === 0) {
+        $(ev.currentTarget).addClass('activated');
+        this.octaveOffset = 1;
       } else {
-        $(this).removeClass('activated');
-        self.octaveOffset = 0;
+        $(ev.currentTarget).removeClass('activated');
+        this.octaveOffset = 0;
       }
     });
-    $('#piano-8vb-button').off('click').on('click',function() {
+    $('#piano-8vb-button').off('click').on('click', (ev) => {
       $('#piano-8va-button').removeClass('activated');
-      if (self.octaveOffset === 0) {
-        $(this).addClass('activated');
-        self.octaveOffset = -1;
+      if (this.octaveOffset === 0) {
+        $(ev.currentTarget).addClass('activated');
+        this.octaveOffset = -1;
       } else {
-        $(this).removeClass('activated');
-        self.octaveOffset = 0;
+        $(ev.currentTarget).removeClass('activated');
+        this.octaveOffset = 0;
       }
     });
-    $('#piano-xpose-up').off('click').on('click',function() {
-      self.keyCommands.transposeUp();
+    $('#piano-xpose-up').off('click').on('click', () => {
+      this.keyCommands.transposeUp();
     });
-    $('#piano-xpose-down').off('click').on('click',function() {
-      self.keyCommands.transposeDown();
+    $('#piano-xpose-down').off('click').on('click', () => {
+      this.keyCommands.transposeDown();
     });
-    $('#piano-enharmonic').off('click').on('click',function() {
-      self.keyCommands.toggleEnharmonic();
+    $('#piano-enharmonic').off('click').on('click', () => {
+      this.keyCommands.toggleEnharmonic();
     });
-    $('button.jsLeft').off('click').on('click',function() {
-      self.view.tracker.moveSelectionLeft();
+    $('button.jsLeft').off('click').on('click', () => {
+      this.view.tracker.moveSelectionLeft();
     });
-    $('button.jsRight').off('click').on('click',function() {
-      self.view.tracker.moveSelectionRight();
+    $('button.jsRight').off('click').on('click', () => {
+      this.view.tracker.moveSelectionRight();
     });
-    $('button.jsGrowDuration').off('click').on('click',function() {
-      self.keyCommands.doubleDuration();
+    $('button.jsGrowDuration').off('click').on('click', () => {
+      this.keyCommands.doubleDuration();
     });
-    $('button.jsGrowDot').off('click').on('click',function() {
-      self.keyCommands.dotDuration();
+    $('button.jsGrowDot').off('click').on('click', () => {
+      this.keyCommands.dotDuration();
     });
-    $('button.jsShrinkDuration').off('click').on('click',function() {
-      self.keyCommands.halveDuration();
+    $('button.jsShrinkDuration').off('click').on('click', () => {
+      this.keyCommands.halveDuration();
     });
-    $('button.jsShrinkDot').off('click').on('click',function() {
-      self.keyCommands.undotDuration();
+    $('button.jsShrinkDot').off('click').on('click', () => {
+      this.keyCommands.undotDuration();
     });
-    $('button.jsChord').off('click').on('click',function() {
-      $(this).toggleClass('activated');
-      self.chordPedal = !self.chordPedal;
+    $('button.jsChord').off('click').on('click', (ev) => {
+      $(ev.currentTarget).toggleClass('activated');
+      this.chordPedal = !this.chordPedal;
     });
-
-
-    $(this.renderElement).off('mousemove').on('mousemove', function (ev) {
-      if (Math.abs(self.objects[0].box.x - self.objects[0].keyElement.getBoundingClientRect().x)
-        > self.objects[0].box.width/2) {
+    $(this.renderElement).off('mousemove').on('mousemove', (ev) => {
+      if (Math.abs(this.objects[0].box.x - this.objects[0].keyElement.getBoundingClientRect().x)
+        > this.objects[0].box.width / 2) {
           console.log('remap piano');
-          self._mapKeys();
-        }
+          this._mapKeys();
+      }
       var keyPressed = svgHelpers.findSmallestIntersection({
         x: ev.clientX,
         y: ev.clientY
-      }, self.objects,{x:0,y:0});
+        }, this.objects, this.scroller.scrollState);
       if (!keyPressed) {
         return;
       }
-      var el = self.renderElement.getElementById(keyPressed.id);
+      var el = this.renderElement.getElementById(keyPressed.id);
       if ($(el).hasClass('glow-key')) {
         return;
       }
-      self._removeGlow();
+      this._removeGlow();
       $(el).addClass('glow-key');
-      self._fadeGlow(el);
+      this._fadeGlow(el);
     });
-    $(this.renderElement).off('blur').on('blur',function(ev) {
-      self._removeGlow();
+    $(this.renderElement).off('blur').on('blur', (ev) => {
+      this._removeGlow();
     });
-    $(this.renderElement).off('click').on('click', function (ev) {
-      self._updateSelections(ev);
+    $(this.renderElement).off('click').on('click', (ev) => {
+      this._updateSelections(ev);
     });
 
-    $('.close-piano').off('click').on('click', function () {
+    $('.close-piano').off('click').on('click', () => {
       $('body').removeClass('show-piano');
       // resize the work area.
       $('body').trigger('forceScrollEvent');
     });
   }
   _updateSelections(ev) {
+    // fake a scroller (piano scroller w/b cool tho...)
     var keyPressed = svgHelpers.findSmallestIntersection({
         x: ev.clientX,
         y: ev.clientY
-      }, this.objects,{x:0,y:0});
+      }, this.objects, this.scroller.scrollState);
     if (!keyPressed) {
       return;
     }
@@ -4678,7 +4704,7 @@ class SuiScoreRender extends SuiRenderState {
           newGroup.textBlocks[0].text.y = yoff;
         }
       }
-      const block = SuiTextBlock.fromTextGroup(newGroup, this.renderer.getContext());
+      const block = SuiTextBlock.fromTextGroup(newGroup, this.renderer.getContext(), this.measureMapper.scroller);
       block.render();
       // For the first one we render, use that as the bounding box for all the text, for
       // purposes of mapper/tracker
@@ -6468,24 +6494,7 @@ class suiScroller  {
     return { initial, scroll };
   }
   restoreScrollState(state) {
-    const stateX = (state.scroll.x + state.initial.x) -
-      (this._scroll.x + this._scrollInitial.x);
-    const stateY = (state.scroll.y + state.initial.y) -
-      (this._scroll.x + this._scrollInitial.x);
-    this.scrollOffset(stateX, stateY);
-  }
-
-  // ### setScrollInitial
-  // tracker is going to remap the music, make sure we take the current scroll into account.
-  setScrollInitial() {
-    var scroller = $(this.selector);
-    this._scrollInitial = { x: $(scroller)[0].scrollLeft, y: $(scroller)[0].scrollTop };
-    this._offsetInitial = { x: $(scroller).offset().left, y: $(scroller).offset().top };
-    this.viewport = svgHelpers.boxPoints(
-      $(this.selector).offset().left,
-      $(this.selector).offset().top,
-      $(this.selector).width(),
-      $(this.selector).height());
+    this.scrollOffset(state.scroll.x - this._scroll.x, state.scroll.y - this._scroll.y);
   }
 
   // ### handleScroll
@@ -6582,8 +6591,7 @@ class suiScroller  {
   get netScroll() {
     var xoffset = $(this.selector).offset().left - this._offsetInitial.x;
     var yoffset = $(this.selector).offset().top - this._offsetInitial.y;
-    return { x: this._scroll.x -
-      (this._scrollInitial.x + xoffset), y: this._scroll.y - (this._scrollInitial.y + yoffset)};
+    return { x: this._scroll.x - xoffset, y: this._scroll.y - yoffset };
   }
 
   // ### invScroll
@@ -6654,6 +6662,9 @@ class SuiTextEditor {
   constructor(params) {
     Vex.Merge(this, SuiTextEditor.defaults);
     Vex.Merge(this, params);
+    if (typeof(params.scroller) !== 'object') {
+      throw 'bad scroller in ctor of SuiTextEditor';
+    }
   }
 
   static get strokes() {
@@ -6730,7 +6741,7 @@ class SuiTextEditor {
     var blocks = this.svgText.getIntersectingBlocks({
       x: ev.clientX,
       y: ev.clientY
-    }, this.scroller.netScroll);
+    }, this.scroller.scrollState);
 
     // The mouse is not over the text
     if (!blocks.length) {
@@ -6922,7 +6933,7 @@ class SuiTextEditor {
   parseBlocks() {
     let i = 0;
     this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y,
-      fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight });
+      fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight, scroller: this.scroller });
     for (i = 0; i < this.text.length; ++i) {
       this.svgText.addTextBlockAt(i, { text: this.text[i] });
       this.empty = false;
@@ -7061,7 +7072,7 @@ class SuiLyricEditor extends SuiTextEditor {
   }
   parseBlocks() {
     let i = 0;
-    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y });
+    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y, scroller: this.scroller });
     for (i = 0; i < this.text.length; ++i) {
       this.svgText.addTextBlockAt(i, { text: this.text[i] });
       this.empty = false;
@@ -7162,7 +7173,7 @@ class SuiChordEditor extends SuiTextEditor {
     let curGlyph = '';
     let blockIx = 0; // so we skip modifier characters
     let i = 0;
-    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y });
+    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y, scroller: this.scroller });
 
     for (i = 0; i < this.text.length; ++i) {
       const char = this.text[i];
@@ -7278,12 +7289,12 @@ class SuiDragSession {
     this.scroller = params.scroller;
     this.xOffset = 0;
     this.yOffset = 0;
-    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup, this.context); // SuiTextBlock
+    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup, this.context, this.scroller); // SuiTextBlock
     this.dragging = false;
     this.startBox = this.textObject.getLogicalBox();
     this.startBox.y += this.textObject.maxFontHeight(1);
     this.currentBox = svgHelpers.smoBox(this.startBox);
-    this.currentClientBox = svgHelpers.adjustScroll(svgHelpers.logicalToClient(this.context.svg, this.currentBox), this.scroller.netScroll);
+    this.currentClientBox = svgHelpers.logicalToClient(this.context.svg, this.currentBox, this.scroller);
   }
 
   _outlineBox() {
@@ -7296,7 +7307,7 @@ class SuiDragSession {
   }
 
   startDrag(e) {
-    if (!svgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, this.scroller.netScroll)) {
+    if (!svgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, this.scroller.scrollState)) {
       return;
     }
     this.dragging = true;
@@ -7818,16 +7829,20 @@ class SuiInlineText {
     if (!this.context) {
       throw 'context for SVG must be set';
     }
+    if (!this.scroller) {
+      throw 'scroller for inline text must be set';
+    }
     this.updateFontInfo();
   }
 
-  static fromScoreText(scoreText, context) {
+  static fromScoreText(scoreText, context, scroller) {
     var pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
       : SmoScoreText.fontPointSize(scoreText.fontInfo.size);
     const params = { fontFamily: scoreText.fontInfo.family,
       fontWeight: scoreText.fontInfo.weight,
       fontStyle: scoreText.fontInfo.style,
       startX: scoreText.x, startY: scoreText.y,
+      scroller,
       fontSize: pointSize, context };
     const rv = new SuiInlineText(params);
     rv.attrs.id = scoreText.attrs.id;
@@ -8119,8 +8134,8 @@ class SuiInlineText {
       ix += 1;
     });
     this.context.closeGroup();
-    this.renderedBox = svgHelpers.smoBox(group.getBoundingClientRect());
     this.logicalBox = svgHelpers.smoBox(group.getBBox());
+    this.renderedBox = svgHelpers.logicalToClient(this.context.svg, this.logicalBox, this.scroller);
   }
 
   _drawBlock(block) {
@@ -8178,6 +8193,10 @@ class SuiTextBlock {
   }
   constructor(params) {
     this.inlineBlocks = [];
+    if (!typeof(params.scroller) === 'object') {
+      throw 'bad text block, no scroller';
+    }
+    this.scroller = params.scroller;
     this.spacing = 0;
     if (typeof(params.spacing) !== 'undefined') {
       this.spacing = params.spacing;
@@ -8265,16 +8284,16 @@ class SuiTextBlock {
     return rv;
   }
 
-  static inlineParamsFromScoreText(scoreText, context) {
+  static inlineParamsFromScoreText(scoreText, context, scroller) {
     const pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
       : SmoScoreText.fontPointSize(scoreText.fontInfo.size);
     const rv = { fontFamily: scoreText.fontInfo.family,
       startX: scoreText.x, startY: scoreText.y,
-      fontSize: pointSize, context };
+      fontSize: pointSize, context, scroller };
     return rv;
   }
-  static blockFromScoreText(scoreText, context, position) {
-    var inlineText = SuiInlineText.fromScoreText(scoreText, context);
+  static blockFromScoreText(scoreText, context, position, scroller) {
+    var inlineText = SuiInlineText.fromScoreText(scoreText, context, scroller);
     return  { text: inlineText, position };
   }
 
@@ -8282,7 +8301,7 @@ class SuiTextBlock {
     return this._calculateBoundingClientRect();
   }
   getRenderedBox() {
-    return svgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect());
+    return svgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect(), this.scroller);
   }
   _calculateBoundingClientRect() {
     var rv = {};
@@ -8296,17 +8315,17 @@ class SuiTextBlock {
     rv.y = rv.y - rv.height;
     return rv;
   }
-  static fromTextGroup(tg, context) {
+  static fromTextGroup(tg, context, scroller) {
     const blocks = [];
 
     // Create an inline block for each ScoreText
     tg.textBlocks.forEach((stBlock) => {
       const st = stBlock.text;
-      const newText = SuiTextBlock.blockFromScoreText(st, context, stBlock.position);
+      const newText = SuiTextBlock.blockFromScoreText(st, context, stBlock.position, scroller);
       newText.activeText = stBlock.activeText;
       blocks.push(newText);
     });
-    const rv = new SuiTextBlock({ blocks, justification: tg.justification, spacing: tg.spacing, context });
+    const rv = new SuiTextBlock({ blocks, justification: tg.justification, spacing: tg.spacing, context, scroller });
     rv._justify();
     return rv;
   }
@@ -8543,7 +8562,7 @@ class suiTracker extends suiMapper {
     if (!el) {
       return;
     }
-    svgHelpers.updateArtifactBox(this.context.svg, el, modifier);
+    svgHelpers.updateArtifactBox(this.context.svg, el, modifier, this.scroller);
   }
 
   _updateNoteModifier(selection, modMap, modifier, ix) {
@@ -8551,7 +8570,7 @@ class suiTracker extends suiMapper {
       this.modifierTabs.push({
         modifier,
         selection,
-        box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox),
+        box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
         index: ix
       });
       ix += 1;
@@ -8572,7 +8591,7 @@ class suiTracker extends suiMapper {
         this.modifierTabs.push({
           modifier,
           selection: null,
-          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox),
+          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
           index: ix
         });
         ix += 1;
@@ -8583,7 +8602,7 @@ class suiTracker extends suiMapper {
         this.modifierTabs.push({
           modifier,
           selection: null,
-          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox),
+          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
           index: ix
         });
         ix += 1;
@@ -8595,11 +8614,11 @@ class suiTracker extends suiMapper {
       selection.staff.modifiers.forEach((modifier) => {
         if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
           if (!modMap[modifier.attrs.id]) {
-            if (modifier.renderedBox) {
+            if (modifier.logicalBox) {
               this.modifierTabs.push({
                 modifier,
                 selection,
-                box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox),
+                box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
                 index: ix
               });
               ix += 1;
@@ -8625,7 +8644,7 @@ class suiTracker extends suiMapper {
         }
       });
       selection.note.textModifiers.forEach((modifier) => {
-        if (modifier.renderedBox) {
+        if (modifier.logicalBox) {
           ix = this._updateNoteModifier(selection, modMap, modifier, ix);
         }
       });
@@ -10015,7 +10034,7 @@ class VxMeasure {
   }
 
   _renderNoteGlyph(smoNote, textObj) {
-    var x = smoNote.logicalBox.x + textObj.xOffset;
+    var x = this.noteToVexMap[smoNote.attrs.id].getAbsoluteX() + textObj.xOffset;
     // the -3 is copied from vexflow textDynamics
     var y = this.stave.getYForLine(textObj.yOffsetLine - 3) + textObj.yOffsetPixels;
     var group = this.context.openGroup();
@@ -10029,7 +10048,7 @@ class VxMeasure {
         x += VF.TextDynamics.GLYPHS[ch].width;
       }
     });
-    textObj.renderedBox = svgHelpers.smoBox(group.getBoundingClientRect());
+    textObj.logicalBox = svgHelpers.smoBox(group.getBBox());
     this.context.closeGroup();
   }
 
@@ -10184,40 +10203,6 @@ class VxMeasure {
     }
   }
 
-  _setModifierBoxes() {
-    this.smoMeasure.voices.forEach((voice) => {
-      voice.notes.forEach((smoNote) =>  {
-        var el = this.context.svg.getElementById(smoNote.renderId);
-        if (el) {
-          svgHelpers.updateArtifactBox(this.context.svg, el, smoNote);
-          // TODO: fix this, only works on the first line.
-          smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-            if (lyric.selector && (lyric.getText().length || lyric.isHyphenated())) {
-              svgHelpers.updateArtifactBox(this.context.svg, $(lyric.selector)[0], lyric);
-            }
-          });
-          smoNote.graceNotes.forEach((g) => {
-            var gel = this.context.svg.getElementById('vf-' + g.renderedId);
-            $(gel).addClass('grace-note');
-            svgHelpers.updateArtifactBox(this.context.svg, gel, g);
-          });
-        }
-      });
-    });
-  }
-
-  // ### _updateLyricXOffsets
-  // Create the DOM modifiers for the rendered lyrics.
-  _updateLyricDomSelectors() {
-    this.smoMeasure.voices.forEach((vv) => {
-      vv.notes.forEach((nn) => {
-        nn.getModifiers('SmoLyric').forEach((lyric) => {
-          lyric.selector = '#' + nn.renderId + ' ' + lyric.getClassSelector();
-        });
-      });
-    });
-  }
-
   // ## Description:
   // Create all Vex notes and modifiers.  We defer the format and rendering so
   // we can align across multiple staves
@@ -10324,16 +10309,13 @@ class VxMeasure {
       this.vexTuplets.forEach((tuplet) => {
         tuplet.setContext(self.context).draw();
       });
-      this._updateLyricDomSelectors();
-      this._setModifierBoxes();
+      // this._updateLyricDomSelectors();
       this.renderDynamics();
       // this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
 
       this.context.closeGroup();
       layoutDebug.setTimestamp(layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
-      const box = svgHelpers.smoBox(group.getBoundingClientRect());
       const lbox = svgHelpers.smoBox(group.getBBox());
-      this.smoMeasure.renderedBox = box;
       this.smoMeasure.setBox(lbox, 'vxMeasure bounding box');
       this.smoMeasure.changed = false;
       this.rendered = true;
@@ -10411,8 +10393,10 @@ class VxSystem {
     for (i = 0; i < 3; ++i) {
       const chords = note.getLyricForVerse(i, SmoLyric.parsers.chord);
       chords.forEach((chord) => {
-        var dom = $(this.context.svg).find(chord.selector)[0];
-        dom.setAttributeNS('', 'transform', 'translate(' + chord.translateX + ' ' + (-1 * chord.translateY) + ')');
+        const dom = $(this.context.svg).find(chord.selector)[0];
+        if (dom) {
+          dom.setAttributeNS('', 'transform', 'translate(' + chord.translateX + ' ' + (-1 * chord.translateY) + ')');
+        }
       });
     }
   }
@@ -27310,6 +27294,7 @@ class SuiDialogBase {
     this.id = parameters.id;
     this.boundKeyboard = false;
     this.components = [];
+    this.scroller = parameters.view.tracker.scroller;
 
     this.closeDialogPromise = new Promise((resolve) => {
       $('body').off('dialogDismiss').on('dialogDismiss', () => {
@@ -31167,8 +31152,9 @@ class SuiStaffGroupDialog extends SuiDialogBase {
 // Edit the text in an SVG element, in the same scale etc. as the text in the score SVG DOM.
 // This component just manages the text editing component of hte renderer.
 class SuiTextInPlace extends SuiComponentBase {
-  constructor(dialog,parameter) {
+  constructor(dialog, parameter) {
     super(parameter);
+    this.scroller = dialog.scroller;
     smoSerialize.filteredMerge(
         ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     if (!this.defaultValue) {
@@ -31245,7 +31231,7 @@ class SuiTextInPlace extends SuiComponentBase {
     modifier.textBlocks.forEach((block) => {
       const st = block.text;
       if (st.attrs.id !== this.dialog.activeScoreText.attrs.id) {
-        const svgText = SuiInlineText.fromScoreText(st, context);
+        const svgText = SuiInlineText.fromScoreText(st, context, this.scroller);
         if (st.logicalBox) {
           svgText.startX += st.logicalBox.x - st.x;
           svgText.startY += (st.y - st.logicalBox.y) - st.logicalBox.height / 2;

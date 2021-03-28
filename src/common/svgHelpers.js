@@ -144,13 +144,13 @@ class svgHelpers {
   // ### boxNote
   // update the note geometry based on current viewbox conditions.
   // This may not be the appropriate place for this...maybe in layout
-  static updateArtifactBox(svg,element,artifact) {
+  static updateArtifactBox(svg, element, artifact, scroller) {
     if (typeof(element) === 'undefined') {
       console.log('updateArtifactBox: undefined element!');
       return;
     }
-    artifact.renderedBox = svgHelpers.smoBox(element.getBoundingClientRect());
     artifact.logicalBox = svgHelpers.smoBox(element.getBBox());
+    artifact.renderedBox = svgHelpers.logicalToClient(svg, artifact.logicalBox, scroller);
   }
 
   // ### eraseOutline
@@ -161,7 +161,7 @@ class svgHelpers {
 
   static _outlineRect(params) {
     const stroke = params.outlineStroke;
-    const scroller = params.scroller;
+    const scroller = params.scroller.scrollState;
     const context = params.context;
     svgHelpers.eraseOutline(context,params.classes);
     // Don't highlight in print mode.
@@ -176,7 +176,7 @@ class svgHelpers {
         var strokeObj = params.outlineStroke;
         var margin = 5;
         if (params.clientToLogical === true) {
-          box = svgHelpers.clientToLogical(context.svg, svgHelpers.adjustScroll(box,scroller.netScroll));
+          box = svgHelpers.clientToLogical(context.svg, svgHelpers.adjustScroll(box, scroller.scroll));
         }
         context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
       }
@@ -349,22 +349,21 @@ class svgHelpers {
     return e;
   }
 
-    // ### findIntersectingArtifactFromMap
-    // Same as findIntersectionArtifact but uses a map of keys instead of an array
-    static findIntersectingArtifactFromMap(clientBox,map,netScroll) {
-        var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
-
+  // ### findIntersectingArtifactFromMap
+  // Same as findIntersectionArtifact but uses a map of keys instead of an array
+  static findIntersectingArtifactFromMap(clientBox, map, scrollState) {
+    var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
     // box.y = box.y - this.renderElement.offsetTop;
     // box.x = box.x - this.renderElement.offsetLeft;
     var rv = [];
 
     Object.keys(map).forEach((k) => {
-            var object = map[k];
+      var object = map[k];
       // Measure has been updated, but not drawn.
       if (!object.box) {
-        // console.log('there is no box');
+      // console.log('there is no box');
       } else {
-        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box),netScroll);
+        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState.scroll);
         var i1 = box.x - obox.x; // handle edge not believe in x and y
         var i2 = box.y - obox.y;
         if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
@@ -372,13 +371,11 @@ class svgHelpers {
         }
       }
     });
-
     return rv;
+  }
 
-    }
-
-  static containsPoint(box,point, netScroll) {
-    var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(box),netScroll);
+  static containsPoint(box, point, scrollState) {
+    var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(box), scrollState.scroll);
     const i1 = point.x - box.x; // handle edge not believe in x and y
     const i2 = point.y - box.y;
     if (i1 > 0 && i1 < obox.width && i2 > 0 && i2 < obox.height) {
@@ -389,21 +386,18 @@ class svgHelpers {
 
   // ### findIntersectionArtifact
   // find all object that intersect with the rectangle
-  static findIntersectingArtifact(clientBox, objects,netScroll) {
+  static findIntersectingArtifact(clientBox, objects, scrollState) {
     var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
     // box.y = box.y - this.renderElement.offsetTop;
     // box.x = box.x - this.renderElement.offsetLeft;
     var rv = [];
-    if (typeof(objects['forEach']) != 'function') {
-      console.log('corrupt objects in findIntersectingArtifact');
-    }
     objects.forEach((object) => {
       // Measure has been updated, but not drawn.
       if (!object.box) {
         // console.log('there is no box');
       } else {
-        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box),netScroll);
+        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState.scroll);
         var i1 = box.x - obox.x; // handle edge not believe in x and y
         var i2 = box.y - obox.y;
         if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
@@ -414,8 +408,8 @@ class svgHelpers {
 
     return rv;
   }
-  static findSmallestIntersection(clientBox, objects, netScroll) {
-    var ar = svgHelpers.findIntersectingArtifact(clientBox, objects, netScroll);
+  static findSmallestIntersection(clientBox, objects, scrollState) {
+    var ar = svgHelpers.findIntersectingArtifact(clientBox, objects, scrollState);
     if (!ar.length) {
       return null;
     }
@@ -431,9 +425,9 @@ class svgHelpers {
     return rv;
   }
 
-    static translateElement(g,x,y) {
-        g.setAttributeNS('','transform','translate('+x+' '+y+')');
-    }
+  static translateElement(g,x,y) {
+    g.setAttributeNS('','transform','translate('+x+' '+y+')');
+  }
 
   // ### measureBBox
   // Return the bounding box of the measure
@@ -554,7 +548,7 @@ class svgHelpers {
       console.log('bad values to scroll thing');
       return;
     }
-    return svgHelpers.boxPoints(box.x - scroll.x,box.y-scroll.y,box.width,box.height);
+    return svgHelpers.boxPoints(box.x + scroll.x, box.y - scroll.y, box.width, box.height);
     // return box;
   }
 
@@ -629,15 +623,16 @@ class svgHelpers {
 
   // ### logicalToClient
   // return a box or point in screen coordinates from svg coordinates
-  static logicalToClient(svg, point) {
+  static logicalToClient(svg, point, scroller) {
     var pt = svg.createSVGPoint();
+    const ss = scroller.scrollState;
     pt.x = point.x;
     pt.y = point.y;
     var sp = pt.matrixTransform(svg.getScreenCTM());
     if (!point['width']) {
       return {
-        x: sp.x,
-        y: sp.y
+        x: sp.x + ss.scroll.x,
+        y: sp.y + ss.scroll.y
       };
     }
     var endPt = svg.createSVGPoint();
@@ -645,8 +640,8 @@ class svgHelpers {
     endPt.y = pt.y + point.height;
     var ep = endPt.matrixTransform(svg.getScreenCTM());
     return {
-      x: sp.x,
-      y: sp.y,
+      x: sp.x + ss.scroll.x,
+      y: sp.y + ss.scroll.y,
       width: ep.x - sp.x,
       height: ep.y - sp.y
     };

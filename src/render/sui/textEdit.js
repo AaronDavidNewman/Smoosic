@@ -59,6 +59,9 @@ class SuiTextEditor {
   constructor(params) {
     Vex.Merge(this, SuiTextEditor.defaults);
     Vex.Merge(this, params);
+    if (typeof(params.scroller) !== 'object') {
+      throw 'bad scroller in ctor of SuiTextEditor';
+    }
   }
 
   static get strokes() {
@@ -135,7 +138,7 @@ class SuiTextEditor {
     var blocks = this.svgText.getIntersectingBlocks({
       x: ev.clientX,
       y: ev.clientY
-    }, this.scroller.netScroll);
+    }, this.scroller.scrollState);
 
     // The mouse is not over the text
     if (!blocks.length) {
@@ -327,7 +330,7 @@ class SuiTextEditor {
   parseBlocks() {
     let i = 0;
     this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y,
-      fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight });
+      fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight, scroller: this.scroller });
     for (i = 0; i < this.text.length; ++i) {
       this.svgText.addTextBlockAt(i, { text: this.text[i] });
       this.empty = false;
@@ -466,7 +469,7 @@ class SuiLyricEditor extends SuiTextEditor {
   }
   parseBlocks() {
     let i = 0;
-    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y });
+    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y, scroller: this.scroller });
     for (i = 0; i < this.text.length; ++i) {
       this.svgText.addTextBlockAt(i, { text: this.text[i] });
       this.empty = false;
@@ -567,7 +570,7 @@ class SuiChordEditor extends SuiTextEditor {
     let curGlyph = '';
     let blockIx = 0; // so we skip modifier characters
     let i = 0;
-    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y });
+    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y, scroller: this.scroller });
 
     for (i = 0; i < this.text.length; ++i) {
       const char = this.text[i];
@@ -683,12 +686,12 @@ class SuiDragSession {
     this.scroller = params.scroller;
     this.xOffset = 0;
     this.yOffset = 0;
-    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup, this.context); // SuiTextBlock
+    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup, this.context, this.scroller); // SuiTextBlock
     this.dragging = false;
     this.startBox = this.textObject.getLogicalBox();
     this.startBox.y += this.textObject.maxFontHeight(1);
     this.currentBox = svgHelpers.smoBox(this.startBox);
-    this.currentClientBox = svgHelpers.adjustScroll(svgHelpers.logicalToClient(this.context.svg, this.currentBox), this.scroller.netScroll);
+    this.currentClientBox = svgHelpers.logicalToClient(this.context.svg, this.currentBox, this.scroller);
   }
 
   _outlineBox() {
@@ -701,7 +704,7 @@ class SuiDragSession {
   }
 
   startDrag(e) {
-    if (!svgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, this.scroller.netScroll)) {
+    if (!svgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, this.scroller.scrollState)) {
       return;
     }
     this.dragging = true;

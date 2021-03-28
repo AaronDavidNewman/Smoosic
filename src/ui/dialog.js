@@ -55,6 +55,7 @@ class SuiDialogBase {
     this.id = parameters.id;
     this.boundKeyboard = false;
     this.components = [];
+    this.scroller = parameters.view.tracker.scroller;
 
     this.closeDialogPromise = new Promise((resolve) => {
       $('body').off('dialogDismiss').on('dialogDismiss', () => {

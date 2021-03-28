@@ -105,7 +105,7 @@ class suiTracker extends suiMapper {
     if (!el) {
       return;
     }
-    svgHelpers.updateArtifactBox(this.context.svg, el, modifier);
+    svgHelpers.updateArtifactBox(this.context.svg, el, modifier, this.scroller);
   }
 
   _updateNoteModifier(selection, modMap, modifier, ix) {
@@ -113,7 +113,7 @@ class suiTracker extends suiMapper {
       this.modifierTabs.push({
         modifier,
         selection,
-        box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox),
+        box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
         index: ix
       });
       ix += 1;
@@ -134,7 +134,7 @@ class suiTracker extends suiMapper {
         this.modifierTabs.push({
           modifier,
           selection: null,
-          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox),
+          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
           index: ix
         });
         ix += 1;
@@ -145,7 +145,7 @@ class suiTracker extends suiMapper {
         this.modifierTabs.push({
           modifier,
           selection: null,
-          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox),
+          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
           index: ix
         });
         ix += 1;
@@ -157,11 +157,11 @@ class suiTracker extends suiMapper {
       selection.staff.modifiers.forEach((modifier) => {
         if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
           if (!modMap[modifier.attrs.id]) {
-            if (modifier.renderedBox) {
+            if (modifier.logicalBox) {
               this.modifierTabs.push({
                 modifier,
                 selection,
-                box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox),
+                box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
                 index: ix
               });
               ix += 1;
@@ -187,7 +187,7 @@ class suiTracker extends suiMapper {
         }
       });
       selection.note.textModifiers.forEach((modifier) => {
-        if (modifier.renderedBox) {
+        if (modifier.logicalBox) {
           ix = this._updateNoteModifier(selection, modMap, modifier, ix);
         }
       });

@@ -281,7 +281,7 @@ class VxMeasure {
   }
 
   _renderNoteGlyph(smoNote, textObj) {
-    var x = smoNote.logicalBox.x + textObj.xOffset;
+    var x = this.noteToVexMap[smoNote.attrs.id].getAbsoluteX() + textObj.xOffset;
     // the -3 is copied from vexflow textDynamics
     var y = this.stave.getYForLine(textObj.yOffsetLine - 3) + textObj.yOffsetPixels;
     var group = this.context.openGroup();
@@ -295,7 +295,7 @@ class VxMeasure {
         x += VF.TextDynamics.GLYPHS[ch].width;
       }
     });
-    textObj.renderedBox = svgHelpers.smoBox(group.getBoundingClientRect());
+    textObj.logicalBox = svgHelpers.smoBox(group.getBBox());
     this.context.closeGroup();
   }
 
@@ -450,40 +450,6 @@ class VxMeasure {
     }
   }
 
-  _setModifierBoxes() {
-    this.smoMeasure.voices.forEach((voice) => {
-      voice.notes.forEach((smoNote) =>  {
-        var el = this.context.svg.getElementById(smoNote.renderId);
-        if (el) {
-          svgHelpers.updateArtifactBox(this.context.svg, el, smoNote);
-          // TODO: fix this, only works on the first line.
-          smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-            if (lyric.selector && (lyric.getText().length || lyric.isHyphenated())) {
-              svgHelpers.updateArtifactBox(this.context.svg, $(lyric.selector)[0], lyric);
-            }
-          });
-          smoNote.graceNotes.forEach((g) => {
-            var gel = this.context.svg.getElementById('vf-' + g.renderedId);
-            $(gel).addClass('grace-note');
-            svgHelpers.updateArtifactBox(this.context.svg, gel, g);
-          });
-        }
-      });
-    });
-  }
-
-  // ### _updateLyricXOffsets
-  // Create the DOM modifiers for the rendered lyrics.
-  _updateLyricDomSelectors() {
-    this.smoMeasure.voices.forEach((vv) => {
-      vv.notes.forEach((nn) => {
-        nn.getModifiers('SmoLyric').forEach((lyric) => {
-          lyric.selector = '#' + nn.renderId + ' ' + lyric.getClassSelector();
-        });
-      });
-    });
-  }
-
   // ## Description:
   // Create all Vex notes and modifiers.  We defer the format and rendering so
   // we can align across multiple staves
@@ -590,16 +556,13 @@ class VxMeasure {
       this.vexTuplets.forEach((tuplet) => {
         tuplet.setContext(self.context).draw();
       });
-      this._updateLyricDomSelectors();
-      this._setModifierBoxes();
+      // this._updateLyricDomSelectors();
       this.renderDynamics();
       // this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
 
       this.context.closeGroup();
       layoutDebug.setTimestamp(layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
-      const box = svgHelpers.smoBox(group.getBoundingClientRect());
       const lbox = svgHelpers.smoBox(group.getBBox());
-      this.smoMeasure.renderedBox = box;
       this.smoMeasure.setBox(lbox, 'vxMeasure bounding box');
       this.smoMeasure.changed = false;
       this.rendered = true;
