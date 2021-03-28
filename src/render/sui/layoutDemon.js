@@ -30,6 +30,7 @@ class SuiRenderDemon {
       // indicate the display is 'dirty' and we will be refreshing it.
       $('body').addClass('refresh-1');
       try {
+        this.view.preserveScroll();
         this.render();
       } catch (ex) {
         console.error(ex);

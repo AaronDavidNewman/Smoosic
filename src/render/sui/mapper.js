@@ -143,7 +143,7 @@ class suiMapper {
           _measure: measure,
           _note: note,
           _pitches: [],
-          box: svgHelpers.adjustScroll(note.renderedBox,this.scroller.netScroll),
+          box: svgHelpers.logicalToClient(this.renderer.svg, note.logicalBox),
           type: 'rendered'
         });
         // and add it to the map
@@ -230,23 +230,62 @@ class suiMapper {
     this.mapping = false;
   }
 
-    // ### intersectingArtifact
-    // given a bounding box, find any rendered elements that intersect with it
-    intersectingArtifact(bb) {
-        bb = svgHelpers.boxPoints(bb.x,bb.y,bb.width ? bb.width : 1 ,bb.height ? bb.height : 1);
-        var artifacts = svgHelpers.findIntersectingArtifactFromMap(bb,this.measureNoteMap,this.scroller.netScroll);
-        // TODO: handle overlapping suggestions
-        if (!artifacts.length) {
-            var sel = svgHelpers.findIntersectingArtifact(bb,this.modifierTabs,this.scroller.netScroll);
-            if (sel.length) {
-                sel = sel[0];
-                this._setModifierAsSuggestion(bb, sel);
-            }
-            return;
-        }
-        var artifact = artifacts[0];
-        this._setArtifactAsSuggestion(bb, artifact);
-        return;
+  // ### intersectingArtifact
+  // given a bounding box, find any rendered elements that intersect with it
+  intersectingArtifact(bb) {
+    bb = svgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
+    var artifacts = svgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, this.scroller.netScroll);
+    // TODO: handle overlapping suggestions
+    if (!artifacts.length) {
+      var sel = svgHelpers.findIntersectingArtifact(bb, this.modifierTabs, this.scroller.netScroll);
+      if (sel.length) {
+        sel = sel[0];
+        this._setModifierAsSuggestion(bb, sel);
+      }
+      return;
+    }
+    var artifact = artifacts[0];
+    this._setArtifactAsSuggestion(bb, artifact);
+    return;
+  }
+  _updateMeasureNoteMap(artifact, printing) {
+    const noteKey = SmoSelector.getNoteKey(artifact.selector);
+    const measureKey = SmoSelector.getMeasureKey(artifact.selector);
+    const activeVoice = artifact.measure.getActiveVoice();
+    if (artifact.selector.voice !== activeVoice && !artifact.note.fillStyle && !printing) {
+      const vvv = artifact.selector.voice;
+      const r = 128 + ((vvv * 32767 | vvv * 157) % 127);
+      const g = 128 / vvv;
+      const b = 128 - ((vvv * 32767 | vvv * 157) % 127);
+      const fill = 'rgb(' + r + ',' + g + ',' + b + ')';
+      $('#' + artifact.note.renderId).find('.vf-notehead path').each((ix, el) => {
+        el.setAttributeNS('', 'fill', fill);
+      });
     }
 
+    // not has not been drawn yet.
+    if (!artifact.box) {
+      return;
+    }
+
+    if (!this.measureNoteMap[noteKey]) {
+      this.measureNoteMap[noteKey] = artifact;
+      artifact.scrollBox = { x: artifact.box.x,
+        y: artifact.measure.renderedBox.y };
+    } else {
+      const mm = this.measureNoteMap[noteKey];
+      mm.scrollBox = { x: Math.min(
+        artifact.box.x, mm.x), y: Math.min(artifact.measure.renderedBox.y, mm.y) };
+    }
+
+    if (!this.measureMap[measureKey]) {
+      this.measureMap[measureKey] = { keys: {} };
+      this.measureMap[measureKey].keys[noteKey] = true;
+    } else {
+      const measureHash = this.measureMap[measureKey].keys;
+      if (!measureHash[noteKey]) {
+        measureHash[noteKey] = true;
+      }
+    }
+  }
 }

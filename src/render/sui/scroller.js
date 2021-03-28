@@ -21,7 +21,20 @@ class suiScroller  {
       $(selector).offset().top,
       $(selector).width(),
       $(selector).height());
-   }
+  }
+
+  get scrollState() {
+    const initial = JSON.parse(JSON.stringify(this._scrollInitial));
+    const scroll = JSON.parse(JSON.stringify(this._scroll));
+    return { initial, scroll };
+  }
+  restoreScrollState(state) {
+    const stateX = (state.scroll.x + state.initial.x) -
+      (this._scroll.x + this._scrollInitial.x);
+    const stateY = (state.scroll.y + state.initial.y) -
+      (this._scroll.x + this._scrollInitial.x);
+    this.scrollOffset(stateX, stateY);
+  }
 
   // ### setScrollInitial
   // tracker is going to remap the music, make sure we take the current scroll into account.
@@ -47,7 +60,7 @@ class suiScroller  {
       $(this.selector).height());
   }
 
-  scrollAbsolute(x,y) {
+  scrollAbsolute(x, y) {
     $(this.selector)[0].scrollLeft = x;
     $(this.selector)[0].scrollTop = y;
     this.netScroll.x = this._scroll.x = x;
@@ -110,7 +123,7 @@ class suiScroller  {
 
   // ### scrollOffset
   // scroll the offset from the starting scroll point
-  scrollOffset(x,y) {
+  scrollOffset(x, y) {
     const self = this;
     const cur = { x: this._scroll.x, y: this._scroll.y };
     setTimeout(() => {

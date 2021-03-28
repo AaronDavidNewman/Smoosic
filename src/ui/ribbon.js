@@ -518,12 +518,7 @@ class DisplaySettings {
   }
 
   refresh() {
-    const scrollPoint = this.view.scroller.netScroll;
-    this.view.renderer.setViewport(true);
-    this.view.renderer.setRefresh();
-    this.view.renderer.renderPromise().then(() => {
-      this.view.scroller.scrollAbsolute(scrollPoint.x, scrollPoint.y);
-    });
+    this.view.refreshViewport();
   }
   zoomout() {
     this.view.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;

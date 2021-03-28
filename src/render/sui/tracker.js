@@ -19,9 +19,11 @@ class suiTracker extends suiMapper {
     const note = this.selections[0].note;
     const r = note.renderedBox;
     const b = this.selections[0].box;
+    const ydiff = Math.abs(r.y - b.y);
+    const xdiff = Math.abs(r.x - b.x);
     const preventScroll = $('body').hasClass('modal');
 
-    if (r.y !== b.y || r.x !== b.x) {
+    if (ydiff > 1 || xdiff > 1) {
       if (this.renderer.passState === SuiRenderState.passStates.replace ||
         this.renderer.passState === SuiRenderState.passStates.clean) {
         console.log('tracker: rerender conflicting map');
@@ -111,7 +113,7 @@ class suiTracker extends suiMapper {
       this.modifierTabs.push({
         modifier,
         selection,
-        box: svgHelpers.adjustScroll(modifier.renderedBox, this.scroller.netScroll),
+        box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox),
         index: ix
       });
       ix += 1;
@@ -132,18 +134,18 @@ class suiTracker extends suiMapper {
         this.modifierTabs.push({
           modifier,
           selection: null,
-          box: svgHelpers.adjustScroll(modifier.renderedBox, this.scroller.netScroll),
+          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox),
           index: ix
         });
         ix += 1;
       }
     });
     this.renderer.score.textGroups.forEach((modifier) => {
-      if (!modMap[modifier.attrs.id]) {
+      if (!modMap[modifier.attrs.id] && modifier.logicalBox) {
         this.modifierTabs.push({
           modifier,
           selection: null,
-          box: svgHelpers.adjustScroll(modifier.renderedBox, this.scroller.netScroll),
+          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox),
           index: ix
         });
         ix += 1;
@@ -159,7 +161,7 @@ class suiTracker extends suiMapper {
               this.modifierTabs.push({
                 modifier,
                 selection,
-                box: svgHelpers.adjustScroll(modifier.renderedBox, this.scroller.netScroll),
+                box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox),
                 index: ix
               });
               ix += 1;
@@ -204,9 +206,12 @@ class suiTracker extends suiMapper {
   // the little birdie that follows the music as it plays
   musicCursor(selector) {
     const key = SmoSelector.getNoteKey(selector);
+    // Get note from 0th staff if we can
     if (this.measureNoteMap[key]) {
       const measureSel = SmoSelection.measureSelection(this.renderer.score,
         this.renderer.score.staves.length - 1, selector.measure);
+      const zmeasureSel = SmoSelection.measureSelection(this.renderer.score,
+        0, selector.measure);
       const measure = measureSel.measure;
       const mbox = measure.renderedBox;
       const pos = this.measureNoteMap[key].scrollBox;
@@ -214,7 +219,7 @@ class suiTracker extends suiMapper {
       const r = b('span').classes('birdy icon icon-arrow-down').attr('id', 'birdy');
       $('.workspace #birdy').remove();
       const rd = r.dom();
-      const y = pos.y - this.scroller.netScroll.y;
+      const y = zmeasureSel.measure.renderedBox.y - this.scroller.netScroll.y;
       const x = pos.x - this.scroller.netScroll.x;
       $(rd).css('top', y).css('left', x);
       $('.workspace').append(rd);
@@ -327,47 +332,6 @@ class suiTracker extends suiMapper {
       artifact.selector.pitches = JSON.parse(JSON.stringify(selector.pitches));
     }
     this.selections.push(artifact);
-  }
-
-  _updateMeasureNoteMap(artifact, printing) {
-    const noteKey = SmoSelector.getNoteKey(artifact.selector);
-    const measureKey = SmoSelector.getMeasureKey(artifact.selector);
-    const activeVoice = artifact.measure.getActiveVoice();
-    if (artifact.selector.voice !== activeVoice && !artifact.note.fillStyle && !printing) {
-      const vvv = artifact.selector.voice;
-      const r = 128 + ((vvv * 32767 | vvv * 157) % 127);
-      const g = 128 / vvv;
-      const b = 128 - ((vvv * 32767 | vvv * 157) % 127);
-      const fill = 'rgb(' + r + ',' + g + ',' + b + ')';
-      $('#' + artifact.note.renderId).find('.vf-notehead path').each((ix, el) => {
-        el.setAttributeNS('', 'fill', fill);
-      });
-    }
-
-    // not has not been drawn yet.
-    if (!artifact.box) {
-      return;
-    }
-
-    if (!this.measureNoteMap[noteKey]) {
-      this.measureNoteMap[noteKey] = artifact;
-      artifact.scrollBox = { x: artifact.box.x - this.scroller.netScroll.x,
-        y: artifact.measure.renderedBox.y - this.scroller.netScroll.y };
-    } else {
-      const mm = this.measureNoteMap[noteKey];
-      mm.scrollBox = { x: Math.min(
-        artifact.box.x - this.scroller.netScroll.x, mm.x), y: Math.min(artifact.measure.renderedBox.y - this.scroller.netScroll.y, mm.y) };
-    }
-
-    if (!this.measureMap[measureKey]) {
-      this.measureMap[measureKey] = { keys: {} };
-      this.measureMap[measureKey].keys[noteKey] = true;
-    } else {
-      const measureHash = this.measureMap[measureKey].keys;
-      if (!measureHash[noteKey]) {
-        measureHash[noteKey] = true;
-      }
-    }
   }
 
   static stringifyBox(box) {

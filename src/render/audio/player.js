@@ -74,31 +74,31 @@ class suiAudioPlayer {
         return rv;
     }
     _playArrayRecurse(ix,keys,notesToPlay) {
-        if (!suiAudioPlayer.playing ||
-          suiAudioPlayer.instanceId != this.instanceId) {
-               this.tracker.clearMusicCursor();
-              return;
-          }
-        var self = this;
-        var key = keys[ix];
-        var curTime = parseInt(key);
-        var proto = notesToPlay[key];
-        var oscs = this._createOscillatorsFromMusicData(proto);
+      if (!suiAudioPlayer.playing ||
+        suiAudioPlayer.instanceId != this.instanceId) {
+        this.tracker.clearMusicCursor();
+        return;
+      }
+      var self = this;
+      var key = keys[ix];
+      var curTime = parseInt(key);
+      var proto = notesToPlay[key];
+      var oscs = this._createOscillatorsFromMusicData(proto);
 
-        // Follow the top-staff note in this tick for the cursor
-        if (proto[0].selector.staff == 0) {
-            this.tracker.musicCursor(proto[0].selector);
-        }
-        if (ix < keys.length - 1) {
-            var diff = parseInt(keys[ix+1]);
-            var delay = (diff - curTime);
-            setTimeout(function() {
-                self._playArrayRecurse(ix+1,keys,notesToPlay);
-            },delay);
-        } else {
-            self.tracker.clearMusicCursor();
-        }
-        suiAudioPlayer._playChord(oscs);
+      // Follow the top-staff note in this tick for the cursor
+      // if (proto[0].selector.staff == 0) {
+        this.tracker.musicCursor(proto[0].selector);
+      // }
+      if (ix < keys.length - 1) {
+          var diff = parseInt(keys[ix+1]);
+          var delay = (diff - curTime);
+          setTimeout(function() {
+              self._playArrayRecurse(ix+1,keys,notesToPlay);
+          },delay);
+      } else {
+          self.tracker.clearMusicCursor();
+      }
+      suiAudioPlayer._playChord(oscs);
     }
     _playPlayArray() {
         var startTimes = Object.keys(this.sounds).sort((a,b) => {return parseInt(a) > parseInt(b);});

@@ -532,6 +532,9 @@ class SuiScoreViewOperations extends SuiScoreView {
   toggleBeamDirection() {
     this.actionBuffer.addAction('toggleBeamDirection');
     const selections = this.tracker.selections;
+    if (selections.length < 1) {
+      return;
+    }
     const measureSelections = this._undoTrackerMeasureSelections('toggle beam direction');
     SmoOperation.toggleBeamDirection(selections);
     SmoOperation.toggleBeamDirection(this._getEquivalentSelections(selections));
@@ -619,6 +622,7 @@ class SuiScoreViewOperations extends SuiScoreView {
     // extent of the overlap
     this.actionBuffer.addAction('paste');
     this._undoScore('paste');
+    this.preserveScroll();
     const firstSelection = this.tracker.selections[0];
     const pasteTarget = firstSelection.selector;
     const altSelection = this._getEquivalentSelection(firstSelection);
@@ -1076,5 +1080,10 @@ class SuiScoreViewOperations extends SuiScoreView {
       this.tracker.modifierSuggestions = [modIndex];
       this.tracker.selectSuggestion(evData);
     }
+  }
+  refreshViewport() {
+    this.preserveScroll();
+    this.renderer.setViewport(true);
+    this.renderer.setRefresh();
   }
 }

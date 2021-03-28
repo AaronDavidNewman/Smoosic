@@ -318,6 +318,12 @@ class SuiScoreView {
       $('body').trigger('forceResizeEvent');
     }, 1);
   }
+  preserveScroll() {
+    const scrollState = this.scroller.scrollState;
+    this.renderer.renderPromise().then(() => {
+      this.scroller.restoreScrollState(scrollState);
+    });
+  }
 
   // ### undo
   // for the view score, we the renderer decides what to render
