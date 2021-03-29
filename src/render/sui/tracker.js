@@ -108,96 +108,6 @@ class suiTracker extends suiMapper {
     svgHelpers.updateArtifactBox(this.context.svg, el, modifier, this.scroller);
   }
 
-  _updateNoteModifier(selection, modMap, modifier, ix) {
-    if (!modMap[modifier.attrs.id]) {
-      this.modifierTabs.push({
-        modifier,
-        selection,
-        box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
-        index: ix
-      });
-      ix += 1;
-      modMap[modifier.attrs.id] = {
-        exists: true
-      };
-    }
-    return ix;
-  }
-
-  _updateModifiers() {
-    let ix = 0;
-    this.modifierTabs = [];
-    this.modifierBoxes = [];
-    const modMap = {};
-    this.renderer.score.scoreText.forEach((modifier) => {
-      if (!modMap[modifier.attrs.id]) {
-        this.modifierTabs.push({
-          modifier,
-          selection: null,
-          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
-          index: ix
-        });
-        ix += 1;
-      }
-    });
-    this.renderer.score.textGroups.forEach((modifier) => {
-      if (!modMap[modifier.attrs.id] && modifier.logicalBox) {
-        this.modifierTabs.push({
-          modifier,
-          selection: null,
-          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
-          index: ix
-        });
-        ix += 1;
-      }
-    });
-    const keys = Object.keys(this.measureNoteMap);
-    keys.forEach((selKey) => {
-      const selection = this.measureNoteMap[selKey];
-      selection.staff.modifiers.forEach((modifier) => {
-        if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
-          if (!modMap[modifier.attrs.id]) {
-            if (modifier.logicalBox) {
-              this.modifierTabs.push({
-                modifier,
-                selection,
-                box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
-                index: ix
-              });
-              ix += 1;
-              modMap[modifier.attrs.id] = { exists: true };
-            }
-          }
-        }
-      });
-      selection.measure.modifiers.forEach((modifier) => {
-        if (modifier.attrs.id
-          && !modMap[modifier.attrs.id]
-          && modifier.renderedBox) {
-          this.modifierTabs.push({
-            modifier,
-            selection,
-            box: svgHelpers.adjustScroll(modifier.renderedBox, this.scroller.netScroll),
-            index: ix
-          });
-          ix += 1;
-          modMap[modifier.attrs.id] = {
-            exists: true
-          };
-        }
-      });
-      selection.note.textModifiers.forEach((modifier) => {
-        if (modifier.logicalBox) {
-          ix = this._updateNoteModifier(selection, modMap, modifier, ix);
-        }
-      });
-
-      selection.note.graceNotes.forEach((modifier) => {
-        ix = this._updateNoteModifier(selection, modMap, modifier, ix);
-      });
-    });
-  }
-
   clearMusicCursor() {
     $('.workspace #birdy').remove();
   }
@@ -252,13 +162,6 @@ class suiTracker extends suiMapper {
 
   getSelectedModifiers() {
     return this.modifierSelections;
-  }
-  _addModifierToArray(ar) {
-    ar.forEach((mod) => {
-      if (mod.renderedBox) {
-        this.localModifiers.push({ selection: sel, modifier: mod, box: mod.renderedBox });
-      }
-    });
   }
 
   _createLocalModifiersList() {

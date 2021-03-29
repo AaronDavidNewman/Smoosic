@@ -11,7 +11,7 @@ module.exports = function (grunt) {
   'src/render/vex/vxMeasure.js','src/render/sui/renderState.js', 'src/render/sui/scoreRender.js',
   'src/render/sui/actionPlayback.js',
   'src/render/sui/textRender.js','src/render/vex/vxSystem.js', 'src/render/vex/glyphDimensions.js',
-  'src/render/sui/textEdit.js', 'src/render/sui/tracker.js', 'src/render/audio/oscillator.js',
+  'src/render/sui/textEdit.js', 'src/render/sui/tracker.js', 'src/render/audio/oscillator.js','src/render/sui/mapper.js',
   'src/render/sui/scoreView.js','src/render/sui/scoreViewOperations.js',
   'src/ui/ribbon.js', 'src/ui/menus.js', 'src/ui/dialog.js', 'src/ui/dialogComponents.js', 'src/ui/dialogs/scoreDialogs.js',
    'src/ui/dialogs/fontComponent.js', 'src/ui/dialogs/staffComponents.js',

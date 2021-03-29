@@ -1742,13 +1742,13 @@ class svgHelpers {
   // ### boxNote
   // update the note geometry based on current viewbox conditions.
   // This may not be the appropriate place for this...maybe in layout
-  static updateArtifactBox(svg,element,artifact) {
+  static updateArtifactBox(svg, element, artifact, scroller) {
     if (typeof(element) === 'undefined') {
       console.log('updateArtifactBox: undefined element!');
       return;
     }
-    artifact.renderedBox = svgHelpers.smoBox(element.getBoundingClientRect());
     artifact.logicalBox = svgHelpers.smoBox(element.getBBox());
+    artifact.renderedBox = svgHelpers.logicalToClient(svg, artifact.logicalBox, scroller);
   }
 
   // ### eraseOutline
@@ -1759,7 +1759,7 @@ class svgHelpers {
 
   static _outlineRect(params) {
     const stroke = params.outlineStroke;
-    const scroller = params.scroller;
+    const scroller = params.scroller.scrollState;
     const context = params.context;
     svgHelpers.eraseOutline(context,params.classes);
     // Don't highlight in print mode.
@@ -1774,7 +1774,7 @@ class svgHelpers {
         var strokeObj = params.outlineStroke;
         var margin = 5;
         if (params.clientToLogical === true) {
-          box = svgHelpers.clientToLogical(context.svg, svgHelpers.adjustScroll(box,scroller.netScroll));
+          box = svgHelpers.clientToLogical(context.svg, svgHelpers.adjustScroll(box, scroller.scroll));
         }
         context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
       }
@@ -1947,22 +1947,21 @@ class svgHelpers {
     return e;
   }
 
-    // ### findIntersectingArtifactFromMap
-    // Same as findIntersectionArtifact but uses a map of keys instead of an array
-    static findIntersectingArtifactFromMap(clientBox,map,netScroll) {
-        var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
-
+  // ### findIntersectingArtifactFromMap
+  // Same as findIntersectionArtifact but uses a map of keys instead of an array
+  static findIntersectingArtifactFromMap(clientBox, map, scrollState) {
+    var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
     // box.y = box.y - this.renderElement.offsetTop;
     // box.x = box.x - this.renderElement.offsetLeft;
     var rv = [];
 
     Object.keys(map).forEach((k) => {
-            var object = map[k];
+      var object = map[k];
       // Measure has been updated, but not drawn.
       if (!object.box) {
-        // console.log('there is no box');
+      // console.log('there is no box');
       } else {
-        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box),netScroll);
+        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState.scroll);
         var i1 = box.x - obox.x; // handle edge not believe in x and y
         var i2 = box.y - obox.y;
         if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
@@ -1970,13 +1969,11 @@ class svgHelpers {
         }
       }
     });
-
     return rv;
+  }
 
-    }
-
-  static containsPoint(box,point, netScroll) {
-    var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(box),netScroll);
+  static containsPoint(box, point, scrollState) {
+    var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(box), scrollState.scroll);
     const i1 = point.x - box.x; // handle edge not believe in x and y
     const i2 = point.y - box.y;
     if (i1 > 0 && i1 < obox.width && i2 > 0 && i2 < obox.height) {
@@ -1987,21 +1984,18 @@ class svgHelpers {
 
   // ### findIntersectionArtifact
   // find all object that intersect with the rectangle
-  static findIntersectingArtifact(clientBox, objects,netScroll) {
+  static findIntersectingArtifact(clientBox, objects, scrollState) {
     var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
     // box.y = box.y - this.renderElement.offsetTop;
     // box.x = box.x - this.renderElement.offsetLeft;
     var rv = [];
-    if (typeof(objects['forEach']) != 'function') {
-      console.log('corrupt objects in findIntersectingArtifact');
-    }
     objects.forEach((object) => {
       // Measure has been updated, but not drawn.
       if (!object.box) {
         // console.log('there is no box');
       } else {
-        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box),netScroll);
+        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState.scroll);
         var i1 = box.x - obox.x; // handle edge not believe in x and y
         var i2 = box.y - obox.y;
         if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
@@ -2012,8 +2006,8 @@ class svgHelpers {
 
     return rv;
   }
-  static findSmallestIntersection(clientBox, objects, netScroll) {
-    var ar = svgHelpers.findIntersectingArtifact(clientBox, objects, netScroll);
+  static findSmallestIntersection(clientBox, objects, scrollState) {
+    var ar = svgHelpers.findIntersectingArtifact(clientBox, objects, scrollState);
     if (!ar.length) {
       return null;
     }
@@ -2029,9 +2023,9 @@ class svgHelpers {
     return rv;
   }
 
-    static translateElement(g,x,y) {
-        g.setAttributeNS('','transform','translate('+x+' '+y+')');
-    }
+  static translateElement(g,x,y) {
+    g.setAttributeNS('','transform','translate('+x+' '+y+')');
+  }
 
   // ### measureBBox
   // Return the bounding box of the measure
@@ -2152,7 +2146,7 @@ class svgHelpers {
       console.log('bad values to scroll thing');
       return;
     }
-    return svgHelpers.boxPoints(box.x - scroll.x,box.y-scroll.y,box.width,box.height);
+    return svgHelpers.boxPoints(box.x + scroll.x, box.y - scroll.y, box.width, box.height);
     // return box;
   }
 
@@ -2227,15 +2221,16 @@ class svgHelpers {
 
   // ### logicalToClient
   // return a box or point in screen coordinates from svg coordinates
-  static logicalToClient(svg, point) {
+  static logicalToClient(svg, point, scroller) {
     var pt = svg.createSVGPoint();
+    const ss = scroller.scrollState;
     pt.x = point.x;
     pt.y = point.y;
     var sp = pt.matrixTransform(svg.getScreenCTM());
     if (!point['width']) {
       return {
-        x: sp.x,
-        y: sp.y
+        x: sp.x + ss.scroll.x,
+        y: sp.y + ss.scroll.y
       };
     }
     var endPt = svg.createSVGPoint();
@@ -2243,8 +2238,8 @@ class svgHelpers {
     endPt.y = pt.y + point.height;
     var ep = endPt.matrixTransform(svg.getScreenCTM());
     return {
-      x: sp.x,
-      y: sp.y,
+      x: sp.x + ss.scroll.x,
+      y: sp.y + ss.scroll.y,
       width: ep.x - sp.x,
       height: ep.y - sp.y
     };
@@ -2702,31 +2697,31 @@ class suiAudioPlayer {
         return rv;
     }
     _playArrayRecurse(ix,keys,notesToPlay) {
-        if (!suiAudioPlayer.playing ||
-          suiAudioPlayer.instanceId != this.instanceId) {
-               this.tracker.clearMusicCursor();
-              return;
-          }
-        var self = this;
-        var key = keys[ix];
-        var curTime = parseInt(key);
-        var proto = notesToPlay[key];
-        var oscs = this._createOscillatorsFromMusicData(proto);
+      if (!suiAudioPlayer.playing ||
+        suiAudioPlayer.instanceId != this.instanceId) {
+        this.tracker.clearMusicCursor();
+        return;
+      }
+      var self = this;
+      var key = keys[ix];
+      var curTime = parseInt(key);
+      var proto = notesToPlay[key];
+      var oscs = this._createOscillatorsFromMusicData(proto);
 
-        // Follow the top-staff note in this tick for the cursor
-        if (proto[0].selector.staff == 0) {
-            this.tracker.musicCursor(proto[0].selector);
-        }
-        if (ix < keys.length - 1) {
-            var diff = parseInt(keys[ix+1]);
-            var delay = (diff - curTime);
-            setTimeout(function() {
-                self._playArrayRecurse(ix+1,keys,notesToPlay);
-            },delay);
-        } else {
-            self.tracker.clearMusicCursor();
-        }
-        suiAudioPlayer._playChord(oscs);
+      // Follow the top-staff note in this tick for the cursor
+      // if (proto[0].selector.staff == 0) {
+        this.tracker.musicCursor(proto[0].selector);
+      // }
+      if (ix < keys.length - 1) {
+          var diff = parseInt(keys[ix+1]);
+          var delay = (diff - curTime);
+          setTimeout(function() {
+              self._playArrayRecurse(ix+1,keys,notesToPlay);
+          },delay);
+      } else {
+          self.tracker.clearMusicCursor();
+      }
+      suiAudioPlayer._playChord(oscs);
     }
     _playPlayArray() {
         var startTimes = Object.keys(this.sounds).sort((a,b) => {return parseInt(a) > parseInt(b);});
@@ -3409,6 +3404,11 @@ class SuiRenderDemon {
       // indicate the display is 'dirty' and we will be refreshing it.
       $('body').addClass('refresh-1');
       try {
+        // Sort of a hack.  If the viewport changed, the scroll state is already reset
+        // so we can't preserver the scroll state.
+        if (!this.view.renderer.viewportChanged) {
+          this.view.preserveScroll();
+        }
         this.render();
       } catch (ex) {
         console.error(ex);
@@ -3451,16 +3451,15 @@ class SuiRenderDemon {
 ;// ## suiMapper
 // Map the notes in the svg so they can respond to events and interact
 // with the mouse/keyboard
+// eslint-disable-next-line no-unused-vars
 class suiMapper {
   constructor(renderer, scroller, pasteBuffer) {
     // renderer renders the music when it changes
     this.renderer = renderer;
-
     // measure to selector map
     this.measureMap = {};
     this.measureNoteMap = {}; // Map for tracker
     this.scroller = scroller;
-
     // notes currently selected.  Something is always selected
     this.selections = [];
     // modifiers (text etc.) that have been selected
@@ -3472,7 +3471,7 @@ class suiMapper {
     // The list of modifiers near the current selection
     this.localModifiers = [];
     // mouse-over that might be selected soon
-    this.modifierSuggestion=-1;
+    this.modifierSuggestion = -1;
     this.suggestion = {};
     // index if a single pitch of a chord is selected
     this.pitchIndex = -1;
@@ -3487,14 +3486,14 @@ class suiMapper {
     this.measureMap = {};
     this.measureNoteMap = {};
     this.clearModifierSelections();
-    this.selections=[];
+    this.selections = [];
   }
 
   // ### _clearMeasureArtifacts
   // clear the measure from the measure and note maps so we can rebuild it.
   clearMeasureMap(staff, measure) {
-    var selector = {staff:measure.measureNumber.staffId,measure:measure.measureNumber.measureIndex};
-    var measureKey = SmoSelector.getMeasureKey(selector);
+    const selector = { staff: measure.measureNumber.staffId, measure: measure.measureNumber.measureIndex };
+    const measureKey = SmoSelector.getMeasureKey(selector);
     if (this.measureMap[measureKey]) {
       const nkeys = Object.keys(this.measureMap[measureKey].keys);
       nkeys.forEach((key) => {
@@ -3504,9 +3503,9 @@ class suiMapper {
       delete this.measureMap[measureKey];
     }
     // Unselect selections in this measure so we can reselect them when re-tracked
-    var ar = [];
+    const ar = [];
     this.selections.forEach((selection) => {
-      if (selection.selector.staff != selector.staff || selection.selector.measure != selector.measure) {
+      if (selection.selector.staff !== selector.staff || selection.selector.measure !== selector.measure) {
         ar.push(selection);
       }
     });
@@ -3514,94 +3513,212 @@ class suiMapper {
   }
 
   deleteMeasure(selection) {
-    console.log('removing '+selection.selector.staff+'/'+selection.selector.measure);
-    var selCopy = this._copySelectionsByMeasure(selection.selector.staff,selection.selector.measure)
+    const selCopy = this._copySelectionsByMeasure(selection.selector.staff, selection.selector.measure)
       .selectors;
-
-    this.clearMeasureMap(selection.staff,selection.measure);
+    this.clearMeasureMap(selection.staff, selection.measure);
     if (selCopy.length) {
-        selCopy.forEach((selector) => {
-          var nsel = JSON.parse(JSON.stringify(selector));
-          if (selector.measure == 0) {
-              nsel.measure += 1;
-          } else {
-              nsel.measure -= 1;
-          }
-          this.selections.push(this._getClosestTick(nsel));
+      selCopy.forEach((selector) => {
+        const nsel = JSON.parse(JSON.stringify(selector));
+        if (selector.measure === 0) {
+          nsel.measure += 1;
+        } else {
+          nsel.measure -= 1;
+        }
+        this.selections.push(this._getClosestTick(nsel));
       });
     }
   }
-
   updateMap() {
     this._updateMap();
   }
+  _updateNoteModifier(selection, modMap, modifier, ix) {
+    if (!modMap[modifier.attrs.id]) {
+      this.modifierTabs.push({
+        modifier,
+        selection,
+        box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
+        index: ix
+      });
+      ix += 1;
+      modMap[modifier.attrs.id] = {
+        exists: true
+      };
+    }
+    return ix;
+  }
 
-    // ### _getClosestTick
-    // given a musical selector, find the note artifact that is closest to it,
-    // if an exact match is not available
+  _updateModifiers() {
+    let ix = 0;
+    this.modifierTabs = [];
+    this.modifierBoxes = [];
+    const modMap = {};
+    this.renderer.score.scoreText.forEach((modifier) => {
+      if (!modMap[modifier.attrs.id]) {
+        this.modifierTabs.push({
+          modifier,
+          selection: null,
+          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
+          index: ix
+        });
+        ix += 1;
+      }
+    });
+    this.renderer.score.textGroups.forEach((modifier) => {
+      if (!modMap[modifier.attrs.id] && modifier.logicalBox) {
+        this.modifierTabs.push({
+          modifier,
+          selection: null,
+          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
+          index: ix
+        });
+        ix += 1;
+      }
+    });
+    const keys = Object.keys(this.measureNoteMap);
+    keys.forEach((selKey) => {
+      const selection = this.measureNoteMap[selKey];
+      selection.staff.modifiers.forEach((modifier) => {
+        if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
+          if (!modMap[modifier.attrs.id]) {
+            if (modifier.logicalBox) {
+              this.modifierTabs.push({
+                modifier,
+                selection,
+                box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
+                index: ix
+              });
+              ix += 1;
+              modMap[modifier.attrs.id] = { exists: true };
+            }
+          }
+        }
+      });
+      selection.measure.modifiers.forEach((modifier) => {
+        if (modifier.attrs.id
+          && !modMap[modifier.attrs.id]
+          && modifier.renderedBox) {
+          this.modifierTabs.push({
+            modifier,
+            selection,
+            box: svgHelpers.adjustScroll(modifier.renderedBox, this.scroller.netScroll),
+            index: ix
+          });
+          ix += 1;
+          modMap[modifier.attrs.id] = {
+            exists: true
+          };
+        }
+      });
+      selection.note.textModifiers.forEach((modifier) => {
+        if (modifier.logicalBox) {
+          ix = this._updateNoteModifier(selection, modMap, modifier, ix);
+        }
+      });
+
+      selection.note.graceNotes.forEach((modifier) => {
+        ix = this._updateNoteModifier(selection, modMap, modifier, ix);
+      });
+    });
+  }
+  // ### _getClosestTick
+  // given a musical selector, find the note artifact that is closest to it,
+  // if an exact match is not available
   _getClosestTick(selector) {
-    var measureKey = Object.keys(this.measureNoteMap).find((k) => {
-      return SmoSelector.sameMeasure(this.measureNoteMap[k].selector, selector)
-   && this.measureNoteMap[k].selector.tick === 0;
+    let tickKey = '';
+    const measureKey = Object.keys(this.measureNoteMap).find((k) =>
+      SmoSelector.sameMeasure(this.measureNoteMap[k].selector, selector)
+        && this.measureNoteMap[k].selector.tick === 0);
+    tickKey = Object.keys(this.measureNoteMap).find((k) =>
+      SmoSelector.sameNote(this.measureNoteMap[k].selector, selector));
+    const firstObj = this.measureNoteMap[Object.keys(this.measureNoteMap)[0]];
+
+    if (tickKey) {
+      return this.measureNoteMap[tickKey];
+    }
+    if (measureKey) {
+      return this.measureNoteMap[measureKey];
+    }
+    return firstObj;
+  }
+
+  // ### _setModifierBoxes
+  // Create the DOM modifiers for the lyrics and other modifiers
+  _setModifierBoxes(measure) {
+    measure.voices.forEach((voice) => {
+      voice.notes.forEach((smoNote) =>  {
+        const el = this.renderer.svg.getElementById(smoNote.renderId);
+        if (el) {
+          svgHelpers.updateArtifactBox(this.renderer.svg, el, smoNote, this.scroller);
+          // TODO: fix this, only works on the first line.
+          smoNote.getModifiers('SmoLyric').forEach((lyric) => {
+            if (lyric.getText().length || lyric.isHyphenated()) {
+              lyric.selector = '#' + smoNote.renderId + ' ' + lyric.getClassSelector();
+              svgHelpers.updateArtifactBox(this.renderer.svg, $(lyric.selector)[0], lyric, this.scroller);
+            }
+          });
+          smoNote.graceNotes.forEach((g) => {
+            var gel = this.context.svg.getElementById('vf-' + g.renderedId);
+            $(gel).addClass('grace-note');
+            svgHelpers.updateArtifactBox(this.renderer.svg, gel, g, this.scroller);
+          });
+          smoNote.textModifiers.forEach((modifier) => {
+            const modEl = $('.' + modifier.attrs.id);
+            if (modifier.logicalBox && modEl.length) {
+              svgHelpers.updateArtifactBox(this.renderer.svg, modEl[0], modifier, this.scroller);
+            }
+          });
+        }
+      });
     });
-    var tickKey = Object.keys(this.measureNoteMap).find((k) => {
-        return SmoSelector.sameNote(this.measureNoteMap[k].selector,selector);
-    });
-  var firstObj = this.measureNoteMap[Object.keys(this.measureNoteMap)[0]];
-  return tickKey ? this.measureNoteMap[tickKey]:
-      (measureKey ? this.measureNoteMap[measureKey] : firstObj);
   }
 
   // ### updateMeasure
   // A measure has changed.  Update the music geometry for it
   mapMeasure(staff, measure, printing) {
-    if (!measure.renderedBox) {
-        return;
+    let voiceIx = 0;
+    let selectedTicks = 0;
+    let selectionChanged = false;
+    let vix = 0;
+    if (!measure.logicalBox) {
+      return;
     }
+    measure.renderedBox = svgHelpers.logicalToClient(this.renderer.svg, measure.logicalBox, this.scroller);
+    this._setModifierBoxes(measure);
     const timestamp = new Date().valueOf();
     // Keep track of any current selections in this measure, we will try to restore them.
-    var sels = this._copySelectionsByMeasure(staff.staffId, measure.measureNumber.measureIndex);
-    this.clearMeasureMap(staff,measure);
-    var vix = measure.getActiveVoice();
+    const sels = this._copySelectionsByMeasure(staff.staffId, measure.measureNumber.measureIndex);
+    this.clearMeasureMap(staff, measure);
+    vix = measure.getActiveVoice();
     sels.selectors.forEach((sel) => {
-        sel.voice = vix;
+      sel.voice = vix;
     });
 
-    // keep track of the scroll position when we render the music.
-    this.scroller.setScrollInitial();
-
-    var voiceIx = 0;
-    var selectionChanged = false;
-    var selectedTicks = 0;
     measure.voices.forEach((voice) => {
-      var tick = 0;
+      let tick = 0;
       voice.notes.forEach((note) => {
-        var selector = {
+        const selector = {
           staff: staff.staffId,
           measure: measure.measureNumber.measureIndex,
           voice: voiceIx,
-          tick: tick,
+          tick,
           pitches: []
         };
-
-        var voice = measure.getActiveVoice();
-
         // create a selection for the newly rendered note
-        var selection = new SmoSelection({
-          selector: selector,
+        const selection = new SmoSelection({
+          selector,
           _staff: staff,
           _measure: measure,
           _note: note,
           _pitches: [],
-          box: svgHelpers.adjustScroll(note.renderedBox,this.scroller.netScroll),
+          box: svgHelpers.logicalToClient(this.renderer.svg, note.logicalBox, this.scroller),
           type: 'rendered'
         });
         // and add it to the map
         this._updateMeasureNoteMap(selection, printing);
 
         // If this note is the same location as something that was selected, reselect it
-        if (sels.selectors.length && selection.selector.tick == sels.selectors[0].tick &&
-          selection.selector.voice == vix) {
+        if (sels.selectors.length && selection.selector.tick === sels.selectors[0].tick &&
+          selection.selector.voice === vix) {
           this.selections.push(selection);
           // Reselect any pitches.
           if (sels.selectors[0].pitches.length > 0) {
@@ -3613,14 +3730,14 @@ class suiMapper {
           }
           selectedTicks += selection.note.tickCount;
           selectionChanged = true;
-        } else if (selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice == vix) {
+        } else if (selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice === vix) {
           // try to select the same length of music as was previously selected.  So a 1/4 to 2 1/8, both
           // are selected
           this.selections.push(selection);
           selectedTicks += selection.note.tickCount;
-        } else if (this.selections.length == 0 && (sels.selectors.length == 0)) {
-          this.selections=[selection];
-          selectionChanged=true;
+        } else if (this.selections.length === 0 && sels.selectors.length === 0) {
+          this.selections = [selection];
+          selectionChanged = true;
         }
         tick += 1;
       });
@@ -3628,7 +3745,7 @@ class suiMapper {
     });
     // If there were selections on this measure, highlight them.
     if (selectionChanged) {
-        this.highlightSelection();
+      this.highlightSelection();
     }
     layoutDebug.setTimestamp(layoutDebug.codeRegions.MAP, new Date().valueOf() - timestamp);
   }
@@ -3637,19 +3754,17 @@ class suiMapper {
   // This should be called after rendering the score.  It updates the score to
   // graphics map and selects the first object.
   _updateMap() {
-    console.log('update map');
     this.mapping = true;
-    var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
-
-    var selCopy = this._copySelections();
-    var ticksSelectedCopy = this._getTicksFromSelections();
-    var firstSelection = this.getExtremeSelection(-1);
+    let tickSelected = 0;
+    const selCopy = this._copySelections();
+    const ticksSelectedCopy = this._getTicksFromSelections();
+    const firstSelection = this.getExtremeSelection(-1);
     this._updateModifiers();
     this.selections = [];
 
     // Try to restore selection.  If there were none, just select the fist
     // thing in the score
-    var keys = Object.keys(this.measureNoteMap);
+    const keys = Object.keys(this.measureNoteMap);
     if (keys.length && !selCopy.length) {
     // If there is nothing rendered, don't update tracker
       this.selections = [this.measureNoteMap[keys[0]]];
@@ -3658,16 +3773,15 @@ class suiMapper {
         return;
       }
       this._findClosestSelection(firstSelection.selector);
-      var first = this.selections[0];
-      var tickSelected = first.note.tickCount;
+      const first = this.selections[0];
+      tickSelected = first.note.tickCount;
       while (tickSelected < ticksSelectedCopy && first) {
-        var delta = this._growSelectionRight(true);
+        const delta = this._growSelectionRight(true);
         if (!delta)  {
           break;
         }
         tickSelected += delta;
       }
-      // selCopy.forEach((sel) => this._findClosestSelection(sel));
     }
     this.highlightSelection();
     this._createLocalModifiersList();
@@ -3675,30 +3789,67 @@ class suiMapper {
     // because some of the selections may not exist in the score.
     if (this.renderer.isDirty === false) {
       this.pasteBuffer.clearSelections();
-  		this.pasteBuffer.setSelections(this.score, this.selections);
+      this.pasteBuffer.setSelections(this.score, this.selections);
     }
     this.mapping = false;
   }
 
-    // ### intersectingArtifact
-    // given a bounding box, find any rendered elements that intersect with it
-    intersectingArtifact(bb) {
-        bb = svgHelpers.boxPoints(bb.x,bb.y,bb.width ? bb.width : 1 ,bb.height ? bb.height : 1);
-        var artifacts = svgHelpers.findIntersectingArtifactFromMap(bb,this.measureNoteMap,this.scroller.netScroll);
-        // TODO: handle overlapping suggestions
-        if (!artifacts.length) {
-            var sel = svgHelpers.findIntersectingArtifact(bb,this.modifierTabs,this.scroller.netScroll);
-            if (sel.length) {
-                sel = sel[0];
-                this._setModifierAsSuggestion(bb, sel);
-            }
-            return;
-        }
-        var artifact = artifacts[0];
-        this._setArtifactAsSuggestion(bb, artifact);
-        return;
+  // ### intersectingArtifact
+  // given a bounding box, find any rendered elements that intersect with it
+  intersectingArtifact(bb) {
+    let sel = 0;
+    bb = svgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
+    const artifacts = svgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, this.scroller.scrollState);
+    // TODO: handle overlapping suggestions
+    if (!artifacts.length) {
+      sel = svgHelpers.findIntersectingArtifact(bb, this.modifierTabs, this.scroller.scrollState);
+      if (sel.length) {
+        sel = sel[0];
+        this._setModifierAsSuggestion(bb, sel);
+      }
+      return;
+    }
+    const artifact = artifacts[0];
+    this._setArtifactAsSuggestion(bb, artifact);
+  }
+  _updateMeasureNoteMap(artifact, printing) {
+    const noteKey = SmoSelector.getNoteKey(artifact.selector);
+    const measureKey = SmoSelector.getMeasureKey(artifact.selector);
+    const activeVoice = artifact.measure.getActiveVoice();
+    if (artifact.selector.voice !== activeVoice && !artifact.note.fillStyle && !printing) {
+      const vvv = artifact.selector.voice;
+      const r = 128 + ((vvv * 32767 | vvv * 157) % 127);
+      const g = 128 / vvv;
+      const b = 128 - ((vvv * 32767 | vvv * 157) % 127);
+      const fill = 'rgb(' + r + ',' + g + ',' + b + ')';
+      $('#' + artifact.note.renderId).find('.vf-notehead path').each((ix, el) => {
+        el.setAttributeNS('', 'fill', fill);
+      });
+    }
+    // not has not been drawn yet.
+    if (!artifact.box) {
+      return;
+    }
+    if (!this.measureNoteMap[noteKey]) {
+      this.measureNoteMap[noteKey] = artifact;
+      artifact.scrollBox = { x: artifact.box.x,
+        y: artifact.measure.renderedBox.y };
+    } else {
+      const mm = this.measureNoteMap[noteKey];
+      mm.scrollBox = { x: Math.min(
+        artifact.box.x, mm.x), y: Math.min(artifact.measure.renderedBox.y, mm.y) };
     }
 
+    if (!this.measureMap[measureKey]) {
+      this.measureMap[measureKey] = { keys: {} };
+      this.measureMap[measureKey].keys[noteKey] = true;
+    } else {
+      const measureHash = this.measureMap[measureKey].keys;
+      if (!measureHash[noteKey]) {
+        measureHash[noteKey] = true;
+      }
+    }
+  }
 }
 ;class suiPiano {
   constructor(parameters) {
@@ -3707,6 +3858,7 @@ class suiMapper {
     this.render();
     this.octaveOffset = 0;
     this.chordPedal = false;
+    this.scroller = new suiScroller('.piano-keys');
   }
 
   static get dimensions() {
@@ -3765,103 +3917,101 @@ class suiMapper {
       }, 1000);
   }
   bind() {
-    var self = this;
-    $('body').off('show-piano-event').on('show-piano-event',function() {
+    $('body').off('show-piano-event').on('show-piano-event', () => {
         $('body').toggleClass('show-piano');
-        self._mapKeys();
+        this._mapKeys();
     });
-    $('#piano-8va-button').off('click').on('click',function() {
+    $('#piano-8va-button').off('click').on('click', (ev) => {
       $('#piano-8vb-button').removeClass('activated');
-      if (self.octaveOffset === 0) {
-        $(this).addClass('activated');
-        self.octaveOffset = 1;
+      if (this.octaveOffset === 0) {
+        $(ev.currentTarget).addClass('activated');
+        this.octaveOffset = 1;
       } else {
-        $(this).removeClass('activated');
-        self.octaveOffset = 0;
+        $(ev.currentTarget).removeClass('activated');
+        this.octaveOffset = 0;
       }
     });
-    $('#piano-8vb-button').off('click').on('click',function() {
+    $('#piano-8vb-button').off('click').on('click', (ev) => {
       $('#piano-8va-button').removeClass('activated');
-      if (self.octaveOffset === 0) {
-        $(this).addClass('activated');
-        self.octaveOffset = -1;
+      if (this.octaveOffset === 0) {
+        $(ev.currentTarget).addClass('activated');
+        this.octaveOffset = -1;
       } else {
-        $(this).removeClass('activated');
-        self.octaveOffset = 0;
+        $(ev.currentTarget).removeClass('activated');
+        this.octaveOffset = 0;
       }
     });
-    $('#piano-xpose-up').off('click').on('click',function() {
-      self.keyCommands.transposeUp();
+    $('#piano-xpose-up').off('click').on('click', () => {
+      this.keyCommands.transposeUp();
     });
-    $('#piano-xpose-down').off('click').on('click',function() {
-      self.keyCommands.transposeDown();
+    $('#piano-xpose-down').off('click').on('click', () => {
+      this.keyCommands.transposeDown();
     });
-    $('#piano-enharmonic').off('click').on('click',function() {
-      self.keyCommands.toggleEnharmonic();
+    $('#piano-enharmonic').off('click').on('click', () => {
+      this.keyCommands.toggleEnharmonic();
     });
-    $('button.jsLeft').off('click').on('click',function() {
-      self.view.tracker.moveSelectionLeft();
+    $('button.jsLeft').off('click').on('click', () => {
+      this.view.tracker.moveSelectionLeft();
     });
-    $('button.jsRight').off('click').on('click',function() {
-      self.view.tracker.moveSelectionRight();
+    $('button.jsRight').off('click').on('click', () => {
+      this.view.tracker.moveSelectionRight();
     });
-    $('button.jsGrowDuration').off('click').on('click',function() {
-      self.keyCommands.doubleDuration();
+    $('button.jsGrowDuration').off('click').on('click', () => {
+      this.keyCommands.doubleDuration();
     });
-    $('button.jsGrowDot').off('click').on('click',function() {
-      self.keyCommands.dotDuration();
+    $('button.jsGrowDot').off('click').on('click', () => {
+      this.keyCommands.dotDuration();
     });
-    $('button.jsShrinkDuration').off('click').on('click',function() {
-      self.keyCommands.halveDuration();
+    $('button.jsShrinkDuration').off('click').on('click', () => {
+      this.keyCommands.halveDuration();
     });
-    $('button.jsShrinkDot').off('click').on('click',function() {
-      self.keyCommands.undotDuration();
+    $('button.jsShrinkDot').off('click').on('click', () => {
+      this.keyCommands.undotDuration();
     });
-    $('button.jsChord').off('click').on('click',function() {
-      $(this).toggleClass('activated');
-      self.chordPedal = !self.chordPedal;
+    $('button.jsChord').off('click').on('click', (ev) => {
+      $(ev.currentTarget).toggleClass('activated');
+      this.chordPedal = !this.chordPedal;
     });
-
-
-    $(this.renderElement).off('mousemove').on('mousemove', function (ev) {
-      if (Math.abs(self.objects[0].box.x - self.objects[0].keyElement.getBoundingClientRect().x)
-        > self.objects[0].box.width/2) {
+    $(this.renderElement).off('mousemove').on('mousemove', (ev) => {
+      if (Math.abs(this.objects[0].box.x - this.objects[0].keyElement.getBoundingClientRect().x)
+        > this.objects[0].box.width / 2) {
           console.log('remap piano');
-          self._mapKeys();
-        }
+          this._mapKeys();
+      }
       var keyPressed = svgHelpers.findSmallestIntersection({
         x: ev.clientX,
         y: ev.clientY
-      }, self.objects,{x:0,y:0});
+        }, this.objects, this.scroller.scrollState);
       if (!keyPressed) {
         return;
       }
-      var el = self.renderElement.getElementById(keyPressed.id);
+      var el = this.renderElement.getElementById(keyPressed.id);
       if ($(el).hasClass('glow-key')) {
         return;
       }
-      self._removeGlow();
+      this._removeGlow();
       $(el).addClass('glow-key');
-      self._fadeGlow(el);
+      this._fadeGlow(el);
     });
-    $(this.renderElement).off('blur').on('blur',function(ev) {
-      self._removeGlow();
+    $(this.renderElement).off('blur').on('blur', (ev) => {
+      this._removeGlow();
     });
-    $(this.renderElement).off('click').on('click', function (ev) {
-      self._updateSelections(ev);
+    $(this.renderElement).off('click').on('click', (ev) => {
+      this._updateSelections(ev);
     });
 
-    $('.close-piano').off('click').on('click', function () {
+    $('.close-piano').off('click').on('click', () => {
       $('body').removeClass('show-piano');
       // resize the work area.
       $('body').trigger('forceScrollEvent');
     });
   }
   _updateSelections(ev) {
+    // fake a scroller (piano scroller w/b cool tho...)
     var keyPressed = svgHelpers.findSmallestIntersection({
         x: ev.clientX,
         y: ev.clientY
-      }, this.objects,{x:0,y:0});
+      }, this.objects, this.scroller.scrollState);
     if (!keyPressed) {
       return;
     }
@@ -4638,7 +4788,7 @@ class SuiScoreRender extends SuiRenderState {
           newGroup.textBlocks[0].text.y = yoff;
         }
       }
-      const block = SuiTextBlock.fromTextGroup(newGroup, this.renderer.getContext());
+      const block = SuiTextBlock.fromTextGroup(newGroup, this.renderer.getContext(), this.measureMapper.scroller);
       block.render();
       // For the first one we render, use that as the bounding box for all the text, for
       // purposes of mapper/tracker
@@ -5291,6 +5441,12 @@ class SuiScoreView {
       $('body').trigger('forceResizeEvent');
     }, 1);
   }
+  preserveScroll() {
+    const scrollState = this.scroller.scrollState;
+    this.renderer.renderPromise().then(() => {
+      this.scroller.restoreScrollState(scrollState);
+    });
+  }
 
   // ### undo
   // for the view score, we the renderer decides what to render
@@ -5836,6 +5992,9 @@ class SuiScoreViewOperations extends SuiScoreView {
   toggleBeamDirection() {
     this.actionBuffer.addAction('toggleBeamDirection');
     const selections = this.tracker.selections;
+    if (selections.length < 1) {
+      return;
+    }
     const measureSelections = this._undoTrackerMeasureSelections('toggle beam direction');
     SmoOperation.toggleBeamDirection(selections);
     SmoOperation.toggleBeamDirection(this._getEquivalentSelections(selections));
@@ -5923,6 +6082,7 @@ class SuiScoreViewOperations extends SuiScoreView {
     // extent of the overlap
     this.actionBuffer.addAction('paste');
     this._undoScore('paste');
+    this.preserveScroll();
     const firstSelection = this.tracker.selections[0];
     const pasteTarget = firstSelection.selector;
     const altSelection = this._getEquivalentSelection(firstSelection);
@@ -6381,6 +6541,11 @@ class SuiScoreViewOperations extends SuiScoreView {
       this.tracker.selectSuggestion(evData);
     }
   }
+  refreshViewport() {
+    this.preserveScroll();
+    this.renderer.setViewport(true);
+    this.renderer.setRefresh();
+  }
 }
 ;
 
@@ -6405,19 +6570,15 @@ class suiScroller  {
       $(selector).offset().top,
       $(selector).width(),
       $(selector).height());
-   }
+  }
 
-  // ### setScrollInitial
-  // tracker is going to remap the music, make sure we take the current scroll into account.
-  setScrollInitial() {
-    var scroller = $(this.selector);
-    this._scrollInitial = { x: $(scroller)[0].scrollLeft, y: $(scroller)[0].scrollTop };
-    this._offsetInitial = { x: $(scroller).offset().left, y: $(scroller).offset().top };
-    this.viewport = svgHelpers.boxPoints(
-      $(this.selector).offset().left,
-      $(this.selector).offset().top,
-      $(this.selector).width(),
-      $(this.selector).height());
+  get scrollState() {
+    const initial = JSON.parse(JSON.stringify(this._scrollInitial));
+    const scroll = JSON.parse(JSON.stringify(this._scroll));
+    return { initial, scroll };
+  }
+  restoreScrollState(state) {
+    this.scrollOffset(state.scroll.x - this._scroll.x, state.scroll.y - this._scroll.y);
   }
 
   // ### handleScroll
@@ -6431,7 +6592,7 @@ class suiScroller  {
       $(this.selector).height());
   }
 
-  scrollAbsolute(x,y) {
+  scrollAbsolute(x, y) {
     $(this.selector)[0].scrollLeft = x;
     $(this.selector)[0].scrollTop = y;
     this.netScroll.x = this._scroll.x = x;
@@ -6494,7 +6655,7 @@ class suiScroller  {
 
   // ### scrollOffset
   // scroll the offset from the starting scroll point
-  scrollOffset(x,y) {
+  scrollOffset(x, y) {
     const self = this;
     const cur = { x: this._scroll.x, y: this._scroll.y };
     setTimeout(() => {
@@ -6514,8 +6675,7 @@ class suiScroller  {
   get netScroll() {
     var xoffset = $(this.selector).offset().left - this._offsetInitial.x;
     var yoffset = $(this.selector).offset().top - this._offsetInitial.y;
-    return { x: this._scroll.x -
-      (this._scrollInitial.x + xoffset), y: this._scroll.y - (this._scrollInitial.y + yoffset)};
+    return { x: this._scroll.x - xoffset, y: this._scroll.y - yoffset };
   }
 
   // ### invScroll
@@ -6586,6 +6746,9 @@ class SuiTextEditor {
   constructor(params) {
     Vex.Merge(this, SuiTextEditor.defaults);
     Vex.Merge(this, params);
+    if (typeof(params.scroller) !== 'object') {
+      throw 'bad scroller in ctor of SuiTextEditor';
+    }
   }
 
   static get strokes() {
@@ -6662,7 +6825,7 @@ class SuiTextEditor {
     var blocks = this.svgText.getIntersectingBlocks({
       x: ev.clientX,
       y: ev.clientY
-    }, this.scroller.netScroll);
+    }, this.scroller.scrollState);
 
     // The mouse is not over the text
     if (!blocks.length) {
@@ -6854,7 +7017,7 @@ class SuiTextEditor {
   parseBlocks() {
     let i = 0;
     this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y,
-      fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight });
+      fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight, scroller: this.scroller });
     for (i = 0; i < this.text.length; ++i) {
       this.svgText.addTextBlockAt(i, { text: this.text[i] });
       this.empty = false;
@@ -6993,7 +7156,7 @@ class SuiLyricEditor extends SuiTextEditor {
   }
   parseBlocks() {
     let i = 0;
-    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y });
+    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y, scroller: this.scroller });
     for (i = 0; i < this.text.length; ++i) {
       this.svgText.addTextBlockAt(i, { text: this.text[i] });
       this.empty = false;
@@ -7094,7 +7257,7 @@ class SuiChordEditor extends SuiTextEditor {
     let curGlyph = '';
     let blockIx = 0; // so we skip modifier characters
     let i = 0;
-    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y });
+    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y, scroller: this.scroller });
 
     for (i = 0; i < this.text.length; ++i) {
       const char = this.text[i];
@@ -7210,12 +7373,12 @@ class SuiDragSession {
     this.scroller = params.scroller;
     this.xOffset = 0;
     this.yOffset = 0;
-    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup, this.context); // SuiTextBlock
+    this.textObject = SuiTextBlock.fromTextGroup(this.textGroup, this.context, this.scroller); // SuiTextBlock
     this.dragging = false;
     this.startBox = this.textObject.getLogicalBox();
     this.startBox.y += this.textObject.maxFontHeight(1);
     this.currentBox = svgHelpers.smoBox(this.startBox);
-    this.currentClientBox = svgHelpers.adjustScroll(svgHelpers.logicalToClient(this.context.svg, this.currentBox), this.scroller.netScroll);
+    this.currentClientBox = svgHelpers.logicalToClient(this.context.svg, this.currentBox, this.scroller);
   }
 
   _outlineBox() {
@@ -7228,7 +7391,7 @@ class SuiDragSession {
   }
 
   startDrag(e) {
-    if (!svgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, this.scroller.netScroll)) {
+    if (!svgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, this.scroller.scrollState)) {
       return;
     }
     this.dragging = true;
@@ -7750,16 +7913,20 @@ class SuiInlineText {
     if (!this.context) {
       throw 'context for SVG must be set';
     }
+    if (!this.scroller) {
+      throw 'scroller for inline text must be set';
+    }
     this.updateFontInfo();
   }
 
-  static fromScoreText(scoreText, context) {
+  static fromScoreText(scoreText, context, scroller) {
     var pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
       : SmoScoreText.fontPointSize(scoreText.fontInfo.size);
     const params = { fontFamily: scoreText.fontInfo.family,
       fontWeight: scoreText.fontInfo.weight,
       fontStyle: scoreText.fontInfo.style,
       startX: scoreText.x, startY: scoreText.y,
+      scroller,
       fontSize: pointSize, context };
     const rv = new SuiInlineText(params);
     rv.attrs.id = scoreText.attrs.id;
@@ -8051,8 +8218,8 @@ class SuiInlineText {
       ix += 1;
     });
     this.context.closeGroup();
-    this.renderedBox = svgHelpers.smoBox(group.getBoundingClientRect());
     this.logicalBox = svgHelpers.smoBox(group.getBBox());
+    this.renderedBox = svgHelpers.logicalToClient(this.context.svg, this.logicalBox, this.scroller);
   }
 
   _drawBlock(block) {
@@ -8110,6 +8277,10 @@ class SuiTextBlock {
   }
   constructor(params) {
     this.inlineBlocks = [];
+    if (!typeof(params.scroller) === 'object') {
+      throw 'bad text block, no scroller';
+    }
+    this.scroller = params.scroller;
     this.spacing = 0;
     if (typeof(params.spacing) !== 'undefined') {
       this.spacing = params.spacing;
@@ -8197,16 +8368,16 @@ class SuiTextBlock {
     return rv;
   }
 
-  static inlineParamsFromScoreText(scoreText, context) {
+  static inlineParamsFromScoreText(scoreText, context, scroller) {
     const pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
       : SmoScoreText.fontPointSize(scoreText.fontInfo.size);
     const rv = { fontFamily: scoreText.fontInfo.family,
       startX: scoreText.x, startY: scoreText.y,
-      fontSize: pointSize, context };
+      fontSize: pointSize, context, scroller };
     return rv;
   }
-  static blockFromScoreText(scoreText, context, position) {
-    var inlineText = SuiInlineText.fromScoreText(scoreText, context);
+  static blockFromScoreText(scoreText, context, position, scroller) {
+    var inlineText = SuiInlineText.fromScoreText(scoreText, context, scroller);
     return  { text: inlineText, position };
   }
 
@@ -8214,7 +8385,7 @@ class SuiTextBlock {
     return this._calculateBoundingClientRect();
   }
   getRenderedBox() {
-    return svgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect());
+    return svgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect(), this.scroller);
   }
   _calculateBoundingClientRect() {
     var rv = {};
@@ -8228,17 +8399,17 @@ class SuiTextBlock {
     rv.y = rv.y - rv.height;
     return rv;
   }
-  static fromTextGroup(tg, context) {
+  static fromTextGroup(tg, context, scroller) {
     const blocks = [];
 
     // Create an inline block for each ScoreText
     tg.textBlocks.forEach((stBlock) => {
       const st = stBlock.text;
-      const newText = SuiTextBlock.blockFromScoreText(st, context, stBlock.position);
+      const newText = SuiTextBlock.blockFromScoreText(st, context, stBlock.position, scroller);
       newText.activeText = stBlock.activeText;
       blocks.push(newText);
     });
-    const rv = new SuiTextBlock({ blocks, justification: tg.justification, spacing: tg.spacing, context });
+    const rv = new SuiTextBlock({ blocks, justification: tg.justification, spacing: tg.spacing, context, scroller });
     rv._justify();
     return rv;
   }
@@ -8389,9 +8560,11 @@ class suiTracker extends suiMapper {
     const note = this.selections[0].note;
     const r = note.renderedBox;
     const b = this.selections[0].box;
+    const ydiff = Math.abs(r.y - b.y);
+    const xdiff = Math.abs(r.x - b.x);
     const preventScroll = $('body').hasClass('modal');
 
-    if (r.y !== b.y || r.x !== b.x) {
+    if (ydiff > 1 || xdiff > 1) {
       if (this.renderer.passState === SuiRenderState.passStates.replace ||
         this.renderer.passState === SuiRenderState.passStates.clean) {
         console.log('tracker: rerender conflicting map');
@@ -8473,97 +8646,7 @@ class suiTracker extends suiMapper {
     if (!el) {
       return;
     }
-    svgHelpers.updateArtifactBox(this.context.svg, el, modifier);
-  }
-
-  _updateNoteModifier(selection, modMap, modifier, ix) {
-    if (!modMap[modifier.attrs.id]) {
-      this.modifierTabs.push({
-        modifier,
-        selection,
-        box: svgHelpers.adjustScroll(modifier.renderedBox, this.scroller.netScroll),
-        index: ix
-      });
-      ix += 1;
-      modMap[modifier.attrs.id] = {
-        exists: true
-      };
-    }
-    return ix;
-  }
-
-  _updateModifiers() {
-    let ix = 0;
-    this.modifierTabs = [];
-    this.modifierBoxes = [];
-    const modMap = {};
-    this.renderer.score.scoreText.forEach((modifier) => {
-      if (!modMap[modifier.attrs.id]) {
-        this.modifierTabs.push({
-          modifier,
-          selection: null,
-          box: svgHelpers.adjustScroll(modifier.renderedBox, this.scroller.netScroll),
-          index: ix
-        });
-        ix += 1;
-      }
-    });
-    this.renderer.score.textGroups.forEach((modifier) => {
-      if (!modMap[modifier.attrs.id]) {
-        this.modifierTabs.push({
-          modifier,
-          selection: null,
-          box: svgHelpers.adjustScroll(modifier.renderedBox, this.scroller.netScroll),
-          index: ix
-        });
-        ix += 1;
-      }
-    });
-    const keys = Object.keys(this.measureNoteMap);
-    keys.forEach((selKey) => {
-      const selection = this.measureNoteMap[selKey];
-      selection.staff.modifiers.forEach((modifier) => {
-        if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
-          if (!modMap[modifier.attrs.id]) {
-            if (modifier.renderedBox) {
-              this.modifierTabs.push({
-                modifier,
-                selection,
-                box: svgHelpers.adjustScroll(modifier.renderedBox, this.scroller.netScroll),
-                index: ix
-              });
-              ix += 1;
-              modMap[modifier.attrs.id] = { exists: true };
-            }
-          }
-        }
-      });
-      selection.measure.modifiers.forEach((modifier) => {
-        if (modifier.attrs.id
-          && !modMap[modifier.attrs.id]
-          && modifier.renderedBox) {
-          this.modifierTabs.push({
-            modifier,
-            selection,
-            box: svgHelpers.adjustScroll(modifier.renderedBox, this.scroller.netScroll),
-            index: ix
-          });
-          ix += 1;
-          modMap[modifier.attrs.id] = {
-            exists: true
-          };
-        }
-      });
-      selection.note.textModifiers.forEach((modifier) => {
-        if (modifier.renderedBox) {
-          ix = this._updateNoteModifier(selection, modMap, modifier, ix);
-        }
-      });
-
-      selection.note.graceNotes.forEach((modifier) => {
-        ix = this._updateNoteModifier(selection, modMap, modifier, ix);
-      });
-    });
+    svgHelpers.updateArtifactBox(this.context.svg, el, modifier, this.scroller);
   }
 
   clearMusicCursor() {
@@ -8574,9 +8657,12 @@ class suiTracker extends suiMapper {
   // the little birdie that follows the music as it plays
   musicCursor(selector) {
     const key = SmoSelector.getNoteKey(selector);
+    // Get note from 0th staff if we can
     if (this.measureNoteMap[key]) {
       const measureSel = SmoSelection.measureSelection(this.renderer.score,
         this.renderer.score.staves.length - 1, selector.measure);
+      const zmeasureSel = SmoSelection.measureSelection(this.renderer.score,
+        0, selector.measure);
       const measure = measureSel.measure;
       const mbox = measure.renderedBox;
       const pos = this.measureNoteMap[key].scrollBox;
@@ -8584,7 +8670,7 @@ class suiTracker extends suiMapper {
       const r = b('span').classes('birdy icon icon-arrow-down').attr('id', 'birdy');
       $('.workspace #birdy').remove();
       const rd = r.dom();
-      const y = pos.y - this.scroller.netScroll.y;
+      const y = zmeasureSel.measure.renderedBox.y - this.scroller.netScroll.y;
       const x = pos.x - this.scroller.netScroll.x;
       $(rd).css('top', y).css('left', x);
       $('.workspace').append(rd);
@@ -8617,13 +8703,6 @@ class suiTracker extends suiMapper {
 
   getSelectedModifiers() {
     return this.modifierSelections;
-  }
-  _addModifierToArray(ar) {
-    ar.forEach((mod) => {
-      if (mod.renderedBox) {
-        this.localModifiers.push({ selection: sel, modifier: mod, box: mod.renderedBox });
-      }
-    });
   }
 
   _createLocalModifiersList() {
@@ -8697,47 +8776,6 @@ class suiTracker extends suiMapper {
       artifact.selector.pitches = JSON.parse(JSON.stringify(selector.pitches));
     }
     this.selections.push(artifact);
-  }
-
-  _updateMeasureNoteMap(artifact, printing) {
-    const noteKey = SmoSelector.getNoteKey(artifact.selector);
-    const measureKey = SmoSelector.getMeasureKey(artifact.selector);
-    const activeVoice = artifact.measure.getActiveVoice();
-    if (artifact.selector.voice !== activeVoice && !artifact.note.fillStyle && !printing) {
-      const vvv = artifact.selector.voice;
-      const r = 128 + ((vvv * 32767 | vvv * 157) % 127);
-      const g = 128 / vvv;
-      const b = 128 - ((vvv * 32767 | vvv * 157) % 127);
-      const fill = 'rgb(' + r + ',' + g + ',' + b + ')';
-      $('#' + artifact.note.renderId).find('.vf-notehead path').each((ix, el) => {
-        el.setAttributeNS('', 'fill', fill);
-      });
-    }
-
-    // not has not been drawn yet.
-    if (!artifact.box) {
-      return;
-    }
-
-    if (!this.measureNoteMap[noteKey]) {
-      this.measureNoteMap[noteKey] = artifact;
-      artifact.scrollBox = { x: artifact.box.x - this.scroller.netScroll.x,
-        y: artifact.measure.renderedBox.y - this.scroller.netScroll.y };
-    } else {
-      const mm = this.measureNoteMap[noteKey];
-      mm.scrollBox = { x: Math.min(
-        artifact.box.x - this.scroller.netScroll.x, mm.x), y: Math.min(artifact.measure.renderedBox.y - this.scroller.netScroll.y, mm.y) };
-    }
-
-    if (!this.measureMap[measureKey]) {
-      this.measureMap[measureKey] = { keys: {} };
-      this.measureMap[measureKey].keys[noteKey] = true;
-    } else {
-      const measureHash = this.measureMap[measureKey].keys;
-      if (!measureHash[noteKey]) {
-        measureHash[noteKey] = true;
-      }
-    }
   }
 
   static stringifyBox(box) {
@@ -9983,7 +10021,7 @@ class VxMeasure {
   }
 
   _renderNoteGlyph(smoNote, textObj) {
-    var x = smoNote.logicalBox.x + textObj.xOffset;
+    var x = this.noteToVexMap[smoNote.attrs.id].getAbsoluteX() + textObj.xOffset;
     // the -3 is copied from vexflow textDynamics
     var y = this.stave.getYForLine(textObj.yOffsetLine - 3) + textObj.yOffsetPixels;
     var group = this.context.openGroup();
@@ -9997,7 +10035,7 @@ class VxMeasure {
         x += VF.TextDynamics.GLYPHS[ch].width;
       }
     });
-    textObj.renderedBox = svgHelpers.smoBox(group.getBoundingClientRect());
+    textObj.logicalBox = svgHelpers.smoBox(group.getBBox());
     this.context.closeGroup();
   }
 
@@ -10152,40 +10190,6 @@ class VxMeasure {
     }
   }
 
-  _setModifierBoxes() {
-    this.smoMeasure.voices.forEach((voice) => {
-      voice.notes.forEach((smoNote) =>  {
-        var el = this.context.svg.getElementById(smoNote.renderId);
-        if (el) {
-          svgHelpers.updateArtifactBox(this.context.svg, el, smoNote);
-          // TODO: fix this, only works on the first line.
-          smoNote.getModifiers('SmoLyric').forEach((lyric) => {
-            if (lyric.selector && (lyric.getText().length || lyric.isHyphenated())) {
-              svgHelpers.updateArtifactBox(this.context.svg, $(lyric.selector)[0], lyric);
-            }
-          });
-          smoNote.graceNotes.forEach((g) => {
-            var gel = this.context.svg.getElementById('vf-' + g.renderedId);
-            $(gel).addClass('grace-note');
-            svgHelpers.updateArtifactBox(this.context.svg, gel, g);
-          });
-        }
-      });
-    });
-  }
-
-  // ### _updateLyricXOffsets
-  // Create the DOM modifiers for the rendered lyrics.
-  _updateLyricDomSelectors() {
-    this.smoMeasure.voices.forEach((vv) => {
-      vv.notes.forEach((nn) => {
-        nn.getModifiers('SmoLyric').forEach((lyric) => {
-          lyric.selector = '#' + nn.renderId + ' ' + lyric.getClassSelector();
-        });
-      });
-    });
-  }
-
   // ## Description:
   // Create all Vex notes and modifiers.  We defer the format and rendering so
   // we can align across multiple staves
@@ -10292,16 +10296,13 @@ class VxMeasure {
       this.vexTuplets.forEach((tuplet) => {
         tuplet.setContext(self.context).draw();
       });
-      this._updateLyricDomSelectors();
-      this._setModifierBoxes();
+      // this._updateLyricDomSelectors();
       this.renderDynamics();
       // this.smoMeasure.adjX = this.stave.start_x - (this.smoMeasure.staffX);
 
       this.context.closeGroup();
       layoutDebug.setTimestamp(layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
-      const box = svgHelpers.smoBox(group.getBoundingClientRect());
       const lbox = svgHelpers.smoBox(group.getBBox());
-      this.smoMeasure.renderedBox = box;
       this.smoMeasure.setBox(lbox, 'vxMeasure bounding box');
       this.smoMeasure.changed = false;
       this.rendered = true;
@@ -10379,8 +10380,10 @@ class VxSystem {
     for (i = 0; i < 3; ++i) {
       const chords = note.getLyricForVerse(i, SmoLyric.parsers.chord);
       chords.forEach((chord) => {
-        var dom = $(this.context.svg).find(chord.selector)[0];
-        dom.setAttributeNS('', 'transform', 'translate(' + chord.translateX + ' ' + (-1 * chord.translateY) + ')');
+        const dom = $(this.context.svg).find(chord.selector)[0];
+        if (dom) {
+          dom.setAttributeNS('', 'transform', 'translate(' + chord.translateX + ' ' + (-1 * chord.translateY) + ')');
+        }
       });
     }
   }
@@ -19536,13 +19539,7 @@ class SmoSelection {
     return [];
   }
 }
-;VF = Vex.Flow;
-Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
-     : Vex.Xform);
-VX = Vex.Xform;
-
-
-class SmoDuration {
+;class SmoDuration {
   static doubleDurationNonTuplet(selection) {
     var note = selection.note;
     var measure = selection.measure;
@@ -19551,7 +19548,7 @@ class SmoDuration {
     var tuplet = measure.getTupletForNote(note);
     var i;
     var nticks = note.tickCount * 2;
-    var replNote = SmoNote.cloneWithDuration(note,nticks);
+    var replNote = SmoNote.cloneWithDuration(note, nticks);
     var ticksUsed = note.tickCount;
     var newNotes = [];
     for (i = 0;i < selector.tick;++i) {
@@ -19629,69 +19626,69 @@ class SmoTickTransformer {
   }
   // ## applyTransform
   // create a transform with the given actors and run it against the supplied measure
-  static applyTransform(measure,actors,voiceIndex) {
+  static applyTransform(measure, actors, voiceIndex) {
     var actAr = (Array.isArray(actors)) ? actors : [actors];
     measure.clearBeamGroups();
-        var transformer = new SmoTickTransformer(measure, actAr,voiceIndex);
-        transformer.run();
-        var vix = measure.getActiveVoice();
-        measure.voices[vix].notes = transformer.notes;
+      var transformer = new SmoTickTransformer(measure, actAr, voiceIndex);
+      transformer.run();
+      measure.voices[voiceIndex].notes = transformer.notes;
   }
-    // ## transformNote
-    // call the actors for each note, and put the result in the note array.
-    // The note from the original array is copied and sent to each actor.
-    //
-    // Because the resulting array can have a different number of notes than the existing
-    // array, the actors communicate with the transformer in the following, jquery-ish
-    // but somewhat unintuitive way:
-    //
-    // 1. if the actor returns null, the next actor is called and the results of that actor are used
-    // 2. if all the actors return null, the copy is used.
-    // 3. if a note object is returned, that is used for the current tick and no more actors are called.
-    // 4. if an array of notes is returned, it is concatenated to the existing note array and no more actors are called.
-    //     Note that *return note;* and *return [note];* produce the same result.
-    // 5. if an empty array [] is returned, that copy is not added to the result.  The note is effectively deleted.
-    transformTick(tickmap, index,note) {
-        var self = this;
+  // ### transformNote
+  // call the actors for each note, and put the result in the note array.
+  // The note from the original array is copied and sent to each actor.
+  //
+  // Because the resulting array can have a different number of notes than the existing
+  // array, the actors communicate with the transformer in the following, jquery-ish
+  // but somewhat unintuitive way:
+  //
+  // 1. if the actor returns null, the next actor is called and the results of that actor are used
+  // 2. if all the actors return null, the copy is used.
+  // 3. if a note object is returned, that is used for the current tick and no more actors are called.
+  // 4. if an array of notes is returned, it is concatenated to the existing note array and no more actors are called.
+  //     Note that *return note;* and *return [note];* produce the same result.
+  // 5. if an empty array [] is returned, that copy is not added to the result.  The note is effectively deleted.
+  transformTick(tickmap, index,note) {
+    var self = this;
 
-        for (var i = 0; i < this.actors.length; ++i) {
-      var actor=this.actors[i];
-            var newNote = actor.transformTick(note, tickmap, index);
-            if (newNote == null) {
-        this.vxNotes.push(note); // no change
-                continue;
-            }
-            if (Array.isArray(newNote)) {
-                if (newNote.length === 0) {
-                    return;
-                }
-                this.vxNotes = this.vxNotes.concat(newNote);
-                return;
-            }
-            this.vxNotes.push(newNote);
-            return;
+    for (var i = 0; i < this.actors.length; ++i) {
+    var actor=this.actors[i];
+    var newNote = actor.transformTick(note, tickmap, index);
+    if (newNote == null) {
+      this.vxNotes.push(note); // no change
+        continue;
+      }
+      if (Array.isArray(newNote)) {
+        if (newNote.length === 0) {
+          return;
         }
+        this.vxNotes = this.vxNotes.concat(newNote);
+        return;
+      }
+      this.vxNotes.push(newNote);
+      return;
     }
+  }
 
-    run() {
-        var self = this;
-        var tickmap = this.measure.tickmapForVoice(this.voice);
-        for (var i = 0;i < tickmap.durationMap.length;++i) {
-            this.transformTick(tickmap,i,this.measure.voices[this.voice].notes[i]);
-        }
-        this.notes = this.vxNotes;
-        return this.vxNotes;
+  run() {
+    var self = this;
+    var tickmap = this.measure.tickmapForVoice(this.voice);
+    for (var i = 0; i < tickmap.durationMap.length; ++i) {
+      this.transformTick(tickmap,i,this.measure.voices[this.voice].notes[i]);
     }
+    this.notes = this.vxNotes;
+    return this.vxNotes;
+  }
 }
 
 // ## A note transformer is just a function that modifies a note in some way.
 // Any number of transformers can be applied to a note.
 class TickTransformBase {
-    constructor() {}
-    transformTick(note, tickmap, index) {
-        return note;
-    }
+  constructor() {}
+  transformTick(note, tickmap, index) {
+    return note;
+  }
 }
+
 // ## VxContractActor
 // Contract the duration of a note, filling in the space with another note
 // or rest.
@@ -19740,8 +19737,8 @@ class SmoContractNoteActor extends TickTransformBase {
         notes.push(new SmoNote({
           clef: note.clef,
           pitches: JSON.parse(JSON.stringify(note.pitches)),
-          ticks: {numerator:remainder,denominator:1,remainder:0},
-          beamBeats:note.beamBeats
+          ticks: { numerator: remainder, denominator: 1, remainder: 0 },
+          beamBeats: note.beamBeats
         }));
       }
       return notes;
@@ -19756,42 +19753,38 @@ class SmoContractNoteActor extends TickTransformBase {
 //   {changeIndex:changeIndex, multiplier:multiplier,measure:measure}
 //
 class SmoStretchTupletActor extends TickTransformBase {
-    constructor(params) {
-        super();
-        Vex.Merge(this, params);
-        this.tuplet = this.measure.getTupletForNote(this.measure.notes[this.changeIndex]);
-        this.oldLength = this.tuplet.notes.length;
-        this.tupletIndex = this.measure.tupletIndex(this.tuplet);
+  constructor(params) {
+    super();
+    Vex.Merge(this, params);
+    this.tuplet = this.measure.getTupletForNote(this.measure.notes[this.changeIndex]);
+    this.oldLength = this.tuplet.notes.length;
+    this.tupletIndex = this.measure.tupletIndex(this.tuplet);
+    this.tuplet.combine(this.startIndex, this.endIndex);
+    this.durationMap = this.tuplet.durationMap;
+  }
+  transformTick(note, tickmap, index) {
+    /*
+    ## Strategy:
+    Before A, after C, leave alone
+    At A, send all notes of the tuplet
+    Between A+1 and C, return empty array for removed note
 
-        this.tuplet.combine(this.startIndex, this.endIndex);
-        this.durationMap = this.tuplet.durationMap;
+    5
+    ---------
+    | | | | |
+    n n n n n
+    A | B | C
+     */
+
+    if (index < this.tupletIndex)
+        return note;
+    if (index >= this.tupletIndex + this.oldLength)
+        return note;
+    if (index === this.tupletIndex) {
+        return this.tuplet.notes;
     }
-    transformTick(note, tickmap,index) {
-
-        /*
-        ## Strategy:
-        Before A, after C, leave alone
-        At A, send all notes of the tuplet
-        Between A+1 and C, return empty array for removed note
-
-        5
-        ---------
-        | | | | |
-        n n n n n
-        A | B | C
-         */
-
-        if (index < this.tupletIndex)
-            return note;
-        if (index >= this.tupletIndex + this.oldLength)
-            return note;
-        if (index === this.tupletIndex) {
-            return this.tuplet.notes;
-        }
-        return [];
-
-    }
-
+    return [];
+  }
 }
 
 // ## VxContractActor
@@ -19799,25 +19792,25 @@ class SmoStretchTupletActor extends TickTransformBase {
 // notes of fractional length
 //
 class SmoContractTupletActor extends TickTransformBase {
-    constructor(params) {
-        super();
-        Vex.Merge(this, params);
-        this.tuplet = this.measure.getTupletForNote(this.measure.voices[this.voice].notes[this.changeIndex]);
-        this.oldLength = this.tuplet.notes.length;
-        this.tupletIndex = this.measure.tupletIndex(this.tuplet);
-        this.splitIndex = this.changeIndex - this.tupletIndex;
-        this.tuplet.split(this.splitIndex);
+  constructor(params) {
+    super();
+    Vex.Merge(this, params);
+    this.tuplet = this.measure.getTupletForNote(this.measure.voices[this.voice].notes[this.changeIndex]);
+    this.oldLength = this.tuplet.notes.length;
+    this.tupletIndex = this.measure.tupletIndex(this.tuplet);
+    this.splitIndex = this.changeIndex - this.tupletIndex;
+    this.tuplet.split(this.splitIndex);
+  }
+  transformTick(note, tickmap, index, accidentalMap) {
+    if (index < this.tupletIndex)
+      return note;
+    if (index >= this.tupletIndex + this.oldLength)
+      return note;
+    if (index == this.changeIndex) {
+      return this.tuplet.notes;
     }
-    transformTick(note, tickmap, index, accidentalMap) {
-        if (index < this.tupletIndex)
-            return note;
-        if (index >= this.tupletIndex + this.oldLength)
-            return note;
-        if (index == this.changeIndex) {
-            return this.tuplet.notes;
-        }
-        return [];
-    }
+    return [];
+  }
 }
 
 // ## VxUnmakeTupletActor
@@ -19827,24 +19820,24 @@ class SmoContractTupletActor extends TickTransformBase {
 // endIndex: end index of tuplet
 // measure: Smo measure that the tuplet is contained in.
 class SmoUnmakeTupletActor extends TickTransformBase {
-    constructor(parameters) {
-        super();
-        Vex.Merge(this, parameters);
+  constructor(parameters) {
+    super();
+    Vex.Merge(this, parameters);
+  }
+  transformTick(note, tickmap, index, accidentalMap) {
+    if (index < this.startIndex || index > this.endIndex) {
+      return null;
     }
-    transformTick(note, tickmap, index, accidentalMap) {
-        if (index < this.startIndex || index > this.endIndex) {
-            return null;
-        }
-        if (index == this.startIndex) {
-            var tuplet = this.measure.getTupletForNote(note);
-            var ticks = tuplet.totalTicks;
-            var nn = SmoNote.cloneWithDuration(note, {numerator:ticks,denominator:1,remainder:0});
-            nn.tuplet = {};
-            this.measure.removeTupletForNote(note);
-            return [nn];
-        }
-        return [];
+    if (index == this.startIndex) {
+      var tuplet = this.measure.getTupletForNote(note);
+      var ticks = tuplet.totalTicks;
+      var nn = SmoNote.cloneWithDuration(note, { numerator: ticks, denominator: 1, remainder: 0 });
+      nn.tuplet = {};
+      this.measure.removeTupletForNote(note);
+      return [nn];
     }
+    return [];
+  }
 }
 
 // ## VxUnmakeTupletActor
@@ -19852,91 +19845,65 @@ class SmoUnmakeTupletActor extends TickTransformBase {
 // parameters:
 //  {tickmap:tickmap,ticks:ticks,
 class SmoMakeTupletActor extends TickTransformBase {
-    constructor(params) {
-        super();
-        Vex.Merge(this, params);
-        this.measure = this.selection.measure;
-        this.durationMap = [];
-        var sum = 0.0; // 819.2
-        for (var i = 0; i < this.numNotes; ++i) {
-            this.durationMap.push(1.0);
-            sum += 1.0;
-        }
-    /*
-    var stemValue = this.totalTicks / this.numNotes;
-        var stemTicks = 8192;
-
-        // The stem value is the type on the non-tuplet note, e.g. 1/8 note
-        // for a triplet.
-        while (stemValue < stemTicks) {
-            stemTicks = stemTicks / 2;
-        }
-
-        this.stemTicks = stemTicks * 2;
-    */
-        this.stemTicks = SmoTuplet.calculateStemTicks(this.totalTicks ,this.numNotes);
-
-        this.rangeToSkip = this._rangeToSkip();
-
-        // special case - is this right?  this is needed for tuplets in 6/8
-        /* if (this.rangeToSkip[1] > this.rangeToSkip[0]) {
-            this.stemTicks = stemTicks;
-        } else {
-            this.stemTicks = stemTicks * 2;
-        }  */
-
-        this.vexDuration = smoMusic.ticksToDuration[this.stemTicks];
-        this.tuplet = [];
-        // skip notes in the original array if we are taking up
-        // multiple notes
-
+  constructor(params) {
+    super();
+    Vex.Merge(this, params);
+    this.measure = this.selection.measure;
+    this.durationMap = [];
+    var sum = 0.0; // 819.2
+    for (var i = 0; i < this.numNotes; ++i) {
+      this.durationMap.push(1.0);
+      sum += 1.0;
     }
-    _rangeToSkip() {
-        var ticks = this.selection.measure.tickmapForVoice(this.selection.selector.voice);
-        var accum = 0;
-        var rv = [];
-        rv.push(this.index);
-        for (var i = 0; i < ticks.deltaMap.length; ++i) {
-            if (i >= this.index) {
-                accum += ticks.deltaMap[i];
-            }
-            if (accum >= this.totalTicks) {
-                rv.push(i);
-                break;
-            }
-        }
-        return rv;
+    this.stemTicks = SmoTuplet.calculateStemTicks(this.totalTicks, this.numNotes);
+    this.rangeToSkip = this._rangeToSkip();
+    this.vexDuration = smoMusic.ticksToDuration[this.stemTicks];
+    this.tuplet = [];
+  }
+  _rangeToSkip() {
+    var ticks = this.selection.measure.tickmapForVoice(this.selection.selector.voice);
+    var accum = 0;
+    var rv = [];
+    rv.push(this.index);
+    for (var i = 0; i < ticks.deltaMap.length; ++i) {
+      if (i >= this.index) {
+        accum += ticks.deltaMap[i];
+      }
+      if (accum >= this.totalTicks) {
+        rv.push(i);
+        break;
+      }
     }
-    transformTick(note, tickmap, index) {
-        // if our tuplet replaces this note, make sure we make it go away.
-        if (index > this.index && index <= this.rangeToSkip[1]) {
-            return [];
-        }
-        if (index != this.index) {
-            return null;
-        }
-        for (var i = 0; i < this.numNotes; ++i) {
-            note = SmoNote.cloneWithDuration(note, {numerator:this.stemTicks,denominator:1,remainder:0});
-
+    return rv;
+  }
+  transformTick(note, tickmap, index) {
+    // if our tuplet replaces this note, make sure we make it go away.
+    if (index > this.index && index <= this.rangeToSkip[1]) {
+      return [];
+    }
+    if (index !== this.index) {
+      return null;
+    }
+    for (var i = 0; i < this.numNotes; ++i) {
+      note = SmoNote.cloneWithDuration(note, { numerator: this.stemTicks, denominator: 1, remainder: 0 });
       // Don't clone modifiers, except for first one.
-      note.textModifiers = i===0 ? note.textModifiers : [];
-
-            this.tuplet.push(note);
-        }
-        var tuplet = new SmoTuplet({
-                notes: this.tuplet,
-                stemTicks: this.stemTicks,
-                totalTicks: this.totalTicks,
-                ratioed: false,
-                bracketed: true,
-                startIndex: index,
-                durationMap: this.durationMap,
-                location: 1,
-                voice:tickmap.voice
-            });
-        this.measure.tuplets.push(tuplet);
-        return this.tuplet;
+      note.textModifiers = i === 0 ? note.textModifiers : [];
+      this.tuplet.push(note);
     }
+    var tuplet = new SmoTuplet({
+      notes: this.tuplet,
+      stemTicks: this.stemTicks,
+      totalTicks: this.totalTicks,
+      ratioed: false,
+      bracketed: true,
+      startIndex: index,
+      durationMap: this.durationMap,
+      location: 1,
+      voice: tickmap.voice
+      });
+    this.measure.tuplets.push(tuplet);
+    return this.tuplet;
+  }
 }
 
 class SmoStretchNoteActor extends TickTransformBase {
@@ -19945,7 +19912,6 @@ class SmoStretchNoteActor extends TickTransformBase {
     Vex.Merge(this, parameters);
     this.startTick = this.tickmap.durationMap[this.startIndex];
     var currentTicks = this.tickmap.deltaMap[this.startIndex];
-
     var endTick = this.tickmap.durationMap[this.startIndex] + this.newTicks;
     this.divisor = -1;
     this.durationMap = [];
@@ -19973,10 +19939,9 @@ class SmoStretchNoteActor extends TickTransformBase {
       var npos = this.tickmap.durationMap[this.startIndex + 1];
       var ndelta = this.tickmap.deltaMap[this.startIndex + 1];
       var needed = this.newTicks - currentTicks;
-      var exp = ndelta/needed;
-
+      var exp = ndelta / needed;
       // Next tick does not divide evenly into this, or next tick is shorter than this
-      if (Math.round(ndelta/exp)-ndelta/exp != 0 || ndelta < 256) {
+      if (Math.round(ndelta/exp) - ndelta/exp !== 0 || ndelta < 256) {
         this.durationMap = [];
       }
       else if (ndelta / exp + this.startTick + this.newTicks <= this.tickmap.totalDuration) {
@@ -19990,24 +19955,24 @@ class SmoStretchNoteActor extends TickTransformBase {
       for (var i = this.startIndex + 1; i < mapIx; ++i) {
           this.durationMap.push(0);
       }
+    }
   }
+  transformTick(note, tickmap, index) {
+    if (this.durationMap.length == 0) {
+      return null;
     }
-    transformTick(note, tickmap, index) {
-        if (this.durationMap.length == 0) {
-            return null;
-        }
-        if (index >= this.startIndex && index < this.startIndex + this.durationMap.length) {
-            var mapIndex = index - this.startIndex;
-            var ticks = this.durationMap[mapIndex];
-            if (ticks == 0) {
-                return [];
-            }
-            var vexDuration = smoMusic.ticksToDuration[ticks];
-            var note = SmoNote.cloneWithDuration(note, {numerator:ticks,denominator:1,remainder:0});
-            return [note];
-        }
-        return null;
+    if (index >= this.startIndex && index < this.startIndex + this.durationMap.length) {
+      var mapIndex = index - this.startIndex;
+      var ticks = this.durationMap[mapIndex];
+      if (ticks === 0) {
+        return [];
+      }
+      var vexDuration = smoMusic.ticksToDuration[ticks];
+      var note = SmoNote.cloneWithDuration(note, { numerator: ticks, denominator: 1, remainder: 0 });
+      return [note];
     }
+    return null;
+  }
 }
 ;// ## SmoToVex
 // Simple serialize class that produced VEX note and voice objects
@@ -27316,6 +27281,7 @@ class SuiDialogBase {
     this.id = parameters.id;
     this.boundKeyboard = false;
     this.components = [];
+    this.scroller = parameters.view.tracker.scroller;
 
     this.closeDialogPromise = new Promise((resolve) => {
       $('body').off('dialogDismiss').on('dialogDismiss', () => {
@@ -31173,8 +31139,9 @@ class SuiStaffGroupDialog extends SuiDialogBase {
 // Edit the text in an SVG element, in the same scale etc. as the text in the score SVG DOM.
 // This component just manages the text editing component of hte renderer.
 class SuiTextInPlace extends SuiComponentBase {
-  constructor(dialog,parameter) {
+  constructor(dialog, parameter) {
     super(parameter);
+    this.scroller = dialog.scroller;
     smoSerialize.filteredMerge(
         ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     if (!this.defaultValue) {
@@ -31251,7 +31218,7 @@ class SuiTextInPlace extends SuiComponentBase {
     modifier.textBlocks.forEach((block) => {
       const st = block.text;
       if (st.attrs.id !== this.dialog.activeScoreText.attrs.id) {
-        const svgText = SuiInlineText.fromScoreText(st, context);
+        const svgText = SuiInlineText.fromScoreText(st, context, this.scroller);
         if (st.logicalBox) {
           svgText.startX += st.logicalBox.x - st.x;
           svgText.startY += (st.y - st.logicalBox.y) - st.logicalBox.height / 2;
@@ -39824,12 +39791,7 @@ class DisplaySettings {
   }
 
   refresh() {
-    const scrollPoint = this.view.scroller.netScroll;
-    this.view.renderer.setViewport(true);
-    this.view.renderer.setRefresh();
-    this.view.renderer.renderPromise().then(() => {
-      this.view.scroller.scrollAbsolute(scrollPoint.x, scrollPoint.y);
-    });
+    this.view.refreshViewport();
   }
   zoomout() {
     this.view.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;

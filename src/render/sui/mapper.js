@@ -1,16 +1,15 @@
 // ## suiMapper
 // Map the notes in the svg so they can respond to events and interact
 // with the mouse/keyboard
+// eslint-disable-next-line no-unused-vars
 class suiMapper {
   constructor(renderer, scroller, pasteBuffer) {
     // renderer renders the music when it changes
     this.renderer = renderer;
-
     // measure to selector map
     this.measureMap = {};
     this.measureNoteMap = {}; // Map for tracker
     this.scroller = scroller;
-
     // notes currently selected.  Something is always selected
     this.selections = [];
     // modifiers (text etc.) that have been selected
@@ -22,7 +21,7 @@ class suiMapper {
     // The list of modifiers near the current selection
     this.localModifiers = [];
     // mouse-over that might be selected soon
-    this.modifierSuggestion=-1;
+    this.modifierSuggestion = -1;
     this.suggestion = {};
     // index if a single pitch of a chord is selected
     this.pitchIndex = -1;
@@ -37,14 +36,14 @@ class suiMapper {
     this.measureMap = {};
     this.measureNoteMap = {};
     this.clearModifierSelections();
-    this.selections=[];
+    this.selections = [];
   }
 
   // ### _clearMeasureArtifacts
   // clear the measure from the measure and note maps so we can rebuild it.
   clearMeasureMap(staff, measure) {
-    var selector = {staff:measure.measureNumber.staffId,measure:measure.measureNumber.measureIndex};
-    var measureKey = SmoSelector.getMeasureKey(selector);
+    const selector = { staff: measure.measureNumber.staffId, measure: measure.measureNumber.measureIndex };
+    const measureKey = SmoSelector.getMeasureKey(selector);
     if (this.measureMap[measureKey]) {
       const nkeys = Object.keys(this.measureMap[measureKey].keys);
       nkeys.forEach((key) => {
@@ -54,9 +53,9 @@ class suiMapper {
       delete this.measureMap[measureKey];
     }
     // Unselect selections in this measure so we can reselect them when re-tracked
-    var ar = [];
+    const ar = [];
     this.selections.forEach((selection) => {
-      if (selection.selector.staff != selector.staff || selection.selector.measure != selector.measure) {
+      if (selection.selector.staff !== selector.staff || selection.selector.measure !== selector.measure) {
         ar.push(selection);
       }
     });
@@ -64,40 +63,132 @@ class suiMapper {
   }
 
   deleteMeasure(selection) {
-    console.log('removing '+selection.selector.staff+'/'+selection.selector.measure);
-    var selCopy = this._copySelectionsByMeasure(selection.selector.staff,selection.selector.measure)
+    const selCopy = this._copySelectionsByMeasure(selection.selector.staff, selection.selector.measure)
       .selectors;
-
-    this.clearMeasureMap(selection.staff,selection.measure);
+    this.clearMeasureMap(selection.staff, selection.measure);
     if (selCopy.length) {
-        selCopy.forEach((selector) => {
-          var nsel = JSON.parse(JSON.stringify(selector));
-          if (selector.measure == 0) {
-              nsel.measure += 1;
-          } else {
-              nsel.measure -= 1;
-          }
-          this.selections.push(this._getClosestTick(nsel));
+      selCopy.forEach((selector) => {
+        const nsel = JSON.parse(JSON.stringify(selector));
+        if (selector.measure === 0) {
+          nsel.measure += 1;
+        } else {
+          nsel.measure -= 1;
+        }
+        this.selections.push(this._getClosestTick(nsel));
       });
     }
   }
-
   updateMap() {
     this._updateMap();
   }
+  _updateNoteModifier(selection, modMap, modifier, ix) {
+    if (!modMap[modifier.attrs.id]) {
+      this.modifierTabs.push({
+        modifier,
+        selection,
+        box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
+        index: ix
+      });
+      ix += 1;
+      modMap[modifier.attrs.id] = {
+        exists: true
+      };
+    }
+    return ix;
+  }
 
-    // ### _getClosestTick
-    // given a musical selector, find the note artifact that is closest to it,
-    // if an exact match is not available
+  _updateModifiers() {
+    let ix = 0;
+    this.modifierTabs = [];
+    this.modifierBoxes = [];
+    const modMap = {};
+    this.renderer.score.scoreText.forEach((modifier) => {
+      if (!modMap[modifier.attrs.id]) {
+        this.modifierTabs.push({
+          modifier,
+          selection: null,
+          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
+          index: ix
+        });
+        ix += 1;
+      }
+    });
+    this.renderer.score.textGroups.forEach((modifier) => {
+      if (!modMap[modifier.attrs.id] && modifier.logicalBox) {
+        this.modifierTabs.push({
+          modifier,
+          selection: null,
+          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
+          index: ix
+        });
+        ix += 1;
+      }
+    });
+    const keys = Object.keys(this.measureNoteMap);
+    keys.forEach((selKey) => {
+      const selection = this.measureNoteMap[selKey];
+      selection.staff.modifiers.forEach((modifier) => {
+        if (SmoSelector.contains(selection.selector, modifier.startSelector, modifier.endSelector)) {
+          if (!modMap[modifier.attrs.id]) {
+            if (modifier.logicalBox) {
+              this.modifierTabs.push({
+                modifier,
+                selection,
+                box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
+                index: ix
+              });
+              ix += 1;
+              modMap[modifier.attrs.id] = { exists: true };
+            }
+          }
+        }
+      });
+      selection.measure.modifiers.forEach((modifier) => {
+        if (modifier.attrs.id
+          && !modMap[modifier.attrs.id]
+          && modifier.renderedBox) {
+          this.modifierTabs.push({
+            modifier,
+            selection,
+            box: svgHelpers.adjustScroll(modifier.renderedBox, this.scroller.netScroll),
+            index: ix
+          });
+          ix += 1;
+          modMap[modifier.attrs.id] = {
+            exists: true
+          };
+        }
+      });
+      selection.note.textModifiers.forEach((modifier) => {
+        if (modifier.logicalBox) {
+          ix = this._updateNoteModifier(selection, modMap, modifier, ix);
+        }
+      });
+
+      selection.note.graceNotes.forEach((modifier) => {
+        ix = this._updateNoteModifier(selection, modMap, modifier, ix);
+      });
+    });
+  }
+  // ### _getClosestTick
+  // given a musical selector, find the note artifact that is closest to it,
+  // if an exact match is not available
   _getClosestTick(selector) {
-    var measureKey = Object.keys(this.measureNoteMap).find((k) =>
+    let tickKey = '';
+    const measureKey = Object.keys(this.measureNoteMap).find((k) =>
       SmoSelector.sameMeasure(this.measureNoteMap[k].selector, selector)
         && this.measureNoteMap[k].selector.tick === 0);
-    var tickKey = Object.keys(this.measureNoteMap).find((k) =>
-      SmoSelector.sameNote(this.measureNoteMap[k].selector,selector));
-    var firstObj = this.measureNoteMap[Object.keys(this.measureNoteMap)[0]];
-    return tickKey ? this.measureNoteMap[tickKey]:
-      (measureKey ? this.measureNoteMap[measureKey] : firstObj);
+    tickKey = Object.keys(this.measureNoteMap).find((k) =>
+      SmoSelector.sameNote(this.measureNoteMap[k].selector, selector));
+    const firstObj = this.measureNoteMap[Object.keys(this.measureNoteMap)[0]];
+
+    if (tickKey) {
+      return this.measureNoteMap[tickKey];
+    }
+    if (measureKey) {
+      return this.measureNoteMap[measureKey];
+    }
+    return firstObj;
   }
 
   // ### _setModifierBoxes
@@ -105,7 +196,7 @@ class suiMapper {
   _setModifierBoxes(measure) {
     measure.voices.forEach((voice) => {
       voice.notes.forEach((smoNote) =>  {
-        var el = this.renderer.svg.getElementById(smoNote.renderId);
+        const el = this.renderer.svg.getElementById(smoNote.renderId);
         if (el) {
           svgHelpers.updateArtifactBox(this.renderer.svg, el, smoNote, this.scroller);
           // TODO: fix this, only works on the first line.
@@ -134,6 +225,10 @@ class suiMapper {
   // ### updateMeasure
   // A measure has changed.  Update the music geometry for it
   mapMeasure(staff, measure, printing) {
+    let voiceIx = 0;
+    let selectedTicks = 0;
+    let selectionChanged = false;
+    let vix = 0;
     if (!measure.logicalBox) {
       return;
     }
@@ -141,32 +236,26 @@ class suiMapper {
     this._setModifierBoxes(measure);
     const timestamp = new Date().valueOf();
     // Keep track of any current selections in this measure, we will try to restore them.
-    var sels = this._copySelectionsByMeasure(staff.staffId, measure.measureNumber.measureIndex);
-    this.clearMeasureMap(staff,measure);
-    var vix = measure.getActiveVoice();
+    const sels = this._copySelectionsByMeasure(staff.staffId, measure.measureNumber.measureIndex);
+    this.clearMeasureMap(staff, measure);
+    vix = measure.getActiveVoice();
     sels.selectors.forEach((sel) => {
       sel.voice = vix;
     });
 
-    var voiceIx = 0;
-    var selectionChanged = false;
-    var selectedTicks = 0;
     measure.voices.forEach((voice) => {
-      var tick = 0;
+      let tick = 0;
       voice.notes.forEach((note) => {
-        var selector = {
+        const selector = {
           staff: staff.staffId,
           measure: measure.measureNumber.measureIndex,
           voice: voiceIx,
-          tick: tick,
+          tick,
           pitches: []
         };
-
-        var voice = measure.getActiveVoice();
-
         // create a selection for the newly rendered note
-        var selection = new SmoSelection({
-          selector: selector,
+        const selection = new SmoSelection({
+          selector,
           _staff: staff,
           _measure: measure,
           _note: note,
@@ -178,8 +267,8 @@ class suiMapper {
         this._updateMeasureNoteMap(selection, printing);
 
         // If this note is the same location as something that was selected, reselect it
-        if (sels.selectors.length && selection.selector.tick == sels.selectors[0].tick &&
-          selection.selector.voice == vix) {
+        if (sels.selectors.length && selection.selector.tick === sels.selectors[0].tick &&
+          selection.selector.voice === vix) {
           this.selections.push(selection);
           // Reselect any pitches.
           if (sels.selectors[0].pitches.length > 0) {
@@ -191,14 +280,14 @@ class suiMapper {
           }
           selectedTicks += selection.note.tickCount;
           selectionChanged = true;
-        } else if (selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice == vix) {
+        } else if (selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice === vix) {
           // try to select the same length of music as was previously selected.  So a 1/4 to 2 1/8, both
           // are selected
           this.selections.push(selection);
           selectedTicks += selection.note.tickCount;
-        } else if (this.selections.length == 0 && (sels.selectors.length == 0)) {
-          this.selections=[selection];
-          selectionChanged=true;
+        } else if (this.selections.length === 0 && sels.selectors.length === 0) {
+          this.selections = [selection];
+          selectionChanged = true;
         }
         tick += 1;
       });
@@ -206,7 +295,7 @@ class suiMapper {
     });
     // If there were selections on this measure, highlight them.
     if (selectionChanged) {
-        this.highlightSelection();
+      this.highlightSelection();
     }
     layoutDebug.setTimestamp(layoutDebug.codeRegions.MAP, new Date().valueOf() - timestamp);
   }
@@ -215,19 +304,17 @@ class suiMapper {
   // This should be called after rendering the score.  It updates the score to
   // graphics map and selects the first object.
   _updateMap() {
-    console.log('update map');
     this.mapping = true;
-    var notes = [].slice.call(this.renderElement.getElementsByClassName('vf-stavenote'));
-
-    var selCopy = this._copySelections();
-    var ticksSelectedCopy = this._getTicksFromSelections();
-    var firstSelection = this.getExtremeSelection(-1);
+    let tickSelected = 0;
+    const selCopy = this._copySelections();
+    const ticksSelectedCopy = this._getTicksFromSelections();
+    const firstSelection = this.getExtremeSelection(-1);
     this._updateModifiers();
     this.selections = [];
 
     // Try to restore selection.  If there were none, just select the fist
     // thing in the score
-    var keys = Object.keys(this.measureNoteMap);
+    const keys = Object.keys(this.measureNoteMap);
     if (keys.length && !selCopy.length) {
     // If there is nothing rendered, don't update tracker
       this.selections = [this.measureNoteMap[keys[0]]];
@@ -236,16 +323,15 @@ class suiMapper {
         return;
       }
       this._findClosestSelection(firstSelection.selector);
-      var first = this.selections[0];
-      var tickSelected = first.note.tickCount;
+      const first = this.selections[0];
+      tickSelected = first.note.tickCount;
       while (tickSelected < ticksSelectedCopy && first) {
-        var delta = this._growSelectionRight(true);
+        const delta = this._growSelectionRight(true);
         if (!delta)  {
           break;
         }
         tickSelected += delta;
       }
-      // selCopy.forEach((sel) => this._findClosestSelection(sel));
     }
     this.highlightSelection();
     this._createLocalModifiersList();
@@ -253,7 +339,7 @@ class suiMapper {
     // because some of the selections may not exist in the score.
     if (this.renderer.isDirty === false) {
       this.pasteBuffer.clearSelections();
-  		this.pasteBuffer.setSelections(this.score, this.selections);
+      this.pasteBuffer.setSelections(this.score, this.selections);
     }
     this.mapping = false;
   }
@@ -261,20 +347,20 @@ class suiMapper {
   // ### intersectingArtifact
   // given a bounding box, find any rendered elements that intersect with it
   intersectingArtifact(bb) {
+    let sel = 0;
     bb = svgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
-    var artifacts = svgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, this.scroller.scrollState);
+    const artifacts = svgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, this.scroller.scrollState);
     // TODO: handle overlapping suggestions
     if (!artifacts.length) {
-      var sel = svgHelpers.findIntersectingArtifact(bb, this.modifierTabs, this.scroller.scrollState);
+      sel = svgHelpers.findIntersectingArtifact(bb, this.modifierTabs, this.scroller.scrollState);
       if (sel.length) {
         sel = sel[0];
         this._setModifierAsSuggestion(bb, sel);
       }
       return;
     }
-    var artifact = artifacts[0];
+    const artifact = artifacts[0];
     this._setArtifactAsSuggestion(bb, artifact);
-    return;
   }
   _updateMeasureNoteMap(artifact, printing) {
     const noteKey = SmoSelector.getNoteKey(artifact.selector);
@@ -290,12 +376,10 @@ class suiMapper {
         el.setAttributeNS('', 'fill', fill);
       });
     }
-
     // not has not been drawn yet.
     if (!artifact.box) {
       return;
     }
-
     if (!this.measureNoteMap[noteKey]) {
       this.measureNoteMap[noteKey] = artifact;
       artifact.scrollBox = { x: artifact.box.x,
