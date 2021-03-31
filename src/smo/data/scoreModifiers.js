@@ -551,14 +551,7 @@ class SmoScoreText extends SmoScoreModifierBase {
   }
 
   tryParseUnicode() {
-    let rv = '';
-    rv = this.text;
-    try {
-      eval('rv="' + this.text + '"');
-      this.text = rv;
-    } catch (ex) {
-      console.log('bad unicode');
-    }
+    return smoSerialize.tryParseUnicode(this.text);
   }
   restoreParams() {
     smoSerialize.serializedMerge(SmoScoreText.attributes, this.backup, this);

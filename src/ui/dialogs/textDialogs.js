@@ -58,14 +58,6 @@ class SuiLyricDialog extends SuiDialogBase {
         label: 'Edit Lyrics',
         options: []
       }, {
-        smoName: 'adjustWidth',
-        parameterName: 'adjustNoteWidth',
-        defaultValue: true,
-        classes: 'hide-when-editing',
-        control: 'SuiToggleComponent',
-        label: 'Adjust Note Width',
-        options: []
-      }, {
         staticText: [
           { doneEditing: 'Done Editing Lyrics' },
           { undo: 'Undo Lyrics' },
@@ -139,7 +131,6 @@ class SuiLyricDialog extends SuiDialogBase {
 
     if (this.lyricEditorCtrl && this.lyricEditorCtrl.session && this.lyricEditorCtrl.session.lyric) {
       const lyric = this.lyricEditorCtrl.session.lyric;
-      this.adjustWidthCtrl.setValue(lyric.adjustNoteWidth);
       this.fontCtrl.setValue({
         family: lyric.fontInfo.family,
         size: lyric.fontInfo.size,
@@ -165,9 +156,6 @@ class SuiLyricDialog extends SuiDialogBase {
     if (this.fontCtrl.changeFlag) {
       const fontInfo = this.fontCtrl.getValue();
       this.view.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size });
-    }
-    if (this.adjustWidthCtrl.changeFlag) {
-      this.view.setLyricAdjustWidth(this.adjustWidthCtrl.getValue());
     }
     if (this.translateYCtrl && this.lyric) {
       this.lyric.translateY = this.translateYCtrl.getValue();

@@ -4,6 +4,16 @@
 // ---
 class smoSerialize {
 
+  static tryParseUnicode(text) {
+    let rv = text;
+    try {
+      eval('rv="' + text + '"');
+    } catch (ex) {
+      console.log('bad unicode');
+    }
+    return rv;
+  }
+
   // ### filteredMerge
   // Like vexMerge, but only for specific attributes.
   static filteredMerge(attrs, src, dest) {

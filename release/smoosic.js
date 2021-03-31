@@ -1160,6 +1160,16 @@ class PromiseHelpers {
 // ---
 class smoSerialize {
 
+  static tryParseUnicode(text) {
+    let rv = text;
+    try {
+      eval('rv="' + text + '"');
+    } catch (ex) {
+      console.log('bad unicode');
+    }
+    return rv;
+  }
+
   // ### filteredMerge
   // Like vexMerge, but only for specific attributes.
   static filteredMerge(attrs, src, dest) {
@@ -3396,7 +3406,7 @@ class SuiRenderDemon {
     }
     this.handling = true;
     // If there has been a change, redraw the score
-    if (this.undoStatus !== this.undoBuffer.opCount || this.view.renderer.dirty) {
+    if (this.view.renderer.passState === SuiRenderState.passStates.initial) {
       this.view.renderer.dirty = true;
       this.undoStatus = this.undoBuffer.opCount;
       this.idleLayoutTimer = Date.now();
@@ -3415,12 +3425,23 @@ class SuiRenderDemon {
         SuiExceptionHandler.instance.exceptionHandler(ex);
         this.handling = false;
       }
-    } else if (this.view.renderer.passState === SuiRenderState.passStates.replace) {
+    } else if (this.view.renderer.passState === SuiRenderState.passStates.replace && this.undoStatus === this.undoBuffer.opCount) {
       // Consider navigation as activity when deciding to refresh
       this.idleLayoutTimer = Math.max(this.idleLayoutTimer, this.view.tracker.idleTimer);
+      $('body').addClass('refresh-1');
       // Do we need to refresh the score?
       if (Date.now() - this.idleLayoutTimer > SmoConfig.idleRedrawTime) {
-        this.view.renderer.setRefresh();
+        this.view.renderer.passState = SuiRenderState.passStates.initial;
+        if (!this.view.renderer.viewportChanged) {
+          this.view.preserveScroll();
+        }
+        this.render();
+      }
+    } else {
+      this.idleLayoutTimer = Date.now();
+      this.undoStatus = this.undoBuffer.opCount;
+      if (this.view.renderer.replaceQ.length > 0) {
+        this.render();
       }
     }
     this.handling = false;
@@ -7558,6 +7579,7 @@ class SuiLyricSession {
     this.selector = params.selector;
     this.selection = SmoSelection.noteFromSelector(this.score, this.selector);
     this.note = this.selection.note;
+    this.originalText = '';
   }
 
   // ### _setLyricForNote
@@ -7574,7 +7596,8 @@ class SuiLyricSession {
       this.lyric = new SmoLyric({  _text: '', verse: this.verse, fontInfo });
     }
     this.text = this.lyric._text;
-    this.view.addOrUpdateLyric(this.selection.selector, this.lyric);
+    this.originalText = this.text;
+    // this.view.addOrUpdateLyric(this.selection.selector, this.lyric);
   }
 
   // ### _endLyricCondition
@@ -7625,9 +7648,9 @@ class SuiLyricSession {
   // Start the lyric editor for a note (current selected note)
   _startSessionForNote() {
     this.lyric.skipRender = true;
-    const lyricRendered = this.lyric._text.length && this.lyric.logicalBox;
+    const lyricRendered = this.lyric._text.length > 0 && typeof(this.lyric.logicalBox) !== 'undefined';
     const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
-    const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
+    const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.logicalBox.height :
       this.note.logicalBox.y + this.note.logicalBox.height;
     this.editor = new SuiLyricEditor({ context: this.view.renderer.context,
       lyric: this.lyric, x: startX, y: startY, scroller: this.scroller });
@@ -7701,7 +7724,7 @@ class SuiLyricSession {
     this.lyric.setText(txt);
     this.lyric.skipRender = false;
     this.editor.stopEditor();
-    if (!this.lyric.deleted) {
+    if (!this.lyric.deleted && this.originalText !== txt) {
       this.view.addOrUpdateLyric(this.selection.selector, this.lyric);
     }
   }
@@ -13197,9 +13220,9 @@ class SmoLyric extends SmoNoteModifierBase {
   getText() {
     const text = this._text.trim();
     if (this.isHyphenated()) {
-      return text.substr(0, text.length - 1).trim();
+      return smoSerialize.tryParseUnicode(text.substr(0, text.length - 1)).trim();
     }
-    return text;
+    return smoSerialize.tryParseUnicode(text);
   }
 
   isDash() {
@@ -14521,14 +14544,7 @@ class SmoScoreText extends SmoScoreModifierBase {
   }
 
   tryParseUnicode() {
-    let rv = '';
-    rv = this.text;
-    try {
-      eval('rv="' + this.text + '"');
-      this.text = rv;
-    } catch (ex) {
-      console.log('bad unicode');
-    }
+    return smoSerialize.tryParseUnicode(this.text);
   }
   restoreParams() {
     smoSerialize.serializedMerge(SmoScoreText.attributes, this.backup, this);
@@ -26619,23 +26635,6 @@ class SmoUndoable {
   "generatedOn": "2020-10-18T19:03:12.514Z"
 };
 ;class SuiApplication {
-  static createUtApplication(config) {
-    if (!config) {
-      config = {};
-    }
-    var _config = {
-      scoreLoadOrder: ['library'],
-      scoreLoadJson: 'emptyScoreJson',
-      ribbon: false,
-      keyCommands: false,
-      menus: false,
-      controller: 'utController',
-      domSource: 'UtDom',
-      languageDir: 'ltr'
-    };
-    Vex.Merge(_config,config);
-    return new SuiApplication(_config);
-  }
   static get defaultConfig() {
     return {
       smoPath: '..',
@@ -31688,14 +31687,6 @@ class SuiLyricDialog extends SuiDialogBase {
         label: 'Edit Lyrics',
         options: []
       }, {
-        smoName: 'adjustWidth',
-        parameterName: 'adjustNoteWidth',
-        defaultValue: true,
-        classes: 'hide-when-editing',
-        control: 'SuiToggleComponent',
-        label: 'Adjust Note Width',
-        options: []
-      }, {
         staticText: [
           { doneEditing: 'Done Editing Lyrics' },
           { undo: 'Undo Lyrics' },
@@ -31769,7 +31760,6 @@ class SuiLyricDialog extends SuiDialogBase {
 
     if (this.lyricEditorCtrl && this.lyricEditorCtrl.session && this.lyricEditorCtrl.session.lyric) {
       const lyric = this.lyricEditorCtrl.session.lyric;
-      this.adjustWidthCtrl.setValue(lyric.adjustNoteWidth);
       this.fontCtrl.setValue({
         family: lyric.fontInfo.family,
         size: lyric.fontInfo.size,
@@ -31795,9 +31785,6 @@ class SuiLyricDialog extends SuiDialogBase {
     if (this.fontCtrl.changeFlag) {
       const fontInfo = this.fontCtrl.getValue();
       this.view.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size });
-    }
-    if (this.adjustWidthCtrl.changeFlag) {
-      this.view.setLyricAdjustWidth(this.adjustWidthCtrl.getValue());
     }
     if (this.translateYCtrl && this.lyric) {
       this.lyric.translateY = this.translateYCtrl.getValue();

@@ -387,9 +387,9 @@ class SmoLyric extends SmoNoteModifierBase {
   getText() {
     const text = this._text.trim();
     if (this.isHyphenated()) {
-      return text.substr(0, text.length - 1).trim();
+      return smoSerialize.tryParseUnicode(text.substr(0, text.length - 1)).trim();
     }
-    return text;
+    return smoSerialize.tryParseUnicode(text);
   }
 
   isDash() {

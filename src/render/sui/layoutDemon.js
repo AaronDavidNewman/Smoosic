@@ -22,7 +22,7 @@ class SuiRenderDemon {
     }
     this.handling = true;
     // If there has been a change, redraw the score
-    if (this.undoStatus !== this.undoBuffer.opCount || this.view.renderer.dirty) {
+    if (this.view.renderer.passState === SuiRenderState.passStates.initial) {
       this.view.renderer.dirty = true;
       this.undoStatus = this.undoBuffer.opCount;
       this.idleLayoutTimer = Date.now();
@@ -41,12 +41,23 @@ class SuiRenderDemon {
         SuiExceptionHandler.instance.exceptionHandler(ex);
         this.handling = false;
       }
-    } else if (this.view.renderer.passState === SuiRenderState.passStates.replace) {
+    } else if (this.view.renderer.passState === SuiRenderState.passStates.replace && this.undoStatus === this.undoBuffer.opCount) {
       // Consider navigation as activity when deciding to refresh
       this.idleLayoutTimer = Math.max(this.idleLayoutTimer, this.view.tracker.idleTimer);
+      $('body').addClass('refresh-1');
       // Do we need to refresh the score?
       if (Date.now() - this.idleLayoutTimer > SmoConfig.idleRedrawTime) {
-        this.view.renderer.setRefresh();
+        this.view.renderer.passState = SuiRenderState.passStates.initial;
+        if (!this.view.renderer.viewportChanged) {
+          this.view.preserveScroll();
+        }
+        this.render();
+      }
+    } else {
+      this.idleLayoutTimer = Date.now();
+      this.undoStatus = this.undoBuffer.opCount;
+      if (this.view.renderer.replaceQ.length > 0) {
+        this.render();
       }
     }
     this.handling = false;

@@ -871,6 +871,7 @@ class SuiLyricSession {
     this.selector = params.selector;
     this.selection = SmoSelection.noteFromSelector(this.score, this.selector);
     this.note = this.selection.note;
+    this.originalText = '';
   }
 
   // ### _setLyricForNote
@@ -887,7 +888,8 @@ class SuiLyricSession {
       this.lyric = new SmoLyric({  _text: '', verse: this.verse, fontInfo });
     }
     this.text = this.lyric._text;
-    this.view.addOrUpdateLyric(this.selection.selector, this.lyric);
+    this.originalText = this.text;
+    // this.view.addOrUpdateLyric(this.selection.selector, this.lyric);
   }
 
   // ### _endLyricCondition
@@ -938,9 +940,9 @@ class SuiLyricSession {
   // Start the lyric editor for a note (current selected note)
   _startSessionForNote() {
     this.lyric.skipRender = true;
-    const lyricRendered = this.lyric._text.length && this.lyric.logicalBox;
+    const lyricRendered = this.lyric._text.length > 0 && typeof(this.lyric.logicalBox) !== 'undefined';
     const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
-    const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
+    const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.logicalBox.height :
       this.note.logicalBox.y + this.note.logicalBox.height;
     this.editor = new SuiLyricEditor({ context: this.view.renderer.context,
       lyric: this.lyric, x: startX, y: startY, scroller: this.scroller });
@@ -1014,7 +1016,7 @@ class SuiLyricSession {
     this.lyric.setText(txt);
     this.lyric.skipRender = false;
     this.editor.stopEditor();
-    if (!this.lyric.deleted) {
+    if (!this.lyric.deleted && this.originalText !== txt) {
       this.view.addOrUpdateLyric(this.selection.selector, this.lyric);
     }
   }
