@@ -31635,6 +31635,9 @@ class SuiLyricDialog extends SuiDialogBase {
   get ctor() {
     return SuiLyricDialog.ctor;
   }
+  static get idleLyricTime() {
+    return 5000;
+  }
   static createAndDisplay(parameters) {
     const dg = new SuiLyricDialog(parameters);
     dg.display();
@@ -31715,6 +31718,8 @@ class SuiLyricDialog extends SuiDialogBase {
       left: (p.view.score.layout.pageHeight / 2) - 200,
       ...p
     });
+    this.originalRefreshTimer = SmoConfig.idleRedrawTime;
+    SmoConfig.idleRedrawTime = SuiLyricDialog.idleLyricTime;
 
     // If we are editing existing lyrics, make sure it is the same type of session.
     // Note: the actual lyric (modifier) is picked later from the selection. We just
@@ -31829,6 +31834,7 @@ class SuiLyricDialog extends SuiDialogBase {
     this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
     $('body').removeClass('showAttributeDialog');
     $('body').removeClass('textEditor');
+    SmoConfig.idleRedrawTime = this.originalRefreshTimer;
     this.complete();
   }
 
@@ -31853,7 +31859,6 @@ class SuiChordChangeDialog  extends SuiDialogBase {
   get ctor() {
     return SuiChordChangeDialog.ctor;
   }
-
   static createAndDisplay(parameters) {
     var dg = new SuiChordChangeDialog(parameters);
     dg.display();
