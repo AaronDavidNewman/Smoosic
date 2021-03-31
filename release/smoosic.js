@@ -38463,6 +38463,10 @@ class SuiLibraryMenu extends suiMenuBase {
         value: 'bach'
       }, {
         icon: '',
+        text: 'Postilion-Lied',
+        value: 'postillion'
+      }, {
+        icon: '',
         text: 'Jesu Bambino',
         value: 'bambino'
       }, {
@@ -38534,6 +38538,8 @@ class SuiLibraryMenu extends suiMenuBase {
       this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Messiah Pt 1-1.json');
     } else if (text === 'bambino') {
       this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Gesu Bambino.json');
+    } else if (text === 'postillion') {
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Postillionlied.json');
     } else if (text === 'preciousLord') {
       this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Precious Lord.json');
     } else if (text === 'dichterliebe') {
