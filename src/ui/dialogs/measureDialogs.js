@@ -262,7 +262,7 @@ class SuiInstrumentDialog extends SuiDialogBase {
     return 'SuiInstrumentDialog';
   }
   get ctor() {
-    return SuiTimeSignatureDialog.ctor;
+    return SuiInstrumentDialog.ctor;
   }
   static get applyTo() {
     return {
@@ -387,6 +387,108 @@ class SuiInstrumentDialog extends SuiDialogBase {
     });
   }
 }
+
+// eslint-disable-next-line no-unused-vars
+class SuiInsertMeasures extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiInsertMeasures';
+  }
+  get ctor() {
+    return SuiInsertMeasures.ctor;
+  }
+
+  static get dialogElements() {
+    SuiInsertMeasures._dialogElements = typeof(SuiInsertMeasures._dialogElements) !== 'undefined' ?
+      SuiInsertMeasures._dialogElements :
+      [{
+        staticText: [
+          { label: 'Insert Measures' }
+        ]
+      }, {
+        smoName: 'measureCount',
+        parameterName: 'measureCount',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Measures to Insert',
+      }, {
+        smoName: 'append',
+        parameterName: 'append',
+        defaultValue: true,
+        control: 'SuiToggleComponent',
+        label: 'Append to Selection'
+      }];
+    return SuiInsertMeasures._dialogElements;
+  }
+  static createAndDisplay(parameters) {
+    var db = new SuiInsertMeasures(parameters);
+    db.display();
+    return db;
+  }
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    this._bindComponentNames();
+    this._bindElements();
+    this.position(this.measure.renderedBox);
+    this.view.tracker.scroller.scrollVisibleBox(
+      svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
+    );
+
+    const cb = () => {};
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.jsDbMove'),
+      animateDiv: '.draganime',
+      cb,
+      moveParent: true
+    });
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(this);
+    };
+    this.startPromise.then(getKeys);
+  }
+  populateInitial() {
+    this.measureCountCtrl.setValue(1);
+  }
+
+  // noop
+  changed() {
+  }
+
+  constructor(parameters) {
+    const selection = parameters.view.tracker.selections[0];
+    const measure = selection.measure;
+    parameters = { selection, measure, ...parameters };
+    super(SuiInsertMeasures.dialogElements, {
+      id: 'time-signature-measure',
+      top: measure.renderedBox.y,
+      left: measure.renderedBox.x,
+      ...parameters
+    });
+    this.measure = measure;
+    Vex.Merge(this, parameters);
+    if (!this.startPromise) {
+      this.startPromise = new Promise((resolve) => {
+        resolve();
+      });
+    }
+  }
+  _bindElements() {
+    var dgDom = this.dgDom;
+    this.populateInitial();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.view.addMeasures(this.appendCtrl.getValue(), this.measureCountCtrl.getValue());
+      this.complete();
+    });
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.complete();
+    });
+    $(dgDom.element).find('.remove-button').remove();
+  }
+}
+
 // eslint-disable-next-line no-unused-vars
 class SuiTimeSignatureDialog extends SuiDialogBase {
   static get ctor() {

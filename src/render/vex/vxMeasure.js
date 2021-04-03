@@ -562,8 +562,9 @@ class VxMeasure {
 
       this.context.closeGroup();
       layoutDebug.setTimestamp(layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
-      const lbox = svgHelpers.smoBox(group.getBBox());
-      this.smoMeasure.setBox(lbox, 'vxMeasure bounding box');
+
+      const lbox = this.stave.getBoundingBox();
+      this.smoMeasure.setBox({ x: lbox.x, y: lbox.y, width: lbox.w, height: lbox.h }, 'vxMeasure bounding box');
       this.smoMeasure.changed = false;
       this.rendered = true;
     } catch (exc) {

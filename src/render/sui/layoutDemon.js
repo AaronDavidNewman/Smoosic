@@ -21,6 +21,7 @@ class SuiRenderDemon {
       return;
     }
     this.handling = true;
+    const redrawTime = Math.max(this.view.renderer.renderTime, SmoConfig.idleRedrawTime);
     // If there has been a change, redraw the score
     if (this.view.renderer.passState === SuiRenderState.passStates.initial) {
       this.view.renderer.dirty = true;
@@ -46,7 +47,7 @@ class SuiRenderDemon {
       this.idleLayoutTimer = Math.max(this.idleLayoutTimer, this.view.tracker.idleTimer);
       $('body').addClass('refresh-1');
       // Do we need to refresh the score?
-      if (Date.now() - this.idleLayoutTimer > SmoConfig.idleRedrawTime) {
+      if (this.view.renderer.backgroundRender === false && Date.now() - this.idleLayoutTimer > redrawTime) {
         this.view.renderer.passState = SuiRenderState.passStates.initial;
         if (!this.view.renderer.viewportChanged) {
           this.view.preserveScroll();

@@ -3405,6 +3405,7 @@ class SuiRenderDemon {
       return;
     }
     this.handling = true;
+    const redrawTime = Math.max(this.view.renderer.renderTime, SmoConfig.idleRedrawTime);
     // If there has been a change, redraw the score
     if (this.view.renderer.passState === SuiRenderState.passStates.initial) {
       this.view.renderer.dirty = true;
@@ -3430,7 +3431,7 @@ class SuiRenderDemon {
       this.idleLayoutTimer = Math.max(this.idleLayoutTimer, this.view.tracker.idleTimer);
       $('body').addClass('refresh-1');
       // Do we need to refresh the score?
-      if (Date.now() - this.idleLayoutTimer > SmoConfig.idleRedrawTime) {
+      if (this.view.renderer.backgroundRender === false && Date.now() - this.idleLayoutTimer > redrawTime) {
         this.view.renderer.passState = SuiRenderState.passStates.initial;
         if (!this.view.renderer.viewportChanged) {
           this.view.preserveScroll();
@@ -4204,10 +4205,11 @@ class SuiRenderState {
     };
     this.dirty = true;
     this.replaceQ = [];
-    this.renderTime = 250;  // ms to render before time slicing
+    this.renderTime = 0;  // ms to render before time slicing
     this.partialRender = false;
     this.stateRepCount = 0;
     this.viewportPages = 1;
+    this.backgroundRender = false;
     this.setPassState(SuiRenderState.initial, 'ctor');
     this.viewportChanged = false;
     this._resetViewport = false;
@@ -4386,7 +4388,7 @@ class SuiRenderState {
     const promise = new Promise((resolve) => {
       const poll = () => {
         setTimeout(() => {
-          if (!self.dirty) {
+          if (!self.dirty && !self.backgroundRender) {
             // tracker.highlightSelection();
             $('body').removeClass('print-render');
             $('.vf-selection').remove();
@@ -4500,6 +4502,7 @@ class SuiRenderState {
     this.dirty = true;
     this._score = score;
     if (shouldReset) {
+      this.renderTime = 0;
       if (this.measureMapper) {
         this.measureMapper.loadScore();
       }
@@ -4698,6 +4701,9 @@ class SuiRenderState {
       if (SuiRenderState.passStates.replace === this.passState) {
         this._replaceMeasures();
       } else if (SuiRenderState.passStates.initial === this.passState) {
+        if (this.backgroundRender) {
+          return;
+        }
         this.layout();
         this._drawPageLines();
         this.setPassState(SuiRenderState.passStates.clean, 'rs: complete render');
@@ -4888,6 +4894,69 @@ class SuiScoreRender extends SuiRenderState {
     });
     return rv;
   }
+  _renderSystem(key, mscore, printing) {
+    const columns = {};
+    const vxSystem = new VxSystem(this.context, 0, parseInt(key, 10), this.score);
+    mscore[key].forEach((measure) => {
+      if (!columns[measure.measureNumber.systemIndex]) {
+        columns[measure.measureNumber.systemIndex] = [];
+      }
+      columns[measure.measureNumber.systemIndex].push(measure);
+    });
+    const colKeys = Object.keys(columns);
+    colKeys.forEach((colKey) => {
+      columns[colKey].forEach((measure) => {
+        vxSystem.renderMeasure(measure, this.measureMapper, printing);
+        const formatIndex = SmoMeasure.formattingOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
+        if (formatIndex >= 0 && !printing) {
+          const at = [];
+          at.push({ y: measure.logicalBox.y - 5 });
+          at.push({ x: measure.logicalBox.x + 25 });
+          at.push({ 'font-family': SourceSansProFont.fontFamily });
+          at.push({ 'font-size': '12pt' });
+          svgHelpers.placeSvgText(this.context.svg, at, 'measure-format', '*');
+        }
+      });
+    });
+    const timestamp = new Date().valueOf();
+    vxSystem.renderEndings();
+    vxSystem.updateLyricOffsets();
+    this._score.staves.forEach((stf) => {
+      this._renderModifiers(stf, vxSystem);
+    });
+    layoutDebug.setTimestamp(layoutDebug.codeRegions.POST_RENDER, new Date().valueOf() - timestamp);
+  }
+  _renderNextSystemPromise(systemIx, mscore, keys, printing) {
+    return new Promise((resolve) => {
+      this._renderSystem(keys[systemIx], mscore, printing);
+      resolve();
+    });
+  }
+  _deferNextSystemPromise(systemIx, mscore, keys, printing) {
+    return new Promise((resolve) => {
+      this._renderNextSystemPromise(systemIx, mscore, keys, printing).then(() => {
+        setTimeout(() => {
+          resolve();
+        }, 10);
+      });
+    });
+  }
+  _renderNextSystem(systemIx, mscore, keys, printing) {
+    if (systemIx < keys.length) {
+      const progress = Math.round((100 * systemIx) / keys.length);
+      $('#renderProgress').val(progress);
+      this._deferNextSystemPromise(systemIx, mscore, keys, printing).then(() => {
+        systemIx++;
+        this._renderNextSystem(systemIx, mscore, keys, printing);
+      });
+    } else {
+      this.renderScoreModifiers();
+      this.numberMeasures();
+      this.renderTime = new Date().valueOf() - this.startRenderTime;
+      $('body').removeClass('show-render-progress');
+      this.backgroundRender = false;
+    }
+  }
 
   renderAllMeasures() {
     const mscore = {};
@@ -4903,40 +4972,12 @@ class SuiScoreRender extends SuiRenderState {
     });
 
     const keys = Object.keys(mscore);
-    keys.forEach((key) => {
-      const columns = {};
-      const vxSystem = new VxSystem(this.context, 0, parseInt(key, 10), this.score);
-      mscore[key].forEach((measure) => {
-        if (!columns[measure.measureNumber.systemIndex]) {
-          columns[measure.measureNumber.systemIndex] = [];
-        }
-        columns[measure.measureNumber.systemIndex].push(measure);
-      });
-      const colKeys = Object.keys(columns);
-      colKeys.forEach((colKey) => {
-        columns[colKey].forEach((measure) => {
-          vxSystem.renderMeasure(measure, this.measureMapper, printing);
-          const formatIndex = SmoMeasure.formattingOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
-          if (formatIndex >= 0 && !printing) {
-            const at = [];
-            at.push({ y: measure.logicalBox.y - 5 });
-            at.push({ x: measure.logicalBox.x + 25 });
-            at.push({ 'font-family': SourceSansProFont.fontFamily });
-            at.push({ 'font-size': '12pt' });
-            svgHelpers.placeSvgText(this.context.svg, at, 'measure-format', '*');
-          }
-        });
-      });
-      const timestamp = new Date().valueOf();
-      vxSystem.renderEndings();
-      vxSystem.updateLyricOffsets();
-      this._score.staves.forEach((stf) => {
-        this._renderModifiers(stf, vxSystem);
-      });
-      layoutDebug.setTimestamp(layoutDebug.codeRegions.POST_RENDER, new Date().valueOf() - timestamp);
-    });
-    this.renderScoreModifiers();
-    this.numberMeasures();
+    if (!printing) {
+      $('body').addClass('show-render-progress');
+    }
+    this.backgroundRender = true;
+    this.startRenderTime = new Date().valueOf();
+    this._renderNextSystem(0, mscore, keys, printing);
   }
 
   // ### _justifyY
@@ -6356,6 +6397,27 @@ class SuiScoreViewOperations extends SuiScoreView {
       this.storeScore.deleteMeasure(index);
     });
     this.tracker.loadScore();
+    this.renderer.setRefresh();
+  }
+  addMeasures(append, numberToAdd) {
+    let pos = 0;
+    let ix = 0;
+    this.actionBuffer.addAction('addMeasures', append, numberToAdd);
+    this._undoScore('Add Measure');
+    for (ix = 0; ix < numberToAdd; ++ix) {
+      const measure = this.tracker.getFirstMeasureOfSelection();
+      const nmeasure = SmoMeasure.getDefaultMeasureWithNotes(measure);
+      const altMeasure = SmoMeasure.deserialize(nmeasure.serialize());
+
+      pos = measure.measureNumber.measureIndex;
+      if (append) {
+        pos += 1;
+      }
+      nmeasure.measureNumber.measureIndex = pos;
+      nmeasure.setActiveVoice(0);
+      this.score.addMeasure(pos, nmeasure);
+      this.storeScore.addMeasure(pos, altMeasure);
+    }
     this.renderer.setRefresh();
   }
   addMeasure(append) {
@@ -10325,8 +10387,9 @@ class VxMeasure {
 
       this.context.closeGroup();
       layoutDebug.setTimestamp(layoutDebug.codeRegions.RENDER, new Date().valueOf() - timestamp);
-      const lbox = svgHelpers.smoBox(group.getBBox());
-      this.smoMeasure.setBox(lbox, 'vxMeasure bounding box');
+
+      const lbox = this.stave.getBoundingBox();
+      this.smoMeasure.setBox({ x: lbox.x, y: lbox.y, width: lbox.w, height: lbox.h }, 'vxMeasure bounding box');
       this.smoMeasure.changed = false;
       this.rendered = true;
     } catch (exc) {
@@ -10523,6 +10586,8 @@ class VxSystem {
           text.textContent = '-';
           text.setAttributeNS('', 'x', lyric.hyphenX);
           text.setAttributeNS('', 'y', lyric.logicalBox.y + (lyric.logicalBox.height * 2) / 3);
+          const fontSize = lyric.fontInfo.size * 1.2;
+          text.setAttributeNS('', 'fontSize', '' + fontSize + 'pt');
           parent.appendChild(text);
         }
       });
@@ -29017,7 +29082,7 @@ class SuiInstrumentDialog extends SuiDialogBase {
     return 'SuiInstrumentDialog';
   }
   get ctor() {
-    return SuiTimeSignatureDialog.ctor;
+    return SuiInstrumentDialog.ctor;
   }
   static get applyTo() {
     return {
@@ -29142,6 +29207,108 @@ class SuiInstrumentDialog extends SuiDialogBase {
     });
   }
 }
+
+// eslint-disable-next-line no-unused-vars
+class SuiInsertMeasures extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiInsertMeasures';
+  }
+  get ctor() {
+    return SuiInsertMeasures.ctor;
+  }
+
+  static get dialogElements() {
+    SuiInsertMeasures._dialogElements = typeof(SuiInsertMeasures._dialogElements) !== 'undefined' ?
+      SuiInsertMeasures._dialogElements :
+      [{
+        staticText: [
+          { label: 'Insert Measures' }
+        ]
+      }, {
+        smoName: 'measureCount',
+        parameterName: 'measureCount',
+        defaultValue: 0,
+        control: 'SuiRockerComponent',
+        label: 'Measures to Insert',
+      }, {
+        smoName: 'append',
+        parameterName: 'append',
+        defaultValue: true,
+        control: 'SuiToggleComponent',
+        label: 'Append to Selection'
+      }];
+    return SuiInsertMeasures._dialogElements;
+  }
+  static createAndDisplay(parameters) {
+    var db = new SuiInsertMeasures(parameters);
+    db.display();
+    return db;
+  }
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    this._bindComponentNames();
+    this._bindElements();
+    this.position(this.measure.renderedBox);
+    this.view.tracker.scroller.scrollVisibleBox(
+      svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
+    );
+
+    const cb = () => {};
+    htmlHelpers.draggable({
+      parent: $(this.dgDom.element).find('.attributeModal'),
+      handle: $(this.dgDom.element).find('.jsDbMove'),
+      animateDiv: '.draganime',
+      cb,
+      moveParent: true
+    });
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(this);
+    };
+    this.startPromise.then(getKeys);
+  }
+  populateInitial() {
+    this.measureCountCtrl.setValue(1);
+  }
+
+  // noop
+  changed() {
+  }
+
+  constructor(parameters) {
+    const selection = parameters.view.tracker.selections[0];
+    const measure = selection.measure;
+    parameters = { selection, measure, ...parameters };
+    super(SuiInsertMeasures.dialogElements, {
+      id: 'time-signature-measure',
+      top: measure.renderedBox.y,
+      left: measure.renderedBox.x,
+      ...parameters
+    });
+    this.measure = measure;
+    Vex.Merge(this, parameters);
+    if (!this.startPromise) {
+      this.startPromise = new Promise((resolve) => {
+        resolve();
+      });
+    }
+  }
+  _bindElements() {
+    var dgDom = this.dgDom;
+    this.populateInitial();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.view.addMeasures(this.appendCtrl.getValue(), this.measureCountCtrl.getValue());
+      this.complete();
+    });
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.complete();
+    });
+    $(dgDom.element).find('.remove-button').remove();
+  }
+}
+
 // eslint-disable-next-line no-unused-vars
 class SuiTimeSignatureDialog extends SuiDialogBase {
   static get ctor() {
@@ -32656,7 +32823,7 @@ class SuiDom {
       .append(b('div').classes('textEdit hide'))
       .append(b('div').classes('translation-editor'))
       .append(b('div').classes('attributeDialog'))
-      .append(b('progress').attr('id','renderProgress').attr('value','0'))
+      .append(b('progress').attr('id','renderProgress').attr('value','0').attr('max','100'))
       .append(b('div').classes('qwertyKb'))
       .append(b('div').classes('saveLink'))
       .append(b('div').classes('bugDialog'))
@@ -38479,6 +38646,10 @@ class SuiLibraryMenu extends suiMenuBase {
         value: 'preciousLord'
       }, {
         icon: '',
+        text: 'In Its Delightful Shade',
+        value: 'shade'
+      }, {
+        icon: '',
         text: 'Yama',
         value: 'yamaJson'
       }, {
@@ -38538,6 +38709,8 @@ class SuiLibraryMenu extends suiMenuBase {
       this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Messiah Pt 1-1.json');
     } else if (text === 'bambino') {
       this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Gesu Bambino.json');
+    } else if (text === 'shade') {
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Shade.json');
     } else if (text === 'postillion') {
       this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Postillionlied.json');
     } else if (text === 'preciousLord') {
@@ -38913,13 +39086,8 @@ class SuiMeasureMenu extends suiMenuBase {
       menuItems: [
         {
           icon: '',
-          text: 'Add Measure Before',
-          value: 'addMenuBeforeCmd'
-        },
-        {
-          icon: '',
-          text: 'Add Measure After',
-          value: 'addMenuAfterCmd'
+          text: 'Add Measures',
+          value: 'addMenuCmd'
         }, {
           icon: 'icon-cross',
           text: 'Delete Selected Measures',
@@ -38961,8 +39129,13 @@ class SuiMeasureMenu extends suiMenuBase {
       this.complete();
       return;
     }
-    if (text === 'addMenuBeforeCmd') {
-      this.keyCommands.addMeasure({ shiftKey: false });
+    if (text === 'addMenuCmd') {
+      SuiInsertMeasures.createAndDisplay({
+        view: this.view,
+        completeNotifier: this.completeNotifier,
+        closeMenuPromise: this.closePromise,
+        eventSource: this.eventSource
+      });
       this.complete();
     }
     if (text === 'addMenuAfterCmd') {

@@ -178,6 +178,69 @@ class SuiScoreRender extends SuiRenderState {
     });
     return rv;
   }
+  _renderSystem(key, mscore, printing) {
+    const columns = {};
+    const vxSystem = new VxSystem(this.context, 0, parseInt(key, 10), this.score);
+    mscore[key].forEach((measure) => {
+      if (!columns[measure.measureNumber.systemIndex]) {
+        columns[measure.measureNumber.systemIndex] = [];
+      }
+      columns[measure.measureNumber.systemIndex].push(measure);
+    });
+    const colKeys = Object.keys(columns);
+    colKeys.forEach((colKey) => {
+      columns[colKey].forEach((measure) => {
+        vxSystem.renderMeasure(measure, this.measureMapper, printing);
+        const formatIndex = SmoMeasure.formattingOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
+        if (formatIndex >= 0 && !printing) {
+          const at = [];
+          at.push({ y: measure.logicalBox.y - 5 });
+          at.push({ x: measure.logicalBox.x + 25 });
+          at.push({ 'font-family': SourceSansProFont.fontFamily });
+          at.push({ 'font-size': '12pt' });
+          svgHelpers.placeSvgText(this.context.svg, at, 'measure-format', '*');
+        }
+      });
+    });
+    const timestamp = new Date().valueOf();
+    vxSystem.renderEndings();
+    vxSystem.updateLyricOffsets();
+    this._score.staves.forEach((stf) => {
+      this._renderModifiers(stf, vxSystem);
+    });
+    layoutDebug.setTimestamp(layoutDebug.codeRegions.POST_RENDER, new Date().valueOf() - timestamp);
+  }
+  _renderNextSystemPromise(systemIx, mscore, keys, printing) {
+    return new Promise((resolve) => {
+      this._renderSystem(keys[systemIx], mscore, printing);
+      resolve();
+    });
+  }
+  _deferNextSystemPromise(systemIx, mscore, keys, printing) {
+    return new Promise((resolve) => {
+      this._renderNextSystemPromise(systemIx, mscore, keys, printing).then(() => {
+        setTimeout(() => {
+          resolve();
+        }, 10);
+      });
+    });
+  }
+  _renderNextSystem(systemIx, mscore, keys, printing) {
+    if (systemIx < keys.length) {
+      const progress = Math.round((100 * systemIx) / keys.length);
+      $('#renderProgress').val(progress);
+      this._deferNextSystemPromise(systemIx, mscore, keys, printing).then(() => {
+        systemIx++;
+        this._renderNextSystem(systemIx, mscore, keys, printing);
+      });
+    } else {
+      this.renderScoreModifiers();
+      this.numberMeasures();
+      this.renderTime = new Date().valueOf() - this.startRenderTime;
+      $('body').removeClass('show-render-progress');
+      this.backgroundRender = false;
+    }
+  }
 
   renderAllMeasures() {
     const mscore = {};
@@ -193,40 +256,12 @@ class SuiScoreRender extends SuiRenderState {
     });
 
     const keys = Object.keys(mscore);
-    keys.forEach((key) => {
-      const columns = {};
-      const vxSystem = new VxSystem(this.context, 0, parseInt(key, 10), this.score);
-      mscore[key].forEach((measure) => {
-        if (!columns[measure.measureNumber.systemIndex]) {
-          columns[measure.measureNumber.systemIndex] = [];
-        }
-        columns[measure.measureNumber.systemIndex].push(measure);
-      });
-      const colKeys = Object.keys(columns);
-      colKeys.forEach((colKey) => {
-        columns[colKey].forEach((measure) => {
-          vxSystem.renderMeasure(measure, this.measureMapper, printing);
-          const formatIndex = SmoMeasure.formattingOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
-          if (formatIndex >= 0 && !printing) {
-            const at = [];
-            at.push({ y: measure.logicalBox.y - 5 });
-            at.push({ x: measure.logicalBox.x + 25 });
-            at.push({ 'font-family': SourceSansProFont.fontFamily });
-            at.push({ 'font-size': '12pt' });
-            svgHelpers.placeSvgText(this.context.svg, at, 'measure-format', '*');
-          }
-        });
-      });
-      const timestamp = new Date().valueOf();
-      vxSystem.renderEndings();
-      vxSystem.updateLyricOffsets();
-      this._score.staves.forEach((stf) => {
-        this._renderModifiers(stf, vxSystem);
-      });
-      layoutDebug.setTimestamp(layoutDebug.codeRegions.POST_RENDER, new Date().valueOf() - timestamp);
-    });
-    this.renderScoreModifiers();
-    this.numberMeasures();
+    if (!printing) {
+      $('body').addClass('show-render-progress');
+    }
+    this.backgroundRender = true;
+    this.startRenderTime = new Date().valueOf();
+    this._renderNextSystem(0, mscore, keys, printing);
   }
 
   // ### _justifyY

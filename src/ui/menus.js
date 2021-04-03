@@ -548,6 +548,10 @@ class SuiLibraryMenu extends suiMenuBase {
         value: 'preciousLord'
       }, {
         icon: '',
+        text: 'In Its Delightful Shade',
+        value: 'shade'
+      }, {
+        icon: '',
         text: 'Yama',
         value: 'yamaJson'
       }, {
@@ -607,6 +611,8 @@ class SuiLibraryMenu extends suiMenuBase {
       this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Messiah Pt 1-1.json');
     } else if (text === 'bambino') {
       this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Gesu Bambino.json');
+    } else if (text === 'shade') {
+      this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Shade.json');
     } else if (text === 'postillion') {
       this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/Postillionlied.json');
     } else if (text === 'preciousLord') {
@@ -982,13 +988,8 @@ class SuiMeasureMenu extends suiMenuBase {
       menuItems: [
         {
           icon: '',
-          text: 'Add Measure Before',
-          value: 'addMenuBeforeCmd'
-        },
-        {
-          icon: '',
-          text: 'Add Measure After',
-          value: 'addMenuAfterCmd'
+          text: 'Add Measures',
+          value: 'addMenuCmd'
         }, {
           icon: 'icon-cross',
           text: 'Delete Selected Measures',
@@ -1030,8 +1031,13 @@ class SuiMeasureMenu extends suiMenuBase {
       this.complete();
       return;
     }
-    if (text === 'addMenuBeforeCmd') {
-      this.keyCommands.addMeasure({ shiftKey: false });
+    if (text === 'addMenuCmd') {
+      SuiInsertMeasures.createAndDisplay({
+        view: this.view,
+        completeNotifier: this.completeNotifier,
+        closeMenuPromise: this.closePromise,
+        eventSource: this.eventSource
+      });
       this.complete();
     }
     if (text === 'addMenuAfterCmd') {

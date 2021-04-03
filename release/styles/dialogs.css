@@ -712,3 +712,35 @@ button.translate-submit-button {
   border: 2px #9d9 solid;
   border-radius: 4px;
 }
+
+#renderProgress {
+  display: none;
+  width:200px;
+  height:25px;
+  padding:15px 0 0 0;
+  margin:0;
+  text-align: left;
+  z-index:12;
+  top: 40%;
+  left:40%;
+  position:absolute;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.8em;
+}
+#renderProgress:after {
+	margin: -25px 0 0 100px;
+	padding:0;
+	display:inline-block;
+	content: attr(value) '%';
+}
+#renderProgress[value]::-webkit-progress-bar {
+  background-color:#eee;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25) inset;
+}
+
+#renderProgress[value]::-webkit-progress-value {
+  background: #F70;
+}
+body.show-render-progress #renderProgress {
+  display: block;
+}

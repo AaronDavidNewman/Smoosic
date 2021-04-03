@@ -186,6 +186,8 @@ class VxSystem {
           text.textContent = '-';
           text.setAttributeNS('', 'x', lyric.hyphenX);
           text.setAttributeNS('', 'y', lyric.logicalBox.y + (lyric.logicalBox.height * 2) / 3);
+          const fontSize = lyric.fontInfo.size * 1.2;
+          text.setAttributeNS('', 'fontSize', '' + fontSize + 'pt');
           parent.appendChild(text);
         }
       });

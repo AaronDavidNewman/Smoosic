@@ -877,6 +877,27 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.tracker.loadScore();
     this.renderer.setRefresh();
   }
+  addMeasures(append, numberToAdd) {
+    let pos = 0;
+    let ix = 0;
+    this.actionBuffer.addAction('addMeasures', append, numberToAdd);
+    this._undoScore('Add Measure');
+    for (ix = 0; ix < numberToAdd; ++ix) {
+      const measure = this.tracker.getFirstMeasureOfSelection();
+      const nmeasure = SmoMeasure.getDefaultMeasureWithNotes(measure);
+      const altMeasure = SmoMeasure.deserialize(nmeasure.serialize());
+
+      pos = measure.measureNumber.measureIndex;
+      if (append) {
+        pos += 1;
+      }
+      nmeasure.measureNumber.measureIndex = pos;
+      nmeasure.setActiveVoice(0);
+      this.score.addMeasure(pos, nmeasure);
+      this.storeScore.addMeasure(pos, altMeasure);
+    }
+    this.renderer.setRefresh();
+  }
   addMeasure(append) {
     this.actionBuffer.addAction('addMeasure', append);
     this._undoScore('Add Measure');

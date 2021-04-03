@@ -12,10 +12,11 @@ class SuiRenderState {
     };
     this.dirty = true;
     this.replaceQ = [];
-    this.renderTime = 250;  // ms to render before time slicing
+    this.renderTime = 0;  // ms to render before time slicing
     this.partialRender = false;
     this.stateRepCount = 0;
     this.viewportPages = 1;
+    this.backgroundRender = false;
     this.setPassState(SuiRenderState.initial, 'ctor');
     this.viewportChanged = false;
     this._resetViewport = false;
@@ -194,7 +195,7 @@ class SuiRenderState {
     const promise = new Promise((resolve) => {
       const poll = () => {
         setTimeout(() => {
-          if (!self.dirty) {
+          if (!self.dirty && !self.backgroundRender) {
             // tracker.highlightSelection();
             $('body').removeClass('print-render');
             $('.vf-selection').remove();
@@ -308,6 +309,7 @@ class SuiRenderState {
     this.dirty = true;
     this._score = score;
     if (shouldReset) {
+      this.renderTime = 0;
       if (this.measureMapper) {
         this.measureMapper.loadScore();
       }
@@ -506,6 +508,9 @@ class SuiRenderState {
       if (SuiRenderState.passStates.replace === this.passState) {
         this._replaceMeasures();
       } else if (SuiRenderState.passStates.initial === this.passState) {
+        if (this.backgroundRender) {
+          return;
+        }
         this.layout();
         this._drawPageLines();
         this.setPassState(SuiRenderState.passStates.clean, 'rs: complete render');

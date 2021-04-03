@@ -193,11 +193,17 @@ body.printing .piano-container {
   display:none;
 }
 
+
 @media print {
     .controls-left,.controls-top,.testTitle {
        display:none;
     }
 
+    #vf-selection-outline,
+    #vf-suggestion-outline {
+      display: none;
+    }
+    
     .piano-container {
         display:none;
     }

@@ -32,7 +32,7 @@ class SuiDom {
       .append(b('div').classes('textEdit hide'))
       .append(b('div').classes('translation-editor'))
       .append(b('div').classes('attributeDialog'))
-      .append(b('progress').attr('id','renderProgress').attr('value','0'))
+      .append(b('progress').attr('id','renderProgress').attr('value','0').attr('max','100'))
       .append(b('div').classes('qwertyKb'))
       .append(b('div').classes('saveLink'))
       .append(b('div').classes('bugDialog'))
