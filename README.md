@@ -4,7 +4,13 @@ Smoosic is a simple (?) but fully-functional-aspirant editor for music written i
 
 You can see Smoosic in action here:
 
-[Smoosic](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)
+[Smoosic demo application](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)
+
+API Demo Links (codepen):
+* [Smoosic API](https://codepen.io/aarondavidnewman/pen/gOLgNEv) 
+* [Load Score](https://codepen.io/aarondavidnewman/pen/XWNpLGJ)
+* [Load Music XML](https://codepen.io/aarondavidnewman/pen/LYbxKqb)
+* [Simple Music Editor](https://codepen.io/aarondavidnewman/pen/WNoRqgg)
 
 ---
 
