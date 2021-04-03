@@ -1,22 +1,34 @@
 # Smoosic
 
-Smoosic is a _still_ a simple (?) but fully-functional-aspirant editor for music written in javascript.  
+Smoosic is a simple (?) but fully-functional-aspirant editor for music written in javascript.  It is also an interactive API for music notation/engraving.
 
-But...
+You can see Smoosic in action here:
 
-I've been thinking lately.  My goal was to create a flexible music creation API that works in a variety of contexts.  In some ways, the application is just a demo of the API.  As the application gets more complicated, it becomes less customizable and embeddable.  So I need to distinguish between Smoosic the application and Smoosic the API.  
-
-In some ways, Smoosic is similar to technologies like Vue or Angular, in that they update a DOM view based on changes to a document state, and visa-versa.  In this case, the document is SMO, the JSON structure that represents the score.  The DOM is the rendered music in the SVG.  You can map events from the DOM and map them to artifacts in your musical model, and make changes to the model and have it rendered.
-
-Therefore...
+[Smoosic](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)
 
 ---
 
 ## Changes to Smoosic
 
-Smoosic API (Feb, 2021)
+### UI improvements and bug fixes (April 3, 2021)  
 
-Introducing...the Smoosic API.  I've made a few minor tweaks in the initialzaiton that make it possible to create a library version of Smoosic.  This has no native GUI, so you can create your own, or just call the API and render some music.  
+Background Rendering, Lyrics/Multi-Voice/Scrolling improvements and bug fixes.
+
+Rendering longer scores, even just a page or 2, was frustrating.  It can take several seconds to re-render the entire score.  We now render in the background, with a progress bar, allowing one to edit while the score is rendering.  Full re-render timer is pro-rated on render time, so you get more editing time.
+
+Fixed some bugs with xml import/export.
+
+Added measure-add dialog, for multiple measures.
+
+[Smoosic Application](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)
+
+### Smoosic API (Feb, 2021)
+
+I've been thinking lately.  My goal was to create a flexible music creation API that works in a variety of contexts.  In some ways, the application is just a demo of the API.  As the application gets more complicated, it becomes less customizable and embeddable.  So I need to distinguish between Smoosic the application and Smoosic the API.  
+
+In some ways, Smoosic is similar to technologies like Vue or Angular, in that they update a DOM view based on changes to a document state, and visa-versa.  In this case, the document is SMO, the JSON structure that represents the score.  The DOM is the rendered music in the SVG.  You can map events from the DOM and map them to artifacts in your musical model, and make changes to the model and have it rendered.
+
+Therefore...Introducing the Smoosic API.  I've made a few minor tweaks in the initialzaiton that make it possible to create a library version of Smoosic.  This has no native GUI, so you can create your own, or just call the API and render some music.  
 
 I created the following pens to help demonstrate how to use it.
 
@@ -30,7 +42,7 @@ I created the following pens to help demonstrate how to use it.
 
 ---
 
-Music XML (Jan, 2021)
+### Music XML (Jan, 2021)
 
 I have made a number of changes to the way Smoosic works, based on some feedback:
 1. Delete key no longer deletes measures.  This seemed to surprise people.  The insert key still inserts, though.
