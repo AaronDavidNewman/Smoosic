@@ -532,7 +532,7 @@ class SuiLibraryMenu extends suiMenuBase {
         value: 'bach'
       }, {
         icon: '',
-        text: 'Postilion-Lied',
+        text: 'Postillion-Lied',
         value: 'postillion'
       }, {
         icon: '',

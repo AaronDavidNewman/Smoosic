@@ -3336,6 +3336,13 @@ class layoutDebug {
     }
     layoutDebug._flags = layoutDebug._flags & (~flag);
   }
+  static createSandbox(elementId, width, height) {
+    $('#' + elementId).html('');
+    $('#' + elementId).removeClass('hide');
+    const renderer = new VF.Renderer(document.getElementById(elementId), VF.Renderer.Backends.SVG);
+    svgHelpers.svgViewport(renderer.getContext().svg, 0, 0, width, height, 1.0);
+    return renderer;
+  }
 
 	static setFlag(value) {
     var flag = layoutDebug.values[value];
@@ -5306,6 +5313,16 @@ class SuiScoreView {
     this.storeUndo.addBuffer(label,
       UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure);
   }
+  _undoSelections(label, selections) {
+    this.undoBuffer.grouping = true;
+    this.storeUndo.grouping = true;
+    selections.forEach((selection) => {
+      this._undoSelection(label, selection);
+    });
+    this.undoBuffer.grouping = false;
+    this.storeUndo.grouping = false;
+  }
+
   // ###_renderChangedMeasures
   // Update renderer for measures that have changed
   _renderChangedMeasures(measureSelections) {
@@ -5730,14 +5747,13 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.setActiveVoice(this.score, index);
     this._renderChangedMeasures(measuresToAdd);
   }
-  changeInstrument(instrument) {
-    this.actionBuffer.addAction('changeInstrument', instrument);
-    const measureSelections = this._undoTrackerMeasureSelections('change instrument');
-    const selections = this.tracker.selections;
+  changeInstrument(instrument, selections) {
+    this.actionBuffer.addAction('changeInstrument', instrument, selections);
+    this._undoSelections('change instrument', selections);
     const altSelections = this._getEquivalentSelections(selections);
     SmoOperation.changeInstrument(instrument, selections);
     SmoOperation.changeInstrument(instrument, altSelections);
-    this._renderChangedMeasures(measureSelections);
+    this._renderChangedMeasures(selections);
   }
   setTimeSignature(timeSignature) {
     this.actionBuffer.addAction('setTimeSignature', timeSignature);
@@ -19390,9 +19406,22 @@ class SmoSelection {
     });
   }
 
+  // ### noteFromSelector
+  // return a selection based on the passed-in selector
   static noteFromSelector(score, selector) {
     return SmoSelection.noteSelection(score,
       selector.staff, selector.measure, selector.voice, selector.tick);
+  }
+
+  // ### selectionsToEnd
+  // Select all the measures from startMeasure to the end of the score in the given staff.
+  static selectionsToEnd(score, staff, startMeasure) {
+    let i = 0;
+    const rv = [];
+    for (i = startMeasure; i < score.staves[staff].measures.length; ++i) {
+      rv.push(SmoSelection.measureSelection(score, staff, i));
+    }
+    return rv;
   }
 
   // ### renderedNoteSelection
@@ -29114,6 +29143,7 @@ class SuiInstrumentDialog extends SuiDialogBase {
         smoName: 'applyTo',
         parameterName: 'applyTo',
         defaultValue: SuiInstrumentDialog.applyTo.score,
+        dataType: 'int',
         control: 'SuiDropdownComponent',
         label: 'Apply To',
         options: [{
@@ -29162,12 +29192,17 @@ class SuiInstrumentDialog extends SuiDialogBase {
   }
 
   changed() {
-    let i = 0;
-    const staffIx = this.measure.measureNumber.staffId;
+    let selections = [];
+    if (!this.transposeIndexCtrl.changeFlag) {
+      return;
+    }
     const xpose = this.transposeIndexCtrl.getValue();
-    const selections = [];
-    for (i = 0; i < this.score.staves[staffIx].measures.length; ++i) {
-      selections.push(SmoSelection.measureSelection(this.score, staffIx, i));
+    if (this.applyToCtrl.getValue() === SuiInstrumentDialog.applyTo.score) {
+      selections = SmoSelection.selectionsToEnd(this.view.score, this.selection.selector.staff, 0);
+    } else if (this.applyToCtrl.getValue() === SuiInstrumentDialog.applyTo.remaining) {
+      selections = SmoSelection.selectionsToEnd(this.view.score, this.selection.selector.staff, this.selection.selector.measure);
+    } else {
+      selections.push(this.selection);
     }
     this.view.changeInstrument(
       {
@@ -29175,25 +29210,22 @@ class SuiInstrumentDialog extends SuiDialogBase {
         keyOffset: xpose,
         clef: this.measure.clef
       },
-      selections,
-      this.undoBuffer
+      selections
     );
   }
 
   constructor(parameters) {
     const selection = parameters.view.tracker.selections[0];
     const measure = selection.measure;
-
     parameters = { selection, measure, ...parameters };
 
     super(SuiInstrumentDialog.dialogElements, {
-      id: 'time-signature-measure',
+      id: 'instrument-measure',
       top: measure.renderedBox.y,
       left: measure.renderedBox.x,
       ...parameters
     });
     this.measure = measure;
-    this.score = this.keyCommands.score;
     this.refresh = false;
     this.startPromise = parameters.closeMenuPromise;
     Vex.Merge(this, parameters);
@@ -29279,7 +29311,6 @@ class SuiInsertMeasures extends SuiDialogBase {
   populateInitial() {
     this.measureCountCtrl.setValue(1);
   }
-
   // noop
   changed() {
   }
@@ -32828,6 +32859,7 @@ class SuiDom {
       .append(b('div').classes('overlay'))
       .append(b('div').classes('draganime hide'))
       .append(b('div').classes('textEdit hide'))
+      .append(b('div').classes('glyphRender hide').attr('id','glyphRender'))
       .append(b('div').classes('translation-editor'))
       .append(b('div').classes('attributeDialog'))
       .append(b('progress').attr('id','renderProgress').attr('value','0').attr('max','100'))
@@ -38637,7 +38669,7 @@ class SuiLibraryMenu extends suiMenuBase {
         value: 'bach'
       }, {
         icon: '',
-        text: 'Postilion-Lied',
+        text: 'Postillion-Lied',
         value: 'postillion'
       }, {
         icon: '',

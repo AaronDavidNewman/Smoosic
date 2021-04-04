@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'smoosic';
   src:
-    url('fonts/smoosic.ttf?sumshu') format('truetype'),
-    url('fonts/smoosic.woff?sumshu') format('woff'),
-    url('fonts/smoosic.svg?sumshu#smoosic') format('svg');
+    url('fonts/smoosic.ttf?5ty5b4') format('truetype'),
+    url('fonts/smoosic.woff?5ty5b4') format('woff'),
+    url('fonts/smoosic.svg?5ty5b4#smoosic') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -24,6 +24,18 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-notehead-diamondblack:before {
+  content: "\e990";
+}
+.icon-notehead-triangleup:before {
+  content: "\e992";
+}
+.icon-notehead-xblack:before {
+  content: "\e994";
+}
+.icon-notehead-circlex:before {
+  content: "\e995";
+}
 .icon-smear:before {
   content: "\e98e";
 }

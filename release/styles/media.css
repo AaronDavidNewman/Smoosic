@@ -203,7 +203,7 @@ body.printing .piano-container {
     #vf-suggestion-outline {
       display: none;
     }
-    
+
     .piano-container {
         display:none;
     }
@@ -310,4 +310,13 @@ body.printing .printFrame {
 	display: inline-block;
 	font-weight: bold;
 	text-justify:center;
+}
+
+.glyphRender {
+  width: 64px;
+  height: 64px;
+  position: absolute;
+  top:0;
+  left:0;
+  z-index:12;
 }

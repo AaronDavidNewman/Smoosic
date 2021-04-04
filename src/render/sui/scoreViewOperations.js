@@ -206,14 +206,13 @@ class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.setActiveVoice(this.score, index);
     this._renderChangedMeasures(measuresToAdd);
   }
-  changeInstrument(instrument) {
-    this.actionBuffer.addAction('changeInstrument', instrument);
-    const measureSelections = this._undoTrackerMeasureSelections('change instrument');
-    const selections = this.tracker.selections;
+  changeInstrument(instrument, selections) {
+    this.actionBuffer.addAction('changeInstrument', instrument, selections);
+    this._undoSelections('change instrument', selections);
     const altSelections = this._getEquivalentSelections(selections);
     SmoOperation.changeInstrument(instrument, selections);
     SmoOperation.changeInstrument(instrument, altSelections);
-    this._renderChangedMeasures(measureSelections);
+    this._renderChangedMeasures(selections);
   }
   setTimeSignature(timeSignature) {
     this.actionBuffer.addAction('setTimeSignature', timeSignature);

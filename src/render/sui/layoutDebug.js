@@ -127,6 +127,13 @@ class layoutDebug {
     }
     layoutDebug._flags = layoutDebug._flags & (~flag);
   }
+  static createSandbox(elementId, width, height) {
+    $('#' + elementId).html('');
+    $('#' + elementId).removeClass('hide');
+    const renderer = new VF.Renderer(document.getElementById(elementId), VF.Renderer.Backends.SVG);
+    svgHelpers.svgViewport(renderer.getContext().svg, 0, 0, width, height, 1.0);
+    return renderer;
+  }
 
 	static setFlag(value) {
     var flag = layoutDebug.values[value];

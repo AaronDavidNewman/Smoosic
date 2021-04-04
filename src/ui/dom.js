@@ -30,6 +30,7 @@ class SuiDom {
       .append(b('div').classes('overlay'))
       .append(b('div').classes('draganime hide'))
       .append(b('div').classes('textEdit hide'))
+      .append(b('div').classes('glyphRender hide').attr('id','glyphRender'))
       .append(b('div').classes('translation-editor'))
       .append(b('div').classes('attributeDialog'))
       .append(b('progress').attr('id','renderProgress').attr('value','0').attr('max','100'))

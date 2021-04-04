@@ -119,6 +119,16 @@ class SuiScoreView {
     this.storeUndo.addBuffer(label,
       UndoBuffer.bufferTypes.MEASURE, equiv.selector, equiv.measure);
   }
+  _undoSelections(label, selections) {
+    this.undoBuffer.grouping = true;
+    this.storeUndo.grouping = true;
+    selections.forEach((selection) => {
+      this._undoSelection(label, selection);
+    });
+    this.undoBuffer.grouping = false;
+    this.storeUndo.grouping = false;
+  }
+
   // ###_renderChangedMeasures
   // Update renderer for measures that have changed
   _renderChangedMeasures(measureSelections) {

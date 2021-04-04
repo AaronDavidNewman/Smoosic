@@ -287,6 +287,7 @@ class SuiInstrumentDialog extends SuiDialogBase {
         smoName: 'applyTo',
         parameterName: 'applyTo',
         defaultValue: SuiInstrumentDialog.applyTo.score,
+        dataType: 'int',
         control: 'SuiDropdownComponent',
         label: 'Apply To',
         options: [{
@@ -335,12 +336,17 @@ class SuiInstrumentDialog extends SuiDialogBase {
   }
 
   changed() {
-    let i = 0;
-    const staffIx = this.measure.measureNumber.staffId;
+    let selections = [];
+    if (!this.transposeIndexCtrl.changeFlag) {
+      return;
+    }
     const xpose = this.transposeIndexCtrl.getValue();
-    const selections = [];
-    for (i = 0; i < this.score.staves[staffIx].measures.length; ++i) {
-      selections.push(SmoSelection.measureSelection(this.score, staffIx, i));
+    if (this.applyToCtrl.getValue() === SuiInstrumentDialog.applyTo.score) {
+      selections = SmoSelection.selectionsToEnd(this.view.score, this.selection.selector.staff, 0);
+    } else if (this.applyToCtrl.getValue() === SuiInstrumentDialog.applyTo.remaining) {
+      selections = SmoSelection.selectionsToEnd(this.view.score, this.selection.selector.staff, this.selection.selector.measure);
+    } else {
+      selections.push(this.selection);
     }
     this.view.changeInstrument(
       {
@@ -348,25 +354,22 @@ class SuiInstrumentDialog extends SuiDialogBase {
         keyOffset: xpose,
         clef: this.measure.clef
       },
-      selections,
-      this.undoBuffer
+      selections
     );
   }
 
   constructor(parameters) {
     const selection = parameters.view.tracker.selections[0];
     const measure = selection.measure;
-
     parameters = { selection, measure, ...parameters };
 
     super(SuiInstrumentDialog.dialogElements, {
-      id: 'time-signature-measure',
+      id: 'instrument-measure',
       top: measure.renderedBox.y,
       left: measure.renderedBox.x,
       ...parameters
     });
     this.measure = measure;
-    this.score = this.keyCommands.score;
     this.refresh = false;
     this.startPromise = parameters.closeMenuPromise;
     Vex.Merge(this, parameters);
@@ -452,7 +455,6 @@ class SuiInsertMeasures extends SuiDialogBase {
   populateInitial() {
     this.measureCountCtrl.setValue(1);
   }
-
   // noop
   changed() {
   }

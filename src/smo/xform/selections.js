@@ -173,9 +173,22 @@ class SmoSelection {
     });
   }
 
+  // ### noteFromSelector
+  // return a selection based on the passed-in selector
   static noteFromSelector(score, selector) {
     return SmoSelection.noteSelection(score,
       selector.staff, selector.measure, selector.voice, selector.tick);
+  }
+
+  // ### selectionsToEnd
+  // Select all the measures from startMeasure to the end of the score in the given staff.
+  static selectionsToEnd(score, staff, startMeasure) {
+    let i = 0;
+    const rv = [];
+    for (i = startMeasure; i < score.staves[staff].measures.length; ++i) {
+      rv.push(SmoSelection.measureSelection(score, staff, i));
+    }
+    return rv;
   }
 
   // ### renderedNoteSelection
