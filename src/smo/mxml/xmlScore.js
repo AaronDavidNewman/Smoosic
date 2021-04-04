@@ -6,7 +6,7 @@ class mxmlScore {
     return 0.264583;
   }
   static get customProportionDefault() {
-    return 42;
+    return SmoScore.defaults.preferences.customProportion;
   }
   static get pageLayoutMap() {
     return [

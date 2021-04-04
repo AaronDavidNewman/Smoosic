@@ -3244,13 +3244,14 @@ class layoutDebug {
         PREFORMATC: 3,
         FORMAT: 4,
         RENDER: 5,
-        POST_RENDER: 6,
-        MAP: 7,
-        LAST: 7
+        UPDATE_MAP: 6,
+        POST_RENDER: 7,
+        MAP: 8,
+        LAST: 8
       };
     }
     static get codeRegionStrings() {
-      return ['COMPUTE', 'PREFORMATA', 'PREFORMATB', 'PREFORMATC', 'FORMAT', 'RENDER', 'POST_RENDER', 'MAP'];
+      return ['COMPUTE', 'PREFORMATA', 'PREFORMATB', 'PREFORMATC', 'FORMAT', 'RENDER', 'UPDATE_MAP','POST_RENDER', 'MAP'];
     }
 
 	static get mask() {
@@ -3305,10 +3306,10 @@ class layoutDebug {
     layoutDebug._flags = 0;
   }
   static setAll() {
-    layoutDebug._flags = 1+2+4+8+16+32+64+128+256;
+    layoutDebug._flags = 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256;
   }
   static setRenderFlags() {
-    layoutDebug._flags = 1+2+4+8+16+32;
+    layoutDebug._flags = 1 + 2 + 4 + 8 + 16 + 32;
   }
   static clearDebugBoxes(value) {
     if (layoutDebug.flagSet(value)) {
@@ -3463,11 +3464,6 @@ class SuiRenderDemon {
 
   render() {
     this.view.renderer.render();
-    if (this.view.renderer.passState === SuiRenderState.passStates.clean && this.view.renderer.dirty === false) {
-       this.view.tracker.updateMap();
-       // indicate the display is 'clean' and up-to-date with the score
-       $('body').removeClass('refresh-1');
-    }
   }
 }
 ;// ## suiMapper
@@ -3776,6 +3772,7 @@ class suiMapper {
   // This should be called after rendering the score.  It updates the score to
   // graphics map and selects the first object.
   _updateMap() {
+    const ts = new Date().valueOf();
     this.mapping = true;
     let tickSelected = 0;
     const selCopy = this._copySelections();
@@ -3792,6 +3789,7 @@ class suiMapper {
       this.selections = [this.measureNoteMap[keys[0]]];
     }  else {
       if (!firstSelection) {
+        layoutDebug.setTimestamp(layoutDebug.codeRegions.UPDATE_MAP, new Date().valueOf() - ts);
         return;
       }
       this._findClosestSelection(firstSelection.selector);
@@ -3814,6 +3812,7 @@ class suiMapper {
       this.pasteBuffer.setSelections(this.score, this.selections);
     }
     this.mapping = false;
+    layoutDebug.setTimestamp(layoutDebug.codeRegions.UPDATE_MAP, new Date().valueOf() - ts);
   }
 
   // ### intersectingArtifact
@@ -4954,6 +4953,9 @@ class SuiScoreRender extends SuiRenderState {
       this.numberMeasures();
       this.renderTime = new Date().valueOf() - this.startRenderTime;
       $('body').removeClass('show-render-progress');
+      // indicate the display is 'clean' and up-to-date with the score
+      $('body').removeClass('refresh-1');
+      this.measureMapper.updateMap();
       this.backgroundRender = false;
     }
   }
@@ -16340,8 +16342,13 @@ class mxmlHelpers {
     const rv = [];
     const nNodes = [...noteNode.getElementsByTagName('lyric')];
     nNodes.forEach((nNode) => {
+      let verse = nNode.getAttribute('number');
       const text = mxmlHelpers.getTextFromElement(nNode, 'text', '_');
-      const verse = nNode.getAttribute('number');
+      const name = nNode.getAttribute('name');
+      // Per xml spec, verse can be specified by a string (name), as in 'chorus'
+      if (!verse) {
+        verse = name;
+      }
       rv.push({ _text: text, verse });
     });
     return rv;
@@ -16393,7 +16400,7 @@ class mxmlScore {
     return 0.264583;
   }
   static get customProportionDefault() {
-    return 42;
+    return SmoScore.defaults.preferences.customProportion;
   }
   static get pageLayoutMap() {
     return [
@@ -17020,7 +17027,7 @@ class XmlState {
     });
   }
   addLyric(note, lyricData) {
-    if (!this.verseMap[lyricData.verse]) {
+    if (typeof(this.verseMap[lyricData.verse]) === 'undefined') {
       const keys = Object.keys(this.verseMap);
       this.verseMap[lyricData.verse] = keys.length;
     }

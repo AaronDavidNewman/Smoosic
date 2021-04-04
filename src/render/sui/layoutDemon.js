@@ -79,10 +79,5 @@ class SuiRenderDemon {
 
   render() {
     this.view.renderer.render();
-    if (this.view.renderer.passState === SuiRenderState.passStates.clean && this.view.renderer.dirty === false) {
-       this.view.tracker.updateMap();
-       // indicate the display is 'clean' and up-to-date with the score
-       $('body').removeClass('refresh-1');
-    }
   }
 }

@@ -85,7 +85,7 @@ class XmlState {
     });
   }
   addLyric(note, lyricData) {
-    if (!this.verseMap[lyricData.verse]) {
+    if (typeof(this.verseMap[lyricData.verse]) === 'undefined') {
       const keys = Object.keys(this.verseMap);
       this.verseMap[lyricData.verse] = keys.length;
     }

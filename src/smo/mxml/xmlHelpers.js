@@ -335,8 +335,13 @@ class mxmlHelpers {
     const rv = [];
     const nNodes = [...noteNode.getElementsByTagName('lyric')];
     nNodes.forEach((nNode) => {
+      let verse = nNode.getAttribute('number');
       const text = mxmlHelpers.getTextFromElement(nNode, 'text', '_');
-      const verse = nNode.getAttribute('number');
+      const name = nNode.getAttribute('name');
+      // Per xml spec, verse can be specified by a string (name), as in 'chorus'
+      if (!verse) {
+        verse = name;
+      }
       rv.push({ _text: text, verse });
     });
     return rv;

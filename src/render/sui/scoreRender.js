@@ -238,6 +238,9 @@ class SuiScoreRender extends SuiRenderState {
       this.numberMeasures();
       this.renderTime = new Date().valueOf() - this.startRenderTime;
       $('body').removeClass('show-render-progress');
+      // indicate the display is 'clean' and up-to-date with the score
+      $('body').removeClass('refresh-1');
+      this.measureMapper.updateMap();
       this.backgroundRender = false;
     }
   }

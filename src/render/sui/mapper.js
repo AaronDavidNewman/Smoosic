@@ -304,6 +304,7 @@ class suiMapper {
   // This should be called after rendering the score.  It updates the score to
   // graphics map and selects the first object.
   _updateMap() {
+    const ts = new Date().valueOf();
     this.mapping = true;
     let tickSelected = 0;
     const selCopy = this._copySelections();
@@ -320,6 +321,7 @@ class suiMapper {
       this.selections = [this.measureNoteMap[keys[0]]];
     }  else {
       if (!firstSelection) {
+        layoutDebug.setTimestamp(layoutDebug.codeRegions.UPDATE_MAP, new Date().valueOf() - ts);
         return;
       }
       this._findClosestSelection(firstSelection.selector);
@@ -342,6 +344,7 @@ class suiMapper {
       this.pasteBuffer.setSelections(this.score, this.selections);
     }
     this.mapping = false;
+    layoutDebug.setTimestamp(layoutDebug.codeRegions.UPDATE_MAP, new Date().valueOf() - ts);
   }
 
   // ### intersectingArtifact

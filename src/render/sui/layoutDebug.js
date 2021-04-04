@@ -35,13 +35,14 @@ class layoutDebug {
         PREFORMATC: 3,
         FORMAT: 4,
         RENDER: 5,
-        POST_RENDER: 6,
-        MAP: 7,
-        LAST: 7
+        UPDATE_MAP: 6,
+        POST_RENDER: 7,
+        MAP: 8,
+        LAST: 8
       };
     }
     static get codeRegionStrings() {
-      return ['COMPUTE', 'PREFORMATA', 'PREFORMATB', 'PREFORMATC', 'FORMAT', 'RENDER', 'POST_RENDER', 'MAP'];
+      return ['COMPUTE', 'PREFORMATA', 'PREFORMATB', 'PREFORMATC', 'FORMAT', 'RENDER', 'UPDATE_MAP','POST_RENDER', 'MAP'];
     }
 
 	static get mask() {
@@ -96,10 +97,10 @@ class layoutDebug {
     layoutDebug._flags = 0;
   }
   static setAll() {
-    layoutDebug._flags = 1+2+4+8+16+32+64+128+256;
+    layoutDebug._flags = 1 + 2 + 4 + 8 + 16 + 32 + 64 + 128 + 256;
   }
   static setRenderFlags() {
-    layoutDebug._flags = 1+2+4+8+16+32;
+    layoutDebug._flags = 1 + 2 + 4 + 8 + 16 + 32;
   }
   static clearDebugBoxes(value) {
     if (layoutDebug.flagSet(value)) {
