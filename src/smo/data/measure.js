@@ -278,6 +278,9 @@ class SmoMeasure {
         rv.tempo = mod;
       }
     });
+    if (!rv.tempo) {
+      rv.tempo = new SmoTempoText();
+    }
     return rv;
   }
 

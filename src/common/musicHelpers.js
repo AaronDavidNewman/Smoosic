@@ -213,12 +213,90 @@ class smoMusic {
     }
     return vexKey + smoPitch.octave;
   }
+  static smoPitchToMidiString(smoPitch) {
+    const midiPitch = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(smoPitch));
+    let rv = midiPitch.letter.toUpperCase();
+    if (midiPitch.accidental !== 'n') {
+      rv += midiPitch.accidental;
+    }
+    rv += midiPitch.octave;
+    return rv;
+  }
+  static smoPitchesToMidiStrings(smoPitches) {
+    const rv = [];
+    smoPitches.forEach((pitch) => {
+      rv.push(smoMusic.smoPitchToMidiString(pitch));
+    });
+    return rv;
+  }
+
+  static midiPitchToSmoPitch(midiPitch) {
+    const smoPitch = {};
+    smoPitch.letter = midiPitch[0].toLowerCase();
+    if (isNaN(midiPitch[1])) {
+      smoPitch.accidental = midiPitch[1];
+      smoPitch.octave = parseInt(midiPitch[2], 10);
+    } else {
+      smoPitch.accidental = 'n';
+      smoPitch.octave = parseInt(midiPitch[1], 10);
+    }
+    return smoPitch;
+  }
+  static midiPitchToMidiNumber(midiPitch) {
+    return smoMusic.smoPitchToInt(smoMusic.midiPitchToSmoPitch(midiPitch)) + 12;
+  }
 
   static pitchToVexKey(smoPitch, head) {
     if (!head) {
       return smoMusic._pitchToVexKey(smoPitch);
     }
     return smoMusic._pitchToVexKey(smoPitch) + '/' + head;
+  }
+
+  // ### vexToSmoPitch
+  // Turns vex pitch string into smo pitch, e.g.
+  // cn/4 => {'c','n',4}
+  static vexToSmoPitch(vexPitch) {
+    let octave = 0;
+    const po = vexPitch.split('/');
+    const rv = smoMusic.vexToSmoKey(po[0]);
+    if (po.length > 1) {
+      octave = parseInt(po[1], 10);
+      octave = isNaN(octave) ? 4 : octave;
+    } else {
+      octave = 4;
+    }
+    rv.octave = octave;
+    return rv;
+  }
+
+  // ### vexToSmoKey
+  // Convert to smo pitch, without octave
+  // ``['f#'] => [{letter:'f',accidental:'#'}]``
+  static vexToSmoKey(vexPitch) {
+    var accidental = vexPitch.length < 2 ? 'n' : vexPitch.substring(1, vexPitch.length);
+    var pp = vexPitch.split('/')[0];
+    return {
+      letter: pp[0].toLowerCase(),
+      accidental: accidental
+    };
+  }
+
+  // ### smoPitchToVes
+  // {letter:'f',accidental:'#'} => [f#/
+  static smoPitchesToVex(pitchAr) {
+    var rv = [];
+    pitchAr.forEach((p) => {
+      rv.push(smoMusic.pitchToVexKey(p));
+    });
+    return rv;
+  }
+
+  static stripVexOctave(vexKey) {
+    if (vexKey.indexOf('/') > 0) {
+      vexKey = vexKey.substring(0, vexKey.indexOf('/'))
+    }
+    return vexKey;
   }
 
   static smoPitchToInt(pitch) {
@@ -507,50 +585,6 @@ class smoMusic {
     return 0;
 
   }
-
-  static vexToSmoPitch(vexPitch) {
-    let octave = 0;
-    const po = vexPitch.split('/');
-    const rv = smoMusic.vexToSmoKey(po[0]);
-    if (po.length > 1) {
-      octave = parseInt(po[1], 10);
-      octave = isNaN(octave) ? 4 : octave;
-    } else {
-      octave = 4;
-    }
-    rv.octave = octave;
-    return rv;
-  }
-
-  // ### vexToSmoKey
-  // Convert to smo pitch, without octave
-  // ``['f#'] => [{letter:'f',accidental:'#'}]``
-  static vexToSmoKey(vexPitch) {
-    var accidental = vexPitch.length < 2 ? 'n' : vexPitch.substring(1, vexPitch.length);
-    var pp = vexPitch.split('/')[0];
-    return {
-      letter: pp[0].toLowerCase(),
-      accidental: accidental
-    };
-  }
-
-  // ### smoPitchToVes
-  // {letter:'f',accidental:'#'} => [f#/
-  static smoPitchesToVex(pitchAr) {
-    var rv = [];
-    pitchAr.forEach((p) => {
-      rv.push(smoMusic.pitchToVexKey(p));
-    });
-    return rv;
-  }
-
-  static stripVexOctave(vexKey) {
-    if (vexKey.indexOf('/') > 0) {
-      vexKey = vexKey.substring(0, vexKey.indexOf('/'))
-    }
-    return vexKey;
-  }
-
 
   // ### getKeyOffset
   // Given a vex noteProp and an offset, offset that number

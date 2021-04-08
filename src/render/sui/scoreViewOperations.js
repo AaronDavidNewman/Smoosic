@@ -945,6 +945,11 @@ class SuiScoreViewOperations extends SuiScoreView {
     htmlHelpers.addFileLink(filename, jsonText, $('.saveLink'));
     $('.saveLink a')[0].click();
   }
+  saveMidi(filename) {
+    const bytes = SmoToMidi.convert(this.storeScore);
+    htmlHelpers.addFileLink(filename, bytes, $('.saveLink'), 'audio/midi');
+    $('.saveLink a')[0].click();
+  }
   saveXml(filename) {
     const dom = SmoToXml.convert(this.storeScore);
     const ser = new XMLSerializer();

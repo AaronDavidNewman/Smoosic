@@ -13,6 +13,7 @@
     "dependencies": {
         "eslint-config-airbnb-base": "^14.2.0",
         "eslint-plugin-import": "^2.22.1",
-        "grunt-eslint": "^23.0.0"
+        "grunt-eslint": "^23.0.0",
+        "midi-writer-js": "^1.7.5"
     }
 }

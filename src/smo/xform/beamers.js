@@ -2,28 +2,13 @@
 class smoBeamerFactory {
   static applyBeams(measure) {
     let i = 0;
+    let j = 0;
     for (i = 0; i < measure.voices.length; ++i) {
       const beamer = new smoBeamModifier(measure, i);
-      const apply = new smoBeamerIterator(measure, beamer, i);
-      apply.run();
-    }
-  }
-}
-
-class smoBeamerIterator {
-  constructor(measure, actor, voice) {
-    this.actor = actor;
-    this.measure = measure;
-    this.voice = voice;
-  }
-
-  //  ### run
-  //  ###  Description:  start the iteration on this set of notes
-  run() {
-    let i = 0;
-    const tickmap = this.measure.tickmapForVoice(this.voice);
-    for (i = 0; i < tickmap.durationMap.length; ++i) {
-      this.actor.beamNote(tickmap, i, this.measure.voices[this.voice].notes[i]);
+      const tickmap = measure.tickmapForVoice(i);
+      for (j = 0; j < tickmap.durationMap.length; ++j) {
+        beamer.beamNote(tickmap, j, measure.voices[i].notes[j]);
+      }
     }
   }
 }

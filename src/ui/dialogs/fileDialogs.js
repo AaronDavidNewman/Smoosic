@@ -386,6 +386,67 @@ class SuiSaveXmlDialog extends SuiFileDialog {
 }
 
 // eslint-disable-next-line no-unused-vars
+class SuiSaveMidiDialog extends SuiFileDialog {
+  static get ctor() {
+    return 'SuiSaveMidiDialog';
+  }
+  get ctor() {
+    return SuiSaveMidiDialog.ctor;
+  }
+
+  static get dialogElements() {
+    SuiSaveMidiDialog._dialogElements = typeof(SuiSaveMidiDialog._dialogElements) !== 'undefined' ?
+      SuiSaveMidiDialog._dialogElements :
+      [{
+        smoName: 'saveFileName',
+        parameterName: 'saveFileName',
+        defaultValue: '',
+        control: 'SuiTextInputComponent',
+        label: 'File Name'
+      },
+      {
+        staticText: [
+          { label: 'Save Score as Midi' }
+        ]
+      }];
+    return SuiSaveMidiDialog._dialogElements;
+  }
+
+  changed() {
+    this.value = this.components[0].getValue();
+  }
+  commit() {
+    let filename = this.value;
+    if (!filename) {
+      filename = 'myScore.mid';
+    }
+    if (filename.indexOf('.mid') < 0) {
+      filename = filename + '.mid';
+    }
+    this.view.score.scoreInfo.version += 1;
+    this.view.saveMidi(filename);
+    this.complete();
+  }
+  display() {
+    super.display();
+    this._bindComponentNames();
+    this.saveFileNameCtrl.setValue(this.value);
+  }
+  static createName(score) {
+    return score.scoreInfo.name + '-' + score.scoreInfo.version + '.mid';
+  }
+  static createAndDisplay(params) {
+    var dg = new SuiSaveMidiDialog(params);
+    dg.display();
+  }
+  constructor(parameters) {
+    parameters.ctor = 'SuiSaveMidiDialog';
+    super(parameters);
+    this.value = SuiSaveMidiDialog.createName(this.view.score);
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
 class SuiSaveActionsDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiSaveActionsDialog';

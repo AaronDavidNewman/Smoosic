@@ -43,6 +43,8 @@ class SuiApplication {
       }
     }
     // var controller =
+    // Initialize the midi writer library
+    _MidiWriter();
     this.createUi(score);
   }
 

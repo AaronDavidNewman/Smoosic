@@ -405,6 +405,10 @@ class SuiFileMenu extends suiMenuBase {
         text: 'Export MusicXML',
         value: 'exportXml'
       }, {
+        icon: '',
+        text: 'Export Midi',
+        value: 'exportMidi'
+      }, {
         icon: 'folder-save',
         text: 'Save Actions',
         value: 'saveActions'
@@ -486,6 +490,16 @@ class SuiFileMenu extends suiMenuBase {
       this.view.renderer.renderForPrintPromise().then(systemPrint);
     } else if (text === 'exportXml') {
       SuiSaveXmlDialog.createAndDisplay({
+        completeNotifier: this.completeNotifier,
+        tracker: this.tracker,
+        undoBuffer: this.undoBuffer,
+        eventSource: this.eventSource,
+        editor: this.keyCommands,
+        view: this.view,
+        closeMenuPromise: this.closePromise
+      });
+    } else if (text === 'exportMidi') {
+      SuiSaveMidiDialog.createAndDisplay({
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
