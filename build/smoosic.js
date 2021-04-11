@@ -19242,7 +19242,13 @@ class SmoActionRecord {
     return { method: action.method, args, count: action.count };
   }
 }
-;// eslint-disable-next-line no-unused-vars
+;// ## SmoAudioTrack
+// Convert a score into a JSON structure that can be rendered to audio.  For
+// each staff/voice, return a track that consists of:
+// array of pitches, duration, normalized volumn, tempo changes.
+// Note:  pitches are smo pitches, durations are adjusted for beatTime
+// (beatTime === 4096 uses Smo/Vex ticks, 128 is midi tick default)
+// eslint-disable-next-line no-unused-vars
 class SmoAudioTrack {
   // ### dynamicVolumeMap
   // normalized dynamic
@@ -19257,21 +19263,27 @@ class SmoAudioTrack {
       ff: 0.65
     };
   }
-  volume(smoNote) {
+  constructor(score, beatTime) {
+    this.timeDiv = 4096 / beatTime;
+    this.score = score;
+    this.beatTime = beatTime;
+  }
+  // ### volumeFromNote
+  // Return a normalized volumn from the dynamic setting of the note
+  // or 0 if none is specified
+  volumeFromNote(smoNote) {
     const dynamic = smoNote.getModifiers('SmoDynamicText');
     if (dynamic.length < 1) {
-      return SmoAudioTrack.dynamicVolumeMap[SmoDynamicText.MF];
+      return 0;
     }
     if (dynamic[0].text === SmoDynamicText.dynamics.SFZ) {
       return SmoAudioTrack.dynamicVolumeMap[SmoDynamicText.F];
     }
     return SmoAudioTrack.dynamicVolumeMap[dynamic[0].text];
   }
-  constructor(score, beatTime) {
-    this.timeDiv = 4096 / beatTime;
-    this.score = score;
-    this.beatTime = beatTime;
-  }
+  // ### ticksFromSelection
+  // return the count of ticks between the selectors, adjusted for
+  // beatTime
   ticksFromSelection(score, startSelector, endSelector) {
     const selection = SmoSelection.selectionFromSelector(startSelector);
     let ticks = selection.note.tickCount;
@@ -19282,18 +19294,26 @@ class SmoAudioTrack {
     }
     return ticks / this.timeDiv;
   }
-  getHairpinInfo(staff, selection) {
+  // ### getHairpinInfo
+  // Get any hairpin starting at this selection, and calculate its
+  // effect on the overall volume
+  getHairpinInfo(track, selection) {
+    const staff = selection.staff;
     const selector = selection.selector;
     const cp = (x) => JSON.parse(JSON.stringify(x));
     const hps = staff.getModifier(selector, 'SmoStaffHairpin')
       .filter((hairpin) => SmoSelector.eq(hairpin.startSelector, selector));
     rv = [];
-    this.hairpins.forEach((hairpin) => {
+    // clear out old hairpins.
+    // usually there will only be a single hairpin per voice, except
+    // in the case of overlapping.
+    track.hairpins.forEach((hairpin) => {
       if (SmoSelector.gteq(hairpin.startSelector, selection.selector) &&
         SmoSelector.lteq(hairpin.startSelector, selection.selector)) {
         rv.push(hairpin);
       }
     });
+    track.hairpins = rv;
 
     hps.forEach((hairpin) => {
       let endDynamic = 0;
@@ -19303,13 +19323,15 @@ class SmoAudioTrack {
         endSelector: cp(hairpin.endSelector),
         ticksUsed: 0
       };
+      // For a hairpin, try to calculate the volume difference from start to end,
+      // as a function of ticks
       const endSelection = SmoSelection.selectionFromSelector(hairpin.endSelector);
-      endDynamic = this.volume(endSelection.note);
-      const startDynamic = this.volume(selection.note);
+      endDynamic = this.volumeFromNote(endSelection.note);
+      const startDynamic = this.volumeFromNote(selection.note);
       if (startDynamic === endDynamic) {
         const nextSelection = SmoSelection.nextNoteSelectionFromSelector(this.score, hairpin.endSelector);
         if (nextSelection) {
-          endDynamic = this.volume(nextSelection.note);
+          endDynamic = this.volumeFromNote(nextSelection.note);
         }
       }
       if (startDynamic === endDynamic) {
@@ -19319,10 +19341,12 @@ class SmoAudioTrack {
       }
       trackHairpin.delta = startDynamic - endDynamic;
       trackHairpin.ticks = ticksFromSelection(hairpin.startSelector, hairpin.endSelector);
-      rv.push(trackHairpin);
+      track.hairpins.push(trackHairpin);
     });
-    this.hairpins = rv;
   }
+  /* getVolume(selection) {
+
+  }  */
   getSlurInfo(staff, selector) {
     const slurStart = staff.getSlursStartingAt(selector).length > 0;
     const tieStart = staff.getTiesStartingAt(selector).length > 0;
@@ -19351,8 +19375,8 @@ class SmoAudioTrack {
     const trackHash = { };
     const measureBeats = [];
     this.score.staves.forEach((staff, staffIx) => {
+      this.volume = 0;
       staff.measures.forEach((measure, measureIx) => {
-        this.hairpins = [];
         measure.voices.forEach((voice, voiceIx) => {
           let duration = 0;
           const trackKey = (this.score.staves.length * voiceIx) + staffIx;
@@ -19361,7 +19385,9 @@ class SmoAudioTrack {
               lastMeasure: 0,
               notes: [],
               tempoMap: {},
-              timeSignatureMap: {}
+              timeSignatureMap: {},
+              hairpins: [],
+              volume: 0
             };
           }
           const measureSelector = {
@@ -19390,7 +19416,9 @@ class SmoAudioTrack {
             const selector = {
               staff: staffIx, measure: measureIx, voice: voiceIx, note: noteIx
             };
+            const selection = SmoSelection.selectionFromSelector(this.score, selector);
             const slurInfo = this.getSlurInfo(staff, selector);
+            this.getHairpinInfo(track, selection);
             const tuplet = measure.getTupletForNote(note);
             if (tuplet && tuplet.getIndexOfNote(note) === 0) {
               tupletTicks = tuplet.tupletTicks / this.timeDiv;

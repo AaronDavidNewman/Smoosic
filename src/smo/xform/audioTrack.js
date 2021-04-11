@@ -100,9 +100,9 @@ class SmoAudioTrack {
       track.hairpins.push(trackHairpin);
     });
   }
-  getVolume(selection) {
+  /* getVolume(selection) {
 
-  }
+  }  */
   getSlurInfo(staff, selector) {
     const slurStart = staff.getSlursStartingAt(selector).length > 0;
     const tieStart = staff.getTiesStartingAt(selector).length > 0;
@@ -131,7 +131,6 @@ class SmoAudioTrack {
     const trackHash = { };
     const measureBeats = [];
     this.score.staves.forEach((staff, staffIx) => {
-      this.hairpins = [];
       this.volume = 0;
       staff.measures.forEach((measure, measureIx) => {
         measure.voices.forEach((voice, voiceIx) => {
@@ -143,7 +142,8 @@ class SmoAudioTrack {
               notes: [],
               tempoMap: {},
               timeSignatureMap: {},
-              hairpins: [];
+              hairpins: [],
+              volume: 0
             };
           }
           const measureSelector = {
@@ -174,7 +174,7 @@ class SmoAudioTrack {
             };
             const selection = SmoSelection.selectionFromSelector(this.score, selector);
             const slurInfo = this.getSlurInfo(staff, selector);
-            this.getHairpinInfo(selection);
+            this.getHairpinInfo(track, selection);
             const tuplet = measure.getTupletForNote(note);
             if (tuplet && tuplet.getIndexOfNote(note) === 0) {
               tupletTicks = tuplet.tupletTicks / this.timeDiv;
