@@ -58,15 +58,12 @@ class SmoSystemStaff {
     smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters, this, params);
     params.modifiers = [];
     params.measures = [];
-
     this.measures.forEach((measure) => {
       params.measures.push(measure.serialize());
     });
-
     this.modifiers.forEach((modifier) => {
       params.modifiers.push(modifier.serialize());
     });
-
     return params;
   }
 
@@ -167,12 +164,12 @@ class SmoSystemStaff {
     );
   }
 
-  getTieStartingAt(selector) {
+  getTiesStartingAt(selector) {
     return this.modifiers.filter((mod) =>
       SmoSelector.sameNote(mod.startSelector, selector) && mod.attrs.type === 'SmoTie'
     );
   }
-  getTieEndingAt(selector) {
+  getTiesEndingAt(selector) {
     return this.modifiers.filter((mod) =>
       SmoSelector.sameNote(mod.endSelector, selector) && mod.attrs.type === 'SmoTie'
     );

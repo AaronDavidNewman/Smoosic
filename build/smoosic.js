@@ -253,7 +253,8 @@ class draggable {
     this._animate(e);
   }
 }
-;
+;// Credit for Midi functionality goes to:
+// https://github.com/grimmdude/MidiWriterJS
 var _MidiWriter = function() {
 /**
  * MIDI file format constants.
@@ -291,7 +292,6 @@ var Constants = {
   PROGRAM_CHANGE_STATUS: 0xC0,
   // includes channel number (0)
   PITCH_BEND_STATUS: 0xE0 // includes channel number (0)
-
 };
 
 function _typeof(obj) {
@@ -16734,15 +16734,12 @@ class SmoSystemStaff {
     smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters, this, params);
     params.modifiers = [];
     params.measures = [];
-
     this.measures.forEach((measure) => {
       params.measures.push(measure.serialize());
     });
-
     this.modifiers.forEach((modifier) => {
       params.modifiers.push(modifier.serialize());
     });
-
     return params;
   }
 
@@ -16843,12 +16840,12 @@ class SmoSystemStaff {
     );
   }
 
-  getTieStartingAt(selector) {
+  getTiesStartingAt(selector) {
     return this.modifiers.filter((mod) =>
       SmoSelector.sameNote(mod.startSelector, selector) && mod.attrs.type === 'SmoTie'
     );
   }
-  getTieEndingAt(selector) {
+  getTiesEndingAt(selector) {
     return this.modifiers.filter((mod) =>
       SmoSelector.sameNote(mod.endSelector, selector) && mod.attrs.type === 'SmoTie'
     );
@@ -19243,6 +19240,185 @@ class SmoActionRecord {
     }
     this.executeIndex += 1;
     return { method: action.method, args, count: action.count };
+  }
+}
+;// eslint-disable-next-line no-unused-vars
+class SmoAudioTrack {
+  // ### dynamicVolumeMap
+  // normalized dynamic
+  static get dynamicVolumeMap() {
+    // matches SmoDynamicText.dynamics
+    return {
+      pp: 0.15,
+      p: 0.2,
+      mp: 0.3,
+      mf: 0.5,
+      f: 0.6,
+      ff: 0.65
+    };
+  }
+  volume(smoNote) {
+    const dynamic = smoNote.getModifiers('SmoDynamicText');
+    if (dynamic.length < 1) {
+      return SmoAudioTrack.dynamicVolumeMap[SmoDynamicText.MF];
+    }
+    if (dynamic[0].text === SmoDynamicText.dynamics.SFZ) {
+      return SmoAudioTrack.dynamicVolumeMap[SmoDynamicText.F];
+    }
+    return SmoAudioTrack.dynamicVolumeMap[dynamic[0].text];
+  }
+  constructor(score, beatTime) {
+    this.timeDiv = 4096 / beatTime;
+    this.score = score;
+    this.beatTime = beatTime;
+  }
+  ticksFromSelection(score, startSelector, endSelector) {
+    const selection = SmoSelection.selectionFromSelector(startSelector);
+    let ticks = selection.note.tickCount;
+    let nextSelection = SmoSelection.nextNoteSelectionFromSelector(score, startSelector);
+    while (nextSelection && !SmoSelector.gt(nextSelection.selector, endSelector)) {
+      ticks += note.tickCount;
+      nextSelection = SmoSelection.nextNoteSelectionFromSelector(score, startSelector);
+    }
+    return ticks / this.timeDiv;
+  }
+  getHairpinInfo(staff, selection) {
+    const selector = selection.selector;
+    const cp = (x) => JSON.parse(JSON.stringify(x));
+    const hps = staff.getModifier(selector, 'SmoStaffHairpin')
+      .filter((hairpin) => SmoSelector.eq(hairpin.startSelector, selector));
+    rv = [];
+    this.hairpins.forEach((hairpin) => {
+      if (SmoSelector.gteq(hairpin.startSelector, selection.selector) &&
+        SmoSelector.lteq(hairpin.startSelector, selection.selector)) {
+        rv.push(hairpin);
+      }
+    });
+
+    hps.forEach((hairpin) => {
+      let endDynamic = 0;
+      trackHairpin = {
+        hairpinType: hairpin.hairpinType,
+        startSelector: cp(hairpin.startSelector),
+        endSelector: cp(hairpin.endSelector),
+        ticksUsed: 0
+      };
+      const endSelection = SmoSelection.selectionFromSelector(hairpin.endSelector);
+      endDynamic = this.volume(endSelection.note);
+      const startDynamic = this.volume(selection.note);
+      if (startDynamic === endDynamic) {
+        const nextSelection = SmoSelection.nextNoteSelectionFromSelector(this.score, hairpin.endSelector);
+        if (nextSelection) {
+          endDynamic = this.volume(nextSelection.note);
+        }
+      }
+      if (startDynamic === endDynamic) {
+        const offset = hairpin.hairpingType === SmoStaffHairpin.CRESCENDO ? 0.1 : -0.1;
+        endDynamic = Math.max(endDynamic + offset, 0.1);
+        endDynamic = Math.min(endDynamic, 1.0);
+      }
+      trackHairpin.delta = startDynamic - endDynamic;
+      trackHairpin.ticks = ticksFromSelection(hairpin.startSelector, hairpin.endSelector);
+      rv.push(trackHairpin);
+    });
+    this.hairpins = rv;
+  }
+  getSlurInfo(staff, selector) {
+    const slurStart = staff.getSlursStartingAt(selector).length > 0;
+    const tieStart = staff.getTiesStartingAt(selector).length > 0;
+    const tieEnd = staff.getTiesEndingAt(selector).length > 0;
+    const slurEnd = staff.getSlursEndingAt(selector).length > 0;
+    return { slurStart: slurStart || tieStart, slurEnd: slurEnd || tieEnd };
+  }
+  createTrackNote(note, duration, selector, slurInfo) {
+    const pitchArray = JSON.parse(JSON.stringify(note.pitches));
+    return {
+      pitch: pitchArray,
+      noteType: 'n',
+      duration,
+      selector,
+      slurInfo
+    };
+  }
+  createTrackRest(duration, selector) {
+    return {
+      duration,
+      noteType: 'r',
+      selector
+    };
+  }
+  convert() {
+    const trackHash = { };
+    const measureBeats = [];
+    this.score.staves.forEach((staff, staffIx) => {
+      staff.measures.forEach((measure, measureIx) => {
+        this.hairpins = [];
+        measure.voices.forEach((voice, voiceIx) => {
+          let duration = 0;
+          const trackKey = (this.score.staves.length * voiceIx) + staffIx;
+          if (typeof(trackHash[trackKey]) === 'undefined') {
+            trackHash[trackKey] = {
+              lastMeasure: 0,
+              notes: [],
+              tempoMap: {},
+              timeSignatureMap: {}
+            };
+          }
+          const measureSelector = {
+            staff: staffIx, measure: measureIx
+          };
+          const track = trackHash[trackKey];
+          // staff 0/voice 0, set track values for the measure
+          if (voiceIx === 0) {
+            if (staffIx === 0) {
+              measureBeats.push(measure.getMaxTicksVoice() / this.timeDiv);
+            }
+            track.tempoMap[measureSelector] = measure.tempo.bpm;
+            track.timeSignatureMap[measureSelector] = measure.beatValue;
+          }
+          // If this voice is not in every measure, fill in the space
+          // in its own channel.
+          while (track.lastMeasure < measureIx) {
+            duration += measureBeats[trackObj.lastMeasure];
+            track.notes.push(this.createTrackRest(duration,
+              { staff: staffIx, measure: measureIx, voice: voiceIx, note: 0 }
+            ));
+            track.lastMeasure += 1;
+          }
+          let tupletTicks = 0;
+          voice.notes.forEach((note, noteIx) => {
+            const selector = {
+              staff: staffIx, measure: measureIx, voice: voiceIx, note: noteIx
+            };
+            const slurInfo = this.getSlurInfo(staff, selector);
+            const tuplet = measure.getTupletForNote(note);
+            if (tuplet && tuplet.getIndexOfNote(note) === 0) {
+              tupletTicks = tuplet.tupletTicks / this.timeDiv;
+            }
+            if (tupletTicks) {
+              // tuplet likely won't fit evenly in ticks, so
+              // use remainder in last tuplet note.
+              if (tuplet.getIndexOfNote(note) === tuplet.notes.length - 1) {
+                duration = tupletTicks;
+                tupletTicks = 0;
+              } else {
+                duration = note.tickCount / this.timeDiv;
+                tupletTicks -= duration;
+              }
+            } else {
+              duration = note.tickCount / this.timeDiv;
+            }
+            if (note.isRest()) {
+              track.notes.push(this.createTrackRest(duration, selector));
+            } else {
+              track.notes.push(this.createTrackNote(note, duration, selector, slurInfo));
+            }
+          });
+          track.lastMeasure += 1;
+        });
+      });
+    });
+    return trackHash;
   }
 }
 ;// eslint-disable-next-line no-unused-vars

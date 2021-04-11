@@ -1,4 +1,5 @@
-
+// Credit for Midi functionality goes to:
+// https://github.com/grimmdude/MidiWriterJS
 var _MidiWriter = function() {
 /**
  * MIDI file format constants.
@@ -36,7 +37,6 @@ var Constants = {
   PROGRAM_CHANGE_STATUS: 0xC0,
   // includes channel number (0)
   PITCH_BEND_STATUS: 0xE0 // includes channel number (0)
-
 };
 
 function _typeof(obj) {
