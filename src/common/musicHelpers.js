@@ -298,6 +298,27 @@ class smoMusic {
     }
     return vexKey;
   }
+  static pitchArraysMatch(ar1, ar2) {
+    var matches = 0;
+    const ir1 = smoMusic.smoPitchesToIntArray(ar1);
+    const ir2 = smoMusic.smoPitchesToIntArray(ar2);
+    if (ir1.length !== ir2.length) {
+      return;
+    }
+    ir1.forEach((num) => {
+      if (ir2.indexOf(num) >= 0) {
+        matches += 1;
+      }
+    });
+    return matches === ir1.length;
+  }
+  static smoPitchesToIntArray(pitches) {
+    const rv = [];
+    pitches.forEach((pitch) => {
+      rv.push(smoMusic.smoPitchToInt(pitch));
+    });
+    return rv.sort();
+  }
 
   static smoPitchToInt(pitch) {
     if (typeof(pitch.octave) === 'undefined') {
@@ -648,7 +669,7 @@ class smoMusic {
   }
 
   static getSharpsInKeySignature(key) {
-    var sharpKeys = ['B','G','D','A','E','B','F#','C#'];
+    var sharpKeys = ['B', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
     if (sharpKeys.indexOf(key) < 0) {
       return 0;
     }
@@ -656,7 +677,7 @@ class smoMusic {
   }
 
   static getFlatsInKeySignature(key) {
-    var flatKeys = ['F','Bb','Eb','Ab','Db','Gb','Cb'];
+    var flatKeys = ['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb'];
     if (flatKeys.indexOf(key) < 0) {
       return 0;
     }
