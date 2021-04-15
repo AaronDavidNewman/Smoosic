@@ -2255,6 +2255,27 @@ class smoMusic {
     }
     return vexKey;
   }
+  static pitchArraysMatch(ar1, ar2) {
+    var matches = 0;
+    const ir1 = smoMusic.smoPitchesToIntArray(ar1);
+    const ir2 = smoMusic.smoPitchesToIntArray(ar2);
+    if (ir1.length !== ir2.length) {
+      return;
+    }
+    ir1.forEach((num) => {
+      if (ir2.indexOf(num) >= 0) {
+        matches += 1;
+      }
+    });
+    return matches === ir1.length;
+  }
+  static smoPitchesToIntArray(pitches) {
+    const rv = [];
+    pitches.forEach((pitch) => {
+      rv.push(smoMusic.smoPitchToInt(pitch));
+    });
+    return rv.sort();
+  }
 
   static smoPitchToInt(pitch) {
     if (typeof(pitch.octave) === 'undefined') {
@@ -2605,7 +2626,7 @@ class smoMusic {
   }
 
   static getSharpsInKeySignature(key) {
-    var sharpKeys = ['B','G','D','A','E','B','F#','C#'];
+    var sharpKeys = ['B', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
     if (sharpKeys.indexOf(key) < 0) {
       return 0;
     }
@@ -2613,7 +2634,7 @@ class smoMusic {
   }
 
   static getFlatsInKeySignature(key) {
-    var flatKeys = ['F','Bb','Eb','Ab','Db','Gb','Cb'];
+    var flatKeys = ['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb'];
     if (flatKeys.indexOf(key) < 0) {
       return 0;
     }
@@ -17354,84 +17375,51 @@ class SmoTuplet {
 ;// eslint-disable-next-line no-unused-vars
 class SmoToMidi {
   static convert(score) {
+    const beatTime = 128;  // midi ticks per beat
+    const converter = new SmoAudioTrack(score, beatTime);
+    const smoTracks = converter.convert();
     const trackHash = {};
     const measureBeats = [];
-    let measureIx = 0;
-    const beatTime = 128;  // midi ticks per beat
-    const timeDiv = 4096 / 128; // convert Smo ticks to midi
-    score.staves.forEach((staff, staffIx) => {
-      staff.measures.forEach((measure, measureIx) => {
-        measure.voices.forEach((voice, voiceIx) => {
-          let j = 0;
-          let duration = 0;
-          const trackKey = (score.staves.length * voiceIx) + staffIx;
-          if (typeof(trackHash[trackKey]) === 'undefined') {
-            trackHash[trackKey] = {
-              track: new MidiWriter.Track(),
-              lastMeasure: 0
-            };
-          }
-          const trackObj = trackHash[trackKey];
-          const track = trackObj.track;
-          // staff 0/voice 0, set track values for the measure
-          if (voiceIx === 0) {
-            if (staffIx === 0) {
-              measureBeats.push(measure.getMaxTicksVoice());
-            }
-            track.setTempo(measure.tempo.bpm);
-            track.setTimeSignature(measure.numBeats, measure.beatValue);
-          }
-          // If this voice is not in every measure, fill in the space
-          // in its own channel.
-          while (trackObj.lastMeasure < measureIx) {
-            duration += 128 * measureBeats[trackObj.lastMeasure];
-            const rest = new MidiWriter.NoteOffEvent({
-              channel: trackKey,
-              pitch: 'C4',
-              duration: 't' + duration
-            });
-            track.addEvent(rest);
-            trackObj.lastMeasure += 1;
-          }
-          let tupletTicks = 0;
-          voice.notes.forEach((note) => {
-            const tuplet = measure.getTupletForNote(note);
-            if (tuplet && tuplet.getIndexOfNote(note) === 0) {
-              tupletTicks = tuplet.tupletTicks / timeDiv;
-            }
-            if (tupletTicks) {
-              // tuplet likely won't fit evenly in ticks, so
-              // use remainder in last tuplet note.
-              if (tuplet.getIndexOfNote(note) === tuplet.notes.length - 1) {
-                duration = tupletTicks;
-                tupletTicks = 0;
-              }
-              else {
-                duration = note.tickCount / timeDiv;
-                tupletTicks -= duration;
-              }
-            } else {
-              duration = note.tickCount / timeDiv;
-            }
-            if (note.isRest()) {
-              const rest = new MidiWriter.NoteOffEvent({
-                channel: trackKey + 1,
-                pitch: 'C4',
-                duration: 't' + duration
-              });
-              track.addEvent(rest);
-            } else {
-              const pitchArray = smoMusic.smoPitchesToMidiStrings(note.pitches);
-              const midiNote = new MidiWriter.NoteEvent({
-                channel: trackKey + 1,
-                pitch: pitchArray,
-                duration: 't' + duration
-              });
-              track.addEvent(midiNote);
-            }
+    const trackKeys = Object.keys(smoTracks);
+    trackKeys.forEach((trackKey) => {
+      const smoTrack = smoTracks[trackKey];
+      let tempo = 0;
+      let beatsNum = 0;
+      let beatsDen = 0;
+      if (typeof(trackHash[trackKey]) === 'undefined') {
+        trackHash[trackKey] = {
+          track: new MidiWriter.Track(),
+          lastMeasure: 0
+        };
+      }
+      const track = trackHash[trackKey].track;
+      smoTrack.notes.forEach((noteData) => {
+        const selectorKey = SmoSelector.getMeasureKey(noteData.selector);
+        if (smoTrack.tempoMap[selectorKey]) {
+          track.setTempo(smoTrack.tempoMap[selectorKey]);
+        }
+        if (smoTrack.timeSignatureMap[selectorKey]) {
+          const ts = smoTrack.timeSignatureMap[selectorKey];
+          track.setTimeSignature(ts.numerator, ts.denominator);
+        }
+        if (noteData.noteType === 'r') {
+          const rest = new MidiWriter.NoteOffEvent({
+            channel: parseInt(trackKey, 10) + 1,
+            pitch: 'C4',
+            duration: 't' + noteData.duration
           });
-          trackObj.lastMeasure += 1;
-        });
+          track.addEvent(rest);
+        } else {
+          const pitchArray = smoMusic.smoPitchesToMidiStrings(noteData.pitches);
+          const velocity = Math.round(127 * noteData.volume);
+          const midiNote = new MidiWriter.NoteEvent({
+            channel: parseInt(trackKey, 10) + 1,
+            pitch: pitchArray,
+            duration: 't' + noteData.duration,
+            velocity
+          });
+          track.addEvent(midiNote);
+        }
       });
     });
     const tracks = Object.keys(trackHash).map((key) => trackHash[key].track);
@@ -19245,9 +19233,12 @@ class SmoActionRecord {
 ;// ## SmoAudioTrack
 // Convert a score into a JSON structure that can be rendered to audio.  For
 // each staff/voice, return a track that consists of:
-// array of pitches, duration, normalized volumn, tempo changes.
+//  `` { lastMeasure,notes,tempoMap,timeSignatureMap,hairpins,volume,tiedNotes} ``
+// where each note might contain:
+//  ``{ pitches ,noteType,duration,selector,volume }``
 // Note:  pitches are smo pitches, durations are adjusted for beatTime
 // (beatTime === 4096 uses Smo/Vex ticks, 128 is midi tick default)
+//
 // eslint-disable-next-line no-unused-vars
 class SmoAudioTrack {
   // ### dynamicVolumeMap
@@ -19255,12 +19246,23 @@ class SmoAudioTrack {
   static get dynamicVolumeMap() {
     // matches SmoDynamicText.dynamics
     return {
-      pp: 0.15,
-      p: 0.2,
-      mp: 0.3,
-      mf: 0.5,
-      f: 0.6,
-      ff: 0.65
+      pp: 0.3,
+      p: 0.4,
+      mp: 0.5,
+      mf: 0.6,
+      f: 0.7,
+      ff: 0.8
+    };
+  }
+  static get emptyTrack() {
+    return {
+      lastMeasure: 0,
+      notes: [],
+      tempoMap: {},
+      timeSignatureMap: {},
+      hairpins: [],
+      volume: 0,
+      tiedNotes: []
     };
   }
   constructor(score, beatTime) {
@@ -19269,12 +19271,15 @@ class SmoAudioTrack {
     this.beatTime = beatTime;
   }
   // ### volumeFromNote
-  // Return a normalized volumn from the dynamic setting of the note
-  // or 0 if none is specified
-  volumeFromNote(smoNote) {
+  // Return a normalized volume from the dynamic setting of the note
+  // or supplied default if none exists
+  volumeFromNote(smoNote, def) {
+    if (typeof(def) === 'undefined') {
+      def = 0;
+    }
     const dynamic = smoNote.getModifiers('SmoDynamicText');
     if (dynamic.length < 1) {
-      return 0;
+      return def;
     }
     if (dynamic[0].text === SmoDynamicText.dynamics.SFZ) {
       return SmoAudioTrack.dynamicVolumeMap[SmoDynamicText.F];
@@ -19284,13 +19289,13 @@ class SmoAudioTrack {
   // ### ticksFromSelection
   // return the count of ticks between the selectors, adjusted for
   // beatTime
-  ticksFromSelection(score, startSelector, endSelector) {
-    const selection = SmoSelection.selectionFromSelector(startSelector);
+  ticksFromSelection(startSelector, endSelector) {
+    const selection = SmoSelection.selectionFromSelector(this.score, startSelector);
     let ticks = selection.note.tickCount;
-    let nextSelection = SmoSelection.nextNoteSelectionFromSelector(score, startSelector);
+    let nextSelection = SmoSelection.nextNoteSelectionFromSelector(this.score, startSelector);
     while (nextSelection && !SmoSelector.gt(nextSelection.selector, endSelector)) {
-      ticks += note.tickCount;
-      nextSelection = SmoSelection.nextNoteSelectionFromSelector(score, startSelector);
+      ticks += nextSelection.note.tickCount;
+      nextSelection = SmoSelection.nextNoteSelectionFromSelector(this.score, nextSelection.selector);
     }
     return ticks / this.timeDiv;
   }
@@ -19301,15 +19306,16 @@ class SmoAudioTrack {
     const staff = selection.staff;
     const selector = selection.selector;
     const cp = (x) => JSON.parse(JSON.stringify(x));
-    const hps = staff.getModifier(selector, 'SmoStaffHairpin')
-      .filter((hairpin) => SmoSelector.eq(hairpin.startSelector, selector));
-    rv = [];
+    const hps = staff.getModifiersAt(selector)
+      .filter((hairpin) => hairpin.ctor === 'SmoStaffHairpin' &&
+        SmoSelector.eq(hairpin.startSelector, selector));
+    const rv = [];
     // clear out old hairpins.
     // usually there will only be a single hairpin per voice, except
     // in the case of overlapping.
     track.hairpins.forEach((hairpin) => {
-      if (SmoSelector.gteq(hairpin.startSelector, selection.selector) &&
-        SmoSelector.lteq(hairpin.startSelector, selection.selector)) {
+      if (SmoSelector.gteq(selection.selector, hairpin.startSelector) &&
+        SmoSelector.lteq(selection.selector, hairpin.endSelector)) {
         rv.push(hairpin);
       }
     });
@@ -19317,15 +19323,14 @@ class SmoAudioTrack {
 
     hps.forEach((hairpin) => {
       let endDynamic = 0;
-      trackHairpin = {
+      const trackHairpin = {
         hairpinType: hairpin.hairpinType,
         startSelector: cp(hairpin.startSelector),
-        endSelector: cp(hairpin.endSelector),
-        ticksUsed: 0
+        endSelector: cp(hairpin.endSelector)
       };
       // For a hairpin, try to calculate the volume difference from start to end,
       // as a function of ticks
-      const endSelection = SmoSelection.selectionFromSelector(hairpin.endSelector);
+      const endSelection = SmoSelection.selectionFromSelector(this.score, hairpin.endSelector);
       endDynamic = this.volumeFromNote(endSelection.note);
       const startDynamic = this.volumeFromNote(selection.note);
       if (startDynamic === endDynamic) {
@@ -19340,29 +19345,69 @@ class SmoAudioTrack {
         endDynamic = Math.min(endDynamic, 1.0);
       }
       trackHairpin.delta = startDynamic - endDynamic;
-      trackHairpin.ticks = ticksFromSelection(hairpin.startSelector, hairpin.endSelector);
+      trackHairpin.ticks = this.ticksFromSelection(hairpin.startSelector, hairpin.endSelector);
       track.hairpins.push(trackHairpin);
     });
   }
-  /* getVolume(selection) {
-
-  }  */
-  getSlurInfo(staff, selector) {
-    const slurStart = staff.getSlursStartingAt(selector).length > 0;
-    const tieStart = staff.getTiesStartingAt(selector).length > 0;
-    const tieEnd = staff.getTiesEndingAt(selector).length > 0;
-    const slurEnd = staff.getSlursEndingAt(selector).length > 0;
-    return { slurStart: slurStart || tieStart, slurEnd: slurEnd || tieEnd };
+  // ### computeVolume
+  // come up with a current normalized volume based on dynamics
+  // that appear in the music
+  computeVolume(track, selection) {
+    if (track.volume === 0) {
+      track.volume = this.volumeFromNote(selection.note,
+        SmoAudioTrack.dynamicVolumeMap.mf);
+      return;
+    }
+    if (track.hairpins.length) {
+      const hp = track.hairpins[0];
+      const coff = (selection.note.tickCount / this.timeDiv) / hp.ticks;
+      track.volume += hp.delta * coff;
+    } else {
+      track.volume = this.volumeFromNote(selection.note, track.volume);
+    }
   }
-  createTrackNote(note, duration, selector, slurInfo) {
-    const pitchArray = JSON.parse(JSON.stringify(note.pitches));
-    return {
-      pitch: pitchArray,
+  getSlurInfo(track, selection) {
+    const tn = [];
+    const cp = (x) => JSON.parse(JSON.stringify(x));
+    track.tiedNotes.forEach((tie) => {
+      if (SmoSelector.gteq(selection.selector, tie.startSelector) && SmoSelector.lteq(selection.selector, tie.endSelector)) {
+        tn.push(tie);
+      }
+    });
+    track.tiedNotes = tn;
+    const slurStart = selection.staff.getSlursStartingAt(selection.selector);
+    slurStart.forEach((slur) => {
+      tn.push({
+        startSelector: cp(slur.startSelector),
+        endSelector: cp(slur.endSelector)
+      });
+    });
+  }
+  isTiedPitch(track, selection, noteIx) {
+    if (noteIx < 1) {
+      return false;
+    }
+    if (!track.tiedNotes.length) {
+      return false;
+    }
+    if (!track.notes[noteIx - 1].noteType !== 'n') {
+      return false;
+    }
+    return smoMusic.pitchArraysMatch(track.notes[noteIx - 1].pitches, selection.note.pitches);
+  }
+  createTrackNote(track, selection, duration, noteIx) {
+    if (this.isTiedPitch(track, selection, noteIx)) {
+      track.notes[noteIx - 1].duration += duration;
+      return;
+    }
+    const pitchArray = JSON.parse(JSON.stringify(selection.note.pitches));
+    track.notes.push({
+      pitches: pitchArray,
       noteType: 'n',
       duration,
-      selector,
-      slurInfo
-    };
+      selector: selection.selector,
+      volume: track.volume
+    });
   }
   createTrackRest(duration, selector) {
     return {
@@ -19381,14 +19426,7 @@ class SmoAudioTrack {
           let duration = 0;
           const trackKey = (this.score.staves.length * voiceIx) + staffIx;
           if (typeof(trackHash[trackKey]) === 'undefined') {
-            trackHash[trackKey] = {
-              lastMeasure: 0,
-              notes: [],
-              tempoMap: {},
-              timeSignatureMap: {},
-              hairpins: [],
-              volume: 0
-            };
+            trackHash[trackKey] = SmoAudioTrack.emptyTrack;
           }
           const measureSelector = {
             staff: staffIx, measure: measureIx
@@ -19399,25 +19437,30 @@ class SmoAudioTrack {
             if (staffIx === 0) {
               measureBeats.push(measure.getMaxTicksVoice() / this.timeDiv);
             }
-            track.tempoMap[measureSelector] = measure.tempo.bpm;
-            track.timeSignatureMap[measureSelector] = measure.beatValue;
+            const selectorKey = SmoSelector.getMeasureKey(measureSelector);
+            track.tempoMap[selectorKey] = measure.tempo.bpm;
+            track.timeSignatureMap[selectorKey] = {
+              numerator: measure.numBeats,
+              denominator: measure.beatValue
+            };
           }
           // If this voice is not in every measure, fill in the space
           // in its own channel.
           while (track.lastMeasure < measureIx) {
-            duration += measureBeats[trackObj.lastMeasure];
+            duration += measureBeats[track.lastMeasure];
             track.notes.push(this.createTrackRest(duration,
-              { staff: staffIx, measure: measureIx, voice: voiceIx, note: 0 }
+              { staff: staffIx, measure: track.lastMeasure, voice: voiceIx, note: 0 }
             ));
             track.lastMeasure += 1;
           }
           let tupletTicks = 0;
           voice.notes.forEach((note, noteIx) => {
             const selector = {
-              staff: staffIx, measure: measureIx, voice: voiceIx, note: noteIx
+              staff: staffIx, measure: measureIx, voice: voiceIx, tick: noteIx
             };
             const selection = SmoSelection.selectionFromSelector(this.score, selector);
-            const slurInfo = this.getSlurInfo(staff, selector);
+            // update staff features of slur/tie/cresc.
+            this.getSlurInfo(track, selection);
             this.getHairpinInfo(track, selection);
             const tuplet = measure.getTupletForNote(note);
             if (tuplet && tuplet.getIndexOfNote(note) === 0) {
@@ -19439,7 +19482,8 @@ class SmoAudioTrack {
             if (note.isRest()) {
               track.notes.push(this.createTrackRest(duration, selector));
             } else {
-              track.notes.push(this.createTrackNote(note, duration, selector, slurInfo));
+              this.computeVolume(track, selection);
+              this.createTrackNote(track, selection, duration, noteIx);
             }
           });
           track.lastMeasure += 1;

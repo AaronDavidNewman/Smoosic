@@ -1,9 +1,12 @@
 // ## SmoAudioTrack
 // Convert a score into a JSON structure that can be rendered to audio.  For
 // each staff/voice, return a track that consists of:
-// array of pitches, duration, selector, normalized volume, tempo and time changes
+//  `` { lastMeasure,notes,tempoMap,timeSignatureMap,hairpins,volume,tiedNotes} ``
+// where each note might contain:
+//  ``{ pitches ,noteType,duration,selector,volume }``
 // Note:  pitches are smo pitches, durations are adjusted for beatTime
 // (beatTime === 4096 uses Smo/Vex ticks, 128 is midi tick default)
+//
 // eslint-disable-next-line no-unused-vars
 class SmoAudioTrack {
   // ### dynamicVolumeMap
@@ -11,12 +14,12 @@ class SmoAudioTrack {
   static get dynamicVolumeMap() {
     // matches SmoDynamicText.dynamics
     return {
-      pp: 0.15,
-      p: 0.2,
-      mp: 0.3,
-      mf: 0.5,
-      f: 0.6,
-      ff: 0.65
+      pp: 0.3,
+      p: 0.4,
+      mp: 0.5,
+      mf: 0.6,
+      f: 0.7,
+      ff: 0.8
     };
   }
   static get emptyTrack() {
@@ -155,7 +158,10 @@ class SmoAudioTrack {
     if (!track.tiedNotes.length) {
       return false;
     }
-    return smoMusic.pitchArraysMatch(track.notes[noteIx - 1].pitch, selection.note.pitches);
+    if (!track.notes[noteIx - 1].noteType !== 'n') {
+      return false;
+    }
+    return smoMusic.pitchArraysMatch(track.notes[noteIx - 1].pitches, selection.note.pitches);
   }
   createTrackNote(track, selection, duration, noteIx) {
     if (this.isTiedPitch(track, selection, noteIx)) {
@@ -164,7 +170,7 @@ class SmoAudioTrack {
     }
     const pitchArray = JSON.parse(JSON.stringify(selection.note.pitches));
     track.notes.push({
-      pitch: pitchArray,
+      pitches: pitchArray,
       noteType: 'n',
       duration,
       selector: selection.selector,
@@ -209,9 +215,9 @@ class SmoAudioTrack {
           // If this voice is not in every measure, fill in the space
           // in its own channel.
           while (track.lastMeasure < measureIx) {
-            duration += measureBeats[trackObj.lastMeasure];
+            duration += measureBeats[track.lastMeasure];
             track.notes.push(this.createTrackRest(duration,
-              { staff: staffIx, measure: measureIx, voice: voiceIx, note: 0 }
+              { staff: staffIx, measure: track.lastMeasure, voice: voiceIx, note: 0 }
             ));
             track.lastMeasure += 1;
           }

@@ -1,84 +1,51 @@
 // eslint-disable-next-line no-unused-vars
 class SmoToMidi {
   static convert(score) {
+    const beatTime = 128;  // midi ticks per beat
+    const converter = new SmoAudioTrack(score, beatTime);
+    const smoTracks = converter.convert();
     const trackHash = {};
     const measureBeats = [];
-    let measureIx = 0;
-    const beatTime = 128;  // midi ticks per beat
-    const timeDiv = 4096 / 128; // convert Smo ticks to midi
-    score.staves.forEach((staff, staffIx) => {
-      staff.measures.forEach((measure, measureIx) => {
-        measure.voices.forEach((voice, voiceIx) => {
-          let j = 0;
-          let duration = 0;
-          const trackKey = (score.staves.length * voiceIx) + staffIx;
-          if (typeof(trackHash[trackKey]) === 'undefined') {
-            trackHash[trackKey] = {
-              track: new MidiWriter.Track(),
-              lastMeasure: 0
-            };
-          }
-          const trackObj = trackHash[trackKey];
-          const track = trackObj.track;
-          // staff 0/voice 0, set track values for the measure
-          if (voiceIx === 0) {
-            if (staffIx === 0) {
-              measureBeats.push(measure.getMaxTicksVoice());
-            }
-            track.setTempo(measure.tempo.bpm);
-            track.setTimeSignature(measure.numBeats, measure.beatValue);
-          }
-          // If this voice is not in every measure, fill in the space
-          // in its own channel.
-          while (trackObj.lastMeasure < measureIx) {
-            duration += 128 * measureBeats[trackObj.lastMeasure];
-            const rest = new MidiWriter.NoteOffEvent({
-              channel: trackKey,
-              pitch: 'C4',
-              duration: 't' + duration
-            });
-            track.addEvent(rest);
-            trackObj.lastMeasure += 1;
-          }
-          let tupletTicks = 0;
-          voice.notes.forEach((note) => {
-            const tuplet = measure.getTupletForNote(note);
-            if (tuplet && tuplet.getIndexOfNote(note) === 0) {
-              tupletTicks = tuplet.tupletTicks / timeDiv;
-            }
-            if (tupletTicks) {
-              // tuplet likely won't fit evenly in ticks, so
-              // use remainder in last tuplet note.
-              if (tuplet.getIndexOfNote(note) === tuplet.notes.length - 1) {
-                duration = tupletTicks;
-                tupletTicks = 0;
-              }
-              else {
-                duration = note.tickCount / timeDiv;
-                tupletTicks -= duration;
-              }
-            } else {
-              duration = note.tickCount / timeDiv;
-            }
-            if (note.isRest()) {
-              const rest = new MidiWriter.NoteOffEvent({
-                channel: trackKey + 1,
-                pitch: 'C4',
-                duration: 't' + duration
-              });
-              track.addEvent(rest);
-            } else {
-              const pitchArray = smoMusic.smoPitchesToMidiStrings(note.pitches);
-              const midiNote = new MidiWriter.NoteEvent({
-                channel: trackKey + 1,
-                pitch: pitchArray,
-                duration: 't' + duration
-              });
-              track.addEvent(midiNote);
-            }
+    const trackKeys = Object.keys(smoTracks);
+    trackKeys.forEach((trackKey) => {
+      const smoTrack = smoTracks[trackKey];
+      let tempo = 0;
+      let beatsNum = 0;
+      let beatsDen = 0;
+      if (typeof(trackHash[trackKey]) === 'undefined') {
+        trackHash[trackKey] = {
+          track: new MidiWriter.Track(),
+          lastMeasure: 0
+        };
+      }
+      const track = trackHash[trackKey].track;
+      smoTrack.notes.forEach((noteData) => {
+        const selectorKey = SmoSelector.getMeasureKey(noteData.selector);
+        if (smoTrack.tempoMap[selectorKey]) {
+          track.setTempo(smoTrack.tempoMap[selectorKey]);
+        }
+        if (smoTrack.timeSignatureMap[selectorKey]) {
+          const ts = smoTrack.timeSignatureMap[selectorKey];
+          track.setTimeSignature(ts.numerator, ts.denominator);
+        }
+        if (noteData.noteType === 'r') {
+          const rest = new MidiWriter.NoteOffEvent({
+            channel: parseInt(trackKey, 10) + 1,
+            pitch: 'C4',
+            duration: 't' + noteData.duration
           });
-          trackObj.lastMeasure += 1;
-        });
+          track.addEvent(rest);
+        } else {
+          const pitchArray = smoMusic.smoPitchesToMidiStrings(noteData.pitches);
+          const velocity = Math.round(127 * noteData.volume);
+          const midiNote = new MidiWriter.NoteEvent({
+            channel: parseInt(trackKey, 10) + 1,
+            pitch: pitchArray,
+            duration: 't' + noteData.duration,
+            velocity
+          });
+          track.addEvent(midiNote);
+        }
       });
     });
     const tracks = Object.keys(trackHash).map((key) => trackHash[key].track);
