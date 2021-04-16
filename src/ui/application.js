@@ -42,7 +42,7 @@ class SuiApplication {
       const ss = this[method]();
       const des = SmoScore.deserialize;
       const xparse = mxmlScore.smoScoreFromXml;
-      if (ss) {
+      if (ss && ss.score) {
         if (ss.mode === 'local') {
           this.createUi(ss.score);
         } else {
