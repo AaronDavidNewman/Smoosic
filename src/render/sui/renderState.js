@@ -108,7 +108,7 @@ class SuiRenderState {
     $('.measure-number').remove();
 
     measures.forEach((measure) => {
-      if (measure.measureNumber.measureNumber > 0 && measure.measureNumber.systemIndex === 0) {
+      if (measure.measureNumber.measureNumber > 0 && measure.measureNumber.systemIndex === 0 && measure.logicalBox) {
         const numAr = [];
         numAr.push({ y: measure.logicalBox.y - 10 });
         numAr.push({ x: measure.logicalBox.x });

@@ -46,7 +46,8 @@ class SuiApplication {
         if (ss.mode === 'local') {
           this.createUi(ss.score);
         } else {
-          this.createUi(this.libraryScoreLoad());
+          const localScore = this.libraryScoreLoad();
+          this.createUi(localScore.score);
           smoSerialize.loadRemoteFile(ss.score.path, (scoreText) => {
             if (ss.score.format === 'json') {
               const remoteScore = des(scoreText);
@@ -274,6 +275,7 @@ class SuiApplication {
   }
 
   libraryScoreLoad() {
-    return SmoScore.deserialize(eval(SmoConfig.scoreLoadJson));
+    const score = SmoScore.deserialize(eval(SmoConfig.scoreLoadJson));
+    return { score, mode: 'local' };
   }
 }

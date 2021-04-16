@@ -6076,7 +6076,7 @@ class SuiRenderState {
     $('.measure-number').remove();
 
     measures.forEach((measure) => {
-      if (measure.measureNumber.measureNumber > 0 && measure.measureNumber.systemIndex === 0) {
+      if (measure.measureNumber.measureNumber > 0 && measure.measureNumber.systemIndex === 0 && measure.logicalBox) {
         const numAr = [];
         numAr.push({ y: measure.logicalBox.y - 10 });
         numAr.push({ x: measure.logicalBox.x });
@@ -28894,7 +28894,8 @@ class SuiApplication {
         if (ss.mode === 'local') {
           this.createUi(ss.score);
         } else {
-          this.createUi(this.libraryScoreLoad());
+          const localScore = this.libraryScoreLoad();
+          this.createUi(localScore.score);
           smoSerialize.loadRemoteFile(ss.score.path, (scoreText) => {
             if (ss.score.format === 'json') {
               const remoteScore = des(scoreText);
@@ -29122,7 +29123,8 @@ class SuiApplication {
   }
 
   libraryScoreLoad() {
-    return SmoScore.deserialize(eval(SmoConfig.scoreLoadJson));
+    const score = SmoScore.deserialize(eval(SmoConfig.scoreLoadJson));
+    return { score, mode: 'local' };
   }
 }
 ;
