@@ -30,7 +30,8 @@ class SmoAudioTrack {
       timeSignatureMap: {},
       hairpins: [],
       volume: 0,
-      tiedNotes: []
+      tiedNotes: [],
+      repeats: []
     };
   }
   constructor(score, beatTime) {
@@ -53,6 +54,30 @@ class SmoAudioTrack {
       return SmoAudioTrack.dynamicVolumeMap[SmoDynamicText.F];
     }
     return SmoAudioTrack.dynamicVolumeMap[dynamic[0].text];
+  }
+  getVoltas(measureIndex) {
+    let v1 = measureIndex;
+    const staff = this.score.staves[0];
+    let currentEnding = 0;
+    let measure = staff.measures[v1];
+    let endings = measure.getNthEndings();
+    const rv = [];
+    if (endings.length && endings[0].endingId === 1) {
+      currentEnding = endings[0].endingId;
+      rv.push({ measureIndex: v1, ending: endings[0].endingId });
+      v1 += (endings[0].endBar - endings[0].startBar);
+      while (v1 < staff.measures.length && endings.length) {
+        measure = staff.measures[v1];
+        endings = measure.getNthEndings();
+        if (endings.length) {
+          if (endings[0].endingId === currentEnding) {
+            rv.push({ measureIndex: v1, ending: endings[0].endingId });
+          }
+          v1 += 1 + (endings[0].endBar - endings[0].startBar);
+        }
+      }
+    }
+    return rv;
   }
   // ### ticksFromSelection
   // return the count of ticks between the selectors, adjusted for
@@ -187,6 +212,7 @@ class SmoAudioTrack {
   convert() {
     const trackHash = { };
     const measureBeats = [];
+    let startRepeat = -1;
     this.score.staves.forEach((staff, staffIx) => {
       this.volume = 0;
       staff.measures.forEach((measure, measureIx) => {
@@ -204,6 +230,14 @@ class SmoAudioTrack {
           if (voiceIx === 0) {
             if (staffIx === 0) {
               measureBeats.push(measure.getMaxTicksVoice() / this.timeDiv);
+              const barline = measure.getStartBarline();
+              if (barline.barline === SmoBarline.startRepeat) {
+                startRepeat = measureIx;
+              } else if (barline.barline === SmoBarline.endRepeat) {
+                track.repeats.push({
+                  startRepeat, endRepeat: measureIx
+                });
+              }
             }
             const selectorKey = SmoSelector.getMeasureKey(measureSelector);
             track.tempoMap[selectorKey] = measure.tempo.bpm;

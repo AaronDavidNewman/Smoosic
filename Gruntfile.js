@@ -17,7 +17,8 @@ module.exports = function (grunt) {
    'src/ui/dialogs/fontComponent.js', 'src/ui/dialogs/staffComponents.js',
    'src/ui/dialogs/textDialogs.js',
    'src/ui/dialogs/measureDialogs.js','src/ui/dialogs/staffDialogs.js',
-   'src/ui/dialogs/fileDialogs.js']
+   'src/ui/dialogs/fileDialogs.js',
+   'src/ui/application.js']
   const SOURCES = ['src/**/*.js','!src/test/*.js'];
 
     // Project configuration.

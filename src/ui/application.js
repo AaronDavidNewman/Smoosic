@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 class SuiApplication {
   static get defaultConfig() {
     return {
@@ -9,7 +10,7 @@ class SuiApplication {
       controller: 'suiController',
       smoDomContainer: 'smoo',
       vexDomContainer: 'boo',
-      domSource:' SuiDom',
+      domSource: ' SuiDom',
       ribbon: true,
       keyCommands: true,
       menus: true,
@@ -17,10 +18,10 @@ class SuiApplication {
       languageDir: 'ltr',
       demonPollTime: 50, // how often we poll the score to see if it changed
       idleRedrawTime: 1000, // maximum time between score modification and render
-    }
+    };
   }
   static configure(params) {
-    var config = {};
+    const config = {};
     Vex.Merge(config, SuiApplication.defaultConfig);
     Vex.Merge(config, params);
     window.SmoConfig = config;
@@ -32,20 +33,35 @@ class SuiApplication {
     this.startApplication();
   }
   startApplication() {
-    var score = null;
-    for (var i = 0; i < SmoConfig.scoreLoadOrder.length; ++i) {
+    let i = 0;
+    // Initialize the midi writer library
+    _MidiWriter();
+    for (i = 0; i < SmoConfig.scoreLoadOrder.length; ++i) {
       const loader = SmoConfig.scoreLoadOrder[i];
       const method = loader + 'ScoreLoad';
       const ss = this[method]();
+      const des = SmoScore.deserialize;
+      const xparse = mxmlScore.smoScoreFromXml;
       if (ss) {
-        score = ss;
+        if (ss.mode === 'local') {
+          this.createUi(ss.score);
+        } else {
+          this.createUi(this.libraryScoreLoad());
+          smoSerialize.loadRemoteFile(ss.score.path, (scoreText) => {
+            if (ss.score.format === 'json') {
+              const remoteScore = des(scoreText);
+              this.view.changeScore(remoteScore);
+            } else {
+              const parser = new DOMParser();
+              const xml = parser.parseFromString(scoreText, 'text/xml');
+              const remoteScore = xparse(xml);
+              this.view.changeScore(remoteScore);
+            }
+          });
+        }
         break;
       }
     }
-    // var controller =
-    // Initialize the midi writer library
-    _MidiWriter();
-    this.createUi(score);
   }
 
   // ## createUi
@@ -53,12 +69,13 @@ class SuiApplication {
   // Convenience constructor, taking a renderElement and a score.
   createUi(score) {
     eval(SmoConfig.domSource).createDom();
-    var params = suiController.keyBindingDefaults;
+    const params = suiController.keyBindingDefaults;
     params.eventSource = new browserEventSource(); // events come from the browser UI.
 
     const scoreRenderer = SuiScoreRender.createScoreRenderer(document.getElementById(SmoConfig.vexDomContainer), score);
     params.eventSource.setRenderElement(scoreRenderer.renderElement);
     params.view = new SuiScoreViewOperations(scoreRenderer, score, '.musicRelief');
+    this.view = params.view;
     if (SmoConfig.keyCommands) {
       params.keyCommands = new SuiKeyCommands(params);
     }
@@ -66,8 +83,8 @@ class SuiApplication {
       params.menus = new suiMenuManager(params);
     }
     params.layoutDemon = new SuiRenderDemon(params);
-    var ctor = eval(SmoConfig.controller);
-    var controller = new ctor(params);
+    const ctor = eval(SmoConfig.controller);
+    const controller = new ctor(params);
     eval(SmoConfig.domSource).splash();
     this.controller = controller;
   }
@@ -173,13 +190,30 @@ class SuiApplication {
   }
 
   static _nvQueryPair(str) {
-    var ar = str.split('=');
-    var rv = {};
-    for (var i =  0;i < ar.length - 1;i += 2) {
-      var name = decodeURIComponent(ar[i]);
-      rv[name] = decodeURIComponent(ar[i+1]);
+    var i = 0;
+    const ar = str.split('=');
+    const rv = {};
+    for (i =  0; i < ar.length - 1; i += 2) {
+      const name = decodeURIComponent(ar[i]);
+      rv[name] = decodeURIComponent(ar[i + 1]);
     }
     return rv;
+  }
+
+  static get scoreLibrary() {
+    return [
+      { alias: 'bach', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/BachInvention.json' },
+      { alias: 'yama', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json' },
+      { alias: 'handel', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Messiah Pt 1-1.json' },
+      { alias: 'bambino', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Gesu Bambino.json' },
+      { alias: 'shade', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Shade.json' },
+      { alias: 'postillion', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Postillionlied.json' },
+      { alias: 'preciousLord', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Precious Lord.json' },
+      { alias: 'dichterliebe', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Dichterliebe01.xml' },
+      { alias: 'beethoven', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Beethoven_AnDieFerneGeliebte.xml' },
+      { alias: 'mozart', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Mozart_AnChloe.xml' },
+      { alias: 'joplin', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/ScottJoplin_The_Entertainer.xml' }
+    ];
   }
 
   localScoreLoad() {
@@ -189,51 +223,57 @@ class SuiApplication {
       try {
         score = SmoScore.deserialize(scoreStr);
       } catch (exp) {
-        console.log('could not parse '+scoreStr);
+        console.log('could not parse ' + scoreStr);
       }
     }
-    return score;
+    return { score, mode: 'local' };
   }
 
   queryScoreLoad() {
-    var score = null;
+    var i;
     if (window.location.search) {
-      var cmd = window.location.search.substring(1,window.location.search.length);
-      var cmds = cmd.split('&');
-      cmds.forEach((cmd) => {
-        var pairs = SuiApplication._nvQueryPair(cmd);
-        if (pairs['score']) {
+      const cmd = window.location.search.substring(1, window.location.search.length);
+      const cmds = cmd.split('&');
+      for (i = 0; i < cmds.length; ++i) {
+        const cmd = cmds[i];
+        const pairs = SuiApplication._nvQueryPair(cmd);
+        if (pairs.score) {
           try {
-            score = SmoScore.deserialize(eval(pairs['score']));
+            const path = SuiApplication.scoreLibrary.find((pp) => pp.alias === pairs.score);
+            if (!path) {
+              return null;
+            } else {
+              return { score: path, mode: 'remote' };
+            }
           } catch (exp) {
-            console.log('could not parse '+exp);
+            console.log('could not parse ' + exp);
           }
-        } else if (pairs['lang']) {
-          SuiApplication._deferLanguageSelection(pairs['lang']);
-        } else if (pairs['translate']) {
-          SuiApplication._deferCreateTranslator(pairs['translate']);
+        } else if (pairs.lang) {
+          SuiApplication._deferLanguageSelection(pairs.lang);
+          return null;
+        } else if (pairs.translate) {
+          SuiApplication._deferCreateTranslator(pairs.translate);
+          return null;
         }
-      });
+        return null;
+      }
     }
-    return score;
+    return null;
   }
 
   static _deferCreateTranslator(lang) {
     setTimeout(() => {
-      var transDom =  SmoTranslationEditor.startEditor(lang);
+      SmoTranslationEditor.startEditor(lang);
     }, 1);
   }
 
   static _deferLanguageSelection(lang) {
-    setTimeout(function() {
+    setTimeout(() => {
       SmoTranslator.setLanguage(lang);
-    },1);
+    }, 1);
   }
 
   libraryScoreLoad() {
-    if (typeof(SmoConfig.scoreLoadJson) != 'undefined') {
-      return SmoScore.deserialize(eval(SmoConfig.scoreLoadJson));
-    }
+    return SmoScore.deserialize(eval(SmoConfig.scoreLoadJson));
   }
-
 }

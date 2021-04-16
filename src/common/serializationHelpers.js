@@ -28,6 +28,15 @@ class smoSerialize {
         return '_smoosicScore';
     }
 
+  static loadRemoteFile(path, callback) {
+    const req = new XMLHttpRequest();
+    req.addEventListener('load', () => {
+      callback(req.responseText);
+    });
+    req.open('GET', path);
+    req.send();
+  }
+
   // This is the token map we use to reduce the size of
   // serialized data.
   static get tokenMap() {

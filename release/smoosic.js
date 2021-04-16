@@ -253,7 +253,8 @@ class draggable {
     this._animate(e);
   }
 }
-;
+;// Credit for Midi functionality goes to:
+// https://github.com/grimmdude/MidiWriterJS
 var _MidiWriter = function() {
 /**
  * MIDI file format constants.
@@ -291,7 +292,6 @@ var Constants = {
   PROGRAM_CHANGE_STATUS: 0xC0,
   // includes channel number (0)
   PITCH_BEND_STATUS: 0xE0 // includes channel number (0)
-
 };
 
 function _typeof(obj) {
@@ -2255,6 +2255,27 @@ class smoMusic {
     }
     return vexKey;
   }
+  static pitchArraysMatch(ar1, ar2) {
+    var matches = 0;
+    const ir1 = smoMusic.smoPitchesToIntArray(ar1);
+    const ir2 = smoMusic.smoPitchesToIntArray(ar2);
+    if (ir1.length !== ir2.length) {
+      return;
+    }
+    ir1.forEach((num) => {
+      if (ir2.indexOf(num) >= 0) {
+        matches += 1;
+      }
+    });
+    return matches === ir1.length;
+  }
+  static smoPitchesToIntArray(pitches) {
+    const rv = [];
+    pitches.forEach((pitch) => {
+      rv.push(smoMusic.smoPitchToInt(pitch));
+    });
+    return rv.sort();
+  }
 
   static smoPitchToInt(pitch) {
     if (typeof(pitch.octave) === 'undefined') {
@@ -2605,7 +2626,7 @@ class smoMusic {
   }
 
   static getSharpsInKeySignature(key) {
-    var sharpKeys = ['B','G','D','A','E','B','F#','C#'];
+    var sharpKeys = ['B', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
     if (sharpKeys.indexOf(key) < 0) {
       return 0;
     }
@@ -2613,7 +2634,7 @@ class smoMusic {
   }
 
   static getFlatsInKeySignature(key) {
-    var flatKeys = ['F','Bb','Eb','Ab','Db','Gb','Cb'];
+    var flatKeys = ['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb'];
     if (flatKeys.indexOf(key) < 0) {
       return 0;
     }
@@ -2922,6 +2943,15 @@ class smoSerialize {
     static get localScore() {
         return '_smoosicScore';
     }
+
+  static loadRemoteFile(path, callback) {
+    const req = new XMLHttpRequest();
+    req.addEventListener('load', () => {
+      callback(req.responseText);
+    });
+    req.open('GET', path);
+    req.send();
+  }
 
   // This is the token map we use to reduce the size of
   // serialized data.
@@ -16734,15 +16764,12 @@ class SmoSystemStaff {
     smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters, this, params);
     params.modifiers = [];
     params.measures = [];
-
     this.measures.forEach((measure) => {
       params.measures.push(measure.serialize());
     });
-
     this.modifiers.forEach((modifier) => {
       params.modifiers.push(modifier.serialize());
     });
-
     return params;
   }
 
@@ -16843,12 +16870,12 @@ class SmoSystemStaff {
     );
   }
 
-  getTieStartingAt(selector) {
+  getTiesStartingAt(selector) {
     return this.modifiers.filter((mod) =>
       SmoSelector.sameNote(mod.startSelector, selector) && mod.attrs.type === 'SmoTie'
     );
   }
-  getTieEndingAt(selector) {
+  getTiesEndingAt(selector) {
     return this.modifiers.filter((mod) =>
       SmoSelector.sameNote(mod.endSelector, selector) && mod.attrs.type === 'SmoTie'
     );
@@ -17357,84 +17384,51 @@ class SmoTuplet {
 ;// eslint-disable-next-line no-unused-vars
 class SmoToMidi {
   static convert(score) {
+    const beatTime = 128;  // midi ticks per beat
+    const converter = new SmoAudioTrack(score, beatTime);
+    const smoTracks = converter.convert();
     const trackHash = {};
     const measureBeats = [];
-    let measureIx = 0;
-    const beatTime = 128;  // midi ticks per beat
-    const timeDiv = 4096 / 128; // convert Smo ticks to midi
-    score.staves.forEach((staff, staffIx) => {
-      staff.measures.forEach((measure, measureIx) => {
-        measure.voices.forEach((voice, voiceIx) => {
-          let j = 0;
-          let duration = 0;
-          const trackKey = (score.staves.length * voiceIx) + staffIx;
-          if (typeof(trackHash[trackKey]) === 'undefined') {
-            trackHash[trackKey] = {
-              track: new MidiWriter.Track(),
-              lastMeasure: 0
-            };
-          }
-          const trackObj = trackHash[trackKey];
-          const track = trackObj.track;
-          // staff 0/voice 0, set track values for the measure
-          if (voiceIx === 0) {
-            if (staffIx === 0) {
-              measureBeats.push(measure.getMaxTicksVoice());
-            }
-            track.setTempo(measure.tempo.bpm);
-            track.setTimeSignature(measure.numBeats, measure.beatValue);
-          }
-          // If this voice is not in every measure, fill in the space
-          // in its own channel.
-          while (trackObj.lastMeasure < measureIx) {
-            duration += 128 * measureBeats[trackObj.lastMeasure];
-            const rest = new MidiWriter.NoteOffEvent({
-              channel: trackKey,
-              pitch: 'C4',
-              duration: 't' + duration
-            });
-            track.addEvent(rest);
-            trackObj.lastMeasure += 1;
-          }
-          let tupletTicks = 0;
-          voice.notes.forEach((note) => {
-            const tuplet = measure.getTupletForNote(note);
-            if (tuplet && tuplet.getIndexOfNote(note) === 0) {
-              tupletTicks = tuplet.tupletTicks / timeDiv;
-            }
-            if (tupletTicks) {
-              // tuplet likely won't fit evenly in ticks, so
-              // use remainder in last tuplet note.
-              if (tuplet.getIndexOfNote(note) === tuplet.notes.length - 1) {
-                duration = tupletTicks;
-                tupletTicks = 0;
-              }
-              else {
-                duration = note.tickCount / timeDiv;
-                tupletTicks -= duration;
-              }
-            } else {
-              duration = note.tickCount / timeDiv;
-            }
-            if (note.isRest()) {
-              const rest = new MidiWriter.NoteOffEvent({
-                channel: trackKey + 1,
-                pitch: 'C4',
-                duration: 't' + duration
-              });
-              track.addEvent(rest);
-            } else {
-              const pitchArray = smoMusic.smoPitchesToMidiStrings(note.pitches);
-              const midiNote = new MidiWriter.NoteEvent({
-                channel: trackKey + 1,
-                pitch: pitchArray,
-                duration: 't' + duration
-              });
-              track.addEvent(midiNote);
-            }
+    const trackKeys = Object.keys(smoTracks);
+    trackKeys.forEach((trackKey) => {
+      const smoTrack = smoTracks[trackKey];
+      let tempo = 0;
+      let beatsNum = 0;
+      let beatsDen = 0;
+      if (typeof(trackHash[trackKey]) === 'undefined') {
+        trackHash[trackKey] = {
+          track: new MidiWriter.Track(),
+          lastMeasure: 0
+        };
+      }
+      const track = trackHash[trackKey].track;
+      smoTrack.notes.forEach((noteData) => {
+        const selectorKey = SmoSelector.getMeasureKey(noteData.selector);
+        if (smoTrack.tempoMap[selectorKey]) {
+          track.setTempo(smoTrack.tempoMap[selectorKey]);
+        }
+        if (smoTrack.timeSignatureMap[selectorKey]) {
+          const ts = smoTrack.timeSignatureMap[selectorKey];
+          track.setTimeSignature(ts.numerator, ts.denominator);
+        }
+        if (noteData.noteType === 'r') {
+          const rest = new MidiWriter.NoteOffEvent({
+            channel: parseInt(trackKey, 10) + 1,
+            pitch: 'C4',
+            duration: 't' + noteData.duration
           });
-          trackObj.lastMeasure += 1;
-        });
+          track.addEvent(rest);
+        } else {
+          const pitchArray = smoMusic.smoPitchesToMidiStrings(noteData.pitches);
+          const velocity = Math.round(127 * noteData.volume);
+          const midiNote = new MidiWriter.NoteEvent({
+            channel: parseInt(trackKey, 10) + 1,
+            pitch: pitchArray,
+            duration: 't' + noteData.duration,
+            velocity
+          });
+          track.addEvent(midiNote);
+        }
       });
     });
     const tracks = Object.keys(trackHash).map((key) => trackHash[key].track);
@@ -19243,6 +19237,303 @@ class SmoActionRecord {
     }
     this.executeIndex += 1;
     return { method: action.method, args, count: action.count };
+  }
+}
+;// ## SmoAudioTrack
+// Convert a score into a JSON structure that can be rendered to audio.  For
+// each staff/voice, return a track that consists of:
+//  `` { lastMeasure,notes,tempoMap,timeSignatureMap,hairpins,volume,tiedNotes} ``
+// where each note might contain:
+//  ``{ pitches ,noteType,duration,selector,volume }``
+// Note:  pitches are smo pitches, durations are adjusted for beatTime
+// (beatTime === 4096 uses Smo/Vex ticks, 128 is midi tick default)
+//
+// eslint-disable-next-line no-unused-vars
+class SmoAudioTrack {
+  // ### dynamicVolumeMap
+  // normalized dynamic
+  static get dynamicVolumeMap() {
+    // matches SmoDynamicText.dynamics
+    return {
+      pp: 0.3,
+      p: 0.4,
+      mp: 0.5,
+      mf: 0.6,
+      f: 0.7,
+      ff: 0.8
+    };
+  }
+  static get emptyTrack() {
+    return {
+      lastMeasure: 0,
+      notes: [],
+      tempoMap: {},
+      timeSignatureMap: {},
+      hairpins: [],
+      volume: 0,
+      tiedNotes: [],
+      repeats: []
+    };
+  }
+  constructor(score, beatTime) {
+    this.timeDiv = 4096 / beatTime;
+    this.score = score;
+    this.beatTime = beatTime;
+  }
+  // ### volumeFromNote
+  // Return a normalized volume from the dynamic setting of the note
+  // or supplied default if none exists
+  volumeFromNote(smoNote, def) {
+    if (typeof(def) === 'undefined') {
+      def = 0;
+    }
+    const dynamic = smoNote.getModifiers('SmoDynamicText');
+    if (dynamic.length < 1) {
+      return def;
+    }
+    if (dynamic[0].text === SmoDynamicText.dynamics.SFZ) {
+      return SmoAudioTrack.dynamicVolumeMap[SmoDynamicText.F];
+    }
+    return SmoAudioTrack.dynamicVolumeMap[dynamic[0].text];
+  }
+  getVoltas(measureIndex) {
+    let v1 = measureIndex;
+    const staff = this.score.staves[0];
+    let currentEnding = 0;
+    let measure = staff.measures[v1];
+    let endings = measure.getNthEndings();
+    const rv = [];
+    if (endings.length && endings[0].endingId === 1) {
+      currentEnding = endings[0].endingId;
+      rv.push({ measureIndex: v1, ending: endings[0].endingId });
+      v1 += (endings[0].endBar - endings[0].startBar);
+      while (v1 < staff.measures.length && endings.length) {
+        measure = staff.measures[v1];
+        endings = measure.getNthEndings();
+        if (endings.length) {
+          if (endings[0].endingId === currentEnding) {
+            rv.push({ measureIndex: v1, ending: endings[0].endingId });
+          }
+          v1 += 1 + (endings[0].endBar - endings[0].startBar);
+        }
+      }
+    }
+    return rv;
+  }
+  // ### ticksFromSelection
+  // return the count of ticks between the selectors, adjusted for
+  // beatTime
+  ticksFromSelection(startSelector, endSelector) {
+    const selection = SmoSelection.selectionFromSelector(this.score, startSelector);
+    let ticks = selection.note.tickCount;
+    let nextSelection = SmoSelection.nextNoteSelectionFromSelector(this.score, startSelector);
+    while (nextSelection && !SmoSelector.gt(nextSelection.selector, endSelector)) {
+      ticks += nextSelection.note.tickCount;
+      nextSelection = SmoSelection.nextNoteSelectionFromSelector(this.score, nextSelection.selector);
+    }
+    return ticks / this.timeDiv;
+  }
+  // ### getHairpinInfo
+  // Get any hairpin starting at this selection, and calculate its
+  // effect on the overall volume
+  getHairpinInfo(track, selection) {
+    const staff = selection.staff;
+    const selector = selection.selector;
+    const cp = (x) => JSON.parse(JSON.stringify(x));
+    const hps = staff.getModifiersAt(selector)
+      .filter((hairpin) => hairpin.ctor === 'SmoStaffHairpin' &&
+        SmoSelector.eq(hairpin.startSelector, selector));
+    const rv = [];
+    // clear out old hairpins.
+    // usually there will only be a single hairpin per voice, except
+    // in the case of overlapping.
+    track.hairpins.forEach((hairpin) => {
+      if (SmoSelector.gteq(selection.selector, hairpin.startSelector) &&
+        SmoSelector.lteq(selection.selector, hairpin.endSelector)) {
+        rv.push(hairpin);
+      }
+    });
+    track.hairpins = rv;
+
+    hps.forEach((hairpin) => {
+      let endDynamic = 0;
+      const trackHairpin = {
+        hairpinType: hairpin.hairpinType,
+        startSelector: cp(hairpin.startSelector),
+        endSelector: cp(hairpin.endSelector)
+      };
+      // For a hairpin, try to calculate the volume difference from start to end,
+      // as a function of ticks
+      const endSelection = SmoSelection.selectionFromSelector(this.score, hairpin.endSelector);
+      endDynamic = this.volumeFromNote(endSelection.note);
+      const startDynamic = this.volumeFromNote(selection.note);
+      if (startDynamic === endDynamic) {
+        const nextSelection = SmoSelection.nextNoteSelectionFromSelector(this.score, hairpin.endSelector);
+        if (nextSelection) {
+          endDynamic = this.volumeFromNote(nextSelection.note);
+        }
+      }
+      if (startDynamic === endDynamic) {
+        const offset = hairpin.hairpingType === SmoStaffHairpin.CRESCENDO ? 0.1 : -0.1;
+        endDynamic = Math.max(endDynamic + offset, 0.1);
+        endDynamic = Math.min(endDynamic, 1.0);
+      }
+      trackHairpin.delta = startDynamic - endDynamic;
+      trackHairpin.ticks = this.ticksFromSelection(hairpin.startSelector, hairpin.endSelector);
+      track.hairpins.push(trackHairpin);
+    });
+  }
+  // ### computeVolume
+  // come up with a current normalized volume based on dynamics
+  // that appear in the music
+  computeVolume(track, selection) {
+    if (track.volume === 0) {
+      track.volume = this.volumeFromNote(selection.note,
+        SmoAudioTrack.dynamicVolumeMap.mf);
+      return;
+    }
+    if (track.hairpins.length) {
+      const hp = track.hairpins[0];
+      const coff = (selection.note.tickCount / this.timeDiv) / hp.ticks;
+      track.volume += hp.delta * coff;
+    } else {
+      track.volume = this.volumeFromNote(selection.note, track.volume);
+    }
+  }
+  getSlurInfo(track, selection) {
+    const tn = [];
+    const cp = (x) => JSON.parse(JSON.stringify(x));
+    track.tiedNotes.forEach((tie) => {
+      if (SmoSelector.gteq(selection.selector, tie.startSelector) && SmoSelector.lteq(selection.selector, tie.endSelector)) {
+        tn.push(tie);
+      }
+    });
+    track.tiedNotes = tn;
+    const slurStart = selection.staff.getSlursStartingAt(selection.selector);
+    slurStart.forEach((slur) => {
+      tn.push({
+        startSelector: cp(slur.startSelector),
+        endSelector: cp(slur.endSelector)
+      });
+    });
+  }
+  isTiedPitch(track, selection, noteIx) {
+    if (noteIx < 1) {
+      return false;
+    }
+    if (!track.tiedNotes.length) {
+      return false;
+    }
+    if (!track.notes[noteIx - 1].noteType !== 'n') {
+      return false;
+    }
+    return smoMusic.pitchArraysMatch(track.notes[noteIx - 1].pitches, selection.note.pitches);
+  }
+  createTrackNote(track, selection, duration, noteIx) {
+    if (this.isTiedPitch(track, selection, noteIx)) {
+      track.notes[noteIx - 1].duration += duration;
+      return;
+    }
+    const pitchArray = JSON.parse(JSON.stringify(selection.note.pitches));
+    track.notes.push({
+      pitches: pitchArray,
+      noteType: 'n',
+      duration,
+      selector: selection.selector,
+      volume: track.volume
+    });
+  }
+  createTrackRest(duration, selector) {
+    return {
+      duration,
+      noteType: 'r',
+      selector
+    };
+  }
+  convert() {
+    const trackHash = { };
+    const measureBeats = [];
+    let startRepeat = -1;
+    this.score.staves.forEach((staff, staffIx) => {
+      this.volume = 0;
+      staff.measures.forEach((measure, measureIx) => {
+        measure.voices.forEach((voice, voiceIx) => {
+          let duration = 0;
+          const trackKey = (this.score.staves.length * voiceIx) + staffIx;
+          if (typeof(trackHash[trackKey]) === 'undefined') {
+            trackHash[trackKey] = SmoAudioTrack.emptyTrack;
+          }
+          const measureSelector = {
+            staff: staffIx, measure: measureIx
+          };
+          const track = trackHash[trackKey];
+          // staff 0/voice 0, set track values for the measure
+          if (voiceIx === 0) {
+            if (staffIx === 0) {
+              measureBeats.push(measure.getMaxTicksVoice() / this.timeDiv);
+              const barline = measure.getStartBarline();
+              if (barline.barline === SmoBarline.startRepeat) {
+                startRepeat = measureIx;
+              } else if (barline.barline === SmoBarline.endRepeat) {
+                track.repeats.push({
+                  startRepeat, endRepeat: measureIx
+                });
+              }
+            }
+            const selectorKey = SmoSelector.getMeasureKey(measureSelector);
+            track.tempoMap[selectorKey] = measure.tempo.bpm;
+            track.timeSignatureMap[selectorKey] = {
+              numerator: measure.numBeats,
+              denominator: measure.beatValue
+            };
+          }
+          // If this voice is not in every measure, fill in the space
+          // in its own channel.
+          while (track.lastMeasure < measureIx) {
+            duration += measureBeats[track.lastMeasure];
+            track.notes.push(this.createTrackRest(duration,
+              { staff: staffIx, measure: track.lastMeasure, voice: voiceIx, note: 0 }
+            ));
+            track.lastMeasure += 1;
+          }
+          let tupletTicks = 0;
+          voice.notes.forEach((note, noteIx) => {
+            const selector = {
+              staff: staffIx, measure: measureIx, voice: voiceIx, tick: noteIx
+            };
+            const selection = SmoSelection.selectionFromSelector(this.score, selector);
+            // update staff features of slur/tie/cresc.
+            this.getSlurInfo(track, selection);
+            this.getHairpinInfo(track, selection);
+            const tuplet = measure.getTupletForNote(note);
+            if (tuplet && tuplet.getIndexOfNote(note) === 0) {
+              tupletTicks = tuplet.tupletTicks / this.timeDiv;
+            }
+            if (tupletTicks) {
+              // tuplet likely won't fit evenly in ticks, so
+              // use remainder in last tuplet note.
+              if (tuplet.getIndexOfNote(note) === tuplet.notes.length - 1) {
+                duration = tupletTicks;
+                tupletTicks = 0;
+              } else {
+                duration = note.tickCount / this.timeDiv;
+                tupletTicks -= duration;
+              }
+            } else {
+              duration = note.tickCount / this.timeDiv;
+            }
+            if (note.isRest()) {
+              track.notes.push(this.createTrackRest(duration, selector));
+            } else {
+              this.computeVolume(track, selection);
+              this.createTrackNote(track, selection, duration, noteIx);
+            }
+          });
+          track.lastMeasure += 1;
+        });
+      });
+    });
+    return trackHash;
   }
 }
 ;// eslint-disable-next-line no-unused-vars
@@ -28555,7 +28846,8 @@ class SmoUndoable {
   "resolution": 2048,
   "generatedOn": "2020-10-18T19:03:12.514Z"
 };
-;class SuiApplication {
+;// eslint-disable-next-line no-unused-vars
+class SuiApplication {
   static get defaultConfig() {
     return {
       smoPath: '..',
@@ -28566,7 +28858,7 @@ class SmoUndoable {
       controller: 'suiController',
       smoDomContainer: 'smoo',
       vexDomContainer: 'boo',
-      domSource:' SuiDom',
+      domSource: ' SuiDom',
       ribbon: true,
       keyCommands: true,
       menus: true,
@@ -28574,10 +28866,10 @@ class SmoUndoable {
       languageDir: 'ltr',
       demonPollTime: 50, // how often we poll the score to see if it changed
       idleRedrawTime: 1000, // maximum time between score modification and render
-    }
+    };
   }
   static configure(params) {
-    var config = {};
+    const config = {};
     Vex.Merge(config, SuiApplication.defaultConfig);
     Vex.Merge(config, params);
     window.SmoConfig = config;
@@ -28589,20 +28881,35 @@ class SmoUndoable {
     this.startApplication();
   }
   startApplication() {
-    var score = null;
-    for (var i = 0; i < SmoConfig.scoreLoadOrder.length; ++i) {
+    let i = 0;
+    // Initialize the midi writer library
+    _MidiWriter();
+    for (i = 0; i < SmoConfig.scoreLoadOrder.length; ++i) {
       const loader = SmoConfig.scoreLoadOrder[i];
       const method = loader + 'ScoreLoad';
       const ss = this[method]();
+      const des = SmoScore.deserialize;
+      const xparse = mxmlScore.smoScoreFromXml;
       if (ss) {
-        score = ss;
+        if (ss.mode === 'local') {
+          this.createUi(ss.score);
+        } else {
+          this.createUi(this.libraryScoreLoad());
+          smoSerialize.loadRemoteFile(ss.score.path, (scoreText) => {
+            if (ss.score.format === 'json') {
+              const remoteScore = des(scoreText);
+              this.view.changeScore(remoteScore);
+            } else {
+              const parser = new DOMParser();
+              const xml = parser.parseFromString(scoreText, 'text/xml');
+              const remoteScore = xparse(xml);
+              this.view.changeScore(remoteScore);
+            }
+          });
+        }
         break;
       }
     }
-    // var controller =
-    // Initialize the midi writer library
-    _MidiWriter();
-    this.createUi(score);
   }
 
   // ## createUi
@@ -28610,12 +28917,13 @@ class SmoUndoable {
   // Convenience constructor, taking a renderElement and a score.
   createUi(score) {
     eval(SmoConfig.domSource).createDom();
-    var params = suiController.keyBindingDefaults;
+    const params = suiController.keyBindingDefaults;
     params.eventSource = new browserEventSource(); // events come from the browser UI.
 
     const scoreRenderer = SuiScoreRender.createScoreRenderer(document.getElementById(SmoConfig.vexDomContainer), score);
     params.eventSource.setRenderElement(scoreRenderer.renderElement);
     params.view = new SuiScoreViewOperations(scoreRenderer, score, '.musicRelief');
+    this.view = params.view;
     if (SmoConfig.keyCommands) {
       params.keyCommands = new SuiKeyCommands(params);
     }
@@ -28623,8 +28931,8 @@ class SmoUndoable {
       params.menus = new suiMenuManager(params);
     }
     params.layoutDemon = new SuiRenderDemon(params);
-    var ctor = eval(SmoConfig.controller);
-    var controller = new ctor(params);
+    const ctor = eval(SmoConfig.controller);
+    const controller = new ctor(params);
     eval(SmoConfig.domSource).splash();
     this.controller = controller;
   }
@@ -28730,13 +29038,30 @@ class SmoUndoable {
   }
 
   static _nvQueryPair(str) {
-    var ar = str.split('=');
-    var rv = {};
-    for (var i =  0;i < ar.length - 1;i += 2) {
-      var name = decodeURIComponent(ar[i]);
-      rv[name] = decodeURIComponent(ar[i+1]);
+    var i = 0;
+    const ar = str.split('=');
+    const rv = {};
+    for (i =  0; i < ar.length - 1; i += 2) {
+      const name = decodeURIComponent(ar[i]);
+      rv[name] = decodeURIComponent(ar[i + 1]);
     }
     return rv;
+  }
+
+  static get scoreLibrary() {
+    return [
+      { alias: 'bach', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/BachInvention.json' },
+      { alias: 'yama', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json' },
+      { alias: 'handel', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Messiah Pt 1-1.json' },
+      { alias: 'bambino', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Gesu Bambino.json' },
+      { alias: 'shade', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Shade.json' },
+      { alias: 'postillion', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Postillionlied.json' },
+      { alias: 'preciousLord', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Precious Lord.json' },
+      { alias: 'dichterliebe', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Dichterliebe01.xml' },
+      { alias: 'beethoven', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Beethoven_AnDieFerneGeliebte.xml' },
+      { alias: 'mozart', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Mozart_AnChloe.xml' },
+      { alias: 'joplin', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/ScottJoplin_The_Entertainer.xml' }
+    ];
   }
 
   localScoreLoad() {
@@ -28746,53 +29071,59 @@ class SmoUndoable {
       try {
         score = SmoScore.deserialize(scoreStr);
       } catch (exp) {
-        console.log('could not parse '+scoreStr);
+        console.log('could not parse ' + scoreStr);
       }
     }
-    return score;
+    return { score, mode: 'local' };
   }
 
   queryScoreLoad() {
-    var score = null;
+    var i;
     if (window.location.search) {
-      var cmd = window.location.search.substring(1,window.location.search.length);
-      var cmds = cmd.split('&');
-      cmds.forEach((cmd) => {
-        var pairs = SuiApplication._nvQueryPair(cmd);
-        if (pairs['score']) {
+      const cmd = window.location.search.substring(1, window.location.search.length);
+      const cmds = cmd.split('&');
+      for (i = 0; i < cmds.length; ++i) {
+        const cmd = cmds[i];
+        const pairs = SuiApplication._nvQueryPair(cmd);
+        if (pairs.score) {
           try {
-            score = SmoScore.deserialize(eval(pairs['score']));
+            const path = SuiApplication.scoreLibrary.find((pp) => pp.alias === pairs.score);
+            if (!path) {
+              return null;
+            } else {
+              return { score: path, mode: 'remote' };
+            }
           } catch (exp) {
-            console.log('could not parse '+exp);
+            console.log('could not parse ' + exp);
           }
-        } else if (pairs['lang']) {
-          SuiApplication._deferLanguageSelection(pairs['lang']);
-        } else if (pairs['translate']) {
-          SuiApplication._deferCreateTranslator(pairs['translate']);
+        } else if (pairs.lang) {
+          SuiApplication._deferLanguageSelection(pairs.lang);
+          return null;
+        } else if (pairs.translate) {
+          SuiApplication._deferCreateTranslator(pairs.translate);
+          return null;
         }
-      });
+        return null;
+      }
     }
-    return score;
+    return null;
   }
 
   static _deferCreateTranslator(lang) {
     setTimeout(() => {
-      var transDom =  SmoTranslationEditor.startEditor(lang);
+      SmoTranslationEditor.startEditor(lang);
     }, 1);
   }
 
   static _deferLanguageSelection(lang) {
-    setTimeout(function() {
+    setTimeout(() => {
       SmoTranslator.setLanguage(lang);
-    },1);
+    }, 1);
   }
 
   libraryScoreLoad() {
-    if (typeof(SmoConfig.scoreLoadJson) != 'undefined') {
-      return SmoScore.deserialize(eval(SmoConfig.scoreLoadJson));
-    }
+    return SmoScore.deserialize(eval(SmoConfig.scoreLoadJson));
   }
-
 }
 ;
 
