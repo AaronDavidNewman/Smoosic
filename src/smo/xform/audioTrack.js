@@ -55,28 +55,36 @@ class SmoAudioTrack {
     }
     return SmoAudioTrack.dynamicVolumeMap[dynamic[0].text];
   }
-  getVoltas(measureIndex) {
+  getVoltas(repeat, measureIndex) {
     let v1 = measureIndex;
-    const staff = this.score.staves[0];
-    let currentEnding = 0;
-    let measure = staff.measures[v1];
-    let endings = measure.getNthEndings();
+    let endings = null;
+    let currentEnding = -1;
     const rv = [];
-    if (endings.length && endings[0].endingId === 1) {
-      currentEnding = endings[0].endingId;
-      rv.push({ measureIndex: v1, ending: endings[0].endingId });
-      v1 += (endings[0].endBar - endings[0].startBar);
-      while (v1 < staff.measures.length && endings.length) {
-        measure = staff.measures[v1];
-        endings = measure.getNthEndings();
-        if (endings.length) {
-          if (endings[0].endingId === currentEnding) {
-            rv.push({ measureIndex: v1, ending: endings[0].endingId });
-          }
-          v1 += 1 + (endings[0].endBar - endings[0].startBar);
-        }
+    const staff = this.score.staves[0];
+    while (v1 > repeat.startRepeat) {
+      endings = staff.measures[v1].getNthEndings();
+      if (endings.length >= 0) {
+        currentEnding = endings[0].number;
+        rv.push({ measureIndex: v1,  ending: currentEnding });
+        v1 = endings[0].endSelector.measure + 1;
+        break;
       }
+      measureIndex--;
     }
+    if (currentEnding < 0) {
+      return rv;
+    }
+    while (endings.length && v1 < staff.measures.length) {
+      endings = staff.measures[v1].getNthEndings();
+      if (!endings.length) {
+        break;
+      }
+      currentEnding = endings[0].number;
+      rv.push({ measureIndex: v1, ending: currentEnding });
+      v1 = endings[0].endSelector.measure + 1;
+    }
+    currentEnding = endings[0].number;
+    rv.sort((a, b) => a - b);
     return rv;
   }
   // ### ticksFromSelection
@@ -212,7 +220,7 @@ class SmoAudioTrack {
   convert() {
     const trackHash = { };
     const measureBeats = [];
-    let startRepeat = -1;
+    let startRepeat = 0;
     this.score.staves.forEach((staff, staffIx) => {
       this.volume = 0;
       staff.measures.forEach((measure, measureIx) => {
@@ -230,13 +238,14 @@ class SmoAudioTrack {
           if (voiceIx === 0) {
             if (staffIx === 0) {
               measureBeats.push(measure.getMaxTicksVoice() / this.timeDiv);
-              const barline = measure.getStartBarline();
-              if (barline.barline === SmoBarline.startRepeat) {
+              const startBar = measure.getStartBarline();
+              const endBar =  measure.getEndBarline();
+              if (startBar.barline === SmoBarline.barlines.startRepeat) {
                 startRepeat = measureIx;
-              } else if (barline.barline === SmoBarline.endRepeat) {
-                track.repeats.push({
-                  startRepeat, endRepeat: measureIx
-                });
+              } else if (endBar.barline === SmoBarline.barlines.endRepeat) {
+                const repeat = { startRepeat, endRepeat: measureIx };
+                repeat.voltas = this.getVoltas(repeat, measureIx);
+                track.repeats.push(repeat);
               }
             }
             const selectorKey = SmoSelector.getMeasureKey(measureSelector);
