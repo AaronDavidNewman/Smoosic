@@ -17386,48 +17386,54 @@ class SmoToMidi {
   static convert(score) {
     const beatTime = 128;  // midi ticks per beat
     const converter = new SmoAudioTrack(score, beatTime);
-    const smoTracks = converter.convert();
+    const audioScore =converter.convert();
+    const smoTracks = audioScore.tracks;
     const trackHash = {};
     const measureBeats = [];
-    const trackKeys = Object.keys(smoTracks);
-    trackKeys.forEach((trackKey) => {
-      const smoTrack = smoTracks[trackKey];
+    smoTracks.forEach((smoTrack, trackIx) => {
       let tempo = 0;
       let beatsNum = 0;
       let beatsDen = 0;
-      if (typeof(trackHash[trackKey]) === 'undefined') {
-        trackHash[trackKey] = {
+      let j = 0;
+      let k = 0;
+      if (typeof(trackHash[trackIx]) === 'undefined') {
+        trackHash[trackIx] = {
           track: new MidiWriter.Track(),
           lastMeasure: 0
         };
       }
-      const track = trackHash[trackKey].track;
-      smoTrack.notes.forEach((noteData) => {
-        const selectorKey = SmoSelector.getMeasureKey(noteData.selector);
-        if (smoTrack.tempoMap[selectorKey]) {
-          track.setTempo(smoTrack.tempoMap[selectorKey]);
-        }
-        if (smoTrack.timeSignatureMap[selectorKey]) {
-          const ts = smoTrack.timeSignatureMap[selectorKey];
-          track.setTimeSignature(ts.numerator, ts.denominator);
-        }
-        if (noteData.noteType === 'r') {
-          const rest = new MidiWriter.NoteOffEvent({
-            channel: parseInt(trackKey, 10) + 1,
-            pitch: 'C4',
-            duration: 't' + noteData.duration
+      const track = trackHash[trackIx].track;
+      audioScore.repeatMap.forEach((measureMap) => {
+        for (j = measureMap.startMeasure; j <= measureMap.endMeasure; ++j) {
+          const notes = smoTrack.notes.filter((nn) => nn.selector.measure === j);
+          notes.forEach((noteData) => {
+            const selectorKey = SmoSelector.getMeasureKey(noteData.selector);
+            if (smoTrack.tempoMap[selectorKey]) {
+              track.setTempo(smoTrack.tempoMap[selectorKey]);
+            }
+            if (smoTrack.timeSignatureMap[selectorKey]) {
+              const ts = smoTrack.timeSignatureMap[selectorKey];
+              track.setTimeSignature(ts.numerator, ts.denominator);
+            }
+            if (noteData.noteType === 'r') {
+              const rest = new MidiWriter.NoteOffEvent({
+                channel: trackIx + 1,
+                pitch: 'C4',
+                duration: 't' + noteData.duration
+              });
+              track.addEvent(rest);
+            } else {
+              const pitchArray = smoMusic.smoPitchesToMidiStrings(noteData.pitches);
+              const velocity = Math.round(127 * noteData.volume);
+              const midiNote = new MidiWriter.NoteEvent({
+                channel: trackIx + 1,
+                pitch: pitchArray,
+                duration: 't' + noteData.duration,
+                velocity
+              });
+              track.addEvent(midiNote);
+            }
           });
-          track.addEvent(rest);
-        } else {
-          const pitchArray = smoMusic.smoPitchesToMidiStrings(noteData.pitches);
-          const velocity = Math.round(127 * noteData.volume);
-          const midiNote = new MidiWriter.NoteEvent({
-            channel: parseInt(trackKey, 10) + 1,
-            pitch: pitchArray,
-            duration: 't' + noteData.duration,
-            velocity
-          });
-          track.addEvent(midiNote);
         }
       });
     });
@@ -19296,28 +19302,35 @@ class SmoAudioTrack {
     }
     return SmoAudioTrack.dynamicVolumeMap[dynamic[0].text];
   }
-  getVoltas(measureIndex) {
+  getVoltas(repeat, measureIndex) {
     let v1 = measureIndex;
-    const staff = this.score.staves[0];
-    let currentEnding = 0;
-    let measure = staff.measures[v1];
-    let endings = measure.getNthEndings();
+    let endings = null;
+    let currentEnding = -1;
     const rv = [];
-    if (endings.length && endings[0].endingId === 1) {
-      currentEnding = endings[0].endingId;
-      rv.push({ measureIndex: v1, ending: endings[0].endingId });
-      v1 += (endings[0].endBar - endings[0].startBar);
-      while (v1 < staff.measures.length && endings.length) {
-        measure = staff.measures[v1];
-        endings = measure.getNthEndings();
-        if (endings.length) {
-          if (endings[0].endingId === currentEnding) {
-            rv.push({ measureIndex: v1, ending: endings[0].endingId });
-          }
-          v1 += 1 + (endings[0].endBar - endings[0].startBar);
-        }
+    const staff = this.score.staves[0];
+    while (v1 > repeat.startRepeat) {
+      endings = staff.measures[v1].getNthEndings();
+      if (endings.length) {
+        currentEnding = endings[0].number;
+        rv.push({ measureIndex: v1,  ending: currentEnding });
+        v1 = endings[0].endSelector.measure + 1;
+        break;
       }
+      v1--;
     }
+    if (currentEnding < 0) {
+      return rv;
+    }
+    while (endings.length && v1 < staff.measures.length) {
+      endings = staff.measures[v1].getNthEndings();
+      if (!endings.length) {
+        break;
+      }
+      currentEnding = endings[0].number;
+      rv.push({ measureIndex: v1, ending: currentEnding });
+      v1 = endings[0].endSelector.measure + 1;
+    }
+    rv.sort((a, b) => a - b);
     return rv;
   }
   // ### ticksFromSelection
@@ -19450,10 +19463,46 @@ class SmoAudioTrack {
       selector
     };
   }
+  createRepeatMap(repeats) {
+    let startm = 0;
+    let j = 0;
+    const staff = this.score.staves[0];
+    const repeatMap = [];
+    const endm = staff.measures.length - 1;
+    repeats.forEach((repeat) => {
+      // Include the current start to start of repeat, unless there is no start repeat
+      if (repeat.startRepeat > 0) {
+        repeatMap.push({ startMeasure: startm, endMeasure: repeat.startRepeat - 1 });
+      }
+      // Include first time through
+      repeatMap.push({ startMeasure: repeat.startRepeat, endMeasure: repeat.endRepeat });
+      startm = repeat.startRepeat;
+      // nth time through, go to the start of volta 0, then to the start of volta n
+      if (repeat.voltas.length < 1) {
+        repeatMap.push({ startMeasure: repeat.startRepeat, endMeasure: repeat.endRepeat });
+        startm = repeat.endRepeat + 1;
+      }
+      for (j = 1; j < repeat.voltas.length; ++j) {
+        const volta = repeat.voltas[j];
+        repeatMap.push({ startMeasure: repeat.startRepeat, endMeasure: repeat.voltas[0].measureIndex - 1 });
+        // If there are more endings, repeat to first volta
+        if (j + 1 < repeat.voltas.length) {
+          repeatMap.push({ startMeasure: volta.measureIndex, endMeasure: repeat.voltas[j + 1].measureIndex - 1 });
+        } else {
+          startm = volta.measureIndex;
+        }
+      }
+    });
+    if (startm <= endm) {
+      repeatMap.push({ startMeasure: startm, endMeasure: endm });
+    }
+    return repeatMap;
+  }
   convert() {
     const trackHash = { };
     const measureBeats = [];
-    let startRepeat = -1;
+    const repeats = [];
+    let startRepeat = 0;
     this.score.staves.forEach((staff, staffIx) => {
       this.volume = 0;
       staff.measures.forEach((measure, measureIx) => {
@@ -19471,17 +19520,19 @@ class SmoAudioTrack {
           if (voiceIx === 0) {
             if (staffIx === 0) {
               measureBeats.push(measure.getMaxTicksVoice() / this.timeDiv);
-              const barline = measure.getStartBarline();
-              if (barline.barline === SmoBarline.startRepeat) {
+              const startBar = measure.getStartBarline();
+              const endBar =  measure.getEndBarline();
+              if (startBar.barline === SmoBarline.barlines.startRepeat) {
                 startRepeat = measureIx;
-              } else if (barline.barline === SmoBarline.endRepeat) {
-                track.repeats.push({
-                  startRepeat, endRepeat: measureIx
-                });
+              }
+              if (endBar.barline === SmoBarline.barlines.endRepeat) {
+                const repeat = { startRepeat, endRepeat: measureIx };
+                repeat.voltas = this.getVoltas(repeat, measureIx);
+                repeats.push(repeat);
               }
             }
             const selectorKey = SmoSelector.getMeasureKey(measureSelector);
-            track.tempoMap[selectorKey] = measure.tempo.bpm;
+            track.tempoMap[selectorKey] = Math.round(measure.tempo.bpm * (measure.tempo.beatDuration / 4096));
             track.timeSignatureMap[selectorKey] = {
               numerator: measure.numBeats,
               denominator: measure.beatValue
@@ -19490,8 +19541,7 @@ class SmoAudioTrack {
           // If this voice is not in every measure, fill in the space
           // in its own channel.
           while (track.lastMeasure < measureIx) {
-            duration += measureBeats[track.lastMeasure];
-            track.notes.push(this.createTrackRest(duration,
+            track.notes.push(this.createTrackRest(measureBeats[track.lastMeasure],
               { staff: staffIx, measure: track.lastMeasure, voice: voiceIx, note: 0 }
             ));
             track.lastMeasure += 1;
@@ -19533,7 +19583,21 @@ class SmoAudioTrack {
         });
       });
     });
-    return trackHash;
+    // For voices that don't fill out the full piece, fill them in with rests
+    const tracks = Object.keys(trackHash).map((key) => trackHash[key]);
+    const maxMeasure = tracks[0].lastMeasure;
+    tracks.forEach((track) => {
+      while (track.lastMeasure < maxMeasure) {
+        const staff = track.notes[0].selector.staff;
+        const voice = track.notes[0].selector.voice;
+        track.notes.push(this.createTrackRest(measureBeats[track.lastMeasure],
+          { staff,  measure: track.lastMeasure, voice, note: 0 }
+        ));
+        track.lastMeasure += 1;
+      }
+    });
+    const repeatMap = this.createRepeatMap(repeats);
+    return { tracks, repeats, repeatMap };
   }
 }
 ;// eslint-disable-next-line no-unused-vars
