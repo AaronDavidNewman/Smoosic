@@ -129,8 +129,8 @@ class suiTracker extends suiMapper {
       const r = b('span').classes('birdy icon icon-arrow-down').attr('id', 'birdy');
       $('.workspace #birdy').remove();
       const rd = r.dom();
-      const y = zmeasureSel.measure.renderedBox.y - this.scroller.netScroll.y;
-      const x = pos.x - this.scroller.netScroll.x;
+      const y = (zmeasureSel.measure.renderedBox.y - zmeasureSel.measure.renderedBox.height) - this.scroller.netScroll.y;
+      const x = pos.x;
       $(rd).css('top', y).css('left', x);
       $('.workspace').append(rd);
       // todo, need lower right for x
