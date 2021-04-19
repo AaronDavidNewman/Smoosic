@@ -6137,6 +6137,9 @@ class SuiRenderState {
     this.resizing = false;
     console.log('layout setViewport: pstate initial');
     this.dirty = true;
+    if (this.measureMapper) {
+      this.measureMapper.scroller.updateViewport();
+    }
     SuiRenderState._renderer = this.renderer;
   }
 
@@ -6498,12 +6501,11 @@ class SuiScoreRender extends SuiRenderState {
     super('SuiScoreRender');
     Vex.Merge(this, SuiRenderState.defaults);
     Vex.Merge(this, params);
-    this.setViewport(true);
-
     this.attrs = {
       id: VF.Element.newID(),
       type: 'testLayout'
     };
+    this.setViewport(true);
   }
 
   // ### createScoreRenderer
@@ -8439,12 +8441,7 @@ class suiScroller  {
     this._scrollInitial = { x: 0, y: 0 };
     var scroller = $(selector);
     this._offsetInitial = { x: $(scroller).offset().left, y: $(scroller).offset().top };
-
-    this.viewport = svgHelpers.boxPoints(
-      $(selector).offset().left,
-      $(selector).offset().top,
-      $(selector).width(),
-      $(selector).height());
+    this.updateViewport();
   }
 
   get scrollState() {
@@ -8504,6 +8501,13 @@ class suiScroller  {
     if (xoff !== 0 || yoff !== 0) {
         this.scrollOffset(xoff,yoff);
     }
+  }
+  updateViewport() {
+    this.viewport = svgHelpers.boxPoints(
+      $(this.selector).offset().left,
+      $(this.selector).offset().top,
+      $(this.selector).width(),
+      $(this.selector).height());
   }
 
   // ### scrollBox

@@ -7,12 +7,11 @@ class SuiScoreRender extends SuiRenderState {
     super('SuiScoreRender');
     Vex.Merge(this, SuiRenderState.defaults);
     Vex.Merge(this, params);
-    this.setViewport(true);
-
     this.attrs = {
       id: VF.Element.newID(),
       type: 'testLayout'
     };
+    this.setViewport(true);
   }
 
   // ### createScoreRenderer

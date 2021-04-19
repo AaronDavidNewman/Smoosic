@@ -169,6 +169,9 @@ class SuiRenderState {
     this.resizing = false;
     console.log('layout setViewport: pstate initial');
     this.dirty = true;
+    if (this.measureMapper) {
+      this.measureMapper.scroller.updateViewport();
+    }
     SuiRenderState._renderer = this.renderer;
   }
 
