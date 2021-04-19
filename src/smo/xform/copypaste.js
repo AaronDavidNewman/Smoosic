@@ -352,7 +352,7 @@ class PasteBuffer {
     const voices = this._populateVoice(this.destination.voice);
     const measureSel = JSON.parse(JSON.stringify(this.destination));
     const selectors = [];
-    for (i = 0; i < this.measures.length; ++i) {
+    for (i = 0; i < this.measures.length && i < voices.length; ++i) {
       const measure = this.measures[i];
       const nvoice = voices[i];
       const ser = measure.serialize();
