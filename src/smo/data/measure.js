@@ -606,9 +606,7 @@ class SmoMeasure {
   }
 
   tickmapForVoice(voiceIx) {
-    const tickmap = new smoTickIterator(this, { voice: voiceIx });
-    tickmap.iterate(smoTickIterator.nullActor, this);
-    return tickmap;
+    return new TickMap(this, voiceIx);
   }
 
   // ### createMeasureTickmaps

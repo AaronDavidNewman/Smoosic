@@ -4080,11 +4080,12 @@ class suiAudioPitch {
     const vx = npitch.letter.toLowerCase() + npitch.accidental + npitch.octave.toString();
     return suiAudioPitch.pitchFrequencyMap[vx];
   }
-
-  static smoPitchToFrequency(smoNote, smoPitch, ix, offset) {
+  // ### smoPitchToFrequency
+  // Convert a pitch to a frequency in Hz.
+  static smoPitchToFrequency(smoPitch, ix, offset, tones) {
     let pitchInt = 0;
     let rv = suiAudioPitch._rawPitchToFrequency(smoPitch, offset);
-    const mt = smoNote.tones.filter((tt) => tt.pitch === ix);
+    const mt = tones.filter((tt) => tt.pitch === ix);
     if (mt.length) {
       const tone = mt[0];
       const coeff = tone.toPitchCoeff;
@@ -4229,7 +4230,7 @@ class suiOscillator {
     }
     i = 0;
     note.pitches.forEach((pitch) => {
-      frequency = suiAudioPitch.smoPitchToFrequency(note, pitch, i, -1 * measure.transposeIndex);
+      frequency = suiAudioPitch.smoPitchToFrequency(pitch, i, -1 * measure.transposeIndex, note.getMicrotones());
       const osc = new suiOscillator({ frequency, duration, gain });
       // var osc = new suiSampler({frequency:frequency,duration:duration,gain:gain});
       ar.push(osc);
@@ -4406,182 +4407,196 @@ class suiSampler extends suiOscillator {
 // Play the music, ja!
 class suiAudioPlayer {
 
-    static set playing(val) {
-        suiAudioPlayer._playing = val;
-    }
+  static set playing(val) {
+      suiAudioPlayer._playing = val;
+  }
 
-    static get maxGain() {
-        return 0.2;
-    }
+  static get maxGain() {
+      return 0.2;
+  }
 
-    static get instanceId() {
-        if (typeof(suiAudioPlayer._instanceId) == 'undefined') {
-            suiAudioPlayer._instanceId = 0;
-        }
-        return suiAudioPlayer._instanceId;
-    }
-    static incrementInstanceId() {
-        var id = suiAudioPlayer.instanceId + 1;
-        suiAudioPlayer._instanceId = id;
-        return id;
-    }
-    static get playing() {
-        if (typeof(suiAudioPlayer._playing) == 'undefined') {
-            suiAudioPlayer._playing = false;
-        }
-        return suiAudioPlayer._playing;
-    }
+  static get instanceId() {
+      if (typeof(suiAudioPlayer._instanceId) == 'undefined') {
+          suiAudioPlayer._instanceId = 0;
+      }
+      return suiAudioPlayer._instanceId;
+  }
+  static incrementInstanceId() {
+      var id = suiAudioPlayer.instanceId + 1;
+      suiAudioPlayer._instanceId = id;
+      return id;
+  }
+  static get playing() {
+      if (typeof(suiAudioPlayer._playing) == 'undefined') {
+          suiAudioPlayer._playing = false;
+      }
+      return suiAudioPlayer._playing;
+  }
 
-    static pausePlayer() {
-        if (suiAudioPlayer._playingInstance) {
-            var a = suiAudioPlayer._playingInstance;
-            a.paused = true;
-        }
-        suiAudioPlayer.playing = false;
-    }
-    static stopPlayer() {
-        if (suiAudioPlayer._playingInstance) {
-            var a = suiAudioPlayer._playingInstance;
-            a.paused = false;
-        }
-        suiAudioPlayer.playing = false;
-    }
+  static pausePlayer() {
+      if (suiAudioPlayer._playingInstance) {
+          var a = suiAudioPlayer._playingInstance;
+          a.paused = true;
+      }
+      suiAudioPlayer.playing = false;
+  }
+  static getMeasureSounds(track, measureIndex) {
+    const notes = track.notes.filter((nn) => selector.measure === measureIndex);
+    const voices = [];
+    let voice = null;
+    notes.forEach((note) => {
+      if (note.selector.voice + 1 > voices.length) {
+        voice = { noteData: [] }
+        voices.push(voice);
+      } else {
+        voice = voices[voices.length - 1];
+      }
 
-    static get playingInstance() {
-        if (!suiAudioPlayer._playingInstance) {
-            return null;
-        }
-        return suiAudioPlayer._playingInstance;
-    }
+    });
+  }
+  static stopPlayer() {
+      if (suiAudioPlayer._playingInstance) {
+          var a = suiAudioPlayer._playingInstance;
+          a.paused = false;
+      }
+      suiAudioPlayer.playing = false;
+  }
 
-    // the oscAr contains an oscillator for each pitch in the chord.
-    // each inner oscillator is a promise, the combined promise is resolved when all
-    // the beats have completed.
-    static _playChord(oscAr) {
-        var par = [];
-        oscAr.forEach((osc) => {
-            par.push(osc.play());
-        });
+  static get playingInstance() {
+      if (!suiAudioPlayer._playingInstance) {
+          return null;
+      }
+      return suiAudioPlayer._playingInstance;
+  }
 
-        return Promise.all(par);
-    }
+  // the oscAr contains an oscillator for each pitch in the chord.
+  // each inner oscillator is a promise, the combined promise is resolved when all
+  // the beats have completed.
+  static _playChord(oscAr) {
+      var par = [];
+      oscAr.forEach((osc) => {
+          par.push(osc.play());
+      });
 
-    _createOscillatorsFromMusicData(ar) {
-        var rv = [];
-        ar.forEach((soundData) => {
-            var osc = new suiOscillator({frequency:soundData.frequency,duration:soundData.duration,gain:soundData.gain});
-            // var osc = new suiSampler({frequency:soundData.frequency,duration:soundData.duration,gain:soundData.gain});
-            rv.push(osc);
-        });
-        return rv;
+      return Promise.all(par);
+  }
+
+  _createOscillatorsFromMusicData(ar) {
+      var rv = [];
+      ar.forEach((soundData) => {
+          var osc = new suiOscillator({frequency:soundData.frequency,duration:soundData.duration,gain:soundData.gain});
+          // var osc = new suiSampler({frequency:soundData.frequency,duration:soundData.duration,gain:soundData.gain});
+          rv.push(osc);
+      });
+      return rv;
+  }
+  _playArrayRecurse(ix,keys,notesToPlay) {
+    if (!suiAudioPlayer.playing ||
+      suiAudioPlayer.instanceId != this.instanceId) {
+      this.tracker.clearMusicCursor();
+      return;
     }
-    _playArrayRecurse(ix,keys,notesToPlay) {
-      if (!suiAudioPlayer.playing ||
-        suiAudioPlayer.instanceId != this.instanceId) {
-        this.tracker.clearMusicCursor();
+    var self = this;
+    var key = keys[ix];
+    var curTime = parseInt(key);
+    var proto = notesToPlay[key];
+    var oscs = this._createOscillatorsFromMusicData(proto);
+
+    // Follow the top-staff note in this tick for the cursor
+    // if (proto[0].selector.staff == 0) {
+      this.tracker.musicCursor(proto[0].selector);
+    // }
+    if (ix < keys.length - 1) {
+        var diff = parseInt(keys[ix+1]);
+        var delay = (diff - curTime);
+        setTimeout(function() {
+            self._playArrayRecurse(ix+1,keys,notesToPlay);
+        },delay);
+    } else {
+        self.tracker.clearMusicCursor();
+    }
+    suiAudioPlayer._playChord(oscs);
+  }
+  _playPlayArray() {
+      var startTimes = Object.keys(this.sounds).sort((a,b) => {return parseInt(a) > parseInt(b);});
+      if (startTimes.length < 1) {
         return;
       }
-      var self = this;
-      var key = keys[ix];
-      var curTime = parseInt(key);
-      var proto = notesToPlay[key];
-      var oscs = this._createOscillatorsFromMusicData(proto);
+      this._playArrayRecurse(0,startTimes,this.sounds);
+  }
+  _populatePlayArray() {
+      var maxGain = suiAudioPlayer.maxGain/this.score.staves.length;
+      this.sounds = {};
+      this.score.staves.forEach((staff)  => {
+          var accumulator = 0;
+          var slurs = [];
+          for (var i = this.startIndex;i<staff.measures.length;++i) {
+              var measure=staff.measures[i];
+              var oldAccumulator = accumulator;
+              var voiceIx = 0;
+              measure.voices.forEach((voice) => {
+                  var prevObj = null;
+                  if (voiceIx != 0) {
+                      accumulator = oldAccumulator;
+                  }
+                  var tick = 0;
+                  voice.notes.forEach((note) => {
+                      var tempo = measure.getTempo();
+                      tempo = tempo ? tempo : new SmoTempoText();
+                      var bpm = tempo.bpm;
+                      var beats = note.tickCount/4096;
+                      var duration = (beats / bpm) * 60000;
 
-      // Follow the top-staff note in this tick for the cursor
-      // if (proto[0].selector.staff == 0) {
-        this.tracker.musicCursor(proto[0].selector);
-      // }
-      if (ix < keys.length - 1) {
-          var diff = parseInt(keys[ix+1]);
-          var delay = (diff - curTime);
-          setTimeout(function() {
-              self._playArrayRecurse(ix+1,keys,notesToPlay);
-          },delay);
-      } else {
-          self.tracker.clearMusicCursor();
-      }
-      suiAudioPlayer._playChord(oscs);
-    }
-    _playPlayArray() {
-        var startTimes = Object.keys(this.sounds).sort((a,b) => {return parseInt(a) > parseInt(b);});
-        if (startTimes.length < 1) {
-          return;
-        }
-        this._playArrayRecurse(0,startTimes,this.sounds);
-    }
-    _populatePlayArray() {
-        var maxGain = suiAudioPlayer.maxGain/this.score.staves.length;
-        this.sounds = {};
-        this.score.staves.forEach((staff)  => {
-            var accumulator = 0;
-            var slurs = [];
-            for (var i = this.startIndex;i<staff.measures.length;++i) {
-                var measure=staff.measures[i];
-                var oldAccumulator = accumulator;
-                var voiceIx = 0;
-                measure.voices.forEach((voice) => {
-                    var prevObj = null;
-                    if (voiceIx != 0) {
-                        accumulator = oldAccumulator;
-                    }
-                    var tick = 0;
-                    voice.notes.forEach((note) => {
-                        var tempo = measure.getTempo();
-                        tempo = tempo ? tempo : new SmoTempoText();
-                        var bpm = tempo.bpm;
-                        var beats = note.tickCount/4096;
-                        var duration = (beats / bpm) * 60000;
+                      // adjust if bpm is over something other than 1/4 note
+                      duration = duration * (4096/tempo.beatDuration);
+                      var selector = {staff:measure.measureNumber.staffId,measure:measure.measureNumber.measureIndex,voice:voiceIx,tick:tick}
 
-                        // adjust if bpm is over something other than 1/4 note
-                        duration = duration * (4096/tempo.beatDuration);
-                        var selector = {staff:measure.measureNumber.staffId,measure:measure.measureNumber.measureIndex,voice:voiceIx,tick:tick}
+                      var gain = maxGain/note.pitches.length;
+                      if (note.noteType == 'n') {
+                          var pitchIx = 0;
+                          note.pitches.forEach((pitch) => {
+                              var frequency = suiAudioPitch.smoPitchToFrequency(pitch, pitchIx, -1 * measure.transposeIndex, note.getMicrotones());
+                              var obj = {
+                                  duration:duration,
+                                  frequency: frequency,
+                                  gain:gain,
+                                  selector:selector,
+                                  note:note,
+                                  measure:measure,
+                                  staff:staff
+                              };
+                              // Keep track of slurs, don't restart the note it is
+                              // really a tie.  TODO:  deal with 1:1, 1:many etc.
+                              staff.getSlursStartingAt(selector).forEach((slur) => {
+                                  slurs.push({
+                                      obj:obj,
+                                      slur:slur
+                                  });
+                              });
 
-                        var gain = maxGain/note.pitches.length;
-                        if (note.noteType == 'n') {
-                            var pitchIx = 0;
-                            note.pitches.forEach((pitch) => {
-                                var frequency = suiAudioPitch.smoPitchToFrequency(note,pitch,pitchIx,-1 * measure.transposeIndex);
-                                var obj = {
-                                    duration:duration,
-                                    frequency: frequency,
-                                    gain:gain,
-                                    selector:selector,
-                                    note:note,
-                                    measure:measure,
-                                    staff:staff
-                                };
-                                // Keep track of slurs, don't restart the note it is
-                                // really a tie.  TODO:  deal with 1:1, 1:many etc.
-                                staff.getSlursStartingAt(selector).forEach((slur) => {
-                                    slurs.push({
-                                        obj:obj,
-                                        slur:slur
-                                    });
-                                });
-
-                                var pitchTie = slurs.filter((slur) => {
-                                    return (SmoSelector.sameNote(slur.slur.endSelector,selector) && slur.obj.frequency == frequency);
-                                });
-                                if (pitchTie.length) {
-                                    pitchTie[0].obj.duration += obj.duration;
-                                } else {
-                                    if (this.sounds[accumulator]) {
-                                        this.sounds[accumulator].push(obj);
-                                    } else {
-                                        this.sounds[accumulator]=[obj];
-                                    }
-                                }
-                                pitchIx += 1;
-                            });
-                        }
-                        accumulator += Math.round(duration);
-                        tick += 1;
-                    });
-                    voiceIx += 1;
-                });
-            }
-        });
-    }
+                              var pitchTie = slurs.filter((slur) => {
+                                  return (SmoSelector.sameNote(slur.slur.endSelector,selector) && slur.obj.frequency == frequency);
+                              });
+                              if (pitchTie.length) {
+                                  pitchTie[0].obj.duration += obj.duration;
+                              } else {
+                                  if (this.sounds[accumulator]) {
+                                      this.sounds[accumulator].push(obj);
+                                  } else {
+                                      this.sounds[accumulator]=[obj];
+                                  }
+                              }
+                              pitchIx += 1;
+                          });
+                      }
+                      accumulator += Math.round(duration);
+                      tick += 1;
+                  });
+                  voiceIx += 1;
+              });
+          }
+      });
+  }
 
     play() {
         if (suiAudioPlayer.playing) {
@@ -12136,7 +12151,7 @@ class VxMeasure {
     }
 
     // Need to format for x position, then set y position before drawing dynamics.
-    this.formatter = new VF.Formatter({ softmaxFactor: this.smoMeasure.customProportion, maxIterations: 5 });
+    this.formatter = new VF.Formatter({ softmaxFactor: this.smoMeasure.customProportion, globalSoftmax: false });
     this.voiceAr.forEach((voice) => {
       this.formatter.joinVoices([voice]);
     });
@@ -13312,9 +13327,7 @@ class SmoMeasure {
   }
 
   tickmapForVoice(voiceIx) {
-    const tickmap = new smoTickIterator(this, { voice: voiceIx });
-    tickmap.iterate(smoTickIterator.nullActor, this);
-    return tickmap;
+    return new TickMap(this, voiceIx);
   }
 
   // ### createMeasureTickmaps
@@ -19250,14 +19263,17 @@ class SmoActionRecord {
   }
 }
 ;// ## SmoAudioTrack
-// Convert a score into a JSON structure that can be rendered to audio.  For
-// each staff/voice, return a track that consists of:
-//  `` { lastMeasure,notes,tempoMap,timeSignatureMap,hairpins,volume,tiedNotes} ``
+// Convert a score into a JSON structure that can be rendered to audio.
+// the return value looks like this:
+// `` { tracks, repeats, repeatMap} ``
+// repeatMap is just an array of tuples with start/end measures.
+//  each track contains:
+// `` { lastMeasure, notes, tempoMap, timeSignatureMap, hairpins, volume, tiedNotes }
 // where each note might contain:
-//  ``{ pitches ,noteType,duration,selector,volume }``
+//  ``{ pitches, noteType, duration, selector, volume }``
 // Note:  pitches are smo pitches, durations are adjusted for beatTime
 // (beatTime === 4096 uses Smo/Vex ticks, 128 is midi tick default)
-//
+// volume is normalized 0-1
 // eslint-disable-next-line no-unused-vars
 class SmoAudioTrack {
   // ### dynamicVolumeMap
@@ -20149,263 +20165,6 @@ class PasteBuffer {
       this.replacementMeasures.push(SmoSelection.measureSelection(this.score, selector.staff, selector.measure));
     });
   }
-}
-;
-VF = Vex.Flow;
-Vex.Xform = (typeof(Vex.Xform) == 'undefined' ? {}
-     : Vex.Xform);
-VX = Vex.Xform;
-
-// ## smoTickIterator
-// This file implements over the notes in a single measure.
-// This is useful when redrawing the notes to transform them into something else.
-// E.g. changing the duration of a note in a measure.  It keeps track of accidentals,
-// ticks used etc.
-// ### Usage:
-// ``javascript``
-// `var iterator=new smoTickIterator(measure)
-// `iterator.iterate (actor)`
-// where actor is a function that is called at each tick in the voice.
-//
-// ### iterator format:
-//   iterator: {
-//      notes:[note1,note2...],
-//      delta: tick value of this note
-//      totalDuration: ticks up until this point
-//      note: current note,
-//      index: running index
-//
-// ### Tickmap format
-// `VX.TICKMAP(measure)`
-// Iterate through all notes and creates information about the notes, like
-// tuplet ticks, index-to-tick map.  The tickmap is useful for finding things out like how much
-// time is left in a measure at a given note index (tickIndex).
-//
-//     tickmap = {
-//        totalDuration: 16384,
-//        accidentalMap:[{'F':'#','G':'b'},....
-//        durationMap:[2048,4096,..],  // A running total
-//        deltaMap:[2048,2048...], a map of deltas
-//        tupletMap: {
-//          noteId1:
-//          {startIndex:1,endIndex:3,numNotes:3,startTick:4096,endTick:8196,durations:[1365,...],smallestDuration:2048}
-//
-//
-// ## method documentation follows
-// ---
-class smoTickIterator {
-
-    constructor(measure, options) {
-        this.keySignature = measure.keySignature;
-
-        Vex.Merge(this, options);
-        this.voice = typeof(options['voice']) == 'number' ? options.voice : measure.activeVoice;
-        if (measure.voices.length <= this.voice) {
-          console.warn('tickmap for invalid voice');
-          return;
-        }
-        this.notes = measure.voices[this.voice].notes;
-        this.index = 0;
-        this.startIndex = 0;
-        this.endIndex = this.notes.length;
-
-        // so a client can tell if the iterator's been run or not
-        var states = ['CREATED', 'RUNNING', 'COMPLETE'];
-        this.state = 'CREATED';
-
-        // ticks as we iterate.
-        // duration is duration of the current range
-        this.duration = 0;
-        // duration is the accumulated duraition over all the notes
-        this.totalDuration = 0;
-        // delta is the tick contribution of this note
-        this.delta = 0;
-        // the tick start location of notes[x]
-        this.durationMap = [];
-        this.deltaMap = [];
-
-        this.tupletMap = {};
-        this.accidentalMap = [];
-        this.durationAccidentalMap={};
-
-        this.hasRun = false;
-        this.beattime = 4096;
-    }
-
-    // empty function for a default iterator (tickmap)
-    static nullActor() {}
-
-    // ### _getAccidentalsForKey
-    // Update `map` with the correct accidental based on the key signature.
-    static _getAccidentalsForKey(keySignature, map) {
-        var music = new VF.Music();
-        var keys = music.createScaleMap(keySignature);
-        var keyKeys = Object.keys(keys);
-        keyKeys.forEach((keyKey) => {
-            var vexKey = keys[keyKey];
-            if (vexKey.length > 1 && (vexKey[1] === 'b' || vexKey[1] === '#')) {
-                var pitch = {
-                    letter: vexKey[0],
-                    accidental: vexKey[1]
-                };
-                map[vexKey[0]] = {
-                    duration:0,
-                    pitch:pitch
-                }
-            }
-        });
-    }
-
-	// ### updateAccidentalMap
-	// Keep a running tally of the accidentals for this voice
-    // based on the key and previous accidentals.
-    static updateAccidentalMap(note, iterator, keySignature, accidentalMap) {
-        var sigObj = {};
-        var newObj = {};
-        if (iterator.index === 0) {
-            smoTickIterator._getAccidentalsForKey(keySignature, newObj);
-            sigObj = newObj;
-        } else {
-            sigObj = accidentalMap[iterator.index - 1];
-        }
-        for (var i = 0; i < note.pitches.length; ++i) {
-            if (note.noteType != 'n') {
-                continue;
-            }
-            var pitch = note.pitches[i];
-            var letter = pitch.letter.toLowerCase();
-            var sigLetter = letter + pitch.accidental;
-            var sigKey = smoMusic.getKeySignatureKey(letter, keySignature);
-
-            if (sigObj && sigObj[letter]) {
-                var currentVal = sigObj[letter].key + sigObj[letter].accidental;
-                if (sigLetter != currentVal) {
-                    newObj[letter] = {pitch:pitch,duration:iterator.duration};
-                }
-            } else {
-                if (sigLetter != sigKey) {
-                    newObj[letter] = {pitch:pitch,duration:iterator.duration};
-                }
-            }
-        }
-        accidentalMap.push(newObj);
-        // Mark the accidental with the start of this note.
-        iterator.durationAccidentalMap[iterator.durationMap[iterator.index]] = newObj;
-    }
-
-	// ### getActiveAccidental
-	// return the active accidental for the given note
-    getActiveAccidental(pitch, iteratorIndex, keySignature) {
-		var defaultAccidental = smoMusic.getKeySignatureKey(pitch.letter, keySignature);
-		defaultAccidental = defaultAccidental.length > 1 ? defaultAccidental[1] : 'n';
-        if (iteratorIndex === 0)
-            return defaultAccidental;
-        var accidental = pitch.accidental.length > 0 ? pitch.accidental : 'n';
-		var letter = pitch.letter;
-
-        // Back up the accidental map until we have a match, or until we run out
-        for (var i = iteratorIndex; i > 0; --i) {
-            var map = this.accidentalMap[i - 1];
-            var mapKeys = Object.keys(map);
-            for (var j = 0; j < mapKeys.length; ++j) {
-                var mapKey = mapKeys[j];
-                // The letter name + accidental in the map
-                var mapLetter = map[mapKey];
-                var mapAcc = mapLetter.accidental ? mapLetter.accidental : 'n';
-
-                // if the letters match and the accidental...
-                if (mapLetter.pitch.letter.toLowerCase() === letter) {
-                    return mapAcc;
-                }
-            }
-        }
-        return defaultAccidental;
-    }
-
-    // ### _iterate
-    // Internal callback for iterator.
-    _iterate(actor) {
-        this.state = 'RUNNING';
-        for (this.index = this.startIndex; this.index < this.endIndex; ++this.index) {
-            var note = this.notes[this.index];
-
-            // save the starting point, tickwise
-            this.durationMap.push(this.totalDuration);
-
-            // the number of ticks for this note
-            this.delta = (note.ticks.numerator / note.ticks.denominator) + note.ticks.remainder;
-            this.deltaMap.push(this.delta);
-
-            if (note['tuplet'] && note.tuplet['attrs']) {
-                var normalizedTicks = VF.durationToTicks(note.duration);
-                if (typeof(this.tupletMap[note.tuplet.attrs.id]) == 'undefined') {
-                    this.tupletMap[note.tuplet.attrs.id] = {
-                        startIndex: this.index,
-                        tupletIndex: 0,
-                        startTick: this.totalDuration,
-                        smallestDuration: normalizedTicks,
-                        num_notes: note.tuplet.num_notes,
-                        durations: [this.delta]
-                    };
-                } else {
-                    var entry = this.tupletMap[note.tuplet.attrs.id];
-
-                    entry.endIndex = this.index;
-                    entry.endTick = this.totalDuration + this.delta;
-                    entry.smallestDuration = ((normalizedTicks < entry.smallestDuration) ? normalizedTicks : entry.smallestDuration);
-                    entry.durations.push(this.delta);
-                }
-            }
-
-            // update the tick count for the current range.
-            this.duration += this.delta;
-
-            // update the tick count for the whole array/measure
-            this.totalDuration += this.delta;
-
-            smoTickIterator.updateAccidentalMap(note, this, this.keySignature, this.accidentalMap);
-
-            var rv = actor(this, note, this.accidentalMap);
-            if (rv === false) {
-                break;
-            }
-        }
-        this.state = 'COMPLETE';
-    }
-
-    // ### iterate
-    // Call `actor` for each iterator tick
-    iterate(actor) {
-        // todo add promise
-        this._iterate(actor);
-    }
-
-    // ### getTickIndex
-    // get the index into notes array that takes up
-    // duration of ticks */
-    getTickIndex(index, duration) {
-        if (index == 0)
-            return 0;
-        var initial = this.durationMap[index];
-        var delta = 0;
-        while (index < this.notes.length && delta < duration) {
-            index += 1;
-            delta += this.durationMap[index] - this.durationMap[index - 1];
-        }
-        return index;
-    }
-    // ### skipNext
-    // skip some number of notes in the iteration, because we want to skip over them.
-    skipNext(skipCount) {
-        var rv = [];
-        var startRange = this.index;
-        // var tuplen = note.tupletStack[0].notes.length;
-        var endRange = this.index + skipCount;
-        rv = this.notes.slice(startRange, endRange);
-        this.index = endRange;
-        // this.startRange = this.index;
-        return rv;
-    }
 }
 ;
 // An operation works on a selection or set of selections to edit the music
@@ -22268,6 +22027,145 @@ class SmoStretchNoteActor extends TickTransformBase {
       return [note];
     }
     return null;
+  }
+}
+;// ## TickMap
+// create a map note durations at each index into the voice, including the accidentals at each duration.
+// return format:
+//     tickmap = {
+//        totalDuration: 16384,
+//        durationMap:[2048,4096,..],  // A running total per tick
+//        deltaMap:[2048,2048...], a map of deltas
+// eslint-disable-next-line no-unused-vars
+class TickMap {
+  constructor(measure, voiceIndex) {
+    this.keySignature = measure.keySignature;
+    this.voice = voiceIndex;
+    if (measure.voices.length <= this.voice) {
+      console.warn('tickmap for invalid voice');
+      return;
+    }
+    this.notes = measure.voices[this.voice].notes;
+    this.index = 0;
+    this.startIndex = 0;
+    this.endIndex = this.notes.length;
+
+    // so a client can tell if the iterator's been run or not
+    // ticks as we iterate.
+    // duration is the accumulated duraition over all the notes
+    this.totalDuration = 0;
+    // delta is the tick contribution of this note
+    this.delta = 0;
+    // the tick start location of notes[x]
+    this.durationMap = [];
+    this.deltaMap = [];
+    this.accidentalMap = [];
+    this.durationAccidentalMap = {};
+    this.hasRun = false;
+    this.beattime = 4096;
+    this.createMap();
+  }
+  // ### _getAccidentalsForKey
+  // Update `map` with the correct accidental based on the key signature.
+  _getAccidentalsForKey(map) {
+    const music = new VF.Music();
+    const keys = music.createScaleMap(this.keySignature);
+    const keyKeys = Object.keys(keys);
+    keyKeys.forEach((keyKey) => {
+      const vexKey = keys[keyKey];
+      if (vexKey.length > 1 && (vexKey[1] === 'b' || vexKey[1] === '#')) {
+        const pitch = {
+          letter: vexKey[0],
+          accidental: vexKey[1]
+        };
+        map[vexKey[0]] = {
+          duration: 0,
+          pitch
+        };
+      }
+    });
+  }
+
+  // ### updateAccidentalMap
+  // Keep a running tally of the accidentals for this voice
+  // based on the key and previous accidentals.
+  updateAccidentalMap(note) {
+    let sigObj = {};
+    let i = 0;
+    const newObj = {};
+    if (this.index === 0) {
+      this._getAccidentalsForKey(newObj);
+      sigObj = newObj;
+    } else {
+      sigObj = this.accidentalMap[this.index - 1];
+    }
+    for (i = 0; i < note.pitches.length; ++i) {
+      if (note.noteType !== 'n') {
+        continue;
+      }
+      const pitch = note.pitches[i];
+      const letter = pitch.letter.toLowerCase();
+      const sigLetter = letter + pitch.accidental;
+      const sigKey = smoMusic.getKeySignatureKey(letter, this.keySignature);
+      if (sigObj && sigObj[letter]) {
+        const currentVal = sigObj[letter].key + sigObj[letter].accidental;
+        if (sigLetter !== currentVal) {
+          newObj[letter] = { pitch, duration: this.duration };
+        }
+      } else {
+        if (sigLetter !== sigKey) {
+          newObj[letter] = { pitch, duration: this.duration };
+        }
+      }
+    }
+    this.accidentalMap.push(newObj);
+    // Mark the accidental with the start of this note.
+    this.durationAccidentalMap[this.durationMap[this.index]] = newObj;
+  }
+
+  // ### getActiveAccidental
+  // return the active accidental for the given note
+  getActiveAccidental(pitch, iteratorIndex, keySignature) {
+    let defaultAccidental = smoMusic.getKeySignatureKey(pitch.letter, keySignature);
+    let i = 0;
+    let j = 0;
+    defaultAccidental = defaultAccidental.length > 1 ? defaultAccidental[1] : 'n';
+    if (iteratorIndex === 0) {
+      return defaultAccidental;
+    }
+    // Back up the accidental map until we have a match, or until we run out
+    for (i = iteratorIndex; i > 0; --i) {
+      const map = this.accidentalMap[i - 1];
+      const mapKeys = Object.keys(map);
+      for (j = 0; j < mapKeys.length; ++j) {
+        const mapKey = mapKeys[j];
+        // The letter name + accidental in the map
+        const mapLetter = map[mapKey];
+        const mapAcc = mapLetter.accidental ? mapLetter.accidental : 'n';
+
+        // if the letters match and the accidental...
+        if (mapLetter.pitch.letter.toLowerCase() === letter) {
+          return mapAcc;
+        }
+      }
+    }
+    return defaultAccidental;
+  }
+  get duration() {
+    return this.totalDuration;
+  }
+  createMap() {
+    for (this.index = this.startIndex; this.index < this.endIndex; ++this.index) {
+      const note = this.notes[this.index];
+      // save the starting point, tickwise
+      this.durationMap.push(this.totalDuration);
+      // the number of ticks for this note
+      this.delta = (note.ticks.numerator / note.ticks.denominator) + note.ticks.remainder;
+      this.deltaMap.push(this.delta);
+      // update the tick count for the whole array/measure
+      this.totalDuration += this.delta;
+      this.updateAccidentalMap(note);
+    }
   }
 }
 ;// ## SmoToVex
@@ -28914,7 +28812,9 @@ class SmoUndoable {
   "resolution": 2048,
   "generatedOn": "2020-10-18T19:03:12.514Z"
 };
-;// eslint-disable-next-line no-unused-vars
+;VF = Vex.Flow;
+
+// eslint-disable-next-line no-unused-vars
 class SuiApplication {
   static get defaultConfig() {
     return {

@@ -1,3 +1,5 @@
+VF = Vex.Flow;
+
 // eslint-disable-next-line no-unused-vars
 class SuiApplication {
   static get defaultConfig() {

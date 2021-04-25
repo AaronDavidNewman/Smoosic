@@ -43,11 +43,12 @@ class suiAudioPitch {
     const vx = npitch.letter.toLowerCase() + npitch.accidental + npitch.octave.toString();
     return suiAudioPitch.pitchFrequencyMap[vx];
   }
-
-  static smoPitchToFrequency(smoNote, smoPitch, ix, offset) {
+  // ### smoPitchToFrequency
+  // Convert a pitch to a frequency in Hz.
+  static smoPitchToFrequency(smoPitch, ix, offset, tones) {
     let pitchInt = 0;
     let rv = suiAudioPitch._rawPitchToFrequency(smoPitch, offset);
-    const mt = smoNote.tones.filter((tt) => tt.pitch === ix);
+    const mt = tones.filter((tt) => tt.pitch === ix);
     if (mt.length) {
       const tone = mt[0];
       const coeff = tone.toPitchCoeff;
@@ -192,7 +193,7 @@ class suiOscillator {
     }
     i = 0;
     note.pitches.forEach((pitch) => {
-      frequency = suiAudioPitch.smoPitchToFrequency(note, pitch, i, -1 * measure.transposeIndex);
+      frequency = suiAudioPitch.smoPitchToFrequency(pitch, i, -1 * measure.transposeIndex, note.getMicrotones());
       const osc = new suiOscillator({ frequency, duration, gain });
       // var osc = new suiSampler({frequency:frequency,duration:duration,gain:gain});
       ar.push(osc);

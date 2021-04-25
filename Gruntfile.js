@@ -6,7 +6,7 @@ module.exports = function (grunt) {
   'src/smo/data/tuplet.js','src/smo/data/staffModifiers.js',
   'src/smo/mxml/xmlScore.js','src/smo/mxml/xmlState.js','src/smo/mxml/xmlHelpers.js',
   'src/smo/mxml/smo2Xml.js',
-  'src/smo/xform/undo.js', 'src/smo/xform/actions.js', 'src/smo/xform/toVex.js',
+  'src/smo/xform/undo.js', 'src/smo/xform/tickMap.js', 'src/smo/xform/actions.js', 'src/smo/xform/toVex.js',
   'src/smo/xform/copypaste.js','src/smo/xform/selections.js',
   'src/render/vex/vxMeasure.js','src/render/sui/renderState.js', 'src/render/sui/scoreRender.js',
   'src/render/sui/actionPlayback.js',

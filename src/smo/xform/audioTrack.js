@@ -1,12 +1,15 @@
 // ## SmoAudioTrack
-// Convert a score into a JSON structure that can be rendered to audio.  For
-// each staff/voice, return a track that consists of:
-//  `` { lastMeasure,notes,tempoMap,timeSignatureMap,hairpins,volume,tiedNotes} ``
+// Convert a score into a JSON structure that can be rendered to audio.
+// the return value looks like this:
+// `` { tracks, repeats, repeatMap} ``
+// repeatMap is just an array of tuples with start/end measures.
+//  each track contains:
+// `` { lastMeasure, notes, tempoMap, timeSignatureMap, hairpins, volume, tiedNotes }
 // where each note might contain:
-//  ``{ pitches ,noteType,duration,selector,volume }``
+//  ``{ pitches, noteType, duration, selector, volume }``
 // Note:  pitches are smo pitches, durations are adjusted for beatTime
 // (beatTime === 4096 uses Smo/Vex ticks, 128 is midi tick default)
-//
+// volume is normalized 0-1
 // eslint-disable-next-line no-unused-vars
 class SmoAudioTrack {
   // ### dynamicVolumeMap
