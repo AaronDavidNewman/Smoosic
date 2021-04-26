@@ -574,9 +574,9 @@ class smoMusic {
     }
     return key;
   }
-    static get frequencyMap() {
-        return suiAudioPitch.pitchFrequencyMap;
-    }
+  static get frequencyMap() {
+      return suiAudioPitch.pitchFrequencyMap;
+  }
 
   // ### get letterPitchIndex
   // Used to adjust octave when transposing.

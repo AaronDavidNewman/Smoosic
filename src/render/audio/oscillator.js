@@ -272,8 +272,10 @@ class suiOscillator {
 
     return rv;
   }
-
-  _play() {
+  // ### play
+  // play the audio oscillator for the specified duration.  Return a promise that
+  // resolves after the duration.  Also dispose of the audio resources after the play is complete.
+  play() {
     const audio = suiOscillator.audio;
     const gain = audio.createGain();
     const osc = audio.createOscillator();
@@ -302,11 +304,6 @@ class suiOscillator {
     osc.connect(gain);
     gain.connect(audio.destination);
     return this._playPromise(osc, this.duration, gain);
-  }
-
-  play() {
-    const self = this;
-    self._play();
   }
 
   constructor(parameters) {

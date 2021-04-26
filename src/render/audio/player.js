@@ -38,25 +38,95 @@ class suiAudioPlayer {
       suiAudioPlayer.playing = false;
   }
   static getMeasureSounds(track, measureIndex) {
-    const notes = track.notes.filter((nn) => selector.measure === measureIndex);
-    const voices = [];
-    let voice = null;
+    const notes = track.notes.filter((nn) => nn.selector.measure === measureIndex);
+    const trackSounds = [];
     notes.forEach((note) => {
-      if (note.selector.voice + 1 > voices.length) {
-        voice = { noteData: [] }
-        voices.push(voice);
-      } else {
-        voice = voices[voices.length - 1];
+      const noteSound = {
+        frequencies: [],
+        duration: note.duration,
+        offset: note.offset,
+        volume: note.volume,
+        noteType: note.noteType
       }
-
+      if (note.noteType === 'n') {
+        note.pitches.forEach((pitch) => {
+          noteSound.frequencies.push(suiAudioPitch.smoPitchToFrequency(pitch, 0, 0, []));
+        });
+      }
+      trackSounds.push(noteSound);
     });
+    return trackSounds;
+  }
+  static getTrackSounds(tracks, measureIndex) {
+    const offsetSounds = {};
+    const trackLen = tracks.length;
+    tracks.forEach((track) => {
+      const measureSounds = suiAudioPlayer.getMeasureSounds(track, measureIndex);
+      measureSounds.forEach((sound) => {
+        if (!offsetSounds[sound.offset]) {
+          offsetSounds[sound.offset] = [];
+        }
+        sound.volume = sound.volume / trackLen;
+        offsetSounds[sound.offset].push(sound);
+      });
+    });
+    const keys = Object.keys(offsetSounds);
+    keys.sort((a, b) => parseInt(a) - parseInt(b));
+    return {offsets: keys, offsetSounds };
+  }
+  static playSoundsAtOffset(audio, sounds, measureIndex, offsetIndex) {
+    if (!suiAudioPlayer.playing) {
+      return;
+    }
+    const tracks = audio.tracks;
+    let complete = false;
+    let waitTime = 0;
+    const tempo = audio.tempoMap[measureIndex];
+    const soundData = sounds.offsetSounds[sounds.offsets[offsetIndex]];
+    const maxMeasures = tracks[0].lastMeasure;
+    let nextSounds = sounds;
+    const oscs = [];
+    let i = 0;
+    let duration = 0;
+    soundData.forEach((sound) => {
+      for (i = 0; i < sound.frequencies.length && sound.noteType === 'n'; ++i) {
+        const freq = sound.frequencies[i];
+        const beats = sound.duration / 4096;
+        const adjDuration = (beats / tempo) * 60000;
+        const osc = new suiOscillator({ frequency: freq, duration: adjDuration, gain: sound.volume });
+        oscs.push(osc);
+      }
+    });
+    if (oscs.length) {
+      const promises = suiAudioPlayer._playChord(oscs);
+    }
+    if (sounds.offsets.length > offsetIndex + 1) {
+      const nextOffset = parseInt(sounds.offsets[offsetIndex + 1], 10);
+      waitTime = nextOffset - parseInt(sounds.offsets[offsetIndex], 10);
+      offsetIndex += 1;
+    } else if (measureIndex + 1 < maxMeasures) {
+      waitTime = audio.measureBeats[measureIndex] - parseInt(sounds.offsets[offsetIndex], 10);
+      measureIndex += 1;
+      sounds = suiAudioPlayer.getTrackSounds(audio.tracks, measureIndex);
+      offsetIndex = 0;
+    } else {
+      complete = true;
+    }
+    waitTime = ((waitTime / 4096) / tempo) * 60000;
+    setTimeout(() => {
+      if (!complete) {
+        suiAudioPlayer.playSoundsAtOffset(audio, sounds, measureIndex, offsetIndex);
+      } else {
+        suiAudioPlayer.playing = false;
+      }
+    }, waitTime);
   }
   static stopPlayer() {
-      if (suiAudioPlayer._playingInstance) {
-          var a = suiAudioPlayer._playingInstance;
-          a.paused = false;
-      }
-      suiAudioPlayer.playing = false;
+    if (suiAudioPlayer._playingInstance) {
+      var a = suiAudioPlayer._playingInstance;
+      a.paused = false;
+    }
+    suiAudioPlayer.playing = false;
   }
 
   static get playingInstance() {
@@ -196,13 +266,15 @@ class suiAudioPlayer {
   }
 
     play() {
-        if (suiAudioPlayer.playing) {
-            return;
-        }
-        suiAudioPlayer._playingInstance = this;
-        this._populatePlayArray();
-        suiAudioPlayer.playing = true;
-        this._playPlayArray();
+      if (suiAudioPlayer.playing) {
+        return;
+      }
+      suiAudioPlayer._playingInstance = this;
+      // this._populatePlayArray();
+      suiAudioPlayer.playing = true;
+      const sounds = suiAudioPlayer.getTrackSounds(this.audio.tracks, this.startIndex, this.tempoMap[0]);
+      suiAudioPlayer.playSoundsAtOffset(this.audio, sounds, this.startIndex, 0);
+        // this._playPlayArray();
     }
 
     constructor(parameters) {
@@ -213,6 +285,10 @@ class suiAudioPlayer {
         this.playIndex = 0;
         this.tracker = parameters.tracker;
         this.score = parameters.score;
-        this._populatePlayArray();
+        const converter = new SmoAudioTrack(this.score, 4096);
+        this.audio = converter.convert();
+        // Assume tempo is same for all measures
+        this.tempoMap = this.audio.tempoMap;
+        // this._populatePlayArray();
     }
 }

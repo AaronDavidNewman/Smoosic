@@ -198,7 +198,7 @@ class SmoAudioTrack {
     }
     return smoMusic.pitchArraysMatch(track.notes[noteIx - 1].pitches, selection.note.pitches);
   }
-  createTrackNote(track, selection, duration, noteIx) {
+  createTrackNote(track, selection, duration, runningDuration, noteIx) {
     if (this.isTiedPitch(track, selection, noteIx)) {
       track.notes[noteIx - 1].duration += duration;
       return;
@@ -208,13 +208,15 @@ class SmoAudioTrack {
       pitches: pitchArray,
       noteType: 'n',
       duration,
+      offset: runningDuration,
       selector: selection.selector,
       volume: track.volume
     });
   }
-  createTrackRest(duration, selector) {
+  createTrackRest(duration, runningDuration, selector) {
     return {
       duration,
+      offset: runningDuration,
       noteType: 'r',
       selector
     };
@@ -259,6 +261,7 @@ class SmoAudioTrack {
     const measureBeats = [];
     const repeats = [];
     let startRepeat = 0;
+    const tempoMap = [];
     this.score.staves.forEach((staff, staffIx) => {
       this.volume = 0;
       staff.measures.forEach((measure, measureIx) => {
@@ -272,6 +275,7 @@ class SmoAudioTrack {
             staff: staffIx, measure: measureIx
           };
           const track = trackHash[trackKey];
+          const tempo = measure.tempo.bpm * (measure.tempo.beatDuration / 4096);
           // staff 0/voice 0, set track values for the measure
           if (voiceIx === 0) {
             if (staffIx === 0) {
@@ -286,9 +290,10 @@ class SmoAudioTrack {
                 repeat.voltas = this.getVoltas(repeat, measureIx);
                 repeats.push(repeat);
               }
+              tempoMap.push(tempo);
             }
             const selectorKey = SmoSelector.getMeasureKey(measureSelector);
-            track.tempoMap[selectorKey] = Math.round(measure.tempo.bpm * (measure.tempo.beatDuration / 4096));
+            track.tempoMap[selectorKey] = Math.round(tempo);
             track.timeSignatureMap[selectorKey] = {
               numerator: measure.numBeats,
               denominator: measure.beatValue
@@ -297,12 +302,13 @@ class SmoAudioTrack {
           // If this voice is not in every measure, fill in the space
           // in its own channel.
           while (track.lastMeasure < measureIx) {
-            track.notes.push(this.createTrackRest(measureBeats[track.lastMeasure],
-              { staff: staffIx, measure: track.lastMeasure, voice: voiceIx, note: 0 }
+            track.notes.push(this.createTrackRest(measureBeats[track.lastMeasure], 0,
+              { staff: staffIx, measure: track.lastMeasure, voice: voiceIx, note: 0 },
             ));
             track.lastMeasure += 1;
           }
           let tupletTicks = 0;
+          let runningDuration = 0;
           voice.notes.forEach((note, noteIx) => {
             const selector = {
               staff: staffIx, measure: measureIx, voice: voiceIx, tick: noteIx
@@ -329,11 +335,12 @@ class SmoAudioTrack {
               duration = note.tickCount / this.timeDiv;
             }
             if (note.isRest()) {
-              track.notes.push(this.createTrackRest(duration, selector));
+              track.notes.push(this.createTrackRest(duration, runningDuration, selector));
             } else {
               this.computeVolume(track, selection);
-              this.createTrackNote(track, selection, duration, noteIx);
+              this.createTrackNote(track, selection, duration, runningDuration, noteIx);
             }
+            runningDuration += duration;
           });
           track.lastMeasure += 1;
         });
@@ -346,13 +353,13 @@ class SmoAudioTrack {
       while (track.lastMeasure < maxMeasure) {
         const staff = track.notes[0].selector.staff;
         const voice = track.notes[0].selector.voice;
-        track.notes.push(this.createTrackRest(measureBeats[track.lastMeasure],
+        track.notes.push(this.createTrackRest(measureBeats[track.lastMeasure], 0,
           { staff,  measure: track.lastMeasure, voice, note: 0 }
         ));
         track.lastMeasure += 1;
       }
     });
     const repeatMap = this.createRepeatMap(repeats);
-    return { tracks, repeats, repeatMap };
+    return { tracks, repeats, repeatMap, measureBeats, tempoMap };
   }
 }

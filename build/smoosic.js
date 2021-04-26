@@ -2531,9 +2531,9 @@ class smoMusic {
     }
     return key;
   }
-    static get frequencyMap() {
-        return suiAudioPitch.pitchFrequencyMap;
-    }
+  static get frequencyMap() {
+      return suiAudioPitch.pitchFrequencyMap;
+  }
 
   // ### get letterPitchIndex
   // Used to adjust octave when transposing.
@@ -4309,8 +4309,10 @@ class suiOscillator {
 
     return rv;
   }
-
-  _play() {
+  // ### play
+  // play the audio oscillator for the specified duration.  Return a promise that
+  // resolves after the duration.  Also dispose of the audio resources after the play is complete.
+  play() {
     const audio = suiOscillator.audio;
     const gain = audio.createGain();
     const osc = audio.createOscillator();
@@ -4339,11 +4341,6 @@ class suiOscillator {
     osc.connect(gain);
     gain.connect(audio.destination);
     return this._playPromise(osc, this.duration, gain);
-  }
-
-  play() {
-    const self = this;
-    self._play();
   }
 
   constructor(parameters) {
@@ -4441,25 +4438,95 @@ class suiAudioPlayer {
       suiAudioPlayer.playing = false;
   }
   static getMeasureSounds(track, measureIndex) {
-    const notes = track.notes.filter((nn) => selector.measure === measureIndex);
-    const voices = [];
-    let voice = null;
+    const notes = track.notes.filter((nn) => nn.selector.measure === measureIndex);
+    const trackSounds = [];
     notes.forEach((note) => {
-      if (note.selector.voice + 1 > voices.length) {
-        voice = { noteData: [] }
-        voices.push(voice);
-      } else {
-        voice = voices[voices.length - 1];
+      const noteSound = {
+        frequencies: [],
+        duration: note.duration,
+        offset: note.offset,
+        volume: note.volume,
+        noteType: note.noteType
       }
-
+      if (note.noteType === 'n') {
+        note.pitches.forEach((pitch) => {
+          noteSound.frequencies.push(suiAudioPitch.smoPitchToFrequency(pitch, 0, 0, []));
+        });
+      }
+      trackSounds.push(noteSound);
     });
+    return trackSounds;
+  }
+  static getTrackSounds(tracks, measureIndex) {
+    const offsetSounds = {};
+    const trackLen = tracks.length;
+    tracks.forEach((track) => {
+      const measureSounds = suiAudioPlayer.getMeasureSounds(track, measureIndex);
+      measureSounds.forEach((sound) => {
+        if (!offsetSounds[sound.offset]) {
+          offsetSounds[sound.offset] = [];
+        }
+        sound.volume = sound.volume / trackLen;
+        offsetSounds[sound.offset].push(sound);
+      });
+    });
+    const keys = Object.keys(offsetSounds);
+    keys.sort((a, b) => parseInt(a) - parseInt(b));
+    return {offsets: keys, offsetSounds };
+  }
+  static playSoundsAtOffset(audio, sounds, measureIndex, offsetIndex) {
+    if (!suiAudioPlayer.playing) {
+      return;
+    }
+    const tracks = audio.tracks;
+    let complete = false;
+    let waitTime = 0;
+    const tempo = audio.tempoMap[measureIndex];
+    const soundData = sounds.offsetSounds[sounds.offsets[offsetIndex]];
+    const maxMeasures = tracks[0].lastMeasure;
+    let nextSounds = sounds;
+    const oscs = [];
+    let i = 0;
+    let duration = 0;
+    soundData.forEach((sound) => {
+      for (i = 0; i < sound.frequencies.length && sound.noteType === 'n'; ++i) {
+        const freq = sound.frequencies[i];
+        const beats = sound.duration / 4096;
+        const adjDuration = (beats / tempo) * 60000;
+        const osc = new suiOscillator({ frequency: freq, duration: adjDuration, gain: sound.volume });
+        oscs.push(osc);
+      }
+    });
+    if (oscs.length) {
+      const promises = suiAudioPlayer._playChord(oscs);
+    }
+    if (sounds.offsets.length > offsetIndex + 1) {
+      const nextOffset = parseInt(sounds.offsets[offsetIndex + 1], 10);
+      waitTime = nextOffset - parseInt(sounds.offsets[offsetIndex], 10);
+      offsetIndex += 1;
+    } else if (measureIndex + 1 < maxMeasures) {
+      waitTime = audio.measureBeats[measureIndex] - parseInt(sounds.offsets[offsetIndex], 10);
+      measureIndex += 1;
+      sounds = suiAudioPlayer.getTrackSounds(audio.tracks, measureIndex);
+      offsetIndex = 0;
+    } else {
+      complete = true;
+    }
+    waitTime = ((waitTime / 4096) / tempo) * 60000;
+    setTimeout(() => {
+      if (!complete) {
+        suiAudioPlayer.playSoundsAtOffset(audio, sounds, measureIndex, offsetIndex);
+      } else {
+        suiAudioPlayer.playing = false;
+      }
+    }, waitTime);
   }
   static stopPlayer() {
-      if (suiAudioPlayer._playingInstance) {
-          var a = suiAudioPlayer._playingInstance;
-          a.paused = false;
-      }
-      suiAudioPlayer.playing = false;
+    if (suiAudioPlayer._playingInstance) {
+      var a = suiAudioPlayer._playingInstance;
+      a.paused = false;
+    }
+    suiAudioPlayer.playing = false;
   }
 
   static get playingInstance() {
@@ -4599,13 +4666,15 @@ class suiAudioPlayer {
   }
 
     play() {
-        if (suiAudioPlayer.playing) {
-            return;
-        }
-        suiAudioPlayer._playingInstance = this;
-        this._populatePlayArray();
-        suiAudioPlayer.playing = true;
-        this._playPlayArray();
+      if (suiAudioPlayer.playing) {
+        return;
+      }
+      suiAudioPlayer._playingInstance = this;
+      // this._populatePlayArray();
+      suiAudioPlayer.playing = true;
+      const sounds = suiAudioPlayer.getTrackSounds(this.audio.tracks, this.startIndex, this.tempoMap[0]);
+      suiAudioPlayer.playSoundsAtOffset(this.audio, sounds, this.startIndex, 0);
+        // this._playPlayArray();
     }
 
     constructor(parameters) {
@@ -4616,7 +4685,11 @@ class suiAudioPlayer {
         this.playIndex = 0;
         this.tracker = parameters.tracker;
         this.score = parameters.score;
-        this._populatePlayArray();
+        const converter = new SmoAudioTrack(this.score, 4096);
+        this.audio = converter.convert();
+        // Assume tempo is same for all measures
+        this.tempoMap = this.audio.tempoMap;
+        // this._populatePlayArray();
     }
 }
 ;// ## SuiActionPlayback
@@ -19462,7 +19535,7 @@ class SmoAudioTrack {
     }
     return smoMusic.pitchArraysMatch(track.notes[noteIx - 1].pitches, selection.note.pitches);
   }
-  createTrackNote(track, selection, duration, noteIx) {
+  createTrackNote(track, selection, duration, runningDuration, noteIx) {
     if (this.isTiedPitch(track, selection, noteIx)) {
       track.notes[noteIx - 1].duration += duration;
       return;
@@ -19472,13 +19545,15 @@ class SmoAudioTrack {
       pitches: pitchArray,
       noteType: 'n',
       duration,
+      offset: runningDuration,
       selector: selection.selector,
       volume: track.volume
     });
   }
-  createTrackRest(duration, selector) {
+  createTrackRest(duration, runningDuration, selector) {
     return {
       duration,
+      offset: runningDuration,
       noteType: 'r',
       selector
     };
@@ -19523,6 +19598,7 @@ class SmoAudioTrack {
     const measureBeats = [];
     const repeats = [];
     let startRepeat = 0;
+    const tempoMap = [];
     this.score.staves.forEach((staff, staffIx) => {
       this.volume = 0;
       staff.measures.forEach((measure, measureIx) => {
@@ -19536,6 +19612,7 @@ class SmoAudioTrack {
             staff: staffIx, measure: measureIx
           };
           const track = trackHash[trackKey];
+          const tempo = measure.tempo.bpm * (measure.tempo.beatDuration / 4096);
           // staff 0/voice 0, set track values for the measure
           if (voiceIx === 0) {
             if (staffIx === 0) {
@@ -19550,9 +19627,10 @@ class SmoAudioTrack {
                 repeat.voltas = this.getVoltas(repeat, measureIx);
                 repeats.push(repeat);
               }
+              tempoMap.push(tempo);
             }
             const selectorKey = SmoSelector.getMeasureKey(measureSelector);
-            track.tempoMap[selectorKey] = Math.round(measure.tempo.bpm * (measure.tempo.beatDuration / 4096));
+            track.tempoMap[selectorKey] = Math.round(tempo);
             track.timeSignatureMap[selectorKey] = {
               numerator: measure.numBeats,
               denominator: measure.beatValue
@@ -19561,12 +19639,13 @@ class SmoAudioTrack {
           // If this voice is not in every measure, fill in the space
           // in its own channel.
           while (track.lastMeasure < measureIx) {
-            track.notes.push(this.createTrackRest(measureBeats[track.lastMeasure],
-              { staff: staffIx, measure: track.lastMeasure, voice: voiceIx, note: 0 }
+            track.notes.push(this.createTrackRest(measureBeats[track.lastMeasure], 0,
+              { staff: staffIx, measure: track.lastMeasure, voice: voiceIx, note: 0 },
             ));
             track.lastMeasure += 1;
           }
           let tupletTicks = 0;
+          let runningDuration = 0;
           voice.notes.forEach((note, noteIx) => {
             const selector = {
               staff: staffIx, measure: measureIx, voice: voiceIx, tick: noteIx
@@ -19593,11 +19672,12 @@ class SmoAudioTrack {
               duration = note.tickCount / this.timeDiv;
             }
             if (note.isRest()) {
-              track.notes.push(this.createTrackRest(duration, selector));
+              track.notes.push(this.createTrackRest(duration, runningDuration, selector));
             } else {
               this.computeVolume(track, selection);
-              this.createTrackNote(track, selection, duration, noteIx);
+              this.createTrackNote(track, selection, duration, runningDuration, noteIx);
             }
+            runningDuration += duration;
           });
           track.lastMeasure += 1;
         });
@@ -19610,14 +19690,14 @@ class SmoAudioTrack {
       while (track.lastMeasure < maxMeasure) {
         const staff = track.notes[0].selector.staff;
         const voice = track.notes[0].selector.voice;
-        track.notes.push(this.createTrackRest(measureBeats[track.lastMeasure],
+        track.notes.push(this.createTrackRest(measureBeats[track.lastMeasure], 0,
           { staff,  measure: track.lastMeasure, voice, note: 0 }
         ));
         track.lastMeasure += 1;
       }
     });
     const repeatMap = this.createRepeatMap(repeats);
-    return { tracks, repeats, repeatMap };
+    return { tracks, repeats, repeatMap, measureBeats, tempoMap };
   }
 }
 ;// eslint-disable-next-line no-unused-vars
