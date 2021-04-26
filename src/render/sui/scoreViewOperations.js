@@ -207,6 +207,9 @@ class SuiScoreViewOperations extends SuiScoreView {
     this._renderChangedMeasures(measuresToAdd);
   }
   changeInstrument(instrument, selections) {
+    if (typeof(selections) === 'undefined') {
+      selections = this.tracker.selections;
+    }
     this.actionBuffer.addAction('changeInstrument', instrument, selections);
     this._undoSelections('change instrument', selections);
     const altSelections = this._getEquivalentSelections(selections);
