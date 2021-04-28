@@ -193,12 +193,13 @@ class SmoAudioTrack {
     if (!track.tiedNotes.length) {
       return false;
     }
-    if (!track.notes[noteIx - 1].noteType !== 'n') {
+    if (track.notes[noteIx - 1].noteType !== 'n') {
       return false;
     }
     return smoMusic.pitchArraysMatch(track.notes[noteIx - 1].pitches, selection.note.pitches);
   }
-  createTrackNote(track, selection, duration, runningDuration, noteIx) {
+  createTrackNote(track, selection, duration, runningDuration) {
+    const noteIx = track.notes.length;
     if (this.isTiedPitch(track, selection, noteIx)) {
       track.notes[noteIx - 1].duration += duration;
       return;
@@ -338,7 +339,7 @@ class SmoAudioTrack {
               track.notes.push(this.createTrackRest(duration, runningDuration, selector));
             } else {
               this.computeVolume(track, selection);
-              this.createTrackNote(track, selection, duration, runningDuration, noteIx);
+              this.createTrackNote(track, selection, duration, runningDuration);
             }
             runningDuration += duration;
           });
