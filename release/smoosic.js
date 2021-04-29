@@ -4404,6 +4404,7 @@ class suiAudioPlayer {
   static set playing(val) {
     suiAudioPlayer._playing = val;
   }
+
   static get instanceId() {
     if (typeof(suiAudioPlayer._instanceId) === 'undefined') {
       suiAudioPlayer._instanceId = 0;
@@ -4506,8 +4507,8 @@ class suiAudioPlayer {
       offsetIndex += 1;
     } else if (measureIndex + 1 < maxMeasures) {
       waitTime = audio.measureBeats[measureIndex] - parseInt(sounds.offsets[offsetIndex], 10);
-      measureIndex += 1;
-      sounds = suiAudioPlayer.getTrackSounds(audio.tracks, measureIndex);
+      this.startIndex += 1;
+      sounds = suiAudioPlayer.getTrackSounds(audio.tracks, this.startIndex);
       offsetIndex = 0;
     } else {
       complete = true;
