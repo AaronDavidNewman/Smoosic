@@ -196,6 +196,14 @@ class SmoAudioTrack {
     if (track.notes[noteIx - 1].noteType !== 'n') {
       return false;
     }
+    // Don't do this for first note of nth endings, because it will mess up
+    // other endings.
+    if (selection.selector.tick === 0) {
+      const endings = selection.measure.getNthEndings();
+      if (endings) {
+        return false;
+      }
+    }
     return smoMusic.pitchArraysMatch(track.notes[noteIx - 1].pitches, selection.note.pitches);
   }
   createTrackNote(track, selection, duration, runningDuration) {
@@ -276,6 +284,9 @@ class SmoAudioTrack {
             staff: staffIx, measure: measureIx
           };
           const track = trackHash[trackKey];
+          if (!measure.tempo) {
+            measure.tempo = new SmoTempoText();
+          }
           const tempo = measure.tempo.bpm * (measure.tempo.beatDuration / 4096);
           // staff 0/voice 0, set track values for the measure
           if (voiceIx === 0) {
