@@ -33,12 +33,14 @@ class SmoToMidi {
               track.setTimeSignature(ts.numerator, ts.denominator);
             }
             if (noteData.noteType === 'r') {
-              const rest = new MidiWriter.NoteOffEvent({
-                channel: trackIx + 1,
-                pitch: 'C4',
-                duration: 't' + noteData.duration
-              });
-              track.addEvent(rest);
+              if (!noteData.padding) {
+                const rest = new MidiWriter.NoteOffEvent({
+                  channel: trackIx + 1,
+                  pitch: 'C4',
+                  duration: 't' + noteData.duration
+                });
+                track.addEvent(rest);
+              }
             } else {
               const pitchArray = smoMusic.smoPitchesToMidiStrings(noteData.pitches);
               const velocity = Math.round(127 * noteData.volume);

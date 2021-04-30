@@ -200,7 +200,7 @@ class SmoAudioTrack {
     // other endings.
     if (selection.selector.tick === 0) {
       const endings = selection.measure.getNthEndings();
-      if (endings) {
+      if (endings.length) {
         return false;
       }
     }
@@ -210,6 +210,11 @@ class SmoAudioTrack {
     const noteIx = track.notes.length;
     if (this.isTiedPitch(track, selection, noteIx)) {
       track.notes[noteIx - 1].duration += duration;
+      const restPad = this.createTrackRest(duration, runningDuration, selection.selector);
+      // Indicate this rest is just padding for a previous tied note.  Midi and audio render this
+      // differently
+      restPad.padding = true;
+      track.notes.push(restPad);
       return;
     }
     const pitchArray = JSON.parse(JSON.stringify(selection.note.pitches));

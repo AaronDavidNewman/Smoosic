@@ -4400,6 +4400,7 @@ class suiSampler extends suiOscillator {
 }
 ;// ## suiAudioPlayer
 // Play the music, ja!
+// eslint-disable-next-line no-unused-vars
 class suiAudioPlayer {
   static set playing(val) {
     suiAudioPlayer._playing = val;
@@ -4412,12 +4413,12 @@ class suiAudioPlayer {
     return suiAudioPlayer._instanceId;
   }
   static incrementInstanceId() {
-      var id = suiAudioPlayer.instanceId + 1;
-      suiAudioPlayer._instanceId = id;
-      return id;
+    const id = suiAudioPlayer.instanceId + 1;
+    suiAudioPlayer._instanceId = id;
+    return id;
   }
   static get playing() {
-    if (typeof(suiAudioPlayer._playing) == 'undefined') {
+    if (typeof(suiAudioPlayer._playing) === 'undefined') {
       suiAudioPlayer._playing = false;
     }
     return suiAudioPlayer._playing;
@@ -4425,7 +4426,7 @@ class suiAudioPlayer {
 
   static pausePlayer() {
     if (suiAudioPlayer._playingInstance) {
-      var a = suiAudioPlayer._playingInstance;
+      const a = suiAudioPlayer._playingInstance;
       a.paused = true;
     }
     suiAudioPlayer.playing = false;
@@ -4440,7 +4441,7 @@ class suiAudioPlayer {
         offset: note.offset,
         volume: note.volume,
         noteType: note.noteType
-      }
+      };
       if (note.noteType === 'n') {
         note.pitches.forEach((pitch) => {
           noteSound.frequencies.push(suiAudioPitch.smoPitchToFrequency(pitch, 0, 0, []));
@@ -4451,7 +4452,7 @@ class suiAudioPlayer {
     return trackSounds;
   }
   // ### getTrackSounds
-  // convert track data to frequency/volume domain
+  // convert track data to frequency/volume
   static getTrackSounds(tracks, measureIndex) {
     const offsetSounds = {};
     const trackLen = tracks.length;
@@ -4466,17 +4467,15 @@ class suiAudioPlayer {
       });
     });
     const keys = Object.keys(offsetSounds);
-    keys.sort((a, b) => parseInt(a) - parseInt(b));
-    return {offsets: keys, offsetSounds };
+    keys.sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+    return { offsets: keys, offsetSounds };
   }
   // ### playSoundsAtOffset
   // Play the track data at the current measure, the tick offset is specified.
   playSoundsAtOffset(sounds, offsetIndex) {
     let complete = false;
     let waitTime = 0;
-    let nextSounds = sounds;
     let i = 0;
-    let duration = 0;
     const audio = this.audio;
     const tracker = this.tracker;
     const measureIndex = this.startIndex;
@@ -4488,7 +4487,9 @@ class suiAudioPlayer {
     const soundData = sounds.offsetSounds[sounds.offsets[offsetIndex]];
     const maxMeasures = tracks[0].lastMeasure;
     const oscs = [];
+    // Update the music cursor
     tracker.musicCursor({ staff: 0, measure: measureIndex, voice: 0, tick: offsetIndex });
+    // Create oscillators for each pitch in the chord.
     soundData.forEach((sound) => {
       for (i = 0; i < sound.frequencies.length && sound.noteType === 'n'; ++i) {
         const freq = sound.frequencies[i];
@@ -4498,14 +4499,18 @@ class suiAudioPlayer {
         oscs.push(osc);
       }
     });
+    // Play the chords and dispose when done.
     if (oscs.length) {
-      const promises = suiAudioPlayer._playChord(oscs);
+      suiAudioPlayer._playChord(oscs);
     }
+    // Decide what the next note will be on this track - either another note in this
+    // measure, or the first note in next measure.
     if (sounds.offsets.length > offsetIndex + 1) {
       const nextOffset = parseInt(sounds.offsets[offsetIndex + 1], 10);
       waitTime = nextOffset - parseInt(sounds.offsets[offsetIndex], 10);
       offsetIndex += 1;
     } else if (measureIndex + 1 < maxMeasures) {
+      // If the next measure, calculate the frequencies for the next track.
       waitTime = audio.measureBeats[measureIndex] - parseInt(sounds.offsets[offsetIndex], 10);
       this.startIndex += 1;
       sounds = suiAudioPlayer.getTrackSounds(audio.tracks, this.startIndex);
@@ -4513,6 +4518,7 @@ class suiAudioPlayer {
     } else {
       complete = true;
     }
+    // Decide how long to wait until the next sound in the chord.
     waitTime = ((waitTime / 4096) / tempo) * 60000;
     setTimeout(() => {
       if (!complete) {
@@ -4525,7 +4531,7 @@ class suiAudioPlayer {
   }
   static stopPlayer() {
     if (suiAudioPlayer._playingInstance) {
-      var a = suiAudioPlayer._playingInstance;
+      const a = suiAudioPlayer._playingInstance;
       a.tracker.clearMusicCursor();
       a.paused = false;
     }
@@ -4543,14 +4549,14 @@ class suiAudioPlayer {
   // each inner oscillator is a promise, the combined promise is resolved when all
   // the beats have completed.
   static _playChord(oscAr) {
-      var par = [];
-      oscAr.forEach((osc) => {
-          par.push(osc.play());
-      });
-
-      return Promise.all(par);
+    var par = [];
+    oscAr.forEach((osc) => {
+      par.push(osc.play());
+    });
+    return Promise.all(par);
   }
 
+  // Starts the player.
   play() {
     if (suiAudioPlayer.playing) {
       return;
@@ -4563,7 +4569,7 @@ class suiAudioPlayer {
 
   constructor(parameters) {
     this.instanceId = suiAudioPlayer.incrementInstanceId();
-    suiAudioPlayer.playing=false;
+    suiAudioPlayer.playing = false;
     this.paused = false;
     this.startIndex = parameters.startIndex;
     this.playIndex = 0;
@@ -17392,12 +17398,14 @@ class SmoToMidi {
               track.setTimeSignature(ts.numerator, ts.denominator);
             }
             if (noteData.noteType === 'r') {
-              const rest = new MidiWriter.NoteOffEvent({
-                channel: trackIx + 1,
-                pitch: 'C4',
-                duration: 't' + noteData.duration
-              });
-              track.addEvent(rest);
+              if (!noteData.padding) {
+                const rest = new MidiWriter.NoteOffEvent({
+                  channel: trackIx + 1,
+                  pitch: 'C4',
+                  duration: 't' + noteData.duration
+                });
+                track.addEvent(rest);
+              }
             } else {
               const pitchArray = smoMusic.smoPitchesToMidiStrings(noteData.pitches);
               const velocity = Math.round(127 * noteData.volume);
@@ -19423,7 +19431,7 @@ class SmoAudioTrack {
     // other endings.
     if (selection.selector.tick === 0) {
       const endings = selection.measure.getNthEndings();
-      if (endings) {
+      if (endings.length) {
         return false;
       }
     }
@@ -19433,6 +19441,11 @@ class SmoAudioTrack {
     const noteIx = track.notes.length;
     if (this.isTiedPitch(track, selection, noteIx)) {
       track.notes[noteIx - 1].duration += duration;
+      const restPad = this.createTrackRest(duration, runningDuration, selection.selector);
+      // Indicate this rest is just padding for a previous tied note.  Midi and audio render this
+      // differently
+      restPad.padding = true;
+      track.notes.push(restPad);
       return;
     }
     const pitchArray = JSON.parse(JSON.stringify(selection.note.pitches));
