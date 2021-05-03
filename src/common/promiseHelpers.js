@@ -7,7 +7,7 @@ class PromiseHelpers {
   // Resolve method and pollMethod are optional
   static makePromise(instance, endCondition, preResolveMethod, pollMethod, pollTime) {
     return new Promise((resolve) => {
-      var checkit = () => {
+      const checkit = () => {
         setTimeout(() => {
           if (instance[endCondition]) {
             if (preResolveMethod) {

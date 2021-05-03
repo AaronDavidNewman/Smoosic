@@ -317,6 +317,7 @@ class NoteButtons {
     this.buttonElement = parameters.buttonElement;
     this.buttonData = parameters.buttonData;
     this.keyCommands = parameters.keyCommands;
+    this.view = parameters.view;
   }
   setPitch() {
     if (this.buttonData.id === 'UpNoteButton') {
@@ -341,6 +342,12 @@ class NoteButtons {
       this.keyCommands.removeGraceNote();
     } else if (this.buttonData.id === 'XNoteHead') {
       this.keyCommands.setNoteHead();
+    } else if (this.buttonData.id === 'TriUpNoteHead') {
+      this.view.setNoteHead('T2');
+    } else if (this.buttonData.id === 'CircleXNoteHead') {
+      this.view.setNoteHead('X3');
+    } else if (this.buttonData.id === 'DiamondNoteHead') {
+      this.view.setNoteHead('D2');
     } else {
       this.keyCommands.setPitchCommand(this.buttonData.rightText);
     }
@@ -404,6 +411,9 @@ class StaveButtons {
   }
   clefTenor() {
     this.addClef('tenor', 'Tenor Instrument');
+  }
+  clefPercussion() {
+    this.addClef('percussion', 'Tenor Instrument');
   }
   _clefMove(index) {
     this.view.moveStaffUpDown(index);

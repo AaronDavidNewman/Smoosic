@@ -13,10 +13,11 @@ class SuiFontComponent extends SuiComponentBase {
       this.dataType = 'string';
     }
     this.dialog = dialog;
+
     this.familyPart = new SuiDropdownComposite(this.dialog,
       {
         smoName: 'fontFamily',
-        parameterName: 'fontFamily',
+        parameterName: 'fontFamily' + this.parameterId,
         classes: 'hide-when-editing hide-when-moving',
         defaultValue: SmoScoreText.fontFamilies.times,
         control: 'SuiDropdownComponent',
@@ -39,7 +40,7 @@ class SuiFontComponent extends SuiComponentBase {
       this.dialog,
       {
         smoName: 'fontSize',
-        parameterName: 'fontSize',
+        parameterName: 'fontSize' + this.parameterId,
         defaultValue: 1,
         parentControl: this,
         classes: 'hide-when-editing hide-when-moving',
@@ -53,7 +54,7 @@ class SuiFontComponent extends SuiComponentBase {
       this.dialog,
       {
         smoName: 'italics',
-        parameterName: 'italics',
+        parameterName: 'italics' + this.parameterId,
         defaultValue: false,
         parentControl: this,
         classes: 'hide-when-editing hide-when-moving',
@@ -65,7 +66,7 @@ class SuiFontComponent extends SuiComponentBase {
       this.dialog,
       {
         smoName: 'bold',
-        parameterName: 'bold',
+        parameterName: 'bold' + this.parameterId,
         parentControl: this,
         defaultValue: false,
         classes: 'hide-when-editing hide-when-moving',
@@ -84,7 +85,10 @@ class SuiFontComponent extends SuiComponentBase {
 
   get html() {
     const b = htmlHelpers.buildDom;
-    const q = b('div').classes(this.makeClasses('multiControl smoControl'));
+    const q = b('div').classes(this.makeClasses('multiControl smoControl')).attr('id', this.parameterId);
+    if (this.label) {
+      q.append(b('h3').classes('font-purpose').text(this.label));
+    }
     q.append(this.familyPart.html);
     q.append(this.sizePart.html);
     q.append(this.boldCtrl.html);

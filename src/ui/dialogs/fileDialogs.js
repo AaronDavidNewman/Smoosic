@@ -132,6 +132,9 @@ class SuiLoadMxmlDialog extends SuiFileDialog {
     this.value = this.components[0].getValue();
     $(this.dgDom.element).find('.ok-button').prop('disabled', false);
   }
+  _readZipAsync() {
+
+  }
   commit() {
     let scoreWorks = false;
     if (this.value) {

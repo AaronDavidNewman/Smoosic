@@ -835,6 +835,13 @@ class SuiScoreViewOperations extends SuiScoreView {
     altEngrave.family = family;
     SuiRenderState.setFont(engrave.family);
   }
+  setChordFont(fontInfo) {
+    this.actionBuffer.addAction('setChordFont', fontInfo);
+    this._undoScore('Set Chord Font');
+    this.score.setChordFont({ 'family': fontInfo.family, size: fontInfo.size });
+    this.storeScore.setChordFont({ 'family': fontInfo.family, size: fontInfo.size });
+    this.renderer.setRefresh();
+  }
   setLyricFont(fontInfo) {
     this.actionBuffer.addAction('setLyricFont', fontInfo);
     this._undoScore('Set Lyric Font');

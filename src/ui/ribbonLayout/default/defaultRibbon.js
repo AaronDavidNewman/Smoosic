@@ -37,7 +37,8 @@ class defaultRibbonLayout {
   }
   static get noteButtonIds() {
     return ['NoteButtons',
-            'UpNoteButton', 'DownNoteButton','AddGraceNote','RemoveGraceNote','SlashGraceNote','XNoteHead',
+            'UpNoteButton', 'DownNoteButton','AddGraceNote','RemoveGraceNote','SlashGraceNote',
+            'XNoteHead','TriUpNoteHead','CircleXNoteHead','DiamondNoteHead',
         'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
   }
   static get voiceButtonIds() {
@@ -77,7 +78,7 @@ class defaultRibbonLayout {
   }
     static get staveIds() {
     return ['StaveButtons','clefTreble','clefBass','clefAddRemove','clefMoveUp','clefMoveDown','moreStaffButtons',
-        'clefTenor','clefAlto',
+        'clefTenor','clefAlto','clefPercussion',
            'staffBracketLower','staffBraceLower','staffDoubleConnectorLower','staffSingleConnectorLower'];
   }
 
@@ -307,7 +308,7 @@ class defaultRibbonLayout {
         ctor: 'CollapseRibbonControl',
         group: 'staves',
         id: 'StaveButtons'
-    },{
+    }, {
       leftText: '',
         rightText: '',
         classes: 'icon  collapsed staves',
@@ -316,7 +317,7 @@ class defaultRibbonLayout {
         ctor: 'StaveButtons',
         group: 'staves',
         id: 'clefTreble'
-    },{
+    }, {
       leftText: '',
         rightText: '',
         classes: 'icon  collapsed staves',
@@ -325,8 +326,7 @@ class defaultRibbonLayout {
         ctor: 'StaveButtons',
         group: 'staves',
         id: 'clefBass'
-    }
-        ,{
+    }, {
       leftText: '',
         rightText: '',
         classes: 'icon  collapsed staves',
@@ -373,7 +373,7 @@ class defaultRibbonLayout {
         ctor: 'StaveButtons',
         group: 'staves',
         id: 'clefTenor'
-    },{
+    }, {
       leftText: '',
         rightText: '',
         classes: 'icon  collapsed staves',
@@ -382,7 +382,16 @@ class defaultRibbonLayout {
         ctor: 'StaveButtons',
         group: 'staves',
         id: 'clefAlto'
-    },{
+    }, {
+      leftText: '',
+        rightText: '',
+        classes: 'icon  collapsed staves',
+        icon: 'icon-percussion',
+        action: 'collapseGrandchild',
+        ctor: 'StaveButtons',
+        group: 'staves',
+        id: 'clefPercussion'
+    }, {
       leftText: '',
         rightText: '',
         classes: 'icon  collapsed staves',
@@ -914,7 +923,7 @@ class defaultRibbonLayout {
         ctor: 'NoteButtons',
         group: 'notes',
         id: 'RemoveGraceNote'
-      },{
+      }, {
         leftText: '',
         rightText: '',
         icon: 'icon-notex',
@@ -923,7 +932,34 @@ class defaultRibbonLayout {
         ctor: 'NoteButtons',
         group: 'notes',
         id: 'XNoteHead'
-      },{
+      }, {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-notehead-triangleup',
+        classes: 'collapsed graceIcon',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'TriUpNoteHead'
+      }, {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-notehead-circlex',
+        classes: 'collapsed graceIcon',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'CircleXNoteHead'
+      }, {
+        leftText: '',
+        rightText: '',
+        icon: 'icon-notehead-diamondblack',
+        classes: 'collapsed graceIcon',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'DiamondNoteHead'
+      }, {
         leftText: '8va',
         rightText: 'Shift=',
         icon: '',

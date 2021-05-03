@@ -32,19 +32,8 @@ class SuiScoreViewDialog extends SuiDialogBase {
     this.components.forEach((component) => {
       component.bind();
     });
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('.icon-move'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
-    });
-
-    const getKeys = () => {
-      this.completeNotifier.unbindKeyboardForModal(this);
-    };
-    this.startPromise.then(getKeys);
+    this.makeDraggable();
+    this.captureKeyboardPromise();
     this._bindElements();
     this.scoreViewCtrl.setValue(this.view.getView());
     const box = svgHelpers.boxPoints(250, 250, 1, 1);
@@ -113,14 +102,6 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
         defaultValue: [],
         control: 'SuiToggleComponent',
         label: 'Auto-Advance Cursor',
-      }, {
-        smoName: 'customProportion',
-        parameterName: 'customProportion',
-        defaultValue: SmoScore.defaults.preferences.customProportion,
-        control: 'SuiRockerComponent',
-        type: 'int',
-        increment: 10,
-        label: 'Adjust Proportional Spacing'
       }, {
         staticText: [
           { label: 'Score Preferences' }
@@ -327,18 +308,8 @@ class SuiScoreIdentificationDialog extends SuiDialogBase {
     this.components.forEach((component) => {
       component.bind();
     });
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('.icon-move'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
-    });
-    const getKeys = () => {
-      this.completeNotifier.unbindKeyboardForModal(this);
-    };
-    this.startPromise.then(getKeys);
+    this.makeDraggable();
+    this.captureKeyboardPromise();
     this._bindElements();
     this._setInitialValues();
     const box = svgHelpers.boxPoints(250, 250, 1, 1);
@@ -396,6 +367,135 @@ class SuiScoreIdentificationDialog extends SuiDialogBase {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
+class SuiScoreFontDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiScoreFontDialog';
+  }
+  get ctor() {
+    return SuiScoreFontDialog.ctor;
+  }
+  // ### dialogElements
+  // all dialogs have elements define the controls of the dialog.
+  static get dialogElements() {
+    SuiScoreFontDialog._dialogElements = typeof(SuiScoreFontDialog._dialogElements) !== 'undefined' ? SuiScoreFontDialog._dialogElements :
+      [{
+        smoName: 'engravingFont',
+        parameterName: 'engravingFont',
+        defaultValue: SmoScore.engravingFonts.Bravura,
+        control: 'SuiDropdownComponent',
+        label: 'Engraving Font',
+        options: [{
+          value: 'Bravura',
+          label: 'Bravura'
+        }, {
+          value: 'Gonville',
+          label: 'Gonville'
+        }, {
+          value: 'Petaluma',
+          label: 'Petaluma'
+        }, {
+          value: 'Leland',
+          label: 'Leland'
+        }]
+      }, {
+        smoName: 'chordFont',
+        parameterName: 'chordFont',
+        classes: 'chord-font-component',
+        defaultValue: 0,
+        control: 'SuiFontComponent',
+        label: 'Chord Font'
+      }, {
+        smoName: 'lyricFont',
+        parameterName: 'lyricFont',
+        classes: 'lyric-font-component',
+        defaultValue: 0,
+        control: 'SuiFontComponent',
+        label: 'Lyric Font'
+      }, {
+        staticText: [
+          { label: 'Score Fonts' }
+        ]
+      }];
+    return SuiScoreFontDialog._dialogElements;
+  }
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    this._bindComponentNames();
+    this.makeDraggable();
+    this.captureKeyboardPromise();
+    const box = svgHelpers.boxPoints(250, 250, 1, 1);
+    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+    this._bindElements();
+    const engraving = this.fontBackup.find((ff) => ff.purpose === SmoScore.fontPurposes.ENGRAVING);
+    const chords = this.fontBackup.find((ff) => ff.purpose === SmoScore.fontPurposes.CHORDS);
+    const lyrics = this.fontBackup.find((ff) => ff.purpose === SmoScore.fontPurposes.LYRICS);
+    this.engravingFontCtrl.setValue(engraving.family);
+    this.chordFontCtrl.setValue(chords);
+    this.lyricFontCtrl.setValue(lyrics);
+  }
+  _bindElements() {
+    const dgDom = this.dgDom;
+    this.bindKeyboard();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.complete();
+    });
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this._handleCancel();
+    });
+    $(dgDom.element).find('.remove-button').remove();
+  }
+  _handleCancel() {
+    if (this.needRefresh) {
+      const engrave = this.fontBackup.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
+      const chords = this.fontBackup.find((ff) => ff.purpose === SmoScore.fontPurposes.CHORDS);
+      const lyrics = this.fontBackup.find((ff) => ff.purpose === SmoScore.fontPurposes.LYRICS);
+      this.view.setEngravingFontFamily(engrave.family);
+      this.chordFontCtrl.setValue(chords);
+      this.lyricFontCtrl.setValue(lyrics);
+      this.view.renderer.rerenderAll();
+    }
+    this.complete();
+  }
+  changed() {
+    if (this.engravingFontCtrl.changeFlag)  {
+      this.needRefresh = true;
+      this.view.setEngravingFontFamily(this.engravingFontCtrl.getValue());
+      this.view.renderer.rerenderAll();
+    }
+    if (this.chordFontCtrl.changeFlag) {
+      this.needRefresh = true;
+      this.view.setChordFont(this.chordFontCtrl.getValue());
+      this.view.renderer.rerenderAll();
+    }
+    if (this.lyricFontCtrl.changeFlag) {
+      this.needRefresh = true;
+      this.view.setLyricFont(this.lyricFontCtrl.getValue());
+      this.view.renderer.rerenderAll();
+    }
+  }
+  static createAndDisplay(parameters) {
+    const dg = new SuiScoreFontDialog(parameters);
+    dg.display();
+  }
+
+  constructor(parameters) {
+    var p = parameters;
+    super(SuiScoreFontDialog.dialogElements, {
+      id: 'dialog-scorefont',
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
+      ...parameters
+    });
+    this.score = p.view.score;
+    this.fontBackup = JSON.parse(JSON.stringify(this.score.fonts));
+    this.startPromise = p.startPromise;
+    this.needRefresh = false;
+  }
+}
 // ## SuiLayoutDialog
 // The layout dialog has page layout and zoom logic.  It is not based on a selection but score-wide
 // eslint-disable-next-line no-unused-vars
@@ -406,7 +506,6 @@ class SuiLayoutDialog extends SuiDialogBase {
   get ctor() {
     return SuiLayoutDialog.ctor;
   }
-
   // ### dialogElements
   // all dialogs have elements define the controls of the dialog.
   static get dialogElements() {
@@ -456,25 +555,6 @@ class SuiLayoutDialog extends SuiDialogBase {
         }, {
           value: SmoScore.orientations.landscape,
           label: 'Landscape'
-        }]
-      }, {
-        smoName: 'engravingFont',
-        parameterName: 'engravingFont',
-        defaultValue: SmoScore.engravingFonts.Bravura,
-        control: 'SuiDropdownComponent',
-        label: 'Engraving Font',
-        options: [{
-          value: 'Bravura',
-          label: 'Bravura'
-        }, {
-          value: 'Gonville',
-          label: 'Gonville'
-        }, {
-          value: 'Petaluma',
-          label: 'Petaluma'
-        }, {
-          value: 'Leland',
-          label: 'Leland'
         }]
       }, {
         smoName: 'leftMargin',
@@ -552,21 +632,8 @@ class SuiLayoutDialog extends SuiDialogBase {
     this._bindComponentNames();
     this._setPageSizeDefault();
     this._bindElements();
-    const engraving = this.view.score.fonts.find((ff) => ff.name === 'engraving');
-    this.engravingFontCtrl.setValue(engraving.family);
-
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('.icon-move'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
-    });
-    const getKeys = () => {
-      this.completeNotifier.unbindKeyboardForModal(this);
-    };
-    this.startPromise.then(getKeys);
+    this.makeDraggable();
+    this.captureKeyboardPromise();
 
     const box = svgHelpers.boxPoints(250, 250, 1, 1);
     SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
@@ -592,11 +659,9 @@ class SuiLayoutDialog extends SuiDialogBase {
       self._updateLayout();
       self.complete();
     });
-
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
       self._handleCancel();
     });
-
     $(dgDom.element).find('.remove-button').remove();
   }
   _setPageSizeDefault() {
@@ -640,9 +705,6 @@ class SuiLayoutDialog extends SuiDialogBase {
         layout[component.smoName] = component.getValue();
       }
     });
-    if (this.engravingFontCtrl.changeFlag)  {
-      this.view.setEngravingFontFamily(this.engravingFontCtrl.getValue());
-    }
     this.view.setScoreLayout(layout);
   }
 

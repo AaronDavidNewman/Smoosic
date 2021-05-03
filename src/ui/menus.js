@@ -281,6 +281,10 @@ class SuiScoreMenu extends suiMenuBase {
         value: 'layout'
       }, {
         icon: '',
+        text: 'Fonts',
+        value: 'fonts'
+      }, {
+        icon: '',
         text: 'View',
         value: 'view'
       }, {
@@ -335,6 +339,16 @@ class SuiScoreMenu extends suiMenuBase {
         startPromise: this.closePromise
       });
   }
+  execFonts() {
+    SuiScoreFontDialog.createAndDisplay(
+      {
+        eventSource: this.eventSource,
+        keyCommands: this.keyCommands,
+        completeNotifier: this.completeNotifier,
+        view: this.view,
+        startPromise: this.closePromise
+      });
+  }
   execPreferences() {
     SuiScorePreferencesDialog.createAndDisplay(
       {
@@ -351,6 +365,8 @@ class SuiScoreMenu extends suiMenuBase {
       this.execView();
     } else if (text === 'layout') {
       this.execLayout();
+    } else if (text === 'fonts') {
+      this.execFonts();
     } else if (text === 'preferences') {
       this.execPreferences();
     } else if (text === 'identification') {
@@ -593,26 +609,22 @@ class SuiLibraryMenu extends suiMenuBase {
     return SuiLibraryMenu._defaults;
   }
   _loadJsonAndComplete(path) {
-    const req = new XMLHttpRequest();
-    req.addEventListener('load', () => {
-      const score = SmoScore.deserialize(req.responseText);
+    const req = new SuiXhrLoader(path);
+    req.loadAsync().then(() => {
+      const score = SmoScore.deserialize(req.value);
       this.view.changeScore(score);
       this.complete();
     });
-    req.open('GET', path);
-    req.send();
   }
   _loadXmlAndComplete(path) {
-    const req = new XMLHttpRequest();
-    req.addEventListener('load', () => {
+    const req = new SuiXhrLoader(path);
+    req.loadAsync().then(() => {
       const parser = new DOMParser();
-      const xml = parser.parseFromString(req.responseText, 'text/xml');
+      const xml = parser.parseFromString(req.value, 'text/xml');
       const score = mxmlScore.smoScoreFromXml(xml);
       this.view.changeScore(score);
       this.complete();
     });
-    req.open('GET', path);
-    req.send();
   }
 
   selection(ev) {
@@ -1100,6 +1112,10 @@ class SuiAddStaffMenu extends suiMenuBase {
           text: 'Tenor Clef Staff',
           value: 'tenorInstrument'
         }, {
+          icon: 'percussion',
+          text: 'Percussion Clef Staff',
+          value: 'percussionInstrument'
+        }, {
           icon: '',
           text: 'Staff Groups',
           value: 'staffGroups'
@@ -1145,6 +1161,13 @@ class SuiAddStaffMenu extends suiMenuBase {
           instrumentName: 'Tenor Clef Staff',
           keyOffset: 0,
           clef: 'tenor'
+        }
+      },
+      'percussionInstrument': {
+        instrumentInfo: {
+          instrumentName: 'Percussion Clef Staff',
+          keyOffset: 0,
+          clef: 'percussion'
         }
       },
       'remove': {

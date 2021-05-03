@@ -365,8 +365,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     }
     if (this.fontCtrl.changeFlag) {
       const fontInfo = this.fontCtrl.getValue();
-      this.view.score.setChordFont(
-        { 'family': fontInfo.family, size: fontInfo.size });
+      this.view.setChordFont(fontInfo);
     }
     if (this.adjustWidthCtrl.changeFlag) {
       this.view.score.setChordAdjustWidth(this.adjustWidthCtrl.getValue());
@@ -399,15 +398,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     });
 
     this.position(this.view.tracker.selections[0].note.renderedBox);
-
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('.jsDbMove'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
-    });
+    this.makeDraggable();
     this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
     this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
     if (this.chordEditorCtrl && this.chordEditorCtrl.session && this.chordEditorCtrl.session.lyric) {

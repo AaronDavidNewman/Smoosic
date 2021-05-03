@@ -70,7 +70,7 @@ class SuiMeasureDialog extends SuiDialogBase {
         defaultValue: SmoMeasure.defaults.customProportion,
         control: 'SuiRockerComponent',
         increment: 10,
-        label: 'Adjust Proportional Spacing'
+        label: 'Proportionalality'
       }, {
         smoName: 'padAllInSystem',
         parameterName: 'padAllInSystem',

@@ -355,6 +355,13 @@ body.showAttributeDialog .attributeDialog {
 	display:block;
 }
 
+.attributeModal .font-purpose {
+  font-size: 1.0em;
+}
+.attributeModal [data-param="engravingFont"] {
+  font-size: 1.0em;
+  font-weight: bold;
+}
 .buttonContainer {
 	text-align:center;
 	margin-top:3px;

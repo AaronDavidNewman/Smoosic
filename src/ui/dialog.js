@@ -42,6 +42,9 @@ class SuiDialogBase {
     return ['eventSource', 'view',
       'completeNotifier', 'keyCommands', 'modifier'];
   }
+  static get displayOptions() {
+    return { BINDNAMES: 0, DRAGGABLE: 1, KEYBOARD_CAPTURE: 2, GLOBALPOS: 3 };
+  }
   static getStaticText(dialogElements, label) {
     const rv = dialogElements.find((x) => x.staticText).staticText.find((x) => x[label]);
     if (rv !== null && rv[label]) {
@@ -237,7 +240,12 @@ class SuiDialogBase {
     this.view.tracker.scroller.scrollVisibleBox(
       svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
     );
-
+    this.makeDraggable();
+  }
+  // ### makeDraggable
+  // generic code to make the dialog box draggable so it doesn't
+  // get in front of stuff.
+  makeDraggable() {
     const cb = () => {};
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
@@ -246,6 +254,15 @@ class SuiDialogBase {
       cb,
       moveParent: true
     });
+  }
+  // ### captureKeyboardPromise
+  // capture keyboard events until the dialog closes,
+  // then give control back to the current keyboard
+  captureKeyboardPromise() {
+    const getKeys = () => {
+      this.completeNotifier.unbindKeyboardForModal(this);
+    };
+    this.startPromise.then(getKeys);
   }
 
   // ### handleKeydown

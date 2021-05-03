@@ -176,15 +176,12 @@ class SuiFileDownloadComponent extends SuiComponentBase {
         b('label').attr('for', id + '-input').text(this.label));
     return r;
   }
-
   _handleUploadedFiles(evt)  {
-    const reader = new FileReader();
-    const self = this;
-    reader.onload = (file) => {
-      self.value = file.target.result;
-      self.handleChanged();
-    };
-    reader.readAsText(evt.target.files[0]);
+    const localFile = new SuiFileInput(evt);
+    localFile.loadAsync().then(() => {
+      this.value = localFile.value;
+      this.handleChanged();
+    });
   }
   getValue() {
     return this.value;

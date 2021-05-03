@@ -3,7 +3,6 @@
 // types of routines.
 // ---
 class smoSerialize {
-
   static tryParseUnicode(text) {
     let rv = text;
     try {
@@ -24,11 +23,11 @@ class smoSerialize {
     });
   }
 
-    static get localScore() {
-        return '_smoosicScore';
-    }
+  static get localScore() {
+    return '_smoosicScore';
+  }
 
-  static loadRemoteFile(path, callback) {
+  static loadRemoteFile(path) {
     const req = new XMLHttpRequest();
     req.addEventListener('load', () => {
       callback(req.responseText);
