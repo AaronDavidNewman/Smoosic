@@ -86,6 +86,7 @@ class VxMeasure {
   }
   _createAccidentals(smoNote, vexNote, tickIndex, voiceIx) {
     let i = 0;
+    smoNote.accidentalsRendered = [];
     for (i = 0; i < smoNote.pitches.length; ++i) {
       const pitch = smoNote.pitches[i];
       const duration = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex];
@@ -103,7 +104,10 @@ class VxMeasure {
         if (pitch.cautionary) {
           acc.setAsCautionary();
         }
+        smoNote.accidentalsRendered.push(pitch.accidental);
         vexNote.addAccidental(i, acc);
+      } else {
+        smoNote.accidentalsRendered.push('');
       }
     }
     for (i = 0; i < smoNote.dots; ++i) {
@@ -355,6 +359,10 @@ class VxMeasure {
       for (j = 0; j < bg.notes.length; ++j) {
         const note = bg.notes[j];
         const vexNote = this.noteToVexMap[note.attrs.id];
+        // some type of redraw condition?
+        if (typeof(vexNote) === 'undefined') {
+          return;
+        }
         if (keyNoteIx === j) {
           stemDirection = note.flagState === SmoNote.flagStates.auto ?
             vexNote.getStemDirection() : note.toVexStemDirection();

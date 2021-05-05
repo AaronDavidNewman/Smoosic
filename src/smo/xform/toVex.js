@@ -13,18 +13,20 @@ class SmoToVex {
           voiceStrings.push([]);
           smoVoice.notes.forEach((smoNote, nix) => {
             const noteId = 'v' + vix + 'n' + nix;
-            const duration = smoMusic.ticksToDuration[smoMusic.closestDurationTickLtEq(smoNote.tickCount)];
+            let duration = smoMusic.ticksToDuration[smoMusic.closestDurationTickLtEq(smoNote.tickCount)];
+            duration = duration.replaceAll('d', '.');
             if (smoNote.pitches.length > 1) {
               keyString += '(';
             }
-            smoNote.pitches.forEach((smoPitch) => {
-              const pitch = { key: smoMusic.pitchToVexKey(smoPitch) };
-              if (!smoMusic.isPitchInKeySignature(smoPitch, smoMeasure.keySignature)) {
+            smoNote.pitches.forEach((smoPitch, pitchIx) => {
+              // Create a copy of the pitch.  If the accidental is not displayed, ignore it
+              const pitch = { letter: smoPitch.letter, accidental: '', octave: smoPitch.octave };
+              if (smoNote.accidentalsRendered && smoNote.accidentalsRendered[pitchIx].length) {
                 pitch.accidental = smoPitch.accidental;
               }
-              keyString += smoMusic.pitchToEasyScore(smoPitch) + ' ';
-              if (pitch.accidental) {
-                keyString += pitch.accidental;
+              keyString += smoMusic.pitchToEasyScore(pitch);
+              if (pitchIx + 1 < smoNote.pitches.length) {
+                keyString += ' ';
               }
             });
             if (smoNote.pitches.length > 1) {

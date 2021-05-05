@@ -206,11 +206,7 @@ class smoMusic {
 
   static pitchToEasyScore(smoPitch) {
     let vexKey = smoPitch.letter.toLowerCase();
-    if (smoPitch.accidental.length === 0) {
-      vexKey = vexKey + 'n';
-    } else {
-      vexKey = vexKey + smoPitch.accidental;
-    }
+    vexKey = vexKey + smoPitch.accidental;
     return vexKey + smoPitch.octave;
   }
   static smoPitchToMidiString(smoPitch) {

@@ -46,15 +46,18 @@ class SmoAudioTrack {
   // Return a normalized volume from the dynamic setting of the note
   // or supplied default if none exists
   volumeFromNote(smoNote, def) {
-    if (typeof(def) === 'undefined') {
-      def = 0;
+    if (typeof(def) === 'undefined' || def === 0) {
+      def = SmoAudioTrack.dynamicVolumeMap[SmoDynamicText.dynamics.PP];
     }
     const dynamic = smoNote.getModifiers('SmoDynamicText');
     if (dynamic.length < 1) {
       return def;
     }
     if (dynamic[0].text === SmoDynamicText.dynamics.SFZ) {
-      return SmoAudioTrack.dynamicVolumeMap[SmoDynamicText.F];
+      return SmoAudioTrack.dynamicVolumeMap[SmoDynamicText.dynamics.F];
+    }
+    if (typeof(SmoAudioTrack.dynamicVolumeMap[dynamic[0].text]) === 'undefined') {
+      return def;
     }
     return SmoAudioTrack.dynamicVolumeMap[dynamic[0].text];
   }
@@ -134,22 +137,24 @@ class SmoAudioTrack {
       // For a hairpin, try to calculate the volume difference from start to end,
       // as a function of ticks
       const endSelection = SmoSelection.selectionFromSelector(this.score, hairpin.endSelector);
-      endDynamic = this.volumeFromNote(endSelection.note);
-      const startDynamic = this.volumeFromNote(selection.note);
-      if (startDynamic === endDynamic) {
-        const nextSelection = SmoSelection.nextNoteSelectionFromSelector(this.score, hairpin.endSelector);
-        if (nextSelection) {
-          endDynamic = this.volumeFromNote(nextSelection.note);
+      if (endSelection !== null && typeof(endSelection.note) !== 'undefined') {
+        endDynamic = this.volumeFromNote(endSelection.note);
+        const startDynamic = this.volumeFromNote(selection.note, track.volume);
+        if (startDynamic === endDynamic) {
+          const nextSelection = SmoSelection.nextNoteSelectionFromSelector(this.score, hairpin.endSelector);
+          if (nextSelection) {
+            endDynamic = this.volumeFromNote(nextSelection.note);
+          }
         }
+        if (startDynamic === endDynamic) {
+          const offset = hairpin.hairpinType === SmoStaffHairpin.types.CRESCENDO ? 0.1 : -0.1;
+          endDynamic = Math.max(endDynamic + offset, 0.1);
+          endDynamic = Math.min(endDynamic, 1.0);
+        }
+        trackHairpin.delta = endDynamic - startDynamic;
+        trackHairpin.ticks = this.ticksFromSelection(hairpin.startSelector, hairpin.endSelector);
+        track.hairpins.push(trackHairpin);
       }
-      if (startDynamic === endDynamic) {
-        const offset = hairpin.hairpingType === SmoStaffHairpin.CRESCENDO ? 0.1 : -0.1;
-        endDynamic = Math.max(endDynamic + offset, 0.1);
-        endDynamic = Math.min(endDynamic, 1.0);
-      }
-      trackHairpin.delta = startDynamic - endDynamic;
-      trackHairpin.ticks = this.ticksFromSelection(hairpin.startSelector, hairpin.endSelector);
-      track.hairpins.push(trackHairpin);
     });
   }
   // ### computeVolume
@@ -158,7 +163,7 @@ class SmoAudioTrack {
   computeVolume(track, selection) {
     if (track.volume === 0) {
       track.volume = this.volumeFromNote(selection.note,
-        SmoAudioTrack.dynamicVolumeMap.mf);
+        SmoAudioTrack.dynamicVolumeMap.p);
       return;
     }
     if (track.hairpins.length) {
@@ -217,7 +222,13 @@ class SmoAudioTrack {
       track.notes.push(restPad);
       return;
     }
-    const pitchArray = JSON.parse(JSON.stringify(selection.note.pitches));
+    const tpitches = [];
+    const xpose = selection.measure.transposeIndex;
+    selection.note.pitches.forEach((pitch) => {
+      tpitches.push(smoMusic.smoIntToPitch(
+        smoMusic.smoPitchToInt(pitch) - xpose));
+    });
+    const pitchArray = JSON.parse(JSON.stringify(tpitches));
     track.notes.push({
       pitches: pitchArray,
       noteType: 'n',

@@ -62,7 +62,7 @@ class suiAudioPlayer {
         if (!offsetSounds[sound.offset]) {
           offsetSounds[sound.offset] = [];
         }
-        sound.volume = sound.volume / trackLen;
+        sound.volume = sound.volume / (trackLen * 2);
         offsetSounds[sound.offset].push(sound);
       });
     });
