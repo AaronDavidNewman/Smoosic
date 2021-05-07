@@ -43,7 +43,9 @@ class SuiDialogBase {
       'completeNotifier', 'keyCommands', 'modifier'];
   }
   static get displayOptions() {
-    return { BINDNAMES: 0, DRAGGABLE: 1, KEYBOARD_CAPTURE: 2, GLOBALPOS: 3 };
+    return { BINDCOMPONENTS: 'bindComponents', BINDNAMES: '_bindComponentNames', DRAGGABLE: 'makeDraggable',
+      KEYBOARD_CAPTURE: 'captureKeyboardPromise', GLOBALPOS: 'positionGlobally',
+      SELECTIONPOS: 'positionFromSelection', MODIFIERPOS: 'positionFromModifier' };
   }
   static getStaticText(dialogElements, label) {
     const rv = dialogElements.find((x) => x.staticText).staticText.find((x) => x[label]);
@@ -129,11 +131,9 @@ class SuiDialogBase {
     });
     return { ctor: xx.ctor, dialogElements: output };
   }
-
   get closeModalPromise() {
     return this.closeDialogPromise;
   }
-
   // ### position
   // For dialogs based on selections, tries to place the dialog near the selection and also
   // to scroll so the dialog is in view
@@ -163,13 +163,50 @@ class SuiDialogBase {
 
     x = (x < 0 || x > maxX) ? maxX / 2 : x;
     $(dge).css('left', '' + x + 'px');
+
+    // Make sure the dialog is visible if the selection is not
+    setTimeout(() => {
+      scroller.scrollVisibleBox(
+        svgHelpers.smoBox($(dge)[0].getBoundingClientRect())
+      );
+    }, 1);
   }
 
+  applyDisplayOptions() {
+    $('body').addClass('showAttributeDialog');
+    this.displayOptions.forEach((option) => {
+      this[SuiDialogBase.displayOptions[option]]();
+    });
+  }
+  bindComponents() {
+    this.components.forEach((component) => {
+      component.bind();
+    });
+  }
   // ### position
   // Position the dialog near a selection.  If the dialog is not visible due
   // to scrolling, make sure it is visible.
   position(box) {
     SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+  }
+  // ### positionModifier()
+  positionFromModifier() {
+    if (typeof(this.modifier.renderedBox) === 'undefined') {
+      this.positionGlobally();
+      return;
+    }
+    this.position(this.modifier.renderedBox);
+  }
+  // ### positionGlobally
+  // position the dialog box in the center of the current scroll region
+  positionGlobally() {
+    const box = svgHelpers.boxPoints(250, 250, 1, 1);
+    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+  }
+  // ### postionFromSelection
+  // set initial position of dialog based on first selection
+  positionFromSelection() {
+    this.position(this.view.tracker.selections[0].note.renderedBox);
   }
   // ### build the html for the dialog, based on the instance-specific components.
   _constructDialog(dialogElements, parameters) {
@@ -259,8 +296,14 @@ class SuiDialogBase {
   // capture keyboard events until the dialog closes,
   // then give control back to the current keyboard
   captureKeyboardPromise() {
+    if (typeof(this.startPromise) === 'undefined') {
+      this.completeNotifier.unbindKeyboardForModal(this);
+      this.bindKeyboard();
+      return;
+    }
     const getKeys = () => {
       this.completeNotifier.unbindKeyboardForModal(this);
+      this.bindKeyboard();
     };
     this.startPromise.then(getKeys);
   }

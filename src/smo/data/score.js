@@ -42,6 +42,8 @@ class SmoScore {
         noteSpacing: 1.0,
         pages: 1
       },
+      pageLayouts: [],
+      instrumentMap: [],
       fonts: [
         { name: 'engraving', purpose: SmoScore.fontPurposes.ENGRAVING, family: 'Bravura', size: 1, custom: false },
         { name: 'score', purpose: SmoScore.fontPurposes.SCORE, family: 'Merriweather', size: 14, custom: false },

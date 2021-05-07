@@ -185,13 +185,6 @@ class SuiMeasureDialog extends SuiDialogBase {
     });
     this.view.groupUndo(true);
     this.edited = false;
-    this.startPromise = parameters.closeMenuPromise;
-    if (!this.startPromise) {
-      this.startPromise = new Promise((resolve) => {
-        resolve();
-      });
-    }
-
     this.refresh = false;
     Vex.Merge(this, parameters);
 
@@ -199,12 +192,13 @@ class SuiMeasureDialog extends SuiDialogBase {
     this.measure = this.selection.measure;
     this.modifier = this.measure;
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+  }
   display() {
-    super.display();
-    const getKeys = () => {
-      this.completeNotifier.unbindKeyboardForModal(this);
-    };
-    this.startPromise.then(getKeys);
+    this.applyDisplayOptions();
+    this.populateInitial();
+    this._bindElements();
   }
   _updateConditionals() {
     if (this.padLeftCtrl.getValue() !== 0 || this.padLeftCtrl.changeFlag) {
@@ -234,9 +228,6 @@ class SuiMeasureDialog extends SuiDialogBase {
   }
   _bindElements() {
     const dgDom = this.dgDom;
-    this.bindKeyboard();
-    this._bindComponentNames();
-    this.populateInitial();
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.view.groupUndo(false);
@@ -308,27 +299,14 @@ class SuiInstrumentDialog extends SuiDialogBase {
     db.display();
     return db;
   }
-  display() {
-    $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-    this._bindComponentNames();
-    this._bindElements();
-    this.position(this.measure.renderedBox);
-    this.view.tracker.scroller.scrollVisibleBox(
-      svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
-    );
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
 
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('.jsDbMove'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
-    });
-    this.completeNotifier.unbindKeyboardForModal(this);
+  display() {
+    this.applyDisplayOptions();
+    this.populateInitial();
+    this._bindElements();
   }
   populateInitial() {
     const ix = this.measure.transposeIndex;
@@ -371,12 +349,10 @@ class SuiInstrumentDialog extends SuiDialogBase {
     });
     this.measure = measure;
     this.refresh = false;
-    this.startPromise = parameters.closeMenuPromise;
-    Vex.Merge(this, parameters);
+    this.selection = parameters.selection;
   }
   _bindElements() {
     var dgDom = this.dgDom;
-    this.populateInitial();
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.complete();
@@ -427,30 +403,12 @@ class SuiInsertMeasures extends SuiDialogBase {
     db.display();
     return db;
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
-    $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-    this._bindComponentNames();
+    this.applyDisplayOptions();
     this._bindElements();
-    this.position(this.measure.renderedBox);
-    this.view.tracker.scroller.scrollVisibleBox(
-      svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
-    );
-
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('.jsDbMove'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
-    });
-    const getKeys = () => {
-      this.completeNotifier.unbindKeyboardForModal(this);
-    };
-    this.startPromise.then(getKeys);
   }
   populateInitial() {
     this.measureCountCtrl.setValue(1);
@@ -458,7 +416,6 @@ class SuiInsertMeasures extends SuiDialogBase {
   // noop
   changed() {
   }
-
   constructor(parameters) {
     const selection = parameters.view.tracker.selections[0];
     const measure = selection.measure;
@@ -499,7 +456,6 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
   get ctor() {
     return SuiTimeSignatureDialog.ctor;
   }
-
   static get dialogElements() {
     SuiTimeSignatureDialog._dialogElements = SuiTimeSignatureDialog._dialogElements ? SuiTimeSignatureDialog._dialogElements :
       [
@@ -572,30 +528,13 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
       this.complete();
     });
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
-    $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
+    this.applyDisplayOptions();
+    this.populateInitial();
     this._bindElements();
-    this.position(this.measure.renderedBox);
-    this.view.tracker.scroller.scrollVisibleBox(
-      svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
-    );
-
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('.jsDbMove'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
-    });
-
-    const getKeys = () => {
-      this.completeNotifier.unbindKeyboardForModal(this);
-    };
-    this.startPromise.then(getKeys);
   }
   constructor(parameters) {
     const measure = parameters.view.tracker.selections[0].measure;
@@ -769,6 +708,20 @@ class SuiTempoDialog extends SuiDialogBase {
     return SuiTempoDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
+    const dg = new SuiTempoDialog(parameters);
+    dg.display();
+    return dg;
+  }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
+  display() {
+    this.applyDisplayOptions();
+    this.populateInitial();
+    this._bindElements();
+  }
+
+  constructor(parameters) {
     parameters.measures = SmoSelection.getMeasureList(parameters.view.tracker.selections)
       .map((sel) => sel.measure);
     const measure = parameters.measures[0];
@@ -782,16 +735,9 @@ class SuiTempoDialog extends SuiDialogBase {
     if (!parameters.modifier.renderedBox) {
       parameters.modifier.renderedBox = svgHelpers.copyBox(measure.renderedBox);
     }
-    const dg = new SuiTempoDialog(parameters);
-    dg.display();
-    dg._bindComponentNames();
-    return dg;
-  }
-  constructor(parameters) {
     if (!parameters.modifier || !parameters.measures) {
       throw new Error('modifier attribute dialog must have modifier and selection');
     }
-
     super(SuiTempoDialog.dialogElements, {
       id: 'dialog-tempo',
       top: parameters.modifier.renderedBox.y,
@@ -845,21 +791,14 @@ class SuiTempoDialog extends SuiDialogBase {
   }
   // ### Populate the initial values and bind to the buttons.
   _bindElements() {
-    this.populateInitial();
     const dgDom = this.dgDom;
-    // Create promise to release the keyboard when dialog is closed
-    this.closeDialogPromise = new Promise((resolve) => {
-      $(dgDom.element).find('.cancel-button').remove();
-      $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-        this.complete();
-        resolve();
-      });
-      $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-        this.handleRemove();
-        this.complete();
-        resolve();
-      });
+    $(dgDom.element).find('.cancel-button').remove();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.complete();
     });
-    this.completeNotifier.unbindKeyboardForModal(this);
+    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+      this.handleRemove();
+      this.complete();
+    });
   }
 }

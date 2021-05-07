@@ -8,7 +8,6 @@ class SuiStaffModifierDialog extends SuiDialogBase {
     this.edited = false;
     this.view.groupUndo(true);
   }
-
   handleRemove() {
     this.view.removeStaffModifier(this.modifier);
   }
@@ -26,7 +25,6 @@ class SuiStaffModifierDialog extends SuiDialogBase {
   // bing the generic controls in most dialogs.
   _bindElements() {
     var dgDom = this.dgDom;
-    this.bindKeyboard();
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.view.groupUndo(false);
@@ -164,7 +162,6 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
       ...parameters
     });
     Vex.Merge(this, parameters);
-    this.completeNotifier.unbindKeyboardForModal(this);
   }
   populateInitial() {
     this.components.forEach((comp) => {
@@ -173,9 +170,14 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
       }
     });
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+  }
+
   display() {
-    super.display();
+    this.applyDisplayOptions();
     this.populateInitial();
+    this._bindElements();
   }
 }
 
@@ -239,10 +241,14 @@ class SuiTieAttributesDialog extends SuiStaffModifierDialog {
       this.edited = true;
     }
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+  }
+
   display() {
-    super.display();
-    this._bindComponentNames();
+    this.applyDisplayOptions();
     this.populateInitial();
+    this._bindElements();
   }
 }
 
@@ -312,6 +318,22 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
     });
     this.view.updateEnding(this.modifier);
   }
+  populateInitial() {
+    SmoVolta.editableAttributes.forEach((attr) => {
+      const comp = this.components.find((cc) => cc.smoName === attr);
+      if (comp) {
+        comp.setValue(this.modifier[attr]);
+      }
+    });
+  }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+  }
+  display() {
+    this.applyDisplayOptions();
+    this.populateInitial();
+    this._bindElements();
+  }
   constructor(parameters) {
     if (!parameters.modifier) {
       throw new Error('modifier attribute dialog must have modifier');
@@ -325,15 +347,6 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
     });
     Vex.Merge(this, parameters);
     this.selection = SmoSelection.measureSelection(this.view.score, this.modifier.startSelector.staff, this.modifier.startSelector.measure);
-
-    SmoVolta.editableAttributes.forEach((attr) => {
-      const comp = this.components.find((cc) => cc.smoName === attr);
-      if (comp) {
-        comp.defaultValue = this.modifier[attr];
-      }
-    });
-
-    this.completeNotifier.unbindKeyboardForModal(this);
   }
 }
 // eslint-disable-next-line no-unused-vars
@@ -392,11 +405,26 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
     dg.display();
     return dg;
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+  }
+  populateInitial() {
+    SmoStaffHairpin.editableAttributes.forEach((attr) => {
+      var comp = this.components.find((cc) => cc.smoName === attr);
+      if (comp) {
+        comp.setValue(this.modifier[attr]);
+      }
+    });
+  }
+  display() {
+    this.applyDisplayOptions();
+    this.populateInitial();
+    this._bindElements();
+  }
   constructor(parameters) {
     if (!parameters.modifier) {
       throw new Error('modifier attribute dialog must have modifier');
     }
-
     super(SuiHairpinAttributesDialog.dialogElements, {
       id: 'dialog-' + parameters.modifier.attrs.id,
       top: parameters.modifier.renderedBox.y,
@@ -404,13 +432,6 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
       ...parameters
     });
     Vex.Merge(this, parameters);
-    SmoStaffHairpin.editableAttributes.forEach((attr) => {
-      var comp = this.components.find((cc) => cc.smoName === attr);
-      if (comp) {
-        comp.defaultValue = this.modifier[attr];
-      }
-    });
-    this.completeNotifier.unbindKeyboardForModal(this);
   }
 }
 // ## SuiStaffGroupDialog
@@ -464,34 +485,18 @@ class SuiStaffGroupDialog extends SuiDialogBase {
     const dg = new SuiStaffGroupDialog(parameters);
     dg.display();
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
+
   display() {
-    $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('.icon-move'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
-    });
-    const getKeys = () => {
-      this.completeNotifier.unbindKeyboardForModal(this);
-    };
-    this.startPromise.then(getKeys);
+    this.applyDisplayOptions();
     this._bindElements();
-    this.staffGroupsCtrl.setValue(this.modifier);
-    this.leftConnectorCtrl.setValue(this.modifier.leftConnector);
+    this.populateInitial();
     this._updateGroupMembership();
-    const box = svgHelpers.boxPoints(250, 250, 1, 1);
-    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
   }
   _bindElements() {
     const dgDom = this.dgDom;
-
-    this._bindComponentNames();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.complete();
     });
@@ -501,7 +506,10 @@ class SuiStaffGroupDialog extends SuiDialogBase {
     });
 
     $(dgDom.element).find('.remove-button').remove();
-    this.bindKeyboard();
+  }
+  populateInitial() {
+    this.staffGroupsCtrl.setValue(this.modifier);
+    this.leftConnectorCtrl.setValue(this.modifier.leftConnector);
   }
   _updateGroupMembership() {
     const updateEl = this.staffGroupsCtrl.getInputElement();

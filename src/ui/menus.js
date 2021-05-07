@@ -293,7 +293,7 @@ class SuiScoreMenu extends suiMenuBase {
         value: 'identification'
       }, {
         icon: '',
-        text: 'Preferences',
+        text: 'Global Settings',
         value: 'preferences'
       }, {
         icon: '',

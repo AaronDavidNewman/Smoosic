@@ -12688,40 +12688,74 @@ class VxSystem {
     this.measures.push(vxMeasure);
   }
 }
-;// This is a WIP to handle parts, instruments, etc.
-// A score is a set of staves with notes.  A composition can tie scores together
-// for purposes of part extraction, playback data, layout etc.
-// ## Places to deserialize scores:
-// .  controller/scoreFromQueryString
-// .  fileDialog.js/SuiLoadFileDialog.commit
-// . menus.js/SuiFileMenu.selection
-// there is a reference to deserialize in undo.js but that is probably OK to stay.
-class SmoComposition {
-
+;// ## SmoLibraryNode
+// The node with link for online libraries of smoosic
+class SmoLibraryNode {
+  constructor(nodeInfo) {
+    smoSerialize.serializedMerge(
+      SmoLibraryNode.parameterArray, nodeInfo, this);
+  }
+  static get parameterArray() {
+    return ['name', 'url', 'format', 'icon', 'tags', 'composer', 'artist', 'copyright',
+      'title', 'subtitle', 'movement', 'source']
+  }
+  static get defaults() {
+    if (typeof(SmoLibraryNode._defaults) === 'undefined') {
+      SmoLibraryNode._defaults = {};
+      SmoLibraryNode.parameterArray.forEach((pp) => {
+        SmoLibraryNode._defaults[pp] = '';
+      });
+    }
+    return SmoLibraryNode._defaults;
+  }
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoLibrary.defaults,
+      SmoLibrary.parameterArray, this, params);
+    return params;
+  }
+}
+// ## SmoLibrary
+// A class to organize smoosic files (or any format smoosic accepts) into libraries.
+class SmoLibrary {
     constructor(parameters) {
-        this.masterScore = {};
-        this.staveScoreMap = {};
-        this.displayScore = null;
-        this.layoutNotifier = parameters.layoutNotifier;
-        this.title = 'Beautiful Smoosic';
+      smoSerialize.serializedMerge(
+        SmoLibrary.parameterArray, SmoLibrary.defaults, this);
+        smoSerialize.serializedMerge(
+          SmoLibrary.parameterArray, parameters, this);
+      this.children = [];
+      parameters.children.forEach((childLib) => {
+        this.children.push(new SmoLibrary(childLib));
+      });
+      this.nodes = [];
+      parameters.nodes.forEach((node) => {
+        this.nodes.push(new SmoLibraryNode(node));
+      });
     }
-    setMasterAsDisplayScore() {
-        this.displayScore = this.masterScore;
+    static get defaults() {
+      return {
+        children: [],
+        nodes: [],
+        name: 'Library of Smoosic',
+        tags: []
+      };
     }
-    setPartScore(staveId) {
-        var staff = this.masterScore.staves[staffId];
-        if (!staff) {
-            this.setMasterAsDisplayScore();
-        }
-        if (!staveScoreMap[staff]) {
-
-        }
+    static get parameterArray() {
+      return ['name', 'tags']
     }
-
-    static serialize() {
-
+    static deserialize(json) {
+      return new SmoLibrary(json);
     }
-
+    serialize() {
+      const params = {};
+      smoSerialize.serializedMergeNonDefault(SmoLibrary.defaults,
+        SmoLibrary.parameterArray, this, params);
+      params.children = [];
+      this.children.forEach((child) => {
+        params.children.push(child.serialize());
+      });
+      return params;
+    }
 }
 ;// ## SmoMeasure - data for a measure of music
 // Many rules of musical engraving are enforced at a measure level, e.g. the duration of
@@ -15309,6 +15343,8 @@ class SmoScore {
         noteSpacing: 1.0,
         pages: 1
       },
+      pageLayouts: [],
+      instrumentMap: [],
       fonts: [
         { name: 'engraving', purpose: SmoScore.fontPurposes.ENGRAVING, family: 'Bravura', size: 1, custom: false },
         { name: 'score', purpose: SmoScore.fontPurposes.SCORE, family: 'Merriweather', size: 14, custom: false },
@@ -29535,7 +29571,9 @@ class SuiDialogBase {
       'completeNotifier', 'keyCommands', 'modifier'];
   }
   static get displayOptions() {
-    return { BINDNAMES: 0, DRAGGABLE: 1, KEYBOARD_CAPTURE: 2, GLOBALPOS: 3 };
+    return { BINDCOMPONENTS: 'bindComponents', BINDNAMES: '_bindComponentNames', DRAGGABLE: 'makeDraggable',
+      KEYBOARD_CAPTURE: 'captureKeyboardPromise', GLOBALPOS: 'positionGlobally',
+      SELECTIONPOS: 'positionFromSelection', MODIFIERPOS: 'positionFromModifier' };
   }
   static getStaticText(dialogElements, label) {
     const rv = dialogElements.find((x) => x.staticText).staticText.find((x) => x[label]);
@@ -29621,11 +29659,9 @@ class SuiDialogBase {
     });
     return { ctor: xx.ctor, dialogElements: output };
   }
-
   get closeModalPromise() {
     return this.closeDialogPromise;
   }
-
   // ### position
   // For dialogs based on selections, tries to place the dialog near the selection and also
   // to scroll so the dialog is in view
@@ -29655,13 +29691,50 @@ class SuiDialogBase {
 
     x = (x < 0 || x > maxX) ? maxX / 2 : x;
     $(dge).css('left', '' + x + 'px');
+
+    // Make sure the dialog is visible if the selection is not
+    setTimeout(() => {
+      scroller.scrollVisibleBox(
+        svgHelpers.smoBox($(dge)[0].getBoundingClientRect())
+      );
+    }, 1);
   }
 
+  applyDisplayOptions() {
+    $('body').addClass('showAttributeDialog');
+    this.displayOptions.forEach((option) => {
+      this[SuiDialogBase.displayOptions[option]]();
+    });
+  }
+  bindComponents() {
+    this.components.forEach((component) => {
+      component.bind();
+    });
+  }
   // ### position
   // Position the dialog near a selection.  If the dialog is not visible due
   // to scrolling, make sure it is visible.
   position(box) {
     SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+  }
+  // ### positionModifier()
+  positionFromModifier() {
+    if (typeof(this.modifier.renderedBox) === 'undefined') {
+      this.positionGlobally();
+      return;
+    }
+    this.position(this.modifier.renderedBox);
+  }
+  // ### positionGlobally
+  // position the dialog box in the center of the current scroll region
+  positionGlobally() {
+    const box = svgHelpers.boxPoints(250, 250, 1, 1);
+    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+  }
+  // ### postionFromSelection
+  // set initial position of dialog based on first selection
+  positionFromSelection() {
+    this.position(this.view.tracker.selections[0].note.renderedBox);
   }
   // ### build the html for the dialog, based on the instance-specific components.
   _constructDialog(dialogElements, parameters) {
@@ -29751,8 +29824,14 @@ class SuiDialogBase {
   // capture keyboard events until the dialog closes,
   // then give control back to the current keyboard
   captureKeyboardPromise() {
+    if (typeof(this.startPromise) === 'undefined') {
+      this.completeNotifier.unbindKeyboardForModal(this);
+      this.bindKeyboard();
+      return;
+    }
     const getKeys = () => {
       this.completeNotifier.unbindKeyboardForModal(this);
+      this.bindKeyboard();
     };
     this.startPromise.then(getKeys);
   }
@@ -31289,13 +31368,6 @@ class SuiMeasureDialog extends SuiDialogBase {
     });
     this.view.groupUndo(true);
     this.edited = false;
-    this.startPromise = parameters.closeMenuPromise;
-    if (!this.startPromise) {
-      this.startPromise = new Promise((resolve) => {
-        resolve();
-      });
-    }
-
     this.refresh = false;
     Vex.Merge(this, parameters);
 
@@ -31303,12 +31375,13 @@ class SuiMeasureDialog extends SuiDialogBase {
     this.measure = this.selection.measure;
     this.modifier = this.measure;
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+  }
   display() {
-    super.display();
-    const getKeys = () => {
-      this.completeNotifier.unbindKeyboardForModal(this);
-    };
-    this.startPromise.then(getKeys);
+    this.applyDisplayOptions();
+    this.populateInitial();
+    this._bindElements();
   }
   _updateConditionals() {
     if (this.padLeftCtrl.getValue() !== 0 || this.padLeftCtrl.changeFlag) {
@@ -31338,9 +31411,6 @@ class SuiMeasureDialog extends SuiDialogBase {
   }
   _bindElements() {
     const dgDom = this.dgDom;
-    this.bindKeyboard();
-    this._bindComponentNames();
-    this.populateInitial();
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.view.groupUndo(false);
@@ -31412,27 +31482,14 @@ class SuiInstrumentDialog extends SuiDialogBase {
     db.display();
     return db;
   }
-  display() {
-    $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-    this._bindComponentNames();
-    this._bindElements();
-    this.position(this.measure.renderedBox);
-    this.view.tracker.scroller.scrollVisibleBox(
-      svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
-    );
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
 
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('.jsDbMove'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
-    });
-    this.completeNotifier.unbindKeyboardForModal(this);
+  display() {
+    this.applyDisplayOptions();
+    this.populateInitial();
+    this._bindElements();
   }
   populateInitial() {
     const ix = this.measure.transposeIndex;
@@ -31475,12 +31532,10 @@ class SuiInstrumentDialog extends SuiDialogBase {
     });
     this.measure = measure;
     this.refresh = false;
-    this.startPromise = parameters.closeMenuPromise;
-    Vex.Merge(this, parameters);
+    this.selection = parameters.selection;
   }
   _bindElements() {
     var dgDom = this.dgDom;
-    this.populateInitial();
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.complete();
@@ -31531,30 +31586,12 @@ class SuiInsertMeasures extends SuiDialogBase {
     db.display();
     return db;
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
-    $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-    this._bindComponentNames();
+    this.applyDisplayOptions();
     this._bindElements();
-    this.position(this.measure.renderedBox);
-    this.view.tracker.scroller.scrollVisibleBox(
-      svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
-    );
-
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('.jsDbMove'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
-    });
-    const getKeys = () => {
-      this.completeNotifier.unbindKeyboardForModal(this);
-    };
-    this.startPromise.then(getKeys);
   }
   populateInitial() {
     this.measureCountCtrl.setValue(1);
@@ -31562,7 +31599,6 @@ class SuiInsertMeasures extends SuiDialogBase {
   // noop
   changed() {
   }
-
   constructor(parameters) {
     const selection = parameters.view.tracker.selections[0];
     const measure = selection.measure;
@@ -31603,7 +31639,6 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
   get ctor() {
     return SuiTimeSignatureDialog.ctor;
   }
-
   static get dialogElements() {
     SuiTimeSignatureDialog._dialogElements = SuiTimeSignatureDialog._dialogElements ? SuiTimeSignatureDialog._dialogElements :
       [
@@ -31676,30 +31711,13 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
       this.complete();
     });
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
-    $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
+    this.applyDisplayOptions();
+    this.populateInitial();
     this._bindElements();
-    this.position(this.measure.renderedBox);
-    this.view.tracker.scroller.scrollVisibleBox(
-      svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
-    );
-
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('.jsDbMove'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
-    });
-
-    const getKeys = () => {
-      this.completeNotifier.unbindKeyboardForModal(this);
-    };
-    this.startPromise.then(getKeys);
   }
   constructor(parameters) {
     const measure = parameters.view.tracker.selections[0].measure;
@@ -31873,6 +31891,20 @@ class SuiTempoDialog extends SuiDialogBase {
     return SuiTempoDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
+    const dg = new SuiTempoDialog(parameters);
+    dg.display();
+    return dg;
+  }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
+  display() {
+    this.applyDisplayOptions();
+    this.populateInitial();
+    this._bindElements();
+  }
+
+  constructor(parameters) {
     parameters.measures = SmoSelection.getMeasureList(parameters.view.tracker.selections)
       .map((sel) => sel.measure);
     const measure = parameters.measures[0];
@@ -31886,16 +31918,9 @@ class SuiTempoDialog extends SuiDialogBase {
     if (!parameters.modifier.renderedBox) {
       parameters.modifier.renderedBox = svgHelpers.copyBox(measure.renderedBox);
     }
-    const dg = new SuiTempoDialog(parameters);
-    dg.display();
-    dg._bindComponentNames();
-    return dg;
-  }
-  constructor(parameters) {
     if (!parameters.modifier || !parameters.measures) {
       throw new Error('modifier attribute dialog must have modifier and selection');
     }
-
     super(SuiTempoDialog.dialogElements, {
       id: 'dialog-tempo',
       top: parameters.modifier.renderedBox.y,
@@ -31949,22 +31974,15 @@ class SuiTempoDialog extends SuiDialogBase {
   }
   // ### Populate the initial values and bind to the buttons.
   _bindElements() {
-    this.populateInitial();
     const dgDom = this.dgDom;
-    // Create promise to release the keyboard when dialog is closed
-    this.closeDialogPromise = new Promise((resolve) => {
-      $(dgDom.element).find('.cancel-button').remove();
-      $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-        this.complete();
-        resolve();
-      });
-      $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-        this.handleRemove();
-        this.complete();
-        resolve();
-      });
+    $(dgDom.element).find('.cancel-button').remove();
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.complete();
     });
-    this.completeNotifier.unbindKeyboardForModal(this);
+    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+      this.handleRemove();
+      this.complete();
+    });
   }
 }
 ;// ## SuiScoreViewDialog
@@ -31996,22 +32014,18 @@ class SuiScoreViewDialog extends SuiDialogBase {
     const dg = new SuiScoreViewDialog(parameters);
     dg.display();
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
     $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-    this.makeDraggable();
-    this.captureKeyboardPromise();
+    this.applyDisplayOptions();
     this._bindElements();
     this.scoreViewCtrl.setValue(this.view.getView());
-    const box = svgHelpers.boxPoints(250, 250, 1, 1);
-    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
   }
   _bindElements() {
     const self = this;
     const dgDom = this.dgDom;
-    this._bindComponentNames();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       self.complete();
     });
@@ -32022,7 +32036,6 @@ class SuiScoreViewDialog extends SuiDialogBase {
     });
 
     $(dgDom.element).find('.remove-button').remove();
-    this.bindKeyboard();
   }
 
   changed() {
@@ -32072,8 +32085,29 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
         control: 'SuiToggleComponent',
         label: 'Auto-Advance Cursor',
       }, {
+        smoName: 'noteSpacing',
+        parameterName: 'noteSpacing',
+        defaultValue: SmoScore.defaults.layout.noteSpacing,
+        control: 'SuiRockerComponent',
+        type: 'percent',
+        label: 'Note Spacing'
+      }, {
+        smoName: 'zoomScale',
+        parameterName: 'zoomScale',
+        defaultValue: SmoScore.defaults.layout.zoomScale,
+        control: 'SuiRockerComponent',
+        label: '% Zoom',
+        type: 'percent'
+      }, {
+        smoName: 'svgScale',
+        parameterName: 'svgScale',
+        defaultValue: SmoScore.defaults.layout.svgScale,
+        control: 'SuiRockerComponent',
+        label: '% Note size',
+        type: 'percent'
+      }, {
         staticText: [
-          { label: 'Score Preferences' }
+          { label: 'Global Settings' }
         ]
       }];
     return SuiScorePreferencesDialog._dialogElements;
@@ -32082,44 +32116,40 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
     const dg = new SuiScorePreferencesDialog(parameters);
     dg.display();
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
     $('body').addClass('showAttributeDialog');
+    this.applyDisplayOptions();
+    this._bindElements();
     this.components.forEach((component) => {
       component.bind();
     });
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('.icon-move'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
-    });
-    const getKeys = () => {
-      this.completeNotifier.unbindKeyboardForModal(this);
-    };
-    this.startPromise.then(getKeys);
-    this._bindElements();
     this.scoreNameCtrl.setValue(this.view.score.scoreInfo.name);
     this.autoPlayCtrl.setValue(this.view.score.preferences.autoPlay);
     this.autoAdvanceCtrl.setValue(this.view.score.preferences.autoAdvance);
-    this.customProportionCtrl.setValue(this.view.score.preferences.customProportion);
-    const box = svgHelpers.boxPoints(250, 250, 1, 1);
-    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+    this.noteSpacingCtrl.setValue(this.view.score.layout.noteSpacing);
+    this.zoomScaleCtrl.setValue(this.view.score.layout.zoomScale);
+    this.svgScaleCtrl.setValue(this.view.score.layout.svgScale);
   }
   _bindElements() {
     const dgDom = this.dgDom;
-    this._bindComponentNames();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      if (this.layoutChanged) {
+        this.view.renderer.rerenderAll();
+      }
       this.complete();
     });
 
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      if (this.layoutChanged) {
+        this.view.score.setLayout(this.layoutBackup);
+        this.view.renderer.rerenderAll();
+      }
       this.complete();
     });
-
     $(dgDom.element).find('.remove-button').remove();
-    this.bindKeyboard();
   }
 
   changed() {
@@ -32135,15 +32165,21 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
     if (this.autoAdvanceCtrl.changeFlag) {
       this.view.score.preferences.autoAdvance = this.autoAdvanceCtrl.getValue();
     }
-    if  (this.customProportionCtrl.changeFlag) {
-      // changing this means we update all the measures in the score with the
-      // new default value
-      const oldDefault = this.view.score.preferences.customProportion;
-      const newValue = this.customProportionCtrl.getValue();
-      if (oldDefault !== newValue) {
-        this.view.updateProportionDefault(oldDefault, newValue);
-        return;
-      }
+    if (this.noteSpacingCtrl.changeFlag) {
+      this.layoutChanged = true;
+      this.layout.noteSpacing = this.noteSpacingCtrl.getValue();
+    }
+    if (this.zoomScaleCtrl.changeFlag) {
+      this.layoutChanged = true;
+      this.layout.zoomScale = this.zoomScaleCtrl.getValue();
+    }
+    if (this.svgScaleCtrl.changeFlag) {
+      this.layoutChanged = true;
+      this.layout.svgScale = this.svgScaleCtrl.getValue();
+    }
+    if (this.layoutChanged) {
+      this.view.setScoreLayout(this.layout);
+      this.view.renderer.rerenderAll();
     }
     this.view.updateScorePreferences();
   }
@@ -32155,6 +32191,9 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
       left: (p.view.score.layout.pageHeight / 2) - 200,
       ...parameters
     });
+    this.layoutChanged = false;
+    this.layout = JSON.parse(JSON.stringify(this.view.score.layout));
+    this.layoutBackup = JSON.parse(JSON.stringify(this.view.score.layout));
     this.startPromise = p.startPromise;
   }
 }
@@ -32208,38 +32247,6 @@ class SuiScoreIdentificationDialog extends SuiDialogBase {
       }];
     return SuiScoreIdentificationDialog._dialogElements;
   }
-  get purposeToFont() {
-    const rv = {};
-    rv[SmoTextGroup.purposes.TITLE] = {
-      fontFamily: 'Merriweather',
-      fontSize: 18,
-      justification: SmoTextGroup.justifications.CENTER,
-      xPlacement: 0.5,
-      yOffset: 4
-    };
-    rv[SmoTextGroup.purposes.SUBTITLE] = {
-      fontFamily: 'Merriweather',
-      fontSize: 16,
-      justification: SmoTextGroup.justifications.CENTER,
-      xPlacement: 0.5,
-      yOffset: 20,
-    };
-    rv[SmoTextGroup.purposes.COMPOSER] = {
-      fontFamily: 'Merriweather',
-      fontSize: 12,
-      justification: SmoTextGroup.justifications.RIGHT,
-      xPlacement: 0.8,
-      yOffset: 10
-    };
-    rv[SmoTextGroup.purposes.COPYRIGHT] = {
-      fontFamily: 'Merriweather',
-      fontSize: 12,
-      xPlacement: 0.5,
-      justification: SmoTextGroup.justifications.CENTER,
-      yOffset: -12
-    };
-    return rv;
-  }
   static createAndDisplay(parameters) {
     const dg = new SuiScoreIdentificationDialog(parameters);
     dg.display();
@@ -32272,21 +32279,17 @@ class SuiScoreIdentificationDialog extends SuiDialogBase {
       this.view.removeTextGroup(existing);
     }
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
     $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-    this.makeDraggable();
-    this.captureKeyboardPromise();
+    this.applyDisplayOptions();
     this._bindElements();
     this._setInitialValues();
-    const box = svgHelpers.boxPoints(250, 250, 1, 1);
-    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
   }
   _bindElements() {
     const dgDom = this.dgDom;
-    this._bindComponentNames();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.complete();
     });
@@ -32296,7 +32299,6 @@ class SuiScoreIdentificationDialog extends SuiDialogBase {
     });
 
     $(dgDom.element).find('.remove-button').remove();
-    this.bindKeyboard();
   }
 
   changed() {
@@ -32388,16 +32390,12 @@ class SuiScoreFontDialog extends SuiDialogBase {
       }];
     return SuiScoreFontDialog._dialogElements;
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
     $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-    this._bindComponentNames();
-    this.makeDraggable();
-    this.captureKeyboardPromise();
-    const box = svgHelpers.boxPoints(250, 250, 1, 1);
-    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+    this.applyDisplayOptions();
     this._bindElements();
     const engraving = this.fontBackup.find((ff) => ff.purpose === SmoScore.fontPurposes.ENGRAVING);
     const chords = this.fontBackup.find((ff) => ff.purpose === SmoScore.fontPurposes.CHORDS);
@@ -32408,7 +32406,6 @@ class SuiScoreFontDialog extends SuiDialogBase {
   }
   _bindElements() {
     const dgDom = this.dgDom;
-    this.bindKeyboard();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.complete();
     });
@@ -32556,27 +32553,6 @@ class SuiLayoutDialog extends SuiDialogBase {
         control: 'SuiRockerComponent',
         label: 'Intra-System Margin'
       }, {
-        smoName: 'noteSpacing',
-        parameterName: 'noteSpacing',
-        defaultValue: SmoScore.defaults.layout.noteSpacing,
-        control: 'SuiRockerComponent',
-        type: 'percent',
-        label: 'Note Spacing'
-      }, {
-        smoName: 'zoomScale',
-        parameterName: 'zoomScale',
-        defaultValue: SmoScore.defaults.layout.zoomScale,
-        control: 'SuiRockerComponent',
-        label: '% Zoom',
-        type: 'percent'
-      }, {
-        smoName: 'svgScale',
-        parameterName: 'svgScale',
-        defaultValue: SmoScore.defaults.layout.svgScale,
-        control: 'SuiRockerComponent',
-        label: '% Note size',
-        type: 'percent'
-      }, {
         staticText: [
           { label: 'Score Layout' }
         ]
@@ -32589,23 +32565,19 @@ class SuiLayoutDialog extends SuiDialogBase {
   backupOriginal() {
     this.backup = JSON.parse(JSON.stringify(this.modifier));
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
+
   display() {
     $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
+    this.applyDisplayOptions();
     this.components.forEach((component) => {
       const val = this.modifier[component.parameterName];
       component.setValue(val);
     });
-    this._bindComponentNames();
     this._setPageSizeDefault();
     this._bindElements();
-    this.makeDraggable();
-    this.captureKeyboardPromise();
-
-    const box = svgHelpers.boxPoints(250, 250, 1, 1);
-    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
   }
   // ### _updateLayout
   // even if the layout is not changed, we re-render the entire score by resetting
@@ -32621,7 +32593,6 @@ class SuiLayoutDialog extends SuiDialogBase {
   _bindElements() {
     const self = this;
     const dgDom = this.dgDom;
-    this.bindKeyboard();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       // TODO:  allow user to select a zoom mode.
       self.view.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
@@ -32667,8 +32638,8 @@ class SuiLayoutDialog extends SuiDialogBase {
   // ### changed
   // One of the components has had a changed value.
   changed() {
-    this._handlePageSizeChange();
     const layout = JSON.parse(JSON.stringify(this.view.score.layout));
+    this._handlePageSizeChange();
     this.components.forEach((component) => {
       if (typeof(layout[component.smoName]) !== 'undefined') {
         layout[component.smoName] = component.getValue();
@@ -33088,7 +33059,6 @@ class SuiStaffModifierDialog extends SuiDialogBase {
     this.edited = false;
     this.view.groupUndo(true);
   }
-
   handleRemove() {
     this.view.removeStaffModifier(this.modifier);
   }
@@ -33106,7 +33076,6 @@ class SuiStaffModifierDialog extends SuiDialogBase {
   // bing the generic controls in most dialogs.
   _bindElements() {
     var dgDom = this.dgDom;
-    this.bindKeyboard();
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.view.groupUndo(false);
@@ -33244,7 +33213,6 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
       ...parameters
     });
     Vex.Merge(this, parameters);
-    this.completeNotifier.unbindKeyboardForModal(this);
   }
   populateInitial() {
     this.components.forEach((comp) => {
@@ -33253,9 +33221,14 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
       }
     });
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+  }
+
   display() {
-    super.display();
+    this.applyDisplayOptions();
     this.populateInitial();
+    this._bindElements();
   }
 }
 
@@ -33319,10 +33292,14 @@ class SuiTieAttributesDialog extends SuiStaffModifierDialog {
       this.edited = true;
     }
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+  }
+
   display() {
-    super.display();
-    this._bindComponentNames();
+    this.applyDisplayOptions();
     this.populateInitial();
+    this._bindElements();
   }
 }
 
@@ -33392,6 +33369,22 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
     });
     this.view.updateEnding(this.modifier);
   }
+  populateInitial() {
+    SmoVolta.editableAttributes.forEach((attr) => {
+      const comp = this.components.find((cc) => cc.smoName === attr);
+      if (comp) {
+        comp.setValue(this.modifier[attr]);
+      }
+    });
+  }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+  }
+  display() {
+    this.applyDisplayOptions();
+    this.populateInitial();
+    this._bindElements();
+  }
   constructor(parameters) {
     if (!parameters.modifier) {
       throw new Error('modifier attribute dialog must have modifier');
@@ -33405,15 +33398,6 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
     });
     Vex.Merge(this, parameters);
     this.selection = SmoSelection.measureSelection(this.view.score, this.modifier.startSelector.staff, this.modifier.startSelector.measure);
-
-    SmoVolta.editableAttributes.forEach((attr) => {
-      const comp = this.components.find((cc) => cc.smoName === attr);
-      if (comp) {
-        comp.defaultValue = this.modifier[attr];
-      }
-    });
-
-    this.completeNotifier.unbindKeyboardForModal(this);
   }
 }
 // eslint-disable-next-line no-unused-vars
@@ -33472,11 +33456,26 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
     dg.display();
     return dg;
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+  }
+  populateInitial() {
+    SmoStaffHairpin.editableAttributes.forEach((attr) => {
+      var comp = this.components.find((cc) => cc.smoName === attr);
+      if (comp) {
+        comp.setValue(this.modifier[attr]);
+      }
+    });
+  }
+  display() {
+    this.applyDisplayOptions();
+    this.populateInitial();
+    this._bindElements();
+  }
   constructor(parameters) {
     if (!parameters.modifier) {
       throw new Error('modifier attribute dialog must have modifier');
     }
-
     super(SuiHairpinAttributesDialog.dialogElements, {
       id: 'dialog-' + parameters.modifier.attrs.id,
       top: parameters.modifier.renderedBox.y,
@@ -33484,13 +33483,6 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
       ...parameters
     });
     Vex.Merge(this, parameters);
-    SmoStaffHairpin.editableAttributes.forEach((attr) => {
-      var comp = this.components.find((cc) => cc.smoName === attr);
-      if (comp) {
-        comp.defaultValue = this.modifier[attr];
-      }
-    });
-    this.completeNotifier.unbindKeyboardForModal(this);
   }
 }
 // ## SuiStaffGroupDialog
@@ -33544,34 +33536,18 @@ class SuiStaffGroupDialog extends SuiDialogBase {
     const dg = new SuiStaffGroupDialog(parameters);
     dg.display();
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
+
   display() {
-    $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('.icon-move'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
-    });
-    const getKeys = () => {
-      this.completeNotifier.unbindKeyboardForModal(this);
-    };
-    this.startPromise.then(getKeys);
+    this.applyDisplayOptions();
     this._bindElements();
-    this.staffGroupsCtrl.setValue(this.modifier);
-    this.leftConnectorCtrl.setValue(this.modifier.leftConnector);
+    this.populateInitial();
     this._updateGroupMembership();
-    const box = svgHelpers.boxPoints(250, 250, 1, 1);
-    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
   }
   _bindElements() {
     const dgDom = this.dgDom;
-
-    this._bindComponentNames();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.complete();
     });
@@ -33581,7 +33557,10 @@ class SuiStaffGroupDialog extends SuiDialogBase {
     });
 
     $(dgDom.element).find('.remove-button').remove();
-    this.bindKeyboard();
+  }
+  populateInitial() {
+    this.staffGroupsCtrl.setValue(this.modifier);
+    this.leftConnectorCtrl.setValue(this.modifier.leftConnector);
   }
   _updateGroupMembership() {
     const updateEl = this.staffGroupsCtrl.getInputElement();
@@ -34220,6 +34199,9 @@ class SuiLyricDialog extends SuiDialogBase {
   static getStaticText(label) {
     return SuiLyricDialog.dialogElements.find((x) => x.staticText).staticText.find((x) => x[label])[label];
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
+  }
 
   constructor(parameters) {
     parameters.ctor = typeof(parameters.ctor) !== 'undefined' ? parameters.ctor : 'SuiLyricDialog';
@@ -34248,32 +34230,14 @@ class SuiLyricDialog extends SuiDialogBase {
   display() {
     $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-
-    this._bindComponentNames();
-
+    this.applyDisplayOptions();
     // this.editor = this.components.find((c) => c.smoName === 'textEditor');
     this.verse = this.components.find((c) => c.smoName === 'verse');
     this._bindElements();
-
-    // make sure keyboard is unbound or we get dupicate key events.
-    this.completeNotifier.unbindKeyboardForModal(this);
-
     $(this.dgDom.element).find('.smoControl').each((ix, ctrl) => {
       if (!$(ctrl).hasClass('cbLyricEdit')) {
         $(ctrl).addClass('fold-textedit');
       }
-    });
-    this.position(this.view.tracker.selections[0].note.renderedBox);
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('.jsDbMove'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
     });
     this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
     this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
@@ -34285,7 +34249,6 @@ class SuiLyricDialog extends SuiDialogBase {
         size: lyric.fontInfo.size,
       });
     }
-    this.bindKeyboard();
   }
   setLyric(lyric) {
     this.lyric = lyric;
@@ -34519,30 +34482,23 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     this.lyric = lyric;
     this.translateYCtrl.setValue(lyric.translateY);
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
+  }
   display() {
     $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-
-    this._bindComponentNames();
+    this.applyDisplayOptions();
 
     // this.editor = this.components.find((c) => c.smoName === 'textEditor');
     this.verse = this.components.find((c) => c.smoName === 'verse');
     this._bindElements();
-
-    // make sure keyboard is unbound or we get dupicate key events.
-    this.completeNotifier.unbindKeyboardForModal(this);
 
     $(this.dgDom.element).find('.smoControl').each((ix, ctrl) => {
       if (!$(ctrl).hasClass('cbLyricEdit')) {
         $(ctrl).addClass('fold-textedit');
       }
     });
-
-    this.position(this.view.tracker.selections[0].note.renderedBox);
-    this.makeDraggable();
     this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
     this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
     if (this.chordEditorCtrl && this.chordEditorCtrl.session && this.chordEditorCtrl.session.lyric) {
@@ -34553,7 +34509,6 @@ class SuiChordChangeDialog  extends SuiDialogBase {
         size: lyric.fontInfo.size
       });
     }
-    this.bindKeyboard();
   }
 
   _bindElements() {
@@ -34720,22 +34675,14 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   static getStaticText(label) {
     return SuiTextTransformDialog.dialogElements.find((x) => x.staticText).staticText.find((x) => x[label])[label];
   }
-
-  display() {
-    this.textElement = $(this.view.renderer.context.svg).find('.' + this.modifier.attrs.id)[0];
-
-    $('body').addClass('showAttributeDialog');
-    $('body').addClass('textEditor');
-    this._bindComponentNames();
-
-    this.components.forEach((component) => {
-      component.bind();
-    });
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+  }
+  populateInitial() {
     this.textBlockCtrl.setValue({
       activeScoreText: this.activeScoreText,
       modifier: this.modifier
     });
-
     const fontFamily = this.activeScoreText.fontInfo.family;
     const fontSize = this.activeScoreText.fontInfo.size;
     this.fontCtrl.setValue({
@@ -34744,29 +34691,23 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       style: this.activeScoreText.fontInfo.style,
       weight: this.activeScoreText.fontInfo.weight
     });
-
     this.attachToSelectorCtrl.setValue(this.modifier.attachToSelector);
-
     this.paginationsComponent = this.components.find((c) => c.smoName === 'pagination');
     this.paginationsComponent.setValue(this.modifier.pagination);
-
+    const ul = this.modifier.ul();
+    this.xCtrl.setValue(ul.x);
+    this.yCtrl.setValue(ul.y);
+  }
+  display() {
+    this.textElement = $(this.view.renderer.context.svg).find('.' + this.modifier.attrs.id)[0];
+    $('body').addClass('showAttributeDialog');
+    $('body').addClass('textEditor');
+    this.applyDisplayOptions();
+    this.populateInitial();
     this._bindElements();
     if (!this.modifier.renderedBox) {
       this.view.renderer.renderTextGroup(this.modifier);
     }
-    this.position(this.modifier.renderedBox);
-    const ul = this.modifier.ul();
-    this.xCtrl.setValue(ul.x);
-    this.yCtrl.setValue(ul.y);
-
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('span.jsDbMove'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
-    });
 
     // If this control has not been edited this session, assume they want to
     // edit the text and just right into that.
@@ -34941,7 +34882,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     this.previousModifier = this.modifier.serialize();
     this.activeScoreText = this.modifier.getActiveBlock();
     Vex.Merge(this, parameters);
-    this.completeNotifier.unbindKeyboardForModal(this);
   }
 
   _complete() {
@@ -34962,7 +34902,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
 
   _bindElements() {
-    this.bindKeyboard();
     const dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
@@ -35076,11 +35015,13 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
     this.view.groupUndo(true);
     this.components.find((x) => x.parameterName === 'text').defaultValue = parameters.modifier.text;
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+  }
   display() {
-    super.display();
-    // make sure keyboard is unbound or we get dupicate key events.
-    this.completeNotifier.unbindKeyboardForModal(this);
-    this._bindComponentNames();
+    $('body').addClass('showAttributeDialog');
+    this.applyDisplayOptions();
+    this._bindElements();
     this.textCtrl.setValue(this.modifier.text);
     this.xOffsetCtrl.setValue(this.modifier.xOffset);
     this.yOffsetLineCtrl.setValue(this.modifier.yOffsetLine);
@@ -35090,7 +35031,6 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
   // bing the generic controls in most dialogs.
   _bindElements() {
     var dgDom = this.dgDom;
-    this.bindKeyboard();
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.view.groupUndo(false);
@@ -40844,7 +40784,7 @@ class SuiScoreMenu extends suiMenuBase {
         value: 'identification'
       }, {
         icon: '',
-        text: 'Preferences',
+        text: 'Global Settings',
         value: 'preferences'
       }, {
         icon: '',

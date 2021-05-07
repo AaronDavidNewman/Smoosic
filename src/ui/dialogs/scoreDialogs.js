@@ -27,22 +27,18 @@ class SuiScoreViewDialog extends SuiDialogBase {
     const dg = new SuiScoreViewDialog(parameters);
     dg.display();
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
     $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-    this.makeDraggable();
-    this.captureKeyboardPromise();
+    this.applyDisplayOptions();
     this._bindElements();
     this.scoreViewCtrl.setValue(this.view.getView());
-    const box = svgHelpers.boxPoints(250, 250, 1, 1);
-    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
   }
   _bindElements() {
     const self = this;
     const dgDom = this.dgDom;
-    this._bindComponentNames();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       self.complete();
     });
@@ -53,7 +49,6 @@ class SuiScoreViewDialog extends SuiDialogBase {
     });
 
     $(dgDom.element).find('.remove-button').remove();
-    this.bindKeyboard();
   }
 
   changed() {
@@ -103,8 +98,29 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
         control: 'SuiToggleComponent',
         label: 'Auto-Advance Cursor',
       }, {
+        smoName: 'noteSpacing',
+        parameterName: 'noteSpacing',
+        defaultValue: SmoScore.defaults.layout.noteSpacing,
+        control: 'SuiRockerComponent',
+        type: 'percent',
+        label: 'Note Spacing'
+      }, {
+        smoName: 'zoomScale',
+        parameterName: 'zoomScale',
+        defaultValue: SmoScore.defaults.layout.zoomScale,
+        control: 'SuiRockerComponent',
+        label: '% Zoom',
+        type: 'percent'
+      }, {
+        smoName: 'svgScale',
+        parameterName: 'svgScale',
+        defaultValue: SmoScore.defaults.layout.svgScale,
+        control: 'SuiRockerComponent',
+        label: '% Note size',
+        type: 'percent'
+      }, {
         staticText: [
-          { label: 'Score Preferences' }
+          { label: 'Global Settings' }
         ]
       }];
     return SuiScorePreferencesDialog._dialogElements;
@@ -113,44 +129,40 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
     const dg = new SuiScorePreferencesDialog(parameters);
     dg.display();
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
     $('body').addClass('showAttributeDialog');
+    this.applyDisplayOptions();
+    this._bindElements();
     this.components.forEach((component) => {
       component.bind();
     });
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('.icon-move'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
-    });
-    const getKeys = () => {
-      this.completeNotifier.unbindKeyboardForModal(this);
-    };
-    this.startPromise.then(getKeys);
-    this._bindElements();
     this.scoreNameCtrl.setValue(this.view.score.scoreInfo.name);
     this.autoPlayCtrl.setValue(this.view.score.preferences.autoPlay);
     this.autoAdvanceCtrl.setValue(this.view.score.preferences.autoAdvance);
-    this.customProportionCtrl.setValue(this.view.score.preferences.customProportion);
-    const box = svgHelpers.boxPoints(250, 250, 1, 1);
-    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+    this.noteSpacingCtrl.setValue(this.view.score.layout.noteSpacing);
+    this.zoomScaleCtrl.setValue(this.view.score.layout.zoomScale);
+    this.svgScaleCtrl.setValue(this.view.score.layout.svgScale);
   }
   _bindElements() {
     const dgDom = this.dgDom;
-    this._bindComponentNames();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      if (this.layoutChanged) {
+        this.view.renderer.rerenderAll();
+      }
       this.complete();
     });
 
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      if (this.layoutChanged) {
+        this.view.score.setLayout(this.layoutBackup);
+        this.view.renderer.rerenderAll();
+      }
       this.complete();
     });
-
     $(dgDom.element).find('.remove-button').remove();
-    this.bindKeyboard();
   }
 
   changed() {
@@ -166,15 +178,21 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
     if (this.autoAdvanceCtrl.changeFlag) {
       this.view.score.preferences.autoAdvance = this.autoAdvanceCtrl.getValue();
     }
-    if  (this.customProportionCtrl.changeFlag) {
-      // changing this means we update all the measures in the score with the
-      // new default value
-      const oldDefault = this.view.score.preferences.customProportion;
-      const newValue = this.customProportionCtrl.getValue();
-      if (oldDefault !== newValue) {
-        this.view.updateProportionDefault(oldDefault, newValue);
-        return;
-      }
+    if (this.noteSpacingCtrl.changeFlag) {
+      this.layoutChanged = true;
+      this.layout.noteSpacing = this.noteSpacingCtrl.getValue();
+    }
+    if (this.zoomScaleCtrl.changeFlag) {
+      this.layoutChanged = true;
+      this.layout.zoomScale = this.zoomScaleCtrl.getValue();
+    }
+    if (this.svgScaleCtrl.changeFlag) {
+      this.layoutChanged = true;
+      this.layout.svgScale = this.svgScaleCtrl.getValue();
+    }
+    if (this.layoutChanged) {
+      this.view.setScoreLayout(this.layout);
+      this.view.renderer.rerenderAll();
     }
     this.view.updateScorePreferences();
   }
@@ -186,6 +204,9 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
       left: (p.view.score.layout.pageHeight / 2) - 200,
       ...parameters
     });
+    this.layoutChanged = false;
+    this.layout = JSON.parse(JSON.stringify(this.view.score.layout));
+    this.layoutBackup = JSON.parse(JSON.stringify(this.view.score.layout));
     this.startPromise = p.startPromise;
   }
 }
@@ -239,38 +260,6 @@ class SuiScoreIdentificationDialog extends SuiDialogBase {
       }];
     return SuiScoreIdentificationDialog._dialogElements;
   }
-  get purposeToFont() {
-    const rv = {};
-    rv[SmoTextGroup.purposes.TITLE] = {
-      fontFamily: 'Merriweather',
-      fontSize: 18,
-      justification: SmoTextGroup.justifications.CENTER,
-      xPlacement: 0.5,
-      yOffset: 4
-    };
-    rv[SmoTextGroup.purposes.SUBTITLE] = {
-      fontFamily: 'Merriweather',
-      fontSize: 16,
-      justification: SmoTextGroup.justifications.CENTER,
-      xPlacement: 0.5,
-      yOffset: 20,
-    };
-    rv[SmoTextGroup.purposes.COMPOSER] = {
-      fontFamily: 'Merriweather',
-      fontSize: 12,
-      justification: SmoTextGroup.justifications.RIGHT,
-      xPlacement: 0.8,
-      yOffset: 10
-    };
-    rv[SmoTextGroup.purposes.COPYRIGHT] = {
-      fontFamily: 'Merriweather',
-      fontSize: 12,
-      xPlacement: 0.5,
-      justification: SmoTextGroup.justifications.CENTER,
-      yOffset: -12
-    };
-    return rv;
-  }
   static createAndDisplay(parameters) {
     const dg = new SuiScoreIdentificationDialog(parameters);
     dg.display();
@@ -303,21 +292,17 @@ class SuiScoreIdentificationDialog extends SuiDialogBase {
       this.view.removeTextGroup(existing);
     }
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
     $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-    this.makeDraggable();
-    this.captureKeyboardPromise();
+    this.applyDisplayOptions();
     this._bindElements();
     this._setInitialValues();
-    const box = svgHelpers.boxPoints(250, 250, 1, 1);
-    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
   }
   _bindElements() {
     const dgDom = this.dgDom;
-    this._bindComponentNames();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.complete();
     });
@@ -327,7 +312,6 @@ class SuiScoreIdentificationDialog extends SuiDialogBase {
     });
 
     $(dgDom.element).find('.remove-button').remove();
-    this.bindKeyboard();
   }
 
   changed() {
@@ -419,16 +403,12 @@ class SuiScoreFontDialog extends SuiDialogBase {
       }];
     return SuiScoreFontDialog._dialogElements;
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
     $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-    this._bindComponentNames();
-    this.makeDraggable();
-    this.captureKeyboardPromise();
-    const box = svgHelpers.boxPoints(250, 250, 1, 1);
-    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+    this.applyDisplayOptions();
     this._bindElements();
     const engraving = this.fontBackup.find((ff) => ff.purpose === SmoScore.fontPurposes.ENGRAVING);
     const chords = this.fontBackup.find((ff) => ff.purpose === SmoScore.fontPurposes.CHORDS);
@@ -439,7 +419,6 @@ class SuiScoreFontDialog extends SuiDialogBase {
   }
   _bindElements() {
     const dgDom = this.dgDom;
-    this.bindKeyboard();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.complete();
     });
@@ -587,27 +566,6 @@ class SuiLayoutDialog extends SuiDialogBase {
         control: 'SuiRockerComponent',
         label: 'Intra-System Margin'
       }, {
-        smoName: 'noteSpacing',
-        parameterName: 'noteSpacing',
-        defaultValue: SmoScore.defaults.layout.noteSpacing,
-        control: 'SuiRockerComponent',
-        type: 'percent',
-        label: 'Note Spacing'
-      }, {
-        smoName: 'zoomScale',
-        parameterName: 'zoomScale',
-        defaultValue: SmoScore.defaults.layout.zoomScale,
-        control: 'SuiRockerComponent',
-        label: '% Zoom',
-        type: 'percent'
-      }, {
-        smoName: 'svgScale',
-        parameterName: 'svgScale',
-        defaultValue: SmoScore.defaults.layout.svgScale,
-        control: 'SuiRockerComponent',
-        label: '% Note size',
-        type: 'percent'
-      }, {
         staticText: [
           { label: 'Score Layout' }
         ]
@@ -620,23 +578,19 @@ class SuiLayoutDialog extends SuiDialogBase {
   backupOriginal() {
     this.backup = JSON.parse(JSON.stringify(this.modifier));
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
+
   display() {
     $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
+    this.applyDisplayOptions();
     this.components.forEach((component) => {
       const val = this.modifier[component.parameterName];
       component.setValue(val);
     });
-    this._bindComponentNames();
     this._setPageSizeDefault();
     this._bindElements();
-    this.makeDraggable();
-    this.captureKeyboardPromise();
-
-    const box = svgHelpers.boxPoints(250, 250, 1, 1);
-    SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
   }
   // ### _updateLayout
   // even if the layout is not changed, we re-render the entire score by resetting
@@ -652,7 +606,6 @@ class SuiLayoutDialog extends SuiDialogBase {
   _bindElements() {
     const self = this;
     const dgDom = this.dgDom;
-    this.bindKeyboard();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       // TODO:  allow user to select a zoom mode.
       self.view.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
@@ -698,8 +651,8 @@ class SuiLayoutDialog extends SuiDialogBase {
   // ### changed
   // One of the components has had a changed value.
   changed() {
-    this._handlePageSizeChange();
     const layout = JSON.parse(JSON.stringify(this.view.score.layout));
+    this._handlePageSizeChange();
     this.components.forEach((component) => {
       if (typeof(layout[component.smoName]) !== 'undefined') {
         layout[component.smoName] = component.getValue();

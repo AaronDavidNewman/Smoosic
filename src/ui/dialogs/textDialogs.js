@@ -76,6 +76,9 @@ class SuiLyricDialog extends SuiDialogBase {
   static getStaticText(label) {
     return SuiLyricDialog.dialogElements.find((x) => x.staticText).staticText.find((x) => x[label])[label];
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
+  }
 
   constructor(parameters) {
     parameters.ctor = typeof(parameters.ctor) !== 'undefined' ? parameters.ctor : 'SuiLyricDialog';
@@ -104,32 +107,14 @@ class SuiLyricDialog extends SuiDialogBase {
   display() {
     $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-
-    this._bindComponentNames();
-
+    this.applyDisplayOptions();
     // this.editor = this.components.find((c) => c.smoName === 'textEditor');
     this.verse = this.components.find((c) => c.smoName === 'verse');
     this._bindElements();
-
-    // make sure keyboard is unbound or we get dupicate key events.
-    this.completeNotifier.unbindKeyboardForModal(this);
-
     $(this.dgDom.element).find('.smoControl').each((ix, ctrl) => {
       if (!$(ctrl).hasClass('cbLyricEdit')) {
         $(ctrl).addClass('fold-textedit');
       }
-    });
-    this.position(this.view.tracker.selections[0].note.renderedBox);
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('.jsDbMove'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
     });
     this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
     this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
@@ -141,7 +126,6 @@ class SuiLyricDialog extends SuiDialogBase {
         size: lyric.fontInfo.size,
       });
     }
-    this.bindKeyboard();
   }
   setLyric(lyric) {
     this.lyric = lyric;
@@ -375,30 +359,23 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     this.lyric = lyric;
     this.translateYCtrl.setValue(lyric.translateY);
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
+  }
   display() {
     $('body').addClass('showAttributeDialog');
     $('body').addClass('textEditor');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-
-    this._bindComponentNames();
+    this.applyDisplayOptions();
 
     // this.editor = this.components.find((c) => c.smoName === 'textEditor');
     this.verse = this.components.find((c) => c.smoName === 'verse');
     this._bindElements();
-
-    // make sure keyboard is unbound or we get dupicate key events.
-    this.completeNotifier.unbindKeyboardForModal(this);
 
     $(this.dgDom.element).find('.smoControl').each((ix, ctrl) => {
       if (!$(ctrl).hasClass('cbLyricEdit')) {
         $(ctrl).addClass('fold-textedit');
       }
     });
-
-    this.position(this.view.tracker.selections[0].note.renderedBox);
-    this.makeDraggable();
     this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
     this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
     if (this.chordEditorCtrl && this.chordEditorCtrl.session && this.chordEditorCtrl.session.lyric) {
@@ -409,7 +386,6 @@ class SuiChordChangeDialog  extends SuiDialogBase {
         size: lyric.fontInfo.size
       });
     }
-    this.bindKeyboard();
   }
 
   _bindElements() {
@@ -576,22 +552,14 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   static getStaticText(label) {
     return SuiTextTransformDialog.dialogElements.find((x) => x.staticText).staticText.find((x) => x[label])[label];
   }
-
-  display() {
-    this.textElement = $(this.view.renderer.context.svg).find('.' + this.modifier.attrs.id)[0];
-
-    $('body').addClass('showAttributeDialog');
-    $('body').addClass('textEditor');
-    this._bindComponentNames();
-
-    this.components.forEach((component) => {
-      component.bind();
-    });
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+  }
+  populateInitial() {
     this.textBlockCtrl.setValue({
       activeScoreText: this.activeScoreText,
       modifier: this.modifier
     });
-
     const fontFamily = this.activeScoreText.fontInfo.family;
     const fontSize = this.activeScoreText.fontInfo.size;
     this.fontCtrl.setValue({
@@ -600,29 +568,23 @@ class SuiTextTransformDialog  extends SuiDialogBase {
       style: this.activeScoreText.fontInfo.style,
       weight: this.activeScoreText.fontInfo.weight
     });
-
     this.attachToSelectorCtrl.setValue(this.modifier.attachToSelector);
-
     this.paginationsComponent = this.components.find((c) => c.smoName === 'pagination');
     this.paginationsComponent.setValue(this.modifier.pagination);
-
+    const ul = this.modifier.ul();
+    this.xCtrl.setValue(ul.x);
+    this.yCtrl.setValue(ul.y);
+  }
+  display() {
+    this.textElement = $(this.view.renderer.context.svg).find('.' + this.modifier.attrs.id)[0];
+    $('body').addClass('showAttributeDialog');
+    $('body').addClass('textEditor');
+    this.applyDisplayOptions();
+    this.populateInitial();
     this._bindElements();
     if (!this.modifier.renderedBox) {
       this.view.renderer.renderTextGroup(this.modifier);
     }
-    this.position(this.modifier.renderedBox);
-    const ul = this.modifier.ul();
-    this.xCtrl.setValue(ul.x);
-    this.yCtrl.setValue(ul.y);
-
-    const cb = () => {};
-    htmlHelpers.draggable({
-      parent: $(this.dgDom.element).find('.attributeModal'),
-      handle: $(this.dgDom.element).find('span.jsDbMove'),
-      animateDiv: '.draganime',
-      cb,
-      moveParent: true
-    });
 
     // If this control has not been edited this session, assume they want to
     // edit the text and just right into that.
@@ -797,7 +759,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
     this.previousModifier = this.modifier.serialize();
     this.activeScoreText = this.modifier.getActiveBlock();
     Vex.Merge(this, parameters);
-    this.completeNotifier.unbindKeyboardForModal(this);
   }
 
   _complete() {
@@ -818,7 +779,6 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   }
 
   _bindElements() {
-    this.bindKeyboard();
     const dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
@@ -932,11 +892,13 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
     this.view.groupUndo(true);
     this.components.find((x) => x.parameterName === 'text').defaultValue = parameters.modifier.text;
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+  }
   display() {
-    super.display();
-    // make sure keyboard is unbound or we get dupicate key events.
-    this.completeNotifier.unbindKeyboardForModal(this);
-    this._bindComponentNames();
+    $('body').addClass('showAttributeDialog');
+    this.applyDisplayOptions();
+    this._bindElements();
     this.textCtrl.setValue(this.modifier.text);
     this.xOffsetCtrl.setValue(this.modifier.xOffset);
     this.yOffsetLineCtrl.setValue(this.modifier.yOffsetLine);
@@ -946,7 +908,6 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
   // bing the generic controls in most dialogs.
   _bindElements() {
     var dgDom = this.dgDom;
-    this.bindKeyboard();
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.view.groupUndo(false);
