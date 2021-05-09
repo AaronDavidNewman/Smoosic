@@ -2346,6 +2346,10 @@ class smoMusic {
       smoMusic.smoPitchToInt(
         smoMusic.vexToSmoKey(vexKey)) + offset));
     newKey = smoMusic.toValidKeySignature(newKey);
+    // handle equivalent ks
+    if (newKey === 'c#' && vexKey.indexOf('b') >=0) {
+      newKey = 'db';
+    }
     return newKey;
   }
 
@@ -2651,19 +2655,23 @@ class smoMusic {
   }
 
   static getSharpsInKeySignature(key) {
-    var sharpKeys = ['B', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
-    if (sharpKeys.indexOf(key) < 0) {
+    let sharpKeys = ['B', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
+    if (sharpKeys.indexOf(key.toUpperCase()) < 0) {
       return 0;
     }
-    return smoMusic.keySignatureLength[key];
+    return smoMusic.keySignatureLength[key.toUpperCase()];
   }
 
   static getFlatsInKeySignature(key) {
     var flatKeys = ['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb'];
-    if (flatKeys.indexOf(key) < 0) {
+    let caseKey = key[0].toUpperCase();
+    if (key.length > 0) {
+      caseKey += key.substr(1, key.length);
+    }
+    if (flatKeys.indexOf(caseKey) < 0) {
       return 0;
     }
-    return smoMusic.keySignatureLength[key];
+    return smoMusic.keySignatureLength[caseKey];
   }
 
   static timeSignatureToTicks(timeSignature) {
@@ -4717,8 +4725,8 @@ class SuiActionPlayback {
 class suiLayoutAdjuster {
 
   static estimateMusicWidth(smoMeasure, noteSpacing, accidentMap) {
-    var widths = [];
-    var voiceIx = 0;
+    const widths = [];
+    let voiceIx = 0;
     // Accidental map:
     // If we accidentals on different notes in a justified column, need to increase width
     // for both.
@@ -4726,44 +4734,46 @@ class suiLayoutAdjuster {
     //    #o  x   x   o
     //     |  x   x   |
     //     o  x   x  #o
-    var tmObj = smoMeasure.createMeasureTickmaps();
+    const tmObj = smoMeasure.createMeasureTickmaps();
     smoMeasure.voices.forEach((voice) => {
       let accidentJustify = 0;
       Object.keys(accidentMap).forEach((k) => {
         accidentJustify += accidentMap[k];
       });
-      var tickIndex = 0;
-      var width = 0;
-      var duration = 0;
-      var tm = tmObj.tickmaps[voiceIx];
+      let tickIndex = 0;
+      let width = 0;
+      let duration = 0;
       voice.notes.forEach((note) => {
-        var noteWidth = 0;
-        var dots = (note.dots ? note.dots : 0);
-        noteWidth += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight * noteSpacing;
+        let noteWidth = 0;
+        const dots = (note.dots ? note.dots : 0);
+        const headWidth = vexGlyph.width(vexGlyph.dimensions.noteHead);
+        const dotWidth = vexGlyph.width(vexGlyph.dimensions.dot);
+        noteWidth += headWidth +
+          vexGlyph.dimensions.noteHead.spacingRight * noteSpacing;
         // TODO: Consider engraving font and adjust grace note size?
-        noteWidth += (vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight) * note.graceNotes.length;
-        noteWidth += vexGlyph.dimensions.dot.width * dots + vexGlyph.dimensions.dot.spacingRight * dots;
+        noteWidth += (headWidth + vexGlyph.dimensions.noteHead.spacingRight) * note.graceNotes.length;
+        noteWidth += dotWidth * dots + vexGlyph.dimensions.dot.spacingRight * dots;
         note.pitches.forEach((pitch) => {
-          var keyAccidental = smoMusic.getAccidentalForKeySignature(pitch,smoMeasure.keySignature);
-          var accidentals = tmObj.accidentalArray.filter((ar) =>
+          const keyAccidental = smoMusic.getAccidentalForKeySignature(pitch, smoMeasure.keySignature);
+          const accidentals = tmObj.accidentalArray.filter((ar) =>
             ar.duration < duration && ar.pitches[pitch.letter]);
-          var acLen = accidentals.length;
-          var declared = acLen > 0 ?
+          const acLen = accidentals.length;
+          const declared = acLen > 0 ?
             accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental: keyAccidental;
           if (declared != pitch.accidental || pitch.cautionary) {
-            noteWidth += vexGlyph.accidental(pitch.accidental).width;
+            noteWidth += vexGlyph.accidentalWidth(pitch.accidental);
             if (!accidentMap[duration]) {
-              accidentMap[duration] = vexGlyph.accidental(pitch.accidental).width;
+              accidentMap[duration] = vexGlyph.accidentalWidth(pitch.accidental);
             } else {
               // if accidentals are aligned, don't count width twice
-              accidentJustify -= vexGlyph.accidental(pitch.accidental).width;
+              accidentJustify -= vexGlyph.accidentalWidth(pitch.accidental);
             }
           }
         });
 
-        var verse = 0;
-        var lyric;
-        while (lyric = note.getLyricForVerse(verse,SmoLyric.parsers.lyric)) {
+        let verse = 0;
+        let lyric;
+        while (lyric = note.getLyricForVerse(verse, SmoLyric.parsers.lyric)) {
           let lyricWidth = 0;
           let i = 0;
           // TODO: kerning and all that...
@@ -4776,13 +4786,13 @@ class suiLayoutAdjuster {
             VF.TextFont.getTextFontFromVexFontData({ family: lyric[0].fontInfo.family,
               size: lyric[0].fontInfo.size, weight: 'normal' });
           const lyricText = lyric[0].getText();
-          for (i = 0;i < lyricText.length; ++i) {
+          for (i = 0; i < lyricText.length; ++i) {
             lyricWidth += textFont.getWidthForCharacter(lyricText[i]);
           }
           if (lyric[0].isHyphenated()) {
-            lyricWidth +=  2 * textFont.getWidthForCharacter('-');
+            lyricWidth += 2 * textFont.getWidthForCharacter('-');
           } else {
-            lyricWidth +=  2 * textFont.getWidthForCharacter('H');
+            lyricWidth += 2 * textFont.getWidthForCharacter('H');
           }
           noteWidth = Math.max(lyricWidth, noteWidth);
           verse += 1;
@@ -4802,19 +4812,19 @@ class suiLayoutAdjuster {
   }
 
   static estimateStartSymbolWidth(smoMeasure) {
-    var width = 0;
+    let width = 0;
     if (smoMeasure.forceKeySignature) {
-      if ( smoMeasure.canceledKeySignature) {
-          width += vexGlyph.keySignatureLength(smoMeasure.canceledKeySignature);
+      if (smoMeasure.canceledKeySignature) {
+        width += vexGlyph.keySignatureLength(smoMeasure.canceledKeySignature);
       }
-            width += vexGlyph.keySignatureLength(smoMeasure.keySignature);
+      width += vexGlyph.keySignatureLength(smoMeasure.keySignature);
     }
     if (smoMeasure.forceClef) {
-      width += vexGlyph.clef(smoMeasure.clef).width + vexGlyph.clef(smoMeasure.clef).spacingRight;
+      width += vexGlyph.width(vexGlyph.clef(smoMeasure.clef)) + vexGlyph.clef(smoMeasure.clef).spacingRight;
     }
     if (smoMeasure.forceTimeSignature) {
-            var digits = smoMeasure.timeSignature.split('/')[0].length;
-      width += vexGlyph.dimensions.timeSignature.width*digits + vexGlyph.dimensions.timeSignature.spacingRight;
+      var digits = smoMeasure.timeSignature.split('/')[0].length;
+      width += vexGlyph.width(vexGlyph.dimensions.timeSignature) * digits + vexGlyph.dimensions.timeSignature.spacingRight;
     }
     var starts = smoMeasure.getStartBarline();
     if (starts) {
@@ -4840,13 +4850,13 @@ class suiLayoutAdjuster {
     var xoff = 0;
     var width = 0;
     leftText.forEach((tt) => {
-      const testText = new SmoScoreText({text:tt.text});
-      const box = svgHelpers.getTextBox(svg,testText.toSvgAttributes(), testText.classes, testText.text);
+      const testText = new SmoScoreText({ text: tt.text });
+      const box = svgHelpers.getTextBox(svg, testText.toSvgAttributes(), testText.classes, testText.text);
       xoff += box.width;
     });
     rightText.forEach((tt) => {
-      const testText = new SmoScoreText({text:tt.text});
-      const box = svgHelpers.getTextBox(svg,testText.toSvgAttributes(), testText.classes, testText.text);
+      const testText = new SmoScoreText({ text: tt.text });
+      const box = svgHelpers.getTextBox(svg, testText.toSvgAttributes(), testText.classes, testText.text);
       width += box.width;
     });
     return svgHelpers.boxPoints(xoff, 0, width, 0);
@@ -4854,13 +4864,12 @@ class suiLayoutAdjuster {
 
   static estimateMeasureWidth(measure, noteSpacing, accidentMap) {
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
-    var prevWidth = measure.staffWidth;
-    var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure, noteSpacing, accidentMap);
+    let measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure, noteSpacing, accidentMap);
     measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
     measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
     measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
-    var y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
-    measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight ');
+    const y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
+    measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight');
     // Calculate the space for left/right text which displaces the measure.
     // var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
     // measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
@@ -4868,7 +4877,7 @@ class suiLayoutAdjuster {
       'estimate measure width');
   }
   static _beamGroupForNote(measure,note) {
-    var rv = null;
+    let rv = null;
     if (!note.beam_group) {
       return null;
     }
@@ -4884,7 +4893,7 @@ class suiLayoutAdjuster {
 
   // ### _highestLowestHead
   // highest value is actually the one lowest on the page
-  static _highestLowestHead(measure,note) {
+  static _highestLowestHead(measure, note) {
     const hilo = { hi: 0, lo: 9999999 };
     note.pitches.forEach((pitch) => {
       // 10 pixels per line
@@ -4925,8 +4934,6 @@ class suiLayoutAdjuster {
     if (measure.forceTempo) {
       yOffset = Math.min(-1 * vexGlyph.tempo.yTop, yOffset);
     }
-    var hasDynamic = false;
-
     measure.voices.forEach((voice) => {
       voice.notes.forEach((note) => {
         const bg = suiLayoutAdjuster._beamGroupForNote(measure, note);
@@ -4935,8 +4942,8 @@ class suiLayoutAdjuster {
           flag = bg.notes[0].flagState;
           // an  auto-flag note is up if the 1st note is middle line
           if (flag === SmoNote.flagStates.auto) {
-            var pitch = bg.notes[0].pitches[0];
-            flag = smoMusic.pitchToLedgerLine(measure.clef,pitch)
+            const pitch = bg.notes[0].pitches[0];
+            flag = smoMusic.pitchToLedgerLine(measure.clef, pitch)
                >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
           }
         }  else {
@@ -4949,19 +4956,19 @@ class suiLayoutAdjuster {
           }
         }
         const hiloHead = suiLayoutAdjuster._highestLowestHead(measure, note);
-        if (flag == SmoNote.flagStates.down) {
-          yOffset = Math.min(hiloHead.lo,yOffset);
-          heightOffset = Math.max(hiloHead.hi + vexGlyph.stem.height,heightOffset);
+        if (flag === SmoNote.flagStates.down) {
+          yOffset = Math.min(hiloHead.lo, yOffset);
+          heightOffset = Math.max(hiloHead.hi + vexGlyph.stem.height, heightOffset);
         } else {
-          yOffset = Math.min(hiloHead.lo - vexGlyph.stem.height,yOffset);
-          heightOffset = Math.max(hiloHead.hi,heightOffset);
+          yOffset = Math.min(hiloHead.lo - vexGlyph.stem.height, yOffset);
+          heightOffset = Math.max(hiloHead.hi, heightOffset);
         }
         // Lyrics will be rendered below the lowest thing on the staff, so add to
         // belowBaseline value based on the max number of verses and font size
         // it will extend
         const lyrics = note.getTrueLyrics();
         if (lyrics.length) {
-          const maxLyric = lyrics.reduce((a, b)=> a.verse > b.verse ? a : b);
+          const maxLyric = lyrics.reduce((a, b) => a.verse > b.verse ? a : b);
           const fontInfo = suiLayoutAdjuster.textFont(maxLyric);
           const maxHeight = fontInfo.maxHeight;
           lyricOffset = Math.max((maxLyric.verse + 2) * fontInfo.maxHeight, lyricOffset);
@@ -6799,6 +6806,16 @@ class SuiScoreRender extends SuiRenderState {
       });
     }
   }
+  _addToPageLayouts(scoreLayout, pageNum) {
+    if (this.score.pageLayouts.length === 0) {
+      this.score.pageLayouts.push(JSON.parse(JSON.stringify(scoreLayout)));
+      return;
+    }
+    const lastLayout = this.score.pageLayouts[this.score.pageLayouts.length - 1];
+    if (this.score.pageLayouts.length < pageNum) {
+      this.score.pageLayouts.push(JSON.parse(JSON.stringify(lastLayout)));
+    }
+  }
 
   // ### _checkPageBreak
   // See if this line breaks the page boundary
@@ -6815,7 +6832,12 @@ class SuiScoreRender extends SuiRenderState {
       const minMaxY = topMeasure.logicalBox.y;
       pageAdj = (scoreLayout.pages * scoreLayout.pageHeight) - minMaxY;
       pageAdj = pageAdj + scoreLayout.topMargin;
+
+      // Prepare layout for next page, if not set
       scoreLayout.pages += 1;
+      this._addToPageLayouts(scoreLayout, scoreLayout.pages);
+
+      // For each measure on the current line, move it down past the page break;
       currentLine.forEach((measure) => {
         measure.setBox(svgHelpers.boxPoints(
           measure.logicalBox.x, measure.logicalBox.y + pageAdj, measure.logicalBox.width, measure.logicalBox.height));
@@ -6844,6 +6866,7 @@ class SuiScoreRender extends SuiRenderState {
     const svg = this.context.svg;
     const scoreLayout = this.scaledScoreLayout;
     scoreLayout.pages = 1;
+    this._addToPageLayouts(scoreLayout, 1);
 
     y = scoreLayout.topMargin;
     x = scoreLayout.leftMargin;
@@ -11423,6 +11446,20 @@ class suiTracker extends suiMapper {
 }
 ;// eslint-disable-next-line no-unused-vars
 class vexGlyph {
+  // ### glyphPixels
+  // Used to convert vex glyph sizes to pixels for computation.
+  // Vex glyph font size (points) is 38, convert to pixels (96 / 72)
+  // and divide by glyph resolution
+  static get glyphPixels() {
+    return 96 * (38 / (VF.DefaultFontStack[0].getResolution() * 72));
+  }
+  static width(smoGlyph) {
+    if (smoGlyph.vexGlyph) {
+      const vf = VF.DEFAULT_FONT_STACK[0].getGlyphs()[smoGlyph.vexGlyph];
+      return (vf.x_max - vf.x_min) * vexGlyph.glyphPixels;
+    }
+    return smoGlyph.width;
+  }
   static accidental(a) {
     return vexGlyph.accidentals[a];
   }
@@ -11430,6 +11467,9 @@ class vexGlyph {
     const str = SmoBarline.barlineString(b);
     const cc = vexGlyph.dimensions[str];
     return cc.width + cc.spacingRight;
+  }
+  static accidentalWidth(accidental) {
+    return vexGlyph.width(vexGlyph.accidentals[accidental]);
   }
   static get accidentals() {
     return {
@@ -11445,8 +11485,8 @@ class vexGlyph {
     return vexGlyph.dimensions.tempo;
   }
   static keySignatureLength(key) {
-    return smoMusic.getSharpsInKeySignature(key) * vexGlyph.dimensions.sharp.width +
-      smoMusic.getFlatsInKeySignature(key) * vexGlyph.dimensions.flat.width +
+    return smoMusic.getSharpsInKeySignature(key) * vexGlyph.width(vexGlyph.dimensions.sharp) +
+      smoMusic.getFlatsInKeySignature(key) * vexGlyph.width(vexGlyph.dimensions.flat) +
       vexGlyph.dimensions.keySignature.spacingRight;
   }
   static get timeSignature() {
@@ -11459,14 +11499,12 @@ class vexGlyph {
   static get tupletBeam() {
     return vexGlyph.dimensions.tupletBeam;
   }
-
   static get stem() {
     return vexGlyph.dimensions.stem;
   }
   static get flag() {
     return vexGlyph.dimensions.flag;
   }
-
   static clef(c) {
     const key = c.toLowerCase() + 'Clef';
     if (!vexGlyph.dimensions[key]) {
@@ -11524,11 +11562,13 @@ class vexGlyph {
         yTop: 0,
         yBottom: 0,
         spacingRight: 10.71,
+        vexGlyph: 'noteheadBlack'
       },
       dot: {
         width: 15,
         height: 5,
-        spacingRight: 2
+        spacingRight: 2,
+        vexGlyph: 'augmentationDot'
       }, // This isn't accurate, but I don't
       // want to add extra space just for clef.
       trebleClef: {
@@ -11537,6 +11577,7 @@ class vexGlyph {
         yTop: 3,
         yBottom: 3,
         spacingRight: 10,
+        vexGlyph: 'gClef'
       },
       bassClef: {
         width: 36,
@@ -11544,27 +11585,31 @@ class vexGlyph {
         yTop: 0,
         yBottom: 0,
         spacingRight: 5,
+        vexGlyph: 'fClef'
       },
       altoClef: {
         width: 31.5,
         yTop: 0,
         yBottom: 0,
         height: 85.5,
-        spacingRight: 10
+        spacingRight: 10,
+        vexGlyph: 'cClef'
       },
       tenorClef: {
         width: 31.5,
         yTop: 10,
         yBottom: 0,
         height: 41,
-        spacingRight: 10
+        spacingRight: 10,
+        vexGlyph: 'cClef'
       },
       timeSignature: {
         width: 22.36,
         height: 85,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 5
+        spacingRight: 5,
+        vexGlyph: 'timeSig4'
       },
       tempo: {
         width: 10,
@@ -11578,7 +11623,8 @@ class vexGlyph {
         height: 23.55,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 2
+        spacingRight: 2,
+        vexGlyph: 'accidentalFlat'
       },
       keySignature: {
         width: 0,
@@ -11592,28 +11638,32 @@ class vexGlyph {
         height: 62,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 2
+        spacingRight: 2,
+        vexGlyph: 'accidentalSharp',
       },
       natural: {
         width: 15,
         height: 53.35,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 2
+        spacingRight: 2,
+        vexGlyph: 'accidentalNatural',
       },
       doubleSharp: {
         height: 10.04,
         width: 21.63,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 2
+        spacingRight: 2,
+        vexGlyph: 'accidentalDoubleSharp'
       },
       doubleFlat: {
         width: 13.79,
         height: 49.65,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 2
+        spacingRight: 2,
+        vexGlyph: 'accidentalDoubleFlat'
       }, stem: {
         width: 1,
         height: 35,
@@ -11625,7 +11675,8 @@ class vexGlyph {
         height: 35,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 0
+        spacingRight: 0,
+        vexGlyph: 'flag8thUp' // use for width measurements all flags
       }
     };
   }
@@ -12155,7 +12206,8 @@ class VxMeasure {
     }
 
     // Need to format for x position, then set y position before drawing dynamics.
-    this.formatter = new VF.Formatter({ softmaxFactor: this.smoMeasure.customProportion, globalSoftmax: false });
+    this.formatter = new VF.Formatter({ softmaxFactor: this.smoMeasure.customProportion, globalSoftmax: false,
+      maxIterations: 10 });
     this.voiceAr.forEach((voice) => {
       this.formatter.joinVoices([voice]);
     });
@@ -29695,7 +29747,7 @@ class SuiDialogBase {
     // Make sure the dialog is visible if the selection is not
     setTimeout(() => {
       scroller.scrollVisibleBox(
-        svgHelpers.smoBox($(dge)[0].getBoundingClientRect())
+        svgHelpers.smoBox(box)
       );
     }, 1);
   }
@@ -30352,19 +30404,13 @@ class SuiFileDialog extends SuiDialogBase {
     super(ctor.dialogElements, p);
     this.value = '';
   }
-  display() {
-    $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-    this._bindElements();
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
 
-    // make sure keyboard is unbound or we get dupicate key events.
-    const getKeys = () => {
-      this.completeNotifier.unbindKeyboardForModal(this);
-    };
-    this.startPromise.then(getKeys);
-    this.position($(this.dgDom.element)[0].getBoundingClientRect());
+  display() {
+    this.applyDisplayOptions();
+    this._bindElements();
   }
 
   _bindElements() {
@@ -30380,15 +30426,6 @@ class SuiFileDialog extends SuiDialogBase {
 
     $(dgDom.element).find('.remove-button').remove();
     this.bindKeyboard();
-  }
-  position(box) {
-    var y = (window.innerHeight / 3  + box.height);
-    // TODO: adjust if db is clipped by the browser.
-    var dge = $(this.dgDom.element).find('.attributeModal');
-
-    $(dge).css('top', '' + y + 'px');
-    const x = window.innerWidth - box.width / 2;
-    $(dge).css('left', '' + x + 'px');
   }
 }
 // eslint-disable-next-line no-unused-vars
@@ -30589,6 +30626,13 @@ class SuiPrintFileDialog extends SuiFileDialog {
     var dg = new SuiPrintFileDialog(params);
     dg.display();
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'GLOBALPOS'];
+  }
+  display() {
+    this.applyDisplayOptions();
+    this._bindElements();
+  }
   constructor(parameters) {
     parameters.ctor = 'SuiPrintFileDialog';
     super(parameters);
@@ -30649,10 +30693,13 @@ class SuiSaveFileDialog extends SuiFileDialog {
     this.view.saveScore(filename);
     this.complete();
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
-    super.display();
-    this._bindComponentNames();
+    this.applyDisplayOptions();
     this.saveFileNameCtrl.setValue(this.value);
+    this._bindElements();
   }
   static createName(score) {
     return score.scoreInfo.name + '-' + score.scoreInfo.version + '.json';
@@ -30710,9 +30757,12 @@ class SuiSaveXmlDialog extends SuiFileDialog {
     this.view.saveXml(filename);
     this.complete();
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
-    super.display();
-    this._bindComponentNames();
+    this.applyDisplayOptions();
+    this._bindElements();
     this.saveFileNameCtrl.setValue(this.value);
   }
   static createName(score) {
@@ -30755,7 +30805,6 @@ class SuiSaveMidiDialog extends SuiFileDialog {
       }];
     return SuiSaveMidiDialog._dialogElements;
   }
-
   changed() {
     this.value = this.components[0].getValue();
   }
@@ -30771,10 +30820,13 @@ class SuiSaveMidiDialog extends SuiFileDialog {
     this.view.saveMidi(filename);
     this.complete();
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
-    super.display();
-    this._bindComponentNames();
+    this.applyDisplayOptions();
     this.saveFileNameCtrl.setValue(this.value);
+    this._bindElements();
   }
   static createName(score) {
     return score.scoreInfo.name + '-' + score.scoreInfo.version + '.mid';
@@ -30832,10 +30884,13 @@ class SuiSaveActionsDialog extends SuiFileDialog {
     this.view.saveActions(filename);
     this.complete();
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
-    super.display();
-    this._bindComponentNames();
+    this.applyDisplayOptions();
     this.saveFileNameCtrl.setValue(this.value);
+    this._bindElements();
   }
   static createName(score) {
     return score.scoreInfo.name + '-' + score.scoreInfo.version + '-actions.json';

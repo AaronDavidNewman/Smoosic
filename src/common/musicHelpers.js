@@ -360,6 +360,10 @@ class smoMusic {
       smoMusic.smoPitchToInt(
         smoMusic.vexToSmoKey(vexKey)) + offset));
     newKey = smoMusic.toValidKeySignature(newKey);
+    // handle equivalent ks
+    if (newKey === 'c#' && vexKey.indexOf('b') >=0) {
+      newKey = 'db';
+    }
     return newKey;
   }
 
@@ -665,19 +669,23 @@ class smoMusic {
   }
 
   static getSharpsInKeySignature(key) {
-    var sharpKeys = ['B', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
-    if (sharpKeys.indexOf(key) < 0) {
+    let sharpKeys = ['B', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
+    if (sharpKeys.indexOf(key.toUpperCase()) < 0) {
       return 0;
     }
-    return smoMusic.keySignatureLength[key];
+    return smoMusic.keySignatureLength[key.toUpperCase()];
   }
 
   static getFlatsInKeySignature(key) {
     var flatKeys = ['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb'];
-    if (flatKeys.indexOf(key) < 0) {
+    let caseKey = key[0].toUpperCase();
+    if (key.length > 0) {
+      caseKey += key.substr(1, key.length);
+    }
+    if (flatKeys.indexOf(caseKey) < 0) {
       return 0;
     }
-    return smoMusic.keySignatureLength[key];
+    return smoMusic.keySignatureLength[caseKey];
   }
 
   static timeSignatureToTicks(timeSignature) {

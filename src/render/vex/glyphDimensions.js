@@ -1,5 +1,19 @@
 // eslint-disable-next-line no-unused-vars
 class vexGlyph {
+  // ### glyphPixels
+  // Used to convert vex glyph sizes to pixels for computation.
+  // Vex glyph font size (points) is 38, convert to pixels (96 / 72)
+  // and divide by glyph resolution
+  static get glyphPixels() {
+    return 96 * (38 / (VF.DefaultFontStack[0].getResolution() * 72));
+  }
+  static width(smoGlyph) {
+    if (smoGlyph.vexGlyph) {
+      const vf = VF.DEFAULT_FONT_STACK[0].getGlyphs()[smoGlyph.vexGlyph];
+      return (vf.x_max - vf.x_min) * vexGlyph.glyphPixels;
+    }
+    return smoGlyph.width;
+  }
   static accidental(a) {
     return vexGlyph.accidentals[a];
   }
@@ -7,6 +21,9 @@ class vexGlyph {
     const str = SmoBarline.barlineString(b);
     const cc = vexGlyph.dimensions[str];
     return cc.width + cc.spacingRight;
+  }
+  static accidentalWidth(accidental) {
+    return vexGlyph.width(vexGlyph.accidentals[accidental]);
   }
   static get accidentals() {
     return {
@@ -22,8 +39,8 @@ class vexGlyph {
     return vexGlyph.dimensions.tempo;
   }
   static keySignatureLength(key) {
-    return smoMusic.getSharpsInKeySignature(key) * vexGlyph.dimensions.sharp.width +
-      smoMusic.getFlatsInKeySignature(key) * vexGlyph.dimensions.flat.width +
+    return smoMusic.getSharpsInKeySignature(key) * vexGlyph.width(vexGlyph.dimensions.sharp) +
+      smoMusic.getFlatsInKeySignature(key) * vexGlyph.width(vexGlyph.dimensions.flat) +
       vexGlyph.dimensions.keySignature.spacingRight;
   }
   static get timeSignature() {
@@ -36,14 +53,12 @@ class vexGlyph {
   static get tupletBeam() {
     return vexGlyph.dimensions.tupletBeam;
   }
-
   static get stem() {
     return vexGlyph.dimensions.stem;
   }
   static get flag() {
     return vexGlyph.dimensions.flag;
   }
-
   static clef(c) {
     const key = c.toLowerCase() + 'Clef';
     if (!vexGlyph.dimensions[key]) {
@@ -101,11 +116,13 @@ class vexGlyph {
         yTop: 0,
         yBottom: 0,
         spacingRight: 10.71,
+        vexGlyph: 'noteheadBlack'
       },
       dot: {
         width: 15,
         height: 5,
-        spacingRight: 2
+        spacingRight: 2,
+        vexGlyph: 'augmentationDot'
       }, // This isn't accurate, but I don't
       // want to add extra space just for clef.
       trebleClef: {
@@ -114,6 +131,7 @@ class vexGlyph {
         yTop: 3,
         yBottom: 3,
         spacingRight: 10,
+        vexGlyph: 'gClef'
       },
       bassClef: {
         width: 36,
@@ -121,27 +139,31 @@ class vexGlyph {
         yTop: 0,
         yBottom: 0,
         spacingRight: 5,
+        vexGlyph: 'fClef'
       },
       altoClef: {
         width: 31.5,
         yTop: 0,
         yBottom: 0,
         height: 85.5,
-        spacingRight: 10
+        spacingRight: 10,
+        vexGlyph: 'cClef'
       },
       tenorClef: {
         width: 31.5,
         yTop: 10,
         yBottom: 0,
         height: 41,
-        spacingRight: 10
+        spacingRight: 10,
+        vexGlyph: 'cClef'
       },
       timeSignature: {
         width: 22.36,
         height: 85,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 5
+        spacingRight: 5,
+        vexGlyph: 'timeSig4'
       },
       tempo: {
         width: 10,
@@ -155,7 +177,8 @@ class vexGlyph {
         height: 23.55,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 2
+        spacingRight: 2,
+        vexGlyph: 'accidentalFlat'
       },
       keySignature: {
         width: 0,
@@ -169,28 +192,32 @@ class vexGlyph {
         height: 62,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 2
+        spacingRight: 2,
+        vexGlyph: 'accidentalSharp',
       },
       natural: {
         width: 15,
         height: 53.35,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 2
+        spacingRight: 2,
+        vexGlyph: 'accidentalNatural',
       },
       doubleSharp: {
         height: 10.04,
         width: 21.63,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 2
+        spacingRight: 2,
+        vexGlyph: 'accidentalDoubleSharp'
       },
       doubleFlat: {
         width: 13.79,
         height: 49.65,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 2
+        spacingRight: 2,
+        vexGlyph: 'accidentalDoubleFlat'
       }, stem: {
         width: 1,
         height: 35,
@@ -202,7 +229,8 @@ class vexGlyph {
         height: 35,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 0
+        spacingRight: 0,
+        vexGlyph: 'flag8thUp' // use for width measurements all flags
       }
     };
   }

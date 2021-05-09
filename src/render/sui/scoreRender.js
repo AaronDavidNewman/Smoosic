@@ -304,6 +304,16 @@ class SuiScoreRender extends SuiRenderState {
       });
     }
   }
+  _addToPageLayouts(scoreLayout, pageNum) {
+    if (this.score.pageLayouts.length === 0) {
+      this.score.pageLayouts.push(JSON.parse(JSON.stringify(scoreLayout)));
+      return;
+    }
+    const lastLayout = this.score.pageLayouts[this.score.pageLayouts.length - 1];
+    if (this.score.pageLayouts.length < pageNum) {
+      this.score.pageLayouts.push(JSON.parse(JSON.stringify(lastLayout)));
+    }
+  }
 
   // ### _checkPageBreak
   // See if this line breaks the page boundary
@@ -320,7 +330,12 @@ class SuiScoreRender extends SuiRenderState {
       const minMaxY = topMeasure.logicalBox.y;
       pageAdj = (scoreLayout.pages * scoreLayout.pageHeight) - minMaxY;
       pageAdj = pageAdj + scoreLayout.topMargin;
+
+      // Prepare layout for next page, if not set
       scoreLayout.pages += 1;
+      this._addToPageLayouts(scoreLayout, scoreLayout.pages);
+
+      // For each measure on the current line, move it down past the page break;
       currentLine.forEach((measure) => {
         measure.setBox(svgHelpers.boxPoints(
           measure.logicalBox.x, measure.logicalBox.y + pageAdj, measure.logicalBox.width, measure.logicalBox.height));
@@ -349,6 +364,7 @@ class SuiScoreRender extends SuiRenderState {
     const svg = this.context.svg;
     const scoreLayout = this.scaledScoreLayout;
     scoreLayout.pages = 1;
+    this._addToPageLayouts(scoreLayout, 1);
 
     y = scoreLayout.topMargin;
     x = scoreLayout.leftMargin;

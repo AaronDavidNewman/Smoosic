@@ -11,19 +11,13 @@ class SuiFileDialog extends SuiDialogBase {
     super(ctor.dialogElements, p);
     this.value = '';
   }
-  display() {
-    $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-    this._bindElements();
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
 
-    // make sure keyboard is unbound or we get dupicate key events.
-    const getKeys = () => {
-      this.completeNotifier.unbindKeyboardForModal(this);
-    };
-    this.startPromise.then(getKeys);
-    this.position($(this.dgDom.element)[0].getBoundingClientRect());
+  display() {
+    this.applyDisplayOptions();
+    this._bindElements();
   }
 
   _bindElements() {
@@ -39,15 +33,6 @@ class SuiFileDialog extends SuiDialogBase {
 
     $(dgDom.element).find('.remove-button').remove();
     this.bindKeyboard();
-  }
-  position(box) {
-    var y = (window.innerHeight / 3  + box.height);
-    // TODO: adjust if db is clipped by the browser.
-    var dge = $(this.dgDom.element).find('.attributeModal');
-
-    $(dge).css('top', '' + y + 'px');
-    const x = window.innerWidth - box.width / 2;
-    $(dge).css('left', '' + x + 'px');
   }
 }
 // eslint-disable-next-line no-unused-vars
@@ -248,6 +233,13 @@ class SuiPrintFileDialog extends SuiFileDialog {
     var dg = new SuiPrintFileDialog(params);
     dg.display();
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'GLOBALPOS'];
+  }
+  display() {
+    this.applyDisplayOptions();
+    this._bindElements();
+  }
   constructor(parameters) {
     parameters.ctor = 'SuiPrintFileDialog';
     super(parameters);
@@ -308,10 +300,13 @@ class SuiSaveFileDialog extends SuiFileDialog {
     this.view.saveScore(filename);
     this.complete();
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
-    super.display();
-    this._bindComponentNames();
+    this.applyDisplayOptions();
     this.saveFileNameCtrl.setValue(this.value);
+    this._bindElements();
   }
   static createName(score) {
     return score.scoreInfo.name + '-' + score.scoreInfo.version + '.json';
@@ -369,9 +364,12 @@ class SuiSaveXmlDialog extends SuiFileDialog {
     this.view.saveXml(filename);
     this.complete();
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
-    super.display();
-    this._bindComponentNames();
+    this.applyDisplayOptions();
+    this._bindElements();
     this.saveFileNameCtrl.setValue(this.value);
   }
   static createName(score) {
@@ -414,7 +412,6 @@ class SuiSaveMidiDialog extends SuiFileDialog {
       }];
     return SuiSaveMidiDialog._dialogElements;
   }
-
   changed() {
     this.value = this.components[0].getValue();
   }
@@ -430,10 +427,13 @@ class SuiSaveMidiDialog extends SuiFileDialog {
     this.view.saveMidi(filename);
     this.complete();
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
-    super.display();
-    this._bindComponentNames();
+    this.applyDisplayOptions();
     this.saveFileNameCtrl.setValue(this.value);
+    this._bindElements();
   }
   static createName(score) {
     return score.scoreInfo.name + '-' + score.scoreInfo.version + '.mid';
@@ -491,10 +491,13 @@ class SuiSaveActionsDialog extends SuiFileDialog {
     this.view.saveActions(filename);
     this.complete();
   }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
   display() {
-    super.display();
-    this._bindComponentNames();
+    this.applyDisplayOptions();
     this.saveFileNameCtrl.setValue(this.value);
+    this._bindElements();
   }
   static createName(score) {
     return score.scoreInfo.name + '-' + score.scoreInfo.version + '-actions.json';

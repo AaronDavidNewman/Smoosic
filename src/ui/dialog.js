@@ -167,7 +167,7 @@ class SuiDialogBase {
     // Make sure the dialog is visible if the selection is not
     setTimeout(() => {
       scroller.scrollVisibleBox(
-        svgHelpers.smoBox($(dge)[0].getBoundingClientRect())
+        svgHelpers.smoBox(box)
       );
     }, 1);
   }

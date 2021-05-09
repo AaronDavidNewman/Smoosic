@@ -4,8 +4,8 @@
 class suiLayoutAdjuster {
 
   static estimateMusicWidth(smoMeasure, noteSpacing, accidentMap) {
-    var widths = [];
-    var voiceIx = 0;
+    const widths = [];
+    let voiceIx = 0;
     // Accidental map:
     // If we accidentals on different notes in a justified column, need to increase width
     // for both.
@@ -13,44 +13,46 @@ class suiLayoutAdjuster {
     //    #o  x   x   o
     //     |  x   x   |
     //     o  x   x  #o
-    var tmObj = smoMeasure.createMeasureTickmaps();
+    const tmObj = smoMeasure.createMeasureTickmaps();
     smoMeasure.voices.forEach((voice) => {
       let accidentJustify = 0;
       Object.keys(accidentMap).forEach((k) => {
         accidentJustify += accidentMap[k];
       });
-      var tickIndex = 0;
-      var width = 0;
-      var duration = 0;
-      var tm = tmObj.tickmaps[voiceIx];
+      let tickIndex = 0;
+      let width = 0;
+      let duration = 0;
       voice.notes.forEach((note) => {
-        var noteWidth = 0;
-        var dots = (note.dots ? note.dots : 0);
-        noteWidth += vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight * noteSpacing;
+        let noteWidth = 0;
+        const dots = (note.dots ? note.dots : 0);
+        const headWidth = vexGlyph.width(vexGlyph.dimensions.noteHead);
+        const dotWidth = vexGlyph.width(vexGlyph.dimensions.dot);
+        noteWidth += headWidth +
+          vexGlyph.dimensions.noteHead.spacingRight * noteSpacing;
         // TODO: Consider engraving font and adjust grace note size?
-        noteWidth += (vexGlyph.dimensions.noteHead.width + vexGlyph.dimensions.noteHead.spacingRight) * note.graceNotes.length;
-        noteWidth += vexGlyph.dimensions.dot.width * dots + vexGlyph.dimensions.dot.spacingRight * dots;
+        noteWidth += (headWidth + vexGlyph.dimensions.noteHead.spacingRight) * note.graceNotes.length;
+        noteWidth += dotWidth * dots + vexGlyph.dimensions.dot.spacingRight * dots;
         note.pitches.forEach((pitch) => {
-          var keyAccidental = smoMusic.getAccidentalForKeySignature(pitch,smoMeasure.keySignature);
-          var accidentals = tmObj.accidentalArray.filter((ar) =>
+          const keyAccidental = smoMusic.getAccidentalForKeySignature(pitch, smoMeasure.keySignature);
+          const accidentals = tmObj.accidentalArray.filter((ar) =>
             ar.duration < duration && ar.pitches[pitch.letter]);
-          var acLen = accidentals.length;
-          var declared = acLen > 0 ?
+          const acLen = accidentals.length;
+          const declared = acLen > 0 ?
             accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental: keyAccidental;
           if (declared != pitch.accidental || pitch.cautionary) {
-            noteWidth += vexGlyph.accidental(pitch.accidental).width;
+            noteWidth += vexGlyph.accidentalWidth(pitch.accidental);
             if (!accidentMap[duration]) {
-              accidentMap[duration] = vexGlyph.accidental(pitch.accidental).width;
+              accidentMap[duration] = vexGlyph.accidentalWidth(pitch.accidental);
             } else {
               // if accidentals are aligned, don't count width twice
-              accidentJustify -= vexGlyph.accidental(pitch.accidental).width;
+              accidentJustify -= vexGlyph.accidentalWidth(pitch.accidental);
             }
           }
         });
 
-        var verse = 0;
-        var lyric;
-        while (lyric = note.getLyricForVerse(verse,SmoLyric.parsers.lyric)) {
+        let verse = 0;
+        let lyric;
+        while (lyric = note.getLyricForVerse(verse, SmoLyric.parsers.lyric)) {
           let lyricWidth = 0;
           let i = 0;
           // TODO: kerning and all that...
@@ -63,13 +65,13 @@ class suiLayoutAdjuster {
             VF.TextFont.getTextFontFromVexFontData({ family: lyric[0].fontInfo.family,
               size: lyric[0].fontInfo.size, weight: 'normal' });
           const lyricText = lyric[0].getText();
-          for (i = 0;i < lyricText.length; ++i) {
+          for (i = 0; i < lyricText.length; ++i) {
             lyricWidth += textFont.getWidthForCharacter(lyricText[i]);
           }
           if (lyric[0].isHyphenated()) {
-            lyricWidth +=  2 * textFont.getWidthForCharacter('-');
+            lyricWidth += 2 * textFont.getWidthForCharacter('-');
           } else {
-            lyricWidth +=  2 * textFont.getWidthForCharacter('H');
+            lyricWidth += 2 * textFont.getWidthForCharacter('H');
           }
           noteWidth = Math.max(lyricWidth, noteWidth);
           verse += 1;
@@ -89,19 +91,19 @@ class suiLayoutAdjuster {
   }
 
   static estimateStartSymbolWidth(smoMeasure) {
-    var width = 0;
+    let width = 0;
     if (smoMeasure.forceKeySignature) {
-      if ( smoMeasure.canceledKeySignature) {
-          width += vexGlyph.keySignatureLength(smoMeasure.canceledKeySignature);
+      if (smoMeasure.canceledKeySignature) {
+        width += vexGlyph.keySignatureLength(smoMeasure.canceledKeySignature);
       }
-            width += vexGlyph.keySignatureLength(smoMeasure.keySignature);
+      width += vexGlyph.keySignatureLength(smoMeasure.keySignature);
     }
     if (smoMeasure.forceClef) {
-      width += vexGlyph.clef(smoMeasure.clef).width + vexGlyph.clef(smoMeasure.clef).spacingRight;
+      width += vexGlyph.width(vexGlyph.clef(smoMeasure.clef)) + vexGlyph.clef(smoMeasure.clef).spacingRight;
     }
     if (smoMeasure.forceTimeSignature) {
-            var digits = smoMeasure.timeSignature.split('/')[0].length;
-      width += vexGlyph.dimensions.timeSignature.width*digits + vexGlyph.dimensions.timeSignature.spacingRight;
+      var digits = smoMeasure.timeSignature.split('/')[0].length;
+      width += vexGlyph.width(vexGlyph.dimensions.timeSignature) * digits + vexGlyph.dimensions.timeSignature.spacingRight;
     }
     var starts = smoMeasure.getStartBarline();
     if (starts) {
@@ -127,13 +129,13 @@ class suiLayoutAdjuster {
     var xoff = 0;
     var width = 0;
     leftText.forEach((tt) => {
-      const testText = new SmoScoreText({text:tt.text});
-      const box = svgHelpers.getTextBox(svg,testText.toSvgAttributes(), testText.classes, testText.text);
+      const testText = new SmoScoreText({ text: tt.text });
+      const box = svgHelpers.getTextBox(svg, testText.toSvgAttributes(), testText.classes, testText.text);
       xoff += box.width;
     });
     rightText.forEach((tt) => {
-      const testText = new SmoScoreText({text:tt.text});
-      const box = svgHelpers.getTextBox(svg,testText.toSvgAttributes(), testText.classes, testText.text);
+      const testText = new SmoScoreText({ text: tt.text });
+      const box = svgHelpers.getTextBox(svg, testText.toSvgAttributes(), testText.classes, testText.text);
       width += box.width;
     });
     return svgHelpers.boxPoints(xoff, 0, width, 0);
@@ -141,13 +143,12 @@ class suiLayoutAdjuster {
 
   static estimateMeasureWidth(measure, noteSpacing, accidentMap) {
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
-    var prevWidth = measure.staffWidth;
-    var measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure, noteSpacing, accidentMap);
+    let measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure, noteSpacing, accidentMap);
     measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
     measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
     measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
-    var y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
-    measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight ');
+    const y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
+    measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight');
     // Calculate the space for left/right text which displaces the measure.
     // var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
     // measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
@@ -155,7 +156,7 @@ class suiLayoutAdjuster {
       'estimate measure width');
   }
   static _beamGroupForNote(measure,note) {
-    var rv = null;
+    let rv = null;
     if (!note.beam_group) {
       return null;
     }
@@ -171,7 +172,7 @@ class suiLayoutAdjuster {
 
   // ### _highestLowestHead
   // highest value is actually the one lowest on the page
-  static _highestLowestHead(measure,note) {
+  static _highestLowestHead(measure, note) {
     const hilo = { hi: 0, lo: 9999999 };
     note.pitches.forEach((pitch) => {
       // 10 pixels per line
@@ -212,8 +213,6 @@ class suiLayoutAdjuster {
     if (measure.forceTempo) {
       yOffset = Math.min(-1 * vexGlyph.tempo.yTop, yOffset);
     }
-    var hasDynamic = false;
-
     measure.voices.forEach((voice) => {
       voice.notes.forEach((note) => {
         const bg = suiLayoutAdjuster._beamGroupForNote(measure, note);
@@ -222,8 +221,8 @@ class suiLayoutAdjuster {
           flag = bg.notes[0].flagState;
           // an  auto-flag note is up if the 1st note is middle line
           if (flag === SmoNote.flagStates.auto) {
-            var pitch = bg.notes[0].pitches[0];
-            flag = smoMusic.pitchToLedgerLine(measure.clef,pitch)
+            const pitch = bg.notes[0].pitches[0];
+            flag = smoMusic.pitchToLedgerLine(measure.clef, pitch)
                >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
           }
         }  else {
@@ -236,19 +235,19 @@ class suiLayoutAdjuster {
           }
         }
         const hiloHead = suiLayoutAdjuster._highestLowestHead(measure, note);
-        if (flag == SmoNote.flagStates.down) {
-          yOffset = Math.min(hiloHead.lo,yOffset);
-          heightOffset = Math.max(hiloHead.hi + vexGlyph.stem.height,heightOffset);
+        if (flag === SmoNote.flagStates.down) {
+          yOffset = Math.min(hiloHead.lo, yOffset);
+          heightOffset = Math.max(hiloHead.hi + vexGlyph.stem.height, heightOffset);
         } else {
-          yOffset = Math.min(hiloHead.lo - vexGlyph.stem.height,yOffset);
-          heightOffset = Math.max(hiloHead.hi,heightOffset);
+          yOffset = Math.min(hiloHead.lo - vexGlyph.stem.height, yOffset);
+          heightOffset = Math.max(hiloHead.hi, heightOffset);
         }
         // Lyrics will be rendered below the lowest thing on the staff, so add to
         // belowBaseline value based on the max number of verses and font size
         // it will extend
         const lyrics = note.getTrueLyrics();
         if (lyrics.length) {
-          const maxLyric = lyrics.reduce((a, b)=> a.verse > b.verse ? a : b);
+          const maxLyric = lyrics.reduce((a, b) => a.verse > b.verse ? a : b);
           const fontInfo = suiLayoutAdjuster.textFont(maxLyric);
           const maxHeight = fontInfo.maxHeight;
           lyricOffset = Math.max((maxLyric.verse + 2) * fontInfo.maxHeight, lyricOffset);
