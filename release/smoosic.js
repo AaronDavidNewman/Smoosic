@@ -7288,10 +7288,10 @@ class SuiScoreView {
     // modifiers.
     this.setMappedStaffIds();
     this.renderer.score = nscore;
-    /* this.renderer.setViewport(true);
+    this.renderer.setViewport(true);
     setTimeout(() => {
       $('body').trigger('forceResizeEvent');
-    }, 1);  */
+    }, 1);
   }
   // ### viewAll
   // view all the staffs in score mode.
@@ -29224,9 +29224,7 @@ class SuiApplication {
     return { score, mode: 'local' };
   }
 }
-;
-
-// ## suiController
+;// ## suiController
 // ## Description:
 // Manages DOM events and binds keyboard and mouse events
 // to editor and menu commands, tracker and layout manager.
@@ -29477,10 +29475,15 @@ class suiController {
   // UI elements take over the events, and then let the controller know when
   // the modals go away.
   unbindKeyboardForModal(dialog) {
-    const self = this;
+    if (this.unbound) {
+      console.log('received duplicate bind event');
+      return;
+    }
+    this.unbound = true;
     layoutDebug.addDialogDebug('controller: unbindKeyboardForModal')
     const rebind = () => {
-      self.bindEvents();
+      this.unbound = false;
+      this.bindEvents();
       layoutDebug.addDialogDebug('controller: unbindKeyboardForModal resolve')
     }
     this.eventSource.unbindKeydownHandler(this.keydownHandler);
@@ -29661,7 +29664,9 @@ class SuiDialogBase {
 
     // If this dialog was spawned by a menu, wait for the menu to dismiss
     // before continuing.
-    this.startPromise = parameters.closeMenuPromise;
+    // this.startPromise = parameters.closeMenuPromise;
+    this.startPromise = parameters.startPromise;
+
     this.dialogElements = dialogElements;
     SuiDialogBase.parameters.forEach((param) => {
       this[param] = parameters[param];
@@ -32178,12 +32183,8 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
     return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
   display() {
-    $('body').addClass('showAttributeDialog');
     this.applyDisplayOptions();
     this._bindElements();
-    this.components.forEach((component) => {
-      component.bind();
-    });
     this.scoreNameCtrl.setValue(this.view.score.scoreInfo.name);
     this.autoPlayCtrl.setValue(this.view.score.preferences.autoPlay);
     this.autoAdvanceCtrl.setValue(this.view.score.preferences.autoAdvance);
@@ -32252,7 +32253,6 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
     this.layoutChanged = false;
     this.layout = JSON.parse(JSON.stringify(this.view.score.layout));
     this.layoutBackup = JSON.parse(JSON.stringify(this.view.score.layout));
-    this.startPromise = p.startPromise;
   }
 }
 
@@ -32341,7 +32341,6 @@ class SuiScoreIdentificationDialog extends SuiDialogBase {
     return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
   display() {
-    $('body').addClass('showAttributeDialog');
     this.applyDisplayOptions();
     this._bindElements();
     this._setInitialValues();
@@ -32628,7 +32627,6 @@ class SuiLayoutDialog extends SuiDialogBase {
   }
 
   display() {
-    $('body').addClass('showAttributeDialog');
     this.applyDisplayOptions();
     this.components.forEach((component) => {
       const val = this.modifier[component.parameterName];
@@ -40995,7 +40993,7 @@ class SuiFileMenu extends suiMenuBase {
     SuiPrintFileDialog.createAndDisplay({
       view: self.view,
       completeNotifier: self.completeNotifier,
-      closeMenuPromise: self.closePromise,
+      startPromise: self.closePromise,
       tracker: self.tracker,
       undoBuffer: self.undoBuffer,
     });
@@ -41011,7 +41009,7 @@ class SuiFileMenu extends suiMenuBase {
         eventSource: this.eventSource,
         keyCommands: this.keyCommands,
         view: this.view,
-        closeMenuPromise: this.closePromise
+        startPromise: this.closePromise
       });
     } else if (text === 'saveActions') {
       SuiSaveActionsDialog.createAndDisplay({
@@ -41021,7 +41019,7 @@ class SuiFileMenu extends suiMenuBase {
         eventSource: this.eventSource,
         keyCommands: this.keyCommands,
         view: this.view,
-        closeMenuPromise: this.closePromise
+        startPromise: this.closePromise
       });
     }  else if (text === 'playActions') {
       SuiLoadActionsDialog.createAndDisplay({
@@ -41031,7 +41029,7 @@ class SuiFileMenu extends suiMenuBase {
         eventSource: this.eventSource,
         keyCommands: this.keyCommands,
         view: this.view,
-        closeMenuPromise: this.closePromise
+        startPromise: this.closePromise
       });
     } else if (text === 'openFile') {
       SuiLoadFileDialog.createAndDisplay({
@@ -41041,7 +41039,7 @@ class SuiFileMenu extends suiMenuBase {
         eventSource: this.eventSource,
         editor: this.keyCommands,
         view: this.view,
-        closeMenuPromise: this.closePromise
+        startPromise: this.closePromise
       });
     } else if (text === 'newFile') {
       const score = SmoScore.getDefaultScore();
@@ -41061,7 +41059,7 @@ class SuiFileMenu extends suiMenuBase {
         eventSource: this.eventSource,
         editor: this.keyCommands,
         view: this.view,
-        closeMenuPromise: this.closePromise
+        startPromise: this.closePromise
       });
     } else if (text === 'exportMidi') {
       SuiSaveMidiDialog.createAndDisplay({
@@ -41071,7 +41069,7 @@ class SuiFileMenu extends suiMenuBase {
         eventSource: this.eventSource,
         editor: this.keyCommands,
         view: this.view,
-        closeMenuPromise: this.closePromise
+        startPromise: this.closePromise
       });
     } else if (text === 'importMxml') {
       SuiLoadMxmlDialog.createAndDisplay({
@@ -41081,7 +41079,7 @@ class SuiFileMenu extends suiMenuBase {
         eventSource: this.eventSource,
         editor: this.keyCommands,
         view: this.view,
-        closeMenuPromise: this.closePromise
+        startPromise: this.closePromise
       });
     }
     this.complete();
@@ -41333,7 +41331,7 @@ class SuiTimeSignatureMenu extends suiMenuBase {
       SuiTimeSignatureDialog.createAndDisplay({
         view: this.view,
         completeNotifier: this.completeNotifier,
-        closeMenuPromise: this.closePromise,
+        startPromise: this.closePromise,
         undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource
       });
@@ -41600,7 +41598,7 @@ class SuiMeasureMenu extends suiMenuBase {
       SuiMeasureDialog.createAndDisplay({
         view: this.view,
         completeNotifier: this.completeNotifier,
-        closeMenuPromise: this.closePromise,
+        startPromise: this.closePromise,
         eventSource: this.eventSource
       });
       this.complete();
@@ -41610,7 +41608,7 @@ class SuiMeasureMenu extends suiMenuBase {
       SuiInsertMeasures.createAndDisplay({
         view: this.view,
         completeNotifier: this.completeNotifier,
-        closeMenuPromise: this.closePromise,
+        startPromise: this.closePromise,
         eventSource: this.eventSource
       });
       this.complete();

@@ -138,12 +138,8 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
     return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
   display() {
-    $('body').addClass('showAttributeDialog');
     this.applyDisplayOptions();
     this._bindElements();
-    this.components.forEach((component) => {
-      component.bind();
-    });
     this.scoreNameCtrl.setValue(this.view.score.scoreInfo.name);
     this.autoPlayCtrl.setValue(this.view.score.preferences.autoPlay);
     this.autoAdvanceCtrl.setValue(this.view.score.preferences.autoAdvance);
@@ -212,7 +208,6 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
     this.layoutChanged = false;
     this.layout = JSON.parse(JSON.stringify(this.view.score.layout));
     this.layoutBackup = JSON.parse(JSON.stringify(this.view.score.layout));
-    this.startPromise = p.startPromise;
   }
 }
 
@@ -301,7 +296,6 @@ class SuiScoreIdentificationDialog extends SuiDialogBase {
     return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
   display() {
-    $('body').addClass('showAttributeDialog');
     this.applyDisplayOptions();
     this._bindElements();
     this._setInitialValues();
@@ -588,7 +582,6 @@ class SuiLayoutDialog extends SuiDialogBase {
   }
 
   display() {
-    $('body').addClass('showAttributeDialog');
     this.applyDisplayOptions();
     this.components.forEach((component) => {
       const val = this.modifier[component.parameterName];

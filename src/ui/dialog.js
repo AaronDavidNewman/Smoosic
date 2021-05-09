@@ -83,7 +83,9 @@ class SuiDialogBase {
 
     // If this dialog was spawned by a menu, wait for the menu to dismiss
     // before continuing.
-    this.startPromise = parameters.closeMenuPromise;
+    // this.startPromise = parameters.closeMenuPromise;
+    this.startPromise = parameters.startPromise;
+
     this.dialogElements = dialogElements;
     SuiDialogBase.parameters.forEach((param) => {
       this[param] = parameters[param];

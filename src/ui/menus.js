@@ -446,7 +446,7 @@ class SuiFileMenu extends suiMenuBase {
     SuiPrintFileDialog.createAndDisplay({
       view: self.view,
       completeNotifier: self.completeNotifier,
-      closeMenuPromise: self.closePromise,
+      startPromise: self.closePromise,
       tracker: self.tracker,
       undoBuffer: self.undoBuffer,
     });
@@ -462,7 +462,7 @@ class SuiFileMenu extends suiMenuBase {
         eventSource: this.eventSource,
         keyCommands: this.keyCommands,
         view: this.view,
-        closeMenuPromise: this.closePromise
+        startPromise: this.closePromise
       });
     } else if (text === 'saveActions') {
       SuiSaveActionsDialog.createAndDisplay({
@@ -472,7 +472,7 @@ class SuiFileMenu extends suiMenuBase {
         eventSource: this.eventSource,
         keyCommands: this.keyCommands,
         view: this.view,
-        closeMenuPromise: this.closePromise
+        startPromise: this.closePromise
       });
     }  else if (text === 'playActions') {
       SuiLoadActionsDialog.createAndDisplay({
@@ -482,7 +482,7 @@ class SuiFileMenu extends suiMenuBase {
         eventSource: this.eventSource,
         keyCommands: this.keyCommands,
         view: this.view,
-        closeMenuPromise: this.closePromise
+        startPromise: this.closePromise
       });
     } else if (text === 'openFile') {
       SuiLoadFileDialog.createAndDisplay({
@@ -492,7 +492,7 @@ class SuiFileMenu extends suiMenuBase {
         eventSource: this.eventSource,
         editor: this.keyCommands,
         view: this.view,
-        closeMenuPromise: this.closePromise
+        startPromise: this.closePromise
       });
     } else if (text === 'newFile') {
       const score = SmoScore.getDefaultScore();
@@ -512,7 +512,7 @@ class SuiFileMenu extends suiMenuBase {
         eventSource: this.eventSource,
         editor: this.keyCommands,
         view: this.view,
-        closeMenuPromise: this.closePromise
+        startPromise: this.closePromise
       });
     } else if (text === 'exportMidi') {
       SuiSaveMidiDialog.createAndDisplay({
@@ -522,7 +522,7 @@ class SuiFileMenu extends suiMenuBase {
         eventSource: this.eventSource,
         editor: this.keyCommands,
         view: this.view,
-        closeMenuPromise: this.closePromise
+        startPromise: this.closePromise
       });
     } else if (text === 'importMxml') {
       SuiLoadMxmlDialog.createAndDisplay({
@@ -532,7 +532,7 @@ class SuiFileMenu extends suiMenuBase {
         eventSource: this.eventSource,
         editor: this.keyCommands,
         view: this.view,
-        closeMenuPromise: this.closePromise
+        startPromise: this.closePromise
       });
     }
     this.complete();
@@ -784,7 +784,7 @@ class SuiTimeSignatureMenu extends suiMenuBase {
       SuiTimeSignatureDialog.createAndDisplay({
         view: this.view,
         completeNotifier: this.completeNotifier,
-        closeMenuPromise: this.closePromise,
+        startPromise: this.closePromise,
         undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource
       });
@@ -1051,7 +1051,7 @@ class SuiMeasureMenu extends suiMenuBase {
       SuiMeasureDialog.createAndDisplay({
         view: this.view,
         completeNotifier: this.completeNotifier,
-        closeMenuPromise: this.closePromise,
+        startPromise: this.closePromise,
         eventSource: this.eventSource
       });
       this.complete();
@@ -1061,7 +1061,7 @@ class SuiMeasureMenu extends suiMenuBase {
       SuiInsertMeasures.createAndDisplay({
         view: this.view,
         completeNotifier: this.completeNotifier,
-        closeMenuPromise: this.closePromise,
+        startPromise: this.closePromise,
         eventSource: this.eventSource
       });
       this.complete();

@@ -1,5 +1,3 @@
-
-
 // ## suiController
 // ## Description:
 // Manages DOM events and binds keyboard and mouse events
@@ -251,10 +249,15 @@ class suiController {
   // UI elements take over the events, and then let the controller know when
   // the modals go away.
   unbindKeyboardForModal(dialog) {
-    const self = this;
+    if (this.unbound) {
+      console.log('received duplicate bind event');
+      return;
+    }
+    this.unbound = true;
     layoutDebug.addDialogDebug('controller: unbindKeyboardForModal')
     const rebind = () => {
-      self.bindEvents();
+      this.unbound = false;
+      this.bindEvents();
       layoutDebug.addDialogDebug('controller: unbindKeyboardForModal resolve')
     }
     this.eventSource.unbindKeydownHandler(this.keydownHandler);
