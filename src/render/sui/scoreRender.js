@@ -202,7 +202,7 @@ class SuiScoreRender extends SuiRenderState {
       });
     });
     const timestamp = new Date().valueOf();
-    vxSystem.renderEndings();
+    vxSystem.renderEndings(this.measureMapper.scroller);
     vxSystem.updateLyricOffsets();
     this._score.staves.forEach((stf) => {
       this._renderModifiers(stf, vxSystem);

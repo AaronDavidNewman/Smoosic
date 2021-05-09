@@ -214,7 +214,7 @@ class VxSystem {
 
   // ### renderModifier
   // render a line-type modifier that is associated with a staff (e.g. slur)
-  renderModifier(modifier, vxStart, vxEnd, smoStart, smoEnd) {
+  renderModifier(scroller, modifier, vxStart, vxEnd, smoStart, smoEnd) {
     let xoffset = 0;
     const setSameIfNull = (a, b) => {
       if (typeof(a) === 'undefined' || a === null) {
@@ -235,7 +235,6 @@ class VxSystem {
       (modifier.ctor === 'SmoStaffHairpin' && modifier.hairpinType === SmoStaffHairpin.types.DECRESCENDO)) {
       if (!vxStart && !vxEnd) {
         this.context.closeGroup();
-        return svgHelpers.pointBox(1, 1);
       }
       vxStart = setSameIfNull(vxStart, vxEnd);
       vxEnd = setSameIfNull(vxEnd, vxStart);
@@ -292,10 +291,11 @@ class VxSystem {
       const slurBox = $('.' + artifactId)[0];
       svgHelpers.translateElement(slurBox, xoffset, 0);
     }
-    return svgHelpers.smoBox(group.getBoundingClientRect());
+    modifier.logicalBox = svgHelpers.smoBox(group.getBBox());
+    modifier.renderedBox = svgHelpers.logicalToClient(this.context.svg, modifier.logicalBox, scroller);
   }
 
-  renderEndings() {
+  renderEndings(scroller) {
     let j = 0;
     for (j = 0; j < this.smoMeasures.length; ++j) {
       const smoMeasure = this.smoMeasures[j];
@@ -326,8 +326,8 @@ class VxSystem {
           vxVolta.setContext(this.context).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
         }
         this.context.closeGroup();
-        ending.renderedBox = svgHelpers.smoBox(group.getBoundingClientRect());
-        ending.logicalBox = svgHelpers.clientToLogical(this.context.svg, ending.renderedBox);
+        ending.logicalBox = svgHelpers.smoBox(group.getBBox());
+        ending.renderedBox = svgHelpers.logicalToClient(this.context.svg, ending.logicalBox, scroller);
 
         // Adjust real height of measure to match volta height
         voAr.forEach((mm) => {

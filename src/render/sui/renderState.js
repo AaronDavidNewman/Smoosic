@@ -378,7 +378,6 @@ class SuiRenderState {
   // Render staff modifiers (modifiers straddle more than one measure, like a slur).  Handle cases where the destination
   // is on a different system due to wrapping.
   _renderModifiers(staff, system) {
-    const svg = this.svg;
     let nextNote = null;
     let lastNote = null;
     let testNote = null;
@@ -437,8 +436,7 @@ class SuiRenderState {
       if (!vxStart && !vxEnd) {
         return;
       }
-      modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd, startNote, endNote);
-      modifier.logicalBox = svgHelpers.clientToLogical(svg, modifier.renderedBox);
+      system.renderModifier(this.measureMapper.scroller, modifier, vxStart, vxEnd, startNote, endNote);
     });
     // Silently remove modifiers from the score if the endpoints no longer exist
     removedModifiers.forEach((mod) => {
@@ -489,7 +487,7 @@ class SuiRenderState {
     Object.keys(staffMap).forEach((key) => {
       const obj = staffMap[key];
       this._renderModifiers(obj.staff, obj.system);
-      obj.system.renderEndings();
+      obj.system.renderEndings(this.measureMapper.scroller);
       obj.system.updateLyricOffsets();
     });
     this.replaceQ = [];

@@ -34,25 +34,30 @@ class SuiScoreViewDialog extends SuiDialogBase {
     $('body').addClass('showAttributeDialog');
     this.applyDisplayOptions();
     this._bindElements();
-    this.scoreViewCtrl.setValue(this.view.getView());
+    const currentView = this.view.getView();
+    this.originalValue = JSON.parse(JSON.stringify(currentView));
+    this.scoreViewCtrl.setValue(currentView);
   }
   _bindElements() {
-    const self = this;
     const dgDom = this.dgDom;
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      self.complete();
+      if (this.viewChanged) {
+        this.view.setView(this.scoreViewCtrl.getValue());
+      }
+      this.complete();
     });
 
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      self.view.viewAll();
-      self.complete();
+      if (this.viewChanged) {
+        this.view.setView(this.originalValue);
+      }
+      this.complete();
     });
-
     $(dgDom.element).find('.remove-button').remove();
   }
 
   changed() {
-    this.view.setView(this.scoreViewCtrl.getValue());
+    this.viewChanged = true;
   }
   constructor(parameters) {
     var p = parameters;
@@ -62,7 +67,7 @@ class SuiScoreViewDialog extends SuiDialogBase {
       left: (p.view.score.layout.pageHeight / 2) - 200,
       ...parameters
     });
-    this.startPromise = p.startPromise;
+    this.viewChanged = false;
   }
 }
 

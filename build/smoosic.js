@@ -6354,7 +6354,6 @@ class SuiRenderState {
   // Render staff modifiers (modifiers straddle more than one measure, like a slur).  Handle cases where the destination
   // is on a different system due to wrapping.
   _renderModifiers(staff, system) {
-    const svg = this.svg;
     let nextNote = null;
     let lastNote = null;
     let testNote = null;
@@ -6413,8 +6412,7 @@ class SuiRenderState {
       if (!vxStart && !vxEnd) {
         return;
       }
-      modifier.renderedBox = system.renderModifier(modifier, vxStart, vxEnd, startNote, endNote);
-      modifier.logicalBox = svgHelpers.clientToLogical(svg, modifier.renderedBox);
+      system.renderModifier(this.measureMapper.scroller, modifier, vxStart, vxEnd, startNote, endNote);
     });
     // Silently remove modifiers from the score if the endpoints no longer exist
     removedModifiers.forEach((mod) => {
@@ -6465,7 +6463,7 @@ class SuiRenderState {
     Object.keys(staffMap).forEach((key) => {
       const obj = staffMap[key];
       this._renderModifiers(obj.staff, obj.system);
-      obj.system.renderEndings();
+      obj.system.renderEndings(this.measureMapper.scroller);
       obj.system.updateLyricOffsets();
     });
     this.replaceQ = [];
@@ -6704,7 +6702,7 @@ class SuiScoreRender extends SuiRenderState {
       });
     });
     const timestamp = new Date().valueOf();
-    vxSystem.renderEndings();
+    vxSystem.renderEndings(this.measureMapper.scroller);
     vxSystem.updateLyricOffsets();
     this._score.staves.forEach((stf) => {
       this._renderModifiers(stf, vxSystem);
@@ -12481,7 +12479,7 @@ class VxSystem {
 
   // ### renderModifier
   // render a line-type modifier that is associated with a staff (e.g. slur)
-  renderModifier(modifier, vxStart, vxEnd, smoStart, smoEnd) {
+  renderModifier(scroller, modifier, vxStart, vxEnd, smoStart, smoEnd) {
     let xoffset = 0;
     const setSameIfNull = (a, b) => {
       if (typeof(a) === 'undefined' || a === null) {
@@ -12502,7 +12500,6 @@ class VxSystem {
       (modifier.ctor === 'SmoStaffHairpin' && modifier.hairpinType === SmoStaffHairpin.types.DECRESCENDO)) {
       if (!vxStart && !vxEnd) {
         this.context.closeGroup();
-        return svgHelpers.pointBox(1, 1);
       }
       vxStart = setSameIfNull(vxStart, vxEnd);
       vxEnd = setSameIfNull(vxEnd, vxStart);
@@ -12559,10 +12556,11 @@ class VxSystem {
       const slurBox = $('.' + artifactId)[0];
       svgHelpers.translateElement(slurBox, xoffset, 0);
     }
-    return svgHelpers.smoBox(group.getBoundingClientRect());
+    modifier.logicalBox = svgHelpers.smoBox(group.getBBox());
+    modifier.renderedBox = svgHelpers.logicalToClient(this.context.svg, modifier.logicalBox, scroller);
   }
 
-  renderEndings() {
+  renderEndings(scroller) {
     let j = 0;
     for (j = 0; j < this.smoMeasures.length; ++j) {
       const smoMeasure = this.smoMeasures[j];
@@ -12593,8 +12591,8 @@ class VxSystem {
           vxVolta.setContext(this.context).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
         }
         this.context.closeGroup();
-        ending.renderedBox = svgHelpers.smoBox(group.getBoundingClientRect());
-        ending.logicalBox = svgHelpers.clientToLogical(this.context.svg, ending.renderedBox);
+        ending.logicalBox = svgHelpers.smoBox(group.getBBox());
+        ending.renderedBox = svgHelpers.logicalToClient(this.context.svg, ending.logicalBox, scroller);
 
         // Adjust real height of measure to match volta height
         voAr.forEach((mm) => {
@@ -32076,25 +32074,30 @@ class SuiScoreViewDialog extends SuiDialogBase {
     $('body').addClass('showAttributeDialog');
     this.applyDisplayOptions();
     this._bindElements();
-    this.scoreViewCtrl.setValue(this.view.getView());
+    const currentView = this.view.getView();
+    this.originalValue = JSON.parse(JSON.stringify(currentView));
+    this.scoreViewCtrl.setValue(currentView);
   }
   _bindElements() {
-    const self = this;
     const dgDom = this.dgDom;
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      self.complete();
+      if (this.viewChanged) {
+        this.view.setView(this.scoreViewCtrl.getValue());
+      }
+      this.complete();
     });
 
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      self.view.viewAll();
-      self.complete();
+      if (this.viewChanged) {
+        this.view.setView(this.originalValue);
+      }
+      this.complete();
     });
-
     $(dgDom.element).find('.remove-button').remove();
   }
 
   changed() {
-    this.view.setView(this.scoreViewCtrl.getValue());
+    this.viewChanged = true;
   }
   constructor(parameters) {
     var p = parameters;
@@ -32104,7 +32107,7 @@ class SuiScoreViewDialog extends SuiDialogBase {
       left: (p.view.score.layout.pageHeight / 2) - 200,
       ...parameters
     });
-    this.startPromise = p.startPromise;
+    this.viewChanged = false;
   }
 }
 
