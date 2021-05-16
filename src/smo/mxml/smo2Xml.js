@@ -21,16 +21,16 @@ class SmoToXml {
     const scaling = nn(root, 'scaling');
     // reverse this:
     // scoreDefaults.layout.svgScale =  (scale * 42 / 40) / mxmlScore.mmPerPixel;
-    const mm = mxmlScore.mmPerPixel * 42 * score.layout.svgScale;
+    const mm = mxmlScore.mmPerPixel * 42 * score.layoutManager.svgScale;
     nn(scaling, 'millimeters', { mm }, 'mm');
     nn(scaling, 'tenths', { tenths: 40 }, 'tenths');
     const pageLayout = nn(defaults, 'page-layout');
     mxmlScore.pageLayoutMap.forEach((map) => {
-      nn(pageLayout, map.xml, score.layout, map.smo);
+      nn(pageLayout, map.xml, score.layoutManager, map.smo);
     });
     const pageMargins = nn(pageLayout, 'page-margins');
     mxmlScore.pageMarginMap.forEach((map) => {
-      nn(pageMargins, map.xml, score.layout, map.smo);
+      nn(pageMargins, map.xml, score.layoutManager.pageLayouts[0], map.smo);
     });
     const partList =  nn(root, 'part-list');
     score.staves.forEach((staff) => {

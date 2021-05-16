@@ -2,7 +2,6 @@
 // ## suiAdjuster
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
 class suiLayoutAdjuster {
-
   static estimateMusicWidth(smoMeasure, noteSpacing, accidentMap) {
     const widths = [];
     let voiceIx = 0;

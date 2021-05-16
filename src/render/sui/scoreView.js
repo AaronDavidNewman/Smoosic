@@ -52,6 +52,17 @@ class SuiScoreView {
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.STAFF_MODIFIER, null,
       copy.serialize(), subtype);
   }
+  // ### getFocusedPage
+  // Return the index of the page that is in the center of the client screen.
+  getFocusedPage() {
+    const scrollAvg = this.tracker.scroller.netScroll.y + (this.tracker.scroller.viewport.height / 2);
+    const midY = scrollAvg;
+    const layoutManager = this.score.layoutManager;
+    const lh = layoutManager.pageHeight / layoutManager.svgScale;
+    const lw = layoutManager.pageWidth / layoutManager.svgScale;
+    const pt = svgHelpers.logicalToClient(this.renderer.svg, { x: lw, y: lh }, this.tracker.scroller);
+    return Math.round(midY / pt.y);
+  }
   // ### _undoRectangle
   // Create a rectangle undo, like a multiple columns but not necessarily the whole
   // score.

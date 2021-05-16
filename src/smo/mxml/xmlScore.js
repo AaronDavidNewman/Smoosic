@@ -37,7 +37,9 @@ class mxmlScore {
 
       const scoreRoot = scoreRoots[0];
       const scoreDefaults = JSON.parse(JSON.stringify(SmoScore.defaults));
-      scoreDefaults.layout.svgScale = 0.5; // if no scale given in score, default to
+      const layoutDefaults = new SmoLayoutManager();
+      scoreDefaults.layoutManager = layoutDefaults;
+      layoutDefaults.svgScale = 0.5; // if no scale given in score, default to
       // something small.
       const xmlState = new XmlState();
       xmlState.newTitle = false;
@@ -70,7 +72,7 @@ class mxmlScore {
             xmlState.newTitle = true;
           }
         } else if (scoreElement.tagName === 'defaults') {
-          mxmlScore.defaults(scoreElement, scoreDefaults);
+          mxmlScore.defaults(scoreElement, scoreDefaults, layoutDefaults);
         } else if (scoreElement.tagName === 'part') {
           xmlState.initializeForPart(xmlState);
           mxmlScore.part(scoreElement, xmlState);
@@ -117,17 +119,17 @@ class mxmlScore {
 
   // ### defaults
   // /score-partwise/defaults
-  static defaults(defaultsElement, scoreDefaults)  {
+  static defaults(defaultsElement, scoreDefaults, layoutDefaults)  {
     // Default scale for mxml
     let scale = 1 / 7;
     const pageLayoutNode = defaultsElement.getElementsByTagName('page-layout');
     if (pageLayoutNode.length) {
-      mxmlHelpers.assignDefaults(pageLayoutNode[0], scoreDefaults.layout, mxmlScore.pageLayoutMap);
+      mxmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults, mxmlScore.pageLayoutMap);
     }
     const pageMarginNode = mxmlHelpers.getChildrenFromPath(defaultsElement,
       ['page-layout', 'page-margins']);
     if (pageMarginNode.length) {
-      mxmlHelpers.assignDefaults(pageMarginNode[0], scoreDefaults.layout, mxmlScore.pageMarginMap);
+      mxmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], mxmlScore.pageMarginMap);
     }
 
     const scaleNode =  defaultsElement.getElementsByTagName('scaling');
@@ -140,7 +142,7 @@ class mxmlScore {
     }
     // Convert from mm to pixels, this is our default svg scale
     // mm per tenth * pixels / mm gives us pixels per tenth
-    scoreDefaults.layout.svgScale =  (scale * 45 / 40) / mxmlScore.mmPerPixel;
+    layoutDefaults.svgScale =  (scale * 45 / 40) / mxmlScore.mmPerPixel;
   }
 
   // ### part

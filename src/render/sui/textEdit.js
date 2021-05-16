@@ -722,7 +722,9 @@ class SuiDragSession {
     const svgY = this.currentBox.y;
     this.currentClientBox.x = e.clientX - this.xOffset;
     this.currentClientBox.y = e.clientY - this.yOffset;
-    const coor = svgHelpers.clientToLogical(this.context.svg, { x: this.currentClientBox.x, y: this.currentClientBox.y });
+    const coor = svgHelpers.clientToLogical(this.context.svg,
+      { x: this.currentClientBox.x +  + this.scroller.scrollState.scroll.x,
+        y: this.currentClientBox.y  + this.scroller.scrollState.scroll.y });
     this.currentBox.x = coor.x;
     this.currentBox.y = coor.y;
     this.textObject.offsetStartX(this.currentBox.x - svgX);

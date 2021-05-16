@@ -15,7 +15,6 @@ class SuiRenderState {
     this.renderTime = 0;  // ms to render before time slicing
     this.partialRender = false;
     this.stateRepCount = 0;
-    this.viewportPages = 1;
     this.backgroundRender = false;
     this.setPassState(SuiRenderState.initial, 'ctor');
     this.viewportChanged = false;
@@ -134,27 +133,20 @@ class SuiRenderState {
   // Create (or recrate) the svg viewport, considering the dimensions of the score.
   _setViewport(reset, elementId) {
     // this.screenWidth = window.innerWidth;
-    const layout = this._score.layout;
-    this.zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
-      layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;
+    const layoutManager = this._score.layoutManager;
+    // All pages have same width/height, so use that
+    const layout = layoutManager.getGlobalLayout();
 
-    if (layout.zoomMode !== SmoScore.zoomModes.zoomScale) {
-      layout.zoomScale = this.zoomScale;
-    }
-
-    this.svgScale = layout.svgScale * this.zoomScale;
-    this.orientation = this._score.layout.orientation;
-    const w = Math.round(layout.pageWidth * this.zoomScale);
-    const h = Math.round(layout.pageHeight * this.zoomScale);
-    this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w : h;
-    this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
-    this.totalHeight = this.pageHeight * this.score.layout.pages;
-    this.viewportPages = this.score.layout.pages;
-
-    this.leftMargin = this._score.layout.leftMargin;
-    this.rightMargin = this._score.layout.rightMargin;
-    $(elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
-    $(elementId).css('height', '' + Math.round(this.totalHeight) + 'px');
+    // zoomScale is the zoom level pct.
+    // layout.svgScale is note size pct, used to calculate viewport size.  Larger viewport
+    //   vs. window size means smaller notes/more notes per page.
+    // renderScale is the product of the zoom and svg scale, used to size the window in client coordinates
+    const zoomScale = layoutManager.getZoomScale();
+    const renderScale = layout.svgScale * zoomScale;
+    const totalHeight = layout.pageHeight * layoutManager.pageLayouts.length * zoomScale;
+    const pageWidth = layout.pageWidth * zoomScale;
+    $(elementId).css('width', '' + Math.round(pageWidth) + 'px');
+    $(elementId).css('height', '' + Math.round(totalHeight) + 'px');
     // Reset means we remove the previous SVG element.  Otherwise, we just alter it
     if (reset) {
       $(elementId).html('');
@@ -164,7 +156,7 @@ class SuiRenderState {
         this.measureMapper.scroller.scrollAbsolute(0, 0);
       }
     }
-    svgHelpers.svgViewport(this.context.svg, 0, 0, this.pageWidth, this.totalHeight, this.svgScale);
+    svgHelpers.svgViewport(this.context.svg, 0, 0, pageWidth, totalHeight, renderScale);
     // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
     this.resizing = false;
     console.log('layout setViewport: pstate initial');
@@ -189,9 +181,11 @@ class SuiRenderState {
   renderForPrintPromise() {
     $('body').addClass('print-render');
     const self = this;
-    this._backupLayout = JSON.parse(JSON.stringify(this.score.layout));
-    this.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-    this.score.layout.zoomScale = 1.0;
+    const layout = this.score.layoutManager;
+    this._backupZoomMode = layout.zoomMode;
+    this._backupZoomScale = layout.zoomScale;
+    layout.zoomMode = SmoScore.zoomModes.zoomScale;
+    layout.zoomScale = 1.0;
     this.setViewport(true);
     this.setRefresh();
 
@@ -216,12 +210,11 @@ class SuiRenderState {
   }
 
   restoreLayoutAfterPrint() {
-    if (this._backupLayout) {
-      this.score.setLayout(this._backupLayout);
-      this.setViewport(true);
-      this.setRefresh();
-      this._backupLayout = null;
-    }
+    const layout = this.score.layoutManager;
+    layout.zoomMode = this._backupZoomMode;
+    layout.zoomScale = this._backupZoomScale;
+    this.setViewport(true);
+    this.setRefresh();
   }
 
   clearLine(measure) {
@@ -255,18 +248,6 @@ class SuiRenderState {
     }
     console.log(msg);
     this.passState = st;
-  }
-  static get defaults() {
-    return {
-      clefWidth: 70,
-      staffWidth: 250,
-      totalWidth: 250,
-      leftMargin: 15,
-      topMargin: 15,
-      pageWidth: 8 * 96 + 48,
-      pageHeight: 11 * 96,
-      svgScale: 0.7,
-    };
   }
 
   static get debugLayout() {
@@ -451,9 +432,10 @@ class SuiRenderState {
     if (printing) {
       return;
     }
-    for (i = 1; i < this._score.layout.pages; ++i) {
-      const y = (this.pageHeight / this.svgScale) * i;
-      svgHelpers.line(this.svg, 0, y, this.score.layout.pageWidth / this.score.layout.svgScale, y,
+    const layout = this._score.layoutManager;
+    for (i = 1; i < layout.pageLayouts.length; ++i) {
+      const y = (layout.pageHeight / layout.svgScale) * i;
+      svgHelpers.line(this.svg, 0, y, layout.pageWidth / layout.svgScale, y,
         [
           { 'stroke': '#321' },
           { 'stroke-width': '2' },

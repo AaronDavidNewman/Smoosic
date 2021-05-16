@@ -8,8 +8,8 @@ class SmoScore {
   constructor(params) {
     Vex.Merge(this, SmoScore.defaults);
     Vex.Merge(this, params);
-    if (!this.layout.pages) {
-      this.layout.pages = 1;
+    if (!this.layoutManager) {
+      this.layoutManager = new SmoLayoutManager(this.layout);
     }
     if (this.staves.length) {
       this.numberStaves();
@@ -26,6 +26,7 @@ class SmoScore {
   }
   static get defaults() {
     return {
+      // legacy layout structure.  Now we use pages.
       layout: {
         leftMargin: 30,
         rightMargin: 30,
@@ -33,7 +34,6 @@ class SmoScore {
         bottomMargin: 40,
         pageWidth: 8 * 96 + 48,
         pageHeight: 11 * 96,
-        orientation: SmoScore.orientations.portrait,
         interGap: 30,
         intraGap: 10,
         svgScale: 1.0,
@@ -42,7 +42,14 @@ class SmoScore {
         noteSpacing: 1.0,
         pages: 1
       },
-      pageLayouts: [],
+      globalLayout: {
+        svgScale: 1.0,
+        zoomScale: 2.0,
+        zoomMode: SmoScore.zoomModes.fitWidth,
+        noteSpacing: 1.0,
+        pageWidth: 8 * 96 + 48,
+        pageHeight: 11 * 96
+      },
       instrumentMap: [],
       fonts: [
         { name: 'engraving', purpose: SmoScore.fontPurposes.ENGRAVING, family: 'Bravura', size: 1, custom: false },
@@ -83,31 +90,21 @@ class SmoScore {
   static get pageDimensions() {
     return {
       'letter': { width: 8 * 96 + 48, height: 11 * 96 },
-      'tabloid': { width: 1056, height: 1632 },
+      'letterLandscape': { width: 11 * 96, height: 8 * 96 + 48 },
+      'tabloid': { width: 1632, height: 1056 },
       'A4': { width: 794, height: 1122 },
+      'A4Landscape': { width: 1122, height: 794 },
       'custom': { width: 1, height: 1 }
     };
   }
 
-  static get orientationLabels() {
-    return ['portrait', 'landscape'];
-  }
-  static get orientations() {
-    return { 'portrait': 0, 'landscape': 1 };
-  }
-
   static get defaultAttributes() {
-    return ['layout', 'startIndex', 'renumberingMap', 'renumberIndex', 'fonts',
+    return ['startIndex', 'renumberingMap', 'renumberIndex', 'fonts',
       'preferences', 'scoreInfo'];
   }
-  static get layoutAttributes() {
-    return ['leftMargin', 'rightMargin', 'topMargin', 'bottomMargin',
-      'pageWidth', 'pageHeight', 'orientation', 'interGap', 'intraGap', 'svgScale', 'zoomScale', 'zoomMode', 'noteSpacing', 'pages'];
-  }
   static get preferences() {
-    return ['preferences', 'fonts', 'scoreInfo', 'layout'];
+    return ['preferences', 'fonts', 'scoreInfo'];
   }
-
   serializeColumnMapped() {
     const attrColumnHash = {};
     const attrCurrentValue  = {};
@@ -160,11 +157,13 @@ class SmoScore {
     const params = {};
     let obj = {
       score: params,
+      layoutManager: {},
       staves: [],
       scoreText: [],
       textGroups: [],
       systemGroups: []
     };
+    obj.layoutManager = this.layoutManager.serialize();
     smoSerialize.serializedMerge(SmoScore.defaultAttributes, this, params);
     this.staves.forEach((staff) => {
       obj.staves.push(staff.serialize());
@@ -184,6 +183,25 @@ class SmoScore {
     obj.dictionary = smoSerialize.tokenMap;
     return obj;
   }
+  // ### upConvertLayout
+  // Convert legacy score layout to layoutManager object parameters
+  static upConvertLayout(jsonObj) {
+    let i = 0;
+    jsonObj.layoutManager = {};
+    SmoLayoutManager.attributes.forEach((attr) => {
+      jsonObj.layoutManager[attr] = jsonObj.score.layout[attr];
+    });
+    jsonObj.layoutManager.pageLayouts = [];
+    for (i = 0; i < jsonObj.score.layout.pages; ++i) {
+      const pageSetting = JSON.parse(JSON.stringify(SmoPageLayout.defaults));
+      SmoPageLayout.attributes.forEach((attr) => {
+        if (typeof(jsonObj.score.layout[attr]) !== 'undefined') {
+          pageSetting[attr] = jsonObj.score.layout[attr];
+        }
+      });
+      jsonObj.layoutManager.pageLayouts.push(pageSetting);
+    }
+  }
 
   // ### deserialize
   // Restore an earlier JSON string.  Unlike other deserialize methods, this one expects the string.
@@ -201,18 +219,16 @@ class SmoScore {
     if (typeof(jsonObj.score.preferences) !== 'undefined' && typeof(jsonObj.score.preferences.customProportion) === 'number') {
       SmoMeasure.defaults.customProportion = jsonObj.score.preferences.customProportion;
     }
-    params.layout = JSON.parse(JSON.stringify(SmoScore.defaults.layout));
+    // up-convert legacy layout data
+    if (jsonObj.score.layout) {
+      SmoScore.upConvertLayout(jsonObj);
+    }
+    const layoutManager = new SmoLayoutManager(jsonObj.layoutManager);
+    // params.layout = JSON.parse(JSON.stringify(SmoScore.defaults.layout));
     smoSerialize.serializedMerge(
       SmoScore.defaultAttributes,
       jsonObj.score, params);
-    SmoScore.layoutAttributes.forEach((attr) => {
-      if (typeof(params.layout[attr]) === 'undefined') {
-        params.layout[attr] = SmoScore.defaults.layout[attr];
-      }
-    });
-    /* if (!params.layout.noteSpacing) {
-      params.layout.noteSpacing = SmoScore.defaults.layout.noteSpacing;
-    }  should not need this */
+
     jsonObj.staves.forEach((staffObj) => {
       const staff = SmoSystemStaff.deserialize(staffObj);
       staves.push(staff);
@@ -239,6 +255,7 @@ class SmoScore {
       });
     }
     params.staves = staves;
+    params.layoutManager = layoutManager;
     const score = new SmoScore(params);
     score.scoreText = scoreText;
     score.textGroups = textGroups;
@@ -270,11 +287,11 @@ class SmoScore {
     return score;
   }
 
-  setLayout(layout) {
+  setPageLayout(layout, pageIndex) {
     const param = {};
     smoSerialize.serializedMerge(SmoScore.layoutAttributes, SmoScore.defaults.layout, param);
     smoSerialize.serializedMerge(SmoScore.layoutAttributes, layout, param);
-    this.layout = JSON.parse(JSON.stringify(param));
+    this.pageLayouts[pageIndex] = JSON.parse(JSON.stringify(param));
   }
   // ### numberStaves
   // recursively renumber staffs and measures.

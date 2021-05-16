@@ -376,8 +376,8 @@ class svgHelpers {
 
   static containsPoint(box, point, scrollState) {
     var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(box), scrollState.scroll);
-    const i1 = point.x - box.x; // handle edge not believe in x and y
-    const i2 = point.y - box.y;
+    const i1 = point.x - box.x + scrollState.scroll.x; // handle edge not believe in x and y
+    const i2 = point.y - box.y + scrollState.scroll.y;
     if (i1 > 0 && i1 < obox.width && i2 > 0 && i2 < obox.height) {
       return true;
     }

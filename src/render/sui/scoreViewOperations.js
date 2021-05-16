@@ -816,15 +816,19 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.actionBuffer.addAction('tie');
     this._lineOperation('tie');
   }
-  setScoreLayout(layout) {
-    const oldLayout = JSON.stringify(this.score.layout);
-    const curLayout = JSON.stringify(layout);
-    if (oldLayout === curLayout) {
-      return;
-    }
+  setGlobalLayout(layout) {
+    this.actionBuffer.addAction('setGlobalLayout', layout);
+    this._undoScore('Set Global Layout');
+    this.score.layoutManager.updateGlobalLayout(layout);
+    this.storeScore.layoutManager.updateGlobalLayout(layout);
+    this.renderer.rerenderAll();
+  }
+  setPageLayout(layout, pageIndex) {
+    this.actionBuffer.addAction('setPageLayout', layout);
+    this._undoScore('Set Page Layout');
     this.actionBuffer.addAction('setScoreLayout', layout);
-    this.score.setLayout(layout);
-    this.storeScore.setLayout(layout);
+    this.score.layoutManager.updatePage(layout, pageIndex);
+    this.storeScore.layoutManager.updatePage(layout, pageIndex);
     this.renderer.rerenderAll();
   }
   setEngravingFontFamily(family) {

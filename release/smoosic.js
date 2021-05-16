@@ -3168,7 +3168,9 @@ class smoSerialize {
       "uf": "customText",
       "vf": "noteSpacing",
       "wf": "lines",
-      "xf": "from"
+      "xf": "from",
+      "yf": "layoutManager",
+      "zf": "pageLayouts"
       }`;
      return JSON.parse(_tm);
     }
@@ -3785,8 +3787,8 @@ class svgHelpers {
 
   static containsPoint(box, point, scrollState) {
     var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(box), scrollState.scroll);
-    const i1 = point.x - box.x; // handle edge not believe in x and y
-    const i2 = point.y - box.y;
+    const i1 = point.x - box.x + scrollState.scroll.x; // handle edge not believe in x and y
+    const i2 = point.y - box.y + scrollState.scroll.y;
     if (i1 > 0 && i1 < obox.width && i2 > 0 && i2 < obox.height) {
       return true;
     }
@@ -4723,7 +4725,6 @@ class SuiActionPlayback {
 // ## suiAdjuster
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
 class suiLayoutAdjuster {
-
   static estimateMusicWidth(smoMeasure, noteSpacing, accidentMap) {
     const widths = [];
     let voiceIx = 0;
@@ -5991,7 +5992,6 @@ class SuiRenderState {
     this.renderTime = 0;  // ms to render before time slicing
     this.partialRender = false;
     this.stateRepCount = 0;
-    this.viewportPages = 1;
     this.backgroundRender = false;
     this.setPassState(SuiRenderState.initial, 'ctor');
     this.viewportChanged = false;
@@ -6110,27 +6110,20 @@ class SuiRenderState {
   // Create (or recrate) the svg viewport, considering the dimensions of the score.
   _setViewport(reset, elementId) {
     // this.screenWidth = window.innerWidth;
-    const layout = this._score.layout;
-    this.zoomScale = layout.zoomMode === SmoScore.zoomModes.zoomScale ?
-      layout.zoomScale : (window.innerWidth - 200) / layout.pageWidth;
+    const layoutManager = this._score.layoutManager;
+    // All pages have same width/height, so use that
+    const layout = layoutManager.getGlobalLayout();
 
-    if (layout.zoomMode !== SmoScore.zoomModes.zoomScale) {
-      layout.zoomScale = this.zoomScale;
-    }
-
-    this.svgScale = layout.svgScale * this.zoomScale;
-    this.orientation = this._score.layout.orientation;
-    const w = Math.round(layout.pageWidth * this.zoomScale);
-    const h = Math.round(layout.pageHeight * this.zoomScale);
-    this.pageWidth =  (this.orientation  === SmoScore.orientations.portrait) ? w : h;
-    this.pageHeight = (this.orientation  === SmoScore.orientations.portrait) ? h : w;
-    this.totalHeight = this.pageHeight * this.score.layout.pages;
-    this.viewportPages = this.score.layout.pages;
-
-    this.leftMargin = this._score.layout.leftMargin;
-    this.rightMargin = this._score.layout.rightMargin;
-    $(elementId).css('width', '' + Math.round(this.pageWidth) + 'px');
-    $(elementId).css('height', '' + Math.round(this.totalHeight) + 'px');
+    // zoomScale is the zoom level pct.
+    // layout.svgScale is note size pct, used to calculate viewport size.  Larger viewport
+    //   vs. window size means smaller notes/more notes per page.
+    // renderScale is the product of the zoom and svg scale, used to size the window in client coordinates
+    const zoomScale = layoutManager.getZoomScale();
+    const renderScale = layout.svgScale * zoomScale;
+    const totalHeight = layout.pageHeight * layoutManager.pageLayouts.length * zoomScale;
+    const pageWidth = layout.pageWidth * zoomScale;
+    $(elementId).css('width', '' + Math.round(pageWidth) + 'px');
+    $(elementId).css('height', '' + Math.round(totalHeight) + 'px');
     // Reset means we remove the previous SVG element.  Otherwise, we just alter it
     if (reset) {
       $(elementId).html('');
@@ -6140,7 +6133,7 @@ class SuiRenderState {
         this.measureMapper.scroller.scrollAbsolute(0, 0);
       }
     }
-    svgHelpers.svgViewport(this.context.svg, 0, 0, this.pageWidth, this.totalHeight, this.svgScale);
+    svgHelpers.svgViewport(this.context.svg, 0, 0, pageWidth, totalHeight, renderScale);
     // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
     this.resizing = false;
     console.log('layout setViewport: pstate initial');
@@ -6165,9 +6158,11 @@ class SuiRenderState {
   renderForPrintPromise() {
     $('body').addClass('print-render');
     const self = this;
-    this._backupLayout = JSON.parse(JSON.stringify(this.score.layout));
-    this.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-    this.score.layout.zoomScale = 1.0;
+    const layout = this.score.layoutManager;
+    this._backupZoomMode = layout.zoomMode;
+    this._backupZoomScale = layout.zoomScale;
+    layout.zoomMode = SmoScore.zoomModes.zoomScale;
+    layout.zoomScale = 1.0;
     this.setViewport(true);
     this.setRefresh();
 
@@ -6192,12 +6187,11 @@ class SuiRenderState {
   }
 
   restoreLayoutAfterPrint() {
-    if (this._backupLayout) {
-      this.score.setLayout(this._backupLayout);
-      this.setViewport(true);
-      this.setRefresh();
-      this._backupLayout = null;
-    }
+    const layout = this.score.layoutManager;
+    layout.zoomMode = this._backupZoomMode;
+    layout.zoomScale = this._backupZoomScale;
+    this.setViewport(true);
+    this.setRefresh();
   }
 
   clearLine(measure) {
@@ -6231,18 +6225,6 @@ class SuiRenderState {
     }
     console.log(msg);
     this.passState = st;
-  }
-  static get defaults() {
-    return {
-      clefWidth: 70,
-      staffWidth: 250,
-      totalWidth: 250,
-      leftMargin: 15,
-      topMargin: 15,
-      pageWidth: 8 * 96 + 48,
-      pageHeight: 11 * 96,
-      svgScale: 0.7,
-    };
   }
 
   static get debugLayout() {
@@ -6427,9 +6409,10 @@ class SuiRenderState {
     if (printing) {
       return;
     }
-    for (i = 1; i < this._score.layout.pages; ++i) {
-      const y = (this.pageHeight / this.svgScale) * i;
-      svgHelpers.line(this.svg, 0, y, this.score.layout.pageWidth / this.score.layout.svgScale, y,
+    const layout = this._score.layoutManager;
+    for (i = 1; i < layout.pageLayouts.length; ++i) {
+      const y = (layout.pageHeight / layout.svgScale) * i;
+      svgHelpers.line(this.svg, 0, y, layout.pageWidth / layout.svgScale, y,
         [
           { 'stroke': '#321' },
           { 'stroke-width': '2' },
@@ -6505,7 +6488,6 @@ class SuiRenderState {
 class SuiScoreRender extends SuiRenderState {
   constructor(params) {
     super('SuiScoreRender');
-    Vex.Merge(this, SuiRenderState.defaults);
     Vex.Merge(this, params);
     this.attrs = {
       id: VF.Element.newID(),
@@ -6540,13 +6522,6 @@ class SuiScoreRender extends SuiRenderState {
     $(this.renderer.getContext().svg).find('g.lineBracket').remove();
   }
 
-  get logicalPageWidth() {
-    return this.pageMarginWidth;
-  }
-  get logicalPageHeight() {
-    return this.pageMarginHeigh;
-  }
-
   // ### _measureToLeft
   // measure to 'left' is on previous row if this is the first column in a system
   // but we still use it to compute beginning symbols (key sig etc.)
@@ -6576,10 +6551,11 @@ class SuiScoreRender extends SuiRenderState {
     gg.logicalBox = {};
     const group = this.context.openGroup();
     group.id = gg.attrs.id;
+    const scaledScoreLayout = this.score.layoutManager.getScaledPageLayout(0);
 
     // If this is a per-page score text, get a text group copy for each page.
     // else the array contains the original.
-    const groupAr = SmoTextGroup.getPagedTextGroups(gg, this.scaledScoreLayout.pages, this.scaledScoreLayout.pageHeight);
+    const groupAr = SmoTextGroup.getPagedTextGroups(gg, scaledScoreLayout.pages, scaledScoreLayout.pageHeight);
     groupAr.forEach((newGroup) => {
       // If this text is attached to the measure, base the block location on the rendered measure location.
       if (newGroup.attachToSelector) {
@@ -6665,15 +6641,6 @@ class SuiScoreRender extends SuiRenderState {
       if (inst) {
         rv.push(inst);
       }
-    });
-    return rv;
-  }
-  get scaledScoreLayout() {
-    const svgScale = this.score.layout.svgScale;
-    const rv = JSON.parse(JSON.stringify(this.score.layout));
-    const attrs = ['topMargin', 'bottomMargin', 'interGap', 'intraGap', 'pageHeight', 'pageWidth', 'leftMargin', 'rightMargin'];
-    attrs.forEach((attr) => {
-      rv[attr] = rv[attr] / svgScale;
     });
     return rv;
   }
@@ -6804,36 +6771,27 @@ class SuiScoreRender extends SuiRenderState {
       });
     }
   }
-  _addToPageLayouts(scoreLayout, pageNum) {
-    if (this.score.pageLayouts.length === 0) {
-      this.score.pageLayouts.push(JSON.parse(JSON.stringify(scoreLayout)));
-      return;
-    }
-    const lastLayout = this.score.pageLayouts[this.score.pageLayouts.length - 1];
-    if (this.score.pageLayouts.length < pageNum) {
-      this.score.pageLayouts.push(JSON.parse(JSON.stringify(lastLayout)));
-    }
-  }
-
   // ### _checkPageBreak
   // See if this line breaks the page boundary
   _checkPageBreak(scoreLayout, currentLine, bottomMeasure) {
     let pageAdj = 0;
     // See if this measure breaks a page.
     const maxY = bottomMeasure.logicalBox.y +  bottomMeasure.logicalBox.height;
-    if (maxY > (scoreLayout.pages * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
+    if (maxY > ((this.currentPage + 1) * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
+      // Advance to next page settings
+      this.currentPage += 1;
+      // If this is a new page, make sure there is a layout for it.
+      this.score.layoutManager.addToPageLayouts(this.currentPage);
+      scoreLayout = this.score.layoutManager.getScaledPageLayout(this.currentPage);
+
       // When adjusting the page, make it so the top staff of the system
       // clears the bottom of the page.
       const topMeasure = currentLine.reduce((a, b) =>
         a.logicalBox.y < b.logicalBox.y ? a : b
       );
       const minMaxY = topMeasure.logicalBox.y;
-      pageAdj = (scoreLayout.pages * scoreLayout.pageHeight) - minMaxY;
+      pageAdj = (this.currentPage * scoreLayout.pageHeight) - minMaxY;
       pageAdj = pageAdj + scoreLayout.topMargin;
-
-      // Prepare layout for next page, if not set
-      scoreLayout.pages += 1;
-      this._addToPageLayouts(scoreLayout, scoreLayout.pages);
 
       // For each measure on the current line, move it down past the page break;
       currentLine.forEach((measure) => {
@@ -6842,11 +6800,13 @@ class SuiScoreRender extends SuiRenderState {
         measure.setY(measure.staffY + pageAdj);
       });
     }
+    return scoreLayout;
   }
 
   layout() {
     let measureIx = 0;
     let systemIndex = 0;
+    let scoreLayout = this.score.layoutManager.getScaledPageLayout(0);
     let y = 0;
     let x = 0;
     let lineIndex = 0;
@@ -6859,12 +6819,11 @@ class SuiScoreRender extends SuiRenderState {
     layoutDebug.clearDebugBoxes('adjust');
     layoutDebug.clearDebugBoxes('system');
     layoutDebug.clearDebugBoxes('note');
+    this.currentPage = 0;
     const timestamp = new Date().valueOf();
 
     const svg = this.context.svg;
-    const scoreLayout = this.scaledScoreLayout;
-    scoreLayout.pages = 1;
-    this._addToPageLayouts(scoreLayout, 1);
+    const startPageCount = scoreLayout.pages;
 
     y = scoreLayout.topMargin;
     x = scoreLayout.leftMargin;
@@ -6881,7 +6840,7 @@ class SuiScoreRender extends SuiRenderState {
         const bottomMeasure = currentLine.reduce((a, b) =>
           a.logicalBox.y + a.logicalBox.height > b.logicalBox.y + b.logicalBox.height ? a : b
         );
-        this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
+        this._checkPageBreak(scoreLayout, currentLine, bottomMeasure, scoreLayout.pages);
 
         const ld = layoutDebug;
         const sh = svgHelpers;
@@ -6917,11 +6876,10 @@ class SuiScoreRender extends SuiRenderState {
         const bottomMeasure = currentLine.reduce((a, b) =>
           a.logicalBox.y + a.logicalBox.height > b.logicalBox.y + b.logicalBox.height ? a : b
         );
-        this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
+        scoreLayout = this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
       }
     }
-    if (scoreLayout.pages !== this.score.layout.pages) {
-      this.score.layout.pages = scoreLayout.pages;
+    if (scoreLayout.pages !== startPageCount) {
       this.setViewport(true);
     }
     layoutDebug.setTimestamp(layoutDebug.codeRegions.COMPUTE, new Date().valueOf() - timestamp);
@@ -6960,14 +6918,14 @@ class SuiScoreRender extends SuiRenderState {
       this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast, s.tempoLast);
 
       // calculate vertical offsets from the baseline
-      const offsets = suiLayoutAdjuster.estimateMeasureHeight(measure, this.score.layout);
+      const offsets = suiLayoutAdjuster.estimateMeasureHeight(measure, scoreLayout);
       measure.setYTop(offsets.aboveBaseline);
       measure.setY(y - measure.yTop, '_estimateColumns height');
       measure.setX(x);
 
       // Add custom width to measure:
       measure.setBox(svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline));
-      suiLayoutAdjuster.estimateMeasureWidth(measure, this.score.layout.noteSpacing, accidentalMap);
+      suiLayoutAdjuster.estimateMeasureWidth(measure, scoreLayout.noteSpacing, accidentalMap);
       y = y + measure.logicalBox.height + scoreLayout.intraGap;
       rowInSystem += 1;
     });
@@ -7038,6 +6996,17 @@ class SuiScoreView {
       staffModifier.serialize(), subtype);
     this.storeUndo.addBuffer(label, UndoBuffer.bufferTypes.STAFF_MODIFIER, null,
       copy.serialize(), subtype);
+  }
+  // ### getFocusedPage
+  // Return the index of the page that is in the center of the client screen.
+  getFocusedPage() {
+    const scrollAvg = this.tracker.scroller.netScroll.y + (this.tracker.scroller.viewport.height / 2);
+    const midY = scrollAvg;
+    const layoutManager = this.score.layoutManager;
+    const lh = layoutManager.pageHeight / layoutManager.svgScale;
+    const lw = layoutManager.pageWidth / layoutManager.svgScale;
+    const pt = svgHelpers.logicalToClient(this.renderer.svg, { x: lw, y: lh }, this.tracker.scroller);
+    return Math.round(midY / pt.y);
   }
   // ### _undoRectangle
   // Create a rectangle undo, like a multiple columns but not necessarily the whole
@@ -8150,15 +8119,19 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.actionBuffer.addAction('tie');
     this._lineOperation('tie');
   }
-  setScoreLayout(layout) {
-    const oldLayout = JSON.stringify(this.score.layout);
-    const curLayout = JSON.stringify(layout);
-    if (oldLayout === curLayout) {
-      return;
-    }
+  setGlobalLayout(layout) {
+    this.actionBuffer.addAction('setGlobalLayout', layout);
+    this._undoScore('Set Global Layout');
+    this.score.layoutManager.updateGlobalLayout(layout);
+    this.storeScore.layoutManager.updateGlobalLayout(layout);
+    this.renderer.rerenderAll();
+  }
+  setPageLayout(layout, pageIndex) {
+    this.actionBuffer.addAction('setPageLayout', layout);
+    this._undoScore('Set Page Layout');
     this.actionBuffer.addAction('setScoreLayout', layout);
-    this.score.setLayout(layout);
-    this.storeScore.setLayout(layout);
+    this.score.layoutManager.updatePage(layout, pageIndex);
+    this.storeScore.layoutManager.updatePage(layout, pageIndex);
     this.renderer.rerenderAll();
   }
   setEngravingFontFamily(family) {
@@ -9320,7 +9293,9 @@ class SuiDragSession {
     const svgY = this.currentBox.y;
     this.currentClientBox.x = e.clientX - this.xOffset;
     this.currentClientBox.y = e.clientY - this.yOffset;
-    const coor = svgHelpers.clientToLogical(this.context.svg, { x: this.currentClientBox.x, y: this.currentClientBox.y });
+    const coor = svgHelpers.clientToLogical(this.context.svg,
+      { x: this.currentClientBox.x +  + this.scroller.scrollState.scroll.x,
+        y: this.currentClientBox.y  + this.scroller.scrollState.scroll.y });
     this.currentBox.x = coor.x;
     this.currentBox.y = coor.y;
     this.textObject.offsetStartX(this.currentBox.x - svgX);
@@ -15359,8 +15334,8 @@ class SmoScore {
   constructor(params) {
     Vex.Merge(this, SmoScore.defaults);
     Vex.Merge(this, params);
-    if (!this.layout.pages) {
-      this.layout.pages = 1;
+    if (!this.layoutManager) {
+      this.layoutManager = new SmoLayoutManager(this.layout);
     }
     if (this.staves.length) {
       this.numberStaves();
@@ -15377,6 +15352,7 @@ class SmoScore {
   }
   static get defaults() {
     return {
+      // legacy layout structure.  Now we use pages.
       layout: {
         leftMargin: 30,
         rightMargin: 30,
@@ -15384,7 +15360,6 @@ class SmoScore {
         bottomMargin: 40,
         pageWidth: 8 * 96 + 48,
         pageHeight: 11 * 96,
-        orientation: SmoScore.orientations.portrait,
         interGap: 30,
         intraGap: 10,
         svgScale: 1.0,
@@ -15393,7 +15368,14 @@ class SmoScore {
         noteSpacing: 1.0,
         pages: 1
       },
-      pageLayouts: [],
+      globalLayout: {
+        svgScale: 1.0,
+        zoomScale: 2.0,
+        zoomMode: SmoScore.zoomModes.fitWidth,
+        noteSpacing: 1.0,
+        pageWidth: 8 * 96 + 48,
+        pageHeight: 11 * 96
+      },
       instrumentMap: [],
       fonts: [
         { name: 'engraving', purpose: SmoScore.fontPurposes.ENGRAVING, family: 'Bravura', size: 1, custom: false },
@@ -15434,31 +15416,21 @@ class SmoScore {
   static get pageDimensions() {
     return {
       'letter': { width: 8 * 96 + 48, height: 11 * 96 },
-      'tabloid': { width: 1056, height: 1632 },
+      'letterLandscape': { width: 11 * 96, height: 8 * 96 + 48 },
+      'tabloid': { width: 1632, height: 1056 },
       'A4': { width: 794, height: 1122 },
+      'A4Landscape': { width: 1122, height: 794 },
       'custom': { width: 1, height: 1 }
     };
   }
 
-  static get orientationLabels() {
-    return ['portrait', 'landscape'];
-  }
-  static get orientations() {
-    return { 'portrait': 0, 'landscape': 1 };
-  }
-
   static get defaultAttributes() {
-    return ['layout', 'startIndex', 'renumberingMap', 'renumberIndex', 'fonts',
+    return ['startIndex', 'renumberingMap', 'renumberIndex', 'fonts',
       'preferences', 'scoreInfo'];
   }
-  static get layoutAttributes() {
-    return ['leftMargin', 'rightMargin', 'topMargin', 'bottomMargin',
-      'pageWidth', 'pageHeight', 'orientation', 'interGap', 'intraGap', 'svgScale', 'zoomScale', 'zoomMode', 'noteSpacing', 'pages'];
-  }
   static get preferences() {
-    return ['preferences', 'fonts', 'scoreInfo', 'layout'];
+    return ['preferences', 'fonts', 'scoreInfo'];
   }
-
   serializeColumnMapped() {
     const attrColumnHash = {};
     const attrCurrentValue  = {};
@@ -15511,11 +15483,13 @@ class SmoScore {
     const params = {};
     let obj = {
       score: params,
+      layoutManager: {},
       staves: [],
       scoreText: [],
       textGroups: [],
       systemGroups: []
     };
+    obj.layoutManager = this.layoutManager.serialize();
     smoSerialize.serializedMerge(SmoScore.defaultAttributes, this, params);
     this.staves.forEach((staff) => {
       obj.staves.push(staff.serialize());
@@ -15535,6 +15509,25 @@ class SmoScore {
     obj.dictionary = smoSerialize.tokenMap;
     return obj;
   }
+  // ### upConvertLayout
+  // Convert legacy score layout to layoutManager object parameters
+  static upConvertLayout(jsonObj) {
+    let i = 0;
+    jsonObj.layoutManager = {};
+    SmoLayoutManager.attributes.forEach((attr) => {
+      jsonObj.layoutManager[attr] = jsonObj.score.layout[attr];
+    });
+    jsonObj.layoutManager.pageLayouts = [];
+    for (i = 0; i < jsonObj.score.layout.pages; ++i) {
+      const pageSetting = JSON.parse(JSON.stringify(SmoPageLayout.defaults));
+      SmoPageLayout.attributes.forEach((attr) => {
+        if (typeof(jsonObj.score.layout[attr]) !== 'undefined') {
+          pageSetting[attr] = jsonObj.score.layout[attr];
+        }
+      });
+      jsonObj.layoutManager.pageLayouts.push(pageSetting);
+    }
+  }
 
   // ### deserialize
   // Restore an earlier JSON string.  Unlike other deserialize methods, this one expects the string.
@@ -15552,18 +15545,16 @@ class SmoScore {
     if (typeof(jsonObj.score.preferences) !== 'undefined' && typeof(jsonObj.score.preferences.customProportion) === 'number') {
       SmoMeasure.defaults.customProportion = jsonObj.score.preferences.customProportion;
     }
-    params.layout = JSON.parse(JSON.stringify(SmoScore.defaults.layout));
+    // up-convert legacy layout data
+    if (jsonObj.score.layout) {
+      SmoScore.upConvertLayout(jsonObj);
+    }
+    const layoutManager = new SmoLayoutManager(jsonObj.layoutManager);
+    // params.layout = JSON.parse(JSON.stringify(SmoScore.defaults.layout));
     smoSerialize.serializedMerge(
       SmoScore.defaultAttributes,
       jsonObj.score, params);
-    SmoScore.layoutAttributes.forEach((attr) => {
-      if (typeof(params.layout[attr]) === 'undefined') {
-        params.layout[attr] = SmoScore.defaults.layout[attr];
-      }
-    });
-    /* if (!params.layout.noteSpacing) {
-      params.layout.noteSpacing = SmoScore.defaults.layout.noteSpacing;
-    }  should not need this */
+
     jsonObj.staves.forEach((staffObj) => {
       const staff = SmoSystemStaff.deserialize(staffObj);
       staves.push(staff);
@@ -15590,6 +15581,7 @@ class SmoScore {
       });
     }
     params.staves = staves;
+    params.layoutManager = layoutManager;
     const score = new SmoScore(params);
     score.scoreText = scoreText;
     score.textGroups = textGroups;
@@ -15621,11 +15613,11 @@ class SmoScore {
     return score;
   }
 
-  setLayout(layout) {
+  setPageLayout(layout, pageIndex) {
     const param = {};
     smoSerialize.serializedMerge(SmoScore.layoutAttributes, SmoScore.defaults.layout, param);
     smoSerialize.serializedMerge(SmoScore.layoutAttributes, layout, param);
-    this.layout = JSON.parse(JSON.stringify(param));
+    this.pageLayouts[pageIndex] = JSON.parse(JSON.stringify(param));
   }
   // ### numberStaves
   // recursively renumber staffs and measures.
@@ -15972,7 +15964,6 @@ class SmoScoreModifierBase {
       };
     }
   }
-
   static deserialize(jsonObj) {
     const ctor = eval(jsonObj.ctor);
     const rv = new ctor(jsonObj);
@@ -15980,6 +15971,138 @@ class SmoScoreModifierBase {
   }
 }
 
+// ## SmoLayoutManager
+// Storage and utilities for layout information in the score.  Each
+// manager has one set of page height/width, since svg element
+// must have single length/width and viewbox.
+// Each page can have different margins.
+// eslint-disable-next-line no-unused-vars
+class SmoLayoutManager extends SmoScoreModifierBase {
+  static get defaults() {
+    return {
+      svgScale: 1.0,
+      zoomScale: 2.0,
+      zoomMode: SmoScore.zoomModes.fitWidth,
+      noteSpacing: 1.0,
+      pageWidth: 8 * 96 + 48,
+      pageHeight: 11 * 96,
+      pageSettings: []
+    };
+  }
+  static get attributes() {
+    return ['svgScale', 'zoomScale', 'zoomMode', 'noteSpacing', 'pageWidth', 'pageHeight'];
+  }
+  // Attributes that are scaled by svgScale
+  static get scalableAttributes() {
+    return ['pageWidth', 'pageHeight'];
+  }
+
+  constructor(params) {
+    super('SmoLayoutManager');
+    if (typeof(params) === 'undefined') {
+      params = {};
+    }
+    smoSerialize.serializedMerge(SmoLayoutManager.attributes, SmoLayoutManager.defaults, this);
+    smoSerialize.serializedMerge(SmoLayoutManager.attributes, params, this);
+    this.pageLayouts = [];
+    if (params.pageLayouts && params.pageLayouts.length) {
+      params.pageLayouts.forEach((page) => {
+        this.pageLayouts.push(new SmoPageLayout(page));
+      });
+    } else {
+      this.pageLayouts.push(new SmoPageLayout());
+    }
+  }
+  getZoomScale() {
+    const zoomScale = this.zoomMode === SmoScore.zoomModes.zoomScale ?
+      this.zoomScale : (window.innerWidth - 200) / this.pageWidth;
+    return zoomScale;
+  }
+  serialize() {
+    const rv = {};
+    rv.pageLayouts = [];
+    this.pageLayouts.forEach((pl) => {
+      rv.pageLayouts.push(pl.serialize());
+    });
+    smoSerialize.serializedMerge(SmoLayoutManager.attributes, this, rv);
+    return rv;
+  }
+  updateGlobalLayout(params) {
+    SmoLayoutManager.attributes.forEach((attr) => {
+      if (typeof(params[attr]) !== 'undefined') {
+        this[attr] = params[attr];
+      }
+    });
+  }
+  // ### addToPageLayouts
+  // Make sure the next page has a layout.  If not, copy settings from
+  // previous page.
+  addToPageLayouts(pageNum) {
+    const lastLayout = this.pageLayouts[this.pageLayouts.length - 1];
+    if (this.pageLayouts.length <= pageNum) {
+      this.pageLayouts.push(new SmoPageLayout(lastLayout));
+    }
+  }
+  getGlobalLayout() {
+    const rv = {};
+    smoSerialize.serializedMerge(SmoLayoutManager.attributes, this, rv);
+    return rv;
+  }
+  // Return a deep copy of the page parameters, adjusted for the global scale.
+  getScaledPageLayout(pageIndex) {
+    const svgScale = this.svgScale;
+    const rv = this.getGlobalLayout();
+    SmoLayoutManager.scalableAttributes.forEach((attr) => {
+      rv[attr] = rv[attr] / svgScale;
+    });
+    const pageCopy = JSON.parse(JSON.stringify(this.pageLayouts[pageIndex]));
+    SmoPageLayout.attributes.forEach((attr) => {
+      rv[attr] = pageCopy[attr] / svgScale;
+    });
+    rv.pages = this.pageLayouts.length;
+    return rv;
+  }
+  getPageLayout(pageIndex) {
+    return JSON.parse(JSON.stringify(this.pageLayouts[pageIndex]));
+  }
+  getPageLayouts() {
+    return JSON.parse(JSON.stringify(this.pageLayouts));
+  }
+  updatePage(pageLayout, pageIndex) {
+    if (this.pageLayouts.length > pageIndex) {
+      this.pageLayouts[pageIndex] = new SmoPageLayout(pageLayout);
+    }
+  }
+}
+class SmoPageLayout extends SmoScoreModifierBase {
+  static get defaults() {
+    return {
+      leftMargin: 30,
+      rightMargin: 30,
+      topMargin: 40,
+      bottomMargin: 40,
+      interGap: 30,
+      intraGap: 10
+    };
+  }
+  static get attributes() {
+    return ['leftMargin', 'rightMargin', 'topMargin', 'bottomMargin', 'interGap', 'intraGap'];
+  }
+  constructor(params) {
+    super('SmoPageLayout');
+    if (typeof(params) === 'undefined') {
+      params = {};
+    }
+    smoSerialize.serializedMerge(SmoPageLayout.attributes, SmoPageLayout.defaults, this);
+    smoSerialize.serializedMerge(SmoPageLayout.attributes, params, this);
+  }
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoPageLayout.defaults, SmoPageLayout.attributes, this, params);
+    params.ctor = 'SmoPageLayout';
+    return params;
+  }
+}
 // ## SmoSystemGroup
 // System group is the grouping of staves into a system.
 // eslint-disable-next-line no-unused-vars
@@ -17574,16 +17697,16 @@ class SmoToXml {
     const scaling = nn(root, 'scaling');
     // reverse this:
     // scoreDefaults.layout.svgScale =  (scale * 42 / 40) / mxmlScore.mmPerPixel;
-    const mm = mxmlScore.mmPerPixel * 42 * score.layout.svgScale;
+    const mm = mxmlScore.mmPerPixel * 42 * score.layoutManager.svgScale;
     nn(scaling, 'millimeters', { mm }, 'mm');
     nn(scaling, 'tenths', { tenths: 40 }, 'tenths');
     const pageLayout = nn(defaults, 'page-layout');
     mxmlScore.pageLayoutMap.forEach((map) => {
-      nn(pageLayout, map.xml, score.layout, map.smo);
+      nn(pageLayout, map.xml, score.layoutManager, map.smo);
     });
     const pageMargins = nn(pageLayout, 'page-margins');
     mxmlScore.pageMarginMap.forEach((map) => {
-      nn(pageMargins, map.xml, score.layout, map.smo);
+      nn(pageMargins, map.xml, score.layoutManager.pageLayouts[0], map.smo);
     });
     const partList =  nn(root, 'part-list');
     score.staves.forEach((staff) => {
@@ -18391,7 +18514,9 @@ class mxmlScore {
 
       const scoreRoot = scoreRoots[0];
       const scoreDefaults = JSON.parse(JSON.stringify(SmoScore.defaults));
-      scoreDefaults.layout.svgScale = 0.5; // if no scale given in score, default to
+      const layoutDefaults = new SmoLayoutManager();
+      scoreDefaults.layoutManager = layoutDefaults;
+      layoutDefaults.svgScale = 0.5; // if no scale given in score, default to
       // something small.
       const xmlState = new XmlState();
       xmlState.newTitle = false;
@@ -18424,7 +18549,7 @@ class mxmlScore {
             xmlState.newTitle = true;
           }
         } else if (scoreElement.tagName === 'defaults') {
-          mxmlScore.defaults(scoreElement, scoreDefaults);
+          mxmlScore.defaults(scoreElement, scoreDefaults, layoutDefaults);
         } else if (scoreElement.tagName === 'part') {
           xmlState.initializeForPart(xmlState);
           mxmlScore.part(scoreElement, xmlState);
@@ -18471,17 +18596,17 @@ class mxmlScore {
 
   // ### defaults
   // /score-partwise/defaults
-  static defaults(defaultsElement, scoreDefaults)  {
+  static defaults(defaultsElement, scoreDefaults, layoutDefaults)  {
     // Default scale for mxml
     let scale = 1 / 7;
     const pageLayoutNode = defaultsElement.getElementsByTagName('page-layout');
     if (pageLayoutNode.length) {
-      mxmlHelpers.assignDefaults(pageLayoutNode[0], scoreDefaults.layout, mxmlScore.pageLayoutMap);
+      mxmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults, mxmlScore.pageLayoutMap);
     }
     const pageMarginNode = mxmlHelpers.getChildrenFromPath(defaultsElement,
       ['page-layout', 'page-margins']);
     if (pageMarginNode.length) {
-      mxmlHelpers.assignDefaults(pageMarginNode[0], scoreDefaults.layout, mxmlScore.pageMarginMap);
+      mxmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], mxmlScore.pageMarginMap);
     }
 
     const scaleNode =  defaultsElement.getElementsByTagName('scaling');
@@ -18494,7 +18619,7 @@ class mxmlScore {
     }
     // Convert from mm to pixels, this is our default svg scale
     // mm per tenth * pixels / mm gives us pixels per tenth
-    scoreDefaults.layout.svgScale =  (scale * 45 / 40) / mxmlScore.mmPerPixel;
+    layoutDefaults.svgScale =  (scale * 45 / 40) / mxmlScore.mmPerPixel;
   }
 
   // ### part
@@ -32155,6 +32280,41 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
         type: 'percent',
         label: 'Note Spacing'
       }, {
+        smoName: 'pageSize',
+        parameterName: 'pageSize',
+        defaultValue: SmoScore.pageSizes.letter,
+        control: 'SuiDropdownComponent',
+        label: 'Page Size',
+        options: [
+          {
+            value: 'letter',
+            label: 'Letter (Portrait)'
+          }, {
+            value: 'letterLandscape',
+            label: 'Letter (Landscape)'
+          }, {
+            value: 'tabloid',
+            label: 'Tabloid (11x17)'
+          }, {
+            value: 'A4',
+            label: 'A4'
+          }, {
+            value: 'custom',
+            label: 'Custom'
+          }]
+      }, {
+        smoName: 'pageWidth',
+        parameterName: 'pageWidth',
+        defaultValue: SmoScore.defaults.layout.pageWidth,
+        control: 'SuiRockerComponent',
+        label: 'Page Width (px)'
+      }, {
+        smoName: 'pageHeight',
+        parameterName: 'pageHeight',
+        defaultValue: SmoScore.defaults.layout.pageHeight,
+        control: 'SuiRockerComponent',
+        label: 'Page Height (px)'
+      }, {
         smoName: 'zoomScale',
         parameterName: 'zoomScale',
         defaultValue: SmoScore.defaults.layout.zoomScale,
@@ -32188,9 +32348,10 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
     this.scoreNameCtrl.setValue(this.view.score.scoreInfo.name);
     this.autoPlayCtrl.setValue(this.view.score.preferences.autoPlay);
     this.autoAdvanceCtrl.setValue(this.view.score.preferences.autoAdvance);
-    this.noteSpacingCtrl.setValue(this.view.score.layout.noteSpacing);
-    this.zoomScaleCtrl.setValue(this.view.score.layout.zoomScale);
-    this.svgScaleCtrl.setValue(this.view.score.layout.svgScale);
+    this.noteSpacingCtrl.setValue(this.globalLayout.noteSpacing);
+    this.zoomScaleCtrl.setValue(this.globalLayout.zoomScale);
+    this.svgScaleCtrl.setValue(this.globalLayout.svgScale);
+    this._setPageSizeDefault();
   }
   _bindElements() {
     const dgDom = this.dgDom;
@@ -32203,12 +32364,39 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
 
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
       if (this.layoutChanged) {
-        this.view.score.setLayout(this.layoutBackup);
+        this.view.setGlobalLayout(this.layoutBackup);
         this.view.renderer.rerenderAll();
       }
       this.complete();
     });
     $(dgDom.element).find('.remove-button').remove();
+  }
+  // ### _handlePageSizeChange
+  // see if the dimensions have changed.
+  _handlePageSizeChange() {
+    const sel = this.pageSizeCtrl.getValue();
+    if (sel === 'custom') {
+      $('.attributeModal').addClass('customPage');
+    } else {
+      $('.attributeModal').removeClass('customPage');
+      const dim = SmoScore.pageDimensions[sel];
+      this.pageHeightCtrl.setValue(dim.height);
+      this.pageWidthCtrl.setValue(dim.width);
+    }
+  }
+  _setPageSizeDefault() {
+    let value = 'custom';
+    const scoreDims = this.globalLayout;
+    SmoScore.pageSizes.forEach((sz) => {
+      const dim = SmoScore.pageDimensions[sz];
+      if (scoreDims.pageWidth === dim.width && scoreDims.pageHeight === dim.height) {
+        value = sz;
+      } else if (scoreDims.pageHeight === dim.width && scoreDims.pageWidth === dim.height) {
+        value = sz;
+      }
+    });
+    this.pageSizeCtrl.setValue(value);
+    this._handlePageSizeChange();
   }
 
   changed() {
@@ -32218,6 +32406,9 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
       this.view.updateScoreInfo(newInfo);
       return;
     }
+    if (this.pageSizeCtrl.changeFlag) {
+      this._handlePageSizeChange();
+    }
     if (this.autoPlayCtrl.changeFlag) {
       this.view.score.preferences.autoPlay = this.autoPlayCtrl.getValue();
     }
@@ -32226,19 +32417,19 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
     }
     if (this.noteSpacingCtrl.changeFlag) {
       this.layoutChanged = true;
-      this.layout.noteSpacing = this.noteSpacingCtrl.getValue();
+      this.globalLayout.noteSpacing = this.noteSpacingCtrl.getValue();
     }
     if (this.zoomScaleCtrl.changeFlag) {
       this.layoutChanged = true;
-      this.layout.zoomScale = this.zoomScaleCtrl.getValue();
+      this.globalLayout.zoomMode = SmoScore.zoomModes.zoomScale;
+      this.globalLayout.zoomScale = this.zoomScaleCtrl.getValue();
     }
     if (this.svgScaleCtrl.changeFlag) {
       this.layoutChanged = true;
-      this.layout.svgScale = this.svgScaleCtrl.getValue();
+      this.globalLayout.svgScale = this.svgScaleCtrl.getValue();
     }
     if (this.layoutChanged) {
-      this.view.setScoreLayout(this.layout);
-      this.view.renderer.rerenderAll();
+      this.view.setGlobalLayout(this.globalLayout);
     }
     this.view.updateScorePreferences();
   }
@@ -32251,8 +32442,9 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
       ...parameters
     });
     this.layoutChanged = false;
-    this.layout = JSON.parse(JSON.stringify(this.view.score.layout));
-    this.layoutBackup = JSON.parse(JSON.stringify(this.view.score.layout));
+    this.score = this.view.score;
+    this.globalLayout = this.score.layoutManager.getGlobalLayout();
+    this.layoutBackup = JSON.parse(JSON.stringify(this.globalLayout));
   }
 }
 
@@ -32520,7 +32712,7 @@ class SuiScoreFontDialog extends SuiDialogBase {
   }
 }
 // ## SuiLayoutDialog
-// The layout dialog has page layout and zoom logic.  It is not based on a selection but score-wide
+// The layout dialog has page-specific layout parameters
 // eslint-disable-next-line no-unused-vars
 class SuiLayoutDialog extends SuiDialogBase {
   static get ctor() {
@@ -32529,55 +32721,29 @@ class SuiLayoutDialog extends SuiDialogBase {
   get ctor() {
     return SuiLayoutDialog.ctor;
   }
+  static get layoutParams() {
+    return ['leftMargin', 'rightMargin', 'topMargin', 'bottomMargin', 'interGap', 'intraGap'];
+  }
   // ### dialogElements
   // all dialogs have elements define the controls of the dialog.
   static get dialogElements() {
     SuiLayoutDialog._dialogElements = typeof(SuiLayoutDialog._dialogElements) !== 'undefined' ? SuiLayoutDialog._dialogElements :
       [{
-        smoName: 'pageSize',
-        parameterName: 'pageSize',
-        defaultValue: SmoScore.pageSizes.letter,
+        smoName: 'applyToPage',
+        parameterName: 'applyToPage',
+        defaultValue: -1,
         control: 'SuiDropdownComponent',
-        label: 'Page Size',
-        options: [
-          {
-            value: 'letter',
-            label: 'Letter'
-          }, {
-            value: 'tabloid',
-            label: 'Tabloid (11x17)'
-          }, {
-            value: 'A4',
-            label: 'A4'
-          }, {
-            value: 'custom',
-            label: 'Custom'
-          }]
-      }, {
-        smoName: 'pageWidth',
-        parameterName: 'pageWidth',
-        defaultValue: SmoScore.defaults.layout.pageWidth,
-        control: 'SuiRockerComponent',
-        label: 'Page Width (px)'
-      }, {
-        smoName: 'pageHeight',
-        parameterName: 'pageHeight',
-        defaultValue: SmoScore.defaults.layout.pageHeight,
-        control: 'SuiRockerComponent',
-        label: 'Page Height (px)'
-      }, {
-        smoName: 'orientation',
-        parameterName: 'orientation',
-        defaultValue: SmoScore.orientations.portrait,
-        control: 'SuiDropdownComponent',
-        label: 'Orientation',
+        label: 'Apply to Page',
         dataType: 'int',
         options: [{
-          value: SmoScore.orientations.portrait,
-          label: 'Portrait'
+          value: -1,
+          label: 'All'
         }, {
-          value: SmoScore.orientations.landscape,
-          label: 'Landscape'
+          value: -2,
+          label: 'All Remaining'
+        }, {
+          value: 1,
+          label: 'Page 1'
         }]
       }, {
         smoName: 'leftMargin',
@@ -32598,6 +32764,12 @@ class SuiLayoutDialog extends SuiDialogBase {
         control: 'SuiRockerComponent',
         label: 'Top Margin (px)'
       }, {
+        smoName: 'bottomMargin',
+        parameterName: 'bottomMargin',
+        defaultValue: SmoScore.defaults.layout.topMargin,
+        control: 'SuiRockerComponent',
+        label: 'Bottom Margin (px)'
+      }, {
         smoName: 'interGap',
         parameterName: 'interGap',
         defaultValue: SmoScore.defaults.layout.interGap,
@@ -32611,7 +32783,7 @@ class SuiLayoutDialog extends SuiDialogBase {
         label: 'Intra-System Margin'
       }, {
         staticText: [
-          { label: 'Score Layout' }
+          { label: 'Page Layouts' }
         ]
       }];
     return SuiLayoutDialog._dialogElements;
@@ -32619,31 +32791,36 @@ class SuiLayoutDialog extends SuiDialogBase {
 
   // ### backupOriginal
   // backup the original layout parameters for trial period
-  backupOriginal() {
-    this.backup = JSON.parse(JSON.stringify(this.modifier));
-  }
   get displayOptions() {
     return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
 
   display() {
     this.applyDisplayOptions();
-    this.components.forEach((component) => {
-      const val = this.modifier[component.parameterName];
-      component.setValue(val);
+    this.focusedPage = this.view.getFocusedPage();
+    // Set the control that says which pages this dialog will apply to
+    if (this.layoutManager.pageLayouts.length === 1) {
+      this.applyToPageCtrl.setValue(-1);  // 1 page, applies to all
+      $(this.applyToPageCtrl._getInputElement()).prop('disabled', true);
+    } else {
+      if (this.focusedPage >= 1) {
+        this.applyToPageCtrl.setValue(-2); // apply to subsequent
+      } else {
+        this.applyToPageCtrl.setValue(-1); // apply to all
+      }
+    }
+    // Get the initial values from the currently focused page
+    const pl = this.layoutManager.pageLayouts[this.focusedPage];
+    SuiLayoutDialog.layoutParams.forEach((attr) => {
+      const ctrlName = attr + 'Ctrl';
+      this[ctrlName].setValue(pl[attr]);
     });
-    this._setPageSizeDefault();
     this._bindElements();
   }
-  // ### _updateLayout
-  // even if the layout is not changed, we re-render the entire score by resetting
-  // the svg context.
-  _updateLayout() {
-    this.view.renderer.rerenderAll();
-  }
   _handleCancel() {
-    this.view.score.setLayout(this.backup);
-    this._updateLayout();
+    this.backup.forEach((page, pageIx) => {
+      this.view.setPageLayout(page, pageIx);
+    });
     this.complete();
   }
   _bindElements() {
@@ -32651,8 +32828,6 @@ class SuiLayoutDialog extends SuiDialogBase {
     const dgDom = this.dgDom;
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       // TODO:  allow user to select a zoom mode.
-      self.view.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-      self._updateLayout();
       self.complete();
     });
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
@@ -32660,48 +32835,35 @@ class SuiLayoutDialog extends SuiDialogBase {
     });
     $(dgDom.element).find('.remove-button').remove();
   }
-  _setPageSizeDefault() {
-    let value = 'custom';
-    const scoreDims = this.view.score.layout;
-    SmoScore.pageSizes.forEach((sz) => {
-      const dim = SmoScore.pageDimensions[sz];
-      if (scoreDims.pageWidth === dim.width && scoreDims.pageHeight === dim.height) {
-        value = sz;
-      } else if (scoreDims.pageHeight === dim.width && scoreDims.pageWidth === dim.height) {
-        value = sz;
-      }
-    });
-    const orientation = scoreDims.pageWidth > scoreDims.pageHeight ?
-      SmoScore.orientations.landscape : SmoScore.orientations.portrait;
-    this.orientationCtrl.setValue(orientation);
-    this.pageSizeCtrl.setValue(value);
-    this._handlePageSizeChange();
-  }
-  // ### _handlePageSizeChange
-  // see if the dimensions have changed.
-  _handlePageSizeChange() {
-    const sel = this.pageSizeCtrl.getValue();
-    if (sel === 'custom') {
-      $('.attributeModal').addClass('customPage');
-    } else {
-      $('.attributeModal').removeClass('customPage');
-      const dim = SmoScore.pageDimensions[sel];
-      this.pageHeightCtrl.setValue(dim.height);
-      this.pageWidthCtrl.setValue(dim.width);
+  _pagesFromCtrl() {
+    const ap = this.applyToPageCtrl.getValue();
+    const pages = this.layoutManager.pageLayouts.length;
+    if (ap === -1) {
+      return [...Array(pages)].map((v, i) => i);
+    } else if (ap === -2) {
+      return [...Array(pages - this.focusedPage)].map((v, i) => this.focusedPage + i);
     }
+    return [ap - 1];
   }
 
   // ### changed
   // One of the components has had a changed value.
   changed() {
-    const layout = JSON.parse(JSON.stringify(this.view.score.layout));
-    this._handlePageSizeChange();
-    this.components.forEach((component) => {
-      if (typeof(layout[component.smoName]) !== 'undefined') {
-        layout[component.smoName] = component.getValue();
-      }
+    const pages = this._pagesFromCtrl();
+    pages.forEach((page) => {
+      const pl = this.layoutManager.getPageLayout(page);
+      SuiLayoutDialog.layoutParams.forEach((param) => {
+        const ctrl = param + 'Ctrl';
+        if (this.applyToPageCtrl.changeFlag) {
+          this[ctrl].setValue(pl[param]);
+        } else {
+          if (this[ctrl].changeFlag) {
+            pl[param] = this[ctrl].getValue();
+          }
+        }
+      });
+      this.view.setPageLayout(pl, page);
     });
-    this.view.setScoreLayout(layout);
   }
 
   // ### createAndDisplay
@@ -32711,17 +32873,23 @@ class SuiLayoutDialog extends SuiDialogBase {
     dg.display();
   }
   constructor(parameters) {
-    var p = parameters;
-    super(SuiLayoutDialog.dialogElements, {
+    const p = parameters;
+    const dialogElements = JSON.parse(JSON.stringify(SuiLayoutDialog.dialogElements));
+    let i = 1;
+    const score = p.view.score;
+    const pageCtrl = dialogElements.find((pp) => pp.smoName === 'applyToPage');
+    for (i = 1; i < score.layoutManager.pageLayouts.length; ++i) {
+      pageCtrl.options.push({ value: i + 1, label: 'Page ' + (i + 1) });
+    }
+    super(dialogElements, {
       id: 'dialog-layout',
       top: (p.view.score.layout.pageWidth / 2) - 200,
       left: (p.view.score.layout.pageHeight / 2) - 200,
       ...parameters
     });
-    this.score = p.view.score;
-    this.modifier = this.view.score.layout;
-    this.startPromise = p.startPromise;
-    this.backupOriginal();
+    this.score = score;
+    this.layoutManager = this.score.layoutManager;
+    this.backup = this.layoutManager.getPageLayouts();
   }
 }
 ;// ## CheckboxDropdownComponent

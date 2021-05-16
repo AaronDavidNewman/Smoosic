@@ -5,7 +5,6 @@
 class SuiScoreRender extends SuiRenderState {
   constructor(params) {
     super('SuiScoreRender');
-    Vex.Merge(this, SuiRenderState.defaults);
     Vex.Merge(this, params);
     this.attrs = {
       id: VF.Element.newID(),
@@ -40,13 +39,6 @@ class SuiScoreRender extends SuiRenderState {
     $(this.renderer.getContext().svg).find('g.lineBracket').remove();
   }
 
-  get logicalPageWidth() {
-    return this.pageMarginWidth;
-  }
-  get logicalPageHeight() {
-    return this.pageMarginHeigh;
-  }
-
   // ### _measureToLeft
   // measure to 'left' is on previous row if this is the first column in a system
   // but we still use it to compute beginning symbols (key sig etc.)
@@ -76,10 +68,11 @@ class SuiScoreRender extends SuiRenderState {
     gg.logicalBox = {};
     const group = this.context.openGroup();
     group.id = gg.attrs.id;
+    const scaledScoreLayout = this.score.layoutManager.getScaledPageLayout(0);
 
     // If this is a per-page score text, get a text group copy for each page.
     // else the array contains the original.
-    const groupAr = SmoTextGroup.getPagedTextGroups(gg, this.scaledScoreLayout.pages, this.scaledScoreLayout.pageHeight);
+    const groupAr = SmoTextGroup.getPagedTextGroups(gg, scaledScoreLayout.pages, scaledScoreLayout.pageHeight);
     groupAr.forEach((newGroup) => {
       // If this text is attached to the measure, base the block location on the rendered measure location.
       if (newGroup.attachToSelector) {
@@ -165,15 +158,6 @@ class SuiScoreRender extends SuiRenderState {
       if (inst) {
         rv.push(inst);
       }
-    });
-    return rv;
-  }
-  get scaledScoreLayout() {
-    const svgScale = this.score.layout.svgScale;
-    const rv = JSON.parse(JSON.stringify(this.score.layout));
-    const attrs = ['topMargin', 'bottomMargin', 'interGap', 'intraGap', 'pageHeight', 'pageWidth', 'leftMargin', 'rightMargin'];
-    attrs.forEach((attr) => {
-      rv[attr] = rv[attr] / svgScale;
     });
     return rv;
   }
@@ -304,36 +288,27 @@ class SuiScoreRender extends SuiRenderState {
       });
     }
   }
-  _addToPageLayouts(scoreLayout, pageNum) {
-    if (this.score.pageLayouts.length === 0) {
-      this.score.pageLayouts.push(JSON.parse(JSON.stringify(scoreLayout)));
-      return;
-    }
-    const lastLayout = this.score.pageLayouts[this.score.pageLayouts.length - 1];
-    if (this.score.pageLayouts.length < pageNum) {
-      this.score.pageLayouts.push(JSON.parse(JSON.stringify(lastLayout)));
-    }
-  }
-
   // ### _checkPageBreak
   // See if this line breaks the page boundary
   _checkPageBreak(scoreLayout, currentLine, bottomMeasure) {
     let pageAdj = 0;
     // See if this measure breaks a page.
     const maxY = bottomMeasure.logicalBox.y +  bottomMeasure.logicalBox.height;
-    if (maxY > (scoreLayout.pages * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
+    if (maxY > ((this.currentPage + 1) * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
+      // Advance to next page settings
+      this.currentPage += 1;
+      // If this is a new page, make sure there is a layout for it.
+      this.score.layoutManager.addToPageLayouts(this.currentPage);
+      scoreLayout = this.score.layoutManager.getScaledPageLayout(this.currentPage);
+
       // When adjusting the page, make it so the top staff of the system
       // clears the bottom of the page.
       const topMeasure = currentLine.reduce((a, b) =>
         a.logicalBox.y < b.logicalBox.y ? a : b
       );
       const minMaxY = topMeasure.logicalBox.y;
-      pageAdj = (scoreLayout.pages * scoreLayout.pageHeight) - minMaxY;
+      pageAdj = (this.currentPage * scoreLayout.pageHeight) - minMaxY;
       pageAdj = pageAdj + scoreLayout.topMargin;
-
-      // Prepare layout for next page, if not set
-      scoreLayout.pages += 1;
-      this._addToPageLayouts(scoreLayout, scoreLayout.pages);
 
       // For each measure on the current line, move it down past the page break;
       currentLine.forEach((measure) => {
@@ -342,11 +317,13 @@ class SuiScoreRender extends SuiRenderState {
         measure.setY(measure.staffY + pageAdj);
       });
     }
+    return scoreLayout;
   }
 
   layout() {
     let measureIx = 0;
     let systemIndex = 0;
+    let scoreLayout = this.score.layoutManager.getScaledPageLayout(0);
     let y = 0;
     let x = 0;
     let lineIndex = 0;
@@ -359,12 +336,11 @@ class SuiScoreRender extends SuiRenderState {
     layoutDebug.clearDebugBoxes('adjust');
     layoutDebug.clearDebugBoxes('system');
     layoutDebug.clearDebugBoxes('note');
+    this.currentPage = 0;
     const timestamp = new Date().valueOf();
 
     const svg = this.context.svg;
-    const scoreLayout = this.scaledScoreLayout;
-    scoreLayout.pages = 1;
-    this._addToPageLayouts(scoreLayout, 1);
+    const startPageCount = scoreLayout.pages;
 
     y = scoreLayout.topMargin;
     x = scoreLayout.leftMargin;
@@ -381,7 +357,7 @@ class SuiScoreRender extends SuiRenderState {
         const bottomMeasure = currentLine.reduce((a, b) =>
           a.logicalBox.y + a.logicalBox.height > b.logicalBox.y + b.logicalBox.height ? a : b
         );
-        this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
+        this._checkPageBreak(scoreLayout, currentLine, bottomMeasure, scoreLayout.pages);
 
         const ld = layoutDebug;
         const sh = svgHelpers;
@@ -417,11 +393,10 @@ class SuiScoreRender extends SuiRenderState {
         const bottomMeasure = currentLine.reduce((a, b) =>
           a.logicalBox.y + a.logicalBox.height > b.logicalBox.y + b.logicalBox.height ? a : b
         );
-        this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
+        scoreLayout = this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
       }
     }
-    if (scoreLayout.pages !== this.score.layout.pages) {
-      this.score.layout.pages = scoreLayout.pages;
+    if (scoreLayout.pages !== startPageCount) {
       this.setViewport(true);
     }
     layoutDebug.setTimestamp(layoutDebug.codeRegions.COMPUTE, new Date().valueOf() - timestamp);
@@ -460,14 +435,14 @@ class SuiScoreRender extends SuiRenderState {
       this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast, s.tempoLast);
 
       // calculate vertical offsets from the baseline
-      const offsets = suiLayoutAdjuster.estimateMeasureHeight(measure, this.score.layout);
+      const offsets = suiLayoutAdjuster.estimateMeasureHeight(measure, scoreLayout);
       measure.setYTop(offsets.aboveBaseline);
       measure.setY(y - measure.yTop, '_estimateColumns height');
       measure.setX(x);
 
       // Add custom width to measure:
       measure.setBox(svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline));
-      suiLayoutAdjuster.estimateMeasureWidth(measure, this.score.layout.noteSpacing, accidentalMap);
+      suiLayoutAdjuster.estimateMeasureWidth(measure, scoreLayout.noteSpacing, accidentalMap);
       y = y + measure.logicalBox.height + scoreLayout.intraGap;
       rowInSystem += 1;
     });

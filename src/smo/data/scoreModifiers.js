@@ -12,7 +12,6 @@ class SmoScoreModifierBase {
       };
     }
   }
-
   static deserialize(jsonObj) {
     const ctor = eval(jsonObj.ctor);
     const rv = new ctor(jsonObj);
@@ -20,6 +19,138 @@ class SmoScoreModifierBase {
   }
 }
 
+// ## SmoLayoutManager
+// Storage and utilities for layout information in the score.  Each
+// manager has one set of page height/width, since svg element
+// must have single length/width and viewbox.
+// Each page can have different margins.
+// eslint-disable-next-line no-unused-vars
+class SmoLayoutManager extends SmoScoreModifierBase {
+  static get defaults() {
+    return {
+      svgScale: 1.0,
+      zoomScale: 2.0,
+      zoomMode: SmoScore.zoomModes.fitWidth,
+      noteSpacing: 1.0,
+      pageWidth: 8 * 96 + 48,
+      pageHeight: 11 * 96,
+      pageSettings: []
+    };
+  }
+  static get attributes() {
+    return ['svgScale', 'zoomScale', 'zoomMode', 'noteSpacing', 'pageWidth', 'pageHeight'];
+  }
+  // Attributes that are scaled by svgScale
+  static get scalableAttributes() {
+    return ['pageWidth', 'pageHeight'];
+  }
+
+  constructor(params) {
+    super('SmoLayoutManager');
+    if (typeof(params) === 'undefined') {
+      params = {};
+    }
+    smoSerialize.serializedMerge(SmoLayoutManager.attributes, SmoLayoutManager.defaults, this);
+    smoSerialize.serializedMerge(SmoLayoutManager.attributes, params, this);
+    this.pageLayouts = [];
+    if (params.pageLayouts && params.pageLayouts.length) {
+      params.pageLayouts.forEach((page) => {
+        this.pageLayouts.push(new SmoPageLayout(page));
+      });
+    } else {
+      this.pageLayouts.push(new SmoPageLayout());
+    }
+  }
+  getZoomScale() {
+    const zoomScale = this.zoomMode === SmoScore.zoomModes.zoomScale ?
+      this.zoomScale : (window.innerWidth - 200) / this.pageWidth;
+    return zoomScale;
+  }
+  serialize() {
+    const rv = {};
+    rv.pageLayouts = [];
+    this.pageLayouts.forEach((pl) => {
+      rv.pageLayouts.push(pl.serialize());
+    });
+    smoSerialize.serializedMerge(SmoLayoutManager.attributes, this, rv);
+    return rv;
+  }
+  updateGlobalLayout(params) {
+    SmoLayoutManager.attributes.forEach((attr) => {
+      if (typeof(params[attr]) !== 'undefined') {
+        this[attr] = params[attr];
+      }
+    });
+  }
+  // ### addToPageLayouts
+  // Make sure the next page has a layout.  If not, copy settings from
+  // previous page.
+  addToPageLayouts(pageNum) {
+    const lastLayout = this.pageLayouts[this.pageLayouts.length - 1];
+    if (this.pageLayouts.length <= pageNum) {
+      this.pageLayouts.push(new SmoPageLayout(lastLayout));
+    }
+  }
+  getGlobalLayout() {
+    const rv = {};
+    smoSerialize.serializedMerge(SmoLayoutManager.attributes, this, rv);
+    return rv;
+  }
+  // Return a deep copy of the page parameters, adjusted for the global scale.
+  getScaledPageLayout(pageIndex) {
+    const svgScale = this.svgScale;
+    const rv = this.getGlobalLayout();
+    SmoLayoutManager.scalableAttributes.forEach((attr) => {
+      rv[attr] = rv[attr] / svgScale;
+    });
+    const pageCopy = JSON.parse(JSON.stringify(this.pageLayouts[pageIndex]));
+    SmoPageLayout.attributes.forEach((attr) => {
+      rv[attr] = pageCopy[attr] / svgScale;
+    });
+    rv.pages = this.pageLayouts.length;
+    return rv;
+  }
+  getPageLayout(pageIndex) {
+    return JSON.parse(JSON.stringify(this.pageLayouts[pageIndex]));
+  }
+  getPageLayouts() {
+    return JSON.parse(JSON.stringify(this.pageLayouts));
+  }
+  updatePage(pageLayout, pageIndex) {
+    if (this.pageLayouts.length > pageIndex) {
+      this.pageLayouts[pageIndex] = new SmoPageLayout(pageLayout);
+    }
+  }
+}
+class SmoPageLayout extends SmoScoreModifierBase {
+  static get defaults() {
+    return {
+      leftMargin: 30,
+      rightMargin: 30,
+      topMargin: 40,
+      bottomMargin: 40,
+      interGap: 30,
+      intraGap: 10
+    };
+  }
+  static get attributes() {
+    return ['leftMargin', 'rightMargin', 'topMargin', 'bottomMargin', 'interGap', 'intraGap'];
+  }
+  constructor(params) {
+    super('SmoPageLayout');
+    if (typeof(params) === 'undefined') {
+      params = {};
+    }
+    smoSerialize.serializedMerge(SmoPageLayout.attributes, SmoPageLayout.defaults, this);
+    smoSerialize.serializedMerge(SmoPageLayout.attributes, params, this);
+  }
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoPageLayout.defaults, SmoPageLayout.attributes, this, params);
+    params.ctor = 'SmoPageLayout';
+    return params;
+  }
+}
 // ## SmoSystemGroup
 // System group is the grouping of staves into a system.
 // eslint-disable-next-line no-unused-vars

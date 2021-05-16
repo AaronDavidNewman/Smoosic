@@ -219,7 +219,9 @@ class smoSerialize {
       "uf": "customText",
       "vf": "noteSpacing",
       "wf": "lines",
-      "xf": "from"
+      "xf": "from",
+      "yf": "layoutManager",
+      "zf": "pageLayouts"
       }`;
      return JSON.parse(_tm);
     }
