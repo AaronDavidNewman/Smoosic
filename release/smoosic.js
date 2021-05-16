@@ -6879,7 +6879,7 @@ class SuiScoreRender extends SuiRenderState {
         scoreLayout = this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
       }
     }
-    if (scoreLayout.pages !== startPageCount) {
+    if (this.score.layoutManager.pageLayouts.length !== startPageCount) {
       this.setViewport(true);
     }
     layoutDebug.setTimestamp(layoutDebug.codeRegions.COMPUTE, new Date().valueOf() - timestamp);
