@@ -120,7 +120,7 @@ class VxMeasure {
     const o = smoNote.getJazzOrnaments();
     o.forEach((ll) => {
       const mod = new VF.Ornament(ll.toVex());
-      vexNote.addModifier(0, mod);
+      vexNote.addModifier(mod, 0);
     });
   }
 
@@ -131,7 +131,7 @@ class VxMeasure {
       if (ll.offset === SmoOrnament.offsets.after) {
         mod.setDelayed(true);
       }
-      vexNote.addModifier(0, mod);
+      vexNote.addModifier(mod, 0);
     });
   }
   _addLyricAnnotationToNote(vexNote, lyric) {
@@ -172,7 +172,7 @@ class VxMeasure {
       }
     });
     cs.setFont(lyric.fontInfo.family, lyric.fontInfo.size).setReportWidth(lyric.adjustNoteWidth);
-    vexNote.addModifier(0, cs);
+    vexNote.addModifier(cs, 0);
     const classString = 'chord chord-' + lyric.verse;
     cs.addClass(classString);
   }
@@ -221,7 +221,7 @@ class VxMeasure {
       if (toBeam) {
         grace.beamNotes();
       }
-      vexNote.addModifier(0, grace);
+      vexNote.addModifier(grace, 0);
     }
   }
 
