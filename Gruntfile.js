@@ -3,7 +3,7 @@ module.exports = function (grunt) {
   const LINTS = ['src/smo/data/measure.js','src/smo/data/note.js','src/smo/data/score.js',
   'src/smo/xform/beamers.js','src/smo/xform/audioTrack.js',
   'src/smo/data/noteModifiers.js','src/smo/data/systemStaff.js','src/smo/data/scoreModifiers.js',
-  '/src/smo/data/library.js',
+  'src/smo/data/library.js',
   'src/smo/data/tuplet.js','src/smo/data/staffModifiers.js',
   'src/smo/mxml/xmlScore.js','src/smo/mxml/xmlState.js','src/smo/mxml/xmlHelpers.js',
   'src/smo/mxml/smo2Xml.js',
