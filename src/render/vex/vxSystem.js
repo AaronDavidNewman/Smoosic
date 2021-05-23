@@ -222,6 +222,9 @@ class VxSystem {
       }
       return a;
     };
+    if (smoStart.note.noteType === '/' || smoEnd.note.noteType === '/') {
+      return;
+    }
     // if it is split between lines, render one artifact for each line, with a common class for
     // both if it is removed.
     if (vxStart) {

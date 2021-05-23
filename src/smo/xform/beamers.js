@@ -84,6 +84,11 @@ class smoBeamModifier {
   beamNote(tickmap, index, note) {
     this.beamBeats = note.beamBeats;
     this.duration += tickmap.deltaMap[index];
+    if (note.noteType === '/') {
+      this._completeGroup(tickmap.voice);
+      this._advanceGroup();
+      return;
+    }
 
     // beam tuplets
     if (note.isTuplet) {

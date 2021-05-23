@@ -179,9 +179,11 @@ class VxMeasure {
 
   _createLyric(smoNote, vexNote) {
     const lyrics = smoNote.getTrueLyrics();
-    lyrics.forEach((ll) => {
-      this._addLyricAnnotationToNote(vexNote, ll);
-    });
+    if (smoNote.noteType !== '/') {
+      lyrics.forEach((ll) => {
+        this._addLyricAnnotationToNote(vexNote, ll);
+      });
+    }
     const chords = smoNote.getChords();
     chords.forEach((chord) => {
       this._addChordChangeToNote(vexNote, chord);
@@ -363,6 +365,9 @@ class VxMeasure {
       keyNoteIx = (keyNoteIx >= 0) ? keyNoteIx : 0;
       for (j = 0; j < bg.notes.length; ++j) {
         const note = bg.notes[j];
+        if (note.noteType === '/') {
+          continue;
+        }
         const vexNote = this.noteToVexMap[note.attrs.id];
         // some type of redraw condition?
         if (typeof(vexNote) === 'undefined') {
