@@ -509,7 +509,17 @@ class SuiScoreViewOperations extends SuiScoreView {
     });
     this._renderChangedMeasures(measureSelections);
   }
-
+  toggleSlash() {
+    this.actionBuffer.addAction('toggleSlash');
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections('make slash');
+    selections.forEach((selection) => {
+      SmoOperation.toggleSlash(selection);
+      const altSel = this._getEquivalentSelection(selection);
+      SmoOperation.toggleSlash(altSel);
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
   makeRest() {
     this.actionBuffer.addAction('makeRest');
     const selections = this.tracker.selections;

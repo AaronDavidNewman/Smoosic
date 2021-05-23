@@ -250,12 +250,20 @@ class SmoNote {
   toggleRest() {
     this.noteType = (this.noteType === 'r' ? 'n' : 'r');
   }
-
+  toggleSlash() {
+    this.noteType = (this.noteType === '/' ? 'n' : '/');
+  }
+  makeSlash() {
+    this.noteType = '/';
+  }
   makeRest() {
     this.noteType = 'r';
   }
   isRest() {
     return this.noteType === 'r';
+  }
+  isSlash() {
+    return this.noteType === '/';
   }
 
   makeNote() {

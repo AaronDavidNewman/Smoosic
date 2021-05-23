@@ -362,7 +362,7 @@ class SmoAudioTrack {
             } else {
               duration = note.tickCount / this.timeDiv;
             }
-            if (note.isRest()) {
+            if (note.isRest() || note.isSlash()) {
               track.notes.push(this.createTrackRest(duration, runningDuration, selector));
             } else {
               this.computeVolume(track, selection);

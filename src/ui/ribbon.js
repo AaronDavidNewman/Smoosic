@@ -334,6 +334,8 @@ class NoteButtons {
       this.keyCommands.toggleCourtesyAccidental();
     } else if (this.buttonData.id === 'ToggleRestButton') {
       this.keyCommands.makeRest();
+    } else if (this.buttonData.id === 'ToggleSlashButton') {
+      this.view.toggleSlash();
     } else if (this.buttonData.id === 'AddGraceNote') {
       this.keyCommands.addGraceNote();
     } else if (this.buttonData.id === 'SlashGraceNote') {

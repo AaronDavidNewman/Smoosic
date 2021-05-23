@@ -4227,7 +4227,7 @@ class suiOscillator {
     if (!selection.note) {
       return;
     }
-    if (selection.note.isRest()) {
+    if (selection.note.isRest() || selection.note.isSlash()) {
       return;
     }
     setTimeout(() => {
@@ -5506,6 +5506,9 @@ class suiMapper {
           tick,
           pitches: []
         };
+        if (typeof(note.logicalBox) === 'undefined') {
+          console.warn('note has no box');
+        }
         // create a selection for the newly rendered note
         const selection = new SmoSelection({
           selector,
@@ -7812,7 +7815,17 @@ class SuiScoreViewOperations extends SuiScoreView {
     });
     this._renderChangedMeasures(measureSelections);
   }
-
+  toggleSlash() {
+    this.actionBuffer.addAction('toggleSlash');
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections('make slash');
+    selections.forEach((selection) => {
+      SmoOperation.toggleSlash(selection);
+      const altSel = this._getEquivalentSelection(selection);
+      SmoOperation.toggleSlash(altSel);
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
   makeRest() {
     this.actionBuffer.addAction('makeRest');
     const selections = this.tracker.selections;
@@ -11905,17 +11918,22 @@ class VxMeasure {
       duration: duration + smoNote.noteType
     };
 
-    this.applyStemDirection(noteParams, voiceIx, smoNote.flagState);
-    layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATA, new Date().valueOf() - timestamp);
-    timestamp = new Date().valueOf();
-    vexNote = new VF.StaveNote(noteParams);
-    layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATB, new Date().valueOf() - timestamp);
-    timestamp = new Date().valueOf();
-    if (smoNote.fillStyle) {
-      vexNote.setStyle({ fillStyle: smoNote.fillStyle });
+    if (smoNote.noteType === '/') {
+      vexNote = new VF.GlyphNote(new VF.Glyph('repeatBarSlash', 40), { duration });
+      smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
+    } else {
+      this.applyStemDirection(noteParams, voiceIx, smoNote.flagState);
+      layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATA, new Date().valueOf() - timestamp);
+      timestamp = new Date().valueOf();
+      vexNote = new VF.StaveNote(noteParams);
+      layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATB, new Date().valueOf() - timestamp);
+      timestamp = new Date().valueOf();
+      if (smoNote.fillStyle) {
+        vexNote.setStyle({ fillStyle: smoNote.fillStyle });
+      }
+      vexNote.attrs.classes = 'voice-' + voiceIx;
+      smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
     }
-    vexNote.attrs.classes = 'voice-' + voiceIx;
-    smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
 
     this._createAccidentals(smoNote, vexNote, tickIndex, voiceIx);
     this._createLyric(smoNote, vexNote, x_shift);
@@ -12713,74 +12731,71 @@ class VxSystem {
     this.measures.push(vxMeasure);
   }
 }
-;// ## SmoLibraryNode
-// The node with link for online libraries of smoosic
-class SmoLibraryNode {
-  constructor(nodeInfo) {
+;// ## SmoLibrary
+// A class to organize smoosic files (or any format smoosic accepts) into libraries.
+// eslint-disable-next-line no-unused-vars
+class SmoLibrary {
+  constructor(parameters) {
     smoSerialize.serializedMerge(
-      SmoLibraryNode.parameterArray, nodeInfo, this);
+      SmoLibrary.parameterArray, SmoLibrary.defaults, this);
+    Object.keys(parameters.metadata).forEach((key) => {
+      this.metadata[key] = parameters.metadata[key];
+    });
+    this.children = [];
+    parameters.children.forEach((childLib) => {
+      this.children.push(new SmoLibrary(childLib));
+    });
+    this.children.forEach((child) => {
+      child._inheritMetadata(this.metadata);
+    });
   }
-  static get parameterArray() {
-    return ['name', 'url', 'format', 'icon', 'tags', 'composer', 'artist', 'copyright',
-      'title', 'subtitle', 'movement', 'source']
+  static get metadataNames() {
+    return ['name', 'icon', 'tags', 'composer', 'artist', 'copyright',
+      'title', 'subtitle', 'movement', 'source'];
+  }
+  static get formatTypes() {
+    return ['smoosic', 'library', 'mxml', 'midi', 'abc'];
+  }
+  static get libraryTypes() {
+    return ['work', 'transcription', 'library', 'collection'];
   }
   static get defaults() {
-    if (typeof(SmoLibraryNode._defaults) === 'undefined') {
-      SmoLibraryNode._defaults = {};
-      SmoLibraryNode.parameterArray.forEach((pp) => {
-        SmoLibraryNode._defaults[pp] = '';
-      });
+    if (typeof(SmoLibrary._defaults) === 'undefined') {
+      SmoLibrary._defaults = { url: '', format: '', chidren: [], metadata: {} };
     }
-    return SmoLibraryNode._defaults;
+    return SmoLibrary._defaults;
+  }
+  static get parameterArray() {
+    return ['children', 'metadata', 'format', 'url'];
+  }
+  static deserialize(json) {
+    return new SmoLibrary(json);
   }
   serialize() {
     const params = {};
-    smoSerialize.serializedMergeNonDefault(SmoLibrary.defaults,
-      SmoLibrary.parameterArray, this, params);
+    if (this.url) {
+      params.url = this.url;
+      params.format = this.format;
+    }
+    params.metadata = JSON.parse(JSON.stringify(this.metadata));
+    params.children = [];
+    this.children.forEach((child) => {
+      params.children.push(child.serialize());
+    });
     return params;
   }
-}
-// ## SmoLibrary
-// A class to organize smoosic files (or any format smoosic accepts) into libraries.
-class SmoLibrary {
-    constructor(parameters) {
-      smoSerialize.serializedMerge(
-        SmoLibrary.parameterArray, SmoLibrary.defaults, this);
-        smoSerialize.serializedMerge(
-          SmoLibrary.parameterArray, parameters, this);
-      this.children = [];
-      parameters.children.forEach((childLib) => {
-        this.children.push(new SmoLibrary(childLib));
-      });
-      this.nodes = [];
-      parameters.nodes.forEach((node) => {
-        this.nodes.push(new SmoLibraryNode(node));
-      });
-    }
-    static get defaults() {
-      return {
-        children: [],
-        nodes: [],
-        name: 'Library of Smoosic',
-        tags: []
-      };
-    }
-    static get parameterArray() {
-      return ['name', 'tags']
-    }
-    static deserialize(json) {
-      return new SmoLibrary(json);
-    }
-    serialize() {
-      const params = {};
-      smoSerialize.serializedMergeNonDefault(SmoLibrary.defaults,
-        SmoLibrary.parameterArray, this, params);
-      params.children = [];
-      this.children.forEach((child) => {
-        params.children.push(child.serialize());
-      });
-      return params;
-    }
+  _inheritMetadata(obj) {
+    const inherited = [];
+    Object.keys(obj).forEach((mn) => {
+      if (typeof(this.metadata[mn]) === 'undefined')  {
+        inherited.push(JSON.parse(JSON.stringify(obj[mn])));
+        this.metadata[mn] = obj[mn];
+      }
+    });
+    this.children.forEach((child) => {
+      child._inheritMetadata(inherited);
+    });
+  }
 }
 ;// ## SmoMeasure - data for a measure of music
 // Many rules of musical engraving are enforced at a measure level, e.g. the duration of
@@ -14551,12 +14566,20 @@ class SmoNote {
   toggleRest() {
     this.noteType = (this.noteType === 'r' ? 'n' : 'r');
   }
-
+  toggleSlash() {
+    this.noteType = (this.noteType === '/' ? 'n' : '/');
+  }
+  makeSlash() {
+    this.noteType = '/';
+  }
   makeRest() {
     this.noteType = 'r';
   }
   isRest() {
     return this.noteType === 'r';
+  }
+  isSlash() {
+    return this.noteType === '/';
   }
 
   makeNote() {
@@ -19843,7 +19866,7 @@ class SmoAudioTrack {
             } else {
               duration = note.tickCount / this.timeDiv;
             }
-            if (note.isRest()) {
+            if (note.isRest() || note.isSlash()) {
               track.notes.push(this.createTrackRest(duration, runningDuration, selector));
             } else {
               this.computeVolume(track, selection);
@@ -20746,6 +20769,9 @@ class SmoOperation {
   }
   static toggleRest(selection) {
     selection.note.toggleRest();
+  }
+  static toggleSlash(selection) {
+    selection.note.toggleSlash();
   }
 
   static makeRest(selection) {
@@ -42432,6 +42458,8 @@ class NoteButtons {
       this.keyCommands.toggleCourtesyAccidental();
     } else if (this.buttonData.id === 'ToggleRestButton') {
       this.keyCommands.makeRest();
+    } else if (this.buttonData.id === 'ToggleSlashButton') {
+      this.view.toggleSlash();
     } else if (this.buttonData.id === 'AddGraceNote') {
       this.keyCommands.addGraceNote();
     } else if (this.buttonData.id === 'SlashGraceNote') {
@@ -42893,7 +42921,7 @@ class defaultRibbonLayout {
     return ['NoteButtons',
             'UpNoteButton', 'DownNoteButton','AddGraceNote','RemoveGraceNote','SlashGraceNote',
             'XNoteHead','TriUpNoteHead','CircleXNoteHead','DiamondNoteHead',
-        'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
+        'UpOctaveButton', 'DownOctaveButton', 'ToggleRestButton','ToggleSlashButton','ToggleAccidental', 'ToggleCourtesy'];
   }
   static get voiceButtonIds() {
       return ['VoiceButtons','V1Button','V2Button','V3Button','V4Button','VXButton'];
@@ -43741,7 +43769,16 @@ class defaultRibbonLayout {
         ctor: 'NoteButtons',
         group: 'notes',
         id: 'ToggleRestButton'
-      },{
+      }, {
+        leftText: '',
+        rightText: 'r',
+        icon: 'icon-slash',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'ToggleSlashButton'
+      }, {
         leftText: '...',
         rightText: '',
         icon: 'icon-circle-left',

@@ -4227,7 +4227,7 @@ class suiOscillator {
     if (!selection.note) {
       return;
     }
-    if (selection.note.isRest()) {
+    if (selection.note.isRest() || selection.note.isSlash()) {
       return;
     }
     setTimeout(() => {
@@ -5506,6 +5506,9 @@ class suiMapper {
           tick,
           pitches: []
         };
+        if (typeof(note.logicalBox) === 'undefined') {
+          console.warn('note has no box');
+        }
         // create a selection for the newly rendered note
         const selection = new SmoSelection({
           selector,
@@ -7812,7 +7815,17 @@ class SuiScoreViewOperations extends SuiScoreView {
     });
     this._renderChangedMeasures(measureSelections);
   }
-
+  toggleSlash() {
+    this.actionBuffer.addAction('toggleSlash');
+    const selections = this.tracker.selections;
+    const measureSelections = this._undoTrackerMeasureSelections('make slash');
+    selections.forEach((selection) => {
+      SmoOperation.toggleSlash(selection);
+      const altSel = this._getEquivalentSelection(selection);
+      SmoOperation.toggleSlash(altSel);
+    });
+    this._renderChangedMeasures(measureSelections);
+  }
   makeRest() {
     this.actionBuffer.addAction('makeRest');
     const selections = this.tracker.selections;
@@ -11905,17 +11918,22 @@ class VxMeasure {
       duration: duration + smoNote.noteType
     };
 
-    this.applyStemDirection(noteParams, voiceIx, smoNote.flagState);
-    layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATA, new Date().valueOf() - timestamp);
-    timestamp = new Date().valueOf();
-    vexNote = new VF.StaveNote(noteParams);
-    layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATB, new Date().valueOf() - timestamp);
-    timestamp = new Date().valueOf();
-    if (smoNote.fillStyle) {
-      vexNote.setStyle({ fillStyle: smoNote.fillStyle });
+    if (smoNote.noteType === '/') {
+      vexNote = new VF.GlyphNote(new VF.Glyph('repeatBarSlash', 40), { duration });
+      smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
+    } else {
+      this.applyStemDirection(noteParams, voiceIx, smoNote.flagState);
+      layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATA, new Date().valueOf() - timestamp);
+      timestamp = new Date().valueOf();
+      vexNote = new VF.StaveNote(noteParams);
+      layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATB, new Date().valueOf() - timestamp);
+      timestamp = new Date().valueOf();
+      if (smoNote.fillStyle) {
+        vexNote.setStyle({ fillStyle: smoNote.fillStyle });
+      }
+      vexNote.attrs.classes = 'voice-' + voiceIx;
+      smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
     }
-    vexNote.attrs.classes = 'voice-' + voiceIx;
-    smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
 
     this._createAccidentals(smoNote, vexNote, tickIndex, voiceIx);
     this._createLyric(smoNote, vexNote, x_shift);
@@ -14548,12 +14566,20 @@ class SmoNote {
   toggleRest() {
     this.noteType = (this.noteType === 'r' ? 'n' : 'r');
   }
-
+  toggleSlash() {
+    this.noteType = (this.noteType === '/' ? 'n' : '/');
+  }
+  makeSlash() {
+    this.noteType = '/';
+  }
   makeRest() {
     this.noteType = 'r';
   }
   isRest() {
     return this.noteType === 'r';
+  }
+  isSlash() {
+    return this.noteType === '/';
   }
 
   makeNote() {
@@ -19840,7 +19866,7 @@ class SmoAudioTrack {
             } else {
               duration = note.tickCount / this.timeDiv;
             }
-            if (note.isRest()) {
+            if (note.isRest() || note.isSlash()) {
               track.notes.push(this.createTrackRest(duration, runningDuration, selector));
             } else {
               this.computeVolume(track, selection);
@@ -20743,6 +20769,9 @@ class SmoOperation {
   }
   static toggleRest(selection) {
     selection.note.toggleRest();
+  }
+  static toggleSlash(selection) {
+    selection.note.toggleSlash();
   }
 
   static makeRest(selection) {
@@ -40710,32 +40739,6 @@ class SuiKeyCommands {
     this.toggleArticulationCommand(atyp, 'SmoArticulation');
   }
 }
-;class DefaultLibrary {
-  static get libraries() {
-    const rv = [
-      { metadata: [
-        { name: 'Handel''s Messiah' },
-        { tags: ['Sacred Oratorio', 'Religious Music'] },
-        { composer: 'GF Handel' }
-      ]
-      children: [
-        { url: 'https://aarondavidnewman.github.io/Smoosic/release/library/Messiah Pt 1-1.json',
-          urlFormat: 'smoosic',
-          metadata: [
-            { name: 'Sinfonia' },
-            { source: 'https://imslp.org/wiki/Messiah,_HWV_56_(Handel,_George_Frideric)' },
-            { movement: 'I-I' }
-          }
-        ]
-      ]
-        nodes: [
-
-        ],
-          { name: 'Recitativo: Comfort ye, my people', format: 'smoosic', source: 'https://imslp.org/wiki/Messiah,_HWV_56_(Handel,_George_Frideric)' }
-        ]}
-    ];
-  }
-}
 ;class suiMenuBase {
   constructor(params) {
     Vex.Merge(this, params);
@@ -42455,6 +42458,8 @@ class NoteButtons {
       this.keyCommands.toggleCourtesyAccidental();
     } else if (this.buttonData.id === 'ToggleRestButton') {
       this.keyCommands.makeRest();
+    } else if (this.buttonData.id === 'ToggleSlashButton') {
+      this.view.toggleSlash();
     } else if (this.buttonData.id === 'AddGraceNote') {
       this.keyCommands.addGraceNote();
     } else if (this.buttonData.id === 'SlashGraceNote') {
@@ -42916,7 +42921,7 @@ class defaultRibbonLayout {
     return ['NoteButtons',
             'UpNoteButton', 'DownNoteButton','AddGraceNote','RemoveGraceNote','SlashGraceNote',
             'XNoteHead','TriUpNoteHead','CircleXNoteHead','DiamondNoteHead',
-        'UpOctaveButton', 'DownOctaveButton', 'ToggleRest','ToggleAccidental', 'ToggleCourtesy'];
+        'UpOctaveButton', 'DownOctaveButton', 'ToggleRestButton','ToggleSlashButton','ToggleAccidental', 'ToggleCourtesy'];
   }
   static get voiceButtonIds() {
       return ['VoiceButtons','V1Button','V2Button','V3Button','V4Button','VXButton'];
@@ -43764,7 +43769,16 @@ class defaultRibbonLayout {
         ctor: 'NoteButtons',
         group: 'notes',
         id: 'ToggleRestButton'
-      },{
+      }, {
+        leftText: '',
+        rightText: 'r',
+        icon: 'icon-slash',
+        classes: 'collapsed',
+        action: 'collapseChild',
+        ctor: 'NoteButtons',
+        group: 'notes',
+        id: 'ToggleSlashButton'
+      }, {
         leftText: '...',
         rightText: '',
         icon: 'icon-circle-left',

@@ -253,6 +253,9 @@ class suiMapper {
           tick,
           pitches: []
         };
+        if (typeof(note.logicalBox) === 'undefined') {
+          console.warn('note has no box');
+        }
         // create a selection for the newly rendered note
         const selection = new SmoSelection({
           selector,

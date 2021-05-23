@@ -327,6 +327,9 @@ class SmoOperation {
   static toggleRest(selection) {
     selection.note.toggleRest();
   }
+  static toggleSlash(selection) {
+    selection.note.toggleSlash();
+  }
 
   static makeRest(selection) {
     selection.note.makeRest();

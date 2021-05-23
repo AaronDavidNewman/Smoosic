@@ -249,17 +249,22 @@ class VxMeasure {
       duration: duration + smoNote.noteType
     };
 
-    this.applyStemDirection(noteParams, voiceIx, smoNote.flagState);
-    layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATA, new Date().valueOf() - timestamp);
-    timestamp = new Date().valueOf();
-    vexNote = new VF.StaveNote(noteParams);
-    layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATB, new Date().valueOf() - timestamp);
-    timestamp = new Date().valueOf();
-    if (smoNote.fillStyle) {
-      vexNote.setStyle({ fillStyle: smoNote.fillStyle });
+    if (smoNote.noteType === '/') {
+      vexNote = new VF.GlyphNote(new VF.Glyph('repeatBarSlash', 40), { duration });
+      smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
+    } else {
+      this.applyStemDirection(noteParams, voiceIx, smoNote.flagState);
+      layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATA, new Date().valueOf() - timestamp);
+      timestamp = new Date().valueOf();
+      vexNote = new VF.StaveNote(noteParams);
+      layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATB, new Date().valueOf() - timestamp);
+      timestamp = new Date().valueOf();
+      if (smoNote.fillStyle) {
+        vexNote.setStyle({ fillStyle: smoNote.fillStyle });
+      }
+      vexNote.attrs.classes = 'voice-' + voiceIx;
+      smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
     }
-    vexNote.attrs.classes = 'voice-' + voiceIx;
-    smoNote.renderId = 'vf-' + vexNote.attrs.id; // where does 'vf' come from?
 
     this._createAccidentals(smoNote, vexNote, tickIndex, voiceIx);
     this._createLyric(smoNote, vexNote, x_shift);

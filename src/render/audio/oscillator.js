@@ -156,7 +156,7 @@ class suiOscillator {
     if (!selection.note) {
       return;
     }
-    if (selection.note.isRest()) {
+    if (selection.note.isRest() || selection.note.isSlash()) {
       return;
     }
     setTimeout(() => {
