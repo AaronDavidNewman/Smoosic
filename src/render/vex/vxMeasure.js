@@ -86,6 +86,9 @@ class VxMeasure {
   }
   _createAccidentals(smoNote, vexNote, tickIndex, voiceIx) {
     let i = 0;
+    if (smoNote.noteType === '/') {
+      return;
+    }
     smoNote.accidentalsRendered = [];
     for (i = 0; i < smoNote.pitches.length; ++i) {
       const pitch = smoNote.pitches[i];
