@@ -1,25 +1,30 @@
 {
-  "metadata":
-    { "name": "Jazz Transcriptions", "type": "collection",
-      "tags": ["jazz", "transcription"]}
-  ],
-  "children": [{
-    "url": "https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json",
-    "format": "smoosic",
-    "metadata": {
-      "name": "Yama",
-      "composer": "Lee Morgan",
-      "artist": "Lee Morgan"
-    }
-  },
-  {
-    "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Blues For Alice.mxml",
-    "format": "mxml",
-    "metadata": {
-      "name": "Blues for Alice" ,
-      "composer": "Charlie Parker",
-      "artist": "Charlie Parker"
-    }
-  }
-  ]
+	"metadata": {
+		"name": "Jazz Transcriptions",
+		"type": "collection",
+		"tags": [
+			"jazz",
+			"transcription"
+		]
+	},
+	"children": [
+		{
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json",
+			"format": "smoosic",
+			"metadata": {
+				"name": "Yama",
+				"composer": "Lee Morgan",
+				"artist": "Lee Morgan"
+			}
+		},
+		{
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Blues For Alice.mxml",
+			"format": "mxml",
+			"metadata": {
+				"name": "Blues for Alice",
+				"composer": "Charlie Parker",
+				"artist": "Charlie Parker"
+			}
+		}
+	]
 }

@@ -1,21 +1,27 @@
 {
-  "metadata":
-    { "name": "Smoosic Library", "type": "library",
-      "tags": ["Music Library", "Smoosic"],
-      "source": "https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json" }
-  ],
-  "children": [{
-    "url": "https://aarondavidnewman.github.io/Smoosic/release/library/links/messiah.json",
-    "format": "library",
-    "metadata": {
-      "name": "Handel's Messiah",
-    }},
-    {
-      "url": "https://aarondavidnewman.github.io/Smoosic/release/library/links/transcriptions.json",
-      "format": "library",
-      "metadata": {
-        "name": "Jazz Transcription Library"
-      }
-    }
-  ]
+	"metadata": {
+		"name": "Smoosic Library",
+		"type": "library",
+		"tags": [
+			"Music Library",
+			"Smoosic"
+		],
+		"source": "https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json"
+	},
+	"children": [
+		{
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/links/messiah.json",
+			"format": "library",
+			"metadata": {
+				"name": "Handels Messiah"
+			}
+		},
+		{
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/links/transcriptions.json",
+			"format": "library",
+			"metadata": {
+				"name": "Jazz Transcription Library"
+			}
+		}
+	]
 }

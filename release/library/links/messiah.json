@@ -1,23 +1,30 @@
 {
-  "metadata":
-    { "name": "Handel''s Messiah", "type": "work",
-      "tags": ["Sacred Oratorio", "Religious Music"], "composer": "GF Handel",
-      "source": "https://imslp.org/wiki/Messiah,_HWV_56_(Handel,_George_Frideric)" }
-  ],
-  "children": [{
-    "url": "https://aarondavidnewman.github.io/Smoosic/release/library/Messiah Pt 1-1.json",
-    "format": "smoosic",
-    "metadata": {
-      "name": "Sinfonia",
-      "movement": "I-1"
-    }},
-    {
-      "url": "https://aarondavidnewman.github.io/Smoosic/release/library/Messia Pt 1-2.json",
-      "format": "smoosic",
-      "metadata": {
-        "name": "Recitativo: Comfort ye, my people" ,
-        "movement": "I-2"
-      }
-    }
-  ]
+	"metadata": {
+		"name": "Handel''s Messiah",
+		"type": "work",
+		"tags": [
+			"Sacred Oratorio",
+			"Religious Music"
+		],
+		"composer": "GF Handel",
+		"source": "https://imslp.org/wiki/Messiah,_HWV_56_(Handel,_George_Frideric)"
+	},
+	"children": [
+		{
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/Messiah Pt 1-1.json",
+			"format": "smoosic",
+			"metadata": {
+				"name": "Sinfonia",
+				"movement": "I-1"
+			}
+		},
+		{
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/Messia Pt 1-2.json",
+			"format": "smoosic",
+			"metadata": {
+				"name": "Recitativo: Comfort ye, my people",
+				"movement": "I-2"
+			}
+		}
+	]
 }
