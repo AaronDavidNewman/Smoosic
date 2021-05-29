@@ -1,7 +1,8 @@
 {
+  "format": "library",
 	"metadata": {
 		"name": "Smoosic Library",
-		"type": "library",
+    "type": "library",
 		"tags": [
 			"Music Library",
 			"Smoosic"

@@ -7,6 +7,7 @@
 			"transcription"
 		]
 	},
+	"format": "library",
 	"children": [
 		{
 			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json",

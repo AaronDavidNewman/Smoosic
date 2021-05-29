@@ -9,12 +9,14 @@
 		"composer": "GF Handel",
 		"source": "https://imslp.org/wiki/Messiah,_HWV_56_(Handel,_George_Frideric)"
 	},
+	"format": "library",
 	"children": [
 		{
 			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/Messiah Pt 1-1.json",
 			"format": "smoosic",
 			"metadata": {
 				"name": "Sinfonia",
+				"type": "movement",
 				"movement": "I-1"
 			}
 		},
@@ -23,6 +25,7 @@
 			"format": "smoosic",
 			"metadata": {
 				"name": "Recitativo: Comfort ye, my people",
+				"type": "movement",
 				"movement": "I-2"
 			}
 		}
