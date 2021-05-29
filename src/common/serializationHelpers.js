@@ -221,7 +221,12 @@ class smoSerialize {
       "wf": "lines",
       "xf": "from",
       "yf": "layoutManager",
-      "zf": "pageLayouts"
+      "zf": "pageLayouts",
+      "ag": "fillStyle",
+      "bg": "hidden",
+      "cg": "adjustNoteWidthLyric",
+      "dg": "xOffsetStart",
+      "eg": "xOffsetEnd"
       }`;
      return JSON.parse(_tm);
     }

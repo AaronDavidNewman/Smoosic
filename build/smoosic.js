@@ -3170,7 +3170,12 @@ class smoSerialize {
       "wf": "lines",
       "xf": "from",
       "yf": "layoutManager",
-      "zf": "pageLayouts"
+      "zf": "pageLayouts",
+      "ag": "fillStyle",
+      "bg": "hidden",
+      "cg": "adjustNoteWidthLyric",
+      "dg": "xOffsetStart",
+      "eg": "xOffsetEnd"
       }`;
      return JSON.parse(_tm);
     }
@@ -12327,6 +12332,13 @@ class VxSystem {
     return null;
   }
 
+  minMax() {
+    const mar = this.staves[0].measures.map((mm) => mm.measureNumber.measureIndex);
+    const min = mar.reduce((a, b) => a < b ? a : b);
+    const max = mar.reduce((a, b) => a > b ? a : b);
+    return { min, max };
+  }
+
   _updateChordOffsets(note) {
     var i = 0;
     for (i = 0; i < 3; ++i) {
@@ -12566,48 +12578,52 @@ class VxSystem {
 
   renderEndings(scroller) {
     let j = 0;
+    let i = 0;
+    const minMax = this.minMax();
+    const voltas = this.staves[0].getVoltaMap(minMax.min, minMax.max);
     for (j = 0; j < this.smoMeasures.length; ++j) {
+      let pushed = false;
       const smoMeasure = this.smoMeasures[j];
+      // Only draw volta on top staff of system
       if (smoMeasure.svg.rowInSystem > 0) {
         continue;
       }
-      const staffId = smoMeasure.measureNumber.staffId;
-      const endings = smoMeasure.getNthEndings();
-      endings.forEach((ending) => {
-        $(this.context.svg).find('g.' + ending.attrs.id).remove();
-        const group = this.context.openGroup(null, ending.attrs.id);
-        const voAr = [];
-        group.classList.add(ending.attrs.id);
-        group.classList.add(ending.endingId);
-        let i = 0;
-
-        for (i = ending.startBar; i <= ending.endBar; ++i) {
-          const mix = i;
-          const endMeasure = this.getMeasureByIndex(mix, staffId);
-          if (!endMeasure) {
-            continue;
-          }
-          voAr.push(endMeasure);
-          const vxMeasure = this.getVxMeasure(endMeasure);
-          const vtype = ending.toVexVolta(endMeasure.measureNumber.measureNumber);
-          const vxVolta = new VF.Volta(vtype, ending.number, endMeasure.staffX + ending.xOffsetStart, ending.yOffset);
-          vxMeasure.stave.modifiers.push(vxVolta);
-          vxVolta.setContext(this.context).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
+      const vxMeasure = this.getVxMeasure(smoMeasure);
+      const voAr = [];
+      for (i = 0; i < voltas.length; ++i) {
+        const ending = voltas[i];
+        const mix = smoMeasure.measureNumber.measureIndex;
+        if (ending.startBar === mix) {
+          $(this.context.svg).find('g.' + ending.attrs.id).remove();
         }
-        this.context.closeGroup();
-        ending.logicalBox = svgHelpers.smoBox(group.getBBox());
-        ending.renderedBox = svgHelpers.logicalToClient(this.context.svg, ending.logicalBox, scroller);
-
-        // Adjust real height of measure to match volta height
-        voAr.forEach((mm) => {
-          const delta =  mm.logicalBox.y - ending.logicalBox.y;
-          if (delta > 0) {
-            mm.setBox(svgHelpers.boxPoints(
-              mm.logicalBox.x, mm.logicalBox.y - delta, mm.logicalBox.width, mm.logicalBox.height + delta),
-            'vxSystem adjust for volta');
+        if ((ending.startBar <= mix) && (ending.endBar >= mix)) {
+          const group = this.context.openGroup(null, ending.attrs.id);
+          group.classList.add(ending.attrs.id);
+          group.classList.add(ending.endingId);
+          const vtype = ending.toVexVolta(smoMeasure.measureNumber.measureNumber);
+          const vxVolta = new VF.Volta(vtype, ending.number, smoMeasure.staffX + ending.xOffsetStart, ending.yOffset);
+          vxVolta.setContext(this.context).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
+          this.context.closeGroup();
+          ending.logicalBox = svgHelpers.smoBox(group.getBBox());
+          ending.renderedBox = svgHelpers.logicalToClient(this.context.svg, ending.logicalBox, scroller);
+          if (!pushed) {
+            voAr.push({ smoMeasure, ending });
+            pushed = true;
           }
-        });
-      });
+          vxMeasure.stave.modifiers.push(vxVolta);
+        }
+      }
+      // Adjust real height of measure to match volta height
+      for (i = 0; i < voAr.length; ++i) {
+        const mm = voAr[i].smoMeasure;
+        const ending = voAr[i].ending;
+        const delta =  mm.logicalBox.y - ending.logicalBox.y;
+        if (delta > 0) {
+          mm.setBox(svgHelpers.boxPoints(
+            mm.logicalBox.x, mm.logicalBox.y - delta, mm.logicalBox.width, mm.logicalBox.height + delta),
+          'vxSystem adjust for volta');
+        }
+      }
     }
   }
 
@@ -17081,7 +17097,19 @@ class SmoSystemStaff {
     });
     this.modifiers = mods;
   }
+  // ### getVoltaMap
 
+  getVoltaMap(startIndex, endIndex) {
+    const rv = [];
+    this.measures.forEach((measure) => {
+      measure.getNthEndings().forEach((ending) => {
+        if (ending.startBar >= startIndex && ending.endBar <= endIndex) {
+          rv.push(ending);
+        }
+      });
+    });
+    return rv;
+  }
   // ### getModifiersAt
   // get any modifiers at the selected location
   getModifiersAt(selector) {

@@ -2,8 +2,8 @@
     "name": "smoosic",
     "version": "0.1.0",
     "devDependencies": {
-        "eslint": "^7.11.0",
-        "grunt": "^1.2.1",
+        "eslint": "^7.27.0",
+        "grunt": "^1.4.1",
         "grunt-contrib-concat": "~1.0.1",
         "grunt-contrib-copy": "^1.0.0",
         "grunt-contrib-jshint": "~2.1.0",
@@ -11,8 +11,8 @@
         "grunt-contrib-uglify": "~4.0.1"
     },
     "dependencies": {
-        "eslint-config-airbnb-base": "^14.2.0",
-        "eslint-plugin-import": "^2.22.1",
+        "eslint-config-airbnb-base": "^14.2.1",
+        "eslint-plugin-import": "^2.23.3",
         "grunt-eslint": "^23.0.0",
         "midi-writer-js": "^1.7.5"
     }

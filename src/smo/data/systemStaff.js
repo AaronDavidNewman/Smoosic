@@ -111,7 +111,19 @@ class SmoSystemStaff {
     });
     this.modifiers = mods;
   }
+  // ### getVoltaMap
 
+  getVoltaMap(startIndex, endIndex) {
+    const rv = [];
+    this.measures.forEach((measure) => {
+      measure.getNthEndings().forEach((ending) => {
+        if (ending.startBar >= startIndex && ending.endBar <= endIndex) {
+          rv.push(ending);
+        }
+      });
+    });
+    return rv;
+  }
   // ### getModifiersAt
   // get any modifiers at the selected location
   getModifiersAt(selector) {
