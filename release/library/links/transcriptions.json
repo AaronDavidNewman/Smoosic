@@ -1,31 +1,374 @@
 {
-	"metadata": {
-		"name": "Jazz Transcriptions",
-		"type": "collection",
-		"tags": [
-			"jazz",
-			"transcription"
-		]
-	},
-	"format": "library",
-	"children": [
-		{
-			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json",
-			"format": "smoosic",
-			"metadata": {
-				"name": "Yama",
-				"composer": "Lee Morgan",
-				"artist": "Lee Morgan"
-			}
-		},
-		{
-			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Blues For Alice.mxml",
-			"format": "mxml",
-			"metadata": {
-				"name": "Blues for Alice",
-				"composer": "Charlie Parker",
-				"artist": "Charlie Parker"
-			}
-		}
-	]
+ "format": "library",
+ "metadata": {
+  "name": "Smoosic Library",
+  "type": "collection",
+  "tags": [
+   "jazz",
+   "transcription",
+   "improvisation"
+  ]
+ },
+ "children": [
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Another Hairdo",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Another Hairdo.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Anthropology Eb",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Anthropology Eb.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Au Privave No 1 Eb",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Au Privave No 1 Eb.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Au Privave No 2 Eb",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Au Privave No 2 Eb.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Back Home Blues",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Back Home Blues.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Ballade",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Ballade.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Billies Bounce",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Billies Bounce.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Bloomdido",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Bloomdido.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Blues for Alice",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Blues for Alice.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Celerity Alto",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Celerity Alto.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Celerity",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Celerity.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Cheryl F07",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Cheryl F07.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Cheryl",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Cheryl.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Confirmation Eb 09",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Confirmation Eb 09.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Cool Blues Alto1",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Cool Blues Alto1.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Dewey Square",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Dewey Square.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Donna Lee Eb",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Donna Lee Eb.musicxml"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Donna Lee Eb",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Donna Lee Eb.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Ko Ko Eb",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Ko Ko Eb.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Little Benny",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Little Benny.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Moose the Mooche Eb",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Moose the Mooche Eb.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Night in Tunisia solo",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Night in Tunisia solo.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Nows the Time No 1",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Nows the Time No 1.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Nows the Time No 2",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Nows the Time No 2.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Ornithology Eb",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Ornithology Eb.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Parkers Mood",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Parkers Mood.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Passport",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Passport.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Red Cross",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Red Cross.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Scrapple from the Apple Eb",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Scrapple from the Apple Eb.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Shaw Nuff Eb",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Shaw Nuff Eb.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Shaw Nuff",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Shaw Nuff.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "She Rote No1",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/She Rote No1.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "She Rote No2",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/She Rote No2.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "The Bird 07",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/The Bird 07.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "The Bird",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/The Bird.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Warming Up A Riff",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Warming Up A Riff.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Yardbird Suite (alto solo)",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Yardbird Suite (alto solo).mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Yardbird Suite Eb Alto+Bass+Chords",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Yardbird Suite Eb Alto+Bass+Chords.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "Yardbird Suite Eb",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Yardbird Suite Eb.mxl"
+  },
+  {
+   "format": "mxml",
+   "metadata": {
+    "name": "cplist",
+    "composer": "Charlie Parker",
+    "artist": "Charlie Parker"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/cplist.txt"
+  }
+ ]
 }
