@@ -1,0 +1,77 @@
+{
+ "format": "library",
+ "metadata": {
+  "name": "Hymn Arrangements",
+  "type": "collection",
+  "tags": [
+   "Sacred Music",
+   "arrangements"
+  ]
+ },
+ "children": [
+  {
+   "format": "smoosic",
+   "metadata": {
+    "name": "Hyfrydol",
+    "composer": "Traditional"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/hymns/Hyfrydol.json"
+  },
+  {
+   "format": "smoosic",
+   "metadata": {
+    "name": "Hymn to Freedom",
+    "composer": "Oscar Peterson"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/hymns/HymnFreedom.json"
+  },
+  {
+   "format": "smoosic",
+   "metadata": {
+    "name": "Precious Lord",
+    "composer": "Thomas Dorsey"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/hymns/Precious Lord.json"
+  },
+  {
+   "format": "smoosic",
+   "metadata": {
+    "name": "In Its Delightful Shade",
+    "composer": "Mary Kroening","lyrics": "Harriet Ziegenhals"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/hymns/Shade.json"
+  },
+  {
+   "format": "smoosic",
+   "metadata": {
+    "name": "Spirit of the Living God",
+    "composer": "Daniel Iverson"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/hymns/SpiritofLivingGod.json"
+  },
+  {
+   "format": "smoosic",
+   "metadata": {
+    "name": "Weisse-Flaggen",
+    "composer": "Tochter Sion"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/hymns/Weisse-Flaggen.json"
+  },
+  {
+   "format": "smoosic",
+   "metadata": {
+    "name": "World Peace Prayer (Death to Life)",
+    "composer": "Mary Haugen"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/hymns/WorldPeacePrayer.json"
+  },
+  {
+   "format": "smoosic",
+   "metadata": {
+    "name": "There is a Balm in Gilead",
+    "composer": "Traditional"
+   },
+   "url": "https://aarondavidnewman.github.io/Smoosic/release/library/hymns/balm.json"
+  }
+ ]
+}

@@ -10,23 +10,21 @@ const libfile = args[1];
 const libObject = {
   format: "library",
 	metadata: {
-		name: "Smoosic Library",
+		name: "Hymn Arrangements",
     type: "collection",
 		tags: [
-			"jazz",
-			"transcription",
-      "improvisation"
+			"Sacred Music",
+			"arrangements"
 		],
   },
   children: []
 };
-const prefix = "https://aarondavidnewman.github.io/Smoosic/release/library/cp/";
+const prefix = "https://aarondavidnewman.github.io/Smoosic/release/library/hymns/";
 const childObject = {
   format: "mxml",
   metadata: {
     name: "Yama",
-    composer: "Charlie Parker",
-    artist: "Charlie Parker"
+    composer: "various"
   }
 };
 

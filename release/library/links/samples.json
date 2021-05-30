@@ -1,0 +1,45 @@
+{
+	"format": "library",
+	"metadata": {
+		"name": "Smoosic Samples and Demos",
+		"type": "collection",
+		"tags": [
+			"smoosic",
+			"arrangements",
+			"testing"
+		]
+	},
+	"children": [
+		{
+			"format": "smoosic",
+			"metadata": {
+				"name": "Bach Invention #1",
+				"composer": "JS Back",
+				"tags": [
+					"keyboard",
+					"bach"
+				]
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/BachInvention.json"
+		},
+		{
+			"format": "smoosic",
+			"metadata": {
+				"name": "Postillion-Lied",
+				"composer": "Franz Grothe",
+				"tags": [
+					"Art Songs"
+				]
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/Postillionlied.json"
+		},
+		{
+			"format": "smoosic",
+			"metadata": {
+				"name": "Gesu Bambino",
+				"composer": "PIetro Yon"
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/Gesu Bambino.json"
+		}
+	]
+}

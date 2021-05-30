@@ -1,0 +1,46 @@
+{
+	"format": "library",
+	"metadata": {
+		"name": "Music XML Samples",
+		"type": "collection",
+		"tags": [
+			"musicxml.com",
+			"mxml", "finale", "testing"
+		]
+	},
+	"children": [
+		{
+			"format": "mxml",
+			"metadata": {
+				"name": "An Die Fern Beilibte",
+				"composer": "Beethoven"
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/release/library/Beethoven_AnDieFerneGeliebte.xml"
+		},
+		{
+			"format": "mxml",
+			"metadata": {
+				"name": "An Chloe",
+				"composer": "WA Mozart",
+        "tags":["Art Songs"]
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/release/library/Mozart_AnChloe.xml"
+		},
+		{
+			"format": "mxml",
+			"metadata": {
+				"name": "The Entertainer",
+				"composer": "Scott Joplin"
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/release/library/ScottJoplin_The_Entertainer.xml"
+		},
+		{
+			"format": "mxml",
+			"metadata": {
+				"name": "Dichterliebe",
+				"composer": "Robert Schumann"
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/release/library/Dichterliebe01.xml"
+		}
+	]
+}
