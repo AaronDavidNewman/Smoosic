@@ -15,7 +15,7 @@
 				"name": "An Die Fern Beilibte",
 				"composer": "Beethoven"
 			},
-			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/release/library/Beethoven_AnDieFerneGeliebte.xml"
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/Beethoven_AnDieFerneGeliebte.xml"
 		},
 		{
 			"format": "mxml",
@@ -24,7 +24,7 @@
 				"composer": "WA Mozart",
         "tags":["Art Songs"]
 			},
-			"url": "https://aarondavidnewman.github.io/Smoosic/release/release/library/Mozart_AnChloe.xml"
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/Mozart_AnChloe.xml"
 		},
 		{
 			"format": "mxml",
@@ -32,7 +32,7 @@
 				"name": "The Entertainer",
 				"composer": "Scott Joplin"
 			},
-			"url": "https://aarondavidnewman.github.io/Smoosic/release/release/library/ScottJoplin_The_Entertainer.xml"
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/ScottJoplin_The_Entertainer.xml"
 		},
 		{
 			"format": "mxml",
@@ -40,7 +40,7 @@
 				"name": "Dichterliebe",
 				"composer": "Robert Schumann"
 			},
-			"url": "https://aarondavidnewman.github.io/Smoosic/release/release/library/Dichterliebe01.xml"
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/Dichterliebe01.xml"
 		}
 	]
 }
