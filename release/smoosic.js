@@ -37,6 +37,10 @@ class htmlHelpers {
         $(self.e).attr(name, value);
         return self;
       }
+      this.prop = function (name, value) {
+        $(self.e).prop(name, value);
+        return self;
+      }
       this.css = function (name, value) {
         $(self.e).css(name, value);
         return self;
@@ -2930,6 +2934,13 @@ class PromiseHelpers {
 
 		return result;
   }
+  static emptyPromise() {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, 1);
+    });
+  }
   static renderPromise(renderer) {
     const renderPromise = () => {
       return new Promise((resolve) => {
@@ -3170,7 +3181,12 @@ class smoSerialize {
       "wf": "lines",
       "xf": "from",
       "yf": "layoutManager",
-      "zf": "pageLayouts"
+      "zf": "pageLayouts",
+      "ag": "fillStyle",
+      "bg": "hidden",
+      "cg": "adjustNoteWidthLyric",
+      "dg": "xOffsetStart",
+      "eg": "xOffsetEnd"
       }`;
      return JSON.parse(_tm);
     }
@@ -12327,6 +12343,13 @@ class VxSystem {
     return null;
   }
 
+  minMax() {
+    const mar = this.staves[0].measures.map((mm) => mm.measureNumber.measureIndex);
+    const min = mar.reduce((a, b) => a < b ? a : b);
+    const max = mar.reduce((a, b) => a > b ? a : b);
+    return { min, max };
+  }
+
   _updateChordOffsets(note) {
     var i = 0;
     for (i = 0; i < 3; ++i) {
@@ -12566,48 +12589,52 @@ class VxSystem {
 
   renderEndings(scroller) {
     let j = 0;
+    let i = 0;
+    const minMax = this.minMax();
+    const voltas = this.staves[0].getVoltaMap(minMax.min, minMax.max);
     for (j = 0; j < this.smoMeasures.length; ++j) {
+      let pushed = false;
       const smoMeasure = this.smoMeasures[j];
+      // Only draw volta on top staff of system
       if (smoMeasure.svg.rowInSystem > 0) {
         continue;
       }
-      const staffId = smoMeasure.measureNumber.staffId;
-      const endings = smoMeasure.getNthEndings();
-      endings.forEach((ending) => {
-        $(this.context.svg).find('g.' + ending.attrs.id).remove();
-        const group = this.context.openGroup(null, ending.attrs.id);
-        const voAr = [];
-        group.classList.add(ending.attrs.id);
-        group.classList.add(ending.endingId);
-        let i = 0;
-
-        for (i = ending.startBar; i <= ending.endBar; ++i) {
-          const mix = i;
-          const endMeasure = this.getMeasureByIndex(mix, staffId);
-          if (!endMeasure) {
-            continue;
-          }
-          voAr.push(endMeasure);
-          const vxMeasure = this.getVxMeasure(endMeasure);
-          const vtype = ending.toVexVolta(endMeasure.measureNumber.measureNumber);
-          const vxVolta = new VF.Volta(vtype, ending.number, endMeasure.staffX + ending.xOffsetStart, ending.yOffset);
-          vxMeasure.stave.modifiers.push(vxVolta);
-          vxVolta.setContext(this.context).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
+      const vxMeasure = this.getVxMeasure(smoMeasure);
+      const voAr = [];
+      for (i = 0; i < voltas.length; ++i) {
+        const ending = voltas[i];
+        const mix = smoMeasure.measureNumber.measureIndex;
+        if (ending.startBar === mix) {
+          $(this.context.svg).find('g.' + ending.attrs.id).remove();
         }
-        this.context.closeGroup();
-        ending.logicalBox = svgHelpers.smoBox(group.getBBox());
-        ending.renderedBox = svgHelpers.logicalToClient(this.context.svg, ending.logicalBox, scroller);
-
-        // Adjust real height of measure to match volta height
-        voAr.forEach((mm) => {
-          const delta =  mm.logicalBox.y - ending.logicalBox.y;
-          if (delta > 0) {
-            mm.setBox(svgHelpers.boxPoints(
-              mm.logicalBox.x, mm.logicalBox.y - delta, mm.logicalBox.width, mm.logicalBox.height + delta),
-            'vxSystem adjust for volta');
+        if ((ending.startBar <= mix) && (ending.endBar >= mix)) {
+          const group = this.context.openGroup(null, ending.attrs.id);
+          group.classList.add(ending.attrs.id);
+          group.classList.add(ending.endingId);
+          const vtype = ending.toVexVolta(smoMeasure.measureNumber.measureNumber);
+          const vxVolta = new VF.Volta(vtype, ending.number, smoMeasure.staffX + ending.xOffsetStart, ending.yOffset);
+          vxVolta.setContext(this.context).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
+          this.context.closeGroup();
+          ending.logicalBox = svgHelpers.smoBox(group.getBBox());
+          ending.renderedBox = svgHelpers.logicalToClient(this.context.svg, ending.logicalBox, scroller);
+          if (!pushed) {
+            voAr.push({ smoMeasure, ending });
+            pushed = true;
           }
-        });
-      });
+          vxMeasure.stave.modifiers.push(vxVolta);
+        }
+      }
+      // Adjust real height of measure to match volta height
+      for (i = 0; i < voAr.length; ++i) {
+        const mm = voAr[i].smoMeasure;
+        const ending = voAr[i].ending;
+        const delta =  mm.logicalBox.y - ending.logicalBox.y;
+        if (delta > 0) {
+          mm.setBox(svgHelpers.boxPoints(
+            mm.logicalBox.x, mm.logicalBox.y - delta, mm.logicalBox.width, mm.logicalBox.height + delta),
+          'vxSystem adjust for volta');
+        }
+      }
     }
   }
 
@@ -12740,72 +12767,6 @@ class VxSystem {
       this.endcaps.push(vxMeasure.stave);
     }
     this.measures.push(vxMeasure);
-  }
-}
-;// ## SmoLibrary
-// A class to organize smoosic files (or any format smoosic accepts) into libraries.
-// eslint-disable-next-line no-unused-vars
-class SmoLibrary {
-  constructor(parameters) {
-    smoSerialize.serializedMerge(
-      SmoLibrary.parameterArray, SmoLibrary.defaults, this);
-    Object.keys(parameters.metadata).forEach((key) => {
-      this.metadata[key] = parameters.metadata[key];
-    });
-    this.children = [];
-    parameters.children.forEach((childLib) => {
-      this.children.push(new SmoLibrary(childLib));
-    });
-    this.children.forEach((child) => {
-      child._inheritMetadata(this.metadata);
-    });
-  }
-  static get metadataNames() {
-    return ['name', 'icon', 'tags', 'composer', 'artist', 'copyright',
-      'title', 'subtitle', 'movement', 'source'];
-  }
-  static get formatTypes() {
-    return ['smoosic', 'library', 'mxml', 'midi', 'abc'];
-  }
-  static get libraryTypes() {
-    return ['work', 'transcription', 'library', 'collection'];
-  }
-  static get defaults() {
-    if (typeof(SmoLibrary._defaults) === 'undefined') {
-      SmoLibrary._defaults = { url: '', format: '', chidren: [], metadata: {} };
-    }
-    return SmoLibrary._defaults;
-  }
-  static get parameterArray() {
-    return ['children', 'metadata', 'format', 'url'];
-  }
-  static deserialize(json) {
-    return new SmoLibrary(json);
-  }
-  serialize() {
-    const params = {};
-    if (this.url) {
-      params.url = this.url;
-      params.format = this.format;
-    }
-    params.metadata = JSON.parse(JSON.stringify(this.metadata));
-    params.children = [];
-    this.children.forEach((child) => {
-      params.children.push(child.serialize());
-    });
-    return params;
-  }
-  _inheritMetadata(obj) {
-    const inherited = [];
-    Object.keys(obj).forEach((mn) => {
-      if (typeof(this.metadata[mn]) === 'undefined')  {
-        inherited.push(JSON.parse(JSON.stringify(obj[mn])));
-        this.metadata[mn] = obj[mn];
-      }
-    });
-    this.children.forEach((child) => {
-      child._inheritMetadata(inherited);
-    });
   }
 }
 ;// ## SmoMeasure - data for a measure of music
@@ -17081,7 +17042,19 @@ class SmoSystemStaff {
     });
     this.modifiers = mods;
   }
+  // ### getVoltaMap
 
+  getVoltaMap(startIndex, endIndex) {
+    const rv = [];
+    this.measures.forEach((measure) => {
+      measure.getNthEndings().forEach((ending) => {
+        if (ending.startBar >= startIndex && ending.endBar <= endIndex) {
+          rv.push(ending);
+        }
+      });
+    });
+    return rv;
+  }
   // ### getModifiersAt
   // get any modifiers at the selected location
   getModifiersAt(selector) {
@@ -30373,7 +30346,7 @@ class SuiDropdownComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
     smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType', 'disabledOption'], parameter, this);
     if (!this.defaultValue) {
       this.defaultValue = 0;
     }
@@ -30386,12 +30359,18 @@ class SuiDropdownComponent extends SuiComponentBase {
   get parameterId() {
     return this.dialog.id + '-' + this.parameterName;
   }
+  checkDefault(s, b) {
+    if (typeof(this.disabledOption) === 'string') {
+      s.prop('required', true).append(b('option').attr('selected', 'selected').prop('disabled', true).text(this.disabledOption));
+    }
+  }
 
   get html() {
     const b = htmlHelpers.buildDom;
     const id = this.parameterId;
     const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.parameterName);
     const s = b('select');
+    this.checkDefault(s, b);
     this.options.forEach((option) => {
       s.append(
         b('option').attr('value', option.value).text(option.label));
@@ -30399,6 +30378,19 @@ class SuiDropdownComponent extends SuiComponentBase {
     r.append(s).append(
       b('label').attr('for', id + '-input').text(this.label));
     return r;
+  }
+  replaceOptions(options) {
+    const b = htmlHelpers.buildDom;
+    const s = b('select');
+    const sel = this._getInputElement();
+    const parent = $(sel).parent();
+    $(sel).remove();
+    this.checkDefault(s, b);
+    options.forEach((option) => {
+      s.append(b('option').attr('value', option.value).text(option.label));
+    });
+    $(parent).append(s.dom());
+    this.bind();
   }
 
   unselect() {
@@ -30429,7 +30421,9 @@ class SuiDropdownComponent extends SuiComponentBase {
 
   bind() {
     const input = this._getInputElement();
-    this.setValue(this.defaultValue);
+    if (!this.disabledOption) {
+      this.setValue(this.defaultValue);
+    }
     const self = this;
     $(input).off('change').on('change',
       () => {
@@ -31404,6 +31398,151 @@ class SuiTextBlockComponent extends SuiComponentBase {
     this.removeBlockCtrl.bind();
     this.toggleBlockCtrl.bind();
     this.spacingCtrl.bind();
+  }
+}
+;// ## SuiLibraryDialog
+// Traverse the library nodes or load a score
+// eslint-disable-next-line no-unused-vars
+class SuiLibraryDialog extends SuiDialogBase {
+  static get ctor() {
+    return 'SuiLibraryDialog';
+  }
+  get ctor() {
+    return SuiLibraryDialog.ctor;
+  }
+  static get dialogElements() {
+    SuiLibraryDialog._dialogElements = typeof(SuiLibraryDialog._dialogElements)
+      !== 'undefined' ? SuiLibraryDialog._dialogElements :
+      [{
+        smoName: 'smoLibrary',
+        parameterName: 'smoLibrary',
+        control: 'SuiDropdownComponent',
+        disabledOption: 'Select library or score',
+        label: 'Selection',
+        options: []
+      }, {
+        staticText: [
+          { label: 'Music Library' }
+        ]
+      }];
+    return SuiLibraryDialog._dialogElements;
+  }
+  static _createOptions(topLib) {
+    const options = [];
+    const parent = topLib.parentLib;
+    if (parent && parent.name) {
+      options.push({ label: parent.name, value: parent.value.url });
+    }
+    topLib.children.forEach((child) => {
+      options.push({ label: child.metadata.name, value: child.url });
+    });
+    return options;
+  }
+  static _createElements(topLib) {
+    const elements = JSON.parse(JSON.stringify(SuiLibraryDialog.dialogElements));
+    const txt = elements.find((ee) => typeof(ee.staticText) !== 'undefined');
+    const drop = elements.find((ee) => typeof(ee.smoName) !== 'undefined' && ee.smoName === 'smoLibrary');
+    txt.label = topLib.metadata.name;
+    drop.options = SuiLibraryDialog._createOptions(topLib);
+    return elements;
+  }
+  static _createAndDisplay(parameters, topLib) {
+    const elements = SuiLibraryDialog._createElements(topLib);
+    const dg = new SuiLibraryDialog(parameters, elements, topLib);
+    dg.display();
+  }
+  static createAndDisplay(parameters) {
+    const topLib = new SmoLibrary({ url: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json' });
+    topLib.load().then(() => SuiLibraryDialog._createAndDisplay(parameters, topLib));
+  }
+  get displayOptions() {
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
+  display() {
+    this.applyDisplayOptions();
+    this._bindElements();
+  }
+  _bindElements() {
+    const dgDom = this.dgDom;
+    this.okButton = $(dgDom.element).find('.ok-button');
+    this.cancelButton = $(dgDom.element).find('.cancel-button');
+    $(this.okButton).off('click').on('click', () => {
+      if (this.selectedScore !== null) {
+        if (this.selectedScore.format === 'mxml') {
+          this._loadXmlAndComplete();
+        } else {
+          this._loadJsonAndComplete();
+        }
+      } else {
+        this.complete();
+      }
+    });
+    $(this.cancelButton).off('click').on('click', () => {
+      this.complete();
+    });
+    $(dgDom.element).find('.remove-button').remove();
+  }
+  _loadJsonAndComplete() {
+    const req = new SuiXhrLoader(this.selectedScore.url);
+    req.loadAsync().then(() => {
+      const score = SmoScore.deserialize(req.value);
+      this.view.changeScore(score);
+      this.complete();
+    });
+  }
+  _loadXmlAndComplete() {
+    const req = new SuiXhrLoader(this.selectedScore.url);
+    req.loadAsync().then(() => {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(req.value, 'text/xml');
+      const score = mxmlScore.smoScoreFromXml(xml);
+      this.view.changeScore(score);
+      this.complete();
+    });
+  }
+  changed() {
+    if (this.smoLibraryCtrl.changeFlag) {
+      const ctrl = this.smoLibraryCtrl;
+      const url = this.smoLibraryCtrl.getValue();
+      // User navigates to parent library
+      if (typeof(this.libHash[url]) !== 'undefined') {
+        this.topLib = this.libHash[url];
+        this.selectedScore = null;
+        $(this.okButton).prop('disabled', true);
+        const options = SuiLibraryDialog._createOptions(this.topLib);
+        ctrl.replaceOptions(options);
+      } else {
+        // child library
+        this.selectedLib = this.topLib.children.find((ll) => ll.url === url);
+        const topLib = this.selectedLib;
+        if (topLib.format === 'library') {
+          topLib.load().then(() => {
+            this.topLib = topLib;
+            this.selectedScore = null;
+            $(this.okButton).prop('disabled', true);
+            const options = SuiLibraryDialog._createOptions(topLib);
+            ctrl.replaceOptions(options);
+          });
+        } else {
+          this.selectedScore = topLib;
+          $(this.okButton).prop('disabled', false);
+        }
+      }
+    }
+  }
+  constructor(parameters, dialogElements, topLib) {
+    var p = parameters;
+    super(dialogElements, {
+      id: 'dialog-layout',
+      top: (p.view.score.layout.pageWidth / 2) - 200,
+      left: (p.view.score.layout.pageHeight / 2) - 200,
+      ...parameters
+    });
+    this.libHash = {};
+    this.libHash[topLib.url] = topLib;
+    this.topLib = topLib;
+    this.selectedLib = null;
+    this.parentLib = {};
   }
 }
 ;// ## measureDialogs.js
@@ -35725,6 +35864,86 @@ class SuiFileInput {
     });
   }
 }
+;// ## SmoLibrary
+// A class to organize smoosic files (or any format smoosic accepts) into libraries.
+// eslint-disable-next-line no-unused-vars
+class SmoLibrary {
+  constructor(parameters) {
+    this.loaded = false;
+    this.parentLib = {};
+    if (parameters.url) {
+      this.url = parameters.url;
+    } else if (parameters.data) {
+      this.initialize(parameters.data);
+    }
+  }
+  initialize(parameters) {
+    smoSerialize.serializedMerge(
+      SmoLibrary.parameterArray, SmoLibrary.defaults, this);
+    // if the object was loaded from URL, use that.
+    if (!this.url) {
+      this.url = parameters.url;
+    }
+    this.format = parameters.format;
+    Object.keys(parameters.metadata).forEach((key) => {
+      this.metadata[key] = parameters.metadata[key];
+    });
+    this.children = [];
+    if (typeof(parameters.children) !== 'undefined') {
+      parameters.children.forEach((childLib) => {
+        this.children.push(new SmoLibrary({ data: childLib }));
+      });
+    }
+    this.children.forEach((child) => {
+      child._inheritMetadata(this);
+    });
+  }
+  static get metadataNames() {
+    return ['name', 'icon', 'tags', 'composer', 'artist', 'copyright',
+      'title', 'subtitle', 'movement', 'source'];
+  }
+  static get formatTypes() {
+    return ['smoosic', 'library', 'mxml', 'midi', 'abc'];
+  }
+  static get libraryTypes() {
+    return ['work', 'transcription', 'library', 'collection'];
+  }
+  static get defaults() {
+    if (typeof(SmoLibrary._defaults) === 'undefined') {
+      SmoLibrary._defaults = { chidren: [], metadata: {} };
+    }
+    return SmoLibrary._defaults;
+  }
+  static get parameterArray() {
+    return ['children', 'metadata', 'format', 'url'];
+  }
+  load() {
+    const self = this;
+    if (this.loaded) {
+      return PromiseHelpers.emptyPromise();
+    }
+    const loader = new SuiXhrLoader(this.url);
+    return new Promise((resolve) => {
+      loader.loadAsync().then(() => {
+        const jsonObj = JSON.parse(loader.value);
+        self.initialize(jsonObj);
+        self.loaded = true;
+        resolve();
+      });
+    });
+  }
+  _inheritMetadata(parent) {
+    Object.keys(parent.metadata).forEach((mn) => {
+      if (typeof(this.metadata[mn]) === 'undefined')  {
+        this.metadata[mn] = parent[mn];
+      }
+    });
+    this.parentLib = { name: parent.metadata.name, value: parent };
+    this.children.forEach((child) => {
+      child._inheritMetadata(this);
+    });
+  }
+}
 ;// ## SuiXhrLoader
 // Load music xml files from remote, transparently
 // unzip mxml files.  Other files (smo, xml, midi) are handled
@@ -35767,7 +35986,7 @@ class SuiXhrLoader {
             self.value = reader.result;
             resolve();
           } else {
-            self._uncompress(reader.result).then(resolve());
+            self._uncompress(reader.result).then(() => { resolve(); });
           }
         });
         if (this.binary) {
@@ -44443,8 +44662,8 @@ class defaultRibbonLayout {
         rightText: '/L',
         icon: '',
         classes: 'file-modify menu-select',
-        action: 'menu',
-        ctor: 'SuiLibraryMenu',
+        action: 'modal',
+        ctor: 'SuiLibraryDialog',
         group: 'scoreEdit',
         id: 'libraryMenu'
       }, {
