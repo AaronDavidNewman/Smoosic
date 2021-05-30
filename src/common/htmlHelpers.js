@@ -37,6 +37,10 @@ class htmlHelpers {
         $(self.e).attr(name, value);
         return self;
       }
+      this.prop = function (name, value) {
+        $(self.e).prop(name, value);
+        return self;
+      }
       this.css = function (name, value) {
         $(self.e).css(name, value);
         return self;

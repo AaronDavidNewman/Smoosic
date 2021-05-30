@@ -10,6 +10,15 @@
   ]
  },
  "children": [
+   {
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json",
+			"format": "smoosic",
+			"metadata": {
+				"name": "Yama",
+				"composer": "Lee Morgan",
+				"artist": "Lee Morgan"
+			}
+	},
   {
    "format": "mxml",
    "metadata": {

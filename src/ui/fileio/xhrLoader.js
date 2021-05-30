@@ -40,7 +40,7 @@ class SuiXhrLoader {
             self.value = reader.result;
             resolve();
           } else {
-            self._uncompress(reader.result).then(resolve());
+            self._uncompress(reader.result).then(() => { resolve(); });
           }
         });
         if (this.binary) {

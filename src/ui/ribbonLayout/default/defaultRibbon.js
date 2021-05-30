@@ -1545,8 +1545,8 @@ class defaultRibbonLayout {
         rightText: '/L',
         icon: '',
         classes: 'file-modify menu-select',
-        action: 'menu',
-        ctor: 'SuiLibraryMenu',
+        action: 'modal',
+        ctor: 'SuiLibraryDialog',
         group: 'scoreEdit',
         id: 'libraryMenu'
       }, {

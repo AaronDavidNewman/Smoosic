@@ -297,7 +297,7 @@ class SuiDropdownComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
     smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType', 'disabledOption'], parameter, this);
     if (!this.defaultValue) {
       this.defaultValue = 0;
     }
@@ -310,12 +310,18 @@ class SuiDropdownComponent extends SuiComponentBase {
   get parameterId() {
     return this.dialog.id + '-' + this.parameterName;
   }
+  checkDefault(s, b) {
+    if (typeof(this.disabledOption) === 'string') {
+      s.prop('required', true).append(b('option').attr('selected', 'selected').prop('disabled', true).text(this.disabledOption));
+    }
+  }
 
   get html() {
     const b = htmlHelpers.buildDom;
     const id = this.parameterId;
     const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.parameterName);
     const s = b('select');
+    this.checkDefault(s, b);
     this.options.forEach((option) => {
       s.append(
         b('option').attr('value', option.value).text(option.label));
@@ -323,6 +329,19 @@ class SuiDropdownComponent extends SuiComponentBase {
     r.append(s).append(
       b('label').attr('for', id + '-input').text(this.label));
     return r;
+  }
+  replaceOptions(options) {
+    const b = htmlHelpers.buildDom;
+    const s = b('select');
+    const sel = this._getInputElement();
+    const parent = $(sel).parent();
+    $(sel).remove();
+    this.checkDefault(s, b);
+    options.forEach((option) => {
+      s.append(b('option').attr('value', option.value).text(option.label));
+    });
+    $(parent).append(s.dom());
+    this.bind();
   }
 
   unselect() {
@@ -353,7 +372,9 @@ class SuiDropdownComponent extends SuiComponentBase {
 
   bind() {
     const input = this._getInputElement();
-    this.setValue(this.defaultValue);
+    if (!this.disabledOption) {
+      this.setValue(this.defaultValue);
+    }
     const self = this;
     $(input).off('change').on('change',
       () => {

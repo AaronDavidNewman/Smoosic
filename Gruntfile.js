@@ -3,7 +3,6 @@ module.exports = function (grunt) {
   const LINTS = ['src/smo/data/measure.js','src/smo/data/note.js','src/smo/data/score.js',
   'src/smo/xform/beamers.js','src/smo/xform/audioTrack.js',
   'src/smo/data/noteModifiers.js','src/smo/data/systemStaff.js','src/smo/data/scoreModifiers.js',
-  'src/smo/data/library.js',
   'src/smo/data/tuplet.js','src/smo/data/staffModifiers.js',
   'src/smo/mxml/xmlScore.js','src/smo/mxml/xmlState.js','src/smo/mxml/xmlHelpers.js',
   'src/smo/mxml/smo2Xml.js',
@@ -17,9 +16,9 @@ module.exports = function (grunt) {
   'src/ui/ribbon.js', 'src/ui/menus.js', 'src/ui/dialog.js', 'src/ui/dialogComponents.js', 'src/ui/dialogs/scoreDialogs.js',
    'src/ui/dialogs/fontComponent.js', 'src/ui/dialogs/staffComponents.js',
    'src/ui/dialogs/textDialogs.js',
-   'src/ui/dialogs/measureDialogs.js','src/ui/dialogs/staffDialogs.js',
+   'src/ui/dialogs/measureDialogs.js','src/ui/dialogs/staffDialogs.js','src/ui/dialogs/libraryDialog.js',
    'src/ui/dialogs/fileDialogs.js',
-   'src/ui/application.js', 'src/ui/fileio/fileInput.js', 'src/ui/fileio/xhrLoader.js']
+   'src/ui/application.js', 'src/ui/fileio/fileInput.js', 'src/ui/fileio/xhrLoader.js','src/ui/fileio/library.js']
   const SOURCES = ['src/**/*.js','!src/test/*.js'];
 
     // Project configuration.

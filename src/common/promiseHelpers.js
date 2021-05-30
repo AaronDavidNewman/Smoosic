@@ -70,6 +70,13 @@ class PromiseHelpers {
 
 		return result;
   }
+  static emptyPromise() {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, 1);
+    });
+  }
   static renderPromise(renderer) {
     const renderPromise = () => {
       return new Promise((resolve) => {
