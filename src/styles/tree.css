@@ -1,36 +1,67 @@
 /* tree styles inspired by https://github.com/xotonic/flex-tree  */
 
-ul.tree, ul.tree ul {
-    list-style: none;
-     margin: 0;
-     padding: 0;
-   }
-   ul.tree ul {
-     margin-left: 10px;
-   }
-   ul.tree li {
-     margin: 0;
-     padding: 0 7px;
-     line-height: 20px;
-     color: #369;
-     font-weight: bold;
-     border-left:1px solid rgb(100,100,100);
 
-   }
-   ul.tree li:last-child {
-       border-left:none;
-   }
-   ul.tree li:before {
-      position:relative;
-      top:-0.3em;
-      height:1em;
-      width:12px;
-      color:white;
-      border-bottom:1px solid rgb(100,100,100);
-      content:"";
-      display:inline-block;
-      left:-7px;
-   }
-   ul.tree li:last-child:before {
-      border-left:1px solid rgb(100,100,100);
-   }
+p.tree,
+ul.tree,
+ul.tree ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+ul.tree ul {
+  margin-left: 1.0em;
+}
+
+ul.tree li {
+  margin-left: 0.35em;
+  border-left: thin solid #000;
+  color: #369;
+  font-weight: bold;
+}
+
+ul.tree li:last-child {
+  border-left: none;
+}
+
+ul.tree li:before {
+  width: 0.9em;
+  height: 0.6em;
+  margin-right: 0.1em;
+  vertical-align: top;
+  border-bottom: thin solid #000;
+  content: "";
+  display: inline-block;
+}
+ul.tree li {
+  max-height: 350px;
+  overflow: auto;
+}
+
+ul.tree li:last-child:before {
+  border-left: thin solid #000;
+}
+
+ul.tree li.selected>a {
+  background: #CDFEAA;
+}
+
+li.collapsed ul {
+  display: none;
+}
+a:focus {
+  border-bottom: 1px solid;
+  background: #BAE498;
+}
+
+a:hover {
+  background: #AAFE9E;
+}
+
+ul.tree button.expander {
+  display: none;
+}
+
+ul.tree button.expander.expanded {
+  display: inline-block;
+}

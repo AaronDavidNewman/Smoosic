@@ -14,8 +14,8 @@ class SuiLibraryDialog extends SuiDialogBase {
       [{
         smoName: 'smoLibrary',
         parameterName: 'smoLibrary',
-        control: 'SuiDropdownComponent',
-        disabledOption: 'Select library or score',
+        control: 'SuiTreeComponent',
+        root: '',
         label: 'Selection',
         options: []
       }, {
@@ -25,23 +25,26 @@ class SuiLibraryDialog extends SuiDialogBase {
       }];
     return SuiLibraryDialog._dialogElements;
   }
+  static addChildRecurse(options, parent, child) {
+    options.push({ label: child.metadata.name, value: child.url, parent: parent.url, format: child.format, expanded: false });
+    child.children.forEach((gchild) => {
+      SuiLibraryDialog.addChildRecurse(options, child, gchild);
+    });
+  }
   static _createOptions(topLib) {
     const options = [];
-    const parent = topLib.parentLib;
-    if (parent && parent.name) {
-      options.push({ label: parent.name, value: parent.value.url });
-    }
     topLib.children.forEach((child) => {
-      options.push({ label: child.metadata.name, value: child.url });
+      SuiLibraryDialog.addChildRecurse(options, topLib, child);
     });
     return options;
   }
   static _createElements(topLib) {
     const elements = JSON.parse(JSON.stringify(SuiLibraryDialog.dialogElements));
     const txt = elements.find((ee) => typeof(ee.staticText) !== 'undefined');
-    const drop = elements.find((ee) => typeof(ee.smoName) !== 'undefined' && ee.smoName === 'smoLibrary');
+    const tree = elements.find((ee) => typeof(ee.smoName) !== 'undefined' && ee.smoName === 'smoLibrary');
     txt.label = topLib.metadata.name;
-    drop.options = SuiLibraryDialog._createOptions(topLib);
+    tree.root = topLib.url;
+    tree.options = SuiLibraryDialog._createOptions(topLib);
     return elements;
   }
   static _createAndDisplay(parameters, topLib) {
@@ -55,6 +58,16 @@ class SuiLibraryDialog extends SuiDialogBase {
   }
   get displayOptions() {
     return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  }
+  buildTreeRecurse(children) {
+    children.forEach((child) => {
+      this.tree[child.url] = child;
+      this.buildTreeRecurse(child.children);
+    });
+  }
+  buildTree() {
+    this.tree = {};
+    this.buildTreeRecurse(this.topLib.children);
   }
   display() {
     this.applyDisplayOptions();
@@ -100,31 +113,25 @@ class SuiLibraryDialog extends SuiDialogBase {
   }
   changed() {
     if (this.smoLibraryCtrl.changeFlag) {
-      const ctrl = this.smoLibraryCtrl;
       const url = this.smoLibraryCtrl.getValue();
+      this.buildTree();
+      this.selectedLib = this.tree[url];
+      this.smoLibraryCtrl.setValue(this.selectedLib.url);
       // User navigates to parent library
-      if (typeof(this.libHash[url]) !== 'undefined') {
-        this.topLib = this.libHash[url];
-        this.selectedScore = null;
+      if (this.selectedLib.format === 'library') {
         $(this.okButton).prop('disabled', true);
-        const options = SuiLibraryDialog._createOptions(this.topLib);
-        ctrl.replaceOptions(options);
-      } else {
-        // child library
-        this.selectedLib = this.topLib.children.find((ll) => ll.url === url);
-        const topLib = this.selectedLib;
-        if (topLib.format === 'library') {
-          topLib.load().then(() => {
-            this.topLib = topLib;
-            this.selectedScore = null;
-            $(this.okButton).prop('disabled', true);
-            const options = SuiLibraryDialog._createOptions(topLib);
-            ctrl.replaceOptions(options);
+        this.selectedScore = null;
+        if (!this.selectedLib.loaded) {
+          this.selectedLib.load().then(() => {
+            const options = SuiLibraryDialog._createOptions(this.topLib);
+            this.smoLibraryCtrl.updateOptions(options);
+            this.smoLibraryCtrl.setValue(this.selectedLib.url);
           });
-        } else {
-          this.selectedScore = topLib;
-          $(this.okButton).prop('disabled', false);
         }
+      } else {
+        this.selectedScore = this.selectedLib;
+        this.smoLibraryCtrl.setValue(this.selectedLib.url);
+        $(this.okButton).prop('disabled', false);
       }
     }
   }
