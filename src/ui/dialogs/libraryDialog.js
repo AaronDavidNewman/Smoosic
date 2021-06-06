@@ -72,6 +72,7 @@ class SuiLibraryDialog extends SuiDialogBase {
   display() {
     this.applyDisplayOptions();
     this._bindElements();
+    $(this.dgDom.element).find('.smoControlContainer').addClass('center-flex');
   }
   _bindElements() {
     const dgDom = this.dgDom;

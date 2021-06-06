@@ -1,12 +1,17 @@
 /* tree styles inspired by https://github.com/xotonic/flex-tree  */
 
-
 p.tree,
 ul.tree,
 ul.tree ul {
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+ul.tree {
+  border: 2px green inset;
+  padding: 10px;
+  margin-left: 15px;
 }
 
 ul.tree ul {
@@ -18,12 +23,16 @@ ul.tree li {
   border-left: thin solid #000;
   color: #369;
   font-weight: bold;
+  line-height:1.5em;
 }
 
 ul.tree li:last-child {
   border-left: none;
 }
 
+div.center-flex {
+  justify-content: center;
+}
 ul.tree li:before {
   width: 0.9em;
   height: 0.6em;
@@ -36,6 +45,10 @@ ul.tree li:before {
 ul.tree li {
   max-height: 350px;
   overflow: auto;
+}
+
+ul.tree span.file-type {
+  margin-left:8px;
 }
 
 ul.tree li:last-child:before {
@@ -60,8 +73,11 @@ a:hover {
 
 ul.tree button.expander {
   display: none;
+  font-size: 0.6em;
+  padding: 1px 4px;
+  height: 20px;
 }
 
-ul.tree button.expander.expanded {
+ul.tree button.expander.expanded, ul.tree button.expander.collapsed {
   display: inline-block;
 }

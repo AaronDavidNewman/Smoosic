@@ -506,6 +506,6 @@ button.addChord .left-text .icon {
 	left: -5px;
 }
 
-.collapsed {
+.control-bar .collapsed {
 	display:none;
 }
