@@ -31479,6 +31479,7 @@ class SuiLibraryDialog extends SuiDialogBase {
   _bindElements() {
     const dgDom = this.dgDom;
     this.okButton = $(dgDom.element).find('.ok-button');
+    $(this.okButton).prop('disabled', true);
     this.cancelButton = $(dgDom.element).find('.cancel-button');
     $(this.okButton).off('click').on('click', () => {
       if (this.selectedScore !== null) {
