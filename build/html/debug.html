@@ -18,12 +18,14 @@
 <body>
 <script type="text/javascript">
   document.addEventListener("DOMContentLoaded", function (event) {
-            console.log("DOM fully loaded and parsed");
-
-            suiController.start(true);
-			});
+    var config = { smoPath:'..', mode: 'application' };
+    new SuiApplication(config);
+    layoutDebug.mask = 63;
+  });
 		</script>
 <div id="smoo">
+  <audio crossOrigin="anonymous" id="sample" src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_middle_C.mp3" />
+
 </div>
 </body>
 </html>

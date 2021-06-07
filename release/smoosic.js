@@ -4206,14 +4206,14 @@ class suiOscillator {
     const obj = {
       duration: 1000,
       frequency: 440,
-      attackEnv: 0.05,
-      decayEnv: 0.4,
-      sustainEnv: 0.45,
-      releaseEnv: 0.1,
-      sustainLevel: 0.4,
-      releaseLevel: 0.1,
+      attackEnv: 0.01,
+      decayEnv: 0.48,
+      sustainEnv: 0.48,
+      releaseEnv: 0.01,
+      sustainLevel: 0.5,
+      releaseLevel: 0.01,
       waveform: 'custom',
-      gain: 0.1
+      gain: 0.2
     };
 
     const wavetable = {
@@ -4281,7 +4281,7 @@ class suiOscillator {
     i = 0;
     note.pitches.forEach((pitch) => {
       frequency = suiAudioPitch.smoPitchToFrequency(pitch, i, -1 * measure.transposeIndex, note.getMicrotones());
-      const osc = new suiOscillator({ frequency, duration, gain });
+      const osc = new suiSampler({ frequency, duration, gain });
       // var osc = new suiSampler({frequency:frequency,duration:duration,gain:gain});
       ar.push(osc);
       i += 1;
@@ -4401,7 +4401,7 @@ class suiOscillator {
     this.decay = this.decayEnv * this.duration;
     this.sustain = this.sustainEnv * this.duration;
     this.release = this.releaseEnv * this.duration;
-    this.frequency = this.frequency / 2;  // Overtones below partial
+    // this.frequency = this.frequency / 2;  // Overtones below partial
 
     if (parameters.waveform && parameters.waveform !== 'custom') {
       this.waveform = parameters.waveform;
@@ -4424,26 +4424,37 @@ class suiSampler extends suiOscillator {
   }
   _play() {
     const audio = suiOscillator.audio;
+    const attack = this.attack / 1000;
+    const decay = this.decay / 1000;
+    const sustain = this.sustain / 1000;
+    const release = this.release / 1000;
+    const gain = audio.createGain();
+    gain.gain.exponentialRampToValueAtTime(this.gain, audio.currentTime + attack);
+    gain.gain.exponentialRampToValueAtTime(this.sustainLevel * this.gain, audio.currentTime + attack + decay);
+    gain.gain.exponentialRampToValueAtTime(this.releaseLevel * this.gain, audio.currentTime + attack + decay + sustain);
+    gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + attack + decay + sustain + release);
     const osc = audio.createBufferSource();
-
     osc.buffer = suiOscillator._sample;
     const cents = 1200 * (Math.log(this.frequency / suiAudioPitch.pitchFrequencyMap.cn3))
       / Math.log(2);
 
-    osc.detune.value = cents;
-    osc.connect(audio.destination);
+    osc.detune.value = cents - 1200;
+    this.reverb.connect(audio.destination);
+    osc.connect(gain);
+    gain.connect(audio.destination);
     return this._playPromise(osc, this.duration);
   }
 
   _playPromise(osc, duration) {
     const promise = new Promise((resolve) => {
-      osc.start(0, duration / 1000);
+      const dur = Math.round(duration * 0.9);
+      osc.start(0);
       setTimeout(() => {
         resolve();
       }, duration);
       setTimeout(() => {
         osc.stop(0);
-      }, duration + 500);
+      }, dur);
     });
     return promise;
   }
@@ -4505,14 +4516,13 @@ class suiAudioPlayer {
   // convert track data to frequency/volume
   static getTrackSounds(tracks, measureIndex) {
     const offsetSounds = {};
-    const trackLen = tracks.length;
     tracks.forEach((track) => {
       const measureSounds = suiAudioPlayer.getMeasureSounds(track, measureIndex);
       measureSounds.forEach((sound) => {
         if (!offsetSounds[sound.offset]) {
           offsetSounds[sound.offset] = [];
         }
-        sound.volume = sound.volume / (trackLen * 2);
+        // sound.volume = sound.volume / (trackLen * 2);
         offsetSounds[sound.offset].push(sound);
       });
     });
@@ -4545,7 +4555,7 @@ class suiAudioPlayer {
         const freq = sound.frequencies[i];
         const beats = sound.duration / 4096;
         const adjDuration = (beats / tempo) * 60000;
-        const osc = new suiOscillator({ frequency: freq, duration: adjDuration, gain: sound.volume });
+        const osc = new suiSampler({ frequency: freq, duration: adjDuration, gain: sound.volume });
         oscs.push(osc);
       }
     });
@@ -12511,7 +12521,9 @@ class VxSystem {
       }
       return a;
     };
-    if (smoStart.note.noteType === '/' || smoEnd.note.noteType === '/') {
+    if (smoStart && smoStart.note && smoStart.note.noteType === '/') {
+      return;
+    } if (smoEnd && smoEnd.note && smoEnd.note.noteType === '/') {
       return;
     }
     // if it is split between lines, render one artifact for each line, with a common class for
@@ -29118,6 +29130,11 @@ class SuiApplication {
     this.startApplication();
   }
   startApplication() {
+    suiOscillator.samplePromise().then(() => {
+      this._startApplication();
+    });
+  }
+  _startApplication() {
     let i = 0;
     // Initialize the midi writer library
     _MidiWriter();
@@ -35633,7 +35650,12 @@ class SuiTreeComponent extends SuiComponentBase {
 }
 ;
 class SuiDom {
-
+  static createAudio() {
+    const audio = document.createElement('audio');
+    audio.src = 'data:autio/mp3,base64,' + encodedCPiano;
+    audio.id = 'audio-middlec';
+    return audio;
+  }
   static splash() {
     var b = htmlHelpers.buildDom;
     var logoPath = SmoConfig.smoPath + '/styles/images/logo.png'
@@ -35696,16 +35718,15 @@ class SuiDom {
     svg.setAttributeNS('','viewBox','0 0 '+suiPiano.owidth*suiPiano.dimensions.octaves+' '+suiPiano.dimensions.wheight);
     pianoDom.appendChild(svg);
 	}
-
-
 }
 
 class UtDom {
   	static createDom() {
-      var smoId = SmoConfig.smoDomContainer;
-      var vexId = SmoConfig.vexDomContainer
-  		var b = htmlHelpers.buildDom;
-  		$('#'+smoId).html('');
+      const smoId = SmoConfig.smoDomContainer;
+      const vexId = SmoConfig.vexDomContainer
+  		const b = htmlHelpers.buildDom;
+  		$('#' + smoId).html('');
+      $('#' + smoId).append($(SuiDom.createAudio()));
   		var r = b('div').classes('dom-container')
   			.append(b('div').classes('modes'))
   			.append(b('div').classes('overlay'))

@@ -119,14 +119,14 @@ class suiOscillator {
     const obj = {
       duration: 1000,
       frequency: 440,
-      attackEnv: 0.05,
-      decayEnv: 0.4,
-      sustainEnv: 0.45,
-      releaseEnv: 0.1,
-      sustainLevel: 0.4,
-      releaseLevel: 0.1,
+      attackEnv: 0.01,
+      decayEnv: 0.48,
+      sustainEnv: 0.48,
+      releaseEnv: 0.01,
+      sustainLevel: 0.5,
+      releaseLevel: 0.01,
       waveform: 'custom',
-      gain: 0.1
+      gain: 0.2
     };
 
     const wavetable = {
@@ -194,7 +194,7 @@ class suiOscillator {
     i = 0;
     note.pitches.forEach((pitch) => {
       frequency = suiAudioPitch.smoPitchToFrequency(pitch, i, -1 * measure.transposeIndex, note.getMicrotones());
-      const osc = new suiOscillator({ frequency, duration, gain });
+      const osc = new suiSampler({ frequency, duration, gain });
       // var osc = new suiSampler({frequency:frequency,duration:duration,gain:gain});
       ar.push(osc);
       i += 1;
@@ -314,7 +314,7 @@ class suiOscillator {
     this.decay = this.decayEnv * this.duration;
     this.sustain = this.sustainEnv * this.duration;
     this.release = this.releaseEnv * this.duration;
-    this.frequency = this.frequency / 2;  // Overtones below partial
+    // this.frequency = this.frequency / 2;  // Overtones below partial
 
     if (parameters.waveform && parameters.waveform !== 'custom') {
       this.waveform = parameters.waveform;
@@ -337,26 +337,37 @@ class suiSampler extends suiOscillator {
   }
   _play() {
     const audio = suiOscillator.audio;
+    const attack = this.attack / 1000;
+    const decay = this.decay / 1000;
+    const sustain = this.sustain / 1000;
+    const release = this.release / 1000;
+    const gain = audio.createGain();
+    gain.gain.exponentialRampToValueAtTime(this.gain, audio.currentTime + attack);
+    gain.gain.exponentialRampToValueAtTime(this.sustainLevel * this.gain, audio.currentTime + attack + decay);
+    gain.gain.exponentialRampToValueAtTime(this.releaseLevel * this.gain, audio.currentTime + attack + decay + sustain);
+    gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + attack + decay + sustain + release);
     const osc = audio.createBufferSource();
-
     osc.buffer = suiOscillator._sample;
     const cents = 1200 * (Math.log(this.frequency / suiAudioPitch.pitchFrequencyMap.cn3))
       / Math.log(2);
 
-    osc.detune.value = cents;
-    osc.connect(audio.destination);
+    osc.detune.value = cents - 1200;
+    this.reverb.connect(audio.destination);
+    osc.connect(gain);
+    gain.connect(audio.destination);
     return this._playPromise(osc, this.duration);
   }
 
   _playPromise(osc, duration) {
     const promise = new Promise((resolve) => {
-      osc.start(0, duration / 1000);
+      const dur = Math.round(duration * 0.9);
+      osc.start(0);
       setTimeout(() => {
         resolve();
       }, duration);
       setTimeout(() => {
         osc.stop(0);
-      }, duration + 500);
+      }, dur);
     });
     return promise;
   }

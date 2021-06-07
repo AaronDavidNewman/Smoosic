@@ -35,6 +35,11 @@ class SuiApplication {
     this.startApplication();
   }
   startApplication() {
+    suiOscillator.samplePromise().then(() => {
+      this._startApplication();
+    });
+  }
+  _startApplication() {
     let i = 0;
     // Initialize the midi writer library
     _MidiWriter();

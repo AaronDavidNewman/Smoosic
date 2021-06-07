@@ -229,7 +229,9 @@ class VxSystem {
       }
       return a;
     };
-    if (smoStart.note.noteType === '/' || smoEnd.note.noteType === '/') {
+    if (smoStart && smoStart.note && smoStart.note.noteType === '/') {
+      return;
+    } if (smoEnd && smoEnd.note && smoEnd.note.noteType === '/') {
       return;
     }
     // if it is split between lines, render one artifact for each line, with a common class for

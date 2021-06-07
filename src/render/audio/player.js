@@ -55,14 +55,13 @@ class suiAudioPlayer {
   // convert track data to frequency/volume
   static getTrackSounds(tracks, measureIndex) {
     const offsetSounds = {};
-    const trackLen = tracks.length;
     tracks.forEach((track) => {
       const measureSounds = suiAudioPlayer.getMeasureSounds(track, measureIndex);
       measureSounds.forEach((sound) => {
         if (!offsetSounds[sound.offset]) {
           offsetSounds[sound.offset] = [];
         }
-        sound.volume = sound.volume / (trackLen * 2);
+        // sound.volume = sound.volume / (trackLen * 2);
         offsetSounds[sound.offset].push(sound);
       });
     });
@@ -95,7 +94,7 @@ class suiAudioPlayer {
         const freq = sound.frequencies[i];
         const beats = sound.duration / 4096;
         const adjDuration = (beats / tempo) * 60000;
-        const osc = new suiOscillator({ frequency: freq, duration: adjDuration, gain: sound.volume });
+        const osc = new suiSampler({ frequency: freq, duration: adjDuration, gain: sound.volume });
         oscs.push(osc);
       }
     });
