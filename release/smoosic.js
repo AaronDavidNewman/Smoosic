@@ -4447,14 +4447,13 @@ class suiSampler extends suiOscillator {
 
   _playPromise(osc, duration) {
     const promise = new Promise((resolve) => {
-      const dur = Math.round(duration * 0.9);
       osc.start(0);
       setTimeout(() => {
         resolve();
       }, duration);
       setTimeout(() => {
         osc.stop(0);
-      }, dur);
+      }, duration);
     });
     return promise;
   }
