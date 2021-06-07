@@ -4102,7 +4102,7 @@ class suiAudioPitch {
 
     octaves.forEach((octave) => {
       const oint = parseInt(octave, 10);
-      const base = baseFrequency * Math.pow(2, oint);
+      const base = baseFrequency * Math.pow(2, oint - 1);
       lix = 0;
       letters.forEach((letter) => {
         const freq = base * Math.pow(just, lix);
@@ -4152,7 +4152,7 @@ class suiAudioPitch {
 // eslint-disable-next-line no-unused-vars
 class suiReverb {
   static get defaults() {
-    return { length: 0.5, decay: 2.0 };
+    return { length: 0.2, decay: 0.5 };
   }
 
   connect(destination) {
@@ -4206,10 +4206,10 @@ class suiOscillator {
     const obj = {
       duration: 1000,
       frequency: 440,
-      attackEnv: 0.01,
-      decayEnv: 0.48,
-      sustainEnv: 0.48,
-      releaseEnv: 0.01,
+      attackEnv: 0.05,
+      decayEnv: 0.4,
+      sustainEnv: 0.4,
+      releaseEnv: 0.25,
       sustainLevel: 0.5,
       releaseLevel: 0.01,
       waveform: 'custom',
@@ -4236,6 +4236,19 @@ class suiOscillator {
     };
     obj.wavetable = wavetable;
     return obj;
+  }
+
+  static get sampleFiles() {
+    return ['bb4', 'cn4'];
+  }
+  static get samples() {
+    if (typeof(suiOscillator._samples) === 'undefined') {
+      suiOscillator._samples = [];
+    }
+    return suiOscillator._samples;
+  }
+  static set samples(val) {
+    suiOscillator._samples.push(val);
   }
 
   static playSelectionNow(selection, gain) {
@@ -4299,7 +4312,7 @@ class suiOscillator {
     const rv = new Promise((resolve) => {
       const checkSample = () => {
         setTimeout(() => {
-          if (!suiOscillator._sample) {
+          if (suiOscillator.samples.length < suiOscillator.sampleFiles.length) {
             checkSample();
           } else {
             resolve();
@@ -4308,19 +4321,34 @@ class suiOscillator {
       };
       checkSample();
     }, 100);
-    if (typeof(suiOscillator._sample) === 'undefined') {
-      const audio = suiOscillator.audio;
-      const media = audio.createMediaElementSource(document.getElementById('sample'));
-      const req = new XMLHttpRequest();
-      req.open('GET', media.mediaElement.src, true);
-      req.responseType = 'arraybuffer';
-      req.send();
-      req.onload = () => {
-        const audioData = req.response;
-        audio.decodeAudioData(audioData, (decoded) => {
-          suiOscillator._sample = decoded;
-        });
-      };
+    if (suiOscillator.samples.length < suiOscillator.sampleFiles.length) {
+      suiOscillator.sampleFiles.forEach((file) => {
+        const audio = suiOscillator.audio;
+        const media = audio.createMediaElementSource(document.getElementById('sample' + file));
+        const req = new XMLHttpRequest();
+        req.open('GET', media.mediaElement.src, true);
+        req.responseType = 'arraybuffer';
+        req.send();
+        req.onload = () => {
+          const audioData = req.response;
+          audio.decodeAudioData(audioData, (decoded) => {
+            suiOscillator.samples.push({ sample: decoded, frequency: suiAudioPitch._frequencies[file] });
+          });
+        };
+      });
+    }
+    return rv;
+  }
+  static sampleForFrequency(f) {
+    let min = 9999;
+    let rv = {};
+    let i = 0;
+    for (i = 0; i < suiOscillator.samples.length; ++i) {
+      const sample = suiOscillator.samples[i];
+      if (Math.abs(f - sample.frequency) < min) {
+        min = Math.abs(f - sample.frequency);
+        rv = sample;
+      }
     }
     return rv;
   }
@@ -4370,7 +4398,6 @@ class suiOscillator {
     gain.connect(this.reverb.input);
 
     this.reverb.connect(audio.destination);
-    gain.gain.setValueAtTime(0.01, audio.currentTime);
     const attack = this.attack / 1000;
     const decay = this.decay / 1000;
     const sustain = this.sustain / 1000;
@@ -4428,20 +4455,30 @@ class suiSampler extends suiOscillator {
     const decay = this.decay / 1000;
     const sustain = this.sustain / 1000;
     const release = this.release / 1000;
-    const gain = audio.createGain();
-    gain.gain.exponentialRampToValueAtTime(this.gain, audio.currentTime + attack);
-    gain.gain.exponentialRampToValueAtTime(this.sustainLevel * this.gain, audio.currentTime + attack + decay);
-    gain.gain.exponentialRampToValueAtTime(this.releaseLevel * this.gain, audio.currentTime + attack + decay + sustain);
-    gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + attack + decay + sustain + release);
+    const gain1 = audio.createGain();
+    const gp1 = this.gain;
+    // const gain2 = audio.createGain();
+    // const delay = audio.createDelay(0.5);
+    gain1.gain.exponentialRampToValueAtTime(gp1, audio.currentTime + attack);
+    gain1.gain.exponentialRampToValueAtTime(this.sustainLevel * gp1, audio.currentTime + attack + decay);
+    gain1.gain.exponentialRampToValueAtTime(this.releaseLevel * gp1, audio.currentTime + attack + decay + sustain);
+    gain1.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + attack + decay + sustain + release);
+    // gain2.gain.exponentialRampToValueAtTime(gp1, audio.currentTime + attack);
+    // gain2.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + attack + decay + sustain + release);
     const osc = audio.createBufferSource();
-    osc.buffer = suiOscillator._sample;
-    const cents = 1200 * (Math.log(this.frequency / suiAudioPitch.pitchFrequencyMap.cn3))
+    const sample = suiOscillator.sampleForFrequency(this.frequency);
+    osc.buffer = sample.sample;
+    const cents = 1200 * (Math.log(this.frequency / sample.frequency))
       / Math.log(2);
 
-    osc.detune.value = cents - 1200;
-    this.reverb.connect(audio.destination);
-    osc.connect(gain);
-    gain.connect(audio.destination);
+    osc.detune.value = cents;
+    osc.connect(gain1);
+    // osc.connect(this.reverb.input);
+    // this.reverb.connect(delay);
+    // osc.connect(gain);
+    // delay.connect(gain2);
+    gain1.connect(audio.destination);
+    // gain2.connect(audio.destination);
     return this._playPromise(osc, this.duration);
   }
 
@@ -4453,7 +4490,7 @@ class suiSampler extends suiOscillator {
       }, duration);
       setTimeout(() => {
         osc.stop(0);
-      }, duration);
+      }, duration + 500);
     });
     return promise;
   }
@@ -35649,12 +35686,6 @@ class SuiTreeComponent extends SuiComponentBase {
 }
 ;
 class SuiDom {
-  static createAudio() {
-    const audio = document.createElement('audio');
-    audio.src = 'data:autio/mp3,base64,' + encodedCPiano;
-    audio.id = 'audio-middlec';
-    return audio;
-  }
   static splash() {
     var b = htmlHelpers.buildDom;
     var logoPath = SmoConfig.smoPath + '/styles/images/logo.png'
@@ -35717,42 +35748,6 @@ class SuiDom {
     svg.setAttributeNS('','viewBox','0 0 '+suiPiano.owidth*suiPiano.dimensions.octaves+' '+suiPiano.dimensions.wheight);
     pianoDom.appendChild(svg);
 	}
-}
-
-class UtDom {
-  	static createDom() {
-      const smoId = SmoConfig.smoDomContainer;
-      const vexId = SmoConfig.vexDomContainer
-  		const b = htmlHelpers.buildDom;
-  		$('#' + smoId).html('');
-      $('#' + smoId).append($(SuiDom.createAudio()));
-  		var r = b('div').classes('dom-container')
-  			.append(b('div').classes('modes'))
-  			.append(b('div').classes('overlay'))
-  			.append(b('div').classes('attributeDialog'))
-  			.append(b('div').classes('helpDialog'))
-  			.append(b('div').classes('menuContainer'))
-  			.append(b('h1').classes('testTitle').text('Smoosic'))
-  			.append(b('h2').classes('subTitle'))
-  			.append(b('div').classes('piano-container')
-          .append(b('div').classes('key-left-ctrl'))
-  				.append(b('div').classes('piano-keys'))
-          .append(b('div').classes('key-right-ctrl')))
-  			.append(b('div').classes('workspace-container')
-  				.append(b('div').classes('workspace').attr('dir',SmoConfig.languageDir)
-  					.append(b('div').classes('controls-top'))
-  					.append(b('div').classes('controls-left'))
-  					.append(b('div').classes('musicRelief')
-  						.append(b('div')
-              .classes('musicContainer')
-              .attr('id', vexId)
-              .attr('dir','ltr')))));
-  		$('#'+smoId).append(r.dom());
-  	}
-
-    static splash() {
-      return;
-    }
 }
 ;
 

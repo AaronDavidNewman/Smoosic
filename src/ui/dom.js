@@ -1,11 +1,5 @@
 
 class SuiDom {
-  static createAudio() {
-    const audio = document.createElement('audio');
-    audio.src = 'data:autio/mp3,base64,' + encodedCPiano;
-    audio.id = 'audio-middlec';
-    return audio;
-  }
   static splash() {
     var b = htmlHelpers.buildDom;
     var logoPath = SmoConfig.smoPath + '/styles/images/logo.png'
@@ -68,40 +62,4 @@ class SuiDom {
     svg.setAttributeNS('','viewBox','0 0 '+suiPiano.owidth*suiPiano.dimensions.octaves+' '+suiPiano.dimensions.wheight);
     pianoDom.appendChild(svg);
 	}
-}
-
-class UtDom {
-  	static createDom() {
-      const smoId = SmoConfig.smoDomContainer;
-      const vexId = SmoConfig.vexDomContainer
-  		const b = htmlHelpers.buildDom;
-  		$('#' + smoId).html('');
-      $('#' + smoId).append($(SuiDom.createAudio()));
-  		var r = b('div').classes('dom-container')
-  			.append(b('div').classes('modes'))
-  			.append(b('div').classes('overlay'))
-  			.append(b('div').classes('attributeDialog'))
-  			.append(b('div').classes('helpDialog'))
-  			.append(b('div').classes('menuContainer'))
-  			.append(b('h1').classes('testTitle').text('Smoosic'))
-  			.append(b('h2').classes('subTitle'))
-  			.append(b('div').classes('piano-container')
-          .append(b('div').classes('key-left-ctrl'))
-  				.append(b('div').classes('piano-keys'))
-          .append(b('div').classes('key-right-ctrl')))
-  			.append(b('div').classes('workspace-container')
-  				.append(b('div').classes('workspace').attr('dir',SmoConfig.languageDir)
-  					.append(b('div').classes('controls-top'))
-  					.append(b('div').classes('controls-left'))
-  					.append(b('div').classes('musicRelief')
-  						.append(b('div')
-              .classes('musicContainer')
-              .attr('id', vexId)
-              .attr('dir','ltr')))));
-  		$('#'+smoId).append(r.dom());
-  	}
-
-    static splash() {
-      return;
-    }
 }
