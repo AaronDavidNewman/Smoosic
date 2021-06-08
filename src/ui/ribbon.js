@@ -533,16 +533,16 @@ class DisplaySettings {
     this.view.refreshViewport();
   }
   zoomout() {
-    this.view.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-    this.view.score.layout.zoomScale = this.view.score.layout.zoomScale * 1.1;
-    this.view.renderer.setViewport();
-    this.view.renderer.setRefresh();
+    const globalLayout = this.view.score.layoutManager.getGlobalLayout();
+    globalLayout.zoomScale *= 1.1;
+    globalLayout.zoomMode = SmoScore.zoomScale;
+    this.view.setGlobalLayout(globalLayout);
   }
   zoomin() {
-    this.view.score.layout.zoomMode = SmoScore.zoomModes.zoomScale;
-    this.view.score.layout.zoomScale = this.view.score.layout.zoomScale / 1.1;
-    this.view.renderer.setViewport();
-    this.view.renderer.setRefresh();
+    const globalLayout = this.view.score.layoutManager.getGlobalLayout();
+    globalLayout.zoomScale = globalLayout.zoomScale / 1.1;
+    globalLayout.zoomMode = SmoScore.zoomScale;
+    this.view.setGlobalLayout(globalLayout);
   }
   playButton2() {
     this.keyCommands.playScore();
