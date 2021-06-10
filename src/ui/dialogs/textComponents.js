@@ -207,7 +207,7 @@ class SuiNoteTextComponent extends SuiComponentBase {
   }
   setDialogLyric() {
     if (this.session && this.session.lyric) {
-      this.dialog.setLyric(this.session.lyric);
+      this.dialog.setLyric(this.selector, this.session.lyric);
     }
   }
 
@@ -411,6 +411,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
     var button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
     this.session.startSession();
+    this.setDialogLyric();
   }
   bind() {
     this._bind();

@@ -34282,7 +34282,7 @@ class SuiNoteTextComponent extends SuiComponentBase {
   }
   setDialogLyric() {
     if (this.session && this.session.lyric) {
-      this.dialog.setLyric(this.session.lyric);
+      this.dialog.setLyric(this.selector, this.session.lyric);
     }
   }
 
@@ -34486,6 +34486,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
     var button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
     this.session.startSession();
+    this.setDialogLyric();
   }
   bind() {
     this._bind();
@@ -34933,7 +34934,13 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       // Move focus outside the element so it doesn't intercept keys
       this.chordSymbolCtrl.unselect();
     }
-    if (this.textPositionCtrl.changeFlag && this.chordEditorCtrl.running) {
+    if (this.translateYCtrl.changeFlag) {
+      if (this.lyric && this.selector) {
+        this.lyric.translateY = this.translateYCtrl.getValue();
+        this.view.addOrUpdateLyric(this.selector, this.lyric);
+      }
+    }
+    if (this.textPositionCtrl.changeFlag) {
       this.chordEditorCtrl.setTextType(this.textPositionCtrl.getValue());
       $(this.textPositionCtrl._getInputElement())[0].selectedIndex = -1;
       $(this.textPositionCtrl._getInputElement()).blur();
@@ -34946,7 +34953,8 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       this.view.score.setChordAdjustWidth(this.adjustWidthCtrl.getValue());
     }
   }
-  setLyric(lyric) {
+  setLyric(selector, lyric) {
+    this.selector = selector;
     this.lyric = lyric;
     this.translateYCtrl.setValue(lyric.translateY);
   }

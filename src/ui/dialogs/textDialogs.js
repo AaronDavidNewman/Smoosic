@@ -342,7 +342,13 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       // Move focus outside the element so it doesn't intercept keys
       this.chordSymbolCtrl.unselect();
     }
-    if (this.textPositionCtrl.changeFlag && this.chordEditorCtrl.running) {
+    if (this.translateYCtrl.changeFlag) {
+      if (this.lyric && this.selector) {
+        this.lyric.translateY = this.translateYCtrl.getValue();
+        this.view.addOrUpdateLyric(this.selector, this.lyric);
+      }
+    }
+    if (this.textPositionCtrl.changeFlag) {
       this.chordEditorCtrl.setTextType(this.textPositionCtrl.getValue());
       $(this.textPositionCtrl._getInputElement())[0].selectedIndex = -1;
       $(this.textPositionCtrl._getInputElement()).blur();
@@ -355,7 +361,8 @@ class SuiChordChangeDialog  extends SuiDialogBase {
       this.view.score.setChordAdjustWidth(this.adjustWidthCtrl.getValue());
     }
   }
-  setLyric(lyric) {
+  setLyric(selector, lyric) {
+    this.selector = selector;
     this.lyric = lyric;
     this.translateYCtrl.setValue(lyric.translateY);
   }
