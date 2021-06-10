@@ -53,7 +53,7 @@ class SuiLibraryDialog extends SuiDialogBase {
     dg.display();
   }
   static createAndDisplay(parameters) {
-    const topLib = new SmoLibrary({ url: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json' });
+    const topLib = new SmoLibrary({ url: SmoConfig.libraryUrl });
     topLib.load().then(() => SuiLibraryDialog._createAndDisplay(parameters, topLib));
   }
   get displayOptions() {

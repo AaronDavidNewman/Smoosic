@@ -17,6 +17,7 @@ class SuiApplication {
       keyCommands: true,
       menus: true,
       title: 'Smoosic',
+      libraryUrl: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json',
       languageDir: 'ltr',
       demonPollTime: 50, // how often we poll the score to see if it changed
       idleRedrawTime: 1000, // maximum time between score modification and render

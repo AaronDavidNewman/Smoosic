@@ -5,7 +5,7 @@ class vexGlyph {
   // Vex glyph font size (points) is 38, convert to pixels (96 / 72)
   // and divide by glyph resolution
   static get glyphPixels() {
-    return 96 * (38 / (VF.DefaultFontStack[0].getResolution() * 72));
+    return 96 * (38 / (VF.DEFAULT_FONT_STACK[0].getResolution() * 72));
   }
   static width(smoGlyph) {
     if (smoGlyph.vexGlyph) {

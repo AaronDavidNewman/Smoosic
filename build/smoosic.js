@@ -11499,7 +11499,7 @@ class vexGlyph {
   // Vex glyph font size (points) is 38, convert to pixels (96 / 72)
   // and divide by glyph resolution
   static get glyphPixels() {
-    return 96 * (38 / (VF.DefaultFontStack[0].getResolution() * 72));
+    return 96 * (38 / (VF.DEFAULT_FONT_STACK[0].getResolution() * 72));
   }
   static width(smoGlyph) {
     if (smoGlyph.vexGlyph) {
@@ -29148,6 +29148,7 @@ class SuiApplication {
       keyCommands: true,
       menus: true,
       title: 'Smoosic',
+      libraryUrl: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json',
       languageDir: 'ltr',
       demonPollTime: 50, // how often we poll the score to see if it changed
       idleRedrawTime: 1000, // maximum time between score modification and render
@@ -31508,7 +31509,7 @@ class SuiLibraryDialog extends SuiDialogBase {
     dg.display();
   }
   static createAndDisplay(parameters) {
-    const topLib = new SmoLibrary({ url: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json' });
+    const topLib = new SmoLibrary({ url: SmoConfig.libraryUrl });
     topLib.load().then(() => SuiLibraryDialog._createAndDisplay(parameters, topLib));
   }
   get displayOptions() {
