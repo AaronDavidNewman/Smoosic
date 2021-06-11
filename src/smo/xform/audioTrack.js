@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## SmoAudioTrack
 // Convert a score into a JSON structure that can be rendered to audio.
 // the return value looks like this:

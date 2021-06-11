@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## suiTracker
 // A tracker maps the UI elements to the logical elements ,and allows the user to
 // move through the score and make selections, for navigation and editing.

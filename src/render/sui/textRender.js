@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## textRender.js
 // Classes responsible for formatting and rendering text in SVG space.
 // ## SuiInlineText

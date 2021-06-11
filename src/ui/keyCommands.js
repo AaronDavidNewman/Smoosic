@@ -1,4 +1,5 @@
-
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 
 // ## suiEditor
 // KeyCommands object handles key events and converts them into commands, updating the score and

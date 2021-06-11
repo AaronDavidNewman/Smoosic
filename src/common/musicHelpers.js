@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## smoMusic
 // Helper functions that build on the VX music theory routines, and other
 // utilities I wish were in VF.Music but aren't

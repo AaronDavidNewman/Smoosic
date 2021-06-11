@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## SmoScoreModifierBase
 // A score modifier is something that appears in the score, but not
 // associated with a measure of music.

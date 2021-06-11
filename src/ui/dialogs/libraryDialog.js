@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## SuiLibraryDialog
 // Traverse the library nodes or load a score
 // eslint-disable-next-line no-unused-vars

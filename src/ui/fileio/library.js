@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## SmoLibrary
 // A class to organize smoosic files (or any format smoosic accepts) into libraries.
 // eslint-disable-next-line no-unused-vars

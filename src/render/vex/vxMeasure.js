@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## Description:
 // This file calls the vexflow routines that actually render a
 // measure of music.  If multiple measures are justified in a

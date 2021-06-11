@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## PasteBuffer
 // ### Description:
 // Hold some music that can be pasted back to the score

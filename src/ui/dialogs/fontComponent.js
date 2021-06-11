@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## SuiFontComponent
 // Dialog component that lets user choose and customize fonts.
 // eslint-disable-next-line no-unused-vars

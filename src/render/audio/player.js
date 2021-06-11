@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## suiAudioPlayer
 // Play the music, ja!
 // eslint-disable-next-line no-unused-vars

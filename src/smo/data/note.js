@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## SmoNote
 // ## Description:
 // Data for a musical note.  THe most-contained-thing, except there can be note modifiers

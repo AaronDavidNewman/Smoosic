@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## CheckboxDropdownComponent
 // A checkbox that enables a dropdown component, for optional or dependent parameter
 // eslint-disable-next-line no-unused-vars

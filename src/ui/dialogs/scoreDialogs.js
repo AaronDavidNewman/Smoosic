@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## SuiScoreViewDialog
 // decide which rows of the score to look at
 // eslint-disable-next-line no-unused-vars

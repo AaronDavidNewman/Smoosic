@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## suiController
 // ## Description:
 // Manages DOM events and binds keyboard and mouse events

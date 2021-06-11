@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 
 // An operation works on a selection or set of selections to edit the music
 class SmoOperation {

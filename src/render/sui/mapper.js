@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## suiMapper
 // Map the notes in the svg so they can respond to events and interact
 // with the mouse/keyboard

@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // The heirarchy of text editing objects goes:
 // dialog -> component -> session -> editor
 //

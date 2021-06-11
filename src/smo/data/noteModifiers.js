@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## SmoNoteModifierBase
 // A note modifier is anything that is mapped to the note, but not part of the
 // pitch itself.  This includes grace notes, and note-text like lyrics

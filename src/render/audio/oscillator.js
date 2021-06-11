@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## suiAudioPitch
 // helper class to compute the frequencies of the notes.
 // eslint-disable-next-line no-unused-vars

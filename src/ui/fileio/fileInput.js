@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## SuiFileInput
 // Get a string or binary file  from a file input control and transparently
 // decompress it if it's mxml file (compressed).  This will read any text  or

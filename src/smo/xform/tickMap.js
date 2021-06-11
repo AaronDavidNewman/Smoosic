@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## TickMap
 // create a map note durations at each index into the voice, including the accidentals at each duration.
 // return format:

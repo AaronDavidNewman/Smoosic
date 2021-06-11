@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## SmoActionRecord
 // Record a list of actions, for playback or unit testing.
 // eslint-disable-next-line no-unused-vars

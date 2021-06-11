@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 /////////////////
 // # selections.js
 // Editing operations are performed on selections.  A selection can be different things, from a single pitch

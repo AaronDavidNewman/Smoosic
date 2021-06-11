@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## ScoreViewOperations
 // MVVM-like operations on the displayed score.
 // All operations that can be performed on a 'live' score go through this

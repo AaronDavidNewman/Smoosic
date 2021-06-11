@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## SuiRenderState
 // Manage the state of the score rendering.  The score can be rendered either completely,
 // or partially for editing.  This class works with the RenderDemon to decide when to
