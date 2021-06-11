@@ -11402,8 +11402,8 @@ class suiTracker extends suiMapper {
       return;
     }
     const headEl = heads[index];
-    const box = svgHelpers.adjustScroll(svgHelpers.smoBox(headEl.getBoundingClientRect()),
-      this.scroller.invScroll);
+    const lbox = svgHelpers.smoBox(headEl.getBBox());
+    const box = svgHelpers.logicalToClient(this.context.svg, lbox, this.scroller);
     this._drawRect(box, 'staffModifier');
   }
 
