@@ -535,13 +535,13 @@ class DisplaySettings {
   zoomout() {
     const globalLayout = this.view.score.layoutManager.getGlobalLayout();
     globalLayout.zoomScale *= 1.1;
-    globalLayout.zoomMode = SmoScore.zoomScale;
+    globalLayout.zoomMode = SmoScore.zoomModes.zoomScale;
     this.view.setGlobalLayout(globalLayout);
   }
   zoomin() {
     const globalLayout = this.view.score.layoutManager.getGlobalLayout();
     globalLayout.zoomScale = globalLayout.zoomScale / 1.1;
-    globalLayout.zoomMode = SmoScore.zoomScale;
+    globalLayout.zoomMode = SmoScore.zoomModes.zoomScale;
     this.view.setGlobalLayout(globalLayout);
   }
   playButton2() {
