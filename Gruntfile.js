@@ -19,7 +19,7 @@ module.exports = function (grunt) {
    'src/ui/dialogs/measureDialogs.js','src/ui/dialogs/staffDialogs.js','src/ui/dialogs/libraryDialog.js','src/ui/dialogs/treeComponent.js' ,
    'src/ui/dialogs/fileDialogs.js',
    'src/ui/application.js', 'src/ui/fileio/fileInput.js', 'src/ui/fileio/xhrLoader.js','src/ui/fileio/library.js']
-  const SOURCES = ['src/**/*.js','!src/test/*.js'];
+  const SOURCES = ['src/**/*.js'];
 
     // Project configuration.
   grunt.initConfig({

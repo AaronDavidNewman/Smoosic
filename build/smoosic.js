@@ -1,3 +1,5 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 
 var smoDomBuilder = function (el) {}
 
@@ -1988,7 +1990,9 @@ var main = {
 };
 window.MidiWriter = main;
 };
-;// ## smoMusic
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+// ## smoMusic
 // Helper functions that build on the VX music theory routines, and other
 // utilities I wish were in VF.Music but aren't
 // ### Note on pitch and duration format
@@ -2862,7 +2866,9 @@ class smoMusic {
     return dar.sort((a,b) => a > b ? -1 : 1);
   }
 }
-;
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+
 class PromiseHelpers {
   // ### makePromise
   // poll on endCondition at a rate of pollTime.  Resolve the promise
@@ -2958,7 +2964,9 @@ class PromiseHelpers {
     }
   }
 }
-;// ## smoSerialize
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+// ## smoSerialize
 // Helper functions that perform serialized merges, general JSON
 // types of routines.
 // ---
@@ -3425,15 +3433,14 @@ class smoSerialize {
     }
   }
 }
-;
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 
 // ## svgHelpers
 // Mostly utilities for converting coordinate spaces based on transforms, etc.
 // ### static class methods:
 // ---
 class svgHelpers {
-
-
   static get namespace() {
     return "http://www.w3.org/2000/svg";
   }
@@ -13626,16 +13633,16 @@ class SmoMeasure {
   tupletNotes(tuplet) {
     let j = 0;
     let i = 0;
-    let notes = [];
+    const tnotes = [];
     for (j = 0; j < this.voices.length; ++j) {
-      notes = this.voices[j].notes;
-      for (i = 0; i < notes.length; ++i) {
-        if (notes[i].tuplet && notes[i].tuplet.id === tuplet.attrs.id) {
-          notes.push(notes[i]);
+      const vnotes = this.voices[j].notes;
+      for (i = 0; i < vnotes.length; ++i) {
+        if (vnotes[i].tuplet && vnotes[i].tuplet.id === tuplet.attrs.id) {
+          tnotes.push(vnotes[i]);
         }
       }
     }
-    return notes;
+    return tnotes;
   }
 
   // #### tupletIndex
@@ -22025,7 +22032,16 @@ class SmoDuration {
     for (i = i + 1;i<notes.length;++i) {
       newNotes.push(notes[i]);
     }
+    // If any tuplets got removed while extending the notes, 
     measure.voices[selector.voice].notes = newNotes;
+    const measureTuplets = [];
+    measure.tuplets.forEach((tuplet) => {
+      const testNotes = measure.tupletNotes(tuplet);
+      if (testNotes.length === tuplet.notes.length) {
+        measureTuplets.push(tuplet);
+      }
+    });
+    measure.tuplets = measureTuplets;
   }
 
   static doubleDurationTuplet(selection) {
@@ -30702,7 +30718,9 @@ class SuiTextInputComposite extends SuiTextInputComponent {
     this.changeFlag = false;
   }
 }
-;// eslint-disable-next-line no-unused-vars
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+// eslint-disable-next-line no-unused-vars
 class SuiFileDialog extends SuiDialogBase {
   constructor(parameters) {
     var p = parameters;
@@ -31216,7 +31234,9 @@ class SuiSaveActionsDialog extends SuiFileDialog {
     this.value = SuiSaveActionsDialog.createName(this.view.score);
   }
 }
-;// ## SuiFontComponent
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+// ## SuiFontComponent
 // Dialog component that lets user choose and customize fonts.
 // eslint-disable-next-line no-unused-vars
 class SuiFontComponent extends SuiComponentBase {
@@ -31547,7 +31567,9 @@ class SuiTextBlockComponent extends SuiComponentBase {
     this.spacingCtrl.bind();
   }
 }
-;// ## SuiLibraryDialog
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+// ## SuiLibraryDialog
 // Traverse the library nodes or load a score
 // eslint-disable-next-line no-unused-vars
 class SuiLibraryDialog extends SuiDialogBase {
@@ -31701,7 +31723,9 @@ class SuiLibraryDialog extends SuiDialogBase {
     this.parentLib = {};
   }
 }
-;// ## measureDialogs.js
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+// ## measureDialogs.js
 // This file contains dialogs that affect all measures at a certain position,
 // such as tempo or time signature.
 // eslint-disable-next-line no-unused-vars
@@ -32505,7 +32529,9 @@ class SuiTempoDialog extends SuiDialogBase {
     });
   }
 }
-;// ## SuiScoreViewDialog
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+// ## SuiScoreViewDialog
 // decide which rows of the score to look at
 // eslint-disable-next-line no-unused-vars
 class SuiScoreViewDialog extends SuiDialogBase {
@@ -33229,7 +33255,9 @@ class SuiLayoutDialog extends SuiDialogBase {
     this.backup = this.layoutManager.getPageLayouts();
   }
 }
-;// ## CheckboxDropdownComponent
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+// ## CheckboxDropdownComponent
 // A checkbox that enables a dropdown component, for optional or dependent parameter
 // eslint-disable-next-line no-unused-vars
 class CheckboxDropdownComponent extends SuiComponentBase {
@@ -33610,7 +33638,9 @@ class TextCheckComponent extends SuiComponentBase {
     this.textCtrl.bind();
   }
 }
-;// ## SuiStaffModifierDialog
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+// ## SuiStaffModifierDialog
 // Edit the attributes of a staff modifier (connects notes in the same staff)
 // eslint-disable-next-line no-unused-vars
 class SuiStaffModifierDialog extends SuiDialogBase {
@@ -34166,7 +34196,9 @@ class SuiStaffGroupDialog extends SuiDialogBase {
     }
   }
 }
-;
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+
 // ## textComponents module
 // This has the text editing dialog components.  Unlike components that are
 // actual dialog controls, these actually run a text editing session of some kind.
@@ -34683,7 +34715,9 @@ class SuiDragText extends SuiComponentBase {
     });
   }
 }
-;// eslint-disable-next-line no-unused-vars
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+// eslint-disable-next-line no-unused-vars
 class SuiLyricDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiLyricDialog';
@@ -35637,7 +35671,9 @@ class helpModal {
     return htmlHelpers.closeDialogPromise();
   }
 }
-;// ### SuiDropdownComponent
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+// ### SuiDropdownComponent
 // simple dropdown select list.
 // eslint-disable-next-line no-unused-vars
 class SuiTreeComponent extends SuiComponentBase {
@@ -36090,7 +36126,9 @@ class SuiExceptionHandler {
     }
   }
 }
-;// ## SuiFileInput
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+// ## SuiFileInput
 // Get a string or binary file  from a file input control and transparently
 // decompress it if it's mxml file (compressed).  This will read any text  or
 // binary file,
@@ -36145,7 +36183,9 @@ class SuiFileInput {
     });
   }
 }
-;// ## SmoLibrary
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+// ## SmoLibrary
 // A class to organize smoosic files (or any format smoosic accepts) into libraries.
 // eslint-disable-next-line no-unused-vars
 class SmoLibrary {
@@ -36225,7 +36265,9 @@ class SmoLibrary {
     });
   }
 }
-;// ## SuiXhrLoader
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+// ## SuiXhrLoader
 // Load music xml files from remote, transparently
 // unzip mxml files.  Other files (smo, xml, midi) are handled
 // transparently with consistent async interface
@@ -39836,7 +39878,9 @@ var workingWithTexten = `
 </ul>
 <p>Right now chord symbol entry is not too WYSIWYG - the actual chord rendering is done when the editing mode is done, which is a bit annoying.  I will be improving this as time goes on.</p>
 <p><img src="https://imgur.com/a2ldLDX" alt=""></p>`;
-;
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+
 class SmoTranslator {
   static get dialogs() {
     SmoTranslator._dialogs =  SmoTranslator._dialogs ? SmoTranslator._dialogs : {};
@@ -40053,7 +40097,8 @@ class SmoLanguage {
      return rv;
    }
 }
-;//
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 
 // ## SmoTranslationEditor
 // Create a somewhat user-friendly editor DOM to translate SMO
@@ -41257,7 +41302,9 @@ class SuiKeyCommands {
     this.toggleArticulationCommand(atyp, 'SmoArticulation');
   }
 }
-;class suiMenuBase {
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+class suiMenuBase {
   constructor(params) {
     Vex.Merge(this, params);
     this.focusIndex = -1;
@@ -42468,7 +42515,9 @@ class SuiAddStaffMenu extends suiMenuBase {
   }
   keydown() {}
 }
-;
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+
 class Qwerty {
   static get navigationElements() {
 
@@ -42640,8 +42689,8 @@ class Qwerty {
 
 
 }
-;//# sourceMappingURL=../src/ui/ribbon.js
-
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 // ## RibbonButtons
 // Render the ribbon buttons based on group, function, and underlying UI handler.
 // Also handles UI events.
@@ -43398,7 +43447,8 @@ class CollapseRibbonControl {
     });
   }
 }
-;
+;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 
 class defaultRibbonLayout {
 
@@ -45039,45 +45089,6 @@ class defaultRibbonLayout {
       }
     ];
   }
-}
-;
-// ## utController
-// a simple controller object to render the unit test cases.
-class utController {
-
-	constructor(params) {
-
-		Vex.Merge(this, utController.defaults);
-		Vex.Merge(this, params);
-		this.bindEvents();
-    this.score = params.view.renderer.score;
-		this.undoBuffer = new UndoBuffer();
-    this.layoutDemon.undoBuffer = this.undoBuffer;
-    this.exhandler = new SuiExceptionHandler(this);
-    SmoMeasure.emptyMeasureNoteType='n';
-
-    this.layoutDemon.startDemon();
-	}
-
-	get renderElement() {
-		return this.layout.renderElement;
-	}
-
-	static get defaults() {
-		return {};
-	}
-
-	detach() {
-		this.layout = null;
-	}
-
-	render() {
-    var ix = 0;
-    this.view.renderer.layout()
-	}
-
-	bindEvents() {}
-
 }
 
 //# sourceMappingURL=smoosic.js.map

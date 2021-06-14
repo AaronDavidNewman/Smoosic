@@ -6,8 +6,6 @@
 // ### static class methods:
 // ---
 class svgHelpers {
-
-
   static get namespace() {
     return "http://www.w3.org/2000/svg";
   }

@@ -1,7 +1,5 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-//# sourceMappingURL=../src/ui/ribbon.js
-
 // ## RibbonButtons
 // Render the ribbon buttons based on group, function, and underlying UI handler.
 // Also handles UI events.

@@ -37,7 +37,16 @@ class SmoDuration {
     for (i = i + 1;i<notes.length;++i) {
       newNotes.push(notes[i]);
     }
+    // If any tuplets got removed while extending the notes, 
     measure.voices[selector.voice].notes = newNotes;
+    const measureTuplets = [];
+    measure.tuplets.forEach((tuplet) => {
+      const testNotes = measure.tupletNotes(tuplet);
+      if (testNotes.length === tuplet.notes.length) {
+        measureTuplets.push(tuplet);
+      }
+    });
+    measure.tuplets = measureTuplets;
   }
 
   static doubleDurationTuplet(selection) {

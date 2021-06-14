@@ -769,16 +769,16 @@ class SmoMeasure {
   tupletNotes(tuplet) {
     let j = 0;
     let i = 0;
-    let notes = [];
+    const tnotes = [];
     for (j = 0; j < this.voices.length; ++j) {
-      notes = this.voices[j].notes;
-      for (i = 0; i < notes.length; ++i) {
-        if (notes[i].tuplet && notes[i].tuplet.id === tuplet.attrs.id) {
-          notes.push(notes[i]);
+      const vnotes = this.voices[j].notes;
+      for (i = 0; i < vnotes.length; ++i) {
+        if (vnotes[i].tuplet && vnotes[i].tuplet.id === tuplet.attrs.id) {
+          tnotes.push(vnotes[i]);
         }
       }
     }
-    return notes;
+    return tnotes;
   }
 
   // #### tupletIndex
