@@ -1,9 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 
-// ## suiAdjuster
+// ## suiFormatter
+// Changed from suiAdjuster
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
-class suiLayoutAdjuster {
+class suiLayoutFormatter {
   static estimateMusicWidth(smoMeasure, noteSpacing, accidentMap) {
     const widths = [];
     let voiceIx = 0;
@@ -144,14 +145,14 @@ class suiLayoutAdjuster {
 
   static estimateMeasureWidth(measure, noteSpacing, accidentMap) {
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
-    let measureWidth = suiLayoutAdjuster.estimateMusicWidth(measure, noteSpacing, accidentMap);
-    measure.adjX = suiLayoutAdjuster.estimateStartSymbolWidth(measure);
-    measure.adjRight = suiLayoutAdjuster.estimateEndSymbolWidth(measure);
+    let measureWidth = suiLayoutFormatter.estimateMusicWidth(measure, noteSpacing, accidentMap);
+    measure.adjX = suiLayoutFormatter.estimateStartSymbolWidth(measure);
+    measure.adjRight = suiLayoutFormatter.estimateEndSymbolWidth(measure);
     measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
     const y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
     measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight');
     // Calculate the space for left/right text which displaces the measure.
-    // var textOffsetBox=suiLayoutAdjuster.estimateTextOffset(renderer,measure);
+    // var textOffsetBox=suiLayoutFormatter.estimateTextOffset(renderer,measure);
     // measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
     measure.setBox(svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, measure.logicalBox.height),
       'estimate measure width');
@@ -216,7 +217,7 @@ class suiLayoutAdjuster {
     }
     measure.voices.forEach((voice) => {
       voice.notes.forEach((note) => {
-        const bg = suiLayoutAdjuster._beamGroupForNote(measure, note);
+        const bg = suiLayoutFormatter._beamGroupForNote(measure, note);
         flag = SmoNote.flagStates.auto;
         if (bg && note.noteType === 'n') {
           flag = bg.notes[0].flagState;
@@ -235,7 +236,7 @@ class suiLayoutAdjuster {
               >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
           }
         }
-        const hiloHead = suiLayoutAdjuster._highestLowestHead(measure, note);
+        const hiloHead = suiLayoutFormatter._highestLowestHead(measure, note);
         if (flag === SmoNote.flagStates.down) {
           yOffset = Math.min(hiloHead.lo, yOffset);
           heightOffset = Math.max(hiloHead.hi + vexGlyph.stem.height, heightOffset);
@@ -249,7 +250,7 @@ class suiLayoutAdjuster {
         const lyrics = note.getTrueLyrics();
         if (lyrics.length) {
           const maxLyric = lyrics.reduce((a, b) => a.verse > b.verse ? a : b);
-          const fontInfo = suiLayoutAdjuster.textFont(maxLyric);
+          const fontInfo = suiLayoutFormatter.textFont(maxLyric);
           const maxHeight = fontInfo.maxHeight;
           lyricOffset = Math.max((maxLyric.verse + 2) * fontInfo.maxHeight, lyricOffset);
         }
