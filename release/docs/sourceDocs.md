@@ -912,7 +912,7 @@ a simple controller object to render the unit test cases.
 # Directory: render/sui
 SMO rendering logic and UI liasons
 ---
-## suiAdjuster
+## suiFormatter
 Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
 
 ### _highestLowestHead

@@ -437,14 +437,14 @@ class SuiScoreRender extends SuiRenderState {
       this.calculateBeginningSymbols(systemIndex, measure, s.clefLast, s.keySigLast, s.timeSigLast, s.tempoLast);
 
       // calculate vertical offsets from the baseline
-      const offsets = suiLayoutAdjuster.estimateMeasureHeight(measure, scoreLayout);
+      const offsets = suiLayoutFormatter.estimateMeasureHeight(measure, scoreLayout);
       measure.setYTop(offsets.aboveBaseline);
       measure.setY(y - measure.yTop, '_estimateColumns height');
       measure.setX(x);
 
       // Add custom width to measure:
       measure.setBox(svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline));
-      suiLayoutAdjuster.estimateMeasureWidth(measure, scoreLayout.noteSpacing, accidentalMap);
+      suiLayoutFormatter.estimateMeasureWidth(measure, scoreLayout.noteSpacing, accidentalMap);
       y = y + measure.logicalBox.height + scoreLayout.intraGap;
       rowInSystem += 1;
     });
