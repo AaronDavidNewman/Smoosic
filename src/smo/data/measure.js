@@ -25,6 +25,7 @@ class SmoMeasure {
     this.svg.history = [];
     this.svg.logicalBox = {};
     this.svg.yTop = 0;
+    this.adjX = 0;
 
     const defaults = SmoMeasure.defaults;
 
@@ -103,7 +104,6 @@ class SmoMeasure {
       timeSignature: '4/4',
       keySignature: 'C',
       canceledKeySignature: null,
-      adjX: 0,
       pageBreak: false,
       systemBreak: false,
       adjRight: 0,

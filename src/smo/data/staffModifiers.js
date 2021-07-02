@@ -24,6 +24,19 @@ class StaffModifierBase {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
+class SmoInstrument extends StaffModifierBase {
+  static get attributes() {
+    return ['startSelector', 'endSelector', 'transposeIndex', 'midichannel', 'midiport', 'instrument', 'abbreviation'];
+  }
+}
+// eslint-disable-next-line no-unused-vars
+class SmoPartMap {
+  static get attributes() {
+    return ['staffId', 'name', 'abbreviation', 'scoreGroup', 'partnerId', 'instrumentMap', 'layoutManager'];
+  }
+}
+
 // ## SmoStaffHairpin
 // ## Descpription:
 // crescendo/decrescendo

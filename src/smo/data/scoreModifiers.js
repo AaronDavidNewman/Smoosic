@@ -21,6 +21,23 @@ class SmoScoreModifierBase {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
+class SmoFormattingManager extends SmoScoreModifierBase {
+  static get forScore() {
+    return -1;
+  }
+  constructor(params) {
+    super('SmoFormattingManager');
+    this.measureFormats = [];
+    if (typeof(params.measureFormats) !== 'undefined' && params.measureFormats.length) {
+      params.measureFormats.forEach((format) => {
+        this.measureFormats.push(new SmoMeasureFormat(format));
+      });
+    } else {
+      this.measureFormats.push(new SmoMeasureFormat(SmoMeasureFormat.defaults));
+    }
+  }
+}
 // ## SmoLayoutManager
 // Storage and utilities for layout information in the score.  Each
 // manager has one set of page height/width, since svg element

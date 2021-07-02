@@ -12889,6 +12889,7 @@ class SmoMeasure {
     this.svg.history = [];
     this.svg.logicalBox = {};
     this.svg.yTop = 0;
+    this.adjX = 0;
 
     const defaults = SmoMeasure.defaults;
 
@@ -12967,7 +12968,6 @@ class SmoMeasure {
       timeSignature: '4/4',
       keySignature: 'C',
       canceledKeySignature: null,
-      adjX: 0,
       pageBreak: false,
       systemBreak: false,
       adjRight: 0,
@@ -13926,6 +13926,55 @@ class SmoMeasureModifierBase {
   }
 }
 
+class SmoMeasureFormat extends SmoMeasureModifierBase {
+  static get attributes() {
+    ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak']
+  }
+  static fromLegacyMeasure(measure) {
+    const o = {};
+    SmoMeasureFormat.attributes.forEach((attr) => {
+      if (measure[attr] !== 'undefined') {
+        o[attr] = measure[attr];
+      } else {
+        o[attr] = SmoMeasureFormat.defaults[attr];
+      }
+      o.measureIndex = measure.measureNumber.measureIndex;
+    });
+    return new SmoMeasureFormat(o);
+  }
+  static get defaults() {
+    return {
+      customStretch: 0,
+      customProportion: 100,
+      systemBreak: false,
+      pageBreak: false,
+      measureIndex: 0
+    }
+  }
+  eq(o) {
+    SmoMeasureFormat.attributes.forEach((attr) => {
+      if (o[attr] !== this[attr]) {
+        return false;
+      }
+    });
+    return true;
+  }
+  get isDefault() {
+    return this.eq(SmoMeasureFormat.defaults);
+  }
+  constructor(parameters) {
+    if (typeof(parameters) === 'undefined') {
+      parameters = {};
+    }
+    SmoMeasureFormat.attributes.forEach((attr) => {
+      if (typeof(parameters[attr]) === 'undefined') {
+        this[attr] = SmoMeasureFormat.defaults[attr];
+      } else {
+        this[attr] = parameters[attr];
+      }
+    });
+  }
+}
 class SmoBarline extends SmoMeasureModifierBase {
   static get positions() {
     return {
@@ -16070,6 +16119,23 @@ class SmoScoreModifierBase {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
+class SmoFormattingManager extends SmoScoreModifierBase {
+  static get forScore() {
+    return -1;
+  }
+  constructor(params) {
+    super('SmoFormattingManager');
+    this.measureFormats = [];
+    if (typeof(params.measureFormats) !== 'undefined' && params.measureFormats.length) {
+      params.measureFormats.forEach((format) => {
+        this.measureFormats.push(new SmoMeasureFormat(format));
+      });
+    } else {
+      this.measureFormats.push(new SmoMeasureFormat(SmoMeasureFormat.defaults));
+    }
+  }
+}
 // ## SmoLayoutManager
 // Storage and utilities for layout information in the score.  Each
 // manager has one set of page height/width, since svg element
@@ -16822,6 +16888,19 @@ class StaffModifierBase {
   }
   get isStaffModifier() {
     return true;
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
+class SmoInstrument extends StaffModifierBase {
+  static get attributes() {
+    return ['startSelector', 'endSelector', 'transposeIndex', 'midichannel', 'midiport', 'instrument', 'abbreviation'];
+  }
+}
+// eslint-disable-next-line no-unused-vars
+class SmoPartMap {
+  static get attributes() {
+    return ['staffId', 'name', 'abbreviation', 'scoreGroup', 'partnerId', 'instrumentMap', 'layoutManager'];
   }
 }
 
