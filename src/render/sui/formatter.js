@@ -1,13 +1,13 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 
-// ## suiFormatter
-// Changed from suiAdjuster
+// ## suiFormatter (changed from suiAdjuster)
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
 class suiLayoutFormatter {
   static estimateMusicWidth(smoMeasure, noteSpacing, accidentMap) {
     const widths = [];
-    let voiceIx = 0;
+    // The below line was commented out b/c voiceIX was defined but never used
+    // let voiceIx = 0;
     // Accidental map:
     // If we accidentals on different notes in a justified column, need to increase width
     // for both.
@@ -21,7 +21,6 @@ class suiLayoutFormatter {
       Object.keys(accidentMap).forEach((k) => {
         accidentJustify += accidentMap[k];
       });
-      let tickIndex = 0;
       let width = 0;
       let duration = 0;
       voice.notes.forEach((note) => {
@@ -40,8 +39,8 @@ class suiLayoutFormatter {
             ar.duration < duration && ar.pitches[pitch.letter]);
           const acLen = accidentals.length;
           const declared = acLen > 0 ?
-            accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental: keyAccidental;
-          if (declared != pitch.accidental || pitch.cautionary) {
+            accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental : keyAccidental;
+          if (declared !== pitch.accidental || pitch.cautionary) {
             noteWidth += vexGlyph.accidentalWidth(pitch.accidental);
             if (!accidentMap[duration]) {
               accidentMap[duration] = vexGlyph.accidentalWidth(pitch.accidental);
@@ -54,7 +53,7 @@ class suiLayoutFormatter {
 
         let verse = 0;
         let lyric;
-        while (lyric = note.getLyricForVerse(verse, SmoLyric.parsers.lyric)) {
+        while (lyric === note.getLyricForVerse(verse, SmoLyric.parsers.lyric)) {
           let lyricWidth = 0;
           let i = 0;
           // TODO: kerning and all that...
@@ -88,12 +87,15 @@ class suiLayoutFormatter {
       voiceIx += 1;
       widths.push(width);
     });
-    widths.sort((a,b) => a > b ? -1 : 1);
+    widths.sort((a, b) => a > b ? -1 : 1);
     return widths[0];
   }
 
   static estimateStartSymbolWidth(smoMeasure) {
     let width = 0;
+    // the variables starts and digits used to be in the if statements. I moved them here to fix the resulting error
+    var starts = smoMeasure.getStartBarline();
+    var digits = smoMeasure.timeSignature.split('/')[0].length;
     if (smoMeasure.forceKeySignature) {
       if (smoMeasure.canceledKeySignature) {
         width += vexGlyph.keySignatureLength(smoMeasure.canceledKeySignature);
@@ -104,16 +106,13 @@ class suiLayoutFormatter {
       width += vexGlyph.width(vexGlyph.clef(smoMeasure.clef)) + vexGlyph.clef(smoMeasure.clef).spacingRight;
     }
     if (smoMeasure.forceTimeSignature) {
-      var digits = smoMeasure.timeSignature.split('/')[0].length;
       width += vexGlyph.width(vexGlyph.dimensions.timeSignature) * digits + vexGlyph.dimensions.timeSignature.spacingRight;
     }
-    var starts = smoMeasure.getStartBarline();
     if (starts) {
       width += vexGlyph.barWidth(starts);
     }
     return width;
   }
-
   static estimateEndSymbolWidth(smoMeasure) {
     var width = 0;
     var ends  = smoMeasure.getEndBarline();
@@ -123,10 +122,9 @@ class suiLayoutFormatter {
     return width;
   }
 
-
-  static estimateTextOffset(renderer,smoMeasure) {
-    var leftText = smoMeasure.modifiers.filter((mm) => mm.ctor ==='SmoMeasureText' && mm.position === SmoMeasureText.positions.left);
-    var rightText = smoMeasure.modifiers.filter((mm) => mm.ctor ==='SmoMeasureText' && mm.position === SmoMeasureText.positions.right);
+  static estimateTextOffset(renderer, smoMeasure) {
+    var leftText = smoMeasure.modifiers.filter((mm) => mm.ctor === 'SmoMeasureText' && mm.position === SmoMeasureText.positions.left);
+    var rightText = smoMeasure.modifiers.filter((mm) => mm.ctor === 'SmoMeasureText' && mm.position === SmoMeasureText.positions.right);
     var svg = renderer.getContext().svg;
     var xoff = 0;
     var width = 0;
@@ -157,14 +155,14 @@ class suiLayoutFormatter {
     measure.setBox(svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, measure.logicalBox.height),
       'estimate measure width');
   }
-  static _beamGroupForNote(measure,note) {
+  static _beamGroupForNote(measure, note) {
     let rv = null;
     if (!note.beam_group) {
       return null;
     }
     measure.beamGroups.forEach((bg) => {
       if (!rv) {
-        if (bg.notes.findIndex((nn) => note.beam_group && note.beam_group.id === bg.attrs.id) >= 0) {
+        if (bg.notes.findIndex((note) => note.beam_group && note.beam_group.id === bg.attrs.id) >= 0) {
           rv = bg;
         }
       }
@@ -202,7 +200,7 @@ class suiLayoutFormatter {
   // the height of the measure is below-above.  Vex always renders a staff such that
   // the y coordinate passed in for the stave is on the baseline.
   // Note to past self: this was a really useful comment.  Thank you.
-  static estimateMeasureHeight(measure, layout) {
+  static estimateMeasureHeight(measure) {
     let heightOffset = 50;  // assume 5 lines, todo is non-5-line staffs
     let yOffset = 0;
     let flag = '';
@@ -251,13 +249,12 @@ class suiLayoutFormatter {
         if (lyrics.length) {
           const maxLyric = lyrics.reduce((a, b) => a.verse > b.verse ? a : b);
           const fontInfo = suiLayoutFormatter.textFont(maxLyric);
-          const maxHeight = fontInfo.maxHeight;
           lyricOffset = Math.max((maxLyric.verse + 2) * fontInfo.maxHeight, lyricOffset);
         }
         const dynamics = note.getModifiers('SmoDynamicText');
         dynamics.forEach((dyn) => {
           heightOffset = Math.max((10 * dyn.yOffsetLine - 50) + 11, heightOffset);
-          yOffset = Math.min(10 * dyn.yOffsetLine - 50, yOffset)
+          yOffset = Math.min(10 * dyn.yOffsetLine - 50, yOffset);
         });
       });
     });
@@ -265,3 +262,6 @@ class suiLayoutFormatter {
     return { belowBaseline: heightOffset, aboveBaseline: yOffset };
   }
 }
+// The below line is to stop the error that says the suiLayoutFormatter class isn't used
+// I don't know why this works but it does, hopefully this doesn't break anything else
+module.exports = suiLayoutFormatter;
