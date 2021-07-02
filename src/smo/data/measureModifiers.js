@@ -21,6 +21,55 @@ class SmoMeasureModifierBase {
   }
 }
 
+class SmoMeasureFormat extends SmoMeasureModifierBase {
+  static get attributes() {
+    ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak']
+  }
+  static fromLegacyMeasure(measure) {
+    const o = {};
+    SmoMeasureFormat.attributes.forEach((attr) => {
+      if (measure[attr] !== 'undefined') {
+        o[attr] = measure[attr];
+      } else {
+        o[attr] = SmoMeasureFormat.defaults[attr];
+      }
+      o.measureIndex = measure.measureNumber.measureIndex;
+    });
+    return new SmoMeasureFormat(o);
+  }
+  static get defaults() {
+    return {
+      customStretch: 0,
+      customProportion: 100,
+      systemBreak: false,
+      pageBreak: false,
+      measureIndex: 0
+    }
+  }
+  eq(o) {
+    SmoMeasureFormat.attributes.forEach((attr) => {
+      if (o[attr] !== this[attr]) {
+        return false;
+      }
+    });
+    return true;
+  }
+  get isDefault() {
+    return this.eq(SmoMeasureFormat.defaults);
+  }
+  constructor(parameters) {
+    if (typeof(parameters) === 'undefined') {
+      parameters = {};
+    }
+    SmoMeasureFormat.attributes.forEach((attr) => {
+      if (typeof(parameters[attr]) === 'undefined') {
+        this[attr] = SmoMeasureFormat.defaults[attr];
+      } else {
+        this[attr] = parameters[attr];
+      }
+    });
+  }
+}
 class SmoBarline extends SmoMeasureModifierBase {
   static get positions() {
     return {
