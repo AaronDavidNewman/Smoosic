@@ -52,8 +52,8 @@ class suiLayoutFormatter {
         });
 
         let verse = 0;
-        let lyric;
-        while (lyric === note.getLyricForVerse(verse, SmoLyric.parsers.lyric)) {
+        let lyric = note.getLyricForVerse(verse, SmoLyric.parsers.lyric);
+        while (lyric) {
           let lyricWidth = 0;
           let i = 0;
           // TODO: kerning and all that...
@@ -76,6 +76,7 @@ class suiLayoutFormatter {
           }
           noteWidth = Math.max(lyricWidth, noteWidth);
           verse += 1;
+          lyric = note.getLyricForVerse(verse, SmoLyric.parsers.lyric);
         }
         duration += note.tickCount;
         width += noteWidth;
