@@ -1,8 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-
 // ## suiFormatter (changed from suiAdjuster)
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
+// eslint-disable-next-line no-unused-vars
 class suiLayoutFormatter {
   static estimateMusicWidth(smoMeasure, noteSpacing, accidentMap) {
     const widths = [];
@@ -77,14 +77,12 @@ class suiLayoutFormatter {
           noteWidth = Math.max(lyricWidth, noteWidth);
           verse += 1;
         }
-        tickIndex += 1;
         duration += note.tickCount;
         width += noteWidth;
       });
       if (accidentJustify > 0) {
         width += accidentJustify;
       }
-      voiceIx += 1;
       widths.push(width);
     });
     widths.sort((a, b) => a > b ? -1 : 1);
@@ -262,6 +260,3 @@ class suiLayoutFormatter {
     return { belowBaseline: heightOffset, aboveBaseline: yOffset };
   }
 }
-// The below line is to stop the error that says the suiLayoutFormatter class isn't used
-// I don't know why this works but it does, hopefully this doesn't break anything else
-module.exports = suiLayoutFormatter;
