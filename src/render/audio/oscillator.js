@@ -126,7 +126,7 @@ class suiOscillator {
       sustainEnv: 0.4,
       releaseEnv: 0.25,
       sustainLevel: 0.5,
-      releaseLevel: 0.01,
+      releaseLevel: 0.1,
       waveform: 'custom',
       gain: 0.2
     };
@@ -405,7 +405,7 @@ class suiSampler extends suiOscillator {
       }, duration);
       setTimeout(() => {
         osc.stop(0);
-      }, duration + 500);
+      }, Math.round(duration * 1.05));
     });
     return promise;
   }

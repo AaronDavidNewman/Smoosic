@@ -538,8 +538,7 @@ class VxMeasure {
     }
 
     // Need to format for x position, then set y position before drawing dynamics.
-    this.formatter = new VF.Formatter({ softmaxFactor: this.smoMeasure.customProportion, globalSoftmax: false,
-      maxIterations: 10 });
+    this.formatter = new VF.Formatter({ softmaxFactor: this.smoMeasure.format.customProportion, globalSoftmax: false });
     this.voiceAr.forEach((voice) => {
       this.formatter.joinVoices([voice]);
     });

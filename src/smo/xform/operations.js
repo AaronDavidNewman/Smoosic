@@ -3,32 +3,13 @@
 
 // An operation works on a selection or set of selections to edit the music
 class SmoOperation {
-
-  static setForcePageBreak(score, selection, value) {
+  static setMeasureFormat(score, selection, value) {
     score.staves.forEach((staff) => {
-      staff.measures[selection.selector.measure].setForcePageBreak(value);
+      value.formatMeasure(staff.measures[selection.selector.measure]);
     });
-  }
-  static setForceSystemBreak(score, selection, value) {
-    score.staves.forEach((staff) => {
-      staff.measures[selection.selector.measure].setForceSystemBreak(value);
-    });
-  }
-  static setMeasureStretch(score, selection, value) {
-    score.staves.forEach((staff) => {
-      const measure = staff.measures[selection.selector.measure];
-      const delta = measure.customStretch;
-      measure.customStretch = value;
-      const nwidth = measure.staffWidth - (delta - measure.customStretch);
-      measure.setWidth(nwidth);
-    });
+    score.formattingManager.updateMeasureFormat(value);
   }
 
-  static setAutoJustify(score, selection, value) {
-    score.staves.forEach((staff) => {
-      staff.measures[selection.selector.measure].setAutoJustify(value);
-    });
-  }
 
   static updateProportionDefault(score, oldValue, newValue) {
     score.preferences.customProportion = newValue;
@@ -43,13 +24,6 @@ class SmoOperation {
       });
     });
   }
-
-  static setFormattingIterations(score, selection, value) {
-    score.staves.forEach((staff) => {
-      staff.measures[selection.selector.measure].setFormattingIterations(value);
-    });
-  }
-
   static addKeySignature(score, selection, keySignature) {
     score.addKeySignature(selection.selector.measure, keySignature);
   }

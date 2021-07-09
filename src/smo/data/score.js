@@ -16,6 +16,7 @@ class SmoScore {
     if (this.staves.length) {
       this.numberStaves();
     }
+    this.updateMeasureFormats();
   }
   static get engravingFonts() {
     return { Bravura: 'Bravura', Gonville: 'Gonville', Petaluma: 'Petaluma' };
@@ -160,12 +161,14 @@ class SmoScore {
     let obj = {
       score: params,
       layoutManager: {},
+      measureFormats: {},
       staves: [],
       scoreText: [],
       textGroups: [],
       systemGroups: []
     };
     obj.layoutManager = this.layoutManager.serialize();
+    obj.measureFormats = this.formattingManager.serialize();
     smoSerialize.serializedMerge(SmoScore.defaultAttributes, this, params);
     this.staves.forEach((staff) => {
       obj.staves.push(staff.serialize());
@@ -209,9 +212,12 @@ class SmoScore {
   // Restore an earlier JSON string.  Unlike other deserialize methods, this one expects the string.
   static deserialize(jsonString) {
     let jsonObj = JSON.parse(jsonString);
+    let upconvertFormat = false;
+    let formattingManager = null;
     if (jsonObj.dictionary) {
       jsonObj = smoSerialize.detokenize(jsonObj, jsonObj.dictionary);
     }
+    upconvertFormat = typeof(jsonObj.measureFormats) === 'undefined';
     const params = {};
     const staves = [];
     jsonObj.textGroups = jsonObj.textGroups ? jsonObj.textGroups : [];
@@ -226,6 +232,10 @@ class SmoScore {
       SmoScore.upConvertLayout(jsonObj);
     }
     const layoutManager = new SmoLayoutManager(jsonObj.layoutManager);
+    if (!upconvertFormat) {
+      formattingManager = new SmoFormattingManager({ measureFormats: jsonObj.measureFormats });
+    }
+
     // params.layout = JSON.parse(JSON.stringify(SmoScore.defaults.layout));
     smoSerialize.serializedMerge(
       SmoScore.defaultAttributes,
@@ -257,6 +267,10 @@ class SmoScore {
       });
     }
     params.staves = staves;
+    if (upconvertFormat) {
+      formattingManager = SmoFormattingManager.fromLegacyScore(params);
+    }
+    params.formattingManager = formattingManager;
     params.layoutManager = layoutManager;
     const score = new SmoScore(params);
     score.scoreText = scoreText;
@@ -306,6 +320,13 @@ class SmoScore {
     }
   }
 
+  updateMeasureFormats() {
+    this.staves.forEach((staff) => {
+      staff.measures.forEach((measure) => {
+        this.formattingManager.updateFormat(measure);
+      });
+    });
+  }
   // ### addDefaultMeasureWithNotes
   // ### Description:
   // Add a measure to the score with the supplied parameters at the supplied index.

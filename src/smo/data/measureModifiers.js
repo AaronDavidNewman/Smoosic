@@ -23,12 +23,15 @@ class SmoMeasureModifierBase {
 
 class SmoMeasureFormat extends SmoMeasureModifierBase {
   static get attributes() {
-    ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak']
+    return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex'];
+  }
+  static get formatAttributes() {
+    return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft'];
   }
   static fromLegacyMeasure(measure) {
     const o = {};
-    SmoMeasureFormat.attributes.forEach((attr) => {
-      if (measure[attr] !== 'undefined') {
+    SmoMeasureFormat.formatAttributes.forEach((attr) => {
+      if (typeof(measure[attr]) !== 'undefined') {
         o[attr] = measure[attr];
       } else {
         o[attr] = SmoMeasureFormat.defaults[attr];
@@ -43,21 +46,25 @@ class SmoMeasureFormat extends SmoMeasureModifierBase {
       customProportion: 100,
       systemBreak: false,
       pageBreak: false,
-      measureIndex: 0
+      padLeft: 0,
+      padAllInSystem: true,
+      autoJustify: false
     }
   }
   eq(o) {
-    SmoMeasureFormat.attributes.forEach((attr) => {
+    let rv = true;
+    SmoMeasureFormat.formatAttributes.forEach((attr) => {
       if (o[attr] !== this[attr]) {
-        return false;
+        rv = false;
       }
     });
-    return true;
+    return rv;
   }
   get isDefault() {
     return this.eq(SmoMeasureFormat.defaults);
   }
   constructor(parameters) {
+    super('SmoMeasureFormat');
     if (typeof(parameters) === 'undefined') {
       parameters = {};
     }
@@ -68,6 +75,16 @@ class SmoMeasureFormat extends SmoMeasureModifierBase {
         this[attr] = parameters[attr];
       }
     });
+  }
+  formatMeasure(mm) {
+    mm.format = new SmoMeasureFormat(this);
+    mm.format.measureIndex = mm.measureNumber.measureIndex;
+  }
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoMeasureFormat.defaults, SmoMeasureFormat.attributes, this, params);
+    params.ctor = 'SmoMeasureFormat';
+    return params;
   }
 }
 class SmoBarline extends SmoMeasureModifierBase {

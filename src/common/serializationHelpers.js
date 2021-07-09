@@ -228,7 +228,12 @@ class smoSerialize {
       "bg": "hidden",
       "cg": "adjustNoteWidthLyric",
       "dg": "xOffsetStart",
-      "eg": "xOffsetEnd"
+      "eg": "xOffsetEnd",
+      "fg": "measureFormats",
+      "gg": "format",
+      "hg": "pageBreak",
+      "ig": "xOffsetLeft",
+      "jg": "xOffsetRight"
       }`;
      return JSON.parse(_tm);
     }

@@ -26,16 +26,59 @@ class SmoFormattingManager extends SmoScoreModifierBase {
   static get forScore() {
     return -1;
   }
+  static fromLegacyScore(score) {
+    let current = null;
+    let previous = null;
+    const measureFormats = [];
+    score.staves[0].measures.forEach((measure) => {
+      if (current === null) {
+        current = SmoMeasureFormat.fromLegacyMeasure(measure);
+        measureFormats[measure.measureNumber.measureIndex] = current;
+      } else {
+        previous = current;
+        current = SmoMeasureFormat.fromLegacyMeasure(measure);
+        if (!current.eq(previous)) {
+          measureFormats[measure.measureNumber.measureIndex] = current;
+        }
+      }
+    });
+    return new SmoFormattingManager({ measureFormats });
+  }
   constructor(params) {
     super('SmoFormattingManager');
-    this.measureFormats = [];
+    if (typeof(params) === 'undefined') {
+      params = {};
+    }
+    this.measureFormats = {};
+    this.partIndex = SmoFormattingManager.forScore;
+    if (typeof(params.partIndex) !== 'undefined') {
+      this.partIndex = params.partIndex;
+    }
     if (typeof(params.measureFormats) !== 'undefined' && params.measureFormats.length) {
       params.measureFormats.forEach((format) => {
-        this.measureFormats.push(new SmoMeasureFormat(format));
+        this.measureFormats[format.measureIndex] = new SmoMeasureFormat(format);
       });
-    } else {
-      this.measureFormats.push(new SmoMeasureFormat(SmoMeasureFormat.defaults));
     }
+  }
+  updateMeasureFormat(format) {
+    this.measureFormats[format.measureIndex] = format;
+  }
+  updateFormat(measure) {
+    if (this.measureFormats[measure.measureIndex]) {
+      measure.format = this.measureFormats[measure.measureIndex];
+    } else {
+      measure.format = new SmoMeasureFormat();
+    }
+  }
+  serialize() {
+    const rv = [];
+    const keys = Object.keys(this.measureFormats);
+    keys.forEach((key) => {
+      if (!this.measureFormats[key].isDefault) {
+        rv.push(this.measureFormats[key].serialize());
+      }
+    });
+    return rv;
   }
 }
 // ## SmoLayoutManager

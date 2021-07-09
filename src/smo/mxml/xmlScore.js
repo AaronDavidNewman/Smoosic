@@ -82,6 +82,7 @@ class mxmlScore {
       });
       // The entire score is parsed and xmlState now contains the staves.
       const rv = new SmoScore(scoreDefaults);
+      rv.formattingManager = xmlState.formattingManager;
       rv.staves = xmlState.smoStaves;
       xmlState.updateStaffGroups();
       rv.systemGroups = xmlState.systems;
@@ -505,9 +506,12 @@ class mxmlScore {
       const smoMeasure = SmoMeasure.getDefaultMeasure({
         clef: staffData.clefInfo.clef
       });
-      smoMeasure.systemBreak = mxmlHelpers.isSystemBreak(measureElement);
+      smoMeasure.format = new SmoMeasureFormat();
+      smoMeasure.format.measureIndex = xmlState.measureNumber;
+      smoMeasure.format.systemBreak = mxmlHelpers.isSystemBreak(measureElement);
       smoMeasure.tempo = xmlState.tempo;
-      smoMeasure.customProportion = mxmlScore.customProportionDefault;
+      smoMeasure.format.customProportion = mxmlScore.customProportionDefault;
+      xmlState.formattingManager.updateMeasureFormat(smoMeasure.format);
       smoMeasure.keySignature = xmlState.keySignature;
       smoMeasure.timeSignature = xmlState.timeSignature;
       smoMeasure.measureNumber.measureNumber = xmlState.measureNumber;

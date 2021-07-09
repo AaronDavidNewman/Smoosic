@@ -27,6 +27,7 @@ class XmlState {
     this.completedSlurs = [];
     this.completedTies = [];
     this.verseMap = {};
+    this.formattingManager = new SmoFormattingManager();
   }
   // ### initializeForMeasure
   // reset state for a new measure:  beam groups, tuplets

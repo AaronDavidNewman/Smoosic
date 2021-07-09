@@ -1014,23 +1014,8 @@ class SuiScoreViewOperations extends SuiScoreView {
     });
     this._renderRectangle(fromSelector, toSelector);
   }
-  setCollisionAvoidance(value) {
-    this._columnAction('Collision avoidance', value, 'setFormattingIterations');
-  }
-
-  // ### stretchWidth
-  // Stretch the width of a measure, including all columns in the measure since they are all
-  // the same width
-  setMeasureStretch(stretch) {
-    this._columnAction('Stretch Measure', stretch, 'setMeasureStretch');
-  }
-  forceSystemBreak(value) {
-    this._columnAction('forceSystemBreak', value, 'setForceSystemBreak');
-  }
-  // For these rectangle ones, treat view score and store score differently
-  // b/c the rectangles may be different
-  setMeasureProportion(value) {
-    this._columnAction('Measure proportion', value, 'setMeasureProportion');
+  setMeasureFormat(format) {
+    this._columnAction('set measure format', format, 'setMeasureFormat');
   }
 
   replayActions() {

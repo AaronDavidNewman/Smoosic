@@ -70,7 +70,7 @@ class SmoToXml {
     if (smoState.measureNumber === 1 && measure.isPickup()) {
       smoState.measureNumber = 0;
     }
-    if (smoState.measure.systemBreak) {
+    if (smoState.measure.getForceSystemBreak()) {
       const printElement = nn(measureElement, 'print');
       mxmlHelpers.createAttributes(printElement, { 'new-system': 'yes' });
     }

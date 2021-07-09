@@ -86,28 +86,6 @@ class SuiMeasureDialog extends SuiDialogBase {
         control: 'SuiToggleComponent',
         label: 'Justify Columns'
       }, {
-        smoName: 'noteFormatting',
-        parameterName: 'noteFormatting',
-        defaultValue: 0,
-        control: 'SuiDropdownComponent',
-        label: 'Collision Avoidance',
-        options: [{
-          value: 0,
-          label: 'Off'
-        }, {
-          value: 1,
-          label: '1x'
-        }, {
-          value: 2,
-          label: '2x'
-        }, {
-          value: 5,
-          label: '5x'
-        }, {
-          value: 10,
-          label: '10x'
-        }]
-      }, {
         smoName: 'measureTextPosition',
         parameterName: 'measureTextPosition',
         defaultValue: SmoMeasureText.positions.above,
@@ -145,6 +123,8 @@ class SuiMeasureDialog extends SuiDialogBase {
   }
   changed() {
     this.edited = true;
+    let updateFormat = true;
+    // TODO: move pickup out of this dialog
     if (this.pickupCtrl.changeFlag) {
       if (this.pickupCtrl.toggleCtrl.getValue() === false) {
         this.view.createPickup(smoMusic.timeSignatureToTicks(this.measure.timeSignature));
@@ -153,22 +133,28 @@ class SuiMeasureDialog extends SuiDialogBase {
       }
     }
     if (this.customStretchCtrl.changeFlag) {
-      this.view.setMeasureStretch(this.customStretchCtrl.getValue());
+      this.modifier.customStretch = this.customStretchCtrl.getValue();
+      updateFormat = true;
     }
     if (this.customProportionCtrl.changeFlag) {
-      this.view.setMeasureProportion(this.customProportionCtrl.getValue());
+      this.modifier.customProportion = this.customProportionCtrl.getValue();
+      updateFormat = true;
     }
     if (this.systemBreakCtrl.changeFlag) {
-      this.view.forceSystemBreak(this.systemBreakCtrl.getValue());
+      updateFormat = true;
+      this.modifier.systemBreak = this.systemBreakCtrl.getValue();
     }
     if (this.autoJustifyCtrl.changeFlag) {
-      this.view.setAutoJustify(this.autoJustifyCtrl.getValue());
-    }
-    if (this.noteFormattingCtrl.changeFlag) {
-      this.view.setCollisionAvoidance(parseInt(this.noteFormattingCtrl.getValue(), 10));
+      updateFormat = true;
+      this.modifier.autoJustify = this.autoJustifyCtrl.getValue();
     }
     if (this.padLeftCtrl.changeFlag || this.padAllInSystemCtrl.changeFlag) {
-      this.view.padMeasure(this.padLeftCtrl.getValue(), this.padAllInSystemCtrl.getValue());
+      updateFormat = true;
+      this.modifier.padLeft = this.padLeftCtrl.getValue();
+      this.modifier.padAllInSystem = this.padAllInSystemCtrl.getValue();
+    }
+    if (updateFormat) {
+      this.view.setMeasureFormat(this.modifier);
     }
     //
     this._updateConditionals();
@@ -192,7 +178,7 @@ class SuiMeasureDialog extends SuiDialogBase {
 
     // The 'modifier' that this dialog acts on is a measure.
     this.measure = this.selection.measure;
-    this.modifier = this.measure;
+    this.modifier = this.measure.format;
   }
   get displayOptions() {
     return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
@@ -210,18 +196,17 @@ class SuiMeasureDialog extends SuiDialogBase {
     }
   }
   populateInitial() {
-    this.padLeftCtrl.setValue(this.measure.padLeft);
-    this.autoJustifyCtrl.setValue(this.measure.autoJustify);
+    this.padLeftCtrl.setValue(this.modifier.padLeft);
+    this.autoJustifyCtrl.setValue(this.modifier.autoJustify);
     const isPickup = this.measure.isPickup();
-    this.customStretchCtrl.setValue(this.measure.customStretch);
-    this.customProportionCtrl.setValue(this.measure.customProportion);
-    this.noteFormattingCtrl.setValue(this.measure.getFormattingIterations());
+    this.customStretchCtrl.setValue(this.modifier.customStretch);
+    this.customProportionCtrl.setValue(this.modifier.customProportion);
     this.pickupCtrl.toggleCtrl.setValue(isPickup);
     if (isPickup) {
       this.pickupCtrl.dropdownCtrl.setValue(this.measure.getTicksFromVoice(0));
     }
 
-    const isSystemBreak = this.measure.getForceSystemBreak();
+    const isSystemBreak = this.modifier.systemBreak;
     this.systemBreakCtrl.setValue(isSystemBreak);
     this._updateConditionals();
 

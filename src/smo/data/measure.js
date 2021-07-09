@@ -39,6 +39,12 @@ class SmoMeasure {
 
     this.keySignature = smoMusic.vexKeySigWithOffset(this.keySignature, this.transposeIndex);
 
+    if (typeof(params.format) === 'undefined') {
+      this.format = new SmoMeasureFormat();
+      this.format.measureIndex = this.measureNumber.measureIndex;
+    } else {
+      this.format = new SmoMeasureFormat(params.format);
+    }
     if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),
@@ -53,16 +59,15 @@ class SmoMeasure {
   // attributes that are to be serialized for a measure.
   static get defaultAttributes() {
     return [
-      'timeSignature', 'keySignature', 'systemBreak', 'pageBreak',
+      'timeSignature', 'keySignature',
       'measureNumber',
       'activeVoice', 'clef', 'transposeIndex',
-      'adjX', 'customStretch', 'customProportion', 'padLeft', 'padRight', 'rightMargin',
-      'formattingIterations', 'autoJustify'
+      'adjX', 'format', 'rightMargin'
     ];
   }
 
   static get formattingOptions() {
-    return ['customStretch', 'customProportion', 'autoJustify', 'formattingIterations', 'systemBreak',
+    return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak',
       'pageBreak', 'padLeft'];
   }
   static get systemOptions() {
@@ -104,18 +109,11 @@ class SmoMeasure {
       timeSignature: '4/4',
       keySignature: 'C',
       canceledKeySignature: null,
-      pageBreak: false,
-      systemBreak: false,
       adjRight: 0,
       padRight: 10,
-      padLeft: 0,
       tuplets: [],
       transposeIndex: 0,
-      customStretch: 0,
-      customProportion: 12,
       modifiers,
-      autoJustify: true,
-      formattingIterations: 0,
       rightMargin: 2,
       staffY: 40,
       // bars: [1, 1], // follows enumeration in VF.Barline
@@ -462,25 +460,25 @@ class SmoMeasure {
   }
 
   setForcePageBreak(val) {
-    this.pageBreak = val;
+    this.format.pageBreak = val;
   }
 
   setForceSystemBreak(val) {
-    this.systemBreak = val;
+    this.format.systemBreak = val;
   }
 
   setAutoJustify(val) {
-    this.autoJustify = val;
+    this.format.autoJustify = val;
   }
   getAutoJustify() {
-    return this.autoJustify;
+    return this.format.autoJustify;
   }
   getForceSystemBreak() {
-    return this.systemBreak;
+    return this.format.systemBreak;
   }
 
   getForcePageBreak() {
-    return this.pageBreak;
+    return this.format.pageBreak;
   }
 
   // ###   SVG mixins

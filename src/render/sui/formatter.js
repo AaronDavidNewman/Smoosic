@@ -145,7 +145,7 @@ class suiLayoutFormatter {
     let measureWidth = suiLayoutFormatter.estimateMusicWidth(measure, noteSpacing, accidentMap);
     measure.adjX = suiLayoutFormatter.estimateStartSymbolWidth(measure);
     measure.adjRight = suiLayoutFormatter.estimateEndSymbolWidth(measure);
-    measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
+    measureWidth += measure.adjX + measure.adjRight + measure.format.customStretch;
     const y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
     measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight');
     // Calculate the space for left/right text which displaces the measure.

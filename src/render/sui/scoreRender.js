@@ -176,8 +176,7 @@ class SuiScoreRender extends SuiRenderState {
     colKeys.forEach((colKey) => {
       columns[colKey].forEach((measure) => {
         vxSystem.renderMeasure(measure, this.measureMapper, printing);
-        const formatIndex = SmoMeasure.formattingOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
-        if (formatIndex >= 0 && !printing) {
+        if (!printing && !measure.format.eq(SmoMeasureFormat.defaults)) {
           const at = [];
           at.push({ y: measure.logicalBox.y - 5 });
           at.push({ x: measure.logicalBox.x + 25 });
