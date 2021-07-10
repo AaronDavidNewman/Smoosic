@@ -14,15 +14,35 @@
 			"format": "smoosic",
 			"metadata": {
 				"name": "Bach Invention #1",
-				"composer": "JS Back",
+				"composer": "JS Bach",
 				"tags": [
 					"keyboard",
 					"bach"
 				]
 			},
 			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/BachInvention.json"
-		},
-		{
+		},{
+			"format": "smoosic",
+			"metadata": {
+				"name": "Bach Well-Tempered Clavier",
+				"composer": "JS Bach",
+				"tags": [
+					"keyboard",
+					"bach"
+				]
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/BachWTC-3.json"
+		}, {
+			"format": "smoosic",
+			"metadata": {
+				"name": "Gnossienne No. 3",
+				"composer": "Eric Satie",
+				"tags": [
+					"Art Songs"
+				]
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/Gnossienne3-3.json"
+		},  {
 			"format": "smoosic",
 			"metadata": {
 				"name": "Postillion-Lied",

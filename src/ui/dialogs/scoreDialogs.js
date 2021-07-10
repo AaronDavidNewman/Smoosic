@@ -1,5 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+
+const deepCopy = (x) => JSON.parse(JSON.stringify(x));
+
 // ## SuiScoreViewDialog
 // decide which rows of the score to look at
 // eslint-disable-next-line no-unused-vars
@@ -214,10 +217,9 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
       const dim = SmoScore.pageDimensions[sel];
       this.pageHeightCtrl.setValue(dim.height);
       this.pageWidthCtrl.setValue(dim.width);
-      const layout = this.view.score.layoutManager.getGlobalLayout();
-      layout.pageWidth = dim.width;
-      layout.pageHeight = dim.height;
-      this.view.setGlobalLayout(layout);
+      this.globalLayout.pageHeight = dim.height;
+      this.globalLayout.pageWidth = dim.width;
+      this.view.setGlobalLayout(this.globalLayout);
     }
   }
   _setPageSizeDefault() {
@@ -236,6 +238,8 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
   }
 
   changed() {
+    let layoutChanged = false;
+    let prefChanged = false;
     if (this.scoreNameCtrl.changeFlag) {
       const newInfo = JSON.parse(JSON.stringify(this.view.score.scoreInfo));
       newInfo.name = this.scoreNameCtrl.getValue();
@@ -246,28 +250,33 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
       this._handlePageSizeChange();
     }
     if (this.autoPlayCtrl.changeFlag) {
-      this.view.score.preferences.autoPlay = this.autoPlayCtrl.getValue();
+      this.preferences.autoPlay = this.autoPlayCtrl.getValue();
+      prefChanged = true;
     }
     if (this.autoAdvanceCtrl.changeFlag) {
-      this.view.score.preferences.autoAdvance = this.autoAdvanceCtrl.getValue();
+      this.preferences.autoAdvance = this.autoAdvanceCtrl.getValue();
+      prefChanged = true;
     }
     if (this.noteSpacingCtrl.changeFlag) {
-      this.layoutChanged = true;
+      layoutChanged = true;
       this.globalLayout.noteSpacing = this.noteSpacingCtrl.getValue();
     }
     if (this.zoomScaleCtrl.changeFlag) {
-      this.layoutChanged = true;
+      layoutChanged = true;
       this.globalLayout.zoomMode = SmoScore.zoomModes.zoomScale;
       this.globalLayout.zoomScale = this.zoomScaleCtrl.getValue();
     }
     if (this.svgScaleCtrl.changeFlag) {
-      this.layoutChanged = true;
+      layoutChanged = true;
       this.globalLayout.svgScale = this.svgScaleCtrl.getValue();
     }
-    if (this.layoutChanged) {
+    if (layoutChanged) {
       this.view.setGlobalLayout(this.globalLayout);
+      this.layoutChanged = true;
     }
-    this.view.updateScorePreferences();
+    if (prefChanged) {
+      this.view.updateScorePreferences(this.preferences);
+    }
   }
   constructor(parameters) {
     var p = parameters;
@@ -280,7 +289,8 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
     this.layoutChanged = false;
     this.score = this.view.score;
     this.globalLayout = this.score.layoutManager.getGlobalLayout();
-    this.layoutBackup = JSON.parse(JSON.stringify(this.globalLayout));
+    this.layoutBackup = deepCopy(this.globalLayout);
+    this.preferences = deepCopy(this.view.score.preferences);
   }
 }
 

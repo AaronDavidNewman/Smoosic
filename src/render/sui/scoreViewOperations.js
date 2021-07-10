@@ -49,10 +49,11 @@ class SuiScoreViewOperations extends SuiScoreView {
   }
   // ### updateScorePreferences
   // The score preferences for view score have changed, sync them
-  updateScorePreferences() {
+  updateScorePreferences(pref) {
     this._undoScorePreferences('Update preferences');
     // TODO: add action buffer here?
-    smoSerialize.serializedMerge(SmoScore.preferences, this.score, this.storeScore);
+    smoSerialize.serializedMerge(SmoScore.preferences, this.score, pref);
+    smoSerialize.serializedMerge(SmoScore.preferences, this.storeScore, pref);
     this.renderer.setDirty();
   }
   // ### updateScorePreferences
