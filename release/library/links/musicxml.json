@@ -12,6 +12,22 @@
 		{
 			"format": "mxml",
 			"metadata": {
+				"name": "Cnossienne No. 3",
+				"composer": "Eric Satie"
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/xml/Gnossienne_no_3.mxl"
+		},
+		{
+			"format": "mxml",
+			"metadata": {
+				"name": "Well-Tempered Clavier",
+				"composer": "JS Bach"
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/xml/M_Book_1_Part_1_The_Open_Well_Tempered_Clavier.mxl"
+		},
+		{
+			"format": "mxml",
+			"metadata": {
 				"name": "An Die Fern Beilibte",
 				"composer": "Beethoven"
 			},

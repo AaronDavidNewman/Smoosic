@@ -1,7 +1,7 @@
 {
 	"format": "library",
 	"metadata": {
-		"name": "Jazz Transcription Library",
+		"name": "Charlie Parker Transcription Library",
 		"type": "collection",
 		"tags": [
 			"jazz",
@@ -9,24 +9,15 @@
 			"improvisation"
 		]
 	},
-	"children": [
+	"children":[
 		{
-			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json",
-			"format": "smoosic",
+			"format": "mxml",
 			"metadata": {
-				"name": "Yama",
-				"composer": "Lee Morgan",
-				"artist": "Lee Morgan"
-			}
-		},
-		{
-			"format": "library",
-			"metadata": {
-				"name": "Charlie Parker Transcriptions",
+				"name": "Another Hairdo",
 				"composer": "Charlie Parker",
 				"artist": "Charlie Parker"
 			},
-			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/cptransscriptions.json"
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/cp/Another Hairdo.mxl"
 		},
 		{
 			"format": "mxml",
