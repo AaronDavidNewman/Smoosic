@@ -433,7 +433,7 @@ class VxMeasure {
 
     // don't create a begin bar for any but the 1st measure.
     if (this.smoMeasure.measureNumber.systemIndex !== 0 && sb.barline === SmoBarline.barlines.singleBar
-      && this.smoMeasure.padLeft === 0) {
+      && this.smoMeasure.format.padLeft === 0) {
       this.stave.setBegBarType(VF.Barline.type.NONE);
     } else {
       this.stave.setBegBarType(sb.toVexBarline());
@@ -448,7 +448,7 @@ class VxMeasure {
     const tms = this.smoMeasure.getMeasureText();
     // TODO: set font
     tms.forEach((tm) => {
-      const offset = tm.position === SmoMeasureText.positions.left ? this.smoMeasure.padLeft : 0;
+      const offset = tm.position === SmoMeasureText.positions.left ? this.smoMeasure.format.padLeft : 0;
       this.stave.setText(
         tm.text, tm.toVexPosition(), {
           shift_x: tm.adjustX + offset, shift_y: tm.adjustY, justification: tm.toVexJustification()
@@ -484,13 +484,13 @@ class VxMeasure {
     const canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature, 0)
       : this.smoMeasure.canceledKeySignature;
 
-    const staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
+    const staffX = this.smoMeasure.staffX + this.smoMeasure.format.padLeft;
 
-    this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - this.smoMeasure.padLeft,
+    this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - this.smoMeasure.format.padLeft,
       { font: { family: SourceSansProFont.fontFamily, size: '12pt' }, fill_style: VxMeasure.fillStyle });
     // If there is padLeft, draw an invisible box so the padding is included in the measure box
-    if (this.smoMeasure.padLeft) {
-      this.context.rect(this.smoMeasure.staffX, this.smoMeasure.staffY, this.smoMeasure.padLeft, 50, {
+    if (this.smoMeasure.format.padLeft) {
+      this.context.rect(this.smoMeasure.staffX, this.smoMeasure.staffY, this.smoMeasure.format.padLeft, 50, {
         fill: 'none', 'stroke-width': 1, stroke: 'white'
       });
     }
@@ -548,7 +548,7 @@ class VxMeasure {
     const timestamp = new Date().valueOf();
     this.formatter.format(voices,
       this.smoMeasure.staffWidth -
-      (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft) - 10);
+      (this.smoMeasure.svg.adjX + this.smoMeasure.svg.adjRight + this.smoMeasure.format.padLeft) - 10);
     const iterations = this.smoMeasure.getFormattingIterations();
     for (i = 0; i < iterations; ++i) {
       this.formatter.tune();

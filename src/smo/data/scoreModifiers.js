@@ -26,17 +26,20 @@ class SmoFormattingManager extends SmoScoreModifierBase {
   static get forScore() {
     return -1;
   }
-  static fromLegacyScore(score) {
+  // ## fromLegacyScore
+  // Convert measure formatting from legacy scores, that had the formatting
+  // per measure, to the new way that has a separate formatting object.
+  static fromLegacyScore(score, jsonObj) {
     let current = null;
     let previous = null;
     const measureFormats = [];
     score.staves[0].measures.forEach((measure) => {
       if (current === null) {
-        current = SmoMeasureFormat.fromLegacyMeasure(measure);
+        current = SmoMeasureFormat.fromLegacyMeasure(jsonObj.staves[0].measures[measure.measureNumber.measureIndex]);
         measureFormats[measure.measureNumber.measureIndex] = current;
       } else {
         previous = current;
-        current = SmoMeasureFormat.fromLegacyMeasure(measure);
+        current = SmoMeasureFormat.fromLegacyMeasure(jsonObj.staves[0].measures[measure.measureNumber.measureIndex]);
         if (!current.eq(previous)) {
           measureFormats[measure.measureNumber.measureIndex] = current;
         }
@@ -64,8 +67,8 @@ class SmoFormattingManager extends SmoScoreModifierBase {
     this.measureFormats[format.measureIndex] = format;
   }
   updateFormat(measure) {
-    if (this.measureFormats[measure.measureIndex]) {
-      measure.format = this.measureFormats[measure.measureIndex];
+    if (this.measureFormats[measure.measureNumber.measureIndex]) {
+      measure.format = this.measureFormats[measure.measureNumber.measureIndex];
     } else {
       measure.format = new SmoMeasureFormat();
     }

@@ -62,7 +62,7 @@ class SmoOperation {
   }
 
   static padMeasureLeft(selection, padding) {
-    selection.measure.padLeft = padding;
+    selection.measure.format.padLeft = padding;
   }
 
   static setActiveVoice(score, voiceIx) {

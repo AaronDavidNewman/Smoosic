@@ -268,7 +268,7 @@ class SmoScore {
     }
     params.staves = staves;
     if (upconvertFormat) {
-      formattingManager = SmoFormattingManager.fromLegacyScore(params);
+      formattingManager = SmoFormattingManager.fromLegacyScore(params, jsonObj);
     }
     params.formattingManager = formattingManager;
     params.layoutManager = layoutManager;
@@ -286,6 +286,7 @@ class SmoScore {
     scoreDefaults = typeof(scoreDefaults) !== 'undefined' ? scoreDefaults : SmoScore.defaults;
     measureDefaults = typeof(measureDefaults) !== 'undefined' ? measureDefaults : SmoMeasure.defaults;
     const score = new SmoScore(scoreDefaults);
+    score.formattingManager = new SmoFormattingManager();
     score.addStaff();
     const measure = SmoMeasure.getDefaultMeasure(measureDefaults);
     score.addMeasure(0, measure);

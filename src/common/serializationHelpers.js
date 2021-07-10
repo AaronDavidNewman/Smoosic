@@ -4,6 +4,17 @@
 // Helper functions that perform serialized merges, general JSON
 // types of routines.
 // ---
+
+Vex.Merge = (dest, src) => {
+  if (typeof(src) === 'undefined') {
+    return;
+  }
+  const keys = Object.keys(src);
+  keys.forEach((key) => {
+    dest[key] = src[key];
+  });
+}
+
 class smoSerialize {
   static tryParseUnicode(text) {
     let rv = text;

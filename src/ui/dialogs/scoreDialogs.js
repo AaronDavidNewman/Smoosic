@@ -214,6 +214,10 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
       const dim = SmoScore.pageDimensions[sel];
       this.pageHeightCtrl.setValue(dim.height);
       this.pageWidthCtrl.setValue(dim.width);
+      const layout = this.view.score.layoutManager.getGlobalLayout();
+      layout.pageWidth = dim.width;
+      layout.pageHeight = dim.height;
+      this.view.setGlobalLayout(layout);
     }
   }
   _setPageSizeDefault() {

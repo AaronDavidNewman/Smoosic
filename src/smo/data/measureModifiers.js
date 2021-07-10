@@ -48,7 +48,7 @@ class SmoMeasureFormat extends SmoMeasureModifierBase {
       pageBreak: false,
       padLeft: 0,
       padAllInSystem: true,
-      autoJustify: false
+      autoJustify: true
     }
   }
   eq(o) {

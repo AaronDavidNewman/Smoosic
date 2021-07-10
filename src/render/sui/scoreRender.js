@@ -365,7 +365,7 @@ class SuiScoreRender extends SuiRenderState {
         if (layoutDebug.mask & layoutDebug.values.system) {
           currentLine.forEach((measure) => {
             ld.debugBox(svg, measure.logicalBox, 'system');
-            ld.debugBox(svg, sh.boxPoints(measure.staffX, measure.logicalBox.y, measure.adjX, measure.logicalBox.height), 'post');
+            ld.debugBox(svg, sh.boxPoints(measure.staffX, measure.logicalBox.y, measure.svg.adjX, measure.logicalBox.height), 'post');
           });
         }
 
@@ -451,11 +451,11 @@ class SuiScoreRender extends SuiRenderState {
     // justify this column to the maximum width
     const maxMeasure = measures.reduce((a, b) => a.staffX + a.staffWidth > b.staffX + b.staffWidth ? a : b);
     const maxX = maxMeasure.staffX + maxMeasure.staffWidth;
-    const maxAdjMeasure = measures.reduce((a, b) => a.adjX > b.adjX  ? a : b);
-    const maxAdj = maxAdjMeasure.adjX;
+    const maxAdjMeasure = measures.reduce((a, b) => a.svg.adjX > b.svg.adjX  ? a : b);
+    const maxAdj = maxAdjMeasure.svg.adjX;
     measures.forEach((measure) => {
       measure.setWidth(measure.staffWidth + (maxX - (measure.staffX + measure.staffWidth)));
-      measure.adjX = maxAdj;
+      measure.svg.adjX = maxAdj;
     });
     const rv = { measures, y, x: maxX };
     return rv;

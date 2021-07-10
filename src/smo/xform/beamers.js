@@ -109,7 +109,7 @@ class smoBeamModifier {
 
       // is this beamable length-wise
       const vexDuration = smoMusic.closestVexDuration(note.tickCount);
-      const stemTicks = VF.durationToTicks.durations[vexDuration];
+      const stemTicks = VF.durationToTicks(vexDuration);
       if (stemTicks < 4096) {
         this.currentGroup.push(note);
       }

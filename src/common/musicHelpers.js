@@ -175,7 +175,7 @@ class smoMusic {
   static pitchToLedgerLine(clef, pitch) {
     // return the distance from the top ledger line, as 0.5 per line/space
     return -1.0 * (VF.keyProperties(smoMusic.pitchToVexKey(pitch, clef)).line - 4.5)
-     - VF.clefProperties.values[clef].line_shift;
+     - VF.clefProperties(clef).line_shift;
   }
   // ### flagStateFromNote
   // return hard-coded flag state, or flag state as based on pitch and clef
@@ -818,7 +818,7 @@ class smoMusic {
 
         // We support up to 4 'dots'
         for (var j = 0; j <= 4 && j + i < durations.length; ++j) {
-          ticks += VF.durationToTicks.durations[durations[i + j]];
+          ticks += VF.durationToTicks(durations[i + j]);
           ticksToDuration[ticks.toString()] = durations[i] + dots;
           dots += 'd'
         }

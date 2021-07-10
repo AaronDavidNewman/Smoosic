@@ -143,9 +143,9 @@ class suiLayoutFormatter {
   static estimateMeasureWidth(measure, noteSpacing, accidentMap) {
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
     let measureWidth = suiLayoutFormatter.estimateMusicWidth(measure, noteSpacing, accidentMap);
-    measure.adjX = suiLayoutFormatter.estimateStartSymbolWidth(measure);
-    measure.adjRight = suiLayoutFormatter.estimateEndSymbolWidth(measure);
-    measureWidth += measure.adjX + measure.adjRight + measure.format.customStretch;
+    measure.svg.adjX = suiLayoutFormatter.estimateStartSymbolWidth(measure);
+    measure.svg.adjRight = suiLayoutFormatter.estimateEndSymbolWidth(measure);
+    measureWidth += measure.svg.adjX + measure.svg.adjRight + measure.format.customStretch;
     const y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
     measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight');
     // Calculate the space for left/right text which displaces the measure.
