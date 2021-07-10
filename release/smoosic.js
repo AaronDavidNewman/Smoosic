@@ -2167,7 +2167,7 @@ class smoMusic {
   static pitchToLedgerLine(clef, pitch) {
     // return the distance from the top ledger line, as 0.5 per line/space
     return -1.0 * (VF.keyProperties(smoMusic.pitchToVexKey(pitch, clef)).line - 4.5)
-     - VF.clefProperties.values[clef].line_shift;
+     - VF.clefProperties(clef).line_shift;
   }
   // ### flagStateFromNote
   // return hard-coded flag state, or flag state as based on pitch and clef
@@ -2810,7 +2810,7 @@ class smoMusic {
 
         // We support up to 4 'dots'
         for (var j = 0; j <= 4 && j + i < durations.length; ++j) {
-          ticks += VF.durationToTicks.durations[durations[i + j]];
+          ticks += VF.durationToTicks(durations[i + j]);
           ticksToDuration[ticks.toString()] = durations[i] + dots;
           dots += 'd'
         }
@@ -2970,6 +2970,17 @@ class PromiseHelpers {
 // Helper functions that perform serialized merges, general JSON
 // types of routines.
 // ---
+
+Vex.Merge = (dest, src) => {
+  if (typeof(src) === 'undefined') {
+    return;
+  }
+  const keys = Object.keys(src);
+  keys.forEach((key) => {
+    dest[key] = src[key];
+  });
+}
+
 class smoSerialize {
   static tryParseUnicode(text) {
     let rv = text;
@@ -3194,7 +3205,12 @@ class smoSerialize {
       "bg": "hidden",
       "cg": "adjustNoteWidthLyric",
       "dg": "xOffsetStart",
-      "eg": "xOffsetEnd"
+      "eg": "xOffsetEnd",
+      "fg": "measureFormats",
+      "gg": "format",
+      "hg": "pageBreak",
+      "ig": "xOffsetLeft",
+      "jg": "xOffsetRight"
       }`;
      return JSON.parse(_tm);
     }
@@ -4220,7 +4236,7 @@ class suiOscillator {
       sustainEnv: 0.4,
       releaseEnv: 0.25,
       sustainLevel: 0.5,
-      releaseLevel: 0.01,
+      releaseLevel: 0.1,
       waveform: 'custom',
       gain: 0.2
     };
@@ -4499,7 +4515,7 @@ class suiSampler extends suiOscillator {
       }, duration);
       setTimeout(() => {
         osc.stop(0);
-      }, duration + 500);
+      }, Math.round(duration * 1.05));
     });
     return promise;
   }
@@ -4601,7 +4617,7 @@ class suiAudioPlayer {
       for (i = 0; i < sound.frequencies.length && sound.noteType === 'n'; ++i) {
         const freq = sound.frequencies[i];
         const beats = sound.duration / 4096;
-        const adjDuration = (beats / tempo) * 60000;
+        const adjDuration = Math.round((beats / tempo) * 60000);
         const osc = new suiSampler({ frequency: freq, duration: adjDuration, gain: sound.volume });
         oscs.push(osc);
       }
@@ -4634,7 +4650,7 @@ class suiAudioPlayer {
         tracker.clearMusicCursor();
         suiAudioPlayer.playing = false;
       }
-    }, waitTime);
+    }, waitTime * 1.05);
   }
   static stopPlayer() {
     if (suiAudioPlayer._playingInstance) {
@@ -4798,13 +4814,14 @@ class SuiActionPlayback {
 }
 ;// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-
-// ## suiFormatter
+// ## suiFormatter (changed from suiAdjuster)
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
+// eslint-disable-next-line no-unused-vars
 class suiLayoutFormatter {
   static estimateMusicWidth(smoMeasure, noteSpacing, accidentMap) {
     const widths = [];
-    let voiceIx = 0;
+    // The below line was commented out b/c voiceIX was defined but never used
+    // let voiceIx = 0;
     // Accidental map:
     // If we accidentals on different notes in a justified column, need to increase width
     // for both.
@@ -4818,7 +4835,6 @@ class suiLayoutFormatter {
       Object.keys(accidentMap).forEach((k) => {
         accidentJustify += accidentMap[k];
       });
-      let tickIndex = 0;
       let width = 0;
       let duration = 0;
       voice.notes.forEach((note) => {
@@ -4837,8 +4853,8 @@ class suiLayoutFormatter {
             ar.duration < duration && ar.pitches[pitch.letter]);
           const acLen = accidentals.length;
           const declared = acLen > 0 ?
-            accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental: keyAccidental;
-          if (declared != pitch.accidental || pitch.cautionary) {
+            accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental : keyAccidental;
+          if (declared !== pitch.accidental || pitch.cautionary) {
             noteWidth += vexGlyph.accidentalWidth(pitch.accidental);
             if (!accidentMap[duration]) {
               accidentMap[duration] = vexGlyph.accidentalWidth(pitch.accidental);
@@ -4850,8 +4866,8 @@ class suiLayoutFormatter {
         });
 
         let verse = 0;
-        let lyric;
-        while (lyric = note.getLyricForVerse(verse, SmoLyric.parsers.lyric)) {
+        let lyric = note.getLyricForVerse(verse, SmoLyric.parsers.lyric);
+        while (lyric) {
           let lyricWidth = 0;
           let i = 0;
           // TODO: kerning and all that...
@@ -4874,23 +4890,25 @@ class suiLayoutFormatter {
           }
           noteWidth = Math.max(lyricWidth, noteWidth);
           verse += 1;
+          lyric = note.getLyricForVerse(verse, SmoLyric.parsers.lyric);
         }
-        tickIndex += 1;
         duration += note.tickCount;
         width += noteWidth;
       });
       if (accidentJustify > 0) {
         width += accidentJustify;
       }
-      voiceIx += 1;
       widths.push(width);
     });
-    widths.sort((a,b) => a > b ? -1 : 1);
+    widths.sort((a, b) => a > b ? -1 : 1);
     return widths[0];
   }
 
   static estimateStartSymbolWidth(smoMeasure) {
     let width = 0;
+    // the variables starts and digits used to be in the if statements. I moved them here to fix the resulting error
+    var starts = smoMeasure.getStartBarline();
+    var digits = smoMeasure.timeSignature.split('/')[0].length;
     if (smoMeasure.forceKeySignature) {
       if (smoMeasure.canceledKeySignature) {
         width += vexGlyph.keySignatureLength(smoMeasure.canceledKeySignature);
@@ -4901,16 +4919,13 @@ class suiLayoutFormatter {
       width += vexGlyph.width(vexGlyph.clef(smoMeasure.clef)) + vexGlyph.clef(smoMeasure.clef).spacingRight;
     }
     if (smoMeasure.forceTimeSignature) {
-      var digits = smoMeasure.timeSignature.split('/')[0].length;
       width += vexGlyph.width(vexGlyph.dimensions.timeSignature) * digits + vexGlyph.dimensions.timeSignature.spacingRight;
     }
-    var starts = smoMeasure.getStartBarline();
     if (starts) {
       width += vexGlyph.barWidth(starts);
     }
     return width;
   }
-
   static estimateEndSymbolWidth(smoMeasure) {
     var width = 0;
     var ends  = smoMeasure.getEndBarline();
@@ -4920,10 +4935,9 @@ class suiLayoutFormatter {
     return width;
   }
 
-
-  static estimateTextOffset(renderer,smoMeasure) {
-    var leftText = smoMeasure.modifiers.filter((mm) => mm.ctor ==='SmoMeasureText' && mm.position === SmoMeasureText.positions.left);
-    var rightText = smoMeasure.modifiers.filter((mm) => mm.ctor ==='SmoMeasureText' && mm.position === SmoMeasureText.positions.right);
+  static estimateTextOffset(renderer, smoMeasure) {
+    var leftText = smoMeasure.modifiers.filter((mm) => mm.ctor === 'SmoMeasureText' && mm.position === SmoMeasureText.positions.left);
+    var rightText = smoMeasure.modifiers.filter((mm) => mm.ctor === 'SmoMeasureText' && mm.position === SmoMeasureText.positions.right);
     var svg = renderer.getContext().svg;
     var xoff = 0;
     var width = 0;
@@ -4943,9 +4957,9 @@ class suiLayoutFormatter {
   static estimateMeasureWidth(measure, noteSpacing, accidentMap) {
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
     let measureWidth = suiLayoutFormatter.estimateMusicWidth(measure, noteSpacing, accidentMap);
-    measure.adjX = suiLayoutFormatter.estimateStartSymbolWidth(measure);
-    measure.adjRight = suiLayoutFormatter.estimateEndSymbolWidth(measure);
-    measureWidth += measure.adjX + measure.adjRight + measure.customStretch;
+    measure.svg.adjX = suiLayoutFormatter.estimateStartSymbolWidth(measure);
+    measure.svg.adjRight = suiLayoutFormatter.estimateEndSymbolWidth(measure);
+    measureWidth += measure.svg.adjX + measure.svg.adjRight + measure.format.customStretch;
     const y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
     measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight');
     // Calculate the space for left/right text which displaces the measure.
@@ -4954,14 +4968,14 @@ class suiLayoutFormatter {
     measure.setBox(svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, measure.logicalBox.height),
       'estimate measure width');
   }
-  static _beamGroupForNote(measure,note) {
+  static _beamGroupForNote(measure, note) {
     let rv = null;
     if (!note.beam_group) {
       return null;
     }
     measure.beamGroups.forEach((bg) => {
       if (!rv) {
-        if (bg.notes.findIndex((nn) => note.beam_group && note.beam_group.id === bg.attrs.id) >= 0) {
+        if (bg.notes.findIndex((note) => note.beam_group && note.beam_group.id === bg.attrs.id) >= 0) {
           rv = bg;
         }
       }
@@ -4999,7 +5013,7 @@ class suiLayoutFormatter {
   // the height of the measure is below-above.  Vex always renders a staff such that
   // the y coordinate passed in for the stave is on the baseline.
   // Note to past self: this was a really useful comment.  Thank you.
-  static estimateMeasureHeight(measure, layout) {
+  static estimateMeasureHeight(measure) {
     let heightOffset = 50;  // assume 5 lines, todo is non-5-line staffs
     let yOffset = 0;
     let flag = '';
@@ -5048,13 +5062,12 @@ class suiLayoutFormatter {
         if (lyrics.length) {
           const maxLyric = lyrics.reduce((a, b) => a.verse > b.verse ? a : b);
           const fontInfo = suiLayoutFormatter.textFont(maxLyric);
-          const maxHeight = fontInfo.maxHeight;
           lyricOffset = Math.max((maxLyric.verse + 2) * fontInfo.maxHeight, lyricOffset);
         }
         const dynamics = note.getModifiers('SmoDynamicText');
         dynamics.forEach((dyn) => {
           heightOffset = Math.max((10 * dyn.yOffsetLine - 50) + 11, heightOffset);
-          yOffset = Math.min(10 * dyn.yOffsetLine - 50, yOffset)
+          yOffset = Math.min(10 * dyn.yOffsetLine - 50, yOffset);
         });
       });
     });
@@ -6749,8 +6762,7 @@ class SuiScoreRender extends SuiRenderState {
     colKeys.forEach((colKey) => {
       columns[colKey].forEach((measure) => {
         vxSystem.renderMeasure(measure, this.measureMapper, printing);
-        const formatIndex = SmoMeasure.formattingOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
-        if (formatIndex >= 0 && !printing) {
+        if (!printing && !measure.format.eq(SmoMeasureFormat.defaults)) {
           const at = [];
           at.push({ y: measure.logicalBox.y - 5 });
           at.push({ x: measure.logicalBox.x + 25 });
@@ -6939,7 +6951,7 @@ class SuiScoreRender extends SuiRenderState {
         if (layoutDebug.mask & layoutDebug.values.system) {
           currentLine.forEach((measure) => {
             ld.debugBox(svg, measure.logicalBox, 'system');
-            ld.debugBox(svg, sh.boxPoints(measure.staffX, measure.logicalBox.y, measure.adjX, measure.logicalBox.height), 'post');
+            ld.debugBox(svg, sh.boxPoints(measure.staffX, measure.logicalBox.y, measure.svg.adjX, measure.logicalBox.height), 'post');
           });
         }
 
@@ -7025,11 +7037,11 @@ class SuiScoreRender extends SuiRenderState {
     // justify this column to the maximum width
     const maxMeasure = measures.reduce((a, b) => a.staffX + a.staffWidth > b.staffX + b.staffWidth ? a : b);
     const maxX = maxMeasure.staffX + maxMeasure.staffWidth;
-    const maxAdjMeasure = measures.reduce((a, b) => a.adjX > b.adjX  ? a : b);
-    const maxAdj = maxAdjMeasure.adjX;
+    const maxAdjMeasure = measures.reduce((a, b) => a.svg.adjX > b.svg.adjX  ? a : b);
+    const maxAdj = maxAdjMeasure.svg.adjX;
     measures.forEach((measure) => {
       measure.setWidth(measure.staffWidth + (maxX - (measure.staffX + measure.staffWidth)));
-      measure.adjX = maxAdj;
+      measure.svg.adjX = maxAdj;
     });
     const rv = { measures, y, x: maxX };
     return rv;
@@ -8411,23 +8423,8 @@ class SuiScoreViewOperations extends SuiScoreView {
     });
     this._renderRectangle(fromSelector, toSelector);
   }
-  setCollisionAvoidance(value) {
-    this._columnAction('Collision avoidance', value, 'setFormattingIterations');
-  }
-
-  // ### stretchWidth
-  // Stretch the width of a measure, including all columns in the measure since they are all
-  // the same width
-  setMeasureStretch(stretch) {
-    this._columnAction('Stretch Measure', stretch, 'setMeasureStretch');
-  }
-  forceSystemBreak(value) {
-    this._columnAction('forceSystemBreak', value, 'setForceSystemBreak');
-  }
-  // For these rectangle ones, treat view score and store score differently
-  // b/c the rectangles may be different
-  setMeasureProportion(value) {
-    this._columnAction('Measure proportion', value, 'setMeasureProportion');
+  setMeasureFormat(format) {
+    this._columnAction('set measure format', format, 'setMeasureFormat');
   }
 
   replayActions() {
@@ -12205,7 +12202,7 @@ class VxMeasure {
 
     // don't create a begin bar for any but the 1st measure.
     if (this.smoMeasure.measureNumber.systemIndex !== 0 && sb.barline === SmoBarline.barlines.singleBar
-      && this.smoMeasure.padLeft === 0) {
+      && this.smoMeasure.format.padLeft === 0) {
       this.stave.setBegBarType(VF.Barline.type.NONE);
     } else {
       this.stave.setBegBarType(sb.toVexBarline());
@@ -12220,7 +12217,7 @@ class VxMeasure {
     const tms = this.smoMeasure.getMeasureText();
     // TODO: set font
     tms.forEach((tm) => {
-      const offset = tm.position === SmoMeasureText.positions.left ? this.smoMeasure.padLeft : 0;
+      const offset = tm.position === SmoMeasureText.positions.left ? this.smoMeasure.format.padLeft : 0;
       this.stave.setText(
         tm.text, tm.toVexPosition(), {
           shift_x: tm.adjustX + offset, shift_y: tm.adjustY, justification: tm.toVexJustification()
@@ -12256,13 +12253,13 @@ class VxMeasure {
     const canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature, 0)
       : this.smoMeasure.canceledKeySignature;
 
-    const staffX = this.smoMeasure.staffX + this.smoMeasure.padLeft;
+    const staffX = this.smoMeasure.staffX + this.smoMeasure.format.padLeft;
 
-    this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - this.smoMeasure.padLeft,
+    this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - this.smoMeasure.format.padLeft,
       { font: { family: SourceSansProFont.fontFamily, size: '12pt' }, fill_style: VxMeasure.fillStyle });
     // If there is padLeft, draw an invisible box so the padding is included in the measure box
-    if (this.smoMeasure.padLeft) {
-      this.context.rect(this.smoMeasure.staffX, this.smoMeasure.staffY, this.smoMeasure.padLeft, 50, {
+    if (this.smoMeasure.format.padLeft) {
+      this.context.rect(this.smoMeasure.staffX, this.smoMeasure.staffY, this.smoMeasure.format.padLeft, 50, {
         fill: 'none', 'stroke-width': 1, stroke: 'white'
       });
     }
@@ -12310,8 +12307,7 @@ class VxMeasure {
     }
 
     // Need to format for x position, then set y position before drawing dynamics.
-    this.formatter = new VF.Formatter({ softmaxFactor: this.smoMeasure.customProportion, globalSoftmax: false,
-      maxIterations: 10 });
+    this.formatter = new VF.Formatter({ softmaxFactor: this.smoMeasure.format.customProportion, globalSoftmax: false });
     this.voiceAr.forEach((voice) => {
       this.formatter.joinVoices([voice]);
     });
@@ -12321,7 +12317,7 @@ class VxMeasure {
     const timestamp = new Date().valueOf();
     this.formatter.format(voices,
       this.smoMeasure.staffWidth -
-      (this.smoMeasure.adjX + this.smoMeasure.adjRight + this.smoMeasure.padLeft) - 10);
+      (this.smoMeasure.svg.adjX + this.smoMeasure.svg.adjRight + this.smoMeasure.format.padLeft) - 10);
     const iterations = this.smoMeasure.getFormattingIterations();
     for (i = 0; i < iterations; ++i) {
       this.formatter.tune();
@@ -12878,17 +12874,14 @@ class SmoMeasure {
     this.svg = {};
     this.beamGroups = [];
     this.modifiers = [];
-    this.pageGap = 0;
     this.changed = true;
-    this.prevY = 0;
-    this.prevX = 0;
-    this.padLeft = 0;
     this.svg.staffWidth = 200;
     this.svg.staffX = 0;
     this.svg.staffY = 0;
     this.svg.history = [];
     this.svg.logicalBox = {};
     this.svg.yTop = 0;
+    this.svg.adjX = 0;
 
     const defaults = SmoMeasure.defaults;
 
@@ -12902,6 +12895,12 @@ class SmoMeasure {
 
     this.keySignature = smoMusic.vexKeySigWithOffset(this.keySignature, this.transposeIndex);
 
+    if (typeof(params.format) === 'undefined') {
+      this.format = new SmoMeasureFormat();
+      this.format.measureIndex = this.measureNumber.measureIndex;
+    } else {
+      this.format = new SmoMeasureFormat(params.format);
+    }
     if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),
@@ -12916,16 +12915,15 @@ class SmoMeasure {
   // attributes that are to be serialized for a measure.
   static get defaultAttributes() {
     return [
-      'timeSignature', 'keySignature', 'systemBreak', 'pageBreak',
+      'timeSignature', 'keySignature',
       'measureNumber',
       'activeVoice', 'clef', 'transposeIndex',
-      'adjX', 'customStretch', 'customProportion', 'padLeft', 'padRight', 'rightMargin',
-      'formattingIterations', 'autoJustify'
+      'adjX', 'format', 'rightMargin'
     ];
   }
 
   static get formattingOptions() {
-    return ['customStretch', 'customProportion', 'autoJustify', 'formattingIterations', 'systemBreak',
+    return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak',
       'pageBreak', 'padLeft'];
   }
   static get systemOptions() {
@@ -12967,19 +12965,10 @@ class SmoMeasure {
       timeSignature: '4/4',
       keySignature: 'C',
       canceledKeySignature: null,
-      adjX: 0,
-      pageBreak: false,
-      systemBreak: false,
-      adjRight: 0,
       padRight: 10,
-      padLeft: 0,
       tuplets: [],
       transposeIndex: 0,
-      customStretch: 0,
-      customProportion: 12,
       modifiers,
-      autoJustify: true,
-      formattingIterations: 0,
       rightMargin: 2,
       staffY: 40,
       // bars: [1, 1], // follows enumeration in VF.Barline
@@ -13326,25 +13315,25 @@ class SmoMeasure {
   }
 
   setForcePageBreak(val) {
-    this.pageBreak = val;
+    this.format.pageBreak = val;
   }
 
   setForceSystemBreak(val) {
-    this.systemBreak = val;
+    this.format.systemBreak = val;
   }
 
   setAutoJustify(val) {
-    this.autoJustify = val;
+    this.format.autoJustify = val;
   }
   getAutoJustify() {
-    return this.autoJustify;
+    return this.format.autoJustify;
   }
   getForceSystemBreak() {
-    return this.systemBreak;
+    return this.format.systemBreak;
   }
 
   getForcePageBreak() {
-    return this.pageBreak;
+    return this.format.pageBreak;
   }
 
   // ###   SVG mixins
@@ -13926,6 +13915,72 @@ class SmoMeasureModifierBase {
   }
 }
 
+class SmoMeasureFormat extends SmoMeasureModifierBase {
+  static get attributes() {
+    return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex'];
+  }
+  static get formatAttributes() {
+    return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft'];
+  }
+  static fromLegacyMeasure(measure) {
+    const o = {};
+    SmoMeasureFormat.formatAttributes.forEach((attr) => {
+      if (typeof(measure[attr]) !== 'undefined') {
+        o[attr] = measure[attr];
+      } else {
+        o[attr] = SmoMeasureFormat.defaults[attr];
+      }
+      o.measureIndex = measure.measureNumber.measureIndex;
+    });
+    return new SmoMeasureFormat(o);
+  }
+  static get defaults() {
+    return {
+      customStretch: 0,
+      customProportion: 100,
+      systemBreak: false,
+      pageBreak: false,
+      padLeft: 0,
+      padAllInSystem: true,
+      autoJustify: true
+    }
+  }
+  eq(o) {
+    let rv = true;
+    SmoMeasureFormat.formatAttributes.forEach((attr) => {
+      if (o[attr] !== this[attr]) {
+        rv = false;
+      }
+    });
+    return rv;
+  }
+  get isDefault() {
+    return this.eq(SmoMeasureFormat.defaults);
+  }
+  constructor(parameters) {
+    super('SmoMeasureFormat');
+    if (typeof(parameters) === 'undefined') {
+      parameters = {};
+    }
+    SmoMeasureFormat.attributes.forEach((attr) => {
+      if (typeof(parameters[attr]) === 'undefined') {
+        this[attr] = SmoMeasureFormat.defaults[attr];
+      } else {
+        this[attr] = parameters[attr];
+      }
+    });
+  }
+  formatMeasure(mm) {
+    mm.format = new SmoMeasureFormat(this);
+    mm.format.measureIndex = mm.measureNumber.measureIndex;
+  }
+  serialize() {
+    const params = {};
+    smoSerialize.serializedMergeNonDefault(SmoMeasureFormat.defaults, SmoMeasureFormat.attributes, this, params);
+    params.ctor = 'SmoMeasureFormat';
+    return params;
+  }
+}
 class SmoBarline extends SmoMeasureModifierBase {
   static get positions() {
     return {
@@ -15437,6 +15492,7 @@ class SmoScore {
     if (this.staves.length) {
       this.numberStaves();
     }
+    this.updateMeasureFormats();
   }
   static get engravingFonts() {
     return { Bravura: 'Bravura', Gonville: 'Gonville', Petaluma: 'Petaluma' };
@@ -15581,12 +15637,14 @@ class SmoScore {
     let obj = {
       score: params,
       layoutManager: {},
+      measureFormats: {},
       staves: [],
       scoreText: [],
       textGroups: [],
       systemGroups: []
     };
     obj.layoutManager = this.layoutManager.serialize();
+    obj.measureFormats = this.formattingManager.serialize();
     smoSerialize.serializedMerge(SmoScore.defaultAttributes, this, params);
     this.staves.forEach((staff) => {
       obj.staves.push(staff.serialize());
@@ -15630,9 +15688,12 @@ class SmoScore {
   // Restore an earlier JSON string.  Unlike other deserialize methods, this one expects the string.
   static deserialize(jsonString) {
     let jsonObj = JSON.parse(jsonString);
+    let upconvertFormat = false;
+    let formattingManager = null;
     if (jsonObj.dictionary) {
       jsonObj = smoSerialize.detokenize(jsonObj, jsonObj.dictionary);
     }
+    upconvertFormat = typeof(jsonObj.measureFormats) === 'undefined';
     const params = {};
     const staves = [];
     jsonObj.textGroups = jsonObj.textGroups ? jsonObj.textGroups : [];
@@ -15647,6 +15708,10 @@ class SmoScore {
       SmoScore.upConvertLayout(jsonObj);
     }
     const layoutManager = new SmoLayoutManager(jsonObj.layoutManager);
+    if (!upconvertFormat) {
+      formattingManager = new SmoFormattingManager({ measureFormats: jsonObj.measureFormats });
+    }
+
     // params.layout = JSON.parse(JSON.stringify(SmoScore.defaults.layout));
     smoSerialize.serializedMerge(
       SmoScore.defaultAttributes,
@@ -15678,6 +15743,10 @@ class SmoScore {
       });
     }
     params.staves = staves;
+    if (upconvertFormat) {
+      formattingManager = SmoFormattingManager.fromLegacyScore(params, jsonObj);
+    }
+    params.formattingManager = formattingManager;
     params.layoutManager = layoutManager;
     const score = new SmoScore(params);
     score.scoreText = scoreText;
@@ -15693,6 +15762,7 @@ class SmoScore {
     scoreDefaults = typeof(scoreDefaults) !== 'undefined' ? scoreDefaults : SmoScore.defaults;
     measureDefaults = typeof(measureDefaults) !== 'undefined' ? measureDefaults : SmoMeasure.defaults;
     const score = new SmoScore(scoreDefaults);
+    score.formattingManager = new SmoFormattingManager();
     score.addStaff();
     const measure = SmoMeasure.getDefaultMeasure(measureDefaults);
     score.addMeasure(0, measure);
@@ -15727,6 +15797,13 @@ class SmoScore {
     }
   }
 
+  updateMeasureFormats() {
+    this.staves.forEach((staff) => {
+      staff.measures.forEach((measure) => {
+        this.formattingManager.updateFormat(measure);
+      });
+    });
+  }
   // ### addDefaultMeasureWithNotes
   // ### Description:
   // Add a measure to the score with the supplied parameters at the supplied index.
@@ -16070,6 +16147,69 @@ class SmoScoreModifierBase {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
+class SmoFormattingManager extends SmoScoreModifierBase {
+  static get forScore() {
+    return -1;
+  }
+  // ## fromLegacyScore
+  // Convert measure formatting from legacy scores, that had the formatting
+  // per measure, to the new way that has a separate formatting object.
+  static fromLegacyScore(score, jsonObj) {
+    let current = null;
+    let previous = null;
+    const measureFormats = [];
+    score.staves[0].measures.forEach((measure) => {
+      if (current === null) {
+        current = SmoMeasureFormat.fromLegacyMeasure(jsonObj.staves[0].measures[measure.measureNumber.measureIndex]);
+        measureFormats[measure.measureNumber.measureIndex] = current;
+      } else {
+        previous = current;
+        current = SmoMeasureFormat.fromLegacyMeasure(jsonObj.staves[0].measures[measure.measureNumber.measureIndex]);
+        if (!current.eq(previous)) {
+          measureFormats[measure.measureNumber.measureIndex] = current;
+        }
+      }
+    });
+    return new SmoFormattingManager({ measureFormats });
+  }
+  constructor(params) {
+    super('SmoFormattingManager');
+    if (typeof(params) === 'undefined') {
+      params = {};
+    }
+    this.measureFormats = {};
+    this.partIndex = SmoFormattingManager.forScore;
+    if (typeof(params.partIndex) !== 'undefined') {
+      this.partIndex = params.partIndex;
+    }
+    if (typeof(params.measureFormats) !== 'undefined' && params.measureFormats.length) {
+      params.measureFormats.forEach((format) => {
+        this.measureFormats[format.measureIndex] = new SmoMeasureFormat(format);
+      });
+    }
+  }
+  updateMeasureFormat(format) {
+    this.measureFormats[format.measureIndex] = format;
+  }
+  updateFormat(measure) {
+    if (this.measureFormats[measure.measureNumber.measureIndex]) {
+      measure.format = this.measureFormats[measure.measureNumber.measureIndex];
+    } else {
+      measure.format = new SmoMeasureFormat();
+    }
+  }
+  serialize() {
+    const rv = [];
+    const keys = Object.keys(this.measureFormats);
+    keys.forEach((key) => {
+      if (!this.measureFormats[key].isDefault) {
+        rv.push(this.measureFormats[key].serialize());
+      }
+    });
+    return rv;
+  }
+}
 // ## SmoLayoutManager
 // Storage and utilities for layout information in the score.  Each
 // manager has one set of page height/width, since svg element
@@ -16822,6 +16962,19 @@ class StaffModifierBase {
   }
   get isStaffModifier() {
     return true;
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
+class SmoInstrument extends StaffModifierBase {
+  static get attributes() {
+    return ['startSelector', 'endSelector', 'transposeIndex', 'midichannel', 'midiport', 'instrument', 'abbreviation'];
+  }
+}
+// eslint-disable-next-line no-unused-vars
+class SmoPartMap {
+  static get attributes() {
+    return ['staffId', 'name', 'abbreviation', 'scoreGroup', 'partnerId', 'instrumentMap', 'layoutManager'];
   }
 }
 
@@ -17865,7 +18018,7 @@ class SmoToXml {
     if (smoState.measureNumber === 1 && measure.isPickup()) {
       smoState.measureNumber = 0;
     }
-    if (smoState.measure.systemBreak) {
+    if (smoState.measure.getForceSystemBreak()) {
       const printElement = nn(measureElement, 'print');
       mxmlHelpers.createAttributes(printElement, { 'new-system': 'yes' });
     }
@@ -18682,6 +18835,7 @@ class mxmlScore {
       });
       // The entire score is parsed and xmlState now contains the staves.
       const rv = new SmoScore(scoreDefaults);
+      rv.formattingManager = xmlState.formattingManager;
       rv.staves = xmlState.smoStaves;
       xmlState.updateStaffGroups();
       rv.systemGroups = xmlState.systems;
@@ -19105,9 +19259,12 @@ class mxmlScore {
       const smoMeasure = SmoMeasure.getDefaultMeasure({
         clef: staffData.clefInfo.clef
       });
-      smoMeasure.systemBreak = mxmlHelpers.isSystemBreak(measureElement);
+      smoMeasure.format = new SmoMeasureFormat();
+      smoMeasure.format.measureIndex = xmlState.measureNumber;
+      smoMeasure.format.systemBreak = mxmlHelpers.isSystemBreak(measureElement);
       smoMeasure.tempo = xmlState.tempo;
-      smoMeasure.customProportion = mxmlScore.customProportionDefault;
+      smoMeasure.format.customProportion = mxmlScore.customProportionDefault;
+      xmlState.formattingManager.updateMeasureFormat(smoMeasure.format);
       smoMeasure.keySignature = xmlState.keySignature;
       smoMeasure.timeSignature = xmlState.timeSignature;
       smoMeasure.measureNumber.measureNumber = xmlState.measureNumber;
@@ -19179,6 +19336,7 @@ class XmlState {
     this.completedSlurs = [];
     this.completedTies = [];
     this.verseMap = {};
+    this.formattingManager = new SmoFormattingManager();
   }
   // ### initializeForMeasure
   // reset state for a new measure:  beam groups, tuplets
@@ -20114,7 +20272,7 @@ class smoBeamModifier {
 
       // is this beamable length-wise
       const vexDuration = smoMusic.closestVexDuration(note.tickCount);
-      const stemTicks = VF.durationToTicks.durations[vexDuration];
+      const stemTicks = VF.durationToTicks(vexDuration);
       if (stemTicks < 4096) {
         this.currentGroup.push(note);
       }
@@ -20563,32 +20721,13 @@ class PasteBuffer {
 
 // An operation works on a selection or set of selections to edit the music
 class SmoOperation {
-
-  static setForcePageBreak(score, selection, value) {
+  static setMeasureFormat(score, selection, value) {
     score.staves.forEach((staff) => {
-      staff.measures[selection.selector.measure].setForcePageBreak(value);
+      value.formatMeasure(staff.measures[selection.selector.measure]);
     });
-  }
-  static setForceSystemBreak(score, selection, value) {
-    score.staves.forEach((staff) => {
-      staff.measures[selection.selector.measure].setForceSystemBreak(value);
-    });
-  }
-  static setMeasureStretch(score, selection, value) {
-    score.staves.forEach((staff) => {
-      const measure = staff.measures[selection.selector.measure];
-      const delta = measure.customStretch;
-      measure.customStretch = value;
-      const nwidth = measure.staffWidth - (delta - measure.customStretch);
-      measure.setWidth(nwidth);
-    });
+    score.formattingManager.updateMeasureFormat(value);
   }
 
-  static setAutoJustify(score, selection, value) {
-    score.staves.forEach((staff) => {
-      staff.measures[selection.selector.measure].setAutoJustify(value);
-    });
-  }
 
   static updateProportionDefault(score, oldValue, newValue) {
     score.preferences.customProportion = newValue;
@@ -20603,13 +20742,6 @@ class SmoOperation {
       });
     });
   }
-
-  static setFormattingIterations(score, selection, value) {
-    score.staves.forEach((staff) => {
-      staff.measures[selection.selector.measure].setFormattingIterations(value);
-    });
-  }
-
   static addKeySignature(score, selection, keySignature) {
     score.addKeySignature(selection.selector.measure, keySignature);
   }
@@ -20648,7 +20780,7 @@ class SmoOperation {
   }
 
   static padMeasureLeft(selection, padding) {
-    selection.measure.padLeft = padding;
+    selection.measure.format.padLeft = padding;
   }
 
   static setActiveVoice(score, voiceIx) {
@@ -31811,28 +31943,6 @@ class SuiMeasureDialog extends SuiDialogBase {
         control: 'SuiToggleComponent',
         label: 'Justify Columns'
       }, {
-        smoName: 'noteFormatting',
-        parameterName: 'noteFormatting',
-        defaultValue: 0,
-        control: 'SuiDropdownComponent',
-        label: 'Collision Avoidance',
-        options: [{
-          value: 0,
-          label: 'Off'
-        }, {
-          value: 1,
-          label: '1x'
-        }, {
-          value: 2,
-          label: '2x'
-        }, {
-          value: 5,
-          label: '5x'
-        }, {
-          value: 10,
-          label: '10x'
-        }]
-      }, {
         smoName: 'measureTextPosition',
         parameterName: 'measureTextPosition',
         defaultValue: SmoMeasureText.positions.above,
@@ -31870,6 +31980,8 @@ class SuiMeasureDialog extends SuiDialogBase {
   }
   changed() {
     this.edited = true;
+    let updateFormat = true;
+    // TODO: move pickup out of this dialog
     if (this.pickupCtrl.changeFlag) {
       if (this.pickupCtrl.toggleCtrl.getValue() === false) {
         this.view.createPickup(smoMusic.timeSignatureToTicks(this.measure.timeSignature));
@@ -31878,22 +31990,28 @@ class SuiMeasureDialog extends SuiDialogBase {
       }
     }
     if (this.customStretchCtrl.changeFlag) {
-      this.view.setMeasureStretch(this.customStretchCtrl.getValue());
+      this.modifier.customStretch = this.customStretchCtrl.getValue();
+      updateFormat = true;
     }
     if (this.customProportionCtrl.changeFlag) {
-      this.view.setMeasureProportion(this.customProportionCtrl.getValue());
+      this.modifier.customProportion = this.customProportionCtrl.getValue();
+      updateFormat = true;
     }
     if (this.systemBreakCtrl.changeFlag) {
-      this.view.forceSystemBreak(this.systemBreakCtrl.getValue());
+      updateFormat = true;
+      this.modifier.systemBreak = this.systemBreakCtrl.getValue();
     }
     if (this.autoJustifyCtrl.changeFlag) {
-      this.view.setAutoJustify(this.autoJustifyCtrl.getValue());
-    }
-    if (this.noteFormattingCtrl.changeFlag) {
-      this.view.setCollisionAvoidance(parseInt(this.noteFormattingCtrl.getValue(), 10));
+      updateFormat = true;
+      this.modifier.autoJustify = this.autoJustifyCtrl.getValue();
     }
     if (this.padLeftCtrl.changeFlag || this.padAllInSystemCtrl.changeFlag) {
-      this.view.padMeasure(this.padLeftCtrl.getValue(), this.padAllInSystemCtrl.getValue());
+      updateFormat = true;
+      this.modifier.padLeft = this.padLeftCtrl.getValue();
+      this.modifier.padAllInSystem = this.padAllInSystemCtrl.getValue();
+    }
+    if (updateFormat) {
+      this.view.setMeasureFormat(this.modifier);
     }
     //
     this._updateConditionals();
@@ -31917,7 +32035,7 @@ class SuiMeasureDialog extends SuiDialogBase {
 
     // The 'modifier' that this dialog acts on is a measure.
     this.measure = this.selection.measure;
-    this.modifier = this.measure;
+    this.modifier = this.measure.format;
   }
   get displayOptions() {
     return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
@@ -31935,18 +32053,17 @@ class SuiMeasureDialog extends SuiDialogBase {
     }
   }
   populateInitial() {
-    this.padLeftCtrl.setValue(this.measure.padLeft);
-    this.autoJustifyCtrl.setValue(this.measure.autoJustify);
+    this.padLeftCtrl.setValue(this.modifier.padLeft);
+    this.autoJustifyCtrl.setValue(this.modifier.autoJustify);
     const isPickup = this.measure.isPickup();
-    this.customStretchCtrl.setValue(this.measure.customStretch);
-    this.customProportionCtrl.setValue(this.measure.customProportion);
-    this.noteFormattingCtrl.setValue(this.measure.getFormattingIterations());
+    this.customStretchCtrl.setValue(this.modifier.customStretch);
+    this.customProportionCtrl.setValue(this.modifier.customProportion);
     this.pickupCtrl.toggleCtrl.setValue(isPickup);
     if (isPickup) {
       this.pickupCtrl.dropdownCtrl.setValue(this.measure.getTicksFromVoice(0));
     }
 
-    const isSystemBreak = this.measure.getForceSystemBreak();
+    const isSystemBreak = this.modifier.systemBreak;
     this.systemBreakCtrl.setValue(isSystemBreak);
     this._updateConditionals();
 
@@ -32745,6 +32862,10 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
       const dim = SmoScore.pageDimensions[sel];
       this.pageHeightCtrl.setValue(dim.height);
       this.pageWidthCtrl.setValue(dim.width);
+      const layout = this.view.score.layoutManager.getGlobalLayout();
+      layout.pageWidth = dim.width;
+      layout.pageHeight = dim.height;
+      this.view.setGlobalLayout(layout);
     }
   }
   _setPageSizeDefault() {
