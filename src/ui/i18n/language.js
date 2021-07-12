@@ -180,7 +180,7 @@ class SmoTranslator {
       'SuiChordChangeDialog',
       'SuiTextTransformDialog',
       'SuiScoreViewDialog',
-      'SuiScorePreferencesDialog',
+      'SuiGlobalLayoutDialog',
       'SuiLyricDialog',
       'SuiChordChangeDialog',
     ]

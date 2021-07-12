@@ -181,7 +181,7 @@ class SuiMeasureDialog extends SuiDialogBase {
     this.modifier = this.measure.format;
   }
   get displayOptions() {
-    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+    return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
   }
   display() {
     this.applyDisplayOptions();

@@ -20,9 +20,9 @@ class suiTracker extends suiMapper {
   _checkBoxOffset() {
     const note = this.selections[0].note;
     const r = note.renderedBox;
-    const b = this.selections[0].box;
-    const ydiff = Math.abs(r.y - b.y);
-    const xdiff = Math.abs(r.x - b.x);
+    const abs = svgHelpers.logicalToClient(this.renderer.context.svg, note.logicalBox, this.scroller);
+    const ydiff = Math.abs(r.y - abs.y);
+    const xdiff = Math.abs(r.x - abs.x);
     const preventScroll = $('body').hasClass('modal');
 
     if (ydiff > 1 || xdiff > 1) {

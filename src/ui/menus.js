@@ -352,7 +352,7 @@ class SuiScoreMenu extends suiMenuBase {
       });
   }
   execPreferences() {
-    SuiScorePreferencesDialog.createAndDisplay(
+    SuiGlobalLayoutDialog.createAndDisplay(
       {
         eventSource: this.eventSource,
         keyCommands: this.keyCommands,

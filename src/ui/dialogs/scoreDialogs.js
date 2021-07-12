@@ -76,19 +76,19 @@ class SuiScoreViewDialog extends SuiDialogBase {
   }
 }
 
-// ## SuiScorePreferencesDialog
+// ## SuiGlobalLayoutDialog
 // change editor and formatting defaults for this score.
 // eslint-disable-next-line no-unused-vars
-class SuiScorePreferencesDialog extends SuiDialogBase {
+class SuiGlobalLayoutDialog extends SuiDialogBase {
   static get ctor() {
-    return 'SuiScorePreferencesDialog';
+    return 'SuiGlobalLayoutDialog';
   }
   get ctor() {
-    return SuiScorePreferencesDialog.ctor;
+    return SuiGlobalLayoutDialog.ctor;
   }
   static get dialogElements() {
-    SuiScorePreferencesDialog._dialogElements = typeof(SuiScorePreferencesDialog._dialogElements)
-      !== 'undefined' ? SuiScorePreferencesDialog._dialogElements :
+    SuiGlobalLayoutDialog._dialogElements = typeof(SuiGlobalLayoutDialog._dialogElements)
+      !== 'undefined' ? SuiGlobalLayoutDialog._dialogElements :
       [{
         smoName: 'scoreName',
         parameterName: 'scoreName',
@@ -168,10 +168,10 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
           { label: 'Global Settings' }
         ]
       }];
-    return SuiScorePreferencesDialog._dialogElements;
+    return SuiGlobalLayoutDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
-    const dg = new SuiScorePreferencesDialog(parameters);
+    const dg = new SuiGlobalLayoutDialog(parameters);
     dg.display();
   }
   get displayOptions() {
@@ -280,7 +280,7 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
   }
   constructor(parameters) {
     var p = parameters;
-    super(SuiScorePreferencesDialog.dialogElements, {
+    super(SuiGlobalLayoutDialog.dialogElements, {
       id: 'dialog-layout',
       top: (p.view.score.layout.pageWidth / 2) - 200,
       left: (p.view.score.layout.pageHeight / 2) - 200,
@@ -294,7 +294,7 @@ class SuiScorePreferencesDialog extends SuiDialogBase {
   }
 }
 
-// ## SuiScorePreferencesDialog
+// ## SuiScoreIdentificationDialog
 // change editor and formatting defaults for this score.
 // eslint-disable-next-line no-unused-vars
 class SuiScoreIdentificationDialog extends SuiDialogBase {
