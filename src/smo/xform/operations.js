@@ -1,8 +1,15 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoMeasure } from '../data/measure';
+import { SmoSelection } from './selections';
+import { SmoSystemGroup } from '../data/scoreModifiers';
+import { smoMusic } from '../../common/musicHelpers';
+import { SmoNote } from '../data/note';
+import { SmoDuration } from './tickDuration';
+import { SmoStaffHairpin } from '../data/staffModifiers';
 
 // An operation works on a selection or set of selections to edit the music
-class SmoOperation {
+export class SmoOperation {
   static setMeasureFormat(score, selection, value) {
     score.staves.forEach((staff) => {
       value.formatMeasure(staff.measures[selection.selector.measure]);

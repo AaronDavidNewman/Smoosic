@@ -1,10 +1,12 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiTempoDialog } from "./dialogs/measureDialogs";
+import { suiAudioPlayer } from "../render/audio/player";
 
 // ## suiEditor
 // KeyCommands object handles key events and converts them into commands, updating the score and
 // display
-class SuiKeyCommands {
+export class SuiKeyCommands {
   constructor(params) {
     Vex.Merge(this, params);
     this.slashMode = false;

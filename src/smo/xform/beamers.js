@@ -1,7 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-// eslint-disable-next-line no-unused-vars
-class smoBeamerFactory {
+import { smoMusic } from '../../common/musicHelpers';
+
+export class smoBeamerFactory {
   static applyBeams(measure) {
     let i = 0;
     let j = 0;
@@ -15,7 +16,7 @@ class smoBeamerFactory {
   }
 }
 
-class smoBeamModifier {
+export class smoBeamModifier {
   constructor(measure, voice) {
     this.measure = measure;
     this._removeVoiceBeam(measure, voice);

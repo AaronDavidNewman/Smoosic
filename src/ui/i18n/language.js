@@ -1,12 +1,12 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { RibbonButtons } from "../ribbon";
 
-class SmoTranslator {
+export class SmoTranslator {
   static get dialogs() {
     SmoTranslator._dialogs =  SmoTranslator._dialogs ? SmoTranslator._dialogs : {};
     return SmoTranslator._dialogs;
   }
-
   static get menus() {
     SmoTranslator._menus =  SmoTranslator._menus ? SmoTranslator._menus : {};
     return SmoTranslator._menus;
@@ -17,8 +17,6 @@ class SmoTranslator {
       SmoTranslator.menus[_class] = true;
     }
   }
-
-
   static registerDialog(_class) {
     if (!SmoTranslator.dialogs[_class]) {
       SmoTranslator.dialogs[_class] = true;

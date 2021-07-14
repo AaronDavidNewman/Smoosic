@@ -1,12 +1,15 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiDialogBase } from "../dialog";
+import { SmoScore } from "../../smo/data/score";
+import { SmoTextGroup } from "../../smo/data/scoreModifiers";
 
 const deepCopy = (x) => JSON.parse(JSON.stringify(x));
 
 // ## SuiScoreViewDialog
 // decide which rows of the score to look at
 // eslint-disable-next-line no-unused-vars
-class SuiScoreViewDialog extends SuiDialogBase {
+export class SuiScoreViewDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiScoreViewDialog';
   }
@@ -79,7 +82,7 @@ class SuiScoreViewDialog extends SuiDialogBase {
 // ## SuiGlobalLayoutDialog
 // change editor and formatting defaults for this score.
 // eslint-disable-next-line no-unused-vars
-class SuiGlobalLayoutDialog extends SuiDialogBase {
+export class SuiGlobalLayoutDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiGlobalLayoutDialog';
   }
@@ -297,7 +300,7 @@ class SuiGlobalLayoutDialog extends SuiDialogBase {
 // ## SuiScoreIdentificationDialog
 // change editor and formatting defaults for this score.
 // eslint-disable-next-line no-unused-vars
-class SuiScoreIdentificationDialog extends SuiDialogBase {
+export class SuiScoreIdentificationDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiScoreIdentificationDialog';
   }

@@ -1,9 +1,12 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-VF = Vex.Flow;
+import { smoSerialize } from '../common/serializationHelpers';
+import { suiController } from './controller';
+import { SuiScoreRender } from '../render/sui/scoreRender';
+const VF = Vex.Flow;
 
 // eslint-disable-next-line no-unused-vars
-class SuiApplication {
+export class SuiApplication {
   static get defaultConfig() {
     return {
       smoPath: '..',

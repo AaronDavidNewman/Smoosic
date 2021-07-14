@@ -1,5 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { smoSerialize } from '../../common/serializationHelpers';
 // ## SmoNote
 // ## Description:
 // Data for a musical note.  THe most-contained-thing, except there can be note modifiers
@@ -7,7 +8,7 @@
 // ## SmoNote Methods
 // ---
 // eslint-disable-next-line no-unused-vars
-class SmoNote {
+export class SmoNote {
   // ### Description:
   // see defaults for params format.
   constructor(params) {

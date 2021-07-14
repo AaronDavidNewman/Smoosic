@@ -1,9 +1,12 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiComponentBase, SuiDropdownComposite, SuiButtonComposite, SuiRockerComposite } from "../dialogComponents";
+import { SmoScoreText } from "../../smo/data/scoreModifiers";
+import { htmlHelpers } from "../../common/htmlHelpers";
 // ## SuiFontComponent
 // Dialog component that lets user choose and customize fonts.
 // eslint-disable-next-line no-unused-vars
-class SuiFontComponent extends SuiComponentBase {
+export class SuiFontComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
     smoSerialize.filteredMerge(
@@ -137,7 +140,7 @@ class SuiFontComponent extends SuiComponentBase {
 }
 
 // eslint-disable-next-line no-unused-vars
-class SuiTextBlockComponent extends SuiComponentBase {
+export class SuiTextBlockComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
     smoSerialize.filteredMerge(

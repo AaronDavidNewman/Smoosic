@@ -12,7 +12,7 @@
 // indices that define what was selected.  This is the latter.  The actual object does not
 // have any methods so there is no constructor.
 // eslint-disable-next-line no-unused-vars
-class SmoSelector {
+export class SmoSelector {
   // TODO:  tick in selector s/b tickIndex
   static sameNote(sel1, sel2) {
     return (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.voice === sel2.voice
@@ -99,7 +99,7 @@ class SmoSelector {
 // and one or more pitches.  Selections can also be made from the UI by clicking on an element
 // or navigating to an element with the keyboard.
 // eslint-disable-next-line no-unused-vars
-class SmoSelection {
+export class SmoSelection {
   // ### measureSelection
   // A selection that does not contain a specific note
   static measureSelection(score, staffIndex, measureIndex) {

@@ -1,8 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { htmlHelpers } from "../common/htmlHelpers";
 // # dbComponents - components of modal dialogs.
 // eslint-disable-next-line no-unused-vars
-class SuiComponentBase {
+export class SuiComponentBase {
   constructor(parameters) {
     this.changeFlag = false;
     this.css = parameters.classes;
@@ -155,7 +156,7 @@ class SuiRockerComponent extends SuiComponentBase {
 // ## SuiFileDownloadComponent
 // Download a test file using the file input.
 // eslint-disable-next-line no-unused-vars
-class SuiFileDownloadComponent extends SuiComponentBase {
+export class SuiFileDownloadComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
     smoSerialize.filteredMerge(
@@ -199,7 +200,7 @@ class SuiFileDownloadComponent extends SuiComponentBase {
 // ## SuiToggleComponent
 // Simple on/off behavior
 // eslint-disable-next-line no-unused-vars
-class SuiToggleComponent extends SuiComponentBase {
+export class SuiToggleComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
     smoSerialize.filteredMerge(
@@ -247,7 +248,7 @@ class SuiToggleComponent extends SuiComponentBase {
 // ## SuiToggleComponent
 // Simple on/off behavior
 // eslint-disable-next-line no-unused-vars
-class SuiButtonComponent extends SuiComponentBase {
+export class SuiButtonComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
     smoSerialize.filteredMerge(
@@ -295,7 +296,7 @@ class SuiButtonComponent extends SuiComponentBase {
 // ### SuiDropdownComponent
 // simple dropdown select list.
 // eslint-disable-next-line no-unused-vars
-class SuiDropdownComponent extends SuiComponentBase {
+export class SuiDropdownComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
     smoSerialize.filteredMerge(
@@ -388,7 +389,7 @@ class SuiDropdownComponent extends SuiComponentBase {
 // ### SuiDropdownComposite
 // Dropdown component that can be part of a composite control.
 // eslint-disable-next-line no-unused-vars
-class SuiDropdownComposite extends SuiDropdownComponent {
+export class SuiDropdownComposite extends SuiDropdownComponent {
   constructor(dialog, parameters) {
     super(dialog, parameters);
     this.parentControl = parameters.parentControl;
@@ -404,7 +405,7 @@ class SuiDropdownComposite extends SuiDropdownComponent {
 // ### SuiToggleComposite
 // Dropdown component that can be part of a composite control.
 // eslint-disable-next-line no-unused-vars
-class SuiToggleComposite extends SuiToggleComponent {
+export class SuiToggleComposite extends SuiToggleComponent {
   constructor(dialog, parameters) {
     super(dialog, parameters);
     this.parentControl = parameters.parentControl;
@@ -420,7 +421,7 @@ class SuiToggleComposite extends SuiToggleComponent {
 // ### SuiButtonComposite
 // Dropdown component that can be part of a composite control.
 // eslint-disable-next-line no-unused-vars
-class SuiButtonComposite extends SuiButtonComponent {
+export class SuiButtonComposite extends SuiButtonComponent {
   constructor(dialog, parameters) {
     super(dialog, parameters);
     this.parentControl = parameters.parentControl;
@@ -434,7 +435,7 @@ class SuiButtonComposite extends SuiButtonComponent {
 }
 
 // eslint-disable-next-line no-unused-vars
-class SuiRockerComposite extends SuiRockerComponent {
+export class SuiRockerComposite extends SuiRockerComponent {
   constructor(dialog, parameters) {
     super(dialog, parameters);
     this.parentControl = parameters.parentControl;
@@ -451,7 +452,7 @@ class SuiRockerComposite extends SuiRockerComponent {
 // Just get text from an input, such as a filename.
 // Note: this is HTML input, not for SVG/score editing
 // eslint-disable-next-line no-unused-vars
-class SuiTextInputComponent extends SuiComponentBase {
+export class SuiTextInputComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
     smoSerialize.filteredMerge(
@@ -496,7 +497,7 @@ class SuiTextInputComponent extends SuiComponentBase {
 }
 
 // eslint-disable-next-line no-unused-vars
-class SuiTextInputComposite extends SuiTextInputComponent {
+export class SuiTextInputComposite extends SuiTextInputComponent {
   constructor(dialog, parameters) {
     super(dialog, parameters);
     this.parentControl = parameters.parentControl;

@@ -3,8 +3,7 @@
 // ## SuiScoreView
 // Do a thing to the music.  Save in undo buffer before.  Render the score to reflect
 // the change after.  Map the operation on the score view to the actual score.
-// eslint-disable-next-line no-unused-vars
-class SuiScoreView {
+export class SuiScoreView {
   // ### _reverseMapSelection
   // For operations that affect all columns, we operate on the
   // entire score and update the view score.  Some selections

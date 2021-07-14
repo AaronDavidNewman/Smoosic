@@ -1,12 +1,16 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { svgHelpers } from "../common/svgHelpers";
+import { htmlHelpers } from "../common/htmlHelpers";
+import { SmoTranslator } from "./i18n/language";
+
 // # Dialog base classes
 
 // ## SuiModifierDialogFactory
 // Automatic dialog constructors for dialogs without too many parameters
 // that operated on a selection.
 // eslint-disable-next-line no-unused-vars
-class SuiModifierDialogFactory {
+export class SuiModifierDialogFactory {
   static createDialog(modifier, parameters) {
     let dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
     if (dbType === 'SuiLyricDialog' && modifier.parser === SmoLyric.parsers.chord) {
@@ -39,7 +43,7 @@ class SuiModifierDialogFactory {
 // ## SuiDialogBase
 // Base class for dialogs.
 // eslint-disable-next-line no-unused-vars
-class SuiDialogBase {
+export class SuiDialogBase {
   static get parameters() {
     return ['eventSource', 'view',
       'completeNotifier', 'keyCommands', 'modifier'];

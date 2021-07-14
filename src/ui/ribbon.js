@@ -5,7 +5,7 @@
 // Also handles UI events.
 // ### RibbonButton methods
 // ---
-class RibbonButtons {
+export class RibbonButtons {
   static get paramArray() {
     return ['ribbonButtons', 'ribbons', 'keyCommands', 'controller', 'menus', 'eventSource', 'view'];
   }

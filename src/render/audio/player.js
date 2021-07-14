@@ -3,7 +3,7 @@
 // ## suiAudioPlayer
 // Play the music, ja!
 // eslint-disable-next-line no-unused-vars
-class suiAudioPlayer {
+export class suiAudioPlayer {
   static set playing(val) {
     suiAudioPlayer._playing = val;
   }

@@ -1,12 +1,16 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoScoreModifierBase, SmoPageLayout } from './scoreModifiers';
+import { SmoSystemStaff } from './systemStaff';
+import { smoMusic } from '../../common/musicHelpers';
+
 // ## SmoScore
 // ## Description:
 // The whole score.
 // ## Score methods:
 // ---
 // eslint-disable-next-line no-unused-vars
-class SmoScore {
+export class SmoScore {
   constructor(params) {
     Vex.Merge(this, SmoScore.defaults);
     Vex.Merge(this, params);

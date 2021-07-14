@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-
-class SmoHelp {
+import { htmlHelpers } from "../common/htmlHelpers";
+export class SmoHelp {
 
   static displayHelp() {
     $('body').addClass('showHelpDialog');

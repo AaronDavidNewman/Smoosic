@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 
-class layoutDebug {
+export class layoutDebug {
   static get values() {
     return {
       pre: 1,

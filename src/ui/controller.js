@@ -1,5 +1,14 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+
+import { RibbonButtons } from './ribbon';
+import { SuiExceptionHandler } from './exceptions';
+import { Qwerty } from './qwerty';
+import { SuiModifierDialogFactory } from './dialog';
+import { suiPiano } from '../render/sui/piano'
+import { layoutDebug } from '../render/sui/layoutDebug';
+import { SmoHelp } from './help';
+
 // ## suiController
 // ## Description:
 // Manages DOM events and binds keyboard and mouse events
@@ -11,7 +20,7 @@
 // 3. keyboard, when in editor mode.  When modals or dialogs are active, wait for dismiss event
 // 4. svg piano key events smo-piano-key
 // 5. tracker change events tracker-selection
-class suiController {
+export class suiController {
 
   constructor(params) {
     Vex.Merge(this, suiController.defaults);
@@ -240,10 +249,6 @@ class suiController {
     return {
       keyBind: suiController.keyBindingDefaults
     };
-  }
-
-  showModifierDialog(modSelection) {
-    return SuiDialogFactory.createDialog(modSelection, this.view, this)
   }
 
   // ### unbindKeyboardForModal

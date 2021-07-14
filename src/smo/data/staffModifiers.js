@@ -10,7 +10,7 @@
 // ## Description:
 // Base class that mostly standardizes the interface and deals with serialization.
 // eslint-disable-next-line no-unused-vars
-class StaffModifierBase {
+export class StaffModifierBase {
   constructor(ctor) {
     this.ctor = ctor;
   }
@@ -24,14 +24,12 @@ class StaffModifierBase {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class SmoInstrument extends StaffModifierBase {
+export class SmoInstrument extends StaffModifierBase {
   static get attributes() {
     return ['startSelector', 'endSelector', 'transposeIndex', 'midichannel', 'midiport', 'instrument', 'abbreviation'];
   }
 }
-// eslint-disable-next-line no-unused-vars
-class SmoPartMap {
+export class SmoPartMap {
   static get attributes() {
     return ['staffId', 'name', 'abbreviation', 'scoreGroup', 'partnerId', 'instrumentMap', 'layoutManager'];
   }
@@ -40,8 +38,7 @@ class SmoPartMap {
 // ## SmoStaffHairpin
 // ## Descpription:
 // crescendo/decrescendo
-// eslint-disable-next-line no-unused-vars
-class SmoStaffHairpin extends StaffModifierBase {
+export class SmoStaffHairpin extends StaffModifierBase {
   static get editableAttributes() {
     return ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height'];
   }
@@ -108,7 +105,7 @@ class SmoStaffHairpin extends StaffModifierBase {
 // ## SmoSlur Methods:
 // ---
 // eslint-disable-next-line no-unused-vars
-class SmoSlur extends StaffModifierBase {
+export class SmoSlur extends StaffModifierBase {
   static get defaults() {
     return {
       spacing: 2,
@@ -178,7 +175,7 @@ class SmoSlur extends StaffModifierBase {
 // like slur but multiple pitches
 // ---
 // eslint-disable-next-line no-unused-vars
-class SmoTie extends StaffModifierBase {
+export class SmoTie extends StaffModifierBase {
   static get defaults() {
     return {
       invert: false,

@@ -3,8 +3,7 @@
 // ## SmoNoteModifierBase
 // A note modifier is anything that is mapped to the note, but not part of the
 // pitch itself.  This includes grace notes, and note-text like lyrics
-// eslint-disable-next-line no-unused-vars
-class SmoNoteModifierBase {
+export class SmoNoteModifierBase {
   constructor(ctor) {
     this.attrs = {
       id: VF.Element.newID(),
@@ -20,7 +19,7 @@ class SmoNoteModifierBase {
 }
 
 // eslint-disable-next-line no-unused-vars
-class SmoGraceNote extends SmoNoteModifierBase {
+export class SmoGraceNote extends SmoNoteModifierBase {
   static get defaults() {
     return {
       flagState: SmoGraceNote.flagStates.auto,
@@ -77,7 +76,7 @@ class SmoGraceNote extends SmoNoteModifierBase {
 // Microtones are treated similarly to ornaments at this time.  There are not
 // rules for persisting throughout a measure.
 // eslint-disable-next-line no-unused-vars
-class SmoMicrotone extends SmoNoteModifierBase {
+export class SmoMicrotone extends SmoNoteModifierBase {
   // This is how VexFlow notates them
   static get smoToVex() {
     return {
@@ -140,7 +139,7 @@ class SmoMicrotone extends SmoNoteModifierBase {
 // ## SmoOrnament
 // Maps to a vexflow ornament like trill etc.
 // eslint-disable-next-line no-unused-vars
-class SmoOrnament extends SmoNoteModifierBase {
+export class SmoOrnament extends SmoNoteModifierBase {
   static get ornaments() {
     return {
       mordent: 'mordent',
@@ -213,7 +212,7 @@ class SmoOrnament extends SmoNoteModifierBase {
 }
 
 // eslint-disable-next-line no-unused-vars
-class SmoArticulation extends SmoNoteModifierBase {
+export class SmoArticulation extends SmoNoteModifierBase {
   static get articulations() {
     return {
       accent: 'accent',
@@ -293,7 +292,7 @@ class SmoArticulation extends SmoNoteModifierBase {
 // instances of this class.  The parser enum says
 // which is which
 // eslint-disable-next-line no-unused-vars
-class SmoLyric extends SmoNoteModifierBase {
+export class SmoLyric extends SmoNoteModifierBase {
   static get defaults() {
     return {
       _text: '\xa0',
@@ -489,7 +488,7 @@ class SmoLyric extends SmoNoteModifierBase {
 // ## Description:
 // standard dynamics text
 // eslint-disable-next-line no-unused-vars
-class SmoDynamicText extends SmoNoteModifierBase {
+export class SmoDynamicText extends SmoNoteModifierBase {
   static get defaults() {
     return {
       xOffset: 0,

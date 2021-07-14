@@ -1,7 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { htmlHelpers } from "../common/htmlHelpers";
 
-class SuiExceptionHandler {
+export class SuiExceptionHandler {
   constructor(params) {
     this.view = params.view;
     this.thrown = false;

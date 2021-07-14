@@ -15,7 +15,7 @@ Vex.Merge = (dest, src) => {
   });
 }
 
-class smoSerialize {
+export class smoSerialize {
   static tryParseUnicode(text) {
     let rv = text;
     try {

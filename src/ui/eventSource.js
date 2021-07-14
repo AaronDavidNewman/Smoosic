@@ -5,7 +5,7 @@
 // ##browserEventSource
 // Handle registration for events.  Can be used for automated testing, so all
 // the events are consolidated in one place so they can be simulated or recorded
-class browserEventSource {
+export class browserEventSource {
   constructor(evMask) {
     this.keydownHandlers = [];
     this.mouseMoveHandlers = [];

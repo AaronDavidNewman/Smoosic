@@ -1,9 +1,12 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { smoSerialize } from "../../common/serializationHelpers";
+import { SmoArticulation, SmoOrnament } from "../data/noteModifiers";
+
 // ## mxmlHelpers
 // Utilities for parsing and serialzing musicXML.
 // eslint-disable-next-line no-unused-vars
-class mxmlHelpers {
+export class mxmlHelpers {
   // ### noteTypesToSmoMap
   // mxml note 'types', really s/b stem types.
   // For grace notes, we use the note type and not duration

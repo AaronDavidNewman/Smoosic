@@ -1,3 +1,6 @@
+const path = require('path');
+const webpack = require('webpack');
+
 module.exports = function (grunt) {
   // Used for eslint and docco
   const LINTS = ['src/smo/data/measure.js','src/smo/data/note.js','src/smo/data/score.js',
@@ -20,48 +23,69 @@ module.exports = function (grunt) {
    'src/ui/dialogs/fileDialogs.js',
    'src/ui/application.js', 'src/ui/fileio/fileInput.js', 'src/ui/fileio/xhrLoader.js','src/ui/fileio/library.js']
   const SOURCES = ['src/**/*.js'];
+  const BASE_DIR = __dirname;
+  const BUILD_DIR = path.join(BASE_DIR, 'build');
+
+  const webpackConfig = {
+    mode: 'development',
+    entry: path.join(BASE_DIR, 'src/ui/entryPoint.js'),
+    output: {
+      path: BUILD_DIR,
+      filename: 'smoosic.js',
+      library: 'Smo',
+      libraryTarget: 'umd',
+      libraryExport: 'default',
+      globalObject: 'this'
+    },
+    resolve: {
+      extensions: ['.ts', '.js', '.json']
+    },
+    devtool: 'source-map',
+    module: {
+      rules: [{
+        test: /(\.ts?$|\.js?$)/,
+        exclude: /node_modules/,
+        use: [{
+            loader: 'ts-loader',
+        }]
+      }]
+    }
+  }
 
     // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    concat: {
-      options: {
-        separator: ';',
-        sourceMap: true
-      },
-    dist: {
-      src: [SOURCES],
-      dest: 'build/<%= pkg.name %>.js'
+    webpack: {
+      build: webpackConfig
+    },    
+    eslint: {
+      target: LINTS,
     },
-  },
-  eslint: {
-    target: LINTS,
-  },
-
-  copy: {
-    dist: {
-      files: [{
-          expand: true,
-          cwd: 'src/styles/',
-          src: ['*.*', '**/*'],
-          dest: 'build/styles/'
-        }, {
-          expand: true,
-          cwd: 'docs/',
-          src: ['*.*', '**/*'],
-          dest: 'build/docs/'
-        }
-      ]
+    copy: {
+      dist: {
+        files: [{
+            expand: true,
+            cwd: 'src/styles/',
+            src: ['*.*', '**/*'],
+            dest: 'build/styles/'
+          }, {
+            expand: true,
+            cwd: 'docs/',
+            src: ['*.*', '**/*'],
+            dest: 'build/docs/'
+          }
+        ]
+      }
     }
-  }
+  });
 
-    });
-
-  // Load the plugin that provides the "uglify" task.
+  grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-eslint');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-webpack');
+
 
   // Default task(s).
-  grunt.registerTask('default', ['eslint', 'concat', 'copy']);
+  grunt.registerTask('default', ['eslint', 'webpack:build']);
 };

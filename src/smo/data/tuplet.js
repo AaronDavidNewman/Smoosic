@@ -1,7 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-// eslint-disable-next-line no-unused-vars
-class SmoTuplet {
+import { smoSerialize } from '../../common/serializationHelpers';
+
+export class SmoTuplet {
   constructor(params) {
     this.notes = params.notes;
     Vex.Merge(this, SmoTuplet.defaults);

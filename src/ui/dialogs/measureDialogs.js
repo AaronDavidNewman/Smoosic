@@ -1,10 +1,11 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiDialogBase } from "../dialog";
 // ## measureDialogs.js
 // This file contains dialogs that affect all measures at a certain position,
 // such as tempo or time signature.
 // eslint-disable-next-line no-unused-vars
-class SuiMeasureDialog extends SuiDialogBase {
+export class SuiMeasureDialog extends SuiDialogBase {
   static get attributes() {
     return ['pickupMeasure', 'makePickup', 'padLeft', 'padAllInSystem',
       'measureText', 'measureTextPosition'];
@@ -235,7 +236,7 @@ class SuiMeasureDialog extends SuiDialogBase {
 }
 
 // eslint-disable-next-line no-unused-vars
-class SuiInstrumentDialog extends SuiDialogBase {
+export class SuiInstrumentDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiInstrumentDialog';
   }
@@ -355,7 +356,7 @@ class SuiInstrumentDialog extends SuiDialogBase {
 }
 
 // eslint-disable-next-line no-unused-vars
-class SuiInsertMeasures extends SuiDialogBase {
+export class SuiInsertMeasures extends SuiDialogBase {
   static get ctor() {
     return 'SuiInsertMeasures';
   }
@@ -436,7 +437,7 @@ class SuiInsertMeasures extends SuiDialogBase {
 }
 
 // eslint-disable-next-line no-unused-vars
-class SuiTimeSignatureDialog extends SuiDialogBase {
+export class SuiTimeSignatureDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiTimeSignatureDialog';
   }
@@ -543,7 +544,7 @@ class SuiTimeSignatureDialog extends SuiDialogBase {
 // ## SuiTempoDialog
 // Allow user to choose a tempo or tempo change.
 // eslint-disable-next-line no-unused-vars
-class SuiTempoDialog extends SuiDialogBase {
+export class SuiTempoDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiTempoDialog';
   }

@@ -1,10 +1,11 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiRenderState } from './renderState';
 // ## SuiScoreRender
 // This module renders the entire score.  It calculates the layout first based on the
 // computed dimensions.
 // eslint-disable-next-line no-unused-vars
-class SuiScoreRender extends SuiRenderState {
+export class SuiScoreRender extends SuiRenderState {
   constructor(params) {
     super('SuiScoreRender');
     Vex.Merge(this, params);

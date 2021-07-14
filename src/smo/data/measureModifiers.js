@@ -1,8 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { smoSerialize } from "../../common/serializationHelpers";
+
 // ## Measure modifiers are elements that are attached to the bar itself, like barlines or measure-specific text,
 // repeats - lots of stuff
-class SmoMeasureModifierBase {
+export class SmoMeasureModifierBase {
   constructor(ctor) {
     this.ctor = ctor;
     if (!this['attrs']) {
@@ -21,7 +23,7 @@ class SmoMeasureModifierBase {
   }
 }
 
-class SmoMeasureFormat extends SmoMeasureModifierBase {
+export class SmoMeasureFormat extends SmoMeasureModifierBase {
   static get attributes() {
     return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex'];
   }
@@ -87,7 +89,7 @@ class SmoMeasureFormat extends SmoMeasureModifierBase {
     return params;
   }
 }
-class SmoBarline extends SmoMeasureModifierBase {
+export class SmoBarline extends SmoMeasureModifierBase {
   static get positions() {
     return {
       start: 0,
@@ -154,7 +156,7 @@ class SmoBarline extends SmoMeasureModifierBase {
   }
 }
 
-class SmoRepeatSymbol extends SmoMeasureModifierBase {
+export class SmoRepeatSymbol extends SmoMeasureModifierBase {
   static get symbols() {
     return {
       None: 0,
@@ -213,7 +215,7 @@ class SmoRepeatSymbol extends SmoMeasureModifierBase {
   }
 }
 
-class SmoVolta extends SmoMeasureModifierBase {
+export class SmoVolta extends SmoMeasureModifierBase {
   constructor(parameters) {
     super('SmoVolta');
     this.original = {};
@@ -285,7 +287,7 @@ class SmoVolta extends SmoMeasureModifierBase {
   }
 }
 
-class SmoMeasureText extends SmoMeasureModifierBase {
+export class SmoMeasureText extends SmoMeasureModifierBase {
   static get positions() {
     return {above:0,below:1,left:2,right:3,none:4};
   }
@@ -351,7 +353,7 @@ class SmoMeasureText extends SmoMeasureModifierBase {
   }
 }
 
-class SmoRehearsalMark extends SmoMeasureModifierBase {
+export class SmoRehearsalMark extends SmoMeasureModifierBase {
 
   static get cardinalities() {
     return {capitals:'capitals',lowerCase:'lowerCase',numbers:'numbers'};
@@ -409,7 +411,7 @@ class SmoRehearsalMark extends SmoMeasureModifierBase {
 
 // ### SmoTempoText
 // Tempo marking and also the information about the tempo.
-class SmoTempoText extends SmoMeasureModifierBase {
+export class SmoTempoText extends SmoMeasureModifierBase {
   static get tempoModes() {
     return {
       durationMode: 'duration',

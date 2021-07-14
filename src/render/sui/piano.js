@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-class suiPiano {
+export class suiPiano {
   constructor(parameters) {
     Vex.Merge(this, parameters);
     this.renderElement = document.getElementById('piano-svg');

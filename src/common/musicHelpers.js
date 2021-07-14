@@ -22,7 +22,7 @@
 // I try to indicate whether I am using vex or smo notation
 // Duration methods start around line 600
 // ---
-class smoMusic {
+export class smoMusic {
   // ### vexToCannonical
   // return Vex canonical note enharmonic - e.g. Bb to A#
   // Get the canonical form

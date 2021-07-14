@@ -1,6 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-class SmoDuration {
+import { SmoNote } from '../data/note';
+import { SmoTuplet } from '../data/tuplet';
+
+export class SmoDuration {
   static doubleDurationNonTuplet(selection) {
     var note = selection.note;
     var measure = selection.measure;
@@ -81,7 +84,7 @@ class SmoDuration {
 // ## SmoTickTransformer
 //  Base class for duration transformations.  I call them transformations because this can
 //  create and delete notes, as opposed to modifiers which act on existing notes.
-class SmoTickTransformer {
+export class SmoTickTransformer {
   constructor(measure, actors, voiceIndex) {
     this.notes = measure.voices[voiceIndex].notes;
     this.measure = measure;
@@ -163,7 +166,7 @@ class TickTransformBase {
 // Contract the duration of a note, filling in the space with another note
 // or rest.
 //
-class SmoContractNoteActor extends TickTransformBase {
+export class SmoContractNoteActor extends TickTransformBase {
   constructor(params) {
     super();
     Vex.Merge(this, params);
@@ -222,7 +225,7 @@ class SmoContractNoteActor extends TickTransformBase {
 // ## Parameters:
 //   {changeIndex:changeIndex, multiplier:multiplier,measure:measure}
 //
-class SmoStretchTupletActor extends TickTransformBase {
+export class SmoStretchTupletActor extends TickTransformBase {
   constructor(params) {
     super();
     Vex.Merge(this, params);
@@ -261,7 +264,7 @@ class SmoStretchTupletActor extends TickTransformBase {
 // Contract the duration of a note in a tuplet by duplicate
 // notes of fractional length
 //
-class SmoContractTupletActor extends TickTransformBase {
+export class SmoContractTupletActor extends TickTransformBase {
   constructor(params) {
     super();
     Vex.Merge(this, params);
@@ -289,7 +292,7 @@ class SmoContractTupletActor extends TickTransformBase {
 // startIndex: start index of tuplet
 // endIndex: end index of tuplet
 // measure: Smo measure that the tuplet is contained in.
-class SmoUnmakeTupletActor extends TickTransformBase {
+export class SmoUnmakeTupletActor extends TickTransformBase {
   constructor(parameters) {
     super();
     Vex.Merge(this, parameters);
@@ -314,7 +317,7 @@ class SmoUnmakeTupletActor extends TickTransformBase {
 // Turn a tuplet into a non-tuplet of the same length
 // parameters:
 //  {tickmap:tickmap,ticks:ticks,
-class SmoMakeTupletActor extends TickTransformBase {
+export class SmoMakeTupletActor extends TickTransformBase {
   constructor(params) {
     super();
     Vex.Merge(this, params);
@@ -376,7 +379,7 @@ class SmoMakeTupletActor extends TickTransformBase {
   }
 }
 
-class SmoStretchNoteActor extends TickTransformBase {
+export class SmoStretchNoteActor extends TickTransformBase {
   constructor(parameters) {
     super();
     Vex.Merge(this, parameters);

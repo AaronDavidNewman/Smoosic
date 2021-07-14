@@ -1,5 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { smoSerialize } from "../../common/serializationHelpers";
+import { smoMusic } from "../../common/musicHelpers";
+import { SmoBarline } from "./measureModifiers";
+
 // ## SmoMeasure - data for a measure of music
 // Many rules of musical engraving are enforced at a measure level, e.g. the duration of
 // notes, accidentals, etc.
@@ -8,7 +12,7 @@
 // Measures are contained in staves, see also `SystemStaff.js`
 // ## SmoMeasure Methods:
 // eslint-disable-next-line no-unused-vars
-class SmoMeasure {
+export class SmoMeasure {
   constructor(params) {
     this.tuplets = [];
     this.svg = {};

@@ -1,10 +1,12 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoScore } from './score';
+
 // ## SmoScoreModifierBase
 // A score modifier is something that appears in the score, but not
 // associated with a measure of music.
 // eslint-disable-next-line no-unused-vars
-class SmoScoreModifierBase {
+export class SmoScoreModifierBase {
   constructor(ctor) {
     this.ctor = ctor;
     if (!this.attrs) {
@@ -22,7 +24,7 @@ class SmoScoreModifierBase {
 }
 
 // eslint-disable-next-line no-unused-vars
-class SmoFormattingManager extends SmoScoreModifierBase {
+export class SmoFormattingManager extends SmoScoreModifierBase {
   static get forScore() {
     return -1;
   }
@@ -90,7 +92,7 @@ class SmoFormattingManager extends SmoScoreModifierBase {
 // must have single length/width and viewbox.
 // Each page can have different margins.
 // eslint-disable-next-line no-unused-vars
-class SmoLayoutManager extends SmoScoreModifierBase {
+export class SmoLayoutManager extends SmoScoreModifierBase {
   static get defaults() {
     return {
       svgScale: 1.0,
@@ -187,7 +189,7 @@ class SmoLayoutManager extends SmoScoreModifierBase {
     }
   }
 }
-class SmoPageLayout extends SmoScoreModifierBase {
+export class SmoPageLayout extends SmoScoreModifierBase {
   static get defaults() {
     return {
       leftMargin: 30,
@@ -219,7 +221,7 @@ class SmoPageLayout extends SmoScoreModifierBase {
 // ## SmoSystemGroup
 // System group is the grouping of staves into a system.
 // eslint-disable-next-line no-unused-vars
-class SmoSystemGroup extends SmoScoreModifierBase {
+export class SmoSystemGroup extends SmoScoreModifierBase {
   constructor(params) {
     super('SmoSystemGroup');
     smoSerialize.serializedMerge(SmoSystemGroup.attributes, SmoSystemGroup.defaults, this);
@@ -300,8 +302,7 @@ class SmoSystemGroup extends SmoScoreModifierBase {
 // ## SmoTextGroup
 // A grouping of text that can be used as a block for
 // justification, alignment etc.
-// eslint-disable-next-line no-unused-vars
-class SmoTextGroup extends SmoScoreModifierBase {
+export class SmoTextGroup extends SmoScoreModifierBase {
   static get justifications() {
     return {
       LEFT: 1,
@@ -614,7 +615,7 @@ class SmoTextGroup extends SmoScoreModifierBase {
 // Note: score text is always contained in a text group.  So this isn't directly accessed
 // by score, but we keep the collection in score for backwards-compatibility
 // eslint-disable-next-line no-unused-vars
-class SmoScoreText extends SmoScoreModifierBase {
+export class SmoScoreText extends SmoScoreModifierBase {
   // convert EM to a number, or leave as a number etc.
   static fontPointSize(size) {
     let rv = 12;

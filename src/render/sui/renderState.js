@@ -1,12 +1,17 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoMeasure } from '../../smo/data/measure';
+import { UndoBuffer } from '../../smo/xform/undo';
+import { PromiseHelpers } from '../../common/promiseHelpers';
+import { SmoSelection } from '../../smo/xform/selections';
+import { svgHelpers } from '../../common/svgHelpers';
+
 // ## SuiRenderState
 // Manage the state of the score rendering.  The score can be rendered either completely,
 // or partially for editing.  This class works with the RenderDemon to decide when to
 // render the score after it has been modified, and keeps track of what the current
 // render state is (dirty, etc.)
-// eslint-disable-next-line no-unused-vars
-class SuiRenderState {
+export class SuiRenderState {
   constructor(ctor) {
     this.attrs = {
       id: VF.Element.newID(),

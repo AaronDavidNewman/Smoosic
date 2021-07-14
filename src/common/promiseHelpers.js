@@ -1,7 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiRenderState } from "../render/sui/renderState";
 
-class PromiseHelpers {
+export class PromiseHelpers {
   // ### makePromise
   // poll on endCondition at a rate of pollTime.  Resolve the promise
   // when endCondition is met, calling preResolveMethod first.   On
