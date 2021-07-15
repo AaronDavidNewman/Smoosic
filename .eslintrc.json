@@ -7,13 +7,10 @@
     "es6": true
   },
   "globals": {
-    "SmoSelection": true,
-    "SmoOperation": true,
-    "BeamModifierBase": true,
-    "smoBeamerFactory": true,
-    "smoBeamerIterator": true,
-    "smoBeamModifier": true,
-    "VF" : true
+    "VF" : true,
+    "Vex": true,
+    "SmoConfig": true,
+     "JSZip": true
   },
   "rules": {
     "no-bitwise": [
@@ -118,9 +115,6 @@
       0
     ],
     "no-undef-init": [
-      0
-    ],
-    "no-undef": [
       0
     ],
     "no-use-before-define": [

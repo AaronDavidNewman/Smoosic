@@ -2,8 +2,12 @@
 // Copyright (c) Aaron David Newman 2021.
 import { htmlHelpers } from '../common/htmlHelpers';
 import { SmoSystemGroup } from '../smo/data/scoreModifiers';
-import { SmoBarline } from '../smo/data/measureModifiers';
+import { SmoBarline, SmoRepeatSymbol } from '../smo/data/measureModifiers';
 import { smoSerialize } from '../common/serializationHelpers';
+import { suiOscillator } from '../render/audio/oscillator';
+import { SmoMicrotone, SmoLyric, SmoArticulation, SmoOrnament } from '../smo/data/noteModifiers';
+import { SmoScore } from '../smo/data/score';
+import { SuiChordChangeDialog, SuiTextTransformDialog, SuiLyricDialog } from './dialogs/textDialogs';
 
 // ## RibbonButtons
 // Render the ribbon buttons based on group, function, and underlying UI handler.

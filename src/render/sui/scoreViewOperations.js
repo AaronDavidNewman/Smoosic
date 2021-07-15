@@ -1,6 +1,24 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SuiScoreView } from './scoreView';
+import { SmoTextGroup, SmoSystemGroup } from '../../smo/data/scoreModifiers';
+import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
+import { SmoOperation } from '../../smo/xform/operations';
+import { smoSerialize } from '../../common/serializationHelpers';
+import { SmoScore } from '../../smo/data/score';
+import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote } from '../../smo/data/noteModifiers';
+import { SmoTempoText,  SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark } from '../../smo/data/measureModifiers';
+import { suiOscillator } from '../audio/oscillator';
+import { SmoArticulation } from '../../smo/data/noteModifiers';
+import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
+import { StaffModifierBase } from '../../smo/data/staffModifiers';
+import { SuiRenderState } from './renderState';
+import { SmoMeasure } from '../../smo/data/measure';
+import { htmlHelpers } from '../../common/htmlHelpers';
+import { SmoToMidi } from '../../smo/midi/smoToMidi';
+import { SmoToXml } from '../../smo/mxml/smo2Xml';
+import { SuiActionPlayback } from './actionPlayback';
+
 // ## ScoreViewOperations
 // MVVM-like operations on the displayed score.
 // All operations that can be performed on a 'live' score go through this

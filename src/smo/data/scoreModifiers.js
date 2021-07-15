@@ -2,6 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoScore } from './score';
 import { smoSerialize } from '../../common/serializationHelpers';
+import { SmoMeasureFormat } from './measureModifiers';
 
 const VF = Vex.Flow;
 
@@ -288,10 +289,10 @@ export class SmoSystemGroup extends SmoScoreModifierBase {
   rightConnectorVx() {
     switch (this.rightConnector) {
       case SmoSystemGroup.connectorTypes.single:
-        return StaveConnector.type.SINGLE_RIGHT;
+        return VF.StaveConnector.type.SINGLE_RIGHT;
       case SmoSystemGroup.connectorTypes.double:
       default:
-        return StaveConnector.type.DOUBLE_RIGHT;
+        return VF.StaveConnector.type.DOUBLE_RIGHT;
     }
   }
   serialize() {
@@ -560,7 +561,7 @@ export class SmoTextGroup extends SmoScoreModifierBase {
     } else {
       const bbid =  (typeof(prevBlock) === 'string') ? prevBlock : prevBlock.attrs.id;
       const ix = this.textBlocks.findIndex((bb) => bb.attrs.id === bbid);
-      this.textBlocks.splice(ix, 0, nextBlock);
+      this.textBlocks.splice(ix, 0, prevBlock); // > is this right?
     }
   }
   ul() {

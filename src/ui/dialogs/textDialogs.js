@@ -3,9 +3,11 @@
 import { SuiDialogBase } from '../dialog';
 import { SuiInlineText } from '../../render/sui/textRender';
 import { SmoHelp } from '../help';
-import { SmoTextGroup } from '../../smo/data/scoreModifiers';
+import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
+import { layoutDebug } from '../../render/sui/layoutDebug';
+import { SmoDynamicText } from '../../smo/data/noteModifiers';
+import { htmlHelpers } from '../../common/htmlHelpers';
 
-// eslint-disable-next-line no-unused-vars
 export class SuiLyricDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiLyricDialog';

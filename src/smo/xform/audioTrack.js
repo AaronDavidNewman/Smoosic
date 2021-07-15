@@ -1,5 +1,12 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoDynamicText } from '../data/noteModifiers';
+import { SmoSelector, SmoSelection } from './selections';
+import { SmoStaffHairpin } from '../data/staffModifiers';
+import { smoMusic } from '../../common/musicHelpers';
+import { SmoTempoText, SmoBarline } from '../data/measureModifiers';
+
+
 // ## SmoAudioTrack
 // Convert a score into a JSON structure that can be rendered to audio.
 // the return value looks like this:
@@ -13,7 +20,7 @@
 // (beatTime === 4096 uses Smo/Vex ticks, 128 is midi tick default)
 // volume is normalized 0-1
 // eslint-disable-next-line no-unused-vars
-class SmoAudioTrack {
+export class SmoAudioTrack {
   // ### dynamicVolumeMap
   // normalized dynamic
   static get dynamicVolumeMap() {

@@ -3,6 +3,11 @@
 import { StaffModifierBase } from '../data/staffModifiers';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { SmoOperation } from './operations';
+import { SmoScore } from '../data/score';
+import { SmoMeasure } from '../data/measure';
+import { smoSerialize } from '../../common/serializationHelpers';
+import { SmoGraceNote } from '../data/noteModifiers';
+import { SmoSelection } from './selections';
 
 // ## UndoBuffer
 // manage a set of undo or redo operations on a score.  The objects passed into

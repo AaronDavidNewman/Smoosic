@@ -21,6 +21,7 @@ import { SourceSansProFont } from '../styles/font_metrics/ssp-sans-metrics';
 import { SourceSerifProFont } from '../styles/font_metrics/ssp-serif-metrics';
 import { _MidiWriter } from '../common/midiWriter';
 import { mxmlScore } from '../smo/mxml/xmlScore';
+
 // eslint-disable-next-line
 import { basicJson } from '../music/basic';
 

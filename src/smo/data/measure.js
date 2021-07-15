@@ -2,8 +2,13 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
 import { smoMusic } from '../../common/musicHelpers';
-import { SmoBarline } from './measureModifiers';
+import { SmoBarline, SmoMeasureModifierBase, SmoRepeatSymbol, SmoTempoText, SmoMeasureFormat } from './measureModifiers';
 import { SmoNote } from './note';
+import { SmoTuplet } from './tuplet';
+import { layoutDebug } from '../../render/sui/layoutDebug';
+import { svgHelpers } from '../../common/svgHelpers';
+import { TickMap } from '../xform/tickMap';
+
 const VF = Vex.Flow;
 // ## SmoMeasure - data for a measure of music
 // Many rules of musical engraving are enforced at a measure level, e.g. the duration of
@@ -12,7 +17,6 @@ const VF = Vex.Flow;
 // Measures contain *notes*, *tuplets*, and *beam groups*.  So see `SmoNote`, etc.
 // Measures are contained in staves, see also `SystemStaff.js`
 // ## SmoMeasure Methods:
-// eslint-disable-next-line no-unused-vars
 export class SmoMeasure {
   constructor(params) {
     this.tuplets = [];
@@ -254,8 +258,7 @@ export class SmoMeasure {
 
     const modifiers = [];
     jsonObj.modifiers.forEach((modParams) => {
-      const ctor = eval(modParams.ctor);
-      const modifier = new ctor(modParams);
+      const modifier = SmoMeasureModifierBase.deserialize(modParams);
       modifiers.push(modifier);
     });
 

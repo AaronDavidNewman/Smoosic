@@ -1,6 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
+import { SmoSelector } from '../xform/selections';
+
 // ## StaffModifiers
 // ## Description:
 // This file contains modifiers that might take up multiple measures, and are thus associated

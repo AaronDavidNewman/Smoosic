@@ -3,6 +3,10 @@
 import { SmoScoreText } from '../../smo/data/scoreModifiers';
 import { svgHelpers } from '../../common/svgHelpers';
 import { smoMusic } from '../../common/musicHelpers';
+import { vexGlyph } from '../vex/glyphDimensions';
+import { SmoLyric } from '../../smo/data/noteModifiers';
+import { SmoMeasureText } from '../../smo/data/measureModifiers';
+import { SmoNote } from '../../smo/data/note';
 
 // ## suiFormatter (changed from suiAdjuster)
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.

@@ -1,9 +1,15 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiDialogBase } from '../dialog';
+import { StaffModifierBase, SmoSlur, SmoStaffHairpin } from '../../smo/data/staffModifiers';
+import { SmoScore } from '../../smo/data/score';
+import { SmoSelection } from '../../smo/xform/selections';
+import { SmoSystemGroup } from '../../smo/data/scoreModifiers';
+
 // ## SuiStaffModifierDialog
 // Edit the attributes of a staff modifier (connects notes in the same staff)
 // eslint-disable-next-line no-unused-vars
-class SuiStaffModifierDialog extends SuiDialogBase {
+export class SuiStaffModifierDialog extends SuiDialogBase {
   constructor(elements, params) {
     super(elements, params);
     this.original = StaffModifierBase.deserialize(params.modifier);
@@ -49,7 +55,7 @@ class SuiStaffModifierDialog extends SuiDialogBase {
 }
 
 // eslint-disable-next-line no-unused-vars
-class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
+export class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiSlurAttributesDialog.ctor;
   }
@@ -184,7 +190,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
 }
 
 // eslint-disable-next-line no-unused-vars
-class SuiTieAttributesDialog extends SuiStaffModifierDialog {
+export class SuiTieAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiTieAttributesDialog.ctor;
   }
@@ -257,7 +263,7 @@ class SuiTieAttributesDialog extends SuiStaffModifierDialog {
 // ## SuiVoltaAttributeDialog
 // aka first and second endings
 // eslint-disable-next-line no-unused-vars
-class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
+export class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiVoltaAttributeDialog.ctor;
   }
@@ -352,7 +358,7 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
   }
 }
 // eslint-disable-next-line no-unused-vars
-class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
+export class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiHairpinAttributesDialog.ctor;
   }
@@ -439,7 +445,7 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
 // ## SuiStaffGroupDialog
 // A staff group is a grouping of staves that can be bracketed and justified
 // eslint-disable-next-line no-unused-vars
-class SuiStaffGroupDialog extends SuiDialogBase {
+export class SuiStaffGroupDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiStaffGroupDialog';
   }

@@ -4,6 +4,11 @@ import { SmoSelection } from '../../smo/xform/selections';
 import { UndoBuffer } from '../../smo/xform/undo';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
 import { suiScroller } from './scroller';
+import { svgHelpers } from '../../common/svgHelpers';
+import { PasteBuffer } from '../../smo/xform/copypaste';
+import { suiTracker } from './tracker';
+import { SmoScore } from '../../smo/data/score';
+import { testCase1 } from '../../music/utActions';
 
 // ## SuiScoreView
 // Do a thing to the music.  Save in undo buffer before.  Render the score to reflect

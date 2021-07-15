@@ -1,6 +1,13 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SuiDialogBase } from '../dialog';
+import { CheckboxDropdownComponent } from './staffComponents';
+import { SmoMeasure } from '../../smo/data/measure';
+import { SmoMeasureText, SmoTempoText } from '../../smo/data/measureModifiers';
+import { smoMusic } from '../../common/musicHelpers';
+import { SmoSelection } from '../../smo/xform/selections';
+import { svgHelpers } from '../../common/svgHelpers';
+
 // ## measureDialogs.js
 // This file contains dialogs that affect all measures at a certain position,
 // such as tempo or time signature.

@@ -9,7 +9,6 @@ export class SmoDuration {
     var measure = selection.measure;
     var selector = selection.selector;
     var notes = measure.voices[selector.voice].notes;
-    var tuplet = measure.getTupletForNote(note);
     var i;
     var nticks = note.tickCount * 2;
     var replNote = SmoNote.cloneWithDuration(note, nticks);

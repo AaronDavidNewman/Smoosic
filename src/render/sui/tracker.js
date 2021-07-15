@@ -3,6 +3,11 @@
 import { suiMapper } from './mapper';
 import { svgHelpers } from '../../common/svgHelpers';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
+import { SuiRenderState } from './renderState';
+import { htmlHelpers } from '../../common/htmlHelpers';
+import { smoSerialize } from '../../common/serializationHelpers';
+import { suiOscillator } from '../audio/oscillator';
+
 // ## suiTracker
 // A tracker maps the UI elements to the logical elements ,and allows the user to
 // move through the score and make selections, for navigation and editing.

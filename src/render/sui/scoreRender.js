@@ -4,6 +4,14 @@ import { SuiRenderState } from './renderState';
 import { VxSystem } from '../vex/vxSystem';
 import { svgHelpers } from '../../common/svgHelpers';
 import { suiLayoutFormatter } from './formatter';
+import { SmoTextGroup } from '../../smo/data/scoreModifiers';
+import { SuiTextBlock } from './textRender';
+import { SmoSelection } from '../../smo/xform/selections';
+import { SmoTempoText, SmoMeasureFormat } from '../../smo/data/measureModifiers';
+import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
+import { layoutDebug } from './layoutDebug';
+import { smoBeamerFactory } from '../../smo/xform/beamers';
+import { smoMusic } from '../../common/musicHelpers';
 
 // ## SuiScoreRender
 // This module renders the entire score.  It calculates the layout first based on the

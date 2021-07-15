@@ -6,6 +6,9 @@ import { PromiseHelpers } from '../../common/promiseHelpers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { svgHelpers } from '../../common/svgHelpers';
 import { VxSystem } from '../vex/vxSystem';
+import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
+import { SmoScore } from '../../smo/data/score';
+import { smoBeamerFactory } from '../../smo/xform/beamers';
 
 // ## SuiRenderState
 // Manage the state of the score rendering.  The score can be rendered either completely,

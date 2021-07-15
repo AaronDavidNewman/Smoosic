@@ -2,6 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SuiDialogBase } from '../dialog';
 import { SmoScore } from '../../smo/data/score';
+import { mxmlScore } from '../../smo/mxml/xmlScore';
 
 export class SuiFileDialog extends SuiDialogBase {
   constructor(parameters) {

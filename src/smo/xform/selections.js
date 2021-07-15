@@ -1,5 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { svgHelpers } from '../../common/svgHelpers';
+
 /////////////////
 // # selections.js
 // Editing operations are performed on selections.  A selection can be different things, from a single pitch

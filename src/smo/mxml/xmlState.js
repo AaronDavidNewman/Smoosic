@@ -1,10 +1,14 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { mxmlHelpers } from './xmlHelpers';
-import { SmoMeasureModifierBase } from '../data/measureModifiers';
+import { SmoMeasureModifierBase, SmoTempoText } from '../data/measureModifiers';
 import { SmoSystemGroup, SmoFormattingManager } from '../data/scoreModifiers';
 import { SmoNote } from '../data/note';
-import { SmoTie } from '../data/staffModifiers';
+import { SmoTie, SmoStaffHairpin, SmoSlur } from '../data/staffModifiers';
+import { SmoLyric, SmoDynamicText } from '../data/noteModifiers';
+import { smoMusic } from '../../common/musicHelpers';
+import { SmoTuplet } from '../data/tuplet';
+
 // ## XmlState
 // Keep state of musical objects while parsing music xml
 // eslint-disable-next-line no-unused-vars

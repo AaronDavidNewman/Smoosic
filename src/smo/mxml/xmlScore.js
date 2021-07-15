@@ -3,9 +3,12 @@
 import { mxmlHelpers } from './xmlHelpers';
 import { XmlState } from './xmlState';
 import { SmoLayoutManager, SmoTextGroup } from '../data/scoreModifiers';
-import { SmoTempoText, SmoMeasureFormat } from '../data/measureModifiers';
+import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase } from '../data/measureModifiers';
 import { SmoScore } from '../data/score';
 import { SmoMeasure } from '../data/measure';
+import { emptyScoreJson } from '../../music/basic';
+import { smoMusic } from '../../common/musicHelpers';
+import { SmoGraceNote } from '../data/noteModifiers';
 
 // ## mxmlScore
 // Parse music xml into a smoosic score object

@@ -6,7 +6,7 @@
 // binary file,
 // but it will only unzip .mxml files first and has a consistent async interface
 // eslint-disable-next-line no-unused-vars
-class SuiFileInput {
+export class SuiFileInput {
   constructor(evt) {
     this.compressed = false;
     this.binary = false;

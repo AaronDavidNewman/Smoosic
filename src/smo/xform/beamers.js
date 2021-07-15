@@ -2,6 +2,27 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoMusic } from '../../common/musicHelpers';
 
+export class SmoBeamGroup {
+  constructor(params) {
+    let i = 0;
+    this.notes = params.notes;
+    Vex.Merge(this, params);
+
+    if (!this.attrs) {
+      this.attrs = {
+        id: VF.Element.newID(),
+        type: 'SmoBeamGroup'
+      };
+    }
+    for (i = 0; i < this.notes.length; ++i) {
+      const note = this.notes[i];
+      if (note.tickCount < 4096) {
+        note.beam_group = this.attrs;
+      }
+    }
+  }
+}
+
 export class smoBeamerFactory {
   static applyBeams(measure) {
     let i = 0;

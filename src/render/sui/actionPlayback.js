@@ -1,9 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { PromiseHelpers } from '../../common/promiseHelpers';
 // ## SuiActionPlayback
 // play back the action records.
 // eslint-disable-next-line no-unused-vars
-class SuiActionPlayback {
+export class SuiActionPlayback {
   // In the application, the object plays the actions back.
   constructor(actionRecord, view) {
     this.view = view;

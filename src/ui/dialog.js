@@ -3,6 +3,7 @@
 import { svgHelpers } from '../common/svgHelpers';
 import { htmlHelpers } from '../common/htmlHelpers';
 import { SmoTranslator } from './i18n/language';
+import { SmoLyric } from '../smo/data/noteModifiers';
 
 // # Dialog base classes
 

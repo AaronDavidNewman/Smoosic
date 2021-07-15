@@ -1,5 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { smoMusic } from '../../common/musicHelpers';
+
 // ## TickMap
 // create a map note durations at each index into the voice, including the accidentals at each duration.
 // return format:
@@ -8,7 +10,7 @@
 //        durationMap:[2048,4096,..],  // A running total per tick
 //        deltaMap:[2048,2048...], a map of deltas
 // eslint-disable-next-line no-unused-vars
-class TickMap {
+export class TickMap {
   constructor(measure, voiceIndex) {
     this.keySignature = measure.keySignature;
     this.voice = voiceIndex;
@@ -115,7 +117,7 @@ class TickMap {
         const mapAcc = mapLetter.accidental ? mapLetter.accidental : 'n';
 
         // if the letters match and the accidental...
-        if (mapLetter.pitch.letter.toLowerCase() === letter) {
+        if (mapLetter.pitch.letter.toLowerCase() === pitch.letter) {
           return mapAcc;
         }
       }

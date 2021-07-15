@@ -3,6 +3,8 @@
 import { VxMeasure } from './vxMeasure';
 import { SmoSelection } from '../../smo/xform/selections';
 import { svgHelpers } from '../../common/svgHelpers';
+import { SmoLyric } from '../../smo/data/noteModifiers';
+import { SmoStaffHairpin, SmoSlur } from '../../smo/data/staffModifiers';
 
 // ## Description:
 //   Create a system of staves and draw music on it.

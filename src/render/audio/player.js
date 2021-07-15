@@ -1,8 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { suiAudioPitch, suiSampler } from './oscillator';
+import { SmoAudioTrack } from '../../smo/xform/audioTrack';
+
 // ## suiAudioPlayer
 // Play the music, ja!
-// eslint-disable-next-line no-unused-vars
 export class suiAudioPlayer {
   static set playing(val) {
     suiAudioPlayer._playing = val;

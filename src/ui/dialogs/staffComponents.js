@@ -1,9 +1,16 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { smoSerialize } from '../../common/serializationHelpers';
+import { SuiTextInputComposite, SuiToggleComposite, SuiComponentBase, SuiDropdownComposite } from '../dialogComponents';
+import { htmlHelpers } from '../../common/htmlHelpers';
+import { SmoSelection } from '../../smo/xform/selections';
+import { SuiDialogBase } from '../dialog';
+import { SuiTieAttributesDialog, SuiStaffGroupDialog } from './staffDialogs';
+
 // ## CheckboxDropdownComponent
 // A checkbox that enables a dropdown component, for optional or dependent parameter
 // eslint-disable-next-line no-unused-vars
-class CheckboxDropdownComponent extends SuiComponentBase {
+export class CheckboxDropdownComponent extends SuiComponentBase {
   // { dropdownElement: {...}, toggleElement: }
   constructor(dialog, parameter) {
     super(parameter);

@@ -3,7 +3,7 @@
 // ## SmoActionRecord
 // Record a list of actions, for playback or unit testing.
 // eslint-disable-next-line no-unused-vars
-class SmoActionRecord {
+export class SmoActionRecord {
   static get refreshTimer() {
     return 10000;
   }

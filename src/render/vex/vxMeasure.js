@@ -9,9 +9,11 @@ import { SmoNote } from '../../smo/data/note';
 import { smoMusic } from '../../common/musicHelpers';
 import { svgHelpers } from '../../common/svgHelpers';
 import { layoutDebug } from '../sui/layoutDebug';
-import { SmoMeasureText } from '../../smo/data/measureModifiers';
+import { SmoMeasureText, SmoBarline } from '../../smo/data/measureModifiers';
 import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';
 import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
+import { SmoOrnament, SmoArticulation } from '../../smo/data/noteModifiers';
+import { SmoRepeatSymbol } from '../../smo/data/measureModifiers';
 
 const VF = Vex.Flow;
 export class VxMeasure {
@@ -55,15 +57,6 @@ export class VxMeasure {
   addCustomModifier(ctor, parameters) {
     this.smoMeasure.addCustomModifier(ctor, parameters);
   }
-
-  applyTransform(actor) {
-    SmoTickTransformer.applyTransform(this.smoMeasure, [actor]);
-    smoModifierFactory.applyModifiers(this.smoMeasure);
-  }
-  applyModifiers() {
-    smoModifierFactory.applyModifiers(this.smoMeasure);
-  }
-
   // ## Description:
   // decide whether to force stem direction for multi-voice, or use the default.
   // ## TODO:
@@ -83,16 +76,11 @@ export class VxMeasure {
 
   // We add microtones to the notes, without regard really to how they interact
   _createMicrotones(smoNote, vexNote) {
-    // let added = false;
     const tones = smoNote.getMicrotones();
     tones.forEach((tone) => {
       const acc = new VF.Accidental(tone.toVex);
       vexNote.addAccidental(tone.pitch, acc);
-      added = true;
     });
-    // if (added) {
-    //   this._addSpacingAnnotation(vexNote);
-    // }
   }
   _createAccidentals(smoNote, vexNote, tickIndex, voiceIx) {
     let i = 0;

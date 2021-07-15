@@ -1,10 +1,11 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiInlineText } from './textRender';
+import { SuiInlineText, SuiTextBlock } from './textRender';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 import { svgHelpers } from '../../common/svgHelpers';
-import { SmoScoreText } from '../../smo/data/scoreModifiers';
+import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
 import { SmoSelection } from '../../smo/xform/selections';
+import { SuiRenderState } from './renderState';
 
 // The heirarchy of text editing objects goes:
 // dialog -> component -> session -> editor

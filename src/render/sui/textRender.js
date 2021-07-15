@@ -1,7 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { svgHelpers } from '../../common/svgHelpers';
-import { SmoTextGroup } from '../../smo/data/scoreModifiers';
+import { SmoTextGroup, SmoScoreText } from '../../smo/data/scoreModifiers';
+import { SuiTextEditor } from './textEdit';
 
 // ## textRender.js
 // Classes responsible for formatting and rendering text in SVG space.

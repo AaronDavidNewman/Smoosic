@@ -3,7 +3,10 @@
 import { SmoSelection, SmoSelector } from './selections';
 import { SmoNote } from '../data/note';
 import { SmoMeasure } from '../data/measure';
-
+import { StaffModifierBase } from '../data/staffModifiers';
+import { SmoTuplet } from '../data/tuplet';
+import { smoMusic } from '../../common/musicHelpers';
+import { svgHelpers } from '../../common/svgHelpers';
 // ## PasteBuffer
 // ### Description:
 // Hold some music that can be pasted back to the score

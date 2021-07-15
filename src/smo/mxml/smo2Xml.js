@@ -1,7 +1,13 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-// eslint-disable-next-line no-unused-vars
-class SmoToXml {
+import { mxmlHelpers } from './xmlHelpers';
+import { mxmlScore } from './xmlScore';
+import { SmoSelector } from '../xform/selections';
+import { SmoStaffHairpin } from '../data/staffModifiers';
+import { SmoNote } from '../data/note';
+import { smoMusic } from '../../common/musicHelpers';
+
+export class SmoToXml {
   static get beamStates() {
     return {
       none: 1, start: 2, continue: 3, stop: 4

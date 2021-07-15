@@ -2,6 +2,9 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNoteModifierBase } from './noteModifiers';
+import { smoMusic } from '../../common/musicHelpers';
+import { SmoArticulation } from './noteModifiers';
+
 const VF = Vex.Flow;
 
 // ## SmoNote
@@ -460,27 +463,5 @@ export class SmoNote {
       });
     }
     return note;
-  }
-}
-
-// eslint-disable-next-line no-unused-vars
-class SmoBeamGroup {
-  constructor(params) {
-    let i = 0;
-    this.notes = params.notes;
-    Vex.Merge(this, params);
-
-    if (!this.attrs) {
-      this.attrs = {
-        id: VF.Element.newID(),
-        type: 'SmoBeamGroup'
-      };
-    }
-    for (i = 0; i < this.notes.length; ++i) {
-      const note = this.notes[i];
-      if (note.tickCount < 4096) {
-        note.beam_group = this.attrs;
-      }
-    }
   }
 }

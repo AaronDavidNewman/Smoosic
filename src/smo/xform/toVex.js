@@ -1,10 +1,12 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { smoMusic } from '../../common/musicHelpers';
+
 // ## SmoToVex
 // Simple serialize class that produced VEX note and voice objects
 // for vex EasyScore (for easier bug reports and test cases)
 // eslint-disable-next-line no-unused-vars
-class SmoToVex {
+export class SmoToVex {
   static convert(smoScore) {
     smoScore.staves.forEach((smoStaff) => {
       smoStaff.measures.forEach((smoMeasure) => {

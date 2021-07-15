@@ -563,7 +563,7 @@ export class SuiScoreFontDialog extends SuiDialogBase {
 // ## SuiLayoutDialog
 // The layout dialog has page-specific layout parameters
 // eslint-disable-next-line no-unused-vars
-class SuiLayoutDialog extends SuiDialogBase {
+export class SuiLayoutDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiLayoutDialog';
   }

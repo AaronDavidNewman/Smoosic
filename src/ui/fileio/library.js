@@ -1,9 +1,12 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiXhrLoader } from './xhrLoader';
+import { PromiseHelpers } from '../../common/promiseHelpers';
+import { smoSerialize } from '../../common/serializationHelpers';
 // ## SmoLibrary
 // A class to organize smoosic files (or any format smoosic accepts) into libraries.
 // eslint-disable-next-line no-unused-vars
-class SmoLibrary {
+export class SmoLibrary {
   constructor(parameters) {
     this.loaded = false;
     this.parentLib = {};

@@ -1,6 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
+import { SmoNote } from './note';
+import { smoMusic } from '../../common/musicHelpers';
+import { SmoNoteModifierBase } from './noteModifiers';
 
 export class SmoTuplet {
   constructor(params) {

@@ -2,6 +2,8 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoArticulation, SmoOrnament } from '../data/noteModifiers';
+import { smoMusic } from '../../common/musicHelpers';
+import { SmoNote } from '../data/note';
 
 // ## mxmlHelpers
 // Utilities for parsing and serialzing musicXML.
