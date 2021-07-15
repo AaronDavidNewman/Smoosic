@@ -1,5 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoSelection } from '../../smo/xform/selections';
+import { UndoBuffer } from '../../smo/xform/undo';
+import { StaffModifierBase } from '../../smo/data/staffModifiers';
+import { suiScroller } from './scroller';
+
 // ## SuiScoreView
 // Do a thing to the music.  Save in undo buffer before.  Render the score to reflect
 // the change after.  Map the operation on the score view to the actual score.

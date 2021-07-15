@@ -1,5 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiScoreView } from './scoreView';
 // ## ScoreViewOperations
 // MVVM-like operations on the displayed score.
 // All operations that can be performed on a 'live' score go through this
@@ -7,7 +8,7 @@
 // model and view stay in sync.
 /* global: SmoSelection */
 // eslint-disable-next-line no-unused-vars
-class SuiScoreViewOperations extends SuiScoreView {
+export class SuiScoreViewOperations extends SuiScoreView {
   addTextGroup(textGroup) {
     this.actionBuffer.addAction('addTextGroup', textGroup);
     const altNew = SmoTextGroup.deserialize(textGroup.serialize());

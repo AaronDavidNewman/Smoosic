@@ -1,5 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiTextTransformDialog } from './textDialogs';
+import { SuiTextSession } from '../../render/sui/textEdit';
+import { smoSerialize } from '../../common/serializationHelpers';
+import { SuiLyricSession, SuiChordSession } from '../../render/sui/textEdit';
+import { htmlHelpers } from '../../common/htmlHelpers';
 
 // ## textComponents module
 // This has the text editing dialog components.  Unlike components that are
@@ -26,7 +31,7 @@
 // ## SuiTextInPlace
 // Edit the text in an SVG element, in the same scale etc. as the text in the score SVG DOM.
 // This component just manages the text editing component of hte renderer.
-class SuiTextInPlace extends SuiComponentBase {
+export class SuiTextInPlace extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
     this.scroller = dialog.scroller;
@@ -252,7 +257,7 @@ class SuiNoteTextComponent extends SuiComponentBase {
 
 // ## SuiLyricComponent
 // manage a lyric session that moves from note to note and adds lyrics.
-class SuiLyricComponent extends SuiNoteTextComponent {
+export class SuiLyricComponent extends SuiNoteTextComponent {
   constructor(dialog, parameter) {
     super(dialog, parameter);
     smoSerialize.filteredMerge(
@@ -336,7 +341,7 @@ class SuiLyricComponent extends SuiNoteTextComponent {
 
 // ## SuiChordComponent
 // manage a chord editing session that moves from note to note and adds chord symbols.
-class SuiChordComponent extends SuiNoteTextComponent {
+export class SuiChordComponent extends SuiNoteTextComponent {
   constructor(dialog,parameter) {
     super(dialog, parameter);
     smoSerialize.filteredMerge(
@@ -389,13 +394,13 @@ class SuiChordComponent extends SuiNoteTextComponent {
       this.dialog.view.renderer.setRefresh();
     }
     if (this.session) {
-      this.value=this.session.textGroup;
+      this.value = this.session.textGroup;
       this.session.stopSession().then(render);
     }
     $('body').removeClass('text-edit');
   }
   startEditSession() {
-    var self=this;
+    var self = this;
     $(this._getInputElement()).find('label').text(this.altLabel);
     var modifier = this.dialog.modifier;
 
@@ -430,7 +435,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
 // A component that lets you drag the text you are editing to anywhere on the score.
 // The text is not really part of the dialog but the location of the text appears
 // in other dialog fields.
-class SuiDragText extends SuiComponentBase {
+export class SuiDragText extends SuiComponentBase {
   constructor(dialog,parameter) {
     super(parameter);
     smoSerialize.filteredMerge(

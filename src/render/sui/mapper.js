@@ -1,10 +1,14 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoSelector, SmoSelection } from '../../smo/xform/selections';
+import { svgHelpers } from '../../common/svgHelpers';
+import { layoutDebug } from './layoutDebug';
+
 // ## suiMapper
 // Map the notes in the svg so they can respond to events and interact
 // with the mouse/keyboard
 // eslint-disable-next-line no-unused-vars
-class suiMapper {
+export class suiMapper {
   constructor(renderer, scroller, pasteBuffer) {
     // renderer renders the music when it changes
     this.renderer = renderer;

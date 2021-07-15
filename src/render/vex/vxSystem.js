@@ -1,5 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { VxMeasure } from './vxMeasure';
+import { SmoSelection } from '../../smo/xform/selections';
+import { svgHelpers } from '../../common/svgHelpers';
+
 // ## Description:
 //   Create a system of staves and draw music on it.
 //
@@ -9,7 +13,7 @@
 //  timeSignature: '4/4',
 //  smoMeasures: []
 // eslint-disable-next-line no-unused-vars
-class VxSystem {
+export class VxSystem {
   constructor(context, topY, lineIndex, score) {
     this.context = context;
     this.leftConnector = [null, null];
@@ -115,7 +119,6 @@ class VxSystem {
   // ### updateLyricOffsets
   // Adjust the y position for all lyrics in the line so they are even.
   // Also replace '-' with a longer dash do indicate 'until the next measure'
-  /* global svgHelpers */
   updateLyricOffsets() {
     let i = 0;
     for (i = 0; i < this.score.staves.length; ++i) {

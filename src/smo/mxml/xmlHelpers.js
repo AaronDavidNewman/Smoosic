@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { smoSerialize } from "../../common/serializationHelpers";
-import { SmoArticulation, SmoOrnament } from "../data/noteModifiers";
+import { smoSerialize } from '../../common/serializationHelpers';
+import { SmoArticulation, SmoOrnament } from '../data/noteModifiers';
 
 // ## mxmlHelpers
 // Utilities for parsing and serialzing musicXML.

@@ -1,6 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SuiRenderState } from './renderState';
+import { VxSystem } from '../vex/vxSystem';
+import { svgHelpers } from '../../common/svgHelpers';
+import { suiLayoutFormatter } from './formatter';
+
 // ## SuiScoreRender
 // This module renders the entire score.  It calculates the layout first based on the
 // computed dimensions.

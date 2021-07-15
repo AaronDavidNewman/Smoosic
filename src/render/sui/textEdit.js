@@ -1,5 +1,11 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiInlineText } from './textRender';
+import { PromiseHelpers } from '../../common/promiseHelpers';
+import { svgHelpers } from '../../common/svgHelpers';
+import { SmoScoreText } from '../../smo/data/scoreModifiers';
+import { SmoSelection } from '../../smo/xform/selections';
+
 // The heirarchy of text editing objects goes:
 // dialog -> component -> session -> editor
 //
@@ -17,8 +23,8 @@
 // of text blocks into the text area.  The derived class shoud interpret key events.
 // A container class will manage the session for starting/stopping the editor
 // and retrieving the results into the target object.
-// eslint-disable-next-line no-unused-vars
-class SuiTextEditor {
+
+export class SuiTextEditor {
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
   }
@@ -407,8 +413,8 @@ class SuiTextEditor {
     return false;
   }
 }
-// eslint-disable-next-line no-unused-vars
-class SuiTextBlockEditor extends SuiTextEditor {
+
+export class SuiTextBlockEditor extends SuiTextEditor {
   // ### ctor
   // ### args
   // params: {lyric: SmoLyric,...}
@@ -464,8 +470,7 @@ class SuiTextBlockEditor extends SuiTextEditor {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiLyricEditor extends SuiTextEditor {
+export class SuiLyricEditor extends SuiTextEditor {
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4 };
   }
@@ -505,8 +510,7 @@ class SuiLyricEditor extends SuiTextEditor {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiChordEditor extends SuiTextEditor {
+export class SuiChordEditor extends SuiTextEditor {
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4 };
   }
@@ -681,7 +685,7 @@ class SuiChordEditor extends SuiTextEditor {
 }
 
 // eslint-disable-next-line no-unused-vars
-class SuiDragSession {
+export class SuiDragSession {
   constructor(params) {
     this.textGroup = params.textGroup;
     this.context = params.context;
@@ -753,7 +757,7 @@ class SuiDragSession {
 // ## SuiTextSession
 // session for editing plain text
 // eslint-disable-next-line no-unused-vars
-class SuiTextSession {
+export class SuiTextSession {
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
   }
@@ -861,7 +865,7 @@ class SuiTextSession {
 // ## SuiLyricSession
 // Manage editor for lyrics, jupmping from note to note if asked
 // eslint-disable-next-line no-unused-vars
-class SuiLyricSession {
+export class SuiLyricSession {
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
   }
@@ -1055,7 +1059,7 @@ class SuiLyricSession {
 }
 
 // eslint-disable-next-line no-unused-vars
-class SuiChordSession extends SuiLyricSession {
+export class SuiChordSession extends SuiLyricSession {
   constructor(params) {
     super(params);
     this.parser = SmoLyric.parsers.chord;

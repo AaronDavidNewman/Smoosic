@@ -1,9 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { smoSerialize } from "../../common/serializationHelpers";
-import { smoMusic } from "../../common/musicHelpers";
-import { SmoBarline } from "./measureModifiers";
-
+import { smoSerialize } from '../../common/serializationHelpers';
+import { smoMusic } from '../../common/musicHelpers';
+import { SmoBarline } from './measureModifiers';
+import { SmoNote } from './note';
+const VF = Vex.Flow;
 // ## SmoMeasure - data for a measure of music
 // Many rules of musical engraving are enforced at a measure level, e.g. the duration of
 // notes, accidentals, etc.

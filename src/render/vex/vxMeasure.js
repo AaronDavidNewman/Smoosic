@@ -5,8 +5,16 @@
 // measure of music.  If multiple measures are justified in a
 // column, the rendering is deferred until all the measures have been
 // preformatted.
-// eslint-disable-next-line no-unused-vars
-class VxMeasure {
+import { SmoNote } from '../../smo/data/note';
+import { smoMusic } from '../../common/musicHelpers';
+import { svgHelpers } from '../../common/svgHelpers';
+import { layoutDebug } from '../sui/layoutDebug';
+import { SmoMeasureText } from '../../smo/data/measureModifiers';
+import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';
+import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
+
+const VF = Vex.Flow;
+export class VxMeasure {
   constructor(context, options) {
     this.context = context;
     Vex.Merge(this, VxMeasure.defaults);

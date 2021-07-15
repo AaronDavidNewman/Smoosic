@@ -1,7 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiExceptionHandler } from '../../ui/exceptions';
+import { SuiRenderState } from './renderState';
 
-class SuiRenderDemon {
+export class SuiRenderDemon {
   constructor(parameters) {
     this.idleLayoutTimer = 0; // how long the score has been idle
     this.undoStatus = 0;

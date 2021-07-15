@@ -1,5 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { suiMapper } from './mapper';
+import { svgHelpers } from '../../common/svgHelpers';
+import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 // ## suiTracker
 // A tracker maps the UI elements to the logical elements ,and allows the user to
 // move through the score and make selections, for navigation and editing.
@@ -9,7 +12,7 @@
 // ### class methods:
 // ---
 // eslint-disable-next-line no-unused-vars
-class suiTracker extends suiMapper {
+export class suiTracker extends suiMapper {
   constructor(renderer, scroller, pasteBuffer) {
     super(renderer, scroller, pasteBuffer);
     this.idleTimer = Date.now();

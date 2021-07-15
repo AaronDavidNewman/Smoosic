@@ -1,11 +1,11 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { mxmlHelpers } from "./xmlHelpers";
-import { XmlState } from "./xmlState";
-import { SmoLayoutManager, SmoTextGroup } from "../data/scoreModifiers";
-import { SmoTempoText, SmoMeasureFormat } from "../data/measureModifiers";
-import { SmoScore } from "../data/score";
-import { SmoMeasure } from "../data/measure";
+import { mxmlHelpers } from './xmlHelpers';
+import { XmlState } from './xmlState';
+import { SmoLayoutManager, SmoTextGroup } from '../data/scoreModifiers';
+import { SmoTempoText, SmoMeasureFormat } from '../data/measureModifiers';
+import { SmoScore } from '../data/score';
+import { SmoMeasure } from '../data/measure';
 
 // ## mxmlScore
 // Parse music xml into a smoosic score object

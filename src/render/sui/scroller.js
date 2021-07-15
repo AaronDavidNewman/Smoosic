@@ -1,13 +1,13 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-
+import { svgHelpers } from '../../common/svgHelpers';
 
 // ## suiScroller
 // Respond to scroll events, and handle the scroll of the viewport
 //
 //
 // ---
-class suiScroller  {
+export class suiScroller  {
   // ### constructor
   // selector is the scrollable DOM container of the music container
   // (grandparent of svg element)

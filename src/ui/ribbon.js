@@ -1,5 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { htmlHelpers } from '../common/htmlHelpers';
+import { SmoSystemGroup } from '../smo/data/scoreModifiers';
+import { SmoBarline } from '../smo/data/measureModifiers';
+import { smoSerialize } from '../common/serializationHelpers';
+
 // ## RibbonButtons
 // Render the ribbon buttons based on group, function, and underlying UI handler.
 // Also handles UI events.
@@ -188,7 +193,7 @@ class DebugButtons {
 // ## ExtendedCollapseParent
 // Muse-style '...' buttons for less-common operations
 // eslint-disable-next-line no-unused-vars
-class ExtendedCollapseParent {
+export class ExtendedCollapseParent {
   constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
     this.buttonData = parameters.buttonData;
@@ -201,7 +206,7 @@ class ExtendedCollapseParent {
   }
 }
 // eslint-disable-next-line no-unused-vars
-class BeamButtons {
+export class BeamButtons {
   constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
     this.buttonData = parameters.buttonData;
@@ -223,7 +228,7 @@ class BeamButtons {
   }
 }
 // eslint-disable-next-line no-unused-vars
-class MicrotoneButtons {
+export class MicrotoneButtons {
   constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
     this.buttonData = parameters.buttonData;
@@ -251,7 +256,7 @@ class MicrotoneButtons {
 }
 
 // eslint-disable-next-line no-unused-vars
-class DurationButtons {
+export class DurationButtons {
   constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
     this.buttonData = parameters.buttonData;
@@ -285,7 +290,7 @@ class DurationButtons {
 }
 
 // eslint-disable-next-line no-unused-vars
-class VoiceButtons {
+export class VoiceButtons {
   constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
     this.buttonData = parameters.buttonData;
@@ -312,7 +317,7 @@ class VoiceButtons {
   }
 }
 // eslint-disable-next-line no-unused-vars
-class NoteButtons {
+export class NoteButtons {
   constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
     this.buttonData = parameters.buttonData;
@@ -390,7 +395,7 @@ class ChordButtons {
 }
 
 // eslint-disable-next-line no-unused-vars
-class StaveButtons {
+export class StaveButtons {
   constructor(parameters) {
     Vex.Merge(this, parameters);
   }
@@ -447,7 +452,7 @@ class StaveButtons {
 }
 
 // eslint-disable-next-line no-unused-vars
-class MeasureButtons {
+export class MeasureButtons {
   constructor(parameters) {
     Vex.Merge(this, parameters);
   }
@@ -505,7 +510,7 @@ class MeasureButtons {
 }
 
 // eslint-disable-next-line no-unused-vars
-class PlayerButtons {
+export class PlayerButtons {
   constructor(parameters) {
     Vex.Merge(this, parameters);
   }
@@ -524,7 +529,7 @@ class PlayerButtons {
 }
 
 // eslint-disable-next-line no-unused-vars
-class DisplaySettings {
+export class DisplaySettings {
   constructor(parameters) {
     Vex.Merge(this, parameters);
   }
@@ -555,7 +560,7 @@ class DisplaySettings {
   }
 }
 // eslint-disable-next-line no-unused-vars
-class TextButtons {
+export class TextButtons {
   constructor(parameters) {
     Vex.Merge(this, parameters);
     this.menus = this.controller.menus;
@@ -617,7 +622,7 @@ class TextButtons {
 }
 
 // eslint-disable-next-line no-unused-vars
-class NavigationButtons {
+export class NavigationButtons {
   static get directionsTrackerMap() {
     return {
       navLeftButton: 'moveSelectionLeft',
@@ -642,7 +647,7 @@ class NavigationButtons {
   }
 }
 // eslint-disable-next-line no-unused-vars
-class ArticulationButtons {
+export class ArticulationButtons {
   static get articulationIdMap() {
     return {
       accentButton: SmoArticulation.articulations.accent,
@@ -701,7 +706,7 @@ class ArticulationButtons {
 }
 
 // eslint-disable-next-line no-unused-vars
-class CollapseRibbonControl {
+export class CollapseRibbonControl {
   static get paramArray() {
     return ['ribbonButtons', 'keyCommands', 'controller', 'view', 'menus', 'buttonData', 'buttonElement',
       'eventSource'];

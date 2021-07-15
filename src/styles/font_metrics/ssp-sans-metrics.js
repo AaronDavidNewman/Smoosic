@@ -1,4 +1,4 @@
-const SourceSansProFont = {
+export const SourceSansProFont = {
   smufl: false,
   name: "Sans",
   spacing: 50,

@@ -1,8 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoTranslator } from "./i18n/language";
-import { SuiScoreIdentificationDialog, SuiScoreViewDialog, SuiGlobalLayoutDialog } from "./dialogs/scoreDialogs";
-import { layoutDebug } from "../render/sui/layoutDebug";
+import { SmoTranslator } from './i18n/language';
+import { SuiScoreIdentificationDialog, SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreFontDialog } from './dialogs/scoreDialogs';
+import { layoutDebug } from '../render/sui/layoutDebug';
+import { SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveActionsDialog, SuiLoadActionsDialog,
+  SuiLoadFileDialog, SuiSaveXmlDialog, SuiSaveMidiDialog, SuiLoadMxmlDialog } from './dialogs/fileDialogs';
 
 export class suiMenuBase {
   constructor(params) {

@@ -2,6 +2,8 @@
 // Copyright (c) Aaron David Newman 2021.
 import { StaffModifierBase } from '../data/staffModifiers';
 import { SmoSystemStaff } from '../data/systemStaff';
+import { SmoOperation } from './operations';
+
 // ## UndoBuffer
 // manage a set of undo or redo operations on a score.  The objects passed into
 // undo must implement serialize()/deserialize()
@@ -223,7 +225,7 @@ export class UndoBuffer {
 // Convenience functions to save the score state before operations so we can undo the operation.
 // Each undo-able knows which set of parameters the undo operation requires (measure, staff, score).
 // eslint-disable-next-line no-unused-vars
-class SmoUndoable {
+export class SmoUndoable {
   // ### undoScoreObject
   // Called when a score object is being modified.  There is no need to update the score as it contains a
   // reference to the object

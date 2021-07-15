@@ -1,8 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiDialogBase } from "../dialog";
-import { SmoScore } from "../../smo/data/score";
-import { SmoTextGroup } from "../../smo/data/scoreModifiers";
+import { SuiDialogBase } from '../dialog';
+import { SmoScore } from '../../smo/data/score';
+import { SmoTextGroup } from '../../smo/data/scoreModifiers';
 
 const deepCopy = (x) => JSON.parse(JSON.stringify(x));
 
@@ -437,7 +437,7 @@ export class SuiScoreIdentificationDialog extends SuiDialogBase {
 }
 
 // eslint-disable-next-line no-unused-vars
-class SuiScoreFontDialog extends SuiDialogBase {
+export class SuiScoreFontDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiScoreFontDialog';
   }

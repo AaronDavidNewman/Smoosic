@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SuiDialogBase } from '../dialog';
-import { SmoScore } from '../../smo/data/smoScore';
+import { SmoScore } from '../../smo/data/score';
 
 export class SuiFileDialog extends SuiDialogBase {
   constructor(parameters) {

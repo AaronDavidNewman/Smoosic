@@ -21,8 +21,9 @@ import { smoMusic } from '../common/musicHelpers';
 import { SmoNote } from '../smo/data/note';
 import { SmoDuration } from '../smo/xform/tickDuration';
 import { SmoStaffHairpin } from '../smo/data/staffModifiers';
+import { basicJson,  emptyScoreJson} from '../music/basic';
 
-export default Smo = {
+export const Smo = {
     SuiApplication,
     suiController,
     SuiScoreView,
@@ -44,5 +45,8 @@ export default Smo = {
     smoMusic,
     SmoNote,
     SmoDuration,
-    SmoStaffHairpin    
+    SmoStaffHairpin,
+    basicJson,
+    emptyScoreJson
 }
+export default Smo;

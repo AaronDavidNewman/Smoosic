@@ -5,6 +5,7 @@ import { UndoBuffer } from '../../smo/xform/undo';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { svgHelpers } from '../../common/svgHelpers';
+import { VxSystem } from '../vex/vxSystem';
 
 // ## SuiRenderState
 // Manage the state of the score rendering.  The score can be rendered either completely,

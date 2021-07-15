@@ -1,8 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { svgHelpers } from "../common/svgHelpers";
-import { htmlHelpers } from "../common/htmlHelpers";
-import { SmoTranslator } from "./i18n/language";
+import { svgHelpers } from '../common/svgHelpers';
+import { htmlHelpers } from '../common/htmlHelpers';
+import { SmoTranslator } from './i18n/language';
 
 // # Dialog base classes
 

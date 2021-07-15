@@ -3,6 +3,27 @@
 import { smoSerialize } from '../common/serializationHelpers';
 import { suiController } from './controller';
 import { SuiScoreRender } from '../render/sui/scoreRender';
+import { suiMenuManager } from './menus';
+import { SuiRenderDemon } from '../render/sui/layoutDemon';
+import { SuiKeyCommands } from './keyCommands';
+import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
+import { SmoScore } from '../smo/data/score';
+import { SmoTranslationEditor } from './i18n/translationEditor';
+import { SmoTranslator } from './i18n/language';
+import { browserEventSource } from './eventSource';
+import { suiOscillator } from '../render/audio/oscillator';
+import { ArialFont } from '../styles/font_metrics/arial_metrics';
+import { TimesFont } from '../styles/font_metrics/times_metrics';
+import { Commissioner_MediumFont } from '../styles/font_metrics/Commissioner-Medium-Metrics';
+import { Concert_OneFont } from '../styles/font_metrics/ConcertOne-Regular';
+import { MerriweatherFont } from '../styles/font_metrics/Merriweather-Regular';
+import { SourceSansProFont } from '../styles/font_metrics/ssp-sans-metrics';
+import { SourceSerifProFont } from '../styles/font_metrics/ssp-serif-metrics';
+import { _MidiWriter } from '../common/midiWriter';
+import { mxmlScore } from '../smo/mxml/xmlScore';
+// eslint-disable-next-line
+import { basicJson } from '../music/basic';
+
 const VF = Vex.Flow;
 
 // eslint-disable-next-line no-unused-vars
@@ -12,7 +33,7 @@ export class SuiApplication {
       smoPath: '..',
       language: 'en',
       scoreLoadOrder: ['query', 'local', 'library'],
-      scoreLoadJson: 'basicJson',
+      scoreLoadJson: 'Smo.basicJson',
       eventsSource: 'browserEventSource',
       controller: 'suiController',
       smoDomContainer: 'smoo',

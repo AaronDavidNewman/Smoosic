@@ -1,6 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SmoScore } from './score';
+import { smoSerialize } from '../../common/serializationHelpers';
+
+const VF = Vex.Flow;
 
 // ## SmoScoreModifierBase
 // A score modifier is something that appears in the score, but not

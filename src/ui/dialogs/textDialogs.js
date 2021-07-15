@@ -1,7 +1,12 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiDialogBase } from '../dialog';
+import { SuiInlineText } from '../../render/sui/textRender';
+import { SmoHelp } from '../help';
+import { SmoTextGroup } from '../../smo/data/scoreModifiers';
+
 // eslint-disable-next-line no-unused-vars
-class SuiLyricDialog extends SuiDialogBase {
+export class SuiLyricDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiLyricDialog';
   }
@@ -209,7 +214,7 @@ class SuiLyricDialog extends SuiDialogBase {
   }
 }
 // eslint-disable-next-line no-unused-vars
-class SuiChordChangeDialog  extends SuiDialogBase {
+export class SuiChordChangeDialog  extends SuiDialogBase {
   static get ctor() {
     return 'SuiChordChangeDialog';
   }
@@ -454,7 +459,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
   }
 }
 // eslint-disable-next-line no-unused-vars
-class SuiTextTransformDialog  extends SuiDialogBase {
+export class SuiTextTransformDialog  extends SuiDialogBase {
   static createAndDisplay(parameters) {
     const dg = new SuiTextTransformDialog(parameters);
     dg.display();
@@ -812,7 +817,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 // This is a poorly named class, it just allows you to placeText
 // dynamic text so it doesn't collide with something.
 // eslint-disable-next-line no-unused-vars
-class SuiDynamicModifierDialog extends SuiDialogBase {
+export class SuiDynamicModifierDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiDynamicModifierDialog';
   }

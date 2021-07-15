@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SmoMeasure } from './measure';
-
+import { smoSerialize } from '../../common/serializationHelpers';
 // ## SmoSystemStaff
 // A staff is a line of music that can span multiple measures.
 // A system is a line of music for each staff in the score.  So a staff

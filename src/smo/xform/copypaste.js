@@ -1,10 +1,14 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoSelection, SmoSelector } from './selections';
+import { SmoNote } from '../data/note';
+import { SmoMeasure } from '../data/measure';
+
 // ## PasteBuffer
 // ### Description:
 // Hold some music that can be pasted back to the score
 // eslint-disable-next-line no-unused-vars
-class PasteBuffer {
+export class PasteBuffer {
   constructor() {
     this.notes = [];
     this.noteIndex = 0;

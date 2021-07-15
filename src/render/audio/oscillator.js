@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { smoSerialize } from "../../common/serializationHelpers";
-import { smoMusic } from "../../common/musicHelpers";
+import { smoSerialize } from '../../common/serializationHelpers';
+import { smoMusic } from '../../common/musicHelpers';
 
 // ## suiAudioPitch
 // helper class to compute the frequencies of the notes.

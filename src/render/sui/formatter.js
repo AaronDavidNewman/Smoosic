@@ -1,9 +1,13 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoScoreText } from '../../smo/data/scoreModifiers';
+import { svgHelpers } from '../../common/svgHelpers';
+import { smoMusic } from '../../common/musicHelpers';
+
 // ## suiFormatter (changed from suiAdjuster)
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
 // eslint-disable-next-line no-unused-vars
-class suiLayoutFormatter {
+export class suiLayoutFormatter {
   static estimateMusicWidth(smoMeasure, noteSpacing, accidentMap) {
     const widths = [];
     // The below line was commented out b/c voiceIX was defined but never used

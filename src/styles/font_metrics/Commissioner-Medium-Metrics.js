@@ -1,4 +1,4 @@
-const Commissioner_MediumFont = {
+export const Commissioner_MediumFont = {
   smufl: false,
   name: "CommissionerMedium",
   spacing: 50,

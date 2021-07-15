@@ -1,6 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
+import { SmoNoteModifierBase } from './noteModifiers';
+const VF = Vex.Flow;
+
 // ## SmoNote
 // ## Description:
 // Data for a musical note.  THe most-contained-thing, except there can be note modifiers

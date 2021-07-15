@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { htmlHelpers } from "../common/htmlHelpers";
+import { htmlHelpers } from '../common/htmlHelpers';
 // # dbComponents - components of modal dialogs.
 // eslint-disable-next-line no-unused-vars
 export class SuiComponentBase {

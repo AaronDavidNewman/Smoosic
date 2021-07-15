@@ -1,8 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoScoreModifierBase, SmoPageLayout } from './scoreModifiers';
+import { SmoScoreModifierBase, SmoPageLayout, SmoLayoutManager } from './scoreModifiers';
 import { SmoSystemStaff } from './systemStaff';
 import { smoMusic } from '../../common/musicHelpers';
+import { smoSerialize } from '../../common/serializationHelpers';
 
 // ## SmoScore
 // ## Description:
