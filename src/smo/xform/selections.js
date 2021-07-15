@@ -1,6 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { svgHelpers } from '../../common/svgHelpers';
+const VF = Vex.Flow;
 
 /////////////////
 // # selections.js

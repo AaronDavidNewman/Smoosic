@@ -8,6 +8,8 @@ import { smoBeamerFactory } from '../xform/beamers';
 import { StaffModifierBase } from './staffModifiers';
 import { SmoRehearsalMark } from './measureModifiers';
 
+const VF = Vex.Flow;
+
 // ## SmoSystemStaff
 // A staff is a line of music that can span multiple measures.
 // A system is a line of music for each staff in the score.  So a staff

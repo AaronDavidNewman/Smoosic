@@ -1,9 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoNoteModifierBase } from './noteModifiers';
+import { SmoNoteModifierBase, SmoArticulation, SmoLyric } from './noteModifiers';
 import { smoMusic } from '../../common/musicHelpers';
-import { SmoArticulation } from './noteModifiers';
 
 const VF = Vex.Flow;
 
@@ -13,7 +12,6 @@ const VF = Vex.Flow;
 // Basic note information.  Leaf node of the SMO dependency tree (so far)
 // ## SmoNote Methods
 // ---
-// eslint-disable-next-line no-unused-vars
 export class SmoNote {
   // ### Description:
   // see defaults for params format.

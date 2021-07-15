@@ -4,6 +4,7 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNote } from './note';
 import { smoMusic } from '../../common/musicHelpers';
 import { SmoNoteModifierBase } from './noteModifiers';
+const VF = Vex.Flow;
 
 export class SmoTuplet {
   constructor(params) {

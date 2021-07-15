@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SuiTextInputComposite, SuiToggleComposite, SuiComponentBase, SuiDropdownComposite } from '../dialogComponents';
+import { SuiTextInputComposite, SuiToggleComposite, SuiComponentBase, SuiDropdownComposite, SuiToggleComponent } from '../dialogComponents';
 import { htmlHelpers } from '../../common/htmlHelpers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SuiDialogBase } from '../dialog';

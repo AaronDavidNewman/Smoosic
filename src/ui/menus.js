@@ -2,12 +2,16 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoTranslator } from './i18n/language';
 import { SuiLayoutDialog, SuiScoreIdentificationDialog,
-  SuiStaffGroupDialog, SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreFontDialog } from './dialogs/scoreDialogs';
+  SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreFontDialog } from './dialogs/scoreDialogs';
+import { SmoScore } from '../smo/data/score';
+import { SuiXhrLoader } from './fileio/xhrLoader';
+import { mxmlScore } from '../smo/mxml/xmlScore';
 import { layoutDebug } from '../render/sui/layoutDebug';
 import { SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveActionsDialog, SuiLoadActionsDialog,
   SuiLoadFileDialog, SuiSaveXmlDialog, SuiSaveMidiDialog, SuiLoadMxmlDialog } from './dialogs/fileDialogs';
 import { htmlHelpers } from '../common/htmlHelpers';
 import { SuiTimeSignatureDialog, SuiMeasureDialog, SuiInsertMeasures } from './dialogs/measureDialogs';
+import { SuiStaffGroupDialog } from './dialogs/staffDialogs';
 
 export class suiMenuBase {
   constructor(params) {

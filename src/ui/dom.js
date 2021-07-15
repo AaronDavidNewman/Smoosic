@@ -2,6 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { htmlHelpers } from "../common/htmlHelpers";
 import { svgHelpers } from "../common/svgHelpers";
+import { suiPiano } from "../render/sui/piano";
 
 export class SuiDom {
   static splash() {

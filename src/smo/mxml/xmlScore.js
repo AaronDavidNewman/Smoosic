@@ -9,6 +9,8 @@ import { SmoMeasure } from '../data/measure';
 import { emptyScoreJson } from '../../music/basic';
 import { smoMusic } from '../../common/musicHelpers';
 import { SmoGraceNote } from '../data/noteModifiers';
+import { SmoSystemStaff } from '../data/systemStaff';
+import { SmoNote } from '../data/note';
 
 // ## mxmlScore
 // Parse music xml into a smoosic score object

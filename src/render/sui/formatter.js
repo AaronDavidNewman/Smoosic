@@ -8,6 +8,8 @@ import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoMeasureText } from '../../smo/data/measureModifiers';
 import { SmoNote } from '../../smo/data/note';
 
+const VF = Vex.Flow;
+
 // ## suiFormatter (changed from suiAdjuster)
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
 // eslint-disable-next-line no-unused-vars

@@ -5,6 +5,8 @@ import { SmoArticulation, SmoOrnament } from '../data/noteModifiers';
 import { smoMusic } from '../../common/musicHelpers';
 import { SmoNote } from '../data/note';
 
+const VF = Vex.Flow;
+
 // ## mxmlHelpers
 // Utilities for parsing and serialzing musicXML.
 // eslint-disable-next-line no-unused-vars

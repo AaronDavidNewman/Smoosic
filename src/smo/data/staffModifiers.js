@@ -3,6 +3,8 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 
+const VF = Vex.Flow;
+
 // ## StaffModifiers
 // ## Description:
 // This file contains modifiers that might take up multiple measures, and are thus associated

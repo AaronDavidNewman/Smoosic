@@ -6,6 +6,9 @@ import { svgHelpers } from '../../common/svgHelpers';
 import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SuiRenderState } from './renderState';
+import { SmoLyric } from '../../smo/data/noteModifiers';
+
+const VF = Vex.Flow;
 
 // The heirarchy of text editing objects goes:
 // dialog -> component -> session -> editor

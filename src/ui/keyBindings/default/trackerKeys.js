@@ -1,5 +1,5 @@
 
-class defaultTrackerKeys {
+export class defaultTrackerKeys {
 
   static get keys() {
     return [{

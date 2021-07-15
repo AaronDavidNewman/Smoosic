@@ -24,6 +24,7 @@ import { mxmlScore } from '../smo/mxml/xmlScore';
 
 // eslint-disable-next-line
 import { basicJson } from '../music/basic';
+import { SuiDom } from './dom';
 
 const VF = Vex.Flow;
 
@@ -104,7 +105,7 @@ export class SuiApplication {
   // ### Description:
   // Convenience constructor, taking a renderElement and a score.
   createUi(score) {
-    eval(SmoConfig.domSource).createDom();
+    eval('Smo.' + SmoConfig.domSource).createDom();
     const params = suiController.keyBindingDefaults;
     params.eventSource = new browserEventSource(); // events come from the browser UI.
 
@@ -119,9 +120,8 @@ export class SuiApplication {
       params.menus = new suiMenuManager(params);
     }
     params.layoutDemon = new SuiRenderDemon(params);
-    const ctor = eval(SmoConfig.controller);
-    const controller = new ctor(params);
-    eval(SmoConfig.domSource).splash();
+    const controller = new suiController(params);
+    SuiDom.splash();
     this.controller = controller;
   }
   static registerFonts() {

@@ -1,17 +1,17 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { htmlHelpers } from "../common/htmlHelpers";
-export class SmoHelp {
+export class SuiHelp {
 
   static displayHelp() {
     $('body').addClass('showHelpDialog');
     $('.helpDialog').html('');
     var b = htmlHelpers.buildDom;
-    SmoHelp.helpHtml.forEach((cat) => {
-      var r = SmoHelp._buildElements(cat);
+    SuiHelp.helpHtml.forEach((cat) => {
+      var r = SuiHelp._buildElements(cat);
       $('.helpDialog').append(r.dom());
     });
-    $('.helpDialog').append(SmoHelp.closeButton.dom());
+    $('.helpDialog').append(SuiHelp.closeButton.dom());
 		$('button.help-title').off('click').on('click',function(ev) {
 			$(this).closest('div.helpLine').toggleClass('showSection');
 			$(this).find('span.icon').toggleClass('icon-plus');

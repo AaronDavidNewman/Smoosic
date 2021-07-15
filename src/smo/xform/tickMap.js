@@ -1,6 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoMusic } from '../../common/musicHelpers';
+const VF = Vex.Flow;
 
 // ## TickMap
 // create a map note durations at each index into the voice, including the accidentals at each duration.

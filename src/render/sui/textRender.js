@@ -4,6 +4,8 @@ import { svgHelpers } from '../../common/svgHelpers';
 import { SmoTextGroup, SmoScoreText } from '../../smo/data/scoreModifiers';
 import { SuiTextEditor } from './textEdit';
 
+const VF = Vex.Flow;
+
 // ## textRender.js
 // Classes responsible for formatting and rendering text in SVG space.
 // ## SuiInlineText

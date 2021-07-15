@@ -3,6 +3,8 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { smoMusic } from '../../common/musicHelpers';
 
+const VF = Vex.Flow;
+
 // ## SmoNoteModifierBase
 // A note modifier is anything that is mapped to the note, but not part of the
 // pitch itself.  This includes grace notes, and note-text like lyrics

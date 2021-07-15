@@ -7,6 +7,8 @@ import { StaffModifierBase } from '../data/staffModifiers';
 import { SmoTuplet } from '../data/tuplet';
 import { smoMusic } from '../../common/musicHelpers';
 import { svgHelpers } from '../../common/svgHelpers';
+const VF = Vex.Flow;
+
 // ## PasteBuffer
 // ### Description:
 // Hold some music that can be pasted back to the score

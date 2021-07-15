@@ -7,6 +7,7 @@ import { smoMusic } from '../../common/musicHelpers';
 import { SmoNote } from '../data/note';
 import { SmoDuration } from './tickDuration';
 import { SmoStaffHairpin } from '../data/staffModifiers';
+const VF = Vex.Flow;
 
 // An operation works on a selection or set of selections to edit the music
 export class SmoOperation {

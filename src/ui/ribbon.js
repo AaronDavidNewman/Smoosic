@@ -181,7 +181,7 @@ export class RibbonButtons {
 }
 
 // eslint-disable-next-line no-unused-vars
-class DebugButtons {
+export class DebugButtons {
   constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
     this.buttonData = parameters.buttonData;
@@ -371,8 +371,7 @@ export class NoteButtons {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class ChordButtons {
+export class ChordButtons {
   constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
     this.buttonData = parameters.buttonData;
@@ -398,7 +397,6 @@ class ChordButtons {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class StaveButtons {
   constructor(parameters) {
     Vex.Merge(this, parameters);
@@ -455,7 +453,6 @@ export class StaveButtons {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class MeasureButtons {
   constructor(parameters) {
     Vex.Merge(this, parameters);
@@ -513,7 +510,6 @@ export class MeasureButtons {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class PlayerButtons {
   constructor(parameters) {
     Vex.Merge(this, parameters);
@@ -532,7 +528,6 @@ export class PlayerButtons {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class DisplaySettings {
   constructor(parameters) {
     Vex.Merge(this, parameters);
@@ -563,7 +558,7 @@ export class DisplaySettings {
     this.eventSource.domClick(this.buttonElement, this, this.buttonData.id);
   }
 }
-// eslint-disable-next-line no-unused-vars
+
 export class TextButtons {
   constructor(parameters) {
     Vex.Merge(this, parameters);
@@ -625,7 +620,6 @@ export class TextButtons {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class NavigationButtons {
   static get directionsTrackerMap() {
     return {
@@ -650,7 +644,6 @@ export class NavigationButtons {
     this.eventSource.domClick(this.buttonElement, this, '_moveTracker');
   }
 }
-// eslint-disable-next-line no-unused-vars
 export class ArticulationButtons {
   static get articulationIdMap() {
     return {
@@ -709,7 +702,6 @@ export class ArticulationButtons {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class CollapseRibbonControl {
   static get paramArray() {
     return ['ribbonButtons', 'keyCommands', 'controller', 'view', 'menus', 'buttonData', 'buttonElement',
@@ -749,7 +741,7 @@ export class CollapseRibbonControl {
     $(this.buttonElement).closest('div').addClass('collapseContainer');
     this.eventSource.domClick(this.buttonElement, this, '_toggleExpand');
     this.childButtons.forEach((cb) => {
-      const ctor = eval(cb.ctor);
+      const ctor = eval('Smo.' + cb.ctor);
       const el = $('#' + cb.id);
       const btn = new ctor({
         buttonData: cb,

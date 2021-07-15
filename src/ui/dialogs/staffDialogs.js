@@ -5,6 +5,7 @@ import { StaffModifierBase, SmoSlur, SmoStaffHairpin } from '../../smo/data/staf
 import { SmoScore } from '../../smo/data/score';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SmoSystemGroup } from '../../smo/data/scoreModifiers';
+import { SmoVolta } from '../../smo/data/measureModifiers';
 
 // ## SuiStaffModifierDialog
 // Edit the attributes of a staff modifier (connects notes in the same staff)

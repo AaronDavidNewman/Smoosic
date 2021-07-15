@@ -1,5 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { svgHelpers } from "../../common/svgHelpers";
+import { htmlHelpers } from "../../common/htmlHelpers";
+import { suiScroller } from "./scroller";
 export class suiPiano {
   constructor(parameters) {
     Vex.Merge(this, parameters);

@@ -10,6 +10,7 @@ import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { SmoScore } from '../../smo/data/score';
 import { smoBeamerFactory } from '../../smo/xform/beamers';
 
+const VF = Vex.Flow;
 // ## SuiRenderState
 // Manage the state of the score rendering.  The score can be rendered either completely,
 // or partially for editing.  This class works with the RenderDemon to decide when to

@@ -7,7 +7,10 @@ import { Qwerty } from './qwerty';
 import { SuiModifierDialogFactory } from './dialog';
 import { suiPiano } from '../render/sui/piano'
 import { layoutDebug } from '../render/sui/layoutDebug';
-import { SmoHelp } from './help';
+import { SuiHelp } from './help';
+import { defaultEditorKeys } from './keyBindings/default/editorKeys';
+import { defaultTrackerKeys } from './keyBindings/default/trackerKeys';
+import { defaultRibbonLayout } from './ribbonLayout/default/defaultRibbon';
 
 // ## suiController
 // ## Description:
@@ -242,7 +245,7 @@ export class suiController {
   }
 
   menuHelp() {
-    SmoHelp.displayHelp();
+    SuiHelp.displayHelp();
   }
 
   static get defaults() {
@@ -290,7 +293,7 @@ export class suiController {
     const dataCopy = suiTracker.serializeEvent(evdata);
     this.view.renderer.updatePromise().then(() => {
       if (dataCopy.key == '?') {
-        SmoHelp.displayHelp();
+        SuiHelp.displayHelp();
       }
 
       if (dataCopy.key == '/') {

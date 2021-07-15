@@ -1,5 +1,4 @@
-class defaultEditorKeys {
-
+export class defaultEditorKeys {
   static get keys() {
     return [{
         event: "keydown",

@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SuiDialogBase } from '../dialog';
 import { SuiInlineText } from '../../render/sui/textRender';
-import { SmoHelp } from '../help';
+import { SuiHelp } from '../help';
 import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SmoDynamicText } from '../../smo/data/noteModifiers';
@@ -957,7 +957,7 @@ export class SuiDynamicModifierDialog extends SuiDialogBase {
 // eslint-disable-next-line no-unused-vars
 class helpModal {
   static createAndDisplay() {
-    SmoHelp.displayHelp();
+    SuiHelp.displayHelp();
     return htmlHelpers.closeDialogPromise();
   }
 }

@@ -8,6 +8,8 @@ import { svgHelpers } from '../../common/svgHelpers';
 import { PasteBuffer } from '../../smo/xform/copypaste';
 import { suiTracker } from './tracker';
 import { SmoScore } from '../../smo/data/score';
+import { SmoActionRecord } from '../../smo/xform/actions';
+import { SuiRenderDemon } from './layoutDemon';
 import { testCase1 } from '../../music/utActions';
 
 // ## SuiScoreView

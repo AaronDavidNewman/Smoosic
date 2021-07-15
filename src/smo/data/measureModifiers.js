@@ -1,6 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
+import { smoMusic } from '../../common/musicHelpers';
 
 const VF = Vex.Flow;
 // ## Measure modifiers are elements that are attached to the bar itself, like barlines or measure-specific text,

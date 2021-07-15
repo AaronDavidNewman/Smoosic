@@ -8,6 +8,7 @@ import { SmoMeasure } from '../data/measure';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoGraceNote } from '../data/noteModifiers';
 import { SmoSelection } from './selections';
+import { SmoTextGroup } from '../data/scoreModifiers';
 
 // ## UndoBuffer
 // manage a set of undo or redo operations on a score.  The objects passed into

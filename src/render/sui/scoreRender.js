@@ -13,10 +13,11 @@ import { layoutDebug } from './layoutDebug';
 import { smoBeamerFactory } from '../../smo/xform/beamers';
 import { smoMusic } from '../../common/musicHelpers';
 
+const VF = Vex.Flow;
+
 // ## SuiScoreRender
 // This module renders the entire score.  It calculates the layout first based on the
 // computed dimensions.
-// eslint-disable-next-line no-unused-vars
 export class SuiScoreRender extends SuiRenderState {
   constructor(params) {
     super('SuiScoreRender');

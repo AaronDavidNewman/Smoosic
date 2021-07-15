@@ -9,11 +9,10 @@ import { SmoNote } from '../../smo/data/note';
 import { smoMusic } from '../../common/musicHelpers';
 import { svgHelpers } from '../../common/svgHelpers';
 import { layoutDebug } from '../sui/layoutDebug';
-import { SmoMeasureText, SmoBarline } from '../../smo/data/measureModifiers';
+import { SmoRepeatSymbol, SmoMeasureText, SmoBarline } from '../../smo/data/measureModifiers';
 import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';
 import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { SmoOrnament, SmoArticulation } from '../../smo/data/noteModifiers';
-import { SmoRepeatSymbol } from '../../smo/data/measureModifiers';
 
 const VF = Vex.Flow;
 export class VxMeasure {

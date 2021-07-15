@@ -6,10 +6,10 @@ import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
 import { SmoOperation } from '../../smo/xform/operations';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoScore } from '../../smo/data/score';
-import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote } from '../../smo/data/noteModifiers';
+import { smoMusic } from '../../common/musicHelpers';
+import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, SmoOrnament } from '../../smo/data/noteModifiers';
 import { SmoTempoText,  SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark } from '../../smo/data/measureModifiers';
 import { suiOscillator } from '../audio/oscillator';
-import { SmoArticulation } from '../../smo/data/noteModifiers';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
 import { SuiRenderState } from './renderState';
@@ -1110,7 +1110,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this.tracker.intersectingArtifact(evData);
   }
   setSelection(selector) {
-    view.tracker.selections = [SmoSelection.selectionFromSelector(this.score, selector)];
+    this.tracker.selections = [SmoSelection.selectionFromSelector(this.score, selector)];
   }
   selectSuggestionNote(selector, evData) {
     const key = SmoSelector.getNoteKey(selector);

@@ -6,6 +6,8 @@ import { svgHelpers } from '../../common/svgHelpers';
 import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoStaffHairpin, SmoSlur } from '../../smo/data/staffModifiers';
 
+const VF = Vex.Flow;
+
 // ## Description:
 //   Create a system of staves and draw music on it.
 //

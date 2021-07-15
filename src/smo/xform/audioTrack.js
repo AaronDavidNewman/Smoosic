@@ -6,7 +6,6 @@ import { SmoStaffHairpin } from '../data/staffModifiers';
 import { smoMusic } from '../../common/musicHelpers';
 import { SmoTempoText, SmoBarline } from '../data/measureModifiers';
 
-
 // ## SmoAudioTrack
 // Convert a score into a JSON structure that can be rendered to audio.
 // the return value looks like this:

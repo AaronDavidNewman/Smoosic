@@ -2,6 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoMusic } from '../../common/musicHelpers';
 
+const VF = Vex.Flow;
 export class SmoBeamGroup {
   constructor(params) {
     let i = 0;
