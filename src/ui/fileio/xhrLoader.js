@@ -1,10 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+
 // ## SuiXhrLoader
 // Load music xml files from remote, transparently
 // unzip mxml files.  Other files (smo, xml, midi) are handled
 // transparently with consistent async interface
-// eslint-disable-next-line no-unused-vars
 export class SuiXhrLoader {
   constructor(path) {
     this.compressed = false;

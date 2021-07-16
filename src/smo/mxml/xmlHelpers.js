@@ -331,7 +331,7 @@ export class mxmlHelpers {
         articulations.forEach((articulation) => {
           Object.keys(mxmlHelpers.ornamentXmlToSmoMap).forEach((key) => {
             if ([...articulation.getElementsByTagName(key)].length) {
-              const ctor = eval(mxmlHelpers.ornamentXmlToSmoMap[key].ctor);
+              const ctor = eval('Smo.' + mxmlHelpers.ornamentXmlToSmoMap[key].ctor);
               rv.push(new ctor(mxmlHelpers.ornamentXmlToSmoMap[key].params));
             }
           });

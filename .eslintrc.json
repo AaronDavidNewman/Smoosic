@@ -10,7 +10,8 @@
     "VF" : true,
     "Vex": true,
     "SmoConfig": true,
-     "JSZip": true
+     "JSZip": true,
+     "Smo": true
   },
   "rules": {
     "no-bitwise": [

@@ -30,7 +30,7 @@ export class SuiComponentBase {
 // ## SuiRockerComponent
 // A numeric input box with +- buttons.   Adjustable type and scale
 // eslint-disable-next-line no-unused-vars
-class SuiRockerComponent extends SuiComponentBase {
+export class SuiRockerComponent extends SuiComponentBase {
   static get dataTypes() {
     return ['int', 'float', 'percent'];
   }

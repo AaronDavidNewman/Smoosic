@@ -7,6 +7,7 @@ import { RibbonButtons, DisplaySettings, NoteButtons, TextButtons,
   DebugButtons, DurationButtons, VoiceButtons, PlayerButtons,
   ArticulationButtons, NavigationButtons, ExtendedCollapseParent
  } from './ribbon';
+ import { SuiTreeComponent } from './dialogs/treeComponent';
 import { SuiExceptionHandler } from './exceptions';
 import { Qwerty } from './qwerty';
 import { suiPiano } from '../render/sui/piano';
@@ -20,6 +21,12 @@ import { SuiAddStaffMenu, SuiLanguageMenu, SuiFileMenu,
 import { SuiModifierDialogFactory } from './dialog';
 import { SuiTempoDialog, SuiInstrumentDialog } from './dialogs/measureDialogs';
 import { SuiLibraryDialog } from './dialogs/libraryDialog';
+import { SuiDropdownComponent, SuiRockerComponent,  SuiFileDownloadComponent,
+    SuiToggleComponent, SuiButtonComponent, SuiDropdownComposite,
+    SuiToggleComposite, SuiButtonComposite, SuiRockerComposite, SuiTextInputComposite } from './dialogComponents';
+import { SuiFontComponent } from './dialogs/fontComponent';
+import { SuiTextInPlace, SuiLyricComponent, SuiChordComponent, SuiDragText } from './dialogs/textComponents';
+import { SuiDynamicModifierDialog } from './dialogs/textDialogs';
 
 // render library
 import { SuiScoreView } from '../render/sui/scoreView';
@@ -29,10 +36,10 @@ import { layoutDebug } from '../render/sui/layoutDebug';
 import { UndoBuffer } from '../smo/xform/undo';
 import { SmoNote } from '../smo/data/note';
 import { SmoDuration } from '../smo/xform/tickDuration';
-import { SmoStaffHairpin } from '../smo/data/staffModifiers';
+import { SmoStaffHairpin, StaffModifierBase } from '../smo/data/staffModifiers';
 import { SmoMeasure } from '../smo/data/measure';
 import { SmoSelection } from '../smo/xform/selections';
-import { StaffModifierBase } from '../smo/data/staffModifiers';
+import { SmoOrnament } from '../smo/data/noteModifiers';
 import { SmoSystemStaff } from '../smo/data/systemStaff';
 import { SmoSystemGroup } from '../smo/data/scoreModifiers';
 
@@ -43,6 +50,7 @@ import { svgHelpers } from '../common/svgHelpers';
 
 export const Smo = {
     SuiApplication,
+    SuiDom,
     suiController,
     RibbonButtons,
     NoteButtons,
@@ -54,6 +62,16 @@ export const Smo = {
     MeasureButtons,
     DebugButtons,
     DurationButtons,
+    SuiAddStaffMenu,
+    SuiLanguageMenu, SuiFileMenu,
+    SuiTimeSignatureMenu, SuiMeasureMenu, SuiKeySignatureMenu,
+    SuiTreeComponent,
+    SuiDropdownComponent,
+    SuiRockerComponent,  SuiFileDownloadComponent,
+    SuiToggleComponent, SuiButtonComponent, SuiDropdownComposite,
+    SuiToggleComposite, SuiButtonComposite, SuiRockerComposite, SuiTextInputComposite,
+    SuiFontComponent, SuiTextInPlace, SuiLyricComponent, SuiChordComponent, SuiDragText,
+    SuiDynamicModifierDialog,
     VoiceButtons,
     ExtendedCollapseParent,
     PlayerButtons,
@@ -83,11 +101,11 @@ export const Smo = {
     SmoSystemGroup,
     smoMusic,
     SmoNote,
+    SmoOrnament,
     SmoDuration,
-    SmoStaffHairpin,
-    SuiDom,
-    SuiAddStaffMenu,
-    SuiLanguageMenu, SuiFileMenu,
-    SuiTimeSignatureMenu, SuiMeasureMenu, SuiKeySignatureMenu
+    SmoStaffHairpin
 }
+Smo.getClass = (jsonString) => {
+    return eval('Smo.' + jsonString);
+};
 export default Smo;

@@ -8,6 +8,7 @@ import { SuiModifierDialogFactory } from './dialog';
 import { suiPiano } from '../render/sui/piano'
 import { layoutDebug } from '../render/sui/layoutDebug';
 import { SuiHelp } from './help';
+import { suiTracker } from '../render/sui/tracker';
 import { defaultEditorKeys } from './keyBindings/default/editorKeys';
 import { defaultTrackerKeys } from './keyBindings/default/trackerKeys';
 import { defaultRibbonLayout } from './ribbonLayout/default/defaultRibbon';

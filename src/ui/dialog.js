@@ -20,7 +20,7 @@ export class SuiModifierDialogFactory {
     if (typeof(dbType) === 'undefined') {
       return null;
     }
-    const ctor = eval(dbType);
+    const ctor = Smo.getClass(dbType);
     return ctor.createAndDisplay({
       modifier,
       ...parameters
@@ -115,7 +115,7 @@ export class SuiDialogBase {
   // print json with string labels to use as a translation file seed.
   static printTranslate(_class) {
     const output = [];
-    const xx = eval(_class);
+    const xx = Smo.getClass(_class);
     xx.dialogElements.forEach((element) => {
       const component = {};
       if (element.label) {
@@ -228,7 +228,7 @@ export class SuiDialogBase {
 
     var ctrl = b('div').classes('smoControlContainer');
     dialogElements.filter((de) => de.control).forEach((de) => {
-      var ctor = eval(de.control);
+      var ctor = Smo.getClass(de.control);
       var control = new ctor(this, de);
       this.components.push(control);
       ctrl.append(control.html);

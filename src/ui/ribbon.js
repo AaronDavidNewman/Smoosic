@@ -41,7 +41,7 @@ export class RibbonButtons {
     this.collapseChildren = [];
   }
   _executeButtonModal(buttonElement, buttonData) {
-    const ctor = eval(buttonData.ctor);
+    const ctor = eval('Smo.' + buttonData.ctor);
     ctor.createAndDisplay(
       {
         undoBuffer: this.keyCommands.undoBuffer,
