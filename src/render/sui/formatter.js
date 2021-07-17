@@ -12,7 +12,6 @@ const VF = Vex.Flow;
 
 // ## suiFormatter (changed from suiAdjuster)
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
-// eslint-disable-next-line no-unused-vars
 export class suiLayoutFormatter {
   static estimateMusicWidth(smoMeasure, noteSpacing, accidentMap) {
     const widths = [];

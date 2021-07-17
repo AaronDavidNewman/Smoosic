@@ -4,7 +4,6 @@ import { SmoBarline } from '../../smo/data/measureModifiers';
 import { smoMusic } from '../../common/musicHelpers';
 
 const VF = Vex.Flow;
-// eslint-disable-next-line no-unused-vars
 export class vexGlyph {
   // ### glyphPixels
   // Used to convert vex glyph sizes to pixels for computation.

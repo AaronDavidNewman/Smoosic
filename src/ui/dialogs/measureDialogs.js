@@ -11,7 +11,6 @@ import { svgHelpers } from '../../common/svgHelpers';
 // ## measureDialogs.js
 // This file contains dialogs that affect all measures at a certain position,
 // such as tempo or time signature.
-// eslint-disable-next-line no-unused-vars
 export class SuiMeasureDialog extends SuiDialogBase {
   static get attributes() {
     return ['pickupMeasure', 'makePickup', 'padLeft', 'padAllInSystem',
@@ -242,7 +241,6 @@ export class SuiMeasureDialog extends SuiDialogBase {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiInstrumentDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiInstrumentDialog';
@@ -362,7 +360,6 @@ export class SuiInstrumentDialog extends SuiDialogBase {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiInsertMeasures extends SuiDialogBase {
   static get ctor() {
     return 'SuiInsertMeasures';
@@ -443,7 +440,6 @@ export class SuiInsertMeasures extends SuiDialogBase {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiTimeSignatureDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiTimeSignatureDialog';
@@ -550,7 +546,6 @@ export class SuiTimeSignatureDialog extends SuiDialogBase {
 
 // ## SuiTempoDialog
 // Allow user to choose a tempo or tempo change.
-// eslint-disable-next-line no-unused-vars
 export class SuiTempoDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiTempoDialog';

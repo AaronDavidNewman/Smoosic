@@ -16,7 +16,6 @@ const VF = Vex.Flow;
 //  num_beats:num_beats,
 //  timeSignature: '4/4',
 //  smoMeasures: []
-// eslint-disable-next-line no-unused-vars
 export class VxSystem {
   constructor(context, topY, lineIndex, score) {
     this.context = context;

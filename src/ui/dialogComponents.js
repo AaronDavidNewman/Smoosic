@@ -5,7 +5,6 @@ import { smoSerialize } from '../common/serializationHelpers';
 import { SuiFileInput } from './fileio/fileInput';
 
 // # dbComponents - components of modal dialogs.
-// eslint-disable-next-line no-unused-vars
 export class SuiComponentBase {
   constructor(parameters) {
     this.changeFlag = false;
@@ -29,7 +28,6 @@ export class SuiComponentBase {
 
 // ## SuiRockerComponent
 // A numeric input box with +- buttons.   Adjustable type and scale
-// eslint-disable-next-line no-unused-vars
 export class SuiRockerComponent extends SuiComponentBase {
   static get dataTypes() {
     return ['int', 'float', 'percent'];
@@ -158,7 +156,6 @@ export class SuiRockerComponent extends SuiComponentBase {
 
 // ## SuiFileDownloadComponent
 // Download a test file using the file input.
-// eslint-disable-next-line no-unused-vars
 export class SuiFileDownloadComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
@@ -202,7 +199,6 @@ export class SuiFileDownloadComponent extends SuiComponentBase {
 
 // ## SuiToggleComponent
 // Simple on/off behavior
-// eslint-disable-next-line no-unused-vars
 export class SuiToggleComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
@@ -250,7 +246,6 @@ export class SuiToggleComponent extends SuiComponentBase {
 
 // ## SuiToggleComponent
 // Simple on/off behavior
-// eslint-disable-next-line no-unused-vars
 export class SuiButtonComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
@@ -298,7 +293,6 @@ export class SuiButtonComponent extends SuiComponentBase {
 
 // ### SuiDropdownComponent
 // simple dropdown select list.
-// eslint-disable-next-line no-unused-vars
 export class SuiDropdownComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
@@ -391,7 +385,6 @@ export class SuiDropdownComponent extends SuiComponentBase {
 
 // ### SuiDropdownComposite
 // Dropdown component that can be part of a composite control.
-// eslint-disable-next-line no-unused-vars
 export class SuiDropdownComposite extends SuiDropdownComponent {
   constructor(dialog, parameters) {
     super(dialog, parameters);
@@ -407,7 +400,6 @@ export class SuiDropdownComposite extends SuiDropdownComponent {
 
 // ### SuiToggleComposite
 // Dropdown component that can be part of a composite control.
-// eslint-disable-next-line no-unused-vars
 export class SuiToggleComposite extends SuiToggleComponent {
   constructor(dialog, parameters) {
     super(dialog, parameters);
@@ -423,7 +415,6 @@ export class SuiToggleComposite extends SuiToggleComponent {
 
 // ### SuiButtonComposite
 // Dropdown component that can be part of a composite control.
-// eslint-disable-next-line no-unused-vars
 export class SuiButtonComposite extends SuiButtonComponent {
   constructor(dialog, parameters) {
     super(dialog, parameters);
@@ -437,7 +428,6 @@ export class SuiButtonComposite extends SuiButtonComponent {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiRockerComposite extends SuiRockerComponent {
   constructor(dialog, parameters) {
     super(dialog, parameters);
@@ -454,7 +444,6 @@ export class SuiRockerComposite extends SuiRockerComponent {
 // ## SuiTextInputComponent
 // Just get text from an input, such as a filename.
 // Note: this is HTML input, not for SVG/score editing
-// eslint-disable-next-line no-unused-vars
 export class SuiTextInputComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
@@ -499,7 +488,6 @@ export class SuiTextInputComponent extends SuiComponentBase {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiTextInputComposite extends SuiTextInputComponent {
   constructor(dialog, parameters) {
     super(dialog, parameters);

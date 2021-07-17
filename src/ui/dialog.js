@@ -10,7 +10,6 @@ import { SmoLyric } from '../smo/data/noteModifiers';
 // ## SuiModifierDialogFactory
 // Automatic dialog constructors for dialogs without too many parameters
 // that operated on a selection.
-// eslint-disable-next-line no-unused-vars
 export class SuiModifierDialogFactory {
   static createDialog(modifier, parameters) {
     let dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
@@ -43,7 +42,6 @@ export class SuiModifierDialogFactory {
 
 // ## SuiDialogBase
 // Base class for dialogs.
-// eslint-disable-next-line no-unused-vars
 export class SuiDialogBase {
   static get parameters() {
     return ['eventSource', 'view',
@@ -228,8 +226,13 @@ export class SuiDialogBase {
 
     var ctrl = b('div').classes('smoControlContainer');
     dialogElements.filter((de) => de.control).forEach((de) => {
-      var ctor = Smo.getClass(de.control);
-      var control = new ctor(this, de);
+      let ctor = null;
+      if (typeof(de.control) === 'function') {
+        ctor = de.control;
+      } else {
+        ctor = Smo.getClass(de.control);
+      }
+      const control = new ctor(this, de);
       this.components.push(control);
       ctrl.append(control.html);
     });

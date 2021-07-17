@@ -7,7 +7,7 @@ import { mxmlScore } from '../../smo/mxml/xmlScore';
 export class SuiFileDialog extends SuiDialogBase {
   constructor(parameters) {
     var p = parameters;
-    var ctor = eval(parameters.ctor);
+    var ctor = Smo.getClass(parameters.ctor);
     p.label = parameters.label ? parameters.label : 'Dialog Box';
     p.id = 'dialog-file';
     p.top = (p.view.score.layout.pageWidth / 2) - 200;
@@ -40,7 +40,6 @@ export class SuiFileDialog extends SuiDialogBase {
     this.bindKeyboard();
   }
 }
-// eslint-disable-next-line no-unused-vars
 export class SuiLoadFileDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiLoadFileDialog';
@@ -95,7 +94,6 @@ export class SuiLoadFileDialog extends SuiFileDialog {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiLoadMxmlDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiLoadMxmlDialog';
@@ -155,7 +153,6 @@ export class SuiLoadMxmlDialog extends SuiFileDialog {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiLoadActionsDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiLoadActionsDialog';
@@ -211,7 +208,6 @@ export class SuiLoadActionsDialog extends SuiFileDialog {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiPrintFileDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiPrintFileDialog';
@@ -263,7 +259,6 @@ export class SuiPrintFileDialog extends SuiFileDialog {
     $(dgDom.element).find('.remove-button').remove();
   }
 }
-// eslint-disable-next-line no-unused-vars
 export class SuiSaveFileDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiSaveFileDialog';
@@ -327,7 +322,6 @@ export class SuiSaveFileDialog extends SuiFileDialog {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiSaveXmlDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiSaveXmlDialog';
@@ -391,7 +385,6 @@ export class SuiSaveXmlDialog extends SuiFileDialog {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiSaveMidiDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiSaveMidiDialog';
@@ -454,7 +447,6 @@ export class SuiSaveMidiDialog extends SuiFileDialog {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiSaveActionsDialog extends SuiFileDialog {
   static get ctor() {
     return 'SuiSaveActionsDialog';

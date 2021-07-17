@@ -2,7 +2,6 @@
 // Copyright (c) Aaron David Newman 2021.
 // ## SmoActionRecord
 // Record a list of actions, for playback or unit testing.
-// eslint-disable-next-line no-unused-vars
 export class SmoActionRecord {
   static get refreshTimer() {
     return 10000;
@@ -76,7 +75,7 @@ export class SmoActionRecord {
     action.parameters.forEach((param) => {
       if (typeof(param) === 'object') {
         if (typeof(param.ctor) === 'string') {
-          const ctor = eval(param.ctor);
+          const ctor = Smo.getClass(param.ctor);
           args.push(new ctor(param));
         } else {
           args.push(JSON.parse(JSON.stringify(param)));

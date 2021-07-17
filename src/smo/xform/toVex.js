@@ -5,7 +5,6 @@ import { smoMusic } from '../../common/musicHelpers';
 // ## SmoToVex
 // Simple serialize class that produced VEX note and voice objects
 // for vex EasyScore (for easier bug reports and test cases)
-// eslint-disable-next-line no-unused-vars
 export class SmoToVex {
   static convert(smoScore) {
     smoScore.staves.forEach((smoStaff) => {

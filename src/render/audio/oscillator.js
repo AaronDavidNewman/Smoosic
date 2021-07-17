@@ -5,7 +5,6 @@ import { smoMusic } from '../../common/musicHelpers';
 
 // ## suiAudioPitch
 // helper class to compute the frequencies of the notes.
-// eslint-disable-next-line no-unused-vars
 export class suiAudioPitch {
   // ### _frequencies
   // Compute the equal-temperment frequencies of the notes.
@@ -67,7 +66,6 @@ export class suiAudioPitch {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class suiReverb {
   static get defaults() {
     return { length: 0.2, decay: 0.5 };
@@ -118,7 +116,6 @@ export class suiReverb {
 
 // ## suiOscillator
 // Simple waveform synthesizer thing that plays notes
-// eslint-disable-next-line no-unused-vars
 export class suiOscillator {
   static get defaults() {
     const obj = {
@@ -357,8 +354,7 @@ export class suiOscillator {
 }
 
 // ## suiSampler
-// Class that replaces oscillator with a sampler.  This is
-// prototype code.  I'll get back to it.
+// Class that replaces oscillator with a sampler.
 export class suiSampler extends suiOscillator {
   play() {
     const self = this;

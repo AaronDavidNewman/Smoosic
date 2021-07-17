@@ -8,7 +8,6 @@ const deepCopy = (x) => JSON.parse(JSON.stringify(x));
 
 // ## SuiScoreViewDialog
 // decide which rows of the score to look at
-// eslint-disable-next-line no-unused-vars
 export class SuiScoreViewDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiScoreViewDialog';
@@ -81,7 +80,6 @@ export class SuiScoreViewDialog extends SuiDialogBase {
 
 // ## SuiGlobalLayoutDialog
 // change editor and formatting defaults for this score.
-// eslint-disable-next-line no-unused-vars
 export class SuiGlobalLayoutDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiGlobalLayoutDialog';
@@ -299,7 +297,6 @@ export class SuiGlobalLayoutDialog extends SuiDialogBase {
 
 // ## SuiScoreIdentificationDialog
 // change editor and formatting defaults for this score.
-// eslint-disable-next-line no-unused-vars
 export class SuiScoreIdentificationDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiScoreIdentificationDialog';
@@ -436,7 +433,6 @@ export class SuiScoreIdentificationDialog extends SuiDialogBase {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiScoreFontDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiScoreFontDialog';
@@ -562,7 +558,6 @@ export class SuiScoreFontDialog extends SuiDialogBase {
 }
 // ## SuiLayoutDialog
 // The layout dialog has page-specific layout parameters
-// eslint-disable-next-line no-unused-vars
 export class SuiLayoutDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiLayoutDialog';

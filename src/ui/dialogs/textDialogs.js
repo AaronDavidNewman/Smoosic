@@ -92,7 +92,7 @@ export class SuiLyricDialog extends SuiDialogBase {
   constructor(parameters) {
     parameters.ctor = typeof(parameters.ctor) !== 'undefined' ? parameters.ctor : 'SuiLyricDialog';
     const p = parameters;
-    const _class = eval(p.ctor);
+    const _class = Smo.getClass(p.ctor);
     const dialogElements = _class.dialogElements;
 
     super(dialogElements, {
@@ -215,7 +215,6 @@ export class SuiLyricDialog extends SuiDialogBase {
     }
   }
 }
-// eslint-disable-next-line no-unused-vars
 export class SuiChordChangeDialog  extends SuiDialogBase {
   static get ctor() {
     return 'SuiChordChangeDialog';
@@ -231,7 +230,7 @@ export class SuiChordChangeDialog  extends SuiDialogBase {
   constructor(parameters) {
     parameters.ctor = 'SuiChordChangeDialog';
     const p = parameters;
-    const _class = eval(p.ctor);
+    const _class = Smo.getClass(p.ctor);
     const dialogElements = _class.dialogElements;
 
     super(dialogElements, {
@@ -460,7 +459,6 @@ export class SuiChordChangeDialog  extends SuiDialogBase {
     }
   }
 }
-// eslint-disable-next-line no-unused-vars
 export class SuiTextTransformDialog  extends SuiDialogBase {
   static createAndDisplay(parameters) {
     const dg = new SuiTextTransformDialog(parameters);
@@ -818,7 +816,6 @@ export class SuiTextTransformDialog  extends SuiDialogBase {
 // ## SuiDynamicModifierDialog
 // This is a poorly named class, it just allows you to placeText
 // dynamic text so it doesn't collide with something.
-// eslint-disable-next-line no-unused-vars
 export class SuiDynamicModifierDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiDynamicModifierDialog';
@@ -954,8 +951,7 @@ export class SuiDynamicModifierDialog extends SuiDialogBase {
     this.view.addDynamic(this.modifier);
   }
 }
-// eslint-disable-next-line no-unused-vars
-class helpModal {
+export class helpModal {
   static createAndDisplay() {
     SuiHelp.displayHelp();
     return htmlHelpers.closeDialogPromise();

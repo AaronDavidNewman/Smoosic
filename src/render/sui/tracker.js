@@ -16,7 +16,6 @@ import { suiOscillator } from '../audio/oscillator';
 // `suiBaseLayout`, `controller`, `menu`
 // ### class methods:
 // ---
-// eslint-disable-next-line no-unused-vars
 export class suiTracker extends suiMapper {
   constructor(renderer, scroller, pasteBuffer) {
     super(renderer, scroller, pasteBuffer);

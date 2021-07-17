@@ -23,7 +23,7 @@ export class suiMenuBase {
     return this.closePromise();
   }
   static printTranslate(_class) {
-    const xx = eval(_class);
+    const xx = Smo.getClass(_class);
     const items = [];
     xx.defaults.menuItems.forEach((item) => {
       items.push({ value: item.value, text: item.text });
@@ -38,7 +38,6 @@ export class suiMenuBase {
   keydown() {}
 }
 
-// eslint-disable-next-line no-unused-vars
 export class suiMenuManager {
   constructor(params) {
     Vex.Merge(this, suiMenuManager.defaults);
@@ -212,7 +211,7 @@ export class suiMenuManager {
     // If we were called from the ribbon, we notify the controller that we are
     // taking over the keyboard.  If this was a key-based command we already did.
     layoutDebug.addDialogDebug('createMenu creating ' + action);
-    const ctor = eval(action);
+    const ctor = Smo.getClass(action);
     this.menu = new ctor({
       position: this.menuPosition,
       tracker: this.tracker,
@@ -285,7 +284,6 @@ export class suiMenuManager {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiScoreMenu extends suiMenuBase {
   static get defaults() {
     SuiScoreMenu._defaults = typeof(SuiScoreMenu._defaults) !== 'undefined' ? SuiScoreMenu._defaults : {
@@ -391,7 +389,6 @@ export class SuiScoreMenu extends suiMenuBase {
   }
   keydown() {}
 }
-// eslint-disable-next-line no-unused-vars
 export class SuiFileMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined' ? params : {});
@@ -555,8 +552,7 @@ export class SuiFileMenu extends suiMenuBase {
   keydown() {}
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiLibraryMenu extends suiMenuBase {
+export class SuiLibraryMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined' ? params : {});
     Vex.Merge(params, SuiLibraryMenu.defaults);
@@ -672,7 +668,6 @@ class SuiLibraryMenu extends suiMenuBase {
   keydown() {}
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiDynamicsMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined' ? params : {});
@@ -734,7 +729,6 @@ export class SuiDynamicsMenu extends suiMenuBase {
   keydown() {}
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiTimeSignatureMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined' ? params : {});
@@ -813,7 +807,6 @@ export class SuiTimeSignatureMenu extends suiMenuBase {
   keydown() {}
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiKeySignatureMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined' ? params : {});
@@ -906,8 +899,7 @@ export class SuiKeySignatureMenu extends suiMenuBase {
   keydown() {}
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiStaffModifierMenu extends suiMenuBase {
+export class SuiStaffModifierMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined' ? params : {});
     Vex.Merge(params, SuiStaffModifierMenu.defaults);
@@ -974,7 +966,6 @@ class SuiStaffModifierMenu extends suiMenuBase {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiLanguageMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined') ? params : {};
@@ -1021,7 +1012,6 @@ export class SuiLanguageMenu extends suiMenuBase {
   keydown() {
   }
 }
-// eslint-disable-next-line no-unused-vars
 export class SuiMeasureMenu extends suiMenuBase {
   static get defaults() {
     SuiMeasureMenu._defaults = SuiMeasureMenu._defaults ? SuiMeasureMenu._defaults : {
@@ -1092,7 +1082,6 @@ export class SuiMeasureMenu extends suiMenuBase {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiAddStaffMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined' ? params : {});

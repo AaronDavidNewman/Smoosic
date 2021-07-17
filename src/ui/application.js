@@ -22,13 +22,10 @@ import { SourceSerifProFont } from '../styles/font_metrics/ssp-serif-metrics';
 import { _MidiWriter } from '../common/midiWriter';
 import { mxmlScore } from '../smo/mxml/xmlScore';
 
-// eslint-disable-next-line
-import { basicJson } from '../music/basic';
 import { SuiDom } from './dom';
 
 const VF = Vex.Flow;
 
-// eslint-disable-next-line no-unused-vars
 export class SuiApplication {
   static get defaultConfig() {
     return {
@@ -105,7 +102,7 @@ export class SuiApplication {
   // ### Description:
   // Convenience constructor, taking a renderElement and a score.
   createUi(score) {
-    eval('Smo.' + SmoConfig.domSource).createDom();
+    Smo.getClass(SmoConfig.domSource).createDom();
     const params = suiController.keyBindingDefaults;
     params.eventSource = new browserEventSource(); // events come from the browser UI.
 
@@ -310,7 +307,7 @@ export class SuiApplication {
   }
 
   libraryScoreLoad() {
-    const score = SmoScore.deserialize(eval(SmoConfig.scoreLoadJson));
+    const score = SmoScore.deserialize(Smo.getClass(SmoConfig.scoreLoadJson));
     return { score, mode: 'local' };
   }
 }

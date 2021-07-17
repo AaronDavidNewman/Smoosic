@@ -6,7 +6,6 @@ import { htmlHelpers } from '../../common/htmlHelpers';
 
 // ### SuiDropdownComponent
 // simple dropdown select list.
-// eslint-disable-next-line no-unused-vars
 export class SuiTreeComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);

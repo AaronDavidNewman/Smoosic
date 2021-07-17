@@ -11,7 +11,6 @@ import { SmoMeasure } from './measure';
 // The whole score.
 // ## Score methods:
 // ---
-// eslint-disable-next-line no-unused-vars
 export class SmoScore {
   constructor(params) {
     Vex.Merge(this, SmoScore.defaults);
@@ -499,7 +498,7 @@ export class SmoScore {
           newMeasure.transposeIndex - measure.transposeIndex);
       newMeasure.modifiers = [];
       measure.modifiers.forEach((modifier) => {
-        const ctor = eval(modifier.ctor);
+        const ctor = Smo.getClass(modifier.ctor);
         const nmod = new ctor(modifier);
         newMeasure.modifiers.push(nmod);
       });

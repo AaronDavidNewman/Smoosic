@@ -12,7 +12,6 @@ const VF = Vex.Flow;
 // ## PasteBuffer
 // ### Description:
 // Hold some music that can be pasted back to the score
-// eslint-disable-next-line no-unused-vars
 export class PasteBuffer {
   constructor() {
     this.notes = [];

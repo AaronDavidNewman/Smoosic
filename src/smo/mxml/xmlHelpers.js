@@ -9,7 +9,6 @@ const VF = Vex.Flow;
 
 // ## mxmlHelpers
 // Utilities for parsing and serialzing musicXML.
-// eslint-disable-next-line no-unused-vars
 export class mxmlHelpers {
   // ### noteTypesToSmoMap
   // mxml note 'types', really s/b stem types.
@@ -331,7 +330,7 @@ export class mxmlHelpers {
         articulations.forEach((articulation) => {
           Object.keys(mxmlHelpers.ornamentXmlToSmoMap).forEach((key) => {
             if ([...articulation.getElementsByTagName(key)].length) {
-              const ctor = eval('Smo.' + mxmlHelpers.ornamentXmlToSmoMap[key].ctor);
+              const ctor = Smo.getClass(mxmlHelpers.ornamentXmlToSmoMap[key].ctor);
               rv.push(new ctor(mxmlHelpers.ornamentXmlToSmoMap[key].params));
             }
           });

@@ -18,7 +18,6 @@ import { SmoTempoText, SmoBarline } from '../data/measureModifiers';
 // Note:  pitches are smo pitches, durations are adjusted for beatTime
 // (beatTime === 4096 uses Smo/Vex ticks, 128 is midi tick default)
 // volume is normalized 0-1
-// eslint-disable-next-line no-unused-vars
 export class SmoAudioTrack {
   // ### dynamicVolumeMap
   // normalized dynamic

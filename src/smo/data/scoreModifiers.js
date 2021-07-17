@@ -9,7 +9,6 @@ const VF = Vex.Flow;
 // ## SmoScoreModifierBase
 // A score modifier is something that appears in the score, but not
 // associated with a measure of music.
-// eslint-disable-next-line no-unused-vars
 export class SmoScoreModifierBase {
   constructor(ctor) {
     this.ctor = ctor;
@@ -21,13 +20,12 @@ export class SmoScoreModifierBase {
     }
   }
   static deserialize(jsonObj) {
-    const ctor = eval(jsonObj.ctor);
+    const ctor = Smo.getClass(jsonObj.ctor);
     const rv = new ctor(jsonObj);
     return rv;
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SmoFormattingManager extends SmoScoreModifierBase {
   static get forScore() {
     return -1;
@@ -95,7 +93,6 @@ export class SmoFormattingManager extends SmoScoreModifierBase {
 // manager has one set of page height/width, since svg element
 // must have single length/width and viewbox.
 // Each page can have different margins.
-// eslint-disable-next-line no-unused-vars
 export class SmoLayoutManager extends SmoScoreModifierBase {
   static get defaults() {
     return {
@@ -224,7 +221,6 @@ export class SmoPageLayout extends SmoScoreModifierBase {
 }
 // ## SmoSystemGroup
 // System group is the grouping of staves into a system.
-// eslint-disable-next-line no-unused-vars
 export class SmoSystemGroup extends SmoScoreModifierBase {
   constructor(params) {
     super('SmoSystemGroup');
@@ -618,7 +614,6 @@ export class SmoTextGroup extends SmoScoreModifierBase {
 // decorations, titles etc.
 // Note: score text is always contained in a text group.  So this isn't directly accessed
 // by score, but we keep the collection in score for backwards-compatibility
-// eslint-disable-next-line no-unused-vars
 export class SmoScoreText extends SmoScoreModifierBase {
   // convert EM to a number, or leave as a number etc.
   static fontPointSize(size) {
@@ -752,7 +747,7 @@ export class SmoScoreText extends SmoScoreModifierBase {
   }
 
   tryParseUnicode() {
-    return smoSerialize.tryParseUnicode(this.text);
+    this.text = smoSerialize.tryParseUnicode(this.text);
   }
   restoreParams() {
     smoSerialize.serializedMerge(SmoScoreText.attributes, this.backup, this);
@@ -812,8 +807,7 @@ export class SmoScoreText extends SmoScoreModifierBase {
     const weight = parameters.fontInfo ? parameters.fontInfo.weight : 'normal';
     this.fontInfo.weight = SmoScoreText.weightString(weight);
     if (this.text) {
-      rx = this.text;
-      eval('rx="' + this.text + '"');
+      rx = smoSerialize.tryParseUnicode(this.text);
       this.text = rx;
     }
   }

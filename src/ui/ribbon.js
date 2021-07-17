@@ -41,7 +41,7 @@ export class RibbonButtons {
     this.collapseChildren = [];
   }
   _executeButtonModal(buttonElement, buttonData) {
-    const ctor = eval('Smo.' + buttonData.ctor);
+    const ctor = Smo.getClass(buttonData.ctor);
     ctor.createAndDisplay(
       {
         undoBuffer: this.keyCommands.undoBuffer,
@@ -180,7 +180,6 @@ export class RibbonButtons {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class DebugButtons {
   constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
@@ -196,7 +195,6 @@ export class DebugButtons {
 
 // ## ExtendedCollapseParent
 // Muse-style '...' buttons for less-common operations
-// eslint-disable-next-line no-unused-vars
 export class ExtendedCollapseParent {
   constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
@@ -209,7 +207,6 @@ export class ExtendedCollapseParent {
     });
   }
 }
-// eslint-disable-next-line no-unused-vars
 export class BeamButtons {
   constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
@@ -231,7 +228,6 @@ export class BeamButtons {
     });
   }
 }
-// eslint-disable-next-line no-unused-vars
 export class MicrotoneButtons {
   constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
@@ -259,7 +255,6 @@ export class MicrotoneButtons {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class DurationButtons {
   constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
@@ -293,7 +288,6 @@ export class DurationButtons {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class VoiceButtons {
   constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
@@ -320,7 +314,6 @@ export class VoiceButtons {
     });
   }
 }
-// eslint-disable-next-line no-unused-vars
 export class NoteButtons {
   constructor(parameters) {
     this.buttonElement = parameters.buttonElement;
@@ -741,7 +734,7 @@ export class CollapseRibbonControl {
     $(this.buttonElement).closest('div').addClass('collapseContainer');
     this.eventSource.domClick(this.buttonElement, this, '_toggleExpand');
     this.childButtons.forEach((cb) => {
-      const ctor = eval('Smo.' + cb.ctor);
+      const ctor = Smo.getClass(cb.ctor);
       const el = $('#' + cb.id);
       const btn = new ctor({
         buttonData: cb,

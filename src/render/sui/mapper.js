@@ -7,7 +7,6 @@ import { layoutDebug } from './layoutDebug';
 // ## suiMapper
 // Map the notes in the svg so they can respond to events and interact
 // with the mouse/keyboard
-// eslint-disable-next-line no-unused-vars
 export class suiMapper {
   constructor(renderer, scroller, pasteBuffer) {
     // renderer renders the music when it changes

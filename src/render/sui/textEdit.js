@@ -688,7 +688,6 @@ export class SuiChordEditor extends SuiTextEditor {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiDragSession {
   constructor(params) {
     this.textGroup = params.textGroup;
@@ -760,7 +759,6 @@ export class SuiDragSession {
 
 // ## SuiTextSession
 // session for editing plain text
-// eslint-disable-next-line no-unused-vars
 export class SuiTextSession {
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
@@ -868,7 +866,6 @@ export class SuiTextSession {
 }
 // ## SuiLyricSession
 // Manage editor for lyrics, jupmping from note to note if asked
-// eslint-disable-next-line no-unused-vars
 export class SuiLyricSession {
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
@@ -1062,7 +1059,6 @@ export class SuiLyricSession {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiChordSession extends SuiLyricSession {
   constructor(params) {
     super(params);

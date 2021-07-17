@@ -14,7 +14,6 @@ import { SmoNote } from '../data/note';
 
 // ## mxmlScore
 // Parse music xml into a smoosic score object
-// eslint-disable-next-line no-unused-vars
 export class mxmlScore {
   static get mmPerPixel() {
     return 0.264583;

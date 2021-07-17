@@ -33,7 +33,7 @@ export class SmoTranslationEditor {
     // ### _getMenuTextDialogHtml
     // Get all the menu item labels for translation
     static _getMenuTextDialogHtml(menuCtor, enStrings, langStrings) {
-      const menuClass = eval(menuCtor);
+      const menuClass = Smo.getClass(menuCtor);
       const menuItems = menuClass['defaults'].menuItems;
       var enMenu = enStrings.find((mn) => mn.ctor === menuCtor);
 
@@ -211,7 +211,7 @@ export class SmoTranslationEditor {
       var container = b('div').classes('db-translate-container').attr('data-dbcontainer',dialogCtor)
         .append(b('button').classes('icon-plus trans-expander'))
         .append(b('span').classes('db-translate-title').text(dialogCtor)).dom();
-      var ctor = eval(dialogCtor);
+      var ctor = Smo.getClass(dialogCtor);
       var elements = ctor.dialogElements;
       var enDb = enStrings.find((dbStr) => dbStr.ctor === dialogCtor);
       if (!enDb) {

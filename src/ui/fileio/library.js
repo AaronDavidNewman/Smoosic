@@ -5,7 +5,6 @@ import { PromiseHelpers } from '../../common/promiseHelpers';
 import { smoSerialize } from '../../common/serializationHelpers';
 // ## SmoLibrary
 // A class to organize smoosic files (or any format smoosic accepts) into libraries.
-// eslint-disable-next-line no-unused-vars
 export class SmoLibrary {
   constructor(parameters) {
     this.loaded = false;

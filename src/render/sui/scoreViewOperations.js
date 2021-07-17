@@ -24,8 +24,6 @@ import { SuiActionPlayback } from './actionPlayback';
 // All operations that can be performed on a 'live' score go through this
 // module.  It maps the score view to the actual score and makes sure the
 // model and view stay in sync.
-/* global: SmoSelection */
-// eslint-disable-next-line no-unused-vars
 export class SuiScoreViewOperations extends SuiScoreView {
   addTextGroup(textGroup) {
     this.actionBuffer.addAction('addTextGroup', textGroup);

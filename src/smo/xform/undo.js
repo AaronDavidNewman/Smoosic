@@ -230,7 +230,6 @@ export class UndoBuffer {
 // ## SmoUndoable
 // Convenience functions to save the score state before operations so we can undo the operation.
 // Each undo-able knows which set of parameters the undo operation requires (measure, staff, score).
-// eslint-disable-next-line no-unused-vars
 export class SmoUndoable {
   // ### undoScoreObject
   // Called when a score object is being modified.  There is no need to update the score as it contains a

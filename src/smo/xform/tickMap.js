@@ -10,7 +10,6 @@ const VF = Vex.Flow;
 //        totalDuration: 16384,
 //        durationMap:[2048,4096,..],  // A running total per tick
 //        deltaMap:[2048,2048...], a map of deltas
-// eslint-disable-next-line no-unused-vars
 export class TickMap {
   constructor(measure, voiceIndex) {
     this.keySignature = measure.keySignature;

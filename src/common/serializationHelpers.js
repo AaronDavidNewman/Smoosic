@@ -477,7 +477,7 @@ export class smoSerialize {
   // ### printXlate
   // print json with string labels to use as a translation file seed.
   static printTranslate(_class) {
-    const xxx = eval(_class + '.printTranslate');
+    const xxx = Smo.getClass(_class + '.printTranslate');
     if (typeof(xxx) === 'function') {
       xxx();
     }

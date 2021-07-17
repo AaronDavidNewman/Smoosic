@@ -11,7 +11,6 @@ import { SmoTuplet } from '../data/tuplet';
 
 // ## XmlState
 // Keep state of musical objects while parsing music xml
-// eslint-disable-next-line no-unused-vars
 export class XmlState {
   static get defaults() {
     return {

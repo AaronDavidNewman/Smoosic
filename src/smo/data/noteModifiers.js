@@ -17,13 +17,12 @@ export class SmoNoteModifierBase {
     this.ctor = ctor;
   }
   static deserialize(jsonObj) {
-    const ctor = eval(jsonObj.ctor);
+    const ctor = Smo.getClass(jsonObj.ctor);
     const rv = new ctor(jsonObj);
     return rv;
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SmoGraceNote extends SmoNoteModifierBase {
   static get defaults() {
     return {
@@ -80,7 +79,6 @@ export class SmoGraceNote extends SmoNoteModifierBase {
 // ## SmoMicrotone
 // Microtones are treated similarly to ornaments at this time.  There are not
 // rules for persisting throughout a measure.
-// eslint-disable-next-line no-unused-vars
 export class SmoMicrotone extends SmoNoteModifierBase {
   // This is how VexFlow notates them
   static get smoToVex() {
@@ -143,7 +141,6 @@ export class SmoMicrotone extends SmoNoteModifierBase {
 
 // ## SmoOrnament
 // Maps to a vexflow ornament like trill etc.
-// eslint-disable-next-line no-unused-vars
 export class SmoOrnament extends SmoNoteModifierBase {
   static get ornaments() {
     return {
@@ -216,7 +213,6 @@ export class SmoOrnament extends SmoNoteModifierBase {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SmoArticulation extends SmoNoteModifierBase {
   static get articulations() {
     return {
@@ -296,7 +292,6 @@ export class SmoArticulation extends SmoNoteModifierBase {
 // Lyrics and Chords are both notated represented by
 // instances of this class.  The parser enum says
 // which is which
-// eslint-disable-next-line no-unused-vars
 export class SmoLyric extends SmoNoteModifierBase {
   static get defaults() {
     return {
@@ -492,7 +487,6 @@ export class SmoLyric extends SmoNoteModifierBase {
 // ## SmoDynamicText
 // ## Description:
 // standard dynamics text
-// eslint-disable-next-line no-unused-vars
 export class SmoDynamicText extends SmoNoteModifierBase {
   static get defaults() {
     return {

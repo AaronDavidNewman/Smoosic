@@ -11,7 +11,8 @@
     "Vex": true,
     "SmoConfig": true,
      "JSZip": true,
-     "Smo": true
+     "Smo": true,
+     "MidiWriter": true
   },
   "rules": {
     "no-bitwise": [

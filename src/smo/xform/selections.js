@@ -14,7 +14,6 @@ const VF = Vex.Flow;
 // There are 2 parts to a selection: the actual musical bits that are selected, and the
 // indices that define what was selected.  This is the latter.  The actual object does not
 // have any methods so there is no constructor.
-// eslint-disable-next-line no-unused-vars
 export class SmoSelector {
   // TODO:  tick in selector s/b tickIndex
   static sameNote(sel1, sel2) {
@@ -101,7 +100,6 @@ export class SmoSelector {
 // The staff and measure are always a part of the selection, and possible a voice and note,
 // and one or more pitches.  Selections can also be made from the UI by clicking on an element
 // or navigating to an element with the keyboard.
-// eslint-disable-next-line no-unused-vars
 export class SmoSelection {
   // ### measureSelection
   // A selection that does not contain a specific note

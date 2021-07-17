@@ -5,7 +5,6 @@
 // decompress it if it's mxml file (compressed).  This will read any text  or
 // binary file,
 // but it will only unzip .mxml files first and has a consistent async interface
-// eslint-disable-next-line no-unused-vars
 export class SuiFileInput {
   constructor(evt) {
     this.compressed = false;

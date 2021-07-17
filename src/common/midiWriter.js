@@ -1,5 +1,6 @@
 // Credit for Midi functionality goes to:
 // https://github.com/grimmdude/MidiWriterJS
+import { smoMusic } from './musicHelpers';
 export var _MidiWriter = function() {
 /**
  * MIDI file format constants.

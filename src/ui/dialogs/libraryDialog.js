@@ -8,7 +8,6 @@ import { SmoScore } from '../../smo/data/score';
 
 // ## SuiLibraryDialog
 // Traverse the library nodes or load a score
-// eslint-disable-next-line no-unused-vars
 export class SuiLibraryDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiLibraryDialog';

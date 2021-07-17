@@ -3,7 +3,6 @@
 import { PromiseHelpers } from '../../common/promiseHelpers';
 // ## SuiActionPlayback
 // play back the action records.
-// eslint-disable-next-line no-unused-vars
 export class SuiActionPlayback {
   // In the application, the object plays the actions back.
   constructor(actionRecord, view) {

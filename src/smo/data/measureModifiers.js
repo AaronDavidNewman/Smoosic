@@ -19,7 +19,7 @@ export class SmoMeasureModifierBase {
     }
   }
   static deserialize(jsonObj) {
-    const ctor = eval(jsonObj.ctor);
+    const ctor = Smo.getClass(jsonObj.ctor);
     const rv = new ctor(jsonObj);
     return rv;
   }

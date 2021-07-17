@@ -840,7 +840,7 @@ export class SmoMeasure {
 
   // ### measure modifier mixins
   _addSingletonModifier(name, parameters) {
-    const ctor = eval(name);
+    const ctor = Smo.getClass(name);
     const ar = this.modifiers.filter(obj => obj.attrs.type !== name);
     this.modifiers = ar;
     this.modifiers.push(new ctor(parameters));

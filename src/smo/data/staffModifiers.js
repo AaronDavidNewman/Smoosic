@@ -14,13 +14,12 @@ const VF = Vex.Flow;
 // ## StaffModifierBase
 // ## Description:
 // Base class that mostly standardizes the interface and deals with serialization.
-// eslint-disable-next-line no-unused-vars
 export class StaffModifierBase {
   constructor(ctor) {
     this.ctor = ctor;
   }
   static deserialize(params) {
-    const ctor = eval(params.ctor);
+    const ctor = Smo.getClass(params.ctor);
     const rv = new ctor(params);
     return rv;
   }
@@ -109,7 +108,6 @@ export class SmoStaffHairpin extends StaffModifierBase {
 // slur staff modifier
 // ## SmoSlur Methods:
 // ---
-// eslint-disable-next-line no-unused-vars
 export class SmoSlur extends StaffModifierBase {
   static get defaults() {
     return {
@@ -179,7 +177,6 @@ export class SmoSlur extends StaffModifierBase {
 // ## SmoTie
 // like slur but multiple pitches
 // ---
-// eslint-disable-next-line no-unused-vars
 export class SmoTie extends StaffModifierBase {
   static get defaults() {
     return {

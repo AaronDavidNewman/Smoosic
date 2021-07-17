@@ -9,7 +9,6 @@ import { SmoVolta } from '../../smo/data/measureModifiers';
 
 // ## SuiStaffModifierDialog
 // Edit the attributes of a staff modifier (connects notes in the same staff)
-// eslint-disable-next-line no-unused-vars
 export class SuiStaffModifierDialog extends SuiDialogBase {
   constructor(elements, params) {
     super(elements, params);
@@ -55,7 +54,6 @@ export class SuiStaffModifierDialog extends SuiDialogBase {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiSlurAttributesDialog.ctor;
@@ -190,7 +188,6 @@ export class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 export class SuiTieAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiTieAttributesDialog.ctor;
@@ -263,7 +260,6 @@ export class SuiTieAttributesDialog extends SuiStaffModifierDialog {
 
 // ## SuiVoltaAttributeDialog
 // aka first and second endings
-// eslint-disable-next-line no-unused-vars
 export class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiVoltaAttributeDialog.ctor;
@@ -358,7 +354,6 @@ export class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
     this.selection = SmoSelection.measureSelection(this.view.score, this.modifier.startSelector.staff, this.modifier.startSelector.measure);
   }
 }
-// eslint-disable-next-line no-unused-vars
 export class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiHairpinAttributesDialog.ctor;
@@ -445,7 +440,6 @@ export class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
 }
 // ## SuiStaffGroupDialog
 // A staff group is a grouping of staves that can be bracketed and justified
-// eslint-disable-next-line no-unused-vars
 export class SuiStaffGroupDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiStaffGroupDialog';
