@@ -15,6 +15,20 @@ API Demo Links (codepen):
 ---
 
 ## Changes to Smoosic
+### Webpack and general rewrite (July, 2021)
+2 ways to do a thing, right and over.  Some aspects of Smoosic need a fresh iteration before I can go much further.
+
+First big change, moving from concat to webpack.  I realize now why people use it.  There's no other way to check for defined/unused symbols with a bunch of 
+scripts that don't know about each other.
+
+Once I am in webpack-land, I can start moving the SMO music files to typescript.  Right now it is too easy to pass an Ornament when an Articulation is expected, etc.
+
+While doing this, I expect to revisit the object model.  2 things that I did not consider in the first go-round:
+1.  Formatting can be score or part-specific, and can be score-wide or page-wide
+2.  Modifiers can be mapped to a specific note/measure, or the column, and can also be per part or per score.
+3.  Some attributes of objects are generated while rendering, others are serialized and persist.
+
+Out of consideration for those who use Smoosic currently, and fear that it won't work out, I'm doing this work on a separate branch.  I expect existing Smoosic files will be backwards-compatible.  I will try to minimize the impact on existing codes.
 
 ### UI improvements and bug fixes (April 3, 2021)  
 
