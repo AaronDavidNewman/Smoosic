@@ -21,20 +21,121 @@ import { SourceSansProFont } from '../styles/font_metrics/ssp-sans-metrics';
 import { SourceSerifProFont } from '../styles/font_metrics/ssp-serif-metrics';
 import { _MidiWriter } from '../common/midiWriter';
 import { mxmlScore } from '../smo/mxml/xmlScore';
-
 import { SuiDom } from './dom';
+import { librarySeed } from './fileio/library';
 
-const VF = Vex.Flow;
+// declare var Flow: any;
+interface pairType { [key: string]: string };
+export interface SmoConfiguration {
+  smoPath?: string,
+  language: string,
+  scoreLoadOrder? : string[],
+  scoreLoadJson?: string,
+  smoDomContainer?: 'smoo',
+  vexDomContainer?: 'boo',
+  domSource?: ' SuiDom',
+  ribbon?: true,
+  keyCommands?: true,
+  menus?: true,
+  title?: 'Smoosic',
+  libraryUrl?: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json',
+  languageDir: string,
+  demonPollTime: number, // how often we poll the score to see if it changed
+  idleRedrawTime: number
+}
+declare var SmoConfig : SmoConfiguration;
 
+interface loadedScore {
+  scorePath: string | null,
+  score: SmoScore | null,
+  mode: string
+};
+export interface controllerKeyBinding {
+  event: string,
+  key: string,
+  ctrlKey: boolean,
+  altKey: boolean,
+  shiftKey: boolean,
+  action: string
+}
+export interface controllerParams {
+  keyBindingDefaults: controllerKeyBinding[],
+  eventSource: browserEventSource
+  view: SuiScoreViewOperations,
+  keyCommands: SuiKeyCommands,
+  layoutDemon: SuiRenderDemon,
+  menus: suiMenuManager
+}
+const VF = eval('Vex.Flow');
+const Smo = eval('globalThis.Smo');
+
+/**
+ * SuiScoreBuilder
+ * create the initial score based on the query string/history
+ */
+export class SuiScoreBuilder {
+  localScoreLoad(): loadedScore {
+    var score = null;
+    var scoreStr = localStorage.getItem(smoSerialize.localScore);
+    if (scoreStr && scoreStr.length) {
+      try {
+        score = SmoScore.deserialize(scoreStr);
+      } catch (exp) {
+        console.log('could not parse ' + scoreStr);
+      }
+    }
+    return { score, scorePath: null, mode: 'local' };
+  }
+
+  queryScoreLoad(): loadedScore | null {
+    var i;
+    if (window.location.search) {
+      const cmd = window.location.search.substring(1, window.location.search.length);
+      const cmds = cmd.split('&');
+      for (i = 0; i < cmds.length; ++i) {
+        const cmd = cmds[i];
+        const pairs = SuiApplication._nvQueryPair(cmd);
+        if (pairs.score) {
+          try {
+            const path = SuiApplication.scoreLibrary.find((pp) => pp.alias === pairs.score);
+            if (!path) {
+              return null;
+            } else {
+              return { scorePath: path.path, score: null, mode: 'remote' };
+            }
+          } catch (exp) {
+            console.log('could not parse ' + exp);
+          }
+        } else if (pairs.lang) {
+          SuiApplication._deferLanguageSelection(pairs.lang);
+          return null;
+        } else if (pairs.translate) {
+          SuiApplication._deferCreateTranslator(pairs.translate);
+          return null;
+        }
+        return null;
+      }
+    }
+    return null;
+  }
+  libraryScoreLoad(): loadedScore {
+    const score = SmoScore.deserialize(Smo.getClass(SmoConfig.scoreLoadJson));
+    return { score, scorePath: null, mode: 'local' };
+  }
+}
+/** SuiApplication
+ * main entry point of application.  Based on the configuration,
+ * either start the default UI, or initialize library mode and 
+ * await further instructions.
+ */
 export class SuiApplication {
-  static get defaultConfig() {
+  scoreLibrary: any;
+  static get defaultConfig():SmoConfiguration {
     return {
       smoPath: '..',
       language: 'en',
       scoreLoadOrder: ['query', 'local', 'library'],
       scoreLoadJson: 'Smo.basicJson',
-      eventsSource: 'browserEventSource',
-      controller: 'suiController',
       smoDomContainer: 'smoo',
       vexDomContainer: 'boo',
       domSource: ' SuiDom',
@@ -48,15 +149,14 @@ export class SuiApplication {
       idleRedrawTime: 1000, // maximum time between score modification and render
     };
   }
-  static configure(params) {
-    const config = {};
-    Vex.Merge(config, SuiApplication.defaultConfig);
+  static configure(params: Partial<SmoConfiguration>) {
+    const config: SmoConfiguration = SuiApplication.defaultConfig;
     Vex.Merge(config, params);
-    window.SmoConfig = config;
+    (window as any).SmoConfig = config;
     SuiApplication.registerFonts();
   }
 
-  constructor(params) {
+  constructor(params: any) {
     SuiApplication.configure(params);
     this.startApplication();
   }
@@ -69,47 +169,51 @@ export class SuiApplication {
     let i = 0;
     // Initialize the midi writer library
     _MidiWriter();
-    for (i = 0; i < SmoConfig.scoreLoadOrder.length; ++i) {
-      const loader = SmoConfig.scoreLoadOrder[i];
-      const method = loader + 'ScoreLoad';
-      const ss = this[method]();
+    const config = (window as any).SmoConfig;
+    for (i = 0; i < config.scoreLoadOrder.length; ++i) {
+      const loader: string = config.scoreLoadOrder[i];
+      let method = 'localScoreLoad' as keyof SuiScoreBuilder;
+      if (loader === 'query') {
+        method = 'queryScoreLoad' as keyof SuiScoreBuilder;
+      } else if (loader === 'libraryScoreLoad') {
+        method = 'libraryScoreLoad' as keyof SuiScoreBuilder;
+      }
+      const ssb = new SuiScoreBuilder();
+      const ss: loadedScore | null = ssb[method]();
       const des = SmoScore.deserialize;
       const xparse = mxmlScore.smoScoreFromXml;
       if (ss && ss.score) {
         if (ss.mode === 'local') {
           this.createUi(ss.score);
-        } else {
-          const localScore = this.libraryScoreLoad();
+        } else if (ss.score !== null) {
+          const localScore = ssb.libraryScoreLoad();
+          if (localScore.score === null) {
+            return;
+          }
           this.createUi(localScore.score);
-          smoSerialize.loadRemoteFile(ss.score.path, (scoreText) => {
-            if (ss.score.format === 'json') {
-              const remoteScore = des(scoreText);
-              this.view.changeScore(remoteScore);
-            } else {
-              const parser = new DOMParser();
-              const xml = parser.parseFromString(scoreText, 'text/xml');
-              const remoteScore = xparse(xml);
-              this.view.changeScore(remoteScore);
-            }
-          });
+          smoSerialize.loadRemoteFile(ss.scorePath);
         }
         break;
       }
     }
   }
 
-  // ## createUi
-  // ### Description:
-  // Convenience constructor, taking a renderElement and a score.
-  createUi(score) {
-    Smo.getClass(SmoConfig.domSource).createDom();
-    const params = suiController.keyBindingDefaults;
+  /**
+   * Convenience constructor, take the score and render it in the 
+   * configured rendering space.
+   * @param score 
+   */
+  createUi(score: SmoScore) {
+    SuiDom.createDom();
+    const params: Partial<controllerParams> = {};
+    params.keyBindingDefaults = suiController.keyBindingDefaults;
     params.eventSource = new browserEventSource(); // events come from the browser UI.
+    const selector = typeof(SmoConfig.vexDomContainer) === 'undefined' ? '' : SmoConfig.vexDomContainer;
 
-    const scoreRenderer = SuiScoreRender.createScoreRenderer(document.getElementById(SmoConfig.vexDomContainer), score);
+    const scoreRenderer = SuiScoreRender.createScoreRenderer(document.getElementById(
+      selector), score);
     params.eventSource.setRenderElement(scoreRenderer.renderElement);
     params.view = new SuiScoreViewOperations(scoreRenderer, score, '.musicRelief');
-    this.view = params.view;
     if (SmoConfig.keyCommands) {
       params.keyCommands = new SuiKeyCommands(params);
     }
@@ -119,7 +223,6 @@ export class SuiApplication {
     params.layoutDemon = new SuiRenderDemon(params);
     const controller = new suiController(params);
     SuiDom.splash();
-    this.controller = controller;
   }
   static registerFonts() {
     VF.TextFont.registerFont({
@@ -222,18 +325,18 @@ export class SuiApplication {
     });
   }
 
-  static _nvQueryPair(str) {
+  static _nvQueryPair(str: string): pairType {
     var i = 0;
     const ar = str.split('=');
-    const rv = {};
-    for (i =  0; i < ar.length - 1; i += 2) {
+    const rv: pairType = {};
+    for (i = 0; i < ar.length - 1; i += 2) {
       const name = decodeURIComponent(ar[i]);
       rv[name] = decodeURIComponent(ar[i + 1]);
     }
     return rv;
   }
 
-  static get scoreLibrary() {
+  static get scoreLibrary(): librarySeed[] {
     return [
       { alias: 'bach', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/BachInvention.json' },
       { alias: 'yama', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json' },
@@ -249,65 +352,17 @@ export class SuiApplication {
     ];
   }
 
-  localScoreLoad() {
-    var score = null;
-    var scoreStr = localStorage.getItem(smoSerialize.localScore);
-    if (scoreStr && scoreStr.length) {
-      try {
-        score = SmoScore.deserialize(scoreStr);
-      } catch (exp) {
-        console.log('could not parse ' + scoreStr);
-      }
-    }
-    return { score, mode: 'local' };
-  }
 
-  queryScoreLoad() {
-    var i;
-    if (window.location.search) {
-      const cmd = window.location.search.substring(1, window.location.search.length);
-      const cmds = cmd.split('&');
-      for (i = 0; i < cmds.length; ++i) {
-        const cmd = cmds[i];
-        const pairs = SuiApplication._nvQueryPair(cmd);
-        if (pairs.score) {
-          try {
-            const path = SuiApplication.scoreLibrary.find((pp) => pp.alias === pairs.score);
-            if (!path) {
-              return null;
-            } else {
-              return { score: path, mode: 'remote' };
-            }
-          } catch (exp) {
-            console.log('could not parse ' + exp);
-          }
-        } else if (pairs.lang) {
-          SuiApplication._deferLanguageSelection(pairs.lang);
-          return null;
-        } else if (pairs.translate) {
-          SuiApplication._deferCreateTranslator(pairs.translate);
-          return null;
-        }
-        return null;
-      }
-    }
-    return null;
-  }
-
-  static _deferCreateTranslator(lang) {
+  static _deferCreateTranslator(lang: string) {
     setTimeout(() => {
       SmoTranslationEditor.startEditor(lang);
     }, 1);
   }
 
-  static _deferLanguageSelection(lang) {
+  static _deferLanguageSelection(lang: string) {
     setTimeout(() => {
       SmoTranslator.setLanguage(lang);
     }, 1);
   }
-
-  libraryScoreLoad() {
-    const score = SmoScore.deserialize(Smo.getClass(SmoConfig.scoreLoadJson));
-    return { score, mode: 'local' };
-  }
 }
+

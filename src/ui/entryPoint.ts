@@ -18,7 +18,7 @@ import { SuiHelp } from './help';
 
 // Language strings
 import { quickStartHtmlen, selectionHtmlen, enterDurationsHtmlen, enterPitchesHtmlen } from './i18n/language_en';
-import { quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHtmlar } from './i18n/language_en';
+import { quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHtmlar } from './i18n/language_ar';
 
 // ui dialogs and menus
 // Dialogs
@@ -32,9 +32,9 @@ import { SuiDynamicModifierDialog, SuiTextTransformDialog, SuiLyricDialog, SuiCh
   helpModal } from './dialogs/textDialogs';
 import { SuiStaffModifierDialog, SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
     SuiHairpinAttributesDialog, SuiStaffGroupDialog } from './dialogs/staffDialogs';
-import { SuiFileDialog,  SuiLoadFileDialog, SuiLoadMxmlDialog, 
+import { SuiLoadFileDialog, SuiLoadMxmlDialog, 
     SuiLoadActionsDialog, SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
-    SuiSaveMidiDialog, SuiSaveActionsDialog } from './dialogs/fileDialogs';
+    SuiSaveMidiDialog, SuiSaveActionsDialog, SuiFileDialog } from './dialogs/fileDialogs';
     // Dialog components
 import {
     SuiDropdownComponent, SuiRockerComponent, SuiFileDownloadComponent,
@@ -75,12 +75,14 @@ import {
     SmoRehearsalMark, SmoMeasureFormat, SmoBarline, SmoRepeatSymbol,
     SmoVolta, SmoMeasureText, SmoTempoText
 } from '../smo/data/measureModifiers';
-import { SmoMeasureFormat, SmoBarline } from '../smo/data/measureModifiers';
-import { SuiFileDialog } from './dialogs/fileDialogs';
 
+const getClass = (jsonString: string) => {
+    return eval('Smo.' + jsonString);
+};
 export const Smo = {
     // Application-level classes
-    SuiApplication, SuiDom,  suiController, SuiExceptionHandler,
+    SuiApplication,
+    SuiDom,  suiController, SuiExceptionHandler,
     Qwerty, SuiHelp,
     // Ribbon buttons
     RibbonButtons, NoteButtons, TextButtons, ChordButtons, MicrotoneButtons,
@@ -134,8 +136,6 @@ export const Smo = {
     // strings
     quickStartHtmlen, selectionHtmlen, enterDurationsHtmlen, enterPitchesHtmlen,
     quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHtmlar
+    ,getClass
 }
-Smo.getClass = (jsonString) => {
-    return eval('Smo.' + jsonString);
-};
 export default Smo;

@@ -3,10 +3,29 @@
 import { SuiXhrLoader } from './xhrLoader';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 import { smoSerialize } from '../../common/serializationHelpers';
+interface kvPair { [key: string]: string };
+export interface LibraryParams {
+  loaded: boolean;
+  parentLib: kvPair;
+  url: string | undefined;
+  format: string;
+  metadata: kvPair;
+  children: SmoLibrary[];
+  data: any;
+}
+export interface librarySeed { alias: string, format: string, path: string };
+
 // ## SmoLibrary
 // A class to organize smoosic files (or any format smoosic accepts) into libraries.
 export class SmoLibrary {
-  constructor(parameters) {
+  static _defaults: Partial<LibraryParams>;
+  loaded: boolean;
+  parentLib: kvPair;
+  url: string | undefined = '';
+  format: string = 'smo';
+  metadata: kvPair = {};
+  children: SmoLibrary[] = [];
+  constructor(parameters: Partial<LibraryParams>) {
     this.loaded = false;
     this.parentLib = {};
     if (parameters.url) {
@@ -15,7 +34,7 @@ export class SmoLibrary {
       this.initialize(parameters.data);
     }
   }
-  initialize(parameters) {
+  initialize(parameters: LibraryParams) {
     smoSerialize.serializedMerge(
       SmoLibrary.parameterArray, SmoLibrary.defaults, this);
     // if the object was loaded from URL, use that.
@@ -23,12 +42,12 @@ export class SmoLibrary {
       this.url = parameters.url;
     }
     this.format = parameters.format;
-    Object.keys(parameters.metadata).forEach((key) => {
+    Object.keys(parameters.metadata).forEach((key: string) => {
       this.metadata[key] = parameters.metadata[key];
     });
     this.children = [];
     if (typeof(parameters.children) !== 'undefined') {
-      parameters.children.forEach((childLib) => {
+      parameters.children.forEach((childLib: SmoLibrary) => {
         this.children.push(new SmoLibrary({ data: childLib }));
       });
     }
@@ -48,7 +67,7 @@ export class SmoLibrary {
   }
   static get defaults() {
     if (typeof(SmoLibrary._defaults) === 'undefined') {
-      SmoLibrary._defaults = { chidren: [], metadata: {} };
+      SmoLibrary._defaults = { children: [], metadata: {} };
     }
     return SmoLibrary._defaults;
   }
@@ -61,7 +80,7 @@ export class SmoLibrary {
       return PromiseHelpers.emptyPromise();
     }
     const loader = new SuiXhrLoader(this.url);
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       loader.loadAsync().then(() => {
         const jsonObj = JSON.parse(loader.value);
         self.initialize(jsonObj);
@@ -70,12 +89,13 @@ export class SmoLibrary {
       });
     });
   }
-  _inheritMetadata(parent) {
-    Object.keys(parent.metadata).forEach((mn) => {
-      if (typeof(this.metadata[mn]) === 'undefined')  {
-        this.metadata[mn] = parent[mn];
+  _inheritMetadata(parent: any) {
+    for (const key in parent) {
+      const  foo = parent[key];
+      if (typeof(this.metadata[key]) === 'undefined')  {
+        this.metadata[key] = parent[key];
       }
-    });
+    }
     this.parentLib = { name: parent.metadata.name, value: parent };
     this.children.forEach((child) => {
       child._inheritMetadata(this);

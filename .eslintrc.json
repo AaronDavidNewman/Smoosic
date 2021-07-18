@@ -1,6 +1,12 @@
 {
-  "extends": "airbnb-base",
   "root": true,
+  "extends": [
+    "airbnb-base",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "plugin:import/typescript"
+  ],
+  "parser": "@typescript-eslint/parser",
   "env": {
     "browser": true,
     "jquery": true,
@@ -15,6 +21,16 @@
      "MidiWriter": true
   },
   "rules": {
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "jsx": "never",
+        "ts": "never",
+        "tsx": "never"
+      }
+   ],
     "no-bitwise": [
       0
     ],
