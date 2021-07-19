@@ -20,12 +20,12 @@ import { MerriweatherFont } from '../styles/font_metrics/Merriweather-Regular';
 import { SourceSansProFont } from '../styles/font_metrics/ssp-sans-metrics';
 import { SourceSerifProFont } from '../styles/font_metrics/ssp-serif-metrics';
 import { _MidiWriter } from '../common/midiWriter';
-import { mxmlScore } from '../smo/mxml/xmlScore';
 import { SuiDom } from './dom';
 import { librarySeed } from './fileio/library';
 
-// declare var Flow: any;
-interface pairType { [key: string]: string };
+declare var SmoConfig : SmoConfiguration;
+
+interface pairType { [key: string]: string }
 export interface SmoConfiguration {
   smoPath?: string,
   language: string,
@@ -43,13 +43,12 @@ export interface SmoConfiguration {
   demonPollTime: number, // how often we poll the score to see if it changed
   idleRedrawTime: number
 }
-declare var SmoConfig : SmoConfiguration;
 
 interface loadedScore {
   scorePath: string | null,
   score: SmoScore | null,
   mode: string
-};
+}
 export interface controllerKeyBinding {
   event: string,
   key: string,
@@ -125,7 +124,7 @@ export class SuiScoreBuilder {
 }
 /** SuiApplication
  * main entry point of application.  Based on the configuration,
- * either start the default UI, or initialize library mode and 
+ * either start the default UI, or initialize library mode and
  * await further instructions.
  */
 export class SuiApplication {
@@ -167,6 +166,7 @@ export class SuiApplication {
   }
   _startApplication() {
     let i = 0;
+    let loaded = false;
     // Initialize the midi writer library
     _MidiWriter();
     const config = (window as any).SmoConfig;
@@ -180,28 +180,33 @@ export class SuiApplication {
       }
       const ssb = new SuiScoreBuilder();
       const ss: loadedScore | null = ssb[method]();
-      const des = SmoScore.deserialize;
-      const xparse = mxmlScore.smoScoreFromXml;
       if (ss && ss.score) {
         if (ss.mode === 'local') {
+          loaded = true;
           this.createUi(ss.score);
         } else if (ss.score !== null) {
           const localScore = ssb.libraryScoreLoad();
           if (localScore.score === null) {
             return;
           }
+          loaded = true;
           this.createUi(localScore.score);
           smoSerialize.loadRemoteFile(ss.scorePath);
         }
         break;
       }
     }
+    if (loaded === false) {
+      const scoreString = eval('globalThis.Smo.basicJson');
+      const score = SmoScore.deserialize(scoreString);
+      this.createUi(score);
+    }
   }
 
   /**
-   * Convenience constructor, take the score and render it in the 
+   * Convenience constructor, take the score and render it in the
    * configured rendering space.
-   * @param score 
+   * @param score(SmoScore) - the score
    */
   createUi(score: SmoScore) {
     SuiDom.createDom();
@@ -221,7 +226,9 @@ export class SuiApplication {
       params.menus = new suiMenuManager(params);
     }
     params.layoutDemon = new SuiRenderDemon(params);
-    const controller = new suiController(params);
+    // Start the application event processing and render the initial score
+    // eslint-disable-next-line
+    new suiController(params);
     SuiDom.splash();
   }
   static registerFonts() {
@@ -351,8 +358,6 @@ export class SuiApplication {
       { alias: 'joplin', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/ScottJoplin_The_Entertainer.xml' }
     ];
   }
-
-
   static _deferCreateTranslator(lang: string) {
     setTimeout(() => {
       SmoTranslationEditor.startEditor(lang);
@@ -365,4 +370,3 @@ export class SuiApplication {
     }, 1);
   }
 }
-

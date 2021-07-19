@@ -24,7 +24,7 @@ module.exports = function (grunt) {
    'src/ui/dialogs/textDialogs.js',
    'src/ui/dialogs/measureDialogs.js','src/ui/dialogs/staffDialogs.js','src/ui/dialogs/libraryDialog.js','src/ui/dialogs/treeComponent.js' ,
    'src/ui/dialogs/fileDialogs.js',
-   'src/ui/application.js', 'src/ui/fileio/fileInput.js', 'src/ui/fileio/xhrLoader.js','src/ui/fileio/library.js',
+   'src/ui/application.ts', 'src/ui/fileio/fileInput.js', 'src/ui/fileio/xhrLoader.js','src/ui/fileio/library.ts',
   ]
   
   const BASE_DIR = __dirname;

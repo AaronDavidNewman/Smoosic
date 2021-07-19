@@ -432,7 +432,8 @@ export class smoSerialize {
         if (typeof(src[attr]) === 'number' ||
           typeof(src[attr]) === 'boolean' ||
           typeof(src[attr]) === 'string' ) {
-          if (src[attr] != defaults[attr]) {
+          // always persist object type so it can be deserialized
+          if (src[attr] !== defaults[attr] || attr === 'ctor') {
             dest[attr] = src[attr];
           }
         // copy the empty array

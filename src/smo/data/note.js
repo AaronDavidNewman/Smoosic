@@ -402,7 +402,7 @@ export class SmoNote {
       if (this[attr] && this[attr].length) {
         params[attr] = [];
         this[attr].forEach((mod) => {
-          params[attr].push(mod.serialize());
+          params[attr].push(JSON.parse(JSON.stringify(mod.serialize())));
         });
       }
     });
@@ -450,7 +450,11 @@ export class SmoNote {
         note[attr] = [];
       } else {
         jsonObj[attr].forEach((mod) => {
-          note[attr].push(SmoNoteModifierBase.deserialize(mod));
+          if (typeof(mod.ctor) === 'string') {
+            note[attr].push(SmoNoteModifierBase.deserialize(mod));
+          } else {
+            console.log('bad modifier, no ctor');
+          }
         });
       }
     });

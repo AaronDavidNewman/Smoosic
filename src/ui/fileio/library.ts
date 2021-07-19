@@ -3,7 +3,7 @@
 import { SuiXhrLoader } from './xhrLoader';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 import { smoSerialize } from '../../common/serializationHelpers';
-interface kvPair { [key: string]: string };
+interface kvPair { [key: string]: string }
 export interface LibraryParams {
   loaded: boolean;
   parentLib: kvPair;
@@ -13,7 +13,7 @@ export interface LibraryParams {
   children: SmoLibrary[];
   data: any;
 }
-export interface librarySeed { alias: string, format: string, path: string };
+export interface librarySeed { alias: string, format: string, path: string }
 
 // ## SmoLibrary
 // A class to organize smoosic files (or any format smoosic accepts) into libraries.
@@ -90,8 +90,8 @@ export class SmoLibrary {
     });
   }
   _inheritMetadata(parent: any) {
+    // eslint-disable-next-line
     for (const key in parent) {
-      const  foo = parent[key];
       if (typeof(this.metadata[key]) === 'undefined')  {
         this.metadata[key] = parent[key];
       }
