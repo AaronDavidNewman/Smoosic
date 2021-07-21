@@ -3,10 +3,6 @@ export interface SmoAttrs {
     type: string
 }
 
-export interface SmoObjectParams {
-    ctor: string
-}
-
 export interface Ticks {
     numerator: number,
     denominator: number,
@@ -15,8 +11,8 @@ export interface Ticks {
 
 export interface Pitch {
     letter: string,
-    accidental?: string,
-    octave?: number
+    accidental: string,
+    octave: number
 }
 
 export interface FontInfo {

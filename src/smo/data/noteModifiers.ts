@@ -15,7 +15,7 @@ export interface SmoObjectParams {
 // ## SmoNoteModifierBase
 // A note modifier is anything that is mapped to the note, but not part of the
 // pitch itself.  This includes grace notes, and note-text like lyrics
-export class SmoNoteModifierBase {
+export abstract class SmoNoteModifierBase {
   attrs: SmoAttrs;
   ctor: string;
   constructor(ctor: string) {
@@ -33,6 +33,7 @@ export class SmoNoteModifierBase {
     const rv = new ctor(jsonObj);
     return rv;
   }
+  abstract serialize(): object;
 }
 
 export interface GraceNoteParams extends SmoObjectParams {
@@ -83,6 +84,7 @@ export class SmoGraceNote extends SmoNoteModifierBase {
   ticks: Ticks = SmoGraceNote.defaults.ticks;
   pitches: Pitch[] = [];
   slash: boolean = false;
+  clef: string = 'treble';
 
   tickCount() {
     return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
@@ -117,6 +119,7 @@ export interface SmoMicrotoneParams extends SmoObjectParams {
 // rules for persisting throughout a measure.
 export class SmoMicrotone extends SmoNoteModifierBase {
   tone: number = SmoMicrotone.pitchCoeff.flat125ar;
+  pitch: Pitch = { letter: 'c', octave: 4, accidental: 'n' };
 
   // This is how VexFlow notates them
   static readonly smoToVex: Record<string, string> = {
@@ -164,7 +167,7 @@ export class SmoMicrotone extends SmoNoteModifierBase {
     }
     return rv;
   }
-  serialize() {
+  serialize():object {
     var params = {};
     smoSerialize.serializedMergeNonDefault(SmoMicrotone.defaults,
       SmoMicrotone.parameterArray, this, params);
@@ -248,7 +251,7 @@ export class SmoOrnament extends SmoNoteModifierBase {
     position: SmoOrnament.positions.above,
     offset: SmoOrnament.offsets.on
   }
-  serialize() {
+  serialize(): object {
     var params = {};
     smoSerialize.serializedMergeNonDefault(SmoOrnament.defaults,
       SmoOrnament.parameterArray, this, params);
@@ -338,7 +341,7 @@ export class SmoArticulation extends SmoNoteModifierBase {
   articulation: string = SmoArticulation.articulations.accent;
   adjX: number = 0;
 
-  serialize() {
+  serialize(): object {
     var params = {};
     smoSerialize.serializedMergeNonDefault(SmoArticulation.defaults,
       SmoArticulation.parameterArray, this, params);
@@ -478,7 +481,7 @@ export class SmoLyric extends SmoNoteModifierBase {
   adjX: 0;
   adjY: 0;
 
-  serialize() {
+  serialize(): object {
     var params = {};
     smoSerialize.serializedMergeNonDefault(SmoLyric.defaults,
       SmoLyric.persistArray, this, params);
@@ -677,7 +680,7 @@ export class SmoDynamicText extends SmoNoteModifierBase {
     return rv;
   }
   selector: SmoSelector;
-  serialize() {
+  serialize(): object {
     var params = {};
     smoSerialize.serializedMergeNonDefault(SmoDynamicText.defaults,
       SmoDynamicText.persistArray, this, params);

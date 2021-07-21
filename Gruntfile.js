@@ -4,7 +4,7 @@ const webpack = require('webpack');
 module.exports = function (grunt) {
   // Used for eslint and docco
   const LINTS = ['src/common/musicHelpers.js',
-    'src/smo/data/measure.js','src/smo/data/note.js','src/smo/data/score.js',
+    'src/smo/data/measure.js','src/smo/data/note.ts','src/smo/data/score.js',
   'src/smo/xform/beamers.js','src/smo/xform/audioTrack.js',
   'src/smo/data/noteModifiers.ts','src/smo/data/systemStaff.js','src/smo/data/scoreModifiers.js',
   'src/smo/data/tuplet.js','src/smo/data/staffModifiers.js',
