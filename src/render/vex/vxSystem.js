@@ -339,7 +339,7 @@ export class VxSystem {
           const group = this.context.openGroup(null, ending.attrs.id);
           group.classList.add(ending.attrs.id);
           group.classList.add(ending.endingId);
-          const vtype = ending.toVexVolta(smoMeasure.measureNumber.measureNumber);
+          const vtype = ending.toVexVolta(smoMeasure.measureNumber.measureIndex);
           const vxVolta = new VF.Volta(vtype, ending.number, smoMeasure.staffX + ending.xOffsetStart, ending.yOffset);
           vxVolta.setContext(this.context).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
           this.context.closeGroup();

@@ -21,3 +21,10 @@ export interface FontInfo {
     family: string;
     style?: string;
   }
+
+  export interface MeasureNumber {
+      measureIndex: number,
+      localIndex: number,
+      systemIndex: number,
+      staffId: number
+  }
