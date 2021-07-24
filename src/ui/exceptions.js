@@ -75,7 +75,7 @@ export class SuiExceptionHandler {
     $('.bug-dismiss-button').off('click').on('click', () => {
       $('body').removeClass('bugReport');
       if (lastOp) {
-        this.view.undoBuffer.undo(self.view.score);
+        this.view.undoBuffer.undo(this.view.score);
         this.view.renderer.render();
         suiController.reentry = false;
       }

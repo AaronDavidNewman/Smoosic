@@ -4,19 +4,53 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNote } from './note';
 import { smoMusic } from '../../common/musicHelpers';
 import { SmoNoteModifierBase } from './noteModifiers';
-const VF = Vex.Flow;
+import { SmoAttrs } from './common';
+const VF = eval('Vex.Flow');
+
+export interface SmoTupletParams {
+  notes: SmoNote[],
+  numNotes: number,
+  stemTicks: number,
+  totalTicks: number,
+  durationMap: number[],
+  ratioed: boolean,
+  bracketed: boolean,
+  voice: number,
+  startIndex: number
+}
 
 export class SmoTuplet {
-  constructor(params) {
-    this.notes = params.notes;
+  static get defaults(): SmoTupletParams {
+    return {
+      notes: [],
+      numNotes: 3,
+      stemTicks: 2048,
+      totalTicks: 4096, // how many ticks this tuple takes up
+      durationMap: [1.0, 1.0, 1.0],
+      bracketed: true,
+      voice: 0,
+      ratioed: false,
+      startIndex: 0
+    };
+  }
+  attrs: SmoAttrs;
+  notes: SmoNote[];
+  numNotes: number = 3;
+  stemTicks: number = 2048;
+  totalTicks: number = 4096;
+  durationMap: number[] = [1.0, 1.0, 1.0];
+  bracketed: boolean = true;
+  voice: number = 0;
+  ratioed: boolean = false;
+  startIndex: number = 0;
+  constructor(params: SmoTupletParams) {
     Vex.Merge(this, SmoTuplet.defaults);
     smoSerialize.serializedMerge(SmoTuplet.parameterArray, params, this);
-    if (!this.attrs) {
-      this.attrs = {
-        id: VF.Element.newID(),
-        type: 'SmoTuplet'
-      };
-    }
+    this.notes = params.notes;
+    this.attrs = {
+      id: VF.Element.newID(),
+      type: 'SmoTuplet'
+    };
     this._adjustTicks();
   }
 
@@ -43,7 +77,7 @@ export class SmoTuplet {
     return params;
   }
 
-  static calculateStemTicks(totalTicks, numNotes) {
+  static calculateStemTicks(totalTicks: number, numNotes: number) {
     const stemValue = totalTicks / numNotes;
     let stemTicks = SmoTuplet.longestTuplet;
 
@@ -55,7 +89,7 @@ export class SmoTuplet {
     return stemTicks * 2;
   }
 
-  static cloneTuplet(tuplet) {
+  static cloneTuplet(tuplet: SmoTuplet) {
     let i = 0;
     const noteAr = tuplet.notes;
     const durationMap = JSON.parse(JSON.stringify(tuplet.durationMap)); // deep copy array
@@ -64,10 +98,10 @@ export class SmoTuplet {
     const totalTicks = noteAr.map((nn) => nn.ticks.numerator + nn.ticks.remainder)
       .reduce((acc, nn) => acc + nn);
 
-    const numNotes = tuplet.numNotes;
+    const numNotes: number = tuplet.numNotes;
     const stemTicks = SmoTuplet.calculateStemTicks(totalTicks, numNotes);
 
-    const tupletNotes = [];
+    const tupletNotes: SmoNote[] = [];
 
     noteAr.forEach((note) => {
       const textModifiers = note.textModifiers;
@@ -80,7 +114,7 @@ export class SmoTuplet {
 
       // Don't clone modifiers, except for first one.
       if (i === 0) {
-        const ntmAr = [];
+        const ntmAr: any = [];
         textModifiers.forEach((tm) => {
           const ntm = SmoNoteModifierBase.deserialize(tm);
           ntmAr.push(ntm);
@@ -90,7 +124,19 @@ export class SmoTuplet {
       i += 1;
       tupletNotes.push(note);
     });
+    /* notes: [],
+      numNotes: 3,
+      stemTicks: 2048,
+      totalTicks: 4096, // how many ticks this tuple takes up
+      durationMap: [1.0, 1.0, 1.0],
+      bracketed: true,
+      voice: 0,
+      ratioed: false,
+      startIndex: 0
+      */
     const rv = new SmoTuplet({
+      numNotes: tuplet.numNotes,
+      voice: tuplet.voice,
       notes: tupletNotes,
       stemTicks,
       totalTicks,
@@ -120,7 +166,7 @@ export class SmoTuplet {
     this.notes[0].ticks.remainder =
       this.notes[0].ticks.remainder + this.totalTicks - noteTicks;
   }
-  getIndexOfNote(note) {
+  getIndexOfNote(note: SmoNote) {
     let rv = -1;
     let i = 0;
     for (i = 0; i < this.notes.length; ++i) {
@@ -132,7 +178,7 @@ export class SmoTuplet {
     return rv;
   }
 
-  split(combineIndex) {
+  split(combineIndex: number) {
     let i = 0;
     const multiplier = 0.5;
     const nnotes = [];
@@ -158,7 +204,7 @@ export class SmoTuplet {
     this.notes = nnotes;
     this.durationMap = nmap;
   }
-  combine(startIndex, endIndex) {
+  combine(startIndex: number, endIndex: number) {
     let i = 0;
     let base = 0.0;
     let acc = 0.0;
@@ -203,7 +249,7 @@ export class SmoTuplet {
 
   // ### getStemDirection
   // Return the stem direction, so we can bracket the correct place
-  getStemDirection(clef) {
+  getStemDirection(clef: string) {
     const note = this.notes.find((nn) => nn.noteType === 'n');
     if (!note) {
       return SmoNote.flagStates.down;
@@ -212,7 +258,7 @@ export class SmoTuplet {
       return note.flagState;
     }
     return smoMusic.pitchToLedgerLine(clef, note.pitches[0])
-       >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+      >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
   }
   get durationSum() {
     let acc = 0;
@@ -239,17 +285,5 @@ export class SmoTuplet {
       rv += (note.ticks.numerator / note.ticks.denominator) + note.ticks.remainder;
     }
     return rv;
-  }
-
-  static get defaults() {
-    return {
-      numNotes: 3,
-      totalTicks: 4096, // how many ticks this tuple takes up
-      stemTicks: 2048, // the stem ticks, for drawing purposes.  >16th, draw as 8th etc.
-      durationMap: [1.0, 1.0, 1.0],
-      bracketed: true,
-      voice: 0,
-      ratioed: false
-    };
   }
 }

@@ -2,14 +2,61 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
 import { smoMusic } from '../../common/musicHelpers';
-import { SmoBarline, SmoMeasureModifierBase, SmoRepeatSymbol, SmoTempoText, SmoMeasureFormat } from './measureModifiers';
+import {
+  SmoBarline, SmoMeasureModifierBase, SmoRepeatSymbol, SmoTempoText, SmoMeasureFormat,
+  SmoVolta, SmoRehearsalMarkParams, SmoRehearsalMark, SmoTempoTextParams
+} from './measureModifiers';
 import { SmoNote } from './note';
 import { SmoTuplet } from './tuplet';
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { svgHelpers } from '../../common/svgHelpers';
-import { TickMap } from '../xform/tickMap';
+import { TickMap, TickAccidental } from '../xform/tickMap';
+import { MeasureNumber, SvgBox, SmoAttrs, Pitch, SmoVoice, TickMappable, PitchLetter, Clef, FontInfo } from './common';
+import { SmoNoteModifierBase } from './noteModifiers';
 
-const VF = Vex.Flow;
+const VF = eval('Vex.Flow');
+
+export interface BeamGroup {
+  notes: SmoNote[]
+}
+export interface MeasureSvg {
+  staffWidth: number,
+  unjustifiedWidth: number,
+  staffX: number,
+  staffY: number,
+  logicalBox: SvgBox,
+  yTop: number,
+  adjX: number
+  history: string[],
+}
+
+export interface SmoMeasureParams {
+  timeSignature: string,
+  keySignature: string,
+  canceledKeySignature: string | null,
+  padRight: number,
+  tuplets: SmoTuplet[],
+  transposeIndex: number,
+  rightMargin: number,
+  staffY: number,
+  // bars: [1, 1], // follows enumeration in VF.Barline
+  measureNumber: MeasureNumber,
+  clef: Clef,
+  forceClef: boolean,
+  forceKeySignature: boolean,
+  forceTimeSignature: boolean,
+  voices: SmoVoice[],
+  activeVoice: number,
+  tempo: SmoTempoText,
+  format: SmoMeasureFormat | null,
+  modifiers: SmoMeasureModifierBase[]
+}
+
+export interface AccidentalArray {
+  duration: string | number,
+  pitches: Record<PitchLetter, TickAccidental>
+}
+
 // ## SmoMeasure - data for a measure of music
 // Many rules of musical engraving are enforced at a measure level, e.g. the duration of
 // notes, accidentals, etc.
@@ -17,23 +64,95 @@ const VF = Vex.Flow;
 // Measures contain *notes*, *tuplets*, and *beam groups*.  So see `SmoNote`, etc.
 // Measures are contained in staves, see also `SystemStaff.js`
 // ## SmoMeasure Methods:
-export class SmoMeasure {
-  constructor(params) {
-    this.tuplets = [];
-    this.svg = {};
-    this.beamGroups = [];
-    this.modifiers = [];
-    this.changed = true;
-    this.svg.staffWidth = 200;
-    this.svg.staffX = 0;
-    this.svg.staffY = 0;
-    this.svg.history = [];
-    this.svg.logicalBox = {};
-    this.svg.yTop = 0;
-    this.svg.adjX = 0;
+export class SmoMeasure implements SmoMeasureParams, TickMappable {
+  static readonly _defaults: SmoMeasureParams = {
+    timeSignature: '4/4',
+    keySignature: 'C',
+    canceledKeySignature: null,
+    padRight: 10,
+    tuplets: [],
+    transposeIndex: 0,
+    modifiers: [],
+    rightMargin: 2,
+    staffY: 40,
+    // bars: [1, 1], // follows enumeration in VF.Barline
+    measureNumber: {
+      localIndex: 0,
+      systemIndex: 0,
+      measureIndex: 0,
+      staffId: 0
+    },
+    clef: 'treble',
+    forceClef: false,
+    forceKeySignature: false,
+    forceTimeSignature: false,
+    voices: [],
+    format: new SmoMeasureFormat(SmoMeasureFormat.defaults),
+    activeVoice: 0,
+    tempo: new SmoTempoText(SmoTempoText.defaults)
+  }
+
+  static get defaults(): SmoMeasureParams {
+    if (SmoMeasure._defaults.modifiers.length === 0) {
+      SmoMeasure._defaults.modifiers.push(new SmoBarline({
+        position: SmoBarline.positions.start,
+        barline: SmoBarline.barlines.singleBar
+      }));
+      SmoMeasure._defaults.modifiers.push(new SmoBarline({
+        position: SmoBarline.positions.end,
+        barline: SmoBarline.barlines.singleBar
+      }));
+      SmoMeasure._defaults.modifiers.push(new SmoRepeatSymbol({
+        position: SmoRepeatSymbol.positions.start,
+        symbol: SmoRepeatSymbol.symbols.None,
+        xOffset: 0, yOffset: 0
+      }));
+    }
+    return SmoMeasure._defaults;
+  }
+  timeSignature: string = '';
+  keySignature: string = '';
+  canceledKeySignature: string = '';
+  padRight: number = 10;
+  tuplets: SmoTuplet[] = [];
+  transposeIndex: number = 0;
+  modifiers: SmoMeasureModifierBase[] = [];
+  rightMargin: number = 2;
+  // bars: [1, 1], // follows enumeration in VF.Barline
+  measureNumber: MeasureNumber = {
+    localIndex: 0,
+    systemIndex: 0,
+    measureIndex: 0,
+    staffId: 0
+  };
+  clef: Clef = 'treble';
+  forceClef: boolean = false;
+  forceKeySignature: boolean = false;
+  forceTimeSignature: boolean = false;
+  voices: SmoVoice[] = [];
+  activeVoice: number = 0;
+  tempo: SmoTempoText;
+  beamGroups: BeamGroup[] = [];
+  svg: MeasureSvg;
+  format: SmoMeasureFormat;
+  attrs: SmoAttrs;
+
+  constructor(params: SmoMeasureParams) {
+    this.tempo = new SmoTempoText(SmoTempoText.defaults);
+    this.svg = {
+      staffWidth: 0,
+      unjustifiedWidth: 0,
+      staffX: 0,
+      staffY: 0,
+      logicalBox: {
+        x: 0, y: 0, width: 0, height: 0
+      },
+      yTop: 0,
+      adjX: 0,
+      history: [],
+    };
 
     const defaults = SmoMeasure.defaults;
-
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, this);
     this.voices = params.voices ? params.voices : [];
@@ -44,20 +163,16 @@ export class SmoMeasure {
 
     this.keySignature = smoMusic.vexKeySigWithOffset(this.keySignature, this.transposeIndex);
 
-    if (typeof(params.format) === 'undefined') {
-      this.format = new SmoMeasureFormat();
+    if (typeof (params.format) === 'undefined') {
+      this.format = new SmoMeasureFormat(SmoMeasureFormat.defaults);
       this.format.measureIndex = this.measureNumber.measureIndex;
     } else {
       this.format = new SmoMeasureFormat(params.format);
     }
-    if (!this.attrs) {
-      this.attrs = {
-        id: VF.Element.newID(),
-        type: 'SmoMeasure'
-      };
-    } else {
-      // inherit attrs id for deserialized
-    }
+    this.attrs = {
+      id: VF.Element.newID(),
+      type: 'SmoMeasure'
+    };
   }
 
   // ### defaultAttributes
@@ -82,7 +197,7 @@ export class SmoMeasure {
     return ['timeSignature', 'keySignature', 'tempo'];
   }
   static get serializableAttributes() {
-    const rv = [];
+    const rv: any = [];
     SmoMeasure.defaultAttributes.forEach((attr) => {
       if (SmoMeasure.columnMappedAttributes.indexOf(attr) < 0) {
         rv.push(attr);
@@ -91,75 +206,28 @@ export class SmoMeasure {
     return rv;
   }
 
-  static get defaults() {
-    if (typeof(SmoMeasure._defaults) !== 'undefined') {
-      return SmoMeasure._defaults;
-    }
-    // var noteDefault = SmoMeasure.defaultVoice44;
-    const modifiers = [];
-    modifiers.push(new SmoBarline({
-      position: SmoBarline.positions.start,
-      barline: SmoBarline.barlines.singleBar
-    }));
-    modifiers.push(new SmoBarline({
-      position: SmoBarline.positions.end,
-      barline: SmoBarline.barlines.singleBar
-    }));
-    modifiers.push(new SmoRepeatSymbol({
-      position: SmoRepeatSymbol.positions.start,
-      symbol: SmoRepeatSymbol.symbols.None
-    }));
-
-    SmoMeasure._defaults = {
-      timeSignature: '4/4',
-      keySignature: 'C',
-      canceledKeySignature: null,
-      padRight: 10,
-      tuplets: [],
-      transposeIndex: 0,
-      modifiers,
-      rightMargin: 2,
-      staffY: 40,
-      // bars: [1, 1], // follows enumeration in VF.Barline
-      measureNumber: {
-        localIndex: 0,
-        systemIndex: 0,
-        measureNumber: 0,
-        staffId: 0
-      },
-      clef: 'treble',
-      changed: true,
-      forceClef: false,
-      forceKeySignature: false,
-      forceTimeSignature: false,
-      voices: [],
-      activeVoice: 0,
-      tempo: new SmoTempoText()
-    };
-    return SmoMeasure._defaults;
-  }
-
   // ### serializeColumnMapped
   // Some measure attributes that apply to the entire column are serialized
   // separately.  Serialize those attributes, but only add them to the
   // hash if they already exist for an earlier measure
-  serializeColumnMapped(attrColumnHash, attrCurrentValue) {
+  serializeColumnMapped(attrColumnHash: any, attrCurrentValue: any) {
     let curValue = {};
     SmoMeasure.columnMappedAttributes.forEach((attr) => {
-      if (this[attr]) {
-        curValue = this[attr];
+      const field = (this as any)[attr];
+      if (field) {
+        curValue = field;
         if (!attrColumnHash[attr]) {
           attrColumnHash[attr] = {};
           attrCurrentValue[attr] = {};
         }
-        const curAttrHash  = attrColumnHash[attr];
+        const curAttrHash = attrColumnHash[attr];
         // If this is key signature, make sure we normalize to concert pitch
         // from instrument pitch
         if (attr === 'keySignature') {
           curValue = smoMusic.vexKeySigWithOffset(curValue, -1 * this.transposeIndex);
         }
-        if (this[attr].ctor && this[attr].ctor === 'SmoTempoText') {
-          if (this[attr].compare(attrCurrentValue[attr]) === false) {
+        if (field.ctor && field.ctor === 'SmoTempoText') {
+          if (field.compare(attrCurrentValue[attr]) === false) {
             curAttrHash[this.measureNumber.measureIndex] = curValue;
             attrCurrentValue[attr] = curValue;
           }
@@ -175,7 +243,7 @@ export class SmoMeasure {
   // Convert this measure object to a JSON object, recursively serializing all the notes,
   // note modifiers, etc.
   serialize() {
-    const params = {};
+    const params: any = {};
     let ser = true;
     smoSerialize.serializedMergeNonDefault(SmoMeasure.defaults, SmoMeasure.serializableAttributes, this, params);
     params.tuplets = [];
@@ -187,7 +255,7 @@ export class SmoMeasure {
     });
 
     this.voices.forEach((voice) => {
-      const obj = {
+      const obj: any = {
         notes: []
       };
       voice.notes.forEach((note) => {
@@ -199,17 +267,17 @@ export class SmoMeasure {
     this.modifiers.forEach((modifier) => {
       ser = true;
       /* don't serialize default modifiers */
-      if (modifier.ctor === 'SmoBarline' && modifier.position === SmoBarline.positions.start &&
-        modifier.barline === SmoBarline.barlines.singleBar) {
+      if (modifier.ctor === 'SmoBarline' && (modifier as SmoBarline).position === SmoBarline.positions.start &&
+        (modifier as SmoBarline).barline === SmoBarline.barlines.singleBar) {
         ser = false;
-      } else if (modifier.ctor === 'SmoBarline' && modifier.position === SmoBarline.positions.end
-        && modifier.barline === SmoBarline.barlines.singleBar) {
+      } else if (modifier.ctor === 'SmoBarline' && (modifier as SmoBarline).position === SmoBarline.positions.end
+        && (modifier as SmoBarline).barline === SmoBarline.barlines.singleBar) {
         ser = false;
       } else if (modifier.ctor === 'SmoTempoText') {
         // we don't save tempo text as a modifier anymore
         ser = false;
-      } else if (modifier.ctor === 'SmoRepeatSymbol' && modifier.position === SmoRepeatSymbol.positions.start
-        && modifier.symbol === SmoRepeatSymbol.symbols.None) {
+      } else if ((modifier as SmoRepeatSymbol).ctor === 'SmoRepeatSymbol' && (modifier as SmoRepeatSymbol).position === SmoRepeatSymbol.positions.start
+        && (modifier as SmoRepeatSymbol).symbol === SmoRepeatSymbol.symbols.None) {
         ser = false;
       }
       if (ser) {
@@ -222,14 +290,14 @@ export class SmoMeasure {
   // ### deserialize
   // restore a serialized measure object.  Usually called as part of deserializing a score,
   // but can also be used to restore a measure due to an undo operation.
-  static deserialize(jsonObj) {
+  static deserialize(jsonObj: any) {
     let j = 0;
     let i = 0;
     const voices = [];
     const noteSum = [];
     for (j = 0; j < jsonObj.voices.length; ++j) {
       const voice = jsonObj.voices[j];
-      const notes = [];
+      const notes: any = [];
       voices.push({
         notes
       });
@@ -244,7 +312,7 @@ export class SmoMeasure {
     const tuplets = [];
     for (j = 0; j < jsonObj.tuplets.length; ++j) {
       const tupJson = jsonObj.tuplets[j];
-      const noteAr = noteSum.filter((nn) =>
+      const noteAr = noteSum.filter((nn: any) =>
         nn.isTuplet && nn.tuplet.id === tupJson.attrs.id);
 
       // Bug fix:  A tuplet with no notes may be been overwritten
@@ -256,20 +324,16 @@ export class SmoMeasure {
       }
     }
 
-    const modifiers = [];
-    jsonObj.modifiers.forEach((modParams) => {
-      const modifier = SmoMeasureModifierBase.deserialize(modParams);
+    const modifiers: SmoMeasureModifierBase[] = [];
+    jsonObj.modifiers.forEach((modParams: any) => {
+      const modifier: SmoMeasureModifierBase = SmoMeasureModifierBase.deserialize(modParams);
       modifiers.push(modifier);
     });
-
-    const params = {
-      voices,
-      tuplets,
-      beamGroups: [],
-      modifiers
-    };
-
+    const params: SmoMeasureParams = {} as SmoMeasureParams;
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
+    params.voices = voices;
+    params.tuplets = tuplets;
+    params.modifiers = modifiers;
     const rv = new SmoMeasure(params);
     if (jsonObj.tempo) {
       rv.tempo = new SmoTempoText(jsonObj.tempo);
@@ -278,11 +342,11 @@ export class SmoMeasure {
     // Handle migration for measure-mapped parameters
     rv.modifiers.forEach((mod) => {
       if (mod.ctor === 'SmoTempoText') {
-        rv.tempo = mod;
+        rv.tempo = (mod as SmoTempoText);
       }
     });
     if (!rv.tempo) {
-      rv.tempo = new SmoTempoText();
+      rv.tempo = new SmoTempoText(SmoTempoText.defaults);
     }
     return rv;
   }
@@ -290,7 +354,7 @@ export class SmoMeasure {
   // ### defaultPitchForClef
   // Accessor for clef objects, which are set at a measure level.
   // #### TODO: learn what all these clefs are
-  static get defaultPitchForClef() {
+  static get defaultPitchForClef(): Record<Clef, Pitch> {
     return {
       'treble': {
         letter: 'b',
@@ -349,17 +413,17 @@ export class SmoMeasure {
       } // no idea
     };
   }
+  static _emptyMeasureNoteType: string = 'r';
   static set emptyMeasureNoteType(tt) {
     SmoMeasure._emptyMeasureNoteType = tt;
   }
   static get emptyMeasureNoteType() {
-    SmoMeasure._emptyMeasureNoteType = SmoMeasure._emptyMeasureNoteType ? SmoMeasure._emptyMeasureNoteType : 'r';
     return SmoMeasure._emptyMeasureNoteType;
   }
   // ### getDefaultNotes
   // Get a measure full of default notes for a given timeSignature/clef.
   // returns 8th notes for triple-time meters, etc.
-  static getDefaultNotes(params) {
+  static getDefaultNotes(params: SmoMeasureParams) {
     let beamBeats = 0;
     let beats = 0;
     let i = 0;
@@ -369,7 +433,7 @@ export class SmoMeasure {
       remainder: 0
     };
     if (params === null) {
-      params = {};
+      params = SmoMeasure.defaults;
     }
     params.timeSignature = params.timeSignature ? params.timeSignature : '4/4';
     params.clef = params.clef ? params.clef : 'treble';
@@ -388,7 +452,7 @@ export class SmoMeasure {
       }
       beamBeats = 2048 * 3;
     }
-    const pitches =
+    const pitches: Pitch =
       JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[params.clef]));
     const rv = [];
 
@@ -399,12 +463,21 @@ export class SmoMeasure {
 
     for (i = 0; i < beats; ++i) {
       const note = new SmoNote({
+        noteHead: 'n',
         clef: params.clef,
         pitches: [pitches],
         ticks,
-        timeSignature: params.timeSignature,
         beamBeats,
-        noteType: SmoMeasure.emptyMeasureNoteType
+        noteType: SmoMeasure.emptyMeasureNoteType,
+        textModifiers: [],
+        articulations: [],
+        graceNotes: [],
+        ornaments: [],
+        tones: [],
+        endBeam: false,
+        fillStyle: '',
+        flagState: SmoNote.flagStates.auto,
+        hidden: false
       });
       rv.push(note);
     }
@@ -413,8 +486,8 @@ export class SmoMeasure {
 
   // ### getDefaultMeasure
   // For create the initial or new measure, get a measure with notes.
-  static getDefaultMeasure(params) {
-    const obj = {};
+  static getDefaultMeasure(params: SmoMeasure): SmoMeasure {
+    const obj: any = {};
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, SmoMeasure.defaults, obj);
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, obj);
     // Don't copy column-formatting options to new measure in new column
@@ -429,7 +502,7 @@ export class SmoMeasure {
 
   // ### SmoMeasure.getDefaultMeasureWithNotes
   // Get a new measure with the appropriate notes for the supplied clef, instrument
-  static getDefaultMeasureWithNotes(params) {
+  static getDefaultMeasureWithNotes(params: SmoMeasure) {
     var measure = SmoMeasure.getDefaultMeasure(params);
     measure.voices.push({
       notes: SmoMeasure.getDefaultNotes(params)
@@ -438,13 +511,6 @@ export class SmoMeasure {
     // new measures only have 1 voice, make sure active voice is 0
     measure.activeVoice = 0;
     return measure;
-  }
-
-  static get defaultVoice44() {
-    return SmoMeasure.getDefaultNotes({
-      clef: 'treble',
-      timeSignature: '4/4'
-    });
   }
 
   setDefaultBarlines() {
@@ -462,15 +528,15 @@ export class SmoMeasure {
     }
   }
 
-  setForcePageBreak(val) {
+  setForcePageBreak(val: boolean) {
     this.format.pageBreak = val;
   }
 
-  setForceSystemBreak(val) {
+  setForceSystemBreak(val: boolean) {
     this.format.systemBreak = val;
   }
 
-  setAutoJustify(val) {
+  setAutoJustify(val: boolean) {
     this.format.autoJustify = val;
   }
   getAutoJustify() {
@@ -490,7 +556,7 @@ export class SmoMeasure {
     return this.svg.staffWidth;
   }
 
-  setWidth(width, description) {
+  setWidth(width: number, description: string) {
     if (layoutDebug.flagSet('measureHistory')) {
       this.svg.history.push('setWidth ' + this.staffWidth + '=> ' + width + ' ' + description);
     }
@@ -500,11 +566,11 @@ export class SmoMeasure {
     this.svg.staffWidth = width;
   }
 
-  get staffX() {
+  get staffX(): number {
     return this.svg.staffX;
   }
 
-  setX(x, description) {
+  setX(x: number, description: string) {
     if (isNaN(x)) {
       throw ('NAN in setX');
     }
@@ -512,11 +578,11 @@ export class SmoMeasure {
     this.svg.staffX = Math.round(x);
   }
 
-  get staffY() {
+  get staffY(): number {
     return this.svg.staffY;
   }
 
-  setY(y, description) {
+  setY(y: number, description: string) {
     if (isNaN(y)) {
       throw ('NAN in setY');
     }
@@ -524,25 +590,20 @@ export class SmoMeasure {
     this.svg.staffY = Math.round(y);
   }
 
-  get logicalBox() {
-    return typeof(this.svg.logicalBox.x) === 'number' ? this.svg.logicalBox : null;
+  get logicalBox(): SvgBox | null {
+    return typeof (this.svg.logicalBox.x) === 'number' ? this.svg.logicalBox : null;
   }
 
-  get yTop() {
+  get yTop(): number {
     return this.svg.yTop;
   }
 
-  setYTop(y, description) {
+  setYTop(y: number, description: string) {
     layoutDebug.measureHistory(this, 'yTop', y, description);
     this.svg.yTop = y;
   }
 
-  deleteLogicalBox(description) {
-    this.svg.logicalBox = {};
-    this.svg.history.push('delete box ' + description);
-  }
-
-  setBox(box, description) {
+  setBox(box: SvgBox, description: string) {
     layoutDebug.measureHistory(this, 'logicalBox', box, description);
     this.svg.logicalBox = svgHelpers.smoBox(box);
   }
@@ -557,10 +618,10 @@ export class SmoMeasure {
     return 'mm-' + this.measureNumber.staffId + '-' + this.measureNumber.measureIndex;
   }
 
-  pickupMeasure(duration) {
+  pickupMeasure(duration: number) {
     const timeSig = this.timeSignature;
     const proto = SmoMeasure.deserialize(this.serialize());
-    proto.attrs.id =  VF.Element.newID();
+    proto.attrs.id = VF.Element.newID();
     const note = proto.voices[0].notes[0];
     proto.voices = [];
     note.pitches = [note.pitches[0]];
@@ -575,7 +636,7 @@ export class SmoMeasure {
   // The renderer puts a mapping between rendered svg groups and
   // the logical notes in SMO.  The UI needs this mapping to be interactive,
   // figure out where a note is rendered, what its bounding box is, etc.
-  getRenderedNote(id) {
+  getRenderedNote(id: string) {
     let j = 0;
     let i = 0;
     for (j = 0; j < this.voices.length; ++j) {
@@ -602,13 +663,13 @@ export class SmoMeasure {
     return this.activeVoice;
   }
 
-  setActiveVoice(vix) {
+  setActiveVoice(vix: number) {
     if (vix >= 0 && vix < this.voices.length) {
       this.activeVoice = vix;
     }
   }
 
-  tickmapForVoice(voiceIx) {
+  tickmapForVoice(voiceIx: number) {
     return new TickMap(this, voiceIx);
   }
 
@@ -619,23 +680,25 @@ export class SmoMeasure {
   // voices.  So we return the tickmaps and the overall accidental map.
   createMeasureTickmaps() {
     let i = 0;
-    const tickmapArray = [];
-    const accidentalMap = {};
+    const tickmapArray: TickMap[] = [];
+    const accidentalMap: Record<string | number, Record<PitchLetter, TickAccidental>> =
+      {} as Record<string | number, Record<PitchLetter, TickAccidental>>;
     for (i = 0; i < this.voices.length; ++i) {
       tickmapArray.push(this.tickmapForVoice(i));
     }
 
     for (i = 0; i < this.voices.length; ++i) {
-      const tickmap = tickmapArray[i];
-      const durationKeys = Object.keys(tickmap.durationAccidentalMap);
+      const tickmap: TickMap = tickmapArray[i];
+      const durationKeys: string[] = Object.keys((tickmap.durationAccidentalMap));
 
-      durationKeys.forEach((durationKey) => {
+      durationKeys.forEach((durationKey: string) => {
         if (!accidentalMap[durationKey]) {
           accidentalMap[durationKey] = tickmap.durationAccidentalMap[durationKey];
         } else {
           const amap = accidentalMap[durationKey];
-          const pitchKeys = Object.keys(tickmap.durationAccidentalMap[durationKey]);
-          pitchKeys.forEach((pitchKey) => {
+          const tickable: Record<PitchLetter, TickAccidental> = tickmap.durationAccidentalMap[durationKey];
+          const letterKeys: PitchLetter[] = Object.keys(tickable) as Array<PitchLetter>;
+          letterKeys.forEach((pitchKey) => {
             if (!amap[pitchKey]) {
               amap[pitchKey] = tickmap.durationAccidentalMap[durationKey][pitchKey];
             }
@@ -643,7 +706,8 @@ export class SmoMeasure {
         }
       });
     }
-    const accidentalArray = [];
+    // duration: duration, pitches: Record<PitchLetter,TickAccidental>
+    const accidentalArray: AccidentalArray[] = [];
     Object.keys(accidentalMap).forEach((durationKey) => {
       accidentalArray.push({ duration: durationKey, pitches: accidentalMap[durationKey] });
     });
@@ -655,12 +719,14 @@ export class SmoMeasure {
   }
   // ### createRestNoteWithDuration
   // pad some duration of music with rests.
-  static createRestNoteWithDuration(duration, clef) {
-    const pitch = JSON.parse(JSON.stringify(
+  static createRestNoteWithDuration(duration: number, clef: Clef): SmoNote {
+    const pitch: Pitch = JSON.parse(JSON.stringify(
       SmoMeasure.defaultPitchForClef[clef]));
-    const note = new SmoNote({
-      pitches: [pitch], noteType: 'r', hidden: true,
-      ticks: { numerator: duration, denominator: 1, remainder: 0 } });
+    const note = new SmoNote(SmoNote.defaults);
+    note.pitches = [pitch];
+    note.noteType = 'r';
+    note.hidden = true;
+    note.ticks = { numerator: duration, denominator: 1, remainder: 0 };
     return note;
   }
 
@@ -674,48 +740,18 @@ export class SmoMeasure {
     return max;
   }
 
-  getTicksFromVoice(voice) {
+  getTicksFromVoice(voiceIndex: number): number {
     let ticks = 0;
-    this.voices[voice].notes.forEach((note) => {
+    this.voices[voiceIndex].notes.forEach((note) => {
       ticks += note.tickCount;
     });
     return ticks;
   }
 
-  isPickup() {
+  isPickup(): boolean {
     const ticks = this.getTicksFromVoice(0);
     const goal = smoMusic.timeSignatureToTicks(this.timeSignature);
     return (ticks < goal);
-  }
-
-  // ### getDynamicMap
-  // ### Description:
-  // returns the dynamic text for each tick index.  If
-  // there are no dynamics, the empty array is returned.
-  getDynamicMap() {
-    const rv = [];
-    let hasDynamic = false;
-    this.voices.forEach((voice) => {
-      voice.notes.forEach((note) => {
-        if (note.dynamicText) {
-          rv.push({
-            note,
-            text: note.dynamicText
-          });
-          hasDynamic = true;
-        } else {
-          rv.push({
-            note,
-            text: ''
-          });
-        }
-      });
-    });
-
-    if (hasDynamic) {
-      return rv;
-    }
-    return [];
   }
 
   clearBeamGroups() {
@@ -724,14 +760,14 @@ export class SmoMeasure {
 
   // ### updateLyricFont
   // Update the lyric font, which is the same for all lyrics.
-  setLyricFont(fontInfo) {
+  setLyricFont(fontInfo: FontInfo) {
     this.voices.forEach((voice) => {
       voice.notes.forEach((note) => {
         note.setLyricFont(fontInfo);
       });
     });
   }
-  setLyricAdjustWidth(adjustNoteWidth) {
+  setLyricAdjustWidth(adjustNoteWidth: boolean) {
     this.voices.forEach((voice) => {
       voice.notes.forEach((note) => {
         note.setLyricAdjustWidth(adjustNoteWidth);
@@ -739,24 +775,17 @@ export class SmoMeasure {
     });
   }
 
-  setChordAdjustWidth(adjustNoteWidth) {
+  setChordAdjustWidth(adjustNoteWidth: boolean) {
     this.voices.forEach((voice) => {
       voice.notes.forEach((note) => {
         note.setChordAdjustWidth(adjustNoteWidth);
       });
     });
   }
-  setFormattingIterations(val) {
-    this.formattingIterations = val;
-  }
-
-  getFormattingIterations() {
-    return this.formattingIterations;
-  }
 
   // ### updateLyricFont
   // Update the lyric font, which is the same for all lyrics.
-  setChordFont(fontInfo) {
+  setChordFont(fontInfo: FontInfo) {
     this.voices.forEach((voice) => {
       voice.notes.forEach((note) => {
         note.setChordFont(fontInfo);
@@ -767,7 +796,7 @@ export class SmoMeasure {
   // ### tuplet methods.
   //
   // #### tupletNotes
-  tupletNotes(tuplet) {
+  tupletNotes(tuplet: SmoTuplet) {
     let j = 0;
     let i = 0;
     const tnotes = [];
@@ -784,7 +813,7 @@ export class SmoMeasure {
 
   // #### tupletIndex
   // return the index of the given tuplet
-  tupletIndex(tuplet) {
+  tupletIndex(tuplet: SmoTuplet) {
     let j = 0;
     let i = 0;
     for (j = 0; j < this.voices.length; ++j) {
@@ -800,26 +829,26 @@ export class SmoMeasure {
 
   // #### getTupletForNote
   // Finds the tuplet for a given note, or null if there isn't one.
-  getTupletForNote(note) {
+  getTupletForNote(note: SmoNote) {
     let i = 0;
     if (!note.isTuplet) {
       return null;
     }
     for (i = 0; i < this.tuplets.length; ++i) {
       const tuplet = this.tuplets[i];
-      if (tuplet.attrs.id === note.tuplet.id) {
+      if (note.tuplet !== null && tuplet.attrs.id === note.tuplet.id) {
         return tuplet;
       }
     }
     return null;
   }
 
-  removeTupletForNote(note) {
+  removeTupletForNote(note: SmoNote) {
     let i = 0;
     const tuplets = [];
     for (i = 0; i < this.tuplets.length; ++i) {
       const tuplet = this.tuplets[i];
-      if (note.tuplet.id !== tuplet.attrs.id) {
+      if (note.tuplet !== null && note.tuplet.id !== tuplet.attrs.id) {
         tuplets.push(tuplet);
       }
     }
@@ -829,57 +858,49 @@ export class SmoMeasure {
   // ### populateVoice
   // Create a new voice in this measure, and populate it with the default note
   // for this measure/key/clef
-  populateVoice(index) {
-    if (index !==  this.voices.length) {
+  populateVoice(index: number) {
+    if (index !== this.voices.length) {
       return;
     }
     this.voices.push({ notes: SmoMeasure.getDefaultNotes(this) });
     this.activeVoice = index;
-    this.changed = true;
   }
-
-  // ### measure modifier mixins
-  _addSingletonModifier(name, parameters) {
-    const ctor = Smo.getClass(name);
-    const ar = this.modifiers.filter(obj => obj.attrs.type !== name);
-    this.modifiers = ar;
-    this.modifiers.push(new ctor(parameters));
-  }
-  _removeSingletonModifier(name) {
+  _removeSingletonModifier(name: string) {
     const ar = this.modifiers.filter(obj => obj.attrs.type !== name);
     this.modifiers = ar;
   }
 
-  _getSingletonModifier(name) {
+  _getSingletonModifier(name: string): SmoMeasureModifierBase | undefined {
     return this.modifiers.find(obj => obj.attrs.type === name);
   }
 
-  addRehearsalMark(parameters) {
-    this._addSingletonModifier('SmoRehearsalMark', parameters);
+  addRehearsalMark(parameters: SmoRehearsalMarkParams) {
+    this._removeSingletonModifier('SmoRehearsalMark');
+    this.modifiers.push(new SmoRehearsalMark(parameters));
   }
   removeRehearsalMark() {
     this._removeSingletonModifier('SmoRehearsalMark');
   }
-  getRehearsalMark() {
+  getRehearsalMark(): SmoMeasureModifierBase | undefined {
     return this._getSingletonModifier('SmoRehearsalMark');
   }
-  getModifiersByType(type) {
+  getModifiersByType(type: string) {
     return this.modifiers.filter((mm) => type === mm.attrs.type);
   }
 
-  addTempo(params) {
+  addTempo(params: SmoTempoTextParams) {
     this.tempo = new SmoTempoText(params);
   }
   removeTempo() {
-    this.tempo = new SmoTempoText();
+    this.tempo = new SmoTempoText(SmoTempoText.defaults);
   }
   getTempo() {
-    if (typeof(this.tempo) === 'undefined') {
-      this.tempo = new SmoTempoText();
+    if (typeof (this.tempo) === 'undefined') {
+      this.tempo = new SmoTempoText(SmoTempoText.defaults);
     }
     return this.tempo;
   }
-  addMeasureText(mod) {
+  addMeasureText(mod: SmoNoteModifierBase) {
     var exist = this.modifiers.filter((mm) =>
       mm.attrs.id === mod.attrs.id
     );
@@ -893,13 +914,13 @@ export class SmoMeasure {
     return this.modifiers.filter(obj => obj.ctor === 'SmoMeasureText');
   }
 
-  removeMeasureText(id) {
+  removeMeasureText(id: string) {
     var ar = this.modifiers.filter(obj => obj.attrs.id !== id);
     this.modifiers = ar;
   }
 
-  setRepeatSymbol(rs) {
-    const ar = [];
+  setRepeatSymbol(rs: SmoRepeatSymbol) {
+    const ar: SmoMeasureModifierBase[] = [];
     let toAdd = true;
     const exSymbol = this.getRepeatSymbol();
     if (exSymbol && exSymbol.symbol === rs.symbol) {
@@ -915,12 +936,15 @@ export class SmoMeasure {
       ar.push(rs);
     }
   }
-  getRepeatSymbol() {
+  getRepeatSymbol(): SmoRepeatSymbol | null {
     const rv = this.modifiers.filter(obj => obj.ctor === 'SmoRepeatSymbol');
-    return rv.length ? rv[0] : null;
+    if (rv.length > 0) {
+      return rv[0] as SmoRepeatSymbol;
+    }
+    return null;
   }
   clearRepeatSymbols() {
-    const ar = [];
+    const ar: SmoMeasureModifierBase[] = [];
     this.modifiers.forEach((modifier) => {
       if (modifier.ctor !== 'SmoRepeatSymbol') {
         ar.push(modifier);
@@ -929,10 +953,15 @@ export class SmoMeasure {
     this.modifiers = ar;
   }
 
-  setBarline(barline) {
-    var ar = [];
+  setBarline(barline: SmoBarline) {
+    var ar: SmoMeasureModifierBase[] = [];
     this.modifiers.forEach((modifier) => {
-      if (modifier.ctor !== 'SmoBarline' || modifier.position !== barline.position) {
+      if (modifier.ctor !== 'SmoBarline') {
+        const o = modifier as SmoBarline;
+        if (o.position !== barline.position) {
+          ar.push(o);
+        }
+      } else {
         ar.push(modifier);
       }
     });
@@ -940,26 +969,31 @@ export class SmoMeasure {
     ar.push(barline);
   }
 
-  _getBarline(pos) {
+  _getBarline(pos: number): SmoBarline {
     let rv = null;
     this.modifiers.forEach((modifier) => {
-      if (modifier.ctor === 'SmoBarline' && modifier.position === pos) {
+      if (modifier.ctor === 'SmoBarline' && (modifier as SmoBarline).position === pos) {
         rv = modifier;
       }
     });
+    if (rv === null) {
+      return new SmoBarline(SmoBarline.defaults);
+    }
     return rv;
   }
-  getEndBarline() {
+
+  getEndBarline(): SmoBarline {
     return this._getBarline(SmoBarline.positions.end);
   }
-  getStartBarline() {
+  getStartBarline(): SmoBarline {
     return this._getBarline(SmoBarline.positions.start);
   }
 
-  addNthEnding(ending) {
+  addNthEnding(ending: SmoVolta) {
     const mods = [];
     this.modifiers.forEach((modifier) => {
-      if (modifier.ctor !== 'SmoVolta' || modifier.startBar !== ending.startBar || modifier.endBar !== ending.endBar) {
+      if (modifier.ctor !== 'SmoVolta' || (modifier as SmoVolta).startBar !== ending.startBar ||
+        (modifier as SmoVolta).endBar !== ending.endBar) {
         mods.push(modifier);
       }
     });
@@ -967,41 +1001,41 @@ export class SmoMeasure {
     this.modifiers = mods;
   }
 
-  removeNthEnding(number) {
-    const mods = [];
+  removeNthEnding(number: number) {
+    const mods: SmoMeasureModifierBase[] = [];
     this.modifiers.forEach((modifier) => {
-      if (modifier.ctor !== 'SmoVolta' || modifier.number !== number) {
+      if (modifier.ctor !== 'SmoVolta' || (modifier as SmoVolta).number !== number) {
         mods.push(modifier);
       }
     });
     this.modifiers = mods;
   }
 
-  getNthEndings() {
-    const rv = [];
-    this.modifiers.forEach((modifier) => {
+  getNthEndings(): SmoVolta[] {
+    const rv: SmoVolta[] = [];
+    this.modifiers.forEach((modifier: SmoMeasureModifierBase) => {
       if (modifier.ctor === 'SmoVolta') {
-        rv.push(modifier);
+        rv.push(modifier as SmoVolta);
       }
     });
     return rv;
   }
-  getEndEndings() {
-    const rv = null;
-    this.modifiers.forEach((modifier) => {
-      if (modifier.ctor === 'SmoVolta' && modifier.endBar === this.measureNumber.systemIndex
-         && modifier.startBar !== this.measureNumber.systemIdnex) {
-        rv.push(modifier);
+  getEndEndings(): SmoVolta[] {
+    const rv: SmoVolta[] = [];
+    this.modifiers.forEach((modifier: SmoMeasureModifierBase) => {
+      if (modifier.ctor === 'SmoVolta' && (modifier as SmoVolta).endBar === this.measureNumber.systemIndex
+        && (modifier as SmoVolta).startBar !== this.measureNumber.systemIndex) {
+        rv.push(modifier as SmoVolta);
       }
     });
     return rv;
   }
-  getMidEndings() {
-    const rv = null;
+  getMidEndings(): SmoVolta[] {
+    const rv: SmoVolta[] = [];
     this.modifiers.forEach((modifier) => {
-      if (modifier.ctor === 'SmoVolta' && modifier.endBar > this.measureNumber.systemIndex
-         && modifier.startBar < this.measureNumber.systemIndex) {
-        rv.push(modifier);
+      if (modifier.ctor === 'SmoVolta' && (modifier as SmoVolta).endBar > this.measureNumber.systemIndex
+        && (modifier as SmoVolta).startBar < this.measureNumber.systemIndex) {
+        rv.push(modifier as SmoVolta);
       }
     });
     return rv;
@@ -1010,7 +1044,7 @@ export class SmoMeasure {
   get numBeats() {
     return this.timeSignature.split('/').map(number => parseInt(number, 10))[0];
   }
-  setKeySignature(sig) {
+  setKeySignature(sig: string) {
     this.keySignature = sig;
     this.voices.forEach((voice) => {
       voice.notes.forEach((note) => {
@@ -1018,15 +1052,15 @@ export class SmoMeasure {
       });
     });
   }
-  get beatValue() {
+  get beatValue(): number {
     return this.timeSignature.split('/').map(number => parseInt(number, 10))[1];
   }
 
-  setMeasureNumber(num) {
+  setMeasureNumber(num: MeasureNumber) {
     this.measureNumber = num;
   }
 
-  getBeamGroupForNote(note) {
+  getBeamGroupForNote(note: SmoNote) {
     let i = 0;
     let j = 0;
     for (i = 0; i < this.beamGroups.length; ++i) {

@@ -8,7 +8,7 @@ import { SmoAttrs, MeasureNumber, FontInfo } from './common';
 const VF = eval('Vex.Flow');
 // ## Measure modifiers are elements that are attached to the bar itself, like barlines or measure-specific text,
 // repeats - lots of stuff
-export class SmoMeasureModifierBase {
+export abstract class SmoMeasureModifierBase {
   attrs: SmoAttrs;
   ctor: string;
   constructor(ctor: string) {
@@ -23,6 +23,7 @@ export class SmoMeasureModifierBase {
     const rv = new ctor(jsonObj);
     return rv;
   }
+  abstract serialize(): object;
 }
 
 export interface SmoMeasureFormatParams {
@@ -505,7 +506,7 @@ export class SmoTempoText extends SmoMeasureModifierBase {
     };
   }
 
-  static get defaults() {
+  static get defaults(): SmoTempoTextParams {
     return {
       tempoMode: SmoTempoText.tempoModes.durationMode,
       bpm: 120,

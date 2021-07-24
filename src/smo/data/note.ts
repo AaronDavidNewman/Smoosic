@@ -12,6 +12,7 @@ export interface TupletInfo {
 export interface SmoNoteParams {
   noteType: string,
   noteHead: string,
+  clef: string,
   textModifiers: SmoNoteModifierBase[],
   articulations: SmoArticulation[],
   graceNotes: SmoGraceNote[],
@@ -62,6 +63,7 @@ export class SmoNote {
   endBeam: boolean = false;
   ticks: Ticks = { numerator: 4096, denominator: 1, remainder: 0 };
   beamBeats: number = 4096;
+  renderId: string | null = null;
 
   static get parameterArray() {
     return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef',
@@ -70,6 +72,7 @@ export class SmoNote {
   static readonly defaults: SmoNoteParams = {
     noteType: 'n',
     noteHead: 'n',
+    clef: 'treble',
     textModifiers: [],
     articulations: [],
     graceNotes: [],

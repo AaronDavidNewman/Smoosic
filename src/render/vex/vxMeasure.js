@@ -539,15 +539,10 @@ export class VxMeasure {
     });
   }
   format(voices) {
-    let i = 0;
     const timestamp = new Date().valueOf();
     this.formatter.format(voices,
       this.smoMeasure.staffWidth -
       (this.smoMeasure.svg.adjX + this.smoMeasure.svg.adjRight + this.smoMeasure.format.padLeft) - 10);
-    const iterations = this.smoMeasure.getFormattingIterations();
-    for (i = 0; i < iterations; ++i) {
-      this.formatter.tune();
-    }
     layoutDebug.setTimestamp(layoutDebug.codeRegions.FORMAT, new Date().valueOf() - timestamp);
   }
   render() {
