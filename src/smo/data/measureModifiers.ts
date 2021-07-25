@@ -433,7 +433,7 @@ export class SmoRehearsalMark extends SmoMeasureModifierBase {
   increment: boolean = true;
 
   getIncrement() {
-    if (!(this.cardinality !== 'number')) {
+    if (this.cardinality !== 'number') {
       const code = this.symbol.charCodeAt(0) + 1;
       const symbol = String.fromCharCode(code);
       return symbol;

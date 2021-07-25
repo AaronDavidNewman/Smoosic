@@ -346,7 +346,7 @@ export class SmoNote {
   }
 
   get isTuplet() {
-    return this.tuplet !== null;
+    return this.tuplet !== null && this.tuplet.id;
   }
 
   addMicrotone(tone: SmoMicrotone) {

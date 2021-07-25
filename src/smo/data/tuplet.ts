@@ -43,20 +43,6 @@ export class SmoTuplet {
   voice: number = 0;
   ratioed: boolean = false;
   startIndex: number = 0;
-  constructor(params: SmoTupletParams) {
-    Vex.Merge(this, SmoTuplet.defaults);
-    smoSerialize.serializedMerge(SmoTuplet.parameterArray, params, this);
-    this.notes = params.notes;
-    this.attrs = {
-      id: VF.Element.newID(),
-      type: 'SmoTuplet'
-    };
-    this._adjustTicks();
-  }
-
-  static get longestTuplet() {
-    return 8192;
-  }
 
   get clonedParams() {
     const paramAr = ['stemTicks', 'ticks', 'totalTicks', 'durationMap'];
@@ -88,7 +74,19 @@ export class SmoTuplet {
     }
     return stemTicks * 2;
   }
-
+  constructor(params: SmoTupletParams) {
+    Vex.Merge(this, SmoTuplet.defaults);
+    smoSerialize.serializedMerge(SmoTuplet.parameterArray, params, this);
+    this.notes = params.notes;
+    this.attrs = {
+      id: VF.Element.newID(),
+      type: 'SmoTuplet'
+    };
+    this._adjustTicks();
+  }
+  static get longestTuplet() {
+    return 8192;
+  }
   static cloneTuplet(tuplet: SmoTuplet) {
     let i = 0;
     const noteAr = tuplet.notes;
@@ -124,16 +122,6 @@ export class SmoTuplet {
       i += 1;
       tupletNotes.push(note);
     });
-    /* notes: [],
-      numNotes: 3,
-      stemTicks: 2048,
-      totalTicks: 4096, // how many ticks this tuple takes up
-      durationMap: [1.0, 1.0, 1.0],
-      bracketed: true,
-      voice: 0,
-      ratioed: false,
-      startIndex: 0
-      */
     const rv = new SmoTuplet({
       numNotes: tuplet.numNotes,
       voice: tuplet.voice,
