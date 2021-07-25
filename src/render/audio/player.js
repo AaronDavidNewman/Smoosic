@@ -97,7 +97,7 @@ export class suiAudioPlayer {
       for (i = 0; i < sound.frequencies.length && sound.noteType === 'n'; ++i) {
         const freq = sound.frequencies[i];
         const beats = sound.duration / 4096;
-        const adjDuration = Math.round((beats / tempo) * 60000);
+        const adjDuration = Math.round((beats / tempo) * 60000) + 150;
         const osc = new suiSampler({ frequency: freq, duration: adjDuration, gain: sound.volume });
         oscs.push(osc);
       }
@@ -130,7 +130,7 @@ export class suiAudioPlayer {
         tracker.clearMusicCursor();
         suiAudioPlayer.playing = false;
       }
-    }, waitTime * 1.05);
+    }, waitTime);
   }
   static stopPlayer() {
     if (suiAudioPlayer._playingInstance) {

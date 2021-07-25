@@ -218,11 +218,27 @@ export class SmoAudioTrack {
     }
     return smoMusic.pitchArraysMatch(track.notes[noteIx - 1].pitches, selection.note.pitches);
   }
-  createTrackNote(track, selection, duration, runningDuration) {
+  static updateMeasureIndexMap(note, measureIndexMap) {
+    if (note.noteType !== 'n') {
+      return;
+    }
+    const selector = note.selector;
+    if (typeof(measureIndexMap[selector.measure]) === 'undefined') {
+      measureIndexMap[selector.measure] = { };
+    }
+    const measureIndex = measureIndexMap[selector.measure];
+    if (typeof(measureIndex[selector.tick]) === 'undefined') {
+      measureIndex[selector.tick] = [];
+    }
+    if (note.noteType === 'n') {
+      measureIndex[selector.tick].push(note);
+    }
+  }
+  createTrackNote(track, selection, duration, runningDuration, measureIndexMap) {
     const noteIx = track.notes.length;
     if (this.isTiedPitch(track, selection, noteIx)) {
       track.notes[noteIx - 1].duration += duration;
-      const restPad = this.createTrackRest(duration, runningDuration, selection.selector);
+      const restPad = this.createTrackRest(duration, runningDuration, selection.selector, measureIndexMap);
       // Indicate this rest is just padding for a previous tied note.  Midi and audio render this
       // differently
       restPad.padding = true;
@@ -236,22 +252,26 @@ export class SmoAudioTrack {
         smoMusic.smoPitchToInt(pitch) - xpose));
     });
     const pitchArray = JSON.parse(JSON.stringify(tpitches));
-    track.notes.push({
+    const note = {
       pitches: pitchArray,
       noteType: 'n',
       duration,
       offset: runningDuration,
       selector: selection.selector,
       volume: track.volume
-    });
+    };
+    track.notes.push(note);
+    SmoAudioTrack.updateMeasureIndexMap(note, measureIndexMap);
   }
-  createTrackRest(duration, runningDuration, selector) {
-    return {
+  createTrackRest(duration, runningDuration, selector, measureIndexMap) {
+    const rest = {
       duration,
       offset: runningDuration,
       noteType: 'r',
       selector
     };
+    SmoAudioTrack.updateMeasureIndexMap(rest, measureIndexMap);
+    return rest;
   }
   createRepeatMap(repeats) {
     let startm = 0;
@@ -288,9 +308,49 @@ export class SmoAudioTrack {
     }
     return repeatMap;
   }
+  normalizeVolume(measureIndexMap) {
+    let i = 0;
+    let j = 0;
+    let runningSum = -1;
+    const measureKeys = Object.keys(measureIndexMap);
+    for (i = 0; i < measureKeys.length; ++i) {
+      const measureNotes = measureIndexMap[i];
+      if (typeof(measureNotes) === 'undefined') {
+        continue;
+      }
+      const tickKeys = Object.keys(measureNotes);
+      for (j = 0; j < tickKeys.length; ++j) {
+        let volumeSum = 0;
+        let normalize = 1.0;
+        const tickNotes = measureNotes[tickKeys[j]];
+        if (typeof(tickNotes) === 'undefined') {
+          continue;
+        }
+        volumeSum = tickNotes.map((nn) => nn.volume).reduce((a, b) => a + b);
+        if (volumeSum > 1.0) {
+          normalize = 1.0 / volumeSum;
+          volumeSum = 1.0;
+        }
+        if (runningSum < 0) {
+          runningSum = volumeSum;
+        }
+        const diff = Math.abs(runningSum - volumeSum);
+        if (diff > 0.6) {
+          const avg = (volumeSum * 3 + runningSum) / 4;
+          normalize = normalize * avg;
+        }
+        runningSum = volumeSum * normalize;
+        tickNotes.forEach((nn) => {
+          nn.volume *= normalize;
+        });
+        runningSum = volumeSum;
+      }
+    }
+  }
   convert() {
     const trackHash = { };
     const measureBeats = [];
+    const measureIndexMap = { };
     const repeats = [];
     let startRepeat = 0;
     const tempoMap = [];
@@ -339,6 +399,7 @@ export class SmoAudioTrack {
           while (track.lastMeasure < measureIx) {
             track.notes.push(this.createTrackRest(measureBeats[track.lastMeasure], 0,
               { staff: staffIx, measure: track.lastMeasure, voice: voiceIx, note: 0 },
+              measureIndexMap,
             ));
             track.lastMeasure += 1;
           }
@@ -370,10 +431,10 @@ export class SmoAudioTrack {
               duration = note.tickCount / this.timeDiv;
             }
             if (note.isRest() || note.isSlash()) {
-              track.notes.push(this.createTrackRest(duration, runningDuration, selector));
+              track.notes.push(this.createTrackRest(duration, runningDuration, selector, measureIndexMap));
             } else {
               this.computeVolume(track, selection);
-              this.createTrackNote(track, selection, duration, runningDuration);
+              this.createTrackNote(track, selection, duration, runningDuration, measureIndexMap);
             }
             runningDuration += duration;
           });
@@ -389,12 +450,13 @@ export class SmoAudioTrack {
         const staff = track.notes[0].selector.staff;
         const voice = track.notes[0].selector.voice;
         track.notes.push(this.createTrackRest(measureBeats[track.lastMeasure], 0,
-          { staff,  measure: track.lastMeasure, voice, note: 0 }
+          { staff,  measure: track.lastMeasure, voice, note: 0 }, measureIndexMap
         ));
         track.lastMeasure += 1;
       }
     });
     const repeatMap = this.createRepeatMap(repeats);
+    this.normalizeVolume(measureIndexMap);
     return { tracks, repeats, repeatMap, measureBeats, tempoMap };
   }
 }
