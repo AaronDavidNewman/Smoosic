@@ -30,6 +30,10 @@ export interface MeasureNumber {
     systemIndex: number,
     staffId: number
 }
+export interface SvgPoint {
+    x: number,
+    y: number
+}
 export interface SvgBox {
     x: number,
     y: number,

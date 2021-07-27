@@ -281,7 +281,7 @@ export class suiMapper {
           // Reselect any pitches.
           if (sels.selectors[0].pitches.length > 0) {
             sels.selectors[0].pitches.forEach((pitchIx) => {
-              if (selection.pitches.length > pitchIx) {
+              if (selection.selector.pitches.length > pitchIx) {
                 selection.selector.pitches.push(pitchIx);
               }
             });

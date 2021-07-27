@@ -76,6 +76,7 @@ import {
     SmoVolta, SmoMeasureText, SmoTempoText
 } from '../smo/data/measureModifiers';
 
+import { SmoToVex } from '../smo/xform/toVex';
 const getClass = (jsonString: string) => {
     return eval('Smo.' + jsonString);
 };
@@ -129,7 +130,7 @@ export const Smo = {
     SmoOrnament,
     SmoArticulation, SmoDynamicText, SmoGraceNote, SmoMicrotone, SmoLyric,
     // Smo Transformers
-    SmoSelection, SmoDuration, UndoBuffer,
+    SmoSelection, SmoDuration, UndoBuffer, SmoToVex,
     // new score bootstrap
     basicJson,
     emptyScoreJson,

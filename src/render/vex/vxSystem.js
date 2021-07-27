@@ -292,7 +292,7 @@ export class VxSystem {
       if (modifier.lines.length > 0) {
         // Hack: if a chord changed, the ties may no longer be valid.  We should check
         // this when it changes.
-        modifier.checkLines(smoStart, smoEnd);
+        modifier.checkLines(smoStart.note, smoEnd.note);
         const fromLines = modifier.lines.map((ll) => ll.from);
         const toLines = modifier.lines.map((ll) => ll.to);
         const tie = new VF.StaveTie({
