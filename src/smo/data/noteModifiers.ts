@@ -1,16 +1,12 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoAttrs, Ticks, Pitch, FontInfo } from './common';
+import { SmoAttrs, Ticks, Pitch, FontInfo, SmoObjectParams } from './common';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { smoMusic } from '../../common/musicHelpers';
 
 const VF = eval('Vex.Flow');
 // const Smo = eval('globalThis.Smo');
-
-export interface SmoObjectParams {
-  ctor: string
-}
 
 // ## SmoNoteModifierBase
 // A note modifier is anything that is mapped to the note, but not part of the

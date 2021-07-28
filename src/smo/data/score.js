@@ -639,17 +639,4 @@ export class SmoScore {
   setActiveStaff(index) {
     this.activeStaff = index <= this.staves.length ? index : this.activeStaff;
   }
-
-  getRenderedNote(id) {
-    let i = 0;
-    for (i = 0; i < this.staves.length; ++i) {
-      const stave = this.staves[i];
-      const note = stave.getRenderedNote(id);
-      if (note) {
-        note.selection.staffIndex = i;
-        return note;
-      }
-    }
-    return null;
-  }
 }

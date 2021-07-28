@@ -2,9 +2,8 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
-import { SmoObjectParams } from './noteModifiers';
 import { SmoNote } from './note';
-import { SmoAttrs, SvgPoint } from './common';
+import { SmoAttrs, SvgPoint, SmoObjectParams } from './common';
 
 const VF = eval('Vex.Flow');
 
@@ -20,6 +19,8 @@ const VF = eval('Vex.Flow');
 export abstract class StaffModifierBase {
   attrs: SmoAttrs;
   ctor: string;
+  startSelector: SmoSelector = { staff: 0, measure: 0, voice: 0, tick: 0, pitches: [] };
+  endSelector: SmoSelector = { staff: 0, measure: 0, voice: 0, tick: 0, pitches: [] };
   constructor(ctor: string) {
     this.ctor = ctor;
     this.attrs = {
@@ -32,16 +33,19 @@ export abstract class StaffModifierBase {
     const rv = new ctor(params);
     return rv;
   }
+  abstract serialize(): void;
   get isStaffModifier() {
     return true;
   }
 }
-
-export class SmoInstrument extends StaffModifierBase {
+// WIP
+export class SmoInstrument {
   static get attributes() {
     return ['startSelector', 'endSelector', 'transposeIndex', 'midichannel', 'midiport', 'instrument', 'abbreviation'];
   }
+  serialize() {}
 }
+// WIP
 export class SmoPartMap {
   static get attributes() {
     return ['staffId', 'name', 'abbreviation', 'scoreGroup', 'partnerId', 'instrumentMap', 'layoutManager'];

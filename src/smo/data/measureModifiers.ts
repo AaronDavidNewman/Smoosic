@@ -2,8 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
 import { smoMusic } from '../../common/musicHelpers';
-import { SmoObjectParams } from './noteModifiers';
-import { SmoAttrs, MeasureNumber, FontInfo } from './common';
+import { SmoAttrs, MeasureNumber, FontInfo, SmoObjectParams } from './common';
 
 const VF = eval('Vex.Flow');
 // ## Measure modifiers are elements that are attached to the bar itself, like barlines or measure-specific text,

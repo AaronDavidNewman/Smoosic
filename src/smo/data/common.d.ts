@@ -3,6 +3,10 @@ export interface SmoAttrs {
     type: string
 }
 
+export interface SmoObjectParams {
+    ctor: string
+}
+  
 export interface Ticks {
     numerator: number,
     denominator: number,

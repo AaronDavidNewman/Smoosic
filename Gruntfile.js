@@ -6,7 +6,7 @@ module.exports = function (grunt) {
   const LINTS = ['src/common/musicHelpers.js',
     'src/smo/data/measure.ts','src/smo/data/note.ts','src/smo/data/score.js',
   'src/smo/xform/beamers.js','src/smo/xform/audioTrack.js',
-  'src/smo/data/noteModifiers.ts','src/smo/data/systemStaff.js','src/smo/data/scoreModifiers.js',
+  'src/smo/data/noteModifiers.ts','src/smo/data/systemStaff.ts','src/smo/data/scoreModifiers.js',
   'src/smo/data/measureModifiers.ts', 'src/smo/data/tuplet.ts','src/smo/data/staffModifiers.ts',
   'src/smo/mxml/xmlScore.js','src/smo/mxml/xmlState.js','src/smo/mxml/xmlHelpers.js',
   'src/smo/mxml/smo2Xml.js','src/smo/midi/smoToMidi.js',
