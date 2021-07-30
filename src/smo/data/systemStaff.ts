@@ -6,8 +6,7 @@ import { smoMusic } from '../../common/musicHelpers';
 import { SmoSelector } from '../xform/selections';
 import { smoBeamerFactory } from '../xform/beamers';
 import { StaffModifierBase } from './staffModifiers';
-import { SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta } from './measureModifiers';
-import { SmoRehearsalMark } from './measureModifiers';
+import { SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta } from './measureModifiers';
 import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber } from './common';
 
 const VF = eval('Vex.Flow');

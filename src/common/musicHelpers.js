@@ -26,12 +26,58 @@ import { suiAudioPitch } from '../render/audio/oscillator';
 // ---
 const VF = Vex.Flow;
 export class smoMusic {
+  static get noteValues() {
+    return {
+      c: { root_index: 0, int_val: 0 },
+      cn: { root_index: 0, int_val: 0 },
+      'c#': { root_index: 0, int_val: 1 },
+      'c##': { root_index: 0, int_val: 2 },
+      cb: { root_index: 0, int_val: 11 },
+      cbb: { root_index: 0, int_val: 10 },
+      d: { root_index: 1, int_val: 2 },
+      dn: { root_index: 1, int_val: 2 },
+      'd#': { root_index: 1, int_val: 3 },
+      'd##': { root_index: 1, int_val: 4 },
+      db: { root_index: 1, int_val: 1 },
+      dbb: { root_index: 1, int_val: 0 },
+      e: { root_index: 2, int_val: 4 },
+      en: { root_index: 2, int_val: 4 },
+      'e#': { root_index: 2, int_val: 5 },
+      'e##': { root_index: 2, int_val: 6 },
+      eb: { root_index: 2, int_val: 3 },
+      ebb: { root_index: 2, int_val: 2 },
+      f: { root_index: 3, int_val: 5 },
+      fn: { root_index: 3, int_val: 5 },
+      'f#': { root_index: 3, int_val: 6 },
+      'f##': { root_index: 3, int_val: 7 },
+      fb: { root_index: 3, int_val: 4 },
+      fbb: { root_index: 3, int_val: 3 },
+      g: { root_index: 4, int_val: 7 },
+      gn: { root_index: 4, int_val: 7 },
+      'g#': { root_index: 4, int_val: 8 },
+      'g##': { root_index: 4, int_val: 9 },
+      gb: { root_index: 4, int_val: 6 },
+      gbb: { root_index: 4, int_val: 5 },
+      a: { root_index: 5, int_val: 9 },
+      an: { root_index: 5, int_val: 9 },
+      'a#': { root_index: 5, int_val: 10 },
+      'a##': { root_index: 5, int_val: 11 },
+      ab: { root_index: 5, int_val: 8 },
+      abb: { root_index: 5, int_val: 7 },
+      b: { root_index: 6, int_val: 11 },
+      bn: { root_index: 6, int_val: 11 },
+      'b#': { root_index: 6, int_val: 0 },
+      'b##': { root_index: 6, int_val: 1 },
+      bb: { root_index: 6, int_val: 10 },
+      bbb: { root_index: 6, int_val: 9 },
+    };
+  }
   // ### vexToCannonical
   // return Vex canonical note enharmonic - e.g. Bb to A#
   // Get the canonical form
   static vexToCannonical(vexKey) {
     vexKey = smoMusic.stripVexOctave(vexKey);
-    return VF.Music.canonical_notes[VF.Music.noteValues[vexKey].int_val];
+    return VF.Music.canonical_notes[smoMusic.noteValues[vexKey].int_val];
   }
 
   // ### circleOfFifths
@@ -322,10 +368,10 @@ export class smoMusic {
   }
 
   static smoPitchToInt(pitch) {
-    if (typeof(pitch.octave) === 'undefined') {
+    if (typeof (pitch.octave) === 'undefined') {
       pitch.octave = 0;
     }
-    const intVal = VF.Music.noteValues[
+    const intVal = smoMusic.noteValues[
       smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch))].int_val;
     const octave = (pitch.letter === 'c' && pitch.accidental === 'b' && pitch.octave > 0) ?
       pitch.octave - 1 : pitch.octave;
@@ -338,12 +384,12 @@ export class smoMusic {
     let noteKey = '';
     const letterInt = intValue >= 0 ? intValue % 12 :
       12 - (Math.abs(intValue) % 12);
-    noteKey = Object.keys(VF.Music.noteValues).find((key) =>
-      VF.Music.noteValues[key].int_val === letterInt && key.length === 1
+    noteKey = Object.keys(smoMusic.noteValues).find((key) =>
+      smoMusic.noteValues[key].int_val === letterInt && key.length === 1
     );
     if (!noteKey) {
-      noteKey = Object.keys(VF.Music.noteValues).find((key) =>
-        VF.Music.noteValues[key].int_val === letterInt && key.length === 2
+      noteKey = Object.keys(smoMusic.noteValues).find((key) =>
+        smoMusic.noteValues[key].int_val === letterInt && key.length === 2
       );
     }
     octave = Math.floor(intValue / 12);
@@ -378,11 +424,11 @@ export class smoMusic {
   static get enharmonics() {
     let i = 0;
     const rv = {};
-    const keys = Object.keys(VF.Music.noteValues);
+    const keys = Object.keys(smoMusic.noteValues);
     for (i = 0; i < keys.length; ++i) {
       const key = keys[i];
-      const int_val = VF.Music.noteValues[key].int_val;
-      if (typeof(rv[int_val.toString()]) === 'undefined') {
+      const int_val = smoMusic.noteValues[key].int_val;
+      if (typeof (rv[int_val.toString()]) === 'undefined') {
         rv[int_val.toString()] = [];
       }
       // only consider natural note 1 time.  It is in the list twice for some reason.
@@ -409,7 +455,7 @@ export class smoMusic {
   // cycle through the enharmonics for a note.
   static getEnharmonic(vexKey) {
     vexKey = smoMusic.stripVexOctave(vexKey);
-    const intVal = VF.Music.noteValues[vexKey.toLowerCase()].int_val;
+    const intVal = smoMusic.noteValues[vexKey.toLowerCase()].int_val;
     const ar = smoMusic.enharmonics[intVal.toString()];
     const len = ar.length;
     // 'n' for natural in key but not in value

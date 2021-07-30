@@ -43,10 +43,10 @@ export class SuiRenderState {
 
   static get Fonts() {
     return {
-      Bravura: [VF.Fonts.Bravura, VF.Fonts.Gonville, VF.Fonts.Custom],
-      Gonville: [VF.Fonts.Gonville, VF.Fonts.Bravura, VF.Fonts.Custom],
-      Petaluma: [VF.Fonts.Petaluma, VF.Fonts.Gonville, VF.Fonts.Custom],
-      Leland: [VF.Fonts.Leland, VF.Fonts.Bravura, VF.Fonts.Gonville, VF.Fonts.Custom]
+      Bravura: [VF.Fonts.Bravura(), VF.Fonts.Gonville(), VF.Fonts.Custom()],
+      Gonville: [VF.Fonts.Gonville(), VF.Fonts.Bravura(), VF.Fonts.Custom()],
+      Petaluma: [VF.Fonts.Petaluma(), VF.Fonts.Gonville(), VF.Fonts.Custom()],
+      Leland: [VF.Fonts.Leland(), VF.Fonts.Bravura(), VF.Fonts.Gonville(), VF.Fonts.Custom()]
     };
   }
 
@@ -119,13 +119,13 @@ export class SuiRenderState {
     $('.measure-number').remove();
 
     measures.forEach((measure) => {
-      if (measure.measureNumber.measureNumber > 0 && measure.measureNumber.systemIndex === 0 && measure.logicalBox) {
+      if (measure.measureNumber.localIndex > 0 && measure.measureNumber.systemIndex === 0 && measure.logicalBox) {
         const numAr = [];
         numAr.push({ y: measure.logicalBox.y - 10 });
         numAr.push({ x: measure.logicalBox.x });
         numAr.push({ 'font-family': SourceSansProFont.fontFamily });
         numAr.push({ 'font-size': '10pt' });
-        svgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.measureNumber + 1).toString());
+        svgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
 
         // Show line-feed symbol
         const formatIndex = SmoMeasure.systemOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
