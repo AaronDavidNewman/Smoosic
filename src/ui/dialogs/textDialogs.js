@@ -750,7 +750,7 @@ export class SuiTextTransformDialog  extends SuiDialogBase {
           }
         }
       }
-      const newGroup = new SmoTextGroup({ blocks: [newText] });
+      const newGroup = new SmoTextGroup({ blocks: [{ text: newText, position: SmoTextGroup.relativePositions.LEFT }] });
       parameters.modifier = newGroup;
       parameters.modifier.setActiveBlock(newText);
       parameters.view.addTextGroup(parameters.modifier);

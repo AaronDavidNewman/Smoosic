@@ -29,7 +29,7 @@ export class SmoToXml {
     const scaling = nn(root, 'scaling');
     // reverse this:
     // scoreDefaults.layout.svgScale =  (scale * 42 / 40) / mxmlScore.mmPerPixel;
-    const mm = mxmlScore.mmPerPixel * 42 * score.layoutManager.svgScale;
+    const mm = mxmlScore.mmPerPixel * 42 * score.layoutManager.getGlobalLayout().svgScale;
     nn(scaling, 'millimeters', { mm }, 'mm');
     nn(scaling, 'tenths', { tenths: 40 }, 'tenths');
     const pageLayout = nn(defaults, 'page-layout');

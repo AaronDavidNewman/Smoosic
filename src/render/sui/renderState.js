@@ -193,11 +193,12 @@ export class SuiRenderState {
   renderForPrintPromise() {
     $('body').addClass('print-render');
     const self = this;
-    const layout = this.score.layoutManager;
+    const layout = this.score.layoutManager.getGlobalLayout();
     this._backupZoomMode = layout.zoomMode;
     this._backupZoomScale = layout.zoomScale;
     layout.zoomMode = SmoScore.zoomModes.zoomScale;
     layout.zoomScale = 1.0;
+    this.score.layoutManager.updateGlobalLayout(layout);
     this.setViewport(true);
     this.setRefresh();
 
@@ -222,9 +223,10 @@ export class SuiRenderState {
   }
 
   restoreLayoutAfterPrint() {
-    const layout = this.score.layoutManager;
+    const layout = this.score.layoutManager.getGlobalLayout();
     layout.zoomMode = this._backupZoomMode;
     layout.zoomScale = this._backupZoomScale;
+    this.score.layoutManager.updateGlobalLayout(layout);
     this.setViewport(true);
     this.setRefresh();
   }
@@ -444,10 +446,11 @@ export class SuiRenderState {
     if (printing) {
       return;
     }
-    const layout = this._score.layoutManager;
-    for (i = 1; i < layout.pageLayouts.length; ++i) {
-      const y = (layout.pageHeight / layout.svgScale) * i;
-      svgHelpers.line(this.svg, 0, y, layout.pageWidth / layout.svgScale, y,
+    const layoutMgr = this._score.layoutManager;
+    for (i = 1; i < layoutMgr.pageLayouts.length; ++i) {
+      const scaledPage = layoutMgr.getScaledPageLayout(i);
+      const y = scaledPage.pageHeight * i;
+      svgHelpers.line(this.svg, 0, y, scaledPage.pageWidth, y,
         [
           { 'stroke': '#321' },
           { 'stroke-width': '2' },

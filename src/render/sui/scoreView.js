@@ -70,7 +70,7 @@ export class SuiScoreView {
   getFocusedPage() {
     const scrollAvg = this.tracker.scroller.netScroll.y + (this.tracker.scroller.viewport.height / 2);
     const midY = scrollAvg;
-    const layoutManager = this.score.layoutManager;
+    const layoutManager = this.score.layoutManager.getGlobalLayout();
     const lh = layoutManager.pageHeight / layoutManager.svgScale;
     const lw = layoutManager.pageWidth / layoutManager.svgScale;
     const pt = svgHelpers.logicalToClient(this.renderer.svg, { x: lw, y: lh }, this.tracker.scroller);
@@ -335,6 +335,7 @@ export class SuiScoreView {
   viewAll() {
     this.score = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
     this.staffMap = this.defaultStaffMap;
+    this.setMappedStaffIds();
     this.renderer.score = this.score;
     this.renderer.setViewport(true);
   }
@@ -347,6 +348,7 @@ export class SuiScoreView {
     this.storeScore = SmoScore.deserialize(JSON.stringify(score.serialize()));
     this.score = score;
     this.staffMap = this.defaultStaffMap;
+    this.setMappedStaffIds();
     this.actionBuffer.clearActions();
     setTimeout(() => {
       $('body').trigger('forceResizeEvent');

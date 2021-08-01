@@ -88,7 +88,7 @@ export class SuiScoreRender extends SuiRenderState {
 
     // If this is a per-page score text, get a text group copy for each page.
     // else the array contains the original.
-    const groupAr = SmoTextGroup.getPagedTextGroups(gg, scaledScoreLayout.pages, scaledScoreLayout.pageHeight);
+    const groupAr = SmoTextGroup.getPagedTextGroups(gg, this.score.layoutManager.pageLayouts.length, scaledScoreLayout.pageHeight);
     groupAr.forEach((newGroup) => {
       // If this text is attached to the measure, base the block location on the rendered measure location.
       if (newGroup.attachToSelector) {

@@ -19,6 +19,15 @@ import { SmoSystemStaff } from '../data/systemStaff';
 // indices that define what was selected.  This is the latter.  The actual object does not
 // have any methods so there is no constructor.
 export class SmoSelector {
+  static get default(): SmoSelector {
+    return {
+      staff: 0,
+      measure: 0,
+      voice: 0,
+      tick: 0,
+      pitches: []
+    };
+  }
   staff: number = 0;
   measure: number = 0;
   voice: number = 0;
