@@ -83,9 +83,6 @@ export class SuiDialogBase {
       this.staticText[key] = st[key];
     });
 
-    this.initialLeft = parameters.left;
-    this.initialTop = parameters.top;
-
     // If this dialog was spawned by a menu, wait for the menu to dismiss
     // before continuing.
     // this.startPromise = parameters.closeMenuPromise;
@@ -96,8 +93,8 @@ export class SuiDialogBase {
       this[param] = parameters[param];
     });
 
-    const top = parameters.top - this.view.tracker.scroller.netScroll.y;
-    const left = parameters.left - this.view.tracker.scroller.netScroll.x;
+    const left = $('.musicRelief').offset().left + $('.musicRelief').width() / 2;
+    const top  = $('.musicRelief').offset().top + $('.musicRelief').height() / 2;
 
     this.dgDom = this._constructDialog(dialogElements, {
       id: 'dialog-' + this.id,

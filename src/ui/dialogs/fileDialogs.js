@@ -10,8 +10,6 @@ export class SuiFileDialog extends SuiDialogBase {
     var ctor = Smo.getClass(parameters.ctor);
     p.label = parameters.label ? parameters.label : 'Dialog Box';
     p.id = 'dialog-file';
-    p.top = (p.view.score.layout.pageWidth / 2) - 200;
-    p.left = (p.view.score.layout.pageHeight / 2) - 200;
 
     super(ctor.dialogElements, p);
     this.value = '';

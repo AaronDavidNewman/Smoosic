@@ -384,7 +384,7 @@ export class SuiScoreRender extends SuiRenderState {
         }
 
         // Now start rendering on the next system.
-        y = bottomMeasure.logicalBox.height + bottomMeasure.logicalBox.y + this.score.layout.interGap;
+        y = bottomMeasure.logicalBox.height + bottomMeasure.logicalBox.y + scoreLayout.interGap;
         currentLine = [];
         systemIndex = 0;
         x = scoreLayout.leftMargin;

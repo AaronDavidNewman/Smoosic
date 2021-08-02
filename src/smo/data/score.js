@@ -35,29 +35,6 @@ export class SmoScore {
   static get defaults() {
     return {
       // legacy layout structure.  Now we use pages.
-      layout: {
-        leftMargin: 30,
-        rightMargin: 30,
-        topMargin: 40,
-        bottomMargin: 40,
-        pageWidth: 8 * 96 + 48,
-        pageHeight: 11 * 96,
-        interGap: 30,
-        intraGap: 10,
-        svgScale: 1.0,
-        zoomScale: 2.0,
-        zoomMode: SmoScore.zoomModes.fitWidth,
-        noteSpacing: 1.0,
-        pages: 1
-      },
-      globalLayout: {
-        svgScale: 1.0,
-        zoomScale: 2.0,
-        zoomMode: SmoScore.zoomModes.fitWidth,
-        noteSpacing: 1.0,
-        pageWidth: 8 * 96 + 48,
-        pageHeight: 11 * 96
-      },
       instrumentMap: [],
       fonts: [
         { name: 'engraving', purpose: SmoScore.fontPurposes.ENGRAVING, family: 'Bravura', size: 1, custom: false },

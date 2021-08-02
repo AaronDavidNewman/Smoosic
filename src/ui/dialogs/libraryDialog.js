@@ -16,7 +16,7 @@ export class SuiLibraryDialog extends SuiDialogBase {
     return SuiLibraryDialog.ctor;
   }
   static get dialogElements() {
-    SuiLibraryDialog._dialogElements = typeof(SuiLibraryDialog._dialogElements)
+    SuiLibraryDialog._dialogElements = typeof (SuiLibraryDialog._dialogElements)
       !== 'undefined' ? SuiLibraryDialog._dialogElements :
       [{
         smoName: 'smoLibrary',
@@ -47,8 +47,8 @@ export class SuiLibraryDialog extends SuiDialogBase {
   }
   static _createElements(topLib) {
     const elements = JSON.parse(JSON.stringify(SuiLibraryDialog.dialogElements));
-    const txt = elements.find((ee) => typeof(ee.staticText) !== 'undefined');
-    const tree = elements.find((ee) => typeof(ee.smoName) !== 'undefined' && ee.smoName === 'smoLibrary');
+    const txt = elements.find((ee) => typeof (ee.staticText) !== 'undefined');
+    const tree = elements.find((ee) => typeof (ee.smoName) !== 'undefined' && ee.smoName === 'smoLibrary');
     txt.label = topLib.metadata.name;
     tree.root = topLib.url;
     tree.options = SuiLibraryDialog._createOptions(topLib);
@@ -145,11 +145,8 @@ export class SuiLibraryDialog extends SuiDialogBase {
     }
   }
   constructor(parameters, dialogElements, topLib) {
-    var p = parameters;
     super(dialogElements, {
       id: 'dialog-layout',
-      top: (p.view.score.layout.pageWidth / 2) - 200,
-      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...parameters
     });
     this.libHash = {};

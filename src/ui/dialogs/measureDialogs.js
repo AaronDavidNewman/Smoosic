@@ -173,8 +173,6 @@ export class SuiMeasureDialog extends SuiDialogBase {
 
     super(SuiMeasureDialog.dialogElements, {
       id: 'dialog-measure',
-      top: parameters.selection.measure.renderedBox.y,
-      left: parameters.selection.measure.renderedBox.x,
       label: 'Measure Properties',
       ...parameters
     });
@@ -336,8 +334,6 @@ export class SuiInstrumentDialog extends SuiDialogBase {
 
     super(SuiInstrumentDialog.dialogElements, {
       id: 'instrument-measure',
-      top: measure.renderedBox.y,
-      left: measure.renderedBox.x,
       ...parameters
     });
     this.measure = measure;
@@ -414,8 +410,6 @@ export class SuiInsertMeasures extends SuiDialogBase {
     parameters = { selection, measure, ...parameters };
     super(SuiInsertMeasures.dialogElements, {
       id: 'time-signature-measure',
-      top: measure.renderedBox.y,
-      left: measure.renderedBox.x,
       ...parameters
     });
     this.measure = measure;
@@ -532,8 +526,6 @@ export class SuiTimeSignatureDialog extends SuiDialogBase {
 
     super(SuiTimeSignatureDialog.dialogElements, {
       id: 'time-signature-measure',
-      top: measure.renderedBox.y,
-      left: measure.renderedBox.x,
       label: 'Custom Time Signature',
       ...parameters
     });

@@ -163,8 +163,6 @@ export class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
 
     super(SuiSlurAttributesDialog.dialogElements, {
       id: 'dialog-' + parameters.modifier.attrs.id,
-      top: parameters.modifier.renderedBox.y,
-      left: parameters.modifier.renderedBox.x,
       label: 'Slur Properties',
       ...parameters
     });
@@ -172,7 +170,7 @@ export class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   }
   populateInitial() {
     this.components.forEach((comp) => {
-      if (typeof(this.modifier[comp.smoName]) !== 'undefined') {
+      if (typeof (this.modifier[comp.smoName]) !== 'undefined') {
         comp.setValue(this.modifier[comp.smoName]);
       }
     });
@@ -228,8 +226,6 @@ export class SuiTieAttributesDialog extends SuiStaffModifierDialog {
 
     super(SuiTieAttributesDialog.dialogElements, {
       id: 'dialog-' + parameters.modifier.attrs.id,
-      top: parameters.modifier.renderedBox.y,
-      left: parameters.modifier.renderedBox.x,
       label: 'Slur Properties',
       ...parameters
     });
@@ -346,8 +342,6 @@ export class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
 
     super(SuiVoltaAttributeDialog.dialogElements, {
       id: 'dialog-' + parameters.modifier.attrs.id,
-      top: parameters.modifier.renderedBox.y,
-      left: parameters.modifier.renderedBox.x,
       ...parameters
     });
     Vex.Merge(this, parameters);
@@ -448,7 +442,7 @@ export class SuiStaffGroupDialog extends SuiDialogBase {
     return SuiStaffGroupDialog.ctor;
   }
   static get dialogElements() {
-    SuiStaffGroupDialog._dialogElements = typeof(SuiStaffGroupDialog._dialogElements)
+    SuiStaffGroupDialog._dialogElements = typeof (SuiStaffGroupDialog._dialogElements)
       !== 'undefined' ? SuiStaffGroupDialog._dialogElements :
       [{
         smoName: 'staffGroups',
@@ -538,8 +532,6 @@ export class SuiStaffGroupDialog extends SuiDialogBase {
     var p = parameters;
     super(SuiStaffGroupDialog.dialogElements, {
       id: 'dialog-layout',
-      top: (p.view.score.layout.pageWidth / 2) - 200,
-      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...parameters
     });
     this.startPromise = p.startPromise;
