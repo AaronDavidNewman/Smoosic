@@ -5,13 +5,14 @@ import { SmoSelection, SmoSelector } from './selections';
 import { SmoSystemGroup } from '../data/scoreModifiers';
 import { smoMusic } from '../../common/musicHelpers';
 import { SmoNote } from '../data/note';
-import { SmoDuration, SmoTickTransformer, SmoContractNoteActor, SmoStretchNoteActor, SmoMakeTupletActor,
+import { SmoDuration, SmoContractNoteActor, SmoStretchNoteActor, SmoMakeTupletActor,
   SmoUnmakeTupletActor, SmoContractTupletActor } from './tickDuration';
 import { smoBeamerFactory } from './beamers';
 import { SmoStaffHairpin, SmoSlur, SmoTie } from '../data/staffModifiers';
 import { SmoRehearsalMark, SmoMeasureText, SmoVolta } from '../data/measureModifiers';
 import { SmoLyric } from '../data/noteModifiers';
 import { smoSerialize } from '../../common/serializationHelpers';
+
 const VF = Vex.Flow;
 
 // An operation works on a selection or set of selections to edit the music
@@ -260,21 +261,20 @@ export class SmoOperation {
       if (!smoMusic.ticksToDuration[nticks]) {
         return;
       }
-      const actor = new SmoContractNoteActor({
+      SmoContractNoteActor.apply({
         startIndex: selection.selector.tick,
-        tickmap: measure.tickmapForVoice(selection.selector.voice),
+        measure: selection.measure,
+        voice: selection.selector.voice,
         newTicks: nticks
       });
-      SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
       smoBeamerFactory.applyBeams(measure);
     } else {
       const startIndex = measure.tupletIndex(tuplet) + tuplet.getIndexOfNote(note);
-      const actor = new SmoContractTupletActor({
+      SmoContractTupletActor.apply({
         changeIndex: startIndex,
         measure,
         voice: selection.selector.voice
       });
-      SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
     }
   }
 
@@ -288,13 +288,13 @@ export class SmoOperation {
       return;
     }
     const nticks = note.tickCount;
-    const actor = new SmoMakeTupletActor({
+    SmoMakeTupletActor.apply({
       index: selection.selector.tick,
       totalTicks: nticks,
       numNotes,
-      selection
+      measure: selection.measure,
+      voice: selection.selector.voice
     });
-    SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
   }
 
   static removeStaffModifier(selection, modifier) {
@@ -416,12 +416,12 @@ export class SmoOperation {
     const startIndex = measure.tupletIndex(tuplet);
     const endIndex = tuplet.notes.length + startIndex - 1;
 
-    const actor = new SmoUnmakeTupletActor({
+    SmoUnmakeTupletActor.apply({
       startIndex,
       endIndex,
-      measure
+      measure,
+      voice: selection.selector.voice
     });
-    SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
   }
 
   // ## dotDuration
@@ -454,12 +454,12 @@ export class SmoOperation {
     if (!smoMusic.ticksToDuration[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount / 2]) {
       return;
     }
-    const actor = new SmoStretchNoteActor({
+    SmoStretchNoteActor.apply({
       startIndex: selection.selector.tick,
-      tickmap: measure.tickmapForVoice(selection.selector.voice),
+      measure,
+      voice: selection.selector.voice,
       newTicks: nticks
     });
-    SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
   }
 
   // ## undotDuration
@@ -473,12 +473,12 @@ export class SmoOperation {
     if (nticks === note.tickCount) {
       return;
     }
-    const actor = new SmoContractNoteActor({
+    SmoContractNoteActor.apply({
       startIndex: selection.selector.tick,
-      tickmap: measure.tickmapForVoice(selection.selector.voice),
+      measure,
+      voice: selection.selector.voice,
       newTicks: nticks
     });
-    SmoTickTransformer.applyTransform(measure, actor, selection.selector.voice);
   }
 
   // ## transpose

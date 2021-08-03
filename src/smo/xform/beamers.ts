@@ -1,20 +1,29 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoMusic } from '../../common/musicHelpers';
+import { SmoNote } from '../data/note';
+import { SmoAttrs, SmoVoice } from '../data/common';
+import { SmoMeasure, ISmoBeamGroup } from '../data/measure';
+import { TickMap } from './tickMap';
+const VF = eval('Vex.Flow');
 
-const VF = Vex.Flow;
-export class SmoBeamGroup {
-  constructor(params) {
+export interface SmoBeamGroupParams {
+  notes: SmoNote[]
+}
+
+export class SmoBeamGroup implements ISmoBeamGroup {
+  notes: SmoNote[];
+  attrs: SmoAttrs;
+  voice: number = 0;
+  constructor(params: SmoBeamGroupParams) {
     let i = 0;
     this.notes = params.notes;
     Vex.Merge(this, params);
 
-    if (!this.attrs) {
-      this.attrs = {
-        id: VF.Element.newID(),
-        type: 'SmoBeamGroup'
-      };
-    }
+    this.attrs = {
+      id: VF.Element.newID(),
+      type: 'SmoBeamGroup'
+    };
     for (i = 0; i < this.notes.length; ++i) {
       const note = this.notes[i];
       if (note.tickCount < 4096) {
@@ -25,7 +34,7 @@ export class SmoBeamGroup {
 }
 
 export class smoBeamerFactory {
-  static applyBeams(measure) {
+  static applyBeams(measure: SmoMeasure) {
     let i = 0;
     let j = 0;
     for (i = 0; i < measure.voices.length; ++i) {
@@ -39,7 +48,14 @@ export class smoBeamerFactory {
 }
 
 export class smoBeamModifier {
-  constructor(measure, voice) {
+  measure: SmoMeasure;
+  duration: number;
+  timeSignature: string;
+  meterNumbers: number[];
+  beamBeats: number;
+  skipNext: number;
+  currentGroup: SmoNote[];
+  constructor(measure: SmoMeasure, voice: number) {
     this.measure = measure;
     this._removeVoiceBeam(measure, voice);
     this.duration = 0;
@@ -57,9 +73,9 @@ export class smoBeamModifier {
   get beamGroups() {
     return this.measure.beamGroups;
   }
-  _removeVoiceBeam(measure, voice) {
-    const beamGroups = [];
-    measure.beamGroups.forEach((gr) => {
+  _removeVoiceBeam(measure: SmoMeasure, voice: number) {
+    const beamGroups: ISmoBeamGroup[] = [];
+    measure.beamGroups.forEach((gr: ISmoBeamGroup) => {
       if (gr.voice !== voice) {
         beamGroups.push(gr);
       }
@@ -67,15 +83,14 @@ export class smoBeamModifier {
     measure.beamGroups = beamGroups;
   }
 
-  _completeGroup(voice) {
-    const nrCount = this.currentGroup.filter((nn) =>
+  _completeGroup(voice: number) {
+    const nrCount: SmoNote[] = this.currentGroup.filter((nn: SmoNote) =>
       nn.isRest() === false
     );
     // don't beam groups of 1
     if (nrCount.length > 1) {
       this.measure.beamGroups.push(new SmoBeamGroup({
-        notes: this.currentGroup,
-        voice
+        notes: this.currentGroup
       }));
     }
   }
@@ -88,7 +103,7 @@ export class smoBeamModifier {
   // ### _isRemainingTicksBeamable
   // look ahead, and see if we need to beam the tuplet now or if we
   // can combine current beam with future notes.
-  _isRemainingTicksBeamable(tickmap, index) {
+  _isRemainingTicksBeamable(tickmap: TickMap, index: number) {
     let acc = 0;
     let i = 0;
     if (this.duration >= this.beamBeats) {
@@ -106,7 +121,7 @@ export class smoBeamModifier {
     }
     return false;
   }
-  beamNote(tickmap, index, note) {
+  beamNote(tickmap: TickMap, index: number, note: SmoNote) {
     this.beamBeats = note.beamBeats;
     this.duration += tickmap.deltaMap[index];
     if (note.noteType === '/') {

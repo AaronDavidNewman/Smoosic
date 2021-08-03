@@ -64,6 +64,7 @@ export class SmoNote {
   ticks: Ticks = { numerator: 4096, denominator: 1, remainder: 0 };
   beamBeats: number = 4096;
   renderId: string | null = null;
+  beam_group: SmoAttrs | null = null;
 
   static get parameterArray() {
     return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef',

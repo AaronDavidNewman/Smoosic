@@ -16,8 +16,9 @@ import { SmoNoteModifierBase } from './noteModifiers';
 
 const VF = eval('Vex.Flow');
 
-export interface BeamGroup {
-  notes: SmoNote[]
+export interface ISmoBeamGroup {
+  notes: SmoNote[],
+  voice: number
 }
 export interface MeasureSvg {
   staffWidth: number,
@@ -132,7 +133,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   voices: SmoVoice[] = [];
   activeVoice: number = 0;
   tempo: SmoTempoText;
-  beamGroups: BeamGroup[] = [];
+  beamGroups: ISmoBeamGroup[] = [];
   svg: MeasureSvg;
   format: SmoMeasureFormat;
   attrs: SmoAttrs;
