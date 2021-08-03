@@ -113,9 +113,9 @@ export class SmoSelector {
   }
 }
 export interface SmoSelectionParams {
-  selector?: SmoSelector,
-  _staff?: SmoSystemStaff,
-  _measure?: SmoMeasure,
+  selector: SmoSelector,
+  _staff: SmoSystemStaff,
+  _measure: SmoMeasure,
   _note?: SmoNote,
   _pitches?: number[],
   type?: string
@@ -134,8 +134,8 @@ export class SmoSelection {
     tick: 0,
     pitches: []
   };
-  _staff: SmoSystemStaff | null;
-  _measure: SmoMeasure | null;
+  _staff: SmoSystemStaff;
+  _measure: SmoMeasure;
   _note: SmoNote | null;
   _pitches: number[] = [];
   // ### measureSelection
@@ -329,10 +329,10 @@ export class SmoSelection {
     }
     cur = selections[0].selector.measure;
     for (i = 0; i < selections.length; ++i) {
-      const sel = selections[i];
+      const sel: SmoSelection = selections[i];
       if (i === 0 || (sel.selector.measure !== cur)) {
-        const _staff: SmoSystemStaff | undefined = typeof (sel._staff) === 'undefined' || sel._staff === null ? undefined : sel._staff;
-        const _measure: SmoMeasure | undefined = typeof (sel._measure) === 'undefined' || sel._measure === null ? undefined : sel._measure;
+        const _staff: SmoSystemStaff = sel._staff;
+        const _measure: SmoMeasure = sel._measure;
         rv.push(
           new SmoSelection({
             selector: {
@@ -389,8 +389,8 @@ export class SmoSelection {
       tick: 0,
       pitches: []
     };
-    this._staff = null;
-    this._measure = null;
+    this._staff = params._staff;
+    this._measure = params._measure;
     this._note = null;
     this._pitches = [];
     Vex.Merge(this, params);

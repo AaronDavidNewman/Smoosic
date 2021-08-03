@@ -8,7 +8,8 @@ import { TickMap } from './tickMap';
 const VF = eval('Vex.Flow');
 
 export interface SmoBeamGroupParams {
-  notes: SmoNote[]
+  notes: SmoNote[],
+  voice: number
 }
 
 export class SmoBeamGroup implements ISmoBeamGroup {
@@ -17,6 +18,7 @@ export class SmoBeamGroup implements ISmoBeamGroup {
   voice: number = 0;
   constructor(params: SmoBeamGroupParams) {
     let i = 0;
+    this.voice = params.voice;
     this.notes = params.notes;
     Vex.Merge(this, params);
 
@@ -90,7 +92,8 @@ export class smoBeamModifier {
     // don't beam groups of 1
     if (nrCount.length > 1) {
       this.measure.beamGroups.push(new SmoBeamGroup({
-        notes: this.currentGroup
+        notes: this.currentGroup,
+        voice
       }));
     }
   }
