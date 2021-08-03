@@ -6,7 +6,6 @@ import { SmoBarline, SmoRepeatSymbol } from '../smo/data/measureModifiers';
 import { smoSerialize } from '../common/serializationHelpers';
 import { suiOscillator } from '../render/audio/oscillator';
 import { SmoMicrotone, SmoLyric, SmoArticulation, SmoOrnament } from '../smo/data/noteModifiers';
-import { SmoScore } from '../smo/data/score';
 import { SuiChordChangeDialog, SuiTextTransformDialog, SuiLyricDialog } from './dialogs/textDialogs';
 
 // ## RibbonButtons
@@ -532,13 +531,11 @@ export class DisplaySettings {
   zoomout() {
     const globalLayout = this.view.score.layoutManager.getGlobalLayout();
     globalLayout.zoomScale *= 1.1;
-    globalLayout.zoomMode = SmoScore.zoomModes.zoomScale;
     this.view.setGlobalLayout(globalLayout);
   }
   zoomin() {
     const globalLayout = this.view.score.layoutManager.getGlobalLayout();
     globalLayout.zoomScale = globalLayout.zoomScale / 1.1;
-    globalLayout.zoomMode = SmoScore.zoomModes.zoomScale;
     this.view.setGlobalLayout(globalLayout);
   }
   playButton2() {

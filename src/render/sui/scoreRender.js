@@ -129,11 +129,6 @@ export class SuiScoreRender extends SuiRenderState {
     $(this.renderer.getContext().svg).find('.all-score-text').remove();
     const group = this.context.openGroup();
     group.classList.add('all-score-text');
-
-    this._score.scoreText.forEach((tt) => {
-      this.renderScoreText(tt);
-    });
-
     this._score.textGroups.forEach((tg) => {
       this.renderTextGroup(tg);
     });

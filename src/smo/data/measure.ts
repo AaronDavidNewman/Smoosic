@@ -486,7 +486,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
 
   // ### getDefaultMeasure
   // For create the initial or new measure, get a measure with notes.
-  static getDefaultMeasure(params: SmoMeasure): SmoMeasure {
+  static getDefaultMeasure(params: SmoMeasureParams): SmoMeasure {
     const obj: any = {};
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, SmoMeasure.defaults, obj);
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, obj);
@@ -502,7 +502,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
 
   // ### SmoMeasure.getDefaultMeasureWithNotes
   // Get a new measure with the appropriate notes for the supplied clef, instrument
-  static getDefaultMeasureWithNotes(params: SmoMeasure) {
+  static getDefaultMeasureWithNotes(params: SmoMeasureParams) {
     var measure = SmoMeasure.getDefaultMeasure(params);
     measure.voices.push({
       notes: SmoMeasure.getDefaultNotes(params)

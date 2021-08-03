@@ -849,7 +849,9 @@ export class SuiScoreViewOperations extends SuiScoreView {
   setGlobalLayout(layout) {
     this.actionBuffer.addAction('setGlobalLayout', layout);
     this._undoScore('Set Global Layout');
+    const original = this.score.layoutManager.getGlobalLayout().svgScale;
     this.score.layoutManager.updateGlobalLayout(layout);
+    this.score.scaleTextGroups(original / layout.svgScale);
     this.storeScore.layoutManager.updateGlobalLayout(layout);
     this.renderer.rerenderAll();
   }

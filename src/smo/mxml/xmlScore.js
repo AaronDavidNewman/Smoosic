@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { mxmlHelpers } from './xmlHelpers';
 import { XmlState } from './xmlState';
-import { SmoLayoutManager, SmoTextGroup } from '../data/scoreModifiers';
+import { SmoTextGroup } from '../data/scoreModifiers';
 import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase } from '../data/measureModifiers';
 import { SmoScore } from '../data/score';
 import { SmoMeasure } from '../data/measure';
@@ -49,50 +49,50 @@ export class mxmlScore {
       }
 
       const scoreRoot = scoreRoots[0];
-      const scoreDefaults = JSON.parse(JSON.stringify(SmoScore.defaults));
-      const layoutDefaults = new SmoLayoutManager();
-      scoreDefaults.layoutManager = layoutDefaults;
-      layoutDefaults.svgScale = 0.5; // if no scale given in score, default to
-      // something small.
+      const rv = new SmoScore(SmoScore.defaults);
+      rv.staves = [];
+      const layoutDefaults = rv.layoutManager;
+      // if no scale given in score, default to something small.
+      layoutDefaults.globalLayout.svgScale = 0.5;
+      layoutDefaults.globalLayout.zoomScale = 1.0;
       const xmlState = new XmlState();
       xmlState.newTitle = false;
-      scoreDefaults.scoreInfo.name = 'Imported Smoosic';
+      rv.scoreInfo.name = 'Imported Smoosic';
       mxmlScore.scoreInfoFields.forEach((field) => {
-        scoreDefaults.scoreInfo[field] = '';
+        rv.scoreInfo[field] = '';
       });
       const childNodes = [...scoreRoot.children];
       childNodes.forEach((scoreElement) => {
         if (scoreElement.tagName === 'work') {
           const scoreNameNode = [...scoreElement.getElementsByTagName('work-title')];
           if (scoreNameNode.length) {
-            scoreDefaults.scoreInfo.title = scoreNameNode[0].textContent;
-            scoreDefaults.scoreInfo.name = scoreDefaults.scoreInfo.title;
+            rv.scoreInfo.title = scoreNameNode[0].textContent;
+            rv.scoreInfo.name = rv.scoreInfo.title;
             xmlState.newTitle = true;
           }
         } else if (scoreElement.tagName === 'identification') {
           const creators = [...scoreElement.getElementsByTagName('creator')];
           creators.forEach((creator) => {
             if (creator.getAttribute('type') === 'composer') {
-              scoreDefaults.scoreInfo.composer = creator.textContent;
+              rv.scoreInfo.composer = creator.textContent;
             }
           });
         } else if (scoreElement.tagName === 'movement-title') {
           if (xmlState.newTitle) {
-            scoreDefaults.scoreInfo.subTitle = scoreElement.textContent;
+            rv.scoreInfo.subTitle = scoreElement.textContent;
           } else {
-            scoreDefaults.scoreInfo.title = scoreElement.textContent;
-            scoreDefaults.scoreInfo.name = scoreDefaults.scoreInfo.title;
+            rv.scoreInfo.title = scoreElement.textContent;
+            rv.scoreInfo.name = rv.scoreInfo.title;
             xmlState.newTitle = true;
           }
         } else if (scoreElement.tagName === 'defaults') {
-          mxmlScore.defaults(scoreElement, scoreDefaults, layoutDefaults);
+          mxmlScore.defaults(scoreElement, rv, layoutDefaults);
         } else if (scoreElement.tagName === 'part') {
           xmlState.initializeForPart(xmlState);
           mxmlScore.part(scoreElement, xmlState);
         }
       });
       // The entire score is parsed and xmlState now contains the staves.
-      const rv = new SmoScore(scoreDefaults);
       rv.formattingManager = xmlState.formattingManager;
       rv.staves = xmlState.smoStaves;
       xmlState.updateStaffGroups();
@@ -111,17 +111,17 @@ export class mxmlScore {
       });
       if (rv.scoreInfo.title) {
         rv.addTextGroup(SmoTextGroup.createTextForLayout(
-          SmoTextGroup.purposes.TITLE, rv.scoreInfo.title, rv.layout
+          SmoTextGroup.purposes.TITLE, rv.scoreInfo.title, rv.layoutManager.getScaledPageLayout(0)
         ));
       }
       if (rv.scoreInfo.subTitle) {
         rv.addTextGroup(SmoTextGroup.createTextForLayout(
-          SmoTextGroup.purposes.SUBTITLE, rv.scoreInfo.subTitle, rv.layout
+          SmoTextGroup.purposes.SUBTITLE, rv.scoreInfo.subTitle, rv.layoutManager.getScaledPageLayout(0)
         ));
       }
       if (rv.scoreInfo.composer) {
         rv.addTextGroup(SmoTextGroup.createTextForLayout(
-          SmoTextGroup.purposes.COMPOSER, rv.scoreInfo.composer, rv.layout
+          SmoTextGroup.purposes.COMPOSER, rv.scoreInfo.composer, rv.layoutManager.getScaledPageLayout(0)
         ));
       }
       return rv;
@@ -133,9 +133,10 @@ export class mxmlScore {
 
   // ### defaults
   // /score-partwise/defaults
-  static defaults(defaultsElement, scoreDefaults, layoutDefaults)  {
+  static defaults(defaultsElement, score, layoutDefaults)  {
     // Default scale for mxml
     let scale = 1 / 7;
+    const currentScale = layoutDefaults.getGlobalLayout().svgScale;
     const pageLayoutNode = defaultsElement.getElementsByTagName('page-layout');
     if (pageLayoutNode.length) {
       mxmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults.globalLayout, mxmlScore.pageLayoutMap);
@@ -157,6 +158,7 @@ export class mxmlScore {
     // Convert from mm to pixels, this is our default svg scale
     // mm per tenth * pixels / mm gives us pixels per tenth
     layoutDefaults.globalLayout.svgScale =  (scale * 45 / 40) / mxmlScore.mmPerPixel;
+    score.scaleTextGroups(currentScale / layoutDefaults.globalLayout.svgScale);
   }
 
   // ### part

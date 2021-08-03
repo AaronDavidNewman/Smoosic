@@ -107,17 +107,6 @@ export class suiMapper {
     this.modifierTabs = [];
     this.modifierBoxes = [];
     const modMap = {};
-    this.renderer.score.scoreText.forEach((modifier) => {
-      if (!modMap[modifier.attrs.id]) {
-        this.modifierTabs.push({
-          modifier,
-          selection: null,
-          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
-          index: ix
-        });
-        ix += 1;
-      }
-    });
     this.renderer.score.textGroups.forEach((modifier) => {
       if (!modMap[modifier.attrs.id] && modifier.logicalBox) {
         this.modifierTabs.push({

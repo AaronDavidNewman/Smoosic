@@ -194,9 +194,7 @@ export class SuiRenderState {
     $('body').addClass('print-render');
     const self = this;
     const layout = this.score.layoutManager.getGlobalLayout();
-    this._backupZoomMode = layout.zoomMode;
     this._backupZoomScale = layout.zoomScale;
-    layout.zoomMode = SmoScore.zoomModes.zoomScale;
     layout.zoomScale = 1.0;
     this.score.layoutManager.updateGlobalLayout(layout);
     this.setViewport(true);
@@ -224,7 +222,6 @@ export class SuiRenderState {
 
   restoreLayoutAfterPrint() {
     const layout = this.score.layoutManager.getGlobalLayout();
-    layout.zoomMode = this._backupZoomMode;
     layout.zoomScale = this._backupZoomScale;
     this.score.layoutManager.updateGlobalLayout(layout);
     this.setViewport(true);

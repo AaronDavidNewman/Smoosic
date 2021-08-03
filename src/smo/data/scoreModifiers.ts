@@ -1,6 +1,5 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoScore } from './score';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMeasureFormat } from './measureModifiers';
 import { SmoAttrs, FontInfo } from './common';
@@ -45,27 +44,7 @@ export class SmoFormattingManager extends SmoScoreModifierBase {
       partIndex: -1
     };
   }
-  // ## fromLegacyScore
-  // Convert measure formatting from legacy scores, that had the formatting
-  // per measure, to the new way that has a separate formatting object.
-  static fromLegacyScore(score: SmoScore, jsonObj: any): SmoFormattingManager | null {
-    let current: SmoMeasureFormat | null = null;
-    let previous: SmoMeasureFormat | null = null;
-    const measureFormats: SmoMeasureFormat[] = [];
-    score.staves[0].measures.forEach((measure: SmoMeasure) => {
-      if (current === null) {
-        current = SmoMeasureFormat.fromLegacyMeasure(jsonObj.staves[0].measures[measure.measureNumber.measureIndex]);
-        measureFormats[measure.measureNumber.measureIndex] = current;
-      } else {
-        previous = current;
-        current = SmoMeasureFormat.fromLegacyMeasure(jsonObj.staves[0].measures[measure.measureNumber.measureIndex]);
-        if (!current.eq(previous)) {
-          measureFormats[measure.measureNumber.measureIndex] = current;
-        }
-      }
-    });
-    return new SmoFormattingManager({ measureFormats });
-  }
+
   constructor(params: SmoFormattingManagerParams) {
     super('SmoFormattingManager');
     if (typeof (params) === 'undefined') {
@@ -148,12 +127,11 @@ export class SmoPageLayout extends SmoScoreModifierBase {
 export class SmoGlobalLayout {
   svgScale: number = 1.0;
   zoomScale: number = 2.0;
-  zoomMode: number = SmoScore.zoomModes.fitWidth;
   noteSpacing: number = 1.0;
   pageWidth: number = 8 * 96 + 48;
   pageHeight: number = 11 * 96;
   static get attributes(): string[] {
-    return ['svgScale', 'zoomScale', 'zoomMode', 'noteSpacing', 'pageWidth', 'pageHeight'];
+    return ['svgScale', 'zoomScale', 'noteSpacing', 'pageWidth', 'pageHeight'];
   }
   // Page width and page height are absolute, but must be scaled by svgScale
   // to be rendered
@@ -166,7 +144,6 @@ export class SmoGlobalLayout {
 export class ScaledPageLayout {
   svgScale: number = 1.0;
   zoomScale: number = 2.0;
-  zoomMode: number = SmoScore.zoomModes.fitWidth;
   noteSpacing: number = 1.0;
   pageWidth: number = 8 * 96 + 48;
   pageHeight: number = 11 * 96;
@@ -203,7 +180,6 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
     return {
       svgScale: 1.0,
       zoomScale: 2.0,
-      zoomMode: SmoScore.zoomModes.fitWidth,
       noteSpacing: 1.0,
       pageWidth: 8 * 96 + 48,
       pageHeight: 11 * 96
@@ -242,9 +218,7 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
     }
   }
   getZoomScale() {
-    const zoomScale = this.globalLayout.zoomMode === SmoScore.zoomModes.zoomScale ?
-      this.globalLayout.zoomScale : (window.innerWidth - 200) / this.globalLayout.pageWidth;
-    return zoomScale;
+    return this.globalLayout.zoomScale;
   }
   serialize() {
     const rv: any = {};
@@ -680,10 +654,10 @@ export class SmoTextGroup extends SmoScoreModifierBase {
   static createTextForLayout(purpose: number, text: string, layout: ScaledPageLayout) {
     let x = 0;
     const textAttr = SmoTextGroup.purposeToFont[purpose];
-    const pageWidth = layout.pageWidth / layout.svgScale;
-    const pageHeight = layout.pageHeight / layout.svgScale;
-    const bottomMargin = layout.bottomMargin / layout.svgScale;
-    const topMargin = layout.topMargin / layout.svgScale;
+    const pageWidth = layout.pageWidth;
+    const pageHeight = layout.pageHeight;
+    const bottomMargin = layout.bottomMargin;
+    const topMargin = layout.topMargin;
     x = textAttr.xPlacement > 0 ? pageWidth * textAttr.xPlacement
       : pageWidth - (pageWidth * textAttr.xPlacement);
     const y = textAttr.yOffset > 0 ?
@@ -752,9 +726,9 @@ export class SmoTextGroup extends SmoScoreModifierBase {
   // ### getPagedTextGroups
   // If this text is repeated on page, create duplicates for each page, and
   // resolve page numbers;
-  static getPagedTextGroups(tg: SmoTextGroup, pages: number, pageHeight: number) {
+  static getPagedTextGroups(tg: SmoTextGroup, pages: number, pageHeight: number): SmoTextGroup[] {
     const rv: SmoTextGroup[] = [];
-    let i = 0;
+    let i: number = 0;
     if (tg.pagination === SmoTextGroup.paginations.ONCE) {
       rv.push(tg);
       return rv;
@@ -810,16 +784,16 @@ export class SmoTextGroup extends SmoScoreModifierBase {
     if (params.blocks) {
       params.blocks.forEach((block: SmoTextBlock) => {
         this.textBlocks.push(block);
-        // I'm not sure why this logic exists, maybe for deserialization from legacy scores
-        /* if (this._isScoreText(block)) {
-          this.textBlocks.push({ text: block, position: SmoTextGroup.relativePositions.RIGHT });
-        } else if (this._isScoreText(block.text)) {
-          this.textBlocks.push(block);
-        } else {
-          throw 'Invalid object in SmoTextGroup';
-        }*/
       });
     }
+  }
+  scaleText(scale: number) {
+    this.musicXOffset *= scale;
+    this.musicYOffset *= scale;
+    this.textBlocks.forEach((block: SmoTextBlock) => {
+      block.text.x *= scale;
+      block.text.y *= scale;
+    });
   }
   // ### tryParseUnicode
   // Try to parse unicode strings.

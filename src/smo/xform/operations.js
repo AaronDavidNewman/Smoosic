@@ -729,13 +729,6 @@ export class SmoOperation {
     });
   }
 
-  static addScoreText(score, scoreText) {
-    score.addScoreText(scoreText);
-  }
-  static removeScoreText(score, scoreText) {
-    score.removeScoreText(scoreText);
-  }
-
   static addTextGroup(score, textGroup) {
     score.addTextGroup(textGroup);
   }
