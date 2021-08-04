@@ -33,7 +33,7 @@ export abstract class StaffModifierBase {
     const rv = new ctor(params);
     return rv;
   }
-  abstract serialize(): void;
+  abstract serialize(): any;
   get isStaffModifier() {
     return true;
   }

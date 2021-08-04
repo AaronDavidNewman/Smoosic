@@ -87,7 +87,7 @@ export class SmoTuplet {
   static get longestTuplet() {
     return 8192;
   }
-  static cloneTuplet(tuplet: SmoTuplet) {
+  static cloneTuplet(tuplet: SmoTuplet): SmoTuplet {
     let i = 0;
     const noteAr = tuplet.notes;
     const durationMap = JSON.parse(JSON.stringify(tuplet.durationMap)); // deep copy array
@@ -154,9 +154,12 @@ export class SmoTuplet {
     this.notes[0].ticks.remainder =
       this.notes[0].ticks.remainder + this.totalTicks - noteTicks;
   }
-  getIndexOfNote(note: SmoNote) {
+  getIndexOfNote(note: SmoNote | null): number {
     let rv = -1;
     let i = 0;
+    if (!note) {
+      return -1;
+    }
     for (i = 0; i < this.notes.length; ++i) {
       const tn = this.notes[i];
       if (note.attrs.id === tn.attrs.id) {

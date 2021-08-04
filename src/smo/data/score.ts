@@ -455,11 +455,8 @@ export class SmoScore {
   }
 
   getSystemGroupForStaff(selection: SmoSelection) {
-    if (selection.staff === null || selection.measure === null) {
-      return null;
-    }
-    const staffId: number = selection?.staff?.staffId;
-    const measureIndex: number = selection?.measure?.measureNumber?.measureIndex;
+    const staffId: number = selection.staff.staffId;
+    const measureIndex: number = selection.measure.measureNumber.measureIndex;
     const exist = this.systemGroups.find((sg: SmoSystemGroup) =>
       sg.startSelector.staff <= staffId &&
       sg.endSelector.staff >= staffId &&

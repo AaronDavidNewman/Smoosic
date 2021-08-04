@@ -28,8 +28,8 @@ export class SmoDuration {
    */
   static doubleDurationNonTuplet(selection: SmoSelection) {
     const note: SmoNote | null = selection?.note;
-    const measure: SmoMeasure | null = selection.measure;
-    if (note === null || measure === null) {
+    const measure: SmoMeasure = selection.measure;
+    if (note === null) {
       return;
     }
     const selector: SmoSelector = selection.selector;
@@ -87,13 +87,13 @@ export class SmoDuration {
    */
   static doubleDurationTuplet(selection: SmoSelection) {
     let i: number = 0;
-    const measure: SmoMeasure | null = selection?.measure;
+    const measure: SmoMeasure = selection.measure;
     const note: SmoNote | null = selection?.note;
-    if (note === null || measure === null) {
+    if (note === null) {
       return;
     }
     const notes = measure.voices[selection.selector.voice].notes;
-    const tuplet: SmoTuplet | null = measure?.getTupletForNote(note);
+    const tuplet: SmoTuplet | null = measure.getTupletForNote(note);
     if (tuplet === null) {
       return;
     }

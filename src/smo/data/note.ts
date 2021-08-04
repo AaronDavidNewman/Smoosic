@@ -346,8 +346,8 @@ export class SmoNote {
     this.fillStyle = val ? '#aaaaaa7f' : '';
   }
 
-  get isTuplet() {
-    return this.tuplet !== null && this.tuplet.id;
+  get isTuplet(): boolean {
+    return this.tuplet !== null && this.tuplet.id !== null;
   }
 
   addMicrotone(tone: SmoMicrotone) {

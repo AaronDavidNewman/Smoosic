@@ -137,6 +137,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   svg: MeasureSvg;
   format: SmoMeasureFormat;
   attrs: SmoAttrs;
+  renderedBox?: SvgBox;
 
   constructor(params: SmoMeasureParams) {
     this.tempo = new SmoTempoText(SmoTempoText.defaults);
@@ -830,8 +831,11 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
 
   // #### getTupletForNote
   // Finds the tuplet for a given note, or null if there isn't one.
-  getTupletForNote(note: SmoNote) {
+  getTupletForNote(note: SmoNote | null): SmoTuplet | null {
     let i = 0;
+    if (!note) {
+      return null;
+    }
     if (!note.isTuplet) {
       return null;
     }

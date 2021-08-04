@@ -140,7 +140,7 @@ export class SmoSelection {
   _pitches: number[] = [];
   // ### measureSelection
   // A selection that does not contain a specific note
-  static measureSelection(score: SmoScore, staffIndex: number, measureIndex: number) {
+  static measureSelection(score: SmoScore, staffIndex: number, measureIndex: number): SmoSelection | null {
     staffIndex = staffIndex !== null ? staffIndex : score.activeStaff;
     const selector = {
       staff: staffIndex,
