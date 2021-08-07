@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoMusic } from '../../common/musicHelpers';
 import { SmoNote } from '../data/note';
-import { SmoAttrs, SmoVoice } from '../data/common';
+import { SmoAttrs } from '../data/common';
 import { SmoMeasure, ISmoBeamGroup } from '../data/measure';
 import { TickMap } from './tickMap';
 const VF = eval('Vex.Flow');

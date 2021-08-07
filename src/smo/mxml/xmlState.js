@@ -149,14 +149,14 @@ export class XmlState {
           }
         }
       }
-      const startSelector = {
+
+      const params = SmoStaffHairpin.defaults;
+      params.startSelector = {
         staff: staffId - 1, measure: hpMeasureIndex, voice: 0, tick: startTick
       };
-      const smoHp = new SmoStaffHairpin({
-        startSelector, endSelector, hairpinType: hairpin.type === 'crescendo' ?
-          SmoStaffHairpin.types.CRESCENDO :
-          SmoStaffHairpin.types.DECRESCENDO
-      });
+      params.endSelector = endSelector;
+      params.hairpinType = hairpin.type === 'crescendo' ? SmoStaffHairpin.types.CRESCENDO : SmoStaffHairpin.types.DECRESCENDO;
+      const smoHp = new SmoStaffHairpin(params);
       smoStaff.modifiers.push(smoHp);
     });
     this.hairpins = [];
@@ -288,10 +288,10 @@ export class XmlState {
   // ### completeTies
   completeTies() {
     this.completedTies.forEach((tie) => {
-      const smoTie = new SmoTie({
-        startSelector: tie.startSelector,
-        endSelector: tie.endSelector
-      });
+      const params = SmoTie.defaults;
+      params.startSelector = tie.startSelector;
+      params.endSelector = tie.endSelector;
+      const smoTie = new SmoTie(params);
       smoTie.lines = [{
         from: tie.fromPitch, to: tie.toPitch
       }];
@@ -305,12 +305,12 @@ export class XmlState {
   // (i.e. the staves that have already been parsed in other parts)
   completeSlurs() {
     this.completedSlurs.forEach((slur) => {
-      const smoSlur = new SmoSlur({
-        startSelector: slur.startSelector,
-        endSelector: slur.endSelector,
-        yOffset: slur.yOffset,
-        invert: slur.invert
-      });
+      const params = SmoSlur.defaults;
+      params.startSelector = slur.startSelector;
+      params.endSelector = slur.endSelector;
+      params.yOffset = slur.yOffset;
+      params.invert = slur.invert;
+      const smoSlur = new SmoSlur(params);
       this.smoStaves[slur.startSelector.staff].addStaffModifier(smoSlur);
     });
   }

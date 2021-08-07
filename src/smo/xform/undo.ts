@@ -6,8 +6,6 @@ import { SmoOperation } from './operations';
 import { SmoScore } from '../data/score';
 import { SmoMeasure } from '../data/measure';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoGraceNote } from '../data/noteModifiers';
-import { SmoSelection } from './selections';
 import { SmoTextGroup } from '../data/scoreModifiers';
 import { SmoSelector } from './selections';
 

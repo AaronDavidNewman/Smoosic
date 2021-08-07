@@ -3,6 +3,7 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { smoMusic } from '../../common/musicHelpers';
 import { SmoAttrs, MeasureNumber, FontInfo, SmoObjectParams } from './common';
+import { SmoSelector } from '../xform/selections';
 
 const VF = eval('Vex.Flow');
 // ## Measure modifiers are elements that are attached to the bar itself, like barlines or measure-specific text,
@@ -263,6 +264,9 @@ export class SmoVolta extends SmoMeasureModifierBase {
   xOffsetENd: number = 0;
   yOffset: number = 20;
   number: number = 1;
+  endingId: string | null = null;
+  startSelector: SmoSelector | null = null;
+  endSelector: SmoSelector | null = null;
   constructor(parameters: SmoVoltaParams) {
     super('SmoVolta');
     smoSerialize.serializedMerge(SmoVolta.attributes, SmoVolta.defaults, this);
@@ -471,12 +475,12 @@ export interface SmoTempoTextParams {
   beatDuration: number,
   tempoText: string,
   yOffset: number,
-  display: false,
-  customText: ''
+  display: boolean,
+  customText: string
 }
 // ### SmoTempoText
 // Tempo marking and also the information about the tempo.
-export class SmoTempoText extends SmoMeasureModifierBase {
+export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoTextParams {
   static get tempoModes(): Record<string, string> {
     return {
       durationMode: 'duration',

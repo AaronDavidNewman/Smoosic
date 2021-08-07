@@ -34,42 +34,46 @@ export class SmoSelector {
   tick: number = 0;
   pitches: number[] = [];
 
+  static measureSelector(staff: number, measure: number): SmoSelector {
+    return { staff, measure, voice: 0, tick: 0, pitches: [] };
+  }
+
   // TODO:  tick in selector s/b tickIndex
-  static sameNote(sel1: SmoSelector, sel2: SmoSelector) {
+  static sameNote(sel1: SmoSelector, sel2: SmoSelector): boolean {
     return (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.voice === sel2.voice
       && sel1.tick === sel2.tick);
   }
-  static sameMeasure(sel1: SmoSelector, sel2: SmoSelector) {
+  static sameMeasure(sel1: SmoSelector, sel2: SmoSelector): boolean {
     return (sel1.staff === sel2.staff && sel1.measure === sel2.measure);
   }
 
-  static sameStaff(sel1: SmoSelector, sel2: SmoSelector) {
+  static sameStaff(sel1: SmoSelector, sel2: SmoSelector): boolean {
     return sel1.staff === sel2.staff;
   }
 
   // ## return true if sel1 > sel2.
-  static gt(sel1: SmoSelector, sel2: SmoSelector) {
+  static gt(sel1: SmoSelector, sel2: SmoSelector): boolean {
     // Note: voice is not considered b/c it's more of a vertical component
     return sel1.staff > sel2.staff ||
       (sel1.staff === sel2.staff && sel1.measure > sel2.measure) ||
       (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.tick > sel2.tick);
   }
 
-  static eq(sel1: SmoSelector, sel2: SmoSelector) {
+  static eq(sel1: SmoSelector, sel2: SmoSelector): boolean {
     return (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.tick === sel2.tick);
   }
-  static neq(sel1: SmoSelector, sel2: SmoSelector) {
+  static neq(sel1: SmoSelector, sel2: SmoSelector): boolean {
     return !(SmoSelector.eq(sel1, sel2));
   }
 
-  static lt(sel1: SmoSelector, sel2: SmoSelector) {
+  static lt(sel1: SmoSelector, sel2: SmoSelector): boolean {
     return SmoSelector.gt(sel2, sel1);
   }
 
-  static gteq(sel1: SmoSelector, sel2: SmoSelector) {
+  static gteq(sel1: SmoSelector, sel2: SmoSelector): boolean {
     return SmoSelector.gt(sel1, sel2) || SmoSelector.eq(sel1, sel2);
   }
-  static lteq(sel1: SmoSelector, sel2: SmoSelector) {
+  static lteq(sel1: SmoSelector, sel2: SmoSelector): boolean {
     return SmoSelector.lt(sel1, sel2) || SmoSelector.eq(sel1, sel2);
   }
 

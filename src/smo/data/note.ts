@@ -3,7 +3,7 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament } from './noteModifiers';
 import { smoMusic } from '../../common/musicHelpers';
-import { Ticks, Pitch, SmoAttrs, FontInfo } from './common';
+import { Ticks, Pitch, SmoAttrs, FontInfo, Transposable } from './common';
 const VF = eval('Vex.Flow');
 
 export interface TupletInfo {
@@ -33,7 +33,7 @@ export interface SmoNoteParams {
 // Basic note information.  Leaf node of the SMO dependency tree (so far)
 // ## SmoNote Methods
 // ---
-export class SmoNote {
+export class SmoNote implements Transposable {
   // ### Description:
   // see defaults for params format.
   constructor(params: SmoNoteParams) {
@@ -277,7 +277,7 @@ export class SmoNote {
     this._addArticulation(articulation, true);
   }
 
-  static _sortPitches(note: SmoNote) {
+  static _sortPitches(note: Transposable) {
     const canon = VF.Music.canonical_notes;
     const keyIndex = ((pitch: Pitch) =>
       canon.indexOf(pitch.letter) + pitch.octave * 12
@@ -306,6 +306,15 @@ export class SmoNote {
   }
   getGraceNotes() {
     return this.graceNotes;
+  }
+  static addPitchOffset(note: Transposable, offset: number) {
+    if (note.pitches.length === 0) {
+      return;
+    }
+    note.noteType = 'n';
+    const pitch = note.pitches[0];
+    note.pitches.push(smoMusic.getKeyOffset(pitch, offset));
+    SmoNote._sortPitches(note);
   }
   addPitchOffset(offset: number) {
     if (this.pitches.length === 0) {
@@ -400,7 +409,7 @@ export class SmoNote {
     }
     SmoNote._sortPitches(this);
   }
-  static _transpose(note: SmoNote, pitchArray:number[], offset: number, keySignature: string) {
+  static _transpose(note: Transposable, pitchArray:number[], offset: number, keySignature: string) {
     let index: number = 0;
     let j: number = 0;
     let letterKey: string = 'a';
@@ -413,7 +422,7 @@ export class SmoNote {
     for (j = 0; j < pitchArray.length; ++j) {
       index = pitchArray[j];
       if (index + 1 > note.pitches.length) {
-        note.addPitchOffset(offset);
+        SmoNote.addPitchOffset(note, offset);
       } else {
         const pitch = smoMusic.getKeyOffset(note.pitches[index], offset);
         if (keySignature) {

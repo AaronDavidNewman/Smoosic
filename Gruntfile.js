@@ -4,14 +4,14 @@ const webpack = require('webpack');
 module.exports = function (grunt) {
   // Used for eslint and docco
   const LINTS = ['src/common/musicHelpers.js',
-    'src/smo/data/measure.ts','src/smo/data/note.ts','src/smo/data/score.js',
-  'src/smo/xform/beamers.js','src/smo/xform/audioTrack.js',
+    'src/smo/data/measure.ts','src/smo/data/note.ts','src/smo/data/score.ts',
+  'src/smo/xform/beamers.ts','src/smo/xform/audioTrack.js',
   'src/smo/data/noteModifiers.ts','src/smo/data/systemStaff.ts','src/smo/data/scoreModifiers.ts',
   'src/smo/data/measureModifiers.ts', 'src/smo/data/tuplet.ts','src/smo/data/staffModifiers.ts',
   'src/smo/mxml/xmlScore.js','src/smo/mxml/xmlState.js','src/smo/mxml/xmlHelpers.js',
   'src/smo/mxml/smo2Xml.js','src/smo/midi/smoToMidi.js',
-  'src/smo/xform/operations.js', 'src/smo/xform/undo.js', 'src/smo/xform/tickMap.ts', 'src/smo/xform/actions.js', 'src/smo/xform/toVex.js',
-  'src/smo/xform/copypaste.js','src/smo/xform/selections.ts','src/smo/xform/tickDuration.js',
+  'src/smo/xform/operations.ts', 'src/smo/xform/undo.ts', 'src/smo/xform/tickMap.ts', 'src/smo/xform/actions.js', 'src/smo/xform/toVex.js',
+  'src/smo/xform/copypaste.ts','src/smo/xform/selections.ts','src/smo/xform/tickDuration.ts',
   'src/render/vex/vxMeasure.js','src/render/sui/renderState.js', 'src/render/sui/scoreRender.js',
   'src/render/sui/actionPlayback.js','src/render/sui/formatter.js','src/render/audio/player.js',
   'src/render/sui/textRender.js','src/render/vex/vxSystem.js', 'src/render/vex/glyphDimensions.js',

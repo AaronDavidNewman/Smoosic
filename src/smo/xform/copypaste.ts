@@ -84,7 +84,7 @@ export class PasteBuffer {
           this.modifiers.push(cp);
         });
       }
-      const isTuplet: boolean = selection?.note?.isTuplet ?? false ;
+      const isTuplet: boolean = selection?.note?.isTuplet ?? false;
       if (isTuplet) {
         const tuplet = (selection.measure.getTupletForNote(selection.note) as SmoTuplet);
         const index = tuplet.getIndexOfNote(selection.note);

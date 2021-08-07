@@ -132,6 +132,9 @@
     "no-shadow": [
       0
     ],
+    "no-unused-vars": [
+      0
+    ],
     "no-undef-init": [
       0
     ],

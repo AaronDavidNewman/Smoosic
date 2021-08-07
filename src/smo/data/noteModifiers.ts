@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoAttrs, Ticks, Pitch, FontInfo, SmoObjectParams } from './common';
+import { SmoAttrs, Ticks, Pitch, FontInfo, SmoObjectParams, Transposable } from './common';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { smoMusic } from '../../common/musicHelpers';
@@ -44,7 +44,7 @@ export interface GraceNoteParams extends SmoObjectParams {
   pitches: Pitch[],
 }
 
-export class SmoGraceNote extends SmoNoteModifierBase {
+export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
   static get flagStates() {
     return { auto: 0, up: 1, down: 2 };
   }
@@ -81,6 +81,7 @@ export class SmoGraceNote extends SmoNoteModifierBase {
   pitches: Pitch[] = [];
   slash: boolean = false;
   clef: string = 'treble';
+  noteType: string = 'n';
 
   tickCount() {
     return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;

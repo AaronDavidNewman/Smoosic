@@ -18,7 +18,13 @@ export type PitchLetter = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g';
 export interface Pitch {
     letter: PitchLetter,
     accidental: string,
-    octave: number
+    octave: number,
+    cautionary?: boolean
+}
+
+export interface Transposable {
+    pitches: Pitch[],
+    noteType: string
 }
 
 export interface FontInfo {

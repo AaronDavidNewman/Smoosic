@@ -57,13 +57,6 @@ export class SuiScoreViewOperations extends SuiScoreView {
     // TODO: only render the one TG.
     this.renderer.renderScoreModifiers();
   }
-  updateProportionDefault(oldValue, newValue) {
-    this.actionBuffer.addAction('updateProportionDefault', oldValue, newValue);
-    this._undoScorePreferences('Update proportion');
-    SmoOperation.updateProportionDefault(this.score, oldValue, newValue);
-    SmoOperation.updateProportionDefault(this.storeScore, oldValue, newValue);
-    this.renderer.setDirty();
-  }
   // ### updateScorePreferences
   // The score preferences for view score have changed, sync them
   updateScorePreferences(pref) {
@@ -689,29 +682,6 @@ export class SuiScoreViewOperations extends SuiScoreView {
     altRs.forEach((s) => {
       SmoOperation.setAutoJustify(this.storeScore, s, value);
     });
-  }
-  // ### padMeasure
-  // spacing to the left, and column means all measures in system.
-  padMeasure(spacing, column) {
-    let selection = this.tracker.selections[0];
-    this.actionBuffer.addAction('padMeasure', spacing, column);
-    if (column) {
-      this._undoColumn('set measure padding', selection.selector.measure);
-      this.storeScore.staves.forEach((staff) => {
-        const altSel = SmoSelection.measureSelection(this.storeScore, staff.staffId, selection.selector.measure);
-        const viewSel = this._reverseMapSelection(altSel);
-        SmoOperation.padMeasureLeft(altSel, spacing);
-        if (viewSel) {
-          SmoOperation.padMeasureLeft(viewSel, spacing);
-          this.renderer.addToReplaceQueue(viewSel);
-        }
-      });
-    } else {
-      selection = this._undoFirstMeasureSelection('add dynamic');
-      const altSel = this._getEquivalentSelection(selection);
-      SmoOperation.padMeasureLeft(selection, spacing);
-      SmoOperation.padMeasureLeft(altSel, spacing);
-    }
   }
 
   addEnding() {

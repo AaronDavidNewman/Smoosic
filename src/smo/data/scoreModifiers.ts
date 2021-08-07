@@ -92,14 +92,14 @@ export interface SmoPageLayoutParams {
 }
 export class SmoPageLayout extends SmoScoreModifierBase {
   static get defaults(): SmoPageLayoutParams {
-    return {
+    return JSON.parse(JSON.stringify({
       leftMargin: 30,
       rightMargin: 30,
       topMargin: 40,
       bottomMargin: 40,
       interGap: 30,
       intraGap: 10
-    };
+    }));
   }
   static get attributes(): string[] {
     return ['leftMargin', 'rightMargin', 'topMargin', 'bottomMargin', 'interGap', 'intraGap'];

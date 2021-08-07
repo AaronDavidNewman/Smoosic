@@ -3,7 +3,7 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoNote } from './note';
-import { SmoAttrs, SvgPoint, SmoObjectParams } from './common';
+import { SmoAttrs, SvgPoint, SmoObjectParams, Clef } from './common';
 
 const VF = eval('Vex.Flow');
 
@@ -43,6 +43,9 @@ export class SmoInstrument {
   static get attributes() {
     return ['startSelector', 'endSelector', 'transposeIndex', 'midichannel', 'midiport', 'instrument', 'abbreviation'];
   }
+  instrument: string = '';
+  keyOffset: number = 0;
+  clef: Clef = 'treble';
   serialize() {}
 }
 // WIP
@@ -71,7 +74,7 @@ export class SmoStaffHairpin extends StaffModifierBase {
     return ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height'];
   }
   static get defaults(): SmoStaffHairpinParams {
-    return {
+    return JSON.parse(JSON.stringify({
       xOffsetLeft: -2,
       xOffsetRight: 0,
       yOffset: -50,
@@ -80,7 +83,7 @@ export class SmoStaffHairpin extends StaffModifierBase {
       hairpinType: SmoStaffHairpin.types.CRESCENDO,
       startSelector: { staff: 0, voice: 0, measure: 0, tick: 0, pitches: [] },
       endSelector: { staff: 0, voice: 0, measure: 0, tick: 0, pitches: [] }
-    };
+    }));
   }
   static get positions() {
     // matches VF.modifier
@@ -159,7 +162,7 @@ export interface SmoSlurParams {
 // ---
 export class SmoSlur extends StaffModifierBase {
   static get defaults(): SmoSlurParams {
-    return {
+    return JSON.parse(JSON.stringify({
       spacing: 2,
       thickness: 2,
       xOffset: -5,
@@ -171,9 +174,9 @@ export class SmoSlur extends StaffModifierBase {
       cp1y: 15,
       cp2x: 0,
       cp2y: 15,
-      startSelector: { staff: 0, voice: 0, measure: 0, tick: 0, pitches: [] },
-      endSelector: { staff: 0, voice: 0, measure: 0, tick: 0, pitches: [] }
-    };
+      startSelector: SmoSelector.default,
+      endSelector: SmoSelector.default
+    }));
   }
 
   // matches VF curve
@@ -245,7 +248,9 @@ export interface SmoTieParams {
   cp2: number,
   first_x_shift: number,
   last_x_shift: number,
-  lines: TieLine[]
+  lines: TieLine[],
+  startSelector: SmoSelector | null,
+  endSelector: SmoSelector | null
 }
 // ## SmoTie
 // like slur but multiple pitches
@@ -257,15 +262,19 @@ export class SmoTie extends StaffModifierBase {
   first_x_shift: number = 0;
   last_x_shift: number = 0;
   lines: TieLine[] = [];
+  startSelector: SmoSelector = SmoSelector.default;
+  endSelector: SmoSelector = SmoSelector.default;
   static get defaults(): SmoTieParams {
-    return {
+    return JSON.parse(JSON.stringify({
       invert: false,
       cp1: 8,
       cp2: 12,
       first_x_shift: 0,
       last_x_shift: 0,
-      lines: []
-    };
+      lines: [],
+      startSelector: SmoSelector.default,
+      endSelector: SmoSelector.default
+    }));
   }
 
   static get parameterArray() {

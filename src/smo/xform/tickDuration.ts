@@ -8,23 +8,24 @@ import { SmoMeasure } from '../data/measure';
 import { Ticks, SmoVoice } from '../data/common';
 import { TickMap } from './tickMap';
 
-export class TickIteratorBase {
+export abstract class TickIteratorBase {
+  // es
   iterateOverTick(note: SmoNote, tickmap: TickMap, index: number): SmoNote | SmoNote[] | null {
-    return note;
+    return null;
   }
 }
 /**
- * SmoDuration: change the duration of a note, maybe at the expense of some 
+ * SmoDuration: change the duration of a note, maybe at the expense of some
  * other note.
  */
 export class SmoDuration {
   /**
    * doubleDurationNonTuplet
-   * double the duration of the selection, consuming the next note or 
-   * possibly split it in half and consume that.  Simple operation so 
+   * double the duration of the selection, consuming the next note or
+   * possibly split it in half and consume that.  Simple operation so
    * do it inline
-   * @param selection 
-   * @returns 
+   * @param selection
+   * @returns
    */
   static doubleDurationNonTuplet(selection: SmoSelection) {
     const note: SmoNote | null = selection?.note;
@@ -80,10 +81,10 @@ export class SmoDuration {
   }
 
   /**
-   * double duration, tuplet form.  Increase the first selection and consume the 
+   * double duration, tuplet form.  Increase the first selection and consume the
    * following note.  Also a simple operation
-   * @param selection 
-   * @returns 
+   * @param selection
+   * @returns
    */
   static doubleDurationTuplet(selection: SmoSelection) {
     let i: number = 0;
@@ -99,7 +100,7 @@ export class SmoDuration {
     }
     const startIndex = selection.selector.tick - tuplet.startIndex;
 
-    var startLength = tuplet.notes.length;
+    const startLength: number = tuplet.notes.length;
     tuplet.combine(startIndex, startIndex + 1);
     if (tuplet.notes.length >= startLength) {
       return;
@@ -120,7 +121,7 @@ export class SmoDuration {
 }
 /**
  * SmoTickIterator
- * this is a local helper class that follows a pattern of iterating of the notes.  Most of the 
+ * this is a local helper class that follows a pattern of iterating of the notes.  Most of the
  * duration changers iterate over a selection, and return:
  * - A note, if the duration changes
  * - An array of notes, if the notes split
@@ -147,10 +148,10 @@ export class SmoTickIterator {
     return note;
   }
   /**
-   * 
+   *
    * @param measure {SmoMeasure}
    * @param actor {}
-   * @param voiceIndex 
+   * @param voiceIndex
    */
   static iterateOverTicks(measure: SmoMeasure, actor: TickIteratorBase, voiceIndex: number) {
     measure.clearBeamGroups();
@@ -181,13 +182,13 @@ export class SmoTickIterator {
     }
     if (Array.isArray(newNote)) {
       if (newNote.length === 0) {
-        return;
+        return null;
       }
       this.newNotes = this.newNotes.concat(newNote);
-      return;
+      return null;
     }
     this.newNotes.push(newNote as SmoNote);
-    return;
+    return null;
   }
 
   run() {
@@ -227,7 +228,7 @@ export class SmoContractNoteActor extends TickIteratorBase {
   }
   static apply(params: SmoContractNoteParams) {
     const actor = new SmoContractNoteActor(params);
-    SmoTickIterator.iterateOverTicks(actor.measure, 
+    SmoTickIterator.iterateOverTicks(actor.measure,
       actor, actor.voice);
   }
   iterateOverTick(note: SmoNote, tickmap: TickMap, index: number): SmoNote | SmoNote[] | null {
