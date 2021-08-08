@@ -145,7 +145,7 @@ export class smoMusic {
     return ix;
   }
 
-  /** 
+  /**
    * Get pitch to the right in circle of fifths
    * */
   static addSharp(smoPitch: Pitch): Pitch {
@@ -153,7 +153,6 @@ export class smoMusic {
       (smoMusic.circleOfFifthsIndex(smoPitch) + 1) % smoMusic.circleOfFifths.length];
     return { letter: rv.letter, accidental: rv.accidental, octave: smoPitch.octave };
   }
-
 
   /**
    * Get pitch to the left in circle of fifths
@@ -203,8 +202,8 @@ export class smoMusic {
   /**
    * Convert array of smo pitches to vex keys, with adjustment for transpose and notehead
    * @param pitchAr
-   * @param keyOffset 
-   * @param noteHead 
+   * @param keyOffset
+   * @param noteHead
    * @returns {string[]} - array of vex keyx
    */
   static smoPitchesToVexKeys(pitchAr: Pitch[], keyOffset: number, noteHead: string | null): string[] {
@@ -238,9 +237,9 @@ export class smoMusic {
 
   /**
    * Return the number of ledger lines based on the pitch and clef
-   * @param clef 
-   * @param pitch 
-   * @returns 
+   * @param clef
+   * @param pitch
+   * @returns
    */
   static pitchToLedgerLine(clef: Clef, pitch: Pitch): number {
     // return the distance from the top ledger line, as 0.5 per line/space
@@ -259,8 +258,8 @@ export class smoMusic {
     return fs;
   }
 
-  /** 
-   * convert from SMO to VEX format so we can use the VexFlow tables and methods 
+  /**
+   * convert from SMO to VEX format so we can use the VexFlow tables and methods
    * example:
    *   `{letter,octave,accidental}` object to vexKey string `'f#'`
    * */
@@ -279,9 +278,9 @@ export class smoMusic {
   }
 
   /**
-   * convert smo pitch to easy score (vex) format 
-   * @param smoPitch 
-   * @returns 
+   * convert smo pitch to easy score (vex) format
+   * @param smoPitch
+   * @returns
    */
   static pitchToEasyScore(smoPitch: Pitch): string {
     let vexKey = smoPitch.letter.toLowerCase();
@@ -346,7 +345,7 @@ export class smoMusic {
     return rv as Pitch;
   }
 
-  /** 
+  /**
    * Convert to smo pitch, without octave
    * ``['f#'] => [{letter:'f',accidental:'#'}]``
    * */
@@ -358,7 +357,6 @@ export class smoMusic {
       accidental
     };
   }
-
 
   // {letter:'f',accidental:'#'} => [f#/
   static smoPitchesToVex(pitchAr: Pitch[]): string[] {
@@ -437,7 +435,7 @@ export class smoMusic {
     };
   }
   static pitchKeyToPitch(pk: PitchKey): Pitch {
-    return { letter: pk.letter, accidental: pk.accidental, octave: 1 }
+    return { letter: pk.letter, accidental: pk.accidental, octave: 1 };
   }
 
   /**
@@ -477,8 +475,8 @@ export class smoMusic {
   }
   /**
    * Get enharmonic equivalent of given notes for cycle/choose
-   * @param vexKey 
-   * @returns 
+   * @param vexKey
+   * @returns
    */
   static getEnharmonics(vexKey: string): string[] {
     const proto = smoMusic.stripVexOctave(vexKey);
@@ -491,7 +489,6 @@ export class smoMusic {
     }
     return rv;
   }
-
 
   /**
    * return the next note from the cycle in `getEnharmonics`
@@ -510,10 +507,10 @@ export class smoMusic {
 
   /**
    * Return a pitch a diatonic step away from SmoPitch in vexKey
-   * @param smoPitch 
-   * @param vexKey 
-   * @param direction 
-   * @returns 
+   * @param smoPitch
+   * @param vexKey
+   * @param direction
+   * @returns
    */
   static closestTonic(smoPitch: Pitch, vexKey: string, direction: number): Pitch {
     direction = Math.sign(direction) < 0 ? -1 : 1;
@@ -534,24 +531,25 @@ export class smoMusic {
   static toValidKeySignature(vexKey: string): string {
     let strlen = 0;
     const map: Record<string, string> = { 'a#': 'bb', 'g#': 'ab', 'cb': 'b', 'd#': 'eb' };
-    if (map[vexKey.toLowerCase()]) {
-      return map[vexKey.toLowerCase()];
-    }
     strlen = (vexKey.length > 2 ? 2 : vexKey.length);
     // Vex doesn't like 'n' in key signatures.
     if (strlen === 2 && vexKey[1].toLowerCase() === 'n') {
       strlen = 1;
     }
-    return vexKey.substr(0, strlen);
+    const rv = vexKey.substr(0, strlen);
+    if (map[rv.toLowerCase()]) {
+      return map[rv.toLowerCase()];
+    }
+    return rv;
   }
 
   /**
    * When transposing, get the enharmonic that most closely fits the key
    * `getEnharmonicInKey` returns an alternate to the given pitch, or the same pitch.
    * `getKeyFriendlyEnharmonic` return a pitch for a given key, given the letter name only
-   * @param smoPitch 
-   * @param keySignature 
-   * @returns 
+   * @param smoPitch
+   * @param keySignature
+   * @returns
    */
   static getEnharmonicInKey(smoPitch: Pitch, keySignature: string): Pitch {
     let match = false;
@@ -628,9 +626,9 @@ export class smoMusic {
   // given a letter pitch (a,b,c etc.), and a key signature, return the actual note
   // that you get without accidentals
   //   `smoMusic.getKeySignatureKey('F','G'); // returns f#`
-   * @param letter 
-   * @param keySignature 
-   * @returns 
+   * @param letter
+   * @param keySignature
+   * @returns
    */
   static getKeySignatureKey(letter: PitchLetter, keySignature: string): string {
     const km = new VF.KeyManager(keySignature);
@@ -650,7 +648,6 @@ export class smoMusic {
     return (vexKey.length === 1 && smoPitch.accidental === 'n' ||
       (vexKey[1] === smoPitch.accidental));
   }
-
 
   // ### getIntervalInKey
   // give a pitch and a key signature, return another pitch at the given
@@ -707,13 +704,13 @@ export class smoMusic {
     return pitch;
   }
   /**
-   * 
+   *
    * @param key start key
    * @param transposeIndex number of 1/2 steps
    * @returns {string} - vex key
    */
   static vexKeySignatureTranspose(key: string, transposeIndex: number): string {
-    let pitch: Pitch = smoMusic.pitchKeyToPitch(smoMusic.vexToSmoKey(key));
+    const pitch: Pitch = smoMusic.pitchKeyToPitch(smoMusic.vexToSmoKey(key));
     key = smoMusic.smoPitchesToVexKeys([pitch], transposeIndex, null)[0];
     key = smoMusic.stripVexOctave(key);
     key = key[0].toUpperCase() + key.substring(1, key.length);
@@ -741,7 +738,7 @@ export class smoMusic {
     };
   }
 
-  /** 
+  /**
    * Indicate if a change from letter note 'one' to 'two' needs us to adjust the
    * octave due to the `smoMusic.letterPitchIndex` (b0 is higher than c0)
    * */
@@ -760,9 +757,9 @@ export class smoMusic {
   /**
   // Given a vex noteProp and an offset, offset that number
   // of 1/2 steps.
-   * @param pitch 
-   * @param offset 
-   * @returns 
+   * @param pitch
+   * @param offset
+   * @returns
    */
   static getKeyOffset(pitch: Pitch, offset: number): Pitch {
     const canon = VF.Music.canonical_notes;
@@ -879,8 +876,8 @@ export class smoMusic {
   /**
    * Return array of valid note-lengths from an odd number of ticks,
    * so we can come as close as possible to representing the ticks with notes
-   * @param ticks 
-   * @returns 
+   * @param ticks
+   * @returns
    */
   static splitIntoValidDurations(ticks: number): number[] {
     const rv = [];
@@ -979,8 +976,8 @@ export class smoMusic {
   /**
    * break the duration up into an array of durations, to split a long
    * note up between bars when pasting.
-   * @param duration 
-   * @returns 
+   * @param duration
+   * @returns
    */
   static gcdMap(duration: number): number[] {
     let k = 0;

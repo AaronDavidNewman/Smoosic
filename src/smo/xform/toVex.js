@@ -7,8 +7,8 @@ import { smoMusic } from '../../common/musicHelpers';
 // for vex EasyScore (for easier bug reports and test cases)
 export class SmoToVex {
   static convert(smoScore) {
-    smoScore.staves.forEach((smoStaff) => {
-      smoStaff.measures.forEach((smoMeasure) => {
+    smoScore.staves.forEach((smoStaff, staffIx) => {
+      smoStaff.measures.forEach((smoMeasure, measureIx) => {
         const voiceStrings = [];
         const lyricsHash = {};
         smoMeasure.voices.forEach((smoVoice, vix) => {
@@ -35,7 +35,7 @@ export class SmoToVex {
             if (smoNote.pitches.length > 1) {
               keyString += ')';
             }
-            keyString +=  '/' + duration + "[id='" + noteId + "'],";
+            keyString += '/' + duration + "[id='" + noteId + "'],";
             smoNote.getTrueLyrics().forEach((lyric) => {
               if (typeof lyricsHash[noteId] === 'undefined') {
                 lyricsHash[noteId] = [];
@@ -45,8 +45,8 @@ export class SmoToVex {
           });
           voiceStrings.push(keyString);
         });
-        console.log(JSON.stringify(voiceStrings, null, ''));
-        console.log(JSON.stringify(lyricsHash), null, '');
+        console.log('// notes', staffIx, measureIx, '=', JSON.stringify(voiceStrings, null, ''));
+        console.log('// lyrics', staffIx, measureIx, '=', JSON.stringify(lyricsHash), null, '');
       });
     });
   }
