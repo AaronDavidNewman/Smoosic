@@ -15,6 +15,10 @@ export interface Ticks {
 
 export type PitchLetter = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g';
 
+export interface PitchKey {
+    letter: PitchLetter,
+    accidental: string
+}
 export interface Pitch {
     letter: PitchLetter,
     accidental: string,

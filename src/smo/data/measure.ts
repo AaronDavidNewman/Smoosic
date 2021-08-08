@@ -213,9 +213,9 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   // separately.  Serialize those attributes, but only add them to the
   // hash if they already exist for an earlier measure
   serializeColumnMapped(attrColumnHash: any, attrCurrentValue: any) {
-    let curValue = {};
+    let curValue = '';
     SmoMeasure.columnMappedAttributes.forEach((attr) => {
-      const field = (this as any)[attr];
+      const field: any = (this as any)[attr];
       if (field) {
         curValue = field;
         if (!attrColumnHash[attr]) {

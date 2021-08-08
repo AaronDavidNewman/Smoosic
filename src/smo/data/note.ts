@@ -3,7 +3,7 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament } from './noteModifiers';
 import { smoMusic } from '../../common/musicHelpers';
-import { Ticks, Pitch, SmoAttrs, FontInfo, Transposable } from './common';
+import { Ticks, Pitch, SmoAttrs, FontInfo, Transposable, PitchLetter } from './common';
 const VF = eval('Vex.Flow');
 
 export interface TupletInfo {
@@ -378,7 +378,7 @@ export class SmoNote implements Transposable {
     let vexPitch = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch));
     vexPitch = smoMusic.getEnharmonic(vexPitch);
 
-    pitch.letter = vexPitch[0];
+    pitch.letter = vexPitch[0] as PitchLetter;
     pitch.accidental = vexPitch.length > 1 ?
       vexPitch.substring(1, vexPitch.length) : 'n';
     pitch.octave += smoMusic.letterChangedOctave(lastLetter, pitch.letter);
@@ -428,7 +428,7 @@ export class SmoNote implements Transposable {
         if (keySignature) {
           letterKey = pitch.letter + pitch.accidental;
           letterKey = smoMusic.getKeyFriendlyEnharmonic(letterKey, keySignature);
-          pitch.letter = letterKey[0];
+          pitch.letter = letterKey[0] as PitchLetter;
           if (letterKey.length < 2) {
             pitch.accidental = 'n';
           } else {
@@ -459,7 +459,7 @@ export class SmoNote implements Transposable {
   // ## Description:
   // Clone the note, but use the different duration.  Changes the length
   // of the note but nothing else.
-  static cloneWithDuration(note: SmoNote, ticks: Ticks) {
+  static cloneWithDuration(note: SmoNote, ticks: Ticks | number) {
     if (typeof(ticks) === 'number') {
       ticks = { numerator: ticks, denominator: 1, remainder: 0 };
     }

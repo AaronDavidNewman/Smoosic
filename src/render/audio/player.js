@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { suiAudioPitch, suiSampler } from './oscillator';
-import { SmoAudioTrack } from '../../smo/xform/audioTrack';
+import { SmoAudioScore } from '../../smo/xform/audioTrack';
 
 // ## suiAudioPlayer
 // Play the music, ja!
@@ -178,7 +178,7 @@ export class suiAudioPlayer {
     this.playIndex = 0;
     this.tracker = parameters.tracker;
     this.score = parameters.score;
-    const converter = new SmoAudioTrack(this.score, 4096);
+    const converter = new SmoAudioScore(this.score, 4096);
     this.audio = converter.convert();
     // Assume tempo is same for all measures
     this.tempoMap = this.audio.tempoMap;

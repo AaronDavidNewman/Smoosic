@@ -643,7 +643,7 @@ export interface SmoDynamicTextParams extends SmoDynamicTextPersist {
 // ## Description:
 // standard dynamics text
 export class SmoDynamicText extends SmoNoteModifierBase {
-  static get dynamics() {
+  static get dynamics(): Record<string, string> {
     // matches VF.modifier
     return {
       PP: 'pp',
@@ -677,6 +677,7 @@ export class SmoDynamicText extends SmoNoteModifierBase {
     return rv;
   }
   selector: SmoSelector;
+  text: string = '';
   serialize(): object {
     var params = {};
     smoSerialize.serializedMergeNonDefault(SmoDynamicText.defaults,

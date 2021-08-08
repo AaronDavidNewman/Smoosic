@@ -4,7 +4,7 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNote } from './note';
 import { smoMusic } from '../../common/musicHelpers';
 import { SmoNoteModifierBase } from './noteModifiers';
-import { SmoAttrs } from './common';
+import { SmoAttrs, Clef } from './common';
 const VF = eval('Vex.Flow');
 
 export interface SmoTupletParams {
@@ -172,9 +172,8 @@ export class SmoTuplet {
   split(combineIndex: number) {
     let i = 0;
     const multiplier = 0.5;
-    const nnotes = [];
-    const nmap = [];
-
+    const nnotes: SmoNote[] = [];
+    const nmap: number[] = [];
     for (i = 0; i < this.notes.length; ++i) {
       const note = this.notes[i];
       if (i === combineIndex) {
@@ -240,7 +239,7 @@ export class SmoTuplet {
 
   // ### getStemDirection
   // Return the stem direction, so we can bracket the correct place
-  getStemDirection(clef: string) {
+  getStemDirection(clef: Clef) {
     const note = this.notes.find((nn) => nn.noteType === 'n');
     if (!note) {
       return SmoNote.flagStates.down;

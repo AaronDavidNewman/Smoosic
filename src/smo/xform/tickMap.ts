@@ -88,7 +88,7 @@ export class TickMap {
       const pitch: Pitch = note.pitches[i];
       const letter: string = pitch.letter.toLowerCase();
       const sigLetter: string = letter + pitch.accidental;
-      const sigKey = smoMusic.getKeySignatureKey(letter, this.keySignature);
+      const sigKey = smoMusic.getKeySignatureKey(letter as PitchLetter, this.keySignature);
       if (sigObj && sigObj[letter]) {
         const currentVal = sigObj[letter].pitch.letter + sigObj[letter].pitch.accidental;
         if (sigLetter !== currentVal) {

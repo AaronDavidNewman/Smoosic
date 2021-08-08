@@ -2,12 +2,12 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoMusic } from '../../common/musicHelpers';
 import { SmoSelector } from '../xform/selections';
-import { SmoAudioTrack } from '../xform/audioTrack';
+import { SmoAudioScore } from '../xform/audioTrack';
 
 export class SmoToMidi {
   static convert(score) {
     const beatTime = 128;  // midi ticks per beat
-    const converter = new SmoAudioTrack(score, beatTime);
+    const converter = new SmoAudioScore(score, beatTime);
     const audioScore = converter.convert();
     const smoTracks = audioScore.tracks;
     const trackHash = {};

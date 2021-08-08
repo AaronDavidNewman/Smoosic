@@ -16,7 +16,7 @@ import { SmoRehearsalMark, SmoMeasureText, SmoVolta, SmoMeasureFormat, SmoTempoT
 import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoNoteModifierBase, SmoOrnament } from '../data/noteModifiers';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
-import { SmoVoice, Pitch } from '../data/common';
+import { SmoVoice, Pitch, PitchLetter } from '../data/common';
 
 const VF = eval('Vex.Flow');
 
@@ -448,7 +448,7 @@ export class SmoOperation {
   // Transpose the selected note, trying to find a key-signature friendly value
   static transpose(selection: SmoSelection, offset: number) {
     let pitchIx: number = 0;
-    let trans: { letter: string, accidental: string };
+    let trans: Pitch;
     let transInt: number = 0;
     let i: number = 0;
     if (typeof (selection.selector.pitches) === 'undefined') {
@@ -537,7 +537,7 @@ export class SmoOperation {
       if (typeof (pitch) === 'string') {
         const letter = smoMusic.getKeySignatureKey(pitch[0], measure.keySignature);
         pitch = {
-          letter: letter[0],
+          letter: letter[0] as PitchLetter,
           accidental: letter.length > 1 ? letter.substring(1) : '',
           octave
         };
@@ -821,7 +821,7 @@ export class SmoOperation {
           }
           // Transpose the key, as if it were a key signature (octave has no meaning)
           let nkey = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(
-            smoMusic.vexToSmoKey(newText)) + offset);
+            smoMusic.pitchKeyToPitch(smoMusic.vexToSmoKey(newText))) + offset);
           nkey = JSON.parse(JSON.stringify(smoMusic.getEnharmonicInKey(nkey, key)));
           newText = nkey.letter.toUpperCase();
 
@@ -844,7 +844,7 @@ export class SmoOperation {
         const netOffset = instrument.keyOffset - selection.measure.transposeIndex;
         newKey = smoMusic.pitchToVexKey(smoMusic.smoIntToPitch(
           smoMusic.smoPitchToInt(
-            smoMusic.vexToSmoKey(selection.measure.keySignature)) + netOffset));
+            smoMusic.pitchKeyToPitch(smoMusic.vexToSmoKey(selection.measure.keySignature))) + netOffset));
         newKey = smoMusic.toValidKeySignature(newKey);
         if (newKey.length > 1 && newKey[1] === 'n') {
           newKey = newKey[0];
