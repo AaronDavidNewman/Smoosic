@@ -32,6 +32,29 @@ export class suiMapper {
     this.pitchIndex = -1;
     // the current selection, which is also the copy/paste destination
     this.pasteBuffer = pasteBuffer;
+    this.highlightQueue = { selectionCount: 0, timestamp: 0, deferred: false };
+  }
+
+  updateHighlight() {
+    const self = this;
+    if (this.highlightQueue.selectionCount === this.selections.length) {
+      this.highlightSelection();
+      this.highlightQueue.deferred = false;
+    } else {
+      this.highlightQueue.selectionCount = this.selections.length;
+      setTimeout(() => {
+        self.updateHighlight();
+      }, 50);
+    }
+  }
+  deferHighlight() {
+    const self = this;
+    if (!this.highlightQueue.deferred) {
+      this.highlightQueue.deferred = true;
+      setTimeout(() => {
+        self.updateHighlight();
+      }, 50);
+    }
   }
 
   // ### loadScore
@@ -292,7 +315,7 @@ export class suiMapper {
     });
     // If there were selections on this measure, highlight them.
     if (selectionChanged) {
-      this.highlightSelection();
+      this.deferHighlight();
     }
     layoutDebug.setTimestamp(layoutDebug.codeRegions.MAP, new Date().valueOf() - timestamp);
   }

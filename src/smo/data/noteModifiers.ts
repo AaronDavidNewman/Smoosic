@@ -48,25 +48,26 @@ export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
   static get flagStates() {
     return { auto: 0, up: 1, down: 2 };
   }
-  static readonly defaults: GraceNoteParams = {
-    ctor: 'SmoGraceNote',
-    flagState: SmoGraceNote.flagStates.auto,
-    noteType: 'n',
-    beamBeats: 4096,
-    endBeam: false,
-    clef: 'treble',
-    slash: false,
-    ticks: {
-      numerator: 4096,
-      denominator: 1,
-      remainder: 0
-    },
-    pitches: [{
-      letter: 'b',
-      octave: 4,
-      accidental: ''
-    }
-    ],
+  static get defaults(): GraceNoteParams {
+    return JSON.parse(JSON.stringify({
+      ctor: 'SmoGraceNote',
+      flagState: SmoGraceNote.flagStates.auto,
+      noteType: 'n',
+      beamBeats: 4096,
+      endBeam: false,
+      clef: 'treble',
+      slash: false,
+      ticks: {
+        numerator: 4096,
+        denominator: 1,
+        remainder: 0
+      },
+      pitches: [{
+        letter: 'b',
+        octave: 4,
+        accidental: ''
+      }]
+    }));
   }
   // TODO: Matches SmoNote - move to smoMusic?
   static get parameterArray() {
@@ -242,11 +243,13 @@ export class SmoOrnament extends SmoNoteModifierBase {
       after: 'after'
     };
   }
-  static readonly defaults: SmoOrnamentParams = {
-    ctor: 'SmoOrnament',
-    ornament: SmoOrnament.ornaments.mordent,
-    position: SmoOrnament.positions.above,
-    offset: SmoOrnament.offsets.on
+  static get defaults(): SmoOrnamentParams {
+    return JSON.parse(JSON.stringify({
+      ctor: 'SmoOrnament',
+      ornament: SmoOrnament.ornaments.mordent,
+      position: SmoOrnament.positions.above,
+      offset: SmoOrnament.offsets.on
+    }));
   }
   serialize(): object {
     var params = {};
@@ -328,10 +331,12 @@ export class SmoArticulation extends SmoNoteModifierBase {
       'below': 4
     };
   }
-  static readonly defaults: SmoArticulationParameters = {
-    ctor: 'SmoArticulation',
-    position: SmoArticulation.positions.above,
-    articulation: SmoArticulation.articulations.accent
+  static get defaults(): SmoArticulationParameters {
+    return JSON.parse(JSON.stringify({
+      ctor: 'SmoArticulation',
+      position: SmoArticulation.positions.above,
+      articulation: SmoArticulation.articulations.accent
+    }));
   }
   position: string = SmoOrnament.positions.above;
   offset: number = 0;
@@ -403,26 +408,28 @@ export class SmoLyric extends SmoNoteModifierBase {
   static readonly parsers: Record<string, number> = {
     lyric: 0, anaylysis: 1, chord: 2
   }
-  static readonly defaults: SmoLyricPersist = {
-    ctor: 'SmoLyric',
-    _text: '\xa0',
-    endChar: '',
-    verse: 0,
-    fontInfo: {
-      size: 12,
-      family: 'times',
-      style: 'normal',
-      weight: 'normal'
-    },
-    fill: 'black',
-    classes: 'score-text',
-    scaleX: 1.0,
-    scaleY: 1.0,
-    translateX: 0,
-    translateY: 0,
-    adjustNoteWidthLyric: true,
-    adjustNoteWidthChord: false,
-    parser: SmoLyric.parsers.lyric
+  static get defaults(): SmoLyricParams {
+    return JSON.parse(JSON.stringify({
+      ctor: 'SmoLyric',
+      _text: '\xa0',
+      endChar: '',
+      verse: 0,
+      fontInfo: {
+        size: 12,
+        family: 'times',
+        style: 'normal',
+        weight: 'normal'
+      },
+      fill: 'black',
+      classes: 'score-text',
+      scaleX: 1.0,
+      scaleY: 1.0,
+      translateX: 0,
+      translateY: 0,
+      adjustNoteWidthLyric: true,
+      adjustNoteWidthChord: false,
+      parser: SmoLyric.parsers.lyric
+    }));
   }
   static get symbolPosition() {
     return {
@@ -655,13 +662,15 @@ export class SmoDynamicText extends SmoNoteModifierBase {
       SFZ: 'sfz'
     };
   }
-  static readonly defaults : SmoDynamicTextPersist = {
-    ctor: 'SmoDynamicText',
-    xOffset: 0,
-    fontSize: 38,
-    yOffsetLine: 11,
-    yOffsetPixels: 0,
-    text: SmoDynamicText.dynamics.MP,
+  static get defaults() : SmoDynamicTextParams {
+    return JSON.parse(JSON.stringify({
+      ctor: 'SmoDynamicText',
+      xOffset: 0,
+      fontSize: 38,
+      yOffsetLine: 11,
+      yOffsetPixels: 0,
+      text: SmoDynamicText.dynamics.MP,
+    }));
   }
   static get persistArray(): string[] {
     const rv: string[] = [];

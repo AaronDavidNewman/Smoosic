@@ -362,7 +362,7 @@ export class suiTracker extends suiMapper {
       suiOscillator.playSelectionNow(artifact);
     }
     this.selections.push(artifact);
-    this.highlightSelection();
+    this.deferHighlight();
     this._createLocalModifiersList();
     return artifact.note.tickCount;
   }
@@ -381,7 +381,7 @@ export class suiTracker extends suiMapper {
         this._selectBetweenSelections(this.selections[0], homeSel);
       } else {
         this.selections = [homeSel];
-        this.highlightSelection();
+        this.deferHighlight();
         this._createLocalModifiersList();
         if (homeSel.measure.renderedBox) {
           this.scroller.scrollVisibleBox(homeSel.measure.renderedBox);
@@ -399,7 +399,7 @@ export class suiTracker extends suiMapper {
       } else {
         this.selections = [homeSel];
         this.scroller.scrollVisibleBox(homeSel.measure.renderedBox);
-        this.highlightSelection();
+        this.deferHighlight();
         this._createLocalModifiersList();
       }
     }
@@ -421,7 +421,7 @@ export class suiTracker extends suiMapper {
         this._selectBetweenSelections(this.selections[0], endSel);
       } else {
         this.selections = [endSel];
-        this.highlightSelection();
+        this.deferHighlight();
         this._createLocalModifiersList();
         if (endSel.measure.renderedBox) {
           this.scroller.scrollVisibleBox(endSel.measure.renderedBox);
@@ -441,7 +441,7 @@ export class suiTracker extends suiMapper {
         this._selectBetweenSelections(this.selections[0], endSel);
       } else {
         this.selections = [endSel];
-        this.highlightSelection();
+        this.deferHighlight();
         this._createLocalModifiersList();
         if (endSel.measure.renderedBox) {
           this.scroller.scrollVisibleBox(endSel.measure.renderedBox);
@@ -494,7 +494,7 @@ export class suiTracker extends suiMapper {
     if (this.autoPlay) {
       suiOscillator.playSelectionNow(artifact);
     }
-    this.highlightSelection();
+    this.deferHighlight();
     this._createLocalModifiersList();
     return artifact.note.tickCount;
   }
@@ -553,7 +553,7 @@ export class suiTracker extends suiMapper {
     if (selObj) {
       this.selections = [selObj];
     }
-    this.highlightSelection();
+    this.deferHighlight();
     this._createLocalModifiersList();
   }
 
@@ -563,7 +563,7 @@ export class suiTracker extends suiMapper {
     if (selObj) {
       this.selections = [selObj];
     }
-    this.highlightSelection();
+    this.deferHighlight();
   }
 
   _moveStaffOffset(offset) {
@@ -574,7 +574,7 @@ export class suiTracker extends suiMapper {
     const nselector = JSON.parse(JSON.stringify(this.selections[0].selector));
     nselector.staff = this.score.incrementActiveStaff(offset);
     this.selections = [this._getClosestTick(nselector)];
-    this.highlightSelection();
+    this.deferHighlight();
     this._createLocalModifiersList();
   }
 
@@ -661,7 +661,7 @@ export class suiTracker extends suiMapper {
     }
 
     this.selections = [mapped];
-    this.highlightSelection();
+    this.deferHighlight();
     this._createLocalModifiersList();
   }
 
@@ -738,7 +738,7 @@ export class suiTracker extends suiMapper {
     const max = SmoSelector.lt(min.selector, s2.selector) ? s2 : s1;
     this._selectFromToInStaff(min, max);
     this._createLocalModifiersList();
-    this.highlightSelection();
+    this.deferHighlight();
   }
   // ### _matchSelectionToModifier
   // assumes a modifier is selected
@@ -787,7 +787,7 @@ export class suiTracker extends suiMapper {
       this.recordSelectSuggestion(ev, this.suggestion.selector);
       this._addSelection(this.suggestion);
       this._createLocalModifiersList();
-      this.highlightSelection();
+      this.deferHighlight();
       return;
     }
     if (this.autoPlay) {
@@ -815,7 +815,7 @@ export class suiTracker extends suiMapper {
       }
     }
     this.score.setActiveStaff(this.selections[0].selector.staff);
-    this.highlightSelection();
+    this.deferHighlight();
     this._createLocalModifiersList();
   }
 
@@ -928,7 +928,7 @@ export class suiTracker extends suiMapper {
     const selector = JSON.parse(JSON.stringify(selection.selector));
     selector.voice = selection.measure.activeVoice;
     this.selections = [this._getClosestTick(selector)];
-    this.highlightSelection();
+    this.deferHighlight();
   }
 
   highlightSelection() {

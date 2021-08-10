@@ -60,7 +60,7 @@ export class SmoSystemStaff implements SmoObjectParams {
   // ### defaults
   // default values for all instances
   static get defaults(): SmoSystemStaffParams {
-    return {
+    return JSON.parse(JSON.stringify({
       staffX: 10,
       staffY: 40,
       adjY: 0,
@@ -76,7 +76,7 @@ export class SmoSystemStaff implements SmoObjectParams {
       },
       measures: [],
       modifiers: []
-    };
+    }));
   }
 
   constructor(params: SmoSystemStaffParams) {

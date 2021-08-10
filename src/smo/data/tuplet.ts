@@ -21,7 +21,7 @@ export interface SmoTupletParams {
 
 export class SmoTuplet {
   static get defaults(): SmoTupletParams {
-    return {
+    return JSON.parse(JSON.stringify({
       notes: [],
       numNotes: 3,
       stemTicks: 2048,
@@ -31,7 +31,7 @@ export class SmoTuplet {
       voice: 0,
       ratioed: false,
       startIndex: 0
-    };
+    }));
   }
   attrs: SmoAttrs;
   notes: SmoNote[];

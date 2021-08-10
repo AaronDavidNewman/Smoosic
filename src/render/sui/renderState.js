@@ -33,7 +33,6 @@ export class SuiRenderState {
     this._resetViewport = false;
     this.measureMapper = null;
   }
-
   // ### setMeasureMapper
   // DI/notifier pattern.  The measure mapper/tracker is updated when the score is rendered
   // so the UI stays in sync with the location of elements in the score.

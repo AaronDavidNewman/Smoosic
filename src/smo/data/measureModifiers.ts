@@ -60,15 +60,17 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
     });
     return new SmoMeasureFormat(o);
   }
-  static readonly defaults: SmoMeasureFormatParams = {
-    customStretch: 0,
-    customProportion: 100,
-    systemBreak: false,
-    pageBreak: false,
-    padLeft: 0,
-    padAllInSystem: true,
-    autoJustify: true,
-    measureIndex: 0
+  static get defaults(): SmoMeasureFormatParams {
+    return JSON.parse(JSON.stringify({
+      customStretch: 0,
+      customProportion: 100,
+      systemBreak: false,
+      pageBreak: false,
+      padLeft: 0,
+      padAllInSystem: true,
+      autoJustify: true,
+      measureIndex: 0
+    }));
   }
   customStretch: number = 0;
   customProportion: number = 100;
@@ -144,9 +146,11 @@ export class SmoBarline extends SmoMeasureModifierBase {
     return SmoBarline._barlineToString[inst.barline];
   }
 
-  static readonly defaults: SmoBarlineParams = {
-    position: SmoBarline.positions.end,
-    barline: SmoBarline.barlines.singleBar
+  static get defaults(): SmoBarlineParams {
+    return JSON.parse(JSON.stringify({
+      position: SmoBarline.positions.end,
+      barline: SmoBarline.barlines.singleBar
+    }));
   }
 
   static get attributes() {
@@ -214,11 +218,13 @@ export class SmoRepeatSymbol extends SmoMeasureModifierBase {
     start: 0,
     end: 1
   }
-  static readonly defaults: SmoRepeatSymbolParams = {
-    symbol: SmoRepeatSymbol.symbols.Coda,
-    xOffset: 0,
-    yOffset: 30,
-    position: SmoRepeatSymbol.positions.end
+  static get defaults(): SmoRepeatSymbolParams {
+    return JSON.parse(JSON.stringify({
+      symbol: SmoRepeatSymbol.symbols.Coda,
+      xOffset: 0,
+      yOffset: 30,
+      position: SmoRepeatSymbol.positions.end
+    }));
   }
   static get toVexSymbol() {
     return [VF.Repetition.type.NONE, VF.Repetition.type.CODA_LEFT, VF.Repetition.type.SEGNO_LEFT, VF.Repetition.type.DC,
@@ -292,13 +298,15 @@ export class SmoVolta extends SmoMeasureModifierBase {
     return params;
   }
 
-  static readonly defaults: SmoVoltaParams = {
-    startBar: 1,
-    endBar: 1,
-    xOffsetStart: 0,
-    xOffsetEnd: 0,
-    yOffset: 20,
-    number: 1
+  static get defaults(): SmoVoltaParams {
+    return JSON.parse(JSON.stringify({
+      startBar: 1,
+      endBar: 1,
+      xOffsetStart: 0,
+      xOffsetEnd: 0,
+      yOffset: 20,
+      number: 1
+    }));
   }
 
   toVexVolta(measureNumber: number) {
@@ -420,12 +428,12 @@ export class SmoRehearsalMark extends SmoMeasureModifierBase {
 
   // TODO: positions don't work.
   static get defaults(): SmoRehearsalMarkParams {
-    return {
+    return JSON.parse(JSON.stringify({
       position: SmoRehearsalMark.positions.above,
       cardinality: SmoRehearsalMark.cardinalities.capitals,
       symbol: 'A',
       increment: true
-    };
+    }));
   }
   static get attributes() {
     return ['cardinality', 'symbol', 'position', 'increment'];
@@ -510,7 +518,7 @@ export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoText
   }
 
   static get defaults(): SmoTempoTextParams {
-    return {
+    return JSON.parse(JSON.stringify({
       tempoMode: SmoTempoText.tempoModes.durationMode,
       bpm: 120,
       beatDuration: 4096,
@@ -518,7 +526,7 @@ export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoText
       yOffset: 0,
       display: false,
       customText: ''
-    };
+    }));
   }
   static get attributes() {
     return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText', 'yOffset', 'customText'];

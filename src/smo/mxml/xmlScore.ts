@@ -1,16 +1,17 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { mxmlHelpers } from './xmlHelpers';
-import { XmlState } from './xmlState';
-import { SmoTextGroup } from '../data/scoreModifiers';
+import { XmlVoiceInfo, XmlState, XmlWedgeInfo } from './xmlState';
+import { SmoLayoutManager, SmoTextGroup } from '../data/scoreModifiers';
 import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase } from '../data/measureModifiers';
 import { SmoScore } from '../data/score';
-import { SmoMeasure } from '../data/measure';
+import { SmoMeasure, SmoMeasureParams } from '../data/measure';
 import { emptyScoreJson } from '../../music/basic';
 import { smoMusic } from '../../common/musicHelpers';
-import { SmoGraceNote } from '../data/noteModifiers';
+import { SmoGraceNote, SmoOrnament, SmoArticulation } from '../data/noteModifiers';
 import { SmoSystemStaff } from '../data/systemStaff';
-import { SmoNote } from '../data/note';
+import { SmoNote, SmoNoteParams } from '../data/note';
+import { Pitch, PitchKey, Clef } from '../data/common';
 
 // ## mxmlScore
 // Parse music xml into a smoosic score object
@@ -40,7 +41,7 @@ export class mxmlScore {
   }
   // ### smoScoreFromXml
   // Main entry point for Smoosic mxml parser
-  static smoScoreFromXml(xmlDoc) {
+  static smoScoreFromXml(xmlDoc: Document) {
     try {
       const scoreRoots = [...xmlDoc.getElementsByTagName('score-partwise')];
       if (!scoreRoots.length) {
@@ -49,9 +50,9 @@ export class mxmlScore {
       }
 
       const scoreRoot = scoreRoots[0];
-      const rv = new SmoScore(SmoScore.defaults);
+      const rv: SmoScore = new SmoScore(SmoScore.defaults);
       rv.staves = [];
-      const layoutDefaults = rv.layoutManager;
+      const layoutDefaults = rv.layoutManager as SmoLayoutManager;
       // if no scale given in score, default to something small.
       layoutDefaults.globalLayout.svgScale = 0.5;
       layoutDefaults.globalLayout.zoomScale = 1.0;
@@ -59,13 +60,13 @@ export class mxmlScore {
       xmlState.newTitle = false;
       rv.scoreInfo.name = 'Imported Smoosic';
       mxmlScore.scoreInfoFields.forEach((field) => {
-        rv.scoreInfo[field] = '';
+        (rv.scoreInfo as any)[field] = '';
       });
       const childNodes = [...scoreRoot.children];
       childNodes.forEach((scoreElement) => {
         if (scoreElement.tagName === 'work') {
           const scoreNameNode = [...scoreElement.getElementsByTagName('work-title')];
-          if (scoreNameNode.length) {
+          if (scoreNameNode.length && scoreNameNode[0].textContent) {
             rv.scoreInfo.title = scoreNameNode[0].textContent;
             rv.scoreInfo.name = rv.scoreInfo.title;
             xmlState.newTitle = true;
@@ -73,14 +74,14 @@ export class mxmlScore {
         } else if (scoreElement.tagName === 'identification') {
           const creators = [...scoreElement.getElementsByTagName('creator')];
           creators.forEach((creator) => {
-            if (creator.getAttribute('type') === 'composer') {
+            if (creator.getAttribute('type') === 'composer' && creator.textContent) {
               rv.scoreInfo.composer = creator.textContent;
             }
           });
         } else if (scoreElement.tagName === 'movement-title') {
-          if (xmlState.newTitle) {
+          if (xmlState.newTitle && scoreElement.textContent) {
             rv.scoreInfo.subTitle = scoreElement.textContent;
-          } else {
+          } else if (scoreElement.textContent) {
             rv.scoreInfo.title = scoreElement.textContent;
             rv.scoreInfo.name = rv.scoreInfo.title;
             xmlState.newTitle = true;
@@ -88,7 +89,7 @@ export class mxmlScore {
         } else if (scoreElement.tagName === 'defaults') {
           mxmlScore.defaults(scoreElement, rv, layoutDefaults);
         } else if (scoreElement.tagName === 'part') {
-          xmlState.initializeForPart(xmlState);
+          xmlState.initializeForPart();
           mxmlScore.part(scoreElement, xmlState);
         }
       });
@@ -96,7 +97,7 @@ export class mxmlScore {
       rv.formattingManager = xmlState.formattingManager;
       rv.staves = xmlState.smoStaves;
       xmlState.updateStaffGroups();
-      rv.systemGroups = xmlState.systems;
+      rv.systemGroups = xmlState.getSystems();
 
       // Fix tempo to be column mapped
       rv.staves[0].measures.forEach((measure) => {
@@ -109,19 +110,20 @@ export class mxmlScore {
           });
         }
       });
+      const lm: SmoLayoutManager = rv.layoutManager as SmoLayoutManager;
       if (rv.scoreInfo.title) {
         rv.addTextGroup(SmoTextGroup.createTextForLayout(
-          SmoTextGroup.purposes.TITLE, rv.scoreInfo.title, rv.layoutManager.getScaledPageLayout(0)
+          SmoTextGroup.purposes.TITLE, rv.scoreInfo.title, lm.getScaledPageLayout(0)
         ));
       }
       if (rv.scoreInfo.subTitle) {
         rv.addTextGroup(SmoTextGroup.createTextForLayout(
-          SmoTextGroup.purposes.SUBTITLE, rv.scoreInfo.subTitle, rv.layoutManager.getScaledPageLayout(0)
+          SmoTextGroup.purposes.SUBTITLE, rv.scoreInfo.subTitle, lm.getScaledPageLayout(0)
         ));
       }
       if (rv.scoreInfo.composer) {
         rv.addTextGroup(SmoTextGroup.createTextForLayout(
-          SmoTextGroup.purposes.COMPOSER, rv.scoreInfo.composer, rv.layoutManager.getScaledPageLayout(0)
+          SmoTextGroup.purposes.COMPOSER, rv.scoreInfo.composer, lm.getScaledPageLayout(0)
         ));
       }
       return rv;
@@ -133,7 +135,7 @@ export class mxmlScore {
 
   // ### defaults
   // /score-partwise/defaults
-  static defaults(defaultsElement, score, layoutDefaults)  {
+  static defaults(defaultsElement: Element, score: SmoScore, layoutDefaults: SmoLayoutManager) {
     // Default scale for mxml
     let scale = 1 / 7;
     const currentScale = layoutDefaults.getGlobalLayout().svgScale;
@@ -147,7 +149,7 @@ export class mxmlScore {
       mxmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], mxmlScore.pageMarginMap);
     }
 
-    const scaleNode =  defaultsElement.getElementsByTagName('scaling');
+    const scaleNode = defaultsElement.getElementsByTagName('scaling');
     if (scaleNode.length) {
       const mm = mxmlHelpers.getNumberFromElement(scaleNode[0], 'millimeters', 1);
       const tn = mxmlHelpers.getNumberFromElement(scaleNode[0], 'tenths', 7);
@@ -157,17 +159,17 @@ export class mxmlScore {
     }
     // Convert from mm to pixels, this is our default svg scale
     // mm per tenth * pixels / mm gives us pixels per tenth
-    layoutDefaults.globalLayout.svgScale =  (scale * 45 / 40) / mxmlScore.mmPerPixel;
+    layoutDefaults.globalLayout.svgScale = (scale * 45 / 40) / mxmlScore.mmPerPixel;
     score.scaleTextGroups(currentScale / layoutDefaults.globalLayout.svgScale);
   }
 
   // ### part
   // /score-partwise/part
-  static part(partElement, xmlState) {
+  static part(partElement: Element, xmlState: XmlState) {
     let staffId = xmlState.smoStaves.length;
     console.log('part ' + partElement.getAttribute('id'));
     xmlState.initializeForPart();
-    const stavesForPart = [];
+    const stavesForPart: SmoSystemStaff[] = [];
     const measureElements = [...partElement.getElementsByTagName('measure')];
     measureElements.forEach((measureElement) => {
       // Parse the measure element, populate staffArray of xmlState with the
@@ -177,14 +179,16 @@ export class mxmlScore {
       if (newStaves.length > 1 && stavesForPart.length <= newStaves[0].clefInfo.staffId) {
         xmlState.staffGroups.push({ start: staffId, length: newStaves.length });
       }
-      xmlState.globalCursor += newStaves[0].measure.getMaxTicksVoice();
+      xmlState.globalCursor += (newStaves[0].measure as SmoMeasure).getMaxTicksVoice();
       newStaves.forEach((staffMeasure) => {
         if (stavesForPart.length <= staffMeasure.clefInfo.staffId) {
-          stavesForPart.push(new SmoSystemStaff({ staffId }));
+          const params = SmoSystemStaff.defaults;
+          params.staffId = staffId;
+          stavesForPart.push(new SmoSystemStaff(params));
           staffId += 1;
         }
         const smoStaff = stavesForPart[staffMeasure.clefInfo.staffId];
-        smoStaff.measures.push(staffMeasure.measure);
+        smoStaff.measures.push(staffMeasure.measure as SmoMeasure);
       });
       const oldStaffId = staffId - stavesForPart.length;
       xmlState.backtrackHairpins(stavesForPart[0], oldStaffId + 1);
@@ -195,22 +199,22 @@ export class mxmlScore {
   }
   // ### tempo
   // /score-partwise/measure/direction/sound:tempo
-  static tempo(element) {
+  static tempo(element: Element) {
     let tempoText = '';
     let customText = tempoText;
-    const rv = [];
+    const rv: { staffId: number, tempo: SmoTempoText }[] = [];
     const soundNodes = mxmlHelpers.getChildrenFromPath(element,
       ['sound']);
     soundNodes.forEach((sound) => {
       let tempoMode = SmoTempoText.tempoModes.durationMode;
-      tempoText = sound.getAttribute('tempo');
+      tempoText = sound.getAttribute('tempo') as string;
       if (tempoText) {
         const bpm = parseInt(tempoText, 10);
         const wordNode =
           [...element.getElementsByTagName('words')];
-        tempoText = wordNode.length ? wordNode[0].textContent :
+        tempoText = wordNode.length ? wordNode[0].textContent as string :
           tempoText.toString();
-        if (isNaN(tempoText)) {
+        if (isNaN(parseInt(tempoText, 10))) {
           if (SmoTempoText.tempoTexts[tempoText.toLowerCase()]) {
             tempoMode = SmoTempoText.tempoModes.textMode;
           } else {
@@ -218,9 +222,13 @@ export class mxmlScore {
             customText = tempoText;
           }
         }
-        const tempo = new SmoTempoText({
-          tempoMode, bpm, tempoText, customText, display: true
-        });
+        const params = SmoTempoText.defaults;
+        params.tempoMode = tempoMode;
+        params.bpm = bpm;
+        params.tempoText = tempoText;
+        params.customText = customText;
+        params.display = true;
+        const tempo = new SmoTempoText(params);
         const staffId = mxmlHelpers.getStaffId(element);
         rv.push({ staffId, tempo });
       }
@@ -229,25 +237,27 @@ export class mxmlScore {
   }
   // ### dynamics
   // /score-partwise/part/measure/direction/dynamics
-  static dynamics(directionElement, xmlState) {
+  static dynamics(directionElement: Element, xmlState: XmlState) {
     let offset = 1;
     const dynamicNodes = mxmlHelpers.getChildrenFromPath(directionElement,
       ['direction-type', 'dynamics']);
     const offsetNodes = mxmlHelpers.getChildrenFromPath(directionElement,
       ['offset']);
     if (offsetNodes.length) {
-      offset = parseInt(offsetNodes[0].textContent, 10);
+      offset = parseInt(offsetNodes[0].textContent as string, 10);
     }
     dynamicNodes.forEach((dynamic) => {
-      xmlState.dynamics.push({ dynamic: dynamic.children[0].tagName,
-        offset: (offset / xmlState.divisions) * 4096 });
+      xmlState.dynamics.push({
+        dynamic: dynamic.children[0].tagName,
+        offset: (offset / xmlState.divisions) * 4096
+      });
     });
   }
 
   // ### attributes
   // /score-partwise/part/measure/attributes
-  static attributes(measureElement, xmlState) {
-    let smoKey = {};
+  static attributes(measureElement: Element, xmlState: XmlState) {
+    let smoKey: PitchKey = {} as PitchKey;
     const attributesNodes = mxmlHelpers.getChildrenFromPath(measureElement, ['attributes']);
     if (!attributesNodes.length) {
       return;
@@ -275,21 +285,21 @@ export class mxmlScore {
     const timeNodes = mxmlHelpers.getChildrenFromPath(attributesNode, ['time']);
     if (timeNodes.length) {
       const timeNode = timeNodes[0];
-      const num = mxmlHelpers.getNumberFromElement(timeNode, 'beats', currentTime[0]);
-      const den = mxmlHelpers.getNumberFromElement(timeNode, 'beat-type', currentTime[1]);
+      const num = mxmlHelpers.getNumberFromElement(timeNode, 'beats', parseInt(currentTime[0], 10));
+      const den = mxmlHelpers.getNumberFromElement(timeNode, 'beat-type', parseInt(currentTime[1], 10));
       xmlState.timeSignature = '' + num + '/' + den;
     }
 
-    const clefNodes =  mxmlHelpers.getChildrenFromPath(attributesNode, ['clef']);
+    const clefNodes = mxmlHelpers.getChildrenFromPath(attributesNode, ['clef']);
     if (clefNodes.length) {
       // We expect the number of clefs to equal the number of staves in each measure
       clefNodes.forEach((clefNode) => {
         let clefNum = 0;
         let clef = 'treble';
         const clefAttrs = mxmlHelpers.nodeAttributes(clefNode);
-        if (typeof(clefAttrs.number) !== 'undefined') {
+        if (typeof (clefAttrs.number) !== 'undefined') {
           // staff numbers index from 1 in mxml
-          clefNum = parseInt(clefAttrs.number, 10) - 1;
+          clefNum = parseInt(clefAttrs.number, 10);
         }
         const clefType = mxmlHelpers.getTextFromElement(clefNode, 'sign', 'G');
         const clefLine = mxmlHelpers.getNumberFromElement(clefNode, 'line', 2);
@@ -318,20 +328,22 @@ export class mxmlScore {
 
   // ### wedge (hairpin)
   // /score-partwise/part/measure/direction/direction-type/wedge
-  static wedge(directionElement, xmlState) {
-    let crescInfo = {};
+  static wedge(directionElement: Element, xmlState: XmlState) {
+    let crescInfo: XmlWedgeInfo | null = null;
     const wedgeNodes = mxmlHelpers.getChildrenFromPath(directionElement,
       ['direction-type', 'wedge']);
     wedgeNodes.forEach((wedgeNode) => {
-      crescInfo = { type: wedgeNode.getAttribute('type') };
+      crescInfo = { type: wedgeNode.getAttribute('type') as string };
     });
     // If this is a start hairpin, start it.  If an end hairpin, add it to the
     // hairpin array with the type and start/stop ticks
-    xmlState.processWedge(crescInfo);
+    if (crescInfo !== null) {
+      xmlState.processWedge(crescInfo);
+    }
   }
   // ### direction
   // /score-partwise/part/measure/direction
-  static direction(directionElement, xmlState) {
+  static direction(directionElement: Element, xmlState: XmlState) {
     const tempo = mxmlScore.tempo(directionElement);
     // Only display tempo if changes.
     if (tempo.length) {
@@ -349,10 +361,9 @@ export class mxmlScore {
   }
   // ### note
   // /score-partwise/part/measure/note
-  static note(noteElement, xmlState) {
-    let noteData = {};
+  static note(noteElement: Element, xmlState: XmlState) {
     let grIx = 0;
-    const staffIndex = mxmlHelpers.getStaffId(noteElement);
+    const staffIndex: number = mxmlHelpers.getStaffId(noteElement);
     xmlState.staffIndex = staffIndex;
     // We assume the clef information from attributes comes before the notes
     // xmlState.staffArray[staffIndex] = { clefInfo: { clef }, voices[voiceIndex]: notes[] }
@@ -361,7 +372,7 @@ export class mxmlScore {
       // each in a separate stave object.  Base the staves we expect based on
       // the number of clefs in the xml state object
       xmlState.clefInfo.forEach((clefInfo) => {
-        xmlState.staffArray.push({ clefInfo, voices: { } });
+        xmlState.staffArray.push({ clefInfo, measure: null, voices: {} as Record<number | string, XmlVoiceInfo> });
       });
     }
     const chordNode = mxmlHelpers.getChildrenFromPath(noteElement, ['chord']);
@@ -382,11 +393,11 @@ export class mxmlScore {
     const smoStaffIndex = xmlState.smoStaves.length + staffIndex;
     const selector = {
       staff: smoStaffIndex, measure: xmlState.measureIndex, voice: smoVoiceIndex,
-      tick: tickIndex
+      tick: tickIndex, pitches: []
     };
     const divisions = xmlState.divisions;
     const printText = noteElement.getAttribute('print-object');
-    const hideNote = typeof(printText) === 'string' && printText === 'no';
+    const hideNote = typeof (printText) === 'string' && printText === 'no';
     const isGrace = mxmlHelpers.isGrace(noteElement);
     const restNode = mxmlHelpers.getChildrenFromPath(noteElement, ['rest']);
     const noteType = restNode.length ? 'r' : 'n';
@@ -403,17 +414,17 @@ export class mxmlScore {
     const ornaments = mxmlHelpers.articulationsAndOrnaments(noteElement);
     const lyrics = mxmlHelpers.lyrics(noteElement);
     const flagState = mxmlHelpers.getStemType(noteElement);
-
-    const pitch = mxmlHelpers.smoPitchFromNote(noteElement,
-      SmoMeasure.defaultPitchForClef[xmlState.staffArray[staffIndex].clefInfo.clef]);
+    const clefString: Clef = xmlState.staffArray[staffIndex].clefInfo.clef as Clef;
+    const pitch: Pitch = mxmlHelpers.smoPitchFromNote(noteElement,
+      SmoMeasure.defaultPitchForClef[clefString]);
     if (isGrace === false) {
       if (chordNode.length) {
         // If this is a note in a chord, just add the pitch to previous note.
         xmlState.previousNote.pitches.push(pitch);
-        xmlState.updateTieStates(tieInfos, selector);
+        xmlState.updateTieStates(tieInfos);
       } else {
         // Create a new note
-        noteData = JSON.parse(JSON.stringify(SmoNote.defaults));
+        const noteData: SmoNoteParams = SmoNote.defaults;
         noteData.noteType = noteType;
         noteData.pitches = [pitch];
         // If this is a non-grace note, add any grace notes to the note since SMO
@@ -427,9 +438,9 @@ export class mxmlScore {
         xmlState.updateDynamics();
         ornaments.forEach((ornament) => {
           if (ornament.ctor === 'SmoOrnament') {
-            xmlState.previousNote.toggleOrnament(ornament);
+            xmlState.previousNote.toggleOrnament(ornament as SmoOrnament);
           } else if (ornament.ctor === 'SmoArticulation') {
-            xmlState.previousNote.toggleArticulation(ornament);
+            xmlState.previousNote.toggleArticulation(ornament as SmoArticulation);
           }
         });
         lyrics.forEach((lyric) => {
@@ -444,8 +455,9 @@ export class mxmlScore {
           const pads = smoMusic.splitIntoValidDurations(
             xmlState.tickCursor - xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed);
           pads.forEach((pad) => {
+            const clefString: Clef = xmlState.staffArray[staffIndex].clefInfo.clef as Clef;
             const padNote = SmoMeasure.createRestNoteWithDuration(pad,
-              xmlState.staffArray[staffIndex].clefInfo.clef);
+              clefString);
             padNote.makeHidden(true);
             voice.notes.push(padNote);
           });
@@ -487,16 +499,16 @@ export class mxmlScore {
   // /score-partwise/part/measure
   // A measure in music xml might represent several measures in SMO at the same
   // column in the score
-  static measure(measureElement, xmlState) {
+  static measure(measureElement: Element, xmlState: XmlState) {
     xmlState.initializeForMeasure(measureElement);
     const elements = [...measureElement.children];
     let hasNotes = false;
     elements.forEach((element) => {
       if (element.tagName === 'backup') {
-        xmlState.currentDuration -= mxmlHelpers.durationFromNode(element);
+        xmlState.currentDuration -= mxmlHelpers.durationFromNode(element, 0);
       }
       if (element.tagName === 'forward') {
-        xmlState.currentDuration += mxmlHelpers.durationFromNode(element);
+        xmlState.currentDuration += mxmlHelpers.durationFromNode(element, 0);
       }
       if (element.tagName === 'attributes') {
         // update the running state of the XML with new information from this measure
@@ -512,14 +524,15 @@ export class mxmlScore {
     // If a measure has no notes, just make one with the defaults
     if (hasNotes === false && xmlState.staffArray.length < 1 && xmlState.clefInfo.length >= 1) {
       xmlState.clefInfo.forEach((clefInfo) => {
-        xmlState.staffArray.push({ clefInfo, voices: { } });
+        xmlState.staffArray.push({ clefInfo, measure: null, voices: {} });
       });
     }
     xmlState.staffArray.forEach((staffData) => {
-      const smoMeasure = SmoMeasure.getDefaultMeasure({
-        clef: staffData.clefInfo.clef
-      });
-      smoMeasure.format = new SmoMeasureFormat();
+      const clef = staffData.clefInfo.clef as Clef;
+      const params: SmoMeasureParams = SmoMeasure.defaults;
+      params.clef = clef;
+      const smoMeasure = SmoMeasure.getDefaultMeasure(params);
+      smoMeasure.format = new SmoMeasureFormat(SmoMeasureFormat.defaults);
       smoMeasure.format.measureIndex = xmlState.measureNumber;
       smoMeasure.format.systemBreak = mxmlHelpers.isSystemBreak(measureElement);
       smoMeasure.tempo = xmlState.tempo;
@@ -527,7 +540,7 @@ export class mxmlScore {
       xmlState.formattingManager.updateMeasureFormat(smoMeasure.format);
       smoMeasure.keySignature = xmlState.keySignature;
       smoMeasure.timeSignature = xmlState.timeSignature;
-      smoMeasure.measureNumber.measureNumber = xmlState.measureNumber;
+      smoMeasure.measureNumber.localIndex = xmlState.measureNumber;
       smoMeasure.measureNumber.measureIndex = xmlState.measureIndex;
       smoMeasure.measureNumber.staffId = staffData.clefInfo.staffId + xmlState.smoStaves.length;
       // voices not in array, put them in an array
@@ -548,18 +561,19 @@ export class mxmlScore {
       staffData.measure = smoMeasure;
     });
     // Pad incomplete measures/voices with rests
-    const maxTicks = xmlState.staffArray.map((staffData) => staffData.measure.getMaxTicksVoice())
+    const maxTicks = xmlState.staffArray.map((staffData) => (staffData.measure as SmoMeasure).getMaxTicksVoice())
       .reduce((a, b) => a > b ? a : b);
     xmlState.staffArray.forEach((staffData) => {
       let i = 0;
       let j = 0;
-      for (i = 0; i < staffData.measure.voices.length; ++i) {
-        const curTicks = staffData.measure.getTicksFromVoice(i);
+      const measure = staffData.measure as SmoMeasure;
+      for (i = 0; i < measure.voices.length; ++i) {
+        const curTicks = measure.getTicksFromVoice(i);
         if (curTicks < maxTicks) {
           const tickAr = smoMusic.splitIntoValidDurations(maxTicks - curTicks);
           for (j = 0; j < tickAr.length; ++j) {
-            staffData.measure.voices[i].notes.push(
-              SmoMeasure.createRestNoteWithDuration(tickAr[j], staffData.measure.clef)
+            measure.voices[i].notes.push(
+              SmoMeasure.createRestNoteWithDuration(tickAr[j], measure.clef)
             );
           }
         }

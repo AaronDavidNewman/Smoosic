@@ -248,6 +248,8 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     const params: any = {};
     let ser = true;
     smoSerialize.serializedMergeNonDefault(SmoMeasure.defaults, SmoMeasure.serializableAttributes, this, params);
+    // measure number can't be defaulted b/c tempos etc. can map to default measure
+    params.measureNumber = JSON.parse(JSON.stringify(this.measureNumber));
     params.tuplets = [];
     params.voices = [];
     params.modifiers = [];
@@ -331,7 +333,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       const modifier: SmoMeasureModifierBase = SmoMeasureModifierBase.deserialize(modParams);
       modifiers.push(modifier);
     });
-    const params: SmoMeasureParams = {} as SmoMeasureParams;
+    const params: SmoMeasureParams = SmoMeasure.defaults;
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
     params.voices = voices;
     params.tuplets = tuplets;

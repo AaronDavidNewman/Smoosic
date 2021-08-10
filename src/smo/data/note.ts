@@ -70,30 +70,32 @@ export class SmoNote implements Transposable {
     return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef',
       'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden'];
   }
-  static readonly defaults: SmoNoteParams = {
-    noteType: 'n',
-    noteHead: 'n',
-    clef: 'treble',
-    textModifiers: [],
-    articulations: [],
-    graceNotes: [],
-    ornaments: [],
-    tones: [],
-    endBeam: false,
-    fillStyle: '',
-    hidden: false,
-    beamBeats: 4096,
-    flagState: SmoNote.flagStates.auto,
-    ticks: {
-      numerator: 4096,
-      denominator: 1,
-      remainder: 0
-    },
-    pitches: [{
-      letter: 'b',
-      octave: 4,
-      accidental: ''
-    }],
+  static get defaults(): SmoNoteParams {
+    return JSON.parse(JSON.stringify({
+      noteType: 'n',
+      noteHead: 'n',
+      clef: 'treble',
+      textModifiers: [],
+      articulations: [],
+      graceNotes: [],
+      ornaments: [],
+      tones: [],
+      endBeam: false,
+      fillStyle: '',
+      hidden: false,
+      beamBeats: 4096,
+      flagState: SmoNote.flagStates.auto,
+      ticks: {
+        numerator: 4096,
+        denominator: 1,
+        remainder: 0
+      },
+      pitches: [{
+        letter: 'b',
+        octave: 4,
+        accidental: ''
+      }],
+    }));
   }
   toggleFlagState() {
     this.flagState = (this.flagState + 1) % 3;
