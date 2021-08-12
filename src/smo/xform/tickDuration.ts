@@ -4,8 +4,8 @@ import { SmoNote, TupletInfo } from '../data/note';
 import { SmoTuplet } from '../data/tuplet';
 import { smoMusic } from '../../common/musicHelpers';
 import { SmoSelector, SmoSelection } from './selections';
-import { SmoMeasure } from '../data/measure';
-import { Ticks, SmoVoice } from '../data/common';
+import { SmoMeasure, SmoVoice } from '../data/measure';
+import { Ticks } from '../data/common';
 import { TickMap } from './tickMap';
 
 export abstract class TickIteratorBase {

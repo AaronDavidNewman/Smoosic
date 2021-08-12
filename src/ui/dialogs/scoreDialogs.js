@@ -185,6 +185,8 @@ export class SuiGlobalLayoutDialog extends SuiDialogBase {
     this.noteSpacingCtrl.setValue(this.globalLayout.noteSpacing);
     this.zoomScaleCtrl.setValue(this.globalLayout.zoomScale);
     this.svgScaleCtrl.setValue(this.globalLayout.svgScale);
+    this.pageWidthCtrl.setValue(this.globalLayout.pageWidth);
+    this.pageHeightCtrl.setValue(this.globalLayout.pageHeight);
     this._setPageSizeDefault();
   }
   _bindElements() {
@@ -244,6 +246,14 @@ export class SuiGlobalLayoutDialog extends SuiDialogBase {
       newInfo.name = this.scoreNameCtrl.getValue();
       this.view.updateScoreInfo(newInfo);
       return;
+    }
+    if (this.pageWidthCtrl.changeFlag) {
+      this.globalLayout.pageWidth = this.pageWidthCtrl.getValue();
+      layoutChanged = true;
+    }
+    if (this.pageHeightCtrl.changeFlag) {
+      this.globalLayout.pageHeight = this.pageHeightCtrl.getValue();
+      layoutChanged = true;
     }
     if (this.pageSizeCtrl.changeFlag) {
       this._handlePageSizeChange();

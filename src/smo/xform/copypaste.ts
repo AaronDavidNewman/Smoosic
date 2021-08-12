@@ -2,14 +2,13 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoSelection, SmoSelector } from './selections';
 import { SmoNote, TupletInfo } from '../data/note';
-import { SmoMeasure } from '../data/measure';
+import { SmoMeasure, SmoVoice } from '../data/measure';
 import { StaffModifierBase } from '../data/staffModifiers';
 import { SmoTuplet } from '../data/tuplet';
 import { smoMusic } from '../../common/musicHelpers';
 import { svgHelpers } from '../../common/svgHelpers';
 import { SmoScore } from '../data/score';
 import { TickMap } from './tickMap';
-import { SmoVoice } from '../data/common';
 import { SmoSystemStaff } from '../data/systemStaff';
 const VF = eval('Vex.Flow');
 
@@ -426,8 +425,8 @@ export class PasteBuffer {
       // If this is the non-display buffer, don't try to reset the display rectangles.
       // Q: Is this even required since we are going to re-render?
       // A: yes, because until we do, the replaced measure needs the formatting info
-      if (measure.renderedBox && measure.logicalBox) {
-        nmeasure.renderedBox = svgHelpers.smoBox(measure.renderedBox);
+      if (measure.svg.renderedBox && measure.logicalBox) {
+        nmeasure.svg.renderedBox = svgHelpers.smoBox(measure.svg.renderedBox);
         nmeasure.setBox(svgHelpers.smoBox(measure.logicalBox), 'copypaste');
         nmeasure.setX(measure.logicalBox.x, 'copyPaste');
         nmeasure.setWidth(measure.logicalBox.width, 'copypaste');

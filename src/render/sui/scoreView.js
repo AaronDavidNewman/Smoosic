@@ -3,7 +3,7 @@
 import { SmoSelection } from '../../smo/xform/selections';
 import { UndoBuffer } from '../../smo/xform/undo';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
-import { suiScroller } from './scroller';
+import { SuiScroller } from './scroller';
 import { svgHelpers } from '../../common/svgHelpers';
 import { PasteBuffer } from '../../smo/xform/copypaste';
 import { suiTracker } from './tracker';
@@ -243,7 +243,7 @@ export class SuiScoreView {
     this.score = score;
     this.renderer = renderer;
     const scoreJson = score.serialize();
-    this.scroller = new suiScroller(scrollSelector);
+    this.scroller = new SuiScroller(scrollSelector);
     this.pasteBuffer = new PasteBuffer();
     this.storePaste = new PasteBuffer();
     this.tracker = new suiTracker(this.renderer, this.scroller, this.pasteBuffer);

@@ -6,7 +6,7 @@ export interface SmoAttrs {
 export interface SmoObjectParams {
     ctor: string
 }
-  
+
 export interface Ticks {
     numerator: number,
     denominator: number,
@@ -28,7 +28,8 @@ export interface Pitch {
 
 export interface Transposable {
     pitches: Pitch[],
-    noteType: string
+    noteType: string,
+    renderId: string | null
 }
 
 export interface FontInfo {
@@ -36,7 +37,7 @@ export interface FontInfo {
     weight: string;
     family: string;
     style?: string;
-  }
+}
 
 export interface MeasureNumber {
     measureIndex: number,
@@ -44,25 +45,41 @@ export interface MeasureNumber {
     systemIndex: number,
     staffId: number
 }
-export interface SvgPoint {
-    x: number,
-    y: number
+export class SvgPoint {
+    x: number;
+    y: number;
+    static get default() {
+        return { x: 0, y: 0 };
+    }
+    constructor() {
+        this.x = 0;
+        this.y = 0;
+    }
 }
-export interface SvgBox {
-    x: number,
-    y: number,
-    width: number,
-    height: number
+export class SvgBox {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    static get default(): SvgBox {
+        return { x: 0, y: 0, width: -1, height: -1 };
+    }
+    constructor() {
+        this.x = 0;
+        this.y = 0;
+        this.width = -1;
+        this.height = -1;
+    }
+}
+export interface SmoObjectParams {
+    ctor: string
 }
 
-export interface SmoVoice {
-    notes: SmoNote[]
-}
-
-export interface TickMappable {
-    voices: SmoVoice[],
-    keySignature: string
+export interface SmoModifierBase {
+    ctor: string,
+    renderedBox: SvgBox | undefined,
+    logicalBox: SvgBox | undefined
 }
 
 export type Clef = 'treble' | 'bass' | 'tenor' | 'alto' | 'soprano' | 'percussion'
-  | 'mezzo-soprano' | 'baritone-c' | 'baritone-f' | 'subbass' | 'french';
+    | 'mezzo-soprano' | 'baritone-c' | 'baritone-f' | 'subbass' | 'french';

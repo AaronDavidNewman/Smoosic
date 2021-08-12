@@ -11,8 +11,16 @@ import { SmoTuplet } from './tuplet';
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { svgHelpers } from '../../common/svgHelpers';
 import { TickMap, TickAccidental } from '../xform/tickMap';
-import { MeasureNumber, SvgBox, SmoAttrs, Pitch, SmoVoice, TickMappable, PitchLetter, Clef, FontInfo } from './common';
-import { SmoNoteModifierBase } from './noteModifiers';
+import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, FontInfo } from './common';
+
+export interface SmoVoice {
+  notes: SmoNote[]
+}
+
+export interface TickMappable {
+  voices: SmoVoice[],
+  keySignature: string
+}
 
 const VF = eval('Vex.Flow');
 
@@ -26,6 +34,7 @@ export interface MeasureSvg {
   staffX: number,
   staffY: number,
   logicalBox: SvgBox,
+  renderedBox: SvgBox | null,
   yTop: number,
   adjX: number
   history: string[],
@@ -137,7 +146,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   svg: MeasureSvg;
   format: SmoMeasureFormat;
   attrs: SmoAttrs;
-  renderedBox?: SvgBox;
 
   constructor(params: SmoMeasureParams) {
     this.tempo = new SmoTempoText(SmoTempoText.defaults);
@@ -149,6 +157,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       logicalBox: {
         x: 0, y: 0, width: 0, height: 0
       },
+      renderedBox: null,
       yTop: 0,
       adjX: 0,
       history: [],
@@ -807,7 +816,8 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     for (j = 0; j < this.voices.length; ++j) {
       const vnotes = this.voices[j].notes;
       for (i = 0; i < vnotes.length; ++i) {
-        if (vnotes[i].tuplet && vnotes[i].tuplet.id === tuplet.attrs.id) {
+        const note = vnotes[i] as SmoNote;
+        if (note.tuplet && note.tuplet.id === tuplet.attrs.id) {
           tnotes.push(vnotes[i]);
         }
       }
@@ -823,7 +833,8 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     for (j = 0; j < this.voices.length; ++j) {
       const notes = this.voices[j].notes;
       for (i = 0; i < notes.length; ++i) {
-        if (notes[i].tuplet && notes[i].tuplet.id === tuplet.attrs.id) {
+        const note = notes[i] as SmoNote;
+        if (note.tuplet && note.tuplet.id === tuplet.attrs.id) {
           return i;
         }
       }
@@ -907,7 +918,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     }
     return this.tempo;
   }
-  addMeasureText(mod: SmoNoteModifierBase) {
+  addMeasureText(mod: SmoMeasureModifierBase) {
     var exist = this.modifiers.filter((mm) =>
       mm.attrs.id === mod.attrs.id
     );

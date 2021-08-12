@@ -3,7 +3,7 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoNote } from './note';
-import { SmoAttrs, SvgPoint, SmoObjectParams, Clef } from './common';
+import { SmoAttrs, SvgPoint, SmoObjectParams, Clef, SvgBox, SmoModifierBase } from './common';
 
 const VF = eval('Vex.Flow');
 
@@ -16,11 +16,13 @@ const VF = eval('Vex.Flow');
 // ## StaffModifierBase
 // ## Description:
 // Base class that mostly standardizes the interface and deals with serialization.
-export abstract class StaffModifierBase {
+export abstract class StaffModifierBase implements SmoModifierBase {
   attrs: SmoAttrs;
   ctor: string;
-  startSelector: SmoSelector = { staff: 0, measure: 0, voice: 0, tick: 0, pitches: [] };
-  endSelector: SmoSelector = { staff: 0, measure: 0, voice: 0, tick: 0, pitches: [] };
+  startSelector: SmoSelector = SmoSelector.default;
+  endSelector: SmoSelector = SmoSelector.default;
+  renderedBox: SvgBox | undefined;
+  logicalBox: SvgBox | undefined;
   constructor(ctor: string) {
     this.ctor = ctor;
     this.attrs = {
@@ -34,9 +36,6 @@ export abstract class StaffModifierBase {
     return rv;
   }
   abstract serialize(): any;
-  get isStaffModifier() {
-    return true;
-  }
 }
 // WIP
 export class SmoInstrument {
@@ -81,8 +80,8 @@ export class SmoStaffHairpin extends StaffModifierBase {
       height: 10,
       position: SmoStaffHairpin.positions.BELOW,
       hairpinType: SmoStaffHairpin.types.CRESCENDO,
-      startSelector: { staff: 0, voice: 0, measure: 0, tick: 0, pitches: [] },
-      endSelector: { staff: 0, voice: 0, measure: 0, tick: 0, pitches: [] }
+      startSelector: SmoSelector.default,
+      endSelector: SmoSelector.default
     }));
   }
   static get positions() {
@@ -110,8 +109,8 @@ export class SmoStaffHairpin extends StaffModifierBase {
   height: number = 10;
   position: number = SmoStaffHairpin.positions.BELOW;
   hairpinType: number = SmoStaffHairpin.types.CRESCENDO;
-  startSelector: SmoSelector = { staff: 0, voice: 0, measure: 0, tick: 0, pitches: [] };
-  endSelector: SmoSelector = { staff: 0, voice: 0, measure: 0, tick: 0, pitches: [] };
+  startSelector: SmoSelector = SmoSelector.default;
+  endSelector: SmoSelector = SmoSelector.default;
   serialize() {
     const params: any = {};
     smoSerialize.serializedMergeNonDefault(SmoStaffHairpin.defaults, SmoStaffHairpin.attributes, this, params);
@@ -201,8 +200,8 @@ export class SmoSlur extends StaffModifierBase {
   cp1y: number = 15;
   cp2x: number = 0;
   cp2y: number = 15;
-  startSelector: SmoSelector = { staff: 0, voice: 0, measure: 0, tick: 0, pitches: [] };
-  endSelector: SmoSelector = { staff: 0, voice: 0, measure: 0, tick: 0, pitches: [] };
+  startSelector: SmoSelector = SmoSelector.default;
+  endSelector: SmoSelector = SmoSelector.default;
 
   serialize(): any {
     const params: any = {};

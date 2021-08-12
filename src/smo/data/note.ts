@@ -3,7 +3,7 @@
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament } from './noteModifiers';
 import { smoMusic } from '../../common/musicHelpers';
-import { Ticks, Pitch, SmoAttrs, FontInfo, Transposable, PitchLetter } from './common';
+import { Ticks, Pitch, SmoAttrs, FontInfo, Transposable, PitchLetter, SvgBox } from './common';
 const VF = eval('Vex.Flow');
 
 export interface TupletInfo {
@@ -63,8 +63,11 @@ export class SmoNote implements Transposable {
   endBeam: boolean = false;
   ticks: Ticks = { numerator: 4096, denominator: 1, remainder: 0 };
   beamBeats: number = 4096;
-  renderId: string | null = null;
   beam_group: SmoAttrs | null = null;
+  renderId: string | null = null;
+  keySignature: string = 'c';
+  logicalBox: SvgBox | undefined;
+  renderedBox: SvgBox | undefined;
 
   static get parameterArray() {
     return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef',

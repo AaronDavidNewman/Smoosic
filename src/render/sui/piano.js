@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { svgHelpers } from "../../common/svgHelpers";
 import { htmlHelpers } from "../../common/htmlHelpers";
-import { suiScroller } from "./scroller";
+import { SuiScroller } from "./scroller";
 export class suiPiano {
   constructor(parameters) {
     Vex.Merge(this, parameters);
@@ -10,7 +10,7 @@ export class suiPiano {
     this.render();
     this.octaveOffset = 0;
     this.chordPedal = false;
-    this.scroller = new suiScroller('.piano-keys');
+    this.scroller = new SuiScroller('.piano-keys');
   }
 
   static get dimensions() {

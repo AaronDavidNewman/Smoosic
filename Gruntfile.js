@@ -12,7 +12,7 @@ module.exports = function (grunt) {
   'src/smo/mxml/smo2Xml.js','src/smo/midi/smoToMidi.js',
   'src/smo/xform/operations.ts', 'src/smo/xform/undo.ts', 'src/smo/xform/tickMap.ts', 'src/smo/xform/actions.js', 'src/smo/xform/toVex.js',
   'src/smo/xform/copypaste.ts','src/smo/xform/selections.ts','src/smo/xform/tickDuration.ts',
-  'src/render/vex/vxMeasure.js','src/render/sui/renderState.js', 'src/render/sui/scoreRender.js',
+  'src/render/vex/vxMeasure.js','src/render/sui/renderState.js', 'src/render/sui/scoreRender.js', 'src/render/sui/scroller.ts',
   'src/render/sui/actionPlayback.js','src/render/sui/formatter.js','src/render/audio/player.js',
   'src/render/sui/textRender.js','src/render/vex/vxSystem.js', 'src/render/vex/glyphDimensions.js',
   'src/render/sui/textEdit.js', 'src/render/sui/tracker.js', 'src/render/audio/oscillator.js','src/render/sui/mapper.js',

@@ -1,7 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoMusic } from '../../common/musicHelpers';
-import { TickMappable, Pitch, PitchLetter } from '../data/common';
+import { TickMappable } from '../data/measure';
+import { Pitch, PitchLetter } from '../data/common';
 import { SmoNote } from '../data/note';
 const VF = eval('Vex.Flow');
 export interface TickAccidental {

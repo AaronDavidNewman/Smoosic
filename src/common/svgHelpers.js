@@ -431,11 +431,11 @@ export class svgHelpers {
   // ### measureBBox
   // Return the bounding box of the measure
   static measureBBox(b1, measure, staff) {
-    if (measure.renderedBox) {
+    if (measure.svg.renderedBox) {
       if (b1['width']) {
-        return svgHelpers.unionRect(b1, measure.renderedBox);
+        return svgHelpers.unionRect(b1, measure.svg.renderedBox);
       } else {
-        return measure.renderedBox;
+        return measure.svg.renderedBox;
       }
     } else {
       var mbox = {

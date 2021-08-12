@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SmoScore } from '../data/score';
-import { SmoMeasureParams, SmoMeasure } from '../data/measure';
+import { SmoMeasureParams, SmoMeasure, SmoVoice } from '../data/measure';
 import { SmoSelection, SmoSelector } from './selections';
 import { SmoSystemGroup, SmoTextGroup } from '../data/scoreModifiers';
 import { smoMusic } from '../../common/musicHelpers';
@@ -16,7 +16,7 @@ import { SmoRehearsalMark, SmoMeasureText, SmoVolta, SmoMeasureFormat, SmoTempoT
 import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoNoteModifierBase, SmoOrnament } from '../data/noteModifiers';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
-import { SmoVoice, Pitch, PitchLetter } from '../data/common';
+import { Pitch, PitchLetter } from '../data/common';
 
 const VF = eval('Vex.Flow');
 

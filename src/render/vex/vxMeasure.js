@@ -216,7 +216,7 @@ export class VxMeasure {
         }
         gr.addClass('grace-note'); // note: this doesn't work :(
 
-        g.renderedId = gr.attrs.id;
+        g.renderId = gr.attrs.id;
         group.push(gr);
       });
       const grace = new VF.GraceNoteGroup(group);

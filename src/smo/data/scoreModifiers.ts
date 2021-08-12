@@ -2,17 +2,20 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMeasureFormat } from './measureModifiers';
-import { SmoAttrs, FontInfo } from './common';
+import { SmoAttrs, FontInfo, SmoModifierBase } from './common';
 import { SmoMeasure } from './measure';
 import { SmoSelector } from '../xform/selections';
+import { SvgBox } from './common';
 
 const VF = eval('Vex.Flow');
 
 // ## SmoScoreModifierBase
 // A score modifier is something that appears in the score, but not
 // associated with a measure of music.
-export abstract class SmoScoreModifierBase {
+export abstract class SmoScoreModifierBase implements SmoModifierBase {
   ctor: string;
+  renderedBox: SvgBox | undefined;
+  logicalBox: SvgBox | undefined;
   attrs: SmoAttrs;
   constructor(ctor: string) {
     this.ctor = ctor;

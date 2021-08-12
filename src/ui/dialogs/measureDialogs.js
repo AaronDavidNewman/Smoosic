@@ -715,7 +715,7 @@ export class SuiTempoDialog extends SuiDialogBase {
       parameters.modifier = new SmoTempoText();
     }
     if (!parameters.modifier.renderedBox) {
-      parameters.modifier.renderedBox = svgHelpers.copyBox(measure.renderedBox);
+      parameters.modifier.renderedBox = svgHelpers.copyBox(measure.svg.renderedBox);
     }
     if (!parameters.modifier || !parameters.measures) {
       throw new Error('modifier attribute dialog must have modifier and selection');

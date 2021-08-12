@@ -4,6 +4,7 @@ import { SmoAttrs, Ticks, Pitch, FontInfo, SmoObjectParams, Transposable } from 
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { smoMusic } from '../../common/musicHelpers';
+import { SvgBox, SmoModifierBase } from './common';
 
 const VF = eval('Vex.Flow');
 // const Smo = eval('globalThis.Smo');
@@ -11,9 +12,11 @@ const VF = eval('Vex.Flow');
 // ## SmoNoteModifierBase
 // A note modifier is anything that is mapped to the note, but not part of the
 // pitch itself.  This includes grace notes, and note-text like lyrics
-export abstract class SmoNoteModifierBase {
+export abstract class SmoNoteModifierBase implements SmoModifierBase {
   attrs: SmoAttrs;
   ctor: string;
+  renderedBox: SvgBox | undefined;
+  logicalBox: SvgBox | undefined;
   constructor(ctor: string) {
     this.attrs = {
       id: VF.Element.newID(),
@@ -32,7 +35,7 @@ export abstract class SmoNoteModifierBase {
   abstract serialize(): object;
 }
 
-export interface GraceNoteParams extends SmoObjectParams {
+export interface GraceNoteParams extends SmoModifierBase {
   ctor: string,
   flagState: number,
   noteType: string,
@@ -83,6 +86,7 @@ export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
   slash: boolean = false;
   clef: string = 'treble';
   noteType: string = 'n';
+  renderId: string | null = null;
 
   tickCount() {
     return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
@@ -472,6 +476,7 @@ export class SmoLyric extends SmoNoteModifierBase {
     weight: 'normal'
   };
   parser: number = SmoLyric.parsers.lyric;
+  selector: string | null = null; // used by UI
   adjustNoteWidthLyric: boolean = true;
   adjustNoteWidthChord: boolean = false;
   verse: number = 0;

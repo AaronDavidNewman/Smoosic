@@ -60,7 +60,8 @@ import {
 // render library
 import { SuiScoreView } from '../render/sui/scoreView';
 import { layoutDebug } from '../render/sui/layoutDebug';
-
+import { suiMapper } from '../render/sui/mapper';
+import { SuiScroller } from '../render/sui/scroller';
 // SMO components
 import { UndoBuffer } from '../smo/xform/undo';
 import { SmoNote } from '../smo/data/note';
@@ -115,7 +116,7 @@ export const Smo = {
     SuiDynamicModifierDialog, CheckboxDropdownComponent, TieMappingComponent, StaffAddRemoveComponent,
     StaffCheckComponent, TextCheckComponent,
     // Rendering components
-    suiPiano, layoutDebug, SuiScoreView,
+    suiPiano, layoutDebug, SuiScoreView,SuiScroller, suiMapper,
     // Smo Music Objects
     SmoMeasure,
     SmoSystemStaff,

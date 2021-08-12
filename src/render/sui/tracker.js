@@ -71,38 +71,6 @@ export class suiTracker extends suiMapper {
     return this.renderer.renderer.getContext();
   }
 
-  _copySelections() {
-    const rv = [];
-    this.selections.forEach((sel) => {
-      rv.push(sel.selector);
-    });
-    return rv;
-  }
-
-  _copySelectionsByMeasure(staffIndex, measureIndex) {
-    const rv = this.selections.filter((sel) => sel.selector.staff === staffIndex && sel.selector.measure === measureIndex);
-    const ticks = rv.length < 1 ? 0 : rv.map((sel) => sel.note.tickCount).reduce((a, b) => a + b);
-    const selectors = [];
-    rv.forEach((sel) => {
-      const nsel = JSON.parse(JSON.stringify(sel.selector));
-      if (!nsel.pitches) {
-        nsel.pitches = [];
-      }
-      selectors.push(nsel);
-    });
-    return { ticks, selectors };
-  }
-
-  _getTicksFromSelections() {
-    let rv = 0;
-    this.selections.forEach((sel) => {
-      if (sel.note) {
-        rv += sel.note.tickCount;
-      }
-    });
-    return rv;
-  }
-
   // Hack - lyric should be handled consistently
   _reboxTextModifier(modifier) {
     let el = null;
@@ -132,13 +100,13 @@ export class suiTracker extends suiMapper {
       const zmeasureSel = SmoSelection.measureSelection(this.renderer.score,
         0, selector.measure);
       const measure = measureSel.measure;
-      const mbox = measure.renderedBox;
+      const mbox = measure.svg.renderedBox;
       const pos = this.measureNoteMap[key].scrollBox;
       const b = htmlHelpers.buildDom;
       const r = b('span').classes('birdy icon icon-arrow-down').attr('id', 'birdy');
       $('.workspace #birdy').remove();
       const rd = r.dom();
-      const y = (zmeasureSel.measure.renderedBox.y - zmeasureSel.measure.renderedBox.height) - this.scroller.netScroll.y;
+      const y = (zmeasureSel.measure.svg.renderedBox.y - zmeasureSel.measure.svg.renderedBox.height) - this.scroller.netScroll.y;
       const x = pos.x;
       $(rd).css('top', y).css('left', x);
       $('.workspace').append(rd);
@@ -154,14 +122,6 @@ export class suiTracker extends suiMapper {
     this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id === id);
   }
 
-  // used by remove dialogs to clear removed thing
-  clearModifierSelections() {
-    this.modifierSelections = [];
-    this._createLocalModifiersList();
-    this.modifierIndex = -1;
-    this.eraseRect('staffModifier');
-  }
-
   getSelectedModifier() {
     if (this.modifierSelections.length) {
       return this.modifierSelections[0];
@@ -173,33 +133,6 @@ export class suiTracker extends suiMapper {
     return this.modifierSelections;
   }
 
-  _createLocalModifiersList() {
-    this.localModifiers = [];
-    this.selections.forEach((sel) => {
-      sel.note.getGraceNotes().forEach((gg) => {
-        this.localModifiers.push({ selection: sel, modifier: gg, box: gg.renderedBox });
-      });
-      sel.note.getModifiers('SmoDynamicText').forEach((dyn) => {
-        this.localModifiers.push({ selection: sel, modifier: dyn, box: dyn.renderedBox });
-      });
-      sel.measure.getModifiersByType('SmoVolta').forEach((volta) => {
-        this.localModifiers.push({ selection: sel, modifier: volta, box: volta.renderedBox });
-      });
-      sel.measure.getModifiersByType('SmoTempoText').forEach((tempo) => {
-        this.localModifiers.push({ selection: sel, modifier: tempo, box: tempo.renderedBox });
-      });
-      sel.staff.getModifiers().forEach((mod) => {
-        if (SmoSelector.gteq(sel.selector, mod.startSelector) &&
-          SmoSelector.lteq(sel.selector, mod.endSelector) && mod.renderedBox)  {
-          const exists = this.localModifiers.find((mm) => mm.isStaffModifier &&
-            mm.ctor === mod.ctor);
-          if (!exists) {
-            this.localModifiers.push({ selection: sel, modifier: mod, box: mod.renderedBox });
-          }
-        }
-      });
-    });
-  }
   static serializeEvent(evKey) {
     const rv = {};
     smoSerialize.serializedMerge(['type', 'shiftKey', 'ctrlKey', 'altKey', 'key', 'keyCode'], evKey, rv);
@@ -230,40 +163,8 @@ export class suiTracker extends suiMapper {
     this._highlightModifier();
   }
 
-  _findClosestSelection(selector) {
-    var artifact = this._getClosestTick(selector);
-    if (!artifact) {
-      return;
-    }
-    if (this.selections.find((sel) => JSON.stringify(sel.selector)
-      === JSON.stringify(artifact.selector))) {
-      return;
-    }
-    if (selector.pitches && selector.pitches.length && selector.pitches.length <= artifact.note.pitches.length) {
-      // If the old selection had only a single pitch, try to recreate that.
-      artifact.selector.pitches = JSON.parse(JSON.stringify(selector.pitches));
-    }
-    this.selections.push(artifact);
-  }
-
   static stringifyBox(box) {
     return '{x:' + box.x + ',y:' + box.y + ',width:' + box.width + ',height:' + box.height + '}';
-  }
-
-  // ### getExtremeSelection
-  // Get the rightmost (1) or leftmost (-1) selection
-  getExtremeSelection(sign) {
-    let i = 0;
-    let rv = this.selections[0];
-    for (i = 1; i < this.selections.length; ++i) {
-      const sa = this.selections[i].selector;
-      if (sa.measure * sign > rv.selector.measure * sign) {
-        rv = this.selections[i];
-      } else if (sa.measure === rv.selector.measure && sa.tick * sign > rv.selector.tick * sign) {
-        rv = this.selections[i];
-      }
-    }
-    return rv;
   }
 
   // ### _getOffsetSelection
@@ -383,8 +284,8 @@ export class suiTracker extends suiMapper {
         this.selections = [homeSel];
         this.deferHighlight();
         this._createLocalModifiersList();
-        if (homeSel.measure.renderedBox) {
-          this.scroller.scrollVisibleBox(homeSel.measure.renderedBox);
+        if (homeSel.measure.svg.renderedBox) {
+          this.scroller.scrollVisibleBox(homeSel.measure.svg.renderedBox);
         }
       }
     } else {
@@ -398,7 +299,7 @@ export class suiTracker extends suiMapper {
         this._selectBetweenSelections(this.selections[0], homeSel);
       } else {
         this.selections = [homeSel];
-        this.scroller.scrollVisibleBox(homeSel.measure.renderedBox);
+        this.scroller.scrollVisibleBox(homeSel.measure.svg.renderedBox);
         this.deferHighlight();
         this._createLocalModifiersList();
       }
@@ -423,8 +324,8 @@ export class suiTracker extends suiMapper {
         this.selections = [endSel];
         this.deferHighlight();
         this._createLocalModifiersList();
-        if (endSel.measure.renderedBox) {
-          this.scroller.scrollVisibleBox(endSel.measure.renderedBox);
+        if (endSel.measure.svg.renderedBox) {
+          this.scroller.scrollVisibleBox(endSel.measure.svg.renderedBox);
         }
       }
     } else {
@@ -443,8 +344,8 @@ export class suiTracker extends suiMapper {
         this.selections = [endSel];
         this.deferHighlight();
         this._createLocalModifiersList();
-        if (endSel.measure.renderedBox) {
-          this.scroller.scrollVisibleBox(endSel.measure.renderedBox);
+        if (endSel.measure.svg.renderedBox) {
+          this.scroller.scrollVisibleBox(endSel.measure.svg.renderedBox);
         }
       }
     }

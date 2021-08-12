@@ -4,13 +4,16 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { smoMusic } from '../../common/musicHelpers';
 import { SmoAttrs, MeasureNumber, FontInfo, SmoObjectParams } from './common';
 import { SmoSelector } from '../xform/selections';
+import { SvgBox, SmoModifierBase } from './common';
 
 const VF = eval('Vex.Flow');
 // ## Measure modifiers are elements that are attached to the bar itself, like barlines or measure-specific text,
 // repeats - lots of stuff
-export abstract class SmoMeasureModifierBase {
+export abstract class SmoMeasureModifierBase implements SmoModifierBase {
   attrs: SmoAttrs;
   ctor: string;
+  renderedBox: SvgBox | undefined;
+  logicalBox: SvgBox | undefined;
   constructor(ctor: string) {
     this.ctor = ctor;
     this.attrs = {

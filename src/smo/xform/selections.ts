@@ -4,6 +4,7 @@ import { SmoScore } from '../data/score';
 import { SmoMeasure } from '../data/measure';
 import { SmoNote } from '../data/note';
 import { SmoSystemStaff } from '../data/systemStaff';
+import { SvgBox, SvgPoint } from '../data/common';
 // import { selectionHtmlar } from '../../ui/i18n/language_ar';
 // const VF = eval('Vex.Flow');
 
@@ -24,14 +25,14 @@ export class SmoSelector {
       staff: 0,
       measure: 0,
       voice: 0,
-      tick: 0,
+      tick: -1,
       pitches: []
     };
   }
   staff: number = 0;
   measure: number = 0;
   voice: number = 0;
-  tick: number = 0;
+  tick: number = -1;
   pitches: number[] = [];
 
   static measureSelector(staff: number, measure: number): SmoSelector {
@@ -122,7 +123,8 @@ export interface SmoSelectionParams {
   _measure: SmoMeasure,
   _note?: SmoNote,
   _pitches?: number[],
-  type?: string
+  type?: string,
+  box?: SvgBox
 }
 // ## SmoSelection
 // ## Description:
@@ -135,13 +137,16 @@ export class SmoSelection {
     staff: 0,
     measure: 0,
     voice: 0,
-    tick: 0,
+    tick: -1,
     pitches: []
   };
   _staff: SmoSystemStaff;
   _measure: SmoMeasure;
   _note: SmoNote | null;
   _pitches: number[] = [];
+  type: string | null = null;
+  box: SvgBox | null = null;
+  scrollBox: SvgPoint | null = null;
   // ### measureSelection
   // A selection that does not contain a specific note
   static measureSelection(score: SmoScore, staffIndex: number, measureIndex: number): SmoSelection | null {
