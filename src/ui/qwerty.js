@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-
-class Qwerty {
+import { htmlHelpers } from "../common/htmlHelpers";
+export class Qwerty {
   static get navigationElements() {
 
     var kbRows =

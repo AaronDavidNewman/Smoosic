@@ -1,5 +1,18 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+
+import { RibbonButtons } from './ribbon';
+import { SuiExceptionHandler } from './exceptions';
+import { Qwerty } from './qwerty';
+import { SuiModifierDialogFactory } from './dialog';
+import { suiPiano } from '../render/sui/piano'
+import { layoutDebug } from '../render/sui/layoutDebug';
+import { SuiHelp } from './help';
+import { suiTracker } from '../render/sui/tracker';
+import { defaultEditorKeys } from './keyBindings/default/editorKeys';
+import { defaultTrackerKeys } from './keyBindings/default/trackerKeys';
+import { defaultRibbonLayout } from './ribbonLayout/default/defaultRibbon';
+
 // ## suiController
 // ## Description:
 // Manages DOM events and binds keyboard and mouse events
@@ -11,7 +24,7 @@
 // 3. keyboard, when in editor mode.  When modals or dialogs are active, wait for dismiss event
 // 4. svg piano key events smo-piano-key
 // 5. tracker change events tracker-selection
-class suiController {
+export class suiController {
 
   constructor(params) {
     Vex.Merge(this, suiController.defaults);
@@ -233,17 +246,13 @@ class suiController {
   }
 
   menuHelp() {
-    SmoHelp.displayHelp();
+    SuiHelp.displayHelp();
   }
 
   static get defaults() {
     return {
       keyBind: suiController.keyBindingDefaults
     };
-  }
-
-  showModifierDialog(modSelection) {
-    return SuiDialogFactory.createDialog(modSelection, this.view, this)
   }
 
   // ### unbindKeyboardForModal
@@ -285,7 +294,7 @@ class suiController {
     const dataCopy = suiTracker.serializeEvent(evdata);
     this.view.renderer.updatePromise().then(() => {
       if (dataCopy.key == '?') {
-        SmoHelp.displayHelp();
+        SuiHelp.displayHelp();
       }
 
       if (dataCopy.key == '/') {

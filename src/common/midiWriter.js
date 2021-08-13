@@ -1,6 +1,7 @@
 // Credit for Midi functionality goes to:
 // https://github.com/grimmdude/MidiWriterJS
-var _MidiWriter = function() {
+import { smoMusic } from './musicHelpers';
+export var _MidiWriter = function() {
 /**
  * MIDI file format constants.
  * @return {Constants}
@@ -1671,7 +1672,7 @@ var Writer = /*#__PURE__*/function () {
      * @param {string} filename
      */
 
-  }, {
+  }, /* {
     key: "saveMIDI",
     value: function saveMIDI(filename) {
       var fs = require('fs');
@@ -1680,8 +1681,9 @@ var Writer = /*#__PURE__*/function () {
       fs.writeFile(filename + '.mid', buffer, function (err) {
         if (err) throw err;
       });
-    }
-  }]);
+    }  
+  }  */ 
+]); 
 
   return Writer;
 }();

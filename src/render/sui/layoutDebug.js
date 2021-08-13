@@ -1,7 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { svgHelpers } from "../../common/svgHelpers";
 
-class layoutDebug {
+const VF = Vex.Flow;
+
+export class layoutDebug {
   static get values() {
     return {
       pre: 1,
@@ -175,7 +178,7 @@ class layoutDebug {
     console.log(value);
   }
 
-  static measureHistory(measure,oldVal,newVal,description) {
+  static measureHistory(measure, oldVal, newVal, description) {
     if (layoutDebug.flagSet('measureHistory')) {
       var oldExp = (typeof(measure.svg[oldVal]) == 'object') ? JSON.stringify(measure.svg[oldVal]).replace(/"/g,'') : measure.svg[oldVal];
       var newExp = (typeof(newVal) == 'object') ? JSON.stringify(newVal).replace(/"/g,'') : newVal;

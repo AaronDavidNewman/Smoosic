@@ -1,9 +1,16 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { svgHelpers } from '../../common/svgHelpers';
+import { smoMusic } from '../../common/musicHelpers';
+import { vexGlyph } from '../vex/glyphDimensions';
+import { SmoLyric } from '../../smo/data/noteModifiers';
+import { SmoNote } from '../../smo/data/note';
+
+const VF = Vex.Flow;
+
 // ## suiFormatter (changed from suiAdjuster)
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
-// eslint-disable-next-line no-unused-vars
-class suiLayoutFormatter {
+export class suiLayoutFormatter {
   static estimateMusicWidth(smoMeasure, noteSpacing, accidentMap) {
     const widths = [];
     // The below line was commented out b/c voiceIX was defined but never used
@@ -121,25 +128,6 @@ class suiLayoutFormatter {
     return width;
   }
 
-  static estimateTextOffset(renderer, smoMeasure) {
-    var leftText = smoMeasure.modifiers.filter((mm) => mm.ctor === 'SmoMeasureText' && mm.position === SmoMeasureText.positions.left);
-    var rightText = smoMeasure.modifiers.filter((mm) => mm.ctor === 'SmoMeasureText' && mm.position === SmoMeasureText.positions.right);
-    var svg = renderer.getContext().svg;
-    var xoff = 0;
-    var width = 0;
-    leftText.forEach((tt) => {
-      const testText = new SmoScoreText({ text: tt.text });
-      const box = svgHelpers.getTextBox(svg, testText.toSvgAttributes(), testText.classes, testText.text);
-      xoff += box.width;
-    });
-    rightText.forEach((tt) => {
-      const testText = new SmoScoreText({ text: tt.text });
-      const box = svgHelpers.getTextBox(svg, testText.toSvgAttributes(), testText.classes, testText.text);
-      width += box.width;
-    });
-    return svgHelpers.boxPoints(xoff, 0, width, 0);
-  }
-
   static estimateMeasureWidth(measure, noteSpacing, accidentMap) {
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
     let measureWidth = suiLayoutFormatter.estimateMusicWidth(measure, noteSpacing, accidentMap);
@@ -149,7 +137,6 @@ class suiLayoutFormatter {
     const y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
     measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight');
     // Calculate the space for left/right text which displaces the measure.
-    // var textOffsetBox=suiLayoutFormatter.estimateTextOffset(renderer,measure);
     // measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
     measure.setBox(svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, measure.logicalBox.height),
       'estimate measure width');

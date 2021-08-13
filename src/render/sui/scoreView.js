@@ -1,10 +1,21 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoSelection } from '../../smo/xform/selections';
+import { UndoBuffer } from '../../smo/xform/undo';
+import { StaffModifierBase } from '../../smo/data/staffModifiers';
+import { SuiScroller } from './scroller';
+import { svgHelpers } from '../../common/svgHelpers';
+import { PasteBuffer } from '../../smo/xform/copypaste';
+import { suiTracker } from './tracker';
+import { SmoScore } from '../../smo/data/score';
+import { SmoActionRecord } from '../../smo/xform/actions';
+import { SuiRenderDemon } from './layoutDemon';
+import { testCase1 } from '../../music/utActions';
+
 // ## SuiScoreView
 // Do a thing to the music.  Save in undo buffer before.  Render the score to reflect
 // the change after.  Map the operation on the score view to the actual score.
-// eslint-disable-next-line no-unused-vars
-class SuiScoreView {
+export class SuiScoreView {
   // ### _reverseMapSelection
   // For operations that affect all columns, we operate on the
   // entire score and update the view score.  Some selections
@@ -59,7 +70,7 @@ class SuiScoreView {
   getFocusedPage() {
     const scrollAvg = this.tracker.scroller.netScroll.y + (this.tracker.scroller.viewport.height / 2);
     const midY = scrollAvg;
-    const layoutManager = this.score.layoutManager;
+    const layoutManager = this.score.layoutManager.getGlobalLayout();
     const lh = layoutManager.pageHeight / layoutManager.svgScale;
     const lw = layoutManager.pageWidth / layoutManager.svgScale;
     const pt = svgHelpers.logicalToClient(this.renderer.svg, { x: lw, y: lh }, this.tracker.scroller);
@@ -232,7 +243,7 @@ class SuiScoreView {
     this.score = score;
     this.renderer = renderer;
     const scoreJson = score.serialize();
-    this.scroller = new suiScroller(scrollSelector);
+    this.scroller = new SuiScroller(scrollSelector);
     this.pasteBuffer = new PasteBuffer();
     this.storePaste = new PasteBuffer();
     this.tracker = new suiTracker(this.renderer, this.scroller, this.pasteBuffer);
@@ -324,6 +335,7 @@ class SuiScoreView {
   viewAll() {
     this.score = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
     this.staffMap = this.defaultStaffMap;
+    this.setMappedStaffIds();
     this.renderer.score = this.score;
     this.renderer.setViewport(true);
   }
@@ -336,6 +348,7 @@ class SuiScoreView {
     this.storeScore = SmoScore.deserialize(JSON.stringify(score.serialize()));
     this.score = score;
     this.staffMap = this.defaultStaffMap;
+    this.setMappedStaffIds();
     this.actionBuffer.clearActions();
     setTimeout(() => {
       $('body').trigger('forceResizeEvent');

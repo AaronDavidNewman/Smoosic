@@ -1,4 +1,4 @@
-const Concert_OneFont = {
+export const Concert_OneFont = {
   smufl: false,
   name: "ConcertOne",
   spacing: 50,

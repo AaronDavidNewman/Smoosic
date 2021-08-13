@@ -1,12 +1,18 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { svgHelpers } from '../../common/svgHelpers';
+import { SmoTextGroup, SmoScoreText } from '../../smo/data/scoreModifiers';
+import { SuiTextEditor } from './textEdit';
+
+const VF = Vex.Flow;
+
 // ## textRender.js
 // Classes responsible for formatting and rendering text in SVG space.
 // ## SuiInlineText
 // Inline text is a block of SVG text with the same font.  Each block can
 // contain eithr text or an svg (vex) glyph.  Each block in the text has its own
 // metrics so we can support inline svg text editors (cursor).
-class SuiInlineText {
+export class SuiInlineText {
   static get textTypes() {
     return { normal: 0, superScript: 1, subScript: 2 };
   }
@@ -462,8 +468,7 @@ class SuiInlineText {
 
 // ## SuiTextBlock
 // A text block is a set of inline blocks that can be aligned/arranged in different ways.
-// eslint-disable-next-line no-unused-vars
-class SuiTextBlock {
+export class SuiTextBlock {
   static get relativePosition() {
     return { ABOVE: SmoTextGroup.relativePositions.ABOVE,
       BELOW: SmoTextGroup.relativePositions.BELOW,

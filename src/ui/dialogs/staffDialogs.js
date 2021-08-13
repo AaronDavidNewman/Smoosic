@@ -1,9 +1,15 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiDialogBase } from '../dialog';
+import { StaffModifierBase, SmoSlur, SmoStaffHairpin } from '../../smo/data/staffModifiers';
+import { SmoScore } from '../../smo/data/score';
+import { SmoSelection } from '../../smo/xform/selections';
+import { SmoSystemGroup } from '../../smo/data/scoreModifiers';
+import { SmoVolta } from '../../smo/data/measureModifiers';
+
 // ## SuiStaffModifierDialog
 // Edit the attributes of a staff modifier (connects notes in the same staff)
-// eslint-disable-next-line no-unused-vars
-class SuiStaffModifierDialog extends SuiDialogBase {
+export class SuiStaffModifierDialog extends SuiDialogBase {
   constructor(elements, params) {
     super(elements, params);
     this.original = StaffModifierBase.deserialize(params.modifier);
@@ -48,8 +54,7 @@ class SuiStaffModifierDialog extends SuiDialogBase {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
+export class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiSlurAttributesDialog.ctor;
   }
@@ -158,8 +163,6 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
 
     super(SuiSlurAttributesDialog.dialogElements, {
       id: 'dialog-' + parameters.modifier.attrs.id,
-      top: parameters.modifier.renderedBox.y,
-      left: parameters.modifier.renderedBox.x,
       label: 'Slur Properties',
       ...parameters
     });
@@ -167,7 +170,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   }
   populateInitial() {
     this.components.forEach((comp) => {
-      if (typeof(this.modifier[comp.smoName]) !== 'undefined') {
+      if (typeof (this.modifier[comp.smoName]) !== 'undefined') {
         comp.setValue(this.modifier[comp.smoName]);
       }
     });
@@ -183,8 +186,7 @@ class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiTieAttributesDialog extends SuiStaffModifierDialog {
+export class SuiTieAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiTieAttributesDialog.ctor;
   }
@@ -224,8 +226,6 @@ class SuiTieAttributesDialog extends SuiStaffModifierDialog {
 
     super(SuiTieAttributesDialog.dialogElements, {
       id: 'dialog-' + parameters.modifier.attrs.id,
-      top: parameters.modifier.renderedBox.y,
-      left: parameters.modifier.renderedBox.x,
       label: 'Slur Properties',
       ...parameters
     });
@@ -256,8 +256,7 @@ class SuiTieAttributesDialog extends SuiStaffModifierDialog {
 
 // ## SuiVoltaAttributeDialog
 // aka first and second endings
-// eslint-disable-next-line no-unused-vars
-class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
+export class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiVoltaAttributeDialog.ctor;
   }
@@ -343,16 +342,13 @@ class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
 
     super(SuiVoltaAttributeDialog.dialogElements, {
       id: 'dialog-' + parameters.modifier.attrs.id,
-      top: parameters.modifier.renderedBox.y,
-      left: parameters.modifier.renderedBox.x,
       ...parameters
     });
     Vex.Merge(this, parameters);
     this.selection = SmoSelection.measureSelection(this.view.score, this.modifier.startSelector.staff, this.modifier.startSelector.measure);
   }
 }
-// eslint-disable-next-line no-unused-vars
-class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
+export class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   get ctor() {
     return SuiHairpinAttributesDialog.ctor;
   }
@@ -438,8 +434,7 @@ class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
 }
 // ## SuiStaffGroupDialog
 // A staff group is a grouping of staves that can be bracketed and justified
-// eslint-disable-next-line no-unused-vars
-class SuiStaffGroupDialog extends SuiDialogBase {
+export class SuiStaffGroupDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiStaffGroupDialog';
   }
@@ -447,7 +442,7 @@ class SuiStaffGroupDialog extends SuiDialogBase {
     return SuiStaffGroupDialog.ctor;
   }
   static get dialogElements() {
-    SuiStaffGroupDialog._dialogElements = typeof(SuiStaffGroupDialog._dialogElements)
+    SuiStaffGroupDialog._dialogElements = typeof (SuiStaffGroupDialog._dialogElements)
       !== 'undefined' ? SuiStaffGroupDialog._dialogElements :
       [{
         smoName: 'staffGroups',
@@ -537,8 +532,6 @@ class SuiStaffGroupDialog extends SuiDialogBase {
     var p = parameters;
     super(SuiStaffGroupDialog.dialogElements, {
       id: 'dialog-layout',
-      top: (p.view.score.layout.pageWidth / 2) - 200,
-      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...parameters
     });
     this.startPromise = p.startPromise;

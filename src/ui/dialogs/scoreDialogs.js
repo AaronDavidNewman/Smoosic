@@ -1,12 +1,15 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiDialogBase } from '../dialog';
+import { SmoScore } from '../../smo/data/score';
+import { SmoPageLayout, SmoTextGroup, SmoLayoutManager } from '../../smo/data/scoreModifiers';
+import { SmoMeasureFormat } from '../../smo/data/measureModifiers';
 
 const deepCopy = (x) => JSON.parse(JSON.stringify(x));
 
 // ## SuiScoreViewDialog
 // decide which rows of the score to look at
-// eslint-disable-next-line no-unused-vars
-class SuiScoreViewDialog extends SuiDialogBase {
+export class SuiScoreViewDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiScoreViewDialog';
   }
@@ -65,11 +68,8 @@ class SuiScoreViewDialog extends SuiDialogBase {
     this.viewChanged = true;
   }
   constructor(parameters) {
-    var p = parameters;
     super(SuiScoreViewDialog.dialogElements, {
       id: 'dialog-layout',
-      top: (p.view.score.layout.pageWidth / 2) - 200,
-      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...parameters
     });
     this.viewChanged = false;
@@ -78,8 +78,7 @@ class SuiScoreViewDialog extends SuiDialogBase {
 
 // ## SuiGlobalLayoutDialog
 // change editor and formatting defaults for this score.
-// eslint-disable-next-line no-unused-vars
-class SuiGlobalLayoutDialog extends SuiDialogBase {
+export class SuiGlobalLayoutDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiGlobalLayoutDialog';
   }
@@ -110,7 +109,7 @@ class SuiGlobalLayoutDialog extends SuiDialogBase {
       }, {
         smoName: 'noteSpacing',
         parameterName: 'noteSpacing',
-        defaultValue: SmoScore.defaults.layout.noteSpacing,
+        defaultValue: SmoLayoutManager.defaults.noteSpacing,
         control: 'SuiRockerComponent',
         type: 'percent',
         label: 'Note Spacing'
@@ -140,26 +139,26 @@ class SuiGlobalLayoutDialog extends SuiDialogBase {
       }, {
         smoName: 'pageWidth',
         parameterName: 'pageWidth',
-        defaultValue: SmoScore.defaults.layout.pageWidth,
+        defaultValue: SmoLayoutManager.defaults.pageWidth,
         control: 'SuiRockerComponent',
         label: 'Page Width (px)'
       }, {
         smoName: 'pageHeight',
         parameterName: 'pageHeight',
-        defaultValue: SmoScore.defaults.layout.pageHeight,
+        defaultValue: SmoLayoutManager.defaults.pageHeight,
         control: 'SuiRockerComponent',
         label: 'Page Height (px)'
       }, {
         smoName: 'zoomScale',
         parameterName: 'zoomScale',
-        defaultValue: SmoScore.defaults.layout.zoomScale,
+        defaultValue: SmoLayoutManager.defaults.zoomScale,
         control: 'SuiRockerComponent',
         label: '% Zoom',
         type: 'percent'
       }, {
         smoName: 'svgScale',
         parameterName: 'svgScale',
-        defaultValue: SmoScore.defaults.layout.svgScale,
+        defaultValue: SmoLayoutManager.defaults.svgScale,
         control: 'SuiRockerComponent',
         label: '% Note size',
         type: 'percent'
@@ -186,6 +185,8 @@ class SuiGlobalLayoutDialog extends SuiDialogBase {
     this.noteSpacingCtrl.setValue(this.globalLayout.noteSpacing);
     this.zoomScaleCtrl.setValue(this.globalLayout.zoomScale);
     this.svgScaleCtrl.setValue(this.globalLayout.svgScale);
+    this.pageWidthCtrl.setValue(this.globalLayout.pageWidth);
+    this.pageHeightCtrl.setValue(this.globalLayout.pageHeight);
     this._setPageSizeDefault();
   }
   _bindElements() {
@@ -246,6 +247,14 @@ class SuiGlobalLayoutDialog extends SuiDialogBase {
       this.view.updateScoreInfo(newInfo);
       return;
     }
+    if (this.pageWidthCtrl.changeFlag) {
+      this.globalLayout.pageWidth = this.pageWidthCtrl.getValue();
+      layoutChanged = true;
+    }
+    if (this.pageHeightCtrl.changeFlag) {
+      this.globalLayout.pageHeight = this.pageHeightCtrl.getValue();
+      layoutChanged = true;
+    }
     if (this.pageSizeCtrl.changeFlag) {
       this._handlePageSizeChange();
     }
@@ -263,7 +272,6 @@ class SuiGlobalLayoutDialog extends SuiDialogBase {
     }
     if (this.zoomScaleCtrl.changeFlag) {
       layoutChanged = true;
-      this.globalLayout.zoomMode = SmoScore.zoomModes.zoomScale;
       this.globalLayout.zoomScale = this.zoomScaleCtrl.getValue();
     }
     if (this.svgScaleCtrl.changeFlag) {
@@ -279,11 +287,8 @@ class SuiGlobalLayoutDialog extends SuiDialogBase {
     }
   }
   constructor(parameters) {
-    var p = parameters;
     super(SuiGlobalLayoutDialog.dialogElements, {
       id: 'dialog-layout',
-      top: (p.view.score.layout.pageWidth / 2) - 200,
-      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...parameters
     });
     this.layoutChanged = false;
@@ -296,8 +301,7 @@ class SuiGlobalLayoutDialog extends SuiDialogBase {
 
 // ## SuiScoreIdentificationDialog
 // change editor and formatting defaults for this score.
-// eslint-disable-next-line no-unused-vars
-class SuiScoreIdentificationDialog extends SuiDialogBase {
+export class SuiScoreIdentificationDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiScoreIdentificationDialog';
   }
@@ -328,7 +332,7 @@ class SuiScoreIdentificationDialog extends SuiDialogBase {
       }, {
         smoName: 'copyright',
         parameterName: 'copyright',
-        defaultValue: SmoScore.defaults.preferences.customProportion,
+        defaultValue: SmoMeasureFormat.defaults.customProportion,
         control: 'TextCheckComponent',
         label: 'Copyright'
       }, {
@@ -366,7 +370,7 @@ class SuiScoreIdentificationDialog extends SuiDialogBase {
       this.view.updateTextGroup(existing, copy);
       return;
     }
-    const tg = SmoTextGroup.createTextForLayout(purpose, text, this.score.layout);
+    const tg = SmoTextGroup.createTextForLayout(purpose, text, this.score.layoutManager.getScaledPageLayout(0));
     this.view.addTextGroup(tg);
   }
   _removeText(purpose) {
@@ -423,8 +427,6 @@ class SuiScoreIdentificationDialog extends SuiDialogBase {
     var p = parameters;
     super(SuiScoreIdentificationDialog.dialogElements, {
       id: 'dialog-layout',
-      top: (p.view.score.layout.pageWidth / 2) - 200,
-      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...parameters
     });
     this.startPromise = p.startPromise;
@@ -433,8 +435,7 @@ class SuiScoreIdentificationDialog extends SuiDialogBase {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiScoreFontDialog extends SuiDialogBase {
+export class SuiScoreFontDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiScoreFontDialog';
   }
@@ -547,8 +548,6 @@ class SuiScoreFontDialog extends SuiDialogBase {
     var p = parameters;
     super(SuiScoreFontDialog.dialogElements, {
       id: 'dialog-scorefont',
-      top: (p.view.score.layout.pageWidth / 2) - 200,
-      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...parameters
     });
     this.score = p.view.score;
@@ -559,8 +558,7 @@ class SuiScoreFontDialog extends SuiDialogBase {
 }
 // ## SuiLayoutDialog
 // The layout dialog has page-specific layout parameters
-// eslint-disable-next-line no-unused-vars
-class SuiLayoutDialog extends SuiDialogBase {
+export class SuiLayoutDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiLayoutDialog';
   }
@@ -594,37 +592,37 @@ class SuiLayoutDialog extends SuiDialogBase {
       }, {
         smoName: 'leftMargin',
         parameterName: 'leftMargin',
-        defaultValue: SmoScore.defaults.layout.leftMargin,
+        defaultValue: SmoPageLayout.defaults.leftMargin,
         control: 'SuiRockerComponent',
         label: 'Left Margin (px)'
       }, {
         smoName: 'rightMargin',
         parameterName: 'rightMargin',
-        defaultValue: SmoScore.defaults.layout.rightMargin,
+        defaultValue: SmoPageLayout.defaults.rightMargin,
         control: 'SuiRockerComponent',
         label: 'Right Margin (px)'
       }, {
         smoName: 'topMargin',
         parameterName: 'topMargin',
-        defaultValue: SmoScore.defaults.layout.topMargin,
+        defaultValue: SmoPageLayout.defaults.topMargin,
         control: 'SuiRockerComponent',
         label: 'Top Margin (px)'
       }, {
         smoName: 'bottomMargin',
         parameterName: 'bottomMargin',
-        defaultValue: SmoScore.defaults.layout.topMargin,
+        defaultValue: SmoPageLayout.defaults.bottomMargin,
         control: 'SuiRockerComponent',
         label: 'Bottom Margin (px)'
       }, {
         smoName: 'interGap',
         parameterName: 'interGap',
-        defaultValue: SmoScore.defaults.layout.interGap,
+        defaultValue: SmoPageLayout.defaults.interGap,
         control: 'SuiRockerComponent',
         label: 'Inter-System Margin'
       }, {
         smoName: 'intraGap',
         parameterName: 'intraGap',
-        defaultValue: SmoScore.defaults.layout.intraGap,
+        defaultValue: SmoPageLayout.defaults.intraGap,
         control: 'SuiRockerComponent',
         label: 'Intra-System Margin'
       }, {
@@ -729,8 +727,6 @@ class SuiLayoutDialog extends SuiDialogBase {
     }
     super(dialogElements, {
       id: 'dialog-layout',
-      top: (p.view.score.layout.pageWidth / 2) - 200,
-      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...parameters
     });
     this.score = score;

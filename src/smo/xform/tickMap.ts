@@ -1,5 +1,15 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { smoMusic } from '../../common/musicHelpers';
+import { TickMappable } from '../data/measure';
+import { Pitch, PitchLetter } from '../data/common';
+import { SmoNote } from '../data/note';
+const VF = eval('Vex.Flow');
+export interface TickAccidental {
+  duration: number,
+  pitch: Pitch
+}
+
 // ## TickMap
 // create a map note durations at each index into the voice, including the accidentals at each duration.
 // return format:
@@ -7,9 +17,26 @@
 //        totalDuration: 16384,
 //        durationMap:[2048,4096,..],  // A running total per tick
 //        deltaMap:[2048,2048...], a map of deltas
-// eslint-disable-next-line no-unused-vars
-class TickMap {
-  constructor(measure, voiceIndex) {
+export class TickMap {
+  keySignature: string;
+  voice: number;
+  notes: SmoNote[] = [];
+  index: number = 0;
+  startIndex: number = 0;
+  endIndex: number = 0;
+  // duration is the accumulated duraition over all the notes
+  totalDuration: number = 0;
+  // delta is the tick contribution of this note
+  delta: number = 0;
+  // the absolute tick start location of notes[x]
+  durationMap: number[] = [];
+  // the relative duration if each tick slot
+  deltaMap: number[] = [];
+  // An array of active accidentals for each tick index
+  accidentalMap: Record<PitchLetter, TickAccidental>[] = [];
+  // a map of active accidentals, indexed by duration index
+  durationAccidentalMap: Record<string | number, Record<PitchLetter, TickAccidental>> = {};
+  constructor(measure: TickMappable, voiceIndex: number) {
     this.keySignature = measure.keySignature;
     this.voice = voiceIndex;
     if (measure.voices.length <= this.voice) {
@@ -17,29 +44,13 @@ class TickMap {
       return;
     }
     this.notes = measure.voices[this.voice].notes;
-    this.index = 0;
-    this.startIndex = 0;
     this.endIndex = this.notes.length;
-
-    // so a client can tell if the iterator's been run or not
-    // ticks as we iterate.
-    // duration is the accumulated duraition over all the notes
-    this.totalDuration = 0;
-    // delta is the tick contribution of this note
-    this.delta = 0;
-    // the tick start location of notes[x]
-    this.durationMap = [];
-    this.deltaMap = [];
-    this.accidentalMap = [];
-    this.durationAccidentalMap = {};
-    this.hasRun = false;
-    this.beattime = 4096;
     this.createMap();
   }
   // ### _getAccidentalsForKey
   // Update `map` with the correct accidental based on the key signature.
-  _getAccidentalsForKey(map) {
-    const music = new VF.Music();
+  _getAccidentalsForKey(map: Record<string, TickAccidental>) {
+    const music: any = new VF.Music();
     const keys = music.createScaleMap(this.keySignature);
     const keyKeys = Object.keys(keys);
     keyKeys.forEach((keyKey) => {
@@ -47,7 +58,8 @@ class TickMap {
       if (vexKey.length > 1 && (vexKey[1] === 'b' || vexKey[1] === '#')) {
         const pitch = {
           letter: vexKey[0],
-          accidental: vexKey[1]
+          accidental: vexKey[1],
+          octave: 4
         };
         map[vexKey[0]] = {
           duration: 0,
@@ -60,10 +72,10 @@ class TickMap {
   // ### updateAccidentalMap
   // Keep a running tally of the accidentals for this voice
   // based on the key and previous accidentals.
-  updateAccidentalMap(note) {
-    let sigObj = {};
+  updateAccidentalMap(note: SmoNote) {
     let i = 0;
-    const newObj = {};
+    let sigObj: Record<string, TickAccidental> = {};
+    const newObj: Record<string, TickAccidental> = {};
     if (this.index === 0) {
       this._getAccidentalsForKey(newObj);
       sigObj = newObj;
@@ -74,12 +86,12 @@ class TickMap {
       if (note.noteType !== 'n') {
         continue;
       }
-      const pitch = note.pitches[i];
-      const letter = pitch.letter.toLowerCase();
-      const sigLetter = letter + pitch.accidental;
-      const sigKey = smoMusic.getKeySignatureKey(letter, this.keySignature);
+      const pitch: Pitch = note.pitches[i];
+      const letter: string = pitch.letter.toLowerCase();
+      const sigLetter: string = letter + pitch.accidental;
+      const sigKey = smoMusic.getKeySignatureKey(letter as PitchLetter, this.keySignature);
       if (sigObj && sigObj[letter]) {
-        const currentVal = sigObj[letter].key + sigObj[letter].accidental;
+        const currentVal = sigObj[letter].pitch.letter + sigObj[letter].pitch.accidental;
         if (sigLetter !== currentVal) {
           newObj[letter] = { pitch, duration: this.duration };
         }
@@ -96,8 +108,8 @@ class TickMap {
 
   // ### getActiveAccidental
   // return the active accidental for the given note
-  getActiveAccidental(pitch, iteratorIndex, keySignature) {
-    let defaultAccidental = smoMusic.getKeySignatureKey(pitch.letter, keySignature);
+  getActiveAccidental(pitch: Pitch, iteratorIndex: number, keySignature: string) {
+    let defaultAccidental: string = smoMusic.getKeySignatureKey(pitch.letter, keySignature);
     let i = 0;
     let j = 0;
     defaultAccidental = defaultAccidental.length > 1 ? defaultAccidental[1] : 'n';
@@ -106,16 +118,16 @@ class TickMap {
     }
     // Back up the accidental map until we have a match, or until we run out
     for (i = iteratorIndex; i > 0; --i) {
-      const map = this.accidentalMap[i - 1];
+      const map: Record<string, TickAccidental> = this.accidentalMap[i - 1];
       const mapKeys = Object.keys(map);
       for (j = 0; j < mapKeys.length; ++j) {
-        const mapKey = mapKeys[j];
+        const mapKey: string = mapKeys[j];
         // The letter name + accidental in the map
-        const mapLetter = map[mapKey];
-        const mapAcc = mapLetter.accidental ? mapLetter.accidental : 'n';
+        const mapPitch: Pitch = map[mapKey].pitch;
+        const mapAcc = mapPitch.accidental ? mapPitch.accidental : 'n';
 
         // if the letters match and the accidental...
-        if (mapLetter.pitch.letter.toLowerCase() === letter) {
+        if (mapPitch.letter.toLowerCase() === pitch.letter) {
           return mapAcc;
         }
       }

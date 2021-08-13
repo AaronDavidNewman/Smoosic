@@ -1,13 +1,14 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { smoMusic } from '../../common/musicHelpers';
+
 // ## SmoToVex
 // Simple serialize class that produced VEX note and voice objects
 // for vex EasyScore (for easier bug reports and test cases)
-// eslint-disable-next-line no-unused-vars
-class SmoToVex {
+export class SmoToVex {
   static convert(smoScore) {
-    smoScore.staves.forEach((smoStaff) => {
-      smoStaff.measures.forEach((smoMeasure) => {
+    smoScore.staves.forEach((smoStaff, staffIx) => {
+      smoStaff.measures.forEach((smoMeasure, measureIx) => {
         const voiceStrings = [];
         const lyricsHash = {};
         smoMeasure.voices.forEach((smoVoice, vix) => {
@@ -34,7 +35,7 @@ class SmoToVex {
             if (smoNote.pitches.length > 1) {
               keyString += ')';
             }
-            keyString +=  '/' + duration + "[id='" + noteId + "'],";
+            keyString += '/' + duration + "[id='" + noteId + "'],";
             smoNote.getTrueLyrics().forEach((lyric) => {
               if (typeof lyricsHash[noteId] === 'undefined') {
                 lyricsHash[noteId] = [];
@@ -44,8 +45,8 @@ class SmoToVex {
           });
           voiceStrings.push(keyString);
         });
-        console.log(JSON.stringify(voiceStrings, null, ''));
-        console.log(JSON.stringify(lyricsHash), null, '');
+        console.log('// notes', staffIx, measureIx, '=', JSON.stringify(voiceStrings, null, ''));
+        console.log('// lyrics', staffIx, measureIx, '=', JSON.stringify(lyricsHash), null, '');
       });
     });
   }

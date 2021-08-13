@@ -1,10 +1,24 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiRenderState } from './renderState';
+import { VxSystem } from '../vex/vxSystem';
+import { svgHelpers } from '../../common/svgHelpers';
+import { suiLayoutFormatter } from './formatter';
+import { SmoTextGroup } from '../../smo/data/scoreModifiers';
+import { SuiTextBlock } from './textRender';
+import { SmoSelection } from '../../smo/xform/selections';
+import { SmoTempoText, SmoMeasureFormat } from '../../smo/data/measureModifiers';
+import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
+import { layoutDebug } from './layoutDebug';
+import { smoBeamerFactory } from '../../smo/xform/beamers';
+import { smoMusic } from '../../common/musicHelpers';
+
+const VF = Vex.Flow;
+
 // ## SuiScoreRender
 // This module renders the entire score.  It calculates the layout first based on the
 // computed dimensions.
-// eslint-disable-next-line no-unused-vars
-class SuiScoreRender extends SuiRenderState {
+export class SuiScoreRender extends SuiRenderState {
   constructor(params) {
     super('SuiScoreRender');
     Vex.Merge(this, params);
@@ -74,7 +88,7 @@ class SuiScoreRender extends SuiRenderState {
 
     // If this is a per-page score text, get a text group copy for each page.
     // else the array contains the original.
-    const groupAr = SmoTextGroup.getPagedTextGroups(gg, scaledScoreLayout.pages, scaledScoreLayout.pageHeight);
+    const groupAr = SmoTextGroup.getPagedTextGroups(gg, this.score.layoutManager.pageLayouts.length, scaledScoreLayout.pageHeight);
     groupAr.forEach((newGroup) => {
       // If this text is attached to the measure, base the block location on the rendered measure location.
       if (newGroup.attachToSelector) {
@@ -115,11 +129,6 @@ class SuiScoreRender extends SuiRenderState {
     $(this.renderer.getContext().svg).find('.all-score-text').remove();
     const group = this.context.openGroup();
     group.classList.add('all-score-text');
-
-    this._score.scoreText.forEach((tt) => {
-      this.renderScoreText(tt);
-    });
-
     this._score.textGroups.forEach((tg) => {
       this.renderTextGroup(tg);
     });
@@ -370,7 +379,7 @@ class SuiScoreRender extends SuiRenderState {
         }
 
         // Now start rendering on the next system.
-        y = bottomMeasure.logicalBox.height + bottomMeasure.logicalBox.y + this.score.layout.interGap;
+        y = bottomMeasure.logicalBox.height + bottomMeasure.logicalBox.y + scoreLayout.interGap;
         currentLine = [];
         systemIndex = 0;
         x = scoreLayout.leftMargin;

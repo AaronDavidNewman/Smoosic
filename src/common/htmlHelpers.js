@@ -6,7 +6,7 @@ var smoDomBuilder = function (el) {}
 // # htmlHelpers
 // # Description:
 //  Helper functions for buildling UI elements
-class htmlHelpers {
+export class htmlHelpers {
   // ## buildDom
   // ## Description:
   // returns an object that  lets you build a DOM in a somewhat readable way.
@@ -166,8 +166,7 @@ class htmlHelpers {
   }
 }
 
-class draggable {
-
+export class draggable {
   constructor(parameters) {
     this.parent = parameters.parent;
     this.handle = parameters.handle;

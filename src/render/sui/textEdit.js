@@ -1,5 +1,15 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiInlineText, SuiTextBlock } from './textRender';
+import { PromiseHelpers } from '../../common/promiseHelpers';
+import { svgHelpers } from '../../common/svgHelpers';
+import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
+import { SmoSelection } from '../../smo/xform/selections';
+import { SuiRenderState } from './renderState';
+import { SmoLyric } from '../../smo/data/noteModifiers';
+
+const VF = Vex.Flow;
+
 // The heirarchy of text editing objects goes:
 // dialog -> component -> session -> editor
 //
@@ -17,8 +27,8 @@
 // of text blocks into the text area.  The derived class shoud interpret key events.
 // A container class will manage the session for starting/stopping the editor
 // and retrieving the results into the target object.
-// eslint-disable-next-line no-unused-vars
-class SuiTextEditor {
+
+export class SuiTextEditor {
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
   }
@@ -61,7 +71,7 @@ class SuiTextEditor {
   constructor(params) {
     Vex.Merge(this, SuiTextEditor.defaults);
     Vex.Merge(this, params);
-    if (typeof(params.scroller) !== 'object') {
+    if (typeof (params.scroller) !== 'object') {
       throw 'bad scroller in ctor of SuiTextEditor';
     }
   }
@@ -112,12 +122,12 @@ class SuiTextEditor {
     if (this.selectionStart < 0) {
       this._setSelectionToSugggestion();
       return;
-    }  else if (this.selectionStart > this.suggestionIndex) {
+    } else if (this.selectionStart > this.suggestionIndex) {
       const oldStart = this.selectionStart;
       this.selectionStart = this.suggestionIndex;
       this.selectionLength = (oldStart - this.selectionStart) + this.selectionLength;
-    }  else if (this.selectionStart < this.suggestionIndex
-        && this.selectionStart > this.selectionStart + this.selectionLength) {
+    } else if (this.selectionStart < this.suggestionIndex
+      && this.selectionStart > this.selectionStart + this.selectionLength) {
       this.selectionLength = (this.suggestionIndex - this.selectionStart) + 1;
     }
     this._updateSelections();
@@ -253,7 +263,7 @@ class SuiTextEditor {
   _updateSelections() {
     let i = 0;
     const end = this.selectionStart + this.selectionLength;
-    const start =  this.selectionStart;
+    const start = this.selectionStart;
     this.svgText.blocks.forEach((block) => {
       const val = start >= 0 && i >= start && i < end;
       this.svgText.setHighlight(block, val);
@@ -331,8 +341,10 @@ class SuiTextEditor {
   // of text and glyph blocks based on the underlying text
   parseBlocks() {
     let i = 0;
-    this.svgText = new SuiInlineText({ context: this.context, startX: this.x, startY: this.y,
-      fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight, scroller: this.scroller });
+    this.svgText = new SuiInlineText({
+      context: this.context, startX: this.x, startY: this.y,
+      fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight, scroller: this.scroller
+    });
     for (i = 0; i < this.text.length; ++i) {
       this.svgText.addTextBlockAt(i, { text: this.text[i] });
       this.empty = false;
@@ -388,7 +400,7 @@ class SuiTextEditor {
       this.svgText.render();
       return true;
     }
-    if (evdata.key.charCodeAt(0) >= 33 && evdata.key.charCodeAt(0) <= 126  && evdata.key.length === 1) {
+    if (evdata.key.charCodeAt(0) >= 33 && evdata.key.charCodeAt(0) <= 126 && evdata.key.length === 1) {
       if (this.empty) {
         this.svgText.removeBlockAt(0);
         this.empty = false;
@@ -407,8 +419,8 @@ class SuiTextEditor {
     return false;
   }
 }
-// eslint-disable-next-line no-unused-vars
-class SuiTextBlockEditor extends SuiTextEditor {
+
+export class SuiTextBlockEditor extends SuiTextEditor {
   // ### ctor
   // ### args
   // params: {lyric: SmoLyric,...}
@@ -464,8 +476,7 @@ class SuiTextBlockEditor extends SuiTextEditor {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiLyricEditor extends SuiTextEditor {
+export class SuiLyricEditor extends SuiTextEditor {
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4 };
   }
@@ -505,8 +516,7 @@ class SuiLyricEditor extends SuiTextEditor {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiChordEditor extends SuiTextEditor {
+export class SuiChordEditor extends SuiTextEditor {
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4 };
   }
@@ -641,7 +651,7 @@ class SuiChordEditor extends SuiTextEditor {
       const glyph = evdata.key.substr(1, evdata.key.length - 2);
       this._addGlyphAt(this.textPos, glyph);
       this.svgText.render();
-      edited  = true;
+      edited = true;
     } else if (VF.ChordSymbol.glyphs[evdata.key[0]]) { // glyph shortcut like 'b'
       this._addGlyphAt(this.textPos, VF.ChordSymbol.glyphs[evdata.key[0]].code);
       this.svgText.render();
@@ -680,8 +690,7 @@ class SuiChordEditor extends SuiTextEditor {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiDragSession {
+export class SuiDragSession {
   constructor(params) {
     this.textGroup = params.textGroup;
     this.context = params.context;
@@ -725,8 +734,10 @@ class SuiDragSession {
     this.currentClientBox.x = e.clientX - this.xOffset;
     this.currentClientBox.y = e.clientY - this.yOffset;
     const coor = svgHelpers.clientToLogical(this.context.svg,
-      { x: this.currentClientBox.x +  + this.scroller.scrollState.scroll.x,
-        y: this.currentClientBox.y  + this.scroller.scrollState.scroll.y });
+      {
+        x: this.currentClientBox.x + + this.scroller.scrollState.scroll.x,
+        y: this.currentClientBox.y + this.scroller.scrollState.scroll.y
+      });
     this.currentBox.x = coor.x;
     this.currentBox.y = coor.y;
     this.textObject.offsetStartX(this.currentBox.x - svgX);
@@ -752,8 +763,7 @@ class SuiDragSession {
 
 // ## SuiTextSession
 // session for editing plain text
-// eslint-disable-next-line no-unused-vars
-class SuiTextSession {
+export class SuiTextSession {
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
   }
@@ -778,7 +788,7 @@ class SuiTextSession {
         this.scoreText = this.textGroup.textBlocks[0].text;
       } else {
         this.scoreText = new SmoScoreText({ x: this.x, y: this.y });
-        this.textGroup.addScoreText(this.scoreText, null, SmoTextGroup.relativePositions.RIGHT);
+        this.textGroup.addScoreText(this.scoreText, SmoTextGroup.relativePositions.RIGHT);
       }
     }
     this.fontFamily = this.scoreText.fontInfo.family;
@@ -808,7 +818,7 @@ class SuiTextSession {
   // ### _isRendered
   // renderer has rendered text(promise condition)
   get _isRendered() {
-    return this.renderer.passState ===  SuiRenderState.passStates.clean;
+    return this.renderer.passState === SuiRenderState.passStates.clean;
   }
 
   _removeScoreText() {
@@ -819,10 +829,12 @@ class SuiTextSession {
   // ### _startSessionForNote
   // Start the lyric session
   startSession() {
-    this.editor = new SuiTextBlockEditor({ renderer: this.renderer,
+    this.editor = new SuiTextBlockEditor({
+      renderer: this.renderer,
       x: this.x, y: this.y, scroller: this.scroller,
       fontFamily: this.fontFamily, fontSize: this.fontSize, fontWeight: this.fontWeight,
-      text: this.scoreText.text, context: this.renderer.context });
+      text: this.scoreText.text, context: this.renderer.context
+    });
     this.cursorPromise = this.editor.startCursorPromise();
     this.state = SuiTextEditor.States.RUNNING;
     this._removeScoreText();
@@ -860,8 +872,7 @@ class SuiTextSession {
 }
 // ## SuiLyricSession
 // Manage editor for lyrics, jupmping from note to note if asked
-// eslint-disable-next-line no-unused-vars
-class SuiLyricSession {
+export class SuiLyricSession {
   static get States() {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
   }
@@ -889,7 +900,7 @@ class SuiLyricSession {
     if (!this.lyric) {
       const scoreFont = this.score.fonts.find((fn) => fn.name === 'lyrics');
       const fontInfo = JSON.parse(JSON.stringify(scoreFont));
-      this.lyric = new SmoLyric({  _text: '', verse: this.verse, fontInfo });
+      this.lyric = new SmoLyric({ _text: '', verse: this.verse, fontInfo });
     }
     this.text = this.lyric._text;
     this.originalText = this.text;
@@ -898,7 +909,7 @@ class SuiLyricSession {
 
   // ### _endLyricCondition
   // Lyric editor has stopped running (promise condition)
-  get _endLyricCondition()  {
+  get _endLyricCondition() {
     return this.editor.state !== SuiTextEditor.States.RUNNING;
   }
 
@@ -911,7 +922,7 @@ class SuiLyricSession {
   // ### _isRendered
   // renderer has rendered text(promise condition)
   get _isRendered() {
-    return this.renderer.passState ===  SuiRenderState.passStates.clean;
+    return this.renderer.passState === SuiRenderState.passStates.clean;
   }
 
   get _pendingEditor() {
@@ -944,12 +955,14 @@ class SuiLyricSession {
   // Start the lyric editor for a note (current selected note)
   _startSessionForNote() {
     this.lyric.skipRender = true;
-    const lyricRendered = this.lyric._text.length > 0 && typeof(this.lyric.logicalBox) !== 'undefined';
+    const lyricRendered = this.lyric._text.length > 0 && typeof (this.lyric.logicalBox) !== 'undefined';
     const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
     const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.logicalBox.height :
       this.note.logicalBox.y + this.note.logicalBox.height;
-    this.editor = new SuiLyricEditor({ context: this.view.renderer.context,
-      lyric: this.lyric, x: startX, y: startY, scroller: this.scroller });
+    this.editor = new SuiLyricEditor({
+      context: this.view.renderer.context,
+      lyric: this.lyric, x: startX, y: startY, scroller: this.scroller
+    });
     this.state = SuiTextEditor.States.RUNNING;
     if (!lyricRendered) {
       const delta = 2 * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1);
@@ -1054,8 +1067,7 @@ class SuiLyricSession {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiChordSession extends SuiLyricSession {
+export class SuiChordSession extends SuiLyricSession {
   constructor(params) {
     super(params);
     this.parser = SmoLyric.parsers.chord;
@@ -1112,8 +1124,10 @@ class SuiChordSession extends SuiLyricSession {
     const startX = lyricRendered ? this.lyric.logicalBox.x : this.note.logicalBox.x;
     const startY = lyricRendered ? this.lyric.logicalBox.y + this.lyric.adjY + this.lyric.logicalBox.height :
       this.selection.measure.logicalBox.y + this.selection.measure.logicalBox.height - 70;
-    this.editor = new SuiChordEditor({ context: this.view.renderer.context,
-      lyric: this.lyric, x: startX, y: startY, scroller: this.scroller });
+    this.editor = new SuiChordEditor({
+      context: this.view.renderer.context,
+      lyric: this.lyric, x: startX, y: startY, scroller: this.scroller
+    });
     this.state = SuiTextEditor.States.RUNNING;
     if (!lyricRendered) {
       const delta = (-1) * this.editor.svgText.maxFontHeight(1.0) * (this.lyric.verse + 1);

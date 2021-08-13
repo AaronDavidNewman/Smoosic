@@ -1,9 +1,15 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiToggleComposite, SuiComponentBase, SuiDropdownComposite, SuiButtonComposite, SuiRockerComposite } from '../dialogComponents';
+import { SmoTextGroup, SmoScoreText } from '../../smo/data/scoreModifiers';
+import { htmlHelpers } from '../../common/htmlHelpers';
+import { smoSerialize } from '../../common/serializationHelpers';
+import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';
+import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
+
 // ## SuiFontComponent
 // Dialog component that lets user choose and customize fonts.
-// eslint-disable-next-line no-unused-vars
-class SuiFontComponent extends SuiComponentBase {
+export class SuiFontComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
     smoSerialize.filteredMerge(
@@ -136,8 +142,7 @@ class SuiFontComponent extends SuiComponentBase {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiTextBlockComponent extends SuiComponentBase {
+export class SuiTextBlockComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
     smoSerialize.filteredMerge(
@@ -294,7 +299,7 @@ class SuiTextBlockComponent extends SuiComponentBase {
   }
 
   _getInputElement() {
-    return $(this.dialog.dgDom.element).find('#' + pid);
+    return $(this.dialog.dgDom.element).find('#' + this.pid);
   }
   getValue() {
     return {

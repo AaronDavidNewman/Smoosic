@@ -1,12 +1,16 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { svgHelpers } from '../common/svgHelpers';
+import { htmlHelpers } from '../common/htmlHelpers';
+import { SmoTranslator } from './i18n/language';
+import { SmoLyric } from '../smo/data/noteModifiers';
+
 // # Dialog base classes
 
 // ## SuiModifierDialogFactory
 // Automatic dialog constructors for dialogs without too many parameters
 // that operated on a selection.
-// eslint-disable-next-line no-unused-vars
-class SuiModifierDialogFactory {
+export class SuiModifierDialogFactory {
   static createDialog(modifier, parameters) {
     let dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
     if (dbType === 'SuiLyricDialog' && modifier.parser === SmoLyric.parsers.chord) {
@@ -15,7 +19,7 @@ class SuiModifierDialogFactory {
     if (typeof(dbType) === 'undefined') {
       return null;
     }
-    const ctor = eval(dbType);
+    const ctor = Smo.getClass(dbType);
     return ctor.createAndDisplay({
       modifier,
       ...parameters
@@ -38,8 +42,7 @@ class SuiModifierDialogFactory {
 
 // ## SuiDialogBase
 // Base class for dialogs.
-// eslint-disable-next-line no-unused-vars
-class SuiDialogBase {
+export class SuiDialogBase {
   static get parameters() {
     return ['eventSource', 'view',
       'completeNotifier', 'keyCommands', 'modifier'];
@@ -80,9 +83,6 @@ class SuiDialogBase {
       this.staticText[key] = st[key];
     });
 
-    this.initialLeft = parameters.left;
-    this.initialTop = parameters.top;
-
     // If this dialog was spawned by a menu, wait for the menu to dismiss
     // before continuing.
     // this.startPromise = parameters.closeMenuPromise;
@@ -93,8 +93,8 @@ class SuiDialogBase {
       this[param] = parameters[param];
     });
 
-    const top = parameters.top - this.view.tracker.scroller.netScroll.y;
-    const left = parameters.left - this.view.tracker.scroller.netScroll.x;
+    const left = $('.musicRelief').offset().left + $('.musicRelief').width() / 2;
+    const top  = $('.musicRelief').offset().top + $('.musicRelief').height() / 2;
 
     this.dgDom = this._constructDialog(dialogElements, {
       id: 'dialog-' + this.id,
@@ -110,7 +110,7 @@ class SuiDialogBase {
   // print json with string labels to use as a translation file seed.
   static printTranslate(_class) {
     const output = [];
-    const xx = eval(_class);
+    const xx = Smo.getClass(_class);
     xx.dialogElements.forEach((element) => {
       const component = {};
       if (element.label) {
@@ -223,8 +223,13 @@ class SuiDialogBase {
 
     var ctrl = b('div').classes('smoControlContainer');
     dialogElements.filter((de) => de.control).forEach((de) => {
-      var ctor = eval(de.control);
-      var control = new ctor(this, de);
+      let ctor = null;
+      if (typeof(de.control) === 'function') {
+        ctor = de.control;
+      } else {
+        ctor = Smo.getClass(de.control);
+      }
+      const control = new ctor(this, de);
       this.components.push(control);
       ctrl.append(control.html);
     });

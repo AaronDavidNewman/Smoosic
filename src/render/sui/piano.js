@@ -1,13 +1,16 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-class suiPiano {
+import { svgHelpers } from "../../common/svgHelpers";
+import { htmlHelpers } from "../../common/htmlHelpers";
+import { SuiScroller } from "./scroller";
+export class suiPiano {
   constructor(parameters) {
     Vex.Merge(this, parameters);
     this.renderElement = document.getElementById('piano-svg');
     this.render();
     this.octaveOffset = 0;
     this.chordPedal = false;
-    this.scroller = new suiScroller('.piano-keys');
+    this.scroller = new SuiScroller('.piano-keys');
   }
 
   static get dimensions() {

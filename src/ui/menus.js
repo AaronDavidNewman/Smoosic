@@ -1,6 +1,19 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-class suiMenuBase {
+import { SmoTranslator } from './i18n/language';
+import { SuiLayoutDialog, SuiScoreIdentificationDialog,
+  SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreFontDialog } from './dialogs/scoreDialogs';
+import { SmoScore } from '../smo/data/score';
+import { SuiXhrLoader } from './fileio/xhrLoader';
+import { mxmlScore } from '../smo/mxml/xmlScore';
+import { layoutDebug } from '../render/sui/layoutDebug';
+import { SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveActionsDialog, SuiLoadActionsDialog,
+  SuiLoadFileDialog, SuiSaveXmlDialog, SuiSaveMidiDialog, SuiLoadMxmlDialog } from './dialogs/fileDialogs';
+import { htmlHelpers } from '../common/htmlHelpers';
+import { SuiTimeSignatureDialog, SuiMeasureDialog, SuiInsertMeasures } from './dialogs/measureDialogs';
+import { SuiStaffGroupDialog } from './dialogs/staffDialogs';
+
+export class suiMenuBase {
   constructor(params) {
     Vex.Merge(this, params);
     this.focusIndex = -1;
@@ -10,7 +23,7 @@ class suiMenuBase {
     return this.closePromise();
   }
   static printTranslate(_class) {
-    const xx = eval(_class);
+    const xx = Smo.getClass(_class);
     const items = [];
     xx.defaults.menuItems.forEach((item) => {
       items.push({ value: item.value, text: item.text });
@@ -25,8 +38,7 @@ class suiMenuBase {
   keydown() {}
 }
 
-// eslint-disable-next-line no-unused-vars
-class suiMenuManager {
+export class suiMenuManager {
   constructor(params) {
     Vex.Merge(this, suiMenuManager.defaults);
     Vex.Merge(this, params);
@@ -199,7 +211,7 @@ class suiMenuManager {
     // If we were called from the ribbon, we notify the controller that we are
     // taking over the keyboard.  If this was a key-based command we already did.
     layoutDebug.addDialogDebug('createMenu creating ' + action);
-    const ctor = eval(action);
+    const ctor = Smo.getClass(action);
     this.menu = new ctor({
       position: this.menuPosition,
       tracker: this.tracker,
@@ -272,8 +284,7 @@ class suiMenuManager {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiScoreMenu extends suiMenuBase {
+export class SuiScoreMenu extends suiMenuBase {
   static get defaults() {
     SuiScoreMenu._defaults = typeof(SuiScoreMenu._defaults) !== 'undefined' ? SuiScoreMenu._defaults : {
       label: 'Score Settings',
@@ -378,8 +389,7 @@ class SuiScoreMenu extends suiMenuBase {
   }
   keydown() {}
 }
-// eslint-disable-next-line no-unused-vars
-class SuiFileMenu extends suiMenuBase {
+export class SuiFileMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined' ? params : {});
     Vex.Merge(params, SuiFileMenu.defaults);
@@ -542,8 +552,7 @@ class SuiFileMenu extends suiMenuBase {
   keydown() {}
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiLibraryMenu extends suiMenuBase {
+export class SuiLibraryMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined' ? params : {});
     Vex.Merge(params, SuiLibraryMenu.defaults);
@@ -659,8 +668,7 @@ class SuiLibraryMenu extends suiMenuBase {
   keydown() {}
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiDynamicsMenu extends suiMenuBase {
+export class SuiDynamicsMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined' ? params : {});
     Vex.Merge(params, SuiDynamicsMenu.defaults);
@@ -721,8 +729,7 @@ class SuiDynamicsMenu extends suiMenuBase {
   keydown() {}
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiTimeSignatureMenu extends suiMenuBase {
+export class SuiTimeSignatureMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined' ? params : {});
     Vex.Merge(params, SuiTimeSignatureMenu.defaults);
@@ -800,8 +807,7 @@ class SuiTimeSignatureMenu extends suiMenuBase {
   keydown() {}
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiKeySignatureMenu extends suiMenuBase {
+export class SuiKeySignatureMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined' ? params : {});
     Vex.Merge(params, SuiKeySignatureMenu.defaults);
@@ -893,8 +899,7 @@ class SuiKeySignatureMenu extends suiMenuBase {
   keydown() {}
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiStaffModifierMenu extends suiMenuBase {
+export class SuiStaffModifierMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined' ? params : {});
     Vex.Merge(params, SuiStaffModifierMenu.defaults);
@@ -961,8 +966,7 @@ class SuiStaffModifierMenu extends suiMenuBase {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiLanguageMenu extends suiMenuBase {
+export class SuiLanguageMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined') ? params : {};
     Vex.Merge(params, SuiLanguageMenu.defaults);
@@ -1008,8 +1012,7 @@ class SuiLanguageMenu extends suiMenuBase {
   keydown() {
   }
 }
-// eslint-disable-next-line no-unused-vars
-class SuiMeasureMenu extends suiMenuBase {
+export class SuiMeasureMenu extends suiMenuBase {
   static get defaults() {
     SuiMeasureMenu._defaults = SuiMeasureMenu._defaults ? SuiMeasureMenu._defaults : {
       label: 'Measure',
@@ -1079,8 +1082,7 @@ class SuiMeasureMenu extends suiMenuBase {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class SuiAddStaffMenu extends suiMenuBase {
+export class SuiAddStaffMenu extends suiMenuBase {
   constructor(params) {
     params = (typeof(params) !== 'undefined' ? params : {});
     Vex.Merge(params, SuiAddStaffMenu.defaults);

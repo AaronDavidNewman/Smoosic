@@ -1,5 +1,5 @@
 
-var smoLanguageStringDe = `[
+export const smoLanguageStringDe = `[
  {
   "ctor": "SuiLoadFileDialog",
   "dialogElements": [

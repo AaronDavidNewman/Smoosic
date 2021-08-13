@@ -1,9 +1,12 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiComponentBase } from '../dialogComponents';
+import { smoSerialize } from '../../common/serializationHelpers';
+import { htmlHelpers } from '../../common/htmlHelpers';
+
 // ### SuiDropdownComponent
 // simple dropdown select list.
-// eslint-disable-next-line no-unused-vars
-class SuiTreeComponent extends SuiComponentBase {
+export class SuiTreeComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
     smoSerialize.filteredMerge(

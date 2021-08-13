@@ -1,7 +1,13 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-// eslint-disable-next-line no-unused-vars
-class SmoToXml {
+import { mxmlHelpers } from './xmlHelpers';
+import { mxmlScore } from './xmlScore';
+import { SmoSelector } from '../xform/selections';
+import { SmoStaffHairpin } from '../data/staffModifiers';
+import { SmoNote } from '../data/note';
+import { smoMusic } from '../../common/musicHelpers';
+
+export class SmoToXml {
   static get beamStates() {
     return {
       none: 1, start: 2, continue: 3, stop: 4
@@ -23,7 +29,7 @@ class SmoToXml {
     const scaling = nn(root, 'scaling');
     // reverse this:
     // scoreDefaults.layout.svgScale =  (scale * 42 / 40) / mxmlScore.mmPerPixel;
-    const mm = mxmlScore.mmPerPixel * 42 * score.layoutManager.svgScale;
+    const mm = mxmlScore.mmPerPixel * 42 * score.layoutManager.getGlobalLayout().svgScale;
     nn(scaling, 'millimeters', { mm }, 'mm');
     nn(scaling, 'tenths', { tenths: 40 }, 'tenths');
     const pageLayout = nn(defaults, 'page-layout');

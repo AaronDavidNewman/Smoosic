@@ -15,7 +15,7 @@ Vex.Merge = (dest, src) => {
   });
 }
 
-class smoSerialize {
+export class smoSerialize {
   static tryParseUnicode(text) {
     let rv = text;
     try {
@@ -432,7 +432,8 @@ class smoSerialize {
         if (typeof(src[attr]) === 'number' ||
           typeof(src[attr]) === 'boolean' ||
           typeof(src[attr]) === 'string' ) {
-          if (src[attr] != defaults[attr]) {
+          // always persist object type so it can be deserialized
+          if (src[attr] !== defaults[attr] || attr === 'ctor') {
             dest[attr] = src[attr];
           }
         // copy the empty array
@@ -477,7 +478,7 @@ class smoSerialize {
   // ### printXlate
   // print json with string labels to use as a translation file seed.
   static printTranslate(_class) {
-    const xxx = eval(_class + '.printTranslate');
+    const xxx = Smo.getClass(_class + '.printTranslate');
     if (typeof(xxx) === 'function') {
       xxx();
     }

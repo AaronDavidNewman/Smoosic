@@ -1,12 +1,22 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoMeasure } from '../../smo/data/measure';
+import { UndoBuffer } from '../../smo/xform/undo';
+import { PromiseHelpers } from '../../common/promiseHelpers';
+import { SmoSelection } from '../../smo/xform/selections';
+import { svgHelpers } from '../../common/svgHelpers';
+import { VxSystem } from '../vex/vxSystem';
+import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
+import { SmoScore } from '../../smo/data/score';
+import { smoBeamerFactory } from '../../smo/xform/beamers';
+
+const VF = Vex.Flow;
 // ## SuiRenderState
 // Manage the state of the score rendering.  The score can be rendered either completely,
 // or partially for editing.  This class works with the RenderDemon to decide when to
 // render the score after it has been modified, and keeps track of what the current
 // render state is (dirty, etc.)
-// eslint-disable-next-line no-unused-vars
-class SuiRenderState {
+export class SuiRenderState {
   constructor(ctor) {
     this.attrs = {
       id: VF.Element.newID(),
@@ -23,7 +33,6 @@ class SuiRenderState {
     this._resetViewport = false;
     this.measureMapper = null;
   }
-
   // ### setMeasureMapper
   // DI/notifier pattern.  The measure mapper/tracker is updated when the score is rendered
   // so the UI stays in sync with the location of elements in the score.
@@ -33,10 +42,10 @@ class SuiRenderState {
 
   static get Fonts() {
     return {
-      Bravura: [VF.Fonts.Bravura, VF.Fonts.Gonville, VF.Fonts.Custom],
-      Gonville: [VF.Fonts.Gonville, VF.Fonts.Bravura, VF.Fonts.Custom],
-      Petaluma: [VF.Fonts.Petaluma, VF.Fonts.Gonville, VF.Fonts.Custom],
-      Leland: [VF.Fonts.Leland, VF.Fonts.Bravura, VF.Fonts.Gonville, VF.Fonts.Custom]
+      Bravura: [VF.Fonts.Bravura(), VF.Fonts.Gonville(), VF.Fonts.Custom()],
+      Gonville: [VF.Fonts.Gonville(), VF.Fonts.Bravura(), VF.Fonts.Custom()],
+      Petaluma: [VF.Fonts.Petaluma(), VF.Fonts.Gonville(), VF.Fonts.Custom()],
+      Leland: [VF.Fonts.Leland(), VF.Fonts.Bravura(), VF.Fonts.Gonville(), VF.Fonts.Custom()]
     };
   }
 
@@ -109,13 +118,13 @@ class SuiRenderState {
     $('.measure-number').remove();
 
     measures.forEach((measure) => {
-      if (measure.measureNumber.measureNumber > 0 && measure.measureNumber.systemIndex === 0 && measure.logicalBox) {
+      if (measure.measureNumber.localIndex > 0 && measure.measureNumber.systemIndex === 0 && measure.logicalBox) {
         const numAr = [];
         numAr.push({ y: measure.logicalBox.y - 10 });
         numAr.push({ x: measure.logicalBox.x });
         numAr.push({ 'font-family': SourceSansProFont.fontFamily });
         numAr.push({ 'font-size': '10pt' });
-        svgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.measureNumber + 1).toString());
+        svgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
 
         // Show line-feed symbol
         const formatIndex = SmoMeasure.systemOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
@@ -183,11 +192,10 @@ class SuiRenderState {
   renderForPrintPromise() {
     $('body').addClass('print-render');
     const self = this;
-    const layout = this.score.layoutManager;
-    this._backupZoomMode = layout.zoomMode;
+    const layout = this.score.layoutManager.getGlobalLayout();
     this._backupZoomScale = layout.zoomScale;
-    layout.zoomMode = SmoScore.zoomModes.zoomScale;
     layout.zoomScale = 1.0;
+    this.score.layoutManager.updateGlobalLayout(layout);
     this.setViewport(true);
     this.setRefresh();
 
@@ -212,9 +220,9 @@ class SuiRenderState {
   }
 
   restoreLayoutAfterPrint() {
-    const layout = this.score.layoutManager;
-    layout.zoomMode = this._backupZoomMode;
+    const layout = this.score.layoutManager.getGlobalLayout();
     layout.zoomScale = this._backupZoomScale;
+    this.score.layoutManager.updateGlobalLayout(layout);
     this.setViewport(true);
     this.setRefresh();
   }
@@ -434,10 +442,11 @@ class SuiRenderState {
     if (printing) {
       return;
     }
-    const layout = this._score.layoutManager;
-    for (i = 1; i < layout.pageLayouts.length; ++i) {
-      const y = (layout.pageHeight / layout.svgScale) * i;
-      svgHelpers.line(this.svg, 0, y, layout.pageWidth / layout.svgScale, y,
+    const layoutMgr = this._score.layoutManager;
+    for (i = 1; i < layoutMgr.pageLayouts.length; ++i) {
+      const scaledPage = layoutMgr.getScaledPageLayout(i);
+      const y = scaledPage.pageHeight * i;
+      svgHelpers.line(this.svg, 0, y, scaledPage.pageWidth, y,
         [
           { 'stroke': '#321' },
           { 'stroke-width': '2' },

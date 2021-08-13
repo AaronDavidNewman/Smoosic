@@ -1,10 +1,13 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiTempoDialog } from './dialogs/measureDialogs';
+import { suiAudioPlayer } from '../render/audio/player';
+import { SmoArticulation } from '../smo/data/noteModifiers';
 
 // ## suiEditor
 // KeyCommands object handles key events and converts them into commands, updating the score and
 // display
-class SuiKeyCommands {
+export class SuiKeyCommands {
   constructor(params) {
     Vex.Merge(this, params);
     this.slashMode = false;
@@ -74,7 +77,7 @@ class SuiKeyCommands {
 
   interval(keyEvent) {
     // code='Digit3'
-    var interval = parseInt(keyEvent.keyCode) - 49;  // 48 === '0', 0 indexed
+    var interval = parseInt(keyEvent.keyCode, 10) - 49;  // 48 === '0', 0 indexed
     if (isNaN(interval) || interval < 1 || interval > 7) {
       return;
     }
@@ -108,19 +111,19 @@ class SuiKeyCommands {
     this.setPitchCommand(keyEvent.key.toLowerCase());
   }
 
-  dotDuration(keyEvent) {
+  dotDuration() {
     this.view.batchDurationOperation('dotDuration');
   }
 
-  undotDuration(keyEvent) {
+  undotDuration() {
     this.view.batchDurationOperation('undotDuration');
   }
 
-  doubleDuration(keyEvent) {
+  doubleDuration() {
     this.view.batchDurationOperation('doubleDuration');
   }
 
-  halveDuration(keyEvent) {
+  halveDuration() {
     this.view.batchDurationOperation('halveDuration');
   }
 
@@ -128,7 +131,7 @@ class SuiKeyCommands {
     this.view.addMeasure(keyEvent.shiftKey);
   }
   deleteNote() {
-   this.view.deleteNote();
+    this.view.deleteNote();
   }
 
   toggleCourtesyAccidental() {
@@ -142,23 +145,23 @@ class SuiKeyCommands {
     this.view.makeTuplet(numNotes);
   }
   makeTuplet(keyEvent) {
-    var numNotes = parseInt(keyEvent.key);
+    const numNotes = parseInt(keyEvent.key, 10);
     this.makeTupletCommand(numNotes);
   }
 
-  unmakeTuplet(keyEvent) {
+  unmakeTuplet() {
     this.view.unmakeTuplet();
   }
-  setNoteHead(keyEvent) {
+  setNoteHead() {
     this.view.setNoteHead('x2');
   }
-  removeGraceNote(keyEvent) {
+  removeGraceNote() {
     this.view.removeGraceNote();
   }
-  addGraceNote(keyEvent) {
+  addGraceNote() {
     this.view.addGraceNote();
   }
-  slashGraceNotes(keyEvent) {
+  slashGraceNotes() {
     this.view.slashGraceNotes();
   }
 
@@ -167,11 +170,10 @@ class SuiKeyCommands {
   }
 
   addRemoveArticulation(keyEvent) {
+    let atyp = SmoArticulation.articulations.accent;
     if (this.view.tracker.selections.length < 1) {
       return;
     }
-    var atyp = SmoArticulation.articulations.accent;
-
     if (keyEvent.key.toLowerCase() === 'h') {
       atyp = SmoArticulation.articulations.accent;
     }

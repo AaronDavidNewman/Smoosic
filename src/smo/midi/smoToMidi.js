@@ -1,20 +1,18 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-// eslint-disable-next-line no-unused-vars
-class SmoToMidi {
+import { smoMusic } from '../../common/musicHelpers';
+import { SmoSelector } from '../xform/selections';
+import { SmoAudioScore } from '../xform/audioTrack';
+
+export class SmoToMidi {
   static convert(score) {
     const beatTime = 128;  // midi ticks per beat
-    const converter = new SmoAudioTrack(score, beatTime);
-    const audioScore =converter.convert();
+    const converter = new SmoAudioScore(score, beatTime);
+    const audioScore = converter.convert();
     const smoTracks = audioScore.tracks;
     const trackHash = {};
-    const measureBeats = [];
     smoTracks.forEach((smoTrack, trackIx) => {
-      let tempo = 0;
-      let beatsNum = 0;
-      let beatsDen = 0;
       let j = 0;
-      let k = 0;
       if (typeof(trackHash[trackIx]) === 'undefined') {
         trackHash[trackIx] = {
           track: new MidiWriter.Track(),
@@ -22,8 +20,10 @@ class SmoToMidi {
         };
       }
       const track = trackHash[trackIx].track;
+      // eslint-disable-next-line
       audioScore.repeatMap.forEach((measureMap) => {
         for (j = measureMap.startMeasure; j <= measureMap.endMeasure; ++j) {
+          // eslint-disable-next-line
           const notes = smoTrack.notes.filter((nn) => nn.selector.measure === j);
           notes.forEach((noteData) => {
             const selectorKey = SmoSelector.getMeasureKey(noteData.selector);

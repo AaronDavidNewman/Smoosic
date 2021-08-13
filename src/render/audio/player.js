@@ -1,9 +1,11 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { suiAudioPitch, suiSampler } from './oscillator';
+import { SmoAudioScore } from '../../smo/xform/audioTrack';
+
 // ## suiAudioPlayer
 // Play the music, ja!
-// eslint-disable-next-line no-unused-vars
-class suiAudioPlayer {
+export class suiAudioPlayer {
   static set playing(val) {
     suiAudioPlayer._playing = val;
   }
@@ -95,7 +97,7 @@ class suiAudioPlayer {
       for (i = 0; i < sound.frequencies.length && sound.noteType === 'n'; ++i) {
         const freq = sound.frequencies[i];
         const beats = sound.duration / 4096;
-        const adjDuration = Math.round((beats / tempo) * 60000);
+        const adjDuration = Math.round((beats / tempo) * 60000) + 150;
         const osc = new suiSampler({ frequency: freq, duration: adjDuration, gain: sound.volume });
         oscs.push(osc);
       }
@@ -128,7 +130,7 @@ class suiAudioPlayer {
         tracker.clearMusicCursor();
         suiAudioPlayer.playing = false;
       }
-    }, waitTime * 1.05);
+    }, waitTime);
   }
   static stopPlayer() {
     if (suiAudioPlayer._playingInstance) {
@@ -176,7 +178,7 @@ class suiAudioPlayer {
     this.playIndex = 0;
     this.tracker = parameters.tracker;
     this.score = parameters.score;
-    const converter = new SmoAudioTrack(this.score, 4096);
+    const converter = new SmoAudioScore(this.score, 4096);
     this.audio = converter.convert();
     // Assume tempo is same for all measures
     this.tempoMap = this.audio.tempoMap;

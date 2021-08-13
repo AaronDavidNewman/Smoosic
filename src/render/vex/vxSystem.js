@@ -1,5 +1,13 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { VxMeasure } from './vxMeasure';
+import { SmoSelection } from '../../smo/xform/selections';
+import { svgHelpers } from '../../common/svgHelpers';
+import { SmoLyric } from '../../smo/data/noteModifiers';
+import { SmoStaffHairpin, SmoSlur } from '../../smo/data/staffModifiers';
+
+const VF = Vex.Flow;
+
 // ## Description:
 //   Create a system of staves and draw music on it.
 //
@@ -8,8 +16,7 @@
 //  num_beats:num_beats,
 //  timeSignature: '4/4',
 //  smoMeasures: []
-// eslint-disable-next-line no-unused-vars
-class VxSystem {
+export class VxSystem {
   constructor(context, topY, lineIndex, score) {
     this.context = context;
     this.leftConnector = [null, null];
@@ -115,7 +122,6 @@ class VxSystem {
   // ### updateLyricOffsets
   // Adjust the y position for all lyrics in the line so they are even.
   // Also replace '-' with a longer dash do indicate 'until the next measure'
-  /* global svgHelpers */
   updateLyricOffsets() {
     let i = 0;
     for (i = 0; i < this.score.staves.length; ++i) {
@@ -286,7 +292,7 @@ class VxSystem {
       if (modifier.lines.length > 0) {
         // Hack: if a chord changed, the ties may no longer be valid.  We should check
         // this when it changes.
-        modifier.checkLines(smoStart, smoEnd);
+        modifier.checkLines(smoStart.note, smoEnd.note);
         const fromLines = modifier.lines.map((ll) => ll.from);
         const toLines = modifier.lines.map((ll) => ll.to);
         const tie = new VF.StaveTie({
@@ -333,7 +339,7 @@ class VxSystem {
           const group = this.context.openGroup(null, ending.attrs.id);
           group.classList.add(ending.attrs.id);
           group.classList.add(ending.endingId);
-          const vtype = ending.toVexVolta(smoMeasure.measureNumber.measureNumber);
+          const vtype = ending.toVexVolta(smoMeasure.measureNumber.measureIndex);
           const vxVolta = new VF.Volta(vtype, ending.number, smoMeasure.staffX + ending.xOffsetStart, ending.yOffset);
           vxVolta.setContext(this.context).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
           this.context.closeGroup();

@@ -1,41 +1,145 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoSelector, SmoSelection } from '../../smo/xform/selections';
+import { svgHelpers } from '../../common/svgHelpers';
+import { layoutDebug } from './layoutDebug';
+import { SuiScroller } from './scroller';
+import { SmoSystemStaff } from '../../smo/data/systemStaff';
+import { MeasureSvg, SmoMeasure, SmoVoice } from '../../smo/data/measure';
+import { PasteBuffer } from '../../smo/xform/copypaste';
+import { SmoNoteModifierBase, SmoLyric } from '../../smo/data/noteModifiers';
+import { SmoMeasureModifierBase } from '../../smo/data/measureModifiers';
+// import { SmoScoreModifierBase } from '../../smo/data/scoreModifiers';
+import { StaffModifierBase } from '../../smo/data/staffModifiers';
+import { SvgBox } from '../../smo/data/common';
+import { SmoNote } from '../../smo/data/note';
+import { SmoScore } from '../../smo/data/score';
+import { SmoScoreModifierBase } from '../../smo/data/scoreModifiers';
+
+declare var $: any;
+
+type SmoModifier = SmoNoteModifierBase | SmoMeasureModifierBase | StaffModifierBase | SmoScoreModifierBase;
+
+export interface SuiRendererBase {
+  svg: Document,
+  score: SmoScore,
+  isDirty: boolean
+}
+export interface ModifierTab {
+  modifier: SmoModifier,
+  selection: SmoSelection | null,
+  box: SvgBox,
+  index: number
+}
+export interface LocalModifier {
+  modifier: SmoModifier,
+  selection: SmoSelection,
+  box: SvgBox | null,
+}
+// used to perform highlights in the backgroundd
+export interface HighlightQueue {
+  selectionCount: number, deferred: boolean
+}
 // ## suiMapper
 // Map the notes in the svg so they can respond to events and interact
 // with the mouse/keyboard
-// eslint-disable-next-line no-unused-vars
-class suiMapper {
-  constructor(renderer, scroller, pasteBuffer) {
+export abstract class suiMapper {
+  renderer: SuiRendererBase;
+  scroller: SuiScroller;
+  // measure to selector map
+  measureNoteMap: Record<string | number, SmoSelection> = {};
+  // notes currently selected.  Something is always selected
+  // modifiers (text etc.) that have been selected
+  modifierSelections: ModifierTab[] = [];
+  selections: SmoSelection[] = [];
+  // all the modifiers
+  modifierTabs: ModifierTab[] = [];
+  // The list of modifiers near the current selection
+  localModifiers: LocalModifier[] = [];
+  modifierIndex: number = -1;
+  modifierSuggestion: number = -1;
+  pitchIndex: number = -1;
+  suggestion: SmoSelection | null = null;
+  pasteBuffer: PasteBuffer;
+  highlightQueue: HighlightQueue;
+  mapping: boolean = false;
+  constructor(renderer: SuiRendererBase, scroller: SuiScroller, pasteBuffer: PasteBuffer) {
     // renderer renders the music when it changes
     this.renderer = renderer;
-    // measure to selector map
-    this.measureMap = {};
-    this.measureNoteMap = {}; // Map for tracker
     this.scroller = scroller;
-    // notes currently selected.  Something is always selected
-    this.selections = [];
-    // modifiers (text etc.) that have been selected
-    this.modifierSelections = [];
-    // all the modifiers
-    this.modifierTabs = [];
-    // the index of the currently selected modifier
     this.modifierIndex = -1;
-    // The list of modifiers near the current selection
     this.localModifiers = [];
     // mouse-over that might be selected soon
     this.modifierSuggestion = -1;
-    this.suggestion = {};
     // index if a single pitch of a chord is selected
     this.pitchIndex = -1;
     // the current selection, which is also the copy/paste destination
     this.pasteBuffer = pasteBuffer;
+    this.highlightQueue = { selectionCount: 0, deferred: false };
   }
 
+  abstract highlightSelection(): void;
+  abstract _growSelectionRight(hold?: boolean): number;  
+  abstract _setModifierAsSuggestion(bb: SvgBox, sel: SmoSelection): void;
+  abstract _setArtifactAsSuggestion(bb: SvgBox, sel: SmoSelection): void;
+  updateHighlight() {
+    const self = this;
+    if (this.highlightQueue.selectionCount === this.selections.length) {
+      this.highlightSelection();
+      this.highlightQueue.deferred = false;
+    } else {
+      this.highlightQueue.selectionCount = this.selections.length;
+      setTimeout(() => {
+        self.updateHighlight();
+      }, 50);
+    }
+  }
+  deferHighlight() {
+    const self = this;
+    if (!this.highlightQueue.deferred) {
+      this.highlightQueue.deferred = true;
+      setTimeout(() => {
+        self.updateHighlight();
+      }, 50);
+    }
+  }
+  _createLocalModifiersList() {
+    this.localModifiers = [];
+    this.selections.forEach((sel) => {
+      sel.note?.getGraceNotes().forEach((gg) => {
+        this.localModifiers.push({ selection: sel, modifier: gg, box: gg.renderedBox ?? SvgBox.default });
+      });
+      sel.note?.getModifiers('SmoDynamicText').forEach((dyn) => {
+        this.localModifiers.push({ selection: sel, modifier: dyn, box: dyn.renderedBox ?? SvgBox.default });
+      });
+      sel.measure.getModifiersByType('SmoVolta').forEach((volta) => {
+        this.localModifiers.push({ selection: sel, modifier: volta, box: volta.renderedBox ?? SvgBox.default });
+      });
+      sel.measure.getModifiersByType('SmoTempoText').forEach((tempo) => {
+        this.localModifiers.push({ selection: sel, modifier: tempo, box: tempo.renderedBox ?? SvgBox.default });
+      });
+      sel.staff.getModifiers().forEach((mod) => {
+        if (SmoSelector.gteq(sel.selector, mod.startSelector) &&
+          SmoSelector.lteq(sel.selector, mod.endSelector) && mod.renderedBox)  {
+          const exists = this.localModifiers.find((mm) => mm.modifier.ctor === mod.ctor);
+          if (!exists) {
+            this.localModifiers.push({ selection: sel, modifier: mod, box: mod.renderedBox });
+          }
+        }
+      });
+    });
+  }
+  // used by remove dialogs to clear removed thing
+  clearModifierSelections() {
+    this.modifierSelections = [];
+    this._createLocalModifiersList();
+    this.modifierIndex = -1;
+    // this.eraseRect('staffModifier');  not sure where this should go
+  }
   // ### loadScore
   // We are loading a new score.  clear the maps so we can rebuild them after
   // rendering
   loadScore() {
-    this.measureMap = {};
     this.measureNoteMap = {};
     this.clearModifierSelections();
     this.selections = [];
@@ -43,19 +147,12 @@ class suiMapper {
 
   // ### _clearMeasureArtifacts
   // clear the measure from the measure and note maps so we can rebuild it.
-  clearMeasureMap(staff, measure) {
-    const selector = { staff: measure.measureNumber.staffId, measure: measure.measureNumber.measureIndex };
+  clearMeasureMap(staff: SmoSystemStaff, measure: SmoMeasure) {
+    const selector = { staff: measure.measureNumber.staffId, measure: measure.measureNumber.measureIndex, voice: 0, tick: 0, pitches: [] };
     const measureKey = SmoSelector.getMeasureKey(selector);
-    if (this.measureMap[measureKey]) {
-      const nkeys = Object.keys(this.measureMap[measureKey].keys);
-      nkeys.forEach((key) => {
-        delete this.measureNoteMap[key];
-      });
 
-      delete this.measureMap[measureKey];
-    }
     // Unselect selections in this measure so we can reselect them when re-tracked
-    const ar = [];
+    const ar: SmoSelection[] = [];
     this.selections.forEach((selection) => {
       if (selection.selector.staff !== selector.staff || selection.selector.measure !== selector.measure) {
         ar.push(selection);
@@ -64,7 +161,20 @@ class suiMapper {
     this.selections = ar;
   }
 
-  deleteMeasure(selection) {
+  _copySelectionsByMeasure(staffIndex: number, measureIndex: number) {
+    const rv = this.selections.filter((sel) => sel.selector.staff === staffIndex && sel.selector.measure === measureIndex);
+    const ticks = rv.length < 1 ? 0 : rv.map((sel) => (sel.note as SmoNote).tickCount).reduce((a, b) => a + b);
+    const selectors: SmoSelector[] = [];
+    rv.forEach((sel) => {
+      const nsel = JSON.parse(JSON.stringify(sel.selector));
+      if (!nsel.pitches) {
+        nsel.pitches = [];
+      }
+      selectors.push(nsel);
+    });
+    return { ticks, selectors };
+  }
+  deleteMeasure(selection: SmoSelection) {
     const selCopy = this._copySelectionsByMeasure(selection.selector.staff, selection.selector.measure)
       .selectors;
     this.clearMeasureMap(selection.staff, selection.measure);
@@ -83,18 +193,16 @@ class suiMapper {
   updateMap() {
     this._updateMap();
   }
-  _updateNoteModifier(selection, modMap, modifier, ix) {
+  _updateNoteModifier(selection: SmoSelection, modMap: Record<string, boolean>, modifier: SmoModifier, ix: number) {
     if (!modMap[modifier.attrs.id]) {
       this.modifierTabs.push({
         modifier,
         selection,
-        box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
+        box: svgHelpers.smoBox(svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller)),
         index: ix
       });
       ix += 1;
-      modMap[modifier.attrs.id] = {
-        exists: true
-      };
+      modMap[modifier.attrs.id] = true;
     }
     return ix;
   }
@@ -102,25 +210,13 @@ class suiMapper {
   _updateModifiers() {
     let ix = 0;
     this.modifierTabs = [];
-    this.modifierBoxes = [];
-    const modMap = {};
-    this.renderer.score.scoreText.forEach((modifier) => {
-      if (!modMap[modifier.attrs.id]) {
-        this.modifierTabs.push({
-          modifier,
-          selection: null,
-          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
-          index: ix
-        });
-        ix += 1;
-      }
-    });
+    const modMap: Record<string, boolean> = {};
     this.renderer.score.textGroups.forEach((modifier) => {
       if (!modMap[modifier.attrs.id] && modifier.logicalBox) {
         this.modifierTabs.push({
           modifier,
           selection: null,
-          box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
+          box: svgHelpers.smoBox(svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller)),
           index: ix
         });
         ix += 1;
@@ -136,11 +232,11 @@ class suiMapper {
               this.modifierTabs.push({
                 modifier,
                 selection,
-                box: svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller),
+                box: svgHelpers.smoBox(svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller)),
                 index: ix
               });
               ix += 1;
-              modMap[modifier.attrs.id] = { exists: true };
+              modMap[modifier.attrs.id] = true;
             }
           }
         }
@@ -152,22 +248,20 @@ class suiMapper {
           this.modifierTabs.push({
             modifier,
             selection,
-            box: svgHelpers.adjustScroll(modifier.renderedBox, this.scroller.netScroll),
+            box: svgHelpers.smoBox(svgHelpers.adjustScroll(modifier.renderedBox, this.scroller.netScroll)),
             index: ix
           });
           ix += 1;
-          modMap[modifier.attrs.id] = {
-            exists: true
-          };
+          modMap[modifier.attrs.id] = true;
         }
       });
-      selection.note.textModifiers.forEach((modifier) => {
+      selection.note?.textModifiers.forEach((modifier) => {
         if (modifier.logicalBox) {
           ix = this._updateNoteModifier(selection, modMap, modifier, ix);
         }
       });
 
-      selection.note.graceNotes.forEach((modifier) => {
+      selection.note?.graceNotes.forEach((modifier) => {
         ix = this._updateNoteModifier(selection, modMap, modifier, ix);
       });
     });
@@ -175,8 +269,8 @@ class suiMapper {
   // ### _getClosestTick
   // given a musical selector, find the note artifact that is closest to it,
   // if an exact match is not available
-  _getClosestTick(selector) {
-    let tickKey = '';
+  _getClosestTick(selector: SmoSelector): SmoSelection {
+    let tickKey: string | undefined = '';
     const measureKey = Object.keys(this.measureNoteMap).find((k) =>
       SmoSelector.sameMeasure(this.measureNoteMap[k].selector, selector)
         && this.measureNoteMap[k].selector.tick === 0);
@@ -195,21 +289,22 @@ class suiMapper {
 
   // ### _setModifierBoxes
   // Create the DOM modifiers for the lyrics and other modifiers
-  _setModifierBoxes(measure) {
-    measure.voices.forEach((voice) => {
-      voice.notes.forEach((smoNote) =>  {
-        const el = this.renderer.svg.getElementById(smoNote.renderId);
+  _setModifierBoxes(measure: SmoMeasure) {
+    measure.voices.forEach((voice: SmoVoice) => {
+      voice.notes.forEach((smoNote: SmoNote) =>  {
+        const el = this.renderer.svg.getElementById(smoNote.renderId as string);
         if (el) {
           svgHelpers.updateArtifactBox(this.renderer.svg, el, smoNote, this.scroller);
           // TODO: fix this, only works on the first line.
-          smoNote.getModifiers('SmoLyric').forEach((lyric) => {
+          smoNote.getModifiers('SmoLyric').forEach((lyrict: SmoNoteModifierBase) => {
+            const lyric: SmoLyric = lyrict as SmoLyric;
             if (lyric.getText().length || lyric.isHyphenated()) {
               lyric.selector = '#' + smoNote.renderId + ' ' + lyric.getClassSelector();
               svgHelpers.updateArtifactBox(this.renderer.svg, $(lyric.selector)[0], lyric, this.scroller);
             }
           });
           smoNote.graceNotes.forEach((g) => {
-            var gel = this.context.svg.getElementById('vf-' + g.renderedId);
+            var gel = this.renderer.svg.getElementById('vf-' + g.renderId);
             $(gel).addClass('grace-note');
             svgHelpers.updateArtifactBox(this.renderer.svg, gel, g, this.scroller);
           });
@@ -226,7 +321,7 @@ class suiMapper {
 
   // ### updateMeasure
   // A measure has changed.  Update the music geometry for it
-  mapMeasure(staff, measure, printing) {
+  mapMeasure(staff: SmoSystemStaff, measure: SmoMeasure, printing: boolean) {
     let voiceIx = 0;
     let selectedTicks = 0;
     let selectionChanged = false;
@@ -234,7 +329,7 @@ class suiMapper {
     if (!measure.logicalBox) {
       return;
     }
-    measure.renderedBox = svgHelpers.logicalToClient(this.renderer.svg, measure.logicalBox, this.scroller);
+    measure.svg.renderedBox = svgHelpers.smoBox(svgHelpers.logicalToClient(this.renderer.svg, measure.logicalBox, this.scroller));
     this._setModifierBoxes(measure);
     const timestamp = new Date().valueOf();
     // Keep track of any current selections in this measure, we will try to restore them.
@@ -265,7 +360,7 @@ class suiMapper {
           _measure: measure,
           _note: note,
           _pitches: [],
-          box: svgHelpers.logicalToClient(this.renderer.svg, note.logicalBox, this.scroller),
+          box: svgHelpers.smoBox(svgHelpers.logicalToClient(this.renderer.svg, note.logicalBox, this.scroller)),
           type: 'rendered'
         });
         // and add it to the map
@@ -278,18 +373,19 @@ class suiMapper {
           // Reselect any pitches.
           if (sels.selectors[0].pitches.length > 0) {
             sels.selectors[0].pitches.forEach((pitchIx) => {
-              if (selection.pitches.length > pitchIx) {
+              if (selection.selector.pitches.length > pitchIx) {
                 selection.selector.pitches.push(pitchIx);
               }
             });
           }
-          selectedTicks += selection.note.tickCount;
+          const note = selection.note as SmoNote;
+          selectedTicks += note.tickCount;
           selectionChanged = true;
         } else if (selectedTicks > 0 && selectedTicks < sels.ticks && selection.selector.voice === vix) {
           // try to select the same length of music as was previously selected.  So a 1/4 to 2 1/8, both
           // are selected
           this.selections.push(selection);
-          selectedTicks += selection.note.tickCount;
+          selectedTicks += note.tickCount;
         } else if (this.selections.length === 0 && sels.selectors.length === 0) {
           this.selections = [selection];
           selectionChanged = true;
@@ -300,11 +396,58 @@ class suiMapper {
     });
     // If there were selections on this measure, highlight them.
     if (selectionChanged) {
-      this.highlightSelection();
+      this.deferHighlight();
     }
     layoutDebug.setTimestamp(layoutDebug.codeRegions.MAP, new Date().valueOf() - timestamp);
   }
 
+  _getTicksFromSelections(): number {
+    let rv = 0;
+    this.selections.forEach((sel) => {
+      if (sel.note) {
+        rv += sel.note.tickCount;
+      }
+    });
+    return rv;
+  }
+  _copySelections(): SmoSelector[] {
+    const rv: SmoSelector[] = [];
+    this.selections.forEach((sel) => {
+      rv.push(sel.selector);
+    });
+    return rv;
+  }
+  // ### getExtremeSelection
+  // Get the rightmost (1) or leftmost (-1) selection
+  getExtremeSelection(sign: number) {
+    let i = 0;
+    let rv = this.selections[0];
+    for (i = 1; i < this.selections.length; ++i) {
+      const sa = this.selections[i].selector;
+      if (sa.measure * sign > rv.selector.measure * sign) {
+        rv = this.selections[i];
+      } else if (sa.measure === rv.selector.measure && sa.tick * sign > rv.selector.tick * sign) {
+        rv = this.selections[i];
+      }
+    }
+    return rv;
+  }
+  _findClosestSelection(selector: SmoSelector) {
+    var artifact = this._getClosestTick(selector);
+    if (!artifact) {
+      return;
+    }
+    if (this.selections.find((sel) => JSON.stringify(sel.selector)
+      === JSON.stringify(artifact.selector))) {
+      return;
+    }
+    const note = artifact.note as SmoNote;
+    if (selector.pitches && selector.pitches.length && selector.pitches.length <= note.pitches.length) {
+      // If the old selection had only a single pitch, try to recreate that.
+      artifact.selector.pitches = JSON.parse(JSON.stringify(selector.pitches));
+    }
+    this.selections.push(artifact);
+  }
   // ### updateMap
   // This should be called after rendering the score.  It updates the score to
   // graphics map and selects the first object.
@@ -331,22 +474,22 @@ class suiMapper {
       }
       this._findClosestSelection(firstSelection.selector);
       const first = this.selections[0];
-      tickSelected = first.note.tickCount;
+      tickSelected = (first.note as SmoNote).tickCount ??  0;
       while (tickSelected < ticksSelectedCopy && first) {
-        const delta = this._growSelectionRight(true);
+        let delta: number = this._growSelectionRight(true);
         if (!delta)  {
           break;
         }
         tickSelected += delta;
       }
     }
-    this.highlightSelection();
+    this.deferHighlight();
     this._createLocalModifiersList();
     // Is this right?  Don't update the past buffer with data until the display is redrawn
     // because some of the selections may not exist in the score.
     if (this.renderer.isDirty === false) {
       this.pasteBuffer.clearSelections();
-      this.pasteBuffer.setSelections(this.score, this.selections);
+      this.pasteBuffer.setSelections(this.renderer.score, this.selections);
     }
     this.mapping = false;
     layoutDebug.setTimestamp(layoutDebug.codeRegions.UPDATE_MAP, new Date().valueOf() - ts);
@@ -354,58 +497,42 @@ class suiMapper {
 
   // ### intersectingArtifact
   // given a bounding box, find any rendered elements that intersect with it
-  intersectingArtifact(bb) {
-    let sel = 0;
+  intersectingArtifact(bb: SvgBox) {
+    let sel: SmoSelection[] = [];
     bb = svgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
     const artifacts = svgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, this.scroller.scrollState);
     // TODO: handle overlapping suggestions
     if (!artifacts.length) {
       sel = svgHelpers.findIntersectingArtifact(bb, this.modifierTabs, this.scroller.scrollState);
       if (sel.length) {
-        sel = sel[0];
-        this._setModifierAsSuggestion(bb, sel);
+        this._setModifierAsSuggestion(bb, sel[0]);
       }
       return;
     }
     const artifact = artifacts[0];
     this._setArtifactAsSuggestion(bb, artifact);
   }
-  _updateMeasureNoteMap(artifact, printing) {
+  _updateMeasureNoteMap(artifact: SmoSelection, printing: boolean) {
+    const note = artifact.note as SmoNote;
     const noteKey = SmoSelector.getNoteKey(artifact.selector);
     const measureKey = SmoSelector.getMeasureKey(artifact.selector);
     const activeVoice = artifact.measure.getActiveVoice();
-    if (artifact.selector.voice !== activeVoice && !artifact.note.fillStyle && !printing) {
+    if (artifact.selector.voice !== activeVoice && !note.fillStyle && !printing) {
       const vvv = artifact.selector.voice;
       const r = 128 + ((vvv * 32767 | vvv * 157) % 127);
       const g = 128 / vvv;
       const b = 128 - ((vvv * 32767 | vvv * 157) % 127);
       const fill = 'rgb(' + r + ',' + g + ',' + b + ')';
-      $('#' + artifact.note.renderId).find('.vf-notehead path').each((ix, el) => {
+      $('#' + note.renderId).find('.vf-notehead path').each((ix: number, el: Element) => {
         el.setAttributeNS('', 'fill', fill);
       });
     }
     // not has not been drawn yet.
-    if (!artifact.box) {
+    if ((!artifact.box) || (!artifact.measure.svg.renderedBox)) {
       return;
     }
-    if (!this.measureNoteMap[noteKey]) {
-      this.measureNoteMap[noteKey] = artifact;
-      artifact.scrollBox = { x: artifact.box.x,
-        y: artifact.measure.renderedBox.y };
-    } else {
-      const mm = this.measureNoteMap[noteKey];
-      mm.scrollBox = { x: Math.min(
-        artifact.box.x, mm.x), y: Math.min(artifact.measure.renderedBox.y, mm.y) };
-    }
-
-    if (!this.measureMap[measureKey]) {
-      this.measureMap[measureKey] = { keys: {} };
-      this.measureMap[measureKey].keys[noteKey] = true;
-    } else {
-      const measureHash = this.measureMap[measureKey].keys;
-      if (!measureHash[noteKey]) {
-        measureHash[noteKey] = true;
-      }
-    }
+    this.measureNoteMap[noteKey] = artifact;
+    artifact.scrollBox = { x: artifact.box.x,
+      y: artifact.measure.svg.renderedBox.y };
   }
 }

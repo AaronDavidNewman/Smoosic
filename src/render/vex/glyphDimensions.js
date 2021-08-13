@@ -1,7 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-// eslint-disable-next-line no-unused-vars
-class vexGlyph {
+import { SmoBarline } from '../../smo/data/measureModifiers';
+import { smoMusic } from '../../common/musicHelpers';
+
+const VF = Vex.Flow;
+export class vexGlyph {
   // ### glyphPixels
   // Used to convert vex glyph sizes to pixels for computation.
   // Vex glyph font size (points) is 38, convert to pixels (96 / 72)

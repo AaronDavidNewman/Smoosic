@@ -1,63 +1,98 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoSystemGroup, SmoTextGroup, SmoScoreModifierBase, SmoPageLayout, SmoLayoutManager, SmoFormattingManager } from './scoreModifiers';
+import { SmoSystemStaff, SmoSystemStaffParams } from './systemStaff';
+import { smoMusic } from '../../common/musicHelpers';
+import { smoSerialize } from '../../common/serializationHelpers';
+import { SmoMeasure, SmoMeasureParams } from './measure';
+import { SmoMeasureFormat, SmoMeasureModifierBase } from './measureModifiers';
+import { SmoSelector, SmoSelection } from '../xform/selections';
+import { Clef, FontInfo } from './common';
+
+export interface FontPurpose {
+  name: string,
+  purpose: number,
+  family: string,
+  size: number,
+  custom: boolean
+}
+export class SmoScoreInfo {
+  name: string = 'Smoosical'; // deprecated
+  title: string = 'Smoosical';
+  subTitle: string = '(Op. 1)';
+  composer: string = 'Me';
+  copyright: string = '';
+  version: number = 1;
+}
+export class SmoScorePreferences {
+  autoPlay: boolean = true;
+  autoAdvance: boolean = true;
+  defaultDupleDuration: number = 4096;
+  defaultTripleDuration: number = 6144;
+  customProportion: number = 100;
+}
+export interface SmoScoreParams {
+  instrumentMap: any[],
+  fonts: FontPurpose[],
+  staffWidth: number,
+  scoreInfo: SmoScoreInfo,
+  preferences: SmoScorePreferences,
+  startIndex: number,
+  staves: SmoSystemStaff[],
+  activeStaff: number,
+  textGroups: SmoTextGroup[],
+  systemGroups: SmoSystemGroup[],
+  layoutManager?: SmoLayoutManager,
+  formattingManager?: SmoFormattingManager
+}
+
 // ## SmoScore
 // ## Description:
 // The whole score.
 // ## Score methods:
 // ---
-// eslint-disable-next-line no-unused-vars
-class SmoScore {
-  constructor(params) {
+export class SmoScore {
+  instrumentMap: any[] = []
+  fonts: FontPurpose[] = []
+  staffWidth: number = 1600
+  scoreInfo: SmoScoreInfo = new SmoScoreInfo();
+  preferences: SmoScorePreferences = new SmoScorePreferences();
+  startIndex: number = 0;
+  staves: SmoSystemStaff[] = [];
+  activeStaff: number = 0;
+  textGroups: SmoTextGroup[] = [];
+  systemGroups: SmoSystemGroup[] = [];
+  layoutManager?: SmoLayoutManager;
+  formattingManager?: SmoFormattingManager
+  constructor(params: SmoScoreParams) {
     Vex.Merge(this, SmoScore.defaults);
     Vex.Merge(this, params);
     if (!this.layoutManager) {
-      this.layoutManager = new SmoLayoutManager(this.layout);
+      this.layoutManager = new SmoLayoutManager(SmoLayoutManager.defaults);
+    }
+    if (!this.formattingManager) {
+      this.formattingManager = new SmoFormattingManager(SmoFormattingManager.defaults);
     }
     if (this.staves.length) {
       this.numberStaves();
     }
+
     this.updateMeasureFormats();
   }
-  static get engravingFonts() {
+  static get engravingFonts(): Record<string, string> {
     return { Bravura: 'Bravura', Gonville: 'Gonville', Petaluma: 'Petaluma' };
   }
-  static get zoomModes() {
-    return { fitWidth: 0, wholePage: 1, zoomScale: 2 };
-  }
-  static get fontPurposes() {
+  static get fontPurposes(): Record<string, number> {
     return { ENGRAVING: 1, SCORE: 2, CHORDS: 3, LYRICS: 4 };
   }
-  static get defaults() {
+  static get defaults(): SmoScoreParams {
     return {
       // legacy layout structure.  Now we use pages.
-      layout: {
-        leftMargin: 30,
-        rightMargin: 30,
-        topMargin: 40,
-        bottomMargin: 40,
-        pageWidth: 8 * 96 + 48,
-        pageHeight: 11 * 96,
-        interGap: 30,
-        intraGap: 10,
-        svgScale: 1.0,
-        zoomScale: 2.0,
-        zoomMode: SmoScore.zoomModes.fitWidth,
-        noteSpacing: 1.0,
-        pages: 1
-      },
-      globalLayout: {
-        svgScale: 1.0,
-        zoomScale: 2.0,
-        zoomMode: SmoScore.zoomModes.fitWidth,
-        noteSpacing: 1.0,
-        pageWidth: 8 * 96 + 48,
-        pageHeight: 11 * 96
-      },
       instrumentMap: [],
       fonts: [
         { name: 'engraving', purpose: SmoScore.fontPurposes.ENGRAVING, family: 'Bravura', size: 1, custom: false },
         { name: 'score', purpose: SmoScore.fontPurposes.SCORE, family: 'Merriweather', size: 14, custom: false },
-        { name: 'chords', purpose: SmoScore.fontPurposes.CHORDS, family: 'Roboto Slab', size: 14, custom: false  },
+        { name: 'chords', purpose: SmoScore.fontPurposes.CHORDS, family: 'Roboto Slab', size: 14, custom: false },
         { name: 'lyrics', purpose: SmoScore.fontPurposes.LYRICS, family: 'Merriweather', size: 12, custom: false }
       ],
       staffWidth: 1600,
@@ -77,17 +112,13 @@ class SmoScore {
         customProportion: 100
       },
       startIndex: 0,
-      renumberingMap: {},
-      keySignatureMap: {},
-      measureTickmap: [],
       staves: [],
       activeStaff: 0,
-      scoreText: [],
       textGroups: [],
       systemGroups: []
     };
   }
-  static get pageSizes() {
+  static get pageSizes(): string[] {
     return ['letter', 'tabloid', 'A4', 'custom'];
   }
   static get pageDimensions() {
@@ -110,7 +141,7 @@ class SmoScore {
   }
   serializeColumnMapped() {
     const attrColumnHash = {};
-    const attrCurrentValue  = {};
+    const attrCurrentValue = {};
     this.staves[0].measures.forEach((measure) => {
       measure.serializeColumnMapped(attrColumnHash, attrCurrentValue);
     });
@@ -121,26 +152,26 @@ class SmoScore {
   // Column-mapped attributes stay the same in each measure until
   // changed, like key-signatures.  We don't store each measure value to
   // make the files smaller
-  static deserializeColumnMapped(scoreObj) {
-    let curValue = 0;
-    let mapIx = 0;
+  static deserializeColumnMapped(scoreObj: any) {
+    let curValue: number = 0;
+    let mapIx: number = 0;
     if (!scoreObj.columnAttributeMap) {
       return;
     }
     const attrs = Object.keys(scoreObj.columnAttributeMap);
-    scoreObj.staves.forEach((staff) => {
-      const attrIxMap = {};
+    scoreObj.staves.forEach((staff: any) => {
+      const attrIxMap: any = {};
       attrs.forEach((attr) => {
         attrIxMap[attr] = 0;
       });
 
-      staff.measures.forEach((measure) => {
+      staff.measures.forEach((measure: any) => {
         attrs.forEach((attr) => {
           mapIx = attrIxMap[attr];
           const curHash = scoreObj.columnAttributeMap[attr];
-          const attrKeys = Object.keys(curHash);
+          const attrKeys: any = Object.keys(curHash);
           curValue = curHash[attrKeys[mapIx.toString()]];
-          attrKeys.sort((a, b) => parseInt(a, 10) > parseInt(b, 10) ? 1 : -1);
+          attrKeys.sort((a: string, b: string) => parseInt(a, 10) > parseInt(b, 10) ? 1 : -1);
           if (attrKeys.length > mapIx + 1) {
             if (measure.measureNumber.measureIndex >= attrKeys[mapIx + 1]) {
               mapIx += 1;
@@ -156,21 +187,24 @@ class SmoScore {
 
   // ### serialize
   // ### Serialize the score.  The resulting JSON string will contain all the staves, measures, etc.
-  serialize() {
+  serialize(): any {
     const params = {};
-    let obj = {
+    let obj: any = {
       score: params,
       layoutManager: {},
       measureFormats: {},
       staves: [],
-      scoreText: [],
       textGroups: [],
       systemGroups: []
     };
-    obj.layoutManager = this.layoutManager.serialize();
-    obj.measureFormats = this.formattingManager.serialize();
+    if (this.layoutManager) {
+      obj.layoutManager = this.layoutManager.serialize();
+    }
+    if (this.formattingManager) {
+      obj.measureFormats = this.formattingManager.serialize();
+    }
     smoSerialize.serializedMerge(SmoScore.defaultAttributes, this, params);
-    this.staves.forEach((staff) => {
+    this.staves.forEach((staff: SmoSystemStaff) => {
       obj.staves.push(staff.serialize());
     });
     // Score text is not part of text group, so don't save separately.
@@ -190,7 +224,7 @@ class SmoScore {
   }
   // ### upConvertLayout
   // Convert legacy score layout to layoutManager object parameters
-  static upConvertLayout(jsonObj) {
+  static upConvertLayout(jsonObj: any) {
     let i = 0;
     jsonObj.layoutManager = {};
     SmoLayoutManager.attributes.forEach((attr) => {
@@ -200,7 +234,7 @@ class SmoScore {
     for (i = 0; i < jsonObj.score.layout.pages; ++i) {
       const pageSetting = JSON.parse(JSON.stringify(SmoPageLayout.defaults));
       SmoPageLayout.attributes.forEach((attr) => {
-        if (typeof(jsonObj.score.layout[attr]) !== 'undefined') {
+        if (typeof (jsonObj.score.layout[attr]) !== 'undefined') {
           pageSetting[attr] = jsonObj.score.layout[attr];
         }
       });
@@ -210,22 +244,22 @@ class SmoScore {
 
   // ### deserialize
   // Restore an earlier JSON string.  Unlike other deserialize methods, this one expects the string.
-  static deserialize(jsonString) {
+  static deserialize(jsonString: any) {
     let jsonObj = JSON.parse(jsonString);
     let upconvertFormat = false;
     let formattingManager = null;
     if (jsonObj.dictionary) {
       jsonObj = smoSerialize.detokenize(jsonObj, jsonObj.dictionary);
     }
-    upconvertFormat = typeof(jsonObj.measureFormats) === 'undefined';
-    const params = {};
-    const staves = [];
+    upconvertFormat = typeof (jsonObj.measureFormats) === 'undefined';
+    const params: any = {};
+    const staves: SmoSystemStaff[] = [];
     jsonObj.textGroups = jsonObj.textGroups ? jsonObj.textGroups : [];
 
     // Explode the sparse arrays of attributes into the measures
     SmoScore.deserializeColumnMapped(jsonObj);
-    if (typeof(jsonObj.score.preferences) !== 'undefined' && typeof(jsonObj.score.preferences.customProportion) === 'number') {
-      SmoMeasure.defaults.customProportion = jsonObj.score.preferences.customProportion;
+    if (typeof (jsonObj.score.preferences) !== 'undefined' && typeof (jsonObj.score.preferences.customProportion) === 'number') {
+      SmoMeasureFormat.defaults.customProportion = jsonObj.score.preferences.customProportion;
     }
     // up-convert legacy layout data
     if (jsonObj.score.layout) {
@@ -241,26 +275,19 @@ class SmoScore {
       SmoScore.defaultAttributes,
       jsonObj.score, params);
 
-    jsonObj.staves.forEach((staffObj) => {
+    jsonObj.staves.forEach((staffObj: any) => {
       const staff = SmoSystemStaff.deserialize(staffObj);
       staves.push(staff);
     });
-    const scoreText = [];
-    jsonObj.scoreText.forEach((tt) => {
-      const st = SmoScoreModifierBase.deserialize(tt);
-      st.autoLayout = false; // since this has been layed out, presumably, before save
-      st.classes = 'score-text ' + st.attrs.id;
-      scoreText.push(st);
-    });
 
-    const textGroups = [];
-    jsonObj.textGroups.forEach((tg) => {
+    const textGroups: SmoTextGroup[] = [];
+    jsonObj.textGroups.forEach((tg: any) => {
       textGroups.push(SmoTextGroup.deserialize(tg));
     });
 
-    const systemGroups = [];
+    const systemGroups: SmoSystemGroup[] = [];
     if (jsonObj.systemGroups) {
-      jsonObj.systemGroups.forEach((tt) => {
+      jsonObj.systemGroups.forEach((tt: any) => {
         var st = SmoScoreModifierBase.deserialize(tt);
         st.autoLayout = false; // since this has been layed out, presumably, before save
         systemGroups.push(st);
@@ -268,48 +295,62 @@ class SmoScore {
     }
     params.staves = staves;
     if (upconvertFormat) {
-      formattingManager = SmoFormattingManager.fromLegacyScore(params, jsonObj);
+      formattingManager = SmoScore.measureFormatFromLegacyScore(params, jsonObj);
     }
     params.formattingManager = formattingManager;
     params.layoutManager = layoutManager;
     const score = new SmoScore(params);
-    score.scoreText = scoreText;
     score.textGroups = textGroups;
     score.systemGroups = systemGroups;
     score.scoreInfo.version += 1;
     return score;
   }
+  // ## fromLegacyScore
+  // Convert measure formatting from legacy scores, that had the formatting
+  // per measure, to the new way that has a separate formatting object.
+  static measureFormatFromLegacyScore(score: SmoScore, jsonObj: any): SmoFormattingManager | null {
+    let current: SmoMeasureFormat | null = null;
+    let previous: SmoMeasureFormat | null = null;
+    const measureFormats: SmoMeasureFormat[] = [];
+    score.staves[0].measures.forEach((measure: SmoMeasure) => {
+      if (current === null) {
+        current = SmoMeasureFormat.fromLegacyMeasure(jsonObj.staves[0].measures[measure.measureNumber.measureIndex]);
+        measureFormats[measure.measureNumber.measureIndex] = current;
+      } else {
+        previous = current;
+        current = SmoMeasureFormat.fromLegacyMeasure(jsonObj.staves[0].measures[measure.measureNumber.measureIndex]);
+        if (!current.eq(previous)) {
+          measureFormats[measure.measureNumber.measureIndex] = current;
+        }
+      }
+    });
+    return new SmoFormattingManager({ measureFormats });
+  }
 
   // ### getDefaultScore
   // Gets a score consisting of a single measure with all the defaults.
-  static getDefaultScore(scoreDefaults, measureDefaults) {
-    scoreDefaults = typeof(scoreDefaults) !== 'undefined' ? scoreDefaults : SmoScore.defaults;
-    measureDefaults = typeof(measureDefaults) !== 'undefined' ? measureDefaults : SmoMeasure.defaults;
+  static getDefaultScore(scoreDefaults: SmoScoreParams, measureDefaults: SmoMeasureParams | null) {
+    scoreDefaults = typeof (scoreDefaults) !== 'undefined' ? scoreDefaults : SmoScore.defaults;
+    measureDefaults = typeof (measureDefaults) !== 'undefined' ? measureDefaults : SmoMeasure.defaults;
     const score = new SmoScore(scoreDefaults);
-    score.formattingManager = new SmoFormattingManager();
-    score.addStaff();
-    const measure = SmoMeasure.getDefaultMeasure(measureDefaults);
-    score.addMeasure(0, measure);
+    score.formattingManager = new SmoFormattingManager(SmoFormattingManager.defaults);
+    score.addStaff(SmoSystemStaff.defaults);
+    const measure: SmoMeasure = SmoMeasure.getDefaultMeasure(measureDefaults as SmoMeasureParams);
+    score.addMeasure(0);
     measure.voices.push({
-      notes: SmoMeasure.getDefaultNotes(measureDefaults)
+      notes: SmoMeasure.getDefaultNotes(measureDefaults as SmoMeasureParams)
     });
     return score;
   }
 
   // ### getEmptyScore
   // Create a score object, but don't populate it with anything.
-  static getEmptyScore(scoreDefaults) {
+  static getEmptyScore(scoreDefaults: SmoScoreParams) {
     const score = new SmoScore(scoreDefaults);
-    score.addStaff();
+    score.addStaff(SmoSystemStaff.defaults);
     return score;
   }
 
-  setPageLayout(layout, pageIndex) {
-    const param = {};
-    smoSerialize.serializedMerge(SmoScore.layoutAttributes, SmoScore.defaults.layout, param);
-    smoSerialize.serializedMerge(SmoScore.layoutAttributes, layout, param);
-    this.pageLayouts[pageIndex] = JSON.parse(JSON.stringify(param));
-  }
   // ### numberStaves
   // recursively renumber staffs and measures.
   numberStaves() {
@@ -324,7 +365,7 @@ class SmoScore {
   updateMeasureFormats() {
     this.staves.forEach((staff) => {
       staff.measures.forEach((measure) => {
-        this.formattingManager.updateFormat(measure);
+        (this.formattingManager as SmoFormattingManager).updateFormat(measure);
       });
     });
   }
@@ -332,7 +373,7 @@ class SmoScore {
   // ### Description:
   // Add a measure to the score with the supplied parameters at the supplied index.
   // The defaults per staff may be different depending on the clef, key of the staff.
-  addDefaultMeasureWithNotes(measureIndex, parameters) {
+  addDefaultMeasureWithNotes(measureIndex: number, parameters: SmoMeasureParams) {
     this.staves.forEach((staff) => {
       const defaultMeasure =
         SmoMeasure.getDefaultMeasureWithNotes(parameters);
@@ -342,19 +383,19 @@ class SmoScore {
 
   // ### deleteMeasure
   // Delete the measure at the supplied index in all the staves.
-  deleteMeasure(measureIndex) {
+  deleteMeasure(measureIndex: number) {
     this.staves.forEach((staff) => {
       staff.deleteMeasure(measureIndex);
     });
     // adjust offset if text was attached to any missing measures after the deleted one.
-    this.textGroups.forEach((tg) => {
-      if (tg.attachToSelector && tg.selector.measure >= measureIndex && tg.selector.measure > 0) {
-        tg.selector.measure -= 1;
+    this.textGroups.forEach((tg: SmoTextGroup) => {
+      if (tg.attachToSelector && (tg.selector as SmoSelector).measure >= measureIndex && (tg.selector as SmoSelector).measure > 0) {
+        (tg.selector as SmoSelector).measure -= 1;
       }
     });
   }
 
-  convertToPickupMeasure(measureIndex, duration) {
+  convertToPickupMeasure(measureIndex: number, duration: number) {
     let i = 0;
     for (i = 0; i < this.staves.length; ++i) {
       const staff = this.staves[i];
@@ -364,12 +405,12 @@ class SmoScore {
     this.numberStaves();
   }
 
-  addPickupMeasure(measureIndex, duration) {
+  addPickupMeasure(measureIndex: number, duration: number) {
     this.convertToPickupMeasure(measureIndex, duration);
   }
-  getPrototypeMeasure(measureIndex, staffIndex) {
+  getPrototypeMeasure(measureIndex: number, staffIndex: number) {
     const staff = this.staves[staffIndex];
-    let protomeasure = {};
+    let protomeasure: SmoMeasureParams = {} as SmoMeasureParams;
 
     // Since this staff may already have instrument settings, use the
     // immediately preceeding or post-ceding measure if it exists.
@@ -384,7 +425,7 @@ class SmoScore {
   // ### addMeasure
   // Give a measure prototype, create a new measure and add it to each staff, with the
   // correct settings for current time signature/clef.
-  addMeasure(measureIndex) {
+  addMeasure(measureIndex: number) {
     let i = 0;
     for (i = 0; i < this.staves.length; ++i) {
       const staff = this.staves[i];
@@ -395,7 +436,10 @@ class SmoScore {
       staff.addMeasure(measureIndex, nmeasure);
     }
     // Update offsets for score modifiers that have a selector
-    this.textGroups.forEach((tg) => {
+    this.textGroups.forEach((tg: SmoTextGroup) => {
+      if (typeof (tg.selector) === 'undefined') {
+        return;
+      }
       if (tg.attachToSelector && tg.selector.measure >= measureIndex && tg.selector.measure < this.staves[0].measures.length) {
         tg.selector.measure += 1;
       }
@@ -405,23 +449,25 @@ class SmoScore {
 
   // ### replaceMeasure
   // Replace the measure at the given location.  Probably due to an undo operation or paste.
-  replaceMeasure(selector, measure) {
+  replaceMeasure(selector: SmoSelector, measure: SmoMeasure) {
     var staff = this.staves[selector.staff];
     staff.measures[selector.measure] = measure;
   }
 
-  getSystemGroupForStaff(selection) {
-    const exist = this.systemGroups.find((sg) =>
-      sg.startSelector.staff <= selection.staff.staffId &&
-        sg.endSelector.staff >= selection.staff.staffId &&
-        (sg.mapType === SmoSystemGroup.mapTypes.allMeasures ||
-        (sg.startSelector.measure <= selection.measure.measureNumber.measureIndex &&
-        sg.endSelector.measure >= selection.measure.measureNumber.measureIndex))
+  getSystemGroupForStaff(selection: SmoSelection) {
+    const staffId: number = selection.staff.staffId;
+    const measureIndex: number = selection.measure.measureNumber.measureIndex;
+    const exist = this.systemGroups.find((sg: SmoSystemGroup) =>
+      sg.startSelector.staff <= staffId &&
+      sg.endSelector.staff >= staffId &&
+      (sg.mapType === SmoSystemGroup.mapTypes.allMeasures ||
+        (sg.startSelector.measure <= measureIndex &&
+          sg.endSelector.measure >= measureIndex))
     );
     return exist;
   }
 
-  getStavesForGroup(group) {
+  getStavesForGroup(group: SmoSystemGroup) {
     return this.staves.filter((staff) => staff.staffId >= group.startSelector.staff &&
       staff.staffId <= group.endSelector.staff);
   }
@@ -429,7 +475,7 @@ class SmoScore {
   // ### addOrReplaceSystemGroup
   // Add a new staff grouping, or replace it if it overlaps and is different, or
   // remove it if it is identical (toggle)
-  addOrReplaceSystemGroup(newGroup) {
+  addOrReplaceSystemGroup(newGroup: SmoSystemGroup) {
     // Replace this group for any groups that overlap it.
     this.systemGroups = this.systemGroups.filter((sg) => !sg.overlaps(newGroup));
     this.systemGroups.push(newGroup);
@@ -437,7 +483,7 @@ class SmoScore {
 
   // ### replace staff
   // Probably due to an undo operation, replace the staff at the given index.
-  replaceStaff(index, staff) {
+  replaceStaff(index: number, staff: SmoSystemStaff) {
     const staves = [];
     let i = 0;
     for (i = 0; i < this.staves.length; ++i) {
@@ -451,7 +497,7 @@ class SmoScore {
   }
   // ### addKeySignature
   // Add a key signature at the specified index in all staves.
-  addKeySignature(measureIndex, key) {
+  addKeySignature(measureIndex: number, key: string) {
     this.staves.forEach((staff) => {
       // Consider transpose for key of instrument
       const netOffset = staff.measures[measureIndex].transposeIndex;
@@ -462,7 +508,7 @@ class SmoScore {
 
   // ### addInstrument
   // add a new staff (instrument) to the score
-  addStaff(parameters) {
+  addStaff(parameters: SmoSystemStaffParams) {
     let i = 0;
     if (this.staves.length === 0) {
       const staff = new SmoSystemStaff(parameters);
@@ -480,10 +526,10 @@ class SmoScore {
     const proto = this.staves[0];
     const measures = [];
     for (i = 0; i < proto.measures.length; ++i) {
-      const newParams = {};
-      const measure = proto.measures[i];
+      const newParams: SmoMeasureParams = {} as SmoMeasureParams;
+      const measure: SmoMeasure = proto.measures[i];
       smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, measure, newParams);
-      newParams.clef = parameters.instrumentInfo.clef;
+      newParams.clef = parameters.instrumentInfo.clef as Clef;
       newParams.transposeIndex = parameters.instrumentInfo.keyOffset;
       const newMeasure = SmoMeasure.getDefaultMeasureWithNotes(newParams);
       newMeasure.measureNumber = measure.measureNumber;
@@ -493,8 +539,7 @@ class SmoScore {
           newMeasure.transposeIndex - measure.transposeIndex);
       newMeasure.modifiers = [];
       measure.modifiers.forEach((modifier) => {
-        const ctor = eval(modifier.ctor);
-        const nmod = new ctor(modifier);
+        const nmod: SmoMeasureModifierBase = SmoMeasureModifierBase.deserialize(modifier);
         newMeasure.modifiers.push(nmod);
       });
       measures.push(newMeasure);
@@ -508,8 +553,8 @@ class SmoScore {
 
   // ### removeStaff
   // Remove stave at the given index
-  removeStaff(index) {
-    const staves = [];
+  removeStaff(index: number) {
+    const staves: SmoSystemStaff[] = [];
     let ix = 0;
     this.staves.forEach((staff) => {
       if (ix !== index) {
@@ -521,7 +566,7 @@ class SmoScore {
     this.numberStaves();
   }
 
-  swapStaves(index1, index2) {
+  swapStaves(index1: number, index2: number) {
     if (this.staves.length < index1 || this.staves.length < index2) {
       return;
     }
@@ -531,21 +576,8 @@ class SmoScore {
     this.numberStaves();
   }
 
-  _updateScoreText(textObject, toAdd) {
-    var texts = [];
-    this.scoreText.forEach((tt) => {
-      if (textObject.attrs.id !==  tt.attrs.id) {
-        texts.push(tt);
-      }
-    });
-    if (toAdd) {
-      texts.push(textObject);
-    }
-    this.scoreText = texts;
-  }
-
-  _updateTextGroup(textGroup, toAdd) {
-    const tgid = typeof(textGroup) === 'string' ? textGroup :
+  _updateTextGroup(textGroup: SmoTextGroup, toAdd: boolean) {
+    const tgid = typeof (textGroup) === 'string' ? textGroup :
       textGroup.attrs.id;
     const ar = this.textGroups.filter((tg) => tg.attrs.id !== tgid);
     this.textGroups = ar;
@@ -553,62 +585,50 @@ class SmoScore {
       this.textGroups.push(textGroup);
     }
   }
-  addTextGroup(textGroup) {
+  addTextGroup(textGroup: SmoTextGroup) {
     this._updateTextGroup(textGroup, true);
   }
   getTextGroups() {
     return this.textGroups;
   }
+  scaleTextGroups(scale: number) {
+    this.textGroups.forEach((tg: SmoTextGroup) => {
+      tg.scaleText(scale);
+    });
+  }
 
-  removeTextGroup(textGroup) {
+  removeTextGroup(textGroup: SmoTextGroup) {
     this._updateTextGroup(textGroup, false);
   }
 
-  addScoreText(textObject) {
-    this._updateScoreText(textObject, true);
-  }
-
-  getScoreText(id) {
-    if (!this.scoreText.length) {
-      return null;
-    }
-    const ar = this.scoreText.filter((tt) =>
-      tt.attrs.id === id
-    );
-    if (ar.length) {
-      return ar[0];
-    }
-    return null;
-  }
-
-  removeScoreText(textObject) {
-    this._updateScoreText(textObject, false);
-  }
-  setLyricAdjustWidth(adjustNoteWidth) {
+  setLyricAdjustWidth(adjustNoteWidth: boolean) {
     this.staves.forEach((staff) => {
       staff.setLyricAdjustWidth(adjustNoteWidth);
     });
   }
 
-  setChordAdjustWidth(adjustNoteWidth) {
+  setChordAdjustWidth(adjustNoteWidth: boolean) {
     this.staves.forEach((staff) => {
       staff.setChordAdjustWidth(adjustNoteWidth);
     });
   }
   // ### setLyricFont
   // set the font for lyrics, which are the same for all lyrics in the score
-  setLyricFont(fontInfo) {
+  setLyricFont(fontInfo: FontInfo) {
     this.staves.forEach((staff) => {
       staff.setLyricFont(fontInfo);
     });
 
-    const fontInst = this.fonts.find((fn) => fn.name === 'lyrics');
+    const fontInst: FontPurpose | undefined = this.fonts.find((fn) => fn.name === 'lyrics');
+    if (typeof (fontInst) === 'undefined') {
+      return;
+    }
     fontInst.family = fontInfo.family;
     fontInst.size = fontInfo.size;
     fontInst.custom = true;
   }
 
-  setChordFont(fontInfo) {
+  setChordFont(fontInfo: FontInfo) {
     this.staves.forEach((staff) => {
       staff.setChordFont(fontInfo);
     });
@@ -620,7 +640,7 @@ class SmoScore {
     }
     return this.staves[this.activeStaff].measures;
   }
-  incrementActiveStaff(offset) {
+  incrementActiveStaff(offset: number) {
     if (offset < 0) {
       offset = offset + this.staves.length;
     }
@@ -631,20 +651,7 @@ class SmoScore {
     return this.activeStaff;
   }
 
-  setActiveStaff(index) {
+  setActiveStaff(index: number) {
     this.activeStaff = index <= this.staves.length ? index : this.activeStaff;
-  }
-
-  getRenderedNote(id) {
-    let i = 0;
-    for (i = 0; i < this.staves.length; ++i) {
-      const stave = this.staves[i];
-      const note = stave.getRenderedNote(id);
-      if (note) {
-        note.selection.staffIndex = i;
-        return note;
-      }
-    }
-    return null;
   }
 }

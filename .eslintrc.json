@@ -1,21 +1,36 @@
 {
-  "extends": "airbnb-base",
   "root": true,
+  "extends": [
+    "airbnb-base",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "plugin:import/typescript"
+  ],
+  "parser": "@typescript-eslint/parser",
   "env": {
     "browser": true,
     "jquery": true,
     "es6": true
   },
   "globals": {
-    "SmoSelection": true,
-    "SmoOperation": true,
-    "BeamModifierBase": true,
-    "smoBeamerFactory": true,
-    "smoBeamerIterator": true,
-    "smoBeamModifier": true,
-    "VF" : true
+    "VF" : true,
+    "Vex": true,
+    "SmoConfig": true,
+     "JSZip": true,
+     "Smo": true,
+     "MidiWriter": true
   },
   "rules": {
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "jsx": "never",
+        "ts": "never",
+        "tsx": "never"
+      }
+   ],
     "no-bitwise": [
       0
     ],
@@ -117,10 +132,10 @@
     "no-shadow": [
       0
     ],
-    "no-undef-init": [
+    "no-unused-vars": [
       0
     ],
-    "no-undef": [
+    "no-undef-init": [
       0
     ],
     "no-use-before-define": [

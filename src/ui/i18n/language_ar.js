@@ -1,5 +1,5 @@
 
-var smoLanguageStringAr = `[
+export const smoLanguageStringAr = `[
  {
   "ctor": "SuiLoadFileDialog",
   "dialogElements": [
@@ -1028,7 +1028,7 @@ var smoLanguageStringAr = `[
 ]`;
 
 
-var quickStartHtmlar = `(Arabic)
+export const quickStartHtmlar = `(Arabic)
     <h3 id="quick-start-guide">Quick start guide</h3>
 <p>If you don&#39;t like to read instructions, this cook&#39;s tour of Smoosic was made for you.</p>
 <ul>
@@ -1053,7 +1053,7 @@ var quickStartHtmlar = `(Arabic)
 `;
 
 
-var selectionHtmlar = `(Arabic)
+export const selectionHtmlar = `(Arabic)
 <h3 id="selecting-things">Selecting things</h3>
 <p>Almost all operations in Smoosic act on the selected music.  You can select notes in different ways:</p>
 <ol>
@@ -1068,7 +1068,7 @@ var selectionHtmlar = `(Arabic)
 `;
 
 
-var enterDurationsHtmlar = `(Arabic)
+export const enterDurationsHtmlar = `(Arabic)
 <p>Note duration in Smoosic is done by changing the duration of an existing note.  Usually, doubling the duration or cutting it in two, or adding a dot - duration to a note.  You can also create tuplets for uneven sets of notes (3, 5, or 7).</p>
 <p>There are actually 3 ways to do many duration operations - using the piano tool, using the computer keyboard, or using the button ribbon.  Like with many things, you should find entering duration using the keyboard fastest, once you have some experience with Smoosic.  But the ribbon or the </p>
 <h2 id="changing-note-length-with-the-keyboard">Changing note length with the keyboard</h2>
@@ -1090,7 +1090,7 @@ var enterDurationsHtmlar = `(Arabic)
 `;
 
 
-var enterPitchesHtmlar = `(Arabic)
+export const enterPitchesHtmlar = `(Arabic)
 <p>There are a few ways to enter notes in Smoosic.  You can click on the piano widget keys, or you can enter notes directly from the keyboard.</p>
 <h2 id="your-first-smoosical-notes">Your first Smoosical notes</h2>
 <h3 id="notes-from-the-keyboard">Notes from the keyboard</h3>

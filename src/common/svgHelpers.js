@@ -5,7 +5,7 @@
 // Mostly utilities for converting coordinate spaces based on transforms, etc.
 // ### static class methods:
 // ---
-class svgHelpers {
+export class svgHelpers {
   static get namespace() {
     return "http://www.w3.org/2000/svg";
   }
@@ -431,11 +431,11 @@ class svgHelpers {
   // ### measureBBox
   // Return the bounding box of the measure
   static measureBBox(b1, measure, staff) {
-    if (measure.renderedBox) {
+    if (measure.svg.renderedBox) {
       if (b1['width']) {
-        return svgHelpers.unionRect(b1, measure.renderedBox);
+        return svgHelpers.unionRect(b1, measure.svg.renderedBox);
       } else {
-        return measure.renderedBox;
+        return measure.svg.renderedBox;
       }
     } else {
       var mbox = {

@@ -5,8 +5,17 @@
 // measure of music.  If multiple measures are justified in a
 // column, the rendering is deferred until all the measures have been
 // preformatted.
-// eslint-disable-next-line no-unused-vars
-class VxMeasure {
+import { SmoNote } from '../../smo/data/note';
+import { smoMusic } from '../../common/musicHelpers';
+import { svgHelpers } from '../../common/svgHelpers';
+import { layoutDebug } from '../sui/layoutDebug';
+import { SmoRepeatSymbol, SmoMeasureText, SmoBarline } from '../../smo/data/measureModifiers';
+import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';
+import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
+import { SmoOrnament, SmoArticulation } from '../../smo/data/noteModifiers';
+
+const VF = Vex.Flow;
+export class VxMeasure {
   constructor(context, options) {
     this.context = context;
     Vex.Merge(this, VxMeasure.defaults);
@@ -47,15 +56,6 @@ class VxMeasure {
   addCustomModifier(ctor, parameters) {
     this.smoMeasure.addCustomModifier(ctor, parameters);
   }
-
-  applyTransform(actor) {
-    SmoTickTransformer.applyTransform(this.smoMeasure, [actor]);
-    smoModifierFactory.applyModifiers(this.smoMeasure);
-  }
-  applyModifiers() {
-    smoModifierFactory.applyModifiers(this.smoMeasure);
-  }
-
   // ## Description:
   // decide whether to force stem direction for multi-voice, or use the default.
   // ## TODO:
@@ -75,16 +75,11 @@ class VxMeasure {
 
   // We add microtones to the notes, without regard really to how they interact
   _createMicrotones(smoNote, vexNote) {
-    // let added = false;
     const tones = smoNote.getMicrotones();
     tones.forEach((tone) => {
       const acc = new VF.Accidental(tone.toVex);
       vexNote.addAccidental(tone.pitch, acc);
-      added = true;
     });
-    // if (added) {
-    //   this._addSpacingAnnotation(vexNote);
-    // }
   }
   _createAccidentals(smoNote, vexNote, tickIndex, voiceIx) {
     let i = 0;
@@ -221,7 +216,7 @@ class VxMeasure {
         }
         gr.addClass('grace-note'); // note: this doesn't work :(
 
-        g.renderedId = gr.attrs.id;
+        g.renderId = gr.attrs.id;
         group.push(gr);
       });
       const grace = new VF.GraceNoteGroup(group);
@@ -544,15 +539,10 @@ class VxMeasure {
     });
   }
   format(voices) {
-    let i = 0;
     const timestamp = new Date().valueOf();
     this.formatter.format(voices,
       this.smoMeasure.staffWidth -
       (this.smoMeasure.svg.adjX + this.smoMeasure.svg.adjRight + this.smoMeasure.format.padLeft) - 10);
-    const iterations = this.smoMeasure.getFormattingIterations();
-    for (i = 0; i < iterations; ++i) {
-      this.formatter.tune();
-    }
     layoutDebug.setTimestamp(layoutDebug.codeRegions.FORMAT, new Date().valueOf() - timestamp);
   }
   render() {

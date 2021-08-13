@@ -1,9 +1,15 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { smoSerialize } from '../../common/serializationHelpers';
+import { SuiTextInputComposite, SuiToggleComposite, SuiComponentBase, SuiDropdownComposite, SuiToggleComponent } from '../dialogComponents';
+import { htmlHelpers } from '../../common/htmlHelpers';
+import { SmoSelection } from '../../smo/xform/selections';
+import { SuiDialogBase } from '../dialog';
+import { SuiTieAttributesDialog, SuiStaffGroupDialog } from './staffDialogs';
+
 // ## CheckboxDropdownComponent
 // A checkbox that enables a dropdown component, for optional or dependent parameter
-// eslint-disable-next-line no-unused-vars
-class CheckboxDropdownComponent extends SuiComponentBase {
+export class CheckboxDropdownComponent extends SuiComponentBase {
   // { dropdownElement: {...}, toggleElement: }
   constructor(dialog, parameter) {
     super(parameter);
@@ -42,8 +48,7 @@ class CheckboxDropdownComponent extends SuiComponentBase {
 
 // ## TieMappingComponent
 // Represent the pitches in 2 notes that can be individually tied together
-// eslint-disable-next-line no-unused-vars
-class TieMappingComponent extends SuiComponentBase {
+export class TieMappingComponent extends SuiComponentBase {
   // { dropdownElement: {...}, toggleElement: }
   constructor(dialog, parameter) {
     let i = 0;
@@ -140,8 +145,7 @@ class TieMappingComponent extends SuiComponentBase {
     return q;
   }
 }
-// eslint-disable-next-line no-unused-vars
-class StaffAddRemoveComponent extends SuiComponentBase {
+export class StaffAddRemoveComponent extends SuiComponentBase {
   get parameterId() {
     return this.dialog.id + '-' + this.parameterName;
   }
@@ -258,8 +262,7 @@ class StaffAddRemoveComponent extends SuiComponentBase {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class StaffCheckComponent extends SuiComponentBase {
+export class StaffCheckComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
     smoSerialize.filteredMerge(
@@ -322,8 +325,7 @@ class StaffCheckComponent extends SuiComponentBase {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class TextCheckComponent extends SuiComponentBase {
+export class TextCheckComponent extends SuiComponentBase {
   constructor(dialog, parameter) {
     super(parameter);
     smoSerialize.filteredMerge(

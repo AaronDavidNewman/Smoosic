@@ -1,7 +1,14 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-// eslint-disable-next-line no-unused-vars
-class SuiLyricDialog extends SuiDialogBase {
+import { SuiDialogBase } from '../dialog';
+import { SuiInlineText } from '../../render/sui/textRender';
+import { SuiHelp } from '../help';
+import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
+import { layoutDebug } from '../../render/sui/layoutDebug';
+import { SmoDynamicText } from '../../smo/data/noteModifiers';
+import { htmlHelpers } from '../../common/htmlHelpers';
+
+export class SuiLyricDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiLyricDialog';
   }
@@ -39,7 +46,8 @@ class SuiLyricDialog extends SuiDialogBase {
           value: 3,
           label: '4'
         }
-        ] }, {
+        ]
+      }, {
         smoName: 'translateY',
         parameterName: 'translateY',
         classes: 'hide-when-editing',
@@ -83,15 +91,13 @@ class SuiLyricDialog extends SuiDialogBase {
   }
 
   constructor(parameters) {
-    parameters.ctor = typeof(parameters.ctor) !== 'undefined' ? parameters.ctor : 'SuiLyricDialog';
+    parameters.ctor = typeof (parameters.ctor) !== 'undefined' ? parameters.ctor : 'SuiLyricDialog';
     const p = parameters;
-    const _class = eval(p.ctor);
+    const _class = Smo.getClass(p.ctor);
     const dialogElements = _class.dialogElements;
 
     super(dialogElements, {
       id: 'dialog-lyrics',
-      top: (p.view.score.layout.pageWidth / 2) - 200,
-      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...p
     });
     this.originalRefreshTimer = SmoConfig.idleRedrawTime;
@@ -208,8 +214,7 @@ class SuiLyricDialog extends SuiDialogBase {
     }
   }
 }
-// eslint-disable-next-line no-unused-vars
-class SuiChordChangeDialog  extends SuiDialogBase {
+export class SuiChordChangeDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiChordChangeDialog';
   }
@@ -224,13 +229,11 @@ class SuiChordChangeDialog  extends SuiDialogBase {
   constructor(parameters) {
     parameters.ctor = 'SuiChordChangeDialog';
     const p = parameters;
-    const _class = eval(p.ctor);
+    const _class = Smo.getClass(p.ctor);
     const dialogElements = _class.dialogElements;
 
     super(dialogElements, {
       id: 'dialog-chords',
-      top: (p.view.score.layout.pageWidth / 2) - 200,
-      left: (p.view.score.layout.pageHeight / 2) - 200,
       ...p
     });
   }
@@ -336,7 +339,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
   }
   changed() {
     let val = '';
-    if (this.chordSymbolCtrl.changeFlag && this.chordEditorCtrl.running)   {
+    if (this.chordSymbolCtrl.changeFlag && this.chordEditorCtrl.running) {
       val = '@' + this.chordSymbolCtrl.getValue() + '@';
       this.chordEditorCtrl.evKey({
         key: val
@@ -453,8 +456,7 @@ class SuiChordChangeDialog  extends SuiDialogBase {
     }
   }
 }
-// eslint-disable-next-line no-unused-vars
-class SuiTextTransformDialog  extends SuiDialogBase {
+export class SuiTextTransformDialog extends SuiDialogBase {
   static createAndDisplay(parameters) {
     const dg = new SuiTextTransformDialog(parameters);
     dg.display();
@@ -487,7 +489,8 @@ class SuiTextTransformDialog  extends SuiDialogBase {
         options: [
           { value: '@@@', label: 'Pages' },
           { value: '###', label: 'Page Number' }
-        ] }, {
+        ]
+      }, {
         smoName: 'textDragger',
         parameterName: 'textLocation',
         classes: 'hide-when-editing show-when-moving',
@@ -705,7 +708,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   mouseMove(ev) {
     if (this.textResizerCtrl && this.textResizerCtrl.running) {
       this.textResizerCtrl.mouseMove(ev);
-    }  else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
+    } else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
       this.textDraggerCtrl.mouseMove(ev);
     } else if (this.textEditorCtrl && this.textEditorCtrl.isRunning) {
       this.textEditorCtrl.mouseMove(ev);
@@ -730,22 +733,22 @@ class SuiTextTransformDialog  extends SuiDialogBase {
   constructor(parameters) {
     let edited = false;
     const tracker = parameters.view.tracker;
-    const layout = parameters.view.score.layout;
+    const layout = parameters.view.score.layoutManager.getGlobalLayout();
 
     // Create a new text modifier, if this is new text.   Else use selection
     if (!parameters.modifier) {
-      const newText =  new SmoScoreText({ position: SmoScoreText.positions.custom });
+      const newText = new SmoScoreText({ position: SmoScoreText.positions.custom });
       newText.y += tracker.scroller.netScroll.y;
       if (tracker.selections.length > 0) {
         const sel = tracker.selections[0].measure;
-        if (typeof(sel.logicalBox) !== 'undefined') {
+        if (typeof (sel.logicalBox) !== 'undefined') {
           if (sel.logicalBox.y >= newText.y) {
             newText.y = sel.logicalBox.y;
             newText.x = sel.logicalBox.x;
           }
         }
       }
-      const newGroup = new SmoTextGroup({ blocks: [newText] });
+      const newGroup = new SmoTextGroup({ blocks: [{ text: newText, position: SmoTextGroup.relativePositions.LEFT }] });
       parameters.modifier = newGroup;
       parameters.modifier.setActiveBlock(newText);
       parameters.view.addTextGroup(parameters.modifier);
@@ -811,8 +814,7 @@ class SuiTextTransformDialog  extends SuiDialogBase {
 // ## SuiDynamicModifierDialog
 // This is a poorly named class, it just allows you to placeText
 // dynamic text so it doesn't collide with something.
-// eslint-disable-next-line no-unused-vars
-class SuiDynamicModifierDialog extends SuiDialogBase {
+export class SuiDynamicModifierDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiDynamicModifierDialog';
   }
@@ -877,9 +879,11 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
         control: 'SuiDropdownComponent',
         label: 'Text'
       },
-      { staticText: [
-        { label: 'Dynamics Properties' }
-      ] }
+      {
+        staticText: [
+          { label: 'Dynamics Properties' }
+        ]
+      }
       ];
     return SuiDynamicModifierDialog._dialogElements;
   }
@@ -892,8 +896,6 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
   constructor(parameters) {
     super(SuiDynamicModifierDialog.dialogElements, {
       id: 'dialog-' + parameters.modifier.id,
-      top: parameters.modifier.renderedBox.y,
-      left: parameters.modifier.renderedBox.x,
       ...parameters
     });
     Vex.Merge(this, parameters);
@@ -947,10 +949,9 @@ class SuiDynamicModifierDialog extends SuiDialogBase {
     this.view.addDynamic(this.modifier);
   }
 }
-// eslint-disable-next-line no-unused-vars
-class helpModal {
+export class helpModal {
   static createAndDisplay() {
-    SmoHelp.displayHelp();
+    SuiHelp.displayHelp();
     return htmlHelpers.closeDialogPromise();
   }
 }

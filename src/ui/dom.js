@@ -1,7 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { htmlHelpers } from "../common/htmlHelpers";
+import { svgHelpers } from "../common/svgHelpers";
+import { suiPiano } from "../render/sui/piano";
 
-class SuiDom {
+export class SuiDom {
   static splash() {
     var b = htmlHelpers.buildDom;
     var logoPath = SmoConfig.smoPath + '/styles/images/logo.png'

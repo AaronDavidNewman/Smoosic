@@ -1,33 +1,105 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { smoSerialize } from '../../common/serializationHelpers';
+import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament } from './noteModifiers';
+import { smoMusic } from '../../common/musicHelpers';
+import { Ticks, Pitch, SmoAttrs, FontInfo, Transposable, PitchLetter, SvgBox } from './common';
+const VF = eval('Vex.Flow');
+
+export interface TupletInfo {
+  id: string;
+}
+export interface SmoNoteParams {
+  noteType: string,
+  noteHead: string,
+  clef: string,
+  textModifiers: SmoNoteModifierBase[],
+  articulations: SmoArticulation[],
+  graceNotes: SmoGraceNote[],
+  ornaments: SmoGraceNote[],
+  tones: SmoMicrotone[],
+  endBeam: boolean,
+  fillStyle: string | null,
+  hidden: boolean,
+  beamBeats: number,
+  flagState: number,
+  ticks: Ticks,
+  pitches: Pitch[],
+}
+
 // ## SmoNote
 // ## Description:
 // Data for a musical note.  THe most-contained-thing, except there can be note modifiers
 // Basic note information.  Leaf node of the SMO dependency tree (so far)
 // ## SmoNote Methods
 // ---
-// eslint-disable-next-line no-unused-vars
-class SmoNote {
+export class SmoNote implements Transposable {
   // ### Description:
   // see defaults for params format.
-  constructor(params) {
-    Vex.Merge(this, SmoNote.defaults);
+  constructor(params: SmoNoteParams) {
     smoSerialize.serializedMerge(SmoNote.parameterArray, params, this);
-    if (!this.attrs) {
-      this.attrs = {
-        id: VF.Element.newID(),
-        type: 'SmoNote'
-      };
-    } // else inherit
+    this.attrs = {
+      id: VF.Element.newID(),
+      type: 'SmoNote'
+    }; // else inherit
   }
   static get flagStates() {
     return { auto: 0, up: 1, down: 2 };
   }
+  attrs: SmoAttrs;
+  flagState: number = SmoNote.flagStates.auto;
+  textModifiers: SmoNoteModifierBase[] = [];
+  articulations: SmoArticulation[] = [];
+  ornaments: SmoOrnament[] = [];
+  pitches: Pitch[] = [];
+  noteHead: string = '';
+  clef: string = 'treble';
+  graceNotes: SmoGraceNote[] = [];
+  noteType: string = 'n';
+  fillStyle: string = '';
+  hidden: boolean = false;
+  tuplet: TupletInfo | null = null;
+  tones: SmoMicrotone[] = [];
+  endBeam: boolean = false;
+  ticks: Ticks = { numerator: 4096, denominator: 1, remainder: 0 };
+  beamBeats: number = 4096;
+  beam_group: SmoAttrs | null = null;
+  renderId: string | null = null;
+  keySignature: string = 'c';
+  logicalBox: SvgBox | undefined;
+  renderedBox: SvgBox | undefined;
+
   static get parameterArray() {
     return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef',
       'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden'];
   }
-
+  static get defaults(): SmoNoteParams {
+    return JSON.parse(JSON.stringify({
+      noteType: 'n',
+      noteHead: 'n',
+      clef: 'treble',
+      textModifiers: [],
+      articulations: [],
+      graceNotes: [],
+      ornaments: [],
+      tones: [],
+      endBeam: false,
+      fillStyle: '',
+      hidden: false,
+      beamBeats: 4096,
+      flagState: SmoNote.flagStates.auto,
+      ticks: {
+        numerator: 4096,
+        denominator: 1,
+        remainder: 0
+      },
+      pitches: [{
+        letter: 'b',
+        octave: 4,
+        accidental: ''
+      }],
+    }));
+  }
   toggleFlagState() {
     this.flagState = (this.flagState + 1) % 3;
   }
@@ -53,7 +125,7 @@ class SmoNote {
   // ### _addModifier
   // ### Description
   // add or remove sFz, mp, etc.
-  _addModifier(dynamic, toAdd) {
+  _addModifier(dynamic: SmoNoteModifierBase, toAdd: boolean) {
     var tms = [];
     this.textModifiers.forEach((tm) => {
       if (tm.attrs.type !== dynamic.attrs.type) {
@@ -66,7 +138,7 @@ class SmoNote {
     this.textModifiers = tms;
   }
 
-  _addArticulation(articulation, toAdd) {
+  _addArticulation(articulation: SmoArticulation, toAdd: boolean) {
     var tms = [];
     this.articulations.forEach((tm) => {
       if (tm.articulation !== articulation.articulation) {
@@ -79,13 +151,13 @@ class SmoNote {
     this.articulations = tms;
   }
 
-  addModifier(dynamic) {
+  addModifier(dynamic: SmoNoteModifierBase) {
     this._addModifier(dynamic, true);
   }
-  removeModifier(dynamic) {
+  removeModifier(dynamic: SmoNoteModifierBase) {
     this._addModifier(dynamic, false);
   }
-  getModifiers(type) {
+  getModifiers(type: string) {
     var ms = this.textModifiers.filter((mod) =>
       mod.attrs.type === type
     );
@@ -93,56 +165,56 @@ class SmoNote {
   }
 
   longestLyric() {
-    const tms = this.textModifiers.filter((mod) =>
-      mod.attrs.type === 'SmoLyric' && mod.parser === SmoLyric.parsers.lyric
+    const tms: SmoNoteModifierBase[] = this.textModifiers.filter((mod: SmoNoteModifierBase) =>
+      mod.attrs.type === 'SmoLyric' && (mod as SmoLyric).parser === SmoLyric.parsers.lyric
     );
     if (!tms.length) {
       return null;
     }
     return tms.reduce((m1, m2) =>
-      m1.getText().length > m2.getText().length ? m1 : m2
+      (m1 as SmoLyric).getText().length > (m2 as SmoLyric).getText().length ? m1 : m2
     );
   }
 
-  addLyric(lyric) {
-    const tms = this.textModifiers.filter((mod) =>
-      mod.attrs.type !== 'SmoLyric' || mod.parser !== lyric.parser ||
-        mod.verse !== lyric.verse
+  addLyric(lyric: SmoLyric) {
+    const tms = this.textModifiers.filter((mod: SmoNoteModifierBase) =>
+      mod.attrs.type !== 'SmoLyric' || (mod as SmoLyric).parser !== lyric.parser ||
+        (mod as SmoLyric).verse !== lyric.verse
     );
     tms.push(lyric);
     this.textModifiers = tms;
   }
 
-  getTrueLyrics() {
+  getTrueLyrics(): SmoLyric[] {
     const ms = this.textModifiers.filter((mod) =>
-      mod.attrs.type === 'SmoLyric' && mod.parser === SmoLyric.parsers.lyric);
-    ms.sort((a, b) => a.verse - b.verse);
-    return ms;
+      mod.attrs.type === 'SmoLyric' && (mod as SmoLyric).parser === SmoLyric.parsers.lyric);
+    ms.sort((a, b) => (a as SmoLyric).verse - (b as SmoLyric).verse);
+    return (ms as SmoLyric[]);
   }
 
-  getChords() {
+  getChords(): SmoLyric[] {
     const ms = this.textModifiers.filter((mod) =>
-      mod.attrs.type === 'SmoLyric' && mod.parser === SmoLyric.parsers.chord
+      mod.attrs.type === 'SmoLyric' && (mod as SmoLyric).parser === SmoLyric.parsers.chord
     );
-    return ms;
+    return ms as SmoLyric[];
   }
 
-  removeLyric(lyric) {
-    const tms = this.textModifiers.filter((mod) =>
-      mod.attrs.type !== 'SmoLyric' || mod.verse !== lyric.verse || mod.parser !== lyric.parser
+  removeLyric(lyric: SmoLyric) {
+    const tms = this.textModifiers.filter((mod: SmoNoteModifierBase) =>
+      mod.attrs.type !== 'SmoLyric' || (mod as SmoLyric).verse !== lyric.verse || (mod as SmoLyric).parser !== lyric.parser
     );
     this.textModifiers = tms;
   }
 
-  getLyricForVerse(verse, parser) {
+  getLyricForVerse(verse: number, parser: number) {
     return this.textModifiers.filter((mod) =>
-      mod.attrs.type === 'SmoLyric' && mod.parser === parser && mod.verse === verse
+      mod.attrs.type === 'SmoLyric' && (mod as SmoLyric).parser === parser && (mod as SmoLyric).verse === verse
     );
   }
 
   // ### setLyricFont
   // Lyric font is score-wide, so we set all lyrics to the same thing.
-  setLyricFont(fontInfo) {
+  setLyricFont(fontInfo: FontInfo) {
     const lyrics = this.getTrueLyrics();
 
     lyrics.forEach((lyric) => {
@@ -152,21 +224,21 @@ class SmoNote {
 
   // ### setLyricFont
   // Set whether we ajust note width for lyrics, a scope-wide setting.
-  setLyricAdjustWidth(adjustNoteWidth) {
+  setLyricAdjustWidth(adjustNoteWidth: boolean) {
     const lyrics = this.getTrueLyrics();
     lyrics.forEach((lyric) => {
       lyric.adjustNoteWidth = adjustNoteWidth;
     });
   }
 
-  setChordAdjustWidth(adjustNoteWidth) {
+  setChordAdjustWidth(adjustNoteWidth: boolean) {
     const chords = this.getChords();
     chords.forEach((chord) => {
       chord.adjustNoteWidth = adjustNoteWidth;
     });
   }
 
-  setChordFont(fontInfo) {
+  setChordFont(fontInfo: FontInfo) {
     const chords = this.getChords();
     chords.forEach((chord) => {
       chord.fontInfo = JSON.parse(JSON.stringify(fontInfo));
@@ -181,7 +253,7 @@ class SmoNote {
     return this.ornaments.filter((oo) => oo.isJazz());
   }
 
-  toggleOrnament(ornament) {
+  toggleOrnament(ornament: SmoOrnament) {
     const aix = this.ornaments.filter((a) =>
       a.attrs.type === 'SmoOrnament' && a.ornament === ornament.ornament
     );
@@ -193,7 +265,7 @@ class SmoNote {
   }
 
   // Toggle between articulation above, below, or remove
-  toggleArticulation(articulation) {
+  toggleArticulation(articulation: SmoArticulation) {
     var aix = this.articulations.findIndex((a) =>
       a.articulation === articulation.articulation
     );
@@ -210,28 +282,28 @@ class SmoNote {
     this._addArticulation(articulation, true);
   }
 
-  static _sortPitches(note) {
+  static _sortPitches(note: Transposable) {
     const canon = VF.Music.canonical_notes;
-    const keyIndex = ((pitch) =>
+    const keyIndex = ((pitch: Pitch) =>
       canon.indexOf(pitch.letter) + pitch.octave * 12
     );
     note.pitches.sort((a, b) => keyIndex(a) - keyIndex(b));
   }
-  setNoteHead(noteHead) {
+  setNoteHead(noteHead: string) {
     if (this.noteHead === noteHead) {
       this.noteHead = '';
     } else {
       this.noteHead = noteHead;
     }
   }
-  addGraceNote(graceNote, offset) {
+  addGraceNote(graceNote: SmoGraceNote, offset: number) {
     if (typeof(offset) === 'undefined') {
       offset = 0;
     }
     graceNote.clef = this.clef;
     this.graceNotes.push(graceNote);
   }
-  removeGraceNote(offset) {
+  removeGraceNote(offset: number) {
     if (offset >= this.graceNotes.length) {
       return;
     }
@@ -240,7 +312,16 @@ class SmoNote {
   getGraceNotes() {
     return this.graceNotes;
   }
-  addPitchOffset(offset) {
+  static addPitchOffset(note: Transposable, offset: number) {
+    if (note.pitches.length === 0) {
+      return;
+    }
+    note.noteType = 'n';
+    const pitch = note.pitches[0];
+    note.pitches.push(smoMusic.getKeyOffset(pitch, offset));
+    SmoNote._sortPitches(note);
+  }
+  addPitchOffset(offset: number) {
     if (this.pitches.length === 0) {
       return;
     }
@@ -274,21 +355,21 @@ class SmoNote {
     this.fillStyle = '';
     this.hidden = false;
   }
-  makeHidden(val) {
+  makeHidden(val: boolean) {
     this.hidden = val;
     this.fillStyle = val ? '#aaaaaa7f' : '';
   }
 
-  get isTuplet() {
-    return this.tuplet && this.tuplet.id;
+  get isTuplet(): boolean {
+    return this.tuplet !== null && this.tuplet.id !== null;
   }
 
-  addMicrotone(tone) {
-    const ar = this.tones.filter((tn) => tn.pitch !== tone.pitch);
+  addMicrotone(tone: SmoMicrotone) {
+    const ar = this.tones.filter((tn: SmoMicrotone) => tn.pitch !== tone.pitch);
     ar.push(tone);
     this.tones = ar;
   }
-  removeMicrotone(tone) {
+  removeMicrotone(tone: SmoMicrotone) {
     const ar = this.tones.filter((tn) => tn.pitch !== tone.pitch
       && tone.tone !== tn.tone);
     this.tones = ar;
@@ -297,25 +378,25 @@ class SmoNote {
   getMicrotones() {
     return this.tones;
   }
-  static toggleEnharmonic(pitch) {
+  static toggleEnharmonic(pitch: Pitch) {
     const lastLetter = pitch.letter;
     let vexPitch = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch));
     vexPitch = smoMusic.getEnharmonic(vexPitch);
 
-    pitch.letter = vexPitch[0];
+    pitch.letter = vexPitch[0] as PitchLetter;
     pitch.accidental = vexPitch.length > 1 ?
       vexPitch.substring(1, vexPitch.length) : 'n';
     pitch.octave += smoMusic.letterChangedOctave(lastLetter, pitch.letter);
     return pitch;
   }
 
-  transpose(pitchArray, offset, keySignature) {
+  transpose(pitchArray: number[], offset: number, keySignature: string) {
     return SmoNote._transpose(this, pitchArray, offset, keySignature);
   }
   // ### addPitch
   // used to add chord and pitch by piano widget
-  toggleAddPitch(pitch) {
-    const pitches = [];
+  toggleAddPitch(pitch: Pitch) {
+    const pitches: Pitch[] = [];
     let exists = false;
     this.pitches.forEach((o) => {
       if (o.letter !== pitch.letter ||
@@ -333,10 +414,10 @@ class SmoNote {
     }
     SmoNote._sortPitches(this);
   }
-  static _transpose(note, pitchArray, offset, keySignature) {
-    let index = 0;
-    let j = 0;
-    let letterKey = 'a';
+  static _transpose(note: Transposable, pitchArray:number[], offset: number, keySignature: string) {
+    let index: number = 0;
+    let j: number = 0;
+    let letterKey: string = 'a';
     note.noteType = 'n';
     if (pitchArray.length === 0) {
       note.pitches.forEach((m) => {
@@ -346,13 +427,13 @@ class SmoNote {
     for (j = 0; j < pitchArray.length; ++j) {
       index = pitchArray[j];
       if (index + 1 > note.pitches.length) {
-        note.addPitchOffset(offset);
+        SmoNote.addPitchOffset(note, offset);
       } else {
         const pitch = smoMusic.getKeyOffset(note.pitches[index], offset);
         if (keySignature) {
           letterKey = pitch.letter + pitch.accidental;
           letterKey = smoMusic.getKeyFriendlyEnharmonic(letterKey, keySignature);
-          pitch.letter = letterKey[0];
+          pitch.letter = letterKey[0] as PitchLetter;
           if (letterKey.length < 2) {
             pitch.accidental = 'n';
           } else {
@@ -369,7 +450,7 @@ class SmoNote {
     return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
   }
 
-  static clone(note) {
+  static clone(note: SmoNote) {
     var rv = SmoNote.deserialize(note.serialize());
 
     // make sure id is unique
@@ -383,7 +464,7 @@ class SmoNote {
   // ## Description:
   // Clone the note, but use the different duration.  Changes the length
   // of the note but nothing else.
-  static cloneWithDuration(note, ticks) {
+  static cloneWithDuration(note: SmoNote, ticks: Ticks | number) {
     if (typeof(ticks) === 'number') {
       ticks = { numerator: ticks, denominator: 1, remainder: 0 };
     }
@@ -391,19 +472,23 @@ class SmoNote {
     rv.ticks = ticks;
     return rv;
   }
-
-  _serializeModifiers(params) {
-    ['textModifiers', 'graceNotes', 'articulations', 'ornaments', 'tones'].forEach((attr) => {
-      if (this[attr] && this[attr].length) {
-        params[attr] = [];
-        this[attr].forEach((mod) => {
-          params[attr].push(mod.serialize());
-        });
-      }
+  static serializeModifier(modifiers: SmoNoteModifierBase[]) : object[] {
+    const rv: object[] = [];
+    modifiers.forEach((modifier: SmoNoteModifierBase) => {
+      rv.push(modifier.serialize());
     });
+    return rv;
+  }
+
+  _serializeModifiers(params: any) {
+    params.textModifiers = SmoNote.serializeModifier(this.textModifiers);
+    params.graceNotes = SmoNote.serializeModifier(this.graceNotes);
+    params.articulations = SmoNote.serializeModifier(this.articulations);
+    params.ornaments = SmoNote.serializeModifier(this.ornaments);
+    params.tones = SmoNote.serializeModifier(this.tones);
   }
   serialize() {
-    var params = {};
+    var params: any = {};
     smoSerialize.serializedMergeNonDefault(SmoNote.defaults, SmoNote.parameterArray, this, params);
     if (params.ticks) {
       params.ticks = JSON.parse(JSON.stringify(params.ticks));
@@ -412,71 +497,39 @@ class SmoNote {
     return params;
   }
 
-  static get defaults() {
-    return {
-      noteType: 'n',
-      noteHead: 'n',
-      textModifiers: [],
-      articulations: [],
-      graceNotes: [],
-      ornaments: [],
-      tones: [],
-      endBeam: false,
-      fillStyle: '',
-      hidden: false,
-      beamBeats: 4096,
-      flagState: SmoNote.flagStates.auto,
-      ticks: {
-        numerator: 4096,
-        denominator: 1,
-        remainder: 0
-      },
-      pitches: [{
-        letter: 'b',
-        octave: 4,
-        accidental: ''
-      }],
-    };
-  }
-  static deserialize(jsonObj) {
+  static deserialize(jsonObj: any) {
     var note = new SmoNote(jsonObj);
-    ['textModifiers', 'graceNotes', 'ornaments', 'articulations', 'tones'].forEach((attr) => {
-      if (!jsonObj[attr]) {
-        note[attr] = [];
-      } else {
-        jsonObj[attr].forEach((mod) => {
-          note[attr].push(SmoNoteModifierBase.deserialize(mod));
-        });
-      }
-    });
+    if (jsonObj.textModifiers) {
+      jsonObj.textModifiers.forEach((mod: any) => {
+        note.textModifiers.push(SmoNoteModifierBase.deserialize(mod));
+      });
+    }
+    if (jsonObj.graceNotes) {
+      jsonObj.graceNotes.forEach((mod: any) => {
+        note.graceNotes.push(SmoNoteModifierBase.deserialize(mod));
+      });
+    }
+    if (jsonObj.ornaments) {
+      jsonObj.ornaments.forEach((mod: any) => {
+        note.ornaments.push(SmoNoteModifierBase.deserialize(mod));
+      });
+    }
+    if (jsonObj.articulations) {
+      jsonObj.articulations.forEach((mod: any) => {
+        note.articulations.push(SmoNoteModifierBase.deserialize(mod));
+      });
+    }
+    if (jsonObj.tones) {
+      jsonObj.tones.forEach((mod: any) => {
+        note.tones.push(SmoNoteModifierBase.deserialize(mod));
+      });
+    }
     // Due to a bug, text modifiers were serialized into noteModifiers array
     if (jsonObj.noteModifiers) {
-      jsonObj.noteModifiers.forEach((mod) => {
-        note.textModifiers.push(mod);
+      jsonObj.noteModifiers.forEach((mod: any) => {
+        note.textModifiers.push(SmoNoteModifierBase.deserialize(mod));
       });
     }
     return note;
-  }
-}
-
-// eslint-disable-next-line no-unused-vars
-class SmoBeamGroup {
-  constructor(params) {
-    let i = 0;
-    this.notes = params.notes;
-    Vex.Merge(this, params);
-
-    if (!this.attrs) {
-      this.attrs = {
-        id: VF.Element.newID(),
-        type: 'SmoBeamGroup'
-      };
-    }
-    for (i = 0; i < this.notes.length; ++i) {
-      const note = this.notes[i];
-      if (note.tickCount < 4096) {
-        note.beam_group = this.attrs;
-      }
-    }
   }
 }

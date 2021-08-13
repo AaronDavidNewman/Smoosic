@@ -1,13 +1,30 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SuiScoreView } from './scoreView';
+import { SmoTextGroup, SmoSystemGroup } from '../../smo/data/scoreModifiers';
+import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
+import { SmoOperation } from '../../smo/xform/operations';
+import { smoSerialize } from '../../common/serializationHelpers';
+import { SmoScore } from '../../smo/data/score';
+import { smoMusic } from '../../common/musicHelpers';
+import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, SmoOrnament } from '../../smo/data/noteModifiers';
+import { SmoTempoText,  SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark } from '../../smo/data/measureModifiers';
+import { suiOscillator } from '../audio/oscillator';
+import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
+import { StaffModifierBase } from '../../smo/data/staffModifiers';
+import { SuiRenderState } from './renderState';
+import { SmoMeasure } from '../../smo/data/measure';
+import { htmlHelpers } from '../../common/htmlHelpers';
+import { SmoToMidi } from '../../smo/midi/smoToMidi';
+import { SmoToXml } from '../../smo/mxml/smo2Xml';
+import { SuiActionPlayback } from './actionPlayback';
+
 // ## ScoreViewOperations
 // MVVM-like operations on the displayed score.
 // All operations that can be performed on a 'live' score go through this
 // module.  It maps the score view to the actual score and makes sure the
 // model and view stay in sync.
-/* global: SmoSelection */
-// eslint-disable-next-line no-unused-vars
-class SuiScoreViewOperations extends SuiScoreView {
+export class SuiScoreViewOperations extends SuiScoreView {
   addTextGroup(textGroup) {
     this.actionBuffer.addAction('addTextGroup', textGroup);
     const altNew = SmoTextGroup.deserialize(textGroup.serialize());
@@ -39,13 +56,6 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.storeScore.textGroups[index] = altNew;
     // TODO: only render the one TG.
     this.renderer.renderScoreModifiers();
-  }
-  updateProportionDefault(oldValue, newValue) {
-    this.actionBuffer.addAction('updateProportionDefault', oldValue, newValue);
-    this._undoScorePreferences('Update proportion');
-    SmoOperation.updateProportionDefault(this.score, oldValue, newValue);
-    SmoOperation.updateProportionDefault(this.storeScore, oldValue, newValue);
-    this.renderer.setDirty();
   }
   // ### updateScorePreferences
   // The score preferences for view score have changed, sync them
@@ -673,29 +683,6 @@ class SuiScoreViewOperations extends SuiScoreView {
       SmoOperation.setAutoJustify(this.storeScore, s, value);
     });
   }
-  // ### padMeasure
-  // spacing to the left, and column means all measures in system.
-  padMeasure(spacing, column) {
-    let selection = this.tracker.selections[0];
-    this.actionBuffer.addAction('padMeasure', spacing, column);
-    if (column) {
-      this._undoColumn('set measure padding', selection.selector.measure);
-      this.storeScore.staves.forEach((staff) => {
-        const altSel = SmoSelection.measureSelection(this.storeScore, staff.staffId, selection.selector.measure);
-        const viewSel = this._reverseMapSelection(altSel);
-        SmoOperation.padMeasureLeft(altSel, spacing);
-        if (viewSel) {
-          SmoOperation.padMeasureLeft(viewSel, spacing);
-          this.renderer.addToReplaceQueue(viewSel);
-        }
-      });
-    } else {
-      selection = this._undoFirstMeasureSelection('add dynamic');
-      const altSel = this._getEquivalentSelection(selection);
-      SmoOperation.padMeasureLeft(selection, spacing);
-      SmoOperation.padMeasureLeft(altSel, spacing);
-    }
-  }
 
   addEnding() {
     // TODO: we should have undo for columns
@@ -832,7 +819,9 @@ class SuiScoreViewOperations extends SuiScoreView {
   setGlobalLayout(layout) {
     this.actionBuffer.addAction('setGlobalLayout', layout);
     this._undoScore('Set Global Layout');
+    const original = this.score.layoutManager.getGlobalLayout().svgScale;
     this.score.layoutManager.updateGlobalLayout(layout);
+    this.score.scaleTextGroups(original / layout.svgScale);
     this.storeScore.layoutManager.updateGlobalLayout(layout);
     this.renderer.rerenderAll();
   }
@@ -1091,7 +1080,7 @@ class SuiScoreViewOperations extends SuiScoreView {
     this.tracker.intersectingArtifact(evData);
   }
   setSelection(selector) {
-    view.tracker.selections = [SmoSelection.selectionFromSelector(this.score, selector)];
+    this.tracker.selections = [SmoSelection.selectionFromSelector(this.score, selector)];
   }
   selectSuggestionNote(selector, evData) {
     const key = SmoSelector.getNoteKey(selector);

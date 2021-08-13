@@ -1,9 +1,11 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { smoSerialize } from '../../common/serializationHelpers';
+import { smoMusic } from '../../common/musicHelpers';
+
 // ## suiAudioPitch
 // helper class to compute the frequencies of the notes.
-// eslint-disable-next-line no-unused-vars
-class suiAudioPitch {
+export class suiAudioPitch {
   // ### _frequencies
   // Compute the equal-temperment frequencies of the notes.
   static get _frequencies() {
@@ -64,8 +66,7 @@ class suiAudioPitch {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-class suiReverb {
+export class suiReverb {
   static get defaults() {
     return { length: 0.2, decay: 0.5 };
   }
@@ -115,8 +116,7 @@ class suiReverb {
 
 // ## suiOscillator
 // Simple waveform synthesizer thing that plays notes
-// eslint-disable-next-line no-unused-vars
-class suiOscillator {
+export class suiOscillator {
   static get defaults() {
     const obj = {
       duration: 1000,
@@ -354,10 +354,8 @@ class suiOscillator {
 }
 
 // ## suiSampler
-// Class that replaces oscillator with a sampler.  This is
-// prototype code.  I'll get back to it.
-// eslint-disable-next-line no-unused-vars
-class suiSampler extends suiOscillator {
+// Class that replaces oscillator with a sampler.
+export class suiSampler extends suiOscillator {
   play() {
     const self = this;
     suiOscillator.samplePromise().then(() => {
