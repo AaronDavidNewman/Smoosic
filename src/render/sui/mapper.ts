@@ -5,7 +5,7 @@ import { svgHelpers } from '../../common/svgHelpers';
 import { layoutDebug } from './layoutDebug';
 import { SuiScroller } from './scroller';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
-import { SmoMeasure, SmoVoice } from '../../smo/data/measure';
+import { MeasureSvg, SmoMeasure, SmoVoice } from '../../smo/data/measure';
 import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SmoNoteModifierBase, SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoMeasureModifierBase } from '../../smo/data/measureModifiers';
@@ -528,16 +528,11 @@ export abstract class suiMapper {
       });
     }
     // not has not been drawn yet.
-    if (!artifact.box) {
+    if ((!artifact.box) || (!artifact.measure.svg.renderedBox)) {
       return;
     }
-    if (!this.measureNoteMap[noteKey] && artifact.measure.svg.renderedBox) {
-      this.measureNoteMap[noteKey] = artifact;
-      artifact.scrollBox = { x: artifact.box.x,
-        y: artifact.measure.svg.renderedBox.y };
-    } else  if (artifact.measure.svg.renderedBox) {
-      const mm = this.measureNoteMap[noteKey];
-      mm.scrollBox = { x: artifact.box.x, y: artifact.box.y };
-    }    
+    this.measureNoteMap[noteKey] = artifact;
+    artifact.scrollBox = { x: artifact.box.x,
+      y: artifact.measure.svg.renderedBox.y };
   }
 }

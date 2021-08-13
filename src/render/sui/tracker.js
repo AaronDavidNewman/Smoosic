@@ -652,7 +652,7 @@ export class suiTracker extends suiMapper {
     }
   }
   selectSuggestion(ev) {
-    if ((!this.suggestion || this.suggestion.measure) && this.modifierSuggestion < 0) {
+    if ((!this.suggestion || !this.suggestion.measure) && this.modifierSuggestion < 0) {
       return;
     }
     this.idleTimer = Date.now();
