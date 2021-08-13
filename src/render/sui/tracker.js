@@ -75,7 +75,7 @@ export class suiTracker extends suiMapper {
   _reboxTextModifier(modifier) {
     let el = null;
     if (modifier.attrs.type === 'SmoGraceNote') {
-      el = this.context.svg.getElementById('vf-' + modifier.renderedId);
+      el = this.context.svg.getElementById('vf-' + modifier.renderId);
     } else if (modifier.attrs.type !== 'SmoLyric') {
       el = this.context.svg.getElementsByClassName(modifier.attrs.id)[0];
     }
@@ -652,7 +652,7 @@ export class suiTracker extends suiMapper {
     }
   }
   selectSuggestion(ev) {
-    if (!this.suggestion.measure && this.modifierSuggestion < 0) {
+    if ((!this.suggestion || this.suggestion.measure) && this.modifierSuggestion < 0) {
       return;
     }
     this.idleTimer = Date.now();
@@ -856,9 +856,9 @@ export class suiTracker extends suiMapper {
 
     this.pitchIndex = -1;
     this.eraseAllSelections();
-    if (this.selections.length === 1 && this.selections[0].box) {
+    if (this.selections.length === 1 && this.selections[0].note.renderedBox) {
       this._checkBoxOffset();
-      this._drawRect(this.selections[0].box, 'selection');
+      this._drawRect(this.selections[0].note.renderedBox, 'selection');
       this._highlightActiveVoice(this.selections[0]);
       return;
     }
