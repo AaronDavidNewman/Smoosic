@@ -35698,7 +35698,7 @@ exports.SuiDom = SuiDom;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Smo = void 0;
-// Smoosic relies on dynamic creation of almost everything.  This class exports all the symbols 
+// Smoosic relies on dynamic creation of almost everything.  This class exports all the symbols
 // that need to be created via reflection.
 // ui application components
 const application_1 = __webpack_require__(/*! ./application */ "./src/ui/application.ts");
@@ -35732,10 +35732,14 @@ const staffComponents_1 = __webpack_require__(/*! ./dialogs/staffComponents */ "
 const menus_1 = __webpack_require__(/*! ./menus */ "./src/ui/menus.js");
 // render library
 const scoreView_1 = __webpack_require__(/*! ../render/sui/scoreView */ "./src/render/sui/scoreView.js");
+const scoreViewOperations_1 = __webpack_require__(/*! ../render/sui/scoreViewOperations */ "./src/render/sui/scoreViewOperations.js");
+const scoreRender_1 = __webpack_require__(/*! ../render/sui/scoreRender */ "./src/render/sui/scoreRender.js");
 const layoutDebug_1 = __webpack_require__(/*! ../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.js");
 const mapper_1 = __webpack_require__(/*! ../render/sui/mapper */ "./src/render/sui/mapper.ts");
 const scroller_1 = __webpack_require__(/*! ../render/sui/scroller */ "./src/render/sui/scroller.ts");
+const actionPlayback_1 = __webpack_require__(/*! ../render/sui/actionPlayback */ "./src/render/sui/actionPlayback.js");
 // SMO components
+const score_1 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
 const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
 const note_1 = __webpack_require__(/*! ../smo/data/note */ "./src/smo/data/note.ts");
 const tickDuration_1 = __webpack_require__(/*! ../smo/xform/tickDuration */ "./src/smo/xform/tickDuration.ts");
@@ -35785,8 +35789,10 @@ exports.Smo = {
     SuiDynamicModifierDialog: textDialogs_1.SuiDynamicModifierDialog, CheckboxDropdownComponent: staffComponents_1.CheckboxDropdownComponent, TieMappingComponent: staffComponents_1.TieMappingComponent, StaffAddRemoveComponent: staffComponents_1.StaffAddRemoveComponent,
     StaffCheckComponent: staffComponents_1.StaffCheckComponent, TextCheckComponent: staffComponents_1.TextCheckComponent,
     // Rendering components
-    suiPiano: piano_1.suiPiano, layoutDebug: layoutDebug_1.layoutDebug, SuiScoreView: scoreView_1.SuiScoreView, SuiScroller: scroller_1.SuiScroller, suiMapper: mapper_1.suiMapper,
+    suiPiano: piano_1.suiPiano, layoutDebug: layoutDebug_1.layoutDebug, SuiScoreView: scoreView_1.SuiScoreView, SuiScroller: scroller_1.SuiScroller, suiMapper: mapper_1.suiMapper, SuiScoreRender: scoreRender_1.SuiScoreRender,
+    SuiScoreViewOperations: scoreViewOperations_1.SuiScoreViewOperations, SuiActionPlayback: actionPlayback_1.SuiActionPlayback,
     // Smo Music Objects
+    SmoScore: score_1.SmoScore,
     SmoMeasure: measure_1.SmoMeasure,
     SmoSystemStaff: systemStaff_1.SmoSystemStaff,
     SmoNote: note_1.SmoNote,
