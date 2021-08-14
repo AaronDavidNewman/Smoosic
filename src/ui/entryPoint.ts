@@ -1,4 +1,4 @@
-// Smoosic relies on dynamic creation of almost everything.  This class exports all the symbols 
+// Smoosic relies on dynamic creation of almost everything.  This class exports all the symbols
 // that need to be created via reflection.
 // ui application components
 import { SuiApplication } from './application';
@@ -25,14 +25,14 @@ import { quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHt
 import { SuiModifierDialogFactory } from './dialog';
 import { SuiTempoDialog, SuiInstrumentDialog, SuiMeasureDialog, SuiInsertMeasures,
     SuiTimeSignatureDialog } from './dialogs/measureDialogs';
-import { SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog, 
-    SuiScoreFontDialog, SuiLayoutDialog,  } from './dialogs/scoreDialogs';    
+import { SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog,
+    SuiScoreFontDialog, SuiLayoutDialog,  } from './dialogs/scoreDialogs';
 import { SuiLibraryDialog } from './dialogs/libraryDialog';
 import { SuiDynamicModifierDialog, SuiTextTransformDialog, SuiLyricDialog, SuiChordChangeDialog,
   helpModal } from './dialogs/textDialogs';
 import { SuiStaffModifierDialog, SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
     SuiHairpinAttributesDialog, SuiStaffGroupDialog } from './dialogs/staffDialogs';
-import { SuiLoadFileDialog, SuiLoadMxmlDialog, 
+import { SuiLoadFileDialog, SuiLoadMxmlDialog,
     SuiLoadActionsDialog, SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
     SuiSaveMidiDialog, SuiSaveActionsDialog, SuiFileDialog } from './dialogs/fileDialogs';
     // Dialog components
@@ -59,10 +59,14 @@ import {
 
 // render library
 import { SuiScoreView } from '../render/sui/scoreView';
+import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
+import { SuiScoreRender } from '../render/sui/scoreRender';
 import { layoutDebug } from '../render/sui/layoutDebug';
 import { suiMapper } from '../render/sui/mapper';
 import { SuiScroller } from '../render/sui/scroller';
+import { SuiActionPlayback } from '../render/sui/actionPlayback';
 // SMO components
+import { SmoScore } from '../smo/data/score';
 import { UndoBuffer } from '../smo/xform/undo';
 import { SmoNote } from '../smo/data/note';
 import { SmoDuration } from '../smo/xform/tickDuration';
@@ -97,12 +101,12 @@ export const Smo = {
     SuiLanguageMenu, SuiMeasureMenu, SuiAddStaffMenu,
     // Dialogs
     SuiTempoDialog, SuiInstrumentDialog, SuiModifierDialogFactory, SuiLibraryDialog,
-    SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog, 
+    SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog,
     SuiScoreFontDialog, SuiLayoutDialog, SuiMeasureDialog, SuiInsertMeasures,
     SuiTimeSignatureDialog,SuiTextTransformDialog, SuiLyricDialog, SuiChordChangeDialog,
     SuiStaffModifierDialog, SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
     SuiHairpinAttributesDialog, SuiStaffGroupDialog, helpModal,
-    SuiFileDialog,  SuiLoadFileDialog, SuiLoadMxmlDialog, 
+    SuiFileDialog,  SuiLoadFileDialog, SuiLoadMxmlDialog,
     SuiLoadActionsDialog, SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
     SuiSaveMidiDialog, SuiSaveActionsDialog,
     // Dialog components
@@ -116,11 +120,13 @@ export const Smo = {
     SuiDynamicModifierDialog, CheckboxDropdownComponent, TieMappingComponent, StaffAddRemoveComponent,
     StaffCheckComponent, TextCheckComponent,
     // Rendering components
-    suiPiano, layoutDebug, SuiScoreView,SuiScroller, suiMapper,
+    suiPiano, layoutDebug, SuiScoreView,SuiScroller, suiMapper, SuiScoreRender,
+    SuiScoreViewOperations,SuiActionPlayback,
     // Smo Music Objects
+    SmoScore,
     SmoMeasure,
     SmoSystemStaff,
-    SmoNote,    
+    SmoNote,
     // staff modifier
     SmoStaffHairpin, StaffModifierBase,
     SmoInstrument, SmoPartMap, SmoSlur, SmoTie, SmoSystemGroup,
