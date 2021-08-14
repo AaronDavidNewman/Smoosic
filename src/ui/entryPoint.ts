@@ -67,6 +67,7 @@ import { SuiScroller } from '../render/sui/scroller';
 import { SuiActionPlayback } from '../render/sui/actionPlayback';
 // SMO components
 import { SmoScore } from '../smo/data/score';
+import { mxmlScore } from '../smo/mxml/xmlScore';
 import { UndoBuffer } from '../smo/xform/undo';
 import { SmoNote } from '../smo/data/note';
 import { SmoDuration } from '../smo/xform/tickDuration';
@@ -124,6 +125,7 @@ export const Smo = {
     SuiScoreViewOperations,SuiActionPlayback,
     // Smo Music Objects
     SmoScore,
+    mxmlScore,
     SmoMeasure,
     SmoSystemStaff,
     SmoNote,

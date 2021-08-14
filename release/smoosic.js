@@ -35740,6 +35740,7 @@ const scroller_1 = __webpack_require__(/*! ../render/sui/scroller */ "./src/rend
 const actionPlayback_1 = __webpack_require__(/*! ../render/sui/actionPlayback */ "./src/render/sui/actionPlayback.js");
 // SMO components
 const score_1 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
+const xmlScore_1 = __webpack_require__(/*! ../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
 const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
 const note_1 = __webpack_require__(/*! ../smo/data/note */ "./src/smo/data/note.ts");
 const tickDuration_1 = __webpack_require__(/*! ../smo/xform/tickDuration */ "./src/smo/xform/tickDuration.ts");
@@ -35793,6 +35794,7 @@ exports.Smo = {
     SuiScoreViewOperations: scoreViewOperations_1.SuiScoreViewOperations, SuiActionPlayback: actionPlayback_1.SuiActionPlayback,
     // Smo Music Objects
     SmoScore: score_1.SmoScore,
+    mxmlScore: xmlScore_1.mxmlScore,
     SmoMeasure: measure_1.SmoMeasure,
     SmoSystemStaff: systemStaff_1.SmoSystemStaff,
     SmoNote: note_1.SmoNote,
