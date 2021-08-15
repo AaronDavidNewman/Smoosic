@@ -57,6 +57,8 @@ import {
     SuiLanguageMenu, SuiMeasureMenu, SuiAddStaffMenu
 } from './menus';
 
+import { SuiXhrLoader } from './fileio/xhrLoader';
+import { PromiseHelpers } from '../common/promiseHelpers';
 // render library
 import { SuiScoreView } from '../render/sui/scoreView';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
@@ -120,6 +122,7 @@ export const Smo = {
     SuiNoteTextComponent, SuiTextBlockComponent, SuiTextInputComponent,
     SuiDynamicModifierDialog, CheckboxDropdownComponent, TieMappingComponent, StaffAddRemoveComponent,
     StaffCheckComponent, TextCheckComponent,
+    SuiXhrLoader,PromiseHelpers,
     // Rendering components
     suiPiano, layoutDebug, SuiScoreView,SuiScroller, suiMapper, SuiScoreRender,
     SuiScoreViewOperations,SuiActionPlayback,
