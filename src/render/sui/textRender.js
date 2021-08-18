@@ -320,11 +320,11 @@ export class SuiInlineText {
   unrender() {
     $('svg #' + this.attrs.id).remove();
   }
-  getIntersectingBlocks(box, scroller) {
+  getIntersectingBlocks(box, scroll) {
     if (!this.artifacts) {
       return [];
     }
-    return svgHelpers.findIntersectingArtifact(box, this.artifacts, scroller);
+    return svgHelpers.findIntersectingArtifact(box, this.artifacts, scroll);
   }
   _addBlockAt(position, block) {
     if (position >= this.blocks.length) {

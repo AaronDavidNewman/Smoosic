@@ -500,10 +500,10 @@ export abstract class suiMapper {
   intersectingArtifact(bb: SvgBox) {
     let sel: SmoSelection[] = [];
     bb = svgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
-    const artifacts = svgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, this.scroller.scrollState);
+    const artifacts = svgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, this.scroller.scrollState.scroll);
     // TODO: handle overlapping suggestions
     if (!artifacts.length) {
-      sel = svgHelpers.findIntersectingArtifact(bb, this.modifierTabs, this.scroller.scrollState);
+      sel = svgHelpers.findIntersectingArtifact(bb, this.modifierTabs, this.scroller.scrollState.scroll);
       if (sel.length) {
         this._setModifierAsSuggestion(bb, sel[0]);
       }

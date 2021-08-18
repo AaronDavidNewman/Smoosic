@@ -81,19 +81,17 @@ export class PromiseHelpers {
     });
   }
   static renderPromise(renderer) {
-    const renderPromise = () => {
-      return new Promise((resolve) => {
-        const checkit = () => {
-          setTimeout(() => {
-            if (renderer.passState === SuiRenderState.passStates.clean) {
-              resolve();
-            } else {
-        	    checkit();
-            }
-          }, 500);
-        }
-        checkit();
-      });
-    }
+    return new Promise((resolve) => {
+      const checkit = () => {
+        setTimeout(() => {
+          if (renderer.passState === SuiRenderState.passStates.clean && renderer.backgroundRender === false) {
+            resolve();
+          } else {
+            checkit();
+          }
+        }, 500);
+      }
+      checkit();
+    });
   }
 }

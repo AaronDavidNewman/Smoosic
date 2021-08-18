@@ -2823,21 +2823,19 @@ class PromiseHelpers {
         });
     }
     static renderPromise(renderer) {
-        const renderPromise = () => {
-            return new Promise((resolve) => {
-                const checkit = () => {
-                    setTimeout(() => {
-                        if (renderer.passState === renderState_1.SuiRenderState.passStates.clean) {
-                            resolve();
-                        }
-                        else {
-                            checkit();
-                        }
-                    }, 500);
-                };
-                checkit();
-            });
-        };
+        return new Promise((resolve) => {
+            const checkit = () => {
+                setTimeout(() => {
+                    if (renderer.passState === renderState_1.SuiRenderState.passStates.clean && renderer.backgroundRender === false) {
+                        resolve();
+                    }
+                    else {
+                        checkit();
+                    }
+                }, 500);
+            };
+            checkit();
+        });
     }
 }
 exports.PromiseHelpers = PromiseHelpers;
@@ -3658,6 +3656,29 @@ class svgHelpers {
         svg.appendChild(e);
         return e;
     }
+    // ### findIntersectionArtifact
+    // find all object that intersect with the rectangle
+    static findIntersectingArtifact(clientBox, objects, scrollState) {
+        var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
+        // box.y = box.y - this.renderElement.offsetTop;
+        // box.x = box.x - this.renderElement.offsetLeft;
+        var rv = [];
+        objects.forEach((object) => {
+            // Measure has been updated, but not drawn.
+            if (!object.box) {
+                // console.log('there is no box');
+            }
+            else {
+                var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState);
+                var i1 = box.x - obox.x; // handle edge not believe in x and y
+                var i2 = box.y - obox.y;
+                if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
+                    rv.push(object);
+                }
+            }
+        });
+        return rv;
+    }
     // ### findIntersectingArtifactFromMap
     // Same as findIntersectionArtifact but uses a map of keys instead of an array
     static findIntersectingArtifactFromMap(clientBox, map, scrollState) {
@@ -3672,7 +3693,7 @@ class svgHelpers {
                 // console.log('there is no box');
             }
             else {
-                var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState.scroll);
+                var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState);
                 var i1 = box.x - obox.x; // handle edge not believe in x and y
                 var i2 = box.y - obox.y;
                 if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
@@ -3690,29 +3711,6 @@ class svgHelpers {
             return true;
         }
         return false;
-    }
-    // ### findIntersectionArtifact
-    // find all object that intersect with the rectangle
-    static findIntersectingArtifact(clientBox, objects, scrollState) {
-        var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
-        // box.y = box.y - this.renderElement.offsetTop;
-        // box.x = box.x - this.renderElement.offsetLeft;
-        var rv = [];
-        objects.forEach((object) => {
-            // Measure has been updated, but not drawn.
-            if (!object.box) {
-                // console.log('there is no box');
-            }
-            else {
-                var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState.scroll);
-                var i1 = box.x - obox.x; // handle edge not believe in x and y
-                var i2 = box.y - obox.y;
-                if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
-                    rv.push(object);
-                }
-            }
-        });
-        return rv;
     }
     static findSmallestIntersection(clientBox, objects, scrollState) {
         var ar = svgHelpers.findIntersectingArtifact(clientBox, objects, scrollState);
@@ -5692,10 +5690,10 @@ class suiMapper {
     intersectingArtifact(bb) {
         let sel = [];
         bb = svgHelpers_1.svgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
-        const artifacts = svgHelpers_1.svgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, this.scroller.scrollState);
+        const artifacts = svgHelpers_1.svgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, this.scroller.scrollState.scroll);
         // TODO: handle overlapping suggestions
         if (!artifacts.length) {
-            sel = svgHelpers_1.svgHelpers.findIntersectingArtifact(bb, this.modifierTabs, this.scroller.scrollState);
+            sel = svgHelpers_1.svgHelpers.findIntersectingArtifact(bb, this.modifierTabs, this.scroller.scrollState.scroll);
             if (sel.length) {
                 this._setModifierAsSuggestion(bb, sel[0]);
             }
@@ -5746,7 +5744,6 @@ exports.suiPiano = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.js");
 const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const scroller_1 = __webpack_require__(/*! ./scroller */ "./src/render/sui/scroller.ts");
 class suiPiano {
     constructor(parameters) {
         Vex.Merge(this, parameters);
@@ -5754,7 +5751,6 @@ class suiPiano {
         this.render();
         this.octaveOffset = 0;
         this.chordPedal = false;
-        this.scroller = new scroller_1.SuiScroller('.piano-keys');
     }
     static get dimensions() {
         return {
@@ -5877,7 +5873,7 @@ class suiPiano {
             var keyPressed = svgHelpers_1.svgHelpers.findSmallestIntersection({
                 x: ev.clientX,
                 y: ev.clientY
-            }, this.objects, this.scroller.scrollState);
+            }, this.objects, svgHelpers_1.svgHelpers.pointBox(0, 0, 1, 1));
             if (!keyPressed) {
                 return;
             }
@@ -5906,7 +5902,7 @@ class suiPiano {
         var keyPressed = svgHelpers_1.svgHelpers.findSmallestIntersection({
             x: ev.clientX,
             y: ev.clientY
-        }, this.objects, this.scroller.scrollState);
+        }, this.objects, svgHelpers_1.svgHelpers.pointBox(0, 0, 1, 1));
         if (!keyPressed) {
             return;
         }
@@ -8539,7 +8535,9 @@ class SuiScroller {
             this.scrollOffset(xoff, yoff);
         }
     }
+    // Update viewport size, and also fix height of scroll region.
     updateViewport() {
+        $(this.selector).css('height', (window.innerHeight - $(this.selector).offset().top).toString() + 'px');
         this.viewport = svgHelpers_1.svgHelpers.boxPoints($(this.selector).offset().left, $(this.selector).offset().top, $(this.selector).width(), $(this.selector).height());
     }
     // ### scrollBox
@@ -8742,7 +8740,7 @@ class SuiTextEditor {
         var blocks = this.svgText.getIntersectingBlocks({
             x: ev.clientX,
             y: ev.clientY
-        }, this.scroller.scrollState);
+        }, this.scroller.scrollState.scroll);
         // The mouse is not over the text
         if (!blocks.length) {
             svgHelpers_1.svgHelpers.eraseOutline(this.context, 'text-suggestion');
@@ -10004,11 +10002,11 @@ class SuiInlineText {
     unrender() {
         $('svg #' + this.attrs.id).remove();
     }
-    getIntersectingBlocks(box, scroller) {
+    getIntersectingBlocks(box, scroll) {
         if (!this.artifacts) {
             return [];
         }
-        return svgHelpers_1.svgHelpers.findIntersectingArtifact(box, this.artifacts, scroller);
+        return svgHelpers_1.svgHelpers.findIntersectingArtifact(box, this.artifacts, scroll);
     }
     _addBlockAt(position, block) {
         if (position >= this.blocks.length) {
@@ -18397,7 +18395,6 @@ class mxmlHelpers {
                 const type = slurNode.getAttribute('type');
                 const orientation = mxmlHelpers.getCurveDirection(slurNode);
                 const slurInfo = { number, type, orientation, selector, invert: false, yOffset: 0 };
-                console.log('slur data: ', JSON.stringify(slurInfo, null, ' '));
                 rv.push(slurInfo);
             });
         });
@@ -18800,7 +18797,7 @@ class mxmlScore {
                 const clefAttrs = xmlHelpers_1.mxmlHelpers.nodeAttributes(clefNode);
                 if (typeof (clefAttrs.number) !== 'undefined') {
                     // staff numbers index from 1 in mxml
-                    clefNum = parseInt(clefAttrs.number, 10);
+                    clefNum = parseInt(clefAttrs.number, 10) - 1;
                 }
                 const clefType = xmlHelpers_1.mxmlHelpers.getTextFromElement(clefNode, 'sign', 'G');
                 const clefLine = xmlHelpers_1.mxmlHelpers.getNumberFromElement(clefNode, 'line', 2);
@@ -19400,7 +19397,6 @@ class XmlState {
                     const alter = XmlState.slurDirectionFromNote(clef, note, slurInfo.orientation);
                     slurParams.yOffset = alter.yOffset;
                     slurParams.invert = alter.invert;
-                    console.log('complete slur stop first ' + slurInfo.number + JSON.stringify(slurParams, null, ' '));
                     this.completedSlurs.push(slurParams);
                     this.slurs[slurInfo.number] = null;
                 }
@@ -19419,7 +19415,7 @@ class XmlState {
                     slurParams.endSelector = slurInfo.selector;
                     slurParams.yOffset = slurData.yOffset;
                     slurParams.invert = slurData.invert;
-                    console.log('complete slur ' + slurInfo.number + JSON.stringify(slurParams, null, ' '));
+                    // console.log('complete slur ' + slurInfo.number + JSON.stringify(slurParams, null, ' '));
                     this.completedSlurs.push(slurParams);
                     this.slurs[slurInfo.number] = null;
                 }
@@ -29615,9 +29611,6 @@ class suiController {
         });
         // $('.close-piano').click();
     }
-    _setMusicDimensions() {
-        $('.musicRelief').height(window.innerHeight - $('.musicRelief').offset().top);
-    }
     resizeEvent() {
         var self = this;
         if (this.resizing) {
@@ -29630,7 +29623,6 @@ class suiController {
         setTimeout(function () {
             console.log('resizing');
             self.resizing = false;
-            self._setMusicDimensions();
             self.piano.handleResize();
         }, 500);
     }
@@ -29673,8 +29665,6 @@ class suiController {
         if (!el) {
             return;
         }
-        this._setMusicDimensions();
-        // $(suiController.scrollable).height(window.innerHeight - $('.musicRelief').offset().top);
         window.addEventListener('resize', function () {
             self.resizeEvent();
         });
@@ -35730,6 +35720,8 @@ const textComponents_1 = __webpack_require__(/*! ./dialogs/textComponents */ "./
 const staffComponents_1 = __webpack_require__(/*! ./dialogs/staffComponents */ "./src/ui/dialogs/staffComponents.js");
 // menus
 const menus_1 = __webpack_require__(/*! ./menus */ "./src/ui/menus.js");
+const xhrLoader_1 = __webpack_require__(/*! ./fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.js");
+const promiseHelpers_1 = __webpack_require__(/*! ../common/promiseHelpers */ "./src/common/promiseHelpers.js");
 // render library
 const scoreView_1 = __webpack_require__(/*! ../render/sui/scoreView */ "./src/render/sui/scoreView.js");
 const scoreViewOperations_1 = __webpack_require__(/*! ../render/sui/scoreViewOperations */ "./src/render/sui/scoreViewOperations.js");
@@ -35789,6 +35781,7 @@ exports.Smo = {
     SuiNoteTextComponent: textComponents_1.SuiNoteTextComponent, SuiTextBlockComponent: fontComponent_1.SuiTextBlockComponent, SuiTextInputComponent: dialogComponents_1.SuiTextInputComponent,
     SuiDynamicModifierDialog: textDialogs_1.SuiDynamicModifierDialog, CheckboxDropdownComponent: staffComponents_1.CheckboxDropdownComponent, TieMappingComponent: staffComponents_1.TieMappingComponent, StaffAddRemoveComponent: staffComponents_1.StaffAddRemoveComponent,
     StaffCheckComponent: staffComponents_1.StaffCheckComponent, TextCheckComponent: staffComponents_1.TextCheckComponent,
+    SuiXhrLoader: xhrLoader_1.SuiXhrLoader, PromiseHelpers: promiseHelpers_1.PromiseHelpers,
     // Rendering components
     suiPiano: piano_1.suiPiano, layoutDebug: layoutDebug_1.layoutDebug, SuiScoreView: scoreView_1.SuiScoreView, SuiScroller: scroller_1.SuiScroller, suiMapper: mapper_1.suiMapper, SuiScoreRender: scoreRender_1.SuiScoreRender,
     SuiScoreViewOperations: scoreViewOperations_1.SuiScoreViewOperations, SuiActionPlayback: actionPlayback_1.SuiActionPlayback,

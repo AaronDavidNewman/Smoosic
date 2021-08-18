@@ -150,7 +150,7 @@ export class SuiTextEditor {
     var blocks = this.svgText.getIntersectingBlocks({
       x: ev.clientX,
       y: ev.clientY
-    }, this.scroller.scrollState);
+    }, this.scroller.scrollState.scroll);
 
     // The mouse is not over the text
     if (!blocks.length) {

@@ -15,6 +15,10 @@ API Demo Links (codepen):
 ---
 
 ## Changes to Smoosic
+### Webpack migration complete (August, 2021)
+Typescript migration underway. Most SMO files are already migrated. Pens have been updated to reflect the new build target.  This is merged to main branch.
+
+If you are using the library, the biggest change will be mangling the 'Smo' namespace in your references to Smoosic types.
 ### Webpack and general rewrite (July, 2021)
 2 ways to do a thing, right and over.  Some aspects of Smoosic need a fresh iteration before I can go much further.
 

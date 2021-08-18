@@ -349,7 +349,6 @@ export class XmlState {
           const alter = XmlState.slurDirectionFromNote(clef, note, slurInfo.orientation);
           slurParams.yOffset = alter.yOffset;
           slurParams.invert = alter.invert;
-          console.log('complete slur stop first ' + slurInfo.number + JSON.stringify(slurParams, null, ' '));
           this.completedSlurs.push(slurParams);
           this.slurs[slurInfo.number] = null;
         } else {
@@ -366,7 +365,7 @@ export class XmlState {
           slurParams.endSelector = slurInfo.selector;
           slurParams.yOffset = slurData.yOffset;
           slurParams.invert = slurData.invert;
-          console.log('complete slur ' + slurInfo.number + JSON.stringify(slurParams, null, ' '));
+          // console.log('complete slur ' + slurInfo.number + JSON.stringify(slurParams, null, ' '));
           this.completedSlurs.push(slurParams);
           this.slurs[slurInfo.number] = null;
         } else {

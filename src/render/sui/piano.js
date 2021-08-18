@@ -10,7 +10,6 @@ export class suiPiano {
     this.render();
     this.octaveOffset = 0;
     this.chordPedal = false;
-    this.scroller = new SuiScroller('.piano-keys');
   }
 
   static get dimensions() {
@@ -133,7 +132,7 @@ export class suiPiano {
       var keyPressed = svgHelpers.findSmallestIntersection({
         x: ev.clientX,
         y: ev.clientY
-        }, this.objects, this.scroller.scrollState);
+        }, this.objects, svgHelpers.pointBox(0, 0, 1, 1));
       if (!keyPressed) {
         return;
       }
@@ -163,7 +162,7 @@ export class suiPiano {
     var keyPressed = svgHelpers.findSmallestIntersection({
         x: ev.clientX,
         y: ev.clientY
-      }, this.objects, this.scroller.scrollState);
+      }, this.objects, svgHelpers.pointBox(0, 0, 1, 1));
     if (!keyPressed) {
       return;
     }

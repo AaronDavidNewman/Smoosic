@@ -348,6 +348,32 @@ export class svgHelpers {
     return e;
   }
 
+  
+  // ### findIntersectionArtifact
+  // find all object that intersect with the rectangle
+  static findIntersectingArtifact(clientBox, objects, scrollState) {
+    var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
+
+    // box.y = box.y - this.renderElement.offsetTop;
+    // box.x = box.x - this.renderElement.offsetLeft;
+    var rv = [];
+    objects.forEach((object) => {
+      // Measure has been updated, but not drawn.
+      if (!object.box) {
+        // console.log('there is no box');
+      } else {
+        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState);
+        var i1 = box.x - obox.x; // handle edge not believe in x and y
+        var i2 = box.y - obox.y;
+        if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
+          rv.push(object);
+        }
+      }
+    });
+
+    return rv;
+  }
+
   // ### findIntersectingArtifactFromMap
   // Same as findIntersectionArtifact but uses a map of keys instead of an array
   static findIntersectingArtifactFromMap(clientBox, map, scrollState) {
@@ -362,7 +388,7 @@ export class svgHelpers {
       if (!object.box) {
       // console.log('there is no box');
       } else {
-        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState.scroll);
+        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState);
         var i1 = box.x - obox.x; // handle edge not believe in x and y
         var i2 = box.y - obox.y;
         if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
@@ -383,30 +409,6 @@ export class svgHelpers {
     return false;
   }
 
-  // ### findIntersectionArtifact
-  // find all object that intersect with the rectangle
-  static findIntersectingArtifact(clientBox, objects, scrollState) {
-    var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
-
-    // box.y = box.y - this.renderElement.offsetTop;
-    // box.x = box.x - this.renderElement.offsetLeft;
-    var rv = [];
-    objects.forEach((object) => {
-      // Measure has been updated, but not drawn.
-      if (!object.box) {
-        // console.log('there is no box');
-      } else {
-        var obox = svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState.scroll);
-        var i1 = box.x - obox.x; // handle edge not believe in x and y
-        var i2 = box.y - obox.y;
-        if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
-          rv.push(object);
-        }
-      }
-    });
-
-    return rv;
-  }
   static findSmallestIntersection(clientBox, objects, scrollState) {
     var ar = svgHelpers.findIntersectingArtifact(clientBox, objects, scrollState);
     if (!ar.length) {

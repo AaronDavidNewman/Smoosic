@@ -299,7 +299,7 @@ export class mxmlScore {
         const clefAttrs = mxmlHelpers.nodeAttributes(clefNode);
         if (typeof (clefAttrs.number) !== 'undefined') {
           // staff numbers index from 1 in mxml
-          clefNum = parseInt(clefAttrs.number, 10);
+          clefNum = parseInt(clefAttrs.number, 10) - 1;
         }
         const clefType = mxmlHelpers.getTextFromElement(clefNode, 'sign', 'G');
         const clefLine = mxmlHelpers.getNumberFromElement(clefNode, 'line', 2);

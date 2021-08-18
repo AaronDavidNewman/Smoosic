@@ -87,7 +87,9 @@ export class SuiScroller {
       this.scrollOffset(xoff, yoff);
     }
   }
+  // Update viewport size, and also fix height of scroll region.
   updateViewport() {
+    $(this.selector).css('height', (window.innerHeight - $(this.selector).offset().top).toString() + 'px');
     this.viewport = svgHelpers.boxPoints(
       $(this.selector).offset().left,
       $(this.selector).offset().top,

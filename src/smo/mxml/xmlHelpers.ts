@@ -322,7 +322,6 @@ export class mxmlHelpers {
         const type = slurNode.getAttribute('type') as string;
         const orientation = mxmlHelpers.getCurveDirection(slurNode);
         const slurInfo = { number, type, orientation, selector, invert: false, yOffset: 0 };
-        console.log('slur data: ', JSON.stringify(slurInfo, null, ' '));
         rv.push(slurInfo);
       });
     });
