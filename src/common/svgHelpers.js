@@ -1,6 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 
+import { SvgBox } from "../smo/data/common";
+
 // ## svgHelpers
 // Mostly utilities for converting coordinate spaces based on transforms, etc.
 // ### static class methods:
@@ -154,8 +156,8 @@ export class svgHelpers {
 
   // ### eraseOutline
   // Erases old outlineRects.
-  static eraseOutline(context,style) {
-      $(context.svg).find('g.vf-' + style).remove();
+  static eraseOutline(svg,style) {
+      $(svg).find('g.vf-' + style).remove();
   }
 
   static _outlineRect(params) {
@@ -513,11 +515,14 @@ export class svgHelpers {
   // return a simple box object that can be serialized, copied
   // (from svg DOM box)
   static smoBox(box) {
+    if (typeof(box) === "undefined") {
+      return SvgBox.default;
+    }
     var hround = (f) => {
       return Math.round((f + Number.EPSILON) * 100) / 100;
     }
-        var x = typeof(box.x) == 'undefined' ? hround(box.left) : hround(box.x);
-        var y = typeof(box.y) == 'undefined' ? hround(box.top) : hround(box.y);
+    var x = typeof(box.x) == 'undefined' ? hround(box.left) : hround(box.x);
+    var y = typeof(box.y) == 'undefined' ? hround(box.top) : hround(box.y);
     return ({
       x: hround(x),
       y: hround(y),

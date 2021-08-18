@@ -32,7 +32,7 @@ export abstract class SmoNoteModifierBase implements SmoModifierBase {
     const rv = new ctor(jsonObj);
     return rv;
   }
-  abstract serialize(): object;
+  abstract serialize(): any;
 }
 
 export interface GraceNoteParams extends SmoModifierBase {

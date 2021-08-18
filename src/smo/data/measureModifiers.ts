@@ -26,7 +26,7 @@ export abstract class SmoMeasureModifierBase implements SmoModifierBase {
     const rv = new ctor(jsonObj);
     return rv;
   }
-  abstract serialize(): object;
+  abstract serialize(): any;
 }
 
 export interface SmoMeasureFormatParams {

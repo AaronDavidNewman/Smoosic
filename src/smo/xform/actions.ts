@@ -2,6 +2,11 @@
 // Copyright (c) Aaron David Newman 2021.
 // ## SmoActionRecord
 // Record a list of actions, for playback or unit testing.
+export interface Action {
+  method: any,
+  parameters: any,
+  count: number
+}
 export class SmoActionRecord {
   static get refreshTimer() {
     return 10000;
@@ -9,21 +14,19 @@ export class SmoActionRecord {
   static get actionInterval() {
     return 50;
   }
+  actions: Action[] = [];
+  executeIndex: number = 0;
+  refreshTime: number = 0;
+  _refreshing: boolean = false;
   constructor() {
-    this.actions = [];
-    this.executeIndex = 0;
-    this._target = null;
-    this.refreshTime = 0;
   }
-  addAction(method, ...args) {
+  addAction(method: any, ...args: any[]) {
     // Don't add actions while running
     if (this.actions.length && !this.endCondition) {
       return;
     }
-    const obj = {};
-    obj.method = method;
-    obj.parameters = [];
-    args.forEach((arg) => {
+    const obj: Action = { method, parameters: [], count: 0 };
+    args.forEach((arg: any) => {
       if (typeof(arg) === 'object' && arg !== null) {
         if (typeof(arg.serialize) === 'function') {
           obj.parameters.push(arg.serialize());
@@ -66,16 +69,16 @@ export class SmoActionRecord {
   get endCondition() {
     return this.actions.length < 1 || this.executeIndex >= this.actions.length;
   }
-  callNextAction() {
+  callNextAction(): Action | null {
     if (this.endCondition) {
       return null;
     }
     const action = this.actions[this.executeIndex];
-    const args = [];
-    action.parameters.forEach((param) => {
+    const args: any[] = [];
+    action.parameters.forEach((param: any) => {
       if (typeof(param) === 'object') {
         if (typeof(param.ctor) === 'string') {
-          const ctor = Smo.getClass(param.ctor);
+          const ctor = eval('globalThis.Smo.' + param.ctor);
           args.push(new ctor(param));
         } else {
           args.push(JSON.parse(JSON.stringify(param)));
@@ -88,6 +91,6 @@ export class SmoActionRecord {
       action.count = 1;
     }
     this.executeIndex += 1;
-    return { method: action.method, args, count: action.count };
+    return { method: action.method, parameters: args, count: action.count };
   }
 }

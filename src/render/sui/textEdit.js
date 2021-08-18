@@ -154,7 +154,7 @@ export class SuiTextEditor {
 
     // The mouse is not over the text
     if (!blocks.length) {
-      svgHelpers.eraseOutline(this.context, 'text-suggestion');
+      svgHelpers.eraseOutline(this.context.svg, 'text-suggestion');
 
       // If the user clicks and there was a previous selection, treat it as selected
       if (ev.type === 'click' && this.suggestionIndex >= 0) {
@@ -177,7 +177,7 @@ export class SuiTextEditor {
     });
     // if the user clicked on it, add it to the selection.
     if (ev.type === 'click') {
-      svgHelpers.eraseOutline(this.context, 'text-suggestion');
+      svgHelpers.eraseOutline(this.context.svg, 'text-suggestion');
       if (ev.shiftKey) {
         this._expandSelectionToSuggestion();
       } else {
@@ -753,7 +753,7 @@ export class SuiDragSession {
   }
 
   endDrag() {
-    svgHelpers.eraseOutline(this.context, 'text-drag');
+    svgHelpers.eraseOutline(this.context.svg, 'text-drag');
     this.textObject.render();
     this.textGroup.offsetX(this.deltaX);
     this.textGroup.offsetY(this.deltaY);

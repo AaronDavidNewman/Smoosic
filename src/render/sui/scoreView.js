@@ -6,7 +6,7 @@ import { StaffModifierBase } from '../../smo/data/staffModifiers';
 import { SuiScroller } from './scroller';
 import { svgHelpers } from '../../common/svgHelpers';
 import { PasteBuffer } from '../../smo/xform/copypaste';
-import { suiTracker } from './tracker';
+import { SuiTracker } from './tracker';
 import { SmoScore } from '../../smo/data/score';
 import { SmoActionRecord } from '../../smo/xform/actions';
 import { SuiRenderDemon } from './layoutDemon';
@@ -246,7 +246,7 @@ export class SuiScoreView {
     this.scroller = new SuiScroller(scrollSelector);
     this.pasteBuffer = new PasteBuffer();
     this.storePaste = new PasteBuffer();
-    this.tracker = new suiTracker(this.renderer, this.scroller, this.pasteBuffer);
+    this.tracker = new SuiTracker(this.renderer, this.scroller, this.pasteBuffer);
     this.renderer.setMeasureMapper(this.tracker);
 
     this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));

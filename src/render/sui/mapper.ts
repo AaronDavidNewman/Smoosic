@@ -5,7 +5,7 @@ import { svgHelpers } from '../../common/svgHelpers';
 import { layoutDebug } from './layoutDebug';
 import { SuiScroller } from './scroller';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
-import { MeasureSvg, SmoMeasure, SmoVoice } from '../../smo/data/measure';
+import { SmoMeasure, SmoVoice } from '../../smo/data/measure';
 import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SmoNoteModifierBase, SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoMeasureModifierBase } from '../../smo/data/measureModifiers';
@@ -23,7 +23,12 @@ type SmoModifier = SmoNoteModifierBase | SmoMeasureModifierBase | StaffModifierB
 export interface SuiRendererBase {
   svg: Document,
   score: SmoScore,
-  isDirty: boolean
+  isDirty: boolean,
+  passState: number,
+  remapAll(): void,
+  renderPromise(): Promise<any>,
+  addToReplaceQueue(mm: SmoSelection[]): void,
+  renderElement: Element
 }
 export interface ModifierTab {
   modifier: SmoModifier,
@@ -40,10 +45,10 @@ export interface LocalModifier {
 export interface HighlightQueue {
   selectionCount: number, deferred: boolean
 }
-// ## suiMapper
+// ## SuiMapper
 // Map the notes in the svg so they can respond to events and interact
 // with the mouse/keyboard
-export abstract class suiMapper {
+export abstract class SuiMapper {
   renderer: SuiRendererBase;
   scroller: SuiScroller;
   // measure to selector map
@@ -80,8 +85,8 @@ export abstract class suiMapper {
 
   abstract highlightSelection(): void;
   abstract _growSelectionRight(hold?: boolean): number;  
-  abstract _setModifierAsSuggestion(bb: SvgBox, sel: SmoSelection): void;
-  abstract _setArtifactAsSuggestion(bb: SvgBox, sel: SmoSelection): void;
+  abstract _setModifierAsSuggestion(sel: SmoSelection): void;
+  abstract _setArtifactAsSuggestion(sel: SmoSelection): void;
   updateHighlight() {
     const self = this;
     if (this.highlightQueue.selectionCount === this.selections.length) {
@@ -505,12 +510,12 @@ export abstract class suiMapper {
     if (!artifacts.length) {
       sel = svgHelpers.findIntersectingArtifact(bb, this.modifierTabs, this.scroller.scrollState.scroll);
       if (sel.length) {
-        this._setModifierAsSuggestion(bb, sel[0]);
+        this._setModifierAsSuggestion(sel[0]);
       }
       return;
     }
     const artifact = artifacts[0];
-    this._setArtifactAsSuggestion(bb, artifact);
+    this._setArtifactAsSuggestion(artifact);
   }
   _updateMeasureNoteMap(artifact: SmoSelection, printing: boolean) {
     const note = artifact.note as SmoNote;

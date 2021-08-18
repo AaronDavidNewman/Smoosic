@@ -1,33 +1,49 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { suiMapper } from './mapper';
+import { SuiMapper, LocalModifier, SuiRendererBase, ModifierTab } from './mapper';
 import { svgHelpers } from '../../common/svgHelpers';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { SuiRenderState } from './renderState';
 import { htmlHelpers } from '../../common/htmlHelpers';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { suiOscillator } from '../audio/oscillator';
+import { SmoActionRecord } from '../../smo/xform/actions';
+import { SmoScore } from '../../smo/data/score';
+import { StaffModifierBase } from '../../smo/data/staffModifiers';
+import { SvgBox, SvgPoint, SmoModifierBase } from '../../smo/data/common';
+import { SuiScroller } from './scroller';
+import { PasteBuffer } from '../../smo/xform/copypaste';
+import { SmoNote } from '../../smo/data/note';
+import { SmoMeasure } from '../../smo/data/measure';
 
-// ## suiTracker
-// A tracker maps the UI elements to the logical elements ,and allows the user to
-// move through the score and make selections, for navigation and editing.
-//
-// ### See also:
-// `suiBaseLayout`, `controller`, `menu`
-// ### class methods:
-// ---
-export class suiTracker extends suiMapper {
-  constructor(renderer, scroller, pasteBuffer) {
+declare var $: any;
+
+export interface KeyEvent {
+  type: string, shiftKey: boolean, ctrlKey: boolean, altKey: boolean, key: string, keyCode: string
+}
+/**
+ * SuiTracker
+ A tracker maps the UI elements to the logical elements ,and allows the user to
+ move through the score and make selections, for navigation and editing.
+ */
+export class SuiTracker extends SuiMapper {
+  idleTimer: number = Date.now();
+  recordBuffer: SmoActionRecord | null = null;
+  // timer: NodeJS.Timer | null = null;
+  suggestFadeTimer: NodeJS.Timer | null = null;
+  constructor(renderer: SuiRendererBase, scroller: SuiScroller, pasteBuffer: PasteBuffer) {
     super(renderer, scroller, pasteBuffer);
-    this.idleTimer = Date.now();
   }
   // ### _checkBoxOffset
   // If the mapped note and actual note don't match, re-render the notes so they do.
   // Otherwise the selections are off.
   _checkBoxOffset() {
-    const note = this.selections[0].note;
+    const note = this.selections[0].note as SmoNote;
     const r = note.renderedBox;
-    const abs = svgHelpers.logicalToClient(this.renderer.context.svg, note.logicalBox, this.scroller);
+    if (!r) {
+      return;
+    }
+    const abs = svgHelpers.logicalToClient(this.renderer.svg, note.logicalBox, this.scroller);
     const ydiff = Math.abs(r.y - abs.y);
     const xdiff = Math.abs(r.x - abs.x);
     const preventScroll = $('body').hasClass('modal');
@@ -53,36 +69,18 @@ export class suiTracker extends suiMapper {
     this.renderer.addToReplaceQueue(mm);
   }
 
-  setDialogModifier(notifier) {
-    this.modifierDialogFactory = notifier;
-  }
-
   // ### renderElement
   // the element the score is rendered on
-  get renderElement() {
-    return this.renderer.renderer.elementId;
+  get renderElement(): Element {
+    return this.renderer.renderElement;
   }
 
-  get score() {
+  get score(): SmoScore {
     return this.renderer.score;
   }
 
-  get context() {
-    return this.renderer.renderer.getContext();
-  }
-
-  // Hack - lyric should be handled consistently
-  _reboxTextModifier(modifier) {
-    let el = null;
-    if (modifier.attrs.type === 'SmoGraceNote') {
-      el = this.context.svg.getElementById('vf-' + modifier.renderId);
-    } else if (modifier.attrs.type !== 'SmoLyric') {
-      el = this.context.svg.getElementsByClassName(modifier.attrs.id)[0];
-    }
-    if (!el) {
-      return;
-    }
-    svgHelpers.updateArtifactBox(this.context.svg, el, modifier, this.scroller);
+  get svg(): Document {
+    return this.renderer.svg;
   }
 
   clearMusicCursor() {
@@ -91,7 +89,7 @@ export class suiTracker extends suiMapper {
 
   // ### musicCursor
   // the little birdie that follows the music as it plays
-  musicCursor(selector) {
+  musicCursor(selector: SmoSelector) {
     const key = SmoSelector.getNoteKey(selector);
     // Get note from 0th staff if we can
     if (this.measureNoteMap[key]) {
@@ -99,26 +97,33 @@ export class suiTracker extends suiMapper {
         this.renderer.score.staves.length - 1, selector.measure);
       const zmeasureSel = SmoSelection.measureSelection(this.renderer.score,
         0, selector.measure);
-      const measure = measureSel.measure;
-      const mbox = measure.svg.renderedBox;
-      const pos = this.measureNoteMap[key].scrollBox;
+      const measure = measureSel?.measure as SmoMeasure;
+      const y1: number = zmeasureSel?.measure?.svg?.renderedBox?.y ?? 0;
+      const y2: number = zmeasureSel?.measure?.svg?.renderedBox?.height ?? 0;
+      const sy: number = this.scroller.netScroll.y;
+      const y = (y1 - y2) - sy;
+
+      const mbox = measure?.svg?.renderedBox ?? SvgBox.default;
+      const noteSel = this.measureNoteMap[key] as SmoSelection;
+      const pos: SvgPoint = noteSel.scrollBox ?? SvgPoint.default;
       const b = htmlHelpers.buildDom;
       const r = b('span').classes('birdy icon icon-arrow-down').attr('id', 'birdy');
       $('.workspace #birdy').remove();
       const rd = r.dom();
-      const y = (zmeasureSel.measure.svg.renderedBox.y - zmeasureSel.measure.svg.renderedBox.height) - this.scroller.netScroll.y;
       const x = pos.x;
       $(rd).css('top', y).css('left', x);
       $('.workspace').append(rd);
       // todo, need lower right for x
+      if (mbox) {
       this.scroller.scrollVisibleBox(svgHelpers.boxPoints(
         mbox.x, mbox.y, mbox.width, mbox.height));
+      }
     }
   }
 
   // ### selectModifierById
   // programatically select a modifier by ID.  Used by text editor.
-  selectId(id) {
+  selectId(id: string) {
     this.modifierIndex = this.modifierTabs.findIndex((mm) =>  mm.modifier.attrs.id === id);
   }
 
@@ -133,15 +138,21 @@ export class suiTracker extends suiMapper {
     return this.modifierSelections;
   }
 
-  static serializeEvent(evKey) {
+  static serializeEvent(evKey: KeyEvent | null): any {
+    if (!evKey) {
+      return [];
+    }
     const rv = {};
     smoSerialize.serializedMerge(['type', 'shiftKey', 'ctrlKey', 'altKey', 'key', 'keyCode'], evKey, rv);
     return rv;
   }
 
-  advanceModifierSelection(keyEv) {
+  advanceModifierSelection(keyEv: KeyEvent | null) {
+    if (!keyEv) {
+      return;
+    }
     if (this.recordBuffer) {
-      this.recordBuffer.addAction('advanceModifierSelection', suiTracker.serializeEvent(keyEv));
+      this.recordBuffer.addAction('advanceModifierSelection', SuiTracker.serializeEvent(keyEv));
     }
 
     this.idleTimer = Date.now();
@@ -159,17 +170,19 @@ export class suiTracker extends suiMapper {
       this.modifierSelections = [];
       return;
     }
-    this.modifierSelections = [this.localModifiers[this.modifierIndex]];
+    const local: LocalModifier = this.localModifiers[this.modifierIndex];
+    const box: SvgBox = svgHelpers.smoBox(local.box) as SvgBox;
+    this.modifierSelections = [{ index: 0, box, modifier: local.modifier, selection: local.selection }];
     this._highlightModifier();
   }
 
-  static stringifyBox(box) {
+  static stringifyBox(box: SvgBox): string {
     return '{x:' + box.x + ',y:' + box.y + ',width:' + box.width + ',height:' + box.height + '}';
   }
 
   // ### _getOffsetSelection
   // Get the selector that is the offset of the first existing selection
-  _getOffsetSelection(offset) {
+  _getOffsetSelection(offset: number) {
     let testSelection = this.getExtremeSelection(Math.sign(offset));
     const scopyTick = JSON.parse(JSON.stringify(testSelection.selector));
     const scopyMeasure = JSON.parse(JSON.stringify(testSelection.selector));
@@ -199,7 +212,7 @@ export class suiTracker extends suiMapper {
     return testSelection.selector;
   }
 
-  getSelectedGraceNotes() {
+  getSelectedGraceNotes(): ModifierTab[] {
     if (!this.modifierSelections.length) {
       return [];
     }
@@ -209,7 +222,7 @@ export class suiTracker extends suiMapper {
     return ff;
   }
 
-  isGraceNoteSelected() {
+  isGraceNoteSelected(): boolean {
     if (this.modifierSelections.length) {
       const ff = this.modifierSelections.findIndex((mm) => mm.modifier.attrs.type === 'SmoGraceNote');
       return ff >= 0;
@@ -217,16 +230,17 @@ export class suiTracker extends suiMapper {
     return false;
   }
 
-  _growGraceNoteSelections(offset) {
+  _growGraceNoteSelections(offset: number) {
     this.idleTimer = Date.now();
     const far = this.modifierSelections.filter((mm) => mm.modifier.attrs.type === 'SmoGraceNote');
     if (!far.length) {
       return;
     }
     const ix = (offset < 0) ? 0 : far.length - 1;
-    const sel = far[ix];
+    const sel: ModifierTab = far[ix] as ModifierTab;
     const left = this.modifierTabs.filter((mt) =>
-      mt.modifier.attrs.type === 'SmoGraceNote' && SmoSelector.sameNote(mt.selection.selector, sel.selection.selector)
+      mt.modifier?.attrs?.type === 'SmoGraceNote' && sel.selection && mt.selection &&
+      SmoSelector.sameNote(mt.selection.selector, sel.selection.selector)
     );
     if (ix + offset < 0 || ix + offset >= left.length) {
       return;
@@ -244,7 +258,7 @@ export class suiTracker extends suiMapper {
     }
     this._growSelectionRight(false);
   }
-  _growSelectionRight(skipPlay) {
+  _growSelectionRight(skipPlay: boolean): number {
     this.idleTimer = Date.now();
     if (this.isGraceNoteSelected()) {
       this._growGraceNoteSelections(1);
@@ -265,19 +279,18 @@ export class suiTracker extends suiMapper {
     this.selections.push(artifact);
     this.deferHighlight();
     this._createLocalModifiersList();
-    return artifact.note.tickCount;
+    return (artifact.note as SmoNote).tickCount;
   }
-  moveHome(evKey) {
-    evKey = typeof(evKey) === 'undefined' || evKey === null ? {} : evKey;
+  moveHome(evKey: KeyEvent) {
     if (this.recordBuffer) {
-      this.recordBuffer.addAction('moveHome', suiTracker.serializeEvent(evKey));
+      this.recordBuffer.addAction('moveHome', SuiTracker.serializeEvent(evKey));
     }
     this.idleTimer = Date.now();
     const ls = this.selections[0].staff;
     if (evKey.ctrlKey) {
       const mm = ls.measures[0];
       const homeSel = this._getClosestTick({ staff: ls.staffId,
-        measure: 0, voice: mm.getActiveVoice(), tick: 0 });
+        measure: 0, voice: mm.getActiveVoice(), tick: 0, pitches: [] });
       if (evKey.shiftKey) {
         this._selectBetweenSelections(this.selections[0], homeSel);
       } else {
@@ -289,15 +302,16 @@ export class suiTracker extends suiMapper {
         }
       }
     } else {
-      const system = this.selections[0].measure.lineIndex;
+      const system = this.selections[0].measure.svg.lineIndex;
       const lm = ls.measures.find((mm) =>
-        mm.lineIndex === system && mm.measureNumber.systemIndex === 0);
+        mm.svg.lineIndex === system && mm.measureNumber.systemIndex === 0);
+      const mm = lm as SmoMeasure;
       const homeSel = this._getClosestTick({ staff: ls.staffId,
-        measure: lm.measureNumber.measureIndex, voice: lm.getActiveVoice(),
-        tick: 0 });
+        measure: mm.measureNumber.measureIndex, voice: mm.getActiveVoice(),
+        tick: 0, pitches: [] });
       if (evKey.shiftKey) {
         this._selectBetweenSelections(this.selections[0], homeSel);
-      } else {
+      } else if (homeSel?.measure?.svg?.renderedBox) {
         this.selections = [homeSel];
         this.scroller.scrollVisibleBox(homeSel.measure.svg.renderedBox);
         this.deferHighlight();
@@ -305,10 +319,9 @@ export class suiTracker extends suiMapper {
       }
     }
   }
-  moveEnd(evKey) {
-    evKey = typeof(evKey) === 'undefined' || evKey === null ? {} : evKey;
+  moveEnd(evKey: KeyEvent) {
     if (this.recordBuffer) {
-      this.recordBuffer.addAction('moveEnd', suiTracker.serializeEvent(evKey));
+      this.recordBuffer.addAction('moveEnd', SuiTracker.serializeEvent(evKey));
     }
     this.idleTimer = Date.now();
     const ls = this.selections[0].staff;
@@ -317,7 +330,7 @@ export class suiTracker extends suiMapper {
       const voiceIx = lm.getActiveVoice();
       const voice = lm.voices[voiceIx];
       const endSel = this._getClosestTick({ staff: ls.staffId,
-        measure: ls.measures.length - 1, voice: voiceIx, tick: voice.notes.length - 1 });
+        measure: ls.measures.length - 1, voice: voiceIx, tick: voice.notes.length - 1, pitches: [] });
       if (evKey.shiftKey) {
         this._selectBetweenSelections(this.selections[0], endSel);
       } else {
@@ -329,15 +342,15 @@ export class suiTracker extends suiMapper {
         }
       }
     } else {
-      const system = this.selections[0].measure.lineIndex;
+      const system = this.selections[0].measure.svg.lineIndex;
       // find the largest measure index on this staff in this system
       const measures = ls.measures.filter((mm) =>
-        mm.lineIndex === system);
+        mm.svg.lineIndex === system);
       const lm = measures.reduce((a, b) =>
         b.measureNumber.measureIndex > a.measureNumber.measureIndex ? b : a);
       const ticks = lm.voices[lm.getActiveVoice()].notes.length;
       const endSel = this._getClosestTick({ staff: ls.staffId,
-        measure: lm.measureNumber.measureIndex, voice: lm.getActiveVoice(), tick: ticks - 1 });
+        measure: lm.measureNumber.measureIndex, voice: lm.getActiveVoice(), tick: ticks - 1, pitches: [] });
       if (evKey.shiftKey) {
         this._selectBetweenSelections(this.selections[0], endSel);
       } else {
@@ -373,7 +386,7 @@ export class suiTracker extends suiMapper {
     }
   }
 
-  growSelectionLeft() {
+  growSelectionLeft(): number {
     if (this.isGraceNoteSelected()) {
       this._growGraceNoteSelections(-1);
       return 0;
@@ -397,17 +410,16 @@ export class suiTracker extends suiMapper {
     }
     this.deferHighlight();
     this._createLocalModifiersList();
-    return artifact.note.tickCount;
+    return (artifact.note as SmoNote).tickCount;
   }
 
   // if we are being moved right programmatically, avoid playing the selected note.
-  moveSelectionRight(evKey, skipPlay) {
-    evKey = typeof(evKey) === 'undefined' || evKey === null ? {} : evKey;
+  moveSelectionRight(evKey: KeyEvent | null, skipPlay: boolean) {
     if (this.selections.length === 0) {
       return;
     }
     if (this.recordBuffer) {
-      this.recordBuffer.addAction('moveSelectionRight', suiTracker.serializeEvent(evKey));
+      this.recordBuffer.addAction('moveSelectionRight', SuiTracker.serializeEvent(evKey));
     }
     const nselect = this._getOffsetSelection(1);
     this._replaceSelection(nselect, skipPlay);
@@ -421,7 +433,7 @@ export class suiTracker extends suiMapper {
       this.recordBuffer.addAction('moveSelectionLeft');
     }
     const nselect = this._getOffsetSelection(-1);
-    this._replaceSelection(nselect);
+    this._replaceSelection(nselect, false);
   }
   moveSelectionLeftMeasure() {
     if (this.recordBuffer) {
@@ -435,22 +447,22 @@ export class suiTracker extends suiMapper {
     }
     this._moveSelectionMeasure(1);
   }
-  moveSelectionOffset(offset) {
+  moveSelectionOffset(offset: number) {
     let i = 0;
     const fcn = (offset >= 0 ? 'moveSelectionRight' : 'moveSelectionLeft');
     offset = (offset < 0) ? -1 * offset : offset;
     for (i = 0; i < offset; ++i) {
-      this[fcn]();
+      this[fcn](null, false);
     }
   }
 
-  _moveSelectionMeasure(offset) {
-    let selection = this.getExtremeSelection(Math.sign(offset));
+  _moveSelectionMeasure(offset: number) {
+    const selection = this.getExtremeSelection(Math.sign(offset));
     this.idleTimer = Date.now();
-    selection = JSON.parse(JSON.stringify(selection.selector));
-    selection.measure += offset;
-    selection.tick = 0;
-    const selObj = this._getClosestTick(selection);
+    const selector = JSON.parse(JSON.stringify(selection.selector));
+    selector.measure += offset;
+    selector.tick = 0;
+    const selObj = this._getClosestTick(selector);
     if (selObj) {
       this.selections = [selObj];
     }
@@ -458,7 +470,7 @@ export class suiTracker extends suiMapper {
     this._createLocalModifiersList();
   }
 
-  setSelection(selection) {
+  setSelection(selection: SmoSelector) {
     const selObj = this._getClosestTick(selection);
     this.idleTimer = Date.now();
     if (selObj) {
@@ -467,7 +479,7 @@ export class suiTracker extends suiMapper {
     this.deferHighlight();
   }
 
-  _moveStaffOffset(offset) {
+  _moveStaffOffset(offset: number) {
     if (this.selections.length === 0) {
       return;
     }
@@ -481,13 +493,13 @@ export class suiTracker extends suiMapper {
 
   // ### _moveSelectionPitch
   // Suggest a specific pitch in a chord, so we can transpose just the one note vs. the whole chord.
-  _moveSelectionPitch(index) {
+  _moveSelectionPitch(index: number) {
     this.idleTimer = Date.now();
     if (!this.selections.length) {
       return;
     }
     const sel = this.selections[0];
-    const note = sel.note;
+    const note = sel.note as SmoNote;
     if (note.pitches.length < 2) {
       this.pitchIndex = -1;
       return;
@@ -510,7 +522,7 @@ export class suiTracker extends suiMapper {
     if (this.recordBuffer) {
       this.recordBuffer.addAction('moveSelectionPitchDown');
     }
-    this._moveSelectionPitch(this.selections[0].note.pitches.length - 1);
+    this._moveSelectionPitch((this.selections[0].note as SmoNote).pitches.length - 1);
   }
 
   moveSelectionUp() {
@@ -526,11 +538,11 @@ export class suiTracker extends suiMapper {
     this._moveStaffOffset(1);
   }
 
-  containsArtifact() {
+  containsArtifact(): boolean {
     return this.selections.length > 0;
   }
 
-  _replaceSelection(nselector, skipPlay) {
+  _replaceSelection(nselector: SmoSelector, skipPlay: boolean) {
     var artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, nselector.voice, nselector.tick);
     if (!artifact) {
       artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, 0, nselector.tick);
@@ -545,12 +557,15 @@ export class suiTracker extends suiMapper {
     if (!skipPlay && this.autoPlay) {
       suiOscillator.playSelectionNow(artifact);
     }
+    if (!artifact) {
+      return;
+    }
 
     // clear modifier selections
     this.clearModifierSelections();
     this.score.setActiveStaff(nselector.staff);
     const mapKey = Object.keys(this.measureNoteMap).find((k) =>
-      SmoSelector.sameNote(this.measureNoteMap[k].selector, artifact.selector)
+      artifact && SmoSelector.sameNote(this.measureNoteMap[k].selector, artifact.selector)
     );
     if (!mapKey) {
       return;
@@ -574,21 +589,23 @@ export class suiTracker extends suiMapper {
   }
   // ## measureIterator
   // Description: iterate over the any measures that are part of the selection
-  getSelectedMeasures() {
-    const set = [];
-    const rv = [];
+  getSelectedMeasures(): SmoSelection[] {
+    const set: number[] = [];
+    const rv: SmoSelection[] = [];
     this.selections.forEach((sel) => {
       const measure = SmoSelection.measureSelection(this.score, sel.selector.staff, sel.selector.measure);
-      const ix = measure.selector.measure;
-      if (set.indexOf(ix) === -1) {
-        set.push(ix);
-        rv.push(measure);
+      if (measure) {
+        const ix = measure.selector.measure;
+        if (set.indexOf(ix) === -1) {
+          set.push(ix);
+          rv.push(measure);
+        }
       }
     });
     return rv;
   }
 
-  _selectFromToInStaff(sel1, sel2) {
+  _selectFromToInStaff(sel1: SmoSelection, sel2: SmoSelection) {
     this.selections = [];
     this.idleTimer = Date.now();
     const order = [sel1, sel2].sort((a, b) => SmoSelector.lteq(a.selector, b.selector) ? -1 : 1);
@@ -602,8 +619,8 @@ export class suiTracker extends suiMapper {
     });
   }
 
-  _addSelection(selection) {
-    const ar = this.selections.filter((sel) =>
+  _addSelection(selection: SmoSelection) {
+    const ar: SmoSelection[] = this.selections.filter((sel) =>
       SmoSelector.neq(sel.selector, selection.selector)
     );
     if (this.autoPlay) {
@@ -613,12 +630,12 @@ export class suiTracker extends suiMapper {
     this.selections = ar;
   }
 
-  recordSelectSuggestion(ev, selector) {
+  recordSelectSuggestion(ev: KeyEvent, selector: SmoSelector) {
     if (this.recordBuffer) {
-      this.recordBuffer.addAction('selectSuggestionNote', selector, suiTracker.serializeEvent(ev));
+      this.recordBuffer.addAction('selectSuggestionNote', selector, SuiTracker.serializeEvent(ev));
     }
   }
-  recordModifierSelectSuggestion(ev) {
+  recordModifierSelectSuggestion(ev: KeyEvent) {
     if (this.recordBuffer) {
       const artifact = this.modifierTabs[this.modifierSuggestion];
       if (!artifact) {
@@ -631,10 +648,10 @@ export class suiTracker extends suiMapper {
       }
       const selector = artifact.selection.selector;
       this.recordBuffer.addAction('selectSuggestionModifier', selector,
-        suiTracker.serializeEvent(ev), modKey);
+        SuiTracker.serializeEvent(ev), modKey);
     }
   }
-  _selectBetweenSelections(s1, s2) {
+  _selectBetweenSelections(s1: SmoSelection, s2: SmoSelection) {
     const min = SmoSelector.gt(s1.selector, s2.selector) ? s2 : s1;
     const max = SmoSelector.lt(min.selector, s2.selector) ? s2 : s1;
     this._selectFromToInStaff(min, max);
@@ -645,14 +662,17 @@ export class suiTracker extends suiMapper {
   // assumes a modifier is selected
   _matchSelectionToModifier() {
     const mod = this.modifierSelections[0].modifier;
-    if (mod.startSelector && mod.endSelector) {
-      const s1 = SmoSelection.noteFromSelector(this.score, mod.startSelector);
-      const s2 = SmoSelection.noteFromSelector(this.score, mod.endSelector);
-      this._selectBetweenSelections(s1, s2);
+    if ((mod as StaffModifierBase).startSelector && (mod as StaffModifierBase).endSelector) {
+      const sm = mod as StaffModifierBase;
+      const s1: SmoSelection | null = SmoSelection.noteFromSelector(this.score, sm.startSelector);
+      const s2: SmoSelection | null = SmoSelection.noteFromSelector(this.score, sm.endSelector);
+      if (s1 && s2) {
+        this._selectBetweenSelections(s1, s2);
+      }
     }
   }
-  selectSuggestion(ev) {
-    if ((!this.suggestion || !this.suggestion.measure) && this.modifierSuggestion < 0) {
+  selectSuggestion(ev: KeyEvent) {
+    if (!this.suggestion || !this.suggestion.measure) {
       return;
     }
     this.idleTimer = Date.now();
@@ -698,8 +718,9 @@ export class suiTracker extends suiMapper {
     const preselected = this.selections[0] ?
       SmoSelector.sameNote(this.suggestion.selector, this.selections[0].selector) && this.selections.length === 1 : false;
 
-    if (preselected && this.selections[0].note.pitches.length > 1) {
-      this.pitchIndex =  (this.pitchIndex + 1) % this.selections[0].note.pitches.length;
+    const note = this.selections[0].note as SmoNote;
+    if (preselected && note.pitches.length > 1) {
+      this.pitchIndex =  (this.pitchIndex + 1) % note.pitches.length;
       this.selections[0].selector.pitches = [this.pitchIndex];
       this.recordSelectSuggestion(ev, this.selections[0].selector);
     } else {
@@ -754,17 +775,19 @@ export class suiTracker extends suiMapper {
     }, 1000);
   }
 
-  _setModifierAsSuggestion(bb, artifact) {
-    this.modifierSuggestion = artifact.index;
+  _setModifierAsSuggestion(artifact: SmoSelection): void {
+    if (!artifact.box) {
+      return;
+    }
     this._drawRect(artifact.box, 'suggestion');
     this._setFadeTimer();
   }
 
-  _setArtifactAsSuggestion(bb, artifact) {
+  _setArtifactAsSuggestion(artifact: SmoSelection) {
     const sameSel =
       this.selections.find((ss) => SmoSelector.sameNote(ss.selector, artifact.selector));
 
-    if (sameSel) {
+    if (sameSel || !artifact.box) {
       return;
     }
     this.modifierSuggestion = -1;
@@ -775,32 +798,35 @@ export class suiTracker extends suiMapper {
   }
 
   eraseAllSelections() {
-    const strokeKeys = Object.keys(suiTracker.strokes);
+    const strokeKeys = Object.keys(SuiTracker.strokes);
     strokeKeys.forEach((key) => {
       this.eraseRect(key);
     });
   }
 
-  eraseRect(stroke) {
+  eraseRect(stroke: string) {
     $(this.renderElement).find('g.vf-' + stroke).remove();
   }
 
   _highlightModifier() {
-    let box = null;
+    let box: SvgBox | null = null;
     if (!this.modifierSelections.length) {
       return;
     }
     this.modifierSelections.forEach((artifact) => {
-      if (!box) {
-        box = artifact.modifier.renderedBox;
+      if (box === null) {
+        box = artifact.modifier.renderedBox ?? null;
       } else {
         box = svgHelpers.unionRect(box, artifact.modifier.renderedBox);
       }
     });
+    if (box === null) {
+      return;
+    }
     this._drawRect(box, 'staffModifier');
   }
 
-  _highlightPitchSelection(note, index) {
+  _highlightPitchSelection(note: SmoNote, index: number) {
     this.eraseAllSelections();
     const noteDiv = $(this.renderElement).find('#' + note.renderId);
     const heads = noteDiv.find('.vf-notehead');
@@ -809,11 +835,11 @@ export class suiTracker extends suiMapper {
     }
     const headEl = heads[index];
     const lbox = svgHelpers.smoBox(headEl.getBBox());
-    const box = svgHelpers.logicalToClient(this.context.svg, lbox, this.scroller);
+    const box: SvgBox = svgHelpers.smoBox(svgHelpers.logicalToClient(this.svg, lbox, this.scroller));
     this._drawRect(box, 'staffModifier');
   }
 
-  _highlightActiveVoice(selection) {
+  _highlightActiveVoice(selection: SmoSelection) {
     let i = 0;
     const selector = selection.selector;
     for (i = 1; i <= 4; ++i) {
@@ -834,12 +860,12 @@ export class suiTracker extends suiMapper {
 
   highlightSelection() {
     let i = 0;
-    let prevSel = {};
-    let curBox = {};
+    let prevSel: SmoSelection | null = null;
+    let curBox: SvgBox = SvgBox.default;
     this.idleTimer = Date.now();
     const grace = this.getSelectedGraceNotes();
     // If this is not a note with grace notes, logically unselect the grace notes
-    if (grace.length) {
+    if (grace && grace.length && grace[0].selection && this.selections.length) {
       if (!SmoSelector.sameNote(grace[0].selection.selector, this.selections[0].selector)) {
         this.clearModifierSelections();
       } else {
@@ -847,18 +873,19 @@ export class suiTracker extends suiMapper {
         return;
       }
     }
+    const note = this.selections[0].note as SmoNote;
     if (this.pitchIndex >= 0 && this.selections.length === 1 &&
-      this.pitchIndex < this.selections[0].note.pitches.length) {
-      this._highlightPitchSelection(this.selections[0].note, this.pitchIndex);
+      this.pitchIndex < note.pitches.length) {
+      this._highlightPitchSelection(note, this.pitchIndex);
       this._highlightActiveVoice(this.selections[0]);
       return;
     }
 
     this.pitchIndex = -1;
     this.eraseAllSelections();
-    if (this.selections.length === 1 && this.selections[0].note.renderedBox) {
+    if (this.selections.length === 1 && note.renderedBox) {
       this._checkBoxOffset();
-      this._drawRect(this.selections[0].note.renderedBox, 'selection');
+      this._drawRect(note.renderedBox, 'selection');
       this._highlightActiveVoice(this.selections[0]);
       return;
     }
@@ -869,15 +896,18 @@ export class suiTracker extends suiMapper {
       return;
     }
     curBox = svgHelpers.smoBox(prevSel.box);
-    const boxes = [];
+    const boxes: SvgBox[] = [];
     for (i = 1; i < sorted.length; ++i) {
       const sel = sorted[i];
+      if (!sel.box || !prevSel.box) {
+        continue;
+      }
       const ydiff = Math.abs(prevSel.box.y - sel.box.y);
       if (sel.selector.staff === prevSel.selector.staff && ydiff < 1.0) {
         curBox = svgHelpers.unionRect(curBox, sel.box);
-      } else {
+      } else if (curBox) {
         boxes.push(curBox);
-        curBox = sel.box;
+        curBox = svgHelpers.smoBox(sel.box);
       }
       this._highlightActiveVoice(sel);
       prevSel = sel;
@@ -886,15 +916,15 @@ export class suiTracker extends suiMapper {
     this._drawRect(boxes, 'selection');
   }
 
-  _suggestionParameters(box, strokeName) {
-    const outlineStroke = suiTracker.strokes[strokeName];
+  _suggestionParameters(box: SvgBox | SvgBox[], strokeName: string) {
+    const outlineStroke: string = (SuiTracker.strokes as any)[strokeName];
     return {
-      context: this.context, box, classes: strokeName,
+      context: this.svg, box, classes: strokeName,
       outlineStroke, scroller: this.scroller
     };
   }
 
-  _drawRect(bb, stroke) {
+  _drawRect(bb: SvgBox | SvgBox[], stroke: string) {
     svgHelpers.outlineRect(this._suggestionParameters(bb, stroke));
   }
 }

@@ -244,10 +244,10 @@ export class SuiScoreRender extends SuiRenderState {
     $('.measure-format').remove();
     this.score.staves.forEach((staff) => {
       staff.measures.forEach((measure) => {
-        if (!mscore[measure.lineIndex]) {
-          mscore[measure.lineIndex] = [];
+        if (!mscore[measure.svg.lineIndex]) {
+          mscore[measure.svg.lineIndex] = [];
         }
-        mscore[measure.lineIndex].push(measure);
+        mscore[measure.svg.lineIndex].push(measure);
       });
     });
 
@@ -429,7 +429,7 @@ export class SuiScoreRender extends SuiRenderState {
       smoBeamerFactory.applyBeams(measure);
       measure.measureNumber.systemIndex = systemIndex;
       measure.svg.rowInSystem = rowInSystem;
-      measure.lineIndex = lineIndex;
+      measure.svg.lineIndex = lineIndex;
 
       // use measure to left to figure out whether I need to render key signature, etc.
       // If I am the first measure, just use self and we always render them on the first measure.

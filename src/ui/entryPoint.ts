@@ -64,7 +64,7 @@ import { SuiScoreView } from '../render/sui/scoreView';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { SuiScoreRender } from '../render/sui/scoreRender';
 import { layoutDebug } from '../render/sui/layoutDebug';
-import { suiMapper } from '../render/sui/mapper';
+import { SuiMapper } from '../render/sui/mapper';
 import { SuiScroller } from '../render/sui/scroller';
 import { SuiActionPlayback } from '../render/sui/actionPlayback';
 // SMO components
@@ -124,7 +124,7 @@ export const Smo = {
     StaffCheckComponent, TextCheckComponent,
     SuiXhrLoader,PromiseHelpers,
     // Rendering components
-    suiPiano, layoutDebug, SuiScoreView,SuiScroller, suiMapper, SuiScoreRender,
+    suiPiano, layoutDebug, SuiScoreView,SuiScroller, SuiMapper, SuiScoreRender,
     SuiScoreViewOperations,SuiActionPlayback,
     // Smo Music Objects
     SmoScore,

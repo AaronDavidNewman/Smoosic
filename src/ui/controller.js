@@ -33,7 +33,6 @@ export class suiController {
 
     this.view = params.view;
     this.eventSource = params.eventSource;
-    this.view.tracker.setDialogModifier(this);
     this.tracker = this.view.tracker; // needed for key event handling
     this.keyCommands.controller = this;
     this.keyCommands.view = this.view;

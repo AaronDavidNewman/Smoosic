@@ -24,6 +24,7 @@ export abstract class SmoScoreModifierBase implements SmoModifierBase {
       type: ctor
     };
   }
+  abstract serialize(): any;
   static deserialize(jsonObj: any) {
     const ctor = eval('globalThis.Smo.' + jsonObj.ctor);
     const rv = new ctor(jsonObj);

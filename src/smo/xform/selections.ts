@@ -186,7 +186,7 @@ export class SmoSelection {
 
   // ### noteSelection
   // a selection that specifies a note in the score
-  static noteSelection(score: SmoScore, staffIndex: number, measureIndex: number, voiceIndex: number, tickIndex: number) {
+  static noteSelection(score: SmoScore, staffIndex: number, measureIndex: number, voiceIndex: number, tickIndex: number): SmoSelection | null {
     staffIndex = staffIndex != null ? staffIndex : score.activeStaff;
     measureIndex = typeof (measureIndex) !== 'undefined' ? measureIndex : 0;
     voiceIndex = typeof (voiceIndex) !== 'undefined' ? voiceIndex : 0;
@@ -224,7 +224,7 @@ export class SmoSelection {
 
   // ### noteFromSelector
   // return a selection based on the passed-in selector
-  static noteFromSelector(score: SmoScore, selector: SmoSelector) {
+  static noteFromSelector(score: SmoScore, selector: SmoSelector): SmoSelection| null {
     return SmoSelection.noteSelection(score,
       selector.staff, selector.measure, selector.voice, selector.tick);
   }
@@ -285,7 +285,7 @@ export class SmoSelection {
   // ## nextNoteSelection
   // ## Description:
   // Return the next note in this measure, or the first note of the next measure, if it exists.
-  static nextNoteSelection(score: SmoScore, staffIndex: number, measureIndex: number, voiceIndex: number, tickIndex: number) {
+  static nextNoteSelection(score: SmoScore, staffIndex: number, measureIndex: number, voiceIndex: number, tickIndex: number): SmoSelection | null {
     const nextTick = tickIndex + 1;
     const nextMeasure = measureIndex + 1;
     const staff = score.staves[staffIndex];
@@ -299,14 +299,14 @@ export class SmoSelection {
     return null;
   }
 
-  static nextNoteSelectionFromSelector(score: SmoScore, selector: SmoSelector) {
+  static nextNoteSelectionFromSelector(score: SmoScore, selector: SmoSelector): SmoSelection | null {
     return SmoSelection.nextNoteSelection(score, selector.staff, selector.measure, selector.voice, selector.tick);
   }
-  static lastNoteSelectionFromSelector(score: SmoScore, selector: SmoSelector) {
+  static lastNoteSelectionFromSelector(score: SmoScore, selector: SmoSelector): SmoSelection | null {
     return SmoSelection.lastNoteSelection(score, selector.staff, selector.measure, selector.voice, selector.tick);
   }
 
-  static lastNoteSelection(score: SmoScore, staffIndex: number, measureIndex: number, voiceIndex: number, tickIndex: number) {
+  static lastNoteSelection(score: SmoScore, staffIndex: number, measureIndex: number, voiceIndex: number, tickIndex: number): SmoSelection | null {
     const lastTick = tickIndex - 1;
     const lastMeasure = measureIndex - 1;
     const staff = score.staves[staffIndex];

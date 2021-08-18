@@ -38,6 +38,7 @@ export interface MeasureSvg {
   yTop: number,
   adjX: number
   history: string[],
+  lineIndex: number
 }
 
 export interface SmoMeasureParams {
@@ -161,6 +162,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       yTop: 0,
       adjX: 0,
       history: [],
+      lineIndex: 0
     };
 
     const defaults = SmoMeasure.defaults;

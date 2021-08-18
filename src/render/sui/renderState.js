@@ -228,14 +228,14 @@ export class SuiRenderState {
   }
 
   clearLine(measure) {
-    const lineIndex = measure.lineIndex;
+    const lineIndex = measure.svg.lineIndex;
     const startIndex = (lineIndex > 1 ? lineIndex - 1 : 0);
     let i = 0;
     for (i = startIndex; i < lineIndex + 1; ++i) {
       // for lint error
       const index = i;
       this.score.staves.forEach((staff) => {
-        const mms = staff.measures.filter((mm) => mm.lineIndex === index);
+        const mms = staff.measures.filter((mm) => mm.svg.lineIndex === index);
         mms.forEach((mm) => {
           delete mm.logicalBox;
         });
@@ -464,7 +464,7 @@ export class SuiRenderState {
       smoBeamerFactory.applyBeams(change.measure);
       // Defer modifier update until all selected measures are drawn.
       if (!staffMap[change.staff.staffId]) {
-        system = new VxSystem(this.context, change.measure.staffY, change.measure.lineIndex, this.score);
+        system = new VxSystem(this.context, change.measure.staffY, change.measure.svg.lineIndex, this.score);
         staffMap[change.staff.staffId] = { system, staff: change.staff };
       } else {
         system = staffMap[change.staff.staffId].system;
