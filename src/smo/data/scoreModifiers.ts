@@ -14,8 +14,8 @@ const VF = eval('Vex.Flow');
 // associated with a measure of music.
 export abstract class SmoScoreModifierBase implements SmoModifierBase {
   ctor: string;
-  renderedBox: SvgBox | undefined;
-  logicalBox: SvgBox | undefined;
+  renderedBox: SvgBox | null = null;
+  logicalBox: SvgBox | null = null;
   attrs: SmoAttrs;
   constructor(ctor: string) {
     this.ctor = ctor;

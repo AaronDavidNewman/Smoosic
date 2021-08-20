@@ -18,17 +18,18 @@ import { SmoScoreModifierBase } from '../../smo/data/scoreModifiers';
 
 declare var $: any;
 
-type SmoModifier = SmoNoteModifierBase | SmoMeasureModifierBase | StaffModifierBase | SmoScoreModifierBase;
+export type SmoModifier = SmoNoteModifierBase | SmoMeasureModifierBase | StaffModifierBase | SmoScoreModifierBase;
 
 export interface SuiRendererBase {
-  svg: Document,
+  svg: SVGSVGElement,
   score: SmoScore,
   isDirty: boolean,
   passState: number,
   remapAll(): void,
   renderPromise(): Promise<any>,
   addToReplaceQueue(mm: SmoSelection[]): void,
-  renderElement: Element
+  renderElement: Element,
+  context: any
 }
 export interface ModifierTab {
   modifier: SmoModifier,
@@ -203,7 +204,7 @@ export abstract class SuiMapper {
       this.modifierTabs.push({
         modifier,
         selection,
-        box: svgHelpers.smoBox(svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller)),
+        box: svgHelpers.smoBox(svgHelpers.logicalToClient(this.renderer.svg, svgHelpers.smoBox(modifier.logicalBox), this.scroller.scrollState.scroll)),
         index: ix
       });
       ix += 1;
@@ -221,7 +222,7 @@ export abstract class SuiMapper {
         this.modifierTabs.push({
           modifier,
           selection: null,
-          box: svgHelpers.smoBox(svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller)),
+          box: svgHelpers.smoBox(svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller.scrollState.scroll)),
           index: ix
         });
         ix += 1;
@@ -237,7 +238,7 @@ export abstract class SuiMapper {
               this.modifierTabs.push({
                 modifier,
                 selection,
-                box: svgHelpers.smoBox(svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller)),
+                box: svgHelpers.smoBox(svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller.scrollState.scroll)),
                 index: ix
               });
               ix += 1;
@@ -299,24 +300,24 @@ export abstract class SuiMapper {
       voice.notes.forEach((smoNote: SmoNote) =>  {
         const el = this.renderer.svg.getElementById(smoNote.renderId as string);
         if (el) {
-          svgHelpers.updateArtifactBox(this.renderer.svg, el, smoNote, this.scroller);
+          svgHelpers.updateArtifactBox(this.renderer.svg, (el as any), smoNote, this.scroller.scrollState.scroll);
           // TODO: fix this, only works on the first line.
           smoNote.getModifiers('SmoLyric').forEach((lyrict: SmoNoteModifierBase) => {
             const lyric: SmoLyric = lyrict as SmoLyric;
             if (lyric.getText().length || lyric.isHyphenated()) {
               lyric.selector = '#' + smoNote.renderId + ' ' + lyric.getClassSelector();
-              svgHelpers.updateArtifactBox(this.renderer.svg, $(lyric.selector)[0], lyric, this.scroller);
+              svgHelpers.updateArtifactBox(this.renderer.svg, $(lyric.selector)[0], lyric as any, this.scroller.scrollState.scroll);
             }
           });
           smoNote.graceNotes.forEach((g) => {
             var gel = this.renderer.svg.getElementById('vf-' + g.renderId);
             $(gel).addClass('grace-note');
-            svgHelpers.updateArtifactBox(this.renderer.svg, gel, g, this.scroller);
+            svgHelpers.updateArtifactBox(this.renderer.svg, gel as any, g, this.scroller.scrollState.scroll);
           });
           smoNote.textModifiers.forEach((modifier) => {
             const modEl = $('.' + modifier.attrs.id);
             if (modifier.logicalBox && modEl.length) {
-              svgHelpers.updateArtifactBox(this.renderer.svg, modEl[0], modifier, this.scroller);
+              svgHelpers.updateArtifactBox(this.renderer.svg, modEl[0], modifier as any, this.scroller.scrollState.scroll);
             }
           });
         }
@@ -334,7 +335,7 @@ export abstract class SuiMapper {
     if (!measure.logicalBox) {
       return;
     }
-    measure.svg.renderedBox = svgHelpers.smoBox(svgHelpers.logicalToClient(this.renderer.svg, measure.logicalBox, this.scroller));
+    measure.svg.renderedBox = svgHelpers.smoBox(svgHelpers.logicalToClient(this.renderer.svg, measure.logicalBox, this.scroller.scrollState.scroll));
     this._setModifierBoxes(measure);
     const timestamp = new Date().valueOf();
     // Keep track of any current selections in this measure, we will try to restore them.
@@ -365,7 +366,7 @@ export abstract class SuiMapper {
           _measure: measure,
           _note: note,
           _pitches: [],
-          box: svgHelpers.smoBox(svgHelpers.logicalToClient(this.renderer.svg, note.logicalBox, this.scroller)),
+          box: svgHelpers.smoBox(svgHelpers.logicalToClient(this.renderer.svg, svgHelpers.smoBox(note.logicalBox), this.scroller.scrollState.scroll)),
           type: 'rendered'
         });
         // and add it to the map
@@ -505,10 +506,10 @@ export abstract class SuiMapper {
   intersectingArtifact(bb: SvgBox) {
     let sel: SmoSelection[] = [];
     bb = svgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
-    const artifacts = svgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, this.scroller.scrollState.scroll);
+    const artifacts = svgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, svgHelpers.smoBox(this.scroller.scrollState.scroll));
     // TODO: handle overlapping suggestions
     if (!artifacts.length) {
-      sel = svgHelpers.findIntersectingArtifact(bb, this.modifierTabs, this.scroller.scrollState.scroll);
+      sel = svgHelpers.findIntersectingArtifact(bb, this.modifierTabs as any, svgHelpers.smoBox(this.scroller.scrollState.scroll));
       if (sel.length) {
         this._setModifierAsSuggestion(sel[0]);
       }

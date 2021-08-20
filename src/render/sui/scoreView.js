@@ -73,7 +73,7 @@ export class SuiScoreView {
     const layoutManager = this.score.layoutManager.getGlobalLayout();
     const lh = layoutManager.pageHeight / layoutManager.svgScale;
     const lw = layoutManager.pageWidth / layoutManager.svgScale;
-    const pt = svgHelpers.logicalToClient(this.renderer.svg, { x: lw, y: lh }, this.tracker.scroller);
+    const pt = svgHelpers.logicalToClient(this.renderer.svg, { x: lw, y: lh }, this.tracker.scroller.scrollState.scroll);
     return Math.round(midY / pt.y);
   }
   // ### _undoRectangle

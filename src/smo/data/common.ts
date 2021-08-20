@@ -26,11 +26,6 @@ export interface Pitch {
     cautionary?: boolean
 }
 
-export interface Transposable {
-    pitches: Pitch[],
-    noteType: string,
-    renderId: string | null
-}
 
 export interface FontInfo {
     size: number;
@@ -71,14 +66,22 @@ export class SvgBox {
         this.height = -1;
     }
 }
+export interface Transposable {
+    pitches: Pitch[],
+    noteType: string,
+    renderId: string | null,
+    renderedBox: SvgBox | null,
+    logicalBox: SvgBox | null
+}
+
 export interface SmoObjectParams {
     ctor: string
 }
 
 export interface SmoModifierBase {
     ctor: string,
-    renderedBox: SvgBox | undefined,
-    logicalBox: SvgBox | undefined
+    renderedBox: SvgBox | null,
+    logicalBox: SvgBox | null
 }
 
 export type Clef = 'treble' | 'bass' | 'tenor' | 'alto' | 'soprano' | 'percussion'

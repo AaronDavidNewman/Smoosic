@@ -66,8 +66,8 @@ export class SmoNote implements Transposable {
   beam_group: SmoAttrs | null = null;
   renderId: string | null = null;
   keySignature: string = 'c';
-  logicalBox: SvgBox | undefined;
-  renderedBox: SvgBox | undefined;
+  logicalBox: SvgBox | null = null;
+  renderedBox: SvgBox | null = null;
 
   static get parameterArray() {
     return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef',

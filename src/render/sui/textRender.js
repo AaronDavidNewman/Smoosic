@@ -421,7 +421,7 @@ export class SuiInlineText {
     });
     this.context.closeGroup();
     this.logicalBox = svgHelpers.smoBox(group.getBBox());
-    this.renderedBox = svgHelpers.logicalToClient(this.context.svg, this.logicalBox, this.scroller);
+    this.renderedBox = svgHelpers.logicalToClient(this.context.svg, this.logicalBox, this.scroller.scrollState.scroll);
   }
 
   _drawBlock(block) {
@@ -586,7 +586,7 @@ export class SuiTextBlock {
     return this._calculateBoundingClientRect();
   }
   getRenderedBox() {
-    return svgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect(), this.scroller);
+    return svgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect(), this.scroller.scrollState.scroll);
   }
   _calculateBoundingClientRect() {
     var rv = {};

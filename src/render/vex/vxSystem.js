@@ -312,7 +312,7 @@ export class VxSystem {
       svgHelpers.translateElement(slurBox, xoffset, 0);
     }
     modifier.logicalBox = svgHelpers.smoBox(group.getBBox());
-    modifier.renderedBox = svgHelpers.logicalToClient(this.context.svg, modifier.logicalBox, scroller);
+    modifier.renderedBox = svgHelpers.logicalToClient(this.context.svg, modifier.logicalBox, scroller.scrollState.scroll);
   }
 
   renderEndings(scroller) {
@@ -344,7 +344,7 @@ export class VxSystem {
           vxVolta.setContext(this.context).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
           this.context.closeGroup();
           ending.logicalBox = svgHelpers.smoBox(group.getBBox());
-          ending.renderedBox = svgHelpers.logicalToClient(this.context.svg, ending.logicalBox, scroller);
+          ending.renderedBox = svgHelpers.logicalToClient(this.context.svg, ending.logicalBox, scroller.scrollState.scroll);
           if (!pushed) {
             voAr.push({ smoMeasure, ending });
             pushed = true;

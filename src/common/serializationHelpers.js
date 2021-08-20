@@ -277,6 +277,9 @@ export class smoSerialize {
         return typeof(dictionary[key]) !== 'undefined' ? dictionary[key] : key;
       }
       const _tokenRecurse = (input,output) =>  {
+        if (input === null) {
+          return;
+        }
         const keys = Object.keys(input);
         keys.forEach((key) => {
           const val = input[key];
@@ -361,21 +364,23 @@ export class smoSerialize {
       const keys = Object.keys(obj);
       keys.forEach((key) => {
         const val = obj[key];
-        if (typeof(val) === 'string' || typeof(val) === 'number'
-         || typeof(val) === 'boolean') {
-          addMap(key);
-        }
-        if (typeof(val) == 'object') {
-          if (Array.isArray(val)) {
+        if (val !== null) {
+          if (typeof(val) === 'string' || typeof(val) === 'number'
+          || typeof(val) === 'boolean') {
             addMap(key);
-            val.forEach((arobj) => {
-              if (arobj && typeof(arobj) === 'object') {
-                _tokenRecurse(arobj);
-              }
-            });
-          } else {
-            addMap(key);
-            _tokenRecurse(val);
+          }
+          if (typeof(val) == 'object') {
+            if (Array.isArray(val)) {
+              addMap(key);
+              val.forEach((arobj) => {
+                if (arobj && typeof(arobj) === 'object') {
+                  _tokenRecurse(arobj);
+                }
+              });
+            } else {
+              addMap(key);
+              _tokenRecurse(val);
+            }
           }
         }
       });

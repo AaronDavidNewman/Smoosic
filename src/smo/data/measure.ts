@@ -104,22 +104,18 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   }
 
   static get defaults(): SmoMeasureParams {
-    if (SmoMeasure._defaults.modifiers.length === 0) {
-      SmoMeasure._defaults.modifiers.push(new SmoBarline({
-        position: SmoBarline.positions.start,
-        barline: SmoBarline.barlines.singleBar
-      }));
-      SmoMeasure._defaults.modifiers.push(new SmoBarline({
-        position: SmoBarline.positions.end,
-        barline: SmoBarline.barlines.singleBar
-      }));
-      SmoMeasure._defaults.modifiers.push(new SmoRepeatSymbol({
-        position: SmoRepeatSymbol.positions.start,
-        symbol: SmoRepeatSymbol.symbols.None,
-        xOffset: 0, yOffset: 0
-      }));
-    }
-    return SmoMeasure._defaults;
+    const proto: any = JSON.parse(JSON.stringify(SmoMeasure._defaults));
+    proto.format = new SmoMeasureFormat(SmoMeasureFormat.defaults);
+    proto.tempo = new SmoTempoText(SmoTempoText.defaults);
+    proto.modifiers.push(new SmoBarline({
+      position: SmoBarline.positions.start,
+      barline: SmoBarline.barlines.singleBar
+    }));
+    proto.modifiers.push(new SmoBarline({
+      position: SmoBarline.positions.end,
+      barline: SmoBarline.barlines.singleBar
+    }));
+    return proto;
   }
   timeSignature: string = '';
   keySignature: string = '';

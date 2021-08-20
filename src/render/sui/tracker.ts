@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SuiMapper, LocalModifier, SuiRendererBase, ModifierTab } from './mapper';
-import { svgHelpers } from '../../common/svgHelpers';
+import { svgHelpers, StrokeInfo, OutlineInfo } from '../../common/svgHelpers';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { SuiRenderState } from './renderState';
 import { htmlHelpers } from '../../common/htmlHelpers';
@@ -10,7 +10,7 @@ import { suiOscillator } from '../audio/oscillator';
 import { SmoActionRecord } from '../../smo/xform/actions';
 import { SmoScore } from '../../smo/data/score';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
-import { SvgBox, SvgPoint, SmoModifierBase } from '../../smo/data/common';
+import { SvgBox, SvgPoint } from '../../smo/data/common';
 import { SuiScroller } from './scroller';
 import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SmoNote } from '../../smo/data/note';
@@ -43,7 +43,7 @@ export class SuiTracker extends SuiMapper {
     if (!r) {
       return;
     }
-    const abs = svgHelpers.logicalToClient(this.renderer.svg, note.logicalBox, this.scroller);
+    const abs = svgHelpers.logicalToClient(this.renderer.svg, svgHelpers.smoBox(note.logicalBox), this.scroller.scrollState.scroll);
     const ydiff = Math.abs(r.y - abs.y);
     const xdiff = Math.abs(r.x - abs.x);
     const preventScroll = $('body').hasClass('modal');
@@ -79,7 +79,7 @@ export class SuiTracker extends SuiMapper {
     return this.renderer.score;
   }
 
-  get svg(): Document {
+  get svg(): SVGSVGElement {
     return this.renderer.svg;
   }
 
@@ -741,23 +741,25 @@ export class SuiTracker extends SuiMapper {
     this._createLocalModifiersList();
   }
 
-  static get strokes() {
+  static get strokes(): Record<string, StrokeInfo> {
     return {
-      'suggestion': {
-        'stroke': '#fc9',
-        'stroke-width': 2,
-        'stroke-dasharray': '4,1',
-        'fill': 'none'
+      suggestion: {
+        stroke: '#fc9',
+        strokeWidth: 2,
+        strokeDasharray: '4,1',
+        fill: 'none'
       },
-      'selection': {
-        'stroke': '#99d',
-        'stroke-width': 2,
-        'fill': 'none'
+      selection: {
+        stroke: '#99d',
+        strokeWidth: 2,
+        strokeDasharray: 2,
+        fill: 'none'
       },
-      'staffModifier': {
-        'stroke': '#933',
-        'stroke-width': 2,
-        'fill': 'none'
+      staffModifier: {
+        stroke: '#933',
+        strokeWidth: 2,
+        fill: 'none',
+        strokeDasharray: 0
       }
     };
   }
@@ -817,7 +819,7 @@ export class SuiTracker extends SuiMapper {
       if (box === null) {
         box = artifact.modifier.renderedBox ?? null;
       } else {
-        box = svgHelpers.unionRect(box, artifact.modifier.renderedBox);
+        box = svgHelpers.unionRect(box, svgHelpers.smoBox(artifact.modifier.renderedBox));
       }
     });
     if (box === null) {
@@ -835,7 +837,7 @@ export class SuiTracker extends SuiMapper {
     }
     const headEl = heads[index];
     const lbox = svgHelpers.smoBox(headEl.getBBox());
-    const box: SvgBox = svgHelpers.smoBox(svgHelpers.logicalToClient(this.svg, lbox, this.scroller));
+    const box: SvgBox = svgHelpers.smoBox(svgHelpers.logicalToClient(this.svg, lbox, this.scroller.scrollState.scroll));
     this._drawRect(box, 'staffModifier');
   }
 
@@ -916,11 +918,11 @@ export class SuiTracker extends SuiMapper {
     this._drawRect(boxes, 'selection');
   }
 
-  _suggestionParameters(box: SvgBox | SvgBox[], strokeName: string) {
-    const outlineStroke: string = (SuiTracker.strokes as any)[strokeName];
+  _suggestionParameters(box: SvgBox | SvgBox[], strokeName: string): OutlineInfo {
+    const stroke: StrokeInfo = (SuiTracker.strokes as any)[strokeName];
     return {
-      context: this.svg, box, classes: strokeName,
-      outlineStroke, scroller: this.scroller
+      context: this.renderer.context, box, classes: strokeName,
+      stroke, scroll: this.scroller.scrollState.scroll, clientCoordinates: false
     };
   }
 

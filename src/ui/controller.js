@@ -8,7 +8,7 @@ import { SuiModifierDialogFactory } from './dialog';
 import { suiPiano } from '../render/sui/piano'
 import { layoutDebug } from '../render/sui/layoutDebug';
 import { SuiHelp } from './help';
-import { suiTracker } from '../render/sui/tracker';
+import { SuiTracker } from '../render/sui/tracker';
 import { defaultEditorKeys } from './keyBindings/default/editorKeys';
 import { defaultTrackerKeys } from './keyBindings/default/trackerKeys';
 import { defaultRibbonLayout } from './ribbonLayout/default/defaultRibbon';
@@ -283,7 +283,7 @@ export class suiController {
     if (suiController.keyboardWidget) {
       Qwerty.handleKeyEvent(evdata);
     }
-    const dataCopy = suiTracker.serializeEvent(evdata);
+    const dataCopy = SuiTracker.serializeEvent(evdata);
     this.view.renderer.updatePromise().then(() => {
       if (dataCopy.key == '?') {
         SuiHelp.displayHelp();
@@ -324,7 +324,7 @@ export class suiController {
   }
 
   mouseClick(ev) {
-    const dataCopy = suiTracker.serializeEvent(ev);
+    const dataCopy = SuiTracker.serializeEvent(ev);
     this.view.renderer.updatePromise().then(() => {
       this.view.tracker.selectSuggestion(dataCopy);
       var modifier = this.view.tracker.getSelectedModifier();

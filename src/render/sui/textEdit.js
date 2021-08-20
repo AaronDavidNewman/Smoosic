@@ -702,7 +702,7 @@ export class SuiDragSession {
     this.startBox = this.textObject.getLogicalBox();
     this.startBox.y += this.textObject.maxFontHeight(1);
     this.currentBox = svgHelpers.smoBox(this.startBox);
-    this.currentClientBox = svgHelpers.logicalToClient(this.context.svg, this.currentBox, this.scroller);
+    this.currentClientBox = svgHelpers.logicalToClient(this.context.svg, this.currentBox, this.scroller.scrollState.scroll);
   }
 
   _outlineBox() {
@@ -715,7 +715,7 @@ export class SuiDragSession {
   }
 
   startDrag(e) {
-    if (!svgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, this.scroller.scrollState)) {
+    if (!svgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, this.scroller.scrollState.scroll)) {
       return;
     }
     this.dragging = true;

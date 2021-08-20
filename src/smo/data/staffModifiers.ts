@@ -21,8 +21,8 @@ export abstract class StaffModifierBase implements SmoModifierBase {
   ctor: string;
   startSelector: SmoSelector = SmoSelector.default;
   endSelector: SmoSelector = SmoSelector.default;
-  renderedBox: SvgBox | undefined;
-  logicalBox: SvgBox | undefined;
+  renderedBox: SvgBox | null = null;
+  logicalBox: SvgBox | null = null;
   constructor(ctor: string) {
     this.ctor = ctor;
     this.attrs = {

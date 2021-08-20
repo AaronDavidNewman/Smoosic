@@ -1,8 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { svgHelpers } from "../../common/svgHelpers";
+import { svgHelpers, SvgBuilder } from "../../common/svgHelpers";
 import { htmlHelpers } from "../../common/htmlHelpers";
-import { SuiScroller } from "./scroller";
 export class suiPiano {
   constructor(parameters) {
     Vex.Merge(this, parameters);
@@ -228,7 +227,7 @@ export class suiPiano {
   }
   render() {
     $('body').addClass('show-piano');
-    var b = svgHelpers.buildSvg;
+    var b = SvgBuilder.b;
     var d = suiPiano.dimensions;
     // https://www.mathpages.com/home/kmath043.htm
 
@@ -313,7 +312,8 @@ export class suiPiano {
       });
     }
     var el = document.getElementById(this.elementId);
-    svgHelpers.gradient(el,'piano-grad','vertical',[{color:'#000',offset:'0%'},{color:'#777',offset:'50%'},{color:'#ddd',offset:'100%'}]);
+    svgHelpers.gradient(el,'piano-grad','vertical',[{color: '#000', offset: '0%', opacity: 1 },
+      {color: '#777', offset: '50%', opacity: 1 },{ color: '#ddd', offset: '100%', opacity: 1 }]);
     el.appendChild(r.dom());
     this._renderControls();
     this._mapKeys();

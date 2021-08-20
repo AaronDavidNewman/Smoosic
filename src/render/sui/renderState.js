@@ -447,11 +447,7 @@ export class SuiRenderState {
       const scaledPage = layoutMgr.getScaledPageLayout(i);
       const y = scaledPage.pageHeight * i;
       svgHelpers.line(this.svg, 0, y, scaledPage.pageWidth, y,
-        [
-          { 'stroke': '#321' },
-          { 'stroke-width': '2' },
-          { 'stroke-dasharray': '4,1' },
-          { 'fill': 'none' }], 'pageLine');
+        { stroke: '#321', strokWidth: '2', strokeDasharray: '4,1', fill: 'none' }, 'pageLine');
     }
   }
 
