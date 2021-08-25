@@ -175,11 +175,14 @@ export class SmoSelection {
     });
   }
 
-  static measuresInColumn(score: SmoScore, staffIndex: number) {
+  static measuresInColumn(score: SmoScore, staffIndex: number): SmoSelection[] {
     let i = 0;
-    const rv = [];
+    const rv: SmoSelection[] = [];
     for (i = 0; i < score.staves.length; ++i) {
-      rv.push(SmoSelection.measureSelection(score, i, staffIndex));
+      const sel = SmoSelection.measureSelection(score, i, staffIndex);
+      if (sel) {
+        rv.push(sel);
+      }
     }
     return rv;
   }

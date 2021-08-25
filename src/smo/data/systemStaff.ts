@@ -56,6 +56,7 @@ export class SmoSystemStaff implements SmoObjectParams {
     type: 'SmoSystemStaff'
   }
   ctor: string = 'SmoSystemStaff';
+  _mappedStaffId: number = 0;
 
   // ### defaults
   // default values for all instances
@@ -77,6 +78,12 @@ export class SmoSystemStaff implements SmoObjectParams {
       measures: [],
       modifiers: []
     }));
+  }
+  setMappedStaffId(value: number) {
+    this._mappedStaffId = value;
+  }
+  getMappedStaffId(): number {
+    return this._mappedStaffId;
   }
 
   constructor(params: SmoSystemStaffParams) {
@@ -378,7 +385,7 @@ export class SmoSystemStaff implements SmoObjectParams {
     let i: number = 0;
     let renumberIndex = 0;
     // Start measure from -1 for pickup
-    if (this.measures[0].getTicksFromVoice(0) < smoMusic.timeSignatureToTicks(this.measures[0].timeSignature)) {
+    if (this.measures[0].getTicksFromVoice(0) < smoMusic.timeSignatureToTicks(this.measures[0].timeSignature.timeSignature)) {
       pickupOffset = -1;
     }
 

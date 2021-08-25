@@ -539,7 +539,7 @@ export class mxmlScore {
       smoMeasure.format.customProportion = mxmlScore.customProportionDefault;
       xmlState.formattingManager.updateMeasureFormat(smoMeasure.format);
       smoMeasure.keySignature = xmlState.keySignature;
-      smoMeasure.timeSignature = xmlState.timeSignature;
+      smoMeasure.timeSignature = SmoMeasure.convertLegacyTimeSignature(xmlState.timeSignature);
       smoMeasure.measureNumber.localIndex = xmlState.measureNumber;
       smoMeasure.measureNumber.measureIndex = xmlState.measureIndex;
       smoMeasure.measureNumber.staffId = staffData.clefInfo.staffId + xmlState.smoStaves.length;

@@ -2,6 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoMeasure } from '../../smo/data/measure';
 import { UndoBuffer } from '../../smo/xform/undo';
+import { SmoAttrs,  SmoConfiguration, SvgBox } from '../../smo/data/common';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { svgHelpers } from '../../common/svgHelpers';
@@ -9,15 +10,41 @@ import { VxSystem } from '../vex/vxSystem';
 import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { SmoScore } from '../../smo/data/score';
 import { smoBeamerFactory } from '../../smo/xform/beamers';
+import { SuiMapper } from './mapper';
+import { SmoSystemStaff } from '../../smo/data/systemStaff';
+import { StaffModifierBase } from '../../smo/data/staffModifiers';
+import { VxMeasure } from '../vex/vxMeasure';
 
-const VF = Vex.Flow;
+export interface ScoreRenderParams {
+  elementId: any,
+  score: SmoScore
+}
+declare var SmoConfig: SmoConfiguration;
+declare var $: any;
+const VF = eval('Vex.Flow');
+
 // ## SuiRenderState
 // Manage the state of the score rendering.  The score can be rendered either completely,
 // or partially for editing.  This class works with the RenderDemon to decide when to
 // render the score after it has been modified, and keeps track of what the current
 // render state is (dirty, etc.)
-export class SuiRenderState {
-  constructor(ctor) {
+export abstract class SuiRenderState {
+  attrs: SmoAttrs;
+  dirty: boolean;
+  replaceQ: SmoSelection[];
+  renderTime: number;
+  stateRepCount: 0;
+  backgroundRender: boolean;
+  viewportChanged: boolean;
+  _resetViewport: boolean;
+  measureMapper: SuiMapper | null;
+  passState: number = SuiRenderState.passStates.initial;
+  _score: SmoScore | null = null;
+  renderer: any;
+  elementId: any;
+  _backupZoomScale: number = 0;
+
+  constructor(ctor: string) {
     this.attrs = {
       id: VF.Element.newID(),
       type: ctor
@@ -25,22 +52,23 @@ export class SuiRenderState {
     this.dirty = true;
     this.replaceQ = [];
     this.renderTime = 0;  // ms to render before time slicing
-    this.partialRender = false;
     this.stateRepCount = 0;
     this.backgroundRender = false;
-    this.setPassState(SuiRenderState.initial, 'ctor');
+    this.setPassState(SuiRenderState.passStates.initial, 'ctor');
     this.viewportChanged = false;
     this._resetViewport = false;
     this.measureMapper = null;
   }
+  abstract unrenderAll(): void;
+  abstract layout(): void;
   // ### setMeasureMapper
   // DI/notifier pattern.  The measure mapper/tracker is updated when the score is rendered
   // so the UI stays in sync with the location of elements in the score.
-  setMeasureMapper(mapper) {
+  setMeasureMapper(mapper: SuiMapper) {
     this.measureMapper = mapper;
   }
 
-  static get Fonts() {
+  static get Fonts(): any {
     return {
       Bravura: [VF.Fonts.Bravura(), VF.Fonts.Gonville(), VF.Fonts.Custom()],
       Gonville: [VF.Fonts.Gonville(), VF.Fonts.Bravura(), VF.Fonts.Custom()],
@@ -49,15 +77,15 @@ export class SuiRenderState {
     };
   }
 
-  static setFont(font) {
+  static setFont(font: string) {
     VF.DEFAULT_FONT_STACK = SuiRenderState.Fonts[font];
   }
 
-  static get passStates() {
+  static get passStates(): Record<string, number> {
     return { initial: 0, clean: 2, replace: 3 };
   }
 
-  addToReplaceQueue(selection) {
+  addToReplaceQueue(selection: SmoSelection) {
     if (this.passState === SuiRenderState.passStates.clean ||
       this.passState === SuiRenderState.passStates.replace) {
       if (Array.isArray(selection)) {
@@ -73,7 +101,7 @@ export class SuiRenderState {
     if (!this.dirty) {
       this.dirty = true;
       if (this.passState === SuiRenderState.passStates.clean) {
-        this.setPassState(SuiRenderState.passStates.replace);
+        this.setPassState(SuiRenderState.passStates.replace, 'setDirty');
       }
     }
   }
@@ -88,7 +116,6 @@ export class SuiRenderState {
   }
 
   remapAll() {
-    this.partialRender = false;
     this.setRefresh();
   }
   get renderStateClean() {
@@ -102,7 +129,7 @@ export class SuiRenderState {
   // ### renderPromise
   // return a promise that resolves when the score is in a fully rendered state.
   renderPromise() {
-    return PromiseHelpers.makePromise(this, 'renderStateClean', null, null, SmoConfig.demonPollTime);
+    return PromiseHelpers.makePromise(this, 'renderStateClean', null, null, (SmoConfig as any).demonPollTime);
   }
 
   // ### renderPromise
@@ -112,26 +139,26 @@ export class SuiRenderState {
   }
   // Number the measures at the first measure in each system.
   numberMeasures() {
-    const printing = $('body').hasClass('print-render');
-    const staff = this.score.staves[0];
+    const printing: boolean = $('body').hasClass('print-render');
+    const staff = this.score!.staves[0];
     const measures = staff.measures.filter((measure) => measure.measureNumber.systemIndex === 0);
     $('.measure-number').remove();
 
     measures.forEach((measure) => {
-      if (measure.measureNumber.localIndex > 0 && measure.measureNumber.systemIndex === 0 && measure.logicalBox) {
+      if (measure.measureNumber.localIndex > 0 && measure.measureNumber.systemIndex === 0 && measure.svg.logicalBox) {
         const numAr = [];
-        numAr.push({ y: measure.logicalBox.y - 10 });
-        numAr.push({ x: measure.logicalBox.x });
+        numAr.push({ y: measure.svg.logicalBox.y - 10 });
+        numAr.push({ x: measure.svg.logicalBox.x });
         numAr.push({ 'font-family': SourceSansProFont.fontFamily });
         numAr.push({ 'font-size': '10pt' });
         svgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
 
         // Show line-feed symbol
-        const formatIndex = SmoMeasure.systemOptions.findIndex((option) => measure[option] !== SmoMeasure.defaults[option]);
+        const formatIndex = SmoMeasure.systemOptions.findIndex((option) => (measure as any)[option] !== (SmoMeasure.defaults as any)[option]);
         if (formatIndex >= 0 && !printing) {
           const starAr = [];
-          starAr.push({ y: measure.logicalBox.y - 5 });
-          starAr.push({ x: measure.logicalBox.x + 25 });
+          starAr.push({ y: measure.svg.logicalBox.y - 5 });
+          starAr.push({ x: measure.svg.logicalBox.x + 25 });
           starAr.push({ 'font-family': SourceSansProFont.fontFamily });
           starAr.push({ 'font-size': '12pt' });
           svgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', '\u21b0');
@@ -142,9 +169,11 @@ export class SuiRenderState {
 
   // ### _setViewport
   // Create (or recrate) the svg viewport, considering the dimensions of the score.
-  _setViewport(reset, elementId) {
-    // this.screenWidth = window.innerWidth;
-    const layoutManager = this._score.layoutManager;
+  _setViewport(reset: boolean, elementId: any) {
+    if (this.score === null) {
+      return;
+    }
+    const layoutManager = this.score!.layoutManager!;
     // All pages have same width/height, so use that
     const layout = layoutManager.getGlobalLayout();
 
@@ -169,37 +198,38 @@ export class SuiRenderState {
     }
     svgHelpers.svgViewport(this.context.svg, 0, 0, pageWidth, totalHeight, renderScale);
     // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
-    this.resizing = false;
     console.log('layout setViewport: pstate initial');
     this.dirty = true;
     if (this.measureMapper) {
       this.measureMapper.scroller.updateViewport();
     }
-    SuiRenderState._renderer = this.renderer;
   }
 
-  setViewport(reset) {
+  setViewport(reset: boolean) {
     this._setViewport(reset, this.elementId);
-    this.score.staves.forEach((staff) => {
+    this.score!.staves.forEach((staff) => {
       staff.measures.forEach((measure) => {
-        if (measure.logicalBox && reset) {
+        if (measure.svg.logicalBox && reset) {
           measure.svg.history = ['reset'];
         }
       });
     });
-    this.partialRender = false;
   }
   renderForPrintPromise() {
     $('body').addClass('print-render');
     const self = this;
-    const layout = this.score.layoutManager.getGlobalLayout();
+    if (!this.score) {
+      return;
+    }
+    const layoutMgr = this.score!.layoutManager!;
+    const layout = layoutMgr.getGlobalLayout();
     this._backupZoomScale = layout.zoomScale;
     layout.zoomScale = 1.0;
-    this.score.layoutManager.updateGlobalLayout(layout);
+    layoutMgr.updateGlobalLayout(layout);
     this.setViewport(true);
     this.setRefresh();
 
-    const promise = new Promise((resolve) => {
+    const promise = new Promise((resolve: any) => {
       const poll = () => {
         setTimeout(() => {
           if (!self.dirty && !self.backgroundRender) {
@@ -220,30 +250,30 @@ export class SuiRenderState {
   }
 
   restoreLayoutAfterPrint() {
-    const layout = this.score.layoutManager.getGlobalLayout();
+    const layout = this.score!.layoutManager!.getGlobalLayout();
     layout.zoomScale = this._backupZoomScale;
-    this.score.layoutManager.updateGlobalLayout(layout);
+    this.score!.layoutManager!.updateGlobalLayout(layout);
     this.setViewport(true);
     this.setRefresh();
   }
 
-  clearLine(measure) {
+  clearLine(measure: SmoMeasure) {
     const lineIndex = measure.svg.lineIndex;
     const startIndex = (lineIndex > 1 ? lineIndex - 1 : 0);
     let i = 0;
     for (i = startIndex; i < lineIndex + 1; ++i) {
       // for lint error
       const index = i;
-      this.score.staves.forEach((staff) => {
+      this.score!.staves.forEach((staff) => {
         const mms = staff.measures.filter((mm) => mm.svg.lineIndex === index);
         mms.forEach((mm) => {
-          delete mm.logicalBox;
+          mm.svg.logicalBox = SvgBox.default;
         });
       });
     }
   }
 
-  setPassState(st, location) {
+  setPassState(st: number, location: string) {
     const oldState = this.passState;
     let msg = '';
     if (oldState !== st) {
@@ -260,20 +290,6 @@ export class SuiRenderState {
     this.passState = st;
   }
 
-  static get debugLayout() {
-    SuiRenderState._debugLayout = SuiRenderState._debugLayout ? SuiRenderState._debugLayout : false;
-    return SuiRenderState._debugLayout;
-  }
-
-  static set debugLayout(value) {
-    SuiRenderState._debugLayout = value;
-    if (value) {
-      $('body').addClass('layout-debug');
-    } else {
-      $('body').removeClass('layout-debug');
-    }
-  }
-
   // ### get context
   // ### Description:
   // return the VEX renderer context.
@@ -288,17 +304,23 @@ export class SuiRenderState {
     return this.context.svg;
   }
 
-  get score() {
+  get score(): SmoScore | null {
     return this._score;
   }
 
-  set score(score) {
+  set score(score: SmoScore | null) {
     let shouldReset = false;
+    if (score === null) {
+      return;
+    }
     if (this._score) {
       shouldReset = true;
     }
     this.setPassState(SuiRenderState.passStates.initial, 'load score');
     const font = score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
+    if (!font) {
+      return;
+    }
     SuiRenderState.setFont(font.family);
     this.dirty = true;
     this._score = score;
@@ -315,30 +337,36 @@ export class SuiRenderState {
   // Undo is handled by the render state machine, because the layout has to first
   // delete areas of the viewport that may have changed,
   // then create the modified score, then render the 'new' score.
-  undo(undoBuffer) {
+  undo(undoBuffer: UndoBuffer) {
     const buffer = undoBuffer.peek();
     let op = 'setDirty';
     // Unrender the modified music because the IDs may change and normal unrender won't work
     if (buffer) {
       const sel = buffer.selector;
-      if (buffer.type === UndoBuffer.bufferTypes.MEASURE) {
-        this.unrenderMeasure(SmoSelection.measureSelection(this._score, sel.staff, sel.measure).measure);
-      } else if (buffer.type === UndoBuffer.bufferTypes.STAFF) {
-        this.unrenderStaff(SmoSelection.measureSelection(this._score, sel.staff, 0).staff);
+      if (buffer.type === UndoBuffer.bufferTypes.MEASURE && this.unrenderMeasure !== null) {
+        const mSelection = SmoSelection.measureSelection(this.score!, sel.staff, sel.measure);
+        if (mSelection !== null) {
+          this.unrenderMeasure(mSelection.measure);
+        }
+      } else if (buffer.type === UndoBuffer.bufferTypes.STAFF && this.unrenderStaff !== null) {
+        const sSelection = SmoSelection.measureSelection(this.score!, sel.staff, 0);
+        if (sSelection !== null) {
+          this.unrenderStaff(sSelection.staff);
+        }
         op = 'setRefresh';
       } else {
         this.unrenderAll();
         op = 'setRefresh';
       }
-      this._score = undoBuffer.undo(this._score);
-      this[op]();
+      this._score = undoBuffer.undo(this._score!);
+      (this as any)[op]();
     }
   }
 
   // ### unrenderMeasure
   // All SVG elements are associated with a logical SMO element.  We need to erase any SVG element before we change a SMO
   // element in such a way that some of the logical elements go away (e.g. when deleting a measure).
-  unrenderMeasure(measure) {
+  unrenderMeasure(measure: SmoMeasure) {
     if (!measure) {
       return;
     }
@@ -346,8 +374,8 @@ export class SuiRenderState {
     measure.setYTop(0, 'unrender');
   }
 
-  unrenderColumn(measure) {
-    this.score.staves.forEach((staff) => {
+  unrenderColumn(measure: SmoMeasure) {
+    this.score!.staves.forEach((staff) => {
       this.unrenderMeasure(staff.measures[measure.measureNumber.measureIndex]);
     });
   }
@@ -355,7 +383,7 @@ export class SuiRenderState {
   // ### unrenderStaff
   // ### Description:
   // See unrenderMeasure.  Like that, but with a staff.
-  unrenderStaff(staff) {
+  unrenderStaff(staff: SmoSystemStaff) {
     staff.measures.forEach((measure) => {
       this.unrenderMeasure(measure);
     });
@@ -368,17 +396,20 @@ export class SuiRenderState {
   // ### Description:
   // Render staff modifiers (modifiers straddle more than one measure, like a slur).  Handle cases where the destination
   // is on a different system due to wrapping.
-  _renderModifiers(staff, system) {
-    let nextNote = null;
-    let lastNote = null;
-    let testNote = null;
-    let vxStart = null;
-    let vxEnd = null;
-    const removedModifiers = [];
+  _renderModifiers(staff: SmoSystemStaff, system: VxSystem) {
+    let nextNote: SmoSelection | null = null;
+    let lastNote: SmoSelection | null = null;
+    let testNote: VxMeasure | null = null;
+    let vxStart: VxMeasure | null = null;
+    let vxEnd: VxMeasure | null = null;
+    const removedModifiers: StaffModifierBase[] = [];
+    if (this.score === null || this.measureMapper === null) {
+      return;
+    }
     staff.modifiers.forEach((modifier) => {
-      const startNote = SmoSelection.noteSelection(this._score,
+      const startNote = SmoSelection.noteSelection(this.score!,
         modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
-      const endNote = SmoSelection.noteSelection(this._score,
+      const endNote = SmoSelection.noteSelection(this.score!,
         modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
       if (!startNote || !endNote) {
         // If the modifier doesn't have score endpoints, delete it from the score
@@ -391,7 +422,7 @@ export class SuiRenderState {
 
       // If the modifier goes to the next staff, draw what part of it we can on this staff.
       if (vxStart && !vxEnd) {
-        nextNote = SmoSelection.nextNoteSelection(this._score,
+        nextNote = SmoSelection.nextNoteSelection(this.score!,
           modifier.startSelector.staff, modifier.startSelector.measure, modifier.startSelector.voice, modifier.startSelector.tick);
         if (nextNote === null) {
           console.warn('bad selector ' + JSON.stringify(modifier.startSelector, null, ' '));
@@ -399,7 +430,7 @@ export class SuiRenderState {
           testNote = system.getVxNote(nextNote.note);
           while (testNote) {
             vxEnd = testNote;
-            nextNote = SmoSelection.nextNoteSelection(this._score,
+            nextNote = SmoSelection.nextNoteSelection(this.score!,
               nextNote.selector.staff, nextNote.selector.measure, nextNote.selector.voice, nextNote.selector.tick);
             if (!nextNote) {
               break;
@@ -409,13 +440,13 @@ export class SuiRenderState {
         }
       }
       if (vxEnd && !vxStart) {
-        lastNote = SmoSelection.lastNoteSelection(this._score,
+        lastNote = SmoSelection.lastNoteSelection(this.score!,
           modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
         if (lastNote) {
           testNote = system.getVxNote(lastNote.note);
           while (testNote) {
             vxStart = testNote;
-            lastNote = SmoSelection.lastNoteSelection(this._score,
+            lastNote = SmoSelection.lastNoteSelection(this.score!,
               lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
             if (!lastNote) {
               break;
@@ -427,7 +458,7 @@ export class SuiRenderState {
       if (!vxStart && !vxEnd) {
         return;
       }
-      system.renderModifier(this.measureMapper.scroller, modifier, vxStart, vxEnd, startNote, endNote);
+      system.renderModifier(this.measureMapper!.scroller, modifier, vxStart, vxEnd, startNote, endNote);
     });
     // Silently remove modifiers from the score if the endpoints no longer exist
     removedModifiers.forEach((mod) => {
@@ -439,44 +470,46 @@ export class SuiRenderState {
     let i = 0;
     $(this.context.svg).find('.pageLine').remove();
     const printing = $('body').hasClass('print-render');
-    if (printing) {
+    const layoutMgr = this.score!.layoutManager;
+    if (printing || !layoutMgr) {
       return;
     }
-    const layoutMgr = this._score.layoutManager;
     for (i = 1; i < layoutMgr.pageLayouts.length; ++i) {
       const scaledPage = layoutMgr.getScaledPageLayout(i);
       const y = scaledPage.pageHeight * i;
       svgHelpers.line(this.svg, 0, y, scaledPage.pageWidth, y,
-        { stroke: '#321', strokWidth: '2', strokeDasharray: '4,1', fill: 'none' }, 'pageLine');
+        { stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none' }, 'pageLine');
     }
   }
 
   // ### _replaceMeasures
   // Do a quick re-render of a measure that has changed.
   _replaceMeasures() {
-    const staffMap = {};
-    let system = {};
+    const staffMap: Record<number | string, { system: VxSystem, staff: SmoSystemStaff }> = {};
+    let system: VxSystem | null = null;
+    if (this.score === null || this.measureMapper === null) {
+      return;
+    }
     this.replaceQ.forEach((change) => {
       smoBeamerFactory.applyBeams(change.measure);
       // Defer modifier update until all selected measures are drawn.
       if (!staffMap[change.staff.staffId]) {
-        system = new VxSystem(this.context, change.measure.staffY, change.measure.svg.lineIndex, this.score);
+        system = new VxSystem(this.context, change.measure.staffY, change.measure.svg.lineIndex, this.score!);
         staffMap[change.staff.staffId] = { system, staff: change.staff };
       } else {
         system = staffMap[change.staff.staffId].system;
       }
-      const selections = SmoSelection.measuresInColumn(this.score, change.measure.measureNumber.measureIndex);
+      const selections = SmoSelection.measuresInColumn(this.score!, change.measure.measureNumber.measureIndex);
       selections.forEach((selection) => {
-        system.renderMeasure(selection.measure, this.measureMapper);
+        if (system) {
+          system.renderMeasure(selection.measure, this.measureMapper);
+        }
       });
-
-      // Fix a bug: measure change needs to stay true so we recaltulate the width
-      change.measure.changed = true;
     });
     Object.keys(staffMap).forEach((key) => {
       const obj = staffMap[key];
       this._renderModifiers(obj.staff, obj.system);
-      obj.system.renderEndings(this.measureMapper.scroller);
+      obj.system.renderEndings(this.measureMapper!.scroller);
       obj.system.updateLyricOffsets();
     });
     this.replaceQ = [];

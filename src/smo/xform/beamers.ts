@@ -52,7 +52,6 @@ export class smoBeamerFactory {
 export class smoBeamModifier {
   measure: SmoMeasure;
   duration: number;
-  timeSignature: string;
   meterNumbers: number[];
   beamBeats: number;
   skipNext: number;
@@ -61,8 +60,7 @@ export class smoBeamModifier {
     this.measure = measure;
     this._removeVoiceBeam(measure, voice);
     this.duration = 0;
-    this.timeSignature = measure.timeSignature;
-    this.meterNumbers = this.timeSignature.split('/').map(number => parseInt(number, 10));
+    this.meterNumbers = [measure.timeSignature.actualBeats, measure.timeSignature.beatDuration];
     // beam on 1/4 notes in most meter, triple time dotted quarter
     this.beamBeats = 2 * 2048;
     if (this.meterNumbers[0] % 3 === 0) {

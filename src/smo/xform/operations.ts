@@ -16,7 +16,7 @@ import { SmoRehearsalMark, SmoMeasureText, SmoVolta, SmoMeasureFormat, SmoTempoT
 import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoNoteModifierBase, SmoOrnament } from '../data/noteModifiers';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
-import { Pitch, PitchLetter } from '../data/common';
+import { Pitch, PitchLetter, TimeSignature } from '../data/common';
 
 const VF = eval('Vex.Flow');
 
@@ -110,7 +110,7 @@ export class SmoOperation {
   static populateVoice(selection: SmoSelection, voiceIx: number) {
     selection.measure.populateVoice(voiceIx);
   }
-  static setTimeSignature(score: SmoScore, selections: SmoSelection[], timeSignature: string) {
+  static setTimeSignature(score: SmoScore, selections: SmoSelection[], timeSignature: TimeSignature) {
     const selectors: SmoSelector[] = [];
     let i = 0;
     let ticks = 0;
@@ -120,7 +120,7 @@ export class SmoOperation {
         selectors.push(measureSel);
       }
     });
-    const tsTicks = smoMusic.timeSignatureToTicks(timeSignature);
+    const tsTicks = smoMusic.timeSignatureToTicks(timeSignature.timeSignature);
     selectors.forEach((selector: SmoSelector) => {
       const params: SmoMeasureParams = {} as SmoMeasureParams;
       const voices: SmoVoice[] = [];
@@ -139,7 +139,7 @@ export class SmoOperation {
         nm.setY(rowSelection.measure.staffY, 'op:setTimeSignature');
         nm.setWidth(rowSelection.measure.staffWidth, 'op:setTimeSignature');
         ['forceKeySignature', 'forceTimeSignature', 'forceTempo', 'forceClef'].forEach((attr) => {
-          (nm as any)[attr] = (rowSelection.measure as any)[attr];
+          (nm as any)[attr] = (rowSelection.measure.svg as any)[attr];
         });
         ticks = 0;
         proto.voices.forEach((voice) => {

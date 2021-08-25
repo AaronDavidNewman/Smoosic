@@ -11,7 +11,7 @@ import { SmoTuplet } from './tuplet';
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { svgHelpers } from '../../common/svgHelpers';
 import { TickMap, TickAccidental } from '../xform/tickMap';
-import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, FontInfo } from './common';
+import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, FontInfo, TimeSignature } from './common';
 
 export interface SmoVoice {
   notes: SmoNote[]
@@ -26,7 +26,8 @@ const VF = eval('Vex.Flow');
 
 export interface ISmoBeamGroup {
   notes: SmoNote[],
-  voice: number
+  voice: number,
+  attrs: SmoAttrs
 }
 export interface MeasureSvg {
   staffWidth: number,
@@ -36,13 +37,19 @@ export interface MeasureSvg {
   logicalBox: SvgBox,
   renderedBox: SvgBox | null,
   yTop: number,
-  adjX: number
+  adjX: number,
+  adjRight: number,
   history: string[],
-  lineIndex: number
+  lineIndex: number,
+  rowInSystem: number,
+  forceClef: boolean,
+  forceKeySignature: boolean,
+  forceTimeSignature: boolean,
+  forceTempo: boolean
 }
 
 export interface SmoMeasureParams {
-  timeSignature: string,
+  timeSignature: TimeSignature,
   keySignature: string,
   canceledKeySignature: string | null,
   padRight: number,
@@ -53,9 +60,6 @@ export interface SmoMeasureParams {
   // bars: [1, 1], // follows enumeration in VF.Barline
   measureNumber: MeasureNumber,
   clef: Clef,
-  forceClef: boolean,
-  forceKeySignature: boolean,
-  forceTimeSignature: boolean,
   voices: SmoVoice[],
   activeVoice: number,
   tempo: SmoTempoText,
@@ -76,8 +80,16 @@ export interface AccidentalArray {
 // Measures are contained in staves, see also `SystemStaff.js`
 // ## SmoMeasure Methods:
 export class SmoMeasure implements SmoMeasureParams, TickMappable {
+  static get timeSignatureDefault(): TimeSignature {
+    return JSON.parse(JSON.stringify({
+      timeSignature: '4/4',
+      actualBeats: 4,
+      useSymbol: false,
+      display: true
+    }));
+  }
   static readonly _defaults: SmoMeasureParams = {
-    timeSignature: '4/4',
+    timeSignature: SmoMeasure.timeSignatureDefault,
     keySignature: 'C',
     canceledKeySignature: null,
     padRight: 10,
@@ -94,9 +106,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       staffId: 0
     },
     clef: 'treble',
-    forceClef: false,
-    forceKeySignature: false,
-    forceTimeSignature: false,
     voices: [],
     format: new SmoMeasureFormat(SmoMeasureFormat.defaults),
     activeVoice: 0,
@@ -117,7 +126,16 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     }));
     return proto;
   }
-  timeSignature: string = '';
+  static convertLegacyTimeSignature(ts: string) {
+    const rv = SmoMeasure.timeSignatureDefault;
+    const num = ts.split('/')[0];
+    const den = ts.split('/')[1];
+    rv.timeSignature = ts;
+    rv.beatDuration = parseInt(num, 10);
+    rv.actualBeats = parseInt(den, 10);
+    return rv;
+  }
+  timeSignature: TimeSignature = SmoMeasure.timeSignatureDefault;
   keySignature: string = '';
   canceledKeySignature: string = '';
   padRight: number = 10;
@@ -133,9 +151,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     staffId: 0
   };
   clef: Clef = 'treble';
-  forceClef: boolean = false;
-  forceKeySignature: boolean = false;
-  forceTimeSignature: boolean = false;
   voices: SmoVoice[] = [];
   activeVoice: number = 0;
   tempo: SmoTempoText;
@@ -157,13 +172,26 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       renderedBox: null,
       yTop: 0,
       adjX: 0,
+      adjRight: 0,
       history: [],
-      lineIndex: 0
+      lineIndex: 0,
+      rowInSystem: 0,
+      forceClef: false,
+      forceKeySignature: false,
+      forceTimeSignature: false,
+      forceTempo: false
     };
 
     const defaults = SmoMeasure.defaults;
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, this);
+    // Handle legacy time signature format
+    if (params.timeSignature) {
+      const tsAny = params.timeSignature as any;
+      if (typeof(tsAny) === 'string') {
+        this.timeSignature = SmoMeasure.convertLegacyTimeSignature(tsAny);
+      }
+    }
     this.voices = params.voices ? params.voices : [];
     this.tuplets = params.tuplets ? params.tuplets : [];
     this.modifiers = params.modifiers ? params.modifiers : defaults.modifiers;
@@ -213,6 +241,11 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       }
     });
     return rv;
+  }
+  // Return true if the time signatures are the same, for display purposes (e.g. if a time sig change
+  // is required)
+  static timeSigEqual(o1: TimeSignature, o2: TimeSignature) {
+    return o1.timeSignature === o2.timeSignature && o1.useSymbol === o2.useSymbol;
   }
 
   // ### serializeColumnMapped
@@ -446,20 +479,21 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     if (params === null) {
       params = SmoMeasure.defaults;
     }
-    params.timeSignature = params.timeSignature ? params.timeSignature : '4/4';
+    if (!params.timeSignature) {
+      params.timeSignature = SmoMeasure.timeSignatureDefault;
+    }
     params.clef = params.clef ? params.clef : 'treble';
-    const meterNumbers = params.timeSignature.split('/').map(number => parseInt(number, 10));
     beamBeats = ticks.numerator;
-    beats = meterNumbers[0];
-    if (meterNumbers[1] === 8) {
+    beats = params.timeSignature.actualBeats;
+    if (params.timeSignature.beatDuration === 8) {
       ticks = {
         numerator: 2048,
         denominator: 1,
         remainder: 0
       };
-      if (meterNumbers[0] % 3 === 0) {
+      if (params.timeSignature.actualBeats % 3 === 0) {
         ticks.numerator = 2048 * 3;
-        beats = meterNumbers[0] / 3;
+        beats = params.timeSignature.actualBeats / 3;
       }
       beamBeats = 2048 * 3;
     }
@@ -468,7 +502,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     const rv = [];
 
     // Treat 2/2 like 4/4 time.
-    if (meterNumbers[1] === 2) {
+    if (params.timeSignature.beatDuration === 2) {
       beats = beats * 2;
     }
 
@@ -599,10 +633,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     }
     layoutDebug.measureHistory(this, 'staffY', y, description);
     this.svg.staffY = Math.round(y);
-  }
-
-  get logicalBox(): SvgBox | null {
-    return typeof (this.svg.logicalBox.x) === 'number' ? this.svg.logicalBox : null;
   }
 
   get yTop(): number {
@@ -761,7 +791,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
 
   isPickup(): boolean {
     const ticks = this.getTicksFromVoice(0);
-    const goal = smoMusic.timeSignatureToTicks(this.timeSignature);
+    const goal = smoMusic.timeSignatureToTicks(this.timeSignature.timeSignature);
     return (ticks < goal);
   }
 
@@ -1058,7 +1088,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   }
 
   get numBeats() {
-    return this.timeSignature.split('/').map(number => parseInt(number, 10))[0];
+    return this.timeSignature!.actualBeats;
   }
   setKeySignature(sig: string) {
     this.keySignature = sig;
@@ -1069,7 +1099,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     });
   }
   get beatValue(): number {
-    return this.timeSignature.split('/').map(number => parseInt(number, 10))[1];
+    return this.timeSignature.beatDuration;
   }
 
   setMeasureNumber(num: MeasureNumber) {

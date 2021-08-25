@@ -255,7 +255,7 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
     return rv;
   }
   // Return a deep copy of the page parameters, adjusted for the global scale.
-  getScaledPageLayout(pageIndex: number) {
+  getScaledPageLayout(pageIndex: number): ScaledPageLayout {
     const rv: ScaledPageLayout = new ScaledPageLayout();
     const pageCopy: SmoPageLayout = new SmoPageLayout(this.pageLayouts[pageIndex]);
     rv.updatePageLayout(this.globalLayout, pageCopy, this.pageLayouts.length);
@@ -684,7 +684,7 @@ export class SmoTextGroup extends SmoScoreModifierBase {
   }
 
   static get defaults() {
-    return {
+    return JSON.parse(JSON.stringify({
       textBlocks: [],
       justification: SmoTextGroup.justifications.LEFT,
       relativePosition: SmoTextGroup.relativePositions.RIGHT,
@@ -695,7 +695,7 @@ export class SmoTextGroup extends SmoScoreModifierBase {
       selector: null,
       musicXOffset: 0,
       musicYOffset: 0
-    };
+    }));
   }
   justification: number = SmoTextGroup.justifications.LEFT;
   relativePosition: number = SmoTextGroup.relativePositions.RIGHT;
@@ -707,6 +707,7 @@ export class SmoTextGroup extends SmoScoreModifierBase {
   musicXOffset: number = 0;
   musicYOffset: number = 0;
   textBlocks: SmoTextBlock[] = [];
+  skipRender: boolean = false; // don't render if it is being edited
   static deserialize(jObj: any) {
     const blocks: any = [];
     const params: any = {};

@@ -23,7 +23,7 @@ export class SuiMeasureDialog extends SuiDialogBase {
     return SuiMeasureDialog.ctor;
   }
   static get dialogElements() {
-    SuiMeasureDialog._dialogElements = typeof(SuiMeasureDialog._dialogElements) !== 'undefined' ? SuiMeasureDialog._dialogElements :
+    SuiMeasureDialog._dialogElements = typeof (SuiMeasureDialog._dialogElements) !== 'undefined' ? SuiMeasureDialog._dialogElements :
       [{
         staticText: [
           { label: 'Measure Properties' }]
@@ -252,7 +252,7 @@ export class SuiInstrumentDialog extends SuiDialogBase {
     };
   }
   static get dialogElements() {
-    SuiInstrumentDialog._dialogElements = typeof(SuiInstrumentDialog._dialogElements) !== 'undefined' ?
+    SuiInstrumentDialog._dialogElements = typeof (SuiInstrumentDialog._dialogElements) !== 'undefined' ?
       SuiInstrumentDialog._dialogElements :
       [{
         staticText: [
@@ -365,7 +365,7 @@ export class SuiInsertMeasures extends SuiDialogBase {
   }
 
   static get dialogElements() {
-    SuiInsertMeasures._dialogElements = typeof(SuiInsertMeasures._dialogElements) !== 'undefined' ?
+    SuiInsertMeasures._dialogElements = typeof (SuiInsertMeasures._dialogElements) !== 'undefined' ?
       SuiInsertMeasures._dialogElements :
       [{
         staticText: [
@@ -444,9 +444,11 @@ export class SuiTimeSignatureDialog extends SuiDialogBase {
   static get dialogElements() {
     SuiTimeSignatureDialog._dialogElements = SuiTimeSignatureDialog._dialogElements ? SuiTimeSignatureDialog._dialogElements :
       [
-        { staticText: [
-          { label: 'Custom Time Signature' }
-        ] },
+        {
+          staticText: [
+            { label: 'Custom Time Signature' }
+          ]
+        },
         {
           smoName: 'numerator',
           parameterName: 'numerator',
@@ -471,15 +473,22 @@ export class SuiTimeSignatureDialog extends SuiDialogBase {
             value: 2,
             label: '2'
           }]
-        }];
+        }, {
+          smoName: 'display',
+          parameterName: 'display',
+          defaultValue: true,
+          control: 'SuiToggleComponent',
+          label: 'Display',
+        },
+      ];
     return SuiTimeSignatureDialog._dialogElements;
   }
   populateInitial() {
-    const nd = this.measure.timeSignature.split('/');
-    const num = parseInt(nd[0], 10);
-    const den = parseInt(nd[1], 10);
+    const num = this.measure.timeSignature.actualBeats;
+    const den = this.measure.timeSignature.beatDuration;
     this.numeratorCtrl.setValue(num);
     this.denominatorCtrl.setValue(den);
+    this.displayCtrl.setValue(this.measure.timeSignature.display);
   }
 
   changed() {
@@ -494,7 +503,8 @@ export class SuiTimeSignatureDialog extends SuiDialogBase {
   }
 
   changeTimeSignature() {
-    const ts = '' + this.numeratorCtrl.getValue() + '/' + this.denominatorCtrl.getValue();
+    const ts = SmoMeasure.convertLegacyTimeSignature('' + this.numeratorCtrl.getValue() + '/' + this.denominatorCtrl.getValue());
+    ts.display = this.displayCtrl.getValue();
     this.view.setTimeSignature(ts);
   }
   _bindElements() {
@@ -551,9 +561,10 @@ export class SuiTempoDialog extends SuiDialogBase {
   static get dialogElements() {
     SuiTempoDialog._dialogElements = SuiTempoDialog._dialogElements ? SuiTempoDialog._dialogElements :
       [
-        { staticText: [
-          { label: 'Tempo Properties' }
-        ]
+        {
+          staticText: [
+            { label: 'Tempo Properties' }
+          ]
         },
         {
           smoName: 'tempoMode',

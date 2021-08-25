@@ -461,7 +461,7 @@ export class VxMeasure {
     }
 
     const tempo = this.smoMeasure.getTempo();
-    if (tempo && this.smoMeasure.forceTempo) {
+    if (tempo && this.smoMeasure.svg.forceTempo) {
       this.stave.setTempo(tempo.toVexTempo(), -1 * tempo.yOffset);
       const vexTempo = this.stave.modifiers.find((mod) => mod.attrs.type === 'StaveTempo');
       vexTempo.font = { family: SourceSerifProFont.fontFamily, size: 14, weight: 'bold' };
@@ -493,18 +493,18 @@ export class VxMeasure {
     this.stave.options.space_above_staff_ln = 0; // don't let vex place the staff, we want to.
 
     // Add a clef and time signature.
-    if (this.smoMeasure.forceClef) {
+    if (this.smoMeasure.svg.forceClef) {
       this.stave.addClef(this.smoMeasure.clef);
     }
-    if (this.smoMeasure.forceKeySignature) {
+    if (this.smoMeasure.svg.forceKeySignature) {
       const sig = new VF.KeySignature(key);
       if (this.smoMeasure.canceledKeySignature) {
         sig.cancelKey(canceledKey);
       }
       sig.addToStave(this.stave);
     }
-    if (this.smoMeasure.forceTimeSignature) {
-      this.stave.addTimeSignature(this.smoMeasure.timeSignature);
+    if (this.smoMeasure.svg.forceTimeSignature) {
+      this.stave.addTimeSignature(this.smoMeasure.timeSignature.timeSignature);
     }
     // Connect it to the rendering context and draw!
     this.stave.setContext(this.context);

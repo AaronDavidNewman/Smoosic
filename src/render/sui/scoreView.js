@@ -293,7 +293,7 @@ export class SuiScoreView {
   }
   setMappedStaffIds() {
     this.score.staves.forEach((staff) => {
-      staff.mappedStaffId = this.staffMap[staff.staffId];
+      staff.setMappedStaffId(this.staffMap[staff.staffId]);
     });
   }
 

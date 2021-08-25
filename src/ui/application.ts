@@ -2,6 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../common/serializationHelpers';
 import { suiController } from './controller';
+import { SmoConfiguration } from '../smo/data/common';
 import { SuiScoreRender } from '../render/sui/scoreRender';
 import { suiMenuManager } from './menus';
 import { SuiRenderDemon } from '../render/sui/layoutDemon';
@@ -26,23 +27,6 @@ import { librarySeed } from './fileio/library';
 declare var SmoConfig : SmoConfiguration;
 
 interface pairType { [key: string]: string }
-export interface SmoConfiguration {
-  smoPath?: string,
-  language: string,
-  scoreLoadOrder? : string[],
-  scoreLoadJson?: string,
-  smoDomContainer?: 'smoo',
-  vexDomContainer?: 'boo',
-  domSource?: ' SuiDom',
-  ribbon?: true,
-  keyCommands?: true,
-  menus?: true,
-  title?: 'Smoosic',
-  libraryUrl?: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json',
-  languageDir: string,
-  demonPollTime: number, // how often we poll the score to see if it changed
-  idleRedrawTime: number
-}
 
 interface loadedScore {
   scorePath: string | null,
@@ -216,7 +200,7 @@ export class SuiApplication {
     const selector = typeof(SmoConfig.vexDomContainer) === 'undefined' ? '' : SmoConfig.vexDomContainer;
 
     const scoreRenderer = SuiScoreRender.createScoreRenderer(document.getElementById(
-      selector), score);
+      selector)!, score);
     params.eventSource.setRenderElement(scoreRenderer.renderElement);
     params.view = new SuiScoreViewOperations(scoreRenderer, score, '.musicRelief');
     if (SmoConfig.keyCommands) {

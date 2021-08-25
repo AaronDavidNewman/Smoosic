@@ -3,16 +3,17 @@
 import { svgHelpers } from '../../common/svgHelpers';
 import { smoMusic } from '../../common/musicHelpers';
 import { vexGlyph } from '../vex/glyphDimensions';
-import { SmoLyric } from '../../smo/data/noteModifiers';
+import { SmoDynamicText, SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoNote } from '../../smo/data/note';
-
-const VF = Vex.Flow;
+import { SmoMeasure, ISmoBeamGroup } from '../../smo/data/measure';
+import { FontInfo } from '../../smo/data/common';
+const VF = eval('Vex.Flow');
 
 // ## suiFormatter (changed from suiAdjuster)
 // Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
 export class suiLayoutFormatter {
-  static estimateMusicWidth(smoMeasure, noteSpacing, accidentMap) {
-    const widths = [];
+  static estimateMusicWidth(smoMeasure: SmoMeasure, noteSpacing: number, accidentMap: Record<string, number>): number {
+    const widths: number[] = [];
     // The below line was commented out b/c voiceIX was defined but never used
     // let voiceIx = 0;
     // Accidental map:
@@ -32,9 +33,9 @@ export class suiLayoutFormatter {
       let duration = 0;
       voice.notes.forEach((note) => {
         let noteWidth = 0;
-        const dots = (note.dots ? note.dots : 0);
-        const headWidth = vexGlyph.width(vexGlyph.dimensions.noteHead);
-        const dotWidth = vexGlyph.width(vexGlyph.dimensions.dot);
+        const dots: number = (note.dots ? note.dots : 0);
+        let headWidth: number = vexGlyph.width(vexGlyph.dimensions.noteHead);
+        const dotWidth: number = vexGlyph.width(vexGlyph.dimensions.dot);
         noteWidth += headWidth +
           vexGlyph.dimensions.noteHead.spacingRight * noteSpacing;
         // TODO: Consider engraving font and adjust grace note size?
@@ -59,31 +60,32 @@ export class suiLayoutFormatter {
         });
 
         let verse = 0;
-        let lyric = note.getLyricForVerse(verse, SmoLyric.parsers.lyric);
-        while (lyric) {
+        let lyricBase = note.getLyricForVerse(verse, SmoLyric.parsers.lyric);
+        while (lyricBase.length) {
+          let lyric = lyricBase[0] as SmoLyric;
           let lyricWidth = 0;
           let i = 0;
           // TODO: kerning and all that...
-          if (!lyric.length) {
+          if (!lyric._text.length) {
             break;
           }
           // why did I make this return an array?
           // oh...because of voices
           const textFont =
-            VF.TextFont.getTextFontFromVexFontData({ family: lyric[0].fontInfo.family,
-              size: lyric[0].fontInfo.size, weight: 'normal' });
-          const lyricText = lyric[0].getText();
+            VF.TextFont.getTextFontFromVexFontData({ family: lyric.fontInfo.family,
+              size: lyric.fontInfo.size, weight: 'normal' });
+          const lyricText = lyric.getText();
           for (i = 0; i < lyricText.length; ++i) {
             lyricWidth += textFont.getWidthForCharacter(lyricText[i]);
           }
-          if (lyric[0].isHyphenated()) {
+          if (lyric.isHyphenated()) {
             lyricWidth += 2 * textFont.getWidthForCharacter('-');
           } else {
             lyricWidth += 2 * textFont.getWidthForCharacter('H');
           }
           noteWidth = Math.max(lyricWidth, noteWidth);
           verse += 1;
-          lyric = note.getLyricForVerse(verse, SmoLyric.parsers.lyric);
+          lyricBase = note.getLyricForVerse(verse, SmoLyric.parsers.lyric);
         }
         duration += note.tickCount;
         width += noteWidth;
@@ -97,21 +99,21 @@ export class suiLayoutFormatter {
     return widths[0];
   }
 
-  static estimateStartSymbolWidth(smoMeasure) {
+  static estimateStartSymbolWidth(smoMeasure: SmoMeasure): number {
     let width = 0;
     // the variables starts and digits used to be in the if statements. I moved them here to fix the resulting error
     var starts = smoMeasure.getStartBarline();
-    var digits = smoMeasure.timeSignature.split('/')[0].length;
-    if (smoMeasure.forceKeySignature) {
+    var digits = smoMeasure.timeSignature.timeSignature.split('/')[0].length;
+    if (smoMeasure.svg.forceKeySignature) {
       if (smoMeasure.canceledKeySignature) {
         width += vexGlyph.keySignatureLength(smoMeasure.canceledKeySignature);
       }
       width += vexGlyph.keySignatureLength(smoMeasure.keySignature);
     }
-    if (smoMeasure.forceClef) {
+    if (smoMeasure.svg.forceClef) {
       width += vexGlyph.width(vexGlyph.clef(smoMeasure.clef)) + vexGlyph.clef(smoMeasure.clef).spacingRight;
     }
-    if (smoMeasure.forceTimeSignature) {
+    if (smoMeasure.svg.forceTimeSignature) {
       width += vexGlyph.width(vexGlyph.dimensions.timeSignature) * digits + vexGlyph.dimensions.timeSignature.spacingRight;
     }
     if (starts) {
@@ -119,7 +121,7 @@ export class suiLayoutFormatter {
     }
     return width;
   }
-  static estimateEndSymbolWidth(smoMeasure) {
+  static estimateEndSymbolWidth(smoMeasure: SmoMeasure) {
     var width = 0;
     var ends  = smoMeasure.getEndBarline();
     if (ends) {
@@ -128,21 +130,21 @@ export class suiLayoutFormatter {
     return width;
   }
 
-  static estimateMeasureWidth(measure, noteSpacing, accidentMap) {
+  static estimateMeasureWidth(measure: SmoMeasure, noteSpacing: number, accidentMap: Record<string, number>) {
     // Calculate the existing staff width, based on the notes and what we expect to be rendered.
     let measureWidth = suiLayoutFormatter.estimateMusicWidth(measure, noteSpacing, accidentMap);
     measure.svg.adjX = suiLayoutFormatter.estimateStartSymbolWidth(measure);
     measure.svg.adjRight = suiLayoutFormatter.estimateEndSymbolWidth(measure);
     measureWidth += measure.svg.adjX + measure.svg.adjRight + measure.format.customStretch;
-    const y = measure.logicalBox ? measure.logicalBox.y : measure.staffY;
+    const y = measure.svg.logicalBox.y;
     measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight');
     // Calculate the space for left/right text which displaces the measure.
     // measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
-    measure.setBox(svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, measure.logicalBox.height),
+    measure.setBox(svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, measure.svg.logicalBox.height),
       'estimate measure width');
   }
-  static _beamGroupForNote(measure, note) {
-    let rv = null;
+  static _beamGroupForNote(measure: SmoMeasure, note: SmoNote): ISmoBeamGroup | null {
+    let rv: ISmoBeamGroup | null = null;
     if (!note.beam_group) {
       return null;
     }
@@ -158,7 +160,7 @@ export class suiLayoutFormatter {
 
   // ### _highestLowestHead
   // highest value is actually the one lowest on the page
-  static _highestLowestHead(measure, note) {
+  static _highestLowestHead(measure: SmoMeasure, note: SmoNote) {
     const hilo = { hi: 0, lo: 9999999 };
     note.pitches.forEach((pitch) => {
       // 10 pixels per line
@@ -170,9 +172,9 @@ export class suiLayoutFormatter {
     });
     return hilo;
   }
-  static textFont(lyric) {
-    const fonts = VF.TextFont.fontRegistry;
-    const rv = fonts.find((font) => font.family === lyric.fontInfo.family);
+  static textFont(lyric: SmoLyric) {
+    const fonts: FontInfo[] = VF.TextFont.fontRegistry;
+    const rv = fonts.find((font: FontInfo) => font.family === lyric.fontInfo.family);
     if (!rv) {
       return new VF.TextFont(fonts[0]);
     }
@@ -186,17 +188,17 @@ export class suiLayoutFormatter {
   // the height of the measure is below-above.  Vex always renders a staff such that
   // the y coordinate passed in for the stave is on the baseline.
   // Note to past self: this was a really useful comment.  Thank you.
-  static estimateMeasureHeight(measure) {
+  static estimateMeasureHeight(measure: SmoMeasure): { aboveBaseline: number, belowBaseline: number } {
     let heightOffset = 50;  // assume 5 lines, todo is non-5-line staffs
     let yOffset = 0;
-    let flag = '';
+    let flag: number = -1;
     let lyricOffset = 0;
-    if (measure.forceClef) {
+    if (measure.svg.forceClef) {
       heightOffset += vexGlyph.clef(measure.clef).yTop + vexGlyph.clef(measure.clef).yBottom;
       yOffset = yOffset - vexGlyph.clef(measure.clef).yTop;
     }
 
-    if (measure.forceTempo) {
+    if (measure.svg.forceTempo) {
       yOffset = Math.min(-1 * vexGlyph.tempo.yTop, yOffset);
     }
     measure.voices.forEach((voice) => {
@@ -237,7 +239,7 @@ export class suiLayoutFormatter {
           const fontInfo = suiLayoutFormatter.textFont(maxLyric);
           lyricOffset = Math.max((maxLyric.verse + 2) * fontInfo.maxHeight, lyricOffset);
         }
-        const dynamics = note.getModifiers('SmoDynamicText');
+        const dynamics = note.getModifiers('SmoDynamicText') as SmoDynamicText[];
         dynamics.forEach((dyn) => {
           heightOffset = Math.max((10 * dyn.yOffsetLine - 50) + 11, heightOffset);
           yOffset = Math.min(10 * dyn.yOffsetLine - 50, yOffset);

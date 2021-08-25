@@ -86,3 +86,30 @@ export interface SmoModifierBase {
 
 export type Clef = 'treble' | 'bass' | 'tenor' | 'alto' | 'soprano' | 'percussion'
     | 'mezzo-soprano' | 'baritone-c' | 'baritone-f' | 'subbass' | 'french';
+
+export interface TimeSignature {
+    timeSignature: string,
+    actualBeats: number,
+    beatDuration: number,
+    useSymbol: boolean,
+    display: boolean
+}
+export interface SmoConfiguration {
+    smoPath?: string,
+    language: string,
+    scoreLoadOrder? : string[],
+    scoreLoadJson?: string,
+    smoDomContainer?: string,
+    vexDomContainer?: string,
+    domSource?: string,
+    ribbon?: true,
+    keyCommands?: true,
+    menus?: true,
+    title?: string,
+    libraryUrl?: string,
+    languageDir: string,
+    demonPollTime: number, // how often we poll the score to see if it changed
+    idleRedrawTime: number
+}
+
+      

@@ -356,10 +356,10 @@ export class VxSystem {
       for (i = 0; i < voAr.length; ++i) {
         const mm = voAr[i].smoMeasure;
         const ending = voAr[i].ending;
-        const delta =  mm.logicalBox.y - ending.logicalBox.y;
+        const delta =  mm.svg.logicalBox.y - ending.logicalBox.y;
         if (delta > 0) {
           mm.setBox(svgHelpers.boxPoints(
-            mm.logicalBox.x, mm.logicalBox.y - delta, mm.logicalBox.width, mm.logicalBox.height + delta),
+            mm.svg.logicalBox.x, mm.svg.logicalBox.y - delta, mm.svg.logicalBox.width, mm.svg.logicalBox.height + delta),
           'vxSystem adjust for volta');
         }
       }

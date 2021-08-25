@@ -425,15 +425,15 @@ export class PasteBuffer {
       // If this is the non-display buffer, don't try to reset the display rectangles.
       // Q: Is this even required since we are going to re-render?
       // A: yes, because until we do, the replaced measure needs the formatting info
-      if (measure.svg.renderedBox && measure.logicalBox) {
+      if (measure.svg.renderedBox && measure.svg.logicalBox.width > 0) {
         nmeasure.svg.renderedBox = svgHelpers.smoBox(measure.svg.renderedBox);
-        nmeasure.setBox(svgHelpers.smoBox(measure.logicalBox), 'copypaste');
-        nmeasure.setX(measure.logicalBox.x, 'copyPaste');
-        nmeasure.setWidth(measure.logicalBox.width, 'copypaste');
-        nmeasure.setY(measure.logicalBox.y, 'copypaste');
+        nmeasure.setBox(svgHelpers.smoBox(measure.svg.logicalBox), 'copypaste');
+        nmeasure.setX(measure.svg.logicalBox.x, 'copyPaste');
+        nmeasure.setWidth(measure.svg.logicalBox.width, 'copypaste');
+        nmeasure.setY(measure.svg.logicalBox.y, 'copypaste');
       }
       ['forceClef', 'forceKeySignature', 'forceTimeSignature', 'forceTempo'].forEach((flag) => {
-        (nmeasure as any)[flag] = (measure as any)[flag];
+        (nmeasure as any)[flag] = (measure.svg as any)[flag];
       });
       this.score.replaceMeasure(measureSel, nmeasure);
       measureSel.measure += 1;

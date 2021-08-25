@@ -12,6 +12,7 @@ import { SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveActionsDialog, SuiLoadAct
 import { htmlHelpers } from '../common/htmlHelpers';
 import { SuiTimeSignatureDialog, SuiMeasureDialog, SuiInsertMeasures } from './dialogs/measureDialogs';
 import { SuiStaffGroupDialog } from './dialogs/staffDialogs';
+import { SmoMeasure } from '../smo/data/measure';
 
 export class suiMenuBase {
   constructor(params) {
@@ -800,7 +801,7 @@ export class SuiTimeSignatureMenu extends suiMenuBase {
       this.complete();
       return;
     }
-    this.view.setTimeSignature(text);
+    this.view.setTimeSignature(SmoMeasure.convertLegacyTimeSignature(text));
     this.complete();
   }
 

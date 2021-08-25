@@ -332,10 +332,10 @@ export abstract class SuiMapper {
     let selectedTicks = 0;
     let selectionChanged = false;
     let vix = 0;
-    if (!measure.logicalBox) {
+    if (!measure.svg.logicalBox) {
       return;
     }
-    measure.svg.renderedBox = svgHelpers.smoBox(svgHelpers.logicalToClient(this.renderer.svg, measure.logicalBox, this.scroller.scrollState.scroll));
+    measure.svg.renderedBox = svgHelpers.smoBox(svgHelpers.logicalToClient(this.renderer.svg, measure.svg.logicalBox, this.scroller.scrollState.scroll));
     this._setModifierBoxes(measure);
     const timestamp = new Date().valueOf();
     // Keep track of any current selections in this measure, we will try to restore them.

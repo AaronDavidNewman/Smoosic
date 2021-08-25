@@ -692,6 +692,9 @@ export class SmoDynamicText extends SmoNoteModifierBase {
   }
   selector: SmoSelector;
   text: string = '';
+  yOffsetLine: number = 11;
+  yOffsetPixls: number = 0;
+  xOffset: number = 0;
   serialize(): object {
     var params = {};
     smoSerialize.serializedMergeNonDefault(SmoDynamicText.defaults,
