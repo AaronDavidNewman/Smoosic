@@ -26,6 +26,10 @@ export interface GradientInfo {
   color: string, offset: string, opacity: number
 }
 
+export interface Boxable {
+  box: SvgBox
+}
+
 export class SvgBuilder {
   e: Element;
   constructor(el: string) {
@@ -328,12 +332,12 @@ export class svgHelpers {
 
   // ### findIntersectionArtifact
   // find all object that intersect with the rectangle
-  static findIntersectingArtifact(clientBox: SvgBox, objects: SmoSelection[], scrollState: SvgBox): any[] {
+  static findIntersectingArtifact(clientBox: SvgBox, objects: Boxable[], scrollState: SvgBox): Boxable[] {
     var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
     // box.y = box.y - this.renderElement.offsetTop;
     // box.x = box.x - this.renderElement.offsetLeft;
-    var rv: any[] = [];
+    var rv: Boxable[] = [];
     objects.forEach((object) => {
       // Measure has been updated, but not drawn.
       if (!object.box) {
@@ -386,7 +390,7 @@ export class svgHelpers {
     return false;
   }
 
-  static findSmallestIntersection(clientBox: SvgBox, objects: any, scrollState: SvgBox) {
+  static findSmallestIntersection(clientBox: SvgBox, objects: Boxable[], scrollState: SvgBox) {
     var ar = svgHelpers.findIntersectingArtifact(clientBox, objects, scrollState);
     if (!ar.length) {
       return null;

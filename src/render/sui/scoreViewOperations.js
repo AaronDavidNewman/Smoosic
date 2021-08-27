@@ -1103,7 +1103,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
           SmoSelector.eq(tb.selection.selector, selector));
     }
     if (modIndex >= 0) {
-      this.tracker.modifierSuggestions = [modIndex];
+      this.tracker.modifierSuggestion = [modIndex];
       this.tracker.selectSuggestion(evData);
     }
   }

@@ -48,6 +48,11 @@ export interface MeasureSvg {
   forceTempo: boolean
 }
 
+export interface MeasureTickmaps {
+  tickmaps: TickMap[],
+  accidentalMap: Record<string | number, Record<PitchLetter, TickAccidental>>,
+  accidentalArray: AccidentalArray[]
+}
 export interface SmoMeasureParams {
   timeSignature: TimeSignature,
   keySignature: string,
@@ -719,7 +724,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   // since each voice may have different numbers of ticks.  The accidental map is
   // overall since accidentals in one voice apply to accidentals in the other
   // voices.  So we return the tickmaps and the overall accidental map.
-  createMeasureTickmaps() {
+  createMeasureTickmaps(): MeasureTickmaps {
     let i = 0;
     const tickmapArray: TickMap[] = [];
     const accidentalMap: Record<string | number, Record<PitchLetter, TickAccidental>> =

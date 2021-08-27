@@ -270,7 +270,7 @@ export class SmoVolta extends SmoMeasureModifierBase {
   startBar: number = 1;
   endBar: number = 1;
   xOffsetStart: number = 0;
-  xOffsetENd: number = 0;
+  xOffsetEnd: number = 0;
   yOffset: number = 20;
   number: number = 1;
   endingId: string | null = null;
@@ -380,6 +380,9 @@ export class SmoMeasureText extends SmoMeasureModifierBase {
   }
   justification: number = SmoMeasureText.justifications.center;
   position: number = SmoMeasureText.positions.above;
+  text: string = '';
+  adjustX: number = 0;
+  adjustY: number = 0;
   fontInfo: FontInfo = {
     size: 9,
     family: 'times',

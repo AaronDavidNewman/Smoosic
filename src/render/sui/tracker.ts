@@ -777,10 +777,11 @@ export class SuiTracker extends SuiMapper {
     }, 1000);
   }
 
-  _setModifierAsSuggestion(artifact: SmoSelection): void {
+  _setModifierAsSuggestion(artifact: ModifierTab): void {
     if (!artifact.box) {
       return;
     }
+    this.modifierSuggestion = artifact.index;
     this._drawRect(artifact.box, 'suggestion');
     this._setFadeTimer();
   }
@@ -915,6 +916,9 @@ export class SuiTracker extends SuiMapper {
       prevSel = sel;
     }
     boxes.push(curBox);
+    if (this.modifierSelections.length) {
+      boxes.push(this.modifierSelections[0].box);
+    }
     this._drawRect(boxes, 'selection');
   }
 

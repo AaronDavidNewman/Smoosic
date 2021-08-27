@@ -26,7 +26,7 @@ export abstract class SmoNoteModifierBase implements SmoModifierBase {
   }
   static deserialize(jsonObj: SmoObjectParams) {
     const ctor = eval('globalThis.Smo.' + jsonObj.ctor);
-    if (typeof(ctor) === 'undefined') {
+    if (typeof (ctor) === 'undefined') {
       console.log('ouch bad ctor for ' + jsonObj.ctor);
     }
     const rv = new ctor(jsonObj);
@@ -76,7 +76,7 @@ export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
   static get parameterArray() {
     const rv: string[] = [];
     // eslint-disable-next-line
-    for(const key in SmoGraceNote.defaults) {
+    for (const key in SmoGraceNote.defaults) {
       rv.push(key);
     }
     return rv;
@@ -164,12 +164,12 @@ export class SmoMicrotone extends SmoNoteModifierBase {
   static get parameterArray() {
     const rv: string[] = [];
     // eslint-disable-next-line
-    for(const key in SmoMicrotone.defaults) {
+    for (const key in SmoMicrotone.defaults) {
       rv.push(key);
     }
     return rv;
   }
-  serialize():object {
+  serialize(): object {
     var params = {};
     smoSerialize.serializedMergeNonDefault(SmoMicrotone.defaults,
       SmoMicrotone.parameterArray, this, params);
@@ -223,13 +223,13 @@ export class SmoOrnament extends SmoNoteModifierBase {
     return SmoOrnament.jazzOrnaments.indexOf(this.ornament) >= 0;
   }
   position: string = SmoOrnament.positions.above;
-  offset: number = 0;
+  offset: string = 'on';
   ornament: string = SmoOrnament.ornaments.mordent;
 
   static get parameterArray() {
     const rv: string[] = [];
     // eslint-disable-next-line
-    for(const key in SmoOrnament.defaults) {
+    for (const key in SmoOrnament.defaults) {
       rv.push(key);
     }
     return rv;
@@ -295,7 +295,7 @@ export class SmoArticulation extends SmoNoteModifierBase {
       below: 'below'
     };
   }
-  static get articulationToVex() {
+  static get articulationToVex(): Record<string, string> {
     return {
       accent: 'a>',
       staccato: 'a.',
@@ -308,7 +308,7 @@ export class SmoArticulation extends SmoNoteModifierBase {
     };
   }
 
-  static get vexToArticulation() {
+  static get vexToArticulation(): Record<string, string> {
     return {
       'a>': 'accent',
       'a.': 'staccato',
@@ -323,13 +323,13 @@ export class SmoArticulation extends SmoNoteModifierBase {
   static get parameterArray(): string[] {
     const rv: string[] = [];
     // eslint-disable-next-line
-    for(const key in SmoArticulation.defaults) {
+    for (const key in SmoArticulation.defaults) {
       rv.push(key);
     }
     return rv;
   }
 
-  static get positionToVex() {
+  static get positionToVex(): Record<string, number> {
     return {
       'above': 3,
       'below': 4
@@ -455,7 +455,7 @@ export class SmoLyric extends SmoNoteModifierBase {
   static get persistArray(): string[] {
     const rv: string[] = [];
     // eslint-disable-next-line
-    for(const key in SmoLyric.defaults) {
+    for (const key in SmoLyric.defaults) {
       rv.push(key);
     }
     return rv;
@@ -466,7 +466,7 @@ export class SmoLyric extends SmoNoteModifierBase {
     return rv;
   }
 
-  ctor: string ='SmoLyric';
+  ctor: string = 'SmoLyric';
   _text: string = '';
   endChar: string = '';
   fontInfo: FontInfo = {
@@ -487,8 +487,9 @@ export class SmoLyric extends SmoNoteModifierBase {
   translateX: number = 0;
   translateY: number = 0;
   classes: string = '';
-  adjX: 0;
-  adjY: 0;
+  adjX: number = 0;
+  adjY: number = 0;
+  hyphenX: number = 0;
 
   serialize(): object {
     var params = {};
@@ -667,7 +668,7 @@ export class SmoDynamicText extends SmoNoteModifierBase {
       SFZ: 'sfz'
     };
   }
-  static get defaults() : SmoDynamicTextParams {
+  static get defaults(): SmoDynamicTextParams {
     return JSON.parse(JSON.stringify({
       ctor: 'SmoDynamicText',
       xOffset: 0,
@@ -693,8 +694,9 @@ export class SmoDynamicText extends SmoNoteModifierBase {
   selector: SmoSelector;
   text: string = '';
   yOffsetLine: number = 11;
-  yOffsetPixls: number = 0;
+  yOffsetPixels: number = 0;
   xOffset: number = 0;
+  fontSize: number = 38;
   serialize(): object {
     var params = {};
     smoSerialize.serializedMergeNonDefault(SmoDynamicText.defaults,

@@ -188,11 +188,11 @@ export class SuiScoreRender extends SuiRenderState {
     return rv;
   }
   _renderSystem(key: string, mscore: Record<string | number, SmoMeasure[]>, printing: boolean) {
-    const columns: Record<number, SmoMeasure[]> = {};
-    const vxSystem: any = new VxSystem(this.context, 0, parseInt(key, 10), this.score);
-    if (!this.score) {
+    const columns: Record<number, SmoMeasure[]> = {};    
+    if (this.score === null) {
       return;
     }
+    const vxSystem: VxSystem = new VxSystem(this.context, 0, parseInt(key, 10), this.score);
     mscore[key].forEach((measure) => {
       if (!columns[measure.measureNumber.systemIndex]) {
         columns[measure.measureNumber.systemIndex] = [];
@@ -202,14 +202,16 @@ export class SuiScoreRender extends SuiRenderState {
     const colKeys = Object.keys(columns);
     colKeys.forEach((colKey) => {
       columns[parseInt(colKey, 10)].forEach((measure: SmoMeasure) => {
-        vxSystem.renderMeasure(measure, this.measureMapper, printing);
-        if (!printing && !measure.format.eq(SmoMeasureFormat.defaults)) {
-          const at = [];
-          at.push({ y: measure.svg.logicalBox.y - 5 });
-          at.push({ x: measure.svg.logicalBox.x + 25 });
-          at.push({ 'font-family': SourceSansProFont.fontFamily });
-          at.push({ 'font-size': '12pt' });
-          svgHelpers.placeSvgText(this.context.svg, at, 'measure-format', '*');
+        if (this.measureMapper !== null) {
+          vxSystem.renderMeasure(measure, this.measureMapper, printing);
+          if (!printing && !measure.format.eq(SmoMeasureFormat.defaults)) {
+            const at = [];
+            at.push({ y: measure.svg.logicalBox.y - 5 });
+            at.push({ x: measure.svg.logicalBox.x + 25 });
+            at.push({ 'font-family': SourceSansProFont.fontFamily });
+            at.push({ 'font-size': '12pt' });
+            svgHelpers.placeSvgText(this.context.svg, at, 'measure-format', '*');
+          }
         }
       });
     });

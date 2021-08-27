@@ -14,6 +14,7 @@ import { SuiMapper } from './mapper';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
 import { VxMeasure } from '../vex/vxMeasure';
+import { SmoNote } from '../../smo/data/note';
 
 export interface ScoreRenderParams {
   elementId: any,
@@ -416,9 +417,12 @@ export abstract class SuiRenderState {
         removedModifiers.push(modifier);
         return;
       }
-
-      vxStart = system.getVxNote(startNote.note);
-      vxEnd = system.getVxNote(endNote.note);
+      if (startNote.note !== null) {
+        vxStart = system.getVxNote(startNote.note);
+      }
+      if (endNote.note !== null) {
+        vxEnd = system.getVxNote(endNote.note);
+      }
 
       // If the modifier goes to the next staff, draw what part of it we can on this staff.
       if (vxStart && !vxEnd) {
@@ -427,7 +431,9 @@ export abstract class SuiRenderState {
         if (nextNote === null) {
           console.warn('bad selector ' + JSON.stringify(modifier.startSelector, null, ' '));
         } else {
-          testNote = system.getVxNote(nextNote.note);
+          if (nextNote.note !== null) {
+            testNote = system.getVxNote(nextNote.note);
+          }
           while (testNote) {
             vxEnd = testNote;
             nextNote = SmoSelection.nextNoteSelection(this.score!,
@@ -435,23 +441,31 @@ export abstract class SuiRenderState {
             if (!nextNote) {
               break;
             }
-            testNote = system.getVxNote(nextNote.note);
+            if (nextNote.note !== null) {
+              testNote = system.getVxNote(nextNote.note);
+            } else {
+              testNote = null;
+            }
           }
         }
       }
       if (vxEnd && !vxStart) {
         lastNote = SmoSelection.lastNoteSelection(this.score!,
           modifier.endSelector.staff, modifier.endSelector.measure, modifier.endSelector.voice, modifier.endSelector.tick);
-        if (lastNote) {
+        if (lastNote !== null && lastNote.note !== null) {
           testNote = system.getVxNote(lastNote.note);
-          while (testNote) {
+          while (testNote !== null) {
             vxStart = testNote;
             lastNote = SmoSelection.lastNoteSelection(this.score!,
               lastNote.selector.staff, lastNote.selector.measure, lastNote.selector.voice, lastNote.selector.tick);
             if (!lastNote) {
               break;
             }
-            testNote = system.getVxNote(lastNote.note);
+            if (lastNote.note !== null) {
+              testNote = system.getVxNote(lastNote.note);
+            } else {
+              testNote = null;
+            }
           }
         }
       }
@@ -501,8 +515,8 @@ export abstract class SuiRenderState {
       }
       const selections = SmoSelection.measuresInColumn(this.score!, change.measure.measureNumber.measureIndex);
       selections.forEach((selection) => {
-        if (system) {
-          system.renderMeasure(selection.measure, this.measureMapper);
+        if (system !== null && this.measureMapper !== null) {
+          system.renderMeasure(selection.measure, this.measureMapper, false);
         }
       });
     });

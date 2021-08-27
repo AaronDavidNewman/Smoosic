@@ -9,63 +9,62 @@ import { SmoNote } from '../../smo/data/note';
 import { smoMusic } from '../../common/musicHelpers';
 import { svgHelpers } from '../../common/svgHelpers';
 import { layoutDebug } from '../sui/layoutDebug';
-import { SmoRepeatSymbol, SmoMeasureText, SmoBarline } from '../../smo/data/measureModifiers';
+import { SmoRepeatSymbol, SmoMeasureText, SmoBarline, SmoMeasureModifierBase, SmoRehearsalMark } from '../../smo/data/measureModifiers';
 import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';
 import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
-import { SmoOrnament, SmoArticulation } from '../../smo/data/noteModifiers';
+import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoLyric } from '../../smo/data/noteModifiers';
+import { SmoSelection } from '../../smo/xform/selections';
+import { SmoMeasure, MeasureTickmaps } from '../../smo/data/measure';
 
-const VF = Vex.Flow;
+declare var $: any;
+const VF = eval('Vex.Flow');
+
 export class VxMeasure {
-  constructor(context, options) {
-    this.context = context;
-    Vex.Merge(this, VxMeasure.defaults);
-    Vex.Merge(this, options);
-    this.rendered = false;
-    this.selection = options.selection;
-    this.smoMeasure = this.selection.measure;
-    this.noteToVexMap = {};
-    this.beamToVexMap = {};
-    this.tupletToVexMap = {};
-    this.modifierOptions = {};
+  context: any;
+  printing: boolean;
+  selection: SmoSelection;
+  smoMeasure: SmoMeasure;
+  rendered: boolean = false;
+  noteToVexMap: Record<string, any> = {};
+  beamToVexMap: Record<string, any> = {};
+  tupletToVexMap: Record<string, any> = {};
+  vexNotes: any[] = [];
+  vexBeamGroups: any[] = [];
+  vexTuplets: any[] = [];
+  tickmapObject: MeasureTickmaps | null = null;
+  stave: any; // vex stave
+  voiceNotes: any; // notes for current voice, as rendering
+  voiceAr: any[] = [];
+  formatter: any = null;
 
+
+  constructor(context: any, selection: SmoSelection, printing: boolean) {
+    this.context = context;
+    this.rendered = false;
+    this.selection = selection;
+    this.smoMeasure = this.selection.measure;
+    this.printing = printing;
+    this.tupletToVexMap = {};
     this.vexNotes = [];
     this.vexBeamGroups = [];
-    this.vexTuplets = [];
     this.vexBeamGroups = [];
     this.beamToVexMap = {};
   }
 
-  static get adjLeftPixels() {
-    return 5;
-  }
   static get fillStyle() {
     return '#000';
   }
 
-  static get adjRightPixels() {
-    return 5;
-  }
-
-  static get defaults() {
-    // var defaultLayout = new smrfSimpleLayout();
-    return {
-      smoMeasure: null,
-      printing: false
-    };
-  }
-  addCustomModifier(ctor, parameters) {
-    this.smoMeasure.addCustomModifier(ctor, parameters);
-  }
   // ## Description:
   // decide whether to force stem direction for multi-voice, or use the default.
   // ## TODO:
   // use x position of ticks in other voices, pitch of note, and consider
   // stem direction modifier.
-  applyStemDirection(vxParams, voiceIx, flagState) {
+  applyStemDirection(vxParams: any, voiceIx: number, flagState: number) {
     if (this.smoMeasure.voices.length === 1 && flagState === SmoNote.flagStates.auto) {
       vxParams.auto_stem = true;
     } else if (flagState !== SmoNote.flagStates.auto) {
-      vxParams.stem_direction = flagState ===  SmoNote.flagStates.up ? 1 : -1;
+      vxParams.stem_direction = flagState === SmoNote.flagStates.up ? 1 : -1;
     } else if (voiceIx % 2) {
       vxParams.stem_direction = -1;
     } else {
@@ -74,20 +73,20 @@ export class VxMeasure {
   }
 
   // We add microtones to the notes, without regard really to how they interact
-  _createMicrotones(smoNote, vexNote) {
+  _createMicrotones(smoNote: SmoNote, vexNote: any) {
     const tones = smoNote.getMicrotones();
     tones.forEach((tone) => {
       const acc = new VF.Accidental(tone.toVex);
       vexNote.addAccidental(tone.pitch, acc);
     });
   }
-  _createAccidentals(smoNote, vexNote, tickIndex, voiceIx) {
+  _createAccidentals(smoNote: SmoNote, vexNote: any, tickIndex: number, voiceIx: number) {
     let i = 0;
     if (smoNote.noteType === '/') {
       return;
     }
     smoNote.accidentalsRendered = [];
-    for (i = 0; i < smoNote.pitches.length; ++i) {
+    for (i = 0; i < smoNote.pitches.length && this.tickmapObject !== null; ++i) {
       const pitch = smoNote.pitches[i];
       const duration = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex];
       const keyAccidental = smoMusic.getAccidentalForKeySignature(pitch, this.smoMeasure.keySignature);
@@ -116,7 +115,7 @@ export class VxMeasure {
     this._createMicrotones(smoNote, vexNote);
   }
 
-  _createJazzOrnaments(smoNote, vexNote) {
+  _createJazzOrnaments(smoNote: SmoNote, vexNote: any) {
     const o = smoNote.getJazzOrnaments();
     o.forEach((ll) => {
       const mod = new VF.Ornament(ll.toVex());
@@ -124,8 +123,8 @@ export class VxMeasure {
     });
   }
 
-  _createOrnaments(smoNote, vexNote) {
-    const o  = smoNote.getOrnaments();
+  _createOrnaments(smoNote: SmoNote, vexNote: any) {
+    const o = smoNote.getOrnaments();
     o.forEach((ll) => {
       const mod = new VF.Ornament(ll.ornament);
       if (ll.offset === SmoOrnament.offsets.after) {
@@ -134,13 +133,12 @@ export class VxMeasure {
       vexNote.addModifier(mod, 0);
     });
   }
-  _addLyricAnnotationToNote(vexNote, lyric) {
+  _addLyricAnnotationToNote(vexNote: any, lyric: SmoLyric) {
     let classString = 'lyric lyric-' + lyric.verse;
     let text = lyric.getText();
     if (lyric.skipRender) {
       return;
     }
-    lyric.vexRenderY = 0;
     if (!text.length && lyric.isHyphenated()) {
       text = '-';
     }
@@ -161,7 +159,7 @@ export class VxMeasure {
     vexL.addClass(classString);
   }
 
-  _addChordChangeToNote(vexNote, lyric) {
+  _addChordChangeToNote(vexNote: any, lyric: SmoLyric) {
     const cs = new VF.ChordSymbol();
     const blocks = lyric.getVexChordBlocks();
     blocks.forEach((block) => {
@@ -177,10 +175,11 @@ export class VxMeasure {
     cs.addClass(classString);
   }
 
-  _createLyric(smoNote, vexNote) {
+  _createLyric(smoNote: SmoNote, vexNote: any) {
     const lyrics = smoNote.getTrueLyrics();
     if (smoNote.noteType !== '/') {
-      lyrics.forEach((ll) => {
+      lyrics.forEach((bll) => {
+        const ll = bll as SmoLyric;
         this._addLyricAnnotationToNote(vexNote, ll);
       });
     }
@@ -190,12 +189,12 @@ export class VxMeasure {
     });
   }
 
-  _createGraceNotes(smoNote, vexNote) {
+  _createGraceNotes(smoNote: SmoNote, vexNote: any) {
     let i = 0;
     const gar = smoNote.getGraceNotes();
     var toBeam = true;
     if (gar && gar.length) {
-      const group = [];
+      const group: any[] = [];
       gar.forEach((g) => {
         const gr = new VF.GraceNote(g.toVexGraceNote());
         for (i = 0; i < g.pitches.length; ++i) {
@@ -203,7 +202,7 @@ export class VxMeasure {
           if (!pitch.accidental) {
             console.warn('no accidental in grace note');
           }
-          if (pitch.accidental && pitch.accidental !== 'n' || pitch.cautionary)  {
+          if (pitch.accidental && pitch.accidental !== 'n' || pitch.cautionary) {
             const accidental = new VF.Accidental(pitch.accidental);
             if (pitch.cautionary) {
               accidental.setAsCautionary();
@@ -219,7 +218,7 @@ export class VxMeasure {
         g.renderId = gr.attrs.id;
         group.push(gr);
       });
-      const grace = new VF.GraceNoteGroup(group);
+      const grace: any = new VF.GraceNoteGroup(group);
       if (toBeam) {
         grace.beamNotes();
       }
@@ -229,8 +228,8 @@ export class VxMeasure {
 
   // ## Description:
   // convert a smoNote into a vxNote so it can be rasterized
-  _createVexNote(smoNote, tickIndex, voiceIx, x_shift) {
-    let vexNote = {};
+  _createVexNote(smoNote: SmoNote, tickIndex: number, voiceIx: number) {
+    let vexNote: any = {};
     let timestamp = new Date().valueOf();
     // If this is a tuplet, we only get the duration so the appropriate stem
     // can be rendered.  Vex calculates the actual ticks later when the tuplet is made
@@ -239,7 +238,7 @@ export class VxMeasure {
         smoMusic.closestVexDuration(smoNote.tickCount) :
         smoMusic.ticksToDuration[smoNote.tickCount];
 
-    if (typeof(duration) === 'undefined') {
+    if (typeof (duration) === 'undefined') {
       console.warn('bad duration in measure ' + this.smoMeasure.measureNumber.measureIndex);
       duration = '8';
     }
@@ -269,7 +268,7 @@ export class VxMeasure {
     }
 
     this._createAccidentals(smoNote, vexNote, tickIndex, voiceIx);
-    this._createLyric(smoNote, vexNote, x_shift);
+    this._createLyric(smoNote, vexNote);
     this._createOrnaments(smoNote, vexNote);
     this._createJazzOrnaments(smoNote, vexNote);
     this._createGraceNotes(smoNote, vexNote);
@@ -278,12 +277,12 @@ export class VxMeasure {
     return vexNote;
   }
 
-  _renderArticulations(vix) {
+  _renderArticulations(vix: number) {
     const i = 0;
     this.smoMeasure.voices[vix].notes.forEach((smoNote) => {
       smoNote.articulations.forEach((art) => {
         const vx = this.noteToVexMap[smoNote.attrs.id];
-        const position = SmoArticulation.positionToVex[art.position];
+        const position: number = SmoArticulation.positionToVex[art.position];
         const vexArt = SmoArticulation.articulationToVex[art.articulation];
         const vxArt = new VF.Articulation(vexArt).setPosition(position);
         vx.addArticulation(i, vxArt);
@@ -291,7 +290,7 @@ export class VxMeasure {
     });
   }
 
-  _renderNoteGlyph(smoNote, textObj) {
+  _renderNoteGlyph(smoNote: SmoNote, textObj: SmoDynamicText) {
     var x = this.noteToVexMap[smoNote.attrs.id].getAbsoluteX() + textObj.xOffset;
     // the -3 is copied from vexflow textDynamics
     var y = this.stave.getYForLine(textObj.yOffsetLine - 3) + textObj.yOffsetPixels;
@@ -316,7 +315,8 @@ export class VxMeasure {
         const mods = smoNote.textModifiers.filter((mod) =>
           mod.attrs.type === 'SmoDynamicText'
         );
-        mods.forEach((tm) => {
+        mods.forEach((btm) => {
+          const tm = btm as SmoDynamicText;
           this._renderNoteGlyph(smoNote, tm);
         });
       });
@@ -325,20 +325,19 @@ export class VxMeasure {
 
   // ## Description:
   // create an a array of VF.StaveNote objects to render the active voice.
-  createVexNotes(voiceIx) {
+  createVexNotes(voiceIx: number) {
     let i = 0;
-    const shiftIndex = 0;
     this.voiceNotes = [];
-    const voice =  this.smoMeasure.voices[voiceIx];
+    const voice = this.smoMeasure.voices[voiceIx];
     for (i = 0;
       i < voice.notes.length; ++i) {
       const smoNote = voice.notes[i];
-      const vexNote = this._createVexNote(smoNote, i, voiceIx, shiftIndex);
+      const vexNote = this._createVexNote(smoNote, i, voiceIx);
       this.noteToVexMap[smoNote.attrs.id] = vexNote;
       this.vexNotes.push(vexNote);
       this.voiceNotes.push(vexNote);
       if (isNaN(smoNote.ticks.numerator) || isNaN(smoNote.ticks.denominator)
-          || isNaN(smoNote.ticks.remainder)) {
+        || isNaN(smoNote.ticks.remainder)) {
         throw ('vxMeasure: NaN in ticks');
       }
     }
@@ -348,7 +347,7 @@ export class VxMeasure {
   // ### createVexBeamGroups
   // create the VX beam groups. VexFlow has auto-beaming logic, but we use
   // our own because the user can specify stem directions, breaks etc.
-  createVexBeamGroups(vix) {
+  createVexBeamGroups(vix: number) {
     let keyNoteIx = -1;
     let i = 0;
     let j = 0;
@@ -370,7 +369,7 @@ export class VxMeasure {
         }
         const vexNote = this.noteToVexMap[note.attrs.id];
         // some type of redraw condition?
-        if (typeof(vexNote) === 'undefined') {
+        if (typeof (vexNote) === 'undefined') {
           return;
         }
         if (keyNoteIx === j) {
@@ -389,7 +388,7 @@ export class VxMeasure {
   // ### createVexTuplets
   // Create the VF tuplet objects based on the smo tuplet objects
   // that have been defined.
-  createVexTuplets(vix) {
+  createVexTuplets(vix: number) {
     var j = 0;
     var i = 0;
     this.vexTuplets = [];
@@ -442,12 +441,13 @@ export class VxMeasure {
     }
     const tms = this.smoMeasure.getMeasureText();
     // TODO: set font
-    tms.forEach((tm) => {
+    tms.forEach((tmb: SmoMeasureModifierBase) => {
+      const tm = tmb as SmoMeasureText;
       const offset = tm.position === SmoMeasureText.positions.left ? this.smoMeasure.format.padLeft : 0;
       this.stave.setText(
         tm.text, tm.toVexPosition(), {
-          shift_x: tm.adjustX + offset, shift_y: tm.adjustY, justification: tm.toVexJustification()
-        });
+        shift_x: tm.adjustX + offset, shift_y: tm.adjustY, justification: tm.toVexJustification()
+      });
 
       // hack - we can't create staveText directly so this is the only way I could set the font
       const ar = this.stave.getModifiers();
@@ -455,7 +455,8 @@ export class VxMeasure {
       vm.setFont(tm.fontInfo);
     });
 
-    const rm = this.smoMeasure.getRehearsalMark();
+    const rmb = this.smoMeasure.getRehearsalMark();
+    const rm = rmb as SmoRehearsalMark;
     if (rm) {
       this.stave.setSection(rm.symbol, 0);
     }
@@ -463,7 +464,7 @@ export class VxMeasure {
     const tempo = this.smoMeasure.getTempo();
     if (tempo && this.smoMeasure.svg.forceTempo) {
       this.stave.setTempo(tempo.toVexTempo(), -1 * tempo.yOffset);
-      const vexTempo = this.stave.modifiers.find((mod) => mod.attrs.type === 'StaveTempo');
+      const vexTempo = this.stave.modifiers.find((mod: any) => mod.attrs.type === 'StaveTempo');
       vexTempo.font = { family: SourceSerifProFont.fontFamily, size: 14, weight: 'bold' };
     }
   }
@@ -538,7 +539,7 @@ export class VxMeasure {
       this.formatter.joinVoices([voice]);
     });
   }
-  format(voices) {
+  format(voices: any[]) {
     const timestamp = new Date().valueOf();
     this.formatter.format(voices,
       this.smoMeasure.staffWidth -
@@ -578,7 +579,6 @@ export class VxMeasure {
 
       const lbox = this.stave.getBoundingBox();
       this.smoMeasure.setBox({ x: lbox.x, y: lbox.y, width: lbox.w, height: lbox.h }, 'vxMeasure bounding box');
-      this.smoMeasure.changed = false;
       this.rendered = true;
     } catch (exc) {
       console.warn('unable to render measure ' + this.smoMeasure.measureNumber.measureIndex);

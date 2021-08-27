@@ -738,7 +738,7 @@ export class SuiTextTransformDialog extends SuiDialogBase {
     // Create a new text modifier, if this is new text.   Else use selection
     if (!parameters.modifier) {
       const newText = new SmoScoreText({ position: SmoScoreText.positions.custom });
-      newText.y += tracker.scroller.netScroll.y;
+      newText.y += tracker.scroller.scrollState.scroll.y;
       if (tracker.selections.length > 0) {
         const sel = tracker.selections[0].measure;
         if (typeof (sel.logicalBox) !== 'undefined') {

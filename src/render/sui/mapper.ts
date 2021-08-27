@@ -86,7 +86,7 @@ export abstract class SuiMapper {
 
   abstract highlightSelection(): void;
   abstract _growSelectionRight(hold?: boolean): number;  
-  abstract _setModifierAsSuggestion(sel: SmoSelection): void;
+  abstract _setModifierAsSuggestion(sel: ModifierTab): void;
   abstract _setArtifactAsSuggestion(sel: SmoSelection): void;
   updateHighlight() {
     const self = this;
@@ -504,12 +504,13 @@ export abstract class SuiMapper {
   // ### intersectingArtifact
   // given a bounding box, find any rendered elements that intersect with it
   intersectingArtifact(bb: SvgBox) {
-    let sel: SmoSelection[] = [];
+    let sel: ModifierTab[] = [];
     bb = svgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
     const artifacts = svgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, svgHelpers.smoBox(this.scroller.scrollState.scroll));
     // TODO: handle overlapping suggestions
     if (!artifacts.length) {
-      sel = svgHelpers.findIntersectingArtifact(bb, this.modifierTabs as any, svgHelpers.smoBox(this.scroller.scrollState.scroll));
+      const bsel = svgHelpers.findIntersectingArtifact(bb, this.modifierTabs as any, svgHelpers.smoBox(this.scroller.scrollState.scroll));
+      sel = bsel as ModifierTab[];
       if (sel.length) {
         this._setModifierAsSuggestion(sel[0]);
       }

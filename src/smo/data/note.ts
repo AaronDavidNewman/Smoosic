@@ -68,6 +68,7 @@ export class SmoNote implements Transposable {
   keySignature: string = 'c';
   logicalBox: SvgBox | null = null;
   renderedBox: SvgBox | null = null;
+  accidentalsRendered: string[] = [];// set by renderer if accidental is to display
 
   static get parameterArray() {
     return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef',
