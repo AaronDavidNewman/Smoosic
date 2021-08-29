@@ -110,7 +110,7 @@ export class SuiScoreRender extends SuiRenderState {
           const mm = mmSel.measure;
           if (mm.svg.logicalBox.width > 0) {
             const xoff = mm.svg.logicalBox.x + newGroup.musicXOffset;
-            const yoff = mm.svg.logicalBox.y - newGroup.musicYOffset;
+            const yoff = mm.svg.logicalBox.y + newGroup.musicYOffset;
             newGroup.textBlocks[0].text.x = xoff;
             newGroup.textBlocks[0].text.y = yoff;
           }

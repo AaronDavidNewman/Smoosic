@@ -89,6 +89,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     return JSON.parse(JSON.stringify({
       timeSignature: '4/4',
       actualBeats: 4,
+      beatDuration: 4,
       useSymbol: false,
       display: true
     }));

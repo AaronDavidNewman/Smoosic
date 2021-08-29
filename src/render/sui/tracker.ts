@@ -19,7 +19,8 @@ import { SmoMeasure } from '../../smo/data/measure';
 declare var $: any;
 
 export interface KeyEvent {
-  type: string, shiftKey: boolean, ctrlKey: boolean, altKey: boolean, key: string, keyCode: string
+  type: string, shiftKey: boolean, ctrlKey: boolean, altKey: boolean, key: string, keyCode: string,
+  code: string
 }
 /**
  * SuiTracker
@@ -747,19 +748,22 @@ export class SuiTracker extends SuiMapper {
         stroke: '#fc9',
         strokeWidth: 2,
         strokeDasharray: '4,1',
-        fill: 'none'
+        fill: 'none',
+        opacity: 1.0
       },
       selection: {
         stroke: '#99d',
         strokeWidth: 2,
         strokeDasharray: 2,
-        fill: 'none'
+        fill: 'none',
+        opacity: 1.0
       },
       staffModifier: {
         stroke: '#933',
         strokeWidth: 2,
         fill: 'none',
-        strokeDasharray: 0
+        strokeDasharray: 0,
+        opacity: 1.0
       }
     };
   }

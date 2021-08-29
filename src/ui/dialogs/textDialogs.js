@@ -7,6 +7,7 @@ import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SmoDynamicText } from '../../smo/data/noteModifiers';
 import { htmlHelpers } from '../../common/htmlHelpers';
+import { svgHelpers } from '../../common/svgHelpers';
 
 export class SuiLyricDialog extends SuiDialogBase {
   static get ctor() {
@@ -619,8 +620,8 @@ export class SuiTextTransformDialog extends SuiDialogBase {
   _activateAttachToSelector() {
     this.modifier.attachToSelector = true;
     this.modifier.selector = JSON.parse(JSON.stringify(this.view.tracker.selections[0].selector));
-    this.modifier.musicXOffset = this.modifier.logicalBox.x - this.view.tracker.selections[0].measure.logicalBox.x;
-    this.modifier.musicYOffset = this.modifier.logicalBox.y - this.view.tracker.selections[0].measure.logicalBox.y;
+    this.modifier.musicXOffset = this.modifier.logicalBox.x - this.view.tracker.selections[0].measure.svg.logicalBox.x;
+    this.modifier.musicYOffset = this.modifier.logicalBox.y - this.view.tracker.selections[0].measure.svg.logicalBox.y;
   }
 
   changed() {
@@ -740,7 +741,7 @@ export class SuiTextTransformDialog extends SuiDialogBase {
       const newText = new SmoScoreText({ position: SmoScoreText.positions.custom });
       newText.y += tracker.scroller.scrollState.scroll.y;
       if (tracker.selections.length > 0) {
-        const sel = tracker.selections[0].measure;
+        const sel = tracker.selections[0].measure.svg;
         if (typeof (sel.logicalBox) !== 'undefined') {
           if (sel.logicalBox.y >= newText.y) {
             newText.y = sel.logicalBox.y;
@@ -782,6 +783,7 @@ export class SuiTextTransformDialog extends SuiDialogBase {
     this.eventSource.unbindMouseUpHandler(this.mouseUpHandler);
     this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
     this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
+    svgHelpers.eraseOutline(this.view.renderer.context.svg, 'text-drag');
     $('body').removeClass('showAttributeDialog');
     $('body').removeClass('textEditor');
     this.complete();

@@ -492,7 +492,7 @@ export abstract class SuiRenderState {
       const scaledPage = layoutMgr.getScaledPageLayout(i);
       const y = scaledPage.pageHeight * i;
       svgHelpers.line(this.svg, 0, y, scaledPage.pageWidth, y,
-        { stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none' }, 'pageLine');
+        { stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 }, 'pageLine');
     }
   }
 

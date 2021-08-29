@@ -490,6 +490,7 @@ export class SmoLyric extends SmoNoteModifierBase {
   adjX: number = 0;
   adjY: number = 0;
   hyphenX: number = 0;
+  deleted: boolean = false;
 
   serialize(): object {
     var params = {};

@@ -1,16 +1,71 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { svgHelpers } from '../../common/svgHelpers';
+import { svgHelpers, Boxable, OutlineInfo } from '../../common/svgHelpers';
 import { SmoTextGroup, SmoScoreText } from '../../smo/data/scoreModifiers';
 import { SuiTextEditor } from './textEdit';
+import { SuiScroller } from './scroller';
+import { SmoAttrs, SvgBox } from '../../smo/data/common';
 
-const VF = Vex.Flow;
 
+declare var $: any;
+const VF = eval('Vex.Flow');
+
+// From textfont.ts in VF
+export interface VexTextFontMetrics {
+  x_min: number;
+  x_max: number;
+  y_min: number;
+  y_max: number;
+  ha: number;
+  leftSideBearing: number;
+  advanceWidth: number;
+}
+
+export interface VexTextFont {
+  famliy: string,
+  weight: string,
+  style: string,
+  size: number,
+  pointsToPixels: number,
+  maxHeight: number,
+  resolution: number,
+  setFontSize(fontSize: number): void,
+  getMetricForCharacter(ch: string): VexTextFontMetrics
+}
+export interface SuiInlineTextParams {
+  fontFamily: string,
+  fontWeight: string,
+  fontSize: number,
+  fontStyle: string,
+  startX: number,
+  startY: number,
+  scroller: SuiScroller,
+  context: any
+}
+export interface SuiInlineBlock {
+  symbolType: number,
+  textType: number,
+  highlighted: boolean,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  scale: number,
+  metrics: any,
+  glyph: any,
+  glyphCode: string,
+  text: string
+}
+export interface SuiInlineArtifact {
+  block: SuiInlineBlock,
+  box: SvgBox,
+  index: number
+}
 // ## textRender.js
 // Classes responsible for formatting and rendering text in SVG space.
 // ## SuiInlineText
 // Inline text is a block of SVG text with the same font.  Each block can
-// contain eithr text or an svg (vex) glyph.  Each block in the text has its own
+// contain either text or an svg (vex) glyph.  Each block in the text has its own
 // metrics so we can support inline svg text editors (cursor).
 export class SuiInlineText {
   static get textTypes() {
@@ -27,7 +82,7 @@ export class SuiInlineText {
   // ### textTypeTransitions
   // Given a current text type and a type change request, what is the result
   // text type?  This truth table tells you.
-  static get textTypeTransitions() {
+  static get textTypeTransitions(): number[][] {
     return [
       [1, 1, 0],
       [1, 0, 1],
@@ -41,7 +96,7 @@ export class SuiInlineText {
     ];
   }
 
-  static getTextTypeResult(oldType, newType) {
+  static getTextTypeResult(oldType: number, newType: number): number {
     let rv = SuiInlineText.textTypes.normal;
     let i = 0;
     for (i = 0; i < SuiInlineText.textTypeTransitions.length; ++i) {
@@ -54,7 +109,7 @@ export class SuiInlineText {
     return rv;
   }
 
-  static getTextTypeTransition(oldType, result) {
+  static getTextTypeTransition(oldType: number, result: number): number {
     let rv = SuiInlineText.textTypes.normal;
     let i = 0;
     for (i = 0; i < SuiInlineText.textTypeTransitions.length; ++i) {
@@ -66,20 +121,20 @@ export class SuiInlineText {
     }
     return rv;
   }
-  static get superscriptOffset() {
+  static get superscriptOffset(): number {
     return VF.ChordSymbol.chordSymbolMetrics.global.superscriptOffset / VF.ChordSymbol.engravingFontResolution;
   }
 
-  static get subscriptOffset() {
+  static get subscriptOffset(): number {
     return VF.ChordSymbol.chordSymbolMetrics.global.subscriptOffset / VF.ChordSymbol.engravingFontResolution;
   }
 
-  get spacing() {
-    return this.textFont.spacing / this.textFont.resolution;
+  get spacing(): number {
+    return VF.ChordSymbol.spacingBetweenBlocks;
   }
 
-  static get defaults() {
-    return {
+  static get defaults(): SuiInlineTextParams {
+    return JSON.parse(JSON.stringify({
       blocks: [],
       fontFamily: 'Merriweather',
       fontSize: 14,
@@ -92,11 +147,29 @@ export class SuiInlineText {
       artifacts: [],
       classes: '',
       updatedMetrics: false
-    };
+    }));
   }
+  fontFamily: string;
+  fontWeight: string;
+  fontStyle: string;
+  fontSize: number;
+  width: number = -1;
+  height: number = -1;
 
-  updateFontInfo() {
-    this.textFont = VF.TextFont.getTextFontFromVexFontData({
+  attrs: SmoAttrs;
+  textFont: VexTextFont;
+  startX: number;
+  startY: number;
+  blocks: SuiInlineBlock[] = [];
+  updatedMetrics: boolean = false;
+  context: any;
+  scroller: SuiScroller;
+  artifacts: SuiInlineArtifact[] = [];
+  logicalBox: SvgBox = SvgBox.default;
+  renderedBox: SvgBox = SvgBox.default;
+
+  updateFontInfo(): VexTextFont {
+    return VF.TextFont.getTextFontFromVexFontData({
       family: this.fontFamily,
       weight: this.fontWeight,
       size: this.fontSize,
@@ -104,70 +177,80 @@ export class SuiInlineText {
     });
   }
   // ### constructor just creates an empty svg
-  constructor(params) {
-    Vex.Merge(this, SuiInlineText.defaults);
-    Vex.Merge(this, params);
+  constructor(params: SuiInlineTextParams) {
+    this.fontFamily = params.fontFamily;
+    this.fontWeight = params.fontWeight;
+    this.fontStyle = params.fontStyle;
+    this.fontSize = params.fontSize;
+    this.textFont = this.updateFontInfo();
+    this.scroller = params.scroller;
+    this.startX = params.startX;
+    this.startY = params.startY;
     this.attrs = {
       id: VF.Element.newID(),
       type: 'SuiInlineText'
     };
-
-    if (!this.context) {
-      throw 'context for SVG must be set';
-    }
-    if (!this.scroller) {
-      throw 'scroller for inline text must be set';
-    }
-    this.updateFontInfo();
+    this.context = params.context;
   }
 
-  static fromScoreText(scoreText, context, scroller) {
-    var pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
-      : SmoScoreText.fontPointSize(scoreText.fontInfo.size);
-    const params = { fontFamily: scoreText.fontInfo.family,
+  static fromScoreText(scoreText: SmoScoreText, context: any, scroller: SuiScroller): SuiInlineText {
+    const params: SuiInlineTextParams = {
+      fontFamily: scoreText.fontInfo.family,
       fontWeight: scoreText.fontInfo.weight,
-      fontStyle: scoreText.fontInfo.style,
+      fontStyle: scoreText.fontInfo.style ?? 'normal',
       startX: scoreText.x, startY: scoreText.y,
       scroller,
-      fontSize: pointSize, context };
+      fontSize: scoreText.fontInfo.size, context
+    };
     const rv = new SuiInlineText(params);
     rv.attrs.id = scoreText.attrs.id;
-    rv.addTextBlockAt(0, { text: scoreText.text });
+    const blockParams = SuiInlineText.blockDefaults;
+    blockParams.text = scoreText.text;
+    rv.addTextBlockAt(0, blockParams);
     return rv;
   }
 
-  static get blockDefaults() {
-    return {
+  static get blockDefaults(): SuiInlineBlock {
+    return JSON.parse(JSON.stringify({
       symbolType: SuiInlineText.symbolTypes.TEXT,
       textType: SuiInlineText.textTypes.normal,
-      highlighted: false
-    };
+      highlighted: false,
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+      scale: 1.0,
+      metrics: {},
+      glyph: {},
+      text: '',
+      glyphCode: ''
+    }));
   }
 
   // ### pointsToPixels
   // The font size is specified in points, convert to 'pixels' in the svg space
-  get pointsToPixels() {
+  get pointsToPixels(): number {
     return this.textFont.pointsToPixels;
   }
 
-  offsetStartX(offset) {
+  offsetStartX(offset: number) {
     this.startX += offset;
     this.blocks.forEach((block) => {
       block.x += offset;
     });
   }
 
-  offsetStartY(offset) {
+  offsetStartY(offset: number) {
     this.startY += offset;
     this.blocks.forEach((block) => {
       block.y += offset;
     });
   }
-  maxFontHeight(scale) {
+  maxFontHeight(scale: number): number {
     return this.textFont.maxHeight * scale;
   }
 
-  _glyphOffset(block) {
+  _glyphOffset(block: SuiInlineBlock): number {
     return block.metrics.yOffset / VF.ChordSymbol.engravingFontResolution * this.pointsToPixels * block.scale;
   }
 
@@ -179,7 +262,7 @@ export class SuiInlineText {
     var maxH = 0;
     let superXAlign = 0;
     let superXWidth = 0;
-    let prevBlock = null;
+    let prevBlock: SuiInlineBlock | null = null;
     let i = 0;
     this.textFont.setFontSize(this.fontSize);
     this.blocks.forEach((block) => {
@@ -193,7 +276,7 @@ export class SuiInlineText {
       // coeff for sub/super script
       const subAdj = (sp || sub) ? VF.ChordSymbol.superSubRatio : 1.0;
       // offset for super/sub
-      let subOffset =  0;
+      let subOffset = 0;
       if (sp) {
         subOffset = SuiInlineText.superscriptOffset * this.pointsToPixels;
       } else if (sub) {
@@ -208,9 +291,9 @@ export class SuiInlineText {
 
           const glyph = this.textFont.getMetricForCharacter(ch);
           block.width += ((glyph.advanceWidth) / this.textFont.resolution) * this.pointsToPixels * block.scale * subAdj;
-          const blockHeight = (glyph.ha / this.textFont.resolution) *  this.pointsToPixels * block.scale;
+          const blockHeight = (glyph.ha / this.textFont.resolution) * this.pointsToPixels * block.scale;
           block.height = block.height < blockHeight ? blockHeight : block.height;
-          block.y = this.startY +  (subOffset * block.scale);
+          block.y = this.startY + (subOffset * block.scale);
         }
       } else if (block.symbolType === SuiInlineText.symbolTypes.GLYPH) {
         block.width = (block.metrics.advanceWidth / VF.ChordSymbol.engravingFontResolution) * this.pointsToPixels * block.scale;
@@ -224,7 +307,7 @@ export class SuiInlineText {
           superXAlign = block.x;
         }
       } else if (sub) {
-        if (superXAlign > 0) {
+        if (superXAlign > 0 && prevBlock !== null) {
           block.x = superXAlign;
           superXWidth = prevBlock.x + prevBlock.width;
           curX = superXAlign;
@@ -237,7 +320,7 @@ export class SuiInlineText {
       } else if (superXWidth > 0) {
         block.x = superXWidth + VF.ChordSymbol.spacingBetweenBlocks;
         superXWidth = 0;
-      }  else {
+      } else {
         superXAlign = 0;
       }
       curX += block.width;
@@ -252,12 +335,12 @@ export class SuiInlineText {
   // ### getLogicalBox
   // return the calculated svg metrics.  In SMO parlance the
   // logical box is in SVG space, 'renderedBox' is in client space.
-  getLogicalBox() {
-    let rv = {};
+  getLogicalBox(): SvgBox {
+    let rv: SvgBox = SvgBox.default;
     if (!this.updatedMetrics) {
       this._calculateBlockIndex();
     }
-    const adjBox = (box) => {
+    const adjBox = (box: SvgBox) => {
       const nbox = svgHelpers.smoBox(box);
       nbox.y = nbox.y - nbox.height;
       return nbox;
@@ -271,17 +354,9 @@ export class SuiInlineText {
     });
     return rv;
   }
-
-  _getTextBlock(params) {
-    const block = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
-    Vex.Merge(block, params);
-    block.text = params.text;
-    block.scale = params.scale ? params.scale : 1;
-    return block;
-  }
   // ### renderCursorAt
   // When we are using textLayout to render editor, create a cursor that adjusts it's size
-  renderCursorAt(position, textType) {
+  renderCursorAt(position: number, textType: number) {
     let adjH = 0;
     let adjY = 0;
     if (!this.updatedMetrics) {
@@ -300,7 +375,7 @@ export class SuiInlineText {
     // For glyph, add y adj back to the cursor since it's not a glyph
     adjY = block.symbolType === SuiInlineText.symbolTypes.GLYPH ? block.y - this._glyphOffset(block) :
       block.y;
-    if (typeof(textType) === 'number' && textType !== SuiInlineText.textTypes.normal) {
+    if (typeof (textType) === 'number' && textType !== SuiInlineText.textTypes.normal) {
       const ratio = textType !== SuiInlineText.textTypes.normal ? VF.ChordSymbol.superSubRatio : 1.0;
       adjH = adjH * ratio;
       if (textType !== block.textType) {
@@ -320,20 +395,20 @@ export class SuiInlineText {
   unrender() {
     $('svg #' + this.attrs.id).remove();
   }
-  getIntersectingBlocks(box, scroll) {
+  getIntersectingBlocks(box: SvgBox, scroll: SvgBox): SuiInlineArtifact[] {
     if (!this.artifacts) {
       return [];
     }
-    return svgHelpers.findIntersectingArtifact(box, this.artifacts, scroll);
+    return svgHelpers.findIntersectingArtifact(box, this.artifacts, scroll) as SuiInlineArtifact[];
   }
-  _addBlockAt(position, block) {
+  _addBlockAt(position: number, block: SuiInlineBlock) {
     if (position >= this.blocks.length) {
       this.blocks.push(block);
     } else {
       this.blocks.splice(position, 0, block);
     }
   }
-  removeBlockAt(position) {
+  removeBlockAt(position: number) {
     this.blocks.splice(position, 1);
     this.updatedMetrics = false;
   }
@@ -342,18 +417,21 @@ export class SuiInlineText {
   // Add a text block to the line of text.
   // params must contain at least:
   // {text:'xxx'}
-  addTextBlockAt(position, params) {
-    const block = this._getTextBlock(params);
+  addTextBlockAt(position: number, params: SuiInlineBlock) {
+    const block: SuiInlineBlock = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
+    Vex.Merge(block, params);
+    block.text = params.text;
+    block.scale = params.scale ? params.scale : 1;
     this._addBlockAt(position, block);
     this.updatedMetrics = false;
   }
-  _getGlyphBlock(params) {
+  _getGlyphBlock(params: SuiInlineBlock): SuiInlineBlock {
     const block = JSON.parse(JSON.stringify(SuiInlineText.blockDefaults));
     block.symbolType = SuiInlineText.symbolTypes.GLYPH;
     block.glyphCode = params.glyphCode;
     block.glyph = new VF.Glyph(block.glyphCode, this.fontSize);
     block.metrics = VF.ChordSymbol.getMetricForGlyph(block.glyphCode);
-    block.scale  = (params.textType && params.textType !== SuiInlineText.textTypes.normal) ?
+    block.scale = (params.textType && params.textType !== SuiInlineText.textTypes.normal) ?
       2 * VF.ChordSymbol.superSubRatio * block.metrics.scale : 2 * block.metrics.scale;
 
     block.textType = params.textType ? params.textType : SuiInlineText.textTypes.normal;
@@ -364,25 +442,25 @@ export class SuiInlineText {
   // ### addGlyphBlockAt
   // Add a glyph block to the line of text.  Params must include:
   // {glyphCode:'csymDiminished'}
-  addGlyphBlockAt(position, params) {
+  addGlyphBlockAt(position: number, params: SuiInlineBlock) {
     const block = this._getGlyphBlock(params);
     this._addBlockAt(position, block);
     this.updatedMetrics = false;
   }
-  isSuperscript(block) {
+  isSuperscript(block: SuiInlineBlock): boolean {
     return block.textType === SuiInlineText.textTypes.superScript;
   }
-  isSubcript(block) {
+  isSubcript(block: SuiInlineBlock): boolean {
     return block.textType === SuiInlineText.textTypes.subScript;
   }
-  getHighlight(block) {
+  getHighlight(block: SuiInlineBlock): boolean {
     return block.highlighted;
   }
-  setHighlight(block, value) {
+  setHighlight(block: SuiInlineBlock, value: boolean) {
     block.highlighted = value;
   }
 
-  rescale(scale) {
+  rescale(scale: number) {
     scale = (scale * this.fontSize < 6) ? 6 / this.fontSize : scale;
     scale = (scale * this.fontSize > 72) ? 72 / this.fontSize : scale;
     this.blocks.forEach((block) => {
@@ -413,7 +491,7 @@ export class SuiInlineText {
       bg.classList.add('textblock-' + this.attrs.id + ix);
       this._drawBlock(block);
       this.context.closeGroup();
-      const artifact = { block };
+      const artifact: SuiInlineArtifact = { block, box: SvgBox.default, index: 0 };
       artifact.box = svgHelpers.smoBox(bg.getBoundingClientRect());
       artifact.index = ix;
       this.artifacts.push(artifact);
@@ -421,10 +499,10 @@ export class SuiInlineText {
     });
     this.context.closeGroup();
     this.logicalBox = svgHelpers.smoBox(group.getBBox());
-    this.renderedBox = svgHelpers.logicalToClient(this.context.svg, this.logicalBox, this.scroller.scrollState.scroll);
+    this.renderedBox = svgHelpers.smoBox(svgHelpers.logicalToClient(this.context.svg, this.logicalBox, this.scroller.scrollState.scroll));
   }
 
-  _drawBlock(block) {
+  _drawBlock(block: SuiInlineBlock) {
     const sp = this.isSuperscript(block);
     const sub = this.isSubcript(block);
     const highlight = this.getHighlight(block);
@@ -457,7 +535,7 @@ export class SuiInlineText {
     }
   }
 
-  getText() {
+  getText(): string {
     let rv = '';
     this.blocks.forEach((block) => {
       rv += block.text;
@@ -466,31 +544,55 @@ export class SuiInlineText {
   }
 }
 
+export interface SuiTextBlockBlock {
+  text: SuiInlineText;
+  position: number;
+  activeText: boolean;
+}
+export interface SuiTextBlockParams {
+  blocks: SuiTextBlockBlock[];
+  scroller: SuiScroller;
+  spacing: number;
+  context: any;
+  skipRender: boolean;
+  justification: number;
+}
+export interface SuiTextBlockJusityCalc {
+  blocks: SuiInlineText[], minx: number, maxx: number, width: number
+}
 // ## SuiTextBlock
 // A text block is a set of inline blocks that can be aligned/arranged in different ways.
 export class SuiTextBlock {
   static get relativePosition() {
-    return { ABOVE: SmoTextGroup.relativePositions.ABOVE,
+    return {
+      ABOVE: SmoTextGroup.relativePositions.ABOVE,
       BELOW: SmoTextGroup.relativePositions.BELOW,
       LEFT: SmoTextGroup.relativePositions.LEFT,
       RIGHT: SmoTextGroup.relativePositions.RIGHT
     };
   }
-  constructor(params) {
+  inlineBlocks: SuiTextBlockBlock[] = [];
+  scroller: SuiScroller;
+  spacing: number = 0;
+  context: any;
+  skipRender: boolean;
+  currentBlockIndex: number = 0;
+  justification: number;
+  currentBlock: SuiTextBlockBlock | null = null;
+  renderedBox: SvgBox | null = null;
+  logicalBox: SvgBox = SvgBox.default;
+  constructor(params: SuiTextBlockParams) {
     this.inlineBlocks = [];
-    if (!typeof(params.scroller) === 'object') {
-      throw 'bad text block, no scroller';
-    }
     this.scroller = params.scroller;
     this.spacing = 0;
-    if (typeof(params.spacing) !== 'undefined') {
-      this.spacing = params.spacing;
-    }
     this.context = params.context;
     this.skipRender = false; // used when editing the text
-    if (!params.blocks) {
-      const inst = new SuiInlineText(params);
-      params.blocks = [{ text: inst, position: SmoTextGroup.relativePositions.RIGHT }];
+    if (params.blocks.length < 1) {
+      const inlineParams = SuiInlineText.defaults;
+      inlineParams.scroller = this.scroller;
+      inlineParams.context = this.context;
+      const inst = new SuiInlineText(inlineParams);
+      params.blocks = [{ text: inst, position: SmoTextGroup.relativePositions.RIGHT, activeText: true }];
     }
     params.blocks.forEach((block) => {
       if (!this.currentBlock) {
@@ -502,16 +604,9 @@ export class SuiTextBlock {
     this.justification = params.justification ? params.justification :
       SmoTextGroup.justifications.LEFT;
   }
-  addTextAt(position, params) {
-    this.currentBlock.text.addTextBlockAt(position, params);
-  }
-  addGlyphAt(position, params) {
-    this.currentBlock.text.addGlyphBlockAt(position, params);
-  }
   render() {
     this.unrender();
     this.renderedBox = null;
-    this.logicalBox = null;
     this.inlineBlocks.forEach((block) => {
       block.text.render();
       if (block.activeText) {
@@ -526,41 +621,41 @@ export class SuiTextBlock {
       }
     });
   }
-  _outlineBox(context, box) {
+  _outlineBox(context: any, box: SvgBox) {
     const outlineStroke = SuiTextEditor.strokes['text-highlight'];
-    const obj = {
+    const obj: OutlineInfo = {
       context, box, classes: 'text-drag',
-      outlineStroke, scroller: { netScroll: { x: 0, y: 0 } }
+      stroke: outlineStroke, scroll: this.scroller.scrollState.scroll, clientCoordinates: false
     };
     svgHelpers.outlineLogicalRect(obj);
   }
 
-  offsetStartX(offset) {
+  offsetStartX(offset: number) {
     this.inlineBlocks.forEach((block) => {
       block.text.offsetStartX(offset);
     });
   }
 
-  offsetStartY(offset) {
+  offsetStartY(offset: number) {
     this.inlineBlocks.forEach((block) => {
       block.text.offsetStartY(offset);
     });
   }
 
-  rescale(scale) {
+  rescale(scale: number) {
     this.inlineBlocks.forEach((block) => {
       block.text.rescale(scale);
     });
   }
 
-  get x() {
+  get x(): number {
     return this.getLogicalBox().x;
   }
-  get y() {
+  get y(): number {
     return this.getLogicalBox().y;
   }
 
-  maxFontHeight(scale) {
+  maxFontHeight(scale: number): number {
     let rv = 0;
     this.inlineBlocks.forEach((block) => {
       const blockHeight = block.text.maxFontHeight(scale);
@@ -569,27 +664,28 @@ export class SuiTextBlock {
     return rv;
   }
 
-  static inlineParamsFromScoreText(scoreText, context, scroller) {
-    const pointSize = scoreText.fontInfo.pointSize ? scoreText.fontInfo.pointSize
-      : SmoScoreText.fontPointSize(scoreText.fontInfo.size);
-    const rv = { fontFamily: scoreText.fontInfo.family,
-      startX: scoreText.x, startY: scoreText.y,
-      fontSize: pointSize, context, scroller };
+  static inlineParamsFromScoreText(scoreText: SmoScoreText, context: any, scroller: SuiScroller): SuiInlineTextParams {
+    const rv: SuiInlineTextParams = {
+      fontFamily: scoreText.fontInfo.family,
+      startX: scoreText.x, startY: scoreText.y, fontWeight: scoreText.fontInfo.weight,
+      fontStyle: scoreText.fontInfo.style ?? 'normal',
+      fontSize: scoreText.fontInfo.size, context, scroller
+    };
     return rv;
   }
-  static blockFromScoreText(scoreText, context, position, scroller) {
+  static blockFromScoreText(scoreText: SmoScoreText, context: any, position: number, scroller: SuiScroller): SuiTextBlockBlock {
     var inlineText = SuiInlineText.fromScoreText(scoreText, context, scroller);
-    return  { text: inlineText, position };
+    return { text: inlineText, position, activeText: true };
   }
 
-  getLogicalBox() {
+  getLogicalBox(): SvgBox {
     return this._calculateBoundingClientRect();
   }
-  getRenderedBox() {
-    return svgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect(), this.scroller.scrollState.scroll);
+  getRenderedBox(): SvgBox {
+    return svgHelpers.smoBox(svgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect(), this.scroller.scrollState.scroll));
   }
-  _calculateBoundingClientRect() {
-    var rv = {};
+  _calculateBoundingClientRect(): SvgBox {
+    let rv: SvgBox = SvgBox.default;
     this.inlineBlocks.forEach((block) => {
       if (!rv.x) {
         rv = block.text.getLogicalBox();
@@ -600,8 +696,8 @@ export class SuiTextBlock {
     rv.y = rv.y - rv.height;
     return rv;
   }
-  static fromTextGroup(tg, context, scroller) {
-    const blocks = [];
+  static fromTextGroup(tg: SmoTextGroup, context: any, scroller: SuiScroller): SuiTextBlock {
+    const blocks: SuiTextBlockBlock[] = [];
 
     // Create an inline block for each ScoreText
     tg.textBlocks.forEach((stBlock) => {
@@ -610,7 +706,10 @@ export class SuiTextBlock {
       newText.activeText = stBlock.activeText;
       blocks.push(newText);
     });
-    const rv = new SuiTextBlock({ blocks, justification: tg.justification, spacing: tg.spacing, context, scroller });
+    const rv = new SuiTextBlock({
+      blocks, justification: tg.justification, spacing: tg.spacing, context, scroller,
+      skipRender: false
+    });
     rv._justify();
     return rv;
   }
@@ -639,7 +738,7 @@ export class SuiTextBlock {
     // We justify relative to first block x/y.
     const initialX = this.inlineBlocks[0].text.startX;
     const initialY = this.inlineBlocks[0].text.startY;
-    const vert = {};
+    const vert: Record<string, SuiTextBlockJusityCalc> = {};
     this.inlineBlocks.forEach((inlineBlock) => {
       const block = inlineBlock.text;
       const blockBox = block.getLogicalBox();
@@ -680,12 +779,16 @@ export class SuiTextBlock {
         }
       }
       if (!vert[lvl]) {
-        vert[lvl] = {};
+        vert[lvl] = {
+          blocks: [block], minx: block.startX, maxx: block.startX + blockBox.width,
+          width: blockBox.width
+        };
+        maxwidth = vert[lvl].width;
         vert[lvl].blocks = [block];
         vert[lvl].minx = block.startX;
         vert[lvl].maxx = block.startX + blockBox.width;
         maxwidth = vert[lvl].width = blockBox.width;
-      }  else {
+      } else {
         vert[lvl].blocks.push(block);
         vert[lvl].minx = vert[lvl].minx < block.startX ? vert[lvl].minx : block.startX;
         vert[lvl].maxx = vert[lvl].maxx > (block.startX + blockBox.width) ?
@@ -710,33 +813,11 @@ export class SuiTextBlock {
         left = maxx - vobj.maxx;
       } else {
         left = (maxwidth / 2) - (vobj.width / 2);
-        left +=  minx - vobj.minx;
+        left += minx - vobj.minx;
       }
       vobj.blocks.forEach((block) => {
         block.offsetStartX(left);
       });
     });
-  }
-  addBlockPosition(scoreText, position) {
-    const blockBox = this.currentBlock.text.getRenderedBox();
-    position = typeof(position) !== 'undefined' ? position : SuiTextBlock.relativePosition.BELOW;
-    const ycoff = position === SuiTextBlock.relativePosition.ABOVE ? -1 : 1;
-    const xcoff = position === SuiTextBlock.relativePosition.LEFT ? -1 : 1;
-    const yoffset = position === SuiTextBlock.relativePosition.ABOVE
-      || position === SuiTextBlock.relativePosition.BELOW ?
-      blockBox.height + this.currentBlock.text.spacing : 0;
-    const xoffset = position === SuiTextBlock.relativePosition.LEFT
-     || position === SuiTextBlock.relativePosition.RIGHT ?
-      blockBox.width + this.currentBlock.text.spacing : 0;
-    const params = SuiTextBlock.inlineParamsFromScoreText(scoreText, this.context);
-    params.startX = this.currentBlock.text.startX + (xoffset * xcoff);
-    params.startY = this.currentBlock.text.startY + (yoffset * ycoff);
-    const textBlock = new SuiInlineText(params);
-    textBlock.attrs.id = scoreText.attrs.id;
-    this.currentBlock = { text: textBlock, position };
-    this.currentBlock.text.addTextBlockAt(0, { text: scoreText.text });
-    this.inlineBlocks.push(this.currentBlock);
-    this.currentBlockIndex += 1;
-    this._justify();
   }
 }

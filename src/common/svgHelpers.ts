@@ -10,7 +10,8 @@ export interface StrokeInfo {
   stroke: string,
   strokeWidth: string | number,
   strokeDasharray: string | number,
-  fill: string
+  fill: string,
+  opacity: number
 }
 
 export interface OutlineInfo {
@@ -264,7 +265,7 @@ export class svgHelpers {
   }
 
   static arrowDown(svg: Document, box: SvgBox) {
-    const arrowStroke: StrokeInfo = { stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none' };
+    const arrowStroke: StrokeInfo = { stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 };
     svgHelpers.line(svg, box.x + box.width / 2, box.y, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
     var arrowY = box.y + box.height / 4;
     svgHelpers.line(svg, box.x, arrowY, box.x + box.width / 2, box.y + box.height, arrowStroke, '');

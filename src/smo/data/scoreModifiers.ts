@@ -714,6 +714,9 @@ export class SmoTextGroup extends SmoScoreModifierBase {
 
     // Create new scoreText object for the text blocks
     jObj.textBlocks.forEach((st: any) => {
+      if (typeof(st.text.fontInfo.size === 'string')) {
+        st.text.fontInfo.size = SmoScoreText.fontPointSize(st.text.fontInfo.size);
+      }
       const tx = new SmoScoreText(st.text);
       blocks.push({ text: tx, position: st.position });
     });
@@ -884,7 +887,7 @@ export class SmoTextGroup extends SmoScoreModifierBase {
   }
   offsetY(offset: number) {
     if (this.attachToSelector) {
-      this.musicYOffset -= offset;
+      this.musicYOffset += offset;
     }
     this.textBlocks.forEach((block) => {
       block.text.offsetY(offset);
