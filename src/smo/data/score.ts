@@ -8,6 +8,8 @@ import { SmoMeasure, SmoMeasureParams } from './measure';
 import { SmoMeasureFormat, SmoMeasureModifierBase } from './measureModifiers';
 import { SmoSelector, SmoSelection } from '../xform/selections';
 import { Clef, FontInfo } from './common';
+import { SmoNoteModifierBase } from './noteModifiers';
+import { StaffModifierBase } from './staffModifiers';
 
 export interface FontPurpose {
   name: string,
@@ -45,6 +47,8 @@ export interface SmoScoreParams {
   layoutManager?: SmoLayoutManager,
   formattingManager?: SmoFormattingManager
 }
+
+export type SmoModifier = SmoNoteModifierBase | SmoMeasureModifierBase | StaffModifierBase | SmoScoreModifierBase;
 
 // ## SmoScore
 // ## Description:

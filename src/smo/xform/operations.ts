@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoScore } from '../data/score';
 import { SmoMeasureParams, SmoMeasure, SmoVoice } from '../data/measure';
-import { SmoSelection, SmoSelector } from './selections';
+import { SmoSelection, SmoSelector, ModifierTab } from './selections';
 import { SmoSystemGroup, SmoTextGroup } from '../data/scoreModifiers';
 import { smoMusic } from '../../common/musicHelpers';
 import { SmoNote } from '../data/note';
@@ -17,7 +17,6 @@ import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoNoteModifierB
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
 import { Pitch, PitchLetter, TimeSignature } from '../data/common';
-
 const VF = eval('Vex.Flow');
 
 /**
@@ -350,7 +349,7 @@ export class SmoOperation {
     });
   }
 
-  static slashGraceNotes(selections: SmoSelection[]) {
+  static slashGraceNotes(selections: ModifierTab[] | ModifierTab) {
     if (!Array.isArray(selections)) {
       selections = [selections];
     }

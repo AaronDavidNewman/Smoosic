@@ -8,17 +8,11 @@ import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SmoMeasure, SmoVoice } from '../../smo/data/measure';
 import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SmoNoteModifierBase, SmoLyric } from '../../smo/data/noteModifiers';
-import { SmoMeasureModifierBase } from '../../smo/data/measureModifiers';
-// import { SmoScoreModifierBase } from '../../smo/data/scoreModifiers';
-import { StaffModifierBase } from '../../smo/data/staffModifiers';
 import { SvgBox } from '../../smo/data/common';
 import { SmoNote } from '../../smo/data/note';
-import { SmoScore } from '../../smo/data/score';
-import { SmoScoreModifierBase } from '../../smo/data/scoreModifiers';
-
+import { SmoScore, SmoModifier } from '../../smo/data/score';
+import { ModifierTab } from '../../smo/xform/selections';
 declare var $: any;
-
-export type SmoModifier = SmoNoteModifierBase | SmoMeasureModifierBase | StaffModifierBase | SmoScoreModifierBase;
 
 export interface SuiRendererBase {
   svg: SVGSVGElement,
@@ -31,12 +25,7 @@ export interface SuiRendererBase {
   renderElement: Element,
   context: any
 }
-export interface ModifierTab {
-  modifier: SmoModifier,
-  selection: SmoSelection | null,
-  box: SvgBox,
-  index: number
-}
+
 export interface LocalModifier {
   modifier: SmoModifier,
   selection: SmoSelection,
@@ -199,7 +188,7 @@ export abstract class SuiMapper {
   updateMap() {
     this._updateMap();
   }
-  _updateNoteModifier(selection: SmoSelection, modMap: Record<string, boolean>, modifier: SmoModifier, ix: number) {
+  _updateNoteModifier(selection: SmoSelection, modMap: Record<string, boolean>, modifier: SmoNoteModifierBase, ix: number) {
     if (!modMap[modifier.attrs.id]) {
       this.modifierTabs.push({
         modifier,

@@ -81,7 +81,8 @@ export interface SmoObjectParams {
 export interface SmoModifierBase {
     ctor: string,
     renderedBox: SvgBox | null,
-    logicalBox: SvgBox | null
+    logicalBox: SvgBox | null,
+    attrs: SmoAttrs
 }
 
 export type Clef = 'treble' | 'bass' | 'tenor' | 'alto' | 'soprano' | 'percussion'

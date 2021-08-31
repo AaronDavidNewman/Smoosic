@@ -1,8 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiMapper, LocalModifier, SuiRendererBase, ModifierTab } from './mapper';
+import { SuiMapper, LocalModifier, SuiRendererBase } from './mapper';
 import { svgHelpers, StrokeInfo, OutlineInfo } from '../../common/svgHelpers';
-import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
+import { SmoSelection, SmoSelector, ModifierTab } from '../../smo/xform/selections';
 import { SuiRenderState } from './renderState';
 import { htmlHelpers } from '../../common/htmlHelpers';
 import { smoSerialize } from '../../common/serializationHelpers';

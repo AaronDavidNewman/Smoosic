@@ -1,13 +1,20 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoScore } from '../data/score';
+import { SmoScore, SmoModifier } from '../data/score';
 import { SmoMeasure } from '../data/measure';
 import { SmoNote } from '../data/note';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { SvgBox, SvgPoint } from '../data/common';
+
 // import { selectionHtmlar } from '../../ui/i18n/language_ar';
 // const VF = eval('Vex.Flow');
 
+export interface ModifierTab {
+  modifier: SmoModifier,
+  selection: SmoSelection | null,
+  box: SvgBox,
+  index: number
+}
 /////////////////
 // # selections.js
 // Editing operations are performed on selections.  A selection can be different things, from a single pitch
