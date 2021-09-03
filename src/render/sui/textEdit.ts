@@ -1125,7 +1125,7 @@ export class SuiLyricSession {
     const lyricRendered = this.lyric._text.length > 0;
     if (this.lyric.logicalBox !== null) {
       startX = this.lyric.logicalBox.x;
-      startY = this.lyric.logicalBox.y + this.note.logicalBox.y + this.note.logicalBox.height;
+      startY = this.lyric.logicalBox.y + this.lyric.logicalBox.height;
     }
     this.editor = new SuiLyricEditor({
       context: this.view.renderer.context,
