@@ -271,7 +271,7 @@ export class svgHelpers {
     svgHelpers.line(svg, box.x, arrowY, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
     svgHelpers.line(svg, box.x + box.width, arrowY, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
   }
-  static debugBox(svg: Document, box: SvgBox | null, classes: string, voffset: number) {
+  static debugBox(svg: SVGSVGElement, box: SvgBox | null, classes: string, voffset: number) {
     voffset = voffset ?? 0;
     classes = classes ?? '';
     if (!box)

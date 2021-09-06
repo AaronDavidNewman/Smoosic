@@ -1,11 +1,20 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { PromiseHelpers } from '../../common/promiseHelpers';
+import { SmoActionRecord } from '../../smo/xform/actions';
+import { SmoConfiguration } from '../../smo/data/common';
+declare var SmoConfig: SmoConfiguration;
+
 // ## SuiActionPlayback
 // play back the action records.
 export class SuiActionPlayback {
+  actions: SmoActionRecord;
+  view: any;
+  running: boolean;
+  currentAction: any;
+  timestamp: number = 0;
   // In the application, the object plays the actions back.
-  constructor(actionRecord, view) {
+  constructor(actionRecord: SmoActionRecord, view: any) {
     this.view = view;
     this.actions = actionRecord;
     this.running = false;
@@ -13,16 +22,16 @@ export class SuiActionPlayback {
   }
   // ### actionPromise
   // Render a single action, and return a promise that resolves when rendered
-  static actionPromise(view, method, args) {
+  static actionPromise(view: any, method: string, args: any): Promise<any> {
     view[method](...args);
     return view.renderer.updatePromise();
   }
   // ### actionPromises
   // Library convenience function that performs the same action `'`count`'` times
   // Good for navigation (left 3 etc)
-  static actionPromises(view, method, args, count) {
-    const promise = new Promise((resolve) => {
-      const fc = (count) => {
+  static actionPromises(view: any, method: string, args: any, count: number): Promise<any> {
+    const promise = new Promise((resolve: any) => {
+      const fc = (count: number) => {
         if (count > 0) {
           SuiActionPlayback.actionPromise(view, method, args).then(() => {
             fc(count - 1);
@@ -41,10 +50,10 @@ export class SuiActionPlayback {
   }
   // ### setPitches
   // Convenience function to set a bunch of pitches on consecutive notes
-  static setPitches(view, pitches) {
+  static setPitches(view: any, pitches: string) {
     const pitchAr = pitches.split('');
-    const promise = new Promise((resolve) => {
-      const fcn =  (ix) => {
+    const promise = new Promise((resolve: any) => {
+      const fcn =  (ix: number) => {
         if (ix < pitchAr.length) {
           SuiActionPlayback.actionPromises(view, 'setPitch', [pitchAr[ix]], 1).then(() => {
             fcn(ix + 1);
@@ -61,7 +70,7 @@ export class SuiActionPlayback {
   // Get the next action, and execute it.  Periodically refresh the entire score
   // if there are a  lot of actions.
   playNextAction() {
-    let promise = {};
+    let promise: Promise<any> | null = null;
     if (this.currentAction === null || this.currentAction.count < 1) {
       this.currentAction = this.actions.callNextAction();
     }
@@ -78,7 +87,7 @@ export class SuiActionPlayback {
         promise = this.view.renderer.renderPromise();
         this.view.renderer.rerenderAll();
         this.timestamp = ts;
-        promise.then(() => {
+        promise!.then(() => {
           const ls = this.view.score.staves[this.view.score.staves.length - 1];
           const lm = ls.measures[ls.measures.length - 1];
           if (lm.renderedBox) {

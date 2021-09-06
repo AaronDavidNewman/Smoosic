@@ -49,14 +49,6 @@
 }
 
 @font-face {
-    font-family: 'Source Sans Pro';
-    src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSansPro-Bold.woff2') format('woff2'),
-         url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSansPro-Bold.woff') format('woff')
-    font-weight: bold;
-    font-style: normal;
-}
-
-@font-face {
     font-family: 'Source Serif Pro';
     src: url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSerifPro-Regular.woff2') format('woff2'),
          url('https://aarondavidnewman.github.io/Smoosic/build/styles/fonts/SourceSerifPro-Regular.woff') format('woff');
@@ -126,6 +118,9 @@ h1 {
 .svg-debug-box {
 	font-size:0.55em;
 	fill:#99e;
+    stroke: #77e;
+    stroke-width: 1px;
+    opacity: 0.8;
 }
 .system-place-dbg text {
     fill:#111;

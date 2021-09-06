@@ -608,7 +608,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   }
 
   setWidth(width: number, description: string) {
-    if (layoutDebug.flagSet('measureHistory')) {
+    if (layoutDebug.flagSet(layoutDebug.values.measureHistory)) {
       this.svg.history.push('setWidth ' + this.staffWidth + '=> ' + width + ' ' + description);
     }
     if (isNaN(width)) {

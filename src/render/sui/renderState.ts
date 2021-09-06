@@ -14,7 +14,6 @@ import { SuiMapper } from './mapper';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
 import { VxMeasure } from '../vex/vxMeasure';
-import { SmoNote } from '../../smo/data/note';
 
 export interface ScoreRenderParams {
   elementId: any,

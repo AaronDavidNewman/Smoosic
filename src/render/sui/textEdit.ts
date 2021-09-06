@@ -1312,7 +1312,7 @@ export class SuiChordSession extends SuiLyricSession {
     let startY = this.selection.measure.svg.logicalBox.y;
     if (this.lyric.logicalBox !== null) {
       startX = this.lyric.logicalBox.x;
-      startY = this.lyric.logicalBox.y + this.note.logicalBox.y + this.note.logicalBox.height;
+      startY = this.lyric.logicalBox.y + this.lyric.logicalBox.height;
     }
     this.selection.measure.svg.logicalBox.y + this.selection.measure.svg.logicalBox.height - 70;
     this.editor = new SuiChordEditor({

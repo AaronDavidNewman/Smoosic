@@ -321,7 +321,7 @@ export class SuiScoreRender extends SuiRenderState {
         const offset = measure.measureNumber.systemIndex * justifyX;
         measure.setX(measure.staffX + offset, '_justifyY');
         measure.setBox(sh.boxPoints(measure.svg.logicalBox.x + offset, measure.svg.logicalBox.y, measure.staffWidth, measure.svg.logicalBox.height), '_justifyY');
-        ld.debugBox(svg, measure.svg.logicalBox, 'adjust');
+        ld.debugBox(svg, measure.svg.logicalBox, layoutDebug.values.adjust);
       });
     }
   }
@@ -378,11 +378,11 @@ export class SuiScoreRender extends SuiRenderState {
     let measureEstimate: MeasureEstimate | null = null;
     $('head title').text(this.score.scoreInfo.name);
 
-    layoutDebug.clearDebugBoxes('pre');
-    layoutDebug.clearDebugBoxes('post');
-    layoutDebug.clearDebugBoxes('adjust');
-    layoutDebug.clearDebugBoxes('system');
-    layoutDebug.clearDebugBoxes('note');
+    layoutDebug.clearDebugBoxes(layoutDebug.values.pre);
+    layoutDebug.clearDebugBoxes(layoutDebug.values.post);
+    layoutDebug.clearDebugBoxes(layoutDebug.values.adjust);
+    layoutDebug.clearDebugBoxes(layoutDebug.values.system);
+    layoutDebug.clearDebugBoxes(layoutDebug.values.note);
     this.currentPage = 0;
     const timestamp = new Date().valueOf();
 
@@ -411,8 +411,8 @@ export class SuiScoreRender extends SuiRenderState {
         if (layoutDebug.mask & layoutDebug.values.system) {
           currentLine.forEach((measure) => {
             if (measure.svg.logicalBox) {
-              ld.debugBox(svg, measure.svg.logicalBox, 'system');
-              ld.debugBox(svg, sh.boxPoints(measure.staffX, measure.svg.logicalBox.y, measure.svg.adjX, measure.svg.logicalBox.height), 'post');
+              ld.debugBox(svg, measure.svg.logicalBox, layoutDebug.values.system);
+              ld.debugBox(svg, sh.boxPoints(measure.staffX, measure.svg.logicalBox.y, measure.svg.adjX, measure.svg.logicalBox.height), layoutDebug.values.post);
             }
           });
         }
@@ -429,7 +429,7 @@ export class SuiScoreRender extends SuiRenderState {
       // ld declared for lint
       const ld = layoutDebug;
       measureEstimate?.measures.forEach((measure) => {
-        ld.debugBox(svg, measure.svg.logicalBox, 'pre');
+        ld.debugBox(svg, measure.svg.logicalBox, layoutDebug.values.pre);
       });
 
       currentLine = currentLine.concat(measureEstimate.measures);
