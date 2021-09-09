@@ -3,14 +3,21 @@
 import { smoMusic } from '../../common/musicHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoAudioScore } from '../xform/audioTrack';
+import { SmoScore } from '../data/score';
+declare var MidiWriter: any;
+
+export interface MidiTrackHash {
+  track: any,
+  lastMeasure: number
+}
 
 export class SmoToMidi {
-  static convert(score) {
+  static convert(score: SmoScore) {
     const beatTime = 128;  // midi ticks per beat
     const converter = new SmoAudioScore(score, beatTime);
     const audioScore = converter.convert();
     const smoTracks = audioScore.tracks;
-    const trackHash = {};
+    const trackHash: Record<number | string, MidiTrackHash> = {};
     smoTracks.forEach((smoTrack, trackIx) => {
       let j = 0;
       if (typeof(trackHash[trackIx]) === 'undefined') {

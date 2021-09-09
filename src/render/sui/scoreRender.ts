@@ -28,7 +28,7 @@ export interface ScoreRenderParams {
 // ## SuiScoreRender
 // This module renders the entire score.  It calculates the layout first based on the
 // computed dimensions.
-export class SuiScoreRender extends SuiRenderState {
+export class SuiScoreRender extends SuiRenderState {  
   constructor(params: ScoreRenderParams) {
     super('SuiScoreRender');
     this.elementId = params.elementId;

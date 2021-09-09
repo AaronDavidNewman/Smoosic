@@ -25,17 +25,17 @@ export class layoutDebug {
     };
   }
 
-  static get classes(): Record<string, string> {
+  static get classes(): Record<number, string> {
     return {
-      pre: 'measure-place-dbg',
-      post: 'measure-render-dbg',
-      adjust: 'measure-adjust-dbg',
-      system: 'system-place-dbg',
-      note: 'measure-note-dbg',
-      adjustHeight: 'measure-adjustHeight-dbg',
-      measureHistory: '',
-      textEditorHistory: '',
-      dialogEvents: ''
+      1: 'measure-place-dbg',
+      2: 'measure-render-dbg',
+      4: 'measure-adjust-dbg',
+      8: 'system-place-dbg',
+      16: 'measure-note-dbg',
+      32: 'measure-adjustHeight-dbg',
+      64: '',
+      128: '',
+      256: ''
     };
   }
   static get codeRegions(): Record<string, number> {
@@ -149,7 +149,7 @@ export class layoutDebug {
   static measureHistory(measure: SmoMeasure, oldVal: string, newVal: any, description: string) {
     if (layoutDebug.flagSet(layoutDebug.values.measureHistory)) {
       var oldExp = (typeof ((measure as any).svg[oldVal]) == 'object') ?
-      JSON.stringify((measure as any).svg[oldVal]).replace(/"/g, '') : (measure as any).svg[oldVal];
+        JSON.stringify((measure as any).svg[oldVal]).replace(/"/g, '') : (measure as any).svg[oldVal];
       var newExp = (typeof (newVal) == 'object') ? JSON.stringify(newVal).replace(/"/g, '') : newVal;
       measure.svg.history.push(oldVal + ': ' + oldExp + '=> ' + newExp + ' ' + description);
     }

@@ -10,6 +10,6 @@
     "skipLibCheck": true,                           /* Skip type checking of declaration files. */
     "forceConsistentCasingInFileNames": true        /* Disallow inconsistently-cased references to the same file. */
     ,"allowSyntheticDefaultImports" : true,
-    "lib": [ "es6", "dom.iterable", "dom"]
+    "lib": [ "es2021", "dom.iterable", "dom"]
   }
 }

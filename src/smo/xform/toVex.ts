@@ -1,16 +1,17 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoMusic } from '../../common/musicHelpers';
+import { SmoScore } from '../data/score';
 
 // ## SmoToVex
 // Simple serialize class that produced VEX note and voice objects
 // for vex EasyScore (for easier bug reports and test cases)
 export class SmoToVex {
-  static convert(smoScore) {
+  static convert(smoScore: SmoScore) {
     smoScore.staves.forEach((smoStaff, staffIx) => {
       smoStaff.measures.forEach((smoMeasure, measureIx) => {
-        const voiceStrings = [];
-        const lyricsHash = {};
+        const voiceStrings: any[] = [];
+        const lyricsHash: any = {};
         smoMeasure.voices.forEach((smoVoice, vix) => {
           let keyString = '';
           voiceStrings.push([]);

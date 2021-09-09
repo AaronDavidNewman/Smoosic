@@ -84,7 +84,9 @@ export abstract class SuiRenderState {
   static get passStates(): Record<string, number> {
     return { initial: 0, clean: 2, replace: 3 };
   }
-
+  get renderElement(): Element {
+    return this.elementId;
+  }
   addToReplaceQueue(selection: SmoSelection) {
     if (this.passState === SuiRenderState.passStates.clean ||
       this.passState === SuiRenderState.passStates.replace) {
@@ -296,10 +298,6 @@ export abstract class SuiRenderState {
   get context() {
     return this.renderer.getContext();
   }
-  get renderElement() {
-    return this.renderer.elementId;
-  }
-
   get svg() {
     return this.context.svg;
   }

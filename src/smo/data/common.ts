@@ -88,12 +88,16 @@ export interface SmoModifierBase {
 export type Clef = 'treble' | 'bass' | 'tenor' | 'alto' | 'soprano' | 'percussion'
     | 'mezzo-soprano' | 'baritone-c' | 'baritone-f' | 'subbass' | 'french';
 
-export interface TimeSignature {
-    timeSignature: string,
-    actualBeats: number,
-    beatDuration: number,
-    useSymbol: boolean,
-    display: boolean
+export class TimeSignature {
+    timeSignature: string = '4/4';
+    actualBeats: number = 4;
+    beatDuration: number = 4;
+    useSymbol: boolean = false;
+    display: boolean = true;
+
+    static equal(ts1: TimeSignature, ts2: TimeSignature): boolean {
+        return (ts1.actualBeats == ts2.actualBeats && ts1.beatDuration == ts2.beatDuration);
+    }
 }
 export interface SmoConfiguration {
     smoPath?: string,
