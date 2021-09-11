@@ -11,7 +11,7 @@ import {
 } from './ribbon';
 import { SuiExceptionHandler } from './exceptions';
 import { Qwerty } from './qwerty';
-import { suiPiano } from '../render/sui/piano';
+import { SuiPiano } from '../render/sui/piano';
 import { SuiDom } from './dom';
 import { basicJson, emptyScoreJson } from '../music/basic';
 import { SuiHelp } from './help';
@@ -124,7 +124,7 @@ export const Smo = {
     StaffCheckComponent, TextCheckComponent,
     SuiXhrLoader,PromiseHelpers,
     // Rendering components
-    suiPiano, layoutDebug, SuiScoreView,SuiScroller, SuiMapper, SuiScoreRender,
+    SuiPiano, layoutDebug, SuiScoreView,SuiScroller, SuiMapper, SuiScoreRender,
     SuiScoreViewOperations,SuiActionPlayback,
     // Smo Music Objects
     SmoScore,

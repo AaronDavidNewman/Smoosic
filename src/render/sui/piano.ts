@@ -2,13 +2,26 @@
 // Copyright (c) Aaron David Newman 2021.
 import { svgHelpers, SvgBuilder } from "../../common/svgHelpers";
 import { htmlHelpers } from "../../common/htmlHelpers";
-export class suiPiano {
-  constructor(parameters) {
-    Vex.Merge(this, parameters);
-    this.renderElement = document.getElementById('piano-svg');
+import { SuiScoreViewOperations } from "./scoreViewOperations";
+import { SvgBox, Pitch, PitchLetter } from '../../smo/data/common';
+declare var $: any;
+
+export interface PianoKey {
+  box: SvgBox,
+  keyElement: SVGSVGElement
+}
+export class SuiPiano {
+  renderElement: SVGSVGElement | null;
+  view: SuiScoreViewOperations;
+  octaveOffset: number = 0;
+  chordPedal: boolean = false;
+  objects: PianoKey[] = [];
+  suggestFadeTimer: NodeJS.Timer | null = null;
+  elementId: string = 'piano-svg';
+  constructor(view: SuiScoreViewOperations) {
+    this.renderElement = (document.getElementById(this.elementId) as any) as SVGSVGElement;
+    this.view = view;
     this.render();
-    this.octaveOffset = 0;
-    this.chordPedal = false;
   }
 
   static get dimensions() {
@@ -17,27 +30,20 @@ export class suiPiano {
       bwidth: 13,
       wheight: 120,
       bheight: 80,
-      octaves:1
+      octaves: 1
     };
   }
-    // 7 white keys per octave
+  // 7 white keys per octave
   static get wkeysPerOctave() {
     return 7;
   }
   static get owidth() {
-    return suiPiano.dimensions.wwidth * suiPiano.wkeysPerOctave;
+    return SuiPiano.dimensions.wwidth * SuiPiano.wkeysPerOctave;
   }
 
-  static createAndDisplay(parms) {
-    // Called by ribbon button.
-    // $('body').toggleClass('show-piano');
-        $('body').trigger('show-piano-event');
-    $('body').trigger('forceScrollEvent');
-    // handle resize work area.
-  }
   _mapKeys() {
     this.objects = [];
-    var keys = [].slice.call(this.renderElement.getElementsByClassName('piano-key'));
+    var keys: SVGSVGElement[] = [].slice.call(this.renderElement!.getElementsByClassName('piano-key'));
     keys.forEach((key) => {
       var rect = svgHelpers.smoBox(key.getBoundingClientRect());
       var id = key.getAttributeNS('', 'id');
@@ -49,29 +55,29 @@ export class suiPiano {
       this.objects.push(artifact);
     });
   }
-  _removeClass(classes) {
-    Array.from(this.renderElement.getElementsByClassName('piano-key')).forEach((el) => {
+  _removeClass(classes: string) {
+    Array.from(this.renderElement!.getElementsByClassName('piano-key')).forEach((el) => {
       $(el).removeClass(classes);
     });
   }
   _removeGlow() {
     this._removeClass('glow-key');
   }
-  _fadeGlow(el) {
-    if (this['suggestFadeTimer']) {
+  _fadeGlow(el: SVGSVGElement) {
+    if (this.suggestFadeTimer) {
       clearTimeout(this.suggestFadeTimer);
     }
     // Make selection fade if there is a selection.
-    this.suggestFadeTimer = setTimeout(function () {
-        $(el).removeClass('glow-key');
-      }, 1000);
+    this.suggestFadeTimer = setTimeout(() => {
+      $(el).removeClass('glow-key');
+    }, 1000);
   }
   bind() {
     $('body').off('show-piano-event').on('show-piano-event', () => {
-        $('body').toggleClass('show-piano');
-        this._mapKeys();
+      $('body').toggleClass('show-piano');
+      this._mapKeys();
     });
-    $('#piano-8va-button').off('click').on('click', (ev) => {
+    $('#piano-8va-button').off('click').on('click', (ev: any) => {
       $('#piano-8vb-button').removeClass('activated');
       if (this.octaveOffset === 0) {
         $(ev.currentTarget).addClass('activated');
@@ -81,7 +87,7 @@ export class suiPiano {
         this.octaveOffset = 0;
       }
     });
-    $('#piano-8vb-button').off('click').on('click', (ev) => {
+    $('#piano-8vb-button').off('click').on('click', (ev: any) => {
       $('#piano-8va-button').removeClass('activated');
       if (this.octaveOffset === 0) {
         $(ev.currentTarget).addClass('activated');
@@ -92,50 +98,48 @@ export class suiPiano {
       }
     });
     $('#piano-xpose-up').off('click').on('click', () => {
-      this.keyCommands.transposeUp();
+      this.view.transposeSelections(1);
     });
     $('#piano-xpose-down').off('click').on('click', () => {
-      this.keyCommands.transposeDown();
+      this.view.transposeSelections(-1);
     });
     $('#piano-enharmonic').off('click').on('click', () => {
-      this.keyCommands.toggleEnharmonic();
+      this.view.toggleEnharmonic();
     });
     $('button.jsLeft').off('click').on('click', () => {
       this.view.tracker.moveSelectionLeft();
     });
     $('button.jsRight').off('click').on('click', () => {
-      this.view.tracker.moveSelectionRight();
+      this.view.tracker.moveSelectionRight(null, false);
     });
     $('button.jsGrowDuration').off('click').on('click', () => {
-      this.keyCommands.doubleDuration();
+      this.view.batchDurationOperation('doubleDuration');
     });
     $('button.jsGrowDot').off('click').on('click', () => {
-      this.keyCommands.dotDuration();
+      this.view.batchDurationOperation('dotDuration');
     });
     $('button.jsShrinkDuration').off('click').on('click', () => {
-      this.keyCommands.halveDuration();
+      this.view.batchDurationOperation('halveDuration');
     });
     $('button.jsShrinkDot').off('click').on('click', () => {
-      this.keyCommands.undotDuration();
+      this.view.batchDurationOperation('undotDuration');
     });
-    $('button.jsChord').off('click').on('click', (ev) => {
+    $('button.jsChord').off('click').on('click', (ev: any) => {
       $(ev.currentTarget).toggleClass('activated');
       this.chordPedal = !this.chordPedal;
     });
-    $(this.renderElement).off('mousemove').on('mousemove', (ev) => {
+    $(this.renderElement).off('mousemove').on('mousemove', (ev: any) => {
       if (Math.abs(this.objects[0].box.x - this.objects[0].keyElement.getBoundingClientRect().x)
         > this.objects[0].box.width / 2) {
-          console.log('remap piano');
-          this._mapKeys();
+        console.log('remap piano');
+        this._mapKeys();
       }
-      var keyPressed = svgHelpers.findSmallestIntersection({
-        x: ev.clientX,
-        y: ev.clientY
-        }, this.objects, svgHelpers.pointBox(0, 0, 1, 1));
+      var keyPressed = svgHelpers.findSmallestIntersection(
+        svgHelpers.boxPoints(ev.clientX, ev.clientY, 1, 1), this.objects, svgHelpers.boxPoints(0, 0, 1, 1)) as PianoKey;
       if (!keyPressed) {
         return;
       }
-      var el = this.renderElement.getElementById(keyPressed.id);
+      const el: SVGSVGElement = this.renderElement!.getElementById(keyPressed.keyElement.id) as SVGSVGElement;
       if ($(el).hasClass('glow-key')) {
         return;
       }
@@ -143,10 +147,10 @@ export class suiPiano {
       $(el).addClass('glow-key');
       this._fadeGlow(el);
     });
-    $(this.renderElement).off('blur').on('blur', (ev) => {
+    $(this.renderElement).off('blur').on('blur', () => {
       this._removeGlow();
     });
-    $(this.renderElement).off('click').on('click', (ev) => {
+    $(this.renderElement).off('click').on('click', (ev: any) => {
       this._updateSelections(ev);
     });
 
@@ -156,24 +160,22 @@ export class suiPiano {
       $('body').trigger('forceScrollEvent');
     });
   }
-  _updateSelections(ev) {
+  _updateSelections(ev: any) {
     // fake a scroller (piano scroller w/b cool tho...)
-    var keyPressed = svgHelpers.findSmallestIntersection({
-        x: ev.clientX,
-        y: ev.clientY
-      }, this.objects, svgHelpers.pointBox(0, 0, 1, 1));
+    var keyPressed =
+      svgHelpers.findSmallestIntersection(svgHelpers.pointBox(ev.clientX, ev.clientY), this.objects, svgHelpers.pointBox(0, 0)) as PianoKey;
     if (!keyPressed) {
       return;
     }
     if (!ev.shiftKey && !this.chordPedal) {
       this._removeClass('glow-key pressed-key');
     } else {
-      var el = this.renderElement.getElementById(keyPressed.id);
+      var el = this.renderElement!.getElementById(keyPressed.keyElement.id) as SVGSVGElement;
       $(el).addClass('pressed-key');
     }
-    var key = keyPressed.id.substr(6, keyPressed.id.length - 6);
-    var pitch = {
-      letter: key[0].toLowerCase(),
+    const key = keyPressed.keyElement.id.substr(6, keyPressed.keyElement.id.length - 6);
+    const pitch: Pitch = {
+      letter: key[0].toLowerCase() as PitchLetter,
       octave: this.octaveOffset,
       accidental: key.length > 1 ? key[1] : 'n'
     };
@@ -182,7 +184,7 @@ export class suiPiano {
   }
   _renderControls() {
     var b = htmlHelpers.buildDom;
-    var r =b('button').classes('icon icon-cross close close-piano');
+    var r = b('button').classes('icon icon-cross close close-piano');
     $('.piano-container .key-right-ctrl').append(r.dom());
     r = b('button').classes('piano-ctrl jsGrowDuration').append(b('span').classes('icon icon-duration_grow'));
     $('.piano-container .key-right-ctrl').append(r.dom());
@@ -198,21 +200,21 @@ export class suiPiano {
     r = b('button').classes('key-ctrl jsRight').append(b('span').classes('icon icon-arrow-right'));
     $('.piano-container .piano-keys').append(r.dom());
 
-    r = b('button').classes('piano-ctrl').attr('id','piano-8va-button').append(
+    r = b('button').classes('piano-ctrl').attr('id', 'piano-8va-button').append(
       b('span').classes('bold-italic').text('8')).append(
         b('sup').classes('italic').text('va'));
     $('.piano-container .key-left-ctrl').append(r.dom());
-    r = b('button').classes('piano-ctrl ').attr('id','piano-8vb-button').append(
+    r = b('button').classes('piano-ctrl ').attr('id', 'piano-8vb-button').append(
       b('span').classes('bold-italic').text('8')).append(
         b('sup').classes('italic').text('vb'));
     $('.piano-container .key-left-ctrl').append(r.dom());
-    r = b('button').classes('piano-ctrl jsXposeUp').attr('id','piano-xpose-up').append(
+    r = b('button').classes('piano-ctrl jsXposeUp').attr('id', 'piano-xpose-up').append(
       b('span').classes('bold').text('+'));
     $('.piano-container .key-left-ctrl').append(r.dom());
-    r = b('button').classes('piano-ctrl jsXposeDown').attr('id','piano-xpose-down').append(
+    r = b('button').classes('piano-ctrl jsXposeDown').attr('id', 'piano-xpose-down').append(
       b('span').classes('bold').text('-'));
     $('.piano-container .key-left-ctrl').append(r.dom());
-    r = b('button').classes('piano-ctrl jsEnharmonic').attr('id','piano-enharmonic').append(
+    r = b('button').classes('piano-ctrl jsEnharmonic').attr('id', 'piano-enharmonic').append(
       b('span').classes('bold icon icon-accident'));
 
     $('.piano-container .key-left-ctrl').append(r.dom());
@@ -228,64 +230,63 @@ export class suiPiano {
   render() {
     $('body').addClass('show-piano');
     var b = SvgBuilder.b;
-    var d = suiPiano.dimensions;
+    var d = SuiPiano.dimensions;
     // https://www.mathpages.com/home/kmath043.htm
 
     // Width of white key at back for C,D,E
     var b1off = d.wwidth - (d.bwidth * 2 / 3);
 
     // Width of other white keys at the back.
-    var b2off=d.wwidth-(d.bwidth*3)/4;
+    var b2off = d.wwidth - (d.bwidth * 3) / 4;
 
-    var keyAr = [];
     var xwhite = [{
-        note: 'C',
-        x: 0
-      }, {
-        note: 'D',
-        x: d.wwidth
-      }, {
-        note: 'E',
-        x: 2 * d.wwidth
-      }, {
-        note: 'F',
-        x: 3 * d.wwidth
-      }, {
-        note: 'G',
-        x: 4 * d.wwidth
-      }, {
-        note: 'A',
-        x: 5 * d.wwidth
-      }, {
-        note: 'B',
-        x: 6 * d.wwidth
-      }
+      note: 'C',
+      x: 0
+    }, {
+      note: 'D',
+      x: d.wwidth
+    }, {
+      note: 'E',
+      x: 2 * d.wwidth
+    }, {
+      note: 'F',
+      x: 3 * d.wwidth
+    }, {
+      note: 'G',
+      x: 4 * d.wwidth
+    }, {
+      note: 'A',
+      x: 5 * d.wwidth
+    }, {
+      note: 'B',
+      x: 6 * d.wwidth
+    }
     ];
     var xblack = [{
-        note: 'Db',
-        x: b1off
-      }, {
-        note: 'Eb',
-        x: 2*b1off+d.bwidth
-      }, {
-        note: 'Gb',
-        x: 3*d.wwidth+b2off
-      }, {
-        note: 'Ab',
-        x: (3*d.wwidth+b2off)+b2off+d.bwidth
-      }, {
-        note: 'Bb',
-        x: suiPiano.owidth-(b2off+d.bwidth)
-      }
+      note: 'Db',
+      x: b1off
+    }, {
+      note: 'Eb',
+      x: 2 * b1off + d.bwidth
+    }, {
+      note: 'Gb',
+      x: 3 * d.wwidth + b2off
+    }, {
+      note: 'Ab',
+      x: (3 * d.wwidth + b2off) + b2off + d.bwidth
+    }, {
+      note: 'Bb',
+      x: SuiPiano.owidth - (b2off + d.bwidth)
+    }
     ];
     var wwidth = d.wwidth;
     var bwidth = d.bwidth;
     var wheight = d.wheight;
     var bheight = d.bheight;
-    var owidth = suiPiano.wkeysPerOctave * wwidth;
+    var owidth = SuiPiano.wkeysPerOctave * wwidth;
 
     // Start on C2 to C6 to reduce space
-    var octaveOff = 7-d.octaves;
+    var octaveOff = 7 - d.octaves;
 
     var x = 0;
     var y = 0;
@@ -307,13 +308,13 @@ export class suiPiano {
       xblack.forEach((key) => {
         var nt = key.note;
         var classes = 'piano-key black-key';
-        var rect = b('rect').attr('id', 'keyId-' + nt).attr('fill','url(#piano-grad)').rect(x + key.x, 0, bwidth, bheight, classes);
+        var rect = b('rect').attr('id', 'keyId-' + nt).attr('fill', 'url(#piano-grad)').rect(x + key.x, 0, bwidth, bheight, classes);
         r.append(rect);
       });
     }
-    var el = document.getElementById(this.elementId);
-    svgHelpers.gradient(el,'piano-grad','vertical',[{color: '#000', offset: '0%', opacity: 1 },
-      {color: '#777', offset: '50%', opacity: 1 },{ color: '#ddd', offset: '100%', opacity: 1 }]);
+    var el = (document.getElementById(this.elementId) as any) as SVGSVGElement;
+    svgHelpers.gradient(el, 'piano-grad', 'vertical', [{ color: '#000', offset: '0%', opacity: 1 },
+    { color: '#777', offset: '50%', opacity: 1 }, { color: '#ddd', offset: '100%', opacity: 1 }]);
     el.appendChild(r.dom());
     this._renderControls();
     this._mapKeys();

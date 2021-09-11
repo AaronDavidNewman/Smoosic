@@ -105,18 +105,7 @@ export class suiController {
   }
 
   createPiano() {
-    this.piano = new suiPiano(
-    {
-      elementId:'piano-svg',
-      ribbons: defaultRibbonLayout.ribbons,
-      ribbonButtons: defaultRibbonLayout.ribbonButtons,
-      menus: this.menus,
-      keyCommands: this.keyCommands,
-      controller: this,
-      view: this.view,
-      eventSource:this.eventSource
-    });
-        // $('.close-piano').click();
+    this.piano = new SuiPiano(this.view);
   }
   resizeEvent() {
     var self = this;

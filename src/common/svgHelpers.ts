@@ -109,7 +109,7 @@ export class svgHelpers {
   // Stops look like this:
   // `[{color:"#eee", offset:"0%",opacity:0.5}]`
   // orientation is horizontal or vertical
-  static gradient(svg: Document, id: string, orientation: string, stops: GradientInfo[]) {
+  static gradient(svg: SVGSVGElement, id: string, orientation: string, stops: GradientInfo[]) {
     var ns = svgHelpers.namespace;
     var x2 = orientation === 'vertical' ? 0 : 1;
     var y2 = orientation === 'vertical' ? 1 : 0;

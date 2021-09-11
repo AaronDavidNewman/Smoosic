@@ -19,6 +19,9 @@ import { SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
 import { Pitch, PitchLetter, TimeSignature } from '../data/common';
 const VF = eval('Vex.Flow');
 
+export type BatchSelectionOperation = 'dotDuration' | 'undotDuration' | 'doubleDuration' | 'halveDuration' |
+  'doubleGraceNoteDuration' | 'halveGraceNoteDuration';
+
 /**
  * SmoOperation is a collection of static methods that operate on/change/transform the music.  Most methods
  * take the score, a selection or selection array, and the parameters of the operation.
@@ -172,7 +175,7 @@ export class SmoOperation {
     });
   }
 
-  static batchSelectionOperation(score: SmoScore, selections: SmoSelection[], operation: string) {
+  static batchSelectionOperation(score: SmoScore, selections: SmoSelection[], operation: BatchSelectionOperation) {
     var measureTicks: { selector: SmoSelector, tickOffset: number }[] = [];
     selections.forEach((selection) => {
       const tm = selection.measure.tickmapForVoice(selection.selector.voice);

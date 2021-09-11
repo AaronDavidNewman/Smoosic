@@ -23,7 +23,7 @@ import { TimeSignature, SvgBox, Pitch, PitchLetter, FontInfo, SmoConfiguration }
 import { SmoNote } from '../../smo/data/note';
 import { SmoSystemStaffParams } from '../../smo/data/systemStaff';
 import { KeyEvent } from './tracker';
-
+import { BatchSelectionOperation } from '../../smo/xform/operations';
 
 declare var $: any;
 declare var SmoConfig: SmoConfiguration;
@@ -486,12 +486,12 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this._renderChangedMeasures(measureSelections);
   }
 
-  batchDurationOperation(operation: string) {
+  batchDurationOperation(operation: BatchSelectionOperation) {
     this.actionBuffer.addAction('batchDurationOperation', operation);
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('change duration');
     const grace = this.tracker.getSelectedGraceNotes();
-    const graceMap: Record<string, string> = {
+    const graceMap: Record<string, BatchSelectionOperation> = {
       doubleDuration: 'doubleGraceNoteDuration',
       halveDuration: 'halveGraceNoteDuration'
     };
