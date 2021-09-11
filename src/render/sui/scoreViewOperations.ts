@@ -5,7 +5,7 @@ import { SmoTextGroup, SmoSystemGroup, SmoPageLayout, SmoGlobalLayout } from '..
 import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
 import { SmoOperation } from '../../smo/xform/operations';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoScore, SmoScorePreferences, SmoScoreInfo, SmoModifier } from '../../smo/data/score';
+import { SmoScore, SmoScorePreferences, SmoScoreInfo } from '../../smo/data/score';
 import { smoMusic } from '../../common/musicHelpers';
 import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, SmoOrnament, SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat } from '../../smo/data/measureModifiers';
@@ -724,7 +724,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     // extent of the overlap
     this.actionBuffer.addAction('paste');
     this._undoScore('paste');
-    this.preserveScroll();
+    this.renderer.preserveScroll();
     const firstSelection = this.tracker.selections[0];
     const pasteTarget = firstSelection.selector;
     const altSelection = this._getEquivalentSelection(firstSelection);
@@ -1184,7 +1184,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     }
   }
   refreshViewport() {
-    this.preserveScroll();
+    this.renderer.preserveScroll();
     this.renderer.setViewport(true);
     this.renderer.setRefresh();
   }

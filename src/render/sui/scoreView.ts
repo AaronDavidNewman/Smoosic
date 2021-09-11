@@ -59,7 +59,7 @@ export abstract class SuiScoreView {
 
     this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));
     this.undoBuffer = new UndoBuffer();
-    this.layoutDemon = new SuiRenderDemon({ view: this, undoBuffer: this.undoBuffer });
+    this.layoutDemon = new SuiRenderDemon(this.renderer, this.undoBuffer, this.tracker);
     this.storeUndo = new UndoBuffer();
     this.staffMap = this.defaultStaffMap;
     SuiScoreView.Instance = this; // for debugging
@@ -407,12 +407,6 @@ export abstract class SuiScoreView {
     setTimeout(() => {
       $('body').trigger('forceResizeEvent');
     }, 1);
-  }
-  preserveScroll() {
-    const scrollState = this.scroller.scrollState;
-    this.renderer.renderPromise().then(() => {
-      this.scroller.restoreScrollState(scrollState);
-    });
   }
 
   // ### undo

@@ -7,8 +7,9 @@ import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SuiRenderState } from './renderState';
 import { SmoLyric } from '../../smo/data/noteModifiers';
-import { SmoSelector, SuiScroller } from '../../../release/smoosic';
-import { SvgBox } from '../../../release/smoosic';
+import { SmoSelector } from '../../smo/xform/selections';
+import { SuiScroller } from './scroller';
+import { SvgBox } from '../../smo/data/common';
 import { KeyEvent } from './tracker';
 import { SmoNote } from '../../smo/data/note';
 import { SmoScore } from '../../smo/data/score';
@@ -214,7 +215,7 @@ export class SuiTextEditor {
     var blocks = this.svgText.getIntersectingBlocks(svgHelpers.smoBox({
       x: ev.clientX,
       y: ev.clientY
-    }), this.scroller.scrollState.scroll);
+    }), svgHelpers.smoBox(this.scroller.scrollState.scroll));
 
     // The mouse is not over the text
     if (!blocks.length) {
@@ -837,7 +838,7 @@ export class SuiDragSession {
   }
 
   startDrag(e: any) {
-    if (!svgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, this.scroller.scrollState.scroll)) {
+    if (!svgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, svgHelpers.smoBox(this.scroller.scrollState.scroll))) {
       return;
     }
     this.dragging = true;

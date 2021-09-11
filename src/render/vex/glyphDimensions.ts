@@ -3,7 +3,17 @@
 import { SmoBarline } from '../../smo/data/measureModifiers';
 import { smoMusic } from '../../common/musicHelpers';
 
-const VF = Vex.Flow;
+const VF = eval('Vex.Flow');
+
+export interface GlyphInfo {
+  width: number,
+  height: number,
+  yTop: number,
+  yBottom: number,
+  spacingRight: number,
+  vexGlyph: string | null
+}
+
 export class vexGlyph {
   // ### glyphPixels
   // Used to convert vex glyph sizes to pixels for computation.
@@ -12,25 +22,25 @@ export class vexGlyph {
   static get glyphPixels() {
     return 96 * (38 / (VF.DEFAULT_FONT_STACK[0].getResolution() * 72));
   }
-  static width(smoGlyph) {
+  static width(smoGlyph: GlyphInfo) {
     if (smoGlyph.vexGlyph) {
-      const vf = VF.DEFAULT_FONT_STACK[0].getGlyphs()[smoGlyph.vexGlyph];
+      const vf: any = VF.DEFAULT_FONT_STACK[0].getGlyphs()[smoGlyph.vexGlyph];
       return (vf.x_max - vf.x_min) * vexGlyph.glyphPixels;
     }
     return smoGlyph.width;
   }
-  static accidental(a) {
+  static accidental(a: string): GlyphInfo {
     return vexGlyph.accidentals[a];
   }
-  static barWidth(b) {
+  static barWidth(b: SmoBarline): number {
     const str = SmoBarline.barlineString(b);
     const cc = vexGlyph.dimensions[str];
     return cc.width + cc.spacingRight;
   }
-  static accidentalWidth(accidental) {
+  static accidentalWidth(accidental: string): number {
     return vexGlyph.width(vexGlyph.accidentals[accidental]);
   }
-  static get accidentals() {
+  static get accidentals(): Record<string, GlyphInfo> {
     return {
       'b': vexGlyph.dimensions.flat,
       '#': vexGlyph.dimensions.sharp,
@@ -39,11 +49,10 @@ export class vexGlyph {
       'n': vexGlyph.dimensions.natural
     };
   }
-
-  static get tempo() {
+  static get tempo(): GlyphInfo {
     return vexGlyph.dimensions.tempo;
   }
-  static keySignatureLength(key) {
+  static keySignatureLength(key: string) {
     return smoMusic.getSharpsInKeySignature(key) * vexGlyph.width(vexGlyph.dimensions.sharp) +
       smoMusic.getFlatsInKeySignature(key) * vexGlyph.width(vexGlyph.dimensions.flat) +
       vexGlyph.dimensions.keySignature.spacingRight;
@@ -64,42 +73,46 @@ export class vexGlyph {
   static get flag() {
     return vexGlyph.dimensions.flag;
   }
-  static clef(c) {
+  static clef(c: string): GlyphInfo {
     const key = c.toLowerCase() + 'Clef';
     if (!vexGlyph.dimensions[key]) {
       return vexGlyph.dimensions.tenorClef;
     }
     return vexGlyph.dimensions[key];
   }
-  static get dimensions() {
+  static get dimensions(): Record<string, GlyphInfo> {
     return {
       tupletBeam: {
         width: 5,
         height: 6,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 5
+        spacingRight: 5,
+        vexGlyph: null
       },
       singleBar: {
         width: 1,
         height: 41,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 5
+        spacingRight: 5,
+        vexGlyph: null
       },
       endBar: {
         width: 5.22,
         height: 40.99,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 10
+        spacingRight: 10,
+        vexGlyph: null
       },
       doubleBar: {
         width: 3.22,
         height: 40.99,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 0
+        spacingRight: 0,
+        vexGlyph: null
       },
       endRepeat: {
         width: 6,
@@ -107,6 +120,7 @@ export class vexGlyph {
         yTop: 0,
         yBottom: 0,
         spacingRight: 0,
+        vexGlyph: null
       },
       startRepeat: {
         width: 6,
@@ -114,6 +128,7 @@ export class vexGlyph {
         yTop: 0,
         yBottom: 0,
         spacingRight: 5,
+        vexGlyph: null
       },
       noteHead: {
         width: 15.3,
@@ -126,6 +141,8 @@ export class vexGlyph {
       dot: {
         width: 15,
         height: 5,
+        yTop: 0,
+        yBottom: 0,
         spacingRight: 2,
         vexGlyph: 'augmentationDot'
       }, // This isn't accurate, but I don't
@@ -175,7 +192,8 @@ export class vexGlyph {
         height: 37,
         yTop: 37,
         yBottom: 0,
-        spacingRight: 0
+        spacingRight: 0,
+        vexGlyph: null
       },
       flat: {
         width: 15,
@@ -190,7 +208,8 @@ export class vexGlyph {
         height: 85.5,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 10
+        spacingRight: 10,
+        vexGlyph: null
       },
       sharp: {
         width: 17,
@@ -228,7 +247,8 @@ export class vexGlyph {
         height: 35,
         yTop: 0,
         yBottom: 0,
-        spacingRight: 0
+        spacingRight: 0,
+        vexGlyph: null
       }, flag: {
         width: 10,
         height: 35,

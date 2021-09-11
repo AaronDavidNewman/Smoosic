@@ -127,6 +127,12 @@ export abstract class SuiRenderState {
     return this.passState === SuiRenderState.passStates.clean ||
       (this.passState === SuiRenderState.passStates.replace && this.replaceQ.length === 0);
   }
+  preserveScroll() {
+    const scrollState = this.measureMapper!.scroller.scrollState;
+    this.renderPromise().then(() => {
+      this.measureMapper!.scroller.restoreScrollState(scrollState);
+    });
+  }
 
   // ### renderPromise
   // return a promise that resolves when the score is in a fully rendered state.

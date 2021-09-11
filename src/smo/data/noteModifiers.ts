@@ -1,10 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoAttrs, Ticks, Pitch, FontInfo, SmoObjectParams, Transposable } from './common';
+import { SmoAttrs, Ticks, Pitch, FontInfo, SmoObjectParams, Transposable, SvgBox, SmoModifierBase } from './common';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { smoMusic } from '../../common/musicHelpers';
-import { SvgBox, SmoModifierBase } from './common';
 
 const VF = eval('Vex.Flow');
 // const Smo = eval('globalThis.Smo');

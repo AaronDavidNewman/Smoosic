@@ -2,10 +2,9 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMeasureFormat } from './measureModifiers';
-import { SmoAttrs, FontInfo, SmoModifierBase } from './common';
+import { SmoAttrs, FontInfo, SmoModifierBase, SvgBox } from './common';
 import { SmoMeasure } from './measure';
 import { SmoSelector } from '../xform/selections';
-import { SvgBox } from './common';
 
 const VF = eval('Vex.Flow');
 

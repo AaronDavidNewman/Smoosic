@@ -209,7 +209,7 @@ export class SuiApplication {
     if (SmoConfig.menus) {
       params.menus = new suiMenuManager(params);
     }
-    params.layoutDemon = new SuiRenderDemon(params);
+    params.layoutDemon = params.view.layoutDemon;
     // Start the application event processing and render the initial score
     // eslint-disable-next-line
     new suiController(params);
