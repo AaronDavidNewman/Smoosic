@@ -23,6 +23,12 @@ export class SuiActionPlayback {
   // ### actionPromise
   // Render a single action, and return a promise that resolves when rendered
   static actionPromise(view: any, method: string, args: any): Promise<any> {
+    if (method === 'setScoreLayout') {
+      method = 'setPageLayout';
+    }
+    if (typeof(view[method]) !== 'function') {
+      throw (method);
+    }
     view[method](...args);
     return view.renderer.updatePromise();
   }
