@@ -2,14 +2,14 @@
 // Copyright (c) Aaron David Newman 2021.
 import { htmlHelpers } from "../common/htmlHelpers";
 import { svgHelpers } from "../common/svgHelpers";
-import { suiPiano } from "../render/sui/piano";
+import { SuiPiano } from "../render/sui/piano";
 
 export class SuiDom {
   static splash() {
     var b = htmlHelpers.buildDom;
     var logoPath = SmoConfig.smoPath + '/styles/images/logo.png'
     var r = b('div').classes('bug-modal').append(
-        b('img').attr('src', logoPath).classes('splash-logo'))
+      b('img').attr('src', logoPath).classes('splash-logo'))
       .append(b('button').classes('icon icon-cross bug-dismiss-button'))
       .append(b('span').classes('splash-title').text('Sm'))
       .append(b('span').classes('splash-shine').text('ooooooooo'))
@@ -21,29 +21,29 @@ export class SuiDom {
     }, 1000);
   }
 
-	static createDom(title) {
+  static createDom(title) {
     if (title) {
-  	  $('h1.testTitle').text(title);
-  	}
+      $('h1.testTitle').text(title);
+    }
 
     var b = htmlHelpers.buildDom;
     var smoId = SmoConfig.smoDomContainer;
     var vexId = SmoConfig.vexDomContainer;
-    var r=b('div').classes('dom-container')
+    var r = b('div').classes('dom-container')
       .append(b('div').classes('modes'))
       .append(b('div').classes('overlay'))
       .append(b('div').classes('draganime hide'))
       .append(b('div').classes('textEdit hide'))
-      .append(b('div').classes('glyphRender hide').attr('id','glyphRender'))
+      .append(b('div').classes('glyphRender hide').attr('id', 'glyphRender'))
       .append(b('div').classes('translation-editor'))
       .append(b('div').classes('attributeDialog'))
-      .append(b('progress').attr('id','renderProgress').attr('value','0').attr('max','100'))
+      .append(b('progress').attr('id', 'renderProgress').attr('value', '0').attr('max', '100'))
       .append(b('div').classes('qwertyKb'))
       .append(b('div').classes('saveLink'))
       .append(b('div').classes('bugDialog'))
       .append(b('div').classes('printFrame'))
       .append(b('div').classes('menuContainer'))
-      .append(b('div').classes('workspace language-dir').attr('dir',SmoConfig.languageDir)
+      .append(b('div').classes('workspace language-dir').attr('dir', SmoConfig.languageDir)
         .append(b('div').classes('helpDialog'))
         .append(b('div').classes('control-bar')
           .append(b('div').classes('titleText').text('Smoosic'))
@@ -56,15 +56,15 @@ export class SuiDom {
           .append(b('div').classes('controls-left'))
           .append(b('div').classes('controls-menu-message'))
           .append(b('div').classes('musicRelief')
-            .append(b('div').classes('musicContainer').attr('id',vexId)
-            .attr('dir','ltr')))));
-    $('#'+smoId).append(r.dom());
-    var pianoDom=$('.piano-keys')[0];
-    var svg=document.createElementNS(svgHelpers.namespace,'svg');
-    svg.id='piano-svg';
-    svg.setAttributeNS('','width',''+suiPiano.owidth*suiPiano.dimensions.octaves);
-    svg.setAttributeNS('','height',''+suiPiano.dimensions.wheight);
-    svg.setAttributeNS('','viewBox','0 0 '+suiPiano.owidth*suiPiano.dimensions.octaves+' '+suiPiano.dimensions.wheight);
+            .append(b('div').classes('musicContainer').attr('id', vexId)
+              .attr('dir', 'ltr')))));
+    $('#' + smoId).append(r.dom());
+    var pianoDom = $('.piano-keys')[0];
+    var svg = document.createElementNS(svgHelpers.namespace, 'svg');
+    svg.id = 'piano-svg';
+    svg.setAttributeNS('', 'width', '' + SuiPiano.owidth * SuiPiano.dimensions.octaves);
+    svg.setAttributeNS('', 'height', '' + SuiPiano.dimensions.wheight);
+    svg.setAttributeNS('', 'viewBox', '0 0 ' + SuiPiano.owidth * SuiPiano.dimensions.octaves + ' ' + SuiPiano.dimensions.wheight);
     pianoDom.appendChild(svg);
-	}
+  }
 }

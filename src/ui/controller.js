@@ -5,7 +5,7 @@ import { RibbonButtons } from './ribbon';
 import { SuiExceptionHandler } from './exceptions';
 import { Qwerty } from './qwerty';
 import { SuiModifierDialogFactory } from './dialog';
-import { suiPiano } from '../render/sui/piano'
+import { SuiPiano } from '../render/sui/piano'
 import { layoutDebug } from '../render/sui/layoutDebug';
 import { SuiHelp } from './help';
 import { SuiTracker } from '../render/sui/tracker';
