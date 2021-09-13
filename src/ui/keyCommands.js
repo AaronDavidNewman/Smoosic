@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SuiTempoDialog } from './dialogs/measureDialogs';
-import { suiAudioPlayer } from '../render/audio/player';
+import { SuiAudioPlayer } from '../render/audio/player';
 import { SmoArticulation } from '../smo/data/noteModifiers';
 
 // ## suiEditor
@@ -57,18 +57,18 @@ export class SuiKeyCommands {
 
   playScore() {
     var mm = this.view.tracker.getExtremeSelection(-1);
-    if (suiAudioPlayer.playingInstance && suiAudioPlayer.playingInstance.paused) {
-      suiAudioPlayer.playingInstance.play();
+    if (SuiAudioPlayer.playingInstance && SuiAudioPlayer.playingInstance.paused) {
+      SuiAudioPlayer.playingInstance.play();
       return;
     }
-    new suiAudioPlayer({ score: this.view.score, startIndex: mm.selector.measure, tracker: this.view.tracker }).play();
+    new SuiAudioPlayer({ score: this.view.score, startIndex: mm.selector.measure, tracker: this.view.tracker }).play();
   }
 
   stopPlayer() {
-    suiAudioPlayer.stopPlayer();
+    SuiAudioPlayer.stopPlayer();
   }
   pausePlayer() {
-    suiAudioPlayer.pausePlayer();
+    SuiAudioPlayer.pausePlayer();
   }
 
   intervalAdd(interval, direction) {

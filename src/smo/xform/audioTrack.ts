@@ -57,6 +57,13 @@ export interface SmoAudioTrack {
   tiedNotes: SmoAudioTie[],
   repeats: []
 }
+export interface AudioTracks {
+  tracks: SmoAudioTrack[],
+  repeats: SmoAudioRepeat[],
+  repeatMap: SmoAudioRepeatMap[],
+  measureBeats: number[],
+  tempoMap: number[]
+}
 /** SmoAudioScore
 // Convert a score into a JSON structure that can be rendered to audio.
 // the return value looks like this:
@@ -261,6 +268,13 @@ export class SmoAudioScore {
         endSelector: cp(slur.endSelector)
       });
     });
+    const tieStart = selection.staff.getTiesStartingAt(selection.selector);
+    tieStart.forEach((tie) => {
+      tn.push({
+        startSelector: cp(tie.startSelector),
+        endSelector: cp(tie.endSelector)
+      });
+    });
   }
   isTiedPitch(track: SmoAudioTrack, selection: SmoSelection, noteIx: number): boolean {
     if (noteIx < 1) {
@@ -416,7 +430,7 @@ export class SmoAudioScore {
       }
     }
   }
-  convert() {
+  convert(): AudioTracks {
     const trackHash: Record<string, SmoAudioTrack> = {};
     const measureBeats: number[] = [];
     const measureIndexMap = {};

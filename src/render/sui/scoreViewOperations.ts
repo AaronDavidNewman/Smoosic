@@ -9,7 +9,7 @@ import { SmoScore, SmoScorePreferences, SmoScoreInfo } from '../../smo/data/scor
 import { smoMusic } from '../../common/musicHelpers';
 import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, SmoOrnament, SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat } from '../../smo/data/measureModifiers';
-import { suiOscillator } from '../audio/oscillator';
+import { SuiOscillator } from '../audio/oscillator';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { StaffModifierBase, SmoInstrument } from '../../smo/data/staffModifiers';
 import { SuiRenderState } from './renderState';
@@ -432,7 +432,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
         SmoOperation.transpose(altSel!, offset);
       });
       if (selections.length === 1 && this.score.preferences.autoPlay) {
-        suiOscillator.playSelectionNow(selections[0]);
+        SuiOscillator.playSelectionNow(selections[0], 1);
       }
     }
     this._renderChangedMeasures(measureSelections);
@@ -703,7 +703,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
       }
     });
     if (selections.length === 1 && this.score.preferences.autoPlay) {
-      suiOscillator.playSelectionNow(selections[0]);
+      SuiOscillator.playSelectionNow(selections[0], 1);
     }
     this._renderChangedMeasures(measureSelections);
   }

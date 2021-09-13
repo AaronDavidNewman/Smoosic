@@ -6,7 +6,7 @@ import { SmoSelection, SmoSelector, ModifierTab } from '../../smo/xform/selectio
 import { SuiRenderState } from './renderState';
 import { htmlHelpers } from '../../common/htmlHelpers';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { suiOscillator } from '../audio/oscillator';
+import { SuiOscillator } from '../audio/oscillator';
 import { SmoActionRecord } from '../../smo/xform/actions';
 import { SmoScore } from '../../smo/data/score';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
@@ -275,7 +275,7 @@ export class SuiTracker extends SuiMapper {
       return 0;
     }
     if (!this.mapping && this.autoPlay && skipPlay === false) {
-      suiOscillator.playSelectionNow(artifact);
+      SuiOscillator.playSelectionNow(artifact, 1);
     }
     this.selections.push(artifact);
     this.deferHighlight();
@@ -407,7 +407,7 @@ export class SuiTracker extends SuiMapper {
     }
     this.selections.push(artifact);
     if (this.autoPlay) {
-      suiOscillator.playSelectionNow(artifact);
+      SuiOscillator.playSelectionNow(artifact, 1);
     }
     this.deferHighlight();
     this._createLocalModifiersList();
@@ -555,8 +555,8 @@ export class SuiTracker extends SuiMapper {
       // disappeared - default to start
       artifact = SmoSelection.noteSelection(this.score, 0, 0, 0, 0);
     }
-    if (!skipPlay && this.autoPlay) {
-      suiOscillator.playSelectionNow(artifact);
+    if (!skipPlay && this.autoPlay && artifact) {
+      SuiOscillator.playSelectionNow(artifact, 1);
     }
     if (!artifact) {
       return;
@@ -625,7 +625,7 @@ export class SuiTracker extends SuiMapper {
       SmoSelector.neq(sel.selector, selection.selector)
     );
     if (this.autoPlay) {
-      suiOscillator.playSelectionNow(selection);
+      SuiOscillator.playSelectionNow(selection, 1);
     }
     ar.push(selection);
     this.selections = ar;
@@ -713,7 +713,7 @@ export class SuiTracker extends SuiMapper {
       return;
     }
     if (this.autoPlay) {
-      suiOscillator.playSelectionNow(this.suggestion);
+      SuiOscillator.playSelectionNow(this.suggestion,1);
     }
 
     const preselected = this.selections[0] ?

@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SmoNote } from '../smo/data/note';
-import { suiAudioPitch } from '../render/audio/oscillator';
+import { SuiAudioPitch } from '../render/audio/oscillator';
 import { Pitch, PitchKey, Clef, PitchLetter } from '../smo/data/common';
 /**
 // Helper functions that build on the VX music theory routines, and other
@@ -720,7 +720,7 @@ export class smoMusic {
     return key;
   }
   static get frequencyMap() {
-    return suiAudioPitch.pitchFrequencyMap;
+    return SuiAudioPitch.pitchFrequencyMap;
   }
 
   // ### get letterPitchIndex

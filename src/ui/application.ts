@@ -12,7 +12,7 @@ import { SmoScore } from '../smo/data/score';
 import { SmoTranslationEditor } from './i18n/translationEditor';
 import { SmoTranslator } from './i18n/language';
 import { browserEventSource } from './eventSource';
-import { suiOscillator } from '../render/audio/oscillator';
+import { SuiOscillator } from '../render/audio/oscillator';
 import { ArialFont } from '../styles/font_metrics/arial_metrics';
 import { TimesFont } from '../styles/font_metrics/times_metrics';
 import { Commissioner_MediumFont } from '../styles/font_metrics/Commissioner-Medium-Metrics';
@@ -144,7 +144,7 @@ export class SuiApplication {
     this.startApplication();
   }
   startApplication() {
-    suiOscillator.samplePromise().then(() => {
+    SuiOscillator.samplePromise().then(() => {
       this._startApplication();
     });
   }

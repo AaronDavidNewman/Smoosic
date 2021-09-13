@@ -2,14 +2,18 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
 import { smoMusic } from '../../common/musicHelpers';
-
+import { Pitch } from '../../smo/data/common';
+import { SmoMicrotone } from '../../smo/data/noteModifiers';
+import { SmoMeasure } from '../../smo/data/measure';
+import { SmoNote } from '../../smo/data/note';
+import { SmoSelection } from '../../smo/xform/selections';
 // ## suiAudioPitch
 // helper class to compute the frequencies of the notes.
-export class suiAudioPitch {
+export class SuiAudioPitch {
   // ### _frequencies
   // Compute the equal-temperment frequencies of the notes.
   static get _frequencies() {
-    const map = { };
+    const map: Record<string, number> = {};
     let lix = 0;
     const octaves = [1, 2, 3, 4, 5, 6, 7];
     const letters = ['cn', 'c#', 'dn', 'd#', 'en', 'fn', 'f#', 'gn', 'g#', 'an', 'a#', 'bn'];
@@ -18,8 +22,7 @@ export class suiAudioPitch {
     const baseFrequency = (440 / 16) * Math.pow(just, 3);
 
     octaves.forEach((octave) => {
-      const oint = parseInt(octave, 10);
-      const base = baseFrequency * Math.pow(2, oint - 1);
+      const base = baseFrequency * Math.pow(2, octave - 1);
       lix = 0;
       letters.forEach((letter) => {
         const freq = base * Math.pow(just, lix);
@@ -38,40 +41,40 @@ export class suiAudioPitch {
   }
 
   static get pitchFrequencyMap() {
-    suiAudioPitch._pmMap = typeof(suiAudioPitch._pmMap) === 'undefined' ? suiAudioPitch._frequencies : suiAudioPitch._pmMap;
-    return suiAudioPitch._pmMap;
+    return SuiAudioPitch._frequencies;
   }
 
-  static _rawPitchToFrequency(smoPitch, offset) {
+  static _rawPitchToFrequency(smoPitch: Pitch, offset: number): number {
     const npitch = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(smoPitch) + offset);
     const vx = npitch.letter.toLowerCase() + npitch.accidental + npitch.octave.toString();
-    return suiAudioPitch.pitchFrequencyMap[vx];
+    return SuiAudioPitch.pitchFrequencyMap[vx];
   }
   // ### smoPitchToFrequency
   // Convert a pitch to a frequency in Hz.
-  static smoPitchToFrequency(smoPitch, ix, offset, tones) {
+  static smoPitchToFrequency(smoPitch: Pitch, ix: number, offset: number, tones: SmoMicrotone[]) {
     let pitchInt = 0;
-    let rv = suiAudioPitch._rawPitchToFrequency(smoPitch, offset);
-    const mt = tones.filter((tt) => tt.pitch === ix);
+    let rv = SuiAudioPitch._rawPitchToFrequency(smoPitch, offset);
+    const mt = tones.filter((tt) => tt.pitch === smoPitch);
     if (mt.length) {
       const tone = mt[0];
       const coeff = tone.toPitchCoeff;
       pitchInt = smoMusic.smoPitchToInt(smoPitch);
       pitchInt += (coeff > 0) ? 1 : -1;
       const otherSmo = smoMusic.smoIntToPitch(pitchInt);
-      const otherPitch = suiAudioPitch._rawPitchToFrequency(otherSmo, offset);
+      const otherPitch = SuiAudioPitch._rawPitchToFrequency(otherSmo, offset);
       rv += Math.abs(rv - otherPitch) * coeff;
     }
     return rv;
   }
 }
 
-export class suiReverb {
+export class SuiReverb {
   static get defaults() {
     return { length: 0.2, decay: 0.5 };
   }
+  static impulse: AudioBuffer | null;
 
-  connect(destination) {
+  connect(destination: AudioNode) {
     this.output.connect(destination);
   }
 
@@ -83,8 +86,8 @@ export class suiReverb {
   _buildImpulse() {
     let n = 0;
     let i = 0;
-    if (suiReverb.impulse) {
-      this.input.buffer = suiReverb.impulse;
+    if (SuiReverb.impulse) {
+      this.input.buffer = SuiReverb.impulse;
       return;
     }
 
@@ -100,38 +103,56 @@ export class suiReverb {
       impulseL[i] = (Math.random() * 2 - 1) * Math.pow(1 - n / length, decay);
       impulseR[i] = (Math.random() * 2 - 1) * Math.pow(1 - n / length, decay);
     }
-    suiReverb.impulse = impulse;
+    SuiReverb.impulse = impulse;
 
     this.input.buffer = impulse;
   }
-
-  constructor(context) {
+  output: ConvolverNode;
+  input: ConvolverNode;
+  length: number;
+  decay: number;
+  reverse: boolean = false;
+  _context: AudioContext;
+  constructor(context: AudioContext) {
     this.input = this.output = context.createConvolver();
-    this.length = suiReverb.defaults.length;
-    this.decay = suiReverb.defaults.decay;
+    this.length = SuiReverb.defaults.length;
+    this.decay = SuiReverb.defaults.decay;
     this._context = context;
     this._buildImpulse();
   }
 }
 
-// ## suiOscillator
-// Simple waveform synthesizer thing that plays notes
-export class suiOscillator {
-  static get defaults() {
-    const obj = {
-      duration: 1000,
-      frequency: 440,
-      attackEnv: 0.05,
-      decayEnv: 0.4,
-      sustainEnv: 0.4,
-      releaseEnv: 0.25,
-      sustainLevel: 0.5,
-      releaseLevel: 0.1,
-      waveform: 'custom',
-      gain: 0.2
-    };
+export interface WaveTable {
+  real: number[],
+  imaginary: number[]
+}
+export interface SuiOscillatorParams {
+  duration: number,
+  frequency: number,
+  attackEnv: number,
+  decayEnv: number,
+  sustainEnv: number,
+  releaseEnv: number,
+  sustainLevel: number,
+  releaseLevel: number,
+  waveform: OscillatorType,
+  gain: number,
+  wavetable: WaveTable
+}
+export interface AudioSample {
+  sample: AudioBuffer,
+  frequency: number
+}
 
-    const wavetable = {
+// ## SuiOscillator
+// Simple waveform synthesizer thing that plays notes.  Oscillator works in either
+// analog synthisizer or sampler mode.  I've found the HTML synth performance to be not
+// so great, and using actual MP3 samples both performs and sounds better.  Still, 
+// synths are so cool that I am keeping it to tinker with later
+export class SuiOscillator {
+  static audio: AudioContext = new AudioContext();
+  static get defaults(): SuiOscillatorParams {
+    const wavetable: WaveTable = {
       real: [0,
         0.3, 0.3, 0, 0, 0,
         0.1, 0, 0, 0, 0,
@@ -149,24 +170,25 @@ export class suiOscillator {
         0, 0, 0, 0, 0,
         0, 0]
     };
-    obj.wavetable = wavetable;
-    return obj;
+    const obj = {
+      duration: 1000,
+      frequency: 440,
+      attackEnv: 0.05,
+      decayEnv: 0.4,
+      sustainEnv: 0.8,
+      releaseEnv: 0.25,
+      sustainLevel: 0.5,
+      releaseLevel: 0.1,
+      waveform: 'custom',
+      gain: 0.2,
+      wavetable
+    };
+    return JSON.parse(JSON.stringify(obj));
   }
 
-  static get sampleFiles() {
-    return ['bb4', 'cn4'];
-  }
-  static get samples() {
-    if (typeof(suiOscillator._samples) === 'undefined') {
-      suiOscillator._samples = [];
-    }
-    return suiOscillator._samples;
-  }
-  static set samples(val) {
-    suiOscillator._samples.push(val);
-  }
-
-  static playSelectionNow(selection, gain) {
+static sampleFiles: string[] = ['bb4', 'cn4'];
+  static samples: AudioSample[] = [];
+  static playSelectionNow(selection: SmoSelection, gain: number) {
     // In the midst of re-rendering...
     if (!selection.note) {
       return;
@@ -175,21 +197,26 @@ export class suiOscillator {
       return;
     }
     setTimeout(() => {
-      const ar = suiOscillator.fromNote(selection.measure, selection.note, true, gain);
+      const ar = SuiOscillator.fromNote(selection.measure, selection.note!, true, gain);
       ar.forEach((osc) => {
         osc.play();
       });
     }, 1);
   }
 
+  static get attackTime()  {
+    return 25;
+  }
+  static get decayTime()  {
+    return 15;
+  }
   // ### fromNote
   // Create an areray of oscillators for each pitch in a note
-  static fromNote(measure, note, isSample, gain) {
+  static fromNote(measure: SmoMeasure, note: SmoNote, isSample: boolean, gain: number): SuiOscillator[] {
     let frequency = 0;
     let duration = 0;
     let i = 0;
     const tempo = measure.getTempo();
-
     const bpm = tempo.bpm;
     const beats = note.tickCount / 4096;
     duration = (beats / bpm) * 60000;
@@ -200,17 +227,20 @@ export class suiOscillator {
       duration = 250;
     }
 
-    const ar = [];
-    gain = isNaN(gain) ?  0.2 : gain;
+    const ar: SuiOscillator[] = [];
+    gain = isNaN(gain) ? 0.2 : gain;
     gain = gain / note.pitches.length;
     if (note.noteType === 'r') {
       gain = 0.001;
     }
     i = 0;
     note.pitches.forEach((pitch) => {
-      frequency = suiAudioPitch.smoPitchToFrequency(pitch, i, -1 * measure.transposeIndex, note.getMicrotones());
-      const osc = new suiSampler({ frequency, duration, gain });
-      // var osc = new suiSampler({frequency:frequency,duration:duration,gain:gain});
+      frequency = SuiAudioPitch.smoPitchToFrequency(pitch, i, -1 * measure.transposeIndex, note.getMicrotones());
+      const def = SuiOscillator.defaults;
+      def.frequency = frequency;
+      def.duration = duration;
+      def.gain = gain;
+      const osc = new SuiSampler(def);
       ar.push(osc);
       i += 1;
     });
@@ -224,42 +254,45 @@ export class suiOscillator {
   }
 
   static samplePromise() {
-    const rv = new Promise((resolve) => {
+    const rv = new Promise<void>((resolve) => {
       const checkSample = () => {
         setTimeout(() => {
-          if (suiOscillator.samples.length < suiOscillator.sampleFiles.length) {
+          if (SuiOscillator.samples.length < SuiOscillator.sampleFiles.length) {
             checkSample();
           } else {
             resolve();
           }
-        });
+        }, 100);
       };
       checkSample();
-    }, 100);
-    if (suiOscillator.samples.length < suiOscillator.sampleFiles.length) {
-      suiOscillator.sampleFiles.forEach((file) => {
-        const audio = suiOscillator.audio;
-        const media = audio.createMediaElementSource(document.getElementById('sample' + file));
-        const req = new XMLHttpRequest();
-        req.open('GET', media.mediaElement.src, true);
-        req.responseType = 'arraybuffer';
-        req.send();
-        req.onload = () => {
-          const audioData = req.response;
-          audio.decodeAudioData(audioData, (decoded) => {
-            suiOscillator.samples.push({ sample: decoded, frequency: suiAudioPitch._frequencies[file] });
-          });
-        };
+    });
+    if (SuiOscillator.samples.length < SuiOscillator.sampleFiles.length) {
+      SuiOscillator.sampleFiles.forEach((file) => {
+        const audio = SuiOscillator.audio;
+        const audioElement: HTMLMediaElement | null = document.getElementById('sample' + file) as HTMLMediaElement;
+        if (audioElement) {
+          const media = audio.createMediaElementSource(audioElement);
+          const req = new XMLHttpRequest();
+          req.open('GET', media.mediaElement.src, true);
+          req.responseType = 'arraybuffer';
+          req.send();
+          req.onload = () => {
+            const audioData = req.response;
+            audio.decodeAudioData(audioData, (decoded) => {
+              SuiOscillator.samples.push({ sample: decoded, frequency: SuiAudioPitch._frequencies[file] });
+            });
+          };
+        }
       });
     }
     return rv;
   }
-  static sampleForFrequency(f) {
+  static sampleForFrequency(f: number): AudioSample | null {
     let min = 9999;
-    let rv = {};
+    let rv: AudioSample | null = null;
     let i = 0;
-    for (i = 0; i < suiOscillator.samples.length; ++i) {
-      const sample = suiOscillator.samples[i];
+    for (i = 0; i < SuiOscillator.samples.length; ++i) {
+      const sample = SuiOscillator.samples[i];
       if (Math.abs(f - sample.frequency) < min) {
         min = Math.abs(f - sample.frequency);
         rv = sample;
@@ -268,16 +301,9 @@ export class suiOscillator {
     return rv;
   }
 
-  static get audio() {
-    if (typeof (suiOscillator._audio) === 'undefined') {
-      suiOscillator._audio = new AudioContext();
-    }
-    return suiOscillator._audio;
-  }
-
-  _playPromise(osc, duration, gain) {
-    const audio = suiOscillator.audio;
-    const promise = new Promise((resolve) => {
+  _playPromise(osc: AudioScheduledSourceNode, duration: number, gain: GainNode) {
+    const audio = SuiOscillator.audio;
+    const promise = new Promise<void>((resolve) => {
       osc.start(0);
 
       setTimeout(() => {
@@ -293,20 +319,52 @@ export class suiOscillator {
     return promise;
   }
 
-  static toFloatArray(ar) {
+  static toFloatArray(ar: number[]): Float32Array {
     const rv = new Float32Array(ar.length);
     let i = 0;
     for (i = 0; i < ar.length; ++i) {
       rv[i] = ar[i];
     }
-
     return rv;
   }
+  reverb: SuiReverb;
+  attack: number;
+  decay: number;
+  sustain: number;
+  release: number;
+  waveform: OscillatorType;
+  attackEnv: number = -1;
+  duration: number = -1;
+  decayEnv: number = -1;
+  sustainEnv: number = -1;
+  releaseEnv: number = -1;
+  gain: number = 1.0;
+  sustainLevel: number = 0;
+  releaseLevel: number = 0;
+  frequency: number = -1;
+  wavetable: WaveTable;
+  constructor(parameters: SuiOscillatorParams) {
+    smoSerialize.serializedMerge(SuiOscillator.attributes, parameters, this);
+    this.reverb = new SuiReverb(SuiOscillator.audio);
+    this.attack = this.attackEnv * SuiOscillator.attackTime;
+    this.decay = this.decayEnv * SuiOscillator.decayTime;
+    this.sustain = this.sustainEnv * this.duration;
+    this.release = this.releaseEnv * this.duration;
+    this.wavetable = parameters.wavetable;
+    // this.frequency = this.frequency / 2;  // Overtones below partial
+
+    if (parameters.waveform && parameters.waveform !== 'custom') {
+      this.waveform = parameters.waveform;
+    } else {
+      this.waveform = 'custom';
+    }
+  }
+
   // ### play
   // play the audio oscillator for the specified duration.  Return a promise that
   // resolves after the duration.  Also dispose of the audio resources after the play is complete.
   play() {
-    const audio = suiOscillator.audio;
+    const audio = SuiOscillator.audio;
     const gain = audio.createGain();
     const osc = audio.createOscillator();
 
@@ -324,8 +382,8 @@ export class suiOscillator {
     if (this.waveform !== 'custom') {
       osc.type = this.waveform;
     } else {
-      const wave = audio.createPeriodicWave(suiOscillator.toFloatArray(this.wavetable.real),
-        suiOscillator.toFloatArray(this.wavetable.imaginary),
+      const wave = audio.createPeriodicWave(SuiOscillator.toFloatArray(this.wavetable.real),
+        SuiOscillator.toFloatArray(this.wavetable.imaginary),
         { disableNormalization: false });
       osc.setPeriodicWave(wave);
     }
@@ -334,36 +392,20 @@ export class suiOscillator {
     gain.connect(audio.destination);
     return this._playPromise(osc, this.duration, gain);
   }
-
-  constructor(parameters) {
-    smoSerialize.serializedMerge(suiOscillator.attributes, suiOscillator.defaults, this);
-    smoSerialize.serializedMerge(suiOscillator.attributes, parameters, this);
-    this.reverb = new suiReverb(suiOscillator.audio);
-    this.attack = this.attackEnv * this.duration;
-    this.decay = this.decayEnv * this.duration;
-    this.sustain = this.sustainEnv * this.duration;
-    this.release = this.releaseEnv * this.duration;
-    // this.frequency = this.frequency / 2;  // Overtones below partial
-
-    if (parameters.waveform && parameters.waveform !== 'custom') {
-      this.waveform = parameters.waveform;
-    } else {
-      this.waveform = 'custom';
-    }
-  }
 }
 
-// ## suiSampler
+// ## SuiSampler
 // Class that replaces oscillator with a sampler.
-export class suiSampler extends suiOscillator {
+export class SuiSampler extends SuiOscillator {
+  // Note: samplePromise must be complete before you call this
   play() {
     const self = this;
-    suiOscillator.samplePromise().then(() => {
+    return SuiOscillator.samplePromise().then(() => {
       self._play();
     });
   }
   _play() {
-    const audio = suiOscillator.audio;
+    const audio = SuiOscillator.audio;
     const attack = this.attack / 1000;
     const decay = this.decay / 1000;
     const sustain = this.sustain / 1000;
@@ -379,9 +421,9 @@ export class suiSampler extends suiOscillator {
     // gain2.gain.exponentialRampToValueAtTime(gp1, audio.currentTime + attack);
     // gain2.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + attack + decay + sustain + release);
     const osc = audio.createBufferSource();
-    const sample = suiOscillator.sampleForFrequency(this.frequency);
-    osc.buffer = sample.sample;
-    const cents = 1200 * (Math.log(this.frequency / sample.frequency))
+    const sample = SuiOscillator.sampleForFrequency(this.frequency);
+    osc.buffer = sample!.sample;
+    const cents = 1200 * (Math.log(this.frequency / sample!.frequency))
       / Math.log(2);
 
     osc.detune.value = cents;
@@ -395,8 +437,8 @@ export class suiSampler extends suiOscillator {
     return this._playPromise(osc, this.duration);
   }
 
-  _playPromise(osc, duration) {
-    const promise = new Promise((resolve) => {
+  _playPromise(osc: AudioScheduledSourceNode, duration: number): Promise<void> {
+    const promise = new Promise<void>((resolve) => {
       osc.start(0);
       setTimeout(() => {
         resolve();

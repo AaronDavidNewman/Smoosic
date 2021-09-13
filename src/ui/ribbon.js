@@ -4,7 +4,7 @@ import { htmlHelpers } from '../common/htmlHelpers';
 import { SmoSystemGroup } from '../smo/data/scoreModifiers';
 import { SmoBarline, SmoRepeatSymbol } from '../smo/data/measureModifiers';
 import { smoSerialize } from '../common/serializationHelpers';
-import { suiOscillator } from '../render/audio/oscillator';
+import { SuiOscillator } from '../render/audio/oscillator';
 import { SmoMicrotone, SmoLyric, SmoArticulation, SmoOrnament } from '../smo/data/noteModifiers';
 import { SuiChordChangeDialog, SuiTextTransformDialog, SuiLyricDialog } from './dialogs/textDialogs';
 
@@ -244,7 +244,7 @@ export class MicrotoneButtons {
     }
     const tn = new SmoMicrotone({ tone: el.id, pitch });
     this.view.addRemoveMicrotone(tn);
-    suiOscillator.playSelectionNow(this.view.tracker.selections[0]);
+    SuiOscillator.playSelectionNow(this.view.tracker.selections[0]);
   }
   bind() {
     var self = this;
