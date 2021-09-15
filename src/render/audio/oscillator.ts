@@ -12,7 +12,7 @@ import { SmoSelection } from '../../smo/xform/selections';
 export class SuiAudioPitch {
   // ### _frequencies
   // Compute the equal-temperment frequencies of the notes.
-  static get _frequencies() {
+  static _computeFrequencies() {
     const map: Record<string, number> = {};
     let lix = 0;
     const octaves = [1, 2, 3, 4, 5, 6, 7];
@@ -39,9 +39,14 @@ export class SuiAudioPitch {
 
     return map;
   }
+  static frequencies: Record<string, number> | null = null;
 
   static get pitchFrequencyMap() {
-    return SuiAudioPitch._frequencies;
+    if (!SuiAudioPitch.frequencies) {
+      SuiAudioPitch.frequencies = SuiAudioPitch._computeFrequencies();
+    }
+
+    return SuiAudioPitch.frequencies;
   }
 
   static _rawPitchToFrequency(smoPitch: Pitch, offset: number): number {
@@ -279,7 +284,7 @@ static sampleFiles: string[] = ['bb4', 'cn4'];
           req.onload = () => {
             const audioData = req.response;
             audio.decodeAudioData(audioData, (decoded) => {
-              SuiOscillator.samples.push({ sample: decoded, frequency: SuiAudioPitch._frequencies[file] });
+              SuiOscillator.samples.push({ sample: decoded, frequency: SuiAudioPitch.pitchFrequencyMap[file] });
             });
           };
         }

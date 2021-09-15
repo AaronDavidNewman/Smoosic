@@ -51,6 +51,7 @@ export interface SmoAudioTrack {
   lastMeasure: number,
   notes: SmoAudioNote[],
   tempoMap: Record<string, number>,
+  measureNoteMap: Record<number, SmoAudioNote[]>,
   timeSignatureMap: Record<string, SmoAudioTimeSignature>,
   hairpins: SmoAudioHairpin[],
   volume: number,
@@ -98,6 +99,7 @@ export class SmoAudioScore {
       tempoMap: {},
       timeSignatureMap: {},
       hairpins: [],
+      measureNoteMap: {},
       volume: 0,
       tiedNotes: [],
       repeats: []
@@ -312,11 +314,17 @@ export class SmoAudioScore {
       measureIndex[selector.tick].push(note);
     }
   }
+  updateMeasureNoteMap(track: SmoAudioTrack, measureIndex: number, note: SmoAudioNote) {
+    if (!track.measureNoteMap[measureIndex]) {
+      track.measureNoteMap[measureIndex] = [];
+    }
+    track.measureNoteMap[measureIndex].push(note)
+  }
   createTrackNote(track: SmoAudioTrack, selection: SmoSelection, duration: number, runningDuration: number, measureIndexMap: Record<number, Record<number, SmoAudioNote[]>>) {
     const noteIx = track.notes.length;
     if (this.isTiedPitch(track, selection, noteIx)) {
       track.notes[noteIx - 1].duration += duration;
-      const restPad = this.createTrackRest(duration, runningDuration, selection.selector, measureIndexMap);
+      const restPad = this.createTrackRest(track, duration, runningDuration, selection.selector, measureIndexMap);
       // Indicate this rest is just padding for a previous tied note.  Midi and audio render this
       // differently
       restPad.padding = true;
@@ -339,10 +347,12 @@ export class SmoAudioScore {
       selector: selection.selector,
       volume: track.volume
     };
+    this.updateMeasureNoteMap(track, selection.selector.measure, note);
     track.notes.push(note);
     SmoAudioScore.updateMeasureIndexMap(note, measureIndexMap);
   }
-  createTrackRest(duration: number, runningDuration: number, selector: SmoSelector, measureIndexMap: Record<number, Record<number, SmoAudioNote[]>>): SmoAudioNote {
+  createTrackRest(track: SmoAudioTrack, duration: number, runningDuration: number, selector: SmoSelector, 
+    measureIndexMap: Record<number, Record<number, SmoAudioNote[]>>): SmoAudioNote {
     const rest: SmoAudioNote = {
       duration,
       offset: runningDuration,
@@ -352,6 +362,7 @@ export class SmoAudioScore {
       pitches: []
     };
     SmoAudioScore.updateMeasureIndexMap(rest, measureIndexMap);
+    this.updateMeasureNoteMap(track, selector.measure, rest);      
     return rest;
   }
   createRepeatMap(repeats: SmoAudioRepeat[]): SmoAudioRepeatMap[] {
@@ -481,7 +492,7 @@ export class SmoAudioScore {
           // If this voice is not in every measure, fill in the space
           // in its own channel.
           while (track.lastMeasure < measureIx) {
-            track.notes.push(this.createTrackRest(measureBeats[track.lastMeasure], 0,
+            track.notes.push(this.createTrackRest(track, measureBeats[track.lastMeasure], 0,
               { staff: staffIx, measure: track.lastMeasure, voice: voiceIx, tick: 0, pitches: [] },
               measureIndexMap,
             ));
@@ -515,7 +526,7 @@ export class SmoAudioScore {
               duration = note.tickCount / this.timeDiv;
             }
             if (note.isRest() || note.isSlash()) {
-              track.notes.push(this.createTrackRest(duration, runningDuration, selector, measureIndexMap));
+              track.notes.push(this.createTrackRest(track, duration, runningDuration, selector, measureIndexMap));
             } else {
               this.computeVolume(track, selection);
               this.createTrackNote(track, selection, duration, runningDuration, measureIndexMap);
@@ -533,9 +544,10 @@ export class SmoAudioScore {
       while (track.lastMeasure < maxMeasure) {
         const staff = track.notes[0].selector.staff;
         const voice = track.notes[0].selector.voice;
-        track.notes.push(this.createTrackRest(measureBeats[track.lastMeasure], 0,
+        const rest: SmoAudioNote = this.createTrackRest(track, measureBeats[track.lastMeasure], 0,
           { staff, measure: track.lastMeasure, voice, tick: 0, pitches: [] }, measureIndexMap
-        ));
+        );
+        track.notes.push(rest);
         track.lastMeasure += 1;
       }
     });

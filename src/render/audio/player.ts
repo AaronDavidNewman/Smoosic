@@ -51,7 +51,7 @@ export class SuiAudioPlayer {
     SuiAudioPlayer.playing = false;
   }
   static getMeasureSounds(track: SmoAudioTrack, measureIndex: number): NoteSound[] {
-    const notes = track.notes.filter((nn) => nn.selector.measure === measureIndex);
+    const notes = track.measureNoteMap[measureIndex];
     const trackSounds: NoteSound[] = [];
     notes.forEach((note) => {
       const noteSound: NoteSound = {
@@ -85,7 +85,7 @@ export class SuiAudioPlayer {
       });
     });
     const keys = Object.keys(offsetSounds);
-    keys.sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+    // keys.sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
     return { offsets: keys, offsetSounds };
   }
   // TODO: use precreated tracks.  Right now it takes too long to create a whole score, we should 
@@ -130,6 +130,7 @@ export class SuiAudioPlayer {
     const tempo = audio.tempoMap[measureIndex];
     const soundData = sounds.offsetSounds[(sounds.offsets[offsetIndex] as any) as number];
     const maxMeasures = tracks[0].lastMeasure;
+    const timeRatio = 60000 / (tempo * 4096);
     const oscs: SuiOscillator[] = [];
     // Update the music cursor
     const ts = new Date().valueOf();
@@ -138,8 +139,7 @@ export class SuiAudioPlayer {
     soundData.forEach((sound) => {
       for (i = 0; i < sound.frequencies.length && sound.noteType === 'n'; ++i) {
         const freq = sound.frequencies[i];
-        const beats = sound.duration / 4096;
-        const adjDuration = Math.round((beats / tempo) * 60000) + 150;
+        const adjDuration = Math.round(sound.duration * timeRatio) + 150;
         const params = SuiOscillator.defaults;
         params.frequency = freq;
         params.duration = adjDuration;
@@ -172,8 +172,7 @@ export class SuiAudioPlayer {
       }
       // Decide how long to wait until the next sound in the chord.
       const elapsed = new Date().valueOf() - ts;
-      console.log('measure elapsed ' + elapsed)
-      waitTime = (((waitTime - elapsed) / 4096) / tempo) * 60000;
+      waitTime = (waitTime - elapsed) * timeRatio;
       setTimeout(() => {
         if (!complete) {
           this.playSoundsAtOffset(sounds, offsetIndex);
