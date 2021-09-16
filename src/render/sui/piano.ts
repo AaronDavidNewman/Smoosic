@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { svgHelpers, SvgBuilder } from "../../common/svgHelpers";
+import { SvgHelpers, SvgBuilder } from "./svgHelpers";
 import { htmlHelpers } from "../../common/htmlHelpers";
 import { SuiScoreViewOperations } from "./scoreViewOperations";
 import { SvgBox, Pitch, PitchLetter } from '../../smo/data/common';
@@ -45,7 +45,7 @@ export class SuiPiano {
     this.objects = [];
     var keys: SVGSVGElement[] = [].slice.call(this.renderElement!.getElementsByClassName('piano-key'));
     keys.forEach((key) => {
-      var rect = svgHelpers.smoBox(key.getBoundingClientRect());
+      var rect = SvgHelpers.smoBox(key.getBoundingClientRect());
       var id = key.getAttributeNS('', 'id');
       var artifact = {
         keyElement: key,
@@ -134,8 +134,8 @@ export class SuiPiano {
         console.log('remap piano');
         this._mapKeys();
       }
-      var keyPressed = svgHelpers.findSmallestIntersection(
-        svgHelpers.boxPoints(ev.clientX, ev.clientY, 1, 1), this.objects, svgHelpers.boxPoints(0, 0, 1, 1)) as PianoKey;
+      var keyPressed = SvgHelpers.findSmallestIntersection(
+        SvgHelpers.boxPoints(ev.clientX, ev.clientY, 1, 1), this.objects, SvgHelpers.boxPoints(0, 0, 1, 1)) as PianoKey;
       if (!keyPressed) {
         return;
       }
@@ -163,7 +163,7 @@ export class SuiPiano {
   _updateSelections(ev: any) {
     // fake a scroller (piano scroller w/b cool tho...)
     var keyPressed =
-      svgHelpers.findSmallestIntersection(svgHelpers.pointBox(ev.clientX, ev.clientY), this.objects, svgHelpers.pointBox(0, 0)) as PianoKey;
+      SvgHelpers.findSmallestIntersection(SvgHelpers.pointBox(ev.clientX, ev.clientY), this.objects, SvgHelpers.pointBox(0, 0)) as PianoKey;
     if (!keyPressed) {
       return;
     }
@@ -313,7 +313,7 @@ export class SuiPiano {
       });
     }
     var el = (document.getElementById(this.elementId) as any) as SVGSVGElement;
-    svgHelpers.gradient(el, 'piano-grad', 'vertical', [{ color: '#000', offset: '0%', opacity: 1 },
+    SvgHelpers.gradient(el, 'piano-grad', 'vertical', [{ color: '#000', offset: '0%', opacity: 1 },
     { color: '#777', offset: '50%', opacity: 1 }, { color: '#ddd', offset: '100%', opacity: 1 }]);
     el.appendChild(r.dom());
     this._renderControls();

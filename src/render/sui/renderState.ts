@@ -5,7 +5,7 @@ import { UndoBuffer } from '../../smo/xform/undo';
 import { SmoAttrs,  SmoConfiguration, SvgBox } from '../../smo/data/common';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 import { SmoSelection } from '../../smo/xform/selections';
-import { svgHelpers } from '../../common/svgHelpers';
+import { SvgHelpers } from './svgHelpers';
 import { VxSystem } from '../vex/vxSystem';
 import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { SmoScore } from '../../smo/data/score';
@@ -159,7 +159,7 @@ export abstract class SuiRenderState {
         numAr.push({ x: measure.svg.logicalBox.x });
         numAr.push({ 'font-family': SourceSansProFont.fontFamily });
         numAr.push({ 'font-size': '10pt' });
-        svgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
+        SvgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
 
         // Show line-feed symbol
         const formatIndex = SmoMeasure.systemOptions.findIndex((option) => (measure as any)[option] !== (SmoMeasure.defaults as any)[option]);
@@ -169,7 +169,7 @@ export abstract class SuiRenderState {
           starAr.push({ x: measure.svg.logicalBox.x + 25 });
           starAr.push({ 'font-family': SourceSansProFont.fontFamily });
           starAr.push({ 'font-size': '12pt' });
-          svgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', '\u21b0');
+          SvgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', '\u21b0');
         }
       }
     });
@@ -204,7 +204,7 @@ export abstract class SuiRenderState {
         this.measureMapper.scroller.scrollAbsolute(0, 0);
       }
     }
-    svgHelpers.svgViewport(this.context.svg, 0, 0, pageWidth, totalHeight, renderScale);
+    SvgHelpers.svgViewport(this.context.svg, 0, 0, pageWidth, totalHeight, renderScale);
     // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
     console.log('layout setViewport: pstate initial');
     this.dirty = true;
@@ -494,7 +494,7 @@ export abstract class SuiRenderState {
     for (i = 1; i < layoutMgr.pageLayouts.length; ++i) {
       const scaledPage = layoutMgr.getScaledPageLayout(i);
       const y = scaledPage.pageHeight * i;
-      svgHelpers.line(this.svg, 0, y, scaledPage.pageWidth, y,
+      SvgHelpers.line(this.svg, 0, y, scaledPage.pageWidth, y,
         { stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 }, 'pageLine');
     }
   }

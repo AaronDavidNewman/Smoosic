@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SuiInlineText, SuiTextBlock } from './textRender';
 import { PromiseHelpers } from '../../common/promiseHelpers';
-import { OutlineInfo, StrokeInfo, svgHelpers } from '../../common/svgHelpers';
+import { OutlineInfo, StrokeInfo, SvgHelpers } from './svgHelpers';
 import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SuiRenderState } from './renderState';
@@ -212,14 +212,14 @@ export class SuiTextEditor {
     if (this.svgText === null) {
       return false;
     }
-    var blocks = this.svgText.getIntersectingBlocks(svgHelpers.smoBox({
+    var blocks = this.svgText.getIntersectingBlocks(SvgHelpers.smoBox({
       x: ev.clientX,
       y: ev.clientY
-    }), svgHelpers.smoBox(this.scroller.scrollState.scroll));
+    }), SvgHelpers.smoBox(this.scroller.scrollState.scroll));
 
     // The mouse is not over the text
     if (!blocks.length) {
-      svgHelpers.eraseOutline(this.context.svg, 'text-suggestion');
+      SvgHelpers.eraseOutline(this.context.svg, 'text-suggestion');
 
       // If the user clicks and there was a previous selection, treat it as selected
       if (ev.type === 'click' && this.suggestionIndex >= 0) {
@@ -237,12 +237,12 @@ export class SuiTextEditor {
     // outline the text that is hovered.  Since mouse is a point
     // there should only be 1
     blocks.forEach((block) => {
-      svgHelpers.outlineRect(this._suggestionParameters(block.box, 'text-suggestion'));
+      SvgHelpers.outlineRect(this._suggestionParameters(block.box, 'text-suggestion'));
       this.suggestionIndex = block.index;
     });
     // if the user clicked on it, add it to the selection.
     if (ev.type === 'click') {
-      svgHelpers.eraseOutline(this.context.svg, 'text-suggestion');
+      SvgHelpers.eraseOutline(this.context.svg, 'text-suggestion');
       if (ev.shiftKey) {
         this._expandSelectionToSuggestion();
       } else {
@@ -518,7 +518,7 @@ export class SuiTextBlockEditor extends SuiTextEditor {
       context: this.context, box: bbox, classes: 'text-highlight',
       stroke: outlineStroke, scroll: this.scroller.scrollState.scroll, clientCoordinates: false
     };
-    svgHelpers.outlineLogicalRect(obj);
+    SvgHelpers.outlineLogicalRect(obj);
   }
 
   getText(): string {
@@ -823,8 +823,8 @@ export class SuiDragSession {
     this.dragging = false;
     this.startBox = this.textObject.getLogicalBox();
     this.startBox.y += this.textObject.maxFontHeight(1);
-    this.currentBox = svgHelpers.smoBox(this.startBox);
-    this.currentClientBox = svgHelpers.smoBox(svgHelpers.logicalToClient(this.context.svg, this.currentBox, this.scroller.scrollState.scroll));
+    this.currentBox = SvgHelpers.smoBox(this.startBox);
+    this.currentClientBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.context.svg, this.currentBox, this.scroller.scrollState.scroll));
   }
 
   _outlineBox() {
@@ -834,11 +834,11 @@ export class SuiDragSession {
       stroke: outlineStroke, scroll: this.scroller.scrollState.scroll,
       clientCoordinates: false
     };
-    svgHelpers.outlineLogicalRect(obj);
+    SvgHelpers.outlineLogicalRect(obj);
   }
 
   startDrag(e: any) {
-    if (!svgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, svgHelpers.smoBox(this.scroller.scrollState.scroll))) {
+    if (!SvgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, SvgHelpers.smoBox(this.scroller.scrollState.scroll))) {
       return;
     }
     this.dragging = true;
@@ -856,7 +856,7 @@ export class SuiDragSession {
     const svgY = this.currentBox.y;
     this.currentClientBox.x = e.clientX - this.xOffset;
     this.currentClientBox.y = e.clientY - this.yOffset;
-    const coor = svgHelpers.clientToLogical(this.context.svg,
+    const coor = SvgHelpers.clientToLogical(this.context.svg,
       {
         x: this.currentClientBox.x + + this.scroller.scrollState.scroll.x,
         y: this.currentClientBox.y + this.scroller.scrollState.scroll.y,
@@ -867,7 +867,7 @@ export class SuiDragSession {
     this.textObject.offsetStartX(this.currentBox.x - svgX);
     this.textObject.offsetStartY(this.currentBox.y - svgY);
     this.textObject.render();
-    svgHelpers.eraseOutline(this.context.svg, 'text-drag');
+    SvgHelpers.eraseOutline(this.context.svg, 'text-drag');
     this._outlineBox();
   }
   get deltaX(): number {
@@ -882,7 +882,7 @@ export class SuiDragSession {
     this.textGroup.offsetX(this.deltaX);
     this.textGroup.offsetY(this.deltaY);
     this.dragging = false;
-    svgHelpers.eraseOutline(this.context.svg, 'text-drag');
+    SvgHelpers.eraseOutline(this.context.svg, 'text-drag');
   }
 }
 

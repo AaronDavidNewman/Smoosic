@@ -5,7 +5,7 @@ import { mxmlScore } from './xmlScore';
 import { SmoSelector } from '../xform/selections';
 import { SmoStaffHairpin } from '../data/staffModifiers';
 import { SmoNote } from '../data/note';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from '../data/music';
 import { SmoScore } from '../data/score';
 import { SmoMeasure } from '../data/measure';
 import { SmoSystemStaff } from '../data/systemStaff';
@@ -356,12 +356,12 @@ export class SmoToXml {
     if (smoState.keySignature && measure.keySignature === smoState.keySignature) {
       return; // no key change
     }
-    const flats = smoMusic.getFlatsInKeySignature(measure.keySignature);
+    const flats = SmoMusic.getFlatsInKeySignature(measure.keySignature);
     const nn = mxmlHelpers.createTextElementChild;
     if (flats > 0) {
       fifths = -1 * flats;
     } else {
-      fifths = smoMusic.getSharpsInKeySignature(measure.keySignature);
+      fifths = SmoMusic.getSharpsInKeySignature(measure.keySignature);
     }
     const keyElement = nn(attributesElement, 'key', null, '');
     nn(keyElement, 'fifths', { fifths }, 'fifths');

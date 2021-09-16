@@ -3,7 +3,7 @@
 import { SmoAttrs, Ticks, Pitch, FontInfo, SmoObjectParams, Transposable, SvgBox, SmoModifierBase } from './common';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from './music';
 
 const VF = eval('Vex.Flow');
 // const Smo = eval('globalThis.Smo');
@@ -71,7 +71,7 @@ export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
       }]
     }));
   }
-  // TODO: Matches SmoNote - move to smoMusic?
+  // TODO: Matches SmoNote - move to SmoMusic?
   static get parameterArray() {
     const rv: string[] = [];
     // eslint-disable-next-line
@@ -92,8 +92,8 @@ export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
   }
 
   toVexGraceNote() {
-    const p = smoMusic.smoPitchesToVex(this.pitches);
-    const rv = { duration: smoMusic.closestVexDuration(this.tickCount()), keys: p, slash: this.slash };
+    const p = SmoMusic.smoPitchesToVex(this.pitches);
+    const rv = { duration: SmoMusic.closestVexDuration(this.tickCount()), keys: p, slash: this.slash };
     return rv;
   }
 

@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SmoBarline } from '../../smo/data/measureModifiers';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from '../../smo/data/music';
 
 const VF = eval('Vex.Flow');
 
@@ -53,8 +53,8 @@ export class vexGlyph {
     return vexGlyph.dimensions.tempo;
   }
   static keySignatureLength(key: string) {
-    return smoMusic.getSharpsInKeySignature(key) * vexGlyph.width(vexGlyph.dimensions.sharp) +
-      smoMusic.getFlatsInKeySignature(key) * vexGlyph.width(vexGlyph.dimensions.flat) +
+    return SmoMusic.getSharpsInKeySignature(key) * vexGlyph.width(vexGlyph.dimensions.sharp) +
+      SmoMusic.getFlatsInKeySignature(key) * vexGlyph.width(vexGlyph.dimensions.flat) +
       vexGlyph.dimensions.keySignature.spacingRight;
   }
   static get timeSignature() {

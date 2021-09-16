@@ -2,62 +2,62 @@
 // that need to be created via reflection.
 // ui application components
 import { SuiApplication } from './application';
-import { suiController } from './controller';
+import { suiController } from '../ui/controller';
 import {
     RibbonButtons, DisplaySettings, NoteButtons, TextButtons,
     ChordButtons, MicrotoneButtons, StaveButtons, BeamButtons, MeasureButtons,
     DebugButtons, DurationButtons, VoiceButtons, PlayerButtons,
     ArticulationButtons, NavigationButtons, ExtendedCollapseParent
-} from './ribbon';
-import { SuiExceptionHandler } from './exceptions';
-import { Qwerty } from './qwerty';
+} from '../ui/ribbon';
+import { SuiExceptionHandler } from '../ui/exceptions';
+import { Qwerty } from '../ui/qwerty';
 import { SuiPiano } from '../render/sui/piano';
-import { SuiDom } from './dom';
+import { SuiDom } from '../ui/dom';
 import { basicJson, emptyScoreJson } from '../music/basic';
-import { SuiHelp } from './help';
+import { SuiHelp } from '../ui/help';
 
 // Language strings
-import { quickStartHtmlen, selectionHtmlen, enterDurationsHtmlen, enterPitchesHtmlen } from './i18n/language_en';
-import { quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHtmlar } from './i18n/language_ar';
+import { quickStartHtmlen, selectionHtmlen, enterDurationsHtmlen, enterPitchesHtmlen } from '../ui/i18n/language_en';
+import { quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHtmlar } from '../ui/i18n/language_ar';
 
 // ui dialogs and menus
 // Dialogs
-import { SuiModifierDialogFactory } from './dialog';
+import { SuiModifierDialogFactory } from '../ui/dialog';
 import { SuiTempoDialog, SuiInstrumentDialog, SuiMeasureDialog, SuiInsertMeasures,
-    SuiTimeSignatureDialog } from './dialogs/measureDialogs';
+    SuiTimeSignatureDialog } from '../ui/dialogs/measureDialogs';
 import { SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog,
-    SuiScoreFontDialog, SuiLayoutDialog,  } from './dialogs/scoreDialogs';
-import { SuiLibraryDialog } from './dialogs/libraryDialog';
+    SuiScoreFontDialog, SuiLayoutDialog,  } from '../ui/dialogs/scoreDialogs';
+import { SuiLibraryDialog } from '../ui/dialogs/libraryDialog';
 import { SuiDynamicModifierDialog, SuiTextTransformDialog, SuiLyricDialog, SuiChordChangeDialog,
-  helpModal } from './dialogs/textDialogs';
+  helpModal } from '../ui/dialogs/textDialogs';
 import { SuiStaffModifierDialog, SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
-    SuiHairpinAttributesDialog, SuiStaffGroupDialog } from './dialogs/staffDialogs';
+    SuiHairpinAttributesDialog, SuiStaffGroupDialog } from '../ui/dialogs/staffDialogs';
 import { SuiLoadFileDialog, SuiLoadMxmlDialog,
     SuiLoadActionsDialog, SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
-    SuiSaveMidiDialog, SuiSaveActionsDialog, SuiFileDialog } from './dialogs/fileDialogs';
+    SuiSaveMidiDialog, SuiSaveActionsDialog, SuiFileDialog } from '../ui/dialogs/fileDialogs';
     // Dialog components
 import {
     SuiDropdownComponent, SuiRockerComponent, SuiFileDownloadComponent,
     SuiToggleComponent, SuiButtonComponent, SuiDropdownComposite,
     SuiToggleComposite, SuiButtonComposite, SuiRockerComposite, SuiTextInputComposite,
     SuiTextInputComponent
-} from './dialogComponents';
-import { SuiFontComponent, SuiTextBlockComponent } from './dialogs/fontComponent';
-import { SuiTreeComponent } from './dialogs/treeComponent';
+} from '../ui/dialogComponents';
+import { SuiFontComponent, SuiTextBlockComponent } from '../ui/dialogs/fontComponent';
+import { SuiTreeComponent } from '../ui/dialogs/treeComponent';
 import {
     SuiTextInPlace, SuiLyricComponent, SuiChordComponent, SuiDragText,
     SuiNoteTextComponent
-} from './dialogs/textComponents';
+} from '../ui/dialogs/textComponents';
 import { CheckboxDropdownComponent, TieMappingComponent, StaffAddRemoveComponent,
-    StaffCheckComponent, TextCheckComponent} from './dialogs/staffComponents';
+    StaffCheckComponent, TextCheckComponent} from '../ui/dialogs/staffComponents';
 // menus
 import {
     suiMenuManager, SuiScoreMenu, SuiFileMenu, SuiLibraryMenu,
     SuiDynamicsMenu, SuiTimeSignatureMenu, SuiKeySignatureMenu, SuiStaffModifierMenu,
     SuiLanguageMenu, SuiMeasureMenu, SuiAddStaffMenu
-} from './menus';
+} from '../ui/menus';
 
-import { SuiXhrLoader } from './fileio/xhrLoader';
+import { SuiXhrLoader } from '../ui/fileio/xhrLoader';
 import { PromiseHelpers } from '../common/promiseHelpers';
 // render library
 import { SuiScoreView } from '../render/sui/scoreView';

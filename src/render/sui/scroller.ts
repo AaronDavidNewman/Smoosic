@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { svgHelpers } from '../../common/svgHelpers';
+import { SvgHelpers } from './svgHelpers';
 import { SvgBox, SvgPoint } from '../../smo/data/common';
 declare var $: any;
 export interface ScrollState {
@@ -43,7 +43,7 @@ export class SuiScroller {
   // update viewport in response to scroll events
   handleScroll(x: number, y: number) {
     this._scroll = { x, y };
-    this.viewport = svgHelpers.boxPoints(
+    this.viewport = SvgHelpers.boxPoints(
       $(this.selector).offset().left,
       $(this.selector).offset().top,
       $(this.selector).width(),
@@ -90,7 +90,7 @@ export class SuiScroller {
   // Update viewport size, and also fix height of scroll region.
   updateViewport() {
     $(this.selector).css('height', (window.innerHeight - $(this.selector).offset().top).toString() + 'px');
-    this.viewport = svgHelpers.boxPoints(
+    this.viewport = SvgHelpers.boxPoints(
       $(this.selector).offset().left,
       $(this.selector).offset().top,
       $(this.selector).width(),
@@ -102,7 +102,7 @@ export class SuiScroller {
   // music element to client coordinates, these are the coordinates used in the
   // map
   get scrollBox(): SvgBox {
-    return svgHelpers.boxPoints(this.viewport.x + this.netScroll.x,
+    return SvgHelpers.boxPoints(this.viewport.x + this.netScroll.x,
       this.viewport.y + this.netScroll.y,
       this.viewport.width,
       this.viewport.height
@@ -112,7 +112,7 @@ export class SuiScroller {
   get absScroll(): SvgBox {
     var x = $(this.selector).offset().left + $(this.selector)[0].scrollLeft;
     var y = $(this.selector).offset().top + $(this.selector)[0].scrollTop;
-    return svgHelpers.boxPoints(x,
+    return SvgHelpers.boxPoints(x,
       y,
       this.viewport.width,
       this.viewport.height

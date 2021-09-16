@@ -4,9 +4,9 @@ import { SuiDialogBase } from '../dialog';
 import { CheckboxDropdownComponent } from './staffComponents';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoMeasureText, SmoTempoText } from '../../smo/data/measureModifiers';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from '../../smo/data/music';
 import { SmoSelection } from '../../smo/xform/selections';
-import { svgHelpers } from '../../common/svgHelpers';
+import { SvgHelpers } from '../../render/sui/svgHelpers';
 
 // ## measureDialogs.js
 // This file contains dialogs that affect all measures at a certain position,
@@ -134,7 +134,7 @@ export class SuiMeasureDialog extends SuiDialogBase {
     // TODO: move pickup out of this dialog
     if (this.pickupCtrl.changeFlag) {
       if (this.pickupCtrl.toggleCtrl.getValue() === false) {
-        this.view.createPickup(smoMusic.timeSignatureToTicks(this.measure.timeSignature));
+        this.view.createPickup(SmoMusic.timeSignatureToTicks(this.measure.timeSignature));
       } else {
         this.view.createPickup(this.pickupCtrl.dropdownCtrl.getValue());
       }
@@ -726,7 +726,7 @@ export class SuiTempoDialog extends SuiDialogBase {
       parameters.modifier = new SmoTempoText();
     }
     if (!parameters.modifier.renderedBox) {
-      parameters.modifier.renderedBox = svgHelpers.copyBox(measure.svg.renderedBox);
+      parameters.modifier.renderedBox = SvgHelpers.copyBox(measure.svg.renderedBox);
     }
     if (!parameters.modifier || !parameters.measures) {
       throw new Error('modifier attribute dialog must have modifier and selection');

@@ -7,7 +7,7 @@ import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase } from '../data/
 import { SmoScore } from '../data/score';
 import { SmoMeasure, SmoMeasureParams } from '../data/measure';
 import { emptyScoreJson } from '../../music/basic';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from '../data/music';
 import { SmoGraceNote, SmoOrnament, SmoArticulation } from '../data/noteModifiers';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { SmoNote, SmoNoteParams } from '../data/note';
@@ -271,9 +271,9 @@ export class mxmlScore {
     if (keyNode.length) {
       const fifths = mxmlHelpers.getNumberFromElement(keyNode[0], 'fifths', 0);
       if (fifths < 0) {
-        smoKey = smoMusic.circleOfFifths[smoMusic.circleOfFifths.length + fifths];
+        smoKey = SmoMusic.circleOfFifths[SmoMusic.circleOfFifths.length + fifths];
       } else {
-        smoKey = smoMusic.circleOfFifths[fifths];
+        smoKey = SmoMusic.circleOfFifths[fifths];
       }
       xmlState.keySignature = smoKey.letter.toUpperCase();
       if (smoKey.accidental !== 'n') {
@@ -452,7 +452,7 @@ export class mxmlScore {
         xmlState.graceNotes = []; // clear the grace note array
         // If this note starts later than the cursor due to forward, pad with rests
         if (xmlState.tickCursor > xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed) {
-          const pads = smoMusic.splitIntoValidDurations(
+          const pads = SmoMusic.splitIntoValidDurations(
             xmlState.tickCursor - xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed);
           pads.forEach((pad) => {
             const clefString: Clef = xmlState.staffArray[staffIndex].clefInfo.clef as Clef;
@@ -570,7 +570,7 @@ export class mxmlScore {
       for (i = 0; i < measure.voices.length; ++i) {
         const curTicks = measure.getTicksFromVoice(i);
         if (curTicks < maxTicks) {
-          const tickAr = smoMusic.splitIntoValidDurations(maxTicks - curTicks);
+          const tickAr = SmoMusic.splitIntoValidDurations(maxTicks - curTicks);
           for (j = 0; j < tickAr.length; ++j) {
             measure.voices[i].notes.push(
               SmoMeasure.createRestNoteWithDuration(tickAr[j], measure.clef)

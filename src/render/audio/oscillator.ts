@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from '../../smo/data/music';
 import { Pitch } from '../../smo/data/common';
 import { SmoMicrotone } from '../../smo/data/noteModifiers';
 import { SmoMeasure } from '../../smo/data/measure';
@@ -26,7 +26,7 @@ export class SuiAudioPitch {
       lix = 0;
       letters.forEach((letter) => {
         const freq = base * Math.pow(just, lix);
-        var enharmonics = smoMusic.getEnharmonics(letter);
+        var enharmonics = SmoMusic.getEnharmonics(letter);
         enharmonics.forEach((en) => {
           // Adjust for B4 higher than C4
           const adjOctave = (letter[0] === 'b' && en[0] === 'c') ?
@@ -50,7 +50,7 @@ export class SuiAudioPitch {
   }
 
   static _rawPitchToFrequency(smoPitch: Pitch, offset: number): number {
-    const npitch = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(smoPitch) + offset);
+    const npitch = SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(smoPitch) + offset);
     const vx = npitch.letter.toLowerCase() + npitch.accidental + npitch.octave.toString();
     return SuiAudioPitch.pitchFrequencyMap[vx];
   }
@@ -63,9 +63,9 @@ export class SuiAudioPitch {
     if (mt.length) {
       const tone = mt[0];
       const coeff = tone.toPitchCoeff;
-      pitchInt = smoMusic.smoPitchToInt(smoPitch);
+      pitchInt = SmoMusic.smoPitchToInt(smoPitch);
       pitchInt += (coeff > 0) ? 1 : -1;
-      const otherSmo = smoMusic.smoIntToPitch(pitchInt);
+      const otherSmo = SmoMusic.smoIntToPitch(pitchInt);
       const otherPitch = SuiAudioPitch._rawPitchToFrequency(otherSmo, offset);
       rv += Math.abs(rv - otherPitch) * coeff;
     }

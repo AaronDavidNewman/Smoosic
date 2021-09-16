@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SuiRenderState } from './renderState';
 import { VxSystem } from '../vex/vxSystem';
-import { svgHelpers } from '../../common/svgHelpers';
+import { SvgHelpers } from './svgHelpers';
 import { suiLayoutFormatter } from './formatter';
 import { ScaledPageLayout, SmoTextGroup, SmoPageLayout, SmoLayoutManager } from '../../smo/data/scoreModifiers';
 import { SuiTextBlock } from './textRender';
@@ -11,7 +11,7 @@ import { SmoTempoText, SmoMeasureFormat } from '../../smo/data/measureModifiers'
 import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { layoutDebug } from './layoutDebug';
 import { smoBeamerFactory } from '../../smo/xform/beamers';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from '../../smo/data/music';
 import { SvgBox, TimeSignature } from '../../smo/data/common';
 import { SmoMeasure, MeasureSvg } from '../../smo/data/measure';
 import { SmoScore } from '../../smo/data/score';
@@ -147,7 +147,7 @@ export class SuiScoreRender extends SuiRenderState {
   // ### calculateBeginningSymbols
   // calculate which symbols like clef, key signature that we have to render in this measure.
   calculateBeginningSymbols(systemIndex: number, measure: SmoMeasure, clefLast: string, keySigLast: string, timeSigLast: TimeSignature, tempoLast: SmoTempoText) {
-    const measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
+    const measureKeySig = SmoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
     measure.svg.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
     measure.svg.forceTimeSignature = (measure.measureNumber.measureIndex === 0 || (!SmoMeasure.timeSigEqual(timeSigLast, measure.timeSignature)));
     if (measure.timeSignature.display === false) {
@@ -210,7 +210,7 @@ export class SuiScoreRender extends SuiRenderState {
             at.push({ x: measure.svg.logicalBox.x + 25 });
             at.push({ 'font-family': SourceSansProFont.fontFamily });
             at.push({ 'font-size': '12pt' });
-            svgHelpers.placeSvgText(this.context.svg, at, 'measure-format', '*');
+            SvgHelpers.placeSvgText(this.context.svg, at, 'measure-format', '*');
           }
         }
       });
@@ -302,7 +302,7 @@ export class SuiScoreRender extends SuiRenderState {
       const lowestStaff = rowAdj.reduce((a, b) =>
         a.staffY > b.staffY ? a : b
       );
-      const sh = svgHelpers;
+      const sh = SvgHelpers;
       rowAdj.forEach((measure) => {
         const adj = lowestStaff.staffY - measure.staffY;
         measure.setY(measure.staffY + adj, '_justifyY');
@@ -353,7 +353,7 @@ export class SuiScoreRender extends SuiRenderState {
 
       // For each measure on the current line, move it down past the page break;
       currentLine.forEach((measure) => {
-        measure.setBox(svgHelpers.boxPoints(
+        measure.setBox(SvgHelpers.boxPoints(
           measure.svg.logicalBox.x, measure.svg.logicalBox.y + pageAdj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), '_checkPageBreak');
         measure.setY(measure.staffY + pageAdj, '_checkPageBreak');
       });
@@ -407,7 +407,7 @@ export class SuiScoreRender extends SuiRenderState {
         this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
 
         const ld = layoutDebug;
-        const sh = svgHelpers;
+        const sh = SvgHelpers;
         if (layoutDebug.mask & layoutDebug.values.system) {
           currentLine.forEach((measure) => {
             if (measure.svg.logicalBox) {
@@ -476,8 +476,8 @@ export class SuiScoreRender extends SuiRenderState {
       if (!measureToLeft) {
         measureToLeft = measure;
       }
-      s.measureKeySig = smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
-      s.keySigLast = smoMusic.vexKeySignatureTranspose(measureToLeft.keySignature, measure.transposeIndex);
+      s.measureKeySig = SmoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
+      s.keySigLast = SmoMusic.vexKeySignatureTranspose(measureToLeft.keySignature, measure.transposeIndex);
       s.tempoLast = measureToLeft.getTempo();
       s.timeSigLast = measureToLeft.timeSignature;
       s.clefLast = measureToLeft.clef;
@@ -490,7 +490,7 @@ export class SuiScoreRender extends SuiRenderState {
       measure.setX(x, 'render:estimateColumn');
 
       // Add custom width to measure:
-      measure.setBox(svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline), 'render: estimateColumn');
+      measure.setBox(SvgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline), 'render: estimateColumn');
       suiLayoutFormatter.estimateMeasureWidth(measure, scoreLayout.noteSpacing, accidentalMap);
       y = y + measure.svg.logicalBox.height + scoreLayout.intraGap;
       rowInSystem += 1;

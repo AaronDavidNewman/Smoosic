@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from './music';
 import { SmoAttrs, MeasureNumber, FontInfo, SmoObjectParams, SvgBox,  SmoModifierBase } from './common';
 import { SmoSelector } from '../xform/selections';
 
@@ -598,7 +598,7 @@ export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoText
   }
 
   _toVexDurationTempo() {
-    var vd = smoMusic.ticksToDuration[this.beatDuration];
+    var vd = SmoMusic.ticksToDuration[this.beatDuration];
     var dots = (vd.match(/d/g) || []).length;
     vd = vd.replace(/d/g, '');
     const rv: any = { duration: vd, dots, bpm: this.bpm };

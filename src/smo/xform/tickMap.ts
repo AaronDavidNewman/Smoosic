@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from '../data/music';
 import { TickMappable } from '../data/measure';
 import { Pitch, PitchLetter } from '../data/common';
 import { SmoNote } from '../data/note';
@@ -89,7 +89,7 @@ export class TickMap {
       const pitch: Pitch = note.pitches[i];
       const letter: string = pitch.letter.toLowerCase();
       const sigLetter: string = letter + pitch.accidental;
-      const sigKey = smoMusic.getKeySignatureKey(letter as PitchLetter, this.keySignature);
+      const sigKey = SmoMusic.getKeySignatureKey(letter as PitchLetter, this.keySignature);
       if (sigObj && sigObj[letter]) {
         const currentVal = sigObj[letter].pitch.letter + sigObj[letter].pitch.accidental;
         if (sigLetter !== currentVal) {
@@ -109,7 +109,7 @@ export class TickMap {
   // ### getActiveAccidental
   // return the active accidental for the given note
   getActiveAccidental(pitch: Pitch, iteratorIndex: number, keySignature: string) {
-    let defaultAccidental: string = smoMusic.getKeySignatureKey(pitch.letter, keySignature);
+    let defaultAccidental: string = SmoMusic.getKeySignatureKey(pitch.letter, keySignature);
     let i = 0;
     let j = 0;
     defaultAccidental = defaultAccidental.length > 1 ? defaultAccidental[1] : 'n';

@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from '../data/music';
 import { SmoSelector } from '../xform/selections';
 import { SmoAudioScore } from '../xform/audioTrack';
 import { SmoScore } from '../data/score';
@@ -51,7 +51,7 @@ export class SmoToMidi {
                 track.addEvent(rest);
               }
             } else {
-              const pitchArray = smoMusic.smoPitchesToMidiStrings(noteData.pitches);
+              const pitchArray = SmoMusic.smoPitchesToMidiStrings(noteData.pitches);
               const velocity = Math.round(127 * noteData.volume);
               const midiNote = new MidiWriter.NoteEvent({
                 channel: trackIx + 1,

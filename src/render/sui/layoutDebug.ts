@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { svgHelpers } from '../../common/svgHelpers';
+import { SvgHelpers } from './svgHelpers';
 import { SvgBox } from '../../smo/data/common';
 import { SmoMeasure } from '../../smo/data/measure';
 const VF = eval('Vex.Flow');
@@ -114,7 +114,7 @@ export class layoutDebug {
       box.height = 1;
     }
     if (layoutDebug.flagSet(flag)) {
-      svgHelpers.debugBox(svg, box, layoutDebug.classes[flag], 0);
+      SvgHelpers.debugBox(svg, box, layoutDebug.classes[flag], 0);
     }
   }
 
@@ -122,7 +122,7 @@ export class layoutDebug {
     $('#' + elementId).html('');
     $('#' + elementId).removeClass('hide');
     const renderer = new VF.Renderer(document.getElementById(elementId), VF.Renderer.Backends.SVG);
-    svgHelpers.svgViewport(renderer.getContext().svg, 0, 0, width, height, 1.0);
+    SvgHelpers.svgViewport(renderer.getContext().svg, 0, 0, width, height, 1.0);
     return renderer;
   }
 

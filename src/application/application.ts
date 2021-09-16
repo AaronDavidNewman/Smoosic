@@ -1,17 +1,17 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../common/serializationHelpers';
-import { suiController } from './controller';
+import { suiController } from '../ui/controller';
 import { SmoConfiguration } from '../smo/data/common';
 import { SuiScoreRender } from '../render/sui/scoreRender';
-import { suiMenuManager } from './menus';
+import { suiMenuManager } from '../ui/menus';
 import { SuiRenderDemon } from '../render/sui/layoutDemon';
-import { SuiKeyCommands } from './keyCommands';
+import { SuiKeyCommands } from '../ui/keyCommands';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { SmoScore } from '../smo/data/score';
-import { SmoTranslationEditor } from './i18n/translationEditor';
-import { SmoTranslator } from './i18n/language';
-import { browserEventSource } from './eventSource';
+import { SmoTranslationEditor } from '../ui/i18n/translationEditor';
+import { SmoTranslator } from '../ui/i18n/language';
+import { browserEventSource } from '../ui/eventSource';
 import { SuiOscillator } from '../render/audio/oscillator';
 import { ArialFont } from '../styles/font_metrics/arial_metrics';
 import { TimesFont } from '../styles/font_metrics/times_metrics';
@@ -21,8 +21,8 @@ import { MerriweatherFont } from '../styles/font_metrics/Merriweather-Regular';
 import { SourceSansProFont } from '../styles/font_metrics/ssp-sans-metrics';
 import { SourceSerifProFont } from '../styles/font_metrics/ssp-serif-metrics';
 import { _MidiWriter } from '../common/midiWriter';
-import { SuiDom } from './dom';
-import { librarySeed } from './fileio/library';
+import { SuiDom } from '../ui/dom';
+import { librarySeed } from '../ui/fileio/library';
 
 declare var SmoConfig : SmoConfiguration;
 
@@ -193,7 +193,7 @@ export class SuiApplication {
    * @param score(SmoScore) - the score
    */
   createUi(score: SmoScore) {
-    SuiDom.createDom();
+    SuiDom.createDom('Smoosic');
     const params: Partial<controllerParams> = {};
     params.keyBindingDefaults = suiController.keyBindingDefaults;
     params.eventSource = new browserEventSource(); // events come from the browser UI.

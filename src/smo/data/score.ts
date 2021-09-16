@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoSystemGroup, SmoTextGroup, SmoScoreModifierBase, SmoPageLayout, SmoLayoutManager, SmoFormattingManager } from './scoreModifiers';
 import { SmoSystemStaff, SmoSystemStaffParams } from './systemStaff';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from './music';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMeasure, SmoMeasureParams } from './measure';
 import { SmoMeasureFormat, SmoMeasureModifierBase } from './measureModifiers';
@@ -505,7 +505,7 @@ export class SmoScore {
     this.staves.forEach((staff) => {
       // Consider transpose for key of instrument
       const netOffset = staff.measures[measureIndex].transposeIndex;
-      const newKey = smoMusic.vexKeySigWithOffset(key, netOffset);
+      const newKey = SmoMusic.vexKeySigWithOffset(key, netOffset);
       staff.addKeySignature(measureIndex, newKey);
     });
   }
@@ -539,7 +539,7 @@ export class SmoScore {
       newMeasure.measureNumber = measure.measureNumber;
       // Consider key change if the proto measure is non-concert pitch
       newMeasure.keySignature =
-        smoMusic.vexKeySigWithOffset(newMeasure.keySignature,
+        SmoMusic.vexKeySigWithOffset(newMeasure.keySignature,
           newMeasure.transposeIndex - measure.transposeIndex);
       newMeasure.modifiers = [];
       measure.modifiers.forEach((modifier) => {

@@ -6,8 +6,8 @@
 // column, the rendering is deferred until all the measures have been
 // preformatted.
 import { SmoNote } from '../../smo/data/note';
-import { smoMusic } from '../../common/musicHelpers';
-import { svgHelpers } from '../../common/svgHelpers';
+import { SmoMusic } from '../../smo/data/music';
+import { SvgHelpers } from '../sui/svgHelpers';
 import { layoutDebug } from '../sui/layoutDebug';
 import { SmoRepeatSymbol, SmoMeasureText, SmoBarline, SmoMeasureModifierBase, SmoRehearsalMark } from '../../smo/data/measureModifiers';
 import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';
@@ -89,7 +89,7 @@ export class VxMeasure {
     for (i = 0; i < smoNote.pitches.length && this.tickmapObject !== null; ++i) {
       const pitch = smoNote.pitches[i];
       const duration = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex];
-      const keyAccidental = smoMusic.getAccidentalForKeySignature(pitch, this.smoMeasure.keySignature);
+      const keyAccidental = SmoMusic.getAccidentalForKeySignature(pitch, this.smoMeasure.keySignature);
       const accidentals = this.tickmapObject.accidentalArray.filter((ar) =>
         ar.duration < duration && ar.pitches[pitch.letter]);
       const acLen = accidentals.length;
@@ -235,15 +235,15 @@ export class VxMeasure {
     // can be rendered.  Vex calculates the actual ticks later when the tuplet is made
     var duration =
       smoNote.isTuplet ?
-        smoMusic.closestVexDuration(smoNote.tickCount) :
-        smoMusic.ticksToDuration[smoNote.tickCount];
+        SmoMusic.closestVexDuration(smoNote.tickCount) :
+        SmoMusic.ticksToDuration[smoNote.tickCount];
 
     if (typeof (duration) === 'undefined') {
       console.warn('bad duration in measure ' + this.smoMeasure.measureNumber.measureIndex);
       duration = '8';
     }
     // transpose for instrument-specific keys
-    const keys = smoMusic.smoPitchesToVexKeys(smoNote.pitches, 0, smoNote.noteHead);
+    const keys = SmoMusic.smoPitchesToVexKeys(smoNote.pitches, 0, smoNote.noteHead);
     const noteParams = {
       clef: smoNote.clef,
       keys,
@@ -305,7 +305,7 @@ export class VxMeasure {
         x += VF.TextDynamics.GLYPHS[ch].width;
       }
     });
-    textObj.logicalBox = svgHelpers.smoBox(group.getBBox());
+    textObj.logicalBox = SvgHelpers.smoBox(group.getBBox());
     this.context.closeGroup();
   }
 
@@ -476,8 +476,8 @@ export class VxMeasure {
     var j = 0;
     $(this.context.svg).find('g.' + this.smoMeasure.getClassId()).remove();
 
-    const key = smoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature, 0);
-    const canceledKey = this.smoMeasure.canceledKeySignature ? smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature, 0)
+    const key = SmoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature, 0);
+    const canceledKey = this.smoMeasure.canceledKeySignature ? SmoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature, 0)
       : this.smoMeasure.canceledKeySignature;
 
     const staffX = this.smoMeasure.staffX + this.smoMeasure.format.padLeft;

@@ -33,7 +33,7 @@ module.exports = function (grunt) {
 
   const webpackConfig = {
     mode: 'development',
-    entry: path.join(BASE_DIR, 'src/ui/entryPoint.ts'),
+    entry: path.join(BASE_DIR, 'src/application/exports.ts'),
     output: {
       path: BUILD_DIR,
       filename: 'smoosic.js',

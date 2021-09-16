@@ -1,12 +1,16 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { htmlHelpers } from "../common/htmlHelpers";
-import { svgHelpers } from "../common/svgHelpers";
-import { SuiPiano } from "../render/sui/piano";
+import { htmlHelpers } from '../common/htmlHelpers';
+import { SvgHelpers } from '../render/sui/svgHelpers';
+import { SuiPiano } from '../render/sui/piano';
+import { SmoConfiguration} from '../smo/data/common';
+
+declare var SmoConfig: SmoConfiguration;
+declare var $: any;
 
 export class SuiDom {
   static splash() {
-    var b = htmlHelpers.buildDom;
+    var b: any = htmlHelpers.buildDom;
     var logoPath = SmoConfig.smoPath + '/styles/images/logo.png'
     var r = b('div').classes('bug-modal').append(
       b('img').attr('src', logoPath).classes('splash-logo'))
@@ -21,7 +25,7 @@ export class SuiDom {
     }, 1000);
   }
 
-  static createDom(title) {
+  static createDom(title: string) {
     if (title) {
       $('h1.testTitle').text(title);
     }
@@ -60,7 +64,7 @@ export class SuiDom {
               .attr('dir', 'ltr')))));
     $('#' + smoId).append(r.dom());
     var pianoDom = $('.piano-keys')[0];
-    var svg = document.createElementNS(svgHelpers.namespace, 'svg');
+    var svg = document.createElementNS(SvgHelpers.namespace, 'svg');
     svg.id = 'piano-svg';
     svg.setAttributeNS('', 'width', '' + SuiPiano.owidth * SuiPiano.dimensions.octaves);
     svg.setAttributeNS('', 'height', '' + SuiPiano.dimensions.wheight);

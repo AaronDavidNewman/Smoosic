@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { svgHelpers } from '../../common/svgHelpers';
-import { smoMusic } from '../../common/musicHelpers';
+import { SvgHelpers } from './svgHelpers';
+import { SmoMusic } from '../../smo/data/music';
 import { vexGlyph } from '../vex/glyphDimensions';
 import { SmoDynamicText, SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoNote } from '../../smo/data/note';
@@ -42,7 +42,7 @@ export class suiLayoutFormatter {
         noteWidth += (headWidth + vexGlyph.dimensions.noteHead.spacingRight) * note.graceNotes.length;
         noteWidth += dotWidth * dots + vexGlyph.dimensions.dot.spacingRight * dots;
         note.pitches.forEach((pitch) => {
-          const keyAccidental = smoMusic.getAccidentalForKeySignature(pitch, smoMeasure.keySignature);
+          const keyAccidental = SmoMusic.getAccidentalForKeySignature(pitch, smoMeasure.keySignature);
           const accidentals = tmObj.accidentalArray.filter((ar) =>
             ar.duration < duration && ar.pitches[pitch.letter]);
           const acLen = accidentals.length;
@@ -140,7 +140,7 @@ export class suiLayoutFormatter {
     measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight');
     // Calculate the space for left/right text which displaces the measure.
     // measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
-    measure.setBox(svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, measure.svg.logicalBox.height),
+    measure.setBox(SvgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, measure.svg.logicalBox.height),
       'estimate measure width');
   }
   static _beamGroupForNote(measure: SmoMeasure, note: SmoNote): ISmoBeamGroup | null {
@@ -164,7 +164,7 @@ export class suiLayoutFormatter {
     const hilo = { hi: 0, lo: 9999999 };
     note.pitches.forEach((pitch) => {
       // 10 pixels per line
-      const ledger = smoMusic.pitchToLedgerLine(measure.clef, pitch);
+      const ledger = SmoMusic.pitchToLedgerLine(measure.clef, pitch);
       const noteHeight = ledger > 0 ? 10 : -10;
       const px = (10 * ledger) + noteHeight;
       hilo.lo = Math.min(hilo.lo, px);
@@ -210,7 +210,7 @@ export class suiLayoutFormatter {
           // an  auto-flag note is up if the 1st note is middle line
           if (flag === SmoNote.flagStates.auto) {
             const pitch = bg.notes[0].pitches[0];
-            flag = smoMusic.pitchToLedgerLine(measure.clef, pitch)
+            flag = SmoMusic.pitchToLedgerLine(measure.clef, pitch)
                >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
           }
         }  else {
@@ -218,7 +218,7 @@ export class suiLayoutFormatter {
           // an  auto-flag note is up if the 1st note is middle line
           if (flag === SmoNote.flagStates.auto) {
             const pitch = note.pitches[0];
-            flag = smoMusic.pitchToLedgerLine(measure.clef, pitch)
+            flag = SmoMusic.pitchToLedgerLine(measure.clef, pitch)
               >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
           }
         }

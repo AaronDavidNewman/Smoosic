@@ -6,7 +6,7 @@ import { SmoSystemGroup, SmoFormattingManager } from '../data/scoreModifiers';
 import { SmoNote } from '../data/note';
 import { SmoTie, SmoStaffHairpin, SmoSlur, SmoSlurParams } from '../data/staffModifiers';
 import { SmoLyric, SmoDynamicText, SmoGraceNote } from '../data/noteModifiers';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from '../data/music';
 import { SmoTuplet } from '../data/tuplet';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { Clef } from '../data/common';
@@ -320,7 +320,7 @@ export class XmlState {
   }
   static slurDirectionFromNote(clef: Clef, note: SmoNote, orientation: string) {
     const rv = { invert: false, yOffset: SmoSlur.defaults.yOffset };
-    const flagState = smoMusic.flagStateFromNote(clef, note);
+    const flagState = SmoMusic.flagStateFromNote(clef, note);
     if (flagState === SmoNote.flagStates.up && orientation === 'over') {
       rv.invert = true;
       rv.yOffset += 50;

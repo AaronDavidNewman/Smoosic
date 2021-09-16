@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from '../data/music';
 import { SmoScore } from '../data/score';
 
 // ## SmoToVex
@@ -17,7 +17,7 @@ export class SmoToVex {
           voiceStrings.push([]);
           smoVoice.notes.forEach((smoNote, nix) => {
             const noteId = 'v' + vix + 'n' + nix;
-            let duration = smoMusic.ticksToDuration[smoMusic.closestDurationTickLtEq(smoNote.tickCount)];
+            let duration = SmoMusic.ticksToDuration[SmoMusic.closestDurationTickLtEq(smoNote.tickCount)];
             duration = duration.replaceAll('d', '.');
             if (smoNote.pitches.length > 1) {
               keyString += '(';
@@ -28,7 +28,7 @@ export class SmoToVex {
               if (smoNote.accidentalsRendered && smoNote.accidentalsRendered[pitchIx].length) {
                 pitch.accidental = smoPitch.accidental;
               }
-              keyString += smoMusic.pitchToEasyScore(pitch);
+              keyString += SmoMusic.pitchToEasyScore(pitch);
               if (pitchIx + 1 < smoNote.pitches.length) {
                 keyString += ' ';
               }

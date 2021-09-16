@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { svgHelpers } from '../common/svgHelpers';
+import { SvgHelpers } from '../render/sui/svgHelpers';
 import { htmlHelpers } from '../common/htmlHelpers';
 import { SmoTranslator } from './i18n/language';
 import { SmoLyric } from '../smo/data/noteModifiers';
@@ -171,7 +171,7 @@ export class SuiDialogBase {
     // Make sure the dialog is visible if the selection is not
     setTimeout(() => {
       scroller.scrollVisibleBox(
-        svgHelpers.smoBox(box)
+        SvgHelpers.smoBox(box)
       );
     }, 1);
   }
@@ -204,7 +204,7 @@ export class SuiDialogBase {
   // ### positionGlobally
   // position the dialog box in the center of the current scroll region
   positionGlobally() {
-    const box = svgHelpers.boxPoints(250, 250, 1, 1);
+    const box = SvgHelpers.boxPoints(250, 250, 1, 1);
     SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
   }
   // ### postionFromSelection
@@ -284,7 +284,7 @@ export class SuiDialogBase {
       this.position(this.modifier.renderedBox);
     }
     this.view.tracker.scroller.scrollVisibleBox(
-      svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
+      SvgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
     );
     this.makeDraggable();
   }

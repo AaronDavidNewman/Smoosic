@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoArticulation, SmoNoteModifierBase, SmoOrnament, SmoLyric } from '../data/noteModifiers';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
 import { Pitch, PitchLetter } from '../data/common';
 import { SmoSelector } from '../xform/selections';
@@ -62,7 +62,7 @@ export class mxmlHelpers {
   // ### closestStemType
   // smo infers the stem type from the duration, but other applications don't
   static closestStemType(ticks: number) {
-    const nticks = VF.durationToTicks(smoMusic.vexStemType(ticks));
+    const nticks = VF.durationToTicks(SmoMusic.vexStemType(ticks));
     return mxmlHelpers.ticksToNoteTypeMap[nticks];
   }
   static get beamStates(): Record<string, number> {

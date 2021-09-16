@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SuiMapper, LocalModifier, SuiRendererBase } from './mapper';
-import { svgHelpers, StrokeInfo, OutlineInfo } from '../../common/svgHelpers';
+import { SvgHelpers, StrokeInfo, OutlineInfo } from './svgHelpers';
 import { SmoSelection, SmoSelector, ModifierTab } from '../../smo/xform/selections';
 import { SuiRenderState } from './renderState';
 import { htmlHelpers } from '../../common/htmlHelpers';
@@ -44,7 +44,7 @@ export class SuiTracker extends SuiMapper {
     if (!r) {
       return;
     }
-    const abs = svgHelpers.logicalToClient(this.renderer.svg, svgHelpers.smoBox(note.logicalBox), this.scroller.scrollState.scroll);
+    const abs = SvgHelpers.logicalToClient(this.renderer.svg, SvgHelpers.smoBox(note.logicalBox), this.scroller.scrollState.scroll);
     const ydiff = Math.abs(r.y - abs.y);
     const xdiff = Math.abs(r.x - abs.x);
     const preventScroll = $('body').hasClass('modal');
@@ -116,7 +116,7 @@ export class SuiTracker extends SuiMapper {
       $('.workspace').append(rd);
       // todo, need lower right for x
       if (mbox) {
-      this.scroller.scrollVisibleBox(svgHelpers.boxPoints(
+      this.scroller.scrollVisibleBox(SvgHelpers.boxPoints(
         mbox.x, mbox.y, mbox.width, mbox.height));
       }
     }
@@ -172,7 +172,7 @@ export class SuiTracker extends SuiMapper {
       return;
     }
     const local: LocalModifier = this.localModifiers[this.modifierIndex];
-    const box: SvgBox = svgHelpers.smoBox(local.box) as SvgBox;
+    const box: SvgBox = SvgHelpers.smoBox(local.box) as SvgBox;
     this.modifierSelections = [{ index: 0, box, modifier: local.modifier, selection: local.selection }];
     this._highlightModifier();
   }
@@ -824,7 +824,7 @@ export class SuiTracker extends SuiMapper {
       if (box === null) {
         box = artifact.modifier.renderedBox ?? null;
       } else {
-        box = svgHelpers.unionRect(box, svgHelpers.smoBox(artifact.modifier.renderedBox));
+        box = SvgHelpers.unionRect(box, SvgHelpers.smoBox(artifact.modifier.renderedBox));
       }
     });
     if (box === null) {
@@ -841,8 +841,8 @@ export class SuiTracker extends SuiMapper {
       return;
     }
     const headEl = heads[index];
-    const lbox = svgHelpers.smoBox(headEl.getBBox());
-    const box: SvgBox = svgHelpers.smoBox(svgHelpers.logicalToClient(this.svg, lbox, this.scroller.scrollState.scroll));
+    const lbox = SvgHelpers.smoBox(headEl.getBBox());
+    const box: SvgBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.svg, lbox, this.scroller.scrollState.scroll));
     this._drawRect(box, 'staffModifier');
   }
 
@@ -902,7 +902,7 @@ export class SuiTracker extends SuiMapper {
     if (!prevSel || !prevSel.box) {
       return;
     }
-    curBox = svgHelpers.smoBox(prevSel.box);
+    curBox = SvgHelpers.smoBox(prevSel.box);
     const boxes: SvgBox[] = [];
     for (i = 1; i < sorted.length; ++i) {
       const sel = sorted[i];
@@ -911,10 +911,10 @@ export class SuiTracker extends SuiMapper {
       }
       const ydiff = Math.abs(prevSel.box.y - sel.box.y);
       if (sel.selector.staff === prevSel.selector.staff && ydiff < 1.0) {
-        curBox = svgHelpers.unionRect(curBox, sel.box);
+        curBox = SvgHelpers.unionRect(curBox, sel.box);
       } else if (curBox) {
         boxes.push(curBox);
-        curBox = svgHelpers.smoBox(sel.box);
+        curBox = SvgHelpers.smoBox(sel.box);
       }
       this._highlightActiveVoice(sel);
       prevSel = sel;
@@ -935,6 +935,6 @@ export class SuiTracker extends SuiMapper {
   }
 
   _drawRect(bb: SvgBox | SvgBox[], stroke: string) {
-    svgHelpers.outlineRect(this._suggestionParameters(bb, stroke));
+    SvgHelpers.outlineRect(this._suggestionParameters(bb, stroke));
   }
 }

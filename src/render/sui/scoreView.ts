@@ -4,7 +4,7 @@ import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { UndoBuffer } from '../../smo/xform/undo';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
 import { SuiScroller } from './scroller';
-import { svgHelpers } from '../../common/svgHelpers';
+import { SvgHelpers } from './svgHelpers';
 import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SuiTracker } from './tracker';
 import { SmoScore } from '../../smo/data/score';
@@ -126,7 +126,7 @@ export abstract class SuiScoreView {
     const layoutManager = this.score.layoutManager.getGlobalLayout();
     const lh = layoutManager.pageHeight / layoutManager.svgScale;
     const lw = layoutManager.pageWidth / layoutManager.svgScale;
-    const pt = svgHelpers.logicalToClient(this.renderer.svg, svgHelpers.smoBox({ x: lw, y: lh }), this.tracker.scroller.scrollState.scroll);
+    const pt = SvgHelpers.logicalToClient(this.renderer.svg, SvgHelpers.smoBox({ x: lw, y: lh }), this.tracker.scroller.scrollState.scroll);
     return Math.round(midY / pt.y);
   }
   // ### _undoRectangle

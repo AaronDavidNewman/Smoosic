@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from './music';
 import {
   SmoBarline, SmoMeasureModifierBase, SmoRepeatSymbol, SmoTempoText, SmoMeasureFormat,
   SmoVolta, SmoRehearsalMarkParams, SmoRehearsalMark, SmoTempoTextParams
@@ -9,7 +9,7 @@ import {
 import { SmoNote } from './note';
 import { SmoTuplet } from './tuplet';
 import { layoutDebug } from '../../render/sui/layoutDebug';
-import { svgHelpers } from '../../common/svgHelpers';
+import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { TickMap, TickAccidental } from '../xform/tickMap';
 import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, FontInfo, TimeSignature } from './common';
 
@@ -204,7 +204,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
 
     this.setDefaultBarlines();
 
-    this.keySignature = smoMusic.vexKeySigWithOffset(this.keySignature, this.transposeIndex);
+    this.keySignature = SmoMusic.vexKeySigWithOffset(this.keySignature, this.transposeIndex);
 
     if (typeof (params.format) === 'undefined') {
       this.format = new SmoMeasureFormat(SmoMeasureFormat.defaults);
@@ -272,7 +272,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
         // If this is key signature, make sure we normalize to concert pitch
         // from instrument pitch
         if (attr === 'keySignature') {
-          curValue = smoMusic.vexKeySigWithOffset(curValue, -1 * this.transposeIndex);
+          curValue = SmoMusic.vexKeySigWithOffset(curValue, -1 * this.transposeIndex);
         }
         if (field.ctor && field.ctor === 'SmoTempoText') {
           if (field.compare(attrCurrentValue[attr]) === false) {
@@ -652,7 +652,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
 
   setBox(box: SvgBox, description: string) {
     layoutDebug.measureHistory(this, 'logicalBox', box, description);
-    this.svg.logicalBox = svgHelpers.smoBox(box);
+    this.svg.logicalBox = SvgHelpers.smoBox(box);
   }
 
   saveUnjustifiedWidth() {
@@ -797,7 +797,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
 
   isPickup(): boolean {
     const ticks = this.getTicksFromVoice(0);
-    const goal = smoMusic.timeSignatureToTicks(this.timeSignature.timeSignature);
+    const goal = SmoMusic.timeSignatureToTicks(this.timeSignature.timeSignature);
     return (ticks < goal);
   }
 

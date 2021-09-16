@@ -1,6 +1,6 @@
 // Credit for Midi functionality goes to:
 // https://github.com/grimmdude/MidiWriterJS
-import { smoMusic } from './musicHelpers';
+import { SmoMusic } from '../smo/data/music';
 export var _MidiWriter = function() {
 /**
  * MIDI file format constants.
@@ -295,7 +295,7 @@ var Utils = /*#__PURE__*/function () {
   }, {
     key: "getPitch",
     value: function getPitch(pitch) {
-      return smoMusic.midiPitchToMidiNumber(pitch);
+      return SmoMusic.midiPitchToMidiNumber(pitch);
     }
     /**
      * Translates number of ticks to MIDI timestamp format, returning an array of

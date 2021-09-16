@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { VxMeasure } from './vxMeasure';
 import { SmoSelection } from '../../smo/xform/selections';
-import { svgHelpers } from '../../common/svgHelpers';
+import { SvgHelpers } from '../sui/svgHelpers';
 import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoStaffHairpin, SmoSlur, StaffModifierBase, SmoTie } from '../../smo/data/staffModifiers';
 import { SmoScore } from '../../smo/data/score';
@@ -215,7 +215,7 @@ export class VxSystem {
       lyricHyphens.forEach((lyric) => {
         const parent = $(this.context.svg).find(lyric.selector)[0];
         if (parent && lyric.logicalBox !== null) {
-          const text = document.createElementNS(svgHelpers.namespace, 'text');
+          const text = document.createElementNS(SvgHelpers.namespace, 'text');
           text.textContent = '-';
           text.setAttributeNS('', 'x', lyric.hyphenX.toString());
           text.setAttributeNS('', 'y', (lyric.logicalBox.y + (lyric.logicalBox.height * 2) / 3).toString());
@@ -227,7 +227,7 @@ export class VxSystem {
       lyricsDash.forEach((lyric) => {
         const parent = $(this.context.svg).find(lyric.selector)[0];
         if (parent && lyric.logicalBox !== null) {
-          const line = document.createElementNS(svgHelpers.namespace, 'line');
+          const line = document.createElementNS(SvgHelpers.namespace, 'line');
           const ymax = Math.round(lyric.logicalBox.y + lyric.logicalBox.height / 2);
           const offset = Math.round(lyric.logicalBox.width / 2);
           line.setAttributeNS('', 'x1', (lyric.logicalBox.x - offset).toString());
@@ -332,10 +332,10 @@ export class VxSystem {
     this.context.closeGroup();
     if (xoffset) {
       const slurBox = $('.' + artifactId)[0];
-      svgHelpers.translateElement(slurBox, xoffset, 0);
+      SvgHelpers.translateElement(slurBox, xoffset, 0);
     }
-    modifier.logicalBox = svgHelpers.smoBox(group.getBBox());
-    modifier.renderedBox = svgHelpers.smoBox(svgHelpers.logicalToClient(this.context.svg, modifier.logicalBox, scroller.scrollState.scroll));
+    modifier.logicalBox = SvgHelpers.smoBox(group.getBBox());
+    modifier.renderedBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.context.svg, modifier.logicalBox, scroller.scrollState.scroll));
   }
 
   renderEndings(scroller: SuiScroller) {
@@ -366,8 +366,8 @@ export class VxSystem {
           const vxVolta = new VF.Volta(vtype, ending.number, smoMeasure.staffX + ending.xOffsetStart, ending.yOffset);
           vxVolta.setContext(this.context).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
           this.context.closeGroup();
-          ending.logicalBox = svgHelpers.smoBox(group.getBBox());
-          ending.renderedBox = svgHelpers.smoBox(svgHelpers.logicalToClient(this.context.svg, ending.logicalBox, scroller.scrollState.scroll));
+          ending.logicalBox = SvgHelpers.smoBox(group.getBBox());
+          ending.renderedBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.context.svg, ending.logicalBox, scroller.scrollState.scroll));
           if (!pushed) {
             voAr.push({ smoMeasure, ending });
             pushed = true;
@@ -382,7 +382,7 @@ export class VxSystem {
         if (ending.logicalBox !== null) {
           const delta = mm.svg.logicalBox.y - ending.logicalBox.y;
           if (delta > 0) {
-            mm.setBox(svgHelpers.boxPoints(
+            mm.setBox(SvgHelpers.boxPoints(
               mm.svg.logicalBox.x, mm.svg.logicalBox.y - delta, mm.svg.logicalBox.width, mm.svg.logicalBox.height + delta),
               'vxSystem adjust for volta');
           }

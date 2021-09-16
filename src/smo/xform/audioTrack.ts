@@ -3,7 +3,7 @@
 import { SmoDynamicText } from '../data/noteModifiers';
 import { SmoSelector, SmoSelection } from './selections';
 import { SmoStaffHairpin, StaffModifierBase } from '../data/staffModifiers';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from '../data/music';
 import { SmoTempoText, SmoBarline, SmoVolta } from '../data/measureModifiers';
 import { SmoScore } from '../data/score';
 import { SmoNote } from '../data/note';
@@ -296,7 +296,7 @@ export class SmoAudioScore {
         return false;
       }
     }
-    return smoMusic.pitchArraysMatch(track.notes[noteIx - 1].pitches, (selection.note as SmoNote).pitches);
+    return SmoMusic.pitchArraysMatch(track.notes[noteIx - 1].pitches, (selection.note as SmoNote).pitches);
   }
   static updateMeasureIndexMap(note: SmoAudioNote, measureIndexMap: Record<number, Record<number, SmoAudioNote[]>>) {
     if (note.noteType !== 'n') {
@@ -335,8 +335,8 @@ export class SmoAudioScore {
     const xpose = selection.measure.transposeIndex;
     const smoNote = selection.note as SmoNote;
     smoNote.pitches.forEach((pitch) => {
-      tpitches.push(smoMusic.smoIntToPitch(
-        smoMusic.smoPitchToInt(pitch) - xpose));
+      tpitches.push(SmoMusic.smoIntToPitch(
+        SmoMusic.smoPitchToInt(pitch) - xpose));
     });
     const pitchArray = JSON.parse(JSON.stringify(tpitches));
     const note = {

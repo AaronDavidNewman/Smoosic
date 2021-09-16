@@ -1,8 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoNote } from '../smo/data/note';
-import { SuiAudioPitch } from '../render/audio/oscillator';
-import { Pitch, PitchKey, Clef, PitchLetter } from '../smo/data/common';
+import { SmoNote } from './note';
+import { SuiAudioPitch } from '../../render/audio/oscillator';
+import { Pitch, PitchKey, Clef, PitchLetter } from './common';
 /**
 // Helper functions that build on the VX music theory routines, and other
 // utilities I wish were in VF.Music but aren't
@@ -31,7 +31,7 @@ export interface VexNoteValue {
   root_index: number,
   int_val: number
 }
-export class smoMusic {
+export class SmoMusic {
   static get noteValues(): Record<string, VexNoteValue> {
     return {
       c: { root_index: 0, int_val: 0 },
@@ -83,8 +83,8 @@ export class smoMusic {
   // Get the canonical form
   */
   static vexToCannonical(vexKey: string): string {
-    vexKey = smoMusic.stripVexOctave(vexKey);
-    return VF.Music.canonical_notes[smoMusic.noteValues[vexKey].int_val];
+    vexKey = SmoMusic.stripVexOctave(vexKey);
+    return VF.Music.canonical_notes[SmoMusic.noteValues[vexKey].int_val];
   }
 
   /** circleOfFifths
@@ -135,9 +135,9 @@ export class smoMusic {
    * gives the index into circle-of-fifths array for a pitch, considering enharmonics.
    * */
   static circleOfFifthsIndex(smoPitch: Pitch) {
-    const en1 = smoMusic.vexToSmoKey(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch)));
-    const en2 = smoMusic.vexToSmoKey(smoMusic.getEnharmonic(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch))));
-    const ix = smoMusic.circleOfFifths.findIndex((el) =>
+    const en1 = SmoMusic.vexToSmoKey(SmoMusic.getEnharmonic(SmoMusic.pitchToVexKey(smoPitch)));
+    const en2 = SmoMusic.vexToSmoKey(SmoMusic.getEnharmonic(SmoMusic.getEnharmonic(SmoMusic.pitchToVexKey(smoPitch))));
+    const ix = SmoMusic.circleOfFifths.findIndex((el) =>
       (el.letter === smoPitch.letter && el.accidental === smoPitch.accidental) ||
       (el.letter === en1.letter && el.accidental === en1.accidental) ||
       (el.letter === en2.letter && el.accidental === en2.accidental)
@@ -149,8 +149,8 @@ export class smoMusic {
    * Get pitch to the right in circle of fifths
    * */
   static addSharp(smoPitch: Pitch): Pitch {
-    const rv: PitchKey = smoMusic.circleOfFifths[
-      (smoMusic.circleOfFifthsIndex(smoPitch) + 1) % smoMusic.circleOfFifths.length];
+    const rv: PitchKey = SmoMusic.circleOfFifths[
+      (SmoMusic.circleOfFifthsIndex(smoPitch) + 1) % SmoMusic.circleOfFifths.length];
     return { letter: rv.letter, accidental: rv.accidental, octave: smoPitch.octave };
   }
 
@@ -158,8 +158,8 @@ export class smoMusic {
    * Get pitch to the left in circle of fifths
    */
   static addFlat(smoPitch: Pitch): Pitch {
-    const rv: PitchKey = smoMusic.circleOfFifths[
-      ((smoMusic.circleOfFifths.length - 1) + smoMusic.circleOfFifthsIndex(smoPitch)) % smoMusic.circleOfFifths.length];
+    const rv: PitchKey = SmoMusic.circleOfFifths[
+      ((SmoMusic.circleOfFifths.length - 1) + SmoMusic.circleOfFifthsIndex(smoPitch)) % SmoMusic.circleOfFifths.length];
     return { letter: rv.letter, accidental: rv.accidental, octave: smoPitch.octave };
   }
 
@@ -172,11 +172,11 @@ export class smoMusic {
     if (distance === 0) {
       return JSON.parse(JSON.stringify(smoPitch));
     }
-    rv = smoMusic.addSharp(smoPitch);
+    rv = SmoMusic.addSharp(smoPitch);
     for (i = 1; i < distance; ++i) {
-      rv = smoMusic.addSharp(rv);
+      rv = SmoMusic.addSharp(rv);
     }
-    const octaveAdj = smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
+    const octaveAdj = SmoMusic.letterPitchIndex[smoPitch.letter] > SmoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
     rv.octave += octaveAdj;
     return rv;
   }
@@ -190,11 +190,11 @@ export class smoMusic {
     if (distance === 0) {
       return JSON.parse(JSON.stringify(smoPitch));
     }
-    rv = smoMusic.addFlat(smoPitch);
+    rv = SmoMusic.addFlat(smoPitch);
     for (i = 1; i < distance; ++i) {
-      rv = smoMusic.addFlat(rv);
+      rv = SmoMusic.addFlat(rv);
     }
-    const octaveAdj = smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
+    const octaveAdj = SmoMusic.letterPitchIndex[smoPitch.letter] > SmoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
     rv.octave += octaveAdj;
     return rv;
   }
@@ -211,7 +211,7 @@ export class smoMusic {
 
     const rv: string[] = [];
     pitchAr.forEach((pitch) => {
-      rv.push(smoMusic.pitchToVexKey(smoMusic[noopFunc](pitch, keyOffset), noteHead));
+      rv.push(SmoMusic.pitchToVexKey(SmoMusic[noopFunc](pitch, keyOffset), noteHead));
     });
     return rv;
   }
@@ -232,7 +232,7 @@ export class smoMusic {
     pp1.octave = 0;
     pp2.octave = 0;
 
-    return smoMusic.smoPitchToInt(pp1) === smoMusic.smoPitchToInt(pp2);
+    return SmoMusic.smoPitchToInt(pp1) === SmoMusic.smoPitchToInt(pp2);
   }
 
   /**
@@ -243,7 +243,7 @@ export class smoMusic {
    */
   static pitchToLedgerLine(clef: Clef, pitch: Pitch): number {
     // return the distance from the top ledger line, as 0.5 per line/space
-    return -1.0 * (VF.keyProperties(smoMusic.pitchToVexKey(pitch, clef)).line - 4.5)
+    return -1.0 * (VF.keyProperties(SmoMusic.pitchToVexKey(pitch, clef)).line - 4.5)
       - VF.clefProperties(clef).line_shift;
   }
   /**
@@ -252,7 +252,7 @@ export class smoMusic {
   static flagStateFromNote(clef: Clef, note: SmoNote) {
     let fs = note.flagState;
     if (fs === SmoNote.flagStates.auto) {
-      fs = smoMusic.pitchToLedgerLine(clef, note.pitches[0])
+      fs = SmoMusic.pitchToLedgerLine(clef, note.pitches[0])
         >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
     }
     return fs;
@@ -288,7 +288,7 @@ export class smoMusic {
     return vexKey + smoPitch.octave;
   }
   static smoPitchToMidiString(smoPitch: Pitch): string {
-    const midiPitch = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(smoPitch));
+    const midiPitch = SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(smoPitch));
     let rv = midiPitch.letter.toUpperCase();
     if (midiPitch.accidental !== 'n') {
       rv += midiPitch.accidental;
@@ -299,7 +299,7 @@ export class smoMusic {
   static smoPitchesToMidiStrings(smoPitches: Pitch[]): string[] {
     const rv: string[] = [];
     smoPitches.forEach((pitch) => {
-      rv.push(smoMusic.smoPitchToMidiString(pitch));
+      rv.push(SmoMusic.smoPitchToMidiString(pitch));
     });
     return rv;
   }
@@ -317,14 +317,14 @@ export class smoMusic {
     return smoPitch;
   }
   static midiPitchToMidiNumber(midiPitch: string): number {
-    return smoMusic.smoPitchToInt(smoMusic.midiPitchToSmoPitch(midiPitch)) + 12;
+    return SmoMusic.smoPitchToInt(SmoMusic.midiPitchToSmoPitch(midiPitch)) + 12;
   }
 
   static pitchToVexKey(smoPitch: Pitch, head: string | null = null): string {
     if (!head) {
-      return smoMusic._pitchToVexKey(smoPitch);
+      return SmoMusic._pitchToVexKey(smoPitch);
     }
-    return smoMusic._pitchToVexKey(smoPitch) + '/' + head;
+    return SmoMusic._pitchToVexKey(smoPitch) + '/' + head;
   }
 
   /**
@@ -334,7 +334,7 @@ export class smoMusic {
   static vexToSmoPitch(vexPitch: string): Pitch {
     let octave = 0;
     const po = vexPitch.split('/');
-    const rv = smoMusic.vexToSmoKey(po[0]);
+    const rv = SmoMusic.vexToSmoKey(po[0]);
     if (po.length > 1) {
       octave = parseInt(po[1], 10);
       octave = isNaN(octave) ? 4 : octave;
@@ -362,7 +362,7 @@ export class smoMusic {
   static smoPitchesToVex(pitchAr: Pitch[]): string[] {
     var rv: string[] = [];
     pitchAr.forEach((p) => {
-      rv.push(smoMusic.pitchToVexKey(p));
+      rv.push(SmoMusic.pitchToVexKey(p));
     });
     return rv;
   }
@@ -378,8 +378,8 @@ export class smoMusic {
    */
   static pitchArraysMatch(ar1: Pitch[], ar2: Pitch[]): boolean {
     let matches = 0;
-    const ir1 = smoMusic.smoPitchesToIntArray(ar1);
-    const ir2 = smoMusic.smoPitchesToIntArray(ar2);
+    const ir1 = SmoMusic.smoPitchesToIntArray(ar1);
+    const ir2 = SmoMusic.smoPitchesToIntArray(ar2);
     if (ir1.length !== ir2.length) {
       return false;
     }
@@ -393,7 +393,7 @@ export class smoMusic {
   static smoPitchesToIntArray(pitches: Pitch[]): number[] {
     const rv: number[] = [];
     pitches.forEach((pitch) => {
-      rv.push(smoMusic.smoPitchToInt(pitch));
+      rv.push(SmoMusic.smoPitchToInt(pitch));
     });
     return rv.sort();
   }
@@ -402,8 +402,8 @@ export class smoMusic {
     if (typeof (pitch.octave) === 'undefined') {
       pitch.octave = 0;
     }
-    const intVal = smoMusic.noteValues[
-      smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch))].int_val;
+    const intVal = SmoMusic.noteValues[
+      SmoMusic.stripVexOctave(SmoMusic.pitchToVexKey(pitch))].int_val;
     const octave = (pitch.letter === 'c' && pitch.accidental === 'b' && pitch.octave > 0) ?
       pitch.octave - 1 : pitch.octave;
     return octave * 12 + intVal;
@@ -415,12 +415,12 @@ export class smoMusic {
     let noteKey: PitchLetter | null = null;
     const letterInt = intValue >= 0 ? intValue % 12 :
       12 - (Math.abs(intValue) % 12);
-    noteKey = (Object.keys(smoMusic.noteValues).find((key) =>
-      smoMusic.noteValues[key].int_val === letterInt && key.length === 1
+    noteKey = (Object.keys(SmoMusic.noteValues).find((key) =>
+      SmoMusic.noteValues[key].int_val === letterInt && key.length === 1
     )) as PitchLetter | null;
     if (!noteKey) {
-      noteKey = (Object.keys(smoMusic.noteValues).find((key) =>
-        smoMusic.noteValues[key].int_val === letterInt && key.length === 2
+      noteKey = (Object.keys(SmoMusic.noteValues).find((key) =>
+        SmoMusic.noteValues[key].int_val === letterInt && key.length === 2
       )) as PitchLetter;
     }
     octave = Math.floor(intValue / 12);
@@ -443,9 +443,9 @@ export class smoMusic {
    * e.g. Eb for Bb instruments is F.
    */
   static vexKeySigWithOffset(vexKey: string, offset: number): string {
-    const pk: PitchKey = smoMusic.vexToSmoKey(vexKey);
-    const pi: number = smoMusic.smoPitchToInt(smoMusic.pitchKeyToPitch(pk));
-    let newKey: string = smoMusic.toValidKeySignature(smoMusic.pitchToVexKey(smoMusic.smoIntToPitch(pi)));
+    const pk: PitchKey = SmoMusic.vexToSmoKey(vexKey);
+    const pi: number = SmoMusic.smoPitchToInt(SmoMusic.pitchKeyToPitch(pk));
+    let newKey: string = SmoMusic.toValidKeySignature(SmoMusic.pitchToVexKey(SmoMusic.smoIntToPitch(pi)));
     // handle equivalent ks
     if (newKey === 'c#' && vexKey.indexOf('b') >= 0) {
       newKey = 'db';
@@ -459,10 +459,10 @@ export class smoMusic {
   static get enharmonics(): Record<string, string[]> {
     let i = 0;
     const rv: Record<string, string[]> = {};
-    const keys = Object.keys(smoMusic.noteValues);
+    const keys = Object.keys(SmoMusic.noteValues);
     for (i = 0; i < keys.length; ++i) {
       const key = keys[i];
-      const int_val: number = smoMusic.noteValues[key].int_val;
+      const int_val: number = SmoMusic.noteValues[key].int_val;
       if (typeof (rv[int_val.toString()]) === 'undefined') {
         rv[int_val.toString()] = [];
       }
@@ -479,13 +479,13 @@ export class smoMusic {
    * @returns
    */
   static getEnharmonics(vexKey: string): string[] {
-    const proto = smoMusic.stripVexOctave(vexKey);
+    const proto = SmoMusic.stripVexOctave(vexKey);
     const rv: string[] = [];
-    let ne = smoMusic.getEnharmonic(vexKey);
+    let ne = SmoMusic.getEnharmonic(vexKey);
     rv.push(proto);
     while (ne[0] !== proto[0]) {
       rv.push(ne);
-      ne = smoMusic.getEnharmonic(ne);
+      ne = SmoMusic.getEnharmonic(ne);
     }
     return rv;
   }
@@ -494,9 +494,9 @@ export class smoMusic {
    * return the next note from the cycle in `getEnharmonics`
    */
   static getEnharmonic(vexKey: string): string {
-    vexKey = smoMusic.stripVexOctave(vexKey);
-    const intVal = smoMusic.noteValues[vexKey.toLowerCase()].int_val;
-    const ar = smoMusic.enharmonics[intVal.toString()];
+    vexKey = SmoMusic.stripVexOctave(vexKey);
+    const intVal = SmoMusic.noteValues[vexKey.toLowerCase()].int_val;
+    const ar = SmoMusic.enharmonics[intVal.toString()];
     const len = ar.length;
     // 'n' for natural in key but not in value
     vexKey = vexKey.length > 1 && vexKey[1] === 'n' ? vexKey[0] : vexKey;
@@ -514,11 +514,11 @@ export class smoMusic {
    */
   static closestTonic(smoPitch: Pitch, vexKey: string, direction: number): Pitch {
     direction = Math.sign(direction) < 0 ? -1 : 1;
-    const tonic = smoMusic.vexToSmoKey(vexKey);
-    const rv = smoMusic.pitchKeyToPitch(tonic);
+    const tonic = SmoMusic.vexToSmoKey(vexKey);
+    const rv = SmoMusic.pitchKeyToPitch(tonic);
     rv.octave = smoPitch.octave;
-    const iix = smoMusic.smoPitchToInt(smoPitch);
-    const smint = smoMusic.smoPitchToInt(rv);
+    const iix = SmoMusic.smoPitchToInt(smoPitch);
+    const smint = SmoMusic.smoPitchToInt(rv);
     if (Math.sign(smint - iix) !== direction) {
       rv.octave += direction;
     }
@@ -559,8 +559,8 @@ export class smoMusic {
     }
     const sharpKey = keySignature.indexOf('#') >= 0;
     const flatKey = keySignature.indexOf('b') >= 0;
-    const ar = smoMusic.getEnharmonics(smoMusic.pitchToVexKey(smoPitch));
-    rv = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(smoPitch));
+    const ar = SmoMusic.getEnharmonics(SmoMusic.pitchToVexKey(smoPitch));
+    rv = SmoMusic.stripVexOctave(SmoMusic.pitchToVexKey(smoPitch));
     const scaleMap: Record<string, string> = new VF.Music().createScaleMap(keySignature);
     ar.forEach((vexKey) => {
       if (vexKey.length === 1) {
@@ -586,10 +586,10 @@ export class smoMusic {
         }
       }
     });
-    const smoRv: Pitch = smoMusic.pitchKeyToPitch(smoMusic.vexToSmoKey(rv));
+    const smoRv: Pitch = SmoMusic.pitchKeyToPitch(SmoMusic.vexToSmoKey(rv));
     smoRv.octave = smoPitch.octave;
-    const rvi = smoMusic.smoPitchToInt(smoRv);
-    const ori = smoMusic.smoPitchToInt(smoPitch);
+    const rvi = SmoMusic.smoPitchToInt(smoRv);
+    const ori = SmoMusic.smoPitchToInt(smoPitch);
     // handle the case of c0 < b0, pitch-wise
     smoRv.octave += Math.sign(ori - rvi);
     return smoRv;
@@ -607,7 +607,7 @@ export class smoMusic {
     let i = 0;
     const muse = new VF.Music();
     const scale: string[] = Object.values(muse.createScaleMap(keySignature));
-    let prop: string = smoMusic.getEnharmonic(letter.toLowerCase());
+    let prop: string = SmoMusic.getEnharmonic(letter.toLowerCase());
     while (prop.toLowerCase() !== letter.toLowerCase()) {
       for (i = 0; i < scale.length; ++i) {
         const skey: string = scale[i];
@@ -618,14 +618,14 @@ export class smoMusic {
         }
       }
       prop = (prop[1] === 'n' ? prop[0] : prop);
-      prop = smoMusic.getEnharmonic(prop);
+      prop = SmoMusic.getEnharmonic(prop);
     }
     return rv;
   }
   /**
   // given a letter pitch (a,b,c etc.), and a key signature, return the actual note
   // that you get without accidentals
-  //   `smoMusic.getKeySignatureKey('F','G'); // returns f#`
+  //   `SmoMusic.getKeySignatureKey('F','G'); // returns f#`
    * @param letter
    * @param keySignature
    * @returns
@@ -636,7 +636,7 @@ export class smoMusic {
   }
 
   static getAccidentalForKeySignature(smoPitch: Pitch, keySignature: string): string {
-    const vexKey = smoMusic.getKeySignatureKey(smoPitch.letter, keySignature);
+    const vexKey = SmoMusic.getKeySignatureKey(smoPitch.letter, keySignature);
     return vexKey.length === 1 ? 'n' : vexKey.substr(1, vexKey.length - 1);
   }
 
@@ -644,7 +644,7 @@ export class smoMusic {
   // Return true if the pitch is not an accidental in the give key, e.g.
   // f# in 'g' or c in 'Bb'
   static isPitchInKeySignature(smoPitch: Pitch, keySignature: string): boolean {
-    const vexKey = smoMusic.getKeySignatureKey(smoPitch.letter, keySignature);
+    const vexKey = SmoMusic.getKeySignatureKey(smoPitch.letter, keySignature);
     return (vexKey.length === 1 && smoPitch.accidental === 'n' ||
       (vexKey[1] === smoPitch.accidental));
   }
@@ -661,22 +661,22 @@ export class smoMusic {
 
     const delta = interval > 0 ? 1 : -1;
     const inv = -1 * delta;
-    const tonic = smoMusic.closestTonic(pitch, keySignature, inv);
-    const intervals = delta > 0 ? smoMusic.scaleIntervals.up : smoMusic.scaleIntervals.down;
-    const pitchInt = smoMusic.smoPitchToInt(pitch);
+    const tonic = SmoMusic.closestTonic(pitch, keySignature, inv);
+    const intervals = delta > 0 ? SmoMusic.scaleIntervals.up : SmoMusic.scaleIntervals.down;
+    const pitchInt = SmoMusic.smoPitchToInt(pitch);
     let nkey = tonic;
-    let nkeyInt = smoMusic.smoPitchToInt(nkey);
+    let nkeyInt = SmoMusic.smoPitchToInt(nkey);
     while (Math.sign(nkeyInt - pitchInt) !== delta && Math.sign(nkeyInt - pitchInt) !== 0) {
-      nkey = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(nkey) + delta * intervals[scaleIx]);
+      nkey = SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(nkey) + delta * intervals[scaleIx]);
       scaleIx = (scaleIx + 1) % 7;
-      nkeyInt = smoMusic.smoPitchToInt(nkey);
+      nkeyInt = SmoMusic.smoPitchToInt(nkey);
     }
     while (diatonicIx !== interval) {
-      nkey = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(nkey) + delta * intervals[scaleIx]);
+      nkey = SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(nkey) + delta * intervals[scaleIx]);
       scaleIx = (scaleIx + 1) % 7;
       diatonicIx += delta;
     }
-    return smoMusic.getEnharmonicInKey(nkey, keySignature);
+    return SmoMusic.getEnharmonicInKey(nkey, keySignature);
   }
 
   static getLetterNotePitch(prevPitch: Pitch, letter: PitchLetter, key: string): Pitch {
@@ -684,7 +684,7 @@ export class smoMusic {
     pitch.letter = letter;
 
     // Make the key 'a' make 'Ab' in the key of Eb, for instance
-    const vexKsKey = smoMusic.getKeySignatureKey(letter, key);
+    const vexKsKey = SmoMusic.getKeySignatureKey(letter, key);
     if (vexKsKey.length > 1) {
       pitch.accidental = vexKsKey[1];
     } else {
@@ -710,9 +710,9 @@ export class smoMusic {
    * @returns {string} - vex key
    */
   static vexKeySignatureTranspose(key: string, transposeIndex: number): string {
-    const pitch: Pitch = smoMusic.pitchKeyToPitch(smoMusic.vexToSmoKey(key));
-    key = smoMusic.smoPitchesToVexKeys([pitch], transposeIndex, null)[0];
-    key = smoMusic.stripVexOctave(key);
+    const pitch: Pitch = SmoMusic.pitchKeyToPitch(SmoMusic.vexToSmoKey(key));
+    key = SmoMusic.smoPitchesToVexKeys([pitch], transposeIndex, null)[0];
+    key = SmoMusic.stripVexOctave(key);
     key = key[0].toUpperCase() + key.substring(1, key.length);
     if (key.length > 1 && key[1] === 'n') {
       key = key[0];
@@ -740,11 +740,11 @@ export class smoMusic {
 
   /**
    * Indicate if a change from letter note 'one' to 'two' needs us to adjust the
-   * octave due to the `smoMusic.letterPitchIndex` (b0 is higher than c0)
+   * octave due to the `SmoMusic.letterPitchIndex` (b0 is higher than c0)
    * */
   static letterChangedOctave(one: PitchLetter, two: PitchLetter): number {
-    const p1 = smoMusic.letterPitchIndex[one];
-    const p2 = smoMusic.letterPitchIndex[two];
+    const p1 = SmoMusic.letterPitchIndex[one];
+    const p2 = SmoMusic.letterPitchIndex[two];
     if (p1 < p2 && p2 - p1 > 2) {
       return -1;
     }
@@ -764,8 +764,8 @@ export class smoMusic {
   static getKeyOffset(pitch: Pitch, offset: number): Pitch {
     const canon = VF.Music.canonical_notes;
     // Convert to vex keys, where f# is a string like 'f#'.
-    let vexKey = smoMusic.pitchToVexKey(pitch);
-    vexKey = smoMusic.vexToCannonical(vexKey);
+    let vexKey = SmoMusic.pitchToVexKey(pitch);
+    vexKey = SmoMusic.vexToCannonical(vexKey);
     const rootIndex = canon.indexOf(vexKey);
     const index = (rootIndex + canon.length + offset) % canon.length;
     let octave = pitch.octave;
@@ -820,7 +820,7 @@ export class smoMusic {
     if (sharpKeys.indexOf(key.toUpperCase()) < 0) {
       return 0;
     }
-    return smoMusic.keySignatureLength[key.toUpperCase()];
+    return SmoMusic.keySignatureLength[key.toUpperCase()];
   }
 
   static getFlatsInKeySignature(key: string): number {
@@ -832,7 +832,7 @@ export class smoMusic {
     if (flatKeys.indexOf(caseKey) < 0) {
       return 0;
     }
-    return smoMusic.keySignatureLength[caseKey];
+    return SmoMusic.keySignatureLength[caseKey];
   }
 
   static timeSignatureToTicks(timeSignature: string): number {
@@ -843,7 +843,7 @@ export class smoMusic {
     return base * num;
   }
   static smoTicksToVexDots(ticks: number) {
-    const vd = smoMusic.ticksToDuration[ticks];
+    const vd = SmoMusic.ticksToDuration[ticks];
     const dots = (vd.match(/d/g) || []).length;
     return dots;
   }
@@ -860,14 +860,14 @@ export class smoMusic {
       stemTicks = stemTicks / 2;
     }
     stemTicks = stemTicks * 2;
-    return smoMusic.ticksToDuration[stemTicks];
+    return SmoMusic.ticksToDuration[stemTicks];
   }
 
   // ### closestDurationTickLtEq
   // Price is right style, closest tick value without going over.  Used to pad
   // rests when reading musicXML.
   static closestDurationTickLtEq(ticks: number): number {
-    const sorted = Object.keys(smoMusic.ticksToDuration)
+    const sorted = Object.keys(SmoMusic.ticksToDuration)
       .map((key) => parseInt(key, 10))
       .filter((key) => key <= ticks);
     return sorted[sorted.length - 1];
@@ -883,7 +883,7 @@ export class smoMusic {
     const rv = [];
     let closest = 0;
     while (ticks > 128) {
-      closest = smoMusic.closestDurationTickLtEq(ticks);
+      closest = SmoMusic.closestDurationTickLtEq(ticks);
       ticks -= closest;
       rv.push(closest);
     }
@@ -892,7 +892,7 @@ export class smoMusic {
   // ### vexStemType
   // return the vex stem type (no dots)
   static vexStemType(ticks: number): string {
-    const str = smoMusic.ticksToDuration[smoMusic.splitIntoValidDurations(ticks)[0]];
+    const str = SmoMusic.ticksToDuration[SmoMusic.splitIntoValidDurations(ticks)[0]];
     if (str.indexOf('d') >= 0) {
       return str.substr(0, str.indexOf('d'));
     }
@@ -903,11 +903,11 @@ export class smoMusic {
   // Get ticks for this note with an added dot.  Return
   // identity if that is not a supported value.
   static getNextDottedLevel(ticks: number): number {
-    const ttd = smoMusic.ticksToDuration;
+    const ttd = SmoMusic.ticksToDuration;
     const vals = Object.values(ttd);
     const ix = vals.indexOf(ttd[ticks]);
     if (ix >= 0 && ix < vals.length && vals[ix][0] === vals[ix + 1][0]) {
-      return smoMusic.durationToTicks(vals[ix + 1]);
+      return SmoMusic.durationToTicks(vals[ix + 1]);
     }
     return ticks;
   }
@@ -916,11 +916,11 @@ export class smoMusic {
   // Get ticks for this note with one fewer dot.  Return
   // identity if that is not a supported value.
   static getPreviousDottedLevel(ticks: number): number {
-    const ttd = smoMusic.ticksToDuration;
+    const ttd = SmoMusic.ticksToDuration;
     const vals = Object.values(ttd);
     const ix = vals.indexOf(ttd[ticks]);
     if (ix > 0 && vals[ix][0] === vals[ix - 1][0]) {
-      return smoMusic.durationToTicks(vals[ix - 1]);
+      return SmoMusic.durationToTicks(vals[ix - 1]);
     }
     return ticks;
   }
@@ -941,15 +941,15 @@ export class smoMusic {
         // We support up to 4 'dots'
         for (j = 0; j <= 4 && j + i < durations.length; ++j) {
           ticks += (VF.durationToTicks(durations[i + j]) as number);
-          smoMusic._ticksToDuration[ticks.toString()] = durations[i] + dots;
+          SmoMusic._ticksToDuration[ticks.toString()] = durations[i] + dots;
           dots += 'd';
         }
       }
     };
-    if (Object.keys(smoMusic._ticksToDuration).length < 1) {
+    if (Object.keys(SmoMusic._ticksToDuration).length < 1) {
       _ticksToDurationsF();
     }
-    return smoMusic._ticksToDuration;
+    return SmoMusic._ticksToDuration;
   }
 
   // ### durationToTicks
@@ -981,7 +981,7 @@ export class smoMusic {
    */
   static gcdMap(duration: number): number[] {
     let k = 0;
-    const keys = Object.keys(smoMusic.ticksToDuration).map((x) => parseInt(x, 10));
+    const keys = Object.keys(SmoMusic.ticksToDuration).map((x) => parseInt(x, 10));
     const dar = [];
     const gcd = (td: number) => {
       let rv = keys[0];
@@ -992,7 +992,7 @@ export class smoMusic {
       }
       return rv;
     };
-    while (duration > 0 && !smoMusic.ticksToDuration[duration]) {
+    while (duration > 0 && !SmoMusic.ticksToDuration[duration]) {
       const div = gcd(duration);
       duration = duration - div;
       dar.push(div);

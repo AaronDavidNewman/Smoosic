@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
 import { SmoAttrs } from '../data/common';
 import { SmoMeasure, ISmoBeamGroup } from '../data/measure';
@@ -147,7 +147,7 @@ export class smoBeamModifier {
       }
 
       // is this beamable length-wise
-      const vexDuration = smoMusic.closestVexDuration(note.tickCount);
+      const vexDuration = SmoMusic.closestVexDuration(note.tickCount);
       const stemTicks = VF.durationToTicks(vexDuration);
       if (note.noteType === 'n' && stemTicks < 4096) {
         this.currentGroup.push(note);

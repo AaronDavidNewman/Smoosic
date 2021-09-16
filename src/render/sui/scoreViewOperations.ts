@@ -6,7 +6,7 @@ import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
 import { SmoOperation } from '../../smo/xform/operations';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoScore, SmoScorePreferences, SmoScoreInfo } from '../../smo/data/score';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from '../../smo/data/music';
 import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, SmoOrnament, SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat } from '../../smo/data/measureModifiers';
 import { SuiOscillator } from '../audio/oscillator';
@@ -693,7 +693,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
       if (hintSel === null || hintSel.note === null) {
         return;
       }
-      const pitch = smoMusic.getLetterNotePitch(hintSel.note.pitches[0],
+      const pitch = SmoMusic.getLetterNotePitch(hintSel.note.pitches[0],
         letter, hintSel.measure.keySignature);
       SmoOperation.setPitch(selected, [pitch]);
       const altSel = this._getEquivalentSelection(selected);

@@ -1,8 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 
-import { Transposable, SvgBox, SvgPoint } from '../smo/data/common';
-import { SmoSelection } from '../smo/xform/selections';
+import { Transposable, SvgBox, SvgPoint } from '../../smo/data/common';
+import { SmoSelection } from '../../smo/xform/selections';
 
 declare var $: any;
 
@@ -34,7 +34,7 @@ export interface Boxable {
 export class SvgBuilder {
   e: Element;
   constructor(el: string) {
-    const ns = svgHelpers.namespace;
+    const ns = SvgHelpers.namespace;
     this.e = document.createElementNS(ns, el);
   }
   classes(cl: string): SvgBuilder {
@@ -95,11 +95,11 @@ export class SvgBuilder {
     return new SvgBuilder(element);
   }
 }
-// ## svgHelpers
+// ## SvgHelpers
 // Mostly utilities for converting coordinate spaces based on transforms, etc.
 // ### static class methods:
 // ---
-export class svgHelpers {
+export class SvgHelpers {
   static get namespace(): string {
     return "http://www.w3.org/2000/svg";
   }
@@ -110,7 +110,7 @@ export class svgHelpers {
   // `[{color:"#eee", offset:"0%",opacity:0.5}]`
   // orientation is horizontal or vertical
   static gradient(svg: SVGSVGElement, id: string, orientation: string, stops: GradientInfo[]) {
-    var ns = svgHelpers.namespace;
+    var ns = SvgHelpers.namespace;
     var x2 = orientation === 'vertical' ? 0 : 1;
     var y2 = orientation === 'vertical' ? 1 : 0;
 
@@ -132,7 +132,7 @@ export class svgHelpers {
   }
 
   static renderCursor(svg: SVGSVGElement, x: number, y: number, height: number) {
-    var ns = svgHelpers.namespace;
+    var ns = SvgHelpers.namespace;
     const width = height * 0.4;
     x = x - (width / 2);
     var mcmd = (d: string, x: number, y: number) => {
@@ -148,7 +148,7 @@ export class svgHelpers {
     var y1 = -1 * (x1 / 4);
     var x2 = (width / 2);
     var y2 = x2 / 4;
-    var ns = svgHelpers.namespace;
+    var ns = SvgHelpers.namespace;
     var e = document.createElementNS(ns, 'path');
     var d = '';
     d = mcmd(d, x, y);
@@ -175,8 +175,8 @@ export class svgHelpers {
       console.log('updateArtifactBox: undefined element!');
       return;
     }
-    artifact.logicalBox = svgHelpers.smoBox(element.getBBox());
-    artifact.renderedBox = svgHelpers.smoBox(svgHelpers.logicalToClient(svg, artifact.logicalBox, scroller));
+    artifact.logicalBox = SvgHelpers.smoBox(element.getBBox());
+    artifact.renderedBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(svg, artifact.logicalBox, scroller));
   }
 
   // ### eraseOutline
@@ -188,7 +188,7 @@ export class svgHelpers {
   static _outlineRect(params: OutlineInfo) {
     const scroll = params.scroll;
     const context = params.context;
-    svgHelpers.eraseOutline(context, params.classes);
+    SvgHelpers.eraseOutline(context, params.classes);
     // Don't highlight in print mode.
     if ($('body').hasClass('printing')) {
       return;
@@ -201,7 +201,7 @@ export class svgHelpers {
         var strokeObj = params.stroke;
         var margin = 5;
         if (params.clientCoordinates === true) {
-          box = svgHelpers.smoBox(svgHelpers.clientToLogical(context.svg, svgHelpers.smoBox(svgHelpers.adjustScroll(box, scroll))));
+          box = SvgHelpers.smoBox(SvgHelpers.clientToLogical(context.svg, SvgHelpers.smoBox(SvgHelpers.adjustScroll(box, scroll))));
         }
         context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
       }
@@ -217,11 +217,11 @@ export class svgHelpers {
   // outlineStroke: {stroke, strokeWidth, strokeDashArray, fill}
   static outlineRect(params: OutlineInfo) {
     params.clientCoordinates = true;
-    svgHelpers._outlineRect(params);
+    SvgHelpers._outlineRect(params);
   }
 
   static outlineLogicalRect(params: OutlineInfo) {
-    svgHelpers._outlineRect(params);
+    SvgHelpers._outlineRect(params);
   }
 
   static setSvgStyle(element: Element, attrs: StrokeInfo) {
@@ -237,8 +237,8 @@ export class svgHelpers {
     }
   }
   static rect(svg: Document, box: SvgBox, attrs: StrokeInfo, classes: string) {
-    var rect = document.createElementNS(svgHelpers.namespace, 'rect');
-    svgHelpers.setSvgStyle(rect, attrs);
+    var rect = document.createElementNS(SvgHelpers.namespace, 'rect');
+    SvgHelpers.setSvgStyle(rect, attrs);
     if (classes) {
       rect.setAttributeNS('', 'class', classes);
     }
@@ -247,7 +247,7 @@ export class svgHelpers {
   }
 
   static line(svg: Document, x1: number | string, y1: number | string, x2: number | string, y2: number | string, attrs: StrokeInfo, classes: string) {
-    var line = document.createElementNS(svgHelpers.namespace, 'line');
+    var line = document.createElementNS(SvgHelpers.namespace, 'line');
     x1 = typeof (x1) == 'string' ? x1 : x1.toString();
     y1 = typeof (y1) == 'string' ? y1 : y1.toString();
     x2 = typeof (x2) == 'string' ? x2 : x2.toString();
@@ -257,7 +257,7 @@ export class svgHelpers {
     line.setAttributeNS('', 'y1', y1);
     line.setAttributeNS('', 'x2', x2);
     line.setAttributeNS('', 'y2', y2);
-    svgHelpers.setSvgStyle(line, attrs);
+    SvgHelpers.setSvgStyle(line, attrs);
     if (classes) {
       line.setAttributeNS('', 'class', classes);
     }
@@ -266,10 +266,10 @@ export class svgHelpers {
 
   static arrowDown(svg: Document, box: SvgBox) {
     const arrowStroke: StrokeInfo = { stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 };
-    svgHelpers.line(svg, box.x + box.width / 2, box.y, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
+    SvgHelpers.line(svg, box.x + box.width / 2, box.y, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
     var arrowY = box.y + box.height / 4;
-    svgHelpers.line(svg, box.x, arrowY, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
-    svgHelpers.line(svg, box.x + box.width, arrowY, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
+    SvgHelpers.line(svg, box.x, arrowY, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
+    SvgHelpers.line(svg, box.x + box.width, arrowY, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
   }
   static debugBox(svg: SVGSVGElement, box: SvgBox | null, classes: string, voffset: number) {
     voffset = voffset ?? 0;
@@ -315,7 +315,7 @@ export class svgHelpers {
   }
 
   static placeSvgText(svg: Document, attributes: Record<string | number, string | number>[], classes: string, text: string): SVGSVGElement {
-    var ns = svgHelpers.namespace;
+    var ns = SvgHelpers.namespace;
     var e = document.createElementNS(ns, 'text');
     attributes.forEach((attr) => {
       var key: string = Object.keys(attr)[0];
@@ -334,7 +334,7 @@ export class svgHelpers {
   // ### findIntersectionArtifact
   // find all object that intersect with the rectangle
   static findIntersectingArtifact(clientBox: SvgBox, objects: Boxable[], scrollState: SvgBox): Boxable[] {
-    var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
+    var box = SvgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
 
     // box.y = box.y - this.renderElement.offsetTop;
     // box.x = box.x - this.renderElement.offsetLeft;
@@ -344,7 +344,7 @@ export class svgHelpers {
       if (!object.box) {
         // console.log('there is no box');
       } else {
-        var obox = svgHelpers.smoBox(svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState));
+        var obox = SvgHelpers.smoBox(SvgHelpers.adjustScroll(SvgHelpers.smoBox(object.box), scrollState));
         var i1 = box.x - obox.x; // handle edge not believe in x and y
         var i2 = box.y - obox.y;
         if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
@@ -359,7 +359,7 @@ export class svgHelpers {
   // ### findIntersectingArtifactFromMap
   // Same as findIntersectionArtifact but uses a map of keys instead of an array
   static findIntersectingArtifactFromMap(clientBox: SvgBox, map: Record<string | number, SmoSelection>, scrollState: SvgBox): any[] {
-    var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
+    var box = SvgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
     // box.y = box.y - this.renderElement.offsetTop;
     // box.x = box.x - this.renderElement.offsetLeft;
     var rv: any[] = [];
@@ -370,7 +370,7 @@ export class svgHelpers {
       if (!object.box) {
         // console.log('there is no box');
       } else {
-        var obox = svgHelpers.smoBox(svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState));
+        var obox = SvgHelpers.smoBox(SvgHelpers.adjustScroll(SvgHelpers.smoBox(object.box), scrollState));
         var i1 = box.x - obox.x; // handle edge not believe in x and y
         var i2 = box.y - obox.y;
         if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
@@ -382,7 +382,7 @@ export class svgHelpers {
   }
 
   static containsPoint(box: SvgBox, point: SvgPoint, scrollState: SvgBox) {
-    var obox = svgHelpers.smoBox(svgHelpers.adjustScroll(svgHelpers.smoBox(box), scrollState));
+    var obox = SvgHelpers.smoBox(SvgHelpers.adjustScroll(SvgHelpers.smoBox(box), scrollState));
     const i1 = point.x - box.x + scrollState.x; // handle edge not believe in x and y
     const i2 = point.y - box.y + scrollState.y;
     if (i1 > 0 && i1 < obox.width && i2 > 0 && i2 < obox.height) {
@@ -392,7 +392,7 @@ export class svgHelpers {
   }
 
   static findSmallestIntersection(clientBox: SvgBox, objects: Boxable[], scrollState: SvgBox) {
-    var ar = svgHelpers.findIntersectingArtifact(clientBox, objects, scrollState);
+    var ar = SvgHelpers.findIntersectingArtifact(clientBox, objects, scrollState);
     if (!ar.length) {
       return null;
     }
@@ -497,7 +497,7 @@ export class svgHelpers {
       console.log('bad values to scroll thing');
       return;
     }
-    return svgHelpers.boxPoints(box.x + scroll.x, box.y - scroll.y, box.width, box.height);
+    return SvgHelpers.boxPoints(box.x + scroll.x, box.y - scroll.y, box.width, box.height);
     // return box;
   }
 
@@ -511,7 +511,7 @@ export class svgHelpers {
   }
 
   static copyBox(box: SvgBox): SvgBox {
-    box = svgHelpers.smoBox(box);
+    box = SvgHelpers.smoBox(box);
     return {
       x: box.x,
       y: box.y,
@@ -534,7 +534,7 @@ export class svgHelpers {
   // zoom, aspect ratio
   /* static logicalToClient(svg, logicalPoint) {
   var rect = svg.getBoundingClientRect();
-  var rv = svgHelpers.copyBox(logicalPoint);
+  var rv = SvgHelpers.copyBox(logicalPoint);
   rv.x += rect.x;
   rv.y += rect.y;
   return rv;

@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoNote, TupletInfo } from '../data/note';
 import { SmoTuplet } from '../data/tuplet';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from '../data/music';
 import { SmoSelector, SmoSelection } from './selections';
 import { SmoMeasure, SmoVoice } from '../data/measure';
 import { Ticks } from '../data/common';
@@ -58,7 +58,7 @@ export class SmoDuration {
     }
     newNotes.push(replNote);
     if (remainder > 0) {
-      const lmap = smoMusic.gcdMap(remainder);
+      const lmap = SmoMusic.gcdMap(remainder);
       lmap.forEach((duration) => {
         newNotes.push(SmoNote.cloneWithDuration(note, duration));
       });

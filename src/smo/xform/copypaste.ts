@@ -5,8 +5,8 @@ import { SmoNote, TupletInfo } from '../data/note';
 import { SmoMeasure, SmoVoice } from '../data/measure';
 import { StaffModifierBase } from '../data/staffModifiers';
 import { SmoTuplet } from '../data/tuplet';
-import { smoMusic } from '../../common/musicHelpers';
-import { svgHelpers } from '../../common/svgHelpers';
+import { SmoMusic } from '../data/music';
+import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { SmoScore } from '../data/score';
 import { TickMap } from './tickMap';
 import { SmoSystemStaff } from '../data/systemStaff';
@@ -185,7 +185,7 @@ export class PasteBuffer {
         voice.notes.push(SmoNote.clone(note));
       } else {
         const duration = note.tickCount - ticksToFill;
-        const durMap = smoMusic.gcdMap(duration);
+        const durMap = SmoMusic.gcdMap(duration);
         for (j = 0; j < durMap.length; ++j) {
           const dd = durMap[j];
           SmoNote.cloneWithDuration(note, {
@@ -311,7 +311,7 @@ export class PasteBuffer {
         // The note won't fit, so we split it in 2 and paste the remainder in the next measure.
         // TODO:  tie the last note to this one.
         const partial = totalDuration - currentDuration;
-        const dar = smoMusic.gcdMap(partial);
+        const dar = SmoMusic.gcdMap(partial);
         for (j = 0; j < dar.length; ++j) {
           const ddd = dar[j];
           const vnote = SmoNote.cloneWithDuration(note, {
@@ -426,8 +426,8 @@ export class PasteBuffer {
       // Q: Is this even required since we are going to re-render?
       // A: yes, because until we do, the replaced measure needs the formatting info
       if (measure.svg.renderedBox && measure.svg.logicalBox.width > 0) {
-        nmeasure.svg.renderedBox = svgHelpers.smoBox(measure.svg.renderedBox);
-        nmeasure.setBox(svgHelpers.smoBox(measure.svg.logicalBox), 'copypaste');
+        nmeasure.svg.renderedBox = SvgHelpers.smoBox(measure.svg.renderedBox);
+        nmeasure.setBox(SvgHelpers.smoBox(measure.svg.logicalBox), 'copypaste');
         nmeasure.setX(measure.svg.logicalBox.x, 'copyPaste');
         nmeasure.setWidth(measure.svg.logicalBox.width, 'copypaste');
         nmeasure.setY(measure.svg.logicalBox.y, 'copypaste');

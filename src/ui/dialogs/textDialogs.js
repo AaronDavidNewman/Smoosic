@@ -7,7 +7,7 @@ import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SmoDynamicText } from '../../smo/data/noteModifiers';
 import { htmlHelpers } from '../../common/htmlHelpers';
-import { svgHelpers } from '../../common/svgHelpers';
+import { SvgHelpers } from '../../render/sui/svgHelpers';
 
 export class SuiLyricDialog extends SuiDialogBase {
   static get ctor() {
@@ -783,7 +783,7 @@ export class SuiTextTransformDialog extends SuiDialogBase {
     this.eventSource.unbindMouseUpHandler(this.mouseUpHandler);
     this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
     this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
-    svgHelpers.eraseOutline(this.view.renderer.context.svg, 'text-drag');
+    SvgHelpers.eraseOutline(this.view.renderer.context.svg, 'text-drag');
     $('body').removeClass('showAttributeDialog');
     $('body').removeClass('textEditor');
     this.complete();

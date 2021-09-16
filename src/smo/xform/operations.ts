@@ -4,7 +4,7 @@ import { SmoScore } from '../data/score';
 import { SmoMeasureParams, SmoMeasure, SmoVoice } from '../data/measure';
 import { SmoSelection, SmoSelector, ModifierTab } from './selections';
 import { SmoSystemGroup, SmoTextGroup } from '../data/scoreModifiers';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
 import {
   SmoDuration, SmoContractNoteActor, SmoStretchNoteActor, SmoMakeTupletActor,
@@ -122,7 +122,7 @@ export class SmoOperation {
         selectors.push(measureSel);
       }
     });
-    const tsTicks = smoMusic.timeSignatureToTicks(timeSignature.timeSignature);
+    const tsTicks = SmoMusic.timeSignatureToTicks(timeSignature.timeSignature);
     selectors.forEach((selector: SmoSelector) => {
       const params: SmoMeasureParams = {} as SmoMeasureParams;
       const voices: SmoVoice[] = [];
@@ -228,7 +228,7 @@ export class SmoOperation {
     }
     if (!tuplet) {
       const nticks = note.tickCount / divisor;
-      if (!smoMusic.ticksToDuration[nticks]) {
+      if (!SmoMusic.ticksToDuration[nticks]) {
         return;
       }
       SmoContractNoteActor.apply({
@@ -395,14 +395,14 @@ export class SmoOperation {
   static dotDuration(selection: SmoSelection) {
     const note = selection.note as SmoNote;
     const measure = selection.measure;
-    const nticks = smoMusic.getNextDottedLevel(note.tickCount);
+    const nticks = SmoMusic.getNextDottedLevel(note.tickCount);
     if (nticks === note.tickCount) {
       return;
     }
     // Don't dot if the thing on the right of the . is too small
-    const dotCount = smoMusic.smoTicksToVexDots(nticks);
+    const dotCount = SmoMusic.smoTicksToVexDots(nticks);
     const multiplier = Math.pow(2, dotCount);
-    const baseDot = VF.durationToTicks(smoMusic.closestVexDuration(nticks)) / (multiplier * 2);
+    const baseDot = VF.durationToTicks(SmoMusic.closestVexDuration(nticks)) / (multiplier * 2);
     if (baseDot <= 128) {
       return;
     }
@@ -415,7 +415,7 @@ export class SmoOperation {
       return;
     }
     // is dot too short?
-    if (!smoMusic.ticksToDuration[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount / 2]) {
+    if (!SmoMusic.ticksToDuration[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount / 2]) {
       return;
     }
     SmoStretchNoteActor.apply({
@@ -433,7 +433,7 @@ export class SmoOperation {
   static undotDuration(selection: SmoSelection) {
     const note = selection.note as SmoNote;
     const measure = selection.measure;
-    const nticks = smoMusic.getPreviousDottedLevel(note.tickCount);
+    const nticks = SmoMusic.getPreviousDottedLevel(note.tickCount);
     if (nticks === note.tickCount) {
       return;
     }
@@ -467,13 +467,13 @@ export class SmoOperation {
           selection.selector.pitches.indexOf(pitchIx) >= 0;
 
         // Translate the pitch, ignoring enharmonic
-        trans = shouldXpose ? smoMusic.getKeyOffset(opitch, offset)
+        trans = shouldXpose ? SmoMusic.getKeyOffset(opitch, offset)
           : JSON.parse(JSON.stringify(opitch));
-        trans = smoMusic.getEnharmonicInKey(trans, measure.keySignature);
+        trans = SmoMusic.getEnharmonicInKey(trans, measure.keySignature);
         if (!trans.accidental) {
           trans.accidental = 'n';
         }
-        transInt = smoMusic.smoPitchToInt(trans);
+        transInt = SmoMusic.smoPitchToInt(trans);
 
         // Look through the earlier notes in the measure and try
         // to find an equivalent note, and convert it if it exists.
@@ -483,7 +483,7 @@ export class SmoOperation {
             const prevNote = voice.notes[i];
             // eslint-disable-next-line
             prevNote.pitches.forEach((prevPitch: Pitch) => {
-              const prevInt = smoMusic.smoPitchToInt(prevPitch);
+              const prevInt = SmoMusic.smoPitchToInt(prevPitch);
               if (prevInt === transInt) {
                 trans = JSON.parse(JSON.stringify(prevPitch));
               }
@@ -537,7 +537,7 @@ export class SmoOperation {
     };
     pitches.forEach((pitch) => {
       if (typeof (pitch) === 'string') {
-        const letter = smoMusic.getKeySignatureKey(pitch[0], measure.keySignature);
+        const letter = SmoMusic.getKeySignatureKey(pitch[0], measure.keySignature);
         pitch = {
           letter: letter[0] as PitchLetter,
           accidental: letter.length > 1 ? letter.substring(1) : '',
@@ -748,11 +748,11 @@ export class SmoOperation {
     if (interval > 0) {
       pitch = note.pitches[note.pitches.length - 1];
     }
-    pitch = smoMusic.getIntervalInKey(pitch, measure.keySignature, interval);
+    pitch = SmoMusic.getIntervalInKey(pitch, measure.keySignature, interval);
     if (pitch) {
       note.pitches.push(pitch);
       note.pitches.sort((x, y) =>
-        smoMusic.smoPitchToInt(x) - smoMusic.smoPitchToInt(y)
+        SmoMusic.smoPitchToInt(x) - SmoMusic.smoPitchToInt(y)
       );
       return true;
     }
@@ -822,9 +822,9 @@ export class SmoOperation {
             toffset = 2;
           }
           // Transpose the key, as if it were a key signature (octave has no meaning)
-          let nkey = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(
-            smoMusic.pitchKeyToPitch(smoMusic.vexToSmoKey(newText))) + offset);
-          nkey = JSON.parse(JSON.stringify(smoMusic.getEnharmonicInKey(nkey, key)));
+          let nkey = SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(
+            SmoMusic.pitchKeyToPitch(SmoMusic.vexToSmoKey(newText))) + offset);
+          nkey = JSON.parse(JSON.stringify(SmoMusic.getEnharmonicInKey(nkey, key)));
           newText = nkey.letter.toUpperCase();
 
           // new key may have different length, e.g. Bb to B natural
@@ -844,10 +844,10 @@ export class SmoOperation {
       if (!measureHash[selection.selector.measure]) {
         measureHash[selection.selector.measure] = 1;
         const netOffset = instrument.keyOffset - selection.measure.transposeIndex;
-        newKey = smoMusic.pitchToVexKey(smoMusic.smoIntToPitch(
-          smoMusic.smoPitchToInt(
-            smoMusic.pitchKeyToPitch(smoMusic.vexToSmoKey(selection.measure.keySignature))) + netOffset));
-        newKey = smoMusic.toValidKeySignature(newKey);
+        newKey = SmoMusic.pitchToVexKey(SmoMusic.smoIntToPitch(
+          SmoMusic.smoPitchToInt(
+            SmoMusic.pitchKeyToPitch(SmoMusic.vexToSmoKey(selection.measure.keySignature))) + netOffset));
+        newKey = SmoMusic.toValidKeySignature(newKey);
         if (newKey.length > 1 && newKey[1] === 'n') {
           newKey = newKey[0];
         }
@@ -860,8 +860,8 @@ export class SmoOperation {
             if (note.noteType === 'n') {
               const pitches: Pitch[] = [];
               note.pitches.forEach((pitch: Pitch) => {
-                const pint = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(pitch) + netOffset);
-                pitches.push(JSON.parse(JSON.stringify(smoMusic.getEnharmonicInKey(pint, newKey))));
+                const pint = SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(pitch) + netOffset);
+                pitches.push(JSON.parse(JSON.stringify(SmoMusic.getEnharmonicInKey(pint, newKey))));
               });
               note.pitches = pitches;
               SmoOperation.transposeChords(note, netOffset, newKey);

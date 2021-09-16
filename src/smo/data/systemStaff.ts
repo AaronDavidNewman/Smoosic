@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoMeasure } from './measure';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from './music';
 import { SmoSelector } from '../xform/selections';
 import { smoBeamerFactory } from '../xform/beamers';
 import { StaffModifierBase } from './staffModifiers';
@@ -385,7 +385,7 @@ export class SmoSystemStaff implements SmoObjectParams {
     let i: number = 0;
     let renumberIndex = 0;
     // Start measure from -1 for pickup
-    if (this.measures[0].getTicksFromVoice(0) < smoMusic.timeSignatureToTicks(this.measures[0].timeSignature.timeSignature)) {
+    if (this.measures[0].getTicksFromVoice(0) < SmoMusic.timeSignatureToTicks(this.measures[0].timeSignature.timeSignature)) {
       pickupOffset = -1;
     }
 

@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament } from './noteModifiers';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from './music';
 import { Ticks, Pitch, SmoAttrs, FontInfo, Transposable, PitchLetter, SvgBox } from './common';
 const VF = eval('Vex.Flow');
 
@@ -116,7 +116,7 @@ export class SmoNote implements Transposable {
     if (this.isTuplet) {
       return 0;
     }
-    const vexDuration = smoMusic.ticksToDuration[this.tickCount];
+    const vexDuration = SmoMusic.ticksToDuration[this.tickCount];
     if (!vexDuration) {
       return 0;
     }
@@ -319,7 +319,7 @@ export class SmoNote implements Transposable {
     }
     note.noteType = 'n';
     const pitch = note.pitches[0];
-    note.pitches.push(smoMusic.getKeyOffset(pitch, offset));
+    note.pitches.push(SmoMusic.getKeyOffset(pitch, offset));
     SmoNote._sortPitches(note);
   }
   addPitchOffset(offset: number) {
@@ -328,7 +328,7 @@ export class SmoNote implements Transposable {
     }
     this.noteType = 'n';
     const pitch = this.pitches[0];
-    this.pitches.push(smoMusic.getKeyOffset(pitch, offset));
+    this.pitches.push(SmoMusic.getKeyOffset(pitch, offset));
     SmoNote._sortPitches(this);
   }
   toggleRest() {
@@ -381,13 +381,13 @@ export class SmoNote implements Transposable {
   }
   static toggleEnharmonic(pitch: Pitch) {
     const lastLetter = pitch.letter;
-    let vexPitch = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch));
-    vexPitch = smoMusic.getEnharmonic(vexPitch);
+    let vexPitch = SmoMusic.stripVexOctave(SmoMusic.pitchToVexKey(pitch));
+    vexPitch = SmoMusic.getEnharmonic(vexPitch);
 
     pitch.letter = vexPitch[0] as PitchLetter;
     pitch.accidental = vexPitch.length > 1 ?
       vexPitch.substring(1, vexPitch.length) : 'n';
-    pitch.octave += smoMusic.letterChangedOctave(lastLetter, pitch.letter);
+    pitch.octave += SmoMusic.letterChangedOctave(lastLetter, pitch.letter);
     return pitch;
   }
 
@@ -430,10 +430,10 @@ export class SmoNote implements Transposable {
       if (index + 1 > note.pitches.length) {
         SmoNote.addPitchOffset(note, offset);
       } else {
-        const pitch = smoMusic.getKeyOffset(note.pitches[index], offset);
+        const pitch = SmoMusic.getKeyOffset(note.pitches[index], offset);
         if (keySignature) {
           letterKey = pitch.letter + pitch.accidental;
-          letterKey = smoMusic.getKeyFriendlyEnharmonic(letterKey, keySignature);
+          letterKey = SmoMusic.getKeyFriendlyEnharmonic(letterKey, keySignature);
           pitch.letter = letterKey[0] as PitchLetter;
           if (letterKey.length < 2) {
             pitch.accidental = 'n';

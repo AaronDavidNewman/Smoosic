@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNote } from './note';
-import { smoMusic } from '../../common/musicHelpers';
+import { SmoMusic } from './music';
 import { SmoNoteModifierBase } from './noteModifiers';
 import { SmoAttrs, Clef } from './common';
 const VF = eval('Vex.Flow');
@@ -247,7 +247,7 @@ export class SmoTuplet {
     if (note.flagState !== SmoNote.flagStates.auto) {
       return note.flagState;
     }
-    return smoMusic.pitchToLedgerLine(clef, note.pitches[0])
+    return SmoMusic.pitchToLedgerLine(clef, note.pitches[0])
       >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
   }
   get durationSum() {

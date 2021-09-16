@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { svgHelpers, Boxable, OutlineInfo } from '../../common/svgHelpers';
+import { SvgHelpers, Boxable, OutlineInfo } from './svgHelpers';
 import { SmoTextGroup, SmoScoreText } from '../../smo/data/scoreModifiers';
 import { SuiTextEditor } from './textEdit';
 import { SuiScroller } from './scroller';
@@ -341,15 +341,15 @@ export class SuiInlineText {
       this._calculateBlockIndex();
     }
     const adjBox = (box: SvgBox) => {
-      const nbox = svgHelpers.smoBox(box);
+      const nbox = SvgHelpers.smoBox(box);
       nbox.y = nbox.y - nbox.height;
       return nbox;
     };
     this.blocks.forEach((block) => {
       if (!rv.x) {
-        rv = svgHelpers.smoBox(adjBox(block));
+        rv = SvgHelpers.smoBox(adjBox(block));
       } else {
-        rv = svgHelpers.unionRect(rv, adjBox(block));
+        rv = SvgHelpers.unionRect(rv, adjBox(block));
       }
     });
     return rv;
@@ -366,7 +366,7 @@ export class SuiInlineText {
     group.id = 'inlineCursor';
     const h = this.fontSize;
     if (this.blocks.length <= position || position < 0) {
-      svgHelpers.renderCursor(group, this.startX, this.startY - h, h);
+      SvgHelpers.renderCursor(group, this.startX, this.startY - h, h);
       this.context.closeGroup();
       return;
     }
@@ -386,7 +386,7 @@ export class SuiInlineText {
         }
       }
     }
-    svgHelpers.renderCursor(group, block.x + block.width, adjY - (adjH * block.scale), adjH * block.scale);
+    SvgHelpers.renderCursor(group, block.x + block.width, adjY - (adjH * block.scale), adjH * block.scale);
     this.context.closeGroup();
   }
   removeCursor() {
@@ -399,7 +399,7 @@ export class SuiInlineText {
     if (!this.artifacts) {
       return [];
     }
-    return svgHelpers.findIntersectingArtifact(box, this.artifacts, scroll) as SuiInlineArtifact[];
+    return SvgHelpers.findIntersectingArtifact(box, this.artifacts, scroll) as SuiInlineArtifact[];
   }
   _addBlockAt(position: number, block: SuiInlineBlock) {
     if (position >= this.blocks.length) {
@@ -492,14 +492,14 @@ export class SuiInlineText {
       this._drawBlock(block);
       this.context.closeGroup();
       const artifact: SuiInlineArtifact = { block, box: SvgBox.default, index: 0 };
-      artifact.box = svgHelpers.smoBox(bg.getBoundingClientRect());
+      artifact.box = SvgHelpers.smoBox(bg.getBoundingClientRect());
       artifact.index = ix;
       this.artifacts.push(artifact);
       ix += 1;
     });
     this.context.closeGroup();
-    this.logicalBox = svgHelpers.smoBox(group.getBBox());
-    this.renderedBox = svgHelpers.smoBox(svgHelpers.logicalToClient(this.context.svg, this.logicalBox, this.scroller.scrollState.scroll));
+    this.logicalBox = SvgHelpers.smoBox(group.getBBox());
+    this.renderedBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.context.svg, this.logicalBox, this.scroller.scrollState.scroll));
   }
 
   _drawBlock(block: SuiInlineBlock) {
@@ -613,11 +613,11 @@ export class SuiTextBlock {
         this._outlineBox(this.context, block.text.logicalBox);
       }
       if (!this.renderedBox) {
-        this.renderedBox = svgHelpers.smoBox(block.text.renderedBox);
-        this.logicalBox = svgHelpers.smoBox(block.text.logicalBox);
+        this.renderedBox = SvgHelpers.smoBox(block.text.renderedBox);
+        this.logicalBox = SvgHelpers.smoBox(block.text.logicalBox);
       } else {
-        this.renderedBox = svgHelpers.unionRect(this.renderedBox, block.text.renderedBox);
-        this.logicalBox = svgHelpers.unionRect(this.logicalBox, block.text.logicalBox);
+        this.renderedBox = SvgHelpers.unionRect(this.renderedBox, block.text.renderedBox);
+        this.logicalBox = SvgHelpers.unionRect(this.logicalBox, block.text.logicalBox);
       }
     });
   }
@@ -627,7 +627,7 @@ export class SuiTextBlock {
       context, box, classes: 'text-drag',
       stroke: outlineStroke, scroll: this.scroller.scrollState.scroll, clientCoordinates: false
     };
-    svgHelpers.outlineLogicalRect(obj);
+    SvgHelpers.outlineLogicalRect(obj);
   }
 
   offsetStartX(offset: number) {
@@ -682,7 +682,7 @@ export class SuiTextBlock {
     return this._calculateBoundingClientRect();
   }
   getRenderedBox(): SvgBox {
-    return svgHelpers.smoBox(svgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect(), this.scroller.scrollState.scroll));
+    return SvgHelpers.smoBox(SvgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect(), this.scroller.scrollState.scroll));
   }
   _calculateBoundingClientRect(): SvgBox {
     let rv: SvgBox = SvgBox.default;
@@ -690,7 +690,7 @@ export class SuiTextBlock {
       if (!rv.x) {
         rv = block.text.getLogicalBox();
       } else {
-        rv = svgHelpers.unionRect(rv, block.text.getLogicalBox());
+        rv = SvgHelpers.unionRect(rv, block.text.getLogicalBox());
       }
     });
     rv.y = rv.y - rv.height;
