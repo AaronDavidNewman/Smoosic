@@ -15,6 +15,10 @@ export interface Ticks {
 
 export type PitchLetter = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g';
 
+export function IsPitchLetter(letter: PitchLetter | string): letter is PitchLetter {
+    return letter.length === 1 && letter[0] >= 'a' && letter[0] <= 'g';
+}
+
 export interface PitchKey {
     letter: PitchLetter,
     accidental: string

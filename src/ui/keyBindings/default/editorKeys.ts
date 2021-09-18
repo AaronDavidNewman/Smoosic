@@ -1,5 +1,6 @@
+import { KeyBinding } from './trackerKeys';
 export class defaultEditorKeys {
-  static get keys() {
+  static get keys(): KeyBinding[] {
     return [{
         event: "keydown",
         key: "=",

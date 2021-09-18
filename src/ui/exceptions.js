@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { htmlHelpers } from '../common/htmlHelpers';
-import { suiController } from './controller';
+import { SuiEventHandler } from '../application/eventHandler';
 export class SuiExceptionHandler {
   constructor(params) {
     this.view = params.view;
@@ -19,12 +19,12 @@ export class SuiExceptionHandler {
       return;
     }
     this.thrown = true;
-    if (window.suiController && window.suiController.reentry) {
+    if (window.SuiEventHandler && window.SuiEventHandler.reentry) {
       return;
     }
 
-    if (window.suiController) {
-      suiController.reentry = true;
+    if (window.SuiEventHandler) {
+      SuiEventHandler.reentry = true;
     }
     scoreString = 'Could not serialize score.';
     try {
@@ -77,7 +77,7 @@ export class SuiExceptionHandler {
       if (lastOp) {
         this.view.undoBuffer.undo(this.view.score);
         this.view.renderer.render();
-        suiController.reentry = false;
+        SuiEventHandler.reentry = false;
       }
     });
     $('.bug-submit-button').off('click').on('click', () => {

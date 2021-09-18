@@ -2,7 +2,7 @@
 // that need to be created via reflection.
 // ui application components
 import { SuiApplication } from './application';
-import { suiController } from '../ui/controller';
+import { SuiEventHandler } from './eventHandler';
 import {
     RibbonButtons, DisplaySettings, NoteButtons, TextButtons,
     ChordButtons, MicrotoneButtons, StaveButtons, BeamButtons, MeasureButtons,
@@ -12,7 +12,7 @@ import {
 import { SuiExceptionHandler } from '../ui/exceptions';
 import { Qwerty } from '../ui/qwerty';
 import { SuiPiano } from '../render/sui/piano';
-import { SuiDom } from '../ui/dom';
+import { SuiDom } from './dom';
 import { basicJson, emptyScoreJson } from '../music/basic';
 import { SuiHelp } from '../ui/help';
 
@@ -91,7 +91,7 @@ const getClass = (jsonString: string) => {
 export const Smo = {
     // Application-level classes
     SuiApplication,
-    SuiDom,  suiController, SuiExceptionHandler,
+    SuiDom,  SuiEventHandler, SuiExceptionHandler,
     Qwerty, SuiHelp,
     // Ribbon buttons
     RibbonButtons, NoteButtons, TextButtons, ChordButtons, MicrotoneButtons,

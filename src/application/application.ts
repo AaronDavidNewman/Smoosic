@@ -1,17 +1,17 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../common/serializationHelpers';
-import { suiController } from '../ui/controller';
+import { SuiEventHandler } from './eventHandler';
 import { SmoConfiguration } from '../smo/data/common';
 import { SuiScoreRender } from '../render/sui/scoreRender';
 import { suiMenuManager } from '../ui/menus';
 import { SuiRenderDemon } from '../render/sui/layoutDemon';
-import { SuiKeyCommands } from '../ui/keyCommands';
+import { SuiKeyCommands } from './keyCommands';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { SmoScore } from '../smo/data/score';
 import { SmoTranslationEditor } from '../ui/i18n/translationEditor';
 import { SmoTranslator } from '../ui/i18n/language';
-import { browserEventSource } from '../ui/eventSource';
+import { BrowserEventSource } from './eventSource';
 import { SuiOscillator } from '../render/audio/oscillator';
 import { ArialFont } from '../styles/font_metrics/arial_metrics';
 import { TimesFont } from '../styles/font_metrics/times_metrics';
@@ -21,8 +21,9 @@ import { MerriweatherFont } from '../styles/font_metrics/Merriweather-Regular';
 import { SourceSansProFont } from '../styles/font_metrics/ssp-sans-metrics';
 import { SourceSerifProFont } from '../styles/font_metrics/ssp-serif-metrics';
 import { _MidiWriter } from '../common/midiWriter';
-import { SuiDom } from '../ui/dom';
+import { SuiDom } from './dom';
 import { librarySeed } from '../ui/fileio/library';
+import { DialogParams } from './common';
 
 declare var SmoConfig : SmoConfiguration;
 
@@ -43,7 +44,7 @@ export interface controllerKeyBinding {
 }
 export interface controllerParams {
   keyBindingDefaults: controllerKeyBinding[],
-  eventSource: browserEventSource
+  eventSource: BrowserEventSource
   view: SuiScoreViewOperations,
   keyCommands: SuiKeyCommands,
   layoutDemon: SuiRenderDemon,
@@ -113,7 +114,7 @@ export class SuiScoreBuilder {
  */
 export class SuiApplication {
   scoreLibrary: any;
-  static get defaultConfig():SmoConfiguration {
+  static get defaultConfig(): SmoConfiguration {
     return {
       smoPath: '..',
       language: 'en',
@@ -195,8 +196,8 @@ export class SuiApplication {
   createUi(score: SmoScore) {
     SuiDom.createDom('Smoosic');
     const params: Partial<controllerParams> = {};
-    params.keyBindingDefaults = suiController.keyBindingDefaults;
-    params.eventSource = new browserEventSource(); // events come from the browser UI.
+    params.keyBindingDefaults = SuiEventHandler.keyBindingDefaults;
+    params.eventSource = new BrowserEventSource(); // events come from the browser UI.
     const selector = typeof(SmoConfig.vexDomContainer) === 'undefined' ? '' : SmoConfig.vexDomContainer;
 
     const scoreRenderer = SuiScoreRender.createScoreRenderer(document.getElementById(
@@ -204,7 +205,7 @@ export class SuiApplication {
     params.eventSource.setRenderElement(scoreRenderer.renderElement);
     params.view = new SuiScoreViewOperations(scoreRenderer, score, '.musicRelief');
     if (SmoConfig.keyCommands) {
-      params.keyCommands = new SuiKeyCommands(params);
+      params.keyCommands = new SuiKeyCommands(params as DialogParams);
     }
     if (SmoConfig.menus) {
       params.menus = new suiMenuManager(params);
@@ -212,7 +213,7 @@ export class SuiApplication {
     params.layoutDemon = params.view.layoutDemon;
     // Start the application event processing and render the initial score
     // eslint-disable-next-line
-    new suiController(params);
+    new SuiEventHandler(params as controllerParams);
     SuiDom.splash();
   }
   static registerFonts() {

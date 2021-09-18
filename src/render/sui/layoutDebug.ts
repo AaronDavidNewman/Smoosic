@@ -58,7 +58,7 @@ export class layoutDebug {
   static mask: number = 0;
   static _textDebug: number[] = [];
   static timestampHash: Record<number, number> = {};
-  static _dialogEvents: number[] = [];
+  static _dialogEvents: string[] = [];
 
   static clearTimestamps() {
     for (var i = 0; i <= layoutDebug.codeRegions.LAST; ++i) {
@@ -141,7 +141,7 @@ export class layoutDebug {
     console.log(value);
   }
 
-  static addDialogDebug(value: number) {
+  static addDialogDebug(value: string) {
     layoutDebug._dialogEvents.push(value);
     console.log(value);
   }

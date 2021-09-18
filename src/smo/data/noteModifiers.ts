@@ -181,8 +181,7 @@ export class SmoMicrotone extends SmoNoteModifierBase {
   }
 }
 
-export interface SmoOrnamentParams extends SmoObjectParams {
-  ctor: string,
+export interface SmoOrnamentParams {
   position?: string,
   offset?: string,
   ornament: string,
@@ -268,8 +267,7 @@ export class SmoOrnament extends SmoNoteModifierBase {
   }
 }
 
-export interface SmoArticulationParameters extends SmoObjectParams {
-  ctor: string,
+export interface SmoArticulationParameters {
   position?: string,
   offset?: number,
   articulation: string,

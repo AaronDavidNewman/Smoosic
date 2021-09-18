@@ -1,19 +1,35 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 
-import { RibbonButtons } from './ribbon';
-import { SuiExceptionHandler } from './exceptions';
-import { Qwerty } from './qwerty';
-import { SuiModifierDialogFactory } from './dialog';
+import { RibbonButtons } from '../ui/ribbon';
+import { SuiExceptionHandler } from '../ui/exceptions';
+import { Qwerty } from '../ui/qwerty';
+import { SuiModifierDialogFactory } from '../ui/dialog';
 import { SuiPiano } from '../render/sui/piano'
 import { layoutDebug } from '../render/sui/layoutDebug';
-import { SuiHelp } from './help';
-import { SuiTracker } from '../render/sui/tracker';
-import { defaultEditorKeys } from './keyBindings/default/editorKeys';
-import { defaultTrackerKeys } from './keyBindings/default/trackerKeys';
-import { defaultRibbonLayout } from './ribbonLayout/default/defaultRibbon';
+import { SuiHelp } from '../ui/help';
+import { SuiTracker, KeyEvent } from '../render/sui/tracker';
+import { defaultEditorKeys } from '../ui/keyBindings/default/editorKeys';
+import { defaultTrackerKeys } from '../ui/keyBindings/default/trackerKeys';
+import { defaultRibbonLayout } from '../ui/ribbonLayout/default/defaultRibbon';
+import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
+import { BrowserEventSource, EventHandler } from './eventSource';
+import { SuiKeyCommands } from './keyCommands';
+import { ModalComponent } from './common';
+import { controllerParams } from './application';
+import { KeyBinding } from '../ui/keyBindings/default/trackerKeys';
+import { SvgHelpers } from '../render/sui/svgHelpers';
 
-// ## suiController
+declare var $: any;
+
+export interface EventHandlerParams {
+  view: SuiScoreViewOperations,
+  eventSource: BrowserEventSource,
+  tracker: SuiTracker,
+  keyCommands: SuiKeyCommands,
+  menus: any
+}
+// ## SuiEventHandler
 // ## Description:
 // Manages DOM events and binds keyboard and mouse events
 // to editor and menu commands, tracker and layout manager.
@@ -24,24 +40,41 @@ import { defaultRibbonLayout } from './ribbonLayout/default/defaultRibbon';
 // 3. keyboard, when in editor mode.  When modals or dialogs are active, wait for dismiss event
 // 4. svg piano key events smo-piano-key
 // 5. tracker change events tracker-selection
-export class suiController {
-
-  constructor(params) {
-    Vex.Merge(this, suiController.defaults);
-    Vex.Merge(this, params);
-    window.suiControllerInstance = this;
+export class SuiEventHandler {
+  static reentry: boolean = false;
+  static keyboardUi: Qwerty;  
+  view: SuiScoreViewOperations;
+  eventSource: BrowserEventSource;
+  tracker: SuiTracker;
+  keyCommands: SuiKeyCommands;
+  resizing: boolean = false;
+  undoStatus: number = 0;
+  trackScrolling: boolean = false;
+  keyHandlerObj: any = null;
+  ribbon: RibbonButtons;
+  menus: any;
+  piano: SuiPiano | null = null;
+  exhandler: SuiExceptionHandler;
+  unbound: boolean = false;
+  keydownHandler: EventHandler | null = null;
+  mouseMoveHandler: EventHandler | null = null;
+  mouseClickHandler: EventHandler | null = null;
+  keyBind: KeyBinding[] = [];
+  constructor(params: controllerParams) {
+    (globalThis as any).SuiEventHandlerInstance = this;
 
     this.view = params.view;
+    this.menus = params.menus;
     this.eventSource = params.eventSource;
     this.tracker = this.view.tracker; // needed for key event handling
-    this.keyCommands.controller = this;
+    this.keyCommands = params.keyCommands;
+    this.keyCommands.completeNotifier = this;
     this.keyCommands.view = this.view;
     this.resizing = false;
     this.undoStatus=0;
     this.trackScrolling = false;
-
     this.keyHandlerObj = null;
-
+    this.keyBind = SuiEventHandler.keyBindingDefaults;
     this.ribbon = new RibbonButtons({
       ribbons: defaultRibbonLayout.ribbons,
       ribbonButtons: defaultRibbonLayout.ribbonButtons,
@@ -70,23 +103,7 @@ export class suiController {
     return '.musicRelief';
   }
 
-  static get keyboardWidget() {
-    return suiController._kbWidget;
-  }
-
-  static set keyboardWidget(value) {
-    suiController._kbWidget = value;
-    if (suiController._kbWidget) {
-      Qwerty.displayKb();
-    }
-  }
-
-  get isLayoutQuiet() {
-    return ((this.view.renderer.passState == SuiRenderState.passStates.clean && this.renderer.layout.dirty == false)
-       || this.view.renderer.passState == SuiRenderState.passStates.replace);
-  }
-
-  handleScrollEvent(ev) {
+  handleScrollEvent() {
     const self = this;
     if (self.trackScrolling) {
         return;
@@ -97,7 +114,7 @@ export class suiController {
         // wait until redraw is done to track scroll events.
         self.trackScrolling = false;
           // Thisi s a WIP...
-        self.view.tracker.scroller.handleScroll($(suiController.scrollable)[0].scrollLeft, $(suiController.scrollable)[0].scrollTop);
+        self.view.tracker.scroller.handleScroll($(SuiEventHandler.scrollable)[0].scrollLeft, $(SuiEventHandler.scrollable)[0].scrollTop);
       } catch(e) {
         SuiExceptionHandler.instance.exceptionHandler(e);
       }
@@ -112,6 +129,9 @@ export class suiController {
     if (this.resizing) {
       return;
     }
+    if (!this.piano) {
+      return;
+    }
     if ($('body').hasClass('printing')) {
       return;
     }
@@ -119,11 +139,11 @@ export class suiController {
     setTimeout(function () {
       console.log('resizing');
       self.resizing = false;
-      self.piano.handleResize();
+      self.piano!.handleResize();
     }, 500);
   }
 
-  createModifierDialog(modifierSelection) {
+  createModifierDialog(modifierSelection: any) {
     var parameters = {
       modifier: modifierSelection.modifier,
         view: this.view, eventSource:this.eventSource,
@@ -134,7 +154,7 @@ export class suiController {
 
   // If the user has selected a modifier via the mouse/touch, bring up mod dialog
   // for that modifier
-  trackerModifierSelect(ev) {
+  trackerModifierSelect(ev: KeyEvent) {
     var modSelection = this.view.tracker.getSelectedModifier();
     if (modSelection) {
       var dialog = this.createModifierDialog(modSelection);
@@ -157,7 +177,7 @@ export class suiController {
   // in the tracker.
   bindResize() {
     const self = this;
-    const el = $(suiController.scrollable)[0];
+    const el = $(SuiEventHandler.scrollable)[0];
     // unit test programs don't have resize html
     if (!el) {
       return;
@@ -166,8 +186,8 @@ export class suiController {
       self.resizeEvent();
     });
 
-    let scrollCallback = (ev) => {
-      self.handleScrollEvent(ev);
+    let scrollCallback = () => {
+      self.handleScrollEvent();
     };
     el.onscroll = scrollCallback;
   }
@@ -185,11 +205,11 @@ export class suiController {
   // Many editor commands can be reached by a single keystroke.  For more advanced things there
   // are menus.
   static get keyBindingDefaults() {
-    var editorKeys = suiController.editorKeyBindingDefaults;
+    var editorKeys = SuiEventHandler.editorKeyBindingDefaults;
     editorKeys.forEach((key) => {
       key.module = 'keyCommands'
     });
-    var trackerKeys = suiController.trackerKeyBindingDefaults;
+    var trackerKeys = SuiEventHandler.trackerKeyBindingDefaults;
     trackerKeys.forEach((key) => {
       key.module = 'tracker'
     });
@@ -216,23 +236,13 @@ export class suiController {
       self.bindEvents();
     }
   }
-  static set reentry(value) {
-    suiController._reentry = value;
-  }
-  static get reentry() {
-    if (typeof(suiController['_reentry']) == 'undefined') {
-      suiController._reentry = false;
-    }
-    return suiController._reentry;
-  }
-
   menuHelp() {
     SuiHelp.displayHelp();
   }
 
   static get defaults() {
     return {
-      keyBind: suiController.keyBindingDefaults
+      keyBind: SuiEventHandler.keyBindingDefaults
     };
   }
 
@@ -240,7 +250,7 @@ export class suiController {
   // Global events from keyboard and pointer are handled by this object.  Modal
   // UI elements take over the events, and then let the controller know when
   // the modals go away.
-  unbindKeyboardForModal(dialog) {
+  unbindKeyboardForModal(dialog: ModalComponent) {
     if (this.unbound) {
       console.log('received duplicate bind event');
       return;
@@ -252,14 +262,13 @@ export class suiController {
       this.bindEvents();
       layoutDebug.addDialogDebug('controller: unbindKeyboardForModal resolve')
     }
-    this.eventSource.unbindKeydownHandler(this.keydownHandler);
-    this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
-    this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
-
+    this.eventSource.unbindKeydownHandler(this.keydownHandler!);
+    this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler!);
+    this.eventSource.unbindMouseClickHandler(this.mouseClickHandler!);
     dialog.closeModalPromise.then(rebind);
   }
 
-  evKey(evdata) {
+  evKey(evdata: any) {
     if ($('body').hasClass('translation-mode')) {
       return;
     }
@@ -269,7 +278,7 @@ export class suiController {
        + " shift='" + evdata.shiftKey + "' control='" + evdata.ctrlKey + "'" + " alt='" + evdata.altKey + "'");
     evdata.preventDefault();
 
-    if (suiController.keyboardWidget) {
+    if (SuiEventHandler.keyboardUi) {
       Qwerty.handleKeyEvent(evdata);
     }
     const dataCopy = SuiTracker.serializeEvent(evdata);
@@ -287,14 +296,18 @@ export class suiController {
         this.trackerModifierSelect(dataCopy);
       }
 
-      var binding = this.keyBind.find((ev) =>
+      var binding: KeyBinding | undefined = this.keyBind.find((ev: KeyBinding) =>
         ev.event === 'keydown' && ev.key === dataCopy.key &&
         ev.ctrlKey === dataCopy.ctrlKey &&
         ev.altKey === dataCopy.altKey && dataCopy.shiftKey === ev.shiftKey);
 
       if (binding) {
         try {
-          this[binding.module][binding.action](dataCopy);
+          if (binding.module === 'tracker') {
+            (this.tracker as any)[binding.action](dataCopy);
+          } else {
+            (this.keyCommands as any)[binding.action](dataCopy);
+          }
         } catch (e) {
           if (typeof(e) === 'string') {
             console.error(e);
@@ -305,14 +318,14 @@ export class suiController {
     });
   }
 
-  mouseMove(ev) {
-    this.view.tracker.intersectingArtifact({
+  mouseMove(ev: any) {
+    this.view.tracker.intersectingArtifact(SvgHelpers.smoBox({
       x: ev.clientX,
       y: ev.clientY
-    });
+    }));
   }
 
-  mouseClick(ev) {
+  mouseClick(ev: any) {
     const dataCopy = SuiTracker.serializeEvent(ev);
     this.view.renderer.updatePromise().then(() => {
       this.view.tracker.selectSuggestion(dataCopy);
@@ -325,10 +338,6 @@ export class suiController {
   bindEvents() {
     const self = this;
     const tracker = this.view.tracker;
-
-    $('body').off('redrawScore').on('redrawScore', function() {
-      self.handleRedrawTimer();
-    });
     $('body').off('forceScrollEvent').on('forceScrollEvent', function() {
       self.handleScrollEvent();
     });

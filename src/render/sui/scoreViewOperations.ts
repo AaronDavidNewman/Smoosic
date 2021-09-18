@@ -510,22 +510,20 @@ export class SuiScoreViewOperations extends SuiScoreView {
     }
     this._renderChangedMeasures(measureSelections);
   }
-  toggleArticulation(modifier: SmoArticulation | SmoOrnament, ctor: string) {
+  toggleArticulation(modifier: string, ctor: string) {
     this.actionBuffer.addAction('toggleArticulation', modifier, ctor);
     const measureSelections = this._undoTrackerMeasureSelections('toggle articulation');
     this.tracker.selections.forEach((sel) => {
       if (ctor === 'SmoArticulation') {
-        const articulation = modifier as SmoArticulation;
-        const aa = new SmoArticulation(articulation);
-        const altAa = new SmoArticulation(articulation);
+        const aa = new SmoArticulation({ articulation: modifier });
+        const altAa = new SmoArticulation({ articulation: modifier });
         altAa.attrs.id = aa.attrs.id;
         SmoOperation.toggleArticulation(sel, aa);
         const altSelection = this._getEquivalentSelection(sel);
         SmoOperation.toggleArticulation(altSelection!, altAa);
       } else {
-        const ornament = modifier as SmoOrnament;
-        const aa = new SmoOrnament(ornament);
-        const altAa = new SmoOrnament(ornament);
+        const aa = new SmoOrnament({ ornament: modifier });
+        const altAa = new SmoOrnament({ ornament: modifier });
         altAa.attrs.id = aa.attrs.id;
         const altSelection = this._getEquivalentSelection(sel!);
         SmoOperation.toggleOrnament(sel, aa);

@@ -1,7 +1,14 @@
-
+export interface KeyBinding {
+  event: string,
+  key: string,
+  ctrlKey: boolean,
+  altKey: boolean,
+  shiftKey: boolean,
+  action: string,
+  module?: string
+}
 export class defaultTrackerKeys {
-
-  static get keys() {
+  static get keys(): KeyBinding[] {
     return [{
         event: "keydown",
         key: "Home",

@@ -23,11 +23,6 @@ export class SuiRenderDemon {
     this.undoBuffer = undoBuffer;
     this.tracker = tracker;
   }
-
-  get isLayoutQuiet() {
-    return ((this.renderer.passState == SuiRenderState.passStates.clean && this.renderer.dirty == false)
-       || this.renderer.passState == SuiRenderState.passStates.replace);
-  }
   resetIdleTimer() {
       this.idleLayoutTimer = Date.now();
   }
