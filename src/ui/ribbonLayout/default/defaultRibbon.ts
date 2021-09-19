@@ -1,21 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 
-export interface ButtonDefinition {
-  leftText: string,
-  rightText: string,
-  classes: string,
-  icon: string,
-  action: string,
-  ctor: string,
-  group: string,
-  id: string
-  dataElements?: {
-    interval: string,
-    direction: string
-  }
-}
-
+import { ButtonDefinition } from "../../buttons/button";
 export class defaultRibbonLayout {
   static get ribbons() {
     var left = defaultRibbonLayout.leftRibbonIds;

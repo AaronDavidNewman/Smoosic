@@ -1,30 +1,29 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SuiScoreView } from './scoreView';
+import { SmoScore, SmoScorePreferences, SmoScoreInfo } from '../../smo/data/score';
+import { SmoSystemStaffParams } from '../../smo/data/systemStaff';
+import { SmoMeasure } from '../../smo/data/measure';
+import { SmoNote } from '../../smo/data/note';
+import { TimeSignature, SvgBox, Pitch, PitchLetter, FontInfo, SmoConfiguration } from '../../smo/data/common';
 import { SmoTextGroup, SmoSystemGroup, SmoPageLayout, SmoGlobalLayout } from '../../smo/data/scoreModifiers';
+import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, SmoOrnament, SmoLyric, SmoMicrotone } from '../../smo/data/noteModifiers';
+import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat } from '../../smo/data/measureModifiers';
 import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
 import { SmoOperation } from '../../smo/xform/operations';
+import { BatchSelectionOperation } from '../../smo/xform/operations';
+import { SmoToMidi } from '../../smo/midi/smoToMidi';
+import { SmoToXml } from '../../smo/mxml/smo2Xml';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoScore, SmoScorePreferences, SmoScoreInfo } from '../../smo/data/score';
 import { SmoMusic } from '../../smo/data/music';
-import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, SmoOrnament, SmoLyric } from '../../smo/data/noteModifiers';
-import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat } from '../../smo/data/measureModifiers';
 import { SuiOscillator } from '../audio/oscillator';
+import { SuiAudioPlayer } from '../audio/player';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { StaffModifierBase, SmoInstrument } from '../../smo/data/staffModifiers';
 import { SuiRenderState } from './renderState';
-import { SmoMeasure } from '../../smo/data/measure';
 import { htmlHelpers } from '../../common/htmlHelpers';
-import { SmoToMidi } from '../../smo/midi/smoToMidi';
-import { SmoToXml } from '../../smo/mxml/smo2Xml';
 import { SuiActionPlayback } from './actionPlayback';
-import { SmoMicrotone } from '../../smo/data/noteModifiers';
-import { TimeSignature, SvgBox, Pitch, PitchLetter, FontInfo, SmoConfiguration } from '../../smo/data/common';
-import { SmoNote } from '../../smo/data/note';
-import { SmoSystemStaffParams } from '../../smo/data/systemStaff';
 import { KeyEvent } from './tracker';
-import { BatchSelectionOperation } from '../../smo/xform/operations';
-
 declare var $: any;
 declare var SmoConfig: SmoConfiguration;
 
@@ -1078,6 +1077,20 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this._columnAction('set measure format', format, 'setMeasureFormat');
   }
 
+  playFromSelection() {
+    var mm = this.tracker.getExtremeSelection(-1);
+    if (SuiAudioPlayer.playingInstance && SuiAudioPlayer.playingInstance.paused) {
+      SuiAudioPlayer.playingInstance.play();
+      return;
+    }
+    new SuiAudioPlayer({ score: this.score, startIndex: mm.selector.measure, tracker: this.tracker }).play();
+  }
+  stopPlayer() {
+    SuiAudioPlayer.stopPlayer();
+  }
+  pausePlayer() {
+    SuiAudioPlayer.pausePlayer();
+  }
   replayActions() {
     if (!this.actionBuffer.endCondition) {
       return;

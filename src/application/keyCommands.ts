@@ -66,16 +66,11 @@ export class SuiKeyCommands {
   }
 
   playScore() {
-    var mm = this.view.tracker.getExtremeSelection(-1);
-    if (SuiAudioPlayer.playingInstance && SuiAudioPlayer.playingInstance.paused) {
-      SuiAudioPlayer.playingInstance.play();
-      return;
-    }
-    new SuiAudioPlayer({ score: this.view.score, startIndex: mm.selector.measure, tracker: this.view.tracker }).play();
+    this.view.playFromSelection();
   }
 
   stopPlayer() {
-    SuiAudioPlayer.stopPlayer();
+    this.view.stopPlayer();
   }
   pausePlayer() {
     SuiAudioPlayer.pausePlayer();

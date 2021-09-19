@@ -80,7 +80,6 @@ export class SuiEventHandler {
       ribbonButtons: defaultRibbonLayout.ribbonButtons,
       menus: this.menus,
       completeNotifier: this,
-      keyCommands: this.keyCommands,
       view: this.view,
       eventSource:this.eventSource,
       tracker: this.tracker

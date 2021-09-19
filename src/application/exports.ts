@@ -3,12 +3,6 @@
 // ui application components
 import { SuiApplication } from './application';
 import { SuiEventHandler } from './eventHandler';
-import {
-    RibbonButtons, DisplaySettings, NoteButtons, TextButtons,
-    ChordButtons, MicrotoneButtons, StaveButtons, BeamButtons, MeasureButtons,
-    DurationButtons, VoiceButtons, PlayerButtons,
-    ArticulationButtons, NavigationButtons, ExtendedCollapseParent
-} from '../ui/ribbon';
 import { SuiExceptionHandler } from '../ui/exceptions';
 import { Qwerty } from '../ui/qwerty';
 import { SuiPiano } from '../render/sui/piano';
@@ -16,6 +10,22 @@ import { SuiDom } from './dom';
 import { basicJson, emptyScoreJson } from '../music/basic';
 import { SuiHelp } from '../ui/help';
 
+import { ArticulationButtons } from '../ui/buttons/articulation';
+import { BeamButtons } from '../ui/buttons/beam';
+import { ChordButtons } from '../ui/buttons/chord';
+import { CollapseRibbonControl, ExtendedCollapseParent } from '../ui/buttons/collapsable';
+import { DisplaySettings } from '../ui/buttons/display';
+import { DurationButtons } from '../ui/buttons/duration';
+import { MeasureButtons } from '../ui/buttons/measure';
+import { MicrotoneButtons } from '../ui/buttons/microtone';
+import { NavigationButtons } from '../ui/buttons/navigation';
+import { NoteButtons } from '../ui/buttons/note';
+import { PlayerButtons } from '../ui/buttons/player';
+import { StaveButtons } from '../ui/buttons/stave';
+import { TextButtons } from '../ui/buttons/text';
+import { VoiceButtons } from '../ui/buttons/voice';
+
+import { RibbonButtons } from '../ui/ribbon';
 // Language strings
 import { quickStartHtmlen, selectionHtmlen, enterDurationsHtmlen, enterPitchesHtmlen } from '../ui/i18n/language_en';
 import { quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHtmlar } from '../ui/i18n/language_ar';
