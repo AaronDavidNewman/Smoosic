@@ -366,14 +366,18 @@ export class SmoNote implements Transposable {
   }
 
   addMicrotone(tone: SmoMicrotone) {
-    const ar = this.tones.filter((tn: SmoMicrotone) => tn.pitch !== tone.pitch);
+    const ar = this.tones.filter((tn: SmoMicrotone) => tn.pitchIndex !== tone.pitchIndex);
     ar.push(tone);
     this.tones = ar;
   }
   removeMicrotone(tone: SmoMicrotone) {
-    const ar = this.tones.filter((tn) => tn.pitch !== tone.pitch
+    const ar = this.tones.filter((tn) => tn.pitchIndex !== tone.pitchIndex
+      && tn.pitchIndex <= this.pitches.length // also remove tones for removed pitches
       && tone.tone !== tn.tone);
     this.tones = ar;
+  }
+  getMicrotone(toneIndex: number) {
+    return this.tones.find((tn) => tn.pitchIndex === toneIndex);
   }
 
   getMicrotones() {

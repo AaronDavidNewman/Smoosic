@@ -40,6 +40,11 @@ export class SuiPiano {
   static get owidth() {
     return SuiPiano.dimensions.wwidth * SuiPiano.wkeysPerOctave;
   }
+  static createAndDisplay() {
+    // Called by ribbon button.
+    $('body').trigger('show-piano-event');
+    $('body').trigger('forceScrollEvent');
+  }
 
   _mapKeys() {
     this.objects = [];

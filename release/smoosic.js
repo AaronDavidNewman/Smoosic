@@ -12,6 +12,1206 @@ return /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./src/application/application.ts":
+/*!****************************************!*\
+  !*** ./src/application/application.ts ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiApplication = exports.SuiScoreBuilder = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const serializationHelpers_1 = __webpack_require__(/*! ../common/serializationHelpers */ "./src/common/serializationHelpers.js");
+const eventHandler_1 = __webpack_require__(/*! ./eventHandler */ "./src/application/eventHandler.ts");
+const scoreRender_1 = __webpack_require__(/*! ../render/sui/scoreRender */ "./src/render/sui/scoreRender.ts");
+const menus_1 = __webpack_require__(/*! ../ui/menus */ "./src/ui/menus.js");
+const keyCommands_1 = __webpack_require__(/*! ./keyCommands */ "./src/application/keyCommands.ts");
+const scoreViewOperations_1 = __webpack_require__(/*! ../render/sui/scoreViewOperations */ "./src/render/sui/scoreViewOperations.ts");
+const score_1 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
+const translationEditor_1 = __webpack_require__(/*! ../ui/i18n/translationEditor */ "./src/ui/i18n/translationEditor.js");
+const language_1 = __webpack_require__(/*! ../ui/i18n/language */ "./src/ui/i18n/language.js");
+const eventSource_1 = __webpack_require__(/*! ./eventSource */ "./src/application/eventSource.ts");
+const oscillator_1 = __webpack_require__(/*! ../render/audio/oscillator */ "./src/render/audio/oscillator.ts");
+const arial_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/arial_metrics */ "./src/styles/font_metrics/arial_metrics.js");
+const times_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/times_metrics */ "./src/styles/font_metrics/times_metrics.js");
+const Commissioner_Medium_Metrics_1 = __webpack_require__(/*! ../styles/font_metrics/Commissioner-Medium-Metrics */ "./src/styles/font_metrics/Commissioner-Medium-Metrics.js");
+const ConcertOne_Regular_1 = __webpack_require__(/*! ../styles/font_metrics/ConcertOne-Regular */ "./src/styles/font_metrics/ConcertOne-Regular.js");
+const Merriweather_Regular_1 = __webpack_require__(/*! ../styles/font_metrics/Merriweather-Regular */ "./src/styles/font_metrics/Merriweather-Regular.js");
+const ssp_sans_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
+const ssp_serif_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/ssp-serif-metrics */ "./src/styles/font_metrics/ssp-serif-metrics.js");
+const midiWriter_1 = __webpack_require__(/*! ../common/midiWriter */ "./src/common/midiWriter.js");
+const dom_1 = __webpack_require__(/*! ./dom */ "./src/application/dom.ts");
+const VF = eval('Vex.Flow');
+const Smo = eval('globalThis.Smo');
+/**
+ * SuiScoreBuilder
+ * create the initial score based on the query string/history
+ */
+class SuiScoreBuilder {
+    localScoreLoad() {
+        var score = null;
+        var scoreStr = localStorage.getItem(serializationHelpers_1.smoSerialize.localScore);
+        if (scoreStr && scoreStr.length) {
+            try {
+                score = score_1.SmoScore.deserialize(scoreStr);
+            }
+            catch (exp) {
+                console.log('could not parse ' + scoreStr);
+            }
+        }
+        return { score, scorePath: null, mode: 'local' };
+    }
+    queryScoreLoad() {
+        var i;
+        if (window.location.search) {
+            const cmd = window.location.search.substring(1, window.location.search.length);
+            const cmds = cmd.split('&');
+            for (i = 0; i < cmds.length; ++i) {
+                const cmd = cmds[i];
+                const pairs = SuiApplication._nvQueryPair(cmd);
+                if (pairs.score) {
+                    try {
+                        const path = SuiApplication.scoreLibrary.find((pp) => pp.alias === pairs.score);
+                        if (!path) {
+                            return null;
+                        }
+                        else {
+                            return { scorePath: path.path, score: null, mode: 'remote' };
+                        }
+                    }
+                    catch (exp) {
+                        console.log('could not parse ' + exp);
+                    }
+                }
+                else if (pairs.lang) {
+                    SuiApplication._deferLanguageSelection(pairs.lang);
+                    return null;
+                }
+                else if (pairs.translate) {
+                    SuiApplication._deferCreateTranslator(pairs.translate);
+                    return null;
+                }
+                return null;
+            }
+        }
+        return null;
+    }
+    libraryScoreLoad() {
+        const score = score_1.SmoScore.deserialize(Smo.getClass(SmoConfig.scoreLoadJson));
+        return { score, scorePath: null, mode: 'local' };
+    }
+}
+exports.SuiScoreBuilder = SuiScoreBuilder;
+/** SuiApplication
+ * main entry point of application.  Based on the configuration,
+ * either start the default UI, or initialize library mode and
+ * await further instructions.
+ */
+class SuiApplication {
+    constructor(params) {
+        SuiApplication.configure(params);
+        this.startApplication();
+    }
+    static get defaultConfig() {
+        return {
+            smoPath: '..',
+            language: 'en',
+            scoreLoadOrder: ['query', 'local', 'library'],
+            scoreLoadJson: 'Smo.basicJson',
+            smoDomContainer: 'smoo',
+            vexDomContainer: 'boo',
+            domSource: ' SuiDom',
+            ribbon: true,
+            keyCommands: true,
+            menus: true,
+            title: 'Smoosic',
+            libraryUrl: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json',
+            languageDir: 'ltr',
+            demonPollTime: 50,
+            idleRedrawTime: 1000, // maximum time between score modification and render
+        };
+    }
+    static configure(params) {
+        const config = SuiApplication.defaultConfig;
+        Vex.Merge(config, params);
+        window.SmoConfig = config;
+        SuiApplication.registerFonts();
+    }
+    startApplication() {
+        oscillator_1.SuiOscillator.samplePromise().then(() => {
+            this._startApplication();
+        });
+    }
+    _startApplication() {
+        let i = 0;
+        let loaded = false;
+        // Initialize the midi writer library
+        midiWriter_1._MidiWriter();
+        const config = window.SmoConfig;
+        for (i = 0; i < config.scoreLoadOrder.length; ++i) {
+            const loader = config.scoreLoadOrder[i];
+            let method = 'localScoreLoad';
+            if (loader === 'query') {
+                method = 'queryScoreLoad';
+            }
+            else if (loader === 'libraryScoreLoad') {
+                method = 'libraryScoreLoad';
+            }
+            const ssb = new SuiScoreBuilder();
+            const ss = ssb[method]();
+            if (ss && ss.score) {
+                if (ss.mode === 'local') {
+                    loaded = true;
+                    this.createUi(ss.score);
+                }
+                else if (ss.score !== null) {
+                    const localScore = ssb.libraryScoreLoad();
+                    if (localScore.score === null) {
+                        return;
+                    }
+                    loaded = true;
+                    this.createUi(localScore.score);
+                    serializationHelpers_1.smoSerialize.loadRemoteFile(ss.scorePath);
+                }
+                break;
+            }
+        }
+        if (loaded === false) {
+            const scoreString = eval('globalThis.Smo.basicJson');
+            const score = score_1.SmoScore.deserialize(scoreString);
+            this.createUi(score);
+        }
+    }
+    /**
+     * Convenience constructor, take the score and render it in the
+     * configured rendering space.
+     * @param score(SmoScore) - the score
+     */
+    createUi(score) {
+        dom_1.SuiDom.createDom('Smoosic');
+        const params = {};
+        params.keyBindingDefaults = eventHandler_1.SuiEventHandler.keyBindingDefaults;
+        params.eventSource = new eventSource_1.BrowserEventSource(); // events come from the browser UI.
+        const selector = typeof (SmoConfig.vexDomContainer) === 'undefined' ? '' : SmoConfig.vexDomContainer;
+        const scoreRenderer = scoreRender_1.SuiScoreRender.createScoreRenderer(document.getElementById(selector), score);
+        params.eventSource.setRenderElement(scoreRenderer.renderElement);
+        params.view = new scoreViewOperations_1.SuiScoreViewOperations(scoreRenderer, score, '.musicRelief');
+        if (SmoConfig.keyCommands) {
+            params.keyCommands = new keyCommands_1.SuiKeyCommands(params);
+        }
+        if (SmoConfig.menus) {
+            params.menus = new menus_1.suiMenuManager(params);
+        }
+        params.layoutDemon = params.view.layoutDemon;
+        // Start the application event processing and render the initial score
+        // eslint-disable-next-line
+        new eventHandler_1.SuiEventHandler(params);
+        dom_1.SuiDom.splash();
+    }
+    static registerFonts() {
+        VF.TextFont.registerFont({
+            name: arial_metrics_1.ArialFont.name,
+            resolution: arial_metrics_1.ArialFont.resolution,
+            glyphs: arial_metrics_1.ArialFont.glyphs,
+            family: arial_metrics_1.ArialFont.fontFamily,
+            serifs: false,
+            monospaced: false,
+            italic: true,
+            bold: true,
+            maxSizeGlyph: 'H',
+            superscriptOffset: 0.66,
+            subscriptOffset: 0.66,
+            description: 'Built-in sans font',
+        });
+        VF.TextFont.registerFont({
+            name: times_metrics_1.TimesFont.name,
+            resolution: times_metrics_1.TimesFont.resolution,
+            glyphs: times_metrics_1.TimesFont.glyphs,
+            family: times_metrics_1.TimesFont.fontFamily,
+            serifs: false,
+            monospaced: false,
+            italic: true,
+            bold: true,
+            maxSizeGlyph: 'H',
+            superscriptOffset: 0.66,
+            subscriptOffset: 0.66,
+            description: 'Built-in serif font',
+        });
+        VF.TextFont.registerFont({
+            name: Commissioner_Medium_Metrics_1.Commissioner_MediumFont.name,
+            resolution: Commissioner_Medium_Metrics_1.Commissioner_MediumFont.resolution,
+            glyphs: Commissioner_Medium_Metrics_1.Commissioner_MediumFont.glyphs,
+            family: Commissioner_Medium_Metrics_1.Commissioner_MediumFont.fontFamily,
+            serifs: false,
+            monospaced: false,
+            italic: false,
+            bold: false,
+            maxSizeGlyph: 'H',
+            superscriptOffset: 0.66,
+            subscriptOffset: 0.66,
+            description: 'Low-contrast sans-serif text font',
+        });
+        VF.TextFont.registerFont({
+            name: ConcertOne_Regular_1.Concert_OneFont.name,
+            resolution: ConcertOne_Regular_1.Concert_OneFont.resolution,
+            glyphs: ConcertOne_Regular_1.Concert_OneFont.glyphs,
+            family: ConcertOne_Regular_1.Concert_OneFont.fontFamily,
+            serifs: false,
+            monospaced: false,
+            italic: false,
+            bold: false,
+            maxSizeGlyph: 'H',
+            superscriptOffset: 0.66,
+            subscriptOffset: 0.66,
+            description: 'Rounded grotesque typeface inspired by 19th century 3D l',
+        });
+        VF.TextFont.registerFont({
+            name: Merriweather_Regular_1.MerriweatherFont.name,
+            resolution: Merriweather_Regular_1.MerriweatherFont.resolution,
+            glyphs: Merriweather_Regular_1.MerriweatherFont.glyphs,
+            family: Merriweather_Regular_1.MerriweatherFont.fontFamily,
+            serifs: true,
+            monospaced: false,
+            italic: false,
+            bold: false,
+            maxSizeGlyph: 'H',
+            superscriptOffset: 0.66,
+            subscriptOffset: 0.66,
+            description: 'Serif screen font from Sorkin Type',
+        });
+        VF.TextFont.registerFont({
+            name: ssp_sans_metrics_1.SourceSansProFont.name,
+            resolution: ssp_sans_metrics_1.SourceSansProFont.resolution,
+            glyphs: ssp_sans_metrics_1.SourceSansProFont.glyphs,
+            family: ssp_sans_metrics_1.SourceSansProFont.fontFamily,
+            serifs: false,
+            monospaced: false,
+            italic: false,
+            bold: false,
+            maxSizeGlyph: 'H',
+            superscriptOffset: 0.66,
+            subscriptOffset: 0.66,
+            description: 'Open source Sans screen font from Adobe',
+        });
+        VF.TextFont.registerFont({
+            name: ssp_serif_metrics_1.SourceSerifProFont.name,
+            resolution: ssp_serif_metrics_1.SourceSerifProFont.resolution,
+            glyphs: ssp_serif_metrics_1.SourceSerifProFont.glyphs,
+            family: ssp_serif_metrics_1.SourceSerifProFont.fontFamily,
+            serifs: false,
+            monospaced: false,
+            italic: false,
+            bold: false,
+            maxSizeGlyph: 'H',
+            superscriptOffset: 0.66,
+            subscriptOffset: 0.66,
+            description: 'Open source Serif screen font from Adobe',
+        });
+    }
+    static _nvQueryPair(str) {
+        var i = 0;
+        const ar = str.split('=');
+        const rv = {};
+        for (i = 0; i < ar.length - 1; i += 2) {
+            const name = decodeURIComponent(ar[i]);
+            rv[name] = decodeURIComponent(ar[i + 1]);
+        }
+        return rv;
+    }
+    static get scoreLibrary() {
+        return [
+            { alias: 'bach', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/BachInvention.json' },
+            { alias: 'yama', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json' },
+            { alias: 'handel', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Messiah Pt 1-1.json' },
+            { alias: 'bambino', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Gesu Bambino.json' },
+            { alias: 'shade', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Shade.json' },
+            { alias: 'postillion', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Postillionlied.json' },
+            { alias: 'preciousLord', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Precious Lord.json' },
+            { alias: 'dichterliebe', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Dichterliebe01.xml' },
+            { alias: 'beethoven', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Beethoven_AnDieFerneGeliebte.xml' },
+            { alias: 'mozart', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Mozart_AnChloe.xml' },
+            { alias: 'joplin', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/ScottJoplin_The_Entertainer.xml' }
+        ];
+    }
+    static _deferCreateTranslator(lang) {
+        setTimeout(() => {
+            translationEditor_1.SmoTranslationEditor.startEditor(lang);
+        }, 1);
+    }
+    static _deferLanguageSelection(lang) {
+        setTimeout(() => {
+            language_1.SmoTranslator.setLanguage(lang);
+        }, 1);
+    }
+}
+exports.SuiApplication = SuiApplication;
+
+
+/***/ }),
+
+/***/ "./src/application/dom.ts":
+/*!********************************!*\
+  !*** ./src/application/dom.ts ***!
+  \********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiDom = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const svgHelpers_1 = __webpack_require__(/*! ../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
+const piano_1 = __webpack_require__(/*! ../render/sui/piano */ "./src/render/sui/piano.ts");
+class SuiDom {
+    static splash() {
+        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var logoPath = SmoConfig.smoPath + '/styles/images/logo.png';
+        var r = b('div').classes('bug-modal').append(b('img').attr('src', logoPath).classes('splash-logo'))
+            .append(b('button').classes('icon icon-cross bug-dismiss-button'))
+            .append(b('span').classes('splash-title').text('Sm'))
+            .append(b('span').classes('splash-shine').text('ooooooooo'))
+            .append(b('span').classes('splash-title').text('sic'));
+        $('.bugDialog').append(r.dom());
+        $('body').addClass('splashScreen modal');
+        setTimeout(function () {
+            $('body').removeClass('splashScreen modal');
+        }, 1000);
+    }
+    static createDom(title) {
+        if (title) {
+            $('h1.testTitle').text(title);
+        }
+        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var smoId = SmoConfig.smoDomContainer;
+        var vexId = SmoConfig.vexDomContainer;
+        var r = b('div').classes('dom-container')
+            .append(b('div').classes('modes'))
+            .append(b('div').classes('overlay'))
+            .append(b('div').classes('draganime hide'))
+            .append(b('div').classes('textEdit hide'))
+            .append(b('div').classes('glyphRender hide').attr('id', 'glyphRender'))
+            .append(b('div').classes('translation-editor'))
+            .append(b('div').classes('attributeDialog'))
+            .append(b('progress').attr('id', 'renderProgress').attr('value', '0').attr('max', '100'))
+            .append(b('div').classes('qwertyKb'))
+            .append(b('div').classes('saveLink'))
+            .append(b('div').classes('bugDialog'))
+            .append(b('div').classes('printFrame'))
+            .append(b('div').classes('menuContainer'))
+            .append(b('div').classes('workspace language-dir').attr('dir', SmoConfig.languageDir)
+            .append(b('div').classes('helpDialog'))
+            .append(b('div').classes('control-bar')
+            .append(b('div').classes('titleText').text('Smoosic'))
+            .append(b('div').classes('piano-container')
+            .append(b('div').classes('key-left-ctrl'))
+            .append(b('div').classes('piano-keys'))
+            .append(b('div').classes('key-right-ctrl')))
+            .append(b('div').classes('controls-top')))
+            .append(b('div').classes('media')
+            .append(b('div').classes('controls-left'))
+            .append(b('div').classes('controls-menu-message'))
+            .append(b('div').classes('musicRelief')
+            .append(b('div').classes('musicContainer').attr('id', vexId)
+            .attr('dir', 'ltr')))));
+        $('#' + smoId).append(r.dom());
+        var pianoDom = $('.piano-keys')[0];
+        var svg = document.createElementNS(svgHelpers_1.SvgHelpers.namespace, 'svg');
+        svg.id = 'piano-svg';
+        svg.setAttributeNS('', 'width', '' + piano_1.SuiPiano.owidth * piano_1.SuiPiano.dimensions.octaves);
+        svg.setAttributeNS('', 'height', '' + piano_1.SuiPiano.dimensions.wheight);
+        svg.setAttributeNS('', 'viewBox', '0 0 ' + piano_1.SuiPiano.owidth * piano_1.SuiPiano.dimensions.octaves + ' ' + piano_1.SuiPiano.dimensions.wheight);
+        pianoDom.appendChild(svg);
+    }
+}
+exports.SuiDom = SuiDom;
+
+
+/***/ }),
+
+/***/ "./src/application/eventHandler.ts":
+/*!*****************************************!*\
+  !*** ./src/application/eventHandler.ts ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiEventHandler = void 0;
+const ribbon_1 = __webpack_require__(/*! ../ui/ribbon */ "./src/ui/ribbon.ts");
+const exceptions_1 = __webpack_require__(/*! ../ui/exceptions */ "./src/ui/exceptions.js");
+const qwerty_1 = __webpack_require__(/*! ../ui/qwerty */ "./src/ui/qwerty.js");
+const dialog_1 = __webpack_require__(/*! ../ui/dialog */ "./src/ui/dialog.js");
+const piano_1 = __webpack_require__(/*! ../render/sui/piano */ "./src/render/sui/piano.ts");
+const layoutDebug_1 = __webpack_require__(/*! ../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
+const help_1 = __webpack_require__(/*! ../ui/help */ "./src/ui/help.js");
+const tracker_1 = __webpack_require__(/*! ../render/sui/tracker */ "./src/render/sui/tracker.ts");
+const editorKeys_1 = __webpack_require__(/*! ../ui/keyBindings/default/editorKeys */ "./src/ui/keyBindings/default/editorKeys.ts");
+const trackerKeys_1 = __webpack_require__(/*! ../ui/keyBindings/default/trackerKeys */ "./src/ui/keyBindings/default/trackerKeys.ts");
+const defaultRibbon_1 = __webpack_require__(/*! ../ui/ribbonLayout/default/defaultRibbon */ "./src/ui/ribbonLayout/default/defaultRibbon.ts");
+const svgHelpers_1 = __webpack_require__(/*! ../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
+// ## SuiEventHandler
+// ## Description:
+// Manages DOM events and binds keyboard and mouse events
+// to editor and menu commands, tracker and layout manager.
+// ### Event model:
+// Events can come from the following sources:
+// 1. menus or dialogs can send dialogDismiss or menuDismiss event, indicating a modal has been dismissed.
+// 2. window resize events
+// 3. keyboard, when in editor mode.  When modals or dialogs are active, wait for dismiss event
+// 4. svg piano key events smo-piano-key
+// 5. tracker change events tracker-selection
+class SuiEventHandler {
+    constructor(params) {
+        this.resizing = false;
+        this.undoStatus = 0;
+        this.trackScrolling = false;
+        this.keyHandlerObj = null;
+        this.piano = null;
+        this.unbound = false;
+        this.keydownHandler = null;
+        this.mouseMoveHandler = null;
+        this.mouseClickHandler = null;
+        this.keyBind = [];
+        globalThis.SuiEventHandlerInstance = this;
+        this.view = params.view;
+        this.menus = params.menus;
+        this.eventSource = params.eventSource;
+        this.tracker = this.view.tracker; // needed for key event handling
+        this.keyCommands = params.keyCommands;
+        this.keyCommands.completeNotifier = this;
+        this.keyCommands.view = this.view;
+        this.resizing = false;
+        this.undoStatus = 0;
+        this.trackScrolling = false;
+        this.keyHandlerObj = null;
+        this.keyBind = SuiEventHandler.keyBindingDefaults;
+        this.ribbon = new ribbon_1.RibbonButtons({
+            ribbons: defaultRibbon_1.defaultRibbonLayout.ribbons,
+            ribbonButtons: defaultRibbon_1.defaultRibbonLayout.ribbonButtons,
+            menus: this.menus,
+            completeNotifier: this,
+            keyCommands: this.keyCommands,
+            view: this.view,
+            eventSource: this.eventSource,
+            tracker: this.tracker
+        });
+        this.menus.setController(this);
+        // create globbal exception instance
+        this.exhandler = new exceptions_1.SuiExceptionHandler(this);
+        this.bindEvents();
+        // Only display the ribbon one time b/c it's expensive operation
+        this.ribbon.display();
+        this.bindResize();
+        this.view.startRenderingEngine();
+        this.createPiano();
+    }
+    static get scrollable() {
+        return '.musicRelief';
+    }
+    handleScrollEvent() {
+        const self = this;
+        if (self.trackScrolling) {
+            return;
+        }
+        self.trackScrolling = true;
+        setTimeout(function () {
+            try {
+                // wait until redraw is done to track scroll events.
+                self.trackScrolling = false;
+                // Thisi s a WIP...
+                self.view.tracker.scroller.handleScroll($(SuiEventHandler.scrollable)[0].scrollLeft, $(SuiEventHandler.scrollable)[0].scrollTop);
+            }
+            catch (e) {
+                exceptions_1.SuiExceptionHandler.instance.exceptionHandler(e);
+            }
+        }, 500);
+    }
+    createPiano() {
+        this.piano = new piano_1.SuiPiano(this.view);
+    }
+    resizeEvent() {
+        var self = this;
+        if (this.resizing) {
+            return;
+        }
+        if (!this.piano) {
+            return;
+        }
+        if ($('body').hasClass('printing')) {
+            return;
+        }
+        this.resizing = true;
+        setTimeout(function () {
+            console.log('resizing');
+            self.resizing = false;
+            self.piano.handleResize();
+        }, 500);
+    }
+    createModifierDialog(modifierSelection) {
+        var parameters = {
+            modifier: modifierSelection.modifier,
+            view: this.view, eventSource: this.eventSource,
+            completeNotifier: this, keyCommands: this.keyCommands
+        };
+        return dialog_1.SuiModifierDialogFactory.createDialog(modifierSelection.modifier, parameters);
+    }
+    // If the user has selected a modifier via the mouse/touch, bring up mod dialog
+    // for that modifier
+    trackerModifierSelect(ev) {
+        var modSelection = this.view.tracker.getSelectedModifier();
+        if (modSelection) {
+            var dialog = this.createModifierDialog(modSelection);
+            if (dialog) {
+                // this.view.tracker.selectSuggestion(ev);
+                return;
+                // this.unbindKeyboardForModal(dialog);
+            }
+            else {
+                this.view.tracker.advanceModifierSelection(ev);
+            }
+        }
+        else {
+            this.view.tracker.selectSuggestion(ev);
+        }
+        return;
+    }
+    // ### bindResize
+    // This handles both resizing of the music area (scrolling) and resizing of the window.
+    // The latter results in a redraw, the former just resets the client/logical map of elements
+    // in the tracker.
+    bindResize() {
+        const self = this;
+        const el = $(SuiEventHandler.scrollable)[0];
+        // unit test programs don't have resize html
+        if (!el) {
+            return;
+        }
+        window.addEventListener('resize', function () {
+            self.resizeEvent();
+        });
+        let scrollCallback = () => {
+            self.handleScrollEvent();
+        };
+        el.onscroll = scrollCallback;
+    }
+    // ### renderElement
+    // return render element that is the DOM parent of the svg
+    get renderElement() {
+        return this.view.renderer.renderElement;
+    }
+    // ## keyBindingDefaults
+    // ### Description:
+    // Different applications can create their own key bindings, these are the defaults.
+    // Many editor commands can be reached by a single keystroke.  For more advanced things there
+    // are menus.
+    static get keyBindingDefaults() {
+        var editorKeys = SuiEventHandler.editorKeyBindingDefaults;
+        editorKeys.forEach((key) => {
+            key.module = 'keyCommands';
+        });
+        var trackerKeys = SuiEventHandler.trackerKeyBindingDefaults;
+        trackerKeys.forEach((key) => {
+            key.module = 'tracker';
+        });
+        return trackerKeys.concat(editorKeys);
+    }
+    // ## editorKeyBindingDefaults
+    // ## Description:
+    // execute a simple command on the editor, based on a keystroke.
+    static get editorKeyBindingDefaults() {
+        return editorKeys_1.defaultEditorKeys.keys;
+    }
+    // ## trackerKeyBindingDefaults
+    // ### Description:
+    // Key bindings for the tracker.  The tracker is the 'cursor' in the music
+    // that lets you select and edit notes.
+    static get trackerKeyBindingDefaults() {
+        return trackerKeys_1.defaultTrackerKeys.keys;
+    }
+    helpControls() {
+        var self = this;
+        var rebind = function () {
+            self.bindEvents();
+        };
+    }
+    menuHelp() {
+        help_1.SuiHelp.displayHelp();
+    }
+    static get defaults() {
+        return {
+            keyBind: SuiEventHandler.keyBindingDefaults
+        };
+    }
+    // ### unbindKeyboardForModal
+    // Global events from keyboard and pointer are handled by this object.  Modal
+    // UI elements take over the events, and then let the controller know when
+    // the modals go away.
+    unbindKeyboardForModal(dialog) {
+        if (this.unbound) {
+            console.log('received duplicate bind event');
+            return;
+        }
+        this.unbound = true;
+        layoutDebug_1.layoutDebug.addDialogDebug('controller: unbindKeyboardForModal');
+        const rebind = () => {
+            this.unbound = false;
+            this.bindEvents();
+            layoutDebug_1.layoutDebug.addDialogDebug('controller: unbindKeyboardForModal resolve');
+        };
+        this.eventSource.unbindKeydownHandler(this.keydownHandler);
+        this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
+        this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
+        dialog.closeModalPromise.then(rebind);
+    }
+    evKey(evdata) {
+        if ($('body').hasClass('translation-mode')) {
+            return;
+        }
+        console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
+            evdata.code + "'"
+            + " shift='" + evdata.shiftKey + "' control='" + evdata.ctrlKey + "'" + " alt='" + evdata.altKey + "'");
+        evdata.preventDefault();
+        if (SuiEventHandler.keyboardUi) {
+            qwerty_1.Qwerty.handleKeyEvent(evdata);
+        }
+        const dataCopy = tracker_1.SuiTracker.serializeEvent(evdata);
+        this.view.renderer.updatePromise().then(() => {
+            if (dataCopy.key == '?') {
+                help_1.SuiHelp.displayHelp();
+            }
+            if (dataCopy.key == '/') {
+                // set up menu DOM.
+                this.menus.slashMenuMode(this);
+            }
+            if (dataCopy.key == 'Enter') {
+                this.trackerModifierSelect(dataCopy);
+            }
+            var binding = this.keyBind.find((ev) => ev.event === 'keydown' && ev.key === dataCopy.key &&
+                ev.ctrlKey === dataCopy.ctrlKey &&
+                ev.altKey === dataCopy.altKey && dataCopy.shiftKey === ev.shiftKey);
+            if (binding) {
+                try {
+                    if (binding.module === 'tracker') {
+                        this.tracker[binding.action](dataCopy);
+                    }
+                    else {
+                        this.keyCommands[binding.action](dataCopy);
+                    }
+                }
+                catch (e) {
+                    if (typeof (e) === 'string') {
+                        console.error(e);
+                    }
+                    this.exhandler.exceptionHandler(e);
+                }
+            }
+        });
+    }
+    mouseMove(ev) {
+        this.view.tracker.intersectingArtifact(svgHelpers_1.SvgHelpers.smoBox({
+            x: ev.clientX,
+            y: ev.clientY
+        }));
+    }
+    mouseClick(ev) {
+        const dataCopy = tracker_1.SuiTracker.serializeEvent(ev);
+        this.view.renderer.updatePromise().then(() => {
+            this.view.tracker.selectSuggestion(dataCopy);
+            var modifier = this.view.tracker.getSelectedModifier();
+            if (modifier) {
+                this.createModifierDialog(modifier);
+            }
+        });
+    }
+    bindEvents() {
+        const self = this;
+        const tracker = this.view.tracker;
+        $('body').off('forceScrollEvent').on('forceScrollEvent', function () {
+            self.handleScrollEvent();
+        });
+        $('body').off('forceResizeEvent').on('forceResizeEvent', function () {
+            self.resizeEvent();
+        });
+        this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
+        this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
+        this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
+        this.helpControls();
+        window.addEventListener('error', function (e) {
+            exceptions_1.SuiExceptionHandler.instance.exceptionHandler(e);
+        });
+    }
+}
+exports.SuiEventHandler = SuiEventHandler;
+SuiEventHandler.reentry = false;
+
+
+/***/ }),
+
+/***/ "./src/application/eventSource.ts":
+/*!****************************************!*\
+  !*** ./src/application/eventSource.ts ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.BrowserEventSource = void 0;
+// ##BrowserEventSource
+// Handle registration for events.  Can be used for automated testing, so all
+// the events are consolidated in one place so they can be simulated or recorded.
+// If you already have an event-handling class, you can provide your own and 
+// send events to Smoosic through this interface
+class BrowserEventSource {
+    constructor() {
+        this.handleMouseMove = null;
+        this.handleMouseClick = null;
+        this.handleMouseUp = null;
+        this.handleMouseDown = null;
+        this.keydownHandlers = [];
+        this.mouseMoveHandlers = [];
+        this.mouseClickHandlers = [];
+        this.mouseUpHandlers = [];
+        this.mouseDownHandlers = [];
+        this.domTriggers = [];
+        this.handleKeydown = this.evKey.bind(this);
+        window.addEventListener("keydown", this.handleKeydown, true);
+    }
+    evKey(event) {
+        this.keydownHandlers.forEach((handler) => {
+            handler.sink[handler.method](event);
+        });
+    }
+    mouseMove(event) {
+        this.mouseMoveHandlers.forEach((handler) => {
+            handler.sink[handler.method](event);
+        });
+    }
+    mouseClick(event) {
+        this.mouseClickHandlers.forEach((handler) => {
+            handler.sink[handler.method](event);
+        });
+    }
+    mouseDown(event) {
+        this.mouseDownHandlers.forEach((handler) => {
+            handler.sink[handler.method](event);
+        });
+    }
+    mouseUp(event) {
+        this.mouseUpHandlers.forEach((handler) => {
+            handler.sink[handler.method](event);
+        });
+    }
+    setRenderElement(renderElement) {
+        this.renderElement = renderElement;
+        var self = this;
+        this.handleMouseMove = this.mouseMove.bind(this);
+        this.handleMouseClick = this.mouseClick.bind(this);
+        this.handleMouseUp = this.mouseUp.bind(this);
+        this.handleMouseDown = this.mouseDown.bind(this);
+        $(document)[0].addEventListener("mousemove", this.handleMouseMove);
+        $(this.renderElement)[0].addEventListener("click", this.handleMouseClick);
+        $(document)[0].addEventListener("mouseup", this.handleMouseUp);
+        $(document)[0].addEventListener("mousedown", this.handleMouseDown);
+    }
+    _unbindHandlerArray(arSrc, arDest, handler) {
+        arSrc.forEach((htest) => {
+            if (handler.symbol !== htest.symbol) {
+                arDest.push(htest);
+            }
+        });
+    }
+    unbindMouseMoveHandler(handler) {
+        const handlers = [];
+        this._unbindHandlerArray(this.mouseMoveHandlers, handlers, handler);
+        this.mouseMoveHandlers = handlers;
+    }
+    unbindMouseDownHandler(handler) {
+        const handlers = [];
+        this._unbindHandlerArray(this.mouseDownHandlers, handlers, handler);
+        this.mouseDownHandlers = handlers;
+    }
+    unbindMouseUpHandler(handler) {
+        const handlers = [];
+        this._unbindHandlerArray(this.mouseUpHandlers, handlers, handler);
+        this.mouseUpHandlers = handlers;
+    }
+    unbindMouseClickHandler(handler) {
+        const handlers = [];
+        this._unbindHandlerArray(this.mouseClickHandlers, handlers, handler);
+        this.mouseClickHandlers = handlers;
+    }
+    unbindKeydownHandler(handler) {
+        const handlers = [];
+        this._unbindHandlerArray(this.keydownHandlers, handlers, handler);
+        this.keydownHandlers = handlers;
+    }
+    bindScroller() { }
+    // ### bindKeydownHandler
+    // add a handler for the evKey event, for keyboard data.
+    bindKeydownHandler(sink, method) {
+        var handler = { symbol: Symbol(), sink, method };
+        this.keydownHandlers.push(handler);
+        return handler;
+    }
+    bindMouseMoveHandler(sink, method) {
+        var handler = { symbol: Symbol(), sink, method };
+        this.mouseMoveHandlers.push(handler);
+        return handler;
+    }
+    bindMouseUpHandler(sink, method) {
+        var handler = { symbol: Symbol(), sink, method };
+        this.mouseUpHandlers.push(handler);
+        return handler;
+    }
+    bindMouseDownHandler(sink, method) {
+        var handler = { symbol: Symbol(), sink, method };
+        this.mouseDownHandlers.push(handler);
+        return handler;
+    }
+    bindMouseClickHandler(sink, method) {
+        var handler = { symbol: Symbol(), sink, method };
+        this.mouseClickHandlers.push(handler);
+        return handler;
+    }
+    domClick(selector, sink, method, args) {
+        $(selector).off('click').on('click', function (ev) {
+            sink[method](ev, args);
+        });
+    }
+}
+exports.BrowserEventSource = BrowserEventSource;
+
+
+/***/ }),
+
+/***/ "./src/application/exports.ts":
+/*!************************************!*\
+  !*** ./src/application/exports.ts ***!
+  \************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Smo = void 0;
+// Smoosic relies on dynamic creation of almost everything.  This class exports all the symbols
+// that need to be created via reflection.
+// ui application components
+const application_1 = __webpack_require__(/*! ./application */ "./src/application/application.ts");
+const eventHandler_1 = __webpack_require__(/*! ./eventHandler */ "./src/application/eventHandler.ts");
+const ribbon_1 = __webpack_require__(/*! ../ui/ribbon */ "./src/ui/ribbon.ts");
+const exceptions_1 = __webpack_require__(/*! ../ui/exceptions */ "./src/ui/exceptions.js");
+const qwerty_1 = __webpack_require__(/*! ../ui/qwerty */ "./src/ui/qwerty.js");
+const piano_1 = __webpack_require__(/*! ../render/sui/piano */ "./src/render/sui/piano.ts");
+const dom_1 = __webpack_require__(/*! ./dom */ "./src/application/dom.ts");
+const basic_1 = __webpack_require__(/*! ../music/basic */ "./src/music/basic.js");
+const help_1 = __webpack_require__(/*! ../ui/help */ "./src/ui/help.js");
+// Language strings
+const language_en_1 = __webpack_require__(/*! ../ui/i18n/language_en */ "./src/ui/i18n/language_en.js");
+const language_ar_1 = __webpack_require__(/*! ../ui/i18n/language_ar */ "./src/ui/i18n/language_ar.js");
+// ui dialogs and menus
+// Dialogs
+const dialog_1 = __webpack_require__(/*! ../ui/dialog */ "./src/ui/dialog.js");
+const measureDialogs_1 = __webpack_require__(/*! ../ui/dialogs/measureDialogs */ "./src/ui/dialogs/measureDialogs.js");
+const scoreDialogs_1 = __webpack_require__(/*! ../ui/dialogs/scoreDialogs */ "./src/ui/dialogs/scoreDialogs.js");
+const libraryDialog_1 = __webpack_require__(/*! ../ui/dialogs/libraryDialog */ "./src/ui/dialogs/libraryDialog.js");
+const textDialogs_1 = __webpack_require__(/*! ../ui/dialogs/textDialogs */ "./src/ui/dialogs/textDialogs.js");
+const staffDialogs_1 = __webpack_require__(/*! ../ui/dialogs/staffDialogs */ "./src/ui/dialogs/staffDialogs.js");
+const fileDialogs_1 = __webpack_require__(/*! ../ui/dialogs/fileDialogs */ "./src/ui/dialogs/fileDialogs.js");
+// Dialog components
+const dialogComponents_1 = __webpack_require__(/*! ../ui/dialogComponents */ "./src/ui/dialogComponents.js");
+const fontComponent_1 = __webpack_require__(/*! ../ui/dialogs/fontComponent */ "./src/ui/dialogs/fontComponent.js");
+const treeComponent_1 = __webpack_require__(/*! ../ui/dialogs/treeComponent */ "./src/ui/dialogs/treeComponent.js");
+const textComponents_1 = __webpack_require__(/*! ../ui/dialogs/textComponents */ "./src/ui/dialogs/textComponents.js");
+const staffComponents_1 = __webpack_require__(/*! ../ui/dialogs/staffComponents */ "./src/ui/dialogs/staffComponents.js");
+// menus
+const menus_1 = __webpack_require__(/*! ../ui/menus */ "./src/ui/menus.js");
+const xhrLoader_1 = __webpack_require__(/*! ../ui/fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.js");
+const promiseHelpers_1 = __webpack_require__(/*! ../common/promiseHelpers */ "./src/common/promiseHelpers.js");
+// render library
+const scoreView_1 = __webpack_require__(/*! ../render/sui/scoreView */ "./src/render/sui/scoreView.ts");
+const scoreViewOperations_1 = __webpack_require__(/*! ../render/sui/scoreViewOperations */ "./src/render/sui/scoreViewOperations.ts");
+const scoreRender_1 = __webpack_require__(/*! ../render/sui/scoreRender */ "./src/render/sui/scoreRender.ts");
+const layoutDebug_1 = __webpack_require__(/*! ../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
+const mapper_1 = __webpack_require__(/*! ../render/sui/mapper */ "./src/render/sui/mapper.ts");
+const scroller_1 = __webpack_require__(/*! ../render/sui/scroller */ "./src/render/sui/scroller.ts");
+const actionPlayback_1 = __webpack_require__(/*! ../render/sui/actionPlayback */ "./src/render/sui/actionPlayback.ts");
+// SMO components
+const score_1 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
+const xmlScore_1 = __webpack_require__(/*! ../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
+const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
+const note_1 = __webpack_require__(/*! ../smo/data/note */ "./src/smo/data/note.ts");
+const tickDuration_1 = __webpack_require__(/*! ../smo/xform/tickDuration */ "./src/smo/xform/tickDuration.ts");
+const staffModifiers_1 = __webpack_require__(/*! ../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const measure_1 = __webpack_require__(/*! ../smo/data/measure */ "./src/smo/data/measure.ts");
+const selections_1 = __webpack_require__(/*! ../smo/xform/selections */ "./src/smo/xform/selections.ts");
+const noteModifiers_1 = __webpack_require__(/*! ../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
+const systemStaff_1 = __webpack_require__(/*! ../smo/data/systemStaff */ "./src/smo/data/systemStaff.ts");
+const scoreModifiers_1 = __webpack_require__(/*! ../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const measureModifiers_1 = __webpack_require__(/*! ../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const toVex_1 = __webpack_require__(/*! ../smo/xform/toVex */ "./src/smo/xform/toVex.ts");
+const getClass = (jsonString) => {
+    return eval('Smo.' + jsonString);
+};
+exports.Smo = {
+    // Application-level classes
+    SuiApplication: application_1.SuiApplication,
+    SuiDom: dom_1.SuiDom, SuiEventHandler: eventHandler_1.SuiEventHandler, SuiExceptionHandler: exceptions_1.SuiExceptionHandler,
+    Qwerty: qwerty_1.Qwerty, SuiHelp: help_1.SuiHelp,
+    // Ribbon buttons
+    RibbonButtons: ribbon_1.RibbonButtons, NoteButtons: ribbon_1.NoteButtons, TextButtons: ribbon_1.TextButtons, ChordButtons: ribbon_1.ChordButtons, MicrotoneButtons: ribbon_1.MicrotoneButtons,
+    StaveButtons: ribbon_1.StaveButtons, BeamButtons: ribbon_1.BeamButtons, MeasureButtons: ribbon_1.MeasureButtons, DurationButtons: ribbon_1.DurationButtons,
+    VoiceButtons: ribbon_1.VoiceButtons, PlayerButtons: ribbon_1.PlayerButtons, ArticulationButtons: ribbon_1.ArticulationButtons, NavigationButtons: ribbon_1.NavigationButtons,
+    DisplaySettings: ribbon_1.DisplaySettings, ExtendedCollapseParent: ribbon_1.ExtendedCollapseParent,
+    // Menus
+    suiMenuManager: menus_1.suiMenuManager, SuiScoreMenu: menus_1.SuiScoreMenu, SuiFileMenu: menus_1.SuiFileMenu, SuiLibraryMenu: menus_1.SuiLibraryMenu,
+    SuiDynamicsMenu: menus_1.SuiDynamicsMenu, SuiTimeSignatureMenu: menus_1.SuiTimeSignatureMenu, SuiKeySignatureMenu: menus_1.SuiKeySignatureMenu, SuiStaffModifierMenu: menus_1.SuiStaffModifierMenu,
+    SuiLanguageMenu: menus_1.SuiLanguageMenu, SuiMeasureMenu: menus_1.SuiMeasureMenu, SuiAddStaffMenu: menus_1.SuiAddStaffMenu,
+    // Dialogs
+    SuiTempoDialog: measureDialogs_1.SuiTempoDialog, SuiInstrumentDialog: measureDialogs_1.SuiInstrumentDialog, SuiModifierDialogFactory: dialog_1.SuiModifierDialogFactory, SuiLibraryDialog: libraryDialog_1.SuiLibraryDialog,
+    SuiScoreViewDialog: scoreDialogs_1.SuiScoreViewDialog, SuiGlobalLayoutDialog: scoreDialogs_1.SuiGlobalLayoutDialog, SuiScoreIdentificationDialog: scoreDialogs_1.SuiScoreIdentificationDialog,
+    SuiScoreFontDialog: scoreDialogs_1.SuiScoreFontDialog, SuiLayoutDialog: scoreDialogs_1.SuiLayoutDialog, SuiMeasureDialog: measureDialogs_1.SuiMeasureDialog, SuiInsertMeasures: measureDialogs_1.SuiInsertMeasures,
+    SuiTimeSignatureDialog: measureDialogs_1.SuiTimeSignatureDialog, SuiTextTransformDialog: textDialogs_1.SuiTextTransformDialog, SuiLyricDialog: textDialogs_1.SuiLyricDialog, SuiChordChangeDialog: textDialogs_1.SuiChordChangeDialog,
+    SuiStaffModifierDialog: staffDialogs_1.SuiStaffModifierDialog, SuiSlurAttributesDialog: staffDialogs_1.SuiSlurAttributesDialog, SuiTieAttributesDialog: staffDialogs_1.SuiTieAttributesDialog, SuiVoltaAttributeDialog: staffDialogs_1.SuiVoltaAttributeDialog,
+    SuiHairpinAttributesDialog: staffDialogs_1.SuiHairpinAttributesDialog, SuiStaffGroupDialog: staffDialogs_1.SuiStaffGroupDialog, helpModal: textDialogs_1.helpModal,
+    SuiFileDialog: fileDialogs_1.SuiFileDialog, SuiLoadFileDialog: fileDialogs_1.SuiLoadFileDialog, SuiLoadMxmlDialog: fileDialogs_1.SuiLoadMxmlDialog,
+    SuiLoadActionsDialog: fileDialogs_1.SuiLoadActionsDialog, SuiPrintFileDialog: fileDialogs_1.SuiPrintFileDialog, SuiSaveFileDialog: fileDialogs_1.SuiSaveFileDialog, SuiSaveXmlDialog: fileDialogs_1.SuiSaveXmlDialog,
+    SuiSaveMidiDialog: fileDialogs_1.SuiSaveMidiDialog, SuiSaveActionsDialog: fileDialogs_1.SuiSaveActionsDialog,
+    // Dialog components
+    SuiTreeComponent: treeComponent_1.SuiTreeComponent,
+    SuiDropdownComponent: dialogComponents_1.SuiDropdownComponent,
+    SuiRockerComponent: dialogComponents_1.SuiRockerComponent, SuiFileDownloadComponent: dialogComponents_1.SuiFileDownloadComponent,
+    SuiToggleComponent: dialogComponents_1.SuiToggleComponent, SuiButtonComponent: dialogComponents_1.SuiButtonComponent, SuiDropdownComposite: dialogComponents_1.SuiDropdownComposite,
+    SuiToggleComposite: dialogComponents_1.SuiToggleComposite, SuiButtonComposite: dialogComponents_1.SuiButtonComposite, SuiRockerComposite: dialogComponents_1.SuiRockerComposite, SuiTextInputComposite: dialogComponents_1.SuiTextInputComposite,
+    SuiFontComponent: fontComponent_1.SuiFontComponent, SuiTextInPlace: textComponents_1.SuiTextInPlace, SuiLyricComponent: textComponents_1.SuiLyricComponent, SuiChordComponent: textComponents_1.SuiChordComponent, SuiDragText: textComponents_1.SuiDragText,
+    SuiNoteTextComponent: textComponents_1.SuiNoteTextComponent, SuiTextBlockComponent: fontComponent_1.SuiTextBlockComponent, SuiTextInputComponent: dialogComponents_1.SuiTextInputComponent,
+    SuiDynamicModifierDialog: textDialogs_1.SuiDynamicModifierDialog, CheckboxDropdownComponent: staffComponents_1.CheckboxDropdownComponent, TieMappingComponent: staffComponents_1.TieMappingComponent, StaffAddRemoveComponent: staffComponents_1.StaffAddRemoveComponent,
+    StaffCheckComponent: staffComponents_1.StaffCheckComponent, TextCheckComponent: staffComponents_1.TextCheckComponent,
+    SuiXhrLoader: xhrLoader_1.SuiXhrLoader, PromiseHelpers: promiseHelpers_1.PromiseHelpers,
+    // Rendering components
+    SuiPiano: piano_1.SuiPiano, layoutDebug: layoutDebug_1.layoutDebug, SuiScoreView: scoreView_1.SuiScoreView, SuiScroller: scroller_1.SuiScroller, SuiMapper: mapper_1.SuiMapper, SuiScoreRender: scoreRender_1.SuiScoreRender,
+    SuiScoreViewOperations: scoreViewOperations_1.SuiScoreViewOperations, SuiActionPlayback: actionPlayback_1.SuiActionPlayback,
+    // Smo Music Objects
+    SmoScore: score_1.SmoScore,
+    mxmlScore: xmlScore_1.mxmlScore,
+    SmoMeasure: measure_1.SmoMeasure,
+    SmoSystemStaff: systemStaff_1.SmoSystemStaff,
+    SmoNote: note_1.SmoNote,
+    // staff modifier
+    SmoStaffHairpin: staffModifiers_1.SmoStaffHairpin, StaffModifierBase: staffModifiers_1.StaffModifierBase,
+    SmoInstrument: staffModifiers_1.SmoInstrument, SmoPartMap: staffModifiers_1.SmoPartMap, SmoSlur: staffModifiers_1.SmoSlur, SmoTie: staffModifiers_1.SmoTie, SmoSystemGroup: scoreModifiers_1.SmoSystemGroup,
+    // measure modifiers
+    SmoRehearsalMark: measureModifiers_1.SmoRehearsalMark, SmoMeasureFormat: measureModifiers_1.SmoMeasureFormat, SmoBarline: measureModifiers_1.SmoBarline, SmoRepeatSymbol: measureModifiers_1.SmoRepeatSymbol,
+    SmoVolta: measureModifiers_1.SmoVolta, SmoMeasureText: measureModifiers_1.SmoMeasureText, SmoTempoText: measureModifiers_1.SmoTempoText,
+    // note modifiers
+    SmoOrnament: noteModifiers_1.SmoOrnament,
+    SmoArticulation: noteModifiers_1.SmoArticulation, SmoDynamicText: noteModifiers_1.SmoDynamicText, SmoGraceNote: noteModifiers_1.SmoGraceNote, SmoMicrotone: noteModifiers_1.SmoMicrotone, SmoLyric: noteModifiers_1.SmoLyric,
+    // Smo Transformers
+    SmoSelection: selections_1.SmoSelection, SmoDuration: tickDuration_1.SmoDuration, UndoBuffer: undo_1.UndoBuffer, SmoToVex: toVex_1.SmoToVex,
+    // new score bootstrap
+    basicJson: basic_1.basicJson,
+    emptyScoreJson: basic_1.emptyScoreJson,
+    // strings
+    quickStartHtmlen: language_en_1.quickStartHtmlen, selectionHtmlen: language_en_1.selectionHtmlen, enterDurationsHtmlen: language_en_1.enterDurationsHtmlen, enterPitchesHtmlen: language_en_1.enterPitchesHtmlen,
+    quickStartHtmlar: language_ar_1.quickStartHtmlar, selectionHtmlar: language_ar_1.selectionHtmlar, enterDurationsHtmlar: language_ar_1.enterDurationsHtmlar, enterPitchesHtmlar: language_ar_1.enterPitchesHtmlar,
+    getClass
+};
+exports.default = exports.Smo;
+
+
+/***/ }),
+
+/***/ "./src/application/keyCommands.ts":
+/*!****************************************!*\
+  !*** ./src/application/keyCommands.ts ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiKeyCommands = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const measureDialogs_1 = __webpack_require__(/*! ../ui/dialogs/measureDialogs */ "./src/ui/dialogs/measureDialogs.js");
+const player_1 = __webpack_require__(/*! ../render/audio/player */ "./src/render/audio/player.ts");
+const noteModifiers_1 = __webpack_require__(/*! ../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
+const common_1 = __webpack_require__(/*! ../smo/data/common */ "./src/smo/data/common.ts");
+// ## suiEditor
+// KeyCommands object handles key events and converts them into commands, updating the score and
+// display
+class SuiKeyCommands {
+    constructor(params) {
+        this.slashMode = false;
+        this.slashMode = false;
+        this.view = params.view;
+        this.tracker = params.tracker;
+        this.completeNotifier = params.completeNotifier;
+        this.eventSource = params.eventSource;
+    }
+    tempoDialog() {
+        measureDialogs_1.SuiTempoDialog.createAndDisplay({
+            completeNotifier: this.completeNotifier,
+            view: this.view,
+            eventSource: this.eventSource
+        });
+    }
+    get score() {
+        return this.view.score;
+    }
+    undo() {
+        this.view.undo();
+    }
+    copy() {
+        this.view.copy();
+    }
+    paste() {
+        this.view.paste();
+    }
+    toggleBeamGroup() {
+        this.view.toggleBeamGroup();
+    }
+    beamSelections() {
+        this.view.beamSelections();
+    }
+    toggleBeamDirection() {
+        this.view.toggleBeamDirection();
+    }
+    collapseChord() {
+        this.view.collapseChord();
+    }
+    playScore() {
+        var mm = this.view.tracker.getExtremeSelection(-1);
+        if (player_1.SuiAudioPlayer.playingInstance && player_1.SuiAudioPlayer.playingInstance.paused) {
+            player_1.SuiAudioPlayer.playingInstance.play();
+            return;
+        }
+        new player_1.SuiAudioPlayer({ score: this.view.score, startIndex: mm.selector.measure, tracker: this.view.tracker }).play();
+    }
+    stopPlayer() {
+        player_1.SuiAudioPlayer.stopPlayer();
+    }
+    pausePlayer() {
+        player_1.SuiAudioPlayer.pausePlayer();
+    }
+    intervalAdd(interval, direction) {
+        this.view.setInterval(direction * interval);
+    }
+    interval(keyEvent) {
+        // code='Digit3'
+        var interval = parseInt(keyEvent.keyCode, 10) - 49; // 48 === '0', 0 indexed
+        if (isNaN(interval) || interval < 1 || interval > 7) {
+            return;
+        }
+        this.intervalAdd(interval, keyEvent.shiftKey ? -1 : 1);
+    }
+    transpose(offset) {
+        this.view.transposeSelections(offset);
+    }
+    transposeDown() {
+        this.transpose(-1);
+    }
+    transposeUp() {
+        this.transpose(1);
+    }
+    upOctave() {
+        this.transpose(12);
+    }
+    downOctave() {
+        this.transpose(-12);
+    }
+    makeRest() {
+        this.view.makeRest();
+    }
+    setPitchCommand(letter) {
+        this.view.setPitch(letter);
+    }
+    setPitch(keyEvent) {
+        const letter = keyEvent.key.toLowerCase();
+        if (common_1.IsPitchLetter(letter)) {
+            this.setPitchCommand(letter);
+        }
+    }
+    dotDuration() {
+        this.view.batchDurationOperation('dotDuration');
+    }
+    undotDuration() {
+        this.view.batchDurationOperation('undotDuration');
+    }
+    doubleDuration() {
+        this.view.batchDurationOperation('doubleDuration');
+    }
+    halveDuration() {
+        this.view.batchDurationOperation('halveDuration');
+    }
+    addMeasure(keyEvent) {
+        this.view.addMeasure(keyEvent.shiftKey);
+    }
+    deleteNote() {
+        this.view.deleteNote();
+    }
+    toggleCourtesyAccidental() {
+        this.view.toggleCourtesyAccidentals();
+    }
+    toggleEnharmonic() {
+        this.view.toggleEnharmonic();
+    }
+    makeTupletCommand(numNotes) {
+        this.view.makeTuplet(numNotes);
+    }
+    makeTuplet(keyEvent) {
+        const numNotes = parseInt(keyEvent.key, 10);
+        this.makeTupletCommand(numNotes);
+    }
+    unmakeTuplet() {
+        this.view.unmakeTuplet();
+    }
+    setNoteHead() {
+        this.view.setNoteHead('x2');
+    }
+    removeGraceNote() {
+        this.view.removeGraceNote();
+    }
+    addGraceNote() {
+        this.view.addGraceNote();
+    }
+    slashGraceNotes() {
+        this.view.slashGraceNotes();
+    }
+    toggleArticulationCommand(articulation, ctor) {
+        this.view.toggleArticulation(articulation, ctor);
+    }
+    addRemoveArticulation(keyEvent) {
+        let atyp = noteModifiers_1.SmoArticulation.articulations.accent;
+        if (this.view.tracker.selections.length < 1) {
+            return;
+        }
+        if (keyEvent.key.toLowerCase() === 'h') {
+            atyp = noteModifiers_1.SmoArticulation.articulations.accent;
+        }
+        if (keyEvent.key.toLowerCase() === 'i') {
+            atyp = noteModifiers_1.SmoArticulation.articulations.tenuto;
+        }
+        if (keyEvent.key.toLowerCase() === 'j') {
+            atyp = noteModifiers_1.SmoArticulation.articulations.staccato;
+        }
+        if (keyEvent.key.toLowerCase() === 'k') {
+            atyp = noteModifiers_1.SmoArticulation.articulations.marcato;
+        }
+        if (keyEvent.key.toLowerCase() === 'l') {
+            atyp = noteModifiers_1.SmoArticulation.articulations.pizzicato;
+        }
+        this.toggleArticulationCommand(atyp, 'SmoArticulation');
+    }
+}
+exports.SuiKeyCommands = SuiKeyCommands;
+
+
+/***/ }),
+
 /***/ "./src/common/htmlHelpers.js":
 /*!***********************************!*\
   !*** ./src/common/htmlHelpers.js ***!
@@ -289,7 +1489,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports._MidiWriter = void 0;
 // Credit for Midi functionality goes to:
 // https://github.com/grimmdude/MidiWriterJS
-const musicHelpers_1 = __webpack_require__(/*! ./musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ../smo/data/music */ "./src/smo/data/music.ts");
 var _MidiWriter = function () {
     /**
      * MIDI file format constants.
@@ -552,7 +1752,7 @@ var _MidiWriter = function () {
             }, {
                 key: "getPitch",
                 value: function getPitch(pitch) {
-                    return musicHelpers_1.smoMusic.midiPitchToMidiNumber(pitch);
+                    return music_1.SmoMusic.midiPitchToMidiNumber(pitch);
                 }
                 /**
                  * Translates number of ticks to MIDI timestamp format, returning an array of
@@ -1768,970 +2968,6 @@ exports._MidiWriter = _MidiWriter;
 
 /***/ }),
 
-/***/ "./src/common/musicHelpers.ts":
-/*!************************************!*\
-  !*** ./src/common/musicHelpers.ts ***!
-  \************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.smoMusic = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const note_1 = __webpack_require__(/*! ../smo/data/note */ "./src/smo/data/note.ts");
-const oscillator_1 = __webpack_require__(/*! ../render/audio/oscillator */ "./src/render/audio/oscillator.ts");
-/**
-// Helper functions that build on the VX music theory routines, and other
-// utilities I wish were in VF.Music but aren't
-// ### Note on pitch and duration format
-// We use some VEX music theory routines and frequently need to convert
-// formats from SMO format.
-//
-// `Smo` uses pitch JSON:
-// ``javascript``
-//  {note:'c',accidental:'#',octave:4}
-// `Vex` usually uses a canonical string:
-//  'c#/4'
-//  Depending on the operation, the octave might be omitted
-//
-// `Smo` uses a JSON for duration always:
-// ``javascript``
-// {numerator:4096,denominator:1,remainder:0}
-//
-// `VexFlow` uses a letter duration ('4' for 1/4 note) and 'd' for dot.
-// I try to indicate whether I am using vex or smo notation
-// Duration methods start around line 600
-// ---
- */
-const VF = eval('Vex.Flow');
-class smoMusic {
-    static get noteValues() {
-        return {
-            c: { root_index: 0, int_val: 0 },
-            cn: { root_index: 0, int_val: 0 },
-            'c#': { root_index: 0, int_val: 1 },
-            'c##': { root_index: 0, int_val: 2 },
-            cb: { root_index: 0, int_val: 11 },
-            cbb: { root_index: 0, int_val: 10 },
-            d: { root_index: 1, int_val: 2 },
-            dn: { root_index: 1, int_val: 2 },
-            'd#': { root_index: 1, int_val: 3 },
-            'd##': { root_index: 1, int_val: 4 },
-            db: { root_index: 1, int_val: 1 },
-            dbb: { root_index: 1, int_val: 0 },
-            e: { root_index: 2, int_val: 4 },
-            en: { root_index: 2, int_val: 4 },
-            'e#': { root_index: 2, int_val: 5 },
-            'e##': { root_index: 2, int_val: 6 },
-            eb: { root_index: 2, int_val: 3 },
-            ebb: { root_index: 2, int_val: 2 },
-            f: { root_index: 3, int_val: 5 },
-            fn: { root_index: 3, int_val: 5 },
-            'f#': { root_index: 3, int_val: 6 },
-            'f##': { root_index: 3, int_val: 7 },
-            fb: { root_index: 3, int_val: 4 },
-            fbb: { root_index: 3, int_val: 3 },
-            g: { root_index: 4, int_val: 7 },
-            gn: { root_index: 4, int_val: 7 },
-            'g#': { root_index: 4, int_val: 8 },
-            'g##': { root_index: 4, int_val: 9 },
-            gb: { root_index: 4, int_val: 6 },
-            gbb: { root_index: 4, int_val: 5 },
-            a: { root_index: 5, int_val: 9 },
-            an: { root_index: 5, int_val: 9 },
-            'a#': { root_index: 5, int_val: 10 },
-            'a##': { root_index: 5, int_val: 11 },
-            ab: { root_index: 5, int_val: 8 },
-            abb: { root_index: 5, int_val: 7 },
-            b: { root_index: 6, int_val: 11 },
-            bn: { root_index: 6, int_val: 11 },
-            'b#': { root_index: 6, int_val: 0 },
-            'b##': { root_index: 6, int_val: 1 },
-            bb: { root_index: 6, int_val: 10 },
-            bbb: { root_index: 6, int_val: 9 },
-        };
-    }
-    /** /
-    // return Vex canonical note enharmonic - e.g. Bb to A#
-    // Get the canonical form
-    */
-    static vexToCannonical(vexKey) {
-        vexKey = smoMusic.stripVexOctave(vexKey);
-        return VF.Music.canonical_notes[smoMusic.noteValues[vexKey].int_val];
-    }
-    /** circleOfFifths
-    * A note array in key-signature order
-    */
-    static get circleOfFifths() {
-        return [{
-                letter: 'c',
-                accidental: 'n'
-            }, {
-                letter: 'g',
-                accidental: 'n'
-            }, {
-                letter: 'd',
-                accidental: 'n'
-            }, {
-                letter: 'a',
-                accidental: 'n'
-            }, {
-                letter: 'e',
-                accidental: 'n'
-            }, {
-                letter: 'b',
-                accidental: 'n'
-            }, {
-                letter: 'f',
-                accidental: '#'
-            }, {
-                letter: 'c',
-                accidental: '#'
-            }, {
-                letter: 'a',
-                accidental: 'b'
-            }, {
-                letter: 'e',
-                accidental: 'b'
-            }, {
-                letter: 'b',
-                accidental: 'b'
-            }, {
-                letter: 'f',
-                accidental: 'n'
-            }
-        ];
-    }
-    /**
-     * gives the index into circle-of-fifths array for a pitch, considering enharmonics.
-     * */
-    static circleOfFifthsIndex(smoPitch) {
-        const en1 = smoMusic.vexToSmoKey(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch)));
-        const en2 = smoMusic.vexToSmoKey(smoMusic.getEnharmonic(smoMusic.getEnharmonic(smoMusic.pitchToVexKey(smoPitch))));
-        const ix = smoMusic.circleOfFifths.findIndex((el) => (el.letter === smoPitch.letter && el.accidental === smoPitch.accidental) ||
-            (el.letter === en1.letter && el.accidental === en1.accidental) ||
-            (el.letter === en2.letter && el.accidental === en2.accidental));
-        return ix;
-    }
-    /**
-     * Get pitch to the right in circle of fifths
-     * */
-    static addSharp(smoPitch) {
-        const rv = smoMusic.circleOfFifths[(smoMusic.circleOfFifthsIndex(smoPitch) + 1) % smoMusic.circleOfFifths.length];
-        return { letter: rv.letter, accidental: rv.accidental, octave: smoPitch.octave };
-    }
-    /**
-     * Get pitch to the left in circle of fifths
-     */
-    static addFlat(smoPitch) {
-        const rv = smoMusic.circleOfFifths[((smoMusic.circleOfFifths.length - 1) + smoMusic.circleOfFifthsIndex(smoPitch)) % smoMusic.circleOfFifths.length];
-        return { letter: rv.letter, accidental: rv.accidental, octave: smoPitch.octave };
-    }
-    /**
-     * Add @param {number} - sharps
-     */
-    static addSharps(smoPitch, distance) {
-        let i = 0;
-        let rv = {};
-        if (distance === 0) {
-            return JSON.parse(JSON.stringify(smoPitch));
-        }
-        rv = smoMusic.addSharp(smoPitch);
-        for (i = 1; i < distance; ++i) {
-            rv = smoMusic.addSharp(rv);
-        }
-        const octaveAdj = smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
-        rv.octave += octaveAdj;
-        return rv;
-    }
-    /**
-     * Add *distance* sharps/flats to given key
-     */
-    static addFlats(smoPitch, distance) {
-        let i = 0;
-        let rv = {};
-        if (distance === 0) {
-            return JSON.parse(JSON.stringify(smoPitch));
-        }
-        rv = smoMusic.addFlat(smoPitch);
-        for (i = 1; i < distance; ++i) {
-            rv = smoMusic.addFlat(rv);
-        }
-        const octaveAdj = smoMusic.letterPitchIndex[smoPitch.letter] > smoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
-        rv.octave += octaveAdj;
-        return rv;
-    }
-    /**
-     * Convert array of smo pitches to vex keys, with adjustment for transpose and notehead
-     * @param pitchAr
-     * @param keyOffset
-     * @param noteHead
-     * @returns {string[]} - array of vex keyx
-     */
-    static smoPitchesToVexKeys(pitchAr, keyOffset, noteHead) {
-        const noopFunc = keyOffset > 0 ? 'addSharps' : 'addFlats';
-        const rv = [];
-        pitchAr.forEach((pitch) => {
-            rv.push(smoMusic.pitchToVexKey(smoMusic[noopFunc](pitch, keyOffset), noteHead));
-        });
-        return rv;
-    }
-    static get scaleIntervals() {
-        return {
-            up: [2, 2, 1, 2, 2, 2, 1],
-            down: [1, 2, 2, 2, 1, 2, 2]
-        };
-    }
-    /**
-     *  return true if the pitches match, but maybe not in same octave
-     * */
-    static smoScalePitchMatch(p1, p2) {
-        const pp1 = JSON.parse(JSON.stringify(p1));
-        const pp2 = JSON.parse(JSON.stringify(p2));
-        pp1.octave = 0;
-        pp2.octave = 0;
-        return smoMusic.smoPitchToInt(pp1) === smoMusic.smoPitchToInt(pp2);
-    }
-    /**
-     * Return the number of ledger lines based on the pitch and clef
-     * @param clef
-     * @param pitch
-     * @returns
-     */
-    static pitchToLedgerLine(clef, pitch) {
-        // return the distance from the top ledger line, as 0.5 per line/space
-        return -1.0 * (VF.keyProperties(smoMusic.pitchToVexKey(pitch, clef)).line - 4.5)
-            - VF.clefProperties(clef).line_shift;
-    }
-    /**
-     *   return hard-coded flag state, or flag state as based on pitch and clef
-     * */
-    static flagStateFromNote(clef, note) {
-        let fs = note.flagState;
-        if (fs === note_1.SmoNote.flagStates.auto) {
-            fs = smoMusic.pitchToLedgerLine(clef, note.pitches[0])
-                >= 2 ? note_1.SmoNote.flagStates.up : note_1.SmoNote.flagStates.down;
-        }
-        return fs;
-    }
-    /**
-     * convert from SMO to VEX format so we can use the VexFlow tables and methods
-     * example:
-     *   `{letter,octave,accidental}` object to vexKey string `'f#'`
-     * */
-    static _pitchToVexKey(smoPitch) {
-        // Convert to vex keys, where f# is a string like 'f#'.
-        let vexKey = smoPitch.letter.toLowerCase();
-        if (smoPitch.accidental.length === 0) {
-            vexKey = vexKey + 'n';
-        }
-        else {
-            vexKey = vexKey + smoPitch.accidental;
-        }
-        if (smoPitch.octave) {
-            vexKey = vexKey + '/' + smoPitch.octave;
-        }
-        return vexKey;
-    }
-    /**
-     * convert smo pitch to easy score (vex) format
-     * @param smoPitch
-     * @returns
-     */
-    static pitchToEasyScore(smoPitch) {
-        let vexKey = smoPitch.letter.toLowerCase();
-        vexKey = vexKey + smoPitch.accidental;
-        return vexKey + smoPitch.octave;
-    }
-    static smoPitchToMidiString(smoPitch) {
-        const midiPitch = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(smoPitch));
-        let rv = midiPitch.letter.toUpperCase();
-        if (midiPitch.accidental !== 'n') {
-            rv += midiPitch.accidental;
-        }
-        rv += midiPitch.octave;
-        return rv;
-    }
-    static smoPitchesToMidiStrings(smoPitches) {
-        const rv = [];
-        smoPitches.forEach((pitch) => {
-            rv.push(smoMusic.smoPitchToMidiString(pitch));
-        });
-        return rv;
-    }
-    static midiPitchToSmoPitch(midiPitch) {
-        const smoPitch = {};
-        smoPitch.letter = midiPitch[0].toLowerCase();
-        if (isNaN(parseInt(midiPitch[1], 10))) {
-            smoPitch.accidental = midiPitch[1];
-            smoPitch.octave = parseInt(midiPitch[2], 10);
-        }
-        else {
-            smoPitch.accidental = 'n';
-            smoPitch.octave = parseInt(midiPitch[1], 10);
-        }
-        return smoPitch;
-    }
-    static midiPitchToMidiNumber(midiPitch) {
-        return smoMusic.smoPitchToInt(smoMusic.midiPitchToSmoPitch(midiPitch)) + 12;
-    }
-    static pitchToVexKey(smoPitch, head = null) {
-        if (!head) {
-            return smoMusic._pitchToVexKey(smoPitch);
-        }
-        return smoMusic._pitchToVexKey(smoPitch) + '/' + head;
-    }
-    /**
-     *  Turns vex pitch string into smo pitch, e.g.
-     * `cn/4 => {'c','n',4}`
-     * */
-    static vexToSmoPitch(vexPitch) {
-        let octave = 0;
-        const po = vexPitch.split('/');
-        const rv = smoMusic.vexToSmoKey(po[0]);
-        if (po.length > 1) {
-            octave = parseInt(po[1], 10);
-            octave = isNaN(octave) ? 4 : octave;
-        }
-        else {
-            octave = 4;
-        }
-        rv.octave = octave;
-        return rv;
-    }
-    /**
-     * Convert to smo pitch, without octave
-     * ``['f#'] => [{letter:'f',accidental:'#'}]``
-     * */
-    static vexToSmoKey(vexPitch) {
-        const accidental = vexPitch.length < 2 ? 'n' : vexPitch.substring(1, vexPitch.length);
-        const pp = vexPitch.split('/')[0];
-        return {
-            letter: pp[0].toLowerCase(),
-            accidental
-        };
-    }
-    // {letter:'f',accidental:'#'} => [f#/
-    static smoPitchesToVex(pitchAr) {
-        var rv = [];
-        pitchAr.forEach((p) => {
-            rv.push(smoMusic.pitchToVexKey(p));
-        });
-        return rv;
-    }
-    static stripVexOctave(vexKey) {
-        if (vexKey.indexOf('/') > 0) {
-            vexKey = vexKey.substring(0, vexKey.indexOf('/'));
-        }
-        return vexKey;
-    }
-    /**
-     * compare pitches for frequency match
-     */
-    static pitchArraysMatch(ar1, ar2) {
-        let matches = 0;
-        const ir1 = smoMusic.smoPitchesToIntArray(ar1);
-        const ir2 = smoMusic.smoPitchesToIntArray(ar2);
-        if (ir1.length !== ir2.length) {
-            return false;
-        }
-        ir1.forEach((num) => {
-            if (ir2.indexOf(num) >= 0) {
-                matches += 1;
-            }
-        });
-        return matches === ir1.length;
-    }
-    static smoPitchesToIntArray(pitches) {
-        const rv = [];
-        pitches.forEach((pitch) => {
-            rv.push(smoMusic.smoPitchToInt(pitch));
-        });
-        return rv.sort();
-    }
-    static smoPitchToInt(pitch) {
-        if (typeof (pitch.octave) === 'undefined') {
-            pitch.octave = 0;
-        }
-        const intVal = smoMusic.noteValues[smoMusic.stripVexOctave(smoMusic.pitchToVexKey(pitch))].int_val;
-        const octave = (pitch.letter === 'c' && pitch.accidental === 'b' && pitch.octave > 0) ?
-            pitch.octave - 1 : pitch.octave;
-        return octave * 12 + intVal;
-    }
-    static smoIntToPitch(intValue) {
-        let octave = 0;
-        let accidental = '';
-        let noteKey = null;
-        const letterInt = intValue >= 0 ? intValue % 12 :
-            12 - (Math.abs(intValue) % 12);
-        noteKey = (Object.keys(smoMusic.noteValues).find((key) => smoMusic.noteValues[key].int_val === letterInt && key.length === 1));
-        if (!noteKey) {
-            noteKey = (Object.keys(smoMusic.noteValues).find((key) => smoMusic.noteValues[key].int_val === letterInt && key.length === 2));
-        }
-        octave = Math.floor(intValue / 12);
-        octave = octave >= 0 ? octave : 0;
-        accidental = noteKey.substring(1, noteKey.length);
-        // eslint-disable-next-line
-        accidental = accidental ? accidental : 'n';
-        return {
-            letter: noteKey[0],
-            accidental,
-            octave
-        };
-    }
-    static pitchKeyToPitch(pk) {
-        return { letter: pk.letter, accidental: pk.accidental, octave: 1 };
-    }
-    /**
-     * Consider instrument transpose when setting key -
-     * e.g. Eb for Bb instruments is F.
-     */
-    static vexKeySigWithOffset(vexKey, offset) {
-        const pk = smoMusic.vexToSmoKey(vexKey);
-        const pi = smoMusic.smoPitchToInt(smoMusic.pitchKeyToPitch(pk));
-        let newKey = smoMusic.toValidKeySignature(smoMusic.pitchToVexKey(smoMusic.smoIntToPitch(pi)));
-        // handle equivalent ks
-        if (newKey === 'c#' && vexKey.indexOf('b') >= 0) {
-            newKey = 'db';
-        }
-        return newKey;
-    }
-    /**
-     * return a map of enharmonics for choosing or cycling.  notes are in vexKey form.
-     */
-    static get enharmonics() {
-        let i = 0;
-        const rv = {};
-        const keys = Object.keys(smoMusic.noteValues);
-        for (i = 0; i < keys.length; ++i) {
-            const key = keys[i];
-            const int_val = smoMusic.noteValues[key].int_val;
-            if (typeof (rv[int_val.toString()]) === 'undefined') {
-                rv[int_val.toString()] = [];
-            }
-            // only consider natural note 1 time.  It is in the list twice for some reason.
-            if (key.indexOf('n') === -1) {
-                rv[int_val.toString()].push(key);
-            }
-        }
-        return rv;
-    }
-    /**
-     * Get enharmonic equivalent of given notes for cycle/choose
-     * @param vexKey
-     * @returns
-     */
-    static getEnharmonics(vexKey) {
-        const proto = smoMusic.stripVexOctave(vexKey);
-        const rv = [];
-        let ne = smoMusic.getEnharmonic(vexKey);
-        rv.push(proto);
-        while (ne[0] !== proto[0]) {
-            rv.push(ne);
-            ne = smoMusic.getEnharmonic(ne);
-        }
-        return rv;
-    }
-    /**
-     * return the next note from the cycle in `getEnharmonics`
-     */
-    static getEnharmonic(vexKey) {
-        vexKey = smoMusic.stripVexOctave(vexKey);
-        const intVal = smoMusic.noteValues[vexKey.toLowerCase()].int_val;
-        const ar = smoMusic.enharmonics[intVal.toString()];
-        const len = ar.length;
-        // 'n' for natural in key but not in value
-        vexKey = vexKey.length > 1 && vexKey[1] === 'n' ? vexKey[0] : vexKey;
-        const ix = ar.indexOf(vexKey);
-        vexKey = ar[(ix + 1) % len];
-        return vexKey;
-    }
-    /**
-     * Return a pitch a diatonic step away from SmoPitch in vexKey
-     * @param smoPitch
-     * @param vexKey
-     * @param direction
-     * @returns
-     */
-    static closestTonic(smoPitch, vexKey, direction) {
-        direction = Math.sign(direction) < 0 ? -1 : 1;
-        const tonic = smoMusic.vexToSmoKey(vexKey);
-        const rv = smoMusic.pitchKeyToPitch(tonic);
-        rv.octave = smoPitch.octave;
-        const iix = smoMusic.smoPitchToInt(smoPitch);
-        const smint = smoMusic.smoPitchToInt(rv);
-        if (Math.sign(smint - iix) !== direction) {
-            rv.octave += direction;
-        }
-        return rv;
-    }
-    // ### toValidKeySignature
-    // When transposing, make sure key signature is valid, e.g. g# should be
-    // Ab
-    static toValidKeySignature(vexKey) {
-        let strlen = 0;
-        const map = { 'a#': 'bb', 'g#': 'ab', 'cb': 'b', 'd#': 'eb' };
-        strlen = (vexKey.length > 2 ? 2 : vexKey.length);
-        // Vex doesn't like 'n' in key signatures.
-        if (strlen === 2 && vexKey[1].toLowerCase() === 'n') {
-            strlen = 1;
-        }
-        const rv = vexKey.substr(0, strlen);
-        if (map[rv.toLowerCase()]) {
-            return map[rv.toLowerCase()];
-        }
-        return rv;
-    }
-    /**
-     * When transposing, get the enharmonic that most closely fits the key
-     * `getEnharmonicInKey` returns an alternate to the given pitch, or the same pitch.
-     * `getKeyFriendlyEnharmonic` return a pitch for a given key, given the letter name only
-     * @param smoPitch
-     * @param keySignature
-     * @returns
-     */
-    static getEnharmonicInKey(smoPitch, keySignature) {
-        let match = false;
-        let rv = '';
-        if (typeof (smoPitch.octave) === 'undefined') {
-            smoPitch.octave = 1;
-        }
-        const sharpKey = keySignature.indexOf('#') >= 0;
-        const flatKey = keySignature.indexOf('b') >= 0;
-        const ar = smoMusic.getEnharmonics(smoMusic.pitchToVexKey(smoPitch));
-        rv = smoMusic.stripVexOctave(smoMusic.pitchToVexKey(smoPitch));
-        const scaleMap = new VF.Music().createScaleMap(keySignature);
-        ar.forEach((vexKey) => {
-            if (vexKey.length === 1) {
-                vexKey += 'n';
-            }
-            if (vexKey === scaleMap[vexKey[0]]) {
-                rv = vexKey;
-                match = true;
-            }
-            else if (!match) {
-                // In the absence of a match of a key tone, we bias towards more
-                // 'common', like Bb is more common than A#, esp. as a chord.  This maybe
-                // just be my horn player bias towards flat keys
-                if (vexKey === 'a#' && !sharpKey) {
-                    rv = 'bb';
-                }
-                else if (vexKey === 'g#' && !sharpKey) {
-                    rv = 'ab';
-                }
-                else if (vexKey === 'c#' && !sharpKey) {
-                    rv = 'db';
-                }
-                else if (vexKey === 'd#' && !sharpKey) {
-                    rv = 'eb';
-                }
-                else if (vexKey === 'f#' && flatKey) {
-                    rv = 'gb';
-                }
-            }
-        });
-        const smoRv = smoMusic.pitchKeyToPitch(smoMusic.vexToSmoKey(rv));
-        smoRv.octave = smoPitch.octave;
-        const rvi = smoMusic.smoPitchToInt(smoRv);
-        const ori = smoMusic.smoPitchToInt(smoPitch);
-        // handle the case of c0 < b0, pitch-wise
-        smoRv.octave += Math.sign(ori - rvi);
-        return smoRv;
-    }
-    /**
-     * fix the enharmonic to match the key, if possible
-     * @example
-     * `getKeyFriendlyEnharmonic('b','eb');  => returns 'bb'
-     * return vex string
-     * `getEnharmonicInKey` returns an alternate to the given pitch, or the same pitch.
-     * `getKeyFriendlyEnharmonic` return a pitch for a given key, given the letter name only
-     */
-    static getKeyFriendlyEnharmonic(letter, keySignature) {
-        let rv = letter;
-        let i = 0;
-        const muse = new VF.Music();
-        const scale = Object.values(muse.createScaleMap(keySignature));
-        let prop = smoMusic.getEnharmonic(letter.toLowerCase());
-        while (prop.toLowerCase() !== letter.toLowerCase()) {
-            for (i = 0; i < scale.length; ++i) {
-                const skey = scale[i];
-                if ((skey[0] === prop && skey[1] === 'n') ||
-                    (skey.toLowerCase() === prop.toLowerCase())) {
-                    rv = skey;
-                    break;
-                }
-            }
-            prop = (prop[1] === 'n' ? prop[0] : prop);
-            prop = smoMusic.getEnharmonic(prop);
-        }
-        return rv;
-    }
-    /**
-    // given a letter pitch (a,b,c etc.), and a key signature, return the actual note
-    // that you get without accidentals
-    //   `smoMusic.getKeySignatureKey('F','G'); // returns f#`
-     * @param letter
-     * @param keySignature
-     * @returns
-     */
-    static getKeySignatureKey(letter, keySignature) {
-        const km = new VF.KeyManager(keySignature);
-        return km.scaleMap[letter];
-    }
-    static getAccidentalForKeySignature(smoPitch, keySignature) {
-        const vexKey = smoMusic.getKeySignatureKey(smoPitch.letter, keySignature);
-        return vexKey.length === 1 ? 'n' : vexKey.substr(1, vexKey.length - 1);
-    }
-    // ### isPitchInKeySignature
-    // Return true if the pitch is not an accidental in the give key, e.g.
-    // f# in 'g' or c in 'Bb'
-    static isPitchInKeySignature(smoPitch, keySignature) {
-        const vexKey = smoMusic.getKeySignatureKey(smoPitch.letter, keySignature);
-        return (vexKey.length === 1 && smoPitch.accidental === 'n' ||
-            (vexKey[1] === smoPitch.accidental));
-    }
-    // ### getIntervalInKey
-    // give a pitch and a key signature, return another pitch at the given
-    // diatonic interval.  Similar to getKeyOffset but diatonic.
-    static getIntervalInKey(pitch, keySignature, interval) {
-        let scaleIx = 0;
-        let diatonicIx = 0;
-        if (interval === 0) {
-            return JSON.parse(JSON.stringify(pitch));
-        }
-        const delta = interval > 0 ? 1 : -1;
-        const inv = -1 * delta;
-        const tonic = smoMusic.closestTonic(pitch, keySignature, inv);
-        const intervals = delta > 0 ? smoMusic.scaleIntervals.up : smoMusic.scaleIntervals.down;
-        const pitchInt = smoMusic.smoPitchToInt(pitch);
-        let nkey = tonic;
-        let nkeyInt = smoMusic.smoPitchToInt(nkey);
-        while (Math.sign(nkeyInt - pitchInt) !== delta && Math.sign(nkeyInt - pitchInt) !== 0) {
-            nkey = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(nkey) + delta * intervals[scaleIx]);
-            scaleIx = (scaleIx + 1) % 7;
-            nkeyInt = smoMusic.smoPitchToInt(nkey);
-        }
-        while (diatonicIx !== interval) {
-            nkey = smoMusic.smoIntToPitch(smoMusic.smoPitchToInt(nkey) + delta * intervals[scaleIx]);
-            scaleIx = (scaleIx + 1) % 7;
-            diatonicIx += delta;
-        }
-        return smoMusic.getEnharmonicInKey(nkey, keySignature);
-    }
-    static getLetterNotePitch(prevPitch, letter, key) {
-        const pitch = JSON.parse(JSON.stringify(prevPitch));
-        pitch.letter = letter;
-        // Make the key 'a' make 'Ab' in the key of Eb, for instance
-        const vexKsKey = smoMusic.getKeySignatureKey(letter, key);
-        if (vexKsKey.length > 1) {
-            pitch.accidental = vexKsKey[1];
-        }
-        else {
-            pitch.accidental = 'n';
-        }
-        // make the octave of the new note as close to previous (or next) note as possible.
-        const upv = ['bc', 'ac', 'bd', 'da', 'be', 'gc'];
-        const downv = ['cb', 'ca', 'db', 'da', 'eb', 'cg'];
-        const delta = prevPitch.letter + pitch.letter;
-        if (upv.indexOf(delta) >= 0) {
-            pitch.octave += 1;
-        }
-        if (downv.indexOf(delta) >= 0) {
-            pitch.octave -= 1;
-        }
-        return pitch;
-    }
-    /**
-     *
-     * @param key start key
-     * @param transposeIndex number of 1/2 steps
-     * @returns {string} - vex key
-     */
-    static vexKeySignatureTranspose(key, transposeIndex) {
-        const pitch = smoMusic.pitchKeyToPitch(smoMusic.vexToSmoKey(key));
-        key = smoMusic.smoPitchesToVexKeys([pitch], transposeIndex, null)[0];
-        key = smoMusic.stripVexOctave(key);
-        key = key[0].toUpperCase() + key.substring(1, key.length);
-        if (key.length > 1 && key[1] === 'n') {
-            key = key[0];
-        }
-        return key;
-    }
-    static get frequencyMap() {
-        return oscillator_1.SuiAudioPitch.pitchFrequencyMap;
-    }
-    // ### get letterPitchIndex
-    // Used to adjust octave when transposing.
-    // Pitches are measured from c, so that b0 is higher than c0, c1 is 1 note higher etc.
-    static get letterPitchIndex() {
-        return {
-            'c': 0,
-            'd': 1,
-            'e': 2,
-            'f': 3,
-            'g': 4,
-            'a': 5,
-            'b': 6
-        };
-    }
-    /**
-     * Indicate if a change from letter note 'one' to 'two' needs us to adjust the
-     * octave due to the `smoMusic.letterPitchIndex` (b0 is higher than c0)
-     * */
-    static letterChangedOctave(one, two) {
-        const p1 = smoMusic.letterPitchIndex[one];
-        const p2 = smoMusic.letterPitchIndex[two];
-        if (p1 < p2 && p2 - p1 > 2) {
-            return -1;
-        }
-        if (p1 > p2 && p1 - p2 > 2) {
-            return 1;
-        }
-        return 0;
-    }
-    /**
-    // Given a vex noteProp and an offset, offset that number
-    // of 1/2 steps.
-     * @param pitch
-     * @param offset
-     * @returns
-     */
-    static getKeyOffset(pitch, offset) {
-        const canon = VF.Music.canonical_notes;
-        // Convert to vex keys, where f# is a string like 'f#'.
-        let vexKey = smoMusic.pitchToVexKey(pitch);
-        vexKey = smoMusic.vexToCannonical(vexKey);
-        const rootIndex = canon.indexOf(vexKey);
-        const index = (rootIndex + canon.length + offset) % canon.length;
-        let octave = pitch.octave;
-        if (Math.abs(offset) >= 12) {
-            const octaveOffset = Math.sign(offset) * Math.floor(Math.abs(offset) / 12);
-            octave += octaveOffset;
-            offset = offset % 12;
-        }
-        if (rootIndex + offset >= canon.length) {
-            octave += 1;
-        }
-        if (rootIndex + offset < 0) {
-            octave -= 1;
-        }
-        const rv = JSON.parse(JSON.stringify(pitch));
-        vexKey = canon[index];
-        if (vexKey.length > 1) {
-            rv.accidental = vexKey.substring(1);
-            vexKey = vexKey[0];
-        }
-        else {
-            rv.accidental = '';
-        }
-        rv.letter = vexKey;
-        rv.octave = octave;
-        return rv;
-    }
-    // ### keySignatureLength
-    // return the number of sharp/flat in a key signature for sizing guess.
-    static get keySignatureLength() {
-        return {
-            'C': 0,
-            'B': 5,
-            'A': 3,
-            'F#': 6,
-            'Bb': 2,
-            'Ab': 4,
-            'Gg': 6,
-            'G': 1,
-            'F': 1,
-            'Eb': 3,
-            'Db': 5,
-            'Cb': 7,
-            'C#': 7,
-            'E': 4,
-            'D': 2
-        };
-    }
-    static getSharpsInKeySignature(key) {
-        const sharpKeys = ['B', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
-        if (sharpKeys.indexOf(key.toUpperCase()) < 0) {
-            return 0;
-        }
-        return smoMusic.keySignatureLength[key.toUpperCase()];
-    }
-    static getFlatsInKeySignature(key) {
-        const flatKeys = ['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb'];
-        let caseKey = key[0].toUpperCase();
-        if (key.length > 0) {
-            caseKey += key.substr(1, key.length);
-        }
-        if (flatKeys.indexOf(caseKey) < 0) {
-            return 0;
-        }
-        return smoMusic.keySignatureLength[caseKey];
-    }
-    static timeSignatureToTicks(timeSignature) {
-        const nd = timeSignature.split('/');
-        const num = parseInt(nd[0], 10);
-        const den = parseInt(nd[1], 10);
-        const base = 2048 * (8 / den);
-        return base * num;
-    }
-    static smoTicksToVexDots(ticks) {
-        const vd = smoMusic.ticksToDuration[ticks];
-        const dots = (vd.match(/d/g) || []).length;
-        return dots;
-    }
-    // ## closestVexDuration
-    // ## Description:
-    // return the closest vex duration >= to the actual number of ticks. Used in beaming
-    // triplets which have fewer ticks then their stem would normally indicate.
-    static closestVexDuration(ticks) {
-        let stemTicks = VF.RESOLUTION;
-        // The stem value is the type on the non-tuplet note, e.g. 1/8 note
-        // for a triplet.
-        while (ticks <= stemTicks) {
-            stemTicks = stemTicks / 2;
-        }
-        stemTicks = stemTicks * 2;
-        return smoMusic.ticksToDuration[stemTicks];
-    }
-    // ### closestDurationTickLtEq
-    // Price is right style, closest tick value without going over.  Used to pad
-    // rests when reading musicXML.
-    static closestDurationTickLtEq(ticks) {
-        const sorted = Object.keys(smoMusic.ticksToDuration)
-            .map((key) => parseInt(key, 10))
-            .filter((key) => key <= ticks);
-        return sorted[sorted.length - 1];
-    }
-    /**
-     * Return array of valid note-lengths from an odd number of ticks,
-     * so we can come as close as possible to representing the ticks with notes
-     * @param ticks
-     * @returns
-     */
-    static splitIntoValidDurations(ticks) {
-        const rv = [];
-        let closest = 0;
-        while (ticks > 128) {
-            closest = smoMusic.closestDurationTickLtEq(ticks);
-            ticks -= closest;
-            rv.push(closest);
-        }
-        return rv;
-    }
-    // ### vexStemType
-    // return the vex stem type (no dots)
-    static vexStemType(ticks) {
-        const str = smoMusic.ticksToDuration[smoMusic.splitIntoValidDurations(ticks)[0]];
-        if (str.indexOf('d') >= 0) {
-            return str.substr(0, str.indexOf('d'));
-        }
-        return str;
-    }
-    // ### Description:
-    // Get ticks for this note with an added dot.  Return
-    // identity if that is not a supported value.
-    static getNextDottedLevel(ticks) {
-        const ttd = smoMusic.ticksToDuration;
-        const vals = Object.values(ttd);
-        const ix = vals.indexOf(ttd[ticks]);
-        if (ix >= 0 && ix < vals.length && vals[ix][0] === vals[ix + 1][0]) {
-            return smoMusic.durationToTicks(vals[ix + 1]);
-        }
-        return ticks;
-    }
-    // ### Description:
-    // Get ticks for this note with one fewer dot.  Return
-    // identity if that is not a supported value.
-    static getPreviousDottedLevel(ticks) {
-        const ttd = smoMusic.ticksToDuration;
-        const vals = Object.values(ttd);
-        const ix = vals.indexOf(ttd[ticks]);
-        if (ix > 0 && vals[ix][0] === vals[ix - 1][0]) {
-            return smoMusic.durationToTicks(vals[ix - 1]);
-        }
-        return ticks;
-    }
-    // ### ticksToDuration
-    // Frequently we double/halve a note duration, and we want to find the vex tick duration that goes with that.
-    static get ticksToDuration() {
-        let i = 0;
-        const durations = ['1/2', '1', '2', '4', '8', '16', '32', '64', '128', '256'];
-        const _ticksToDurationsF = () => {
-            for (i = 0; i < durations.length - 1; ++i) {
-                let j = 0;
-                let dots = '';
-                let ticks = 0;
-                // We support up to 4 'dots'
-                for (j = 0; j <= 4 && j + i < durations.length; ++j) {
-                    ticks += VF.durationToTicks(durations[i + j]);
-                    smoMusic._ticksToDuration[ticks.toString()] = durations[i] + dots;
-                    dots += 'd';
-                }
-            }
-        };
-        if (Object.keys(smoMusic._ticksToDuration).length < 1) {
-            _ticksToDurationsF();
-        }
-        return smoMusic._ticksToDuration;
-    }
-    // ### durationToTicks
-    // Uses VF.durationToTicks, but handles dots.
-    static durationToTicks(duration) {
-        let split = 0;
-        let i = 0;
-        let vfDuration = 0;
-        let dots = duration.indexOf('d');
-        if (dots < 0) {
-            return VF.durationToTicks(duration);
-        }
-        else {
-            vfDuration = VF.durationToTicks(duration.substring(0, dots));
-            dots = duration.length - dots; // number of dots
-            split = vfDuration / 2;
-            for (i = 0; i < dots; ++i) {
-                vfDuration += split;
-                split = split / 2;
-            }
-            return vfDuration;
-        }
-    }
-    /**
-     * break the duration up into an array of durations, to split a long
-     * note up between bars when pasting.
-     * @param duration
-     * @returns
-     */
-    static gcdMap(duration) {
-        let k = 0;
-        const keys = Object.keys(smoMusic.ticksToDuration).map((x) => parseInt(x, 10));
-        const dar = [];
-        const gcd = (td) => {
-            let rv = keys[0];
-            for (k = 1; k < keys.length; ++k) {
-                if (td % keys[k] === 0) {
-                    rv = keys[k];
-                }
-            }
-            return rv;
-        };
-        while (duration > 0 && !smoMusic.ticksToDuration[duration]) {
-            const div = gcd(duration);
-            duration = duration - div;
-            dar.push(div);
-        }
-        if (duration > 0) {
-            dar.push(duration);
-        }
-        return dar.sort((a, b) => a > b ? -1 : 1);
-    }
-}
-exports.smoMusic = smoMusic;
-smoMusic._ticksToDuration = {};
-
-
-/***/ }),
-
 /***/ "./src/common/promiseHelpers.js":
 /*!**************************************!*\
   !*** ./src/common/promiseHelpers.js ***!
@@ -3343,549 +3579,6 @@ exports.smoSerialize = smoSerialize;
 
 /***/ }),
 
-/***/ "./src/common/svgHelpers.ts":
-/*!**********************************!*\
-  !*** ./src/common/svgHelpers.ts ***!
-  \**********************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.svgHelpers = exports.SvgBuilder = void 0;
-const common_1 = __webpack_require__(/*! ../smo/data/common */ "./src/smo/data/common.ts");
-class SvgBuilder {
-    constructor(el) {
-        const ns = svgHelpers.namespace;
-        this.e = document.createElementNS(ns, el);
-    }
-    classes(cl) {
-        this.e.setAttributeNS('', 'class', cl);
-        return this;
-    }
-    attr(name, value) {
-        this.e.setAttributeNS('', name, value);
-        return this;
-    }
-    text(x, y, classes, text) {
-        x = typeof (x) == 'string' ? x : x.toString();
-        y = typeof (y) == 'string' ? y : y.toString();
-        this.e.setAttributeNS('', 'class', classes);
-        this.e.setAttributeNS('', 'x', x);
-        this.e.setAttributeNS('', 'y', y);
-        this.e.textContent = text;
-        return this;
-    }
-    rect(x, y, width, height, classes) {
-        x = typeof (x) == 'string' ? x : x.toString();
-        y = typeof (y) == 'string' ? y : y.toString();
-        width = typeof (width) == 'string' ? width : width.toString();
-        height = typeof (height) == 'string' ? height : height.toString();
-        this.e.setAttributeNS('', 'x', x);
-        this.e.setAttributeNS('', 'y', y);
-        this.e.setAttributeNS('', 'width', width);
-        this.e.setAttributeNS('', 'height', height);
-        if (classes) {
-            this.e.setAttributeNS('', 'class', classes);
-        }
-        return this;
-    }
-    line(x1, y1, x2, y2, classes) {
-        x1 = typeof (x1) == 'string' ? x1 : x1.toString();
-        y1 = typeof (y1) == 'string' ? y1 : y1.toString();
-        x2 = typeof (x2) == 'string' ? x2 : x2.toString();
-        y2 = typeof (y2) == 'string' ? y2 : y2.toString();
-        this.e.setAttributeNS('', 'x1', x1);
-        this.e.setAttributeNS('', 'y1', y1);
-        this.e.setAttributeNS('', 'x2', x2);
-        this.e.setAttributeNS('', 'y2', y2);
-        if (classes) {
-            this.e.setAttributeNS('', 'class', classes);
-        }
-        return this;
-    }
-    append(el) {
-        this.e.appendChild(el.e);
-        return this;
-    }
-    dom() {
-        return this.e;
-    }
-    static b(element) {
-        return new SvgBuilder(element);
-    }
-}
-exports.SvgBuilder = SvgBuilder;
-// ## svgHelpers
-// Mostly utilities for converting coordinate spaces based on transforms, etc.
-// ### static class methods:
-// ---
-class svgHelpers {
-    static get namespace() {
-        return "http://www.w3.org/2000/svg";
-    }
-    // ### gradient
-    // Create an svg linear gradient.
-    // Stops look like this:
-    // `[{color:"#eee", offset:"0%",opacity:0.5}]`
-    // orientation is horizontal or vertical
-    static gradient(svg, id, orientation, stops) {
-        var ns = svgHelpers.namespace;
-        var x2 = orientation === 'vertical' ? 0 : 1;
-        var y2 = orientation === 'vertical' ? 1 : 0;
-        var e = document.createElementNS(ns, 'linearGradient');
-        e.setAttributeNS('', 'id', id);
-        e.setAttributeNS('', 'x1', '0');
-        e.setAttributeNS('', 'x2', x2.toString());
-        e.setAttributeNS('', 'y1', '0');
-        e.setAttributeNS('', 'y2', y2.toString());
-        stops.forEach((stop) => {
-            var s = document.createElementNS(ns, 'stop');
-            s.setAttributeNS('', 'stop-opacity', stop.opacity.toString());
-            s.setAttributeNS('', 'stop-color', stop.color);
-            s.setAttributeNS('', 'offset', stop.offset);
-            e.appendChild(s);
-        });
-        svg.appendChild(e);
-    }
-    static renderCursor(svg, x, y, height) {
-        var ns = svgHelpers.namespace;
-        const width = height * 0.4;
-        x = x - (width / 2);
-        var mcmd = (d, x, y) => {
-            return d + 'M ' + x.toString() + ' ' + y.toString() + ' ';
-        };
-        var qcmd = (d, x1, y1, x2, y2) => {
-            return d + 'q ' + x1.toString() + ' ' + y1.toString() + ' ' + x2.toString() + ' ' + y2.toString() + ' ';
-        };
-        var lcmd = (d, x, y) => {
-            return d + 'L ' + x.toString() + ' ' + y.toString() + ' ';
-        };
-        var x1 = (width / 2) * .333;
-        var y1 = -1 * (x1 / 4);
-        var x2 = (width / 2);
-        var y2 = x2 / 4;
-        var ns = svgHelpers.namespace;
-        var e = document.createElementNS(ns, 'path');
-        var d = '';
-        d = mcmd(d, x, y);
-        d = qcmd(d, x1, y1, x2, y2);
-        d = lcmd(d, x + (width / 2), y + height - (width / 8));
-        d = mcmd(d, x + width, y);
-        d = qcmd(d, -1 * x1, y1, -1 * x2, y2);
-        d = mcmd(d, x, y + height);
-        d = qcmd(d, x1, -1 * y1, x2, -1 * y2);
-        d = mcmd(d, x + width, y + height);
-        d = qcmd(d, -1 * x1, -1 * y1, -1 * x2, -1 * y2);
-        e.setAttributeNS('', 'd', d);
-        e.setAttributeNS('', 'stroke-width', '1');
-        e.setAttributeNS('', 'stroke', '#555');
-        e.setAttributeNS('', 'fill', 'none');
-        svg.appendChild(e);
-    }
-    // ### boxNote
-    // update the note geometry based on current viewbox conditions.
-    // This may not be the appropriate place for this...maybe in layout
-    static updateArtifactBox(svg, element, artifact, scroller) {
-        if (typeof (element) === 'undefined') {
-            console.log('updateArtifactBox: undefined element!');
-            return;
-        }
-        artifact.logicalBox = svgHelpers.smoBox(element.getBBox());
-        artifact.renderedBox = svgHelpers.smoBox(svgHelpers.logicalToClient(svg, artifact.logicalBox, scroller));
-    }
-    // ### eraseOutline
-    // Erases old outlineRects.
-    static eraseOutline(svg, style) {
-        $(svg).find('g.vf-' + style).remove();
-    }
-    static _outlineRect(params) {
-        const scroll = params.scroll;
-        const context = params.context;
-        svgHelpers.eraseOutline(context, params.classes);
-        // Don't highlight in print mode.
-        if ($('body').hasClass('printing')) {
-            return;
-        }
-        var grp = context.openGroup(params.classes, params.classes + '-outline');
-        const boxes = Array.isArray(params.box) ? params.box : [params.box];
-        boxes.forEach((box) => {
-            if (box) {
-                var strokeObj = params.stroke;
-                var margin = 5;
-                if (params.clientCoordinates === true) {
-                    box = svgHelpers.smoBox(svgHelpers.clientToLogical(context.svg, svgHelpers.smoBox(svgHelpers.adjustScroll(box, scroll))));
-                }
-                context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
-            }
-        });
-        context.closeGroup(grp);
-    }
-    // ### outlineRect
-    // Usage:
-    //  outlineRect(params)
-    // params ({context,box,outlineStroke,classes,scroller})
-    // outlineStroke: {stroke, strokeWidth, strokeDashArray, fill}
-    static outlineRect(params) {
-        params.clientCoordinates = true;
-        svgHelpers._outlineRect(params);
-    }
-    static outlineLogicalRect(params) {
-        svgHelpers._outlineRect(params);
-    }
-    static setSvgStyle(element, attrs) {
-        element.setAttributeNS('', 'stroke', attrs.stroke);
-        if (attrs.strokeDasharray) {
-            element.setAttributeNS('', 'stroke-dasharray', attrs.strokeDasharray.toString());
-        }
-        if (attrs.strokeWidth) {
-            element.setAttributeNS('', 'stroke-width', attrs.strokeWidth.toString());
-        }
-        if (attrs.fill) {
-            element.setAttributeNS('', 'fill', attrs.fill);
-        }
-    }
-    static rect(svg, box, attrs, classes) {
-        var rect = document.createElementNS(svgHelpers.namespace, 'rect');
-        svgHelpers.setSvgStyle(rect, attrs);
-        if (classes) {
-            rect.setAttributeNS('', 'class', classes);
-        }
-        svg.appendChild(rect);
-        return rect;
-    }
-    static line(svg, x1, y1, x2, y2, attrs, classes) {
-        var line = document.createElementNS(svgHelpers.namespace, 'line');
-        x1 = typeof (x1) == 'string' ? x1 : x1.toString();
-        y1 = typeof (y1) == 'string' ? y1 : y1.toString();
-        x2 = typeof (x2) == 'string' ? x2 : x2.toString();
-        y2 = typeof (y2) == 'string' ? y2 : y2.toString();
-        line.setAttributeNS('', 'x1', x1);
-        line.setAttributeNS('', 'y1', y1);
-        line.setAttributeNS('', 'x2', x2);
-        line.setAttributeNS('', 'y2', y2);
-        svgHelpers.setSvgStyle(line, attrs);
-        if (classes) {
-            line.setAttributeNS('', 'class', classes);
-        }
-        svg.appendChild(line);
-    }
-    static arrowDown(svg, box) {
-        const arrowStroke = { stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 };
-        svgHelpers.line(svg, box.x + box.width / 2, box.y, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
-        var arrowY = box.y + box.height / 4;
-        svgHelpers.line(svg, box.x, arrowY, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
-        svgHelpers.line(svg, box.x + box.width, arrowY, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
-    }
-    static debugBox(svg, box, classes, voffset) {
-        voffset = voffset !== null && voffset !== void 0 ? voffset : 0;
-        classes = classes !== null && classes !== void 0 ? classes : '';
-        if (!box)
-            return;
-        classes += ' svg-debug-box';
-        var b = SvgBuilder.b;
-        var mid = box.x + box.width / 2;
-        var xtext = 'x1: ' + Math.round(box.x);
-        var wtext = 'x2: ' + Math.round(box.width + box.x);
-        var ytext = 'y1: ' + Math.round(box.y);
-        var htext = 'y2: ' + Math.round(box.height + box.y);
-        var ytextp = Math.round(box.y + box.height);
-        var ytextp2 = Math.round(box.y + box.height - 30);
-        var r = b('g').classes(classes)
-            .append(b('text').text(box.x + 20, box.y - 14 + voffset, 'svg-debug-text', xtext))
-            .append(b('text').text(mid - 20, box.y - 14 + voffset, 'svg-debug-text', wtext))
-            .append(b('line').line(box.x, box.y - 2, box.x + box.width, box.y - 2, ''))
-            .append(b('line').line(box.x, box.y - 8, box.x, box.y + 5, ''))
-            .append(b('line').line(box.x + box.width, box.y - 8, box.x + box.width, box.y + 5, ''))
-            .append(b('text').text(Math.round(box.x - 14 + voffset), ytextp, 'svg-vdebug-text', ytext)
-            .attr('transform', 'rotate(-90,' + Math.round(box.x - 14 + voffset) + ',' + ytextp + ')'));
-        if (box.height > 2) {
-            r.append(b('text').text(Math.round(box.x - 14 + voffset), ytextp2, 'svg-vdebug-text', htext)
-                .attr('transform', 'rotate(-90,' + Math.round(box.x - 14 + voffset) + ',' + (ytextp2) + ')'))
-                .append(b('line').line(Math.round(box.x - 2), Math.round(box.y + box.height), box.x - 2, box.y, ''))
-                .append(b('line').line(Math.round(box.x - 8), Math.round(box.y + box.height), box.x + 6, Math.round(box.y + box.height), ''))
-                .append(b('line').line(Math.round(box.x - 8), Math.round(box.y), Math.round(box.x + 6), Math.round(box.y), ''));
-        }
-        svg.appendChild(r.dom());
-    }
-    static placeSvgText(svg, attributes, classes, text) {
-        var ns = svgHelpers.namespace;
-        var e = document.createElementNS(ns, 'text');
-        attributes.forEach((attr) => {
-            var key = Object.keys(attr)[0];
-            e.setAttributeNS('', key, attr[key].toString());
-        });
-        if (classes) {
-            e.setAttributeNS('', 'class', classes);
-        }
-        var tn = document.createTextNode(text);
-        e.appendChild(tn);
-        svg.appendChild(e);
-        return e;
-    }
-    // ### findIntersectionArtifact
-    // find all object that intersect with the rectangle
-    static findIntersectingArtifact(clientBox, objects, scrollState) {
-        var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
-        // box.y = box.y - this.renderElement.offsetTop;
-        // box.x = box.x - this.renderElement.offsetLeft;
-        var rv = [];
-        objects.forEach((object) => {
-            // Measure has been updated, but not drawn.
-            if (!object.box) {
-                // console.log('there is no box');
-            }
-            else {
-                var obox = svgHelpers.smoBox(svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState));
-                var i1 = box.x - obox.x; // handle edge not believe in x and y
-                var i2 = box.y - obox.y;
-                if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
-                    rv.push(object);
-                }
-            }
-        });
-        return rv;
-    }
-    // ### findIntersectingArtifactFromMap
-    // Same as findIntersectionArtifact but uses a map of keys instead of an array
-    static findIntersectingArtifactFromMap(clientBox, map, scrollState) {
-        var box = svgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
-        // box.y = box.y - this.renderElement.offsetTop;
-        // box.x = box.x - this.renderElement.offsetLeft;
-        var rv = [];
-        Object.keys(map).forEach((k) => {
-            var object = map[k];
-            // Measure has been updated, but not drawn.
-            if (!object.box) {
-                // console.log('there is no box');
-            }
-            else {
-                var obox = svgHelpers.smoBox(svgHelpers.adjustScroll(svgHelpers.smoBox(object.box), scrollState));
-                var i1 = box.x - obox.x; // handle edge not believe in x and y
-                var i2 = box.y - obox.y;
-                if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
-                    rv.push(object);
-                }
-            }
-        });
-        return rv;
-    }
-    static containsPoint(box, point, scrollState) {
-        var obox = svgHelpers.smoBox(svgHelpers.adjustScroll(svgHelpers.smoBox(box), scrollState));
-        const i1 = point.x - box.x + scrollState.x; // handle edge not believe in x and y
-        const i2 = point.y - box.y + scrollState.y;
-        if (i1 > 0 && i1 < obox.width && i2 > 0 && i2 < obox.height) {
-            return true;
-        }
-        return false;
-    }
-    static findSmallestIntersection(clientBox, objects, scrollState) {
-        var ar = svgHelpers.findIntersectingArtifact(clientBox, objects, scrollState);
-        if (!ar.length) {
-            return null;
-        }
-        var rv = ar[0];
-        var min = ar[0].box.width * ar[0].box.height;
-        ar.forEach((obj) => {
-            var tst = obj.box.width * obj.box.height;
-            if (tst < min) {
-                rv = obj;
-                min = tst;
-            }
-        });
-        return rv;
-    }
-    static translateElement(g, x, y) {
-        g.setAttributeNS('', 'transform', 'translate(' + x + ' ' + y + ')');
-    }
-    static stringify(box) {
-        if (box['width']) {
-            return JSON.stringify({
-                x: box.x,
-                y: box.y,
-                width: box.width,
-                height: box.height
-            }, null, ' ');
-        }
-        else {
-            return JSON.stringify({
-                x: box.x,
-                y: box.y
-            }, null, ' ');
-        }
-    }
-    static log(box) {
-        if (box['width']) {
-            console.log(JSON.stringify({
-                x: box.x,
-                y: box.y,
-                width: box.width,
-                height: box.height
-            }, null, ' '));
-        }
-        else {
-            console.log('{}');
-        }
-    }
-    // ### pointBox
-    // return a point-sized box at the given coordinate
-    static pointBox(x, y) {
-        return {
-            x: x,
-            y: y,
-            width: 0,
-            height: 0
-        };
-    }
-    // ### smoBox:
-    // return a simple box object that can be serialized, copied
-    // (from svg DOM box)
-    static smoBox(box) {
-        if (typeof (box) === "undefined") {
-            return common_1.SvgBox.default;
-        }
-        const hround = (f) => {
-            return Math.round((f + Number.EPSILON) * 100) / 100;
-        };
-        const x = typeof (box.x) == 'undefined' ? hround(box.left) : hround(box.x);
-        const y = typeof (box.y) == 'undefined' ? hround(box.top) : hround(box.y);
-        return ({
-            x: hround(x),
-            y: hround(y),
-            width: hround(box.width),
-            height: hround(box.height)
-        });
-    }
-    // ### unionRect
-    // grow the bounding box two objects to include both.
-    static unionRect(b1, b2) {
-        const x = Math.min(b1.x, b2.x);
-        const y = Math.min(b1.y, b2.y);
-        const width = Math.max(b1.x + b1.width, b2.x + b2.width) - x;
-        const height = Math.max(b1.y + b1.height, b2.y + b2.height) - y;
-        return {
-            x: x,
-            y: y,
-            width: width,
-            height: height
-        };
-    }
-    // ### adjustScroll
-    // Add the scroll to the screen coordinates so we can find the mapped
-    // location of something.
-    static adjustScroll(box, scroll) {
-        // WIP...
-        if (typeof (box) == 'undefined' || typeof (scroll) == 'undefined') {
-            console.log('bad values to scroll thing');
-            return;
-        }
-        return svgHelpers.boxPoints(box.x + scroll.x, box.y - scroll.y, box.width, box.height);
-        // return box;
-    }
-    static boxPoints(x, y, w, h) {
-        return ({
-            x: x,
-            y: y,
-            width: w,
-            height: h
-        });
-    }
-    static copyBox(box) {
-        box = svgHelpers.smoBox(box);
-        return {
-            x: box.x,
-            y: box.y,
-            width: box.width,
-            height: box.height
-        };
-    }
-    // ### svgViewport
-    // set `svg` element to `width`,`height` and viewport `scale`
-    static svgViewport(svg, xOffset, yOffset, width, height, scale) {
-        svg.setAttributeNS('', 'width', '' + width);
-        svg.setAttributeNS('', 'height', '' + height);
-        svg.setAttributeNS('', 'viewBox', '' + xOffset + ' ' + yOffset + ' ' + Math.round(width / scale) + ' ' +
-            Math.round(height / scale));
-    }
-    // ### logicalToClient
-    // Convert a point from logical (pixels) to actual screen dimensions based on current
-    // zoom, aspect ratio
-    /* static logicalToClient(svg, logicalPoint) {
-    var rect = svg.getBoundingClientRect();
-    var rv = svgHelpers.copyBox(logicalPoint);
-    rv.x += rect.x;
-    rv.y += rect.y;
-    return rv;
-    }   */
-    // ### clientToLogical
-    // return a box or point in svg coordintes from screen coordinates
-    static clientToLogical(svg, point) {
-        var pt = svg.createSVGPoint();
-        if (!point)
-            return common_1.SvgBox.default;
-        const x = point.x;
-        const y = point.y;
-        pt.x = x;
-        pt.y = y;
-        const screen = svg.getScreenCTM();
-        if (!screen) {
-            return common_1.SvgBox.default;
-        }
-        var sp = pt.matrixTransform(screen.inverse());
-        if (typeof (point['width']) == 'undefined') {
-            return {
-                x: sp.x,
-                y: sp.y
-            };
-        }
-        const endPt = svg.createSVGPoint();
-        endPt.x = pt.x + point.width;
-        endPt.y = pt.y + point.height;
-        const mat = svg.getScreenCTM();
-        if (!mat) {
-            return common_1.SvgBox.default;
-        }
-        const ep = endPt.matrixTransform(mat.inverse());
-        return {
-            x: sp.x,
-            y: sp.y,
-            width: ep.x - sp.x,
-            height: ep.y - sp.y
-        };
-    }
-    // ### logicalToClient
-    // return a box or point in screen coordinates from svg coordinates
-    static logicalToClient(svg, point, scroller) {
-        var _a, _b;
-        var pt = svg.createSVGPoint();
-        const ss = scroller;
-        pt.x = point.x;
-        pt.y = point.y;
-        var sp = pt.matrixTransform((_a = svg.getScreenCTM()) !== null && _a !== void 0 ? _a : undefined);
-        if (!point['width']) {
-            return {
-                x: sp.x + ss.x,
-                y: sp.y + ss.y
-            };
-        }
-        var endPt = svg.createSVGPoint();
-        endPt.x = pt.x + point.width;
-        endPt.y = pt.y + point.height;
-        var ep = endPt.matrixTransform((_b = svg.getScreenCTM()) !== null && _b !== void 0 ? _b : undefined);
-        return {
-            x: sp.x + ss.x,
-            y: sp.y + ss.y,
-            width: ep.x - sp.x,
-            height: ep.y - sp.y
-        };
-    }
-}
-exports.svgHelpers = svgHelpers;
-
-
-/***/ }),
-
 /***/ "./src/music/basic.js":
 /*!****************************!*\
   !*** ./src/music/basic.js ***!
@@ -3924,71 +3617,11 @@ exports.testCase1 = `[{"method":"growSelectionRight","parameters":[]},{"method":
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiSampler = exports.SuiOscillator = exports.SuiReverb = exports.SuiAudioPitch = void 0;
+exports.SuiSampler = exports.SuiOscillator = exports.SuiReverb = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
-// ## suiAudioPitch
-// helper class to compute the frequencies of the notes.
-class SuiAudioPitch {
-    // ### _frequencies
-    // Compute the equal-temperment frequencies of the notes.
-    static _computeFrequencies() {
-        const map = {};
-        let lix = 0;
-        const octaves = [1, 2, 3, 4, 5, 6, 7];
-        const letters = ['cn', 'c#', 'dn', 'd#', 'en', 'fn', 'f#', 'gn', 'g#', 'an', 'a#', 'bn'];
-        const just = Math.pow(2, (1.0 / 12));
-        const baseFrequency = (440 / 16) * Math.pow(just, 3);
-        octaves.forEach((octave) => {
-            const base = baseFrequency * Math.pow(2, octave - 1);
-            lix = 0;
-            letters.forEach((letter) => {
-                const freq = base * Math.pow(just, lix);
-                var enharmonics = musicHelpers_1.smoMusic.getEnharmonics(letter);
-                enharmonics.forEach((en) => {
-                    // Adjust for B4 higher than C4
-                    const adjOctave = (letter[0] === 'b' && en[0] === 'c') ?
-                        octave + 1 : octave;
-                    map[en + adjOctave.toString()] = freq;
-                });
-                lix += 1;
-            });
-        });
-        return map;
-    }
-    static get pitchFrequencyMap() {
-        if (!SuiAudioPitch.frequencies) {
-            SuiAudioPitch.frequencies = SuiAudioPitch._computeFrequencies();
-        }
-        return SuiAudioPitch.frequencies;
-    }
-    static _rawPitchToFrequency(smoPitch, offset) {
-        const npitch = musicHelpers_1.smoMusic.smoIntToPitch(musicHelpers_1.smoMusic.smoPitchToInt(smoPitch) + offset);
-        const vx = npitch.letter.toLowerCase() + npitch.accidental + npitch.octave.toString();
-        return SuiAudioPitch.pitchFrequencyMap[vx];
-    }
-    // ### smoPitchToFrequency
-    // Convert a pitch to a frequency in Hz.
-    static smoPitchToFrequency(smoPitch, ix, offset, tones) {
-        let pitchInt = 0;
-        let rv = SuiAudioPitch._rawPitchToFrequency(smoPitch, offset);
-        const mt = tones.filter((tt) => tt.pitch === smoPitch);
-        if (mt.length) {
-            const tone = mt[0];
-            const coeff = tone.toPitchCoeff;
-            pitchInt = musicHelpers_1.smoMusic.smoPitchToInt(smoPitch);
-            pitchInt += (coeff > 0) ? 1 : -1;
-            const otherSmo = musicHelpers_1.smoMusic.smoIntToPitch(pitchInt);
-            const otherPitch = SuiAudioPitch._rawPitchToFrequency(otherSmo, offset);
-            rv += Math.abs(rv - otherPitch) * coeff;
-        }
-        return rv;
-    }
-}
-exports.SuiAudioPitch = SuiAudioPitch;
-SuiAudioPitch.frequencies = null;
+const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
 class SuiReverb {
     constructor(context) {
         this.reverse = false;
@@ -4122,7 +3755,6 @@ class SuiOscillator {
     static fromNote(measure, note, isSample, gain) {
         let frequency = 0;
         let duration = 0;
-        let i = 0;
         const tempo = measure.getTempo();
         const bpm = tempo.bpm;
         const beats = note.tickCount / 4096;
@@ -4138,16 +3770,16 @@ class SuiOscillator {
         if (note.noteType === 'r') {
             gain = 0.001;
         }
-        i = 0;
-        note.pitches.forEach((pitch) => {
-            frequency = SuiAudioPitch.smoPitchToFrequency(pitch, i, -1 * measure.transposeIndex, note.getMicrotones());
+        note.pitches.forEach((pitch, pitchIx) => {
+            var _a;
+            const mtone = (_a = note.getMicrotone(pitchIx)) !== null && _a !== void 0 ? _a : null;
+            frequency = music_1.SmoAudioPitch.smoPitchToFrequency(pitch, -1 * measure.transposeIndex, mtone);
             const def = SuiOscillator.defaults;
             def.frequency = frequency;
             def.duration = duration;
             def.gain = gain;
             const osc = new SuiSampler(def);
             ar.push(osc);
-            i += 1;
         });
         return ar;
     }
@@ -4182,7 +3814,7 @@ class SuiOscillator {
                     req.onload = () => {
                         const audioData = req.response;
                         audio.decodeAudioData(audioData, (decoded) => {
-                            SuiOscillator.samples.push({ sample: decoded, frequency: SuiAudioPitch.pitchFrequencyMap[file] });
+                            SuiOscillator.samples.push({ sample: decoded, frequency: music_1.SmoAudioPitch.pitchFrequencyMap[file] });
                         });
                     };
                 }
@@ -4378,17 +4010,12 @@ class SuiAudioPlayer {
         const trackSounds = [];
         notes.forEach((note) => {
             const noteSound = {
-                frequencies: [],
+                frequencies: note.frequencies,
                 duration: note.duration,
                 offset: note.offset,
                 volume: note.volume,
                 noteType: note.noteType
             };
-            if (note.noteType === 'n') {
-                note.pitches.forEach((pitch) => {
-                    noteSound.frequencies.push(oscillator_1.SuiAudioPitch.smoPitchToFrequency(pitch, 0, 0, []));
-                });
-            }
             trackSounds.push(noteSound);
         });
         return trackSounds;
@@ -4675,8 +4302,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.suiLayoutFormatter = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.ts");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
+const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
 const glyphDimensions_1 = __webpack_require__(/*! ../vex/glyphDimensions */ "./src/render/vex/glyphDimensions.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const note_1 = __webpack_require__(/*! ../../smo/data/note */ "./src/smo/data/note.ts");
@@ -4714,7 +4341,7 @@ class suiLayoutFormatter {
                 noteWidth += (headWidth + glyphDimensions_1.vexGlyph.dimensions.noteHead.spacingRight) * note.graceNotes.length;
                 noteWidth += dotWidth * dots + glyphDimensions_1.vexGlyph.dimensions.dot.spacingRight * dots;
                 note.pitches.forEach((pitch) => {
-                    const keyAccidental = musicHelpers_1.smoMusic.getAccidentalForKeySignature(pitch, smoMeasure.keySignature);
+                    const keyAccidental = music_1.SmoMusic.getAccidentalForKeySignature(pitch, smoMeasure.keySignature);
                     const accidentals = tmObj.accidentalArray.filter((ar) => ar.duration < duration && ar.pitches[pitch.letter]);
                     const acLen = accidentals.length;
                     const declared = acLen > 0 ?
@@ -4809,7 +4436,7 @@ class suiLayoutFormatter {
         measure.setWidth(measureWidth, 'estimateMeasureWidth adjX adjRight');
         // Calculate the space for left/right text which displaces the measure.
         // measure.setX(measure.staffX  + textOffsetBox.x,'estimateMeasureWidth');
-        measure.setBox(svgHelpers_1.svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, measure.svg.logicalBox.height), 'estimate measure width');
+        measure.setBox(svgHelpers_1.SvgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, measure.svg.logicalBox.height), 'estimate measure width');
     }
     static _beamGroupForNote(measure, note) {
         let rv = null;
@@ -4831,7 +4458,7 @@ class suiLayoutFormatter {
         const hilo = { hi: 0, lo: 9999999 };
         note.pitches.forEach((pitch) => {
             // 10 pixels per line
-            const ledger = musicHelpers_1.smoMusic.pitchToLedgerLine(measure.clef, pitch);
+            const ledger = music_1.SmoMusic.pitchToLedgerLine(measure.clef, pitch);
             const noteHeight = ledger > 0 ? 10 : -10;
             const px = (10 * ledger) + noteHeight;
             hilo.lo = Math.min(hilo.lo, px);
@@ -4875,7 +4502,7 @@ class suiLayoutFormatter {
                     // an  auto-flag note is up if the 1st note is middle line
                     if (flag === note_1.SmoNote.flagStates.auto) {
                         const pitch = bg.notes[0].pitches[0];
-                        flag = musicHelpers_1.smoMusic.pitchToLedgerLine(measure.clef, pitch)
+                        flag = music_1.SmoMusic.pitchToLedgerLine(measure.clef, pitch)
                             >= 2 ? note_1.SmoNote.flagStates.up : note_1.SmoNote.flagStates.down;
                     }
                 }
@@ -4884,7 +4511,7 @@ class suiLayoutFormatter {
                     // an  auto-flag note is up if the 1st note is middle line
                     if (flag === note_1.SmoNote.flagStates.auto) {
                         const pitch = note.pitches[0];
-                        flag = musicHelpers_1.smoMusic.pitchToLedgerLine(measure.clef, pitch)
+                        flag = music_1.SmoMusic.pitchToLedgerLine(measure.clef, pitch)
                             >= 2 ? note_1.SmoNote.flagStates.up : note_1.SmoNote.flagStates.down;
                     }
                 }
@@ -4933,7 +4560,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.layoutDebug = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.ts");
+const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const VF = eval('Vex.Flow');
 class layoutDebug {
     static get values() {
@@ -5030,14 +4657,14 @@ class layoutDebug {
             box.height = 1;
         }
         if (layoutDebug.flagSet(flag)) {
-            svgHelpers_1.svgHelpers.debugBox(svg, box, layoutDebug.classes[flag], 0);
+            svgHelpers_1.SvgHelpers.debugBox(svg, box, layoutDebug.classes[flag], 0);
         }
     }
     static createSandbox(elementId, width, height) {
         $('#' + elementId).html('');
         $('#' + elementId).removeClass('hide');
         const renderer = new VF.Renderer(document.getElementById(elementId), VF.Renderer.Backends.SVG);
-        svgHelpers_1.svgHelpers.svgViewport(renderer.getContext().svg, 0, 0, width, height, 1.0);
+        svgHelpers_1.SvgHelpers.svgViewport(renderer.getContext().svg, 0, 0, width, height, 1.0);
         return renderer;
     }
     static setFlag(value) {
@@ -5095,10 +4722,6 @@ class SuiRenderDemon {
         this.renderer = renderer;
         this.undoBuffer = undoBuffer;
         this.tracker = tracker;
-    }
-    get isLayoutQuiet() {
-        return ((this.renderer.passState == renderState_1.SuiRenderState.passStates.clean && this.renderer.dirty == false)
-            || this.renderer.passState == renderState_1.SuiRenderState.passStates.replace);
     }
     resetIdleTimer() {
         this.idleLayoutTimer = Date.now();
@@ -5184,7 +4807,7 @@ exports.SuiMapper = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
-const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.ts");
+const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
 // ## SuiMapper
@@ -5340,7 +4963,7 @@ class SuiMapper {
             this.modifierTabs.push({
                 modifier,
                 selection,
-                box: svgHelpers_1.svgHelpers.smoBox(svgHelpers_1.svgHelpers.logicalToClient(this.renderer.svg, svgHelpers_1.svgHelpers.smoBox(modifier.logicalBox), this.scroller.scrollState.scroll)),
+                box: svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, svgHelpers_1.SvgHelpers.smoBox(modifier.logicalBox), this.scroller.scrollState.scroll)),
                 index: ix
             });
             ix += 1;
@@ -5357,7 +4980,7 @@ class SuiMapper {
                 this.modifierTabs.push({
                     modifier,
                     selection: null,
-                    box: svgHelpers_1.svgHelpers.smoBox(svgHelpers_1.svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller.scrollState.scroll)),
+                    box: svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller.scrollState.scroll)),
                     index: ix
                 });
                 ix += 1;
@@ -5374,7 +4997,7 @@ class SuiMapper {
                             this.modifierTabs.push({
                                 modifier,
                                 selection,
-                                box: svgHelpers_1.svgHelpers.smoBox(svgHelpers_1.svgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller.scrollState.scroll)),
+                                box: svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, modifier.logicalBox, this.scroller.scrollState.scroll)),
                                 index: ix
                             });
                             ix += 1;
@@ -5390,7 +5013,7 @@ class SuiMapper {
                     this.modifierTabs.push({
                         modifier,
                         selection,
-                        box: svgHelpers_1.svgHelpers.smoBox(svgHelpers_1.svgHelpers.adjustScroll(modifier.renderedBox, this.scroller.netScroll)),
+                        box: svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.adjustScroll(modifier.renderedBox, this.scroller.netScroll)),
                         index: ix
                     });
                     ix += 1;
@@ -5431,24 +5054,24 @@ class SuiMapper {
             voice.notes.forEach((smoNote) => {
                 const el = this.renderer.svg.getElementById(smoNote.renderId);
                 if (el) {
-                    svgHelpers_1.svgHelpers.updateArtifactBox(this.renderer.svg, el, smoNote, this.scroller.scrollState.scroll);
+                    svgHelpers_1.SvgHelpers.updateArtifactBox(this.renderer.svg, el, smoNote, this.scroller.scrollState.scroll);
                     // TODO: fix this, only works on the first line.
                     smoNote.getModifiers('SmoLyric').forEach((lyrict) => {
                         const lyric = lyrict;
                         if (lyric.getText().length || lyric.isHyphenated()) {
                             lyric.selector = '#' + smoNote.renderId + ' ' + lyric.getClassSelector();
-                            svgHelpers_1.svgHelpers.updateArtifactBox(this.renderer.svg, $(lyric.selector)[0], lyric, this.scroller.scrollState.scroll);
+                            svgHelpers_1.SvgHelpers.updateArtifactBox(this.renderer.svg, $(lyric.selector)[0], lyric, this.scroller.scrollState.scroll);
                         }
                     });
                     smoNote.graceNotes.forEach((g) => {
                         var gel = this.renderer.svg.getElementById('vf-' + g.renderId);
                         $(gel).addClass('grace-note');
-                        svgHelpers_1.svgHelpers.updateArtifactBox(this.renderer.svg, gel, g, this.scroller.scrollState.scroll);
+                        svgHelpers_1.SvgHelpers.updateArtifactBox(this.renderer.svg, gel, g, this.scroller.scrollState.scroll);
                     });
                     smoNote.textModifiers.forEach((modifier) => {
                         const modEl = $('.' + modifier.attrs.id);
                         if (modifier.logicalBox && modEl.length) {
-                            svgHelpers_1.svgHelpers.updateArtifactBox(this.renderer.svg, modEl[0], modifier, this.scroller.scrollState.scroll);
+                            svgHelpers_1.SvgHelpers.updateArtifactBox(this.renderer.svg, modEl[0], modifier, this.scroller.scrollState.scroll);
                         }
                     });
                 }
@@ -5465,7 +5088,7 @@ class SuiMapper {
         if (!measure.svg.logicalBox) {
             return;
         }
-        measure.svg.renderedBox = svgHelpers_1.svgHelpers.smoBox(svgHelpers_1.svgHelpers.logicalToClient(this.renderer.svg, measure.svg.logicalBox, this.scroller.scrollState.scroll));
+        measure.svg.renderedBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, measure.svg.logicalBox, this.scroller.scrollState.scroll));
         this._setModifierBoxes(measure);
         const timestamp = new Date().valueOf();
         // Keep track of any current selections in this measure, we will try to restore them.
@@ -5495,7 +5118,7 @@ class SuiMapper {
                     _measure: measure,
                     _note: note,
                     _pitches: [],
-                    box: svgHelpers_1.svgHelpers.smoBox(svgHelpers_1.svgHelpers.logicalToClient(this.renderer.svg, svgHelpers_1.svgHelpers.smoBox(note.logicalBox), this.scroller.scrollState.scroll)),
+                    box: svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, svgHelpers_1.SvgHelpers.smoBox(note.logicalBox), this.scroller.scrollState.scroll)),
                     type: 'rendered'
                 });
                 // and add it to the map
@@ -5635,11 +5258,11 @@ class SuiMapper {
     // given a bounding box, find any rendered elements that intersect with it
     intersectingArtifact(bb) {
         let sel = [];
-        bb = svgHelpers_1.svgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
-        const artifacts = svgHelpers_1.svgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, svgHelpers_1.svgHelpers.smoBox(this.scroller.scrollState.scroll));
+        bb = svgHelpers_1.SvgHelpers.boxPoints(bb.x, bb.y, bb.width ? bb.width : 1, bb.height ? bb.height : 1);
+        const artifacts = svgHelpers_1.SvgHelpers.findIntersectingArtifactFromMap(bb, this.measureNoteMap, svgHelpers_1.SvgHelpers.smoBox(this.scroller.scrollState.scroll));
         // TODO: handle overlapping suggestions
         if (!artifacts.length) {
-            const bsel = svgHelpers_1.svgHelpers.findIntersectingArtifact(bb, this.modifierTabs, svgHelpers_1.svgHelpers.smoBox(this.scroller.scrollState.scroll));
+            const bsel = svgHelpers_1.SvgHelpers.findIntersectingArtifact(bb, this.modifierTabs, svgHelpers_1.SvgHelpers.smoBox(this.scroller.scrollState.scroll));
             sel = bsel;
             if (sel.length) {
                 this._setModifierAsSuggestion(sel[0]);
@@ -5689,7 +5312,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiPiano = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.ts");
+const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
 class SuiPiano {
     constructor(view) {
@@ -5718,11 +5341,16 @@ class SuiPiano {
     static get owidth() {
         return SuiPiano.dimensions.wwidth * SuiPiano.wkeysPerOctave;
     }
+    static createAndDisplay() {
+        // Called by ribbon button.
+        $('body').trigger('show-piano-event');
+        $('body').trigger('forceScrollEvent');
+    }
     _mapKeys() {
         this.objects = [];
         var keys = [].slice.call(this.renderElement.getElementsByClassName('piano-key'));
         keys.forEach((key) => {
-            var rect = svgHelpers_1.svgHelpers.smoBox(key.getBoundingClientRect());
+            var rect = svgHelpers_1.SvgHelpers.smoBox(key.getBoundingClientRect());
             var id = key.getAttributeNS('', 'id');
             var artifact = {
                 keyElement: key,
@@ -5813,7 +5441,7 @@ class SuiPiano {
                 console.log('remap piano');
                 this._mapKeys();
             }
-            var keyPressed = svgHelpers_1.svgHelpers.findSmallestIntersection(svgHelpers_1.svgHelpers.boxPoints(ev.clientX, ev.clientY, 1, 1), this.objects, svgHelpers_1.svgHelpers.boxPoints(0, 0, 1, 1));
+            var keyPressed = svgHelpers_1.SvgHelpers.findSmallestIntersection(svgHelpers_1.SvgHelpers.boxPoints(ev.clientX, ev.clientY, 1, 1), this.objects, svgHelpers_1.SvgHelpers.boxPoints(0, 0, 1, 1));
             if (!keyPressed) {
                 return;
             }
@@ -5839,7 +5467,7 @@ class SuiPiano {
     }
     _updateSelections(ev) {
         // fake a scroller (piano scroller w/b cool tho...)
-        var keyPressed = svgHelpers_1.svgHelpers.findSmallestIntersection(svgHelpers_1.svgHelpers.pointBox(ev.clientX, ev.clientY), this.objects, svgHelpers_1.svgHelpers.pointBox(0, 0));
+        var keyPressed = svgHelpers_1.SvgHelpers.findSmallestIntersection(svgHelpers_1.SvgHelpers.pointBox(ev.clientX, ev.clientY), this.objects, svgHelpers_1.SvgHelpers.pointBox(0, 0));
         if (!keyPressed) {
             return;
         }
@@ -5973,7 +5601,7 @@ class SuiPiano {
             });
         }
         var el = document.getElementById(this.elementId);
-        svgHelpers_1.svgHelpers.gradient(el, 'piano-grad', 'vertical', [{ color: '#000', offset: '0%', opacity: 1 },
+        svgHelpers_1.SvgHelpers.gradient(el, 'piano-grad', 'vertical', [{ color: '#000', offset: '0%', opacity: 1 },
             { color: '#777', offset: '50%', opacity: 1 }, { color: '#ddd', offset: '100%', opacity: 1 }]);
         el.appendChild(r.dom());
         this._renderControls();
@@ -6002,7 +5630,7 @@ const undo_1 = __webpack_require__(/*! ../../smo/xform/undo */ "./src/smo/xform/
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.js");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
-const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.ts");
+const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const vxSystem_1 = __webpack_require__(/*! ../vex/vxSystem */ "./src/render/vex/vxSystem.ts");
 const ssp_sans_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
 const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
@@ -6123,7 +5751,7 @@ class SuiRenderState {
                 numAr.push({ x: measure.svg.logicalBox.x });
                 numAr.push({ 'font-family': ssp_sans_metrics_1.SourceSansProFont.fontFamily });
                 numAr.push({ 'font-size': '10pt' });
-                svgHelpers_1.svgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
+                svgHelpers_1.SvgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
                 // Show line-feed symbol
                 const formatIndex = measure_1.SmoMeasure.systemOptions.findIndex((option) => measure[option] !== measure_1.SmoMeasure.defaults[option]);
                 if (formatIndex >= 0 && !printing) {
@@ -6132,7 +5760,7 @@ class SuiRenderState {
                     starAr.push({ x: measure.svg.logicalBox.x + 25 });
                     starAr.push({ 'font-family': ssp_sans_metrics_1.SourceSansProFont.fontFamily });
                     starAr.push({ 'font-size': '12pt' });
-                    svgHelpers_1.svgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', '\u21b0');
+                    svgHelpers_1.SvgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', '\u21b0');
                 }
             }
         });
@@ -6165,7 +5793,7 @@ class SuiRenderState {
                 this.measureMapper.scroller.scrollAbsolute(0, 0);
             }
         }
-        svgHelpers_1.svgHelpers.svgViewport(this.context.svg, 0, 0, pageWidth, totalHeight, renderScale);
+        svgHelpers_1.SvgHelpers.svgViewport(this.context.svg, 0, 0, pageWidth, totalHeight, renderScale);
         // this.context.setFont(this.font.typeface, this.font.pointSize, "").setBackgroundFillStyle(this.font.fillStyle);
         console.log('layout setViewport: pstate initial');
         this.dirty = true;
@@ -6440,7 +6068,7 @@ class SuiRenderState {
         for (i = 1; i < layoutMgr.pageLayouts.length; ++i) {
             const scaledPage = layoutMgr.getScaledPageLayout(i);
             const y = scaledPage.pageHeight * i;
-            svgHelpers_1.svgHelpers.line(this.svg, 0, y, scaledPage.pageWidth, y, { stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 }, 'pageLine');
+            svgHelpers_1.SvgHelpers.line(this.svg, 0, y, scaledPage.pageWidth, y, { stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 }, 'pageLine');
         }
     }
     // ### _replaceMeasures
@@ -6524,7 +6152,7 @@ exports.SuiScoreRender = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
 const vxSystem_1 = __webpack_require__(/*! ../vex/vxSystem */ "./src/render/vex/vxSystem.ts");
-const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.ts");
+const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const formatter_1 = __webpack_require__(/*! ./formatter */ "./src/render/sui/formatter.ts");
 const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
 const textRender_1 = __webpack_require__(/*! ./textRender */ "./src/render/sui/textRender.ts");
@@ -6533,7 +6161,7 @@ const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifie
 const ssp_sans_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
 const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const beamers_1 = __webpack_require__(/*! ../../smo/xform/beamers */ "./src/smo/xform/beamers.ts");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
 const measure_1 = __webpack_require__(/*! ../../smo/data/measure */ "./src/smo/data/measure.ts");
 const VF = eval('Vex.Flow');
@@ -6652,7 +6280,7 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
     // ### calculateBeginningSymbols
     // calculate which symbols like clef, key signature that we have to render in this measure.
     calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast, tempoLast) {
-        const measureKeySig = musicHelpers_1.smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
+        const measureKeySig = music_1.SmoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
         measure.svg.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
         measure.svg.forceTimeSignature = (measure.measureNumber.measureIndex === 0 || (!measure_1.SmoMeasure.timeSigEqual(timeSigLast, measure.timeSignature)));
         if (measure.timeSignature.display === false) {
@@ -6718,7 +6346,7 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
                         at.push({ x: measure.svg.logicalBox.x + 25 });
                         at.push({ 'font-family': ssp_sans_metrics_1.SourceSansProFont.fontFamily });
                         at.push({ 'font-size': '12pt' });
-                        svgHelpers_1.svgHelpers.placeSvgText(this.context.svg, at, 'measure-format', '*');
+                        svgHelpers_1.SvgHelpers.placeSvgText(this.context.svg, at, 'measure-format', '*');
                     }
                 }
             });
@@ -6806,7 +6434,7 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
             const rowAdj = currentLine.filter((mm) => mm.svg.rowInSystem === index);
             // lowest staff has greatest staffY value.
             const lowestStaff = rowAdj.reduce((a, b) => a.staffY > b.staffY ? a : b);
-            const sh = svgHelpers_1.svgHelpers;
+            const sh = svgHelpers_1.SvgHelpers;
             rowAdj.forEach((measure) => {
                 const adj = lowestStaff.staffY - measure.staffY;
                 measure.setY(measure.staffY + adj, '_justifyY');
@@ -6852,7 +6480,7 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
             pageAdj = pageAdj + scoreLayout.topMargin;
             // For each measure on the current line, move it down past the page break;
             currentLine.forEach((measure) => {
-                measure.setBox(svgHelpers_1.svgHelpers.boxPoints(measure.svg.logicalBox.x, measure.svg.logicalBox.y + pageAdj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), '_checkPageBreak');
+                measure.setBox(svgHelpers_1.SvgHelpers.boxPoints(measure.svg.logicalBox.x, measure.svg.logicalBox.y + pageAdj, measure.svg.logicalBox.width, measure.svg.logicalBox.height), '_checkPageBreak');
                 measure.setY(measure.staffY + pageAdj, '_checkPageBreak');
             });
         }
@@ -6897,7 +6525,7 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
                 const bottomMeasure = currentLine.reduce((a, b) => a.svg.logicalBox.y + a.svg.logicalBox.height > b.svg.logicalBox.y + b.svg.logicalBox.height ? a : b);
                 this._checkPageBreak(scoreLayout, currentLine, bottomMeasure);
                 const ld = layoutDebug_1.layoutDebug;
-                const sh = svgHelpers_1.svgHelpers;
+                const sh = svgHelpers_1.SvgHelpers;
                 if (layoutDebug_1.layoutDebug.mask & layoutDebug_1.layoutDebug.values.system) {
                     currentLine.forEach((measure) => {
                         if (measure.svg.logicalBox) {
@@ -6960,8 +6588,8 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
             if (!measureToLeft) {
                 measureToLeft = measure;
             }
-            s.measureKeySig = musicHelpers_1.smoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
-            s.keySigLast = musicHelpers_1.smoMusic.vexKeySignatureTranspose(measureToLeft.keySignature, measure.transposeIndex);
+            s.measureKeySig = music_1.SmoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
+            s.keySigLast = music_1.SmoMusic.vexKeySignatureTranspose(measureToLeft.keySignature, measure.transposeIndex);
             s.tempoLast = measureToLeft.getTempo();
             s.timeSigLast = measureToLeft.timeSignature;
             s.clefLast = measureToLeft.clef;
@@ -6972,7 +6600,7 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
             measure.setY(y - measure.yTop, '_estimateColumns height');
             measure.setX(x, 'render:estimateColumn');
             // Add custom width to measure:
-            measure.setBox(svgHelpers_1.svgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline), 'render: estimateColumn');
+            measure.setBox(svgHelpers_1.SvgHelpers.boxPoints(measure.staffX, y, measure.staffWidth, offsets.belowBaseline - offsets.aboveBaseline), 'render: estimateColumn');
             formatter_1.suiLayoutFormatter.estimateMeasureWidth(measure, scoreLayout.noteSpacing, accidentalMap);
             y = y + measure.svg.logicalBox.height + scoreLayout.intraGap;
             rowInSystem += 1;
@@ -7010,7 +6638,7 @@ const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./sr
 const undo_1 = __webpack_require__(/*! ../../smo/xform/undo */ "./src/smo/xform/undo.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const scroller_1 = __webpack_require__(/*! ./scroller */ "./src/render/sui/scroller.ts");
-const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.ts");
+const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const copypaste_1 = __webpack_require__(/*! ../../smo/xform/copypaste */ "./src/smo/xform/copypaste.ts");
 const tracker_1 = __webpack_require__(/*! ./tracker */ "./src/render/sui/tracker.ts");
 const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
@@ -7094,7 +6722,7 @@ class SuiScoreView {
         const layoutManager = this.score.layoutManager.getGlobalLayout();
         const lh = layoutManager.pageHeight / layoutManager.svgScale;
         const lw = layoutManager.pageWidth / layoutManager.svgScale;
-        const pt = svgHelpers_1.svgHelpers.logicalToClient(this.renderer.svg, svgHelpers_1.svgHelpers.smoBox({ x: lw, y: lh }), this.tracker.scroller.scrollState.scroll);
+        const pt = svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, svgHelpers_1.SvgHelpers.smoBox({ x: lw, y: lh }), this.tracker.scroller.scrollState.scroll);
         return Math.round(midY / pt.y);
     }
     // ### _undoRectangle
@@ -7391,7 +7019,7 @@ const undo_1 = __webpack_require__(/*! ../../smo/xform/undo */ "./src/smo/xform/
 const operations_1 = __webpack_require__(/*! ../../smo/xform/operations */ "./src/smo/xform/operations.ts");
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const oscillator_1 = __webpack_require__(/*! ../audio/oscillator */ "./src/render/audio/oscillator.ts");
@@ -7867,18 +7495,16 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         const measureSelections = this._undoTrackerMeasureSelections('toggle articulation');
         this.tracker.selections.forEach((sel) => {
             if (ctor === 'SmoArticulation') {
-                const articulation = modifier;
-                const aa = new noteModifiers_1.SmoArticulation(articulation);
-                const altAa = new noteModifiers_1.SmoArticulation(articulation);
+                const aa = new noteModifiers_1.SmoArticulation({ articulation: modifier });
+                const altAa = new noteModifiers_1.SmoArticulation({ articulation: modifier });
                 altAa.attrs.id = aa.attrs.id;
                 operations_1.SmoOperation.toggleArticulation(sel, aa);
                 const altSelection = this._getEquivalentSelection(sel);
                 operations_1.SmoOperation.toggleArticulation(altSelection, altAa);
             }
             else {
-                const ornament = modifier;
-                const aa = new noteModifiers_1.SmoOrnament(ornament);
-                const altAa = new noteModifiers_1.SmoOrnament(ornament);
+                const aa = new noteModifiers_1.SmoOrnament({ ornament: modifier });
+                const altAa = new noteModifiers_1.SmoOrnament({ ornament: modifier });
                 altAa.attrs.id = aa.attrs.id;
                 const altSelection = this._getEquivalentSelection(sel);
                 operations_1.SmoOperation.toggleOrnament(sel, aa);
@@ -8041,7 +7667,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
             if (hintSel === null || hintSel.note === null) {
                 return;
             }
-            const pitch = musicHelpers_1.smoMusic.getLetterNotePitch(hintSel.note.pitches[0], letter, hintSel.measure.keySignature);
+            const pitch = music_1.SmoMusic.getLetterNotePitch(hintSel.note.pitches[0], letter, hintSel.measure.keySignature);
             operations_1.SmoOperation.setPitch(selected, [pitch]);
             const altSel = this._getEquivalentSelection(selected);
             operations_1.SmoOperation.setPitch(altSel, [pitch]);
@@ -8547,7 +8173,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiScroller = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.ts");
+const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
 // ## suiScroller
 // Respond to scroll events, and handle the scroll of the viewport
@@ -8579,7 +8205,7 @@ class SuiScroller {
     // update viewport in response to scroll events
     handleScroll(x, y) {
         this._scroll = { x, y };
-        this.viewport = svgHelpers_1.svgHelpers.boxPoints($(this.selector).offset().left, $(this.selector).offset().top, $(this.selector).width(), $(this.selector).height());
+        this.viewport = svgHelpers_1.SvgHelpers.boxPoints($(this.selector).offset().left, $(this.selector).offset().top, $(this.selector).width(), $(this.selector).height());
     }
     scrollAbsolute(x, y) {
         $(this.selector)[0].scrollLeft = x;
@@ -8620,19 +8246,19 @@ class SuiScroller {
     // Update viewport size, and also fix height of scroll region.
     updateViewport() {
         $(this.selector).css('height', (window.innerHeight - $(this.selector).offset().top).toString() + 'px');
-        this.viewport = svgHelpers_1.svgHelpers.boxPoints($(this.selector).offset().left, $(this.selector).offset().top, $(this.selector).width(), $(this.selector).height());
+        this.viewport = svgHelpers_1.SvgHelpers.boxPoints($(this.selector).offset().left, $(this.selector).offset().top, $(this.selector).width(), $(this.selector).height());
     }
     // ### scrollBox
     // get the current viewport, in scrolled coordinates.  When tracker maps the
     // music element to client coordinates, these are the coordinates used in the
     // map
     get scrollBox() {
-        return svgHelpers_1.svgHelpers.boxPoints(this.viewport.x + this.netScroll.x, this.viewport.y + this.netScroll.y, this.viewport.width, this.viewport.height);
+        return svgHelpers_1.SvgHelpers.boxPoints(this.viewport.x + this.netScroll.x, this.viewport.y + this.netScroll.y, this.viewport.width, this.viewport.height);
     }
     get absScroll() {
         var x = $(this.selector).offset().left + $(this.selector)[0].scrollLeft;
         var y = $(this.selector).offset().top + $(this.selector)[0].scrollTop;
-        return svgHelpers_1.svgHelpers.boxPoints(x, y, this.viewport.width, this.viewport.height);
+        return svgHelpers_1.SvgHelpers.boxPoints(x, y, this.viewport.width, this.viewport.height);
     }
     // ### scrollOffset
     // scroll the offset from the starting scroll point
@@ -8669,6 +8295,549 @@ exports.SuiScroller = SuiScroller;
 
 /***/ }),
 
+/***/ "./src/render/sui/svgHelpers.ts":
+/*!**************************************!*\
+  !*** ./src/render/sui/svgHelpers.ts ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SvgHelpers = exports.SvgBuilder = void 0;
+const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
+class SvgBuilder {
+    constructor(el) {
+        const ns = SvgHelpers.namespace;
+        this.e = document.createElementNS(ns, el);
+    }
+    classes(cl) {
+        this.e.setAttributeNS('', 'class', cl);
+        return this;
+    }
+    attr(name, value) {
+        this.e.setAttributeNS('', name, value);
+        return this;
+    }
+    text(x, y, classes, text) {
+        x = typeof (x) == 'string' ? x : x.toString();
+        y = typeof (y) == 'string' ? y : y.toString();
+        this.e.setAttributeNS('', 'class', classes);
+        this.e.setAttributeNS('', 'x', x);
+        this.e.setAttributeNS('', 'y', y);
+        this.e.textContent = text;
+        return this;
+    }
+    rect(x, y, width, height, classes) {
+        x = typeof (x) == 'string' ? x : x.toString();
+        y = typeof (y) == 'string' ? y : y.toString();
+        width = typeof (width) == 'string' ? width : width.toString();
+        height = typeof (height) == 'string' ? height : height.toString();
+        this.e.setAttributeNS('', 'x', x);
+        this.e.setAttributeNS('', 'y', y);
+        this.e.setAttributeNS('', 'width', width);
+        this.e.setAttributeNS('', 'height', height);
+        if (classes) {
+            this.e.setAttributeNS('', 'class', classes);
+        }
+        return this;
+    }
+    line(x1, y1, x2, y2, classes) {
+        x1 = typeof (x1) == 'string' ? x1 : x1.toString();
+        y1 = typeof (y1) == 'string' ? y1 : y1.toString();
+        x2 = typeof (x2) == 'string' ? x2 : x2.toString();
+        y2 = typeof (y2) == 'string' ? y2 : y2.toString();
+        this.e.setAttributeNS('', 'x1', x1);
+        this.e.setAttributeNS('', 'y1', y1);
+        this.e.setAttributeNS('', 'x2', x2);
+        this.e.setAttributeNS('', 'y2', y2);
+        if (classes) {
+            this.e.setAttributeNS('', 'class', classes);
+        }
+        return this;
+    }
+    append(el) {
+        this.e.appendChild(el.e);
+        return this;
+    }
+    dom() {
+        return this.e;
+    }
+    static b(element) {
+        return new SvgBuilder(element);
+    }
+}
+exports.SvgBuilder = SvgBuilder;
+// ## SvgHelpers
+// Mostly utilities for converting coordinate spaces based on transforms, etc.
+// ### static class methods:
+// ---
+class SvgHelpers {
+    static get namespace() {
+        return "http://www.w3.org/2000/svg";
+    }
+    // ### gradient
+    // Create an svg linear gradient.
+    // Stops look like this:
+    // `[{color:"#eee", offset:"0%",opacity:0.5}]`
+    // orientation is horizontal or vertical
+    static gradient(svg, id, orientation, stops) {
+        var ns = SvgHelpers.namespace;
+        var x2 = orientation === 'vertical' ? 0 : 1;
+        var y2 = orientation === 'vertical' ? 1 : 0;
+        var e = document.createElementNS(ns, 'linearGradient');
+        e.setAttributeNS('', 'id', id);
+        e.setAttributeNS('', 'x1', '0');
+        e.setAttributeNS('', 'x2', x2.toString());
+        e.setAttributeNS('', 'y1', '0');
+        e.setAttributeNS('', 'y2', y2.toString());
+        stops.forEach((stop) => {
+            var s = document.createElementNS(ns, 'stop');
+            s.setAttributeNS('', 'stop-opacity', stop.opacity.toString());
+            s.setAttributeNS('', 'stop-color', stop.color);
+            s.setAttributeNS('', 'offset', stop.offset);
+            e.appendChild(s);
+        });
+        svg.appendChild(e);
+    }
+    static renderCursor(svg, x, y, height) {
+        var ns = SvgHelpers.namespace;
+        const width = height * 0.4;
+        x = x - (width / 2);
+        var mcmd = (d, x, y) => {
+            return d + 'M ' + x.toString() + ' ' + y.toString() + ' ';
+        };
+        var qcmd = (d, x1, y1, x2, y2) => {
+            return d + 'q ' + x1.toString() + ' ' + y1.toString() + ' ' + x2.toString() + ' ' + y2.toString() + ' ';
+        };
+        var lcmd = (d, x, y) => {
+            return d + 'L ' + x.toString() + ' ' + y.toString() + ' ';
+        };
+        var x1 = (width / 2) * .333;
+        var y1 = -1 * (x1 / 4);
+        var x2 = (width / 2);
+        var y2 = x2 / 4;
+        var ns = SvgHelpers.namespace;
+        var e = document.createElementNS(ns, 'path');
+        var d = '';
+        d = mcmd(d, x, y);
+        d = qcmd(d, x1, y1, x2, y2);
+        d = lcmd(d, x + (width / 2), y + height - (width / 8));
+        d = mcmd(d, x + width, y);
+        d = qcmd(d, -1 * x1, y1, -1 * x2, y2);
+        d = mcmd(d, x, y + height);
+        d = qcmd(d, x1, -1 * y1, x2, -1 * y2);
+        d = mcmd(d, x + width, y + height);
+        d = qcmd(d, -1 * x1, -1 * y1, -1 * x2, -1 * y2);
+        e.setAttributeNS('', 'd', d);
+        e.setAttributeNS('', 'stroke-width', '1');
+        e.setAttributeNS('', 'stroke', '#555');
+        e.setAttributeNS('', 'fill', 'none');
+        svg.appendChild(e);
+    }
+    // ### boxNote
+    // update the note geometry based on current viewbox conditions.
+    // This may not be the appropriate place for this...maybe in layout
+    static updateArtifactBox(svg, element, artifact, scroller) {
+        if (typeof (element) === 'undefined') {
+            console.log('updateArtifactBox: undefined element!');
+            return;
+        }
+        artifact.logicalBox = SvgHelpers.smoBox(element.getBBox());
+        artifact.renderedBox = SvgHelpers.smoBox(SvgHelpers.logicalToClient(svg, artifact.logicalBox, scroller));
+    }
+    // ### eraseOutline
+    // Erases old outlineRects.
+    static eraseOutline(svg, style) {
+        $(svg).find('g.vf-' + style).remove();
+    }
+    static _outlineRect(params) {
+        const scroll = params.scroll;
+        const context = params.context;
+        SvgHelpers.eraseOutline(context, params.classes);
+        // Don't highlight in print mode.
+        if ($('body').hasClass('printing')) {
+            return;
+        }
+        var grp = context.openGroup(params.classes, params.classes + '-outline');
+        const boxes = Array.isArray(params.box) ? params.box : [params.box];
+        boxes.forEach((box) => {
+            if (box) {
+                var strokeObj = params.stroke;
+                var margin = 5;
+                if (params.clientCoordinates === true) {
+                    box = SvgHelpers.smoBox(SvgHelpers.clientToLogical(context.svg, SvgHelpers.smoBox(SvgHelpers.adjustScroll(box, scroll))));
+                }
+                context.rect(box.x - margin, box.y - margin, box.width + margin * 2, box.height + margin * 2, strokeObj);
+            }
+        });
+        context.closeGroup(grp);
+    }
+    // ### outlineRect
+    // Usage:
+    //  outlineRect(params)
+    // params ({context,box,outlineStroke,classes,scroller})
+    // outlineStroke: {stroke, strokeWidth, strokeDashArray, fill}
+    static outlineRect(params) {
+        params.clientCoordinates = true;
+        SvgHelpers._outlineRect(params);
+    }
+    static outlineLogicalRect(params) {
+        SvgHelpers._outlineRect(params);
+    }
+    static setSvgStyle(element, attrs) {
+        element.setAttributeNS('', 'stroke', attrs.stroke);
+        if (attrs.strokeDasharray) {
+            element.setAttributeNS('', 'stroke-dasharray', attrs.strokeDasharray.toString());
+        }
+        if (attrs.strokeWidth) {
+            element.setAttributeNS('', 'stroke-width', attrs.strokeWidth.toString());
+        }
+        if (attrs.fill) {
+            element.setAttributeNS('', 'fill', attrs.fill);
+        }
+    }
+    static rect(svg, box, attrs, classes) {
+        var rect = document.createElementNS(SvgHelpers.namespace, 'rect');
+        SvgHelpers.setSvgStyle(rect, attrs);
+        if (classes) {
+            rect.setAttributeNS('', 'class', classes);
+        }
+        svg.appendChild(rect);
+        return rect;
+    }
+    static line(svg, x1, y1, x2, y2, attrs, classes) {
+        var line = document.createElementNS(SvgHelpers.namespace, 'line');
+        x1 = typeof (x1) == 'string' ? x1 : x1.toString();
+        y1 = typeof (y1) == 'string' ? y1 : y1.toString();
+        x2 = typeof (x2) == 'string' ? x2 : x2.toString();
+        y2 = typeof (y2) == 'string' ? y2 : y2.toString();
+        line.setAttributeNS('', 'x1', x1);
+        line.setAttributeNS('', 'y1', y1);
+        line.setAttributeNS('', 'x2', x2);
+        line.setAttributeNS('', 'y2', y2);
+        SvgHelpers.setSvgStyle(line, attrs);
+        if (classes) {
+            line.setAttributeNS('', 'class', classes);
+        }
+        svg.appendChild(line);
+    }
+    static arrowDown(svg, box) {
+        const arrowStroke = { stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 };
+        SvgHelpers.line(svg, box.x + box.width / 2, box.y, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
+        var arrowY = box.y + box.height / 4;
+        SvgHelpers.line(svg, box.x, arrowY, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
+        SvgHelpers.line(svg, box.x + box.width, arrowY, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
+    }
+    static debugBox(svg, box, classes, voffset) {
+        voffset = voffset !== null && voffset !== void 0 ? voffset : 0;
+        classes = classes !== null && classes !== void 0 ? classes : '';
+        if (!box)
+            return;
+        classes += ' svg-debug-box';
+        var b = SvgBuilder.b;
+        var mid = box.x + box.width / 2;
+        var xtext = 'x1: ' + Math.round(box.x);
+        var wtext = 'x2: ' + Math.round(box.width + box.x);
+        var ytext = 'y1: ' + Math.round(box.y);
+        var htext = 'y2: ' + Math.round(box.height + box.y);
+        var ytextp = Math.round(box.y + box.height);
+        var ytextp2 = Math.round(box.y + box.height - 30);
+        var r = b('g').classes(classes)
+            .append(b('text').text(box.x + 20, box.y - 14 + voffset, 'svg-debug-text', xtext))
+            .append(b('text').text(mid - 20, box.y - 14 + voffset, 'svg-debug-text', wtext))
+            .append(b('line').line(box.x, box.y - 2, box.x + box.width, box.y - 2, ''))
+            .append(b('line').line(box.x, box.y - 8, box.x, box.y + 5, ''))
+            .append(b('line').line(box.x + box.width, box.y - 8, box.x + box.width, box.y + 5, ''))
+            .append(b('text').text(Math.round(box.x - 14 + voffset), ytextp, 'svg-vdebug-text', ytext)
+            .attr('transform', 'rotate(-90,' + Math.round(box.x - 14 + voffset) + ',' + ytextp + ')'));
+        if (box.height > 2) {
+            r.append(b('text').text(Math.round(box.x - 14 + voffset), ytextp2, 'svg-vdebug-text', htext)
+                .attr('transform', 'rotate(-90,' + Math.round(box.x - 14 + voffset) + ',' + (ytextp2) + ')'))
+                .append(b('line').line(Math.round(box.x - 2), Math.round(box.y + box.height), box.x - 2, box.y, ''))
+                .append(b('line').line(Math.round(box.x - 8), Math.round(box.y + box.height), box.x + 6, Math.round(box.y + box.height), ''))
+                .append(b('line').line(Math.round(box.x - 8), Math.round(box.y), Math.round(box.x + 6), Math.round(box.y), ''));
+        }
+        svg.appendChild(r.dom());
+    }
+    static placeSvgText(svg, attributes, classes, text) {
+        var ns = SvgHelpers.namespace;
+        var e = document.createElementNS(ns, 'text');
+        attributes.forEach((attr) => {
+            var key = Object.keys(attr)[0];
+            e.setAttributeNS('', key, attr[key].toString());
+        });
+        if (classes) {
+            e.setAttributeNS('', 'class', classes);
+        }
+        var tn = document.createTextNode(text);
+        e.appendChild(tn);
+        svg.appendChild(e);
+        return e;
+    }
+    // ### findIntersectionArtifact
+    // find all object that intersect with the rectangle
+    static findIntersectingArtifact(clientBox, objects, scrollState) {
+        var box = SvgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
+        // box.y = box.y - this.renderElement.offsetTop;
+        // box.x = box.x - this.renderElement.offsetLeft;
+        var rv = [];
+        objects.forEach((object) => {
+            // Measure has been updated, but not drawn.
+            if (!object.box) {
+                // console.log('there is no box');
+            }
+            else {
+                var obox = SvgHelpers.smoBox(SvgHelpers.adjustScroll(SvgHelpers.smoBox(object.box), scrollState));
+                var i1 = box.x - obox.x; // handle edge not believe in x and y
+                var i2 = box.y - obox.y;
+                if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
+                    rv.push(object);
+                }
+            }
+        });
+        return rv;
+    }
+    // ### findIntersectingArtifactFromMap
+    // Same as findIntersectionArtifact but uses a map of keys instead of an array
+    static findIntersectingArtifactFromMap(clientBox, map, scrollState) {
+        var box = SvgHelpers.smoBox(clientBox); //svgHelpers.untransformSvgPoint(this.context.svg,clientBox);
+        // box.y = box.y - this.renderElement.offsetTop;
+        // box.x = box.x - this.renderElement.offsetLeft;
+        var rv = [];
+        Object.keys(map).forEach((k) => {
+            var object = map[k];
+            // Measure has been updated, but not drawn.
+            if (!object.box) {
+                // console.log('there is no box');
+            }
+            else {
+                var obox = SvgHelpers.smoBox(SvgHelpers.adjustScroll(SvgHelpers.smoBox(object.box), scrollState));
+                var i1 = box.x - obox.x; // handle edge not believe in x and y
+                var i2 = box.y - obox.y;
+                if (i1 > 0 && i1 < object.box.width && i2 > 0 && i2 < object.box.height) {
+                    rv.push(object);
+                }
+            }
+        });
+        return rv;
+    }
+    static containsPoint(box, point, scrollState) {
+        var obox = SvgHelpers.smoBox(SvgHelpers.adjustScroll(SvgHelpers.smoBox(box), scrollState));
+        const i1 = point.x - box.x + scrollState.x; // handle edge not believe in x and y
+        const i2 = point.y - box.y + scrollState.y;
+        if (i1 > 0 && i1 < obox.width && i2 > 0 && i2 < obox.height) {
+            return true;
+        }
+        return false;
+    }
+    static findSmallestIntersection(clientBox, objects, scrollState) {
+        var ar = SvgHelpers.findIntersectingArtifact(clientBox, objects, scrollState);
+        if (!ar.length) {
+            return null;
+        }
+        var rv = ar[0];
+        var min = ar[0].box.width * ar[0].box.height;
+        ar.forEach((obj) => {
+            var tst = obj.box.width * obj.box.height;
+            if (tst < min) {
+                rv = obj;
+                min = tst;
+            }
+        });
+        return rv;
+    }
+    static translateElement(g, x, y) {
+        g.setAttributeNS('', 'transform', 'translate(' + x + ' ' + y + ')');
+    }
+    static stringify(box) {
+        if (box['width']) {
+            return JSON.stringify({
+                x: box.x,
+                y: box.y,
+                width: box.width,
+                height: box.height
+            }, null, ' ');
+        }
+        else {
+            return JSON.stringify({
+                x: box.x,
+                y: box.y
+            }, null, ' ');
+        }
+    }
+    static log(box) {
+        if (box['width']) {
+            console.log(JSON.stringify({
+                x: box.x,
+                y: box.y,
+                width: box.width,
+                height: box.height
+            }, null, ' '));
+        }
+        else {
+            console.log('{}');
+        }
+    }
+    // ### pointBox
+    // return a point-sized box at the given coordinate
+    static pointBox(x, y) {
+        return {
+            x: x,
+            y: y,
+            width: 0,
+            height: 0
+        };
+    }
+    // ### smoBox:
+    // return a simple box object that can be serialized, copied
+    // (from svg DOM box)
+    static smoBox(box) {
+        if (typeof (box) === "undefined") {
+            return common_1.SvgBox.default;
+        }
+        const hround = (f) => {
+            return Math.round((f + Number.EPSILON) * 100) / 100;
+        };
+        const x = typeof (box.x) == 'undefined' ? hround(box.left) : hround(box.x);
+        const y = typeof (box.y) == 'undefined' ? hround(box.top) : hround(box.y);
+        return ({
+            x: hround(x),
+            y: hround(y),
+            width: hround(box.width),
+            height: hround(box.height)
+        });
+    }
+    // ### unionRect
+    // grow the bounding box two objects to include both.
+    static unionRect(b1, b2) {
+        const x = Math.min(b1.x, b2.x);
+        const y = Math.min(b1.y, b2.y);
+        const width = Math.max(b1.x + b1.width, b2.x + b2.width) - x;
+        const height = Math.max(b1.y + b1.height, b2.y + b2.height) - y;
+        return {
+            x: x,
+            y: y,
+            width: width,
+            height: height
+        };
+    }
+    // ### adjustScroll
+    // Add the scroll to the screen coordinates so we can find the mapped
+    // location of something.
+    static adjustScroll(box, scroll) {
+        // WIP...
+        if (typeof (box) == 'undefined' || typeof (scroll) == 'undefined') {
+            console.log('bad values to scroll thing');
+            return;
+        }
+        return SvgHelpers.boxPoints(box.x + scroll.x, box.y - scroll.y, box.width, box.height);
+        // return box;
+    }
+    static boxPoints(x, y, w, h) {
+        return ({
+            x: x,
+            y: y,
+            width: w,
+            height: h
+        });
+    }
+    static copyBox(box) {
+        box = SvgHelpers.smoBox(box);
+        return {
+            x: box.x,
+            y: box.y,
+            width: box.width,
+            height: box.height
+        };
+    }
+    // ### svgViewport
+    // set `svg` element to `width`,`height` and viewport `scale`
+    static svgViewport(svg, xOffset, yOffset, width, height, scale) {
+        svg.setAttributeNS('', 'width', '' + width);
+        svg.setAttributeNS('', 'height', '' + height);
+        svg.setAttributeNS('', 'viewBox', '' + xOffset + ' ' + yOffset + ' ' + Math.round(width / scale) + ' ' +
+            Math.round(height / scale));
+    }
+    // ### logicalToClient
+    // Convert a point from logical (pixels) to actual screen dimensions based on current
+    // zoom, aspect ratio
+    /* static logicalToClient(svg, logicalPoint) {
+    var rect = svg.getBoundingClientRect();
+    var rv = SvgHelpers.copyBox(logicalPoint);
+    rv.x += rect.x;
+    rv.y += rect.y;
+    return rv;
+    }   */
+    // ### clientToLogical
+    // return a box or point in svg coordintes from screen coordinates
+    static clientToLogical(svg, point) {
+        var pt = svg.createSVGPoint();
+        if (!point)
+            return common_1.SvgBox.default;
+        const x = point.x;
+        const y = point.y;
+        pt.x = x;
+        pt.y = y;
+        const screen = svg.getScreenCTM();
+        if (!screen) {
+            return common_1.SvgBox.default;
+        }
+        var sp = pt.matrixTransform(screen.inverse());
+        if (typeof (point['width']) == 'undefined') {
+            return {
+                x: sp.x,
+                y: sp.y
+            };
+        }
+        const endPt = svg.createSVGPoint();
+        endPt.x = pt.x + point.width;
+        endPt.y = pt.y + point.height;
+        const mat = svg.getScreenCTM();
+        if (!mat) {
+            return common_1.SvgBox.default;
+        }
+        const ep = endPt.matrixTransform(mat.inverse());
+        return {
+            x: sp.x,
+            y: sp.y,
+            width: ep.x - sp.x,
+            height: ep.y - sp.y
+        };
+    }
+    // ### logicalToClient
+    // return a box or point in screen coordinates from svg coordinates
+    static logicalToClient(svg, point, scroller) {
+        var _a, _b;
+        var pt = svg.createSVGPoint();
+        const ss = scroller;
+        pt.x = point.x;
+        pt.y = point.y;
+        var sp = pt.matrixTransform((_a = svg.getScreenCTM()) !== null && _a !== void 0 ? _a : undefined);
+        if (!point['width']) {
+            return {
+                x: sp.x + ss.x,
+                y: sp.y + ss.y
+            };
+        }
+        var endPt = svg.createSVGPoint();
+        endPt.x = pt.x + point.width;
+        endPt.y = pt.y + point.height;
+        var ep = endPt.matrixTransform((_b = svg.getScreenCTM()) !== null && _b !== void 0 ? _b : undefined);
+        return {
+            x: sp.x + ss.x,
+            y: sp.y + ss.y,
+            width: ep.x - sp.x,
+            height: ep.y - sp.y
+        };
+    }
+}
+exports.SvgHelpers = SvgHelpers;
+
+
+/***/ }),
+
 /***/ "./src/render/sui/textEdit.ts":
 /*!************************************!*\
   !*** ./src/render/sui/textEdit.ts ***!
@@ -8682,7 +8851,7 @@ exports.SuiChordSession = exports.SuiLyricSession = exports.SuiTextSession = exp
 // Copyright (c) Aaron David Newman 2021.
 const textRender_1 = __webpack_require__(/*! ./textRender */ "./src/render/sui/textRender.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.js");
-const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.ts");
+const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
@@ -8827,13 +8996,13 @@ class SuiTextEditor {
         if (this.svgText === null) {
             return false;
         }
-        var blocks = this.svgText.getIntersectingBlocks(svgHelpers_1.svgHelpers.smoBox({
+        var blocks = this.svgText.getIntersectingBlocks(svgHelpers_1.SvgHelpers.smoBox({
             x: ev.clientX,
             y: ev.clientY
-        }), svgHelpers_1.svgHelpers.smoBox(this.scroller.scrollState.scroll));
+        }), svgHelpers_1.SvgHelpers.smoBox(this.scroller.scrollState.scroll));
         // The mouse is not over the text
         if (!blocks.length) {
-            svgHelpers_1.svgHelpers.eraseOutline(this.context.svg, 'text-suggestion');
+            svgHelpers_1.SvgHelpers.eraseOutline(this.context.svg, 'text-suggestion');
             // If the user clicks and there was a previous selection, treat it as selected
             if (ev.type === 'click' && this.suggestionIndex >= 0) {
                 if (ev.shiftKey) {
@@ -8851,12 +9020,12 @@ class SuiTextEditor {
         // outline the text that is hovered.  Since mouse is a point
         // there should only be 1
         blocks.forEach((block) => {
-            svgHelpers_1.svgHelpers.outlineRect(this._suggestionParameters(block.box, 'text-suggestion'));
+            svgHelpers_1.SvgHelpers.outlineRect(this._suggestionParameters(block.box, 'text-suggestion'));
             this.suggestionIndex = block.index;
         });
         // if the user clicked on it, add it to the selection.
         if (ev.type === 'click') {
-            svgHelpers_1.svgHelpers.eraseOutline(this.context.svg, 'text-suggestion');
+            svgHelpers_1.SvgHelpers.eraseOutline(this.context.svg, 'text-suggestion');
             if (ev.shiftKey) {
                 this._expandSelectionToSuggestion();
             }
@@ -9134,7 +9303,7 @@ class SuiTextBlockEditor extends SuiTextEditor {
             context: this.context, box: bbox, classes: 'text-highlight',
             stroke: outlineStroke, scroll: this.scroller.scrollState.scroll, clientCoordinates: false
         };
-        svgHelpers_1.svgHelpers.outlineLogicalRect(obj);
+        svgHelpers_1.SvgHelpers.outlineLogicalRect(obj);
     }
     getText() {
         if (this.svgText !== null) {
@@ -9427,8 +9596,8 @@ class SuiDragSession {
         this.dragging = false;
         this.startBox = this.textObject.getLogicalBox();
         this.startBox.y += this.textObject.maxFontHeight(1);
-        this.currentBox = svgHelpers_1.svgHelpers.smoBox(this.startBox);
-        this.currentClientBox = svgHelpers_1.svgHelpers.smoBox(svgHelpers_1.svgHelpers.logicalToClient(this.context.svg, this.currentBox, this.scroller.scrollState.scroll));
+        this.currentBox = svgHelpers_1.SvgHelpers.smoBox(this.startBox);
+        this.currentClientBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.context.svg, this.currentBox, this.scroller.scrollState.scroll));
     }
     _outlineBox() {
         const outlineStroke = SuiTextEditor.strokes['text-drag'];
@@ -9437,10 +9606,10 @@ class SuiDragSession {
             stroke: outlineStroke, scroll: this.scroller.scrollState.scroll,
             clientCoordinates: false
         };
-        svgHelpers_1.svgHelpers.outlineLogicalRect(obj);
+        svgHelpers_1.SvgHelpers.outlineLogicalRect(obj);
     }
     startDrag(e) {
-        if (!svgHelpers_1.svgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, svgHelpers_1.svgHelpers.smoBox(this.scroller.scrollState.scroll))) {
+        if (!svgHelpers_1.SvgHelpers.containsPoint(this.currentClientBox, { x: e.clientX, y: e.clientY }, svgHelpers_1.SvgHelpers.smoBox(this.scroller.scrollState.scroll))) {
             return;
         }
         this.dragging = true;
@@ -9457,7 +9626,7 @@ class SuiDragSession {
         const svgY = this.currentBox.y;
         this.currentClientBox.x = e.clientX - this.xOffset;
         this.currentClientBox.y = e.clientY - this.yOffset;
-        const coor = svgHelpers_1.svgHelpers.clientToLogical(this.context.svg, {
+        const coor = svgHelpers_1.SvgHelpers.clientToLogical(this.context.svg, {
             x: this.currentClientBox.x + +this.scroller.scrollState.scroll.x,
             y: this.currentClientBox.y + this.scroller.scrollState.scroll.y,
             width: 0, height: 0
@@ -9467,7 +9636,7 @@ class SuiDragSession {
         this.textObject.offsetStartX(this.currentBox.x - svgX);
         this.textObject.offsetStartY(this.currentBox.y - svgY);
         this.textObject.render();
-        svgHelpers_1.svgHelpers.eraseOutline(this.context.svg, 'text-drag');
+        svgHelpers_1.SvgHelpers.eraseOutline(this.context.svg, 'text-drag');
         this._outlineBox();
     }
     get deltaX() {
@@ -9481,7 +9650,7 @@ class SuiDragSession {
         this.textGroup.offsetX(this.deltaX);
         this.textGroup.offsetY(this.deltaY);
         this.dragging = false;
-        svgHelpers_1.svgHelpers.eraseOutline(this.context.svg, 'text-drag');
+        svgHelpers_1.SvgHelpers.eraseOutline(this.context.svg, 'text-drag');
     }
 }
 exports.SuiDragSession = SuiDragSession;
@@ -9902,7 +10071,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiTextBlock = exports.SuiInlineText = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.ts");
+const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
 const textEdit_1 = __webpack_require__(/*! ./textEdit */ "./src/render/sui/textEdit.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
@@ -10166,16 +10335,16 @@ class SuiInlineText {
             this._calculateBlockIndex();
         }
         const adjBox = (box) => {
-            const nbox = svgHelpers_1.svgHelpers.smoBox(box);
+            const nbox = svgHelpers_1.SvgHelpers.smoBox(box);
             nbox.y = nbox.y - nbox.height;
             return nbox;
         };
         this.blocks.forEach((block) => {
             if (!rv.x) {
-                rv = svgHelpers_1.svgHelpers.smoBox(adjBox(block));
+                rv = svgHelpers_1.SvgHelpers.smoBox(adjBox(block));
             }
             else {
-                rv = svgHelpers_1.svgHelpers.unionRect(rv, adjBox(block));
+                rv = svgHelpers_1.SvgHelpers.unionRect(rv, adjBox(block));
             }
         });
         return rv;
@@ -10192,7 +10361,7 @@ class SuiInlineText {
         group.id = 'inlineCursor';
         const h = this.fontSize;
         if (this.blocks.length <= position || position < 0) {
-            svgHelpers_1.svgHelpers.renderCursor(group, this.startX, this.startY - h, h);
+            svgHelpers_1.SvgHelpers.renderCursor(group, this.startX, this.startY - h, h);
             this.context.closeGroup();
             return;
         }
@@ -10213,7 +10382,7 @@ class SuiInlineText {
                 }
             }
         }
-        svgHelpers_1.svgHelpers.renderCursor(group, block.x + block.width, adjY - (adjH * block.scale), adjH * block.scale);
+        svgHelpers_1.SvgHelpers.renderCursor(group, block.x + block.width, adjY - (adjH * block.scale), adjH * block.scale);
         this.context.closeGroup();
     }
     removeCursor() {
@@ -10226,7 +10395,7 @@ class SuiInlineText {
         if (!this.artifacts) {
             return [];
         }
-        return svgHelpers_1.svgHelpers.findIntersectingArtifact(box, this.artifacts, scroll);
+        return svgHelpers_1.SvgHelpers.findIntersectingArtifact(box, this.artifacts, scroll);
     }
     _addBlockAt(position, block) {
         if (position >= this.blocks.length) {
@@ -10312,14 +10481,14 @@ class SuiInlineText {
             this._drawBlock(block);
             this.context.closeGroup();
             const artifact = { block, box: common_1.SvgBox.default, index: 0 };
-            artifact.box = svgHelpers_1.svgHelpers.smoBox(bg.getBoundingClientRect());
+            artifact.box = svgHelpers_1.SvgHelpers.smoBox(bg.getBoundingClientRect());
             artifact.index = ix;
             this.artifacts.push(artifact);
             ix += 1;
         });
         this.context.closeGroup();
-        this.logicalBox = svgHelpers_1.svgHelpers.smoBox(group.getBBox());
-        this.renderedBox = svgHelpers_1.svgHelpers.smoBox(svgHelpers_1.svgHelpers.logicalToClient(this.context.svg, this.logicalBox, this.scroller.scrollState.scroll));
+        this.logicalBox = svgHelpers_1.SvgHelpers.smoBox(group.getBBox());
+        this.renderedBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.context.svg, this.logicalBox, this.scroller.scrollState.scroll));
     }
     _drawBlock(block) {
         const sp = this.isSuperscript(block);
@@ -10410,12 +10579,12 @@ class SuiTextBlock {
                 this._outlineBox(this.context, block.text.logicalBox);
             }
             if (!this.renderedBox) {
-                this.renderedBox = svgHelpers_1.svgHelpers.smoBox(block.text.renderedBox);
-                this.logicalBox = svgHelpers_1.svgHelpers.smoBox(block.text.logicalBox);
+                this.renderedBox = svgHelpers_1.SvgHelpers.smoBox(block.text.renderedBox);
+                this.logicalBox = svgHelpers_1.SvgHelpers.smoBox(block.text.logicalBox);
             }
             else {
-                this.renderedBox = svgHelpers_1.svgHelpers.unionRect(this.renderedBox, block.text.renderedBox);
-                this.logicalBox = svgHelpers_1.svgHelpers.unionRect(this.logicalBox, block.text.logicalBox);
+                this.renderedBox = svgHelpers_1.SvgHelpers.unionRect(this.renderedBox, block.text.renderedBox);
+                this.logicalBox = svgHelpers_1.SvgHelpers.unionRect(this.logicalBox, block.text.logicalBox);
             }
         });
     }
@@ -10425,7 +10594,7 @@ class SuiTextBlock {
             context, box, classes: 'text-drag',
             stroke: outlineStroke, scroll: this.scroller.scrollState.scroll, clientCoordinates: false
         };
-        svgHelpers_1.svgHelpers.outlineLogicalRect(obj);
+        svgHelpers_1.SvgHelpers.outlineLogicalRect(obj);
     }
     offsetStartX(offset) {
         this.inlineBlocks.forEach((block) => {
@@ -10474,7 +10643,7 @@ class SuiTextBlock {
         return this._calculateBoundingClientRect();
     }
     getRenderedBox() {
-        return svgHelpers_1.svgHelpers.smoBox(svgHelpers_1.svgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect(), this.scroller.scrollState.scroll));
+        return svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.context.svg, this._calculateBoundingClientRect(), this.scroller.scrollState.scroll));
     }
     _calculateBoundingClientRect() {
         let rv = common_1.SvgBox.default;
@@ -10483,7 +10652,7 @@ class SuiTextBlock {
                 rv = block.text.getLogicalBox();
             }
             else {
-                rv = svgHelpers_1.svgHelpers.unionRect(rv, block.text.getLogicalBox());
+                rv = svgHelpers_1.SvgHelpers.unionRect(rv, block.text.getLogicalBox());
             }
         });
         rv.y = rv.y - rv.height;
@@ -10630,7 +10799,7 @@ exports.SuiTracker = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const mapper_1 = __webpack_require__(/*! ./mapper */ "./src/render/sui/mapper.ts");
-const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.ts");
+const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
 const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
@@ -10659,7 +10828,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (!r) {
             return;
         }
-        const abs = svgHelpers_1.svgHelpers.logicalToClient(this.renderer.svg, svgHelpers_1.svgHelpers.smoBox(note.logicalBox), this.scroller.scrollState.scroll);
+        const abs = svgHelpers_1.SvgHelpers.logicalToClient(this.renderer.svg, svgHelpers_1.SvgHelpers.smoBox(note.logicalBox), this.scroller.scrollState.scroll);
         const ydiff = Math.abs(r.y - abs.y);
         const xdiff = Math.abs(r.x - abs.x);
         const preventScroll = $('body').hasClass('modal');
@@ -10722,7 +10891,7 @@ class SuiTracker extends mapper_1.SuiMapper {
             $('.workspace').append(rd);
             // todo, need lower right for x
             if (mbox) {
-                this.scroller.scrollVisibleBox(svgHelpers_1.svgHelpers.boxPoints(mbox.x, mbox.y, mbox.width, mbox.height));
+                this.scroller.scrollVisibleBox(svgHelpers_1.SvgHelpers.boxPoints(mbox.x, mbox.y, mbox.width, mbox.height));
             }
         }
     }
@@ -10770,7 +10939,7 @@ class SuiTracker extends mapper_1.SuiMapper {
             return;
         }
         const local = this.localModifiers[this.modifierIndex];
-        const box = svgHelpers_1.svgHelpers.smoBox(local.box);
+        const box = svgHelpers_1.SvgHelpers.smoBox(local.box);
         this.modifierSelections = [{ index: 0, box, modifier: local.modifier, selection: local.selection }];
         this._highlightModifier();
     }
@@ -11386,7 +11555,7 @@ class SuiTracker extends mapper_1.SuiMapper {
                 box = (_a = artifact.modifier.renderedBox) !== null && _a !== void 0 ? _a : null;
             }
             else {
-                box = svgHelpers_1.svgHelpers.unionRect(box, svgHelpers_1.svgHelpers.smoBox(artifact.modifier.renderedBox));
+                box = svgHelpers_1.SvgHelpers.unionRect(box, svgHelpers_1.SvgHelpers.smoBox(artifact.modifier.renderedBox));
             }
         });
         if (box === null) {
@@ -11402,8 +11571,8 @@ class SuiTracker extends mapper_1.SuiMapper {
             return;
         }
         const headEl = heads[index];
-        const lbox = svgHelpers_1.svgHelpers.smoBox(headEl.getBBox());
-        const box = svgHelpers_1.svgHelpers.smoBox(svgHelpers_1.svgHelpers.logicalToClient(this.svg, lbox, this.scroller.scrollState.scroll));
+        const lbox = svgHelpers_1.SvgHelpers.smoBox(headEl.getBBox());
+        const box = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.svg, lbox, this.scroller.scrollState.scroll));
         this._drawRect(box, 'staffModifier');
     }
     _highlightActiveVoice(selection) {
@@ -11461,7 +11630,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (!prevSel || !prevSel.box) {
             return;
         }
-        curBox = svgHelpers_1.svgHelpers.smoBox(prevSel.box);
+        curBox = svgHelpers_1.SvgHelpers.smoBox(prevSel.box);
         const boxes = [];
         for (i = 1; i < sorted.length; ++i) {
             const sel = sorted[i];
@@ -11470,11 +11639,11 @@ class SuiTracker extends mapper_1.SuiMapper {
             }
             const ydiff = Math.abs(prevSel.box.y - sel.box.y);
             if (sel.selector.staff === prevSel.selector.staff && ydiff < 1.0) {
-                curBox = svgHelpers_1.svgHelpers.unionRect(curBox, sel.box);
+                curBox = svgHelpers_1.SvgHelpers.unionRect(curBox, sel.box);
             }
             else if (curBox) {
                 boxes.push(curBox);
-                curBox = svgHelpers_1.svgHelpers.smoBox(sel.box);
+                curBox = svgHelpers_1.SvgHelpers.smoBox(sel.box);
             }
             this._highlightActiveVoice(sel);
             prevSel = sel;
@@ -11493,7 +11662,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         };
     }
     _drawRect(bb, stroke) {
-        svgHelpers_1.svgHelpers.outlineRect(this._suggestionParameters(bb, stroke));
+        svgHelpers_1.SvgHelpers.outlineRect(this._suggestionParameters(bb, stroke));
     }
 }
 exports.SuiTracker = SuiTracker;
@@ -11513,7 +11682,7 @@ exports.vexGlyph = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
 const VF = eval('Vex.Flow');
 class vexGlyph {
     // ### glyphPixels
@@ -11554,8 +11723,8 @@ class vexGlyph {
         return vexGlyph.dimensions.tempo;
     }
     static keySignatureLength(key) {
-        return musicHelpers_1.smoMusic.getSharpsInKeySignature(key) * vexGlyph.width(vexGlyph.dimensions.sharp) +
-            musicHelpers_1.smoMusic.getFlatsInKeySignature(key) * vexGlyph.width(vexGlyph.dimensions.flat) +
+        return music_1.SmoMusic.getSharpsInKeySignature(key) * vexGlyph.width(vexGlyph.dimensions.sharp) +
+            music_1.SmoMusic.getFlatsInKeySignature(key) * vexGlyph.width(vexGlyph.dimensions.flat) +
             vexGlyph.dimensions.keySignature.spacingRight;
     }
     static get timeSignature() {
@@ -11782,8 +11951,8 @@ exports.VxMeasure = void 0;
 // column, the rendering is deferred until all the measures have been
 // preformatted.
 const note_1 = __webpack_require__(/*! ../../smo/data/note */ "./src/smo/data/note.ts");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
-const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.ts");
+const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
+const svgHelpers_1 = __webpack_require__(/*! ../sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const layoutDebug_1 = __webpack_require__(/*! ../sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const ssp_serif_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-serif-metrics */ "./src/styles/font_metrics/ssp-serif-metrics.js");
@@ -11840,7 +12009,7 @@ class VxMeasure {
         const tones = smoNote.getMicrotones();
         tones.forEach((tone) => {
             const acc = new VF.Accidental(tone.toVex);
-            vexNote.addAccidental(tone.pitch, acc);
+            vexNote.addAccidental(tone.pitchIndex, acc);
         });
     }
     _createAccidentals(smoNote, vexNote, tickIndex, voiceIx) {
@@ -11852,7 +12021,7 @@ class VxMeasure {
         for (i = 0; i < smoNote.pitches.length && this.tickmapObject !== null; ++i) {
             const pitch = smoNote.pitches[i];
             const duration = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex];
-            const keyAccidental = musicHelpers_1.smoMusic.getAccidentalForKeySignature(pitch, this.smoMeasure.keySignature);
+            const keyAccidental = music_1.SmoMusic.getAccidentalForKeySignature(pitch, this.smoMeasure.keySignature);
             const accidentals = this.tickmapObject.accidentalArray.filter((ar) => ar.duration < duration && ar.pitches[pitch.letter]);
             const acLen = accidentals.length;
             const declared = acLen > 0 ?
@@ -11988,14 +12157,14 @@ class VxMeasure {
         // If this is a tuplet, we only get the duration so the appropriate stem
         // can be rendered.  Vex calculates the actual ticks later when the tuplet is made
         var duration = smoNote.isTuplet ?
-            musicHelpers_1.smoMusic.closestVexDuration(smoNote.tickCount) :
-            musicHelpers_1.smoMusic.ticksToDuration[smoNote.tickCount];
+            music_1.SmoMusic.closestVexDuration(smoNote.tickCount) :
+            music_1.SmoMusic.ticksToDuration[smoNote.tickCount];
         if (typeof (duration) === 'undefined') {
             console.warn('bad duration in measure ' + this.smoMeasure.measureNumber.measureIndex);
             duration = '8';
         }
         // transpose for instrument-specific keys
-        const keys = musicHelpers_1.smoMusic.smoPitchesToVexKeys(smoNote.pitches, 0, smoNote.noteHead);
+        const keys = music_1.SmoMusic.smoPitchesToVexKeys(smoNote.pitches, 0, smoNote.noteHead);
         const noteParams = {
             clef: smoNote.clef,
             keys,
@@ -12053,7 +12222,7 @@ class VxMeasure {
                 x += VF.TextDynamics.GLYPHS[ch].width;
             }
         });
-        textObj.logicalBox = svgHelpers_1.svgHelpers.smoBox(group.getBBox());
+        textObj.logicalBox = svgHelpers_1.SvgHelpers.smoBox(group.getBBox());
         this.context.closeGroup();
     }
     renderDynamics() {
@@ -12209,8 +12378,8 @@ class VxMeasure {
     preFormat() {
         var j = 0;
         $(this.context.svg).find('g.' + this.smoMeasure.getClassId()).remove();
-        const key = musicHelpers_1.smoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature, 0);
-        const canceledKey = this.smoMeasure.canceledKeySignature ? musicHelpers_1.smoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature, 0)
+        const key = music_1.SmoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature, 0);
+        const canceledKey = this.smoMeasure.canceledKeySignature ? music_1.SmoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature, 0)
             : this.smoMeasure.canceledKeySignature;
         const staffX = this.smoMeasure.staffX + this.smoMeasure.format.padLeft;
         this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - this.smoMeasure.format.padLeft, { font: { family: ssp_sans_metrics_1.SourceSansProFont.fontFamily, size: '12pt' }, fill_style: VxMeasure.fillStyle });
@@ -12320,7 +12489,7 @@ exports.VxSystem = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const vxMeasure_1 = __webpack_require__(/*! ./vxMeasure */ "./src/render/vex/vxMeasure.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
-const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.ts");
+const svgHelpers_1 = __webpack_require__(/*! ../sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
@@ -12502,7 +12671,7 @@ class VxSystem {
             lyricHyphens.forEach((lyric) => {
                 const parent = $(this.context.svg).find(lyric.selector)[0];
                 if (parent && lyric.logicalBox !== null) {
-                    const text = document.createElementNS(svgHelpers_1.svgHelpers.namespace, 'text');
+                    const text = document.createElementNS(svgHelpers_1.SvgHelpers.namespace, 'text');
                     text.textContent = '-';
                     text.setAttributeNS('', 'x', lyric.hyphenX.toString());
                     text.setAttributeNS('', 'y', (lyric.logicalBox.y + (lyric.logicalBox.height * 2) / 3).toString());
@@ -12514,7 +12683,7 @@ class VxSystem {
             lyricsDash.forEach((lyric) => {
                 const parent = $(this.context.svg).find(lyric.selector)[0];
                 if (parent && lyric.logicalBox !== null) {
-                    const line = document.createElementNS(svgHelpers_1.svgHelpers.namespace, 'line');
+                    const line = document.createElementNS(svgHelpers_1.SvgHelpers.namespace, 'line');
                     const ymax = Math.round(lyric.logicalBox.y + lyric.logicalBox.height / 2);
                     const offset = Math.round(lyric.logicalBox.width / 2);
                     line.setAttributeNS('', 'x1', (lyric.logicalBox.x - offset).toString());
@@ -12619,10 +12788,10 @@ class VxSystem {
         this.context.closeGroup();
         if (xoffset) {
             const slurBox = $('.' + artifactId)[0];
-            svgHelpers_1.svgHelpers.translateElement(slurBox, xoffset, 0);
+            svgHelpers_1.SvgHelpers.translateElement(slurBox, xoffset, 0);
         }
-        modifier.logicalBox = svgHelpers_1.svgHelpers.smoBox(group.getBBox());
-        modifier.renderedBox = svgHelpers_1.svgHelpers.smoBox(svgHelpers_1.svgHelpers.logicalToClient(this.context.svg, modifier.logicalBox, scroller.scrollState.scroll));
+        modifier.logicalBox = svgHelpers_1.SvgHelpers.smoBox(group.getBBox());
+        modifier.renderedBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.context.svg, modifier.logicalBox, scroller.scrollState.scroll));
     }
     renderEndings(scroller) {
         let j = 0;
@@ -12652,8 +12821,8 @@ class VxSystem {
                     const vxVolta = new VF.Volta(vtype, ending.number, smoMeasure.staffX + ending.xOffsetStart, ending.yOffset);
                     vxVolta.setContext(this.context).draw(vxMeasure.stave, -1 * ending.xOffsetEnd);
                     this.context.closeGroup();
-                    ending.logicalBox = svgHelpers_1.svgHelpers.smoBox(group.getBBox());
-                    ending.renderedBox = svgHelpers_1.svgHelpers.smoBox(svgHelpers_1.svgHelpers.logicalToClient(this.context.svg, ending.logicalBox, scroller.scrollState.scroll));
+                    ending.logicalBox = svgHelpers_1.SvgHelpers.smoBox(group.getBBox());
+                    ending.renderedBox = svgHelpers_1.SvgHelpers.smoBox(svgHelpers_1.SvgHelpers.logicalToClient(this.context.svg, ending.logicalBox, scroller.scrollState.scroll));
                     if (!pushed) {
                         voAr.push({ smoMeasure, ending });
                         pushed = true;
@@ -12668,7 +12837,7 @@ class VxSystem {
                 if (ending.logicalBox !== null) {
                     const delta = mm.svg.logicalBox.y - ending.logicalBox.y;
                     if (delta > 0) {
-                        mm.setBox(svgHelpers_1.svgHelpers.boxPoints(mm.svg.logicalBox.x, mm.svg.logicalBox.y - delta, mm.svg.logicalBox.width, mm.svg.logicalBox.height + delta), 'vxSystem adjust for volta');
+                        mm.setBox(svgHelpers_1.SvgHelpers.boxPoints(mm.svg.logicalBox.x, mm.svg.logicalBox.y - delta, mm.svg.logicalBox.width, mm.svg.logicalBox.height + delta), 'vxSystem adjust for volta');
                     }
                 }
             }
@@ -12817,7 +12986,11 @@ exports.VxSystem = VxSystem;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TimeSignature = exports.SvgBox = exports.SvgPoint = void 0;
+exports.TimeSignature = exports.SvgBox = exports.SvgPoint = exports.IsPitchLetter = void 0;
+function IsPitchLetter(letter) {
+    return letter.length === 1 && letter[0] >= 'a' && letter[0] <= 'g';
+}
+exports.IsPitchLetter = IsPitchLetter;
 class SvgPoint {
     constructor() {
         this.x = 0;
@@ -12869,12 +13042,12 @@ exports.SmoMeasure = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ./music */ "./src/smo/data/music.ts");
 const measureModifiers_1 = __webpack_require__(/*! ./measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const note_1 = __webpack_require__(/*! ./note */ "./src/smo/data/note.ts");
 const tuplet_1 = __webpack_require__(/*! ./tuplet */ "./src/smo/data/tuplet.ts");
 const layoutDebug_1 = __webpack_require__(/*! ../../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
-const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.ts");
+const svgHelpers_1 = __webpack_require__(/*! ../../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const tickMap_1 = __webpack_require__(/*! ../xform/tickMap */ "./src/smo/xform/tickMap.ts");
 const VF = eval('Vex.Flow');
 // ## SmoMeasure - data for a measure of music
@@ -12940,7 +13113,7 @@ class SmoMeasure {
         this.tuplets = params.tuplets ? params.tuplets : [];
         this.modifiers = params.modifiers ? params.modifiers : defaults.modifiers;
         this.setDefaultBarlines();
-        this.keySignature = musicHelpers_1.smoMusic.vexKeySigWithOffset(this.keySignature, this.transposeIndex);
+        this.keySignature = music_1.SmoMusic.vexKeySigWithOffset(this.keySignature, this.transposeIndex);
         if (typeof (params.format) === 'undefined') {
             this.format = new measureModifiers_1.SmoMeasureFormat(measureModifiers_1.SmoMeasureFormat.defaults);
             this.format.measureIndex = this.measureNumber.measureIndex;
@@ -13037,7 +13210,7 @@ class SmoMeasure {
                 // If this is key signature, make sure we normalize to concert pitch
                 // from instrument pitch
                 if (attr === 'keySignature') {
-                    curValue = musicHelpers_1.smoMusic.vexKeySigWithOffset(curValue, -1 * this.transposeIndex);
+                    curValue = music_1.SmoMusic.vexKeySigWithOffset(curValue, -1 * this.transposeIndex);
                 }
                 if (field.ctor && field.ctor === 'SmoTempoText') {
                     if (field.compare(attrCurrentValue[attr]) === false) {
@@ -13390,7 +13563,7 @@ class SmoMeasure {
     }
     setBox(box, description) {
         layoutDebug_1.layoutDebug.measureHistory(this, 'logicalBox', box, description);
-        this.svg.logicalBox = svgHelpers_1.svgHelpers.smoBox(box);
+        this.svg.logicalBox = svgHelpers_1.SvgHelpers.smoBox(box);
     }
     saveUnjustifiedWidth() {
         this.svg.unjustifiedWidth = this.svg.staffWidth;
@@ -13520,7 +13693,7 @@ class SmoMeasure {
     }
     isPickup() {
         const ticks = this.getTicksFromVoice(0);
-        const goal = musicHelpers_1.smoMusic.timeSignatureToTicks(this.timeSignature.timeSignature);
+        const goal = music_1.SmoMusic.timeSignatureToTicks(this.timeSignature.timeSignature);
         return (ticks < goal);
     }
     clearBeamGroups() {
@@ -13865,7 +14038,7 @@ exports.SmoTempoText = exports.SmoRehearsalMark = exports.SmoMeasureText = expor
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ./music */ "./src/smo/data/music.ts");
 const VF = eval('Vex.Flow');
 // ## Measure modifiers are elements that are attached to the bar itself, like barlines or measure-specific text,
 // repeats - lots of stuff
@@ -14386,7 +14559,7 @@ class SmoTempoText extends SmoMeasureModifierBase {
         return rv;
     }
     _toVexDurationTempo() {
-        var vd = musicHelpers_1.smoMusic.ticksToDuration[this.beatDuration];
+        var vd = music_1.SmoMusic.ticksToDuration[this.beatDuration];
         var dots = (vd.match(/d/g) || []).length;
         vd = vd.replace(/d/g, '');
         const rv = { duration: vd, dots, bpm: this.bpm };
@@ -14414,6 +14587,1027 @@ exports.SmoTempoText = SmoTempoText;
 
 /***/ }),
 
+/***/ "./src/smo/data/music.ts":
+/*!*******************************!*\
+  !*** ./src/smo/data/music.ts ***!
+  \*******************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SmoMusic = exports.SmoAudioPitch = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const note_1 = __webpack_require__(/*! ./note */ "./src/smo/data/note.ts");
+// ## SmoAudioPitch
+// helper class to compute the frequencies of the notes.
+class SmoAudioPitch {
+    // ### _frequencies
+    // Compute the equal-temperment frequencies of the notes.
+    static _computeFrequencies() {
+        const map = {};
+        let lix = 0;
+        const octaves = [1, 2, 3, 4, 5, 6, 7];
+        const letters = ['cn', 'c#', 'dn', 'd#', 'en', 'fn', 'f#', 'gn', 'g#', 'an', 'a#', 'bn'];
+        const just = Math.pow(2, (1.0 / 12));
+        const baseFrequency = (440 / 16) * Math.pow(just, 3);
+        octaves.forEach((octave) => {
+            const base = baseFrequency * Math.pow(2, octave - 1);
+            lix = 0;
+            letters.forEach((letter) => {
+                const freq = base * Math.pow(just, lix);
+                var enharmonics = SmoMusic.getEnharmonics(letter);
+                enharmonics.forEach((en) => {
+                    // Adjust for B4 higher than C4
+                    const adjOctave = (letter[0] === 'b' && en[0] === 'c') ?
+                        octave + 1 : octave;
+                    map[en + adjOctave.toString()] = freq;
+                });
+                lix += 1;
+            });
+        });
+        return map;
+    }
+    static get pitchFrequencyMap() {
+        if (!SmoAudioPitch.frequencies) {
+            SmoAudioPitch.frequencies = SmoAudioPitch._computeFrequencies();
+        }
+        return SmoAudioPitch.frequencies;
+    }
+    static _rawPitchToFrequency(smoPitch, offset) {
+        const npitch = SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(smoPitch) + offset);
+        const vx = npitch.letter.toLowerCase() + npitch.accidental + npitch.octave.toString();
+        return SmoAudioPitch.pitchFrequencyMap[vx];
+    }
+    // ### smoPitchToFrequency
+    // Convert a pitch to a frequency in Hz.
+    static smoPitchToFrequency(smoPitch, offset, tone) {
+        let pitchInt = 0;
+        let rv = SmoAudioPitch._rawPitchToFrequency(smoPitch, offset);
+        if (tone) {
+            const coeff = tone.toPitchCoeff;
+            pitchInt = SmoMusic.smoPitchToInt(smoPitch);
+            pitchInt += (coeff > 0) ? 1 : -1;
+            const otherSmo = SmoMusic.smoIntToPitch(pitchInt);
+            const otherPitch = SmoAudioPitch._rawPitchToFrequency(otherSmo, offset);
+            rv += Math.abs(rv - otherPitch) * coeff;
+        }
+        return rv;
+    }
+}
+exports.SmoAudioPitch = SmoAudioPitch;
+SmoAudioPitch.frequencies = null;
+/**
+// Helper functions that build on the VX music theory routines, and other
+// utilities I wish were in VF.Music but aren't
+// ### Note on pitch and duration format
+// We use some VEX music theory routines and frequently need to convert
+// formats from SMO format.
+//
+// `Smo` uses pitch JSON:
+// ``javascript``
+//  {note:'c',accidental:'#',octave:4}
+// `Vex` usually uses a canonical string:
+//  'c#/4'
+//  Depending on the operation, the octave might be omitted
+//
+// `Smo` uses a JSON for duration always:
+// ``javascript``
+// {numerator:4096,denominator:1,remainder:0}
+//
+// `VexFlow` uses a letter duration ('4' for 1/4 note) and 'd' for dot.
+// I try to indicate whether I am using vex or smo notation
+// Duration methods start around line 600
+// ---
+ */
+const VF = eval('Vex.Flow');
+class SmoMusic {
+    static get noteValues() {
+        return {
+            c: { root_index: 0, int_val: 0 },
+            cn: { root_index: 0, int_val: 0 },
+            'c#': { root_index: 0, int_val: 1 },
+            'c##': { root_index: 0, int_val: 2 },
+            cb: { root_index: 0, int_val: 11 },
+            cbb: { root_index: 0, int_val: 10 },
+            d: { root_index: 1, int_val: 2 },
+            dn: { root_index: 1, int_val: 2 },
+            'd#': { root_index: 1, int_val: 3 },
+            'd##': { root_index: 1, int_val: 4 },
+            db: { root_index: 1, int_val: 1 },
+            dbb: { root_index: 1, int_val: 0 },
+            e: { root_index: 2, int_val: 4 },
+            en: { root_index: 2, int_val: 4 },
+            'e#': { root_index: 2, int_val: 5 },
+            'e##': { root_index: 2, int_val: 6 },
+            eb: { root_index: 2, int_val: 3 },
+            ebb: { root_index: 2, int_val: 2 },
+            f: { root_index: 3, int_val: 5 },
+            fn: { root_index: 3, int_val: 5 },
+            'f#': { root_index: 3, int_val: 6 },
+            'f##': { root_index: 3, int_val: 7 },
+            fb: { root_index: 3, int_val: 4 },
+            fbb: { root_index: 3, int_val: 3 },
+            g: { root_index: 4, int_val: 7 },
+            gn: { root_index: 4, int_val: 7 },
+            'g#': { root_index: 4, int_val: 8 },
+            'g##': { root_index: 4, int_val: 9 },
+            gb: { root_index: 4, int_val: 6 },
+            gbb: { root_index: 4, int_val: 5 },
+            a: { root_index: 5, int_val: 9 },
+            an: { root_index: 5, int_val: 9 },
+            'a#': { root_index: 5, int_val: 10 },
+            'a##': { root_index: 5, int_val: 11 },
+            ab: { root_index: 5, int_val: 8 },
+            abb: { root_index: 5, int_val: 7 },
+            b: { root_index: 6, int_val: 11 },
+            bn: { root_index: 6, int_val: 11 },
+            'b#': { root_index: 6, int_val: 0 },
+            'b##': { root_index: 6, int_val: 1 },
+            bb: { root_index: 6, int_val: 10 },
+            bbb: { root_index: 6, int_val: 9 },
+        };
+    }
+    /** /
+    // return Vex canonical note enharmonic - e.g. Bb to A#
+    // Get the canonical form
+    */
+    static vexToCannonical(vexKey) {
+        vexKey = SmoMusic.stripVexOctave(vexKey);
+        return VF.Music.canonical_notes[SmoMusic.noteValues[vexKey].int_val];
+    }
+    /** circleOfFifths
+    * A note array in key-signature order
+    */
+    static get circleOfFifths() {
+        return [{
+                letter: 'c',
+                accidental: 'n'
+            }, {
+                letter: 'g',
+                accidental: 'n'
+            }, {
+                letter: 'd',
+                accidental: 'n'
+            }, {
+                letter: 'a',
+                accidental: 'n'
+            }, {
+                letter: 'e',
+                accidental: 'n'
+            }, {
+                letter: 'b',
+                accidental: 'n'
+            }, {
+                letter: 'f',
+                accidental: '#'
+            }, {
+                letter: 'c',
+                accidental: '#'
+            }, {
+                letter: 'a',
+                accidental: 'b'
+            }, {
+                letter: 'e',
+                accidental: 'b'
+            }, {
+                letter: 'b',
+                accidental: 'b'
+            }, {
+                letter: 'f',
+                accidental: 'n'
+            }
+        ];
+    }
+    /**
+     * gives the index into circle-of-fifths array for a pitch, considering enharmonics.
+     * */
+    static circleOfFifthsIndex(smoPitch) {
+        const en1 = SmoMusic.vexToSmoKey(SmoMusic.getEnharmonic(SmoMusic.pitchToVexKey(smoPitch)));
+        const en2 = SmoMusic.vexToSmoKey(SmoMusic.getEnharmonic(SmoMusic.getEnharmonic(SmoMusic.pitchToVexKey(smoPitch))));
+        const ix = SmoMusic.circleOfFifths.findIndex((el) => (el.letter === smoPitch.letter && el.accidental === smoPitch.accidental) ||
+            (el.letter === en1.letter && el.accidental === en1.accidental) ||
+            (el.letter === en2.letter && el.accidental === en2.accidental));
+        return ix;
+    }
+    /**
+     * Get pitch to the right in circle of fifths
+     * */
+    static addSharp(smoPitch) {
+        const rv = SmoMusic.circleOfFifths[(SmoMusic.circleOfFifthsIndex(smoPitch) + 1) % SmoMusic.circleOfFifths.length];
+        return { letter: rv.letter, accidental: rv.accidental, octave: smoPitch.octave };
+    }
+    /**
+     * Get pitch to the left in circle of fifths
+     */
+    static addFlat(smoPitch) {
+        const rv = SmoMusic.circleOfFifths[((SmoMusic.circleOfFifths.length - 1) + SmoMusic.circleOfFifthsIndex(smoPitch)) % SmoMusic.circleOfFifths.length];
+        return { letter: rv.letter, accidental: rv.accidental, octave: smoPitch.octave };
+    }
+    /**
+     * Add @param {number} - sharps
+     */
+    static addSharps(smoPitch, distance) {
+        let i = 0;
+        let rv = {};
+        if (distance === 0) {
+            return JSON.parse(JSON.stringify(smoPitch));
+        }
+        rv = SmoMusic.addSharp(smoPitch);
+        for (i = 1; i < distance; ++i) {
+            rv = SmoMusic.addSharp(rv);
+        }
+        const octaveAdj = SmoMusic.letterPitchIndex[smoPitch.letter] > SmoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
+        rv.octave += octaveAdj;
+        return rv;
+    }
+    /**
+     * Add *distance* sharps/flats to given key
+     */
+    static addFlats(smoPitch, distance) {
+        let i = 0;
+        let rv = {};
+        if (distance === 0) {
+            return JSON.parse(JSON.stringify(smoPitch));
+        }
+        rv = SmoMusic.addFlat(smoPitch);
+        for (i = 1; i < distance; ++i) {
+            rv = SmoMusic.addFlat(rv);
+        }
+        const octaveAdj = SmoMusic.letterPitchIndex[smoPitch.letter] > SmoMusic.letterPitchIndex[rv.letter] ? 1 : 0;
+        rv.octave += octaveAdj;
+        return rv;
+    }
+    /**
+     * Convert array of smo pitches to vex keys, with adjustment for transpose and notehead
+     * @param pitchAr
+     * @param keyOffset
+     * @param noteHead
+     * @returns {string[]} - array of vex keyx
+     */
+    static smoPitchesToVexKeys(pitchAr, keyOffset, noteHead) {
+        const noopFunc = keyOffset > 0 ? 'addSharps' : 'addFlats';
+        const rv = [];
+        pitchAr.forEach((pitch) => {
+            rv.push(SmoMusic.pitchToVexKey(SmoMusic[noopFunc](pitch, keyOffset), noteHead));
+        });
+        return rv;
+    }
+    static get scaleIntervals() {
+        return {
+            up: [2, 2, 1, 2, 2, 2, 1],
+            down: [1, 2, 2, 2, 1, 2, 2]
+        };
+    }
+    /**
+     *  return true if the pitches match, but maybe not in same octave
+     * */
+    static smoScalePitchMatch(p1, p2) {
+        const pp1 = JSON.parse(JSON.stringify(p1));
+        const pp2 = JSON.parse(JSON.stringify(p2));
+        pp1.octave = 0;
+        pp2.octave = 0;
+        return SmoMusic.smoPitchToInt(pp1) === SmoMusic.smoPitchToInt(pp2);
+    }
+    /**
+     * Return the number of ledger lines based on the pitch and clef
+     * @param clef
+     * @param pitch
+     * @returns
+     */
+    static pitchToLedgerLine(clef, pitch) {
+        // return the distance from the top ledger line, as 0.5 per line/space
+        return -1.0 * (VF.keyProperties(SmoMusic.pitchToVexKey(pitch, clef)).line - 4.5)
+            - VF.clefProperties(clef).line_shift;
+    }
+    /**
+     *   return hard-coded flag state, or flag state as based on pitch and clef
+     * */
+    static flagStateFromNote(clef, note) {
+        let fs = note.flagState;
+        if (fs === note_1.SmoNote.flagStates.auto) {
+            fs = SmoMusic.pitchToLedgerLine(clef, note.pitches[0])
+                >= 2 ? note_1.SmoNote.flagStates.up : note_1.SmoNote.flagStates.down;
+        }
+        return fs;
+    }
+    /**
+     * convert from SMO to VEX format so we can use the VexFlow tables and methods
+     * example:
+     *   `{letter,octave,accidental}` object to vexKey string `'f#'`
+     * */
+    static _pitchToVexKey(smoPitch) {
+        // Convert to vex keys, where f# is a string like 'f#'.
+        let vexKey = smoPitch.letter.toLowerCase();
+        if (smoPitch.accidental.length === 0) {
+            vexKey = vexKey + 'n';
+        }
+        else {
+            vexKey = vexKey + smoPitch.accidental;
+        }
+        if (smoPitch.octave) {
+            vexKey = vexKey + '/' + smoPitch.octave;
+        }
+        return vexKey;
+    }
+    /**
+     * convert smo pitch to easy score (vex) format
+     * @param smoPitch
+     * @returns
+     */
+    static pitchToEasyScore(smoPitch) {
+        let vexKey = smoPitch.letter.toLowerCase();
+        vexKey = vexKey + smoPitch.accidental;
+        return vexKey + smoPitch.octave;
+    }
+    static smoPitchToMidiString(smoPitch) {
+        const midiPitch = SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(smoPitch));
+        let rv = midiPitch.letter.toUpperCase();
+        if (midiPitch.accidental !== 'n') {
+            rv += midiPitch.accidental;
+        }
+        rv += midiPitch.octave;
+        return rv;
+    }
+    static smoPitchesToMidiStrings(smoPitches) {
+        const rv = [];
+        smoPitches.forEach((pitch) => {
+            rv.push(SmoMusic.smoPitchToMidiString(pitch));
+        });
+        return rv;
+    }
+    static midiPitchToSmoPitch(midiPitch) {
+        const smoPitch = {};
+        smoPitch.letter = midiPitch[0].toLowerCase();
+        if (isNaN(parseInt(midiPitch[1], 10))) {
+            smoPitch.accidental = midiPitch[1];
+            smoPitch.octave = parseInt(midiPitch[2], 10);
+        }
+        else {
+            smoPitch.accidental = 'n';
+            smoPitch.octave = parseInt(midiPitch[1], 10);
+        }
+        return smoPitch;
+    }
+    static midiPitchToMidiNumber(midiPitch) {
+        return SmoMusic.smoPitchToInt(SmoMusic.midiPitchToSmoPitch(midiPitch)) + 12;
+    }
+    static pitchToVexKey(smoPitch, head = null) {
+        if (!head) {
+            return SmoMusic._pitchToVexKey(smoPitch);
+        }
+        return SmoMusic._pitchToVexKey(smoPitch) + '/' + head;
+    }
+    /**
+     *  Turns vex pitch string into smo pitch, e.g.
+     * `cn/4 => {'c','n',4}`
+     * */
+    static vexToSmoPitch(vexPitch) {
+        let octave = 0;
+        const po = vexPitch.split('/');
+        const rv = SmoMusic.vexToSmoKey(po[0]);
+        if (po.length > 1) {
+            octave = parseInt(po[1], 10);
+            octave = isNaN(octave) ? 4 : octave;
+        }
+        else {
+            octave = 4;
+        }
+        rv.octave = octave;
+        return rv;
+    }
+    /**
+     * Convert to smo pitch, without octave
+     * ``['f#'] => [{letter:'f',accidental:'#'}]``
+     * */
+    static vexToSmoKey(vexPitch) {
+        const accidental = vexPitch.length < 2 ? 'n' : vexPitch.substring(1, vexPitch.length);
+        const pp = vexPitch.split('/')[0];
+        return {
+            letter: pp[0].toLowerCase(),
+            accidental
+        };
+    }
+    // {letter:'f',accidental:'#'} => [f#/
+    static smoPitchesToVex(pitchAr) {
+        var rv = [];
+        pitchAr.forEach((p) => {
+            rv.push(SmoMusic.pitchToVexKey(p));
+        });
+        return rv;
+    }
+    static stripVexOctave(vexKey) {
+        if (vexKey.indexOf('/') > 0) {
+            vexKey = vexKey.substring(0, vexKey.indexOf('/'));
+        }
+        return vexKey;
+    }
+    /**
+     * compare pitches for frequency match
+     */
+    static pitchArraysMatch(ar1, ar2) {
+        let matches = 0;
+        const ir1 = SmoMusic.smoPitchesToIntArray(ar1);
+        const ir2 = SmoMusic.smoPitchesToIntArray(ar2);
+        if (ir1.length !== ir2.length) {
+            return false;
+        }
+        ir1.forEach((num) => {
+            if (ir2.indexOf(num) >= 0) {
+                matches += 1;
+            }
+        });
+        return matches === ir1.length;
+    }
+    static smoPitchesToIntArray(pitches) {
+        const rv = [];
+        pitches.forEach((pitch) => {
+            rv.push(SmoMusic.smoPitchToInt(pitch));
+        });
+        return rv.sort();
+    }
+    static smoPitchToInt(pitch) {
+        if (typeof (pitch.octave) === 'undefined') {
+            pitch.octave = 0;
+        }
+        const intVal = SmoMusic.noteValues[SmoMusic.stripVexOctave(SmoMusic.pitchToVexKey(pitch))].int_val;
+        const octave = (pitch.letter === 'c' && pitch.accidental === 'b' && pitch.octave > 0) ?
+            pitch.octave - 1 : pitch.octave;
+        return octave * 12 + intVal;
+    }
+    static smoIntToPitch(intValue) {
+        let octave = 0;
+        let accidental = '';
+        let noteKey = null;
+        const letterInt = intValue >= 0 ? intValue % 12 :
+            12 - (Math.abs(intValue) % 12);
+        noteKey = (Object.keys(SmoMusic.noteValues).find((key) => SmoMusic.noteValues[key].int_val === letterInt && key.length === 1));
+        if (!noteKey) {
+            noteKey = (Object.keys(SmoMusic.noteValues).find((key) => SmoMusic.noteValues[key].int_val === letterInt && key.length === 2));
+        }
+        octave = Math.floor(intValue / 12);
+        octave = octave >= 0 ? octave : 0;
+        accidental = noteKey.substring(1, noteKey.length);
+        // eslint-disable-next-line
+        accidental = accidental ? accidental : 'n';
+        return {
+            letter: noteKey[0],
+            accidental,
+            octave
+        };
+    }
+    static pitchKeyToPitch(pk) {
+        return { letter: pk.letter, accidental: pk.accidental, octave: 1 };
+    }
+    /**
+     * Consider instrument transpose when setting key -
+     * e.g. Eb for Bb instruments is F.
+     */
+    static vexKeySigWithOffset(vexKey, offset) {
+        const pk = SmoMusic.vexToSmoKey(vexKey);
+        const pi = SmoMusic.smoPitchToInt(SmoMusic.pitchKeyToPitch(pk));
+        let newKey = SmoMusic.toValidKeySignature(SmoMusic.pitchToVexKey(SmoMusic.smoIntToPitch(pi)));
+        // handle equivalent ks
+        if (newKey === 'c#' && vexKey.indexOf('b') >= 0) {
+            newKey = 'db';
+        }
+        return newKey;
+    }
+    /**
+     * return a map of enharmonics for choosing or cycling.  notes are in vexKey form.
+     */
+    static get enharmonics() {
+        let i = 0;
+        const rv = {};
+        const keys = Object.keys(SmoMusic.noteValues);
+        for (i = 0; i < keys.length; ++i) {
+            const key = keys[i];
+            const int_val = SmoMusic.noteValues[key].int_val;
+            if (typeof (rv[int_val.toString()]) === 'undefined') {
+                rv[int_val.toString()] = [];
+            }
+            // only consider natural note 1 time.  It is in the list twice for some reason.
+            if (key.indexOf('n') === -1) {
+                rv[int_val.toString()].push(key);
+            }
+        }
+        return rv;
+    }
+    /**
+     * Get enharmonic equivalent of given notes for cycle/choose
+     * @param vexKey
+     * @returns
+     */
+    static getEnharmonics(vexKey) {
+        const proto = SmoMusic.stripVexOctave(vexKey);
+        const rv = [];
+        let ne = SmoMusic.getEnharmonic(vexKey);
+        rv.push(proto);
+        while (ne[0] !== proto[0]) {
+            rv.push(ne);
+            ne = SmoMusic.getEnharmonic(ne);
+        }
+        return rv;
+    }
+    /**
+     * return the next note from the cycle in `getEnharmonics`
+     */
+    static getEnharmonic(vexKey) {
+        vexKey = SmoMusic.stripVexOctave(vexKey);
+        const intVal = SmoMusic.noteValues[vexKey.toLowerCase()].int_val;
+        const ar = SmoMusic.enharmonics[intVal.toString()];
+        const len = ar.length;
+        // 'n' for natural in key but not in value
+        vexKey = vexKey.length > 1 && vexKey[1] === 'n' ? vexKey[0] : vexKey;
+        const ix = ar.indexOf(vexKey);
+        vexKey = ar[(ix + 1) % len];
+        return vexKey;
+    }
+    /**
+     * Return a pitch a diatonic step away from SmoPitch in vexKey
+     * @param smoPitch
+     * @param vexKey
+     * @param direction
+     * @returns
+     */
+    static closestTonic(smoPitch, vexKey, direction) {
+        direction = Math.sign(direction) < 0 ? -1 : 1;
+        const tonic = SmoMusic.vexToSmoKey(vexKey);
+        const rv = SmoMusic.pitchKeyToPitch(tonic);
+        rv.octave = smoPitch.octave;
+        const iix = SmoMusic.smoPitchToInt(smoPitch);
+        const smint = SmoMusic.smoPitchToInt(rv);
+        if (Math.sign(smint - iix) !== direction) {
+            rv.octave += direction;
+        }
+        return rv;
+    }
+    // ### toValidKeySignature
+    // When transposing, make sure key signature is valid, e.g. g# should be
+    // Ab
+    static toValidKeySignature(vexKey) {
+        let strlen = 0;
+        const map = { 'a#': 'bb', 'g#': 'ab', 'cb': 'b', 'd#': 'eb' };
+        strlen = (vexKey.length > 2 ? 2 : vexKey.length);
+        // Vex doesn't like 'n' in key signatures.
+        if (strlen === 2 && vexKey[1].toLowerCase() === 'n') {
+            strlen = 1;
+        }
+        const rv = vexKey.substr(0, strlen);
+        if (map[rv.toLowerCase()]) {
+            return map[rv.toLowerCase()];
+        }
+        return rv;
+    }
+    /**
+     * When transposing, get the enharmonic that most closely fits the key
+     * `getEnharmonicInKey` returns an alternate to the given pitch, or the same pitch.
+     * `getKeyFriendlyEnharmonic` return a pitch for a given key, given the letter name only
+     * @param smoPitch
+     * @param keySignature
+     * @returns
+     */
+    static getEnharmonicInKey(smoPitch, keySignature) {
+        let match = false;
+        let rv = '';
+        if (typeof (smoPitch.octave) === 'undefined') {
+            smoPitch.octave = 1;
+        }
+        const sharpKey = keySignature.indexOf('#') >= 0;
+        const flatKey = keySignature.indexOf('b') >= 0;
+        const ar = SmoMusic.getEnharmonics(SmoMusic.pitchToVexKey(smoPitch));
+        rv = SmoMusic.stripVexOctave(SmoMusic.pitchToVexKey(smoPitch));
+        const scaleMap = new VF.Music().createScaleMap(keySignature);
+        ar.forEach((vexKey) => {
+            if (vexKey.length === 1) {
+                vexKey += 'n';
+            }
+            if (vexKey === scaleMap[vexKey[0]]) {
+                rv = vexKey;
+                match = true;
+            }
+            else if (!match) {
+                // In the absence of a match of a key tone, we bias towards more
+                // 'common', like Bb is more common than A#, esp. as a chord.  This maybe
+                // just be my horn player bias towards flat keys
+                if (vexKey === 'a#' && !sharpKey) {
+                    rv = 'bb';
+                }
+                else if (vexKey === 'g#' && !sharpKey) {
+                    rv = 'ab';
+                }
+                else if (vexKey === 'c#' && !sharpKey) {
+                    rv = 'db';
+                }
+                else if (vexKey === 'd#' && !sharpKey) {
+                    rv = 'eb';
+                }
+                else if (vexKey === 'f#' && flatKey) {
+                    rv = 'gb';
+                }
+            }
+        });
+        const smoRv = SmoMusic.pitchKeyToPitch(SmoMusic.vexToSmoKey(rv));
+        smoRv.octave = smoPitch.octave;
+        const rvi = SmoMusic.smoPitchToInt(smoRv);
+        const ori = SmoMusic.smoPitchToInt(smoPitch);
+        // handle the case of c0 < b0, pitch-wise
+        smoRv.octave += Math.sign(ori - rvi);
+        return smoRv;
+    }
+    /**
+     * fix the enharmonic to match the key, if possible
+     * @example
+     * `getKeyFriendlyEnharmonic('b','eb');  => returns 'bb'
+     * return vex string
+     * `getEnharmonicInKey` returns an alternate to the given pitch, or the same pitch.
+     * `getKeyFriendlyEnharmonic` return a pitch for a given key, given the letter name only
+     */
+    static getKeyFriendlyEnharmonic(letter, keySignature) {
+        let rv = letter;
+        let i = 0;
+        const muse = new VF.Music();
+        const scale = Object.values(muse.createScaleMap(keySignature));
+        let prop = SmoMusic.getEnharmonic(letter.toLowerCase());
+        while (prop.toLowerCase() !== letter.toLowerCase()) {
+            for (i = 0; i < scale.length; ++i) {
+                const skey = scale[i];
+                if ((skey[0] === prop && skey[1] === 'n') ||
+                    (skey.toLowerCase() === prop.toLowerCase())) {
+                    rv = skey;
+                    break;
+                }
+            }
+            prop = (prop[1] === 'n' ? prop[0] : prop);
+            prop = SmoMusic.getEnharmonic(prop);
+        }
+        return rv;
+    }
+    /**
+    // given a letter pitch (a,b,c etc.), and a key signature, return the actual note
+    // that you get without accidentals
+    //   `SmoMusic.getKeySignatureKey('F','G'); // returns f#`
+     * @param letter
+     * @param keySignature
+     * @returns
+     */
+    static getKeySignatureKey(letter, keySignature) {
+        const km = new VF.KeyManager(keySignature);
+        return km.scaleMap[letter];
+    }
+    static getAccidentalForKeySignature(smoPitch, keySignature) {
+        const vexKey = SmoMusic.getKeySignatureKey(smoPitch.letter, keySignature);
+        return vexKey.length === 1 ? 'n' : vexKey.substr(1, vexKey.length - 1);
+    }
+    // ### isPitchInKeySignature
+    // Return true if the pitch is not an accidental in the give key, e.g.
+    // f# in 'g' or c in 'Bb'
+    static isPitchInKeySignature(smoPitch, keySignature) {
+        const vexKey = SmoMusic.getKeySignatureKey(smoPitch.letter, keySignature);
+        return (vexKey.length === 1 && smoPitch.accidental === 'n' ||
+            (vexKey[1] === smoPitch.accidental));
+    }
+    // ### getIntervalInKey
+    // give a pitch and a key signature, return another pitch at the given
+    // diatonic interval.  Similar to getKeyOffset but diatonic.
+    static getIntervalInKey(pitch, keySignature, interval) {
+        let scaleIx = 0;
+        let diatonicIx = 0;
+        if (interval === 0) {
+            return JSON.parse(JSON.stringify(pitch));
+        }
+        const delta = interval > 0 ? 1 : -1;
+        const inv = -1 * delta;
+        const tonic = SmoMusic.closestTonic(pitch, keySignature, inv);
+        const intervals = delta > 0 ? SmoMusic.scaleIntervals.up : SmoMusic.scaleIntervals.down;
+        const pitchInt = SmoMusic.smoPitchToInt(pitch);
+        let nkey = tonic;
+        let nkeyInt = SmoMusic.smoPitchToInt(nkey);
+        while (Math.sign(nkeyInt - pitchInt) !== delta && Math.sign(nkeyInt - pitchInt) !== 0) {
+            nkey = SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(nkey) + delta * intervals[scaleIx]);
+            scaleIx = (scaleIx + 1) % 7;
+            nkeyInt = SmoMusic.smoPitchToInt(nkey);
+        }
+        while (diatonicIx !== interval) {
+            nkey = SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(nkey) + delta * intervals[scaleIx]);
+            scaleIx = (scaleIx + 1) % 7;
+            diatonicIx += delta;
+        }
+        return SmoMusic.getEnharmonicInKey(nkey, keySignature);
+    }
+    static getLetterNotePitch(prevPitch, letter, key) {
+        const pitch = JSON.parse(JSON.stringify(prevPitch));
+        pitch.letter = letter;
+        // Make the key 'a' make 'Ab' in the key of Eb, for instance
+        const vexKsKey = SmoMusic.getKeySignatureKey(letter, key);
+        if (vexKsKey.length > 1) {
+            pitch.accidental = vexKsKey[1];
+        }
+        else {
+            pitch.accidental = 'n';
+        }
+        // make the octave of the new note as close to previous (or next) note as possible.
+        const upv = ['bc', 'ac', 'bd', 'da', 'be', 'gc'];
+        const downv = ['cb', 'ca', 'db', 'da', 'eb', 'cg'];
+        const delta = prevPitch.letter + pitch.letter;
+        if (upv.indexOf(delta) >= 0) {
+            pitch.octave += 1;
+        }
+        if (downv.indexOf(delta) >= 0) {
+            pitch.octave -= 1;
+        }
+        return pitch;
+    }
+    /**
+     *
+     * @param key start key
+     * @param transposeIndex number of 1/2 steps
+     * @returns {string} - vex key
+     */
+    static vexKeySignatureTranspose(key, transposeIndex) {
+        const pitch = SmoMusic.pitchKeyToPitch(SmoMusic.vexToSmoKey(key));
+        key = SmoMusic.smoPitchesToVexKeys([pitch], transposeIndex, null)[0];
+        key = SmoMusic.stripVexOctave(key);
+        key = key[0].toUpperCase() + key.substring(1, key.length);
+        if (key.length > 1 && key[1] === 'n') {
+            key = key[0];
+        }
+        return key;
+    }
+    static get frequencyMap() {
+        return SmoAudioPitch.pitchFrequencyMap;
+    }
+    // ### get letterPitchIndex
+    // Used to adjust octave when transposing.
+    // Pitches are measured from c, so that b0 is higher than c0, c1 is 1 note higher etc.
+    static get letterPitchIndex() {
+        return {
+            'c': 0,
+            'd': 1,
+            'e': 2,
+            'f': 3,
+            'g': 4,
+            'a': 5,
+            'b': 6
+        };
+    }
+    /**
+     * Indicate if a change from letter note 'one' to 'two' needs us to adjust the
+     * octave due to the `SmoMusic.letterPitchIndex` (b0 is higher than c0)
+     * */
+    static letterChangedOctave(one, two) {
+        const p1 = SmoMusic.letterPitchIndex[one];
+        const p2 = SmoMusic.letterPitchIndex[two];
+        if (p1 < p2 && p2 - p1 > 2) {
+            return -1;
+        }
+        if (p1 > p2 && p1 - p2 > 2) {
+            return 1;
+        }
+        return 0;
+    }
+    /**
+    // Given a vex noteProp and an offset, offset that number
+    // of 1/2 steps.
+     * @param pitch
+     * @param offset
+     * @returns
+     */
+    static getKeyOffset(pitch, offset) {
+        const canon = VF.Music.canonical_notes;
+        // Convert to vex keys, where f# is a string like 'f#'.
+        let vexKey = SmoMusic.pitchToVexKey(pitch);
+        vexKey = SmoMusic.vexToCannonical(vexKey);
+        const rootIndex = canon.indexOf(vexKey);
+        const index = (rootIndex + canon.length + offset) % canon.length;
+        let octave = pitch.octave;
+        if (Math.abs(offset) >= 12) {
+            const octaveOffset = Math.sign(offset) * Math.floor(Math.abs(offset) / 12);
+            octave += octaveOffset;
+            offset = offset % 12;
+        }
+        if (rootIndex + offset >= canon.length) {
+            octave += 1;
+        }
+        if (rootIndex + offset < 0) {
+            octave -= 1;
+        }
+        const rv = JSON.parse(JSON.stringify(pitch));
+        vexKey = canon[index];
+        if (vexKey.length > 1) {
+            rv.accidental = vexKey.substring(1);
+            vexKey = vexKey[0];
+        }
+        else {
+            rv.accidental = '';
+        }
+        rv.letter = vexKey;
+        rv.octave = octave;
+        return rv;
+    }
+    // ### keySignatureLength
+    // return the number of sharp/flat in a key signature for sizing guess.
+    static get keySignatureLength() {
+        return {
+            'C': 0,
+            'B': 5,
+            'A': 3,
+            'F#': 6,
+            'Bb': 2,
+            'Ab': 4,
+            'Gg': 6,
+            'G': 1,
+            'F': 1,
+            'Eb': 3,
+            'Db': 5,
+            'Cb': 7,
+            'C#': 7,
+            'E': 4,
+            'D': 2
+        };
+    }
+    static getSharpsInKeySignature(key) {
+        const sharpKeys = ['B', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
+        if (sharpKeys.indexOf(key.toUpperCase()) < 0) {
+            return 0;
+        }
+        return SmoMusic.keySignatureLength[key.toUpperCase()];
+    }
+    static getFlatsInKeySignature(key) {
+        const flatKeys = ['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb'];
+        let caseKey = key[0].toUpperCase();
+        if (key.length > 0) {
+            caseKey += key.substr(1, key.length);
+        }
+        if (flatKeys.indexOf(caseKey) < 0) {
+            return 0;
+        }
+        return SmoMusic.keySignatureLength[caseKey];
+    }
+    static timeSignatureToTicks(timeSignature) {
+        const nd = timeSignature.split('/');
+        const num = parseInt(nd[0], 10);
+        const den = parseInt(nd[1], 10);
+        const base = 2048 * (8 / den);
+        return base * num;
+    }
+    static smoTicksToVexDots(ticks) {
+        const vd = SmoMusic.ticksToDuration[ticks];
+        const dots = (vd.match(/d/g) || []).length;
+        return dots;
+    }
+    // ## closestVexDuration
+    // ## Description:
+    // return the closest vex duration >= to the actual number of ticks. Used in beaming
+    // triplets which have fewer ticks then their stem would normally indicate.
+    static closestVexDuration(ticks) {
+        let stemTicks = VF.RESOLUTION;
+        // The stem value is the type on the non-tuplet note, e.g. 1/8 note
+        // for a triplet.
+        while (ticks <= stemTicks) {
+            stemTicks = stemTicks / 2;
+        }
+        stemTicks = stemTicks * 2;
+        return SmoMusic.ticksToDuration[stemTicks];
+    }
+    // ### closestDurationTickLtEq
+    // Price is right style, closest tick value without going over.  Used to pad
+    // rests when reading musicXML.
+    static closestDurationTickLtEq(ticks) {
+        const sorted = Object.keys(SmoMusic.ticksToDuration)
+            .map((key) => parseInt(key, 10))
+            .filter((key) => key <= ticks);
+        return sorted[sorted.length - 1];
+    }
+    /**
+     * Return array of valid note-lengths from an odd number of ticks,
+     * so we can come as close as possible to representing the ticks with notes
+     * @param ticks
+     * @returns
+     */
+    static splitIntoValidDurations(ticks) {
+        const rv = [];
+        let closest = 0;
+        while (ticks > 128) {
+            closest = SmoMusic.closestDurationTickLtEq(ticks);
+            ticks -= closest;
+            rv.push(closest);
+        }
+        return rv;
+    }
+    // ### vexStemType
+    // return the vex stem type (no dots)
+    static vexStemType(ticks) {
+        const str = SmoMusic.ticksToDuration[SmoMusic.splitIntoValidDurations(ticks)[0]];
+        if (str.indexOf('d') >= 0) {
+            return str.substr(0, str.indexOf('d'));
+        }
+        return str;
+    }
+    // ### Description:
+    // Get ticks for this note with an added dot.  Return
+    // identity if that is not a supported value.
+    static getNextDottedLevel(ticks) {
+        const ttd = SmoMusic.ticksToDuration;
+        const vals = Object.values(ttd);
+        const ix = vals.indexOf(ttd[ticks]);
+        if (ix >= 0 && ix < vals.length && vals[ix][0] === vals[ix + 1][0]) {
+            return SmoMusic.durationToTicks(vals[ix + 1]);
+        }
+        return ticks;
+    }
+    // ### Description:
+    // Get ticks for this note with one fewer dot.  Return
+    // identity if that is not a supported value.
+    static getPreviousDottedLevel(ticks) {
+        const ttd = SmoMusic.ticksToDuration;
+        const vals = Object.values(ttd);
+        const ix = vals.indexOf(ttd[ticks]);
+        if (ix > 0 && vals[ix][0] === vals[ix - 1][0]) {
+            return SmoMusic.durationToTicks(vals[ix - 1]);
+        }
+        return ticks;
+    }
+    // ### ticksToDuration
+    // Frequently we double/halve a note duration, and we want to find the vex tick duration that goes with that.
+    static get ticksToDuration() {
+        let i = 0;
+        const durations = ['1/2', '1', '2', '4', '8', '16', '32', '64', '128', '256'];
+        const _ticksToDurationsF = () => {
+            for (i = 0; i < durations.length - 1; ++i) {
+                let j = 0;
+                let dots = '';
+                let ticks = 0;
+                // We support up to 4 'dots'
+                for (j = 0; j <= 4 && j + i < durations.length; ++j) {
+                    ticks += VF.durationToTicks(durations[i + j]);
+                    SmoMusic._ticksToDuration[ticks.toString()] = durations[i] + dots;
+                    dots += 'd';
+                }
+            }
+        };
+        if (Object.keys(SmoMusic._ticksToDuration).length < 1) {
+            _ticksToDurationsF();
+        }
+        return SmoMusic._ticksToDuration;
+    }
+    // ### durationToTicks
+    // Uses VF.durationToTicks, but handles dots.
+    static durationToTicks(duration) {
+        let split = 0;
+        let i = 0;
+        let vfDuration = 0;
+        let dots = duration.indexOf('d');
+        if (dots < 0) {
+            return VF.durationToTicks(duration);
+        }
+        else {
+            vfDuration = VF.durationToTicks(duration.substring(0, dots));
+            dots = duration.length - dots; // number of dots
+            split = vfDuration / 2;
+            for (i = 0; i < dots; ++i) {
+                vfDuration += split;
+                split = split / 2;
+            }
+            return vfDuration;
+        }
+    }
+    /**
+     * break the duration up into an array of durations, to split a long
+     * note up between bars when pasting.
+     * @param duration
+     * @returns
+     */
+    static gcdMap(duration) {
+        let k = 0;
+        const keys = Object.keys(SmoMusic.ticksToDuration).map((x) => parseInt(x, 10));
+        const dar = [];
+        const gcd = (td) => {
+            let rv = keys[0];
+            for (k = 1; k < keys.length; ++k) {
+                if (td % keys[k] === 0) {
+                    rv = keys[k];
+                }
+            }
+            return rv;
+        };
+        while (duration > 0 && !SmoMusic.ticksToDuration[duration]) {
+            const div = gcd(duration);
+            duration = duration - div;
+            dar.push(div);
+        }
+        if (duration > 0) {
+            dar.push(duration);
+        }
+        return dar.sort((a, b) => a > b ? -1 : 1);
+    }
+}
+exports.SmoMusic = SmoMusic;
+SmoMusic._ticksToDuration = {};
+
+
+/***/ }),
+
 /***/ "./src/smo/data/note.ts":
 /*!******************************!*\
   !*** ./src/smo/data/note.ts ***!
@@ -14427,7 +15621,7 @@ exports.SmoNote = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const noteModifiers_1 = __webpack_require__(/*! ./noteModifiers */ "./src/smo/data/noteModifiers.ts");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ./music */ "./src/smo/data/music.ts");
 const VF = eval('Vex.Flow');
 // ## SmoNote
 // ## Description:
@@ -14514,7 +15708,7 @@ class SmoNote {
         if (this.isTuplet) {
             return 0;
         }
-        const vexDuration = musicHelpers_1.smoMusic.ticksToDuration[this.tickCount];
+        const vexDuration = music_1.SmoMusic.ticksToDuration[this.tickCount];
         if (!vexDuration) {
             return 0;
         }
@@ -14680,7 +15874,7 @@ class SmoNote {
         }
         note.noteType = 'n';
         const pitch = note.pitches[0];
-        note.pitches.push(musicHelpers_1.smoMusic.getKeyOffset(pitch, offset));
+        note.pitches.push(music_1.SmoMusic.getKeyOffset(pitch, offset));
         SmoNote._sortPitches(note);
     }
     addPitchOffset(offset) {
@@ -14689,7 +15883,7 @@ class SmoNote {
         }
         this.noteType = 'n';
         const pitch = this.pitches[0];
-        this.pitches.push(musicHelpers_1.smoMusic.getKeyOffset(pitch, offset));
+        this.pitches.push(music_1.SmoMusic.getKeyOffset(pitch, offset));
         SmoNote._sortPitches(this);
     }
     toggleRest() {
@@ -14724,26 +15918,30 @@ class SmoNote {
         return this.tuplet !== null && this.tuplet.id !== null;
     }
     addMicrotone(tone) {
-        const ar = this.tones.filter((tn) => tn.pitch !== tone.pitch);
+        const ar = this.tones.filter((tn) => tn.pitchIndex !== tone.pitchIndex);
         ar.push(tone);
         this.tones = ar;
     }
     removeMicrotone(tone) {
-        const ar = this.tones.filter((tn) => tn.pitch !== tone.pitch
+        const ar = this.tones.filter((tn) => tn.pitchIndex !== tone.pitchIndex
+            && tn.pitchIndex <= this.pitches.length // also remove tones for removed pitches
             && tone.tone !== tn.tone);
         this.tones = ar;
+    }
+    getMicrotone(toneIndex) {
+        return this.tones.find((tn) => tn.pitchIndex === toneIndex);
     }
     getMicrotones() {
         return this.tones;
     }
     static toggleEnharmonic(pitch) {
         const lastLetter = pitch.letter;
-        let vexPitch = musicHelpers_1.smoMusic.stripVexOctave(musicHelpers_1.smoMusic.pitchToVexKey(pitch));
-        vexPitch = musicHelpers_1.smoMusic.getEnharmonic(vexPitch);
+        let vexPitch = music_1.SmoMusic.stripVexOctave(music_1.SmoMusic.pitchToVexKey(pitch));
+        vexPitch = music_1.SmoMusic.getEnharmonic(vexPitch);
         pitch.letter = vexPitch[0];
         pitch.accidental = vexPitch.length > 1 ?
             vexPitch.substring(1, vexPitch.length) : 'n';
-        pitch.octave += musicHelpers_1.smoMusic.letterChangedOctave(lastLetter, pitch.letter);
+        pitch.octave += music_1.SmoMusic.letterChangedOctave(lastLetter, pitch.letter);
         return pitch;
     }
     transpose(pitchArray, offset, keySignature) {
@@ -14787,10 +15985,10 @@ class SmoNote {
                 SmoNote.addPitchOffset(note, offset);
             }
             else {
-                const pitch = musicHelpers_1.smoMusic.getKeyOffset(note.pitches[index], offset);
+                const pitch = music_1.SmoMusic.getKeyOffset(note.pitches[index], offset);
                 if (keySignature) {
                     letterKey = pitch.letter + pitch.accidental;
-                    letterKey = musicHelpers_1.smoMusic.getKeyFriendlyEnharmonic(letterKey, keySignature);
+                    letterKey = music_1.SmoMusic.getKeyFriendlyEnharmonic(letterKey, keySignature);
                     pitch.letter = letterKey[0];
                     if (letterKey.length < 2) {
                         pitch.accidental = 'n';
@@ -14902,7 +16100,7 @@ exports.SmoNote = SmoNote;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SmoDynamicText = exports.SmoLyric = exports.SmoArticulation = exports.SmoOrnament = exports.SmoMicrotone = exports.SmoGraceNote = exports.SmoNoteModifierBase = void 0;
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ./music */ "./src/smo/data/music.ts");
 const VF = eval('Vex.Flow');
 // const Smo = eval('globalThis.Smo');
 // ## SmoNoteModifierBase
@@ -14920,6 +16118,10 @@ class SmoNoteModifierBase {
     }
     static deserialize(jsonObj) {
         const ctor = eval('globalThis.Smo.' + jsonObj.ctor);
+        // Handle backwards-compatibility thing
+        if (jsonObj.ctor === 'SmoMicrotone' && typeof (jsonObj.pitch) === 'number') {
+            jsonObj.pitchIndex = jsonObj.pitch;
+        }
         if (typeof (ctor) === 'undefined') {
             console.log('ouch bad ctor for ' + jsonObj.ctor);
         }
@@ -14964,7 +16166,7 @@ class SmoGraceNote extends SmoNoteModifierBase {
                 }]
         }));
     }
-    // TODO: Matches SmoNote - move to smoMusic?
+    // TODO: Matches SmoNote - move to SmoMusic?
     static get parameterArray() {
         const rv = [];
         // eslint-disable-next-line
@@ -14977,8 +16179,8 @@ class SmoGraceNote extends SmoNoteModifierBase {
         return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
     }
     toVexGraceNote() {
-        const p = musicHelpers_1.smoMusic.smoPitchesToVex(this.pitches);
-        const rv = { duration: musicHelpers_1.smoMusic.closestVexDuration(this.tickCount()), keys: p, slash: this.slash };
+        const p = music_1.SmoMusic.smoPitchesToVex(this.pitches);
+        const rv = { duration: music_1.SmoMusic.closestVexDuration(this.tickCount()), keys: p, slash: this.slash };
         return rv;
     }
     serialize() {
@@ -14994,10 +16196,9 @@ exports.SmoGraceNote = SmoGraceNote;
 class SmoMicrotone extends SmoNoteModifierBase {
     constructor(parameters) {
         super(parameters.ctor);
-        this.tone = SmoMicrotone.pitchCoeff.flat125ar;
-        this.pitch = { letter: 'c', octave: 4, accidental: 'n' };
-        serializationHelpers_1.smoSerialize.serializedMerge(SmoMicrotone.parameterArray, SmoMicrotone.defaults, this);
-        serializationHelpers_1.smoSerialize.serializedMerge(SmoMicrotone.parameterArray, parameters, this);
+        this.pitchIndex = 0;
+        this.pitchIndex = parameters.pitch;
+        this.tone = parameters.tone;
     }
     get toPitchCoeff() {
         return SmoMicrotone.pitchCoeff[this.tone];
@@ -15047,7 +16248,7 @@ SmoMicrotone.pitchCoeff = {
 SmoMicrotone.defaults = {
     ctor: 'SmoMicrotone',
     tone: 'flat25sz',
-    pitch: { letter: 'c', octave: 4, accidental: 'n' }
+    pitch: 0
 };
 // ## SmoOrnament
 // Maps to a vexflow ornament like trill etc.
@@ -15508,7 +16709,7 @@ exports.SmoScore = exports.SmoScorePreferences = exports.SmoScoreInfo = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const scoreModifiers_1 = __webpack_require__(/*! ./scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
 const systemStaff_1 = __webpack_require__(/*! ./systemStaff */ "./src/smo/data/systemStaff.ts");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ./music */ "./src/smo/data/music.ts");
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const measure_1 = __webpack_require__(/*! ./measure */ "./src/smo/data/measure.ts");
 const measureModifiers_1 = __webpack_require__(/*! ./measureModifiers */ "./src/smo/data/measureModifiers.ts");
@@ -15959,7 +17160,7 @@ class SmoScore {
         this.staves.forEach((staff) => {
             // Consider transpose for key of instrument
             const netOffset = staff.measures[measureIndex].transposeIndex;
-            const newKey = musicHelpers_1.smoMusic.vexKeySigWithOffset(key, netOffset);
+            const newKey = music_1.SmoMusic.vexKeySigWithOffset(key, netOffset);
             staff.addKeySignature(measureIndex, newKey);
         });
     }
@@ -15992,7 +17193,7 @@ class SmoScore {
             newMeasure.measureNumber = measure.measureNumber;
             // Consider key change if the proto measure is non-concert pitch
             newMeasure.keySignature =
-                musicHelpers_1.smoMusic.vexKeySigWithOffset(newMeasure.keySignature, newMeasure.transposeIndex - measure.transposeIndex);
+                music_1.SmoMusic.vexKeySigWithOffset(newMeasure.keySignature, newMeasure.transposeIndex - measure.transposeIndex);
             newMeasure.modifiers = [];
             measure.modifiers.forEach((modifier) => {
                 const nmod = measureModifiers_1.SmoMeasureModifierBase.deserialize(modifier);
@@ -17246,7 +18447,7 @@ exports.SmoSystemStaff = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const measure_1 = __webpack_require__(/*! ./measure */ "./src/smo/data/measure.ts");
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ./music */ "./src/smo/data/music.ts");
 const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
 const beamers_1 = __webpack_require__(/*! ../xform/beamers */ "./src/smo/xform/beamers.ts");
 const staffModifiers_1 = __webpack_require__(/*! ./staffModifiers */ "./src/smo/data/staffModifiers.ts");
@@ -17574,7 +18775,7 @@ class SmoSystemStaff {
         let i = 0;
         let renumberIndex = 0;
         // Start measure from -1 for pickup
-        if (this.measures[0].getTicksFromVoice(0) < musicHelpers_1.smoMusic.timeSignatureToTicks(this.measures[0].timeSignature.timeSignature)) {
+        if (this.measures[0].getTicksFromVoice(0) < music_1.SmoMusic.timeSignatureToTicks(this.measures[0].timeSignature.timeSignature)) {
             pickupOffset = -1;
         }
         for (i = 0; i < this.measures.length; ++i) {
@@ -17638,7 +18839,7 @@ exports.SmoTuplet = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const note_1 = __webpack_require__(/*! ./note */ "./src/smo/data/note.ts");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ./music */ "./src/smo/data/music.ts");
 const noteModifiers_1 = __webpack_require__(/*! ./noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const VF = eval('Vex.Flow');
 class SmoTuplet {
@@ -17852,7 +19053,7 @@ class SmoTuplet {
         if (note.flagState !== note_1.SmoNote.flagStates.auto) {
             return note.flagState;
         }
-        return musicHelpers_1.smoMusic.pitchToLedgerLine(clef, note.pitches[0])
+        return music_1.SmoMusic.pitchToLedgerLine(clef, note.pitches[0])
             >= 2 ? note_1.SmoNote.flagStates.up : note_1.SmoNote.flagStates.down;
     }
     get durationSum() {
@@ -17898,7 +19099,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SmoToMidi = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
 const audioTrack_1 = __webpack_require__(/*! ../xform/audioTrack */ "./src/smo/xform/audioTrack.ts");
 class SmoToMidi {
@@ -17942,7 +19143,7 @@ class SmoToMidi {
                             }
                         }
                         else {
-                            const pitchArray = musicHelpers_1.smoMusic.smoPitchesToMidiStrings(noteData.pitches);
+                            const pitchArray = music_1.SmoMusic.smoPitchesToMidiStrings(noteData.pitches);
                             const velocity = Math.round(127 * noteData.volume);
                             const midiNote = new MidiWriter.NoteEvent({
                                 channel: trackIx + 1,
@@ -17982,7 +19183,7 @@ const xmlScore_1 = __webpack_require__(/*! ./xmlScore */ "./src/smo/mxml/xmlScor
 const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const common_1 = __webpack_require__(/*! ../data/common */ "./src/smo/data/common.ts");
 class SmoToXml {
     static get beamStates() {
@@ -18332,13 +19533,13 @@ class SmoToXml {
         if (smoState.keySignature && measure.keySignature === smoState.keySignature) {
             return; // no key change
         }
-        const flats = musicHelpers_1.smoMusic.getFlatsInKeySignature(measure.keySignature);
+        const flats = music_1.SmoMusic.getFlatsInKeySignature(measure.keySignature);
         const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
         if (flats > 0) {
             fifths = -1 * flats;
         }
         else {
-            fifths = musicHelpers_1.smoMusic.getSharpsInKeySignature(measure.keySignature);
+            fifths = music_1.SmoMusic.getSharpsInKeySignature(measure.keySignature);
         }
         const keyElement = nn(attributesElement, 'key', null, '');
         nn(keyElement, 'fifths', { fifths }, 'fifths');
@@ -18427,7 +19628,7 @@ exports.mxmlHelpers = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
 const VF = eval('Vex.Flow');
 // ## mxmlHelpers
@@ -18456,7 +19657,7 @@ class mxmlHelpers {
     // ### closestStemType
     // smo infers the stem type from the duration, but other applications don't
     static closestStemType(ticks) {
-        const nticks = VF.durationToTicks(musicHelpers_1.smoMusic.vexStemType(ticks));
+        const nticks = VF.durationToTicks(music_1.SmoMusic.vexStemType(ticks));
         return mxmlHelpers.ticksToNoteTypeMap[nticks];
     }
     static get beamStates() {
@@ -18845,7 +20046,7 @@ const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "
 const score_1 = __webpack_require__(/*! ../data/score */ "./src/smo/data/score.ts");
 const measure_1 = __webpack_require__(/*! ../data/measure */ "./src/smo/data/measure.ts");
 const basic_1 = __webpack_require__(/*! ../../music/basic */ "./src/music/basic.js");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const systemStaff_1 = __webpack_require__(/*! ../data/systemStaff */ "./src/smo/data/systemStaff.ts");
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
@@ -19096,10 +20297,10 @@ class mxmlScore {
         if (keyNode.length) {
             const fifths = xmlHelpers_1.mxmlHelpers.getNumberFromElement(keyNode[0], 'fifths', 0);
             if (fifths < 0) {
-                smoKey = musicHelpers_1.smoMusic.circleOfFifths[musicHelpers_1.smoMusic.circleOfFifths.length + fifths];
+                smoKey = music_1.SmoMusic.circleOfFifths[music_1.SmoMusic.circleOfFifths.length + fifths];
             }
             else {
-                smoKey = musicHelpers_1.smoMusic.circleOfFifths[fifths];
+                smoKey = music_1.SmoMusic.circleOfFifths[fifths];
             }
             xmlState.keySignature = smoKey.letter.toUpperCase();
             if (smoKey.accidental !== 'n') {
@@ -19279,7 +20480,7 @@ class mxmlScore {
                 xmlState.graceNotes = []; // clear the grace note array
                 // If this note starts later than the cursor due to forward, pad with rests
                 if (xmlState.tickCursor > xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed) {
-                    const pads = musicHelpers_1.smoMusic.splitIntoValidDurations(xmlState.tickCursor - xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed);
+                    const pads = music_1.SmoMusic.splitIntoValidDurations(xmlState.tickCursor - xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed);
                     pads.forEach((pad) => {
                         const clefString = xmlState.staffArray[staffIndex].clefInfo.clef;
                         const padNote = measure_1.SmoMeasure.createRestNoteWithDuration(pad, clefString);
@@ -19397,7 +20598,7 @@ class mxmlScore {
             for (i = 0; i < measure.voices.length; ++i) {
                 const curTicks = measure.getTicksFromVoice(i);
                 if (curTicks < maxTicks) {
-                    const tickAr = musicHelpers_1.smoMusic.splitIntoValidDurations(maxTicks - curTicks);
+                    const tickAr = music_1.SmoMusic.splitIntoValidDurations(maxTicks - curTicks);
                     for (j = 0; j < tickAr.length; ++j) {
                         measure.voices[i].notes.push(measure_1.SmoMeasure.createRestNoteWithDuration(tickAr[j], measure.clef));
                     }
@@ -19428,7 +20629,7 @@ const scoreModifiers_1 = __webpack_require__(/*! ../data/scoreModifiers */ "./sr
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const tuplet_1 = __webpack_require__(/*! ../data/tuplet */ "./src/smo/data/tuplet.ts");
 const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
 // ## XmlState
@@ -19694,7 +20895,7 @@ class XmlState {
     }
     static slurDirectionFromNote(clef, note, orientation) {
         const rv = { invert: false, yOffset: staffModifiers_1.SmoSlur.defaults.yOffset };
-        const flagState = musicHelpers_1.smoMusic.flagStateFromNote(clef, note);
+        const flagState = music_1.SmoMusic.flagStateFromNote(clef, note);
         if (flagState === note_1.SmoNote.flagStates.up && orientation === 'over') {
             rv.invert = true;
             rv.yOffset += 50;
@@ -19976,8 +21177,9 @@ exports.SmoAudioScore = void 0;
 const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const selections_1 = __webpack_require__(/*! ./selections */ "./src/smo/xform/selections.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const music_2 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 /** SmoAudioScore
 // Convert a score into a JSON structure that can be rendered to audio.
 // the return value looks like this:
@@ -20205,7 +21407,7 @@ class SmoAudioScore {
                 return false;
             }
         }
-        return musicHelpers_1.smoMusic.pitchArraysMatch(track.notes[noteIx - 1].pitches, selection.note.pitches);
+        return music_1.SmoMusic.pitchArraysMatch(track.notes[noteIx - 1].pitches, selection.note.pitches);
     }
     static updateMeasureIndexMap(note, measureIndexMap) {
         if (note.noteType !== 'n') {
@@ -20241,10 +21443,14 @@ class SmoAudioScore {
             return;
         }
         const tpitches = [];
+        const frequencies = [];
         const xpose = selection.measure.transposeIndex;
         const smoNote = selection.note;
-        smoNote.pitches.forEach((pitch) => {
-            tpitches.push(musicHelpers_1.smoMusic.smoIntToPitch(musicHelpers_1.smoMusic.smoPitchToInt(pitch) - xpose));
+        smoNote.pitches.forEach((pitch, pitchIx) => {
+            var _a;
+            tpitches.push(music_1.SmoMusic.smoIntToPitch(music_1.SmoMusic.smoPitchToInt(pitch) - xpose));
+            const mtone = (_a = smoNote.getMicrotone(pitchIx)) !== null && _a !== void 0 ? _a : null;
+            frequencies.push(music_2.SmoAudioPitch.smoPitchToFrequency(pitch, -1 * xpose, mtone));
         });
         const pitchArray = JSON.parse(JSON.stringify(tpitches));
         const note = {
@@ -20253,7 +21459,8 @@ class SmoAudioScore {
             duration,
             offset: runningDuration,
             selector: selection.selector,
-            volume: track.volume
+            volume: track.volume,
+            frequencies
         };
         this.updateMeasureNoteMap(track, selection.selector.measure, note);
         track.notes.push(note);
@@ -20266,7 +21473,8 @@ class SmoAudioScore {
             noteType: 'r',
             selector,
             volume: 0,
-            pitches: []
+            pitches: [],
+            frequencies: []
         };
         SmoAudioScore.updateMeasureIndexMap(rest, measureIndexMap);
         this.updateMeasureNoteMap(track, selector.measure, rest);
@@ -20477,7 +21685,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.smoBeamModifier = exports.smoBeamerFactory = exports.SmoBeamGroup = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const VF = eval('Vex.Flow');
 class SmoBeamGroup {
     constructor(params) {
@@ -20596,7 +21804,7 @@ class smoBeamModifier {
                 return;
             }
             // is this beamable length-wise
-            const vexDuration = musicHelpers_1.smoMusic.closestVexDuration(note.tickCount);
+            const vexDuration = music_1.SmoMusic.closestVexDuration(note.tickCount);
             const stemTicks = VF.durationToTicks(vexDuration);
             if (note.noteType === 'n' && stemTicks < 4096) {
                 this.currentGroup.push(note);
@@ -20651,8 +21859,8 @@ const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts")
 const measure_1 = __webpack_require__(/*! ../data/measure */ "./src/smo/data/measure.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const tuplet_1 = __webpack_require__(/*! ../data/tuplet */ "./src/smo/data/tuplet.ts");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
-const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.ts");
+const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
+const svgHelpers_1 = __webpack_require__(/*! ../../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const VF = eval('Vex.Flow');
 // ## PasteBuffer
 // ### Description:
@@ -20810,7 +22018,7 @@ class PasteBuffer {
             }
             else {
                 const duration = note.tickCount - ticksToFill;
-                const durMap = musicHelpers_1.smoMusic.gcdMap(duration);
+                const durMap = music_1.SmoMusic.gcdMap(duration);
                 for (j = 0; j < durMap.length; ++j) {
                     const dd = durMap[j];
                     note_1.SmoNote.cloneWithDuration(note, {
@@ -20936,7 +22144,7 @@ class PasteBuffer {
                 // The note won't fit, so we split it in 2 and paste the remainder in the next measure.
                 // TODO:  tie the last note to this one.
                 const partial = totalDuration - currentDuration;
-                const dar = musicHelpers_1.smoMusic.gcdMap(partial);
+                const dar = music_1.SmoMusic.gcdMap(partial);
                 for (j = 0; j < dar.length; ++j) {
                     const ddd = dar[j];
                     const vnote = note_1.SmoNote.cloneWithDuration(note, {
@@ -21050,8 +22258,8 @@ class PasteBuffer {
             // Q: Is this even required since we are going to re-render?
             // A: yes, because until we do, the replaced measure needs the formatting info
             if (measure.svg.renderedBox && measure.svg.logicalBox.width > 0) {
-                nmeasure.svg.renderedBox = svgHelpers_1.svgHelpers.smoBox(measure.svg.renderedBox);
-                nmeasure.setBox(svgHelpers_1.svgHelpers.smoBox(measure.svg.logicalBox), 'copypaste');
+                nmeasure.svg.renderedBox = svgHelpers_1.SvgHelpers.smoBox(measure.svg.renderedBox);
+                nmeasure.setBox(svgHelpers_1.SvgHelpers.smoBox(measure.svg.logicalBox), 'copypaste');
                 nmeasure.setX(measure.svg.logicalBox.x, 'copyPaste');
                 nmeasure.setWidth(measure.svg.logicalBox.width, 'copypaste');
                 nmeasure.setY(measure.svg.logicalBox.y, 'copypaste');
@@ -21089,7 +22297,7 @@ exports.SmoOperation = void 0;
 const measure_1 = __webpack_require__(/*! ../data/measure */ "./src/smo/data/measure.ts");
 const selections_1 = __webpack_require__(/*! ./selections */ "./src/smo/xform/selections.ts");
 const scoreModifiers_1 = __webpack_require__(/*! ../data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
 const tickDuration_1 = __webpack_require__(/*! ./tickDuration */ "./src/smo/xform/tickDuration.ts");
 const beamers_1 = __webpack_require__(/*! ./beamers */ "./src/smo/xform/beamers.ts");
@@ -21150,12 +22358,15 @@ class SmoOperation {
     }
     static addRemoveMicrotone(ignore, selections, tone) {
         selections.forEach((sel) => {
-            if (sel.note.tones.findIndex((tt) => tt.tone === tone.tone
-                && tt.pitch === tone.pitch) >= 0) {
-                sel.note.removeMicrotone(tone);
-            }
-            else {
-                sel.note.addMicrotone(tone);
+            const note = sel.note;
+            if (note) {
+                const oldTone = note.getMicrotone(tone.pitchIndex);
+                if (oldTone) {
+                    note.removeMicrotone(oldTone);
+                }
+                else {
+                    note.addMicrotone(tone);
+                }
             }
         });
     }
@@ -21194,7 +22405,7 @@ class SmoOperation {
                 selectors.push(measureSel);
             }
         });
-        const tsTicks = musicHelpers_1.smoMusic.timeSignatureToTicks(timeSignature.timeSignature);
+        const tsTicks = music_1.SmoMusic.timeSignatureToTicks(timeSignature.timeSignature);
         selectors.forEach((selector) => {
             var _a;
             const params = {};
@@ -21301,7 +22512,7 @@ class SmoOperation {
         }
         if (!tuplet) {
             const nticks = note.tickCount / divisor;
-            if (!musicHelpers_1.smoMusic.ticksToDuration[nticks]) {
+            if (!music_1.SmoMusic.ticksToDuration[nticks]) {
                 return;
             }
             tickDuration_1.SmoContractNoteActor.apply({
@@ -21465,14 +22676,14 @@ class SmoOperation {
     static dotDuration(selection) {
         const note = selection.note;
         const measure = selection.measure;
-        const nticks = musicHelpers_1.smoMusic.getNextDottedLevel(note.tickCount);
+        const nticks = music_1.SmoMusic.getNextDottedLevel(note.tickCount);
         if (nticks === note.tickCount) {
             return;
         }
         // Don't dot if the thing on the right of the . is too small
-        const dotCount = musicHelpers_1.smoMusic.smoTicksToVexDots(nticks);
+        const dotCount = music_1.SmoMusic.smoTicksToVexDots(nticks);
         const multiplier = Math.pow(2, dotCount);
-        const baseDot = VF.durationToTicks(musicHelpers_1.smoMusic.closestVexDuration(nticks)) / (multiplier * 2);
+        const baseDot = VF.durationToTicks(music_1.SmoMusic.closestVexDuration(nticks)) / (multiplier * 2);
         if (baseDot <= 128) {
             return;
         }
@@ -21485,7 +22696,7 @@ class SmoOperation {
             return;
         }
         // is dot too short?
-        if (!musicHelpers_1.smoMusic.ticksToDuration[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount / 2]) {
+        if (!music_1.SmoMusic.ticksToDuration[selection.measure.voices[selection.selector.voice].notes[selection.selector.tick + 1].tickCount / 2]) {
             return;
         }
         tickDuration_1.SmoStretchNoteActor.apply({
@@ -21502,7 +22713,7 @@ class SmoOperation {
     static undotDuration(selection) {
         const note = selection.note;
         const measure = selection.measure;
-        const nticks = musicHelpers_1.smoMusic.getPreviousDottedLevel(note.tickCount);
+        const nticks = music_1.SmoMusic.getPreviousDottedLevel(note.tickCount);
         if (nticks === note.tickCount) {
             return;
         }
@@ -21534,13 +22745,13 @@ class SmoOperation {
                 const shouldXpose = selection.selector.pitches.length === 0 ||
                     selection.selector.pitches.indexOf(pitchIx) >= 0;
                 // Translate the pitch, ignoring enharmonic
-                trans = shouldXpose ? musicHelpers_1.smoMusic.getKeyOffset(opitch, offset)
+                trans = shouldXpose ? music_1.SmoMusic.getKeyOffset(opitch, offset)
                     : JSON.parse(JSON.stringify(opitch));
-                trans = musicHelpers_1.smoMusic.getEnharmonicInKey(trans, measure.keySignature);
+                trans = music_1.SmoMusic.getEnharmonicInKey(trans, measure.keySignature);
                 if (!trans.accidental) {
                     trans.accidental = 'n';
                 }
-                transInt = musicHelpers_1.smoMusic.smoPitchToInt(trans);
+                transInt = music_1.SmoMusic.smoPitchToInt(trans);
                 // Look through the earlier notes in the measure and try
                 // to find an equivalent note, and convert it if it exists.
                 measure.voices.forEach((voice) => {
@@ -21549,7 +22760,7 @@ class SmoOperation {
                         const prevNote = voice.notes[i];
                         // eslint-disable-next-line
                         prevNote.pitches.forEach((prevPitch) => {
-                            const prevInt = musicHelpers_1.smoMusic.smoPitchToInt(prevPitch);
+                            const prevInt = music_1.SmoMusic.smoPitchToInt(prevPitch);
                             if (prevInt === transInt) {
                                 trans = JSON.parse(JSON.stringify(prevPitch));
                             }
@@ -21602,7 +22813,7 @@ class SmoOperation {
         };
         pitches.forEach((pitch) => {
             if (typeof (pitch) === 'string') {
-                const letter = musicHelpers_1.smoMusic.getKeySignatureKey(pitch[0], measure.keySignature);
+                const letter = music_1.SmoMusic.getKeySignatureKey(pitch[0], measure.keySignature);
                 pitch = {
                     letter: letter[0],
                     accidental: letter.length > 1 ? letter.substring(1) : '',
@@ -21792,10 +23003,10 @@ class SmoOperation {
         if (interval > 0) {
             pitch = note.pitches[note.pitches.length - 1];
         }
-        pitch = musicHelpers_1.smoMusic.getIntervalInKey(pitch, measure.keySignature, interval);
+        pitch = music_1.SmoMusic.getIntervalInKey(pitch, measure.keySignature, interval);
         if (pitch) {
             note.pitches.push(pitch);
-            note.pitches.sort((x, y) => musicHelpers_1.smoMusic.smoPitchToInt(x) - musicHelpers_1.smoMusic.smoPitchToInt(y));
+            note.pitches.sort((x, y) => music_1.SmoMusic.smoPitchToInt(x) - music_1.SmoMusic.smoPitchToInt(y));
             return true;
         }
         return false;
@@ -21860,8 +23071,8 @@ class SmoOperation {
                         toffset = 2;
                     }
                     // Transpose the key, as if it were a key signature (octave has no meaning)
-                    let nkey = musicHelpers_1.smoMusic.smoIntToPitch(musicHelpers_1.smoMusic.smoPitchToInt(musicHelpers_1.smoMusic.pitchKeyToPitch(musicHelpers_1.smoMusic.vexToSmoKey(newText))) + offset);
-                    nkey = JSON.parse(JSON.stringify(musicHelpers_1.smoMusic.getEnharmonicInKey(nkey, key)));
+                    let nkey = music_1.SmoMusic.smoIntToPitch(music_1.SmoMusic.smoPitchToInt(music_1.SmoMusic.pitchKeyToPitch(music_1.SmoMusic.vexToSmoKey(newText))) + offset);
+                    nkey = JSON.parse(JSON.stringify(music_1.SmoMusic.getEnharmonicInKey(nkey, key)));
                     newText = nkey.letter.toUpperCase();
                     // new key may have different length, e.g. Bb to B natural
                     if (nkey.accidental !== 'n') {
@@ -21880,8 +23091,8 @@ class SmoOperation {
             if (!measureHash[selection.selector.measure]) {
                 measureHash[selection.selector.measure] = 1;
                 const netOffset = instrument.keyOffset - selection.measure.transposeIndex;
-                newKey = musicHelpers_1.smoMusic.pitchToVexKey(musicHelpers_1.smoMusic.smoIntToPitch(musicHelpers_1.smoMusic.smoPitchToInt(musicHelpers_1.smoMusic.pitchKeyToPitch(musicHelpers_1.smoMusic.vexToSmoKey(selection.measure.keySignature))) + netOffset));
-                newKey = musicHelpers_1.smoMusic.toValidKeySignature(newKey);
+                newKey = music_1.SmoMusic.pitchToVexKey(music_1.SmoMusic.smoIntToPitch(music_1.SmoMusic.smoPitchToInt(music_1.SmoMusic.pitchKeyToPitch(music_1.SmoMusic.vexToSmoKey(selection.measure.keySignature))) + netOffset));
+                newKey = music_1.SmoMusic.toValidKeySignature(newKey);
                 if (newKey.length > 1 && newKey[1] === 'n') {
                     newKey = newKey[0];
                 }
@@ -21894,8 +23105,8 @@ class SmoOperation {
                         if (note.noteType === 'n') {
                             const pitches = [];
                             note.pitches.forEach((pitch) => {
-                                const pint = musicHelpers_1.smoMusic.smoIntToPitch(musicHelpers_1.smoMusic.smoPitchToInt(pitch) + netOffset);
-                                pitches.push(JSON.parse(JSON.stringify(musicHelpers_1.smoMusic.getEnharmonicInKey(pint, newKey))));
+                                const pint = music_1.SmoMusic.smoIntToPitch(music_1.SmoMusic.smoPitchToInt(pitch) + netOffset);
+                                pitches.push(JSON.parse(JSON.stringify(music_1.SmoMusic.getEnharmonicInKey(pint, newKey))));
                             });
                             note.pitches = pitches;
                             SmoOperation.transposeChords(note, netOffset, newKey);
@@ -22312,7 +23523,7 @@ exports.SmoStretchNoteActor = exports.SmoMakeTupletActor = exports.SmoUnmakeTupl
 // Copyright (c) Aaron David Newman 2021.
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
 const tuplet_1 = __webpack_require__(/*! ../data/tuplet */ "./src/smo/data/tuplet.ts");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 class TickIteratorBase {
     // es
     iterateOverTick(note, tickmap, index) {
@@ -22364,7 +23575,7 @@ class SmoDuration {
         }
         newNotes.push(replNote);
         if (remainder > 0) {
-            const lmap = musicHelpers_1.smoMusic.gcdMap(remainder);
+            const lmap = music_1.SmoMusic.gcdMap(remainder);
             lmap.forEach((duration) => {
                 newNotes.push(note_1.SmoNote.cloneWithDuration(note, duration));
             });
@@ -22819,7 +24030,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TickMap = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const VF = eval('Vex.Flow');
 // ## TickMap
 // create a map note durations at each index into the voice, including the accidentals at each duration.
@@ -22898,7 +24109,7 @@ class TickMap {
             const pitch = note.pitches[i];
             const letter = pitch.letter.toLowerCase();
             const sigLetter = letter + pitch.accidental;
-            const sigKey = musicHelpers_1.smoMusic.getKeySignatureKey(letter, this.keySignature);
+            const sigKey = music_1.SmoMusic.getKeySignatureKey(letter, this.keySignature);
             if (sigObj && sigObj[letter]) {
                 const currentVal = sigObj[letter].pitch.letter + sigObj[letter].pitch.accidental;
                 if (sigLetter !== currentVal) {
@@ -22918,7 +24129,7 @@ class TickMap {
     // ### getActiveAccidental
     // return the active accidental for the given note
     getActiveAccidental(pitch, iteratorIndex, keySignature) {
-        let defaultAccidental = musicHelpers_1.smoMusic.getKeySignatureKey(pitch.letter, keySignature);
+        let defaultAccidental = music_1.SmoMusic.getKeySignatureKey(pitch.letter, keySignature);
         let i = 0;
         let j = 0;
         defaultAccidental = defaultAccidental.length > 1 ? defaultAccidental[1] : 'n';
@@ -22975,7 +24186,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SmoToVex = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 // ## SmoToVex
 // Simple serialize class that produced VEX note and voice objects
 // for vex EasyScore (for easier bug reports and test cases)
@@ -22990,7 +24201,7 @@ class SmoToVex {
                     voiceStrings.push([]);
                     smoVoice.notes.forEach((smoNote, nix) => {
                         const noteId = 'v' + vix + 'n' + nix;
-                        let duration = musicHelpers_1.smoMusic.ticksToDuration[musicHelpers_1.smoMusic.closestDurationTickLtEq(smoNote.tickCount)];
+                        let duration = music_1.SmoMusic.ticksToDuration[music_1.SmoMusic.closestDurationTickLtEq(smoNote.tickCount)];
                         duration = duration.replaceAll('d', '.');
                         if (smoNote.pitches.length > 1) {
                             keyString += '(';
@@ -23001,7 +24212,7 @@ class SmoToVex {
                             if (smoNote.accidentalsRendered && smoNote.accidentalsRendered[pitchIx].length) {
                                 pitch.accidental = smoPitch.accidental;
                             }
-                            keyString += musicHelpers_1.smoMusic.pitchToEasyScore(pitch);
+                            keyString += music_1.SmoMusic.pitchToEasyScore(pitch);
                             if (pitchIx + 1 < smoNote.pitches.length) {
                                 keyString += ' ';
                             }
@@ -29494,669 +30705,6 @@ exports.TimesFont = {
 
 /***/ }),
 
-/***/ "./src/ui/application.ts":
-/*!*******************************!*\
-  !*** ./src/ui/application.ts ***!
-  \*******************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiApplication = exports.SuiScoreBuilder = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const serializationHelpers_1 = __webpack_require__(/*! ../common/serializationHelpers */ "./src/common/serializationHelpers.js");
-const controller_1 = __webpack_require__(/*! ./controller */ "./src/ui/controller.js");
-const scoreRender_1 = __webpack_require__(/*! ../render/sui/scoreRender */ "./src/render/sui/scoreRender.ts");
-const menus_1 = __webpack_require__(/*! ./menus */ "./src/ui/menus.js");
-const keyCommands_1 = __webpack_require__(/*! ./keyCommands */ "./src/ui/keyCommands.js");
-const scoreViewOperations_1 = __webpack_require__(/*! ../render/sui/scoreViewOperations */ "./src/render/sui/scoreViewOperations.ts");
-const score_1 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
-const translationEditor_1 = __webpack_require__(/*! ./i18n/translationEditor */ "./src/ui/i18n/translationEditor.js");
-const language_1 = __webpack_require__(/*! ./i18n/language */ "./src/ui/i18n/language.js");
-const eventSource_1 = __webpack_require__(/*! ./eventSource */ "./src/ui/eventSource.js");
-const oscillator_1 = __webpack_require__(/*! ../render/audio/oscillator */ "./src/render/audio/oscillator.ts");
-const arial_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/arial_metrics */ "./src/styles/font_metrics/arial_metrics.js");
-const times_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/times_metrics */ "./src/styles/font_metrics/times_metrics.js");
-const Commissioner_Medium_Metrics_1 = __webpack_require__(/*! ../styles/font_metrics/Commissioner-Medium-Metrics */ "./src/styles/font_metrics/Commissioner-Medium-Metrics.js");
-const ConcertOne_Regular_1 = __webpack_require__(/*! ../styles/font_metrics/ConcertOne-Regular */ "./src/styles/font_metrics/ConcertOne-Regular.js");
-const Merriweather_Regular_1 = __webpack_require__(/*! ../styles/font_metrics/Merriweather-Regular */ "./src/styles/font_metrics/Merriweather-Regular.js");
-const ssp_sans_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
-const ssp_serif_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/ssp-serif-metrics */ "./src/styles/font_metrics/ssp-serif-metrics.js");
-const midiWriter_1 = __webpack_require__(/*! ../common/midiWriter */ "./src/common/midiWriter.js");
-const dom_1 = __webpack_require__(/*! ./dom */ "./src/ui/dom.js");
-const VF = eval('Vex.Flow');
-const Smo = eval('globalThis.Smo');
-/**
- * SuiScoreBuilder
- * create the initial score based on the query string/history
- */
-class SuiScoreBuilder {
-    localScoreLoad() {
-        var score = null;
-        var scoreStr = localStorage.getItem(serializationHelpers_1.smoSerialize.localScore);
-        if (scoreStr && scoreStr.length) {
-            try {
-                score = score_1.SmoScore.deserialize(scoreStr);
-            }
-            catch (exp) {
-                console.log('could not parse ' + scoreStr);
-            }
-        }
-        return { score, scorePath: null, mode: 'local' };
-    }
-    queryScoreLoad() {
-        var i;
-        if (window.location.search) {
-            const cmd = window.location.search.substring(1, window.location.search.length);
-            const cmds = cmd.split('&');
-            for (i = 0; i < cmds.length; ++i) {
-                const cmd = cmds[i];
-                const pairs = SuiApplication._nvQueryPair(cmd);
-                if (pairs.score) {
-                    try {
-                        const path = SuiApplication.scoreLibrary.find((pp) => pp.alias === pairs.score);
-                        if (!path) {
-                            return null;
-                        }
-                        else {
-                            return { scorePath: path.path, score: null, mode: 'remote' };
-                        }
-                    }
-                    catch (exp) {
-                        console.log('could not parse ' + exp);
-                    }
-                }
-                else if (pairs.lang) {
-                    SuiApplication._deferLanguageSelection(pairs.lang);
-                    return null;
-                }
-                else if (pairs.translate) {
-                    SuiApplication._deferCreateTranslator(pairs.translate);
-                    return null;
-                }
-                return null;
-            }
-        }
-        return null;
-    }
-    libraryScoreLoad() {
-        const score = score_1.SmoScore.deserialize(Smo.getClass(SmoConfig.scoreLoadJson));
-        return { score, scorePath: null, mode: 'local' };
-    }
-}
-exports.SuiScoreBuilder = SuiScoreBuilder;
-/** SuiApplication
- * main entry point of application.  Based on the configuration,
- * either start the default UI, or initialize library mode and
- * await further instructions.
- */
-class SuiApplication {
-    constructor(params) {
-        SuiApplication.configure(params);
-        this.startApplication();
-    }
-    static get defaultConfig() {
-        return {
-            smoPath: '..',
-            language: 'en',
-            scoreLoadOrder: ['query', 'local', 'library'],
-            scoreLoadJson: 'Smo.basicJson',
-            smoDomContainer: 'smoo',
-            vexDomContainer: 'boo',
-            domSource: ' SuiDom',
-            ribbon: true,
-            keyCommands: true,
-            menus: true,
-            title: 'Smoosic',
-            libraryUrl: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json',
-            languageDir: 'ltr',
-            demonPollTime: 50,
-            idleRedrawTime: 1000, // maximum time between score modification and render
-        };
-    }
-    static configure(params) {
-        const config = SuiApplication.defaultConfig;
-        Vex.Merge(config, params);
-        window.SmoConfig = config;
-        SuiApplication.registerFonts();
-    }
-    startApplication() {
-        oscillator_1.SuiOscillator.samplePromise().then(() => {
-            this._startApplication();
-        });
-    }
-    _startApplication() {
-        let i = 0;
-        let loaded = false;
-        // Initialize the midi writer library
-        midiWriter_1._MidiWriter();
-        const config = window.SmoConfig;
-        for (i = 0; i < config.scoreLoadOrder.length; ++i) {
-            const loader = config.scoreLoadOrder[i];
-            let method = 'localScoreLoad';
-            if (loader === 'query') {
-                method = 'queryScoreLoad';
-            }
-            else if (loader === 'libraryScoreLoad') {
-                method = 'libraryScoreLoad';
-            }
-            const ssb = new SuiScoreBuilder();
-            const ss = ssb[method]();
-            if (ss && ss.score) {
-                if (ss.mode === 'local') {
-                    loaded = true;
-                    this.createUi(ss.score);
-                }
-                else if (ss.score !== null) {
-                    const localScore = ssb.libraryScoreLoad();
-                    if (localScore.score === null) {
-                        return;
-                    }
-                    loaded = true;
-                    this.createUi(localScore.score);
-                    serializationHelpers_1.smoSerialize.loadRemoteFile(ss.scorePath);
-                }
-                break;
-            }
-        }
-        if (loaded === false) {
-            const scoreString = eval('globalThis.Smo.basicJson');
-            const score = score_1.SmoScore.deserialize(scoreString);
-            this.createUi(score);
-        }
-    }
-    /**
-     * Convenience constructor, take the score and render it in the
-     * configured rendering space.
-     * @param score(SmoScore) - the score
-     */
-    createUi(score) {
-        dom_1.SuiDom.createDom();
-        const params = {};
-        params.keyBindingDefaults = controller_1.suiController.keyBindingDefaults;
-        params.eventSource = new eventSource_1.browserEventSource(); // events come from the browser UI.
-        const selector = typeof (SmoConfig.vexDomContainer) === 'undefined' ? '' : SmoConfig.vexDomContainer;
-        const scoreRenderer = scoreRender_1.SuiScoreRender.createScoreRenderer(document.getElementById(selector), score);
-        params.eventSource.setRenderElement(scoreRenderer.renderElement);
-        params.view = new scoreViewOperations_1.SuiScoreViewOperations(scoreRenderer, score, '.musicRelief');
-        if (SmoConfig.keyCommands) {
-            params.keyCommands = new keyCommands_1.SuiKeyCommands(params);
-        }
-        if (SmoConfig.menus) {
-            params.menus = new menus_1.suiMenuManager(params);
-        }
-        params.layoutDemon = params.view.layoutDemon;
-        // Start the application event processing and render the initial score
-        // eslint-disable-next-line
-        new controller_1.suiController(params);
-        dom_1.SuiDom.splash();
-    }
-    static registerFonts() {
-        VF.TextFont.registerFont({
-            name: arial_metrics_1.ArialFont.name,
-            resolution: arial_metrics_1.ArialFont.resolution,
-            glyphs: arial_metrics_1.ArialFont.glyphs,
-            family: arial_metrics_1.ArialFont.fontFamily,
-            serifs: false,
-            monospaced: false,
-            italic: true,
-            bold: true,
-            maxSizeGlyph: 'H',
-            superscriptOffset: 0.66,
-            subscriptOffset: 0.66,
-            description: 'Built-in sans font',
-        });
-        VF.TextFont.registerFont({
-            name: times_metrics_1.TimesFont.name,
-            resolution: times_metrics_1.TimesFont.resolution,
-            glyphs: times_metrics_1.TimesFont.glyphs,
-            family: times_metrics_1.TimesFont.fontFamily,
-            serifs: false,
-            monospaced: false,
-            italic: true,
-            bold: true,
-            maxSizeGlyph: 'H',
-            superscriptOffset: 0.66,
-            subscriptOffset: 0.66,
-            description: 'Built-in serif font',
-        });
-        VF.TextFont.registerFont({
-            name: Commissioner_Medium_Metrics_1.Commissioner_MediumFont.name,
-            resolution: Commissioner_Medium_Metrics_1.Commissioner_MediumFont.resolution,
-            glyphs: Commissioner_Medium_Metrics_1.Commissioner_MediumFont.glyphs,
-            family: Commissioner_Medium_Metrics_1.Commissioner_MediumFont.fontFamily,
-            serifs: false,
-            monospaced: false,
-            italic: false,
-            bold: false,
-            maxSizeGlyph: 'H',
-            superscriptOffset: 0.66,
-            subscriptOffset: 0.66,
-            description: 'Low-contrast sans-serif text font',
-        });
-        VF.TextFont.registerFont({
-            name: ConcertOne_Regular_1.Concert_OneFont.name,
-            resolution: ConcertOne_Regular_1.Concert_OneFont.resolution,
-            glyphs: ConcertOne_Regular_1.Concert_OneFont.glyphs,
-            family: ConcertOne_Regular_1.Concert_OneFont.fontFamily,
-            serifs: false,
-            monospaced: false,
-            italic: false,
-            bold: false,
-            maxSizeGlyph: 'H',
-            superscriptOffset: 0.66,
-            subscriptOffset: 0.66,
-            description: 'Rounded grotesque typeface inspired by 19th century 3D l',
-        });
-        VF.TextFont.registerFont({
-            name: Merriweather_Regular_1.MerriweatherFont.name,
-            resolution: Merriweather_Regular_1.MerriweatherFont.resolution,
-            glyphs: Merriweather_Regular_1.MerriweatherFont.glyphs,
-            family: Merriweather_Regular_1.MerriweatherFont.fontFamily,
-            serifs: true,
-            monospaced: false,
-            italic: false,
-            bold: false,
-            maxSizeGlyph: 'H',
-            superscriptOffset: 0.66,
-            subscriptOffset: 0.66,
-            description: 'Serif screen font from Sorkin Type',
-        });
-        VF.TextFont.registerFont({
-            name: ssp_sans_metrics_1.SourceSansProFont.name,
-            resolution: ssp_sans_metrics_1.SourceSansProFont.resolution,
-            glyphs: ssp_sans_metrics_1.SourceSansProFont.glyphs,
-            family: ssp_sans_metrics_1.SourceSansProFont.fontFamily,
-            serifs: false,
-            monospaced: false,
-            italic: false,
-            bold: false,
-            maxSizeGlyph: 'H',
-            superscriptOffset: 0.66,
-            subscriptOffset: 0.66,
-            description: 'Open source Sans screen font from Adobe',
-        });
-        VF.TextFont.registerFont({
-            name: ssp_serif_metrics_1.SourceSerifProFont.name,
-            resolution: ssp_serif_metrics_1.SourceSerifProFont.resolution,
-            glyphs: ssp_serif_metrics_1.SourceSerifProFont.glyphs,
-            family: ssp_serif_metrics_1.SourceSerifProFont.fontFamily,
-            serifs: false,
-            monospaced: false,
-            italic: false,
-            bold: false,
-            maxSizeGlyph: 'H',
-            superscriptOffset: 0.66,
-            subscriptOffset: 0.66,
-            description: 'Open source Serif screen font from Adobe',
-        });
-    }
-    static _nvQueryPair(str) {
-        var i = 0;
-        const ar = str.split('=');
-        const rv = {};
-        for (i = 0; i < ar.length - 1; i += 2) {
-            const name = decodeURIComponent(ar[i]);
-            rv[name] = decodeURIComponent(ar[i + 1]);
-        }
-        return rv;
-    }
-    static get scoreLibrary() {
-        return [
-            { alias: 'bach', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/BachInvention.json' },
-            { alias: 'yama', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json' },
-            { alias: 'handel', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Messiah Pt 1-1.json' },
-            { alias: 'bambino', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Gesu Bambino.json' },
-            { alias: 'shade', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Shade.json' },
-            { alias: 'postillion', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Postillionlied.json' },
-            { alias: 'preciousLord', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Precious Lord.json' },
-            { alias: 'dichterliebe', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Dichterliebe01.xml' },
-            { alias: 'beethoven', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Beethoven_AnDieFerneGeliebte.xml' },
-            { alias: 'mozart', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Mozart_AnChloe.xml' },
-            { alias: 'joplin', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/ScottJoplin_The_Entertainer.xml' }
-        ];
-    }
-    static _deferCreateTranslator(lang) {
-        setTimeout(() => {
-            translationEditor_1.SmoTranslationEditor.startEditor(lang);
-        }, 1);
-    }
-    static _deferLanguageSelection(lang) {
-        setTimeout(() => {
-            language_1.SmoTranslator.setLanguage(lang);
-        }, 1);
-    }
-}
-exports.SuiApplication = SuiApplication;
-
-
-/***/ }),
-
-/***/ "./src/ui/controller.js":
-/*!******************************!*\
-  !*** ./src/ui/controller.js ***!
-  \******************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.suiController = void 0;
-const ribbon_1 = __webpack_require__(/*! ./ribbon */ "./src/ui/ribbon.js");
-const exceptions_1 = __webpack_require__(/*! ./exceptions */ "./src/ui/exceptions.js");
-const qwerty_1 = __webpack_require__(/*! ./qwerty */ "./src/ui/qwerty.js");
-const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialog.js");
-const piano_1 = __webpack_require__(/*! ../render/sui/piano */ "./src/render/sui/piano.ts");
-const layoutDebug_1 = __webpack_require__(/*! ../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
-const help_1 = __webpack_require__(/*! ./help */ "./src/ui/help.js");
-const tracker_1 = __webpack_require__(/*! ../render/sui/tracker */ "./src/render/sui/tracker.ts");
-const editorKeys_1 = __webpack_require__(/*! ./keyBindings/default/editorKeys */ "./src/ui/keyBindings/default/editorKeys.js");
-const trackerKeys_1 = __webpack_require__(/*! ./keyBindings/default/trackerKeys */ "./src/ui/keyBindings/default/trackerKeys.js");
-const defaultRibbon_1 = __webpack_require__(/*! ./ribbonLayout/default/defaultRibbon */ "./src/ui/ribbonLayout/default/defaultRibbon.js");
-// ## suiController
-// ## Description:
-// Manages DOM events and binds keyboard and mouse events
-// to editor and menu commands, tracker and layout manager.
-// ### Event model:
-// Events can come from the following sources:
-// 1. menus or dialogs can send dialogDismiss or menuDismiss event, indicating a modal has been dismissed.
-// 2. window resize events
-// 3. keyboard, when in editor mode.  When modals or dialogs are active, wait for dismiss event
-// 4. svg piano key events smo-piano-key
-// 5. tracker change events tracker-selection
-class suiController {
-    constructor(params) {
-        Vex.Merge(this, suiController.defaults);
-        Vex.Merge(this, params);
-        window.suiControllerInstance = this;
-        this.view = params.view;
-        this.eventSource = params.eventSource;
-        this.tracker = this.view.tracker; // needed for key event handling
-        this.keyCommands.controller = this;
-        this.keyCommands.view = this.view;
-        this.resizing = false;
-        this.undoStatus = 0;
-        this.trackScrolling = false;
-        this.keyHandlerObj = null;
-        this.ribbon = new ribbon_1.RibbonButtons({
-            ribbons: defaultRibbon_1.defaultRibbonLayout.ribbons,
-            ribbonButtons: defaultRibbon_1.defaultRibbonLayout.ribbonButtons,
-            menus: this.menus,
-            controller: this,
-            keyCommands: this.keyCommands,
-            view: this.view,
-            eventSource: this.eventSource
-        });
-        this.menus.setController(this);
-        // create globbal exception instance
-        this.exhandler = new exceptions_1.SuiExceptionHandler(this);
-        this.bindEvents();
-        // Only display the ribbon one time b/c it's expensive operation
-        this.ribbon.display();
-        this.bindResize();
-        this.view.startRenderingEngine();
-        this.createPiano();
-    }
-    static get scrollable() {
-        return '.musicRelief';
-    }
-    static get keyboardWidget() {
-        return suiController._kbWidget;
-    }
-    static set keyboardWidget(value) {
-        suiController._kbWidget = value;
-        if (suiController._kbWidget) {
-            qwerty_1.Qwerty.displayKb();
-        }
-    }
-    get isLayoutQuiet() {
-        return ((this.view.renderer.passState == SuiRenderState.passStates.clean && this.renderer.layout.dirty == false)
-            || this.view.renderer.passState == SuiRenderState.passStates.replace);
-    }
-    handleScrollEvent(ev) {
-        const self = this;
-        if (self.trackScrolling) {
-            return;
-        }
-        self.trackScrolling = true;
-        setTimeout(function () {
-            try {
-                // wait until redraw is done to track scroll events.
-                self.trackScrolling = false;
-                // Thisi s a WIP...
-                self.view.tracker.scroller.handleScroll($(suiController.scrollable)[0].scrollLeft, $(suiController.scrollable)[0].scrollTop);
-            }
-            catch (e) {
-                exceptions_1.SuiExceptionHandler.instance.exceptionHandler(e);
-            }
-        }, 500);
-    }
-    createPiano() {
-        this.piano = new piano_1.SuiPiano(this.view);
-    }
-    resizeEvent() {
-        var self = this;
-        if (this.resizing) {
-            return;
-        }
-        if ($('body').hasClass('printing')) {
-            return;
-        }
-        this.resizing = true;
-        setTimeout(function () {
-            console.log('resizing');
-            self.resizing = false;
-            self.piano.handleResize();
-        }, 500);
-    }
-    createModifierDialog(modifierSelection) {
-        var parameters = {
-            modifier: modifierSelection.modifier,
-            view: this.view, eventSource: this.eventSource,
-            completeNotifier: this, keyCommands: this.keyCommands
-        };
-        return dialog_1.SuiModifierDialogFactory.createDialog(modifierSelection.modifier, parameters);
-    }
-    // If the user has selected a modifier via the mouse/touch, bring up mod dialog
-    // for that modifier
-    trackerModifierSelect(ev) {
-        var modSelection = this.view.tracker.getSelectedModifier();
-        if (modSelection) {
-            var dialog = this.createModifierDialog(modSelection);
-            if (dialog) {
-                // this.view.tracker.selectSuggestion(ev);
-                return;
-                // this.unbindKeyboardForModal(dialog);
-            }
-            else {
-                this.view.tracker.advanceModifierSelection(ev);
-            }
-        }
-        else {
-            this.view.tracker.selectSuggestion(ev);
-        }
-        return;
-    }
-    // ### bindResize
-    // This handles both resizing of the music area (scrolling) and resizing of the window.
-    // The latter results in a redraw, the former just resets the client/logical map of elements
-    // in the tracker.
-    bindResize() {
-        const self = this;
-        const el = $(suiController.scrollable)[0];
-        // unit test programs don't have resize html
-        if (!el) {
-            return;
-        }
-        window.addEventListener('resize', function () {
-            self.resizeEvent();
-        });
-        let scrollCallback = (ev) => {
-            self.handleScrollEvent(ev);
-        };
-        el.onscroll = scrollCallback;
-    }
-    // ### renderElement
-    // return render element that is the DOM parent of the svg
-    get renderElement() {
-        return this.view.renderer.renderElement;
-    }
-    // ## keyBindingDefaults
-    // ### Description:
-    // Different applications can create their own key bindings, these are the defaults.
-    // Many editor commands can be reached by a single keystroke.  For more advanced things there
-    // are menus.
-    static get keyBindingDefaults() {
-        var editorKeys = suiController.editorKeyBindingDefaults;
-        editorKeys.forEach((key) => {
-            key.module = 'keyCommands';
-        });
-        var trackerKeys = suiController.trackerKeyBindingDefaults;
-        trackerKeys.forEach((key) => {
-            key.module = 'tracker';
-        });
-        return trackerKeys.concat(editorKeys);
-    }
-    // ## editorKeyBindingDefaults
-    // ## Description:
-    // execute a simple command on the editor, based on a keystroke.
-    static get editorKeyBindingDefaults() {
-        return editorKeys_1.defaultEditorKeys.keys;
-    }
-    // ## trackerKeyBindingDefaults
-    // ### Description:
-    // Key bindings for the tracker.  The tracker is the 'cursor' in the music
-    // that lets you select and edit notes.
-    static get trackerKeyBindingDefaults() {
-        return trackerKeys_1.defaultTrackerKeys.keys;
-    }
-    helpControls() {
-        var self = this;
-        var rebind = function () {
-            self.bindEvents();
-        };
-    }
-    static set reentry(value) {
-        suiController._reentry = value;
-    }
-    static get reentry() {
-        if (typeof (suiController['_reentry']) == 'undefined') {
-            suiController._reentry = false;
-        }
-        return suiController._reentry;
-    }
-    menuHelp() {
-        help_1.SuiHelp.displayHelp();
-    }
-    static get defaults() {
-        return {
-            keyBind: suiController.keyBindingDefaults
-        };
-    }
-    // ### unbindKeyboardForModal
-    // Global events from keyboard and pointer are handled by this object.  Modal
-    // UI elements take over the events, and then let the controller know when
-    // the modals go away.
-    unbindKeyboardForModal(dialog) {
-        if (this.unbound) {
-            console.log('received duplicate bind event');
-            return;
-        }
-        this.unbound = true;
-        layoutDebug_1.layoutDebug.addDialogDebug('controller: unbindKeyboardForModal');
-        const rebind = () => {
-            this.unbound = false;
-            this.bindEvents();
-            layoutDebug_1.layoutDebug.addDialogDebug('controller: unbindKeyboardForModal resolve');
-        };
-        this.eventSource.unbindKeydownHandler(this.keydownHandler);
-        this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
-        this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
-        dialog.closeModalPromise.then(rebind);
-    }
-    evKey(evdata) {
-        if ($('body').hasClass('translation-mode')) {
-            return;
-        }
-        console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
-            evdata.code + "'"
-            + " shift='" + evdata.shiftKey + "' control='" + evdata.ctrlKey + "'" + " alt='" + evdata.altKey + "'");
-        evdata.preventDefault();
-        if (suiController.keyboardWidget) {
-            qwerty_1.Qwerty.handleKeyEvent(evdata);
-        }
-        const dataCopy = tracker_1.SuiTracker.serializeEvent(evdata);
-        this.view.renderer.updatePromise().then(() => {
-            if (dataCopy.key == '?') {
-                help_1.SuiHelp.displayHelp();
-            }
-            if (dataCopy.key == '/') {
-                // set up menu DOM.
-                this.menus.slashMenuMode(this);
-            }
-            if (dataCopy.key == 'Enter') {
-                this.trackerModifierSelect(dataCopy);
-            }
-            var binding = this.keyBind.find((ev) => ev.event === 'keydown' && ev.key === dataCopy.key &&
-                ev.ctrlKey === dataCopy.ctrlKey &&
-                ev.altKey === dataCopy.altKey && dataCopy.shiftKey === ev.shiftKey);
-            if (binding) {
-                try {
-                    this[binding.module][binding.action](dataCopy);
-                }
-                catch (e) {
-                    if (typeof (e) === 'string') {
-                        console.error(e);
-                    }
-                    this.exhandler.exceptionHandler(e);
-                }
-            }
-        });
-    }
-    mouseMove(ev) {
-        this.view.tracker.intersectingArtifact({
-            x: ev.clientX,
-            y: ev.clientY
-        });
-    }
-    mouseClick(ev) {
-        const dataCopy = tracker_1.SuiTracker.serializeEvent(ev);
-        this.view.renderer.updatePromise().then(() => {
-            this.view.tracker.selectSuggestion(dataCopy);
-            var modifier = this.view.tracker.getSelectedModifier();
-            if (modifier) {
-                this.createModifierDialog(modifier);
-            }
-        });
-    }
-    bindEvents() {
-        const self = this;
-        const tracker = this.view.tracker;
-        $('body').off('redrawScore').on('redrawScore', function () {
-            self.handleRedrawTimer();
-        });
-        $('body').off('forceScrollEvent').on('forceScrollEvent', function () {
-            self.handleScrollEvent();
-        });
-        $('body').off('forceResizeEvent').on('forceResizeEvent', function () {
-            self.resizeEvent();
-        });
-        this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
-        this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
-        this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
-        this.helpControls();
-        window.addEventListener('error', function (e) {
-            exceptions_1.SuiExceptionHandler.instance.exceptionHandler(e);
-        });
-    }
-}
-exports.suiController = suiController;
-
-
-/***/ }),
-
 /***/ "./src/ui/dialog.js":
 /*!**************************!*\
   !*** ./src/ui/dialog.js ***!
@@ -30168,7 +30716,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiDialogBase = exports.SuiModifierDialogFactory = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const svgHelpers_1 = __webpack_require__(/*! ../common/svgHelpers */ "./src/common/svgHelpers.ts");
+const svgHelpers_1 = __webpack_require__(/*! ../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.js");
 const language_1 = __webpack_require__(/*! ./i18n/language */ "./src/ui/i18n/language.js");
 const noteModifiers_1 = __webpack_require__(/*! ../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
@@ -30317,7 +30865,7 @@ class SuiDialogBase {
         $(dge).css('left', '' + x + 'px');
         // Make sure the dialog is visible if the selection is not
         setTimeout(() => {
-            scroller.scrollVisibleBox(svgHelpers_1.svgHelpers.smoBox(box));
+            scroller.scrollVisibleBox(svgHelpers_1.SvgHelpers.smoBox(box));
         }, 1);
     }
     applyDisplayOptions() {
@@ -30348,7 +30896,7 @@ class SuiDialogBase {
     // ### positionGlobally
     // position the dialog box in the center of the current scroll region
     positionGlobally() {
-        const box = svgHelpers_1.svgHelpers.boxPoints(250, 250, 1, 1);
+        const box = svgHelpers_1.SvgHelpers.boxPoints(250, 250, 1, 1);
         SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
     }
     // ### postionFromSelection
@@ -30418,7 +30966,7 @@ class SuiDialogBase {
         if (this.modifier && this.modifier.renderedBox) {
             this.position(this.modifier.renderedBox);
         }
-        this.view.tracker.scroller.scrollVisibleBox(svgHelpers_1.svgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect()));
+        this.view.tracker.scroller.scrollVisibleBox(svgHelpers_1.SvgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect()));
         this.makeDraggable();
     }
     // ### makeDraggable
@@ -31947,9 +32495,9 @@ const dialog_1 = __webpack_require__(/*! ../dialog */ "./src/ui/dialog.js");
 const staffComponents_1 = __webpack_require__(/*! ./staffComponents */ "./src/ui/dialogs/staffComponents.js");
 const measure_1 = __webpack_require__(/*! ../../smo/data/measure */ "./src/smo/data/measure.ts");
 const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
-const musicHelpers_1 = __webpack_require__(/*! ../../common/musicHelpers */ "./src/common/musicHelpers.ts");
+const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
-const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.ts");
+const svgHelpers_1 = __webpack_require__(/*! ../../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
 // ## measureDialogs.js
 // This file contains dialogs that affect all measures at a certain position,
 // such as tempo or time signature.
@@ -32077,7 +32625,7 @@ class SuiMeasureDialog extends dialog_1.SuiDialogBase {
         // TODO: move pickup out of this dialog
         if (this.pickupCtrl.changeFlag) {
             if (this.pickupCtrl.toggleCtrl.getValue() === false) {
-                this.view.createPickup(musicHelpers_1.smoMusic.timeSignatureToTicks(this.measure.timeSignature));
+                this.view.createPickup(music_1.SmoMusic.timeSignatureToTicks(this.measure.timeSignature));
             }
             else {
                 this.view.createPickup(this.pickupCtrl.dropdownCtrl.getValue());
@@ -32637,7 +33185,7 @@ class SuiTempoDialog extends dialog_1.SuiDialogBase {
             parameters.modifier = new measureModifiers_1.SmoTempoText();
         }
         if (!parameters.modifier.renderedBox) {
-            parameters.modifier.renderedBox = svgHelpers_1.svgHelpers.copyBox(measure.svg.renderedBox);
+            parameters.modifier.renderedBox = svgHelpers_1.SvgHelpers.copyBox(measure.svg.renderedBox);
         }
         if (!parameters.modifier || !parameters.measures) {
             throw new Error('modifier attribute dialog must have modifier and selection');
@@ -34865,7 +35413,7 @@ const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers *
 const layoutDebug_1 = __webpack_require__(/*! ../../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const svgHelpers_1 = __webpack_require__(/*! ../../common/svgHelpers */ "./src/common/svgHelpers.ts");
+const svgHelpers_1 = __webpack_require__(/*! ../../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
 class SuiLyricDialog extends dialog_1.SuiDialogBase {
     static get ctor() {
         return 'SuiLyricDialog';
@@ -35603,7 +36151,7 @@ class SuiTextTransformDialog extends dialog_1.SuiDialogBase {
         this.eventSource.unbindMouseUpHandler(this.mouseUpHandler);
         this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
         this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
-        svgHelpers_1.svgHelpers.eraseOutline(this.view.renderer.context.svg, 'text-drag');
+        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.context.svg, 'text-drag');
         $('body').removeClass('showAttributeDialog');
         $('body').removeClass('textEditor');
         this.complete();
@@ -35936,360 +36484,6 @@ exports.SuiTreeComponent = SuiTreeComponent;
 
 /***/ }),
 
-/***/ "./src/ui/dom.js":
-/*!***********************!*\
-  !*** ./src/ui/dom.js ***!
-  \***********************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiDom = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const svgHelpers_1 = __webpack_require__(/*! ../common/svgHelpers */ "./src/common/svgHelpers.ts");
-const piano_1 = __webpack_require__(/*! ../render/sui/piano */ "./src/render/sui/piano.ts");
-class SuiDom {
-    static splash() {
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
-        var logoPath = SmoConfig.smoPath + '/styles/images/logo.png';
-        var r = b('div').classes('bug-modal').append(b('img').attr('src', logoPath).classes('splash-logo'))
-            .append(b('button').classes('icon icon-cross bug-dismiss-button'))
-            .append(b('span').classes('splash-title').text('Sm'))
-            .append(b('span').classes('splash-shine').text('ooooooooo'))
-            .append(b('span').classes('splash-title').text('sic'));
-        $('.bugDialog').append(r.dom());
-        $('body').addClass('splashScreen modal');
-        setTimeout(function () {
-            $('body').removeClass('splashScreen modal');
-        }, 1000);
-    }
-    static createDom(title) {
-        if (title) {
-            $('h1.testTitle').text(title);
-        }
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
-        var smoId = SmoConfig.smoDomContainer;
-        var vexId = SmoConfig.vexDomContainer;
-        var r = b('div').classes('dom-container')
-            .append(b('div').classes('modes'))
-            .append(b('div').classes('overlay'))
-            .append(b('div').classes('draganime hide'))
-            .append(b('div').classes('textEdit hide'))
-            .append(b('div').classes('glyphRender hide').attr('id', 'glyphRender'))
-            .append(b('div').classes('translation-editor'))
-            .append(b('div').classes('attributeDialog'))
-            .append(b('progress').attr('id', 'renderProgress').attr('value', '0').attr('max', '100'))
-            .append(b('div').classes('qwertyKb'))
-            .append(b('div').classes('saveLink'))
-            .append(b('div').classes('bugDialog'))
-            .append(b('div').classes('printFrame'))
-            .append(b('div').classes('menuContainer'))
-            .append(b('div').classes('workspace language-dir').attr('dir', SmoConfig.languageDir)
-            .append(b('div').classes('helpDialog'))
-            .append(b('div').classes('control-bar')
-            .append(b('div').classes('titleText').text('Smoosic'))
-            .append(b('div').classes('piano-container')
-            .append(b('div').classes('key-left-ctrl'))
-            .append(b('div').classes('piano-keys'))
-            .append(b('div').classes('key-right-ctrl')))
-            .append(b('div').classes('controls-top')))
-            .append(b('div').classes('media')
-            .append(b('div').classes('controls-left'))
-            .append(b('div').classes('controls-menu-message'))
-            .append(b('div').classes('musicRelief')
-            .append(b('div').classes('musicContainer').attr('id', vexId)
-            .attr('dir', 'ltr')))));
-        $('#' + smoId).append(r.dom());
-        var pianoDom = $('.piano-keys')[0];
-        var svg = document.createElementNS(svgHelpers_1.svgHelpers.namespace, 'svg');
-        svg.id = 'piano-svg';
-        svg.setAttributeNS('', 'width', '' + piano_1.SuiPiano.owidth * piano_1.SuiPiano.dimensions.octaves);
-        svg.setAttributeNS('', 'height', '' + piano_1.SuiPiano.dimensions.wheight);
-        svg.setAttributeNS('', 'viewBox', '0 0 ' + piano_1.SuiPiano.owidth * piano_1.SuiPiano.dimensions.octaves + ' ' + piano_1.SuiPiano.dimensions.wheight);
-        pianoDom.appendChild(svg);
-    }
-}
-exports.SuiDom = SuiDom;
-
-
-/***/ }),
-
-/***/ "./src/ui/entryPoint.ts":
-/*!******************************!*\
-  !*** ./src/ui/entryPoint.ts ***!
-  \******************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Smo = void 0;
-// Smoosic relies on dynamic creation of almost everything.  This class exports all the symbols
-// that need to be created via reflection.
-// ui application components
-const application_1 = __webpack_require__(/*! ./application */ "./src/ui/application.ts");
-const controller_1 = __webpack_require__(/*! ./controller */ "./src/ui/controller.js");
-const ribbon_1 = __webpack_require__(/*! ./ribbon */ "./src/ui/ribbon.js");
-const exceptions_1 = __webpack_require__(/*! ./exceptions */ "./src/ui/exceptions.js");
-const qwerty_1 = __webpack_require__(/*! ./qwerty */ "./src/ui/qwerty.js");
-const piano_1 = __webpack_require__(/*! ../render/sui/piano */ "./src/render/sui/piano.ts");
-const dom_1 = __webpack_require__(/*! ./dom */ "./src/ui/dom.js");
-const basic_1 = __webpack_require__(/*! ../music/basic */ "./src/music/basic.js");
-const help_1 = __webpack_require__(/*! ./help */ "./src/ui/help.js");
-// Language strings
-const language_en_1 = __webpack_require__(/*! ./i18n/language_en */ "./src/ui/i18n/language_en.js");
-const language_ar_1 = __webpack_require__(/*! ./i18n/language_ar */ "./src/ui/i18n/language_ar.js");
-// ui dialogs and menus
-// Dialogs
-const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialog.js");
-const measureDialogs_1 = __webpack_require__(/*! ./dialogs/measureDialogs */ "./src/ui/dialogs/measureDialogs.js");
-const scoreDialogs_1 = __webpack_require__(/*! ./dialogs/scoreDialogs */ "./src/ui/dialogs/scoreDialogs.js");
-const libraryDialog_1 = __webpack_require__(/*! ./dialogs/libraryDialog */ "./src/ui/dialogs/libraryDialog.js");
-const textDialogs_1 = __webpack_require__(/*! ./dialogs/textDialogs */ "./src/ui/dialogs/textDialogs.js");
-const staffDialogs_1 = __webpack_require__(/*! ./dialogs/staffDialogs */ "./src/ui/dialogs/staffDialogs.js");
-const fileDialogs_1 = __webpack_require__(/*! ./dialogs/fileDialogs */ "./src/ui/dialogs/fileDialogs.js");
-// Dialog components
-const dialogComponents_1 = __webpack_require__(/*! ./dialogComponents */ "./src/ui/dialogComponents.js");
-const fontComponent_1 = __webpack_require__(/*! ./dialogs/fontComponent */ "./src/ui/dialogs/fontComponent.js");
-const treeComponent_1 = __webpack_require__(/*! ./dialogs/treeComponent */ "./src/ui/dialogs/treeComponent.js");
-const textComponents_1 = __webpack_require__(/*! ./dialogs/textComponents */ "./src/ui/dialogs/textComponents.js");
-const staffComponents_1 = __webpack_require__(/*! ./dialogs/staffComponents */ "./src/ui/dialogs/staffComponents.js");
-// menus
-const menus_1 = __webpack_require__(/*! ./menus */ "./src/ui/menus.js");
-const xhrLoader_1 = __webpack_require__(/*! ./fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.js");
-const promiseHelpers_1 = __webpack_require__(/*! ../common/promiseHelpers */ "./src/common/promiseHelpers.js");
-// render library
-const scoreView_1 = __webpack_require__(/*! ../render/sui/scoreView */ "./src/render/sui/scoreView.ts");
-const scoreViewOperations_1 = __webpack_require__(/*! ../render/sui/scoreViewOperations */ "./src/render/sui/scoreViewOperations.ts");
-const scoreRender_1 = __webpack_require__(/*! ../render/sui/scoreRender */ "./src/render/sui/scoreRender.ts");
-const layoutDebug_1 = __webpack_require__(/*! ../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
-const mapper_1 = __webpack_require__(/*! ../render/sui/mapper */ "./src/render/sui/mapper.ts");
-const scroller_1 = __webpack_require__(/*! ../render/sui/scroller */ "./src/render/sui/scroller.ts");
-const actionPlayback_1 = __webpack_require__(/*! ../render/sui/actionPlayback */ "./src/render/sui/actionPlayback.ts");
-// SMO components
-const score_1 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
-const xmlScore_1 = __webpack_require__(/*! ../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
-const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
-const note_1 = __webpack_require__(/*! ../smo/data/note */ "./src/smo/data/note.ts");
-const tickDuration_1 = __webpack_require__(/*! ../smo/xform/tickDuration */ "./src/smo/xform/tickDuration.ts");
-const staffModifiers_1 = __webpack_require__(/*! ../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
-const measure_1 = __webpack_require__(/*! ../smo/data/measure */ "./src/smo/data/measure.ts");
-const selections_1 = __webpack_require__(/*! ../smo/xform/selections */ "./src/smo/xform/selections.ts");
-const noteModifiers_1 = __webpack_require__(/*! ../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
-const systemStaff_1 = __webpack_require__(/*! ../smo/data/systemStaff */ "./src/smo/data/systemStaff.ts");
-const scoreModifiers_1 = __webpack_require__(/*! ../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
-const measureModifiers_1 = __webpack_require__(/*! ../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
-const toVex_1 = __webpack_require__(/*! ../smo/xform/toVex */ "./src/smo/xform/toVex.ts");
-const getClass = (jsonString) => {
-    return eval('Smo.' + jsonString);
-};
-exports.Smo = {
-    // Application-level classes
-    SuiApplication: application_1.SuiApplication,
-    SuiDom: dom_1.SuiDom, suiController: controller_1.suiController, SuiExceptionHandler: exceptions_1.SuiExceptionHandler,
-    Qwerty: qwerty_1.Qwerty, SuiHelp: help_1.SuiHelp,
-    // Ribbon buttons
-    RibbonButtons: ribbon_1.RibbonButtons, NoteButtons: ribbon_1.NoteButtons, TextButtons: ribbon_1.TextButtons, ChordButtons: ribbon_1.ChordButtons, MicrotoneButtons: ribbon_1.MicrotoneButtons,
-    StaveButtons: ribbon_1.StaveButtons, BeamButtons: ribbon_1.BeamButtons, MeasureButtons: ribbon_1.MeasureButtons, DebugButtons: ribbon_1.DebugButtons, DurationButtons: ribbon_1.DurationButtons,
-    VoiceButtons: ribbon_1.VoiceButtons, PlayerButtons: ribbon_1.PlayerButtons, ArticulationButtons: ribbon_1.ArticulationButtons, NavigationButtons: ribbon_1.NavigationButtons,
-    DisplaySettings: ribbon_1.DisplaySettings, ExtendedCollapseParent: ribbon_1.ExtendedCollapseParent,
-    // Menus
-    suiMenuManager: menus_1.suiMenuManager, SuiScoreMenu: menus_1.SuiScoreMenu, SuiFileMenu: menus_1.SuiFileMenu, SuiLibraryMenu: menus_1.SuiLibraryMenu,
-    SuiDynamicsMenu: menus_1.SuiDynamicsMenu, SuiTimeSignatureMenu: menus_1.SuiTimeSignatureMenu, SuiKeySignatureMenu: menus_1.SuiKeySignatureMenu, SuiStaffModifierMenu: menus_1.SuiStaffModifierMenu,
-    SuiLanguageMenu: menus_1.SuiLanguageMenu, SuiMeasureMenu: menus_1.SuiMeasureMenu, SuiAddStaffMenu: menus_1.SuiAddStaffMenu,
-    // Dialogs
-    SuiTempoDialog: measureDialogs_1.SuiTempoDialog, SuiInstrumentDialog: measureDialogs_1.SuiInstrumentDialog, SuiModifierDialogFactory: dialog_1.SuiModifierDialogFactory, SuiLibraryDialog: libraryDialog_1.SuiLibraryDialog,
-    SuiScoreViewDialog: scoreDialogs_1.SuiScoreViewDialog, SuiGlobalLayoutDialog: scoreDialogs_1.SuiGlobalLayoutDialog, SuiScoreIdentificationDialog: scoreDialogs_1.SuiScoreIdentificationDialog,
-    SuiScoreFontDialog: scoreDialogs_1.SuiScoreFontDialog, SuiLayoutDialog: scoreDialogs_1.SuiLayoutDialog, SuiMeasureDialog: measureDialogs_1.SuiMeasureDialog, SuiInsertMeasures: measureDialogs_1.SuiInsertMeasures,
-    SuiTimeSignatureDialog: measureDialogs_1.SuiTimeSignatureDialog, SuiTextTransformDialog: textDialogs_1.SuiTextTransformDialog, SuiLyricDialog: textDialogs_1.SuiLyricDialog, SuiChordChangeDialog: textDialogs_1.SuiChordChangeDialog,
-    SuiStaffModifierDialog: staffDialogs_1.SuiStaffModifierDialog, SuiSlurAttributesDialog: staffDialogs_1.SuiSlurAttributesDialog, SuiTieAttributesDialog: staffDialogs_1.SuiTieAttributesDialog, SuiVoltaAttributeDialog: staffDialogs_1.SuiVoltaAttributeDialog,
-    SuiHairpinAttributesDialog: staffDialogs_1.SuiHairpinAttributesDialog, SuiStaffGroupDialog: staffDialogs_1.SuiStaffGroupDialog, helpModal: textDialogs_1.helpModal,
-    SuiFileDialog: fileDialogs_1.SuiFileDialog, SuiLoadFileDialog: fileDialogs_1.SuiLoadFileDialog, SuiLoadMxmlDialog: fileDialogs_1.SuiLoadMxmlDialog,
-    SuiLoadActionsDialog: fileDialogs_1.SuiLoadActionsDialog, SuiPrintFileDialog: fileDialogs_1.SuiPrintFileDialog, SuiSaveFileDialog: fileDialogs_1.SuiSaveFileDialog, SuiSaveXmlDialog: fileDialogs_1.SuiSaveXmlDialog,
-    SuiSaveMidiDialog: fileDialogs_1.SuiSaveMidiDialog, SuiSaveActionsDialog: fileDialogs_1.SuiSaveActionsDialog,
-    // Dialog components
-    SuiTreeComponent: treeComponent_1.SuiTreeComponent,
-    SuiDropdownComponent: dialogComponents_1.SuiDropdownComponent,
-    SuiRockerComponent: dialogComponents_1.SuiRockerComponent, SuiFileDownloadComponent: dialogComponents_1.SuiFileDownloadComponent,
-    SuiToggleComponent: dialogComponents_1.SuiToggleComponent, SuiButtonComponent: dialogComponents_1.SuiButtonComponent, SuiDropdownComposite: dialogComponents_1.SuiDropdownComposite,
-    SuiToggleComposite: dialogComponents_1.SuiToggleComposite, SuiButtonComposite: dialogComponents_1.SuiButtonComposite, SuiRockerComposite: dialogComponents_1.SuiRockerComposite, SuiTextInputComposite: dialogComponents_1.SuiTextInputComposite,
-    SuiFontComponent: fontComponent_1.SuiFontComponent, SuiTextInPlace: textComponents_1.SuiTextInPlace, SuiLyricComponent: textComponents_1.SuiLyricComponent, SuiChordComponent: textComponents_1.SuiChordComponent, SuiDragText: textComponents_1.SuiDragText,
-    SuiNoteTextComponent: textComponents_1.SuiNoteTextComponent, SuiTextBlockComponent: fontComponent_1.SuiTextBlockComponent, SuiTextInputComponent: dialogComponents_1.SuiTextInputComponent,
-    SuiDynamicModifierDialog: textDialogs_1.SuiDynamicModifierDialog, CheckboxDropdownComponent: staffComponents_1.CheckboxDropdownComponent, TieMappingComponent: staffComponents_1.TieMappingComponent, StaffAddRemoveComponent: staffComponents_1.StaffAddRemoveComponent,
-    StaffCheckComponent: staffComponents_1.StaffCheckComponent, TextCheckComponent: staffComponents_1.TextCheckComponent,
-    SuiXhrLoader: xhrLoader_1.SuiXhrLoader, PromiseHelpers: promiseHelpers_1.PromiseHelpers,
-    // Rendering components
-    SuiPiano: piano_1.SuiPiano, layoutDebug: layoutDebug_1.layoutDebug, SuiScoreView: scoreView_1.SuiScoreView, SuiScroller: scroller_1.SuiScroller, SuiMapper: mapper_1.SuiMapper, SuiScoreRender: scoreRender_1.SuiScoreRender,
-    SuiScoreViewOperations: scoreViewOperations_1.SuiScoreViewOperations, SuiActionPlayback: actionPlayback_1.SuiActionPlayback,
-    // Smo Music Objects
-    SmoScore: score_1.SmoScore,
-    mxmlScore: xmlScore_1.mxmlScore,
-    SmoMeasure: measure_1.SmoMeasure,
-    SmoSystemStaff: systemStaff_1.SmoSystemStaff,
-    SmoNote: note_1.SmoNote,
-    // staff modifier
-    SmoStaffHairpin: staffModifiers_1.SmoStaffHairpin, StaffModifierBase: staffModifiers_1.StaffModifierBase,
-    SmoInstrument: staffModifiers_1.SmoInstrument, SmoPartMap: staffModifiers_1.SmoPartMap, SmoSlur: staffModifiers_1.SmoSlur, SmoTie: staffModifiers_1.SmoTie, SmoSystemGroup: scoreModifiers_1.SmoSystemGroup,
-    // measure modifiers
-    SmoRehearsalMark: measureModifiers_1.SmoRehearsalMark, SmoMeasureFormat: measureModifiers_1.SmoMeasureFormat, SmoBarline: measureModifiers_1.SmoBarline, SmoRepeatSymbol: measureModifiers_1.SmoRepeatSymbol,
-    SmoVolta: measureModifiers_1.SmoVolta, SmoMeasureText: measureModifiers_1.SmoMeasureText, SmoTempoText: measureModifiers_1.SmoTempoText,
-    // note modifiers
-    SmoOrnament: noteModifiers_1.SmoOrnament,
-    SmoArticulation: noteModifiers_1.SmoArticulation, SmoDynamicText: noteModifiers_1.SmoDynamicText, SmoGraceNote: noteModifiers_1.SmoGraceNote, SmoMicrotone: noteModifiers_1.SmoMicrotone, SmoLyric: noteModifiers_1.SmoLyric,
-    // Smo Transformers
-    SmoSelection: selections_1.SmoSelection, SmoDuration: tickDuration_1.SmoDuration, UndoBuffer: undo_1.UndoBuffer, SmoToVex: toVex_1.SmoToVex,
-    // new score bootstrap
-    basicJson: basic_1.basicJson,
-    emptyScoreJson: basic_1.emptyScoreJson,
-    // strings
-    quickStartHtmlen: language_en_1.quickStartHtmlen, selectionHtmlen: language_en_1.selectionHtmlen, enterDurationsHtmlen: language_en_1.enterDurationsHtmlen, enterPitchesHtmlen: language_en_1.enterPitchesHtmlen,
-    quickStartHtmlar: language_ar_1.quickStartHtmlar, selectionHtmlar: language_ar_1.selectionHtmlar, enterDurationsHtmlar: language_ar_1.enterDurationsHtmlar, enterPitchesHtmlar: language_ar_1.enterPitchesHtmlar,
-    getClass
-};
-exports.default = exports.Smo;
-
-
-/***/ }),
-
-/***/ "./src/ui/eventSource.js":
-/*!*******************************!*\
-  !*** ./src/ui/eventSource.js ***!
-  \*******************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.browserEventSource = void 0;
-// ##browserEventSource
-// Handle registration for events.  Can be used for automated testing, so all
-// the events are consolidated in one place so they can be simulated or recorded
-class browserEventSource {
-    constructor(evMask) {
-        this.keydownHandlers = [];
-        this.mouseMoveHandlers = [];
-        this.mouseClickHandlers = [];
-        this.mouseUpHandlers = [];
-        this.mouseDownHandlers = [];
-        this.domTriggers = [];
-        this.scrollers = [];
-        this.handleKeydown = this.evKey.bind(this);
-        this.vexContext = null;
-        window.addEventListener("keydown", this.handleKeydown, true);
-    }
-    evKey(event) {
-        this.keydownHandlers.forEach((handler) => {
-            handler.sink[handler.method](event);
-        });
-    }
-    mouseMove(event) {
-        this.mouseMoveHandlers.forEach((handler) => {
-            handler.sink[handler.method](event);
-        });
-    }
-    mouseClick(event) {
-        this.mouseClickHandlers.forEach((handler) => {
-            handler.sink[handler.method](event);
-        });
-    }
-    mouseDown(event) {
-        this.mouseDownHandlers.forEach((handler) => {
-            handler.sink[handler.method](event);
-        });
-    }
-    mouseUp(event) {
-        this.mouseUpHandlers.forEach((handler) => {
-            handler.sink[handler.method](event);
-        });
-    }
-    setRenderElement(renderElement) {
-        this.renderElement = renderElement;
-        var self = this;
-        this.handleMouseMove = this.mouseMove.bind(this);
-        this.handleMouseClick = this.mouseClick.bind(this);
-        this.handleMouseUp = this.mouseUp.bind(this);
-        this.handleMouseDown = this.mouseDown.bind(this);
-        $(document)[0].addEventListener("mousemove", this.handleMouseMove);
-        $(this.renderElement)[0].addEventListener("click", this.handleMouseClick);
-        $(document)[0].addEventListener("mouseup", this.handleMouseUp);
-        $(document)[0].addEventListener("mousedown", this.handleMouseDown);
-    }
-    _unbindHandlerArray(arSrc, arDest, handler) {
-        arSrc.forEach((htest) => {
-            if (handler.symbol !== htest.symbol) {
-                arDest.push(htest);
-            }
-        });
-    }
-    unbindMouseMoveHandler(handler) {
-        var handlers = [];
-        this._unbindHandlerArray(this.mouseMoveHandlers, handlers, handler);
-        this.mouseMoveHandlers = handlers;
-    }
-    unbindMouseDownHandler(handler) {
-        var handlers = [];
-        this._unbindHandlerArray(this.mouseDownHandlers, handlers, handler);
-        this.mouseDownHandlers = handlers;
-    }
-    unbindMouseUpHandler(handler) {
-        var handlers = [];
-        this._unbindHandlerArray(this.mouseUpHandlers, handlers, handler);
-        this.mouseUpHandlers = handlers;
-    }
-    unbindMouseClickHandler(handler) {
-        var handlers = [];
-        this._unbindHandlerArray(this.mouseClickHandlers, handlers, handler);
-        this.mouseClickHandlers = handlers;
-    }
-    unbindKeydownHandler(handler) {
-        var handlers = [];
-        this._unbindHandlerArray(this.keydownHandlers, handlers, handler);
-        this.keydownHandlers = handlers;
-    }
-    bindScroller(sink, method) { }
-    // ### bindKeydownHandler
-    // add a handler for the evKey event, for keyboard data.
-    bindKeydownHandler(sink, method) {
-        var handler = {};
-        handler.symbol = Symbol();
-        handler.sink = sink;
-        handler.method = method;
-        this.keydownHandlers.push(handler);
-        return handler;
-    }
-    bindMouseMoveHandler(sink, method) {
-        var handler = { symbol: Symbol(), sink, method };
-        this.mouseMoveHandlers.push(handler);
-        return handler;
-    }
-    bindMouseUpHandler(sink, method) {
-        var handler = { symbol: Symbol(), sink, method };
-        this.mouseUpHandlers.push(handler);
-        return handler;
-    }
-    bindMouseDownHandler(sink, method) {
-        var handler = { symbol: Symbol(), sink, method };
-        this.mouseDownHandlers.push(handler);
-        return handler;
-    }
-    bindMouseClickHandler(sink, method) {
-        var handler = { symbol: Symbol(), sink, method };
-        this.mouseClickHandlers.push(handler);
-        return handler;
-    }
-    domClick(selector, sink, method, args) {
-        $(selector).off('click').on('click', function (ev) {
-            sink[method](ev, args);
-        });
-    }
-}
-exports.browserEventSource = browserEventSource;
-
-
-/***/ }),
-
 /***/ "./src/ui/exceptions.js":
 /*!******************************!*\
   !*** ./src/ui/exceptions.js ***!
@@ -36302,7 +36496,7 @@ exports.SuiExceptionHandler = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const controller_1 = __webpack_require__(/*! ./controller */ "./src/ui/controller.js");
+const eventHandler_1 = __webpack_require__(/*! ../application/eventHandler */ "./src/application/eventHandler.ts");
 class SuiExceptionHandler {
     constructor(params) {
         this.view = params.view;
@@ -36320,11 +36514,11 @@ class SuiExceptionHandler {
             return;
         }
         this.thrown = true;
-        if (window.suiController && window.suiController.reentry) {
+        if (window.SuiEventHandler && window.SuiEventHandler.reentry) {
             return;
         }
-        if (window.suiController) {
-            controller_1.suiController.reentry = true;
+        if (window.SuiEventHandler) {
+            eventHandler_1.SuiEventHandler.reentry = true;
         }
         scoreString = 'Could not serialize score.';
         try {
@@ -36373,7 +36567,7 @@ class SuiExceptionHandler {
             if (lastOp) {
                 this.view.undoBuffer.undo(this.view.score);
                 this.view.renderer.render();
-                controller_1.suiController.reentry = false;
+                eventHandler_1.SuiEventHandler.reentry = false;
             }
         });
         $('.bug-submit-button').off('click').on('click', () => {
@@ -36719,7 +36913,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SmoLanguage = exports.SmoTranslator = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const ribbon_1 = __webpack_require__(/*! ../ribbon */ "./src/ui/ribbon.js");
+const ribbon_1 = __webpack_require__(/*! ../ribbon */ "./src/ui/ribbon.ts");
 const language_ar_1 = __webpack_require__(/*! ./language_ar */ "./src/ui/i18n/language_ar.js");
 const language_de_1 = __webpack_require__(/*! ./language_de */ "./src/ui/i18n/language_de.js");
 const language_en_1 = __webpack_require__(/*! ./language_en */ "./src/ui/i18n/language_en.js");
@@ -40787,9 +40981,9 @@ exports.SmoTranslationEditor = SmoTranslationEditor;
 
 /***/ }),
 
-/***/ "./src/ui/keyBindings/default/editorKeys.js":
+/***/ "./src/ui/keyBindings/default/editorKeys.ts":
 /*!**************************************************!*\
-  !*** ./src/ui/keyBindings/default/editorKeys.js ***!
+  !*** ./src/ui/keyBindings/default/editorKeys.ts ***!
   \**************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -41280,9 +41474,9 @@ exports.defaultEditorKeys = defaultEditorKeys;
 
 /***/ }),
 
-/***/ "./src/ui/keyBindings/default/trackerKeys.js":
+/***/ "./src/ui/keyBindings/default/trackerKeys.ts":
 /*!***************************************************!*\
-  !*** ./src/ui/keyBindings/default/trackerKeys.js ***!
+  !*** ./src/ui/keyBindings/default/trackerKeys.ts ***!
   \***************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -41443,188 +41637,6 @@ class defaultTrackerKeys {
     }
 }
 exports.defaultTrackerKeys = defaultTrackerKeys;
-
-
-/***/ }),
-
-/***/ "./src/ui/keyCommands.js":
-/*!*******************************!*\
-  !*** ./src/ui/keyCommands.js ***!
-  \*******************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiKeyCommands = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const measureDialogs_1 = __webpack_require__(/*! ./dialogs/measureDialogs */ "./src/ui/dialogs/measureDialogs.js");
-const player_1 = __webpack_require__(/*! ../render/audio/player */ "./src/render/audio/player.ts");
-const noteModifiers_1 = __webpack_require__(/*! ../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
-// ## suiEditor
-// KeyCommands object handles key events and converts them into commands, updating the score and
-// display
-class SuiKeyCommands {
-    constructor(params) {
-        Vex.Merge(this, params);
-        this.slashMode = false;
-    }
-    tempoDialog() {
-        measureDialogs_1.SuiTempoDialog.createAndDisplay({
-            buttonElement: this.buttonElement,
-            buttonData: this.buttonData,
-            completeNotifier: this.controller,
-            view: this.view,
-            eventSource: this.eventSource,
-            editor: this
-        });
-    }
-    get score() {
-        return this.view.score;
-    }
-    undo() {
-        this.view.undo();
-    }
-    copy() {
-        this.view.copy();
-    }
-    paste() {
-        this.view.paste();
-    }
-    toggleBeamGroup() {
-        this.view.toggleBeamGroup();
-    }
-    beamSelections() {
-        this.view.beamSelections();
-    }
-    toggleBeamDirection() {
-        this.view.toggleBeamDirection();
-    }
-    collapseChord() {
-        this.view.collapseChord();
-    }
-    playScore() {
-        var mm = this.view.tracker.getExtremeSelection(-1);
-        if (player_1.SuiAudioPlayer.playingInstance && player_1.SuiAudioPlayer.playingInstance.paused) {
-            player_1.SuiAudioPlayer.playingInstance.play();
-            return;
-        }
-        new player_1.SuiAudioPlayer({ score: this.view.score, startIndex: mm.selector.measure, tracker: this.view.tracker }).play();
-    }
-    stopPlayer() {
-        player_1.SuiAudioPlayer.stopPlayer();
-    }
-    pausePlayer() {
-        player_1.SuiAudioPlayer.pausePlayer();
-    }
-    intervalAdd(interval, direction) {
-        this.view.setInterval(direction * interval);
-    }
-    interval(keyEvent) {
-        // code='Digit3'
-        var interval = parseInt(keyEvent.keyCode, 10) - 49; // 48 === '0', 0 indexed
-        if (isNaN(interval) || interval < 1 || interval > 7) {
-            return;
-        }
-        this.intervalAdd(interval, keyEvent.shiftKey ? -1 : 1);
-    }
-    transpose(offset) {
-        this.view.transposeSelections(offset);
-    }
-    transposeDown() {
-        this.transpose(-1);
-    }
-    transposeUp() {
-        this.transpose(1);
-    }
-    upOctave() {
-        this.transpose(12);
-    }
-    downOctave() {
-        this.transpose(-12);
-    }
-    makeRest() {
-        this.view.makeRest();
-    }
-    setPitchCommand(letter) {
-        this.view.setPitch(letter);
-    }
-    setPitch(keyEvent) {
-        this.setPitchCommand(keyEvent.key.toLowerCase());
-    }
-    dotDuration() {
-        this.view.batchDurationOperation('dotDuration');
-    }
-    undotDuration() {
-        this.view.batchDurationOperation('undotDuration');
-    }
-    doubleDuration() {
-        this.view.batchDurationOperation('doubleDuration');
-    }
-    halveDuration() {
-        this.view.batchDurationOperation('halveDuration');
-    }
-    addMeasure(keyEvent) {
-        this.view.addMeasure(keyEvent.shiftKey);
-    }
-    deleteNote() {
-        this.view.deleteNote();
-    }
-    toggleCourtesyAccidental() {
-        this.view.toggleCourtesyAccidentals();
-    }
-    toggleEnharmonic() {
-        this.view.toggleEnharmonic();
-    }
-    makeTupletCommand(numNotes) {
-        this.view.makeTuplet(numNotes);
-    }
-    makeTuplet(keyEvent) {
-        const numNotes = parseInt(keyEvent.key, 10);
-        this.makeTupletCommand(numNotes);
-    }
-    unmakeTuplet() {
-        this.view.unmakeTuplet();
-    }
-    setNoteHead() {
-        this.view.setNoteHead('x2');
-    }
-    removeGraceNote() {
-        this.view.removeGraceNote();
-    }
-    addGraceNote() {
-        this.view.addGraceNote();
-    }
-    slashGraceNotes() {
-        this.view.slashGraceNotes();
-    }
-    toggleArticulationCommand(articulation, ctor) {
-        this.view.toggleArticulation(articulation, ctor);
-    }
-    addRemoveArticulation(keyEvent) {
-        let atyp = noteModifiers_1.SmoArticulation.articulations.accent;
-        if (this.view.tracker.selections.length < 1) {
-            return;
-        }
-        if (keyEvent.key.toLowerCase() === 'h') {
-            atyp = noteModifiers_1.SmoArticulation.articulations.accent;
-        }
-        if (keyEvent.key.toLowerCase() === 'i') {
-            atyp = noteModifiers_1.SmoArticulation.articulations.tenuto;
-        }
-        if (keyEvent.key.toLowerCase() === 'j') {
-            atyp = noteModifiers_1.SmoArticulation.articulations.staccato;
-        }
-        if (keyEvent.key.toLowerCase() === 'k') {
-            atyp = noteModifiers_1.SmoArticulation.articulations.marcato;
-        }
-        if (keyEvent.key.toLowerCase() === 'l') {
-            atyp = noteModifiers_1.SmoArticulation.articulations.pizzicato;
-        }
-        this.toggleArticulationCommand(atyp, 'SmoArticulation');
-    }
-}
-exports.SuiKeyCommands = SuiKeyCommands;
 
 
 /***/ }),
@@ -43028,15 +43040,15 @@ exports.Qwerty = Qwerty;
 
 /***/ }),
 
-/***/ "./src/ui/ribbon.js":
+/***/ "./src/ui/ribbon.ts":
 /*!**************************!*\
-  !*** ./src/ui/ribbon.js ***!
+  !*** ./src/ui/ribbon.ts ***!
   \**************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CollapseRibbonControl = exports.ArticulationButtons = exports.NavigationButtons = exports.TextButtons = exports.DisplaySettings = exports.PlayerButtons = exports.MeasureButtons = exports.StaveButtons = exports.ChordButtons = exports.NoteButtons = exports.VoiceButtons = exports.DurationButtons = exports.MicrotoneButtons = exports.BeamButtons = exports.ExtendedCollapseParent = exports.DebugButtons = exports.RibbonButtons = void 0;
+exports.CollapseRibbonControl = exports.ArticulationButtons = exports.NavigationButtons = exports.TextButtons = exports.DisplaySettings = exports.PlayerButtons = exports.MeasureButtons = exports.StaveButtons = exports.ChordButtons = exports.NoteButtons = exports.VoiceButtons = exports.DurationButtons = exports.MicrotoneButtons = exports.BeamButtons = exports.ExtendedCollapseParent = exports.RibbonButtons = exports.SuiButton = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.js");
@@ -43046,12 +43058,40 @@ const serializationHelpers_1 = __webpack_require__(/*! ../common/serializationHe
 const oscillator_1 = __webpack_require__(/*! ../render/audio/oscillator */ "./src/render/audio/oscillator.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const textDialogs_1 = __webpack_require__(/*! ./dialogs/textDialogs */ "./src/ui/dialogs/textDialogs.js");
+const staffModifiers_1 = __webpack_require__(/*! ../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const common_1 = __webpack_require__(/*! ../smo/data/common */ "./src/smo/data/common.ts");
+class SuiButton {
+    constructor(params) {
+        this.buttonId = params.buttonId;
+        this.buttonElement = params.buttonElement;
+        this.keyCommands = params.keyCommands;
+        this.view = params.view;
+        this.buttonData = params.buttonData;
+        this.eventSource = params.eventSource;
+        this.menus = params.menus;
+        this.completeNotifier = params.completeNotifier;
+    }
+}
+exports.SuiButton = SuiButton;
 // ## RibbonButtons
 // Render the ribbon buttons based on group, function, and underlying UI handler.
 // Also handles UI events.
 // ### RibbonButton methods
 // ---
 class RibbonButtons {
+    constructor(params) {
+        this.collapsables = [];
+        this.collapseChildren = [];
+        this.keyCommands = params.keyCommands;
+        this.controller = params.completeNotifier;
+        this.eventSource = params.eventSource;
+        this.view = params.view;
+        this.menus = params.menus;
+        this.ribbonButtons = params.ribbonButtons;
+        this.ribbons = params.ribbons;
+        this.collapsables = [];
+        this.collapseChildren = [];
+    }
     static get paramArray() {
         return ['ribbonButtons', 'ribbons', 'keyCommands', 'controller', 'menus', 'eventSource', 'view'];
     }
@@ -43060,23 +43100,10 @@ class RibbonButtons {
         const r = b('div').classes(containerClass).append(b('button').attr('id', buttonId).classes(buttonClass).append(b('span').classes('left-text').append(b('span').classes('text-span').text(buttonText)).append(b('span').classes('ribbon-button-text icon ' + buttonIcon))).append(b('span').classes('ribbon-button-hotkey').text(buttonKey)));
         return r.dom();
     }
-    static get translateButtons() {
-        if (!RibbonButtons._translateButtons) {
-            RibbonButtons._translateButtons = [];
-        }
-        return RibbonButtons._translateButtons;
-    }
-    constructor(parameters) {
-        serializationHelpers_1.smoSerialize.filteredMerge(RibbonButtons.paramArray, parameters, this);
-        this.ribbonButtons = parameters.ribbonButtons;
-        this.ribbons = parameters.ribbons;
-        this.collapsables = [];
-        this.collapseChildren = [];
-    }
     _executeButtonModal(buttonElement, buttonData) {
-        const ctor = Smo.getClass(buttonData.ctor);
+        const ctor = eval('globalThis.Smo.' + buttonData.ctor);
         ctor.createAndDisplay({
-            undoBuffer: this.keyCommands.undoBuffer,
+            undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
             keyCommands: this.keyCommands,
             completeNotifier: this.controller,
@@ -43086,10 +43113,6 @@ class RibbonButtons {
     _executeButtonMenu(buttonElement, buttonData) {
         this.menus.slashMenuMode(this.controller);
         this.menus.createMenu(buttonData.ctor);
-    }
-    _rebindController() {
-        this.controller.render();
-        this.controller.bindEvents();
     }
     _executeButton(buttonElement, buttonData) {
         if (buttonData.action === 'modal') {
@@ -43104,7 +43127,7 @@ class RibbonButtons {
         this.eventSource.domClick(buttonElement, this, '_executeButton', buttonData);
     }
     _createCollapsibleButtonGroups(selector) {
-        let containerClass = {};
+        let containerClass = '';
         // Now all the button elements have been bound.  Join child and parent buttons
         // For all the children of a button group, add it to the parent group
         this.collapseChildren.forEach((b) => {
@@ -43168,12 +43191,13 @@ class RibbonButtons {
                         $(buttonHtml).addClass('collapseContainer');
                         // collapseParent
                         this.collapsables.push(new CollapseRibbonControl({
-                            ribbonButtons: this.ribbonButtons,
+                            buttons: this.ribbonButtons,
                             view: this.view,
                             menus: this.menus,
                             eventSource: this.eventSource,
-                            controller: this.controller,
+                            completeNotifier: this.controller,
                             keyCommands: this.keyCommands,
+                            buttonId: buttonData.id,
                             buttonElement,
                             buttonData
                         }));
@@ -43199,23 +43223,12 @@ class RibbonButtons {
     }
 }
 exports.RibbonButtons = RibbonButtons;
-class DebugButtons {
-    constructor(parameters) {
-        this.buttonElement = parameters.buttonElement;
-        this.buttonData = parameters.buttonData;
-        this.keyCommands = parameters.keyCommands;
-    }
-    bind() {
-        $(this.buttonElement).off('click').on('click', () => {
-            $('body').trigger('redrawScore');
-        });
-    }
-}
-exports.DebugButtons = DebugButtons;
+RibbonButtons.translateButtons = [];
 // ## ExtendedCollapseParent
 // Muse-style '...' buttons for less-common operations
-class ExtendedCollapseParent {
+class ExtendedCollapseParent extends SuiButton {
     constructor(parameters) {
+        super(parameters);
         this.buttonElement = parameters.buttonElement;
         this.buttonData = parameters.buttonData;
         this.keyCommands = parameters.keyCommands;
@@ -43227,11 +43240,10 @@ class ExtendedCollapseParent {
     }
 }
 exports.ExtendedCollapseParent = ExtendedCollapseParent;
-class BeamButtons {
+class BeamButtons extends SuiButton {
     constructor(parameters) {
-        this.buttonElement = parameters.buttonElement;
+        super(parameters);
         this.buttonData = parameters.buttonData;
-        this.keyCommands = parameters.keyCommands;
     }
     operation() {
         if (this.buttonData.id === 'breakBeam') {
@@ -43251,23 +43263,20 @@ class BeamButtons {
     }
 }
 exports.BeamButtons = BeamButtons;
-class MicrotoneButtons {
+class MicrotoneButtons extends SuiButton {
     constructor(parameters) {
+        super(parameters);
         this.buttonElement = parameters.buttonElement;
         this.buttonData = parameters.buttonData;
         this.keyCommands = parameters.keyCommands;
         this.view = parameters.view;
     }
     applyButton(el) {
-        let pitch = 0;
-        if (this.view.tracker.selections.length === 1 &&
-            this.view.tracker.selections[0].selector.pitches &&
-            this.view.tracker.selections[0].selector.pitches.length) {
-            pitch = this.view.tracker.selections[0].selector.pitches[0];
-        }
-        const tn = new noteModifiers_1.SmoMicrotone({ tone: el.id, pitch });
+        const defs = noteModifiers_1.SmoMicrotone.defaults;
+        defs.tone = el.id;
+        const tn = new noteModifiers_1.SmoMicrotone(defs);
         this.view.addRemoveMicrotone(tn);
-        oscillator_1.SuiOscillator.playSelectionNow(this.view.tracker.selections[0]);
+        oscillator_1.SuiOscillator.playSelectionNow(this.view.tracker.selections[0], 1);
     }
     bind() {
         var self = this;
@@ -43277,11 +43286,10 @@ class MicrotoneButtons {
     }
 }
 exports.MicrotoneButtons = MicrotoneButtons;
-class DurationButtons {
+class DurationButtons extends SuiButton {
     constructor(parameters) {
-        this.buttonElement = parameters.buttonElement;
+        super(parameters);
         this.buttonData = parameters.buttonData;
-        this.keyCommands = parameters.keyCommands;
     }
     setDuration() {
         if (this.buttonData.id === 'GrowDuration') {
@@ -43317,11 +43325,9 @@ class DurationButtons {
     }
 }
 exports.DurationButtons = DurationButtons;
-class VoiceButtons {
+class VoiceButtons extends SuiButton {
     constructor(parameters) {
-        this.buttonElement = parameters.buttonElement;
-        this.buttonData = parameters.buttonData;
-        this.view = parameters.view;
+        super(parameters);
     }
     doAction() {
         let voiceIx = 0;
@@ -43347,8 +43353,9 @@ class VoiceButtons {
     }
 }
 exports.VoiceButtons = VoiceButtons;
-class NoteButtons {
+class NoteButtons extends SuiButton {
     constructor(parameters) {
+        super(parameters);
         this.buttonElement = parameters.buttonElement;
         this.buttonData = parameters.buttonData;
         this.keyCommands = parameters.keyCommands;
@@ -43401,7 +43408,9 @@ class NoteButtons {
             this.view.setNoteHead('D2');
         }
         else {
-            this.keyCommands.setPitchCommand(this.buttonData.rightText);
+            if (common_1.IsPitchLetter(this.buttonData.rightText)) {
+                this.keyCommands.setPitchCommand(this.buttonData.rightText);
+            }
         }
     }
     bind() {
@@ -43412,8 +43421,9 @@ class NoteButtons {
     }
 }
 exports.NoteButtons = NoteButtons;
-class ChordButtons {
+class ChordButtons extends SuiButton {
     constructor(parameters) {
+        super(parameters);
         this.buttonElement = parameters.buttonElement;
         this.buttonData = parameters.buttonData;
         this.keyCommands = parameters.keyCommands;
@@ -43433,22 +43443,21 @@ class ChordButtons {
                 this.collapseChord();
                 return;
             }
-            self.setInterval();
+            this.setInterval();
         });
     }
 }
 exports.ChordButtons = ChordButtons;
-class StaveButtons {
+class StaveButtons extends SuiButton {
     constructor(parameters) {
-        Vex.Merge(this, parameters);
+        super(parameters);
     }
     addClef(clef, clefName) {
-        var instrument = {
-            instrumentName: clefName,
-            keyOffset: 0,
-            clef
-        };
-        this.view.changeInstrument(instrument);
+        var instrument = new staffModifiers_1.SmoInstrument();
+        instrument.instrument = clefName;
+        instrument.keyOffset = 0;
+        instrument.clef = clef;
+        this.view.changeInstrument(instrument, this.view.tracker.selections);
     }
     clefTreble() {
         this.addClef('treble', 'Treble Instrument');
@@ -43469,10 +43478,10 @@ class StaveButtons {
         this.view.moveStaffUpDown(index);
     }
     clefMoveUp() {
-        this._clefMove(-1, 'up');
+        this._clefMove(-1);
     }
     clefMoveDown() {
-        this._clefMove(1, 'down');
+        this._clefMove(1);
     }
     _addStaffGroup(type) {
         this.view.addStaffGroupDown(type);
@@ -43487,16 +43496,16 @@ class StaveButtons {
         const self = this;
         $(this.buttonElement).off('click').on('click', () => {
             const id = self.buttonData.id;
-            if (typeof (self[id]) === 'function') {
-                self[id]();
+            if (typeof (this[id]) === 'function') {
+                this[id]();
             }
         });
     }
 }
 exports.StaveButtons = StaveButtons;
-class MeasureButtons {
+class MeasureButtons extends SuiButton {
     constructor(parameters) {
-        Vex.Merge(this, parameters);
+        super(parameters);
     }
     endRepeat() {
         this.view.setBarline(measureModifiers_1.SmoBarline.positions.end, measureModifiers_1.SmoBarline.barlines.endRepeat);
@@ -43551,9 +43560,9 @@ class MeasureButtons {
     }
 }
 exports.MeasureButtons = MeasureButtons;
-class PlayerButtons {
+class PlayerButtons extends SuiButton {
     constructor(parameters) {
-        Vex.Merge(this, parameters);
+        super(parameters);
     }
     playButton() {
         this.keyCommands.playScore();
@@ -43565,13 +43574,13 @@ class PlayerButtons {
         this.keyCommands.pausePlayer();
     }
     bind() {
-        this.eventSource.domClick(this.buttonElement, this, this.buttonData.id);
+        this.eventSource.domClick(this.buttonElement, this, this.buttonData.id, null);
     }
 }
 exports.PlayerButtons = PlayerButtons;
-class DisplaySettings {
+class DisplaySettings extends SuiButton {
     constructor(parameters) {
-        Vex.Merge(this, parameters);
+        super(parameters);
     }
     refresh() {
         this.view.refreshViewport();
@@ -43593,22 +43602,21 @@ class DisplaySettings {
         this.keyCommands.stopPlayer();
     }
     bind() {
-        this.eventSource.domClick(this.buttonElement, this, this.buttonData.id);
+        this.eventSource.domClick(this.buttonElement, this, this.buttonData.id, null);
     }
 }
 exports.DisplaySettings = DisplaySettings;
-class TextButtons {
+class TextButtons extends SuiButton {
     constructor(parameters) {
-        Vex.Merge(this, parameters);
-        this.menus = this.controller.menus;
+        super(parameters);
     }
     lyrics() {
         textDialogs_1.SuiLyricDialog.createAndDisplay({
             buttonElement: this.buttonElement,
             buttonData: this.buttonData,
-            completeNotifier: this.controller,
+            completeNotifier: this.completeNotifier,
             view: this.view,
-            undoBuffer: this.keyCommands.undoBuffer,
+            undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
             keyCommands: this.keyCommands,
             parser: noteModifiers_1.SmoLyric.parsers.lyric
@@ -43619,7 +43627,7 @@ class TextButtons {
         textDialogs_1.SuiChordChangeDialog.createAndDisplay({
             buttonElement: this.buttonElement,
             buttonData: this.buttonData,
-            completeNotifier: this.controller,
+            completeNotifier: this.completeNotifier,
             view: this.view,
             eventSource: this.eventSource,
             keyCommands: this.keyCommands,
@@ -43630,14 +43638,14 @@ class TextButtons {
         this.view.toggleRehearsalMark();
     }
     _invokeMenu(cmd) {
-        this.menus.slashMenuMode(this.controller);
+        this.menus.slashMenuMode(this.completeNotifier);
         this.menus.createMenu(cmd);
     }
     addTextMenu() {
         textDialogs_1.SuiTextTransformDialog.createAndDisplay({
             buttonElement: this.buttonElement,
             buttonData: this.buttonData,
-            completeNotifier: this.controller,
+            completeNotifier: this.completeNotifier,
             tracker: this.view.tracker,
             view: this.view,
             eventSource: this.eventSource,
@@ -43648,11 +43656,11 @@ class TextButtons {
         this._invokeMenu('SuiDynamicsMenu');
     }
     bind() {
-        this.eventSource.domClick(this.buttonElement, this, this.buttonData.id);
+        this.eventSource.domClick(this.buttonElement, this, this.buttonData.id, null);
     }
 }
 exports.TextButtons = TextButtons;
-class NavigationButtons {
+class NavigationButtons extends SuiButton {
     static get directionsTrackerMap() {
         return {
             navLeftButton: 'moveSelectionLeft',
@@ -43666,17 +43674,27 @@ class NavigationButtons {
         };
     }
     constructor(parameters) {
-        Vex.Merge(this, parameters);
+        super(parameters);
     }
     _moveTracker() {
         this.view.tracker[NavigationButtons.directionsTrackerMap[this.buttonData.id]]();
     }
     bind() {
-        this.eventSource.domClick(this.buttonElement, this, '_moveTracker');
+        this.eventSource.domClick(this.buttonElement, this, '_moveTracker', null);
     }
 }
 exports.NavigationButtons = NavigationButtons;
-class ArticulationButtons {
+class ArticulationButtons extends SuiButton {
+    constructor(parameters) {
+        super(parameters);
+        this.showState = false;
+        this.buttonElement = parameters.buttonElement;
+        this.buttonData = parameters.buttonData;
+        this.keyCommands = parameters.keyCommands;
+        this.articulation = ArticulationButtons.articulationIdMap[this.buttonData.id];
+        this.eventSource = parameters.eventSource;
+        this.ctor = ArticulationButtons.constructors[this.buttonData.id];
+    }
     static get articulationIdMap() {
         return {
             accentButton: noteModifiers_1.SmoArticulation.articulations.accent,
@@ -43717,32 +43735,25 @@ class ArticulationButtons {
             smearButton: 'SmoOrnament'
         };
     }
-    constructor(parameters) {
-        this.buttonElement = parameters.buttonElement;
-        this.buttonData = parameters.buttonData;
-        this.keyCommands = parameters.keyCommands;
-        this.articulation = ArticulationButtons.articulationIdMap[this.buttonData.id];
-        this.eventSource = parameters.eventSource;
-        this.ctor = ArticulationButtons.constructors[this.buttonData.id];
-    }
     _toggleArticulation() {
         this.showState = !this.showState;
         this.keyCommands.toggleArticulationCommand(this.articulation, this.ctor);
     }
     bind() {
-        this.eventSource.domClick(this.buttonElement, this, '_toggleArticulation');
+        this.eventSource.domClick(this.buttonElement, this, '_toggleArticulation', null);
     }
 }
 exports.ArticulationButtons = ArticulationButtons;
-class CollapseRibbonControl {
+class CollapseRibbonControl extends SuiButton {
+    constructor(parameters) {
+        super(parameters);
+        serializationHelpers_1.smoSerialize.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
+        this.childButtons = parameters.buttons.filter((cb) => cb.group === this.buttonData.group &&
+            RibbonButtons.isCollapsible(cb.action));
+    }
     static get paramArray() {
         return ['ribbonButtons', 'keyCommands', 'controller', 'view', 'menus', 'buttonData', 'buttonElement',
             'eventSource'];
-    }
-    constructor(parameters) {
-        serializationHelpers_1.smoSerialize.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
-        this.childButtons = parameters.ribbonButtons.filter((cb) => cb.group === this.buttonData.group &&
-            RibbonButtons.isCollapsible(cb.action));
     }
     _toggleExpand() {
         this.childButtons.forEach((cb) => {
@@ -43750,9 +43761,9 @@ class CollapseRibbonControl {
             $(el).toggleClass('collapsed');
             $(el).toggleClass('expanded');
         });
-        this.buttonElement.closest('div').toggleClass('expanded');
-        this.buttonElement.toggleClass('expandedChildren');
-        if (this.buttonElement.hasClass('expandedChildren')) {
+        $(this.buttonElement).closest('div').toggleClass('expanded');
+        $(this.buttonElement).toggleClass('expandedChildren');
+        if ($(this.buttonElement).hasClass('expandedChildren')) {
             const leftSpan = $(this.buttonElement).find('.ribbon-button-text');
             $(leftSpan).text('');
             $(leftSpan).removeClass(this.buttonData.icon);
@@ -43769,20 +43780,22 @@ class CollapseRibbonControl {
     }
     bind() {
         $(this.buttonElement).closest('div').addClass('collapseContainer');
-        this.eventSource.domClick(this.buttonElement, this, '_toggleExpand');
+        this.eventSource.domClick(this.buttonElement, this, '_toggleExpand', null);
         this.childButtons.forEach((cb) => {
-            const ctor = Smo.getClass(cb.ctor);
-            const el = $('#' + cb.id);
-            const btn = new ctor({
-                buttonData: cb,
-                buttonElement: el,
-                keyCommands: this.keyCommands,
-                view: this.view,
-                controller: this.controller,
-                eventSource: this.eventSource
-            });
-            if (typeof (btn.bind) === 'function') {
-                btn.bind();
+            const ctor = eval('globalThis.Smo.' + cb.ctor);
+            if ((typeof (ctor) === 'function')) {
+                const el = $('#' + cb.id);
+                const btn = new ctor({
+                    buttonData: cb,
+                    buttonElement: el,
+                    keyCommands: this.keyCommands,
+                    view: this.view,
+                    completeNotifier: this.completeNotifier,
+                    eventSource: this.eventSource
+                });
+                if (typeof (btn.bind) === 'function') {
+                    btn.bind();
+                }
             }
         });
     }
@@ -43792,9 +43805,9 @@ exports.CollapseRibbonControl = CollapseRibbonControl;
 
 /***/ }),
 
-/***/ "./src/ui/ribbonLayout/default/defaultRibbon.js":
+/***/ "./src/ui/ribbonLayout/default/defaultRibbon.ts":
 /*!******************************************************!*\
-  !*** ./src/ui/ribbonLayout/default/defaultRibbon.js ***!
+  !*** ./src/ui/ribbonLayout/default/defaultRibbon.ts ***!
   \******************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -45397,7 +45410,7 @@ class defaultRibbonLayout {
                 icon: '',
                 classes: 'icon keyboard',
                 action: 'modal',
-                ctor: 'suiPiano',
+                ctor: 'SuiPiano',
                 group: 'scoreEdit',
                 id: 'pianoModal'
             },
@@ -45450,7 +45463,7 @@ exports.defaultRibbonLayout = defaultRibbonLayout;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __webpack_require__("./src/ui/entryPoint.ts");
+/******/ 	var __webpack_exports__ = __webpack_require__("./src/application/exports.ts");
 /******/ 	__webpack_exports__ = __webpack_exports__.default;
 /******/ 	
 /******/ 	return __webpack_exports__;

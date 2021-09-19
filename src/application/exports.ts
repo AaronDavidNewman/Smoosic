@@ -6,7 +6,7 @@ import { SuiEventHandler } from './eventHandler';
 import {
     RibbonButtons, DisplaySettings, NoteButtons, TextButtons,
     ChordButtons, MicrotoneButtons, StaveButtons, BeamButtons, MeasureButtons,
-    DebugButtons, DurationButtons, VoiceButtons, PlayerButtons,
+    DurationButtons, VoiceButtons, PlayerButtons,
     ArticulationButtons, NavigationButtons, ExtendedCollapseParent
 } from '../ui/ribbon';
 import { SuiExceptionHandler } from '../ui/exceptions';
@@ -95,7 +95,7 @@ export const Smo = {
     Qwerty, SuiHelp,
     // Ribbon buttons
     RibbonButtons, NoteButtons, TextButtons, ChordButtons, MicrotoneButtons,
-    StaveButtons, BeamButtons, MeasureButtons, DebugButtons, DurationButtons,
+    StaveButtons, BeamButtons, MeasureButtons, DurationButtons,
     VoiceButtons, PlayerButtons, ArticulationButtons,  NavigationButtons,
     DisplaySettings,  ExtendedCollapseParent,
     // Menus

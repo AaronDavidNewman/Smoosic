@@ -77,7 +77,7 @@ export class VxMeasure {
     const tones = smoNote.getMicrotones();
     tones.forEach((tone) => {
       const acc = new VF.Accidental(tone.toVex);
-      vexNote.addAccidental(tone.pitch, acc);
+      vexNote.addAccidental(tone.pitchIndex, acc);
     });
   }
   _createAccidentals(smoNote: SmoNote, vexNote: any, tickIndex: number, voiceIx: number) {

@@ -1,8 +1,73 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SmoNote } from './note';
-import { SuiAudioPitch } from '../../render/audio/oscillator';
 import { Pitch, PitchKey, Clef, PitchLetter } from './common';
+import { SmoMicrotone } from './noteModifiers';
+
+// ## SmoAudioPitch
+// helper class to compute the frequencies of the notes.
+export class SmoAudioPitch {
+  // ### _frequencies
+  // Compute the equal-temperment frequencies of the notes.
+  static _computeFrequencies() {
+    const map: Record<string, number> = {};
+    let lix = 0;
+    const octaves = [1, 2, 3, 4, 5, 6, 7];
+    const letters = ['cn', 'c#', 'dn', 'd#', 'en', 'fn', 'f#', 'gn', 'g#', 'an', 'a#', 'bn'];
+
+    const just = Math.pow(2, (1.0 / 12));
+    const baseFrequency = (440 / 16) * Math.pow(just, 3);
+
+    octaves.forEach((octave) => {
+      const base = baseFrequency * Math.pow(2, octave - 1);
+      lix = 0;
+      letters.forEach((letter) => {
+        const freq = base * Math.pow(just, lix);
+        var enharmonics = SmoMusic.getEnharmonics(letter);
+        enharmonics.forEach((en) => {
+          // Adjust for B4 higher than C4
+          const adjOctave = (letter[0] === 'b' && en[0] === 'c') ?
+            octave + 1 : octave;
+          map[en + adjOctave.toString()] = freq;
+        });
+        lix += 1;
+      });
+    });
+
+    return map;
+  }
+  static frequencies: Record<string, number> | null = null;
+
+  static get pitchFrequencyMap() {
+    if (!SmoAudioPitch.frequencies) {
+      SmoAudioPitch.frequencies = SmoAudioPitch._computeFrequencies();
+    }
+
+    return SmoAudioPitch.frequencies;
+  }
+
+  static _rawPitchToFrequency(smoPitch: Pitch, offset: number): number {
+    const npitch = SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(smoPitch) + offset);
+    const vx = npitch.letter.toLowerCase() + npitch.accidental + npitch.octave.toString();
+    return SmoAudioPitch.pitchFrequencyMap[vx];
+  }
+  // ### smoPitchToFrequency
+  // Convert a pitch to a frequency in Hz.
+  static smoPitchToFrequency(smoPitch: Pitch, offset: number, tone: SmoMicrotone | null) {
+    let pitchInt = 0;
+    let rv = SmoAudioPitch._rawPitchToFrequency(smoPitch, offset);    
+    if (tone) {
+      const coeff = tone.toPitchCoeff;
+      pitchInt = SmoMusic.smoPitchToInt(smoPitch);
+      pitchInt += (coeff > 0) ? 1 : -1;
+      const otherSmo = SmoMusic.smoIntToPitch(pitchInt);
+      const otherPitch = SmoAudioPitch._rawPitchToFrequency(otherSmo, offset);
+      rv += Math.abs(rv - otherPitch) * coeff;
+    }
+    return rv;
+  }
+}
+
 /**
 // Helper functions that build on the VX music theory routines, and other
 // utilities I wish were in VF.Music but aren't
@@ -720,7 +785,7 @@ export class SmoMusic {
     return key;
   }
   static get frequencyMap() {
-    return SuiAudioPitch.pitchFrequencyMap;
+    return SmoAudioPitch.pitchFrequencyMap;
   }
 
   // ### get letterPitchIndex

@@ -79,10 +79,11 @@ export class SuiEventHandler {
       ribbons: defaultRibbonLayout.ribbons,
       ribbonButtons: defaultRibbonLayout.ribbonButtons,
       menus: this.menus,
-      controller: this,
+      completeNotifier: this,
       keyCommands: this.keyCommands,
       view: this.view,
-      eventSource:this.eventSource
+      eventSource:this.eventSource,
+      tracker: this.tracker
     });
 
     this.menus.setController(this);

@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiAudioPitch, SuiOscillator, SuiSampler } from './oscillator';
+import { SuiOscillator, SuiSampler } from './oscillator';
 import { SmoAudioScore, AudioTracks, SmoAudioTrack } from '../../smo/xform/audioTrack';
 import { SuiTracker } from '../sui/tracker';
 import { SmoScore } from '../../smo/data/score';
@@ -55,17 +55,12 @@ export class SuiAudioPlayer {
     const trackSounds: NoteSound[] = [];
     notes.forEach((note) => {
       const noteSound: NoteSound = {
-        frequencies: [],
+        frequencies: note.frequencies,
         duration: note.duration,
         offset: note.offset,
         volume: note.volume,
         noteType: note.noteType
       };
-      if (note.noteType === 'n') {
-        note.pitches.forEach((pitch) => {
-          noteSound.frequencies.push(SuiAudioPitch.smoPitchToFrequency(pitch, 0, 0, []));
-        });
-      }
       trackSounds.push(noteSound);
     });
     return trackSounds;

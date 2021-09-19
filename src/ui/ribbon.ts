@@ -7,7 +7,77 @@ import { smoSerialize } from '../common/serializationHelpers';
 import { SuiOscillator } from '../render/audio/oscillator';
 import { SmoMicrotone, SmoLyric, SmoArticulation, SmoOrnament } from '../smo/data/noteModifiers';
 import { SuiChordChangeDialog, SuiTextTransformDialog, SuiLyricDialog } from './dialogs/textDialogs';
+import { ButtonDefinition } from './ribbonLayout/default/defaultRibbon';
+import { SuiKeyCommands } from '../application/keyCommands';
+import { BrowserEventSource } from '../application/eventSource';
+import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
+import { CompleteNotifier } from '../application/common';
+import { SuiTracker } from '../render/sui/tracker';
+import { SmoInstrument } from '../smo/data/staffModifiers';
+import { suiMenuManager } from './menus';
+import { Clef, IsPitchLetter } from '../smo/data/common';
 
+declare var $: any;
+
+export interface ButtonLabel {
+  buttonId: string,
+  buttonText: string
+}
+export interface SuiCollapsableButtonParams {
+  buttonId: string,
+  buttonElement: string,
+  buttonData: ButtonDefinition,
+  keyCommands: SuiKeyCommands,
+  view: SuiScoreViewOperations,
+  eventSource: BrowserEventSource,
+  menus: suiMenuManager,
+  completeNotifier: CompleteNotifier,
+  buttons: ButtonDefinition[]
+}
+export interface SuiButtonParams {
+  buttonId: string,
+  buttonElement: string,
+  buttonData: ButtonDefinition,
+  keyCommands: SuiKeyCommands,
+  view: SuiScoreViewOperations,
+  eventSource: BrowserEventSource,
+  menus: suiMenuManager,
+  completeNotifier: CompleteNotifier
+}
+export abstract class SuiButton {
+  buttonId: string;
+  buttonElement: string;
+  keyCommands: SuiKeyCommands;
+  view: SuiScoreViewOperations;
+  buttonData: ButtonDefinition;
+  eventSource: BrowserEventSource;
+  menus: suiMenuManager;
+  completeNotifier: CompleteNotifier | null;
+  constructor(params: SuiButtonParams) {
+    this.buttonId = params.buttonId;
+    this.buttonElement = params.buttonElement;
+    this.keyCommands = params.keyCommands;
+    this.view = params.view;
+    this.buttonData = params.buttonData;
+    this.eventSource = params.eventSource;
+    this.menus = params.menus;
+    this.completeNotifier = params.completeNotifier;
+  }
+}
+export interface RibbonLayout {
+  left: string[],
+  top: string[]
+}
+export interface SuiRibbonParams {
+  eventSource: BrowserEventSource,
+  view: SuiScoreViewOperations,
+  completeNotifier: CompleteNotifier,
+  tracker: SuiTracker,
+  keyCommands: SuiKeyCommands,
+  menus: suiMenuManager,
+  ribbonButtons: ButtonDefinition[],
+  ribbons: RibbonLayout
+}
 // ## RibbonButtons
 // Render the ribbon buttons based on group, function, and underlying UI handler.
 // Also handles UI events.
@@ -17,33 +87,43 @@ export class RibbonButtons {
   static get paramArray() {
     return ['ribbonButtons', 'ribbons', 'keyCommands', 'controller', 'menus', 'eventSource', 'view'];
   }
-  static _buttonHtml(containerClass, buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
+  static _buttonHtml(containerClass: string, buttonId: string, buttonClass: string, buttonText: string, buttonIcon: string, buttonKey: string) {
     const b = htmlHelpers.buildDom;
     const r = b('div').classes(containerClass).append(b('button').attr('id', buttonId).classes(buttonClass).append(
       b('span').classes('left-text').append(
         b('span').classes('text-span').text(buttonText)).append(
-        b('span').classes('ribbon-button-text icon ' + buttonIcon))).append(
-      b('span').classes('ribbon-button-hotkey').text(buttonKey)));
+          b('span').classes('ribbon-button-text icon ' + buttonIcon))).append(
+            b('span').classes('ribbon-button-hotkey').text(buttonKey)));
     return r.dom();
   }
-  static get translateButtons() {
-    if (!RibbonButtons._translateButtons) {
-      RibbonButtons._translateButtons = [];
-    }
-    return RibbonButtons._translateButtons;
-  }
-  constructor(parameters) {
-    smoSerialize.filteredMerge(RibbonButtons.paramArray, parameters, this);
-    this.ribbonButtons = parameters.ribbonButtons;
-    this.ribbons = parameters.ribbons;
+
+  static translateButtons: ButtonLabel[] = [];
+  keyCommands: SuiKeyCommands;
+  controller: CompleteNotifier;
+  eventSource: BrowserEventSource;
+  view: SuiScoreViewOperations;
+  menus: suiMenuManager;
+  ribbons: RibbonLayout;
+  ribbonButtons: ButtonDefinition[];
+  collapsables: CollapseRibbonControl[] = [];
+  collapseChildren: any[] = [];
+
+  constructor(params: SuiRibbonParams) {
+    this.keyCommands = params.keyCommands;
+    this.controller = params.completeNotifier;
+    this.eventSource = params.eventSource;
+    this.view = params.view;
+    this.menus = params.menus;
+    this.ribbonButtons = params.ribbonButtons;
+    this.ribbons = params.ribbons;
     this.collapsables = [];
     this.collapseChildren = [];
   }
-  _executeButtonModal(buttonElement, buttonData) {
-    const ctor = Smo.getClass(buttonData.ctor);
+  _executeButtonModal(buttonElement: string, buttonData: ButtonDefinition) {
+    const ctor = eval('globalThis.Smo.' + buttonData.ctor);
     ctor.createAndDisplay(
       {
-        undoBuffer: this.keyCommands.undoBuffer,
+        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         keyCommands: this.keyCommands,
         completeNotifier: this.controller,
@@ -51,15 +131,12 @@ export class RibbonButtons {
       }
     );
   }
-  _executeButtonMenu(buttonElement, buttonData) {
+  _executeButtonMenu(buttonElement: string, buttonData: ButtonDefinition) {
     this.menus.slashMenuMode(this.controller);
     this.menus.createMenu(buttonData.ctor);
   }
-  _rebindController() {
-    this.controller.render();
-    this.controller.bindEvents();
-  }
-  _executeButton(buttonElement, buttonData) {
+
+  _executeButton(buttonElement: string, buttonData: ButtonDefinition) {
     if (buttonData.action === 'modal') {
       this._executeButtonModal(buttonElement, buttonData);
       return;
@@ -69,11 +146,11 @@ export class RibbonButtons {
     }
   }
 
-  _bindButton(buttonElement, buttonData) {
+  _bindButton(buttonElement: string, buttonData: ButtonDefinition) {
     this.eventSource.domClick(buttonElement, this, '_executeButton', buttonData);
   }
-  _createCollapsibleButtonGroups(selector) {
-    let containerClass = {};
+  _createCollapsibleButtonGroups(selector: string) {
+    let containerClass: string = '';
     // Now all the button elements have been bound.  Join child and parent buttons
     // For all the children of a button group, add it to the parent group
     this.collapseChildren.forEach((b) => {
@@ -103,18 +180,18 @@ export class RibbonButtons {
     });
   }
 
-  static isCollapsible(action) {
+  static isCollapsible(action: string) {
     return ['collapseChild', 'collapseChildMenu', 'collapseGrandchild', 'collapseMore'].indexOf(action) >= 0;
   }
 
-  static isBindable(action) {
+  static isBindable(action: string) {
     return ['collapseChildMenu', 'menu', 'modal'].indexOf(action) >= 0;
   }
 
   // ### _createButtonHtml
   // For each button, create the html and bind the events based on
   // the button's configured action.
-  _createRibbonHtml(buttonAr, selector) {
+  _createRibbonHtml(buttonAr: string[], selector: string) {
     let buttonClass = '';
     buttonAr.forEach((buttonId) => {
       const buttonData = this.ribbonButtons.find((e) =>
@@ -145,12 +222,13 @@ export class RibbonButtons {
             $(buttonHtml).addClass('collapseContainer');
             // collapseParent
             this.collapsables.push(new CollapseRibbonControl({
-              ribbonButtons: this.ribbonButtons,
+              buttons: this.ribbonButtons,
               view: this.view,
               menus: this.menus,
               eventSource: this.eventSource,
-              controller: this.controller,
+              completeNotifier: this.controller,
               keyCommands: this.keyCommands,
+              buttonId: buttonData.id,
               buttonElement,
               buttonData
             }));
@@ -162,7 +240,7 @@ export class RibbonButtons {
     });
   }
 
-  createRibbon(buttonDataArray, parentElement) {
+  createRibbon(buttonDataArray: string[], parentElement: string) {
     this._createRibbonHtml(buttonDataArray, parentElement);
     this._createCollapsibleButtonGroups(parentElement);
   }
@@ -179,23 +257,12 @@ export class RibbonButtons {
   }
 }
 
-export class DebugButtons {
-  constructor(parameters) {
-    this.buttonElement = parameters.buttonElement;
-    this.buttonData = parameters.buttonData;
-    this.keyCommands = parameters.keyCommands;
-  }
-  bind() {
-    $(this.buttonElement).off('click').on('click', () => {
-      $('body').trigger('redrawScore');
-    });
-  }
-}
-
 // ## ExtendedCollapseParent
 // Muse-style '...' buttons for less-common operations
-export class ExtendedCollapseParent {
-  constructor(parameters) {
+export class ExtendedCollapseParent extends SuiButton {
+  buttonData: ButtonDefinition;
+  constructor(parameters: SuiButtonParams) {
+    super(parameters);
     this.buttonElement = parameters.buttonElement;
     this.buttonData = parameters.buttonData;
     this.keyCommands = parameters.keyCommands;
@@ -206,11 +273,11 @@ export class ExtendedCollapseParent {
     });
   }
 }
-export class BeamButtons {
-  constructor(parameters) {
-    this.buttonElement = parameters.buttonElement;
+export class BeamButtons extends SuiButton {
+  buttonData: ButtonDefinition;
+  constructor(parameters: SuiButtonParams) {
+    super(parameters);
     this.buttonData = parameters.buttonData;
-    this.keyCommands = parameters.keyCommands;
   }
   operation() {
     if (this.buttonData.id === 'breakBeam') {
@@ -227,24 +294,21 @@ export class BeamButtons {
     });
   }
 }
-export class MicrotoneButtons {
-  constructor(parameters) {
+export class MicrotoneButtons extends SuiButton {
+  buttonData: ButtonDefinition;
+  constructor(parameters: SuiButtonParams) {
+    super(parameters);
     this.buttonElement = parameters.buttonElement;
     this.buttonData = parameters.buttonData;
     this.keyCommands = parameters.keyCommands;
     this.view = parameters.view;
   }
-  applyButton(el) {
-    let pitch = 0;
-    if (this.view.tracker.selections.length === 1 &&
-      this.view.tracker.selections[0].selector.pitches &&
-      this.view.tracker.selections[0].selector.pitches.length
-    ) {
-      pitch = this.view.tracker.selections[0].selector.pitches[0];
-    }
-    const tn = new SmoMicrotone({ tone: el.id, pitch });
+  applyButton(el: ButtonDefinition) {
+    const defs = SmoMicrotone.defaults;
+    defs.tone = el.id;
+    const tn = new SmoMicrotone(defs);
     this.view.addRemoveMicrotone(tn);
-    SuiOscillator.playSelectionNow(this.view.tracker.selections[0]);
+    SuiOscillator.playSelectionNow(this.view.tracker.selections[0], 1);
   }
   bind() {
     var self = this;
@@ -254,11 +318,10 @@ export class MicrotoneButtons {
   }
 }
 
-export class DurationButtons {
-  constructor(parameters) {
-    this.buttonElement = parameters.buttonElement;
+export class DurationButtons extends SuiButton {
+  constructor(parameters: SuiButtonParams) {
+    super(parameters);
     this.buttonData = parameters.buttonData;
-    this.keyCommands = parameters.keyCommands;
   }
   setDuration() {
     if (this.buttonData.id === 'GrowDuration') {
@@ -287,11 +350,9 @@ export class DurationButtons {
   }
 }
 
-export class VoiceButtons {
-  constructor(parameters) {
-    this.buttonElement = parameters.buttonElement;
-    this.buttonData = parameters.buttonData;
-    this.view = parameters.view;
+export class VoiceButtons extends SuiButton {
+  constructor(parameters: SuiButtonParams) {
+    super(parameters);
   }
   doAction() {
     let voiceIx = 0;
@@ -313,8 +374,9 @@ export class VoiceButtons {
     });
   }
 }
-export class NoteButtons {
-  constructor(parameters) {
+export class NoteButtons extends SuiButton {
+  constructor(parameters: SuiButtonParams) {
+    super(parameters);
     this.buttonElement = parameters.buttonElement;
     this.buttonData = parameters.buttonData;
     this.keyCommands = parameters.keyCommands;
@@ -352,7 +414,9 @@ export class NoteButtons {
     } else if (this.buttonData.id === 'DiamondNoteHead') {
       this.view.setNoteHead('D2');
     } else {
-      this.keyCommands.setPitchCommand(this.buttonData.rightText);
+      if (IsPitchLetter(this.buttonData.rightText)) {
+        this.keyCommands.setPitchCommand(this.buttonData.rightText);
+      }
     }
   }
   bind() {
@@ -363,8 +427,11 @@ export class NoteButtons {
   }
 }
 
-export class ChordButtons {
-  constructor(parameters) {
+export class ChordButtons extends SuiButton {
+  interval: number;
+  direction: number;
+  constructor(parameters: SuiButtonParams) {
+    super(parameters);
     this.buttonElement = parameters.buttonElement;
     this.buttonData = parameters.buttonData;
     this.keyCommands = parameters.keyCommands;
@@ -384,22 +451,21 @@ export class ChordButtons {
         this.collapseChord();
         return;
       }
-      self.setInterval();
+      this.setInterval();
     });
   }
 }
 
-export class StaveButtons {
-  constructor(parameters) {
-    Vex.Merge(this, parameters);
+export class StaveButtons extends SuiButton {
+  constructor(parameters: SuiButtonParams) {
+    super(parameters);
   }
-  addClef(clef, clefName) {
-    var instrument = {
-      instrumentName: clefName,
-      keyOffset: 0,
-      clef
-    };
-    this.view.changeInstrument(instrument);
+  addClef(clef: Clef, clefName: string) {
+    var instrument: SmoInstrument = new SmoInstrument();
+    instrument.instrument = clefName;
+    instrument.keyOffset = 0;
+    instrument.clef = clef;
+    this.view.changeInstrument(instrument, this.view.tracker.selections);
   }
   clefTreble() {
     this.addClef('treble', 'Treble Instrument');
@@ -416,16 +482,16 @@ export class StaveButtons {
   clefPercussion() {
     this.addClef('percussion', 'Tenor Instrument');
   }
-  _clefMove(index) {
+  _clefMove(index: number) {
     this.view.moveStaffUpDown(index);
   }
   clefMoveUp() {
-    this._clefMove(-1, 'up');
+    this._clefMove(-1);
   }
   clefMoveDown() {
-    this._clefMove(1, 'down');
+    this._clefMove(1);
   }
-  _addStaffGroup(type) {
+  _addStaffGroup(type: number) {
     this.view.addStaffGroupDown(type);
   }
   staffBraceLower() {
@@ -438,16 +504,16 @@ export class StaveButtons {
     const self = this;
     $(this.buttonElement).off('click').on('click', () => {
       const id = self.buttonData.id;
-      if (typeof(self[id]) === 'function') {
-        self[id]();
+      if (typeof ((this as any)[id]) === 'function') {
+        (this as any)[id]();
       }
     });
   }
 }
 
-export class MeasureButtons {
-  constructor(parameters) {
-    Vex.Merge(this, parameters);
+export class MeasureButtons extends SuiButton {
+  constructor(parameters: SuiButtonParams) {
+    super(parameters);
   }
   endRepeat() {
     this.view.setBarline(SmoBarline.positions.end, SmoBarline.barlines.endRepeat);
@@ -494,17 +560,17 @@ export class MeasureButtons {
   nthEnding() {
     this.view.addEnding();
   }
-  handleEvent(event, method) {
-    this[method]();
+  handleEvent(event: any, method: string) {
+    (this as any)[method]();
   }
   bind() {
     this.eventSource.domClick(this.buttonElement, this, 'handleEvent', this.buttonData.id);
   }
 }
 
-export class PlayerButtons {
-  constructor(parameters) {
-    Vex.Merge(this, parameters);
+export class PlayerButtons extends SuiButton {
+  constructor(parameters: SuiButtonParams) {
+    super(parameters);
   }
   playButton() {
     this.keyCommands.playScore();
@@ -516,25 +582,25 @@ export class PlayerButtons {
     this.keyCommands.pausePlayer();
   }
   bind() {
-    this.eventSource.domClick(this.buttonElement, this, this.buttonData.id);
+    this.eventSource.domClick(this.buttonElement, this, this.buttonData.id, null);
   }
 }
 
-export class DisplaySettings {
-  constructor(parameters) {
-    Vex.Merge(this, parameters);
+export class DisplaySettings extends SuiButton {
+  constructor(parameters: SuiButtonParams) {
+    super(parameters);
   }
 
   refresh() {
     this.view.refreshViewport();
   }
   zoomout() {
-    const globalLayout = this.view.score.layoutManager.getGlobalLayout();
+    const globalLayout = this.view.score.layoutManager!.getGlobalLayout();
     globalLayout.zoomScale *= 1.1;
     this.view.setGlobalLayout(globalLayout);
   }
   zoomin() {
-    const globalLayout = this.view.score.layoutManager.getGlobalLayout();
+    const globalLayout = this.view.score.layoutManager!.getGlobalLayout();
     globalLayout.zoomScale = globalLayout.zoomScale / 1.1;
     this.view.setGlobalLayout(globalLayout);
   }
@@ -545,23 +611,22 @@ export class DisplaySettings {
     this.keyCommands.stopPlayer();
   }
   bind() {
-    this.eventSource.domClick(this.buttonElement, this, this.buttonData.id);
+    this.eventSource.domClick(this.buttonElement, this, this.buttonData.id, null);
   }
 }
 
-export class TextButtons {
-  constructor(parameters) {
-    Vex.Merge(this, parameters);
-    this.menus = this.controller.menus;
+export class TextButtons extends SuiButton {
+  constructor(parameters: SuiButtonParams) {
+    super(parameters);
   }
   lyrics() {
     SuiLyricDialog.createAndDisplay(
       {
         buttonElement: this.buttonElement,
         buttonData: this.buttonData,
-        completeNotifier: this.controller,
+        completeNotifier: this.completeNotifier,
         view: this.view,
-        undoBuffer: this.keyCommands.undoBuffer,
+        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         keyCommands: this.keyCommands,
         parser: SmoLyric.parsers.lyric
@@ -574,7 +639,7 @@ export class TextButtons {
       {
         buttonElement: this.buttonElement,
         buttonData: this.buttonData,
-        completeNotifier: this.controller,
+        completeNotifier: this.completeNotifier,
         view: this.view,
         eventSource: this.eventSource,
         keyCommands: this.keyCommands,
@@ -585,8 +650,8 @@ export class TextButtons {
   rehearsalMark() {
     this.view.toggleRehearsalMark();
   }
-  _invokeMenu(cmd) {
-    this.menus.slashMenuMode(this.controller);
+  _invokeMenu(cmd: string) {
+    this.menus.slashMenuMode(this.completeNotifier);
     this.menus.createMenu(cmd);
   }
 
@@ -595,7 +660,7 @@ export class TextButtons {
       {
         buttonElement: this.buttonElement,
         buttonData: this.buttonData,
-        completeNotifier: this.controller,
+        completeNotifier: this.completeNotifier,
         tracker: this.view.tracker,
         view: this.view,
         eventSource: this.eventSource,
@@ -606,12 +671,12 @@ export class TextButtons {
     this._invokeMenu('SuiDynamicsMenu');
   }
   bind() {
-    this.eventSource.domClick(this.buttonElement, this, this.buttonData.id);
+    this.eventSource.domClick(this.buttonElement, this, this.buttonData.id, null);
   }
 }
 
-export class NavigationButtons {
-  static get directionsTrackerMap() {
+export class NavigationButtons extends SuiButton {
+  static get directionsTrackerMap(): Record<string, string> {
     return {
       navLeftButton: 'moveSelectionLeft',
       navRightButton: 'moveSelectionRight',
@@ -623,19 +688,19 @@ export class NavigationButtons {
       navGrowRight: 'growSelectionRight'
     };
   }
-  constructor(parameters) {
-    Vex.Merge(this, parameters);
+  constructor(parameters: SuiButtonParams) {
+    super(parameters);
   }
 
   _moveTracker() {
-    this.view.tracker[NavigationButtons.directionsTrackerMap[this.buttonData.id]]();
+    (this.view.tracker as any)[NavigationButtons.directionsTrackerMap[this.buttonData.id]]();
   }
   bind() {
-    this.eventSource.domClick(this.buttonElement, this, '_moveTracker');
+    this.eventSource.domClick(this.buttonElement, this, '_moveTracker', null);
   }
 }
-export class ArticulationButtons {
-  static get articulationIdMap() {
+export class ArticulationButtons extends SuiButton {
+  static get articulationIdMap(): Record<string, string> {
     return {
       accentButton: SmoArticulation.articulations.accent,
       tenutoButton: SmoArticulation.articulations.tenuto,
@@ -655,7 +720,7 @@ export class ArticulationButtons {
       smearButton: SmoOrnament.ornaments.smear
     };
   }
-  static get constructors() {
+  static get constructors(): Record<string, string> {
     return {
       accentButton: 'SmoArticulation',
       tenutoButton: 'SmoArticulation',
@@ -675,7 +740,11 @@ export class ArticulationButtons {
       smearButton: 'SmoOrnament'
     };
   }
-  constructor(parameters) {
+  articulation: string;
+  ctor: string;
+  showState: boolean = false;
+  constructor(parameters: SuiButtonParams) {
+    super(parameters);
     this.buttonElement = parameters.buttonElement;
     this.buttonData = parameters.buttonData;
     this.keyCommands = parameters.keyCommands;
@@ -688,20 +757,22 @@ export class ArticulationButtons {
     this.keyCommands.toggleArticulationCommand(this.articulation, this.ctor);
   }
   bind() {
-    this.eventSource.domClick(this.buttonElement, this, '_toggleArticulation');
+    this.eventSource.domClick(this.buttonElement, this, '_toggleArticulation', null);
   }
 }
 
-export class CollapseRibbonControl {
+export class CollapseRibbonControl extends SuiButton {
   static get paramArray() {
     return ['ribbonButtons', 'keyCommands', 'controller', 'view', 'menus', 'buttonData', 'buttonElement',
       'eventSource'];
   }
-  constructor(parameters) {
+  childButtons: ButtonDefinition[];
+  constructor(parameters: SuiCollapsableButtonParams) {
+    super(parameters);
     smoSerialize.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
-    this.childButtons = parameters.ribbonButtons.filter((cb) =>
+    this.childButtons = parameters.buttons.filter((cb) =>
       cb.group === this.buttonData.group &&
-        RibbonButtons.isCollapsible(cb.action)
+      RibbonButtons.isCollapsible(cb.action)
     );
   }
   _toggleExpand() {
@@ -711,9 +782,9 @@ export class CollapseRibbonControl {
       $(el).toggleClass('expanded');
     });
 
-    this.buttonElement.closest('div').toggleClass('expanded');
-    this.buttonElement.toggleClass('expandedChildren');
-    if (this.buttonElement.hasClass('expandedChildren')) {
+    $(this.buttonElement).closest('div').toggleClass('expanded');
+    $(this.buttonElement).toggleClass('expandedChildren');
+    if ($(this.buttonElement).hasClass('expandedChildren')) {
       const leftSpan = $(this.buttonElement).find('.ribbon-button-text');
       $(leftSpan).text('');
       $(leftSpan).removeClass(this.buttonData.icon);
@@ -729,20 +800,22 @@ export class CollapseRibbonControl {
   }
   bind() {
     $(this.buttonElement).closest('div').addClass('collapseContainer');
-    this.eventSource.domClick(this.buttonElement, this, '_toggleExpand');
+    this.eventSource.domClick(this.buttonElement, this, '_toggleExpand', null);
     this.childButtons.forEach((cb) => {
-      const ctor = Smo.getClass(cb.ctor);
-      const el = $('#' + cb.id);
-      const btn = new ctor({
-        buttonData: cb,
-        buttonElement: el,
-        keyCommands: this.keyCommands,
-        view: this.view,
-        controller: this.controller,
-        eventSource: this.eventSource
-      });
-      if (typeof(btn.bind) === 'function') {
-        btn.bind();
+      const ctor = eval('globalThis.Smo.' + cb.ctor);
+      if ((typeof (ctor) === 'function')) {
+        const el = $('#' + cb.id);
+        const btn = new ctor({
+          buttonData: cb,
+          buttonElement: el,
+          keyCommands: this.keyCommands,
+          view: this.view,
+          completeNotifier: this.completeNotifier,
+          eventSource: this.eventSource
+        });
+        if (typeof (btn.bind) === 'function') {
+          btn.bind();
+        }
       }
     });
   }

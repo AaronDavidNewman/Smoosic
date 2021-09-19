@@ -152,7 +152,7 @@ export class BrowserEventSource {
     return handler;
   }
 
-  domClick(selector: string, sink: any, method: string, args: any[]) {
+  domClick(selector: string, sink: any, method: string, args: any) {
     $(selector).off('click').on('click', function (ev: any) {
       sink[method](ev, args);
     });

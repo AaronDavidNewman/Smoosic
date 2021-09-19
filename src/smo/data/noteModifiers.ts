@@ -25,6 +25,10 @@ export abstract class SmoNoteModifierBase implements SmoModifierBase {
   }
   static deserialize(jsonObj: SmoObjectParams) {
     const ctor = eval('globalThis.Smo.' + jsonObj.ctor);
+    // Handle backwards-compatibility thing
+    if (jsonObj.ctor === 'SmoMicrotone' && typeof ((jsonObj as any).pitch) === 'number') {
+      (jsonObj as any).pitchIndex = (jsonObj as any).pitch;
+    }
     if (typeof (ctor) === 'undefined') {
       console.log('ouch bad ctor for ' + jsonObj.ctor);
     }
@@ -113,14 +117,14 @@ export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
 
 export interface SmoMicrotoneParams extends SmoObjectParams {
   tone: string,
-  pitch: Pitch
+  pitch: number
 }
 // ## SmoMicrotone
 // Microtones are treated similarly to ornaments at this time.  There are not
 // rules for persisting throughout a measure.
 export class SmoMicrotone extends SmoNoteModifierBase {
-  tone: number = SmoMicrotone.pitchCoeff.flat125ar;
-  pitch: Pitch = { letter: 'c', octave: 4, accidental: 'n' };
+  tone: string;
+  pitchIndex: number = 0;
 
   // This is how VexFlow notates them
   static readonly smoToVex: Record<string, string> = {
@@ -158,7 +162,7 @@ export class SmoMicrotone extends SmoNoteModifierBase {
   static readonly defaults: SmoMicrotoneParams = {
     ctor: 'SmoMicrotone',
     tone: 'flat25sz',
-    pitch: { letter: 'c', octave: 4, accidental: 'n' }
+    pitch: 0
   }
   static get parameterArray() {
     const rv: string[] = [];
@@ -176,8 +180,8 @@ export class SmoMicrotone extends SmoNoteModifierBase {
   }
   constructor(parameters: SmoMicrotoneParams) {
     super(parameters.ctor);
-    smoSerialize.serializedMerge(SmoMicrotone.parameterArray, SmoMicrotone.defaults, this);
-    smoSerialize.serializedMerge(SmoMicrotone.parameterArray, parameters, this);
+    this.pitchIndex = parameters.pitch;
+    this.tone = parameters.tone;
   }
 }
 

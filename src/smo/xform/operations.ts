@@ -75,11 +75,14 @@ export class SmoOperation {
 
   static addRemoveMicrotone(ignore: any, selections: SmoSelection[], tone: SmoMicrotone) {
     selections.forEach((sel) => {
-      if ((sel.note as SmoNote).tones.findIndex((tt) => tt.tone === tone.tone
-        && tt.pitch === tone.pitch) >= 0) {
-        (sel.note as SmoNote).removeMicrotone(tone);
-      } else {
-        (sel.note as SmoNote).addMicrotone(tone);
+      const note = sel.note;
+      if (note) {
+        const oldTone = note.getMicrotone(tone.pitchIndex);
+        if (oldTone) {
+          note.removeMicrotone(oldTone);
+        } else {
+          note.addMicrotone(tone);
+        }
       }
     });
   }

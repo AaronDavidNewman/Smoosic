@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoDynamicText } from '../data/noteModifiers';
+import { SmoDynamicText, SmoMicrotone } from '../data/noteModifiers';
 import { SmoSelector, SmoSelection } from './selections';
 import { SmoStaffHairpin, StaffModifierBase } from '../data/staffModifiers';
 import { SmoMusic } from '../data/music';
@@ -9,6 +9,7 @@ import { SmoScore } from '../data/score';
 import { SmoNote } from '../data/note';
 import { Pitch } from '../data/common';
 import { SmoSystemStaff } from '../data/systemStaff';
+import { SmoAudioPitch } from '../data/music';
 
 export interface SmoAudioRepeat {
   startRepeat: number,
@@ -36,6 +37,7 @@ export interface SmoAudioTie {
 }
 export interface SmoAudioNote {
   pitches: Pitch[],
+  frequencies: number[],
   noteType: string,
   duration: number,
   offset: number,
@@ -332,20 +334,24 @@ export class SmoAudioScore {
       return;
     }
     const tpitches: Pitch[] = [];
+    const frequencies: number[] = [];
     const xpose = selection.measure.transposeIndex;
     const smoNote = selection.note as SmoNote;
-    smoNote.pitches.forEach((pitch) => {
+    smoNote.pitches.forEach((pitch, pitchIx) => {
       tpitches.push(SmoMusic.smoIntToPitch(
         SmoMusic.smoPitchToInt(pitch) - xpose));
+        const mtone: SmoMicrotone | null = smoNote.getMicrotone(pitchIx) ?? null;
+        frequencies.push(SmoAudioPitch.smoPitchToFrequency(pitch, -1 * xpose, mtone));
     });
     const pitchArray = JSON.parse(JSON.stringify(tpitches));
-    const note = {
+    const note: SmoAudioNote = {
       pitches: pitchArray,
       noteType: 'n',
       duration,
       offset: runningDuration,
       selector: selection.selector,
-      volume: track.volume
+      volume: track.volume,
+      frequencies
     };
     this.updateMeasureNoteMap(track, selection.selector.measure, note);
     track.notes.push(note);
@@ -359,7 +365,8 @@ export class SmoAudioScore {
       noteType: 'r',
       selector,
       volume: 0,
-      pitches: []
+      pitches: [],
+      frequencies: []
     };
     SmoAudioScore.updateMeasureIndexMap(rest, measureIndexMap);
     this.updateMeasureNoteMap(track, selector.measure, rest);      

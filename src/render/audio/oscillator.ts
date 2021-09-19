@@ -1,77 +1,11 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoMusic } from '../../smo/data/music';
-import { Pitch } from '../../smo/data/common';
+import { SmoAudioPitch } from '../../smo/data/music';
 import { SmoMicrotone } from '../../smo/data/noteModifiers';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoNote } from '../../smo/data/note';
 import { SmoSelection } from '../../smo/xform/selections';
-// ## suiAudioPitch
-// helper class to compute the frequencies of the notes.
-export class SuiAudioPitch {
-  // ### _frequencies
-  // Compute the equal-temperment frequencies of the notes.
-  static _computeFrequencies() {
-    const map: Record<string, number> = {};
-    let lix = 0;
-    const octaves = [1, 2, 3, 4, 5, 6, 7];
-    const letters = ['cn', 'c#', 'dn', 'd#', 'en', 'fn', 'f#', 'gn', 'g#', 'an', 'a#', 'bn'];
-
-    const just = Math.pow(2, (1.0 / 12));
-    const baseFrequency = (440 / 16) * Math.pow(just, 3);
-
-    octaves.forEach((octave) => {
-      const base = baseFrequency * Math.pow(2, octave - 1);
-      lix = 0;
-      letters.forEach((letter) => {
-        const freq = base * Math.pow(just, lix);
-        var enharmonics = SmoMusic.getEnharmonics(letter);
-        enharmonics.forEach((en) => {
-          // Adjust for B4 higher than C4
-          const adjOctave = (letter[0] === 'b' && en[0] === 'c') ?
-            octave + 1 : octave;
-          map[en + adjOctave.toString()] = freq;
-        });
-        lix += 1;
-      });
-    });
-
-    return map;
-  }
-  static frequencies: Record<string, number> | null = null;
-
-  static get pitchFrequencyMap() {
-    if (!SuiAudioPitch.frequencies) {
-      SuiAudioPitch.frequencies = SuiAudioPitch._computeFrequencies();
-    }
-
-    return SuiAudioPitch.frequencies;
-  }
-
-  static _rawPitchToFrequency(smoPitch: Pitch, offset: number): number {
-    const npitch = SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(smoPitch) + offset);
-    const vx = npitch.letter.toLowerCase() + npitch.accidental + npitch.octave.toString();
-    return SuiAudioPitch.pitchFrequencyMap[vx];
-  }
-  // ### smoPitchToFrequency
-  // Convert a pitch to a frequency in Hz.
-  static smoPitchToFrequency(smoPitch: Pitch, ix: number, offset: number, tones: SmoMicrotone[]) {
-    let pitchInt = 0;
-    let rv = SuiAudioPitch._rawPitchToFrequency(smoPitch, offset);
-    const mt = tones.filter((tt) => tt.pitch === smoPitch);
-    if (mt.length) {
-      const tone = mt[0];
-      const coeff = tone.toPitchCoeff;
-      pitchInt = SmoMusic.smoPitchToInt(smoPitch);
-      pitchInt += (coeff > 0) ? 1 : -1;
-      const otherSmo = SmoMusic.smoIntToPitch(pitchInt);
-      const otherPitch = SuiAudioPitch._rawPitchToFrequency(otherSmo, offset);
-      rv += Math.abs(rv - otherPitch) * coeff;
-    }
-    return rv;
-  }
-}
 
 export class SuiReverb {
   static get defaults() {
@@ -220,7 +154,6 @@ static sampleFiles: string[] = ['bb4', 'cn4'];
   static fromNote(measure: SmoMeasure, note: SmoNote, isSample: boolean, gain: number): SuiOscillator[] {
     let frequency = 0;
     let duration = 0;
-    let i = 0;
     const tempo = measure.getTempo();
     const bpm = tempo.bpm;
     const beats = note.tickCount / 4096;
@@ -238,16 +171,15 @@ static sampleFiles: string[] = ['bb4', 'cn4'];
     if (note.noteType === 'r') {
       gain = 0.001;
     }
-    i = 0;
-    note.pitches.forEach((pitch) => {
-      frequency = SuiAudioPitch.smoPitchToFrequency(pitch, i, -1 * measure.transposeIndex, note.getMicrotones());
+    note.pitches.forEach((pitch, pitchIx) => {
+      const mtone: SmoMicrotone | null = note.getMicrotone(pitchIx) ?? null;
+      frequency = SmoAudioPitch.smoPitchToFrequency(pitch, -1 * measure.transposeIndex, mtone);
       const def = SuiOscillator.defaults;
       def.frequency = frequency;
       def.duration = duration;
       def.gain = gain;
       const osc = new SuiSampler(def);
       ar.push(osc);
-      i += 1;
     });
 
     return ar;
@@ -284,7 +216,7 @@ static sampleFiles: string[] = ['bb4', 'cn4'];
           req.onload = () => {
             const audioData = req.response;
             audio.decodeAudioData(audioData, (decoded) => {
-              SuiOscillator.samples.push({ sample: decoded, frequency: SuiAudioPitch.pitchFrequencyMap[file] });
+              SuiOscillator.samples.push({ sample: decoded, frequency: SmoAudioPitch.pitchFrequencyMap[file] });
             });
           };
         }
