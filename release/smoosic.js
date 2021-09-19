@@ -495,7 +495,6 @@ class SuiEventHandler {
             ribbonButtons: defaultRibbon_1.defaultRibbonLayout.ribbonButtons,
             menus: this.menus,
             completeNotifier: this,
-            keyCommands: this.keyCommands,
             view: this.view,
             eventSource: this.eventSource,
             tracker: this.tracker
@@ -550,7 +549,8 @@ class SuiEventHandler {
             console.log('resizing');
             self.resizing = false;
             self.piano.handleResize();
-        }, 500);
+            self.view.renderer.rerenderAll();
+        }, 1);
     }
     createModifierDialog(modifierSelection) {
         var parameters = {
@@ -903,13 +903,27 @@ exports.Smo = void 0;
 // ui application components
 const application_1 = __webpack_require__(/*! ./application */ "./src/application/application.ts");
 const eventHandler_1 = __webpack_require__(/*! ./eventHandler */ "./src/application/eventHandler.ts");
-const ribbon_1 = __webpack_require__(/*! ../ui/ribbon */ "./src/ui/ribbon.ts");
 const exceptions_1 = __webpack_require__(/*! ../ui/exceptions */ "./src/ui/exceptions.js");
 const qwerty_1 = __webpack_require__(/*! ../ui/qwerty */ "./src/ui/qwerty.js");
 const piano_1 = __webpack_require__(/*! ../render/sui/piano */ "./src/render/sui/piano.ts");
 const dom_1 = __webpack_require__(/*! ./dom */ "./src/application/dom.ts");
 const basic_1 = __webpack_require__(/*! ../music/basic */ "./src/music/basic.js");
 const help_1 = __webpack_require__(/*! ../ui/help */ "./src/ui/help.js");
+const articulation_1 = __webpack_require__(/*! ../ui/buttons/articulation */ "./src/ui/buttons/articulation.ts");
+const beam_1 = __webpack_require__(/*! ../ui/buttons/beam */ "./src/ui/buttons/beam.ts");
+const chord_1 = __webpack_require__(/*! ../ui/buttons/chord */ "./src/ui/buttons/chord.ts");
+const collapsable_1 = __webpack_require__(/*! ../ui/buttons/collapsable */ "./src/ui/buttons/collapsable.ts");
+const display_1 = __webpack_require__(/*! ../ui/buttons/display */ "./src/ui/buttons/display.ts");
+const duration_1 = __webpack_require__(/*! ../ui/buttons/duration */ "./src/ui/buttons/duration.ts");
+const measure_1 = __webpack_require__(/*! ../ui/buttons/measure */ "./src/ui/buttons/measure.ts");
+const microtone_1 = __webpack_require__(/*! ../ui/buttons/microtone */ "./src/ui/buttons/microtone.ts");
+const navigation_1 = __webpack_require__(/*! ../ui/buttons/navigation */ "./src/ui/buttons/navigation.ts");
+const note_1 = __webpack_require__(/*! ../ui/buttons/note */ "./src/ui/buttons/note.ts");
+const player_1 = __webpack_require__(/*! ../ui/buttons/player */ "./src/ui/buttons/player.ts");
+const stave_1 = __webpack_require__(/*! ../ui/buttons/stave */ "./src/ui/buttons/stave.ts");
+const text_1 = __webpack_require__(/*! ../ui/buttons/text */ "./src/ui/buttons/text.ts");
+const voice_1 = __webpack_require__(/*! ../ui/buttons/voice */ "./src/ui/buttons/voice.ts");
+const ribbon_1 = __webpack_require__(/*! ../ui/ribbon */ "./src/ui/ribbon.ts");
 // Language strings
 const language_en_1 = __webpack_require__(/*! ../ui/i18n/language_en */ "./src/ui/i18n/language_en.js");
 const language_ar_1 = __webpack_require__(/*! ../ui/i18n/language_ar */ "./src/ui/i18n/language_ar.js");
@@ -944,10 +958,10 @@ const actionPlayback_1 = __webpack_require__(/*! ../render/sui/actionPlayback */
 const score_1 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
 const xmlScore_1 = __webpack_require__(/*! ../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
 const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
-const note_1 = __webpack_require__(/*! ../smo/data/note */ "./src/smo/data/note.ts");
+const note_2 = __webpack_require__(/*! ../smo/data/note */ "./src/smo/data/note.ts");
 const tickDuration_1 = __webpack_require__(/*! ../smo/xform/tickDuration */ "./src/smo/xform/tickDuration.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
-const measure_1 = __webpack_require__(/*! ../smo/data/measure */ "./src/smo/data/measure.ts");
+const measure_2 = __webpack_require__(/*! ../smo/data/measure */ "./src/smo/data/measure.ts");
 const selections_1 = __webpack_require__(/*! ../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const systemStaff_1 = __webpack_require__(/*! ../smo/data/systemStaff */ "./src/smo/data/systemStaff.ts");
@@ -963,10 +977,10 @@ exports.Smo = {
     SuiDom: dom_1.SuiDom, SuiEventHandler: eventHandler_1.SuiEventHandler, SuiExceptionHandler: exceptions_1.SuiExceptionHandler,
     Qwerty: qwerty_1.Qwerty, SuiHelp: help_1.SuiHelp,
     // Ribbon buttons
-    RibbonButtons: ribbon_1.RibbonButtons, NoteButtons: ribbon_1.NoteButtons, TextButtons: ribbon_1.TextButtons, ChordButtons: ribbon_1.ChordButtons, MicrotoneButtons: ribbon_1.MicrotoneButtons,
-    StaveButtons: ribbon_1.StaveButtons, BeamButtons: ribbon_1.BeamButtons, MeasureButtons: ribbon_1.MeasureButtons, DurationButtons: ribbon_1.DurationButtons,
-    VoiceButtons: ribbon_1.VoiceButtons, PlayerButtons: ribbon_1.PlayerButtons, ArticulationButtons: ribbon_1.ArticulationButtons, NavigationButtons: ribbon_1.NavigationButtons,
-    DisplaySettings: ribbon_1.DisplaySettings, ExtendedCollapseParent: ribbon_1.ExtendedCollapseParent,
+    RibbonButtons: ribbon_1.RibbonButtons, NoteButtons: note_1.NoteButtons, TextButtons: text_1.TextButtons, ChordButtons: chord_1.ChordButtons, MicrotoneButtons: microtone_1.MicrotoneButtons,
+    StaveButtons: stave_1.StaveButtons, BeamButtons: beam_1.BeamButtons, MeasureButtons: measure_1.MeasureButtons, DurationButtons: duration_1.DurationButtons,
+    VoiceButtons: voice_1.VoiceButtons, PlayerButtons: player_1.PlayerButtons, ArticulationButtons: articulation_1.ArticulationButtons, NavigationButtons: navigation_1.NavigationButtons,
+    DisplaySettings: display_1.DisplaySettings, ExtendedCollapseParent: collapsable_1.ExtendedCollapseParent,
     // Menus
     suiMenuManager: menus_1.suiMenuManager, SuiScoreMenu: menus_1.SuiScoreMenu, SuiFileMenu: menus_1.SuiFileMenu, SuiLibraryMenu: menus_1.SuiLibraryMenu,
     SuiDynamicsMenu: menus_1.SuiDynamicsMenu, SuiTimeSignatureMenu: menus_1.SuiTimeSignatureMenu, SuiKeySignatureMenu: menus_1.SuiKeySignatureMenu, SuiStaffModifierMenu: menus_1.SuiStaffModifierMenu,
@@ -998,9 +1012,9 @@ exports.Smo = {
     // Smo Music Objects
     SmoScore: score_1.SmoScore,
     mxmlScore: xmlScore_1.mxmlScore,
-    SmoMeasure: measure_1.SmoMeasure,
+    SmoMeasure: measure_2.SmoMeasure,
     SmoSystemStaff: systemStaff_1.SmoSystemStaff,
-    SmoNote: note_1.SmoNote,
+    SmoNote: note_2.SmoNote,
     // staff modifier
     SmoStaffHairpin: staffModifiers_1.SmoStaffHairpin, StaffModifierBase: staffModifiers_1.StaffModifierBase,
     SmoInstrument: staffModifiers_1.SmoInstrument, SmoPartMap: staffModifiers_1.SmoPartMap, SmoSlur: staffModifiers_1.SmoSlur, SmoTie: staffModifiers_1.SmoTie, SmoSystemGroup: scoreModifiers_1.SmoSystemGroup,
@@ -1084,15 +1098,10 @@ class SuiKeyCommands {
         this.view.collapseChord();
     }
     playScore() {
-        var mm = this.view.tracker.getExtremeSelection(-1);
-        if (player_1.SuiAudioPlayer.playingInstance && player_1.SuiAudioPlayer.playingInstance.paused) {
-            player_1.SuiAudioPlayer.playingInstance.play();
-            return;
-        }
-        new player_1.SuiAudioPlayer({ score: this.view.score, startIndex: mm.selector.measure, tracker: this.view.tracker }).play();
+        this.view.playFromSelection();
     }
     stopPlayer() {
-        player_1.SuiAudioPlayer.stopPlayer();
+        this.view.stopPlayer();
     }
     pausePlayer() {
         player_1.SuiAudioPlayer.pausePlayer();
@@ -5378,9 +5387,14 @@ class SuiPiano {
         }, 1000);
     }
     bind() {
+        // The menu option to toggle piano state
         $('body').off('show-piano-event').on('show-piano-event', () => {
+            const isVisible = $('body').hasClass('show-piano');
             $('body').toggleClass('show-piano');
             this._mapKeys();
+            if (isVisible) {
+                $('body').trigger('forceResizeEvent');
+            }
         });
         $('#piano-8va-button').off('click').on('click', (ev) => {
             $('#piano-8vb-button').removeClass('activated');
@@ -5459,10 +5473,11 @@ class SuiPiano {
         $(this.renderElement).off('click').on('click', (ev) => {
             this._updateSelections(ev);
         });
+        // the close button on piano itself
         $('.close-piano').off('click').on('click', () => {
             $('body').removeClass('show-piano');
             // resize the work area.
-            $('body').trigger('forceScrollEvent');
+            $('body').trigger('forceResizeEvent');
         });
     }
     _updateSelections(ev) {
@@ -6982,9 +6997,9 @@ class SuiScoreView {
         this.staffMap = this.defaultStaffMap;
         this.setMappedStaffIds();
         this.actionBuffer.clearActions();
-        setTimeout(() => {
-            $('body').trigger('forceResizeEvent');
-        }, 1);
+        /* setTimeout(() => {
+          $('body').trigger('forceResizeEvent');
+        }, 1);  */
     }
     // ### undo
     // for the view score, we the renderer decides what to render
@@ -7014,24 +7029,25 @@ exports.SuiScoreViewOperations = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const scoreView_1 = __webpack_require__(/*! ./scoreView */ "./src/render/sui/scoreView.ts");
-const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
-const undo_1 = __webpack_require__(/*! ../../smo/xform/undo */ "./src/smo/xform/undo.ts");
-const operations_1 = __webpack_require__(/*! ../../smo/xform/operations */ "./src/smo/xform/operations.ts");
-const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
-const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
+const measure_1 = __webpack_require__(/*! ../../smo/data/measure */ "./src/smo/data/measure.ts");
+const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
+const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const undo_1 = __webpack_require__(/*! ../../smo/xform/undo */ "./src/smo/xform/undo.ts");
+const operations_1 = __webpack_require__(/*! ../../smo/xform/operations */ "./src/smo/xform/operations.ts");
+const smoToMidi_1 = __webpack_require__(/*! ../../smo/midi/smoToMidi */ "./src/smo/midi/smoToMidi.ts");
+const smo2Xml_1 = __webpack_require__(/*! ../../smo/mxml/smo2Xml */ "./src/smo/mxml/smo2Xml.ts");
+const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
+const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
 const oscillator_1 = __webpack_require__(/*! ../audio/oscillator */ "./src/render/audio/oscillator.ts");
+const player_1 = __webpack_require__(/*! ../audio/player */ "./src/render/audio/player.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
-const measure_1 = __webpack_require__(/*! ../../smo/data/measure */ "./src/smo/data/measure.ts");
 const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const smoToMidi_1 = __webpack_require__(/*! ../../smo/midi/smoToMidi */ "./src/smo/midi/smoToMidi.ts");
-const smo2Xml_1 = __webpack_require__(/*! ../../smo/mxml/smo2Xml */ "./src/smo/mxml/smo2Xml.ts");
 const actionPlayback_1 = __webpack_require__(/*! ./actionPlayback */ "./src/render/sui/actionPlayback.ts");
-const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
 // ## ScoreViewOperations
 // MVVM-like operations on the displayed score.
 // All operations that can be performed on a 'live' score go through this
@@ -8049,6 +8065,20 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     }
     setMeasureFormat(format) {
         this._columnAction('set measure format', format, 'setMeasureFormat');
+    }
+    playFromSelection() {
+        var mm = this.tracker.getExtremeSelection(-1);
+        if (player_1.SuiAudioPlayer.playingInstance && player_1.SuiAudioPlayer.playingInstance.paused) {
+            player_1.SuiAudioPlayer.playingInstance.play();
+            return;
+        }
+        new player_1.SuiAudioPlayer({ score: this.score, startIndex: mm.selector.measure, tracker: this.tracker }).play();
+    }
+    stopPlayer() {
+        player_1.SuiAudioPlayer.stopPlayer();
+    }
+    pausePlayer() {
+        player_1.SuiAudioPlayer.pausePlayer();
     }
     replayActions() {
         if (!this.actionBuffer.endCondition) {
@@ -30705,6 +30735,795 @@ exports.TimesFont = {
 
 /***/ }),
 
+/***/ "./src/ui/buttons/articulation.ts":
+/*!****************************************!*\
+  !*** ./src/ui/buttons/articulation.ts ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ArticulationButtons = void 0;
+const button_1 = __webpack_require__(/*! ./button */ "./src/ui/buttons/button.ts");
+const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
+class ArticulationButtons extends button_1.SuiButton {
+    constructor(parameters) {
+        super(parameters);
+        this.showState = false;
+        this.articulation = ArticulationButtons.articulationIdMap[this.buttonData.id];
+        this.ctor = ArticulationButtons.constructors[this.buttonData.id];
+    }
+    static get articulationIdMap() {
+        return {
+            accentButton: noteModifiers_1.SmoArticulation.articulations.accent,
+            tenutoButton: noteModifiers_1.SmoArticulation.articulations.tenuto,
+            staccatoButton: noteModifiers_1.SmoArticulation.articulations.staccato,
+            marcatoButton: noteModifiers_1.SmoArticulation.articulations.marcato,
+            pizzicatoButton: noteModifiers_1.SmoArticulation.articulations.pizzicato,
+            fermataButton: noteModifiers_1.SmoArticulation.articulations.fermata,
+            mordentButton: noteModifiers_1.SmoOrnament.ornaments.mordent,
+            mordentInvertedButton: noteModifiers_1.SmoOrnament.ornaments.mordentInverted,
+            trillButton: noteModifiers_1.SmoOrnament.ornaments.trill,
+            scoopButton: noteModifiers_1.SmoOrnament.ornaments.scoop,
+            dropButton: noteModifiers_1.SmoOrnament.ornaments.fall_short,
+            dropLongButton: noteModifiers_1.SmoOrnament.ornaments.dropLong,
+            doitButton: noteModifiers_1.SmoOrnament.ornaments.doit,
+            doitLongButton: noteModifiers_1.SmoOrnament.ornaments.doitLong,
+            flipButton: noteModifiers_1.SmoOrnament.ornaments.flip,
+            smearButton: noteModifiers_1.SmoOrnament.ornaments.smear
+        };
+    }
+    static get constructors() {
+        return {
+            accentButton: 'SmoArticulation',
+            tenutoButton: 'SmoArticulation',
+            staccatoButton: 'SmoArticulation',
+            marcatoButton: 'SmoArticulation',
+            pizzicatoButton: 'SmoArticulation',
+            fermataButton: 'SmoArticulation',
+            mordentButton: 'SmoOrnament',
+            mordentInvertedButton: 'SmoOrnament',
+            trillButton: 'SmoOrnament',
+            scoopButton: 'SmoOrnament',
+            dropButton: 'SmoOrnament',
+            dropLongButton: 'SmoOrnament',
+            doitButton: 'SmoOrnament',
+            doitLongButton: 'SmoOrnament',
+            flipButton: 'SmoOrnament',
+            smearButton: 'SmoOrnament'
+        };
+    }
+    _toggleArticulation() {
+        this.showState = !this.showState;
+        this.view.toggleArticulation(this.articulation, this.ctor);
+    }
+    bind() {
+        this.eventSource.domClick(this.buttonElement, this, '_toggleArticulation', null);
+    }
+}
+exports.ArticulationButtons = ArticulationButtons;
+
+
+/***/ }),
+
+/***/ "./src/ui/buttons/beam.ts":
+/*!********************************!*\
+  !*** ./src/ui/buttons/beam.ts ***!
+  \********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.BeamButtons = void 0;
+const button_1 = __webpack_require__(/*! ./button */ "./src/ui/buttons/button.ts");
+class BeamButtons extends button_1.SuiButton {
+    constructor(parameters) {
+        super(parameters);
+    }
+    operation() {
+        if (this.buttonData.id === 'breakBeam') {
+            this.view.toggleBeamGroup();
+        }
+        else if (this.buttonData.id === 'beamSelections') {
+            this.view.beamSelections();
+        }
+        else if (this.buttonData.id === 'toggleBeamDirection') {
+            this.view.toggleBeamDirection();
+        }
+    }
+    bind() {
+        $(this.buttonElement).off('click').on('click', () => {
+            this.operation();
+        });
+    }
+}
+exports.BeamButtons = BeamButtons;
+
+
+/***/ }),
+
+/***/ "./src/ui/buttons/button.ts":
+/*!**********************************!*\
+  !*** ./src/ui/buttons/button.ts ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiButton = void 0;
+class SuiButton {
+    constructor(params) {
+        this.buttonId = params.buttonId;
+        this.buttonElement = params.buttonElement;
+        this.view = params.view;
+        this.buttonData = params.buttonData;
+        this.eventSource = params.eventSource;
+        this.menus = params.menus;
+        this.completeNotifier = params.completeNotifier;
+    }
+}
+exports.SuiButton = SuiButton;
+
+
+/***/ }),
+
+/***/ "./src/ui/buttons/chord.ts":
+/*!*********************************!*\
+  !*** ./src/ui/buttons/chord.ts ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ChordButtons = void 0;
+const button_1 = __webpack_require__(/*! ./button */ "./src/ui/buttons/button.ts");
+class ChordButtons extends button_1.SuiButton {
+    constructor(parameters) {
+        super(parameters);
+        this.interval = parseInt($(this.buttonElement).attr('data-interval'), 10);
+        this.direction = parseInt($(this.buttonElement).attr('data-direction'), 10);
+    }
+    collapseChord() {
+        this.view.collapseChord();
+    }
+    setInterval() {
+        this.view.setInterval(this.interval * this.direction);
+    }
+    bind() {
+        $(this.buttonElement).off('click').on('click', () => {
+            if ($(this.buttonElement).attr('id') === 'CollapseChordButton') {
+                this.collapseChord();
+                return;
+            }
+            this.setInterval();
+        });
+    }
+}
+exports.ChordButtons = ChordButtons;
+
+
+/***/ }),
+
+/***/ "./src/ui/buttons/collapsable.ts":
+/*!***************************************!*\
+  !*** ./src/ui/buttons/collapsable.ts ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ExtendedCollapseParent = exports.CollapseRibbonControl = exports.buttonIsBindable = exports.buttonIsCollapsible = void 0;
+const button_1 = __webpack_require__(/*! ./button */ "./src/ui/buttons/button.ts");
+const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
+function buttonIsCollapsible(action) {
+    return ['collapseChild', 'collapseChildMenu', 'collapseGrandchild', 'collapseMore'].indexOf(action) >= 0;
+}
+exports.buttonIsCollapsible = buttonIsCollapsible;
+function buttonIsBindable(action) {
+    return ['collapseChildMenu', 'menu', 'modal'].indexOf(action) >= 0;
+}
+exports.buttonIsBindable = buttonIsBindable;
+class CollapseRibbonControl extends button_1.SuiButton {
+    constructor(parameters) {
+        super(parameters);
+        serializationHelpers_1.smoSerialize.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
+        this.childButtons = parameters.buttons.filter((cb) => cb.group === this.buttonData.group &&
+            buttonIsCollapsible(cb.action));
+    }
+    static get paramArray() {
+        return ['ribbonButtons', 'keyCommands', 'controller', 'view', 'menus', 'buttonData', 'buttonElement',
+            'eventSource'];
+    }
+    _toggleExpand() {
+        this.childButtons.forEach((cb) => {
+            const el = $('#' + cb.id);
+            $(el).toggleClass('collapsed');
+            $(el).toggleClass('expanded');
+        });
+        $(this.buttonElement).closest('div').toggleClass('expanded');
+        $(this.buttonElement).toggleClass('expandedChildren');
+        if ($(this.buttonElement).hasClass('expandedChildren')) {
+            const leftSpan = $(this.buttonElement).find('.ribbon-button-text');
+            $(leftSpan).text('');
+            $(leftSpan).removeClass(this.buttonData.icon);
+            $(this.buttonElement).addClass('icon icon-circle-left');
+        }
+        else {
+            $(this.buttonElement).removeClass('icon-circle-left');
+            const leftSpan = $(this.buttonElement).find('.ribbon-button-text');
+            $(leftSpan).addClass(this.buttonData.icon);
+            $(leftSpan).text(this.buttonData.leftText);
+        }
+        // Expand may change music dom, redraw
+        $('body').trigger('forceScrollEvent');
+    }
+    bind() {
+        $(this.buttonElement).closest('div').addClass('collapseContainer');
+        this.eventSource.domClick(this.buttonElement, this, '_toggleExpand', null);
+        this.childButtons.forEach((cb) => {
+            const ctor = eval('globalThis.Smo.' + cb.ctor);
+            if ((typeof (ctor) === 'function')) {
+                const el = $('#' + cb.id);
+                const btn = new ctor({
+                    buttonData: cb,
+                    buttonElement: el,
+                    view: this.view,
+                    completeNotifier: this.completeNotifier,
+                    eventSource: this.eventSource
+                });
+                if (typeof (btn.bind) === 'function') {
+                    btn.bind();
+                }
+            }
+        });
+    }
+}
+exports.CollapseRibbonControl = CollapseRibbonControl;
+// ## ExtendedCollapseParent
+// Muse-style '...' buttons for less-common operations
+class ExtendedCollapseParent extends button_1.SuiButton {
+    constructor(parameters) {
+        super(parameters);
+    }
+    bind() {
+        $(this.buttonElement).off('click').on('click', () => {
+            $(this.buttonElement).closest('.collapseContainer').toggleClass('expanded-more');
+        });
+    }
+}
+exports.ExtendedCollapseParent = ExtendedCollapseParent;
+
+
+/***/ }),
+
+/***/ "./src/ui/buttons/display.ts":
+/*!***********************************!*\
+  !*** ./src/ui/buttons/display.ts ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DisplaySettings = void 0;
+const button_1 = __webpack_require__(/*! ./button */ "./src/ui/buttons/button.ts");
+class DisplaySettings extends button_1.SuiButton {
+    constructor(parameters) {
+        super(parameters);
+    }
+    refresh() {
+        this.view.refreshViewport();
+    }
+    zoomout() {
+        const globalLayout = this.view.score.layoutManager.getGlobalLayout();
+        globalLayout.zoomScale *= 1.1;
+        this.view.setGlobalLayout(globalLayout);
+    }
+    zoomin() {
+        const globalLayout = this.view.score.layoutManager.getGlobalLayout();
+        globalLayout.zoomScale = globalLayout.zoomScale / 1.1;
+        this.view.setGlobalLayout(globalLayout);
+    }
+    playButton2() {
+        this.view.playFromSelection();
+    }
+    stopButton2() {
+        this.view.stopPlayer();
+    }
+    bind() {
+        this.eventSource.domClick(this.buttonElement, this, this.buttonData.id, null);
+    }
+}
+exports.DisplaySettings = DisplaySettings;
+
+
+/***/ }),
+
+/***/ "./src/ui/buttons/duration.ts":
+/*!************************************!*\
+  !*** ./src/ui/buttons/duration.ts ***!
+  \************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DurationButtons = void 0;
+const button_1 = __webpack_require__(/*! ./button */ "./src/ui/buttons/button.ts");
+class DurationButtons extends button_1.SuiButton {
+    constructor(parameters) {
+        super(parameters);
+        this.buttonData = parameters.buttonData;
+    }
+    setDuration() {
+        if (this.buttonData.id === 'GrowDuration') {
+            this.view.batchDurationOperation('doubleDuration');
+        }
+        else if (this.buttonData.id === 'LessDuration') {
+            this.view.batchDurationOperation('halveDuration');
+        }
+        else if (this.buttonData.id === 'GrowDurationDot') {
+            this.view.batchDurationOperation('dotDuration');
+        }
+        else if (this.buttonData.id === 'LessDurationDot') {
+            this.view.batchDurationOperation('undotDuration');
+        }
+        else if (this.buttonData.id === 'TripletButton') {
+            this.view.makeTuplet(3);
+        }
+        else if (this.buttonData.id === 'QuintupletButton') {
+            this.view.makeTuplet(5);
+        }
+        else if (this.buttonData.id === 'SeptupletButton') {
+            this.view.makeTuplet(7);
+        }
+        else if (this.buttonData.id === 'NoTupletButton') {
+            this.view.unmakeTuplet();
+        }
+    }
+    bind() {
+        $(this.buttonElement).off('click').on('click', () => {
+            this.setDuration();
+        });
+    }
+}
+exports.DurationButtons = DurationButtons;
+
+
+/***/ }),
+
+/***/ "./src/ui/buttons/measure.ts":
+/*!***********************************!*\
+  !*** ./src/ui/buttons/measure.ts ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MeasureButtons = void 0;
+const button_1 = __webpack_require__(/*! ./button */ "./src/ui/buttons/button.ts");
+const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
+class MeasureButtons extends button_1.SuiButton {
+    constructor(parameters) {
+        super(parameters);
+    }
+    endRepeat() {
+        this.view.setBarline(measureModifiers_1.SmoBarline.positions.end, measureModifiers_1.SmoBarline.barlines.endRepeat);
+    }
+    startRepeat() {
+        this.view.setBarline(measureModifiers_1.SmoBarline.positions.start, measureModifiers_1.SmoBarline.barlines.startRepeat);
+    }
+    singleBarStart() {
+        this.view.setBarline(measureModifiers_1.SmoBarline.positions.start, measureModifiers_1.SmoBarline.barlines.singleBar);
+    }
+    singleBarEnd() {
+        this.view.setBarline(measureModifiers_1.SmoBarline.positions.end, measureModifiers_1.SmoBarline.barlines.singleBar);
+    }
+    doubleBar() {
+        this.view.setBarline(measureModifiers_1.SmoBarline.positions.end, measureModifiers_1.SmoBarline.barlines.doubleBar);
+    }
+    endBar() {
+        this.view.setBarline(measureModifiers_1.SmoBarline.positions.end, measureModifiers_1.SmoBarline.barlines.endBar);
+    }
+    coda() {
+        this.view.setRepeatSymbol(measureModifiers_1.SmoRepeatSymbol.positions.end, measureModifiers_1.SmoRepeatSymbol.symbols.Coda);
+    }
+    toCoda() {
+        this.view.setRepeatSymbol(measureModifiers_1.SmoRepeatSymbol.positions.end, measureModifiers_1.SmoRepeatSymbol.symbols.ToCoda);
+    }
+    segno() {
+        this.view.setRepeatSymbol(measureModifiers_1.SmoRepeatSymbol.positions.end, measureModifiers_1.SmoRepeatSymbol.symbols.Segno);
+    }
+    dsAlCoda() {
+        this.view.setRepeatSymbol(measureModifiers_1.SmoRepeatSymbol.positions.end, measureModifiers_1.SmoRepeatSymbol.symbols.DsAlCoda);
+    }
+    dcAlCoda() {
+        this.view.setRepeatSymbol(measureModifiers_1.SmoRepeatSymbol.positions.end, measureModifiers_1.SmoRepeatSymbol.symbols.DcAlCoda);
+    }
+    dsAlFine() {
+        this.view.setRepeatSymbol(measureModifiers_1.SmoRepeatSymbol.positions.end, measureModifiers_1.SmoRepeatSymbol.symbols.DsAlFine);
+    }
+    dcAlFine() {
+        this.view.setRepeatSymbol(measureModifiers_1.SmoRepeatSymbol.positions.end, measureModifiers_1.SmoRepeatSymbol.symbols.DcAlFine);
+    }
+    fine() {
+        this.view.setRepeatSymbol(measureModifiers_1.SmoRepeatSymbol.positions.end, measureModifiers_1.SmoRepeatSymbol.symbols.Fine);
+    }
+    nthEnding() {
+        this.view.addEnding();
+    }
+    handleEvent(event, method) {
+        this[method]();
+    }
+    bind() {
+        this.eventSource.domClick(this.buttonElement, this, 'handleEvent', this.buttonData.id);
+    }
+}
+exports.MeasureButtons = MeasureButtons;
+
+
+/***/ }),
+
+/***/ "./src/ui/buttons/microtone.ts":
+/*!*************************************!*\
+  !*** ./src/ui/buttons/microtone.ts ***!
+  \*************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MicrotoneButtons = void 0;
+const button_1 = __webpack_require__(/*! ./button */ "./src/ui/buttons/button.ts");
+const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
+const oscillator_1 = __webpack_require__(/*! ../../render/audio/oscillator */ "./src/render/audio/oscillator.ts");
+class MicrotoneButtons extends button_1.SuiButton {
+    constructor(parameters) {
+        super(parameters);
+    }
+    applyButton(el) {
+        const defs = noteModifiers_1.SmoMicrotone.defaults;
+        defs.tone = el.id;
+        const tn = new noteModifiers_1.SmoMicrotone(defs);
+        this.view.addRemoveMicrotone(tn);
+        oscillator_1.SuiOscillator.playSelectionNow(this.view.tracker.selections[0], 1);
+    }
+    bind() {
+        $(this.buttonElement).off('click').on('click', () => {
+            this.applyButton(this.buttonData);
+        });
+    }
+}
+exports.MicrotoneButtons = MicrotoneButtons;
+
+
+/***/ }),
+
+/***/ "./src/ui/buttons/navigation.ts":
+/*!**************************************!*\
+  !*** ./src/ui/buttons/navigation.ts ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.NavigationButtons = void 0;
+const button_1 = __webpack_require__(/*! ./button */ "./src/ui/buttons/button.ts");
+class NavigationButtons extends button_1.SuiButton {
+    static get directionsTrackerMap() {
+        return {
+            navLeftButton: 'moveSelectionLeft',
+            navRightButton: 'moveSelectionRight',
+            navUpButton: 'moveSelectionUp',
+            navDownButton: 'moveSelectionDown',
+            navFastForward: 'moveSelectionRightMeasure',
+            navRewind: 'moveSelectionLeftMeasure',
+            navGrowLeft: 'growSelectionLeft',
+            navGrowRight: 'growSelectionRight'
+        };
+    }
+    constructor(parameters) {
+        super(parameters);
+    }
+    _moveTracker() {
+        this.view.tracker[NavigationButtons.directionsTrackerMap[this.buttonData.id]]();
+    }
+    bind() {
+        this.eventSource.domClick(this.buttonElement, this, '_moveTracker', null);
+    }
+}
+exports.NavigationButtons = NavigationButtons;
+
+
+/***/ }),
+
+/***/ "./src/ui/buttons/note.ts":
+/*!********************************!*\
+  !*** ./src/ui/buttons/note.ts ***!
+  \********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.NoteButtons = void 0;
+const button_1 = __webpack_require__(/*! ./button */ "./src/ui/buttons/button.ts");
+const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
+class NoteButtons extends button_1.SuiButton {
+    constructor(parameters) {
+        super(parameters);
+    }
+    setPitch() {
+        if (this.buttonData.id === 'UpNoteButton') {
+            this.view.transposeSelections(1);
+        }
+        else if (this.buttonData.id === 'DownNoteButton') {
+            this.view.transposeSelections(-1);
+        }
+        else if (this.buttonData.id === 'UpOctaveButton') {
+            this.view.transposeSelections(12);
+        }
+        else if (this.buttonData.id === 'DownOctaveButton') {
+            this.view.transposeSelections(-12);
+        }
+        else if (this.buttonData.id === 'ToggleAccidental') {
+            this.view.toggleEnharmonic();
+        }
+        else if (this.buttonData.id === 'ToggleCourtesy') {
+            this.view.toggleCourtesyAccidentals();
+        }
+        else if (this.buttonData.id === 'ToggleRestButton') {
+            this.view.makeRest();
+        }
+        else if (this.buttonData.id === 'ToggleSlashButton') {
+            this.view.toggleSlash();
+        }
+        else if (this.buttonData.id === 'AddGraceNote') {
+            this.view.addGraceNote();
+        }
+        else if (this.buttonData.id === 'SlashGraceNote') {
+            this.view.slashGraceNotes();
+        }
+        else if (this.buttonData.id === 'RemoveGraceNote') {
+            this.view.removeGraceNote();
+        }
+        else if (this.buttonData.id === 'XNoteHead') {
+            this.view.setNoteHead('x2');
+        }
+        else if (this.buttonData.id === 'TriUpNoteHead') {
+            this.view.setNoteHead('T2');
+        }
+        else if (this.buttonData.id === 'CircleXNoteHead') {
+            this.view.setNoteHead('X3');
+        }
+        else if (this.buttonData.id === 'DiamondNoteHead') {
+            this.view.setNoteHead('D2');
+        }
+        else {
+            if (common_1.IsPitchLetter(this.buttonData.rightText)) {
+                this.view.setPitch(this.buttonData.rightText);
+            }
+        }
+    }
+    bind() {
+        $(this.buttonElement).off('click').on('click', () => {
+            this.setPitch();
+        });
+    }
+}
+exports.NoteButtons = NoteButtons;
+
+
+/***/ }),
+
+/***/ "./src/ui/buttons/player.ts":
+/*!**********************************!*\
+  !*** ./src/ui/buttons/player.ts ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PlayerButtons = void 0;
+const button_1 = __webpack_require__(/*! ./button */ "./src/ui/buttons/button.ts");
+class PlayerButtons extends button_1.SuiButton {
+    constructor(parameters) {
+        super(parameters);
+    }
+    playButton() {
+        this.view.playFromSelection();
+    }
+    stopButton() {
+        this.view.stopPlayer();
+    }
+    pauseButton() {
+        this.view.pausePlayer();
+    }
+    bind() {
+        this.eventSource.domClick(this.buttonElement, this, this.buttonData.id, null);
+    }
+}
+exports.PlayerButtons = PlayerButtons;
+
+
+/***/ }),
+
+/***/ "./src/ui/buttons/stave.ts":
+/*!*********************************!*\
+  !*** ./src/ui/buttons/stave.ts ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.StaveButtons = void 0;
+const button_1 = __webpack_require__(/*! ./button */ "./src/ui/buttons/button.ts");
+const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+class StaveButtons extends button_1.SuiButton {
+    constructor(parameters) {
+        super(parameters);
+    }
+    addClef(clef, clefName) {
+        var instrument = new staffModifiers_1.SmoInstrument();
+        instrument.instrument = clefName;
+        instrument.keyOffset = 0;
+        instrument.clef = clef;
+        this.view.changeInstrument(instrument, this.view.tracker.selections);
+    }
+    clefTreble() {
+        this.addClef('treble', 'Treble Instrument');
+    }
+    clefBass() {
+        this.addClef('bass', 'Bass Instrument');
+    }
+    clefAlto() {
+        this.addClef('alto', 'Alto Instrument');
+    }
+    clefTenor() {
+        this.addClef('tenor', 'Tenor Instrument');
+    }
+    clefPercussion() {
+        this.addClef('percussion', 'Tenor Instrument');
+    }
+    _clefMove(index) {
+        this.view.moveStaffUpDown(index);
+    }
+    clefMoveUp() {
+        this._clefMove(-1);
+    }
+    clefMoveDown() {
+        this._clefMove(1);
+    }
+    _addStaffGroup(type) {
+        this.view.addStaffGroupDown(type);
+    }
+    staffBraceLower() {
+        this._addStaffGroup(scoreModifiers_1.SmoSystemGroup.connectorTypes.brace);
+    }
+    staffBracketLower() {
+        this._addStaffGroup(scoreModifiers_1.SmoSystemGroup.connectorTypes.bracket);
+    }
+    bind() {
+        const self = this;
+        $(this.buttonElement).off('click').on('click', () => {
+            const id = self.buttonData.id;
+            if (typeof (this[id]) === 'function') {
+                this[id]();
+            }
+        });
+    }
+}
+exports.StaveButtons = StaveButtons;
+
+
+/***/ }),
+
+/***/ "./src/ui/buttons/text.ts":
+/*!********************************!*\
+  !*** ./src/ui/buttons/text.ts ***!
+  \********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TextButtons = void 0;
+const button_1 = __webpack_require__(/*! ./button */ "./src/ui/buttons/button.ts");
+const textDialogs_1 = __webpack_require__(/*! ../dialogs/textDialogs */ "./src/ui/dialogs/textDialogs.js");
+const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
+class TextButtons extends button_1.SuiButton {
+    constructor(parameters) {
+        super(parameters);
+    }
+    lyrics() {
+        textDialogs_1.SuiLyricDialog.createAndDisplay({
+            buttonElement: this.buttonElement,
+            buttonData: this.buttonData,
+            completeNotifier: this.completeNotifier,
+            view: this.view,
+            undoBuffer: this.view.undoBuffer,
+            eventSource: this.eventSource,
+            parser: noteModifiers_1.SmoLyric.parsers.lyric
+        });
+        // tracker, selection, controller
+    }
+    chordChanges() {
+        textDialogs_1.SuiChordChangeDialog.createAndDisplay({
+            buttonElement: this.buttonElement,
+            buttonData: this.buttonData,
+            completeNotifier: this.completeNotifier,
+            view: this.view,
+            eventSource: this.eventSource,
+            parser: noteModifiers_1.SmoLyric.parsers.chord
+        });
+    }
+    rehearsalMark() {
+        this.view.toggleRehearsalMark();
+    }
+    _invokeMenu(cmd) {
+        this.menus.slashMenuMode(this.completeNotifier);
+        this.menus.createMenu(cmd);
+    }
+    addTextMenu() {
+        textDialogs_1.SuiTextTransformDialog.createAndDisplay({
+            buttonElement: this.buttonElement,
+            buttonData: this.buttonData,
+            completeNotifier: this.completeNotifier,
+            tracker: this.view.tracker,
+            view: this.view,
+            eventSource: this.eventSource
+        });
+    }
+    addDynamicsMenu() {
+        this._invokeMenu('SuiDynamicsMenu');
+    }
+    bind() {
+        this.eventSource.domClick(this.buttonElement, this, this.buttonData.id, null);
+    }
+}
+exports.TextButtons = TextButtons;
+
+
+/***/ }),
+
+/***/ "./src/ui/buttons/voice.ts":
+/*!*********************************!*\
+  !*** ./src/ui/buttons/voice.ts ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.VoiceButtons = void 0;
+const button_1 = __webpack_require__(/*! ./button */ "./src/ui/buttons/button.ts");
+class VoiceButtons extends button_1.SuiButton {
+    constructor(parameters) {
+        super(parameters);
+    }
+    doAction() {
+        let voiceIx = 0;
+        if (this.buttonData.id === 'V2Button') {
+            voiceIx = 1;
+        }
+        else if (this.buttonData.id === 'V3Button') {
+            voiceIx = 2;
+        }
+        else if (this.buttonData.id === 'V4Button') {
+            voiceIx = 3;
+        }
+        else if (this.buttonData.id === 'VXButton') {
+            this.view.depopulateVoice();
+            return;
+        }
+        this.view.populateVoice(voiceIx);
+    }
+    bind() {
+        $(this.buttonElement).off('click').on('click', () => {
+            this.doAction();
+        });
+    }
+}
+exports.VoiceButtons = VoiceButtons;
+
+
+/***/ }),
+
 /***/ "./src/ui/dialog.js":
 /*!**************************!*\
   !*** ./src/ui/dialog.js ***!
@@ -43048,31 +43867,11 @@ exports.Qwerty = Qwerty;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CollapseRibbonControl = exports.ArticulationButtons = exports.NavigationButtons = exports.TextButtons = exports.DisplaySettings = exports.PlayerButtons = exports.MeasureButtons = exports.StaveButtons = exports.ChordButtons = exports.NoteButtons = exports.VoiceButtons = exports.DurationButtons = exports.MicrotoneButtons = exports.BeamButtons = exports.ExtendedCollapseParent = exports.RibbonButtons = exports.SuiButton = void 0;
+exports.RibbonButtons = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const scoreModifiers_1 = __webpack_require__(/*! ../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
-const measureModifiers_1 = __webpack_require__(/*! ../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
-const serializationHelpers_1 = __webpack_require__(/*! ../common/serializationHelpers */ "./src/common/serializationHelpers.js");
-const oscillator_1 = __webpack_require__(/*! ../render/audio/oscillator */ "./src/render/audio/oscillator.ts");
-const noteModifiers_1 = __webpack_require__(/*! ../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
-const textDialogs_1 = __webpack_require__(/*! ./dialogs/textDialogs */ "./src/ui/dialogs/textDialogs.js");
-const staffModifiers_1 = __webpack_require__(/*! ../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
-const common_1 = __webpack_require__(/*! ../smo/data/common */ "./src/smo/data/common.ts");
-class SuiButton {
-    constructor(params) {
-        this.buttonId = params.buttonId;
-        this.buttonElement = params.buttonElement;
-        this.keyCommands = params.keyCommands;
-        this.view = params.view;
-        this.buttonData = params.buttonData;
-        this.eventSource = params.eventSource;
-        this.menus = params.menus;
-        this.completeNotifier = params.completeNotifier;
-    }
-}
-exports.SuiButton = SuiButton;
+const collapsable_1 = __webpack_require__(/*! ./buttons/collapsable */ "./src/ui/buttons/collapsable.ts");
 // ## RibbonButtons
 // Render the ribbon buttons based on group, function, and underlying UI handler.
 // Also handles UI events.
@@ -43082,7 +43881,6 @@ class RibbonButtons {
     constructor(params) {
         this.collapsables = [];
         this.collapseChildren = [];
-        this.keyCommands = params.keyCommands;
         this.controller = params.completeNotifier;
         this.eventSource = params.eventSource;
         this.view = params.view;
@@ -43105,7 +43903,6 @@ class RibbonButtons {
         ctor.createAndDisplay({
             undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
-            keyCommands: this.keyCommands,
             completeNotifier: this.controller,
             view: this.view
         });
@@ -43157,9 +43954,6 @@ class RibbonButtons {
     static isCollapsible(action) {
         return ['collapseChild', 'collapseChildMenu', 'collapseGrandchild', 'collapseMore'].indexOf(action) >= 0;
     }
-    static isBindable(action) {
-        return ['collapseChildMenu', 'menu', 'modal'].indexOf(action) >= 0;
-    }
     // ### _createButtonHtml
     // For each button, create the html and bind the events based on
     // the button's configured action.
@@ -43190,13 +43984,12 @@ class RibbonButtons {
                     if (buttonData.action === 'collapseParent') {
                         $(buttonHtml).addClass('collapseContainer');
                         // collapseParent
-                        this.collapsables.push(new CollapseRibbonControl({
+                        this.collapsables.push(new collapsable_1.CollapseRibbonControl({
                             buttons: this.ribbonButtons,
                             view: this.view,
                             menus: this.menus,
                             eventSource: this.eventSource,
                             completeNotifier: this.controller,
-                            keyCommands: this.keyCommands,
                             buttonId: buttonData.id,
                             buttonElement,
                             buttonData
@@ -43224,583 +44017,6 @@ class RibbonButtons {
 }
 exports.RibbonButtons = RibbonButtons;
 RibbonButtons.translateButtons = [];
-// ## ExtendedCollapseParent
-// Muse-style '...' buttons for less-common operations
-class ExtendedCollapseParent extends SuiButton {
-    constructor(parameters) {
-        super(parameters);
-        this.buttonElement = parameters.buttonElement;
-        this.buttonData = parameters.buttonData;
-        this.keyCommands = parameters.keyCommands;
-    }
-    bind() {
-        $(this.buttonElement).off('click').on('click', () => {
-            $(this.buttonElement).closest('.collapseContainer').toggleClass('expanded-more');
-        });
-    }
-}
-exports.ExtendedCollapseParent = ExtendedCollapseParent;
-class BeamButtons extends SuiButton {
-    constructor(parameters) {
-        super(parameters);
-        this.buttonData = parameters.buttonData;
-    }
-    operation() {
-        if (this.buttonData.id === 'breakBeam') {
-            this.keyCommands.toggleBeamGroup();
-        }
-        else if (this.buttonData.id === 'beamSelections') {
-            this.keyCommands.beamSelections();
-        }
-        else if (this.buttonData.id === 'toggleBeamDirection') {
-            this.keyCommands.toggleBeamDirection();
-        }
-    }
-    bind() {
-        $(this.buttonElement).off('click').on('click', () => {
-            this.operation();
-        });
-    }
-}
-exports.BeamButtons = BeamButtons;
-class MicrotoneButtons extends SuiButton {
-    constructor(parameters) {
-        super(parameters);
-        this.buttonElement = parameters.buttonElement;
-        this.buttonData = parameters.buttonData;
-        this.keyCommands = parameters.keyCommands;
-        this.view = parameters.view;
-    }
-    applyButton(el) {
-        const defs = noteModifiers_1.SmoMicrotone.defaults;
-        defs.tone = el.id;
-        const tn = new noteModifiers_1.SmoMicrotone(defs);
-        this.view.addRemoveMicrotone(tn);
-        oscillator_1.SuiOscillator.playSelectionNow(this.view.tracker.selections[0], 1);
-    }
-    bind() {
-        var self = this;
-        $(this.buttonElement).off('click').on('click', () => {
-            self.applyButton(self.buttonData);
-        });
-    }
-}
-exports.MicrotoneButtons = MicrotoneButtons;
-class DurationButtons extends SuiButton {
-    constructor(parameters) {
-        super(parameters);
-        this.buttonData = parameters.buttonData;
-    }
-    setDuration() {
-        if (this.buttonData.id === 'GrowDuration') {
-            this.keyCommands.doubleDuration();
-        }
-        else if (this.buttonData.id === 'LessDuration') {
-            this.keyCommands.halveDuration();
-        }
-        else if (this.buttonData.id === 'GrowDurationDot') {
-            this.keyCommands.dotDuration();
-        }
-        else if (this.buttonData.id === 'LessDurationDot') {
-            this.keyCommands.undotDuration();
-        }
-        else if (this.buttonData.id === 'TripletButton') {
-            this.keyCommands.makeTupletCommand(3);
-        }
-        else if (this.buttonData.id === 'QuintupletButton') {
-            this.keyCommands.makeTupletCommand(5);
-        }
-        else if (this.buttonData.id === 'SeptupletButton') {
-            this.keyCommands.makeTupletCommand(7);
-        }
-        else if (this.buttonData.id === 'NoTupletButton') {
-            this.keyCommands.unmakeTuplet();
-        }
-    }
-    bind() {
-        var self = this;
-        $(this.buttonElement).off('click').on('click', () => {
-            self.setDuration();
-        });
-    }
-}
-exports.DurationButtons = DurationButtons;
-class VoiceButtons extends SuiButton {
-    constructor(parameters) {
-        super(parameters);
-    }
-    doAction() {
-        let voiceIx = 0;
-        if (this.buttonData.id === 'V2Button') {
-            voiceIx = 1;
-        }
-        else if (this.buttonData.id === 'V3Button') {
-            voiceIx = 2;
-        }
-        else if (this.buttonData.id === 'V4Button') {
-            voiceIx = 3;
-        }
-        else if (this.buttonData.id === 'VXButton') {
-            this.view.depopulateVoice();
-            return;
-        }
-        this.view.populateVoice(voiceIx);
-    }
-    bind() {
-        $(this.buttonElement).off('click').on('click', () => {
-            this.doAction();
-        });
-    }
-}
-exports.VoiceButtons = VoiceButtons;
-class NoteButtons extends SuiButton {
-    constructor(parameters) {
-        super(parameters);
-        this.buttonElement = parameters.buttonElement;
-        this.buttonData = parameters.buttonData;
-        this.keyCommands = parameters.keyCommands;
-        this.view = parameters.view;
-    }
-    setPitch() {
-        if (this.buttonData.id === 'UpNoteButton') {
-            this.keyCommands.transposeUp();
-        }
-        else if (this.buttonData.id === 'DownNoteButton') {
-            this.keyCommands.transposeDown();
-        }
-        else if (this.buttonData.id === 'UpOctaveButton') {
-            this.keyCommands.upOctave();
-        }
-        else if (this.buttonData.id === 'DownOctaveButton') {
-            this.keyCommands.downOctave();
-        }
-        else if (this.buttonData.id === 'ToggleAccidental') {
-            this.keyCommands.toggleEnharmonic();
-        }
-        else if (this.buttonData.id === 'ToggleCourtesy') {
-            this.keyCommands.toggleCourtesyAccidental();
-        }
-        else if (this.buttonData.id === 'ToggleRestButton') {
-            this.keyCommands.makeRest();
-        }
-        else if (this.buttonData.id === 'ToggleSlashButton') {
-            this.view.toggleSlash();
-        }
-        else if (this.buttonData.id === 'AddGraceNote') {
-            this.keyCommands.addGraceNote();
-        }
-        else if (this.buttonData.id === 'SlashGraceNote') {
-            this.keyCommands.slashGraceNotes();
-        }
-        else if (this.buttonData.id === 'RemoveGraceNote') {
-            this.keyCommands.removeGraceNote();
-        }
-        else if (this.buttonData.id === 'XNoteHead') {
-            this.keyCommands.setNoteHead();
-        }
-        else if (this.buttonData.id === 'TriUpNoteHead') {
-            this.view.setNoteHead('T2');
-        }
-        else if (this.buttonData.id === 'CircleXNoteHead') {
-            this.view.setNoteHead('X3');
-        }
-        else if (this.buttonData.id === 'DiamondNoteHead') {
-            this.view.setNoteHead('D2');
-        }
-        else {
-            if (common_1.IsPitchLetter(this.buttonData.rightText)) {
-                this.keyCommands.setPitchCommand(this.buttonData.rightText);
-            }
-        }
-    }
-    bind() {
-        var self = this;
-        $(this.buttonElement).off('click').on('click', () => {
-            self.setPitch();
-        });
-    }
-}
-exports.NoteButtons = NoteButtons;
-class ChordButtons extends SuiButton {
-    constructor(parameters) {
-        super(parameters);
-        this.buttonElement = parameters.buttonElement;
-        this.buttonData = parameters.buttonData;
-        this.keyCommands = parameters.keyCommands;
-        this.view = parameters.view;
-        this.interval = parseInt($(this.buttonElement).attr('data-interval'), 10);
-        this.direction = parseInt($(this.buttonElement).attr('data-direction'), 10);
-    }
-    collapseChord() {
-        this.keyCommands.collapseChord();
-    }
-    setInterval() {
-        this.keyCommands.intervalAdd(this.interval, this.direction);
-    }
-    bind() {
-        $(this.buttonElement).off('click').on('click', () => {
-            if ($(this.buttonElement).attr('id') === 'CollapseChordButton') {
-                this.collapseChord();
-                return;
-            }
-            this.setInterval();
-        });
-    }
-}
-exports.ChordButtons = ChordButtons;
-class StaveButtons extends SuiButton {
-    constructor(parameters) {
-        super(parameters);
-    }
-    addClef(clef, clefName) {
-        var instrument = new staffModifiers_1.SmoInstrument();
-        instrument.instrument = clefName;
-        instrument.keyOffset = 0;
-        instrument.clef = clef;
-        this.view.changeInstrument(instrument, this.view.tracker.selections);
-    }
-    clefTreble() {
-        this.addClef('treble', 'Treble Instrument');
-    }
-    clefBass() {
-        this.addClef('bass', 'Bass Instrument');
-    }
-    clefAlto() {
-        this.addClef('alto', 'Alto Instrument');
-    }
-    clefTenor() {
-        this.addClef('tenor', 'Tenor Instrument');
-    }
-    clefPercussion() {
-        this.addClef('percussion', 'Tenor Instrument');
-    }
-    _clefMove(index) {
-        this.view.moveStaffUpDown(index);
-    }
-    clefMoveUp() {
-        this._clefMove(-1);
-    }
-    clefMoveDown() {
-        this._clefMove(1);
-    }
-    _addStaffGroup(type) {
-        this.view.addStaffGroupDown(type);
-    }
-    staffBraceLower() {
-        this._addStaffGroup(scoreModifiers_1.SmoSystemGroup.connectorTypes.brace);
-    }
-    staffBracketLower() {
-        this._addStaffGroup(scoreModifiers_1.SmoSystemGroup.connectorTypes.bracket);
-    }
-    bind() {
-        const self = this;
-        $(this.buttonElement).off('click').on('click', () => {
-            const id = self.buttonData.id;
-            if (typeof (this[id]) === 'function') {
-                this[id]();
-            }
-        });
-    }
-}
-exports.StaveButtons = StaveButtons;
-class MeasureButtons extends SuiButton {
-    constructor(parameters) {
-        super(parameters);
-    }
-    endRepeat() {
-        this.view.setBarline(measureModifiers_1.SmoBarline.positions.end, measureModifiers_1.SmoBarline.barlines.endRepeat);
-    }
-    startRepeat() {
-        this.view.setBarline(measureModifiers_1.SmoBarline.positions.start, measureModifiers_1.SmoBarline.barlines.startRepeat);
-    }
-    singleBarStart() {
-        this.view.setBarline(measureModifiers_1.SmoBarline.positions.start, measureModifiers_1.SmoBarline.barlines.singleBar);
-    }
-    singleBarEnd() {
-        this.view.setBarline(measureModifiers_1.SmoBarline.positions.end, measureModifiers_1.SmoBarline.barlines.singleBar);
-    }
-    doubleBar() {
-        this.view.setBarline(measureModifiers_1.SmoBarline.positions.end, measureModifiers_1.SmoBarline.barlines.doubleBar);
-    }
-    endBar() {
-        this.view.setBarline(measureModifiers_1.SmoBarline.positions.end, measureModifiers_1.SmoBarline.barlines.endBar);
-    }
-    coda() {
-        this.view.setRepeatSymbol(measureModifiers_1.SmoRepeatSymbol.positions.end, measureModifiers_1.SmoRepeatSymbol.symbols.Coda);
-    }
-    toCoda() {
-        this.view.setRepeatSymbol(measureModifiers_1.SmoRepeatSymbol.positions.end, measureModifiers_1.SmoRepeatSymbol.symbols.ToCoda);
-    }
-    segno() {
-        this.view.setRepeatSymbol(measureModifiers_1.SmoRepeatSymbol.positions.end, measureModifiers_1.SmoRepeatSymbol.symbols.Segno);
-    }
-    dsAlCoda() {
-        this.view.setRepeatSymbol(measureModifiers_1.SmoRepeatSymbol.positions.end, measureModifiers_1.SmoRepeatSymbol.symbols.DsAlCoda);
-    }
-    dcAlCoda() {
-        this.view.setRepeatSymbol(measureModifiers_1.SmoRepeatSymbol.positions.end, measureModifiers_1.SmoRepeatSymbol.symbols.DcAlCoda);
-    }
-    dsAlFine() {
-        this.view.setRepeatSymbol(measureModifiers_1.SmoRepeatSymbol.positions.end, measureModifiers_1.SmoRepeatSymbol.symbols.DsAlFine);
-    }
-    dcAlFine() {
-        this.view.setRepeatSymbol(measureModifiers_1.SmoRepeatSymbol.positions.end, measureModifiers_1.SmoRepeatSymbol.symbols.DcAlFine);
-    }
-    fine() {
-        this.view.setRepeatSymbol(measureModifiers_1.SmoRepeatSymbol.positions.end, measureModifiers_1.SmoRepeatSymbol.symbols.Fine);
-    }
-    nthEnding() {
-        this.view.addEnding();
-    }
-    handleEvent(event, method) {
-        this[method]();
-    }
-    bind() {
-        this.eventSource.domClick(this.buttonElement, this, 'handleEvent', this.buttonData.id);
-    }
-}
-exports.MeasureButtons = MeasureButtons;
-class PlayerButtons extends SuiButton {
-    constructor(parameters) {
-        super(parameters);
-    }
-    playButton() {
-        this.keyCommands.playScore();
-    }
-    stopButton() {
-        this.keyCommands.stopPlayer();
-    }
-    pauseButton() {
-        this.keyCommands.pausePlayer();
-    }
-    bind() {
-        this.eventSource.domClick(this.buttonElement, this, this.buttonData.id, null);
-    }
-}
-exports.PlayerButtons = PlayerButtons;
-class DisplaySettings extends SuiButton {
-    constructor(parameters) {
-        super(parameters);
-    }
-    refresh() {
-        this.view.refreshViewport();
-    }
-    zoomout() {
-        const globalLayout = this.view.score.layoutManager.getGlobalLayout();
-        globalLayout.zoomScale *= 1.1;
-        this.view.setGlobalLayout(globalLayout);
-    }
-    zoomin() {
-        const globalLayout = this.view.score.layoutManager.getGlobalLayout();
-        globalLayout.zoomScale = globalLayout.zoomScale / 1.1;
-        this.view.setGlobalLayout(globalLayout);
-    }
-    playButton2() {
-        this.keyCommands.playScore();
-    }
-    stopButton2() {
-        this.keyCommands.stopPlayer();
-    }
-    bind() {
-        this.eventSource.domClick(this.buttonElement, this, this.buttonData.id, null);
-    }
-}
-exports.DisplaySettings = DisplaySettings;
-class TextButtons extends SuiButton {
-    constructor(parameters) {
-        super(parameters);
-    }
-    lyrics() {
-        textDialogs_1.SuiLyricDialog.createAndDisplay({
-            buttonElement: this.buttonElement,
-            buttonData: this.buttonData,
-            completeNotifier: this.completeNotifier,
-            view: this.view,
-            undoBuffer: this.view.undoBuffer,
-            eventSource: this.eventSource,
-            keyCommands: this.keyCommands,
-            parser: noteModifiers_1.SmoLyric.parsers.lyric
-        });
-        // tracker, selection, controller
-    }
-    chordChanges() {
-        textDialogs_1.SuiChordChangeDialog.createAndDisplay({
-            buttonElement: this.buttonElement,
-            buttonData: this.buttonData,
-            completeNotifier: this.completeNotifier,
-            view: this.view,
-            eventSource: this.eventSource,
-            keyCommands: this.keyCommands,
-            parser: noteModifiers_1.SmoLyric.parsers.chord
-        });
-    }
-    rehearsalMark() {
-        this.view.toggleRehearsalMark();
-    }
-    _invokeMenu(cmd) {
-        this.menus.slashMenuMode(this.completeNotifier);
-        this.menus.createMenu(cmd);
-    }
-    addTextMenu() {
-        textDialogs_1.SuiTextTransformDialog.createAndDisplay({
-            buttonElement: this.buttonElement,
-            buttonData: this.buttonData,
-            completeNotifier: this.completeNotifier,
-            tracker: this.view.tracker,
-            view: this.view,
-            eventSource: this.eventSource,
-            keyCommands: this.keyCommands
-        });
-    }
-    addDynamicsMenu() {
-        this._invokeMenu('SuiDynamicsMenu');
-    }
-    bind() {
-        this.eventSource.domClick(this.buttonElement, this, this.buttonData.id, null);
-    }
-}
-exports.TextButtons = TextButtons;
-class NavigationButtons extends SuiButton {
-    static get directionsTrackerMap() {
-        return {
-            navLeftButton: 'moveSelectionLeft',
-            navRightButton: 'moveSelectionRight',
-            navUpButton: 'moveSelectionUp',
-            navDownButton: 'moveSelectionDown',
-            navFastForward: 'moveSelectionRightMeasure',
-            navRewind: 'moveSelectionLeftMeasure',
-            navGrowLeft: 'growSelectionLeft',
-            navGrowRight: 'growSelectionRight'
-        };
-    }
-    constructor(parameters) {
-        super(parameters);
-    }
-    _moveTracker() {
-        this.view.tracker[NavigationButtons.directionsTrackerMap[this.buttonData.id]]();
-    }
-    bind() {
-        this.eventSource.domClick(this.buttonElement, this, '_moveTracker', null);
-    }
-}
-exports.NavigationButtons = NavigationButtons;
-class ArticulationButtons extends SuiButton {
-    constructor(parameters) {
-        super(parameters);
-        this.showState = false;
-        this.buttonElement = parameters.buttonElement;
-        this.buttonData = parameters.buttonData;
-        this.keyCommands = parameters.keyCommands;
-        this.articulation = ArticulationButtons.articulationIdMap[this.buttonData.id];
-        this.eventSource = parameters.eventSource;
-        this.ctor = ArticulationButtons.constructors[this.buttonData.id];
-    }
-    static get articulationIdMap() {
-        return {
-            accentButton: noteModifiers_1.SmoArticulation.articulations.accent,
-            tenutoButton: noteModifiers_1.SmoArticulation.articulations.tenuto,
-            staccatoButton: noteModifiers_1.SmoArticulation.articulations.staccato,
-            marcatoButton: noteModifiers_1.SmoArticulation.articulations.marcato,
-            pizzicatoButton: noteModifiers_1.SmoArticulation.articulations.pizzicato,
-            fermataButton: noteModifiers_1.SmoArticulation.articulations.fermata,
-            mordentButton: noteModifiers_1.SmoOrnament.ornaments.mordent,
-            mordentInvertedButton: noteModifiers_1.SmoOrnament.ornaments.mordentInverted,
-            trillButton: noteModifiers_1.SmoOrnament.ornaments.trill,
-            scoopButton: noteModifiers_1.SmoOrnament.ornaments.scoop,
-            dropButton: noteModifiers_1.SmoOrnament.ornaments.fall_short,
-            dropLongButton: noteModifiers_1.SmoOrnament.ornaments.dropLong,
-            doitButton: noteModifiers_1.SmoOrnament.ornaments.doit,
-            doitLongButton: noteModifiers_1.SmoOrnament.ornaments.doitLong,
-            flipButton: noteModifiers_1.SmoOrnament.ornaments.flip,
-            smearButton: noteModifiers_1.SmoOrnament.ornaments.smear
-        };
-    }
-    static get constructors() {
-        return {
-            accentButton: 'SmoArticulation',
-            tenutoButton: 'SmoArticulation',
-            staccatoButton: 'SmoArticulation',
-            marcatoButton: 'SmoArticulation',
-            pizzicatoButton: 'SmoArticulation',
-            fermataButton: 'SmoArticulation',
-            mordentButton: 'SmoOrnament',
-            mordentInvertedButton: 'SmoOrnament',
-            trillButton: 'SmoOrnament',
-            scoopButton: 'SmoOrnament',
-            dropButton: 'SmoOrnament',
-            dropLongButton: 'SmoOrnament',
-            doitButton: 'SmoOrnament',
-            doitLongButton: 'SmoOrnament',
-            flipButton: 'SmoOrnament',
-            smearButton: 'SmoOrnament'
-        };
-    }
-    _toggleArticulation() {
-        this.showState = !this.showState;
-        this.keyCommands.toggleArticulationCommand(this.articulation, this.ctor);
-    }
-    bind() {
-        this.eventSource.domClick(this.buttonElement, this, '_toggleArticulation', null);
-    }
-}
-exports.ArticulationButtons = ArticulationButtons;
-class CollapseRibbonControl extends SuiButton {
-    constructor(parameters) {
-        super(parameters);
-        serializationHelpers_1.smoSerialize.filteredMerge(CollapseRibbonControl.paramArray, parameters, this);
-        this.childButtons = parameters.buttons.filter((cb) => cb.group === this.buttonData.group &&
-            RibbonButtons.isCollapsible(cb.action));
-    }
-    static get paramArray() {
-        return ['ribbonButtons', 'keyCommands', 'controller', 'view', 'menus', 'buttonData', 'buttonElement',
-            'eventSource'];
-    }
-    _toggleExpand() {
-        this.childButtons.forEach((cb) => {
-            const el = $('#' + cb.id);
-            $(el).toggleClass('collapsed');
-            $(el).toggleClass('expanded');
-        });
-        $(this.buttonElement).closest('div').toggleClass('expanded');
-        $(this.buttonElement).toggleClass('expandedChildren');
-        if ($(this.buttonElement).hasClass('expandedChildren')) {
-            const leftSpan = $(this.buttonElement).find('.ribbon-button-text');
-            $(leftSpan).text('');
-            $(leftSpan).removeClass(this.buttonData.icon);
-            $(this.buttonElement).addClass('icon icon-circle-left');
-        }
-        else {
-            $(this.buttonElement).removeClass('icon-circle-left');
-            const leftSpan = $(this.buttonElement).find('.ribbon-button-text');
-            $(leftSpan).addClass(this.buttonData.icon);
-            $(leftSpan).text(this.buttonData.leftText);
-        }
-        // Expand may change music dom, redraw
-        $('body').trigger('forceScrollEvent');
-    }
-    bind() {
-        $(this.buttonElement).closest('div').addClass('collapseContainer');
-        this.eventSource.domClick(this.buttonElement, this, '_toggleExpand', null);
-        this.childButtons.forEach((cb) => {
-            const ctor = eval('globalThis.Smo.' + cb.ctor);
-            if ((typeof (ctor) === 'function')) {
-                const el = $('#' + cb.id);
-                const btn = new ctor({
-                    buttonData: cb,
-                    buttonElement: el,
-                    keyCommands: this.keyCommands,
-                    view: this.view,
-                    completeNotifier: this.completeNotifier,
-                    eventSource: this.eventSource
-                });
-                if (typeof (btn.bind) === 'function') {
-                    btn.bind();
-                }
-            }
-        });
-    }
-}
-exports.CollapseRibbonControl = CollapseRibbonControl;
 
 
 /***/ }),

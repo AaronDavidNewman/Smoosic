@@ -78,9 +78,14 @@ export class SuiPiano {
     }, 1000);
   }
   bind() {
+    // The menu option to toggle piano state
     $('body').off('show-piano-event').on('show-piano-event', () => {
+      const isVisible = $('body').hasClass('show-piano');
       $('body').toggleClass('show-piano');
       this._mapKeys();
+      if (isVisible) {
+        $('body').trigger('forceResizeEvent');
+      }
     });
     $('#piano-8va-button').off('click').on('click', (ev: any) => {
       $('#piano-8vb-button').removeClass('activated');
@@ -158,11 +163,11 @@ export class SuiPiano {
     $(this.renderElement).off('click').on('click', (ev: any) => {
       this._updateSelections(ev);
     });
-
+    // the close button on piano itself
     $('.close-piano').off('click').on('click', () => {
       $('body').removeClass('show-piano');
       // resize the work area.
-      $('body').trigger('forceScrollEvent');
+      $('body').trigger('forceResizeEvent');
     });
   }
   _updateSelections(ev: any) {

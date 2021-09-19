@@ -404,9 +404,9 @@ export abstract class SuiScoreView {
     this.staffMap = this.defaultStaffMap;
     this.setMappedStaffIds();
     this.actionBuffer.clearActions();
-    setTimeout(() => {
+    /* setTimeout(() => {
       $('body').trigger('forceResizeEvent');
-    }, 1);
+    }, 1);  */
   }
 
   // ### undo

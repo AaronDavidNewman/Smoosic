@@ -140,7 +140,8 @@ export class SuiEventHandler {
       console.log('resizing');
       self.resizing = false;
       self.piano!.handleResize();
-    }, 500);
+      self.view.renderer.rerenderAll();
+    }, 1);
   }
 
   createModifierDialog(modifierSelection: any) {
