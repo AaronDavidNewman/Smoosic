@@ -5,8 +5,8 @@ import { SuiAudioPlayer } from '../render/audio/player';
 import { SmoArticulation } from '../smo/data/noteModifiers';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { BrowserEventSource } from './eventSource';
-import { SuiTracker, KeyEvent } from '../render/sui/tracker';
-import { CompleteNotifier, DialogParams } from './common';
+import { SuiTracker } from '../render/sui/tracker';
+import { CompleteNotifier, DialogParams, KeyEvent } from './common';
 import { PitchLetter, IsPitchLetter } from '../smo/data/common';
 
 // ## suiEditor

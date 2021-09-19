@@ -47,7 +47,7 @@ export abstract class SuiScoreView {
   storePaste: PasteBuffer;
   actionBuffer: SmoActionRecord;
   layoutDemon: SuiRenderDemon;
-  constructor(renderer: SuiRenderState, score: SmoScore, scrollSelector: string) {
+  constructor(renderer: SuiRenderState, score: SmoScore, scrollSelector: string, undoBuffer: UndoBuffer) {
     this.score = score;
     this.renderer = renderer;
     const scoreJson = score.serialize();
@@ -58,7 +58,7 @@ export abstract class SuiScoreView {
     this.renderer.setMeasureMapper(this.tracker);
 
     this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));
-    this.undoBuffer = new UndoBuffer();
+    this.undoBuffer = undoBuffer;
     this.layoutDemon = new SuiRenderDemon(this.renderer, this.undoBuffer, this.tracker);
     this.storeUndo = new UndoBuffer();
     this.staffMap = this.defaultStaffMap;
@@ -404,9 +404,6 @@ export abstract class SuiScoreView {
     this.staffMap = this.defaultStaffMap;
     this.setMappedStaffIds();
     this.actionBuffer.clearActions();
-    /* setTimeout(() => {
-      $('body').trigger('forceResizeEvent');
-    }, 1);  */
   }
 
   // ### undo

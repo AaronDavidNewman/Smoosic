@@ -1,24 +1,23 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 
-import { RibbonButtons } from '../ui/ribbon';
+import { RibbonButtons } from '../ui/buttons/ribbon';
 import { SuiExceptionHandler } from '../ui/exceptions';
 import { Qwerty } from '../ui/qwerty';
 import { SuiModifierDialogFactory } from '../ui/dialog';
 import { SuiPiano } from '../render/sui/piano'
 import { layoutDebug } from '../render/sui/layoutDebug';
 import { SuiHelp } from '../ui/help';
-import { SuiTracker, KeyEvent } from '../render/sui/tracker';
+import { SuiTracker } from '../render/sui/tracker';
 import { defaultEditorKeys } from '../ui/keyBindings/default/editorKeys';
 import { defaultTrackerKeys } from '../ui/keyBindings/default/trackerKeys';
 import { defaultRibbonLayout } from '../ui/ribbonLayout/default/defaultRibbon';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { BrowserEventSource, EventHandler } from './eventSource';
 import { SuiKeyCommands } from './keyCommands';
-import { ModalComponent } from './common';
-import { controllerParams } from './application';
-import { KeyBinding } from '../ui/keyBindings/default/trackerKeys';
+import { ModalComponent, KeyBinding, KeyEvent } from './common';
 import { SvgHelpers } from '../render/sui/svgHelpers';
+import { SuiMenuManager } from '../ui/menus';
 
 declare var $: any;
 
@@ -27,7 +26,7 @@ export interface EventHandlerParams {
   eventSource: BrowserEventSource,
   tracker: SuiTracker,
   keyCommands: SuiKeyCommands,
-  menus: any
+  menus: SuiMenuManager
 }
 // ## SuiEventHandler
 // ## Description:
@@ -52,7 +51,7 @@ export class SuiEventHandler {
   trackScrolling: boolean = false;
   keyHandlerObj: any = null;
   ribbon: RibbonButtons;
-  menus: any;
+  menus: SuiMenuManager;
   piano: SuiPiano | null = null;
   exhandler: SuiExceptionHandler;
   unbound: boolean = false;
@@ -60,7 +59,7 @@ export class SuiEventHandler {
   mouseMoveHandler: EventHandler | null = null;
   mouseClickHandler: EventHandler | null = null;
   keyBind: KeyBinding[] = [];
-  constructor(params: controllerParams) {
+  constructor(params: EventHandlerParams) {
     (globalThis as any).SuiEventHandlerInstance = this;
 
     this.view = params.view;
@@ -205,7 +204,7 @@ export class SuiEventHandler {
   // Different applications can create their own key bindings, these are the defaults.
   // Many editor commands can be reached by a single keystroke.  For more advanced things there
   // are menus.
-  static get keyBindingDefaults() {
+  static get keyBindingDefaults(): KeyBinding[] {
     var editorKeys = SuiEventHandler.editorKeyBindingDefaults;
     editorKeys.forEach((key) => {
       key.module = 'keyCommands'

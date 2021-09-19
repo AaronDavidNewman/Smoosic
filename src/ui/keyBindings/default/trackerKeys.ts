@@ -1,12 +1,4 @@
-export interface KeyBinding {
-  event: string,
-  key: string,
-  ctrlKey: boolean,
-  altKey: boolean,
-  shiftKey: boolean,
-  action: string,
-  module?: string
-}
+import { KeyBinding } from '../../../application/common';
 export class defaultTrackerKeys {
   static get keys(): KeyBinding[] {
     return [{

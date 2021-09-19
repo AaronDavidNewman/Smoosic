@@ -23,7 +23,7 @@ import { StaffModifierBase, SmoInstrument } from '../../smo/data/staffModifiers'
 import { SuiRenderState } from './renderState';
 import { htmlHelpers } from '../../common/htmlHelpers';
 import { SuiActionPlayback } from './actionPlayback';
-import { KeyEvent } from './tracker';
+import { KeyEvent } from '../../application/common';
 declare var $: any;
 declare var SmoConfig: SmoConfiguration;
 

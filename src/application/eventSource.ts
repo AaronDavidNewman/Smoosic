@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { KeyEvent } from "../render/sui/tracker";
+import { KeyEvent } from './common';
 
 declare var $: any;
 // declare var SmoConfig: SmoConfiguration;

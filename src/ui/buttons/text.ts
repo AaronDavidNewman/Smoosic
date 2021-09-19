@@ -37,6 +37,9 @@ export class TextButtons extends SuiButton {
     this.view.toggleRehearsalMark();
   }
   _invokeMenu(cmd: string) {
+    if (!this.completeNotifier) {
+      return;
+    }
     this.menus.slashMenuMode(this.completeNotifier);
     this.menus.createMenu(cmd);
   }

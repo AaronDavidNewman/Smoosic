@@ -1,4 +1,4 @@
-import { KeyBinding } from './trackerKeys';
+import { KeyBinding } from '../../../application/common';
 export class defaultEditorKeys {
   static get keys(): KeyBinding[] {
     return [{

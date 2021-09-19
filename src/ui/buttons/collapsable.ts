@@ -1,7 +1,7 @@
 import { ButtonDefinition, SuiButton, SuiButtonParams } from './button';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { BrowserEventSource } from '../../application/eventSource';
-import { suiMenuManager } from '../menus';
+import { SuiMenuManager } from '../menus';
 import { CompleteNotifier } from '../../application/common';
 import { smoSerialize } from '../../common/serializationHelpers';
 declare var $: any;
@@ -13,7 +13,7 @@ export interface SuiCollapsableButtonParams {
   buttonData: ButtonDefinition,
   view: SuiScoreViewOperations,
   eventSource: BrowserEventSource,
-  menus: suiMenuManager,
+  menus: SuiMenuManager,
   completeNotifier: CompleteNotifier
   buttons: ButtonDefinition[]
 }

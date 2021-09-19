@@ -25,7 +25,7 @@ import { StaveButtons } from '../ui/buttons/stave';
 import { TextButtons } from '../ui/buttons/text';
 import { VoiceButtons } from '../ui/buttons/voice';
 
-import { RibbonButtons } from '../ui/ribbon';
+import { RibbonButtons } from '../ui/buttons/ribbon';
 // Language strings
 import { quickStartHtmlen, selectionHtmlen, enterDurationsHtmlen, enterPitchesHtmlen } from '../ui/i18n/language_en';
 import { quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHtmlar } from '../ui/i18n/language_ar';
@@ -62,7 +62,7 @@ import { CheckboxDropdownComponent, TieMappingComponent, StaffAddRemoveComponent
     StaffCheckComponent, TextCheckComponent} from '../ui/dialogs/staffComponents';
 // menus
 import {
-    suiMenuManager, SuiScoreMenu, SuiFileMenu, SuiLibraryMenu,
+    SuiMenuManager, SuiScoreMenu, SuiFileMenu, SuiLibraryMenu,
     SuiDynamicsMenu, SuiTimeSignatureMenu, SuiKeySignatureMenu, SuiStaffModifierMenu,
     SuiLanguageMenu, SuiMeasureMenu, SuiAddStaffMenu
 } from '../ui/menus';
@@ -107,9 +107,9 @@ export const Smo = {
     RibbonButtons, NoteButtons, TextButtons, ChordButtons, MicrotoneButtons,
     StaveButtons, BeamButtons, MeasureButtons, DurationButtons,
     VoiceButtons, PlayerButtons, ArticulationButtons,  NavigationButtons,
-    DisplaySettings,  ExtendedCollapseParent,
+    DisplaySettings,  ExtendedCollapseParent, CollapseRibbonControl,
     // Menus
-    suiMenuManager, SuiScoreMenu, SuiFileMenu, SuiLibraryMenu,
+    SuiMenuManager, SuiScoreMenu, SuiFileMenu, SuiLibraryMenu,
     SuiDynamicsMenu, SuiTimeSignatureMenu, SuiKeySignatureMenu, SuiStaffModifierMenu,
     SuiLanguageMenu, SuiMeasureMenu, SuiAddStaffMenu,
     // Dialogs

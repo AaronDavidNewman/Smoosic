@@ -15,13 +15,10 @@ import { SuiScroller } from './scroller';
 import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SmoNote } from '../../smo/data/note';
 import { SmoMeasure } from '../../smo/data/measure';
+import { KeyEvent } from '../../application/common';
 
 declare var $: any;
 
-export interface KeyEvent {
-  type: string, shiftKey: boolean, ctrlKey: boolean, altKey: boolean, key: string, keyCode: string,
-  code: string, event: string | null
-}
 /**
  * SuiTracker
  A tracker maps the UI elements to the logical elements ,and allows the user to

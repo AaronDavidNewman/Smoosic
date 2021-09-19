@@ -10,7 +10,7 @@ import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoSelector } from '../../smo/xform/selections';
 import { SuiScroller } from './scroller';
 import { SvgBox } from '../../smo/data/common';
-import { KeyEvent } from './tracker';
+import { KeyEvent } from '../../application/common';
 import { SmoNote } from '../../smo/data/note';
 import { SmoScore } from '../../smo/data/score';
 

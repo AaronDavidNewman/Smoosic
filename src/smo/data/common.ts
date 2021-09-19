@@ -106,7 +106,7 @@ export class TimeSignature {
 export interface SmoConfiguration {
     smoPath?: string,
     language: string,
-    scoreLoadOrder? : string[],
+    scoreLoadOrder?: string[],
     scoreLoadJson?: string,
     smoDomContainer?: string,
     vexDomContainer?: string,
@@ -121,4 +121,4 @@ export interface SmoConfiguration {
     idleRedrawTime: number
 }
 
-      
+

@@ -13,21 +13,77 @@ import { htmlHelpers } from '../common/htmlHelpers';
 import { SuiTimeSignatureDialog, SuiMeasureDialog, SuiInsertMeasures } from './dialogs/measureDialogs';
 import { SuiStaffGroupDialog } from './dialogs/staffDialogs';
 import { SmoMeasure } from '../smo/data/measure';
+import { SvgBox } from '../smo/data/common';
+import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
+import { SuiTracker } from '../render/sui/tracker';
+import { CompleteNotifier, ModalComponent } from '../application/common';
+import { BrowserEventSource, EventHandler } from '../application/eventSource';
+import { UndoBuffer } from '../smo/xform/undo';
+import { KeyEvent, KeyBinding } from '../application/common';
+import { suiMenuManager, VoiceButtons } from '../../release/smoosic';
+import { InstrumentInfo, SmoSystemStaff, SmoSystemStaffParams } from '../smo/data/systemStaff';
+declare var $: any;
 
-export class suiMenuBase {
-  constructor(params) {
-    Vex.Merge(this, params);
-    this.focusIndex = -1;
+export interface MenuChoiceDefinition {
+    icon: string,
+    text: string,
+    value: string,
+    hotkey?: string
+}
+export interface MenuDefinition {
+  label: string,
+  menuItems: MenuChoiceDefinition[]
+}
+export interface MenuChoiceTranslation {
+  label: string,
+  menuItems: MenuChoiceDefinition[],
+  ctor: string
+}
+export interface SuiMenuParams {
+  ctor: string,
+  position: SvgBox,
+  tracker: SuiTracker,
+  score: SmoScore,
+  completeNotifier: CompleteNotifier,
+  closePromise: Promise<void> | null
+  view: SuiScoreViewOperations,
+  eventSource: BrowserEventSource,
+  undoBuffer: UndoBuffer
+}
+export abstract class SuiMenuBase {
+  label: string;
+  menuItems: MenuChoiceDefinition[];
+  ctor: string;
+  completeNotifier: CompleteNotifier;
+  score: SmoScore;
+  view: SuiScoreViewOperations;
+  eventSource: BrowserEventSource;
+  undoBuffer: UndoBuffer;
+  focusIndex: number = -1;
+  closePromise: Promise<void> | null;
+  tracker: SuiTracker;
+  constructor(params: SuiMenuParams) {
+    this.ctor = params.ctor;
+    const definition: MenuDefinition = this.getDefinition();
+    this.label = definition.label;
+    this.menuItems = definition.menuItems;
+    this.completeNotifier = params.completeNotifier;
+    this.score = params.score;
+    this.view = params.view;
+    this.undoBuffer = params.undoBuffer;
+    this.eventSource = params.eventSource;
+    this.closePromise = params.closePromise;
+    this.tracker = params.tracker;
     SmoTranslator.registerMenu(this.ctor);
   }
-  get closeModalPromise() {
-    return this.closePromise();
-  }
-  static printTranslate(_class) {
-    const xx = Smo.getClass(_class);
-    const items = [];
-    xx.defaults.menuItems.forEach((item) => {
-      items.push({ value: item.value, text: item.text });
+  abstract selection(ev: any): void;
+  abstract getDefinition(): MenuDefinition;
+  static printTranslate(_class: string): MenuChoiceTranslation {
+    const xx: any = eval('Smo.' + _class);    
+    const items: MenuChoiceDefinition[] = xx.defaults.menuItems as MenuChoiceDefinition[];
+    const rvItems: MenuChoiceDefinition[] = [];
+    items.forEach((item) => {
+      rvItems.push({ value: item.value, text: item.text, icon: '' });
     });
     return { ctor: xx.ctor, label: xx.label, menuItems: items };
   }
@@ -38,20 +94,41 @@ export class suiMenuBase {
   // Most menus don't process their own events
   keydown() {}
 }
+export interface SuiMenuManagerParams {
+  view: SuiScoreViewOperations;
+  eventSource: BrowserEventSource;
+  completeNotifier: CompleteNotifier;
+  undoBuffer: UndoBuffer;
+  menuContainer: string;
+  tracker: SuiTracker
+}
 
-export class suiMenuManager {
-  constructor(params) {
-    Vex.Merge(this, suiMenuManager.defaults);
-    Vex.Merge(this, params);
+export class SuiMenuManager {
+  view: SuiScoreViewOperations;
+  eventSource: BrowserEventSource;
+  completeNotifier: CompleteNotifier | null = null;
+  undoBuffer: UndoBuffer;
+  menuContainer: string;
+  bound: boolean = false;
+  hotkeyBindings: Record<string, string> = {};
+  closeMenuPromise: Promise<void> | null = null;
+  menu: SuiMenuBase | null = null;
+  keydownHandler: EventHandler | null = null;
+  menuPosition: SvgBox = { x: 250, y: 40, width: 1, height: 1 };
+  tracker: SuiTracker;
+  menuBind: KeyBinding[] = SuiMenuManager.menuKeyBindingDefaults;
+  constructor(params: SuiMenuManagerParams) {
     this.eventSource = params.eventSource;
     this.view = params.view;
     this.bound = false;
-    this.hotkeyBindings = {};
+    this.menuContainer = params.menuContainer;
+    this.undoBuffer = params.undoBuffer;
+    this.tracker = params.tracker;
   }
 
   static get defaults() {
     return {
-      menuBind: suiMenuManager.menuKeyBindingDefaults,
+      menuBind: SuiMenuManager.menuKeyBindingDefaults,
       menuContainer: '.menuContainer'
     };
   }
@@ -60,8 +137,8 @@ export class suiMenuManager {
     return this.closeMenuPromise;
   }
 
-  setController(c) {
-    this.controller = c;
+  setController(c: CompleteNotifier) {
+    this.completeNotifier = c;
   }
 
   get score() {
@@ -71,7 +148,7 @@ export class suiMenuManager {
   // ### Description:
   // slash ('/') menu key bindings.  The slash key followed by another key brings up
   // a menu.
-  static get menuKeyBindingDefaults() {
+  static get menuKeyBindingDefaults(): KeyBinding[] {
     return [
       {
         event: 'keydown',
@@ -139,18 +216,20 @@ export class suiMenuManager {
       }
     ];
   }
-  _advanceSelection(inc) {
+  _advanceSelection(inc: number) {
+    if (!this.menu) {
+      return;
+    }
     const options = $('.menuContainer ul.menuElement li.menuOption');
     inc = inc < 0 ? options.length - 1 : 1;
     this.menu.focusIndex = (this.menu.focusIndex + inc) % options.length;
     $(options[this.menu.focusIndex]).find('button').focus();
   }
 
-  get menuBindings() {
-    return this.menuBind;
-  }
-
   unattach() {
+    if (!this.keydownHandler) {
+      return;
+    }
     this.eventSource.unbindKeydownHandler(this.keydownHandler);
     $('body').removeClass('modal');
     $(this.menuContainer).html('');
@@ -160,6 +239,9 @@ export class suiMenuManager {
   }
 
   attach() {
+    if (!this.menu) {
+      return;
+    }
     let hotkey = 0;
 
     $(this.menuContainer).html('');
@@ -186,7 +268,7 @@ export class suiMenuManager {
     this.bindEvents();
   }
 
-  slashMenuMode(completeNotifier) {
+  slashMenuMode(completeNotifier: CompleteNotifier) {
     var self = this;
     this.bindEvents();
     layoutDebug.addDialogDebug('slash menu creating closeMenuPromise');
@@ -200,32 +282,39 @@ export class suiMenuManager {
       });
     });
     // take over the keyboard
-    completeNotifier.unbindKeyboardForModal(this);
+    if (this.closeModalPromise) {
+      completeNotifier.unbindKeyboardForModal(this as ModalComponent);
+    }
   }
 
   dismiss() {
     $('body').trigger('menuDismiss');
   }
 
-  createMenu(action) {
+  createMenu(action: string) {
+    if (!this.completeNotifier) {
+      return;
+    }
     this.menuPosition = { x: 250, y: 40, width: 1, height: 1 };
     // If we were called from the ribbon, we notify the controller that we are
     // taking over the keyboard.  If this was a key-based command we already did.
     layoutDebug.addDialogDebug('createMenu creating ' + action);
-    const ctor = Smo.getClass(action);
-    this.menu = new ctor({
+    const ctor = eval('globalThis.Smo.' + action);
+    const params: SuiMenuParams = 
+    {
       position: this.menuPosition,
       tracker: this.tracker,
-      keyCommands: this.keyCommands,
       score: this.score,
-      completeNotifier: this.controller,
+      completeNotifier: this.completeNotifier,
       closePromise: this.closeMenuPromise,
       view: this.view,
       eventSource: this.eventSource,
-      undoBuffer: this.undoBuffer
-    });
-    this.attach(this.menuContainer);
-    this.menu.menuItems.forEach((item) => {
+      undoBuffer: this.undoBuffer,
+      ctor: action
+    };
+    this.menu = new ctor(params);
+    this.attach();
+    this.menu!.menuItems.forEach((item) => {
       if (typeof(item.hotkey) !== 'undefined') {
         this.hotkeyBindings[item.hotkey] = item.value;
       }
@@ -235,7 +324,7 @@ export class suiMenuManager {
   // ### evKey
   // We have taken over menu commands from controller.  If there is a menu active, send the key
   // to it.  If there is not, see if the keystroke creates one.  If neither, dismissi the menu.
-  evKey(event) {
+  evKey(event: any) {
     if (['Tab', 'Enter'].indexOf(event.code) >= 0) {
       return;
     }
@@ -251,7 +340,7 @@ export class suiMenuManager {
       } else  if (this.hotkeyBindings[event.key]) {
         $('button[data-value="' + this.hotkeyBindings[event.key] + '"]').click();
       } else {
-        this.menu.keydown(event);
+        this.menu.keydown();
       }
       return;
     }
@@ -266,7 +355,6 @@ export class suiMenuManager {
   }
 
   bindEvents() {
-    const self = this;
     this.hotkeyBindings = { };
     $('body').addClass('slash-menu');
     // We need to keep track of is bound, b/c the menu can be created from
@@ -275,19 +363,19 @@ export class suiMenuManager {
       this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
       this.bound = true;
     }
-    $(this.menuContainer).find('button').off('click').on('click', (ev) => {
+    $(this.menuContainer).find('button').off('click').on('click', (ev: any) => {
       if ($(ev.currentTarget).attr('data-value') === 'cancel') {
-        self.menu.complete();
+        this.menu!.complete();
         return;
       }
-      self.menu.selection(ev);
+      this.menu!.selection(ev);
     });
   }
 }
 
-export class SuiScoreMenu extends suiMenuBase {
-  static get defaults() {
-    SuiScoreMenu._defaults = typeof(SuiScoreMenu._defaults) !== 'undefined' ? SuiScoreMenu._defaults : {
+export class SuiScoreMenu extends SuiMenuBase {
+  static get defaults(): MenuDefinition {
+    return {
       label: 'Score Settings',
       menuItems: [{
         icon: '',
@@ -315,11 +403,11 @@ export class SuiScoreMenu extends suiMenuBase {
         value: 'cancel'
       }]
     };
-    return SuiScoreMenu._defaults;
   }
-  constructor(params) {
-    params = (typeof(params) !== 'undefined' ? params : {});
-    Vex.Merge(params, SuiScoreMenu.defaults);
+  getDefinition() { 
+    return SuiScoreMenu.defaults;
+  }
+  constructor(params: SuiMenuParams) {
     super(params);
   }
 
@@ -327,7 +415,6 @@ export class SuiScoreMenu extends suiMenuBase {
     SuiScoreViewDialog.createAndDisplay(
       {
         eventSource: this.eventSource,
-        keyCommands: this.keyCommands,
         completeNotifier: this.completeNotifier,
         view: this.view,
         startPromise: this.closePromise
@@ -337,7 +424,6 @@ export class SuiScoreMenu extends suiMenuBase {
     SuiScoreIdentificationDialog.createAndDisplay(
       {
         eventSource: this.eventSource,
-        keyCommands: this.keyCommands,
         completeNotifier: this.completeNotifier,
         view: this.view,
         startPromise: this.closePromise
@@ -347,7 +433,6 @@ export class SuiScoreMenu extends suiMenuBase {
     SuiLayoutDialog.createAndDisplay(
       {
         eventSource: this.eventSource,
-        keyCommands: this.keyCommands,
         completeNotifier: this.completeNotifier,
         view: this.view,
         startPromise: this.closePromise
@@ -357,7 +442,6 @@ export class SuiScoreMenu extends suiMenuBase {
     SuiScoreFontDialog.createAndDisplay(
       {
         eventSource: this.eventSource,
-        keyCommands: this.keyCommands,
         completeNotifier: this.completeNotifier,
         view: this.view,
         startPromise: this.closePromise
@@ -367,13 +451,12 @@ export class SuiScoreMenu extends suiMenuBase {
     SuiGlobalLayoutDialog.createAndDisplay(
       {
         eventSource: this.eventSource,
-        keyCommands: this.keyCommands,
         completeNotifier: this.completeNotifier,
         view: this.view,
         startPromise: this.closePromise
       });
   }
-  selection(ev) {
+  selection(ev: any) {
     const text = $(ev.currentTarget).attr('data-value');
     if (text === 'view') {
       this.execView();
@@ -390,20 +473,12 @@ export class SuiScoreMenu extends suiMenuBase {
   }
   keydown() {}
 }
-export class SuiFileMenu extends suiMenuBase {
-  constructor(params) {
-    params = (typeof(params) !== 'undefined' ? params : {});
-    Vex.Merge(params, SuiFileMenu.defaults);
+export class SuiFileMenu extends SuiMenuBase {
+  constructor(params: SuiMenuParams) {
     super(params);
   }
-  static get ctor() {
-    return 'SuiFileMenu';
-  }
-  get ctor() {
-    return SuiFileMenu.ctor;
-  }
   static get defaults() {
-    SuiFileMenu._defaults = typeof(SuiFileMenu._defaults) !== 'undefined' ? SuiFileMenu._defaults : {
+    return {
       label: 'File',
       menuItems: [{
         icon: 'folder-new',
@@ -451,29 +526,29 @@ export class SuiFileMenu extends suiMenuBase {
         value: 'cancel'
       }]
     };
-    return SuiFileMenu._defaults;
+  }
+  getDefinition() { 
+    return SuiFileMenu.defaults;
   }
   systemPrint() {
-    const self = this;
     window.print();
     SuiPrintFileDialog.createAndDisplay({
-      view: self.view,
-      completeNotifier: self.completeNotifier,
-      startPromise: self.closePromise,
-      tracker: self.tracker,
-      undoBuffer: self.undoBuffer,
+      view: this.view,
+      completeNotifier: this.completeNotifier,
+      startPromise: this.closePromise,
+      tracker: this.tracker,
+      undoBuffer: this.undoBuffer,
     });
   }
-  selection(ev) {
+  selection(ev: any) {
     const text = $(ev.currentTarget).attr('data-value');
     const self = this;
     if (text === 'saveFile') {
       SuiSaveFileDialog.createAndDisplay({
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
-        undoBuffer: this.keyCommands.undoBuffer,
+        undoBuffer: this.undoBuffer,
         eventSource: this.eventSource,
-        keyCommands: this.keyCommands,
         view: this.view,
         startPromise: this.closePromise
       });
@@ -481,9 +556,8 @@ export class SuiFileMenu extends suiMenuBase {
       SuiSaveActionsDialog.createAndDisplay({
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
-        undoBuffer: this.keyCommands.undoBuffer,
+        undoBuffer: this.undoBuffer,
         eventSource: this.eventSource,
-        keyCommands: this.keyCommands,
         view: this.view,
         startPromise: this.closePromise
       });
@@ -491,9 +565,8 @@ export class SuiFileMenu extends suiMenuBase {
       SuiLoadActionsDialog.createAndDisplay({
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
-        undoBuffer: this.keyCommands.undoBuffer,
+        undoBuffer: this.undoBuffer,
         eventSource: this.eventSource,
-        keyCommands: this.keyCommands,
         view: this.view,
         startPromise: this.closePromise
       });
@@ -503,12 +576,11 @@ export class SuiFileMenu extends suiMenuBase {
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
         eventSource: this.eventSource,
-        editor: this.keyCommands,
         view: this.view,
         startPromise: this.closePromise
       });
     } else if (text === 'newFile') {
-      const score = SmoScore.getDefaultScore();
+      const score = SmoScore.getDefaultScore(SmoScore.defaults, null);
       this.view.changeScore(score);
     } else if (text === 'quickSave') {
       this.view.quickSave();
@@ -523,7 +595,6 @@ export class SuiFileMenu extends suiMenuBase {
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
         eventSource: this.eventSource,
-        editor: this.keyCommands,
         view: this.view,
         startPromise: this.closePromise
       });
@@ -533,7 +604,6 @@ export class SuiFileMenu extends suiMenuBase {
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
         eventSource: this.eventSource,
-        editor: this.keyCommands,
         view: this.view,
         startPromise: this.closePromise
       });
@@ -543,7 +613,6 @@ export class SuiFileMenu extends suiMenuBase {
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
         eventSource: this.eventSource,
-        editor: this.keyCommands,
         view: this.view,
         startPromise: this.closePromise
       });
@@ -553,20 +622,15 @@ export class SuiFileMenu extends suiMenuBase {
   keydown() {}
 }
 
-export class SuiLibraryMenu extends suiMenuBase {
-  constructor(params) {
-    params = (typeof(params) !== 'undefined' ? params : {});
-    Vex.Merge(params, SuiLibraryMenu.defaults);
+export class SuiLibraryMenu extends SuiMenuBase {
+  constructor(params: SuiMenuParams) {
     super(params);
   }
   static get ctor() {
     return 'SuiFileMenu';
   }
-  get ctor() {
-    return SuiFileMenu.ctor;
-  }
   static get defaults() {
-    SuiLibraryMenu._defaults = typeof(SuiLibraryMenu._defaults) !== 'undefined' ? SuiLibraryMenu._defaults : {
+    return {
       label: 'Score',
       menuItems: [{
         icon: '',
@@ -618,9 +682,11 @@ export class SuiLibraryMenu extends suiMenuBase {
         value: 'cancel'
       }]
     };
-    return SuiLibraryMenu._defaults;
   }
-  _loadJsonAndComplete(path) {
+  getDefinition() {
+    return SuiLibraryMenu.defaults;
+  }
+  _loadJsonAndComplete(path: string) {
     const req = new SuiXhrLoader(path);
     req.loadAsync().then(() => {
       const score = SmoScore.deserialize(req.value);
@@ -628,7 +694,7 @@ export class SuiLibraryMenu extends suiMenuBase {
       this.complete();
     });
   }
-  _loadXmlAndComplete(path) {
+  _loadXmlAndComplete(path: string) {
     const req = new SuiXhrLoader(path);
     req.loadAsync().then(() => {
       const parser = new DOMParser();
@@ -639,7 +705,7 @@ export class SuiLibraryMenu extends suiMenuBase {
     });
   }
 
-  selection(ev) {
+  selection(ev: any) {
     const text = $(ev.currentTarget).attr('data-value');
     if (text === 'bach') {
       this._loadJsonAndComplete('https://aarondavidnewman.github.io/Smoosic/release/library/BachInvention.json');
@@ -669,21 +735,12 @@ export class SuiLibraryMenu extends suiMenuBase {
   keydown() {}
 }
 
-export class SuiDynamicsMenu extends suiMenuBase {
-  constructor(params) {
-    params = (typeof(params) !== 'undefined' ? params : {});
-    Vex.Merge(params, SuiDynamicsMenu.defaults);
+export class SuiDynamicsMenu extends SuiMenuBase {
+  constructor(params: SuiMenuParams) {
     super(params);
   }
-  static get ctor() {
-    return 'SuiDynamicsMenu';
-  }
-  get ctor() {
-    return SuiDynamicsMenu.ctor;
-  }
   static get defaults() {
-    SuiDynamicsMenu._defaults = SuiDynamicsMenu._defaults ? SuiDynamicsMenu._defaults :
-      {
+    return {
         label: 'Dynamics',
         menuItems: [{
           icon: 'pianissimo',
@@ -719,10 +776,12 @@ export class SuiDynamicsMenu extends suiMenuBase {
           value: 'cancel'
         }]
       };
-    return SuiDynamicsMenu._defaults;
+  }
+  getDefinition() {
+    return SuiDynamicsMenu.defaults;
   }
 
-  selection(ev) {
+  selection(ev: any) {
     const text = $(ev.currentTarget).attr('data-value');
     this.view.addDynamic(text);
     this.complete();
@@ -730,21 +789,12 @@ export class SuiDynamicsMenu extends suiMenuBase {
   keydown() {}
 }
 
-export class SuiTimeSignatureMenu extends suiMenuBase {
-  constructor(params) {
-    params = (typeof(params) !== 'undefined' ? params : {});
-    Vex.Merge(params, SuiTimeSignatureMenu.defaults);
+export class SuiTimeSignatureMenu extends SuiMenuBase {
+  constructor(params: SuiMenuParams) {
     super(params);
   }
-  static get ctor() {
-    return 'SuiTimeSignatureMenu';
-  }
-  get ctor() {
-    return SuiTimeSignatureMenu.ctor;
-  }
   static get defaults() {
-    SuiTimeSignatureMenu._defaults = SuiTimeSignatureMenu._defaults ? SuiTimeSignatureMenu._defaults :
-      {
+    return {
         label: 'Time Sig',
         menuItems: [{
           icon: 'sixeight',
@@ -784,10 +834,11 @@ export class SuiTimeSignatureMenu extends suiMenuBase {
           value: 'cancel'
         }]
       };
-    return SuiTimeSignatureMenu._defaults;
   }
-
-  selection(ev) {
+  getDefinition() {
+    return SuiTimeSignatureMenu.defaults;
+  }
+  selection(ev: any) {
     var text = $(ev.currentTarget).attr('data-value');
 
     if (text === 'TimeSigOther') {
@@ -808,22 +859,15 @@ export class SuiTimeSignatureMenu extends suiMenuBase {
   keydown() {}
 }
 
-export class SuiKeySignatureMenu extends suiMenuBase {
-  constructor(params) {
-    params = (typeof(params) !== 'undefined' ? params : {});
-    Vex.Merge(params, SuiKeySignatureMenu.defaults);
+export class SuiKeySignatureMenu extends SuiMenuBase {
+  constructor(params: SuiMenuParams) {
     super(params);
   }
   static get ctor() {
     return 'SuiKeySignatureMenu';
   }
-  get ctor() {
-    return SuiKeySignatureMenu.ctor;
-  }
   static get defaults() {
-    SuiKeySignatureMenu._defaults = typeof(SuiKeySignatureMenu._defaults) !== 'undefined'
-      ? SuiKeySignatureMenu._defaults :
-      {
+    return {
         label: 'Key',
         menuItems: [{
           icon: 'key-sig-c',
@@ -885,10 +929,11 @@ export class SuiKeySignatureMenu extends suiMenuBase {
         }],
         menuContainer: '.menuContainer'
       };
-    return SuiKeySignatureMenu._defaults;
   }
-
-  selection(ev) {
+  getDefinition() {
+    return SuiKeySignatureMenu.defaults;
+  }
+  selection(ev: any) {
     let keySig = $(ev.currentTarget).attr('data-value');
     keySig = (keySig === 'cancel' ? keySig : keySig.substring(5, keySig.length));
     if (keySig === 'cancel') {
@@ -900,22 +945,12 @@ export class SuiKeySignatureMenu extends suiMenuBase {
   keydown() {}
 }
 
-export class SuiStaffModifierMenu extends suiMenuBase {
-  constructor(params) {
-    params = (typeof(params) !== 'undefined' ? params : {});
-    Vex.Merge(params, SuiStaffModifierMenu.defaults);
+export class SuiStaffModifierMenu extends SuiMenuBase {
+  constructor(params: SuiMenuParams) {
     super(params);
   }
-  static get ctor() {
-    return 'SuiStaffModifierMenu';
-  }
-  get ctor() {
-    return SuiStaffModifierMenu.ctor;
-  }
-
   static get defaults() {
-    SuiStaffModifierMenu._defaults = typeof(SuiStaffModifierMenu._defaults) !== 'undefined' ? SuiStaffModifierMenu._defaults :
-      {
+    return {
         label: 'Lines',
         menuItems: [{
           icon: 'cresc',
@@ -945,9 +980,11 @@ export class SuiStaffModifierMenu extends suiMenuBase {
         }],
         menuContainer: '.menuContainer'
       };
-    return SuiStaffModifierMenu._defaults;
   }
-  selection(ev) {
+  getDefinition() {
+    return SuiStaffModifierMenu.defaults;
+  }
+  selection(ev: any) {
     var op = $(ev.currentTarget).attr('data-value');
     if (op === 'ending') {
       this.view.addEnding();
@@ -967,21 +1004,15 @@ export class SuiStaffModifierMenu extends suiMenuBase {
   }
 }
 
-export class SuiLanguageMenu extends suiMenuBase {
-  constructor(params) {
-    params = (typeof(params) !== 'undefined') ? params : {};
-    Vex.Merge(params, SuiLanguageMenu.defaults);
+export class SuiLanguageMenu extends SuiMenuBase {
+  constructor(params: SuiMenuParams) {
     super(params);
   }
   static get ctor() {
     return 'SuiLanguageMenu';
   }
-  get ctor() {
-    return SuiLanguageMenu.ctor;
-  }
   static get defaults() {
-    SuiLanguageMenu._defaults = SuiLanguageMenu._defaults ? SuiLanguageMenu._defaults :
-      {
+    return {
         label: 'Language',
         menuItems: [{
           icon: '',
@@ -1002,9 +1033,11 @@ export class SuiLanguageMenu extends suiMenuBase {
         }],
         menuContainer: '.menuContainer'
       };
-    return SuiLanguageMenu._defaults;
   }
-  selection(ev) {
+  getDefinition() {
+    return SuiLanguageMenu.defaults;
+  }
+  selection(ev: any) {
     var op = $(ev.currentTarget).attr('data-value');
 
     SmoTranslator.setLanguage(op);
@@ -1013,9 +1046,9 @@ export class SuiLanguageMenu extends suiMenuBase {
   keydown() {
   }
 }
-export class SuiMeasureMenu extends suiMenuBase {
+export class SuiMeasureMenu extends SuiMenuBase {
   static get defaults() {
-    SuiMeasureMenu._defaults = SuiMeasureMenu._defaults ? SuiMeasureMenu._defaults : {
+    return {
       label: 'Measure',
       menuItems: [
         {
@@ -1037,21 +1070,14 @@ export class SuiMeasureMenu extends suiMenuBase {
         }
       ]
     };
-    return SuiMeasureMenu._defaults;
   }
-  static get ctor() {
-    return 'SuiMeasureMenu';
+  getDefinition() {
+    return SuiMeasureMenu.defaults;
   }
-  get ctor() {
-    return SuiMeasureMenu.ctor;
-  }
-
-  constructor(params) {
-    params = (typeof(params) !== 'undefined') ? params : {};
-    Vex.Merge(params, SuiMeasureMenu.defaults);
+  constructor(params: SuiMenuParams) {
     super(params);
   }
-  selection(ev) {
+  selection(ev: any) {
     const text = $(ev.currentTarget).attr('data-value');
     if (text === 'formatMeasureDialog') {
       SuiMeasureDialog.createAndDisplay({
@@ -1073,7 +1099,7 @@ export class SuiMeasureMenu extends suiMenuBase {
       this.complete();
     }
     if (text === 'addMenuAfterCmd') {
-      this.keyCommands.addMeasure({ shiftKey: true });
+      this.view.addMeasure(true);
       this.complete();
     }
     if (text === 'deleteSelected') {
@@ -1083,21 +1109,15 @@ export class SuiMeasureMenu extends suiMenuBase {
   }
 }
 
-export class SuiAddStaffMenu extends suiMenuBase {
-  constructor(params) {
-    params = (typeof(params) !== 'undefined' ? params : {});
-    Vex.Merge(params, SuiAddStaffMenu.defaults);
+export class SuiAddStaffMenu extends SuiMenuBase {
+  constructor(params: SuiMenuParams) {
     super(params);
   }
   static get ctor() {
     return 'SuiAddStaffMenu';
   }
-  get ctor() {
-    return SuiAddStaffMenu.ctor;
-  }
-
   static get defaults() {
-    SuiAddStaffMenu._defaults = SuiAddStaffMenu._defaults ? SuiAddStaffMenu._defaults : {
+    return {
       label: 'Add Staff',
       menuItems: [
         {
@@ -1136,9 +1156,8 @@ export class SuiAddStaffMenu extends suiMenuBase {
       ],
       menuContainer: '.menuContainer'
     };
-    return SuiAddStaffMenu._defaults;
   }
-  static get instrumentMap() {
+  static get instrumentMap(): Record<string, Partial<SmoSystemStaffParams>> {
     return {
       'trebleInstrument': {
         instrumentInfo: {
@@ -1184,11 +1203,13 @@ export class SuiAddStaffMenu extends suiMenuBase {
       }
     };
   }
+  getDefinition() {
+    return SuiAddStaffMenu.defaults;
+  }
   execStaffGroups() {
     SuiStaffGroupDialog.createAndDisplay(
       {
         eventSource: this.eventSource,
-        keyCommands: this.keyCommands,
         completeNotifier: this.completeNotifier,
         view: this.view,
         startPromise: this.closePromise
@@ -1196,8 +1217,8 @@ export class SuiAddStaffMenu extends suiMenuBase {
     );
   }
 
-  selection(ev) {
-    const op = $(ev.currentTarget).attr('data-value');
+  selection(ev: any) {
+    const op: string = $(ev.currentTarget).attr('data-value');
     if (op === 'remove') {
       this.view.removeStaff();
       this.complete();
@@ -1207,8 +1228,12 @@ export class SuiAddStaffMenu extends suiMenuBase {
     } else if (op === 'cancel') {
       this.complete();
     } else {
-      const instrument = SuiAddStaffMenu.instrumentMap[op];
-      this.view.addStaff(instrument);
+      const instrument: SmoSystemStaffParams = SmoSystemStaff.defaults;
+      const params = SuiAddStaffMenu.instrumentMap[op];
+      if(params.instrumentInfo) {
+        instrument.instrumentInfo = params.instrumentInfo;
+        this.view.addStaff(instrument);  
+      }
       this.complete();
     }
   }

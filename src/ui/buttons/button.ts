@@ -1,7 +1,6 @@
-import { SuiKeyCommands } from '../../application/keyCommands';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { BrowserEventSource } from '../../application/eventSource';
-import { suiMenuManager } from '../menus';
+import { SuiMenuManager } from '../menus';
 import { CompleteNotifier } from '../../application/common';
 
 /**
@@ -45,7 +44,7 @@ export interface SuiButtonParams {
     buttonData: ButtonDefinition,
     view: SuiScoreViewOperations,
     eventSource: BrowserEventSource,
-    menus: suiMenuManager,
+    menus: SuiMenuManager,
     completeNotifier: CompleteNotifier
   }
   export abstract class SuiButton {
@@ -54,7 +53,7 @@ export interface SuiButtonParams {
     view: SuiScoreViewOperations;
     buttonData: ButtonDefinition;
     eventSource: BrowserEventSource;
-    menus: suiMenuManager;
+    menus: SuiMenuManager;
     completeNotifier: CompleteNotifier | null;
     constructor(params: SuiButtonParams) {
       this.buttonId = params.buttonId;

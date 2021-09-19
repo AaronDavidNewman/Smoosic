@@ -1,14 +1,14 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { htmlHelpers } from '../common/htmlHelpers';
-import { ButtonDefinition } from './buttons/button';
-import { BrowserEventSource } from '../application/eventSource';
-import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
-import { CompleteNotifier } from '../application/common';
-import { SuiTracker } from '../render/sui/tracker';
-import { suiMenuManager } from './menus';
-import { ButtonLabel } from './buttons/button';
-import { CollapseRibbonControl } from './buttons/collapsable';
+import { htmlHelpers } from '../../common/htmlHelpers';
+import { ButtonDefinition } from './button';
+import { BrowserEventSource } from '../../application/eventSource';
+import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
+import { CompleteNotifier } from '../../application/common';
+import { SuiTracker } from '../../render/sui/tracker';
+import { SuiMenuManager } from '../menus';
+import { ButtonLabel } from './button';
+import { CollapseRibbonControl } from './collapsable';
 
 declare var $: any;
 
@@ -16,12 +16,26 @@ export interface RibbonLayout {
   left: string[],
   top: string[]
 }
+/**
+ * Parameters for creating the global button ribbon object.  The button ribbon supports a 
+ * button panel in 'top' and 'left' areas, with support for R-to-L languages.  Button groups 
+ * are collapsible.  The content of ribbonButtons determines which buttons show up.  
+ * ribbon layout determines which show up top vs. left
+ * @param {BrowserEventSource} eventSource - buttons will use this to bind click events
+ * @param {CompleteNotifier} completeNotifier - buttons that bring up menus and dialogs will pass this to the dialogs
+ * @param {SuiTracker} tracker - some buttons act on the current selection
+ * @param {SuiMenuManager} menus - some buttons invoke a menu
+ * @param {ButtonDefinition[]} - the buttons
+ * @param {RibbonLayout} ribbons - where the buttons appear
+ * @see {ButtonDefinition} for how to create/modify buttons
+ * @see {defaultRibbonLayout} for buttons supported from the demo application
+ */
 export interface SuiRibbonParams {
   eventSource: BrowserEventSource,
   view: SuiScoreViewOperations,
   completeNotifier: CompleteNotifier,
   tracker: SuiTracker,
-  menus: suiMenuManager,
+  menus: SuiMenuManager,
   ribbonButtons: ButtonDefinition[],
   ribbons: RibbonLayout
 }
@@ -48,7 +62,7 @@ export class RibbonButtons {
   controller: CompleteNotifier;
   eventSource: BrowserEventSource;
   view: SuiScoreViewOperations;
-  menus: suiMenuManager;
+  menus: SuiMenuManager;
   ribbons: RibbonLayout;
   ribbonButtons: ButtonDefinition[];
   collapsables: CollapseRibbonControl[] = [];

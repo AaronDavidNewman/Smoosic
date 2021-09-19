@@ -1,18 +1,17 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../common/serializationHelpers';
-import { SuiEventHandler } from './eventHandler';
+import { _MidiWriter } from '../common/midiWriter';
+
 import { SmoConfiguration } from '../smo/data/common';
-import { SuiScoreRender } from '../render/sui/scoreRender';
-import { suiMenuManager } from '../ui/menus';
-import { SuiRenderDemon } from '../render/sui/layoutDemon';
-import { SuiKeyCommands } from './keyCommands';
-import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { SmoScore } from '../smo/data/score';
-import { SmoTranslationEditor } from '../ui/i18n/translationEditor';
-import { SmoTranslator } from '../ui/i18n/language';
-import { BrowserEventSource } from './eventSource';
+import { UndoBuffer } from '../smo/xform/undo';
+
+import { SuiScoreRender } from '../render/sui/scoreRender';
+import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { SuiOscillator } from '../render/audio/oscillator';
+import { SuiTracker } from '../render/sui/tracker';
+
 import { ArialFont } from '../styles/font_metrics/arial_metrics';
 import { TimesFont } from '../styles/font_metrics/times_metrics';
 import { Commissioner_MediumFont } from '../styles/font_metrics/Commissioner-Medium-Metrics';
@@ -20,10 +19,18 @@ import { Concert_OneFont } from '../styles/font_metrics/ConcertOne-Regular';
 import { MerriweatherFont } from '../styles/font_metrics/Merriweather-Regular';
 import { SourceSansProFont } from '../styles/font_metrics/ssp-sans-metrics';
 import { SourceSerifProFont } from '../styles/font_metrics/ssp-serif-metrics';
-import { _MidiWriter } from '../common/midiWriter';
-import { SuiDom } from './dom';
+
+import { SuiMenuManager, SuiMenuManagerParams } from '../ui/menus';
 import { librarySeed } from '../ui/fileio/library';
-import { DialogParams } from './common';
+import { SmoTranslationEditor } from '../ui/i18n/translationEditor';
+import { SmoTranslator } from '../ui/i18n/language';
+
+import { SuiDom } from './dom';
+import { SuiKeyCommands } from './keyCommands';
+import { BrowserEventSource } from './eventSource';
+import { EventHandlerParams, SuiEventHandler } from './eventHandler';
+import { DialogParams, CompleteNotifier, KeyBinding } from './common';
+
 
 declare var SmoConfig : SmoConfiguration;
 
@@ -34,21 +41,17 @@ interface loadedScore {
   score: SmoScore | null,
   mode: string
 }
-export interface controllerKeyBinding {
-  event: string,
-  key: string,
-  ctrlKey: boolean,
-  altKey: boolean,
-  shiftKey: boolean,
-  action: string
-}
-export interface controllerParams {
-  keyBindingDefaults: controllerKeyBinding[],
-  eventSource: BrowserEventSource
-  view: SuiScoreViewOperations,
-  keyCommands: SuiKeyCommands,
-  layoutDemon: SuiRenderDemon,
-  menus: suiMenuManager
+
+export interface SuiInstance {
+  view: SuiScoreViewOperations;
+  eventSource: BrowserEventSource;
+  completeNotifier: CompleteNotifier;
+  undoBuffer: UndoBuffer;
+  menuContainer: string;
+  tracker: SuiTracker;
+  keyBindingDefaults: KeyBinding[];
+  keyCommands: SuiKeyCommands;
+  menus: SuiMenuManager;
 }
 const VF = eval('Vex.Flow');
 const Smo = eval('globalThis.Smo');
@@ -114,6 +117,7 @@ export class SuiScoreBuilder {
  */
 export class SuiApplication {
   scoreLibrary: any;
+  instance: SuiInstance | null = null;
   static get defaultConfig(): SmoConfiguration {
     return {
       smoPath: '..',
@@ -139,6 +143,7 @@ export class SuiApplication {
     (window as any).SmoConfig = config;
     SuiApplication.registerFonts();
   }
+  static instance: SuiInstance;
 
   constructor(params: any) {
     SuiApplication.configure(params);
@@ -195,25 +200,28 @@ export class SuiApplication {
    */
   createUi(score: SmoScore) {
     SuiDom.createDom('Smoosic');
-    const params: Partial<controllerParams> = {};
+    const params: Partial<SuiInstance> = {};
     params.keyBindingDefaults = SuiEventHandler.keyBindingDefaults;
     params.eventSource = new BrowserEventSource(); // events come from the browser UI.
+    params.undoBuffer = new UndoBuffer();
     const selector = typeof(SmoConfig.vexDomContainer) === 'undefined' ? '' : SmoConfig.vexDomContainer;
 
     const scoreRenderer = SuiScoreRender.createScoreRenderer(document.getElementById(
       selector)!, score);
     params.eventSource.setRenderElement(scoreRenderer.renderElement);
-    params.view = new SuiScoreViewOperations(scoreRenderer, score, '.musicRelief');
+    params.view = new SuiScoreViewOperations(scoreRenderer, score, '.musicRelief', params.undoBuffer);
+    params.menuContainer = '.menuContainer';
     if (SmoConfig.keyCommands) {
       params.keyCommands = new SuiKeyCommands(params as DialogParams);
     }
     if (SmoConfig.menus) {
-      params.menus = new suiMenuManager(params);
+      params.menus = new SuiMenuManager(params as SuiMenuManagerParams);
     }
-    params.layoutDemon = params.view.layoutDemon;
     // Start the application event processing and render the initial score
     // eslint-disable-next-line
-    new SuiEventHandler(params as controllerParams);
+    new SuiEventHandler(params as EventHandlerParams);
+    this.instance = params as SuiInstance;
+    SuiApplication.instance = this.instance;
     SuiDom.splash();
   }
   static registerFonts() {
