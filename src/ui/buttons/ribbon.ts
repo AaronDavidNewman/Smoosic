@@ -6,7 +6,7 @@ import { BrowserEventSource } from '../../application/eventSource';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { CompleteNotifier } from '../../application/common';
 import { SuiTracker } from '../../render/sui/tracker';
-import { SuiMenuManager } from '../menus';
+import { SuiMenuManager } from '../menus/manager';
 import { ButtonLabel } from './button';
 import { CollapseRibbonControl } from './collapsable';
 

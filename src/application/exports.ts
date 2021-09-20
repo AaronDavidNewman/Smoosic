@@ -32,7 +32,7 @@ import { quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHt
 
 // ui dialogs and menus
 // Dialogs
-import { SuiModifierDialogFactory } from '../ui/dialog';
+import { SuiModifierDialogFactory, SuiDialogBase } from '../ui/dialog';
 import { SuiTempoDialog, SuiInstrumentDialog, SuiMeasureDialog, SuiInsertMeasures,
     SuiTimeSignatureDialog } from '../ui/dialogs/measureDialogs';
 import { SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog,
@@ -61,11 +61,17 @@ import {
 import { CheckboxDropdownComponent, TieMappingComponent, StaffAddRemoveComponent,
     StaffCheckComponent, TextCheckComponent} from '../ui/dialogs/staffComponents';
 // menus
-import {
-    SuiMenuManager, SuiScoreMenu, SuiFileMenu, SuiLibraryMenu,
-    SuiDynamicsMenu, SuiTimeSignatureMenu, SuiKeySignatureMenu, SuiStaffModifierMenu,
-    SuiLanguageMenu, SuiMeasureMenu, SuiAddStaffMenu
-} from '../ui/menus';
+import { SuiMenuManager} from '../ui/menus/manager';
+import { SuiScoreMenu } from '../ui/menus/score';
+import { SuiLibraryMenu } from '../ui/menus/library';
+import { SuiDynamicsMenu } from '../ui/menus/dynamics';
+import { SuiTimeSignatureMenu } from '../ui/menus/timeSignature';
+import { SuiKeySignatureMenu } from '../ui/menus/keySignature';
+import { SuiStaffModifierMenu } from '../ui/menus/staffModifier';
+import { SuiFileMenu } from '../ui/menus/file';
+import { SuiLanguageMenu } from '../ui/menus/language';
+import { SuiMeasureMenu } from '../ui/menus/measure';
+import { SuiStaffMenu } from '../ui/menus/staff';
 
 import { SuiXhrLoader } from '../ui/fileio/xhrLoader';
 import { PromiseHelpers } from '../common/promiseHelpers';
@@ -111,7 +117,7 @@ export const Smo = {
     // Menus
     SuiMenuManager, SuiScoreMenu, SuiFileMenu, SuiLibraryMenu,
     SuiDynamicsMenu, SuiTimeSignatureMenu, SuiKeySignatureMenu, SuiStaffModifierMenu,
-    SuiLanguageMenu, SuiMeasureMenu, SuiAddStaffMenu,
+    SuiLanguageMenu, SuiMeasureMenu, SuiStaffMenu,
     // Dialogs
     SuiTempoDialog, SuiInstrumentDialog, SuiModifierDialogFactory, SuiLibraryDialog,
     SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog,
@@ -121,7 +127,7 @@ export const Smo = {
     SuiHairpinAttributesDialog, SuiStaffGroupDialog, helpModal,
     SuiFileDialog,  SuiLoadFileDialog, SuiLoadMxmlDialog,
     SuiLoadActionsDialog, SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
-    SuiSaveMidiDialog, SuiSaveActionsDialog,
+    SuiSaveMidiDialog, SuiSaveActionsDialog,SuiDialogBase,
     // Dialog components
     SuiTreeComponent,
     SuiDropdownComponent,

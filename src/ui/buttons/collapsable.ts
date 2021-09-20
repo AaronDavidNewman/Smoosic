@@ -1,7 +1,7 @@
 import { ButtonDefinition, SuiButton, SuiButtonParams } from './button';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { BrowserEventSource } from '../../application/eventSource';
-import { SuiMenuManager } from '../menus';
+import { SuiMenuManager } from '../menus/manager';
 import { CompleteNotifier } from '../../application/common';
 import { smoSerialize } from '../../common/serializationHelpers';
 declare var $: any;

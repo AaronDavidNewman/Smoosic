@@ -656,7 +656,7 @@ export const smoLanguageStringDe = `[
   ]
  },
  {
-  "ctor": "SuiAddStaffMenu",
+  "ctor": "SuiStaffMenu",
   "label": "Notenschlüssel",
   "menuItems": [
    {

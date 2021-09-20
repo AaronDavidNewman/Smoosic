@@ -20,7 +20,7 @@ import { MerriweatherFont } from '../styles/font_metrics/Merriweather-Regular';
 import { SourceSansProFont } from '../styles/font_metrics/ssp-sans-metrics';
 import { SourceSerifProFont } from '../styles/font_metrics/ssp-serif-metrics';
 
-import { SuiMenuManager, SuiMenuManagerParams } from '../ui/menus';
+import { SuiMenuManager, SuiMenuManagerParams } from '../ui/menus/manager';
 import { librarySeed } from '../ui/fileio/library';
 import { SmoTranslationEditor } from '../ui/i18n/translationEditor';
 import { SmoTranslator } from '../ui/i18n/language';

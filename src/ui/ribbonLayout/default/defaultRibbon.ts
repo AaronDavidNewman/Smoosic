@@ -333,7 +333,7 @@ export class defaultRibbonLayout {
       classes: 'icon  collapsed staves',
       icon: 'icon-plus',
       action: 'collapseChildMenu',
-      ctor: 'SuiAddStaffMenu',
+      ctor: 'SuiStaffMenu',
       group: 'staves',
       id: 'clefAddRemove'
     },
@@ -1574,7 +1574,7 @@ export class defaultRibbonLayout {
       icon: '',
       classes: 'staff-modify',
       action: 'menu',
-      ctor: 'SuiAddStaffMenu',
+      ctor: 'SuiStaffMenu',
       group: 'scoreEdit',
       id: 'addStaffMenu'
     },

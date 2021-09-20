@@ -17,7 +17,7 @@ import { BrowserEventSource, EventHandler } from './eventSource';
 import { SuiKeyCommands } from './keyCommands';
 import { ModalComponent, KeyBinding, KeyEvent } from './common';
 import { SvgHelpers } from '../render/sui/svgHelpers';
-import { SuiMenuManager } from '../ui/menus';
+import { SuiMenuManager } from '../ui/menus/manager';
 
 declare var $: any;
 

@@ -656,7 +656,7 @@ export const smoLanguageStringAr = `[
   ]
  },
  {
-  "ctor": "SuiAddStaffMenu",
+  "ctor": "SuiStaffMenu",
   "label": "المفاتيح",
   "menuItems": [
    {
