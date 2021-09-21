@@ -26,58 +26,60 @@ export class SuiLyricDialog extends SuiDialogBase {
   }
   static get dialogElements() {
     SuiLyricDialog._dialogElements = SuiLyricDialog._dialogElements ? SuiLyricDialog._dialogElements :
-      [{
-        smoName: 'verse',
-        parameterName: 'verse',
-        defaultValue: 0,
-        control: 'SuiDropdownComponent',
-        label: 'Verse',
-        classes: 'hide-when-editing',
-        startRow: true,
-        options: [{
-          value: 0,
-          label: '1'
-        }, {
-          value: 1,
-          label: '2'
-        }, {
-          value: 2,
-          label: '3'
-        }, {
-          value: 3,
-          label: '4'
-        }
-        ]
-      }, {
-        smoName: 'translateY',
-        parameterName: 'translateY',
-        classes: 'hide-when-editing',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Y Adjustment (Px)',
-        type: 'int'
-      }, {
-        smoName: 'font',
-        parameterName: 'font',
-        classes: 'hide-when-editing',
-        defaultValue: 0,
-        control: 'SuiFontComponent',
-        label: 'Font'
-      }, {
-        smoName: 'lyricEditor',
-        parameterName: 'text',
-        defaultValue: 0,
-        classes: 'show-always',
-        control: 'SuiLyricComponent',
-        label: 'Edit Lyrics',
-        options: []
-      }, {
-        staticText: [
+      {
+        label: 'Lyric Editor', elements:
+          [{
+            smoName: 'verse',
+            parameterName: 'verse',
+            defaultValue: 0,
+            control: 'SuiDropdownComponent',
+            label: 'Verse',
+            classes: 'hide-when-editing',
+            startRow: true,
+            options: [{
+              value: 0,
+              label: '1'
+            }, {
+              value: 1,
+              label: '2'
+            }, {
+              value: 2,
+              label: '3'
+            }, {
+              value: 3,
+              label: '4'
+            }
+            ]
+          }, {
+            smoName: 'translateY',
+            parameterName: 'translateY',
+            classes: 'hide-when-editing',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Y Adjustment (Px)',
+            type: 'int'
+          }, {
+            smoName: 'font',
+            parameterName: 'font',
+            classes: 'hide-when-editing',
+            defaultValue: 0,
+            control: 'SuiFontComponent',
+            label: 'Font'
+          }, {
+            smoName: 'lyricEditor',
+            parameterName: 'text',
+            defaultValue: 0,
+            classes: 'show-always',
+            control: 'SuiLyricComponent',
+            label: 'Edit Lyrics',
+            options: []
+          },
+          ], staticText: [
           { doneEditing: 'Done Editing Lyrics' },
           { undo: 'Undo Lyrics' },
           { label: 'Lyric Editor' }
         ]
-      }];
+      };
 
     return SuiLyricDialog._dialogElements;
   }
@@ -240,101 +242,103 @@ export class SuiChordChangeDialog extends SuiDialogBase {
   }
   static get dialogElements() {
     SuiChordChangeDialog._dialogElements = SuiChordChangeDialog._dialogElements ? SuiChordChangeDialog._dialogElements :
-      [{
-        smoName: 'verse',
-        parameterName: 'verse',
-        defaultValue: 0,
-        control: 'SuiDropdownComponent',
-        label: 'Ordinality',
-        classes: 'hide-when-editing',
-        startRow: true,
-        options: [{
-          value: 0,
-          label: '1'
-        }, {
-          value: 1,
-          label: '2'
-        }, {
-          value: 2,
-          label: '3'
-        }]
-      }, {
-        smoName: 'translateY',
-        parameterName: 'translateY',
-        defaultValue: 0,
-        classes: 'hide-when-editing',
-        control: 'SuiRockerComponent',
-        label: 'Y Adjustment (Px)',
-        type: 'int'
-      }, {
-        smoName: 'chordEditor',
-        parameterName: 'text',
-        defaultValue: 0,
-        classes: 'show-always',
-        control: 'SuiChordComponent',
-        label: 'Edit Text',
-        options: []
-      }, {
-        smoName: 'chordSymbol',
-        parameterName: 'chordSymbol',
-        defaultValue: '',
-        classes: 'show-when-editing',
-        control: 'SuiDropdownComponent',
-        label: 'Chord Symbol',
-        startRow: true,
-        options: [{
-          value: 'csymDiminished',
-          label: 'Dim'
-        }, {
-          value: 'csymHalfDiminished',
-          label: 'Half dim'
-        }, {
-          value: 'csymDiagonalArrangementSlash',
-          label: 'Slash'
-        }, {
-          value: 'csymMajorSeventh',
-          label: 'Maj7'
-        }]
-      }, {
-        smoName: 'textPosition',
-        parameterName: 'textPosition',
-        defaultValue: SuiInlineText.textTypes.normal,
-        classes: 'show-when-editing',
-        control: 'SuiDropdownComponent',
-        label: 'Text Position',
-        startRow: true,
-        options: [{
-          value: SuiInlineText.textTypes.superScript,
-          label: 'Superscript'
-        }, {
-          value: SuiInlineText.textTypes.subScript,
-          label: 'Subscript'
-        }, {
-          value: SuiInlineText.textTypes.normal,
-          label: 'Normal'
-        }]
-      }, {
-        smoName: 'font',
-        parameterName: 'font',
-        classes: 'hide-when-editing',
-        defaultValue: 0,
-        control: 'SuiFontComponent',
-        label: 'Font'
-      }, {
-        smoName: 'adjustWidth',
-        parameterName: 'adjustNoteWidth',
-        defaultValue: true,
-        classes: 'hide-when-editing',
-        control: 'SuiToggleComponent',
-        label: 'Adjust Note Width',
-        options: []
-      }, {
+      {
+        label: 'Edit Chord Symbol', elements:
+          [{
+            smoName: 'verse',
+            parameterName: 'verse',
+            defaultValue: 0,
+            control: 'SuiDropdownComponent',
+            label: 'Ordinality',
+            classes: 'hide-when-editing',
+            startRow: true,
+            options: [{
+              value: 0,
+              label: '1'
+            }, {
+              value: 1,
+              label: '2'
+            }, {
+              value: 2,
+              label: '3'
+            }]
+          }, {
+            smoName: 'translateY',
+            parameterName: 'translateY',
+            defaultValue: 0,
+            classes: 'hide-when-editing',
+            control: 'SuiRockerComponent',
+            label: 'Y Adjustment (Px)',
+            type: 'int'
+          }, {
+            smoName: 'chordEditor',
+            parameterName: 'text',
+            defaultValue: 0,
+            classes: 'show-always',
+            control: 'SuiChordComponent',
+            label: 'Edit Text',
+            options: []
+          }, {
+            smoName: 'chordSymbol',
+            parameterName: 'chordSymbol',
+            defaultValue: '',
+            classes: 'show-when-editing',
+            control: 'SuiDropdownComponent',
+            label: 'Chord Symbol',
+            startRow: true,
+            options: [{
+              value: 'csymDiminished',
+              label: 'Dim'
+            }, {
+              value: 'csymHalfDiminished',
+              label: 'Half dim'
+            }, {
+              value: 'csymDiagonalArrangementSlash',
+              label: 'Slash'
+            }, {
+              value: 'csymMajorSeventh',
+              label: 'Maj7'
+            }]
+          }, {
+            smoName: 'textPosition',
+            parameterName: 'textPosition',
+            defaultValue: SuiInlineText.textTypes.normal,
+            classes: 'show-when-editing',
+            control: 'SuiDropdownComponent',
+            label: 'Text Position',
+            startRow: true,
+            options: [{
+              value: SuiInlineText.textTypes.superScript,
+              label: 'Superscript'
+            }, {
+              value: SuiInlineText.textTypes.subScript,
+              label: 'Subscript'
+            }, {
+              value: SuiInlineText.textTypes.normal,
+              label: 'Normal'
+            }]
+          }, {
+            smoName: 'font',
+            parameterName: 'font',
+            classes: 'hide-when-editing',
+            defaultValue: 0,
+            control: 'SuiFontComponent',
+            label: 'Font'
+          }, {
+            smoName: 'adjustWidth',
+            parameterName: 'adjustNoteWidth',
+            defaultValue: true,
+            classes: 'hide-when-editing',
+            control: 'SuiToggleComponent',
+            label: 'Adjust Note Width',
+            options: []
+          }],
         staticText: [
           { label: 'Edit Chord Symbol' },
           { undo: 'Undo Chord Symbols' },
           { doneEditing: 'Done Editing Chord Symbols' }
         ]
-      }];
+      };
 
     return SuiChordChangeDialog._dialogElements;
   }
@@ -472,94 +476,96 @@ export class SuiTextTransformDialog extends SuiDialogBase {
   }
   static get dialogElements() {
     SuiTextTransformDialog._dialogElements = SuiTextTransformDialog._dialogElements ? SuiTextTransformDialog._dialogElements :
-      [{
-        smoName: 'textEditor',
-        parameterName: 'text',
-        defaultValue: 0,
-        control: 'SuiTextInPlace',
-        classes: 'show-always hide-when-moving',
-        label: 'Edit Text',
-        options: []
-      }, {
-        smoName: 'insertCode',
-        parameterName: 'insertCode',
-        defaultValue: false,
-        classes: 'show-when-editing hide-when-moving',
-        control: 'SuiDropdownComponent',
-        label: 'Insert Special',
-        options: [
-          { value: '@@@', label: 'Pages' },
-          { value: '###', label: 'Page Number' }
-        ]
-      }, {
-        smoName: 'textDragger',
-        parameterName: 'textLocation',
-        classes: 'hide-when-editing show-when-moving',
-        defaultValue: 0,
-        control: 'SuiDragText',
-        label: 'Move Text',
-        options: []
-      }, {
-        smoName: 'x',
-        parameterName: 'x',
-        defaultValue: 0,
-        classes: 'hide-when-editing hide-when-moving',
-        control: 'SuiRockerComponent',
-        label: 'X Position (Px)',
-        type: 'int'
-      }, {
-        smoName: 'y',
-        parameterName: 'y',
-        defaultValue: 0,
-        classes: 'hide-when-editing hide-when-moving',
-        control: 'SuiRockerComponent',
-        label: 'Y Position (Px)',
-        type: 'int'
-      }, {
-        smoName: 'font',
-        parameterName: 'font',
-        classes: 'hide-when-editing hide-when-moving',
-        defaultValue: SmoScoreText.fontFamilies.times,
-        control: 'SuiFontComponent',
-        label: 'Font Information'
-      },
       {
-        smoName: 'textBlock',
-        parameterName: 'textBlock',
-        classes: 'hide-when-editing hide-when-moving',
-        defaultValue: '',
-        control: 'SuiTextBlockComponent',
-        label: 'Text Block Properties'
-      },
-      { // {every:'every',even:'even',odd:'odd',once:'once'}
-        smoName: 'pagination',
-        parameterName: 'pagination',
-        defaultValue: SmoScoreText.paginations.every,
-        classes: 'hide-when-editing hide-when-moving',
-        control: 'SuiDropdownComponent',
-        label: 'Page Behavior',
-        startRow: true,
-        options: [{ value: SmoTextGroup.paginations.ONCE, label: 'Once' },
-          { value: SmoTextGroup.paginations.EVERY, label: 'Every' },
-          { value: SmoTextGroup.paginations.EVEN, label: 'Even' },
-          { value: SmoTextGroup.paginations.ODD, label: 'Odd' },
-          { value: SmoTextGroup.paginations.SUBSEQUENT, label: 'Subsequent' }
-        ]
-      }, {
-        smoName: 'attachToSelector',
-        parameterName: 'attachToSelector',
-        defaultValue: false,
-        parentControl: this,
-        classes: 'hide-when-editing hide-when-moving',
-        control: 'SuiToggleComponent',
-        label: 'Attach to Selection'
-      }, {
+        label: 'Text Properties', elements:
+          [{
+            smoName: 'textEditor',
+            parameterName: 'text',
+            defaultValue: 0,
+            control: 'SuiTextInPlace',
+            classes: 'show-always hide-when-moving',
+            label: 'Edit Text',
+            options: []
+          }, {
+            smoName: 'insertCode',
+            parameterName: 'insertCode',
+            defaultValue: false,
+            classes: 'show-when-editing hide-when-moving',
+            control: 'SuiDropdownComponent',
+            label: 'Insert Special',
+            options: [
+              { value: '@@@', label: 'Pages' },
+              { value: '###', label: 'Page Number' }
+            ]
+          }, {
+            smoName: 'textDragger',
+            parameterName: 'textLocation',
+            classes: 'hide-when-editing show-when-moving',
+            defaultValue: 0,
+            control: 'SuiDragText',
+            label: 'Move Text',
+            options: []
+          }, {
+            smoName: 'x',
+            parameterName: 'x',
+            defaultValue: 0,
+            classes: 'hide-when-editing hide-when-moving',
+            control: 'SuiRockerComponent',
+            label: 'X Position (Px)',
+            type: 'int'
+          }, {
+            smoName: 'y',
+            parameterName: 'y',
+            defaultValue: 0,
+            classes: 'hide-when-editing hide-when-moving',
+            control: 'SuiRockerComponent',
+            label: 'Y Position (Px)',
+            type: 'int'
+          }, {
+            smoName: 'font',
+            parameterName: 'font',
+            classes: 'hide-when-editing hide-when-moving',
+            defaultValue: SmoScoreText.fontFamilies.times,
+            control: 'SuiFontComponent',
+            label: 'Font Information'
+          },
+          {
+            smoName: 'textBlock',
+            parameterName: 'textBlock',
+            classes: 'hide-when-editing hide-when-moving',
+            defaultValue: '',
+            control: 'SuiTextBlockComponent',
+            label: 'Text Block Properties'
+          },
+          { // {every:'every',even:'even',odd:'odd',once:'once'}
+            smoName: 'pagination',
+            parameterName: 'pagination',
+            defaultValue: SmoScoreText.paginations.every,
+            classes: 'hide-when-editing hide-when-moving',
+            control: 'SuiDropdownComponent',
+            label: 'Page Behavior',
+            startRow: true,
+            options: [{ value: SmoTextGroup.paginations.ONCE, label: 'Once' },
+              { value: SmoTextGroup.paginations.EVERY, label: 'Every' },
+              { value: SmoTextGroup.paginations.EVEN, label: 'Even' },
+              { value: SmoTextGroup.paginations.ODD, label: 'Odd' },
+              { value: SmoTextGroup.paginations.SUBSEQUENT, label: 'Subsequent' }
+            ]
+          }, {
+            smoName: 'attachToSelector',
+            parameterName: 'attachToSelector',
+            defaultValue: false,
+            parentControl: this,
+            classes: 'hide-when-editing hide-when-moving',
+            control: 'SuiToggleComponent',
+            label: 'Attach to Selection'
+          }],
         staticText: [
           { label: 'Text Properties' },
           { editorLabel: 'Done Editing Text' },
           { draggerLabel: 'Done Dragging Text' }
         ]
-      }];
+      };
     return SuiTextTransformDialog._dialogElements;
   }
   static getStaticText(label) {
@@ -834,59 +840,57 @@ export class SuiDynamicModifierDialog extends SuiDialogBase {
 
   static get dialogElements() {
     SuiDynamicModifierDialog._dialogElements = SuiDynamicModifierDialog._dialogElements ? SuiDynamicModifierDialog._dialogElements :
-      [{
-        smoName: 'yOffsetLine',
-        parameterName: 'yOffsetLine',
-        defaultValue: 11,
-        control: 'SuiRockerComponent',
-        label: 'Y Line'
-      }, {
-        smoName: 'yOffsetPixels',
-        parameterName: 'yOffsetPixels',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Y Offset Px'
-      }, {
-        smoName: 'xOffset',
-        parameterName: 'yOffset',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'X Offset'
-      }, {
-        smoName: 'text',
-        parameterName: 'text',
-        defaultValue: SmoDynamicText.dynamics.P,
-        options: [{
-          value: SmoDynamicText.dynamics.P,
-          label: 'Piano'
-        }, {
-          value: SmoDynamicText.dynamics.PP,
-          label: 'Pianissimo'
-        }, {
-          value: SmoDynamicText.dynamics.MP,
-          label: 'Mezzo-Piano'
-        }, {
-          value: SmoDynamicText.dynamics.MF,
-          label: 'Mezzo-Forte'
-        }, {
-          value: SmoDynamicText.dynamics.F,
-          label: 'Forte'
-        }, {
-          value: SmoDynamicText.dynamics.FF,
-          label: 'Fortissimo'
-        }, {
-          value: SmoDynamicText.dynamics.SFZ,
-          label: 'Sforzando'
-        }],
-        control: 'SuiDropdownComponent',
-        label: 'Text'
-      },
       {
-        staticText: [
-          { label: 'Dynamics Properties' }
-        ]
-      }
-      ];
+        label: 'Dynamics Properties', elements:
+          [{
+            smoName: 'yOffsetLine',
+            parameterName: 'yOffsetLine',
+            defaultValue: 11,
+            control: 'SuiRockerComponent',
+            label: 'Y Line'
+          }, {
+            smoName: 'yOffsetPixels',
+            parameterName: 'yOffsetPixels',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Y Offset Px'
+          }, {
+            smoName: 'xOffset',
+            parameterName: 'yOffset',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'X Offset'
+          }, {
+            smoName: 'text',
+            parameterName: 'text',
+            defaultValue: SmoDynamicText.dynamics.P,
+            options: [{
+              value: SmoDynamicText.dynamics.P,
+              label: 'Piano'
+            }, {
+              value: SmoDynamicText.dynamics.PP,
+              label: 'Pianissimo'
+            }, {
+              value: SmoDynamicText.dynamics.MP,
+              label: 'Mezzo-Piano'
+            }, {
+              value: SmoDynamicText.dynamics.MF,
+              label: 'Mezzo-Forte'
+            }, {
+              value: SmoDynamicText.dynamics.F,
+              label: 'Forte'
+            }, {
+              value: SmoDynamicText.dynamics.FF,
+              label: 'Fortissimo'
+            }, {
+              value: SmoDynamicText.dynamics.SFZ,
+              label: 'Sforzando'
+            }],
+            control: 'SuiDropdownComponent',
+            label: 'Text'
+          }]
+      };
+
     return SuiDynamicModifierDialog._dialogElements;
   }
   static createAndDisplay(parameters) {

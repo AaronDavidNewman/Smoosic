@@ -47,7 +47,7 @@ export class SuiTextInPlace extends SuiComponentBase {
     const modifier = this.dialog.modifier;
 
     this.value = modifier;
-    this.altLabel = SuiTextTransformDialog.getStaticText('editorLabel');
+    this.altLabel = dialog.staticText.editorLabel;
   }
 
   get html() {
@@ -263,7 +263,7 @@ export class SuiLyricComponent extends SuiNoteTextComponent {
       this.defaultValue = 0;
     }
     this.session = null;
-    this.altLabel = SuiLyricDialog.getStaticText('doneEditing');
+    this.altLabel = dialog.staticText.doneEditing;
     if (!this.verse) {
       this.verse = 0;
     }
@@ -350,7 +350,7 @@ export class SuiChordComponent extends SuiNoteTextComponent {
 
     this.selection = dialog.view.tracker.selections[0];
     this.selector = JSON.parse(JSON.stringify(this.selection.selector));
-    this.altLabel = SuiLyricDialog.getStaticText('doneEditing');
+    this.altLabel = dialog.staticText.doneEditing;
     if (!this.verse) {
       this.verse = 0;
     }
@@ -440,7 +440,7 @@ export class SuiDragText extends SuiComponentBase {
     this.running = false;
 
     this.dialog = dialog;
-    this.altLabel = SuiTextTransformDialog.getStaticText('draggerLabel');
+    this.altLabel = dialog.staticText.draggerLabel;
     this.value = '';
   }
 

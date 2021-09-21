@@ -17,18 +17,17 @@ export class SuiScoreViewDialog extends SuiDialogBase {
     return SuiScoreViewDialog.ctor;
   }
   static get dialogElements() {
-    SuiScoreViewDialog._dialogElements = typeof(SuiScoreViewDialog._dialogElements) !== 'undefined' ? SuiScoreViewDialog._dialogElements :
-      [{
-        smoName: 'scoreView',
-        parameterName: 'scoreView',
-        defaultValue: [],
-        control: 'StaffCheckComponent',
-        label: 'Show staff',
-      }, {
-        staticText: [
-          { label: 'Score View' }
-        ]
-      }];
+    SuiScoreViewDialog._dialogElements = typeof (SuiScoreViewDialog._dialogElements) !== 'undefined' ? SuiScoreViewDialog._dialogElements :
+      {
+        label: 'Score View', elements:
+          [{
+            smoName: 'scoreView',
+            parameterName: 'scoreView',
+            defaultValue: [],
+            control: 'StaffCheckComponent',
+            label: 'Show staff',
+          }]
+      };
     return SuiScoreViewDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
@@ -86,87 +85,86 @@ export class SuiGlobalLayoutDialog extends SuiDialogBase {
     return SuiGlobalLayoutDialog.ctor;
   }
   static get dialogElements() {
-    SuiGlobalLayoutDialog._dialogElements = typeof(SuiGlobalLayoutDialog._dialogElements)
+    SuiGlobalLayoutDialog._dialogElements = typeof (SuiGlobalLayoutDialog._dialogElements)
       !== 'undefined' ? SuiGlobalLayoutDialog._dialogElements :
-      [{
-        smoName: 'scoreName',
-        parameterName: 'scoreName',
-        defaultValue: [],
-        control: 'SuiTextInputComponent',
-        label: 'Score Name',
-      }, {
-        smoName: 'autoPlay',
-        parameterName: 'autoPlay',
-        defaultValue: [],
-        control: 'SuiToggleComponent',
-        label: 'Play Selections',
-      }, {
-        smoName: 'autoAdvance',
-        parameterName: 'autoAdvance',
-        defaultValue: [],
-        control: 'SuiToggleComponent',
-        label: 'Auto-Advance Cursor',
-      }, {
-        smoName: 'noteSpacing',
-        parameterName: 'noteSpacing',
-        defaultValue: SmoLayoutManager.defaults.noteSpacing,
-        control: 'SuiRockerComponent',
-        type: 'percent',
-        label: 'Note Spacing'
-      }, {
-        smoName: 'pageSize',
-        parameterName: 'pageSize',
-        defaultValue: SmoScore.pageSizes.letter,
-        control: 'SuiDropdownComponent',
-        label: 'Page Size',
-        options: [
-          {
-            value: 'letter',
-            label: 'Letter (Portrait)'
+      {
+        label: 'Global Settings', elements:
+          [{
+            smoName: 'scoreName',
+            parameterName: 'scoreName',
+            defaultValue: [],
+            control: 'SuiTextInputComponent',
+            label: 'Score Name',
           }, {
-            value: 'letterLandscape',
-            label: 'Letter (Landscape)'
+            smoName: 'autoPlay',
+            parameterName: 'autoPlay',
+            defaultValue: [],
+            control: 'SuiToggleComponent',
+            label: 'Play Selections',
           }, {
-            value: 'tabloid',
-            label: 'Tabloid (11x17)'
+            smoName: 'autoAdvance',
+            parameterName: 'autoAdvance',
+            defaultValue: [],
+            control: 'SuiToggleComponent',
+            label: 'Auto-Advance Cursor',
           }, {
-            value: 'A4',
-            label: 'A4'
+            smoName: 'noteSpacing',
+            parameterName: 'noteSpacing',
+            defaultValue: SmoLayoutManager.defaults.noteSpacing,
+            control: 'SuiRockerComponent',
+            type: 'percent',
+            label: 'Note Spacing'
           }, {
-            value: 'custom',
-            label: 'Custom'
+            smoName: 'pageSize',
+            parameterName: 'pageSize',
+            defaultValue: SmoScore.pageSizes.letter,
+            control: 'SuiDropdownComponent',
+            label: 'Page Size',
+            options: [
+              {
+                value: 'letter',
+                label: 'Letter (Portrait)'
+              }, {
+                value: 'letterLandscape',
+                label: 'Letter (Landscape)'
+              }, {
+                value: 'tabloid',
+                label: 'Tabloid (11x17)'
+              }, {
+                value: 'A4',
+                label: 'A4'
+              }, {
+                value: 'custom',
+                label: 'Custom'
+              }]
+          }, {
+            smoName: 'pageWidth',
+            parameterName: 'pageWidth',
+            defaultValue: SmoLayoutManager.defaults.pageWidth,
+            control: 'SuiRockerComponent',
+            label: 'Page Width (px)'
+          }, {
+            smoName: 'pageHeight',
+            parameterName: 'pageHeight',
+            defaultValue: SmoLayoutManager.defaults.pageHeight,
+            control: 'SuiRockerComponent',
+            label: 'Page Height (px)'
+          }, {
+            smoName: 'zoomScale',
+            parameterName: 'zoomScale',
+            defaultValue: SmoLayoutManager.defaults.zoomScale,
+            control: 'SuiRockerComponent',
+            label: '% Zoom',
+            type: 'percent'
+          }, {
+            smoName: 'svgScale',
+            parameterName: 'svgScale',
+            defaultValue: SmoLayoutManager.defaults.svgScale,
+            control: 'SuiRockerComponent',
+            label: '% Note size',
+            type: 'percent'
           }]
-      }, {
-        smoName: 'pageWidth',
-        parameterName: 'pageWidth',
-        defaultValue: SmoLayoutManager.defaults.pageWidth,
-        control: 'SuiRockerComponent',
-        label: 'Page Width (px)'
-      }, {
-        smoName: 'pageHeight',
-        parameterName: 'pageHeight',
-        defaultValue: SmoLayoutManager.defaults.pageHeight,
-        control: 'SuiRockerComponent',
-        label: 'Page Height (px)'
-      }, {
-        smoName: 'zoomScale',
-        parameterName: 'zoomScale',
-        defaultValue: SmoLayoutManager.defaults.zoomScale,
-        control: 'SuiRockerComponent',
-        label: '% Zoom',
-        type: 'percent'
-      }, {
-        smoName: 'svgScale',
-        parameterName: 'svgScale',
-        defaultValue: SmoLayoutManager.defaults.svgScale,
-        control: 'SuiRockerComponent',
-        label: '% Note size',
-        type: 'percent'
-      }, {
-        staticText: [
-          { label: 'Global Settings' }
-        ]
-      }];
+      };
     return SuiGlobalLayoutDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
@@ -309,42 +307,43 @@ export class SuiScoreIdentificationDialog extends SuiDialogBase {
     return SuiScoreIdentificationDialog.ctor;
   }
   static get dialogElements() {
-    SuiScoreIdentificationDialog._dialogElements = typeof(SuiScoreIdentificationDialog._dialogElements)
+    SuiScoreIdentificationDialog._dialogElements = typeof (SuiScoreIdentificationDialog._dialogElements)
       !== 'undefined' ? SuiScoreIdentificationDialog._dialogElements :
-      [{
-        smoName: 'title',
-        parameterName: 'title',
-        defaultValue: '',
-        control: 'TextCheckComponent',
-        label: 'Title',
-      }, {
-        smoName: 'subTitle',
-        parameterName: 'subTitle',
-        defaultValue: [],
-        control: 'TextCheckComponent',
-        label: 'Sub Title',
-      }, {
-        smoName: 'composer',
-        parameterName: 'composer',
-        defaultValue: [],
-        control: 'TextCheckComponent',
-        label: 'Composer',
-      }, {
-        smoName: 'copyright',
-        parameterName: 'copyright',
-        defaultValue: SmoMeasureFormat.defaults.customProportion,
-        control: 'TextCheckComponent',
-        label: 'Copyright'
-      }, {
+      {
+        label: 'Score Preferences', elements:
+          [{
+            smoName: 'title',
+            parameterName: 'title',
+            defaultValue: '',
+            control: 'TextCheckComponent',
+            label: 'Title',
+          }, {
+            smoName: 'subTitle',
+            parameterName: 'subTitle',
+            defaultValue: [],
+            control: 'TextCheckComponent',
+            label: 'Sub Title',
+          }, {
+            smoName: 'composer',
+            parameterName: 'composer',
+            defaultValue: [],
+            control: 'TextCheckComponent',
+            label: 'Composer',
+          }, {
+            smoName: 'copyright',
+            parameterName: 'copyright',
+            defaultValue: SmoMeasureFormat.defaults.customProportion,
+            control: 'TextCheckComponent',
+            label: 'Copyright'
+          }],
         staticText: [
-          { label: 'Score Preferences' },
           { titleText: 'Title' },
           { subTitleText: 'Sub-title' },
           { copyrightText: 'Copyright' },
           { composerText: 'Composer' },
           { show: 'Show' }
         ]
-      }];
+      };
     return SuiScoreIdentificationDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
@@ -445,45 +444,44 @@ export class SuiScoreFontDialog extends SuiDialogBase {
   // ### dialogElements
   // all dialogs have elements define the controls of the dialog.
   static get dialogElements() {
-    SuiScoreFontDialog._dialogElements = typeof(SuiScoreFontDialog._dialogElements) !== 'undefined' ? SuiScoreFontDialog._dialogElements :
-      [{
-        smoName: 'engravingFont',
-        parameterName: 'engravingFont',
-        defaultValue: SmoScore.engravingFonts.Bravura,
-        control: 'SuiDropdownComponent',
-        label: 'Engraving Font',
-        options: [{
-          value: 'Bravura',
-          label: 'Bravura'
-        }, {
-          value: 'Gonville',
-          label: 'Gonville'
-        }, {
-          value: 'Petaluma',
-          label: 'Petaluma'
-        }, {
-          value: 'Leland',
-          label: 'Leland'
-        }]
-      }, {
-        smoName: 'chordFont',
-        parameterName: 'chordFont',
-        classes: 'chord-font-component',
-        defaultValue: 0,
-        control: 'SuiFontComponent',
-        label: 'Chord Font'
-      }, {
-        smoName: 'lyricFont',
-        parameterName: 'lyricFont',
-        classes: 'lyric-font-component',
-        defaultValue: 0,
-        control: 'SuiFontComponent',
-        label: 'Lyric Font'
-      }, {
-        staticText: [
-          { label: 'Score Fonts' }
-        ]
-      }];
+    SuiScoreFontDialog._dialogElements = typeof (SuiScoreFontDialog._dialogElements) !== 'undefined' ? SuiScoreFontDialog._dialogElements :
+      {
+        label: 'Score Fonts', elements:
+          [{
+            smoName: 'engravingFont',
+            parameterName: 'engravingFont',
+            defaultValue: SmoScore.engravingFonts.Bravura,
+            control: 'SuiDropdownComponent',
+            label: 'Engraving Font',
+            options: [{
+              value: 'Bravura',
+              label: 'Bravura'
+            }, {
+              value: 'Gonville',
+              label: 'Gonville'
+            }, {
+              value: 'Petaluma',
+              label: 'Petaluma'
+            }, {
+              value: 'Leland',
+              label: 'Leland'
+            }]
+          }, {
+            smoName: 'chordFont',
+            parameterName: 'chordFont',
+            classes: 'chord-font-component',
+            defaultValue: 0,
+            control: 'SuiFontComponent',
+            label: 'Chord Font'
+          }, {
+            smoName: 'lyricFont',
+            parameterName: 'lyricFont',
+            classes: 'lyric-font-component',
+            defaultValue: 0,
+            control: 'SuiFontComponent',
+            label: 'Lyric Font'
+          }]
+      };
     return SuiScoreFontDialog._dialogElements;
   }
   get displayOptions() {
@@ -523,7 +521,7 @@ export class SuiScoreFontDialog extends SuiDialogBase {
     this.complete();
   }
   changed() {
-    if (this.engravingFontCtrl.changeFlag)  {
+    if (this.engravingFontCtrl.changeFlag) {
       this.needRefresh = true;
       this.view.setEngravingFontFamily(this.engravingFontCtrl.getValue());
       this.view.renderer.rerenderAll();
@@ -571,65 +569,68 @@ export class SuiLayoutDialog extends SuiDialogBase {
   // ### dialogElements
   // all dialogs have elements define the controls of the dialog.
   static get dialogElements() {
-    SuiLayoutDialog._dialogElements = typeof(SuiLayoutDialog._dialogElements) !== 'undefined' ? SuiLayoutDialog._dialogElements :
-      [{
-        smoName: 'applyToPage',
-        parameterName: 'applyToPage',
-        defaultValue: -1,
-        control: 'SuiDropdownComponent',
-        label: 'Apply to Page',
-        dataType: 'int',
-        options: [{
-          value: -1,
-          label: 'All'
-        }, {
-          value: -2,
-          label: 'All Remaining'
-        }, {
-          value: 1,
-          label: 'Page 1'
-        }]
-      }, {
-        smoName: 'leftMargin',
-        parameterName: 'leftMargin',
-        defaultValue: SmoPageLayout.defaults.leftMargin,
-        control: 'SuiRockerComponent',
-        label: 'Left Margin (px)'
-      }, {
-        smoName: 'rightMargin',
-        parameterName: 'rightMargin',
-        defaultValue: SmoPageLayout.defaults.rightMargin,
-        control: 'SuiRockerComponent',
-        label: 'Right Margin (px)'
-      }, {
-        smoName: 'topMargin',
-        parameterName: 'topMargin',
-        defaultValue: SmoPageLayout.defaults.topMargin,
-        control: 'SuiRockerComponent',
-        label: 'Top Margin (px)'
-      }, {
-        smoName: 'bottomMargin',
-        parameterName: 'bottomMargin',
-        defaultValue: SmoPageLayout.defaults.bottomMargin,
-        control: 'SuiRockerComponent',
-        label: 'Bottom Margin (px)'
-      }, {
-        smoName: 'interGap',
-        parameterName: 'interGap',
-        defaultValue: SmoPageLayout.defaults.interGap,
-        control: 'SuiRockerComponent',
-        label: 'Inter-System Margin'
-      }, {
-        smoName: 'intraGap',
-        parameterName: 'intraGap',
-        defaultValue: SmoPageLayout.defaults.intraGap,
-        control: 'SuiRockerComponent',
-        label: 'Intra-System Margin'
-      }, {
-        staticText: [
-          { label: 'Page Layouts' }
-        ]
-      }];
+    SuiLayoutDialog._dialogElements = typeof (SuiLayoutDialog._dialogElements) !== 'undefined' ? SuiLayoutDialog._dialogElements :
+      {
+        label: 'Page Layouts', elements:
+          [{
+            smoName: 'applyToPage',
+            parameterName: 'applyToPage',
+            defaultValue: -1,
+            control: 'SuiDropdownComponent',
+            label: 'Apply to Page',
+            dataType: 'int',
+            options: [{
+              value: -1,
+              label: 'All'
+            }, {
+              value: -2,
+              label: 'All Remaining'
+            }, {
+              value: 1,
+              label: 'Page 1'
+            }]
+          }, {
+            smoName: 'leftMargin',
+            parameterName: 'leftMargin',
+            defaultValue: SmoPageLayout.defaults.leftMargin,
+            control: 'SuiRockerComponent',
+            label: 'Left Margin (px)'
+          }, {
+            smoName: 'rightMargin',
+            parameterName: 'rightMargin',
+            defaultValue: SmoPageLayout.defaults.rightMargin,
+            control: 'SuiRockerComponent',
+            label: 'Right Margin (px)'
+          }, {
+            smoName: 'topMargin',
+            parameterName: 'topMargin',
+            defaultValue: SmoPageLayout.defaults.topMargin,
+            control: 'SuiRockerComponent',
+            label: 'Top Margin (px)'
+          }, {
+            smoName: 'bottomMargin',
+            parameterName: 'bottomMargin',
+            defaultValue: SmoPageLayout.defaults.bottomMargin,
+            control: 'SuiRockerComponent',
+            label: 'Bottom Margin (px)'
+          }, {
+            smoName: 'interGap',
+            parameterName: 'interGap',
+            defaultValue: SmoPageLayout.defaults.interGap,
+            control: 'SuiRockerComponent',
+            label: 'Inter-System Margin'
+          }, {
+            smoName: 'intraGap',
+            parameterName: 'intraGap',
+            defaultValue: SmoPageLayout.defaults.intraGap,
+            control: 'SuiRockerComponent',
+            label: 'Intra-System Margin'
+          }, {
+            staticText: [
+              { label: 'Page Layouts' }
+            ]
+          }]
+      };
     return SuiLayoutDialog._dialogElements;
   }
 
@@ -721,7 +722,7 @@ export class SuiLayoutDialog extends SuiDialogBase {
     const dialogElements = JSON.parse(JSON.stringify(SuiLayoutDialog.dialogElements));
     let i = 1;
     const score = p.view.score;
-    const pageCtrl = dialogElements.find((pp) => pp.smoName === 'applyToPage');
+    const pageCtrl = dialogElements.elements.find((pp) => pp.smoName === 'applyToPage');
     for (i = 1; i < score.layoutManager.pageLayouts.length; ++i) {
       pageCtrl.options.push({ value: i + 1, label: 'Page ' + (i + 1) });
     }

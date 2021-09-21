@@ -325,7 +325,7 @@ body.showAttributeDialog .attributeDialog {
     align-items:center;
 }
 #attr-modal-dialog-dialog-tempo .smoControlContainer .toggleControl input,
-#attr-modal-dialog-dialog-measure .smoControlContainer .toggleControl input,
+#attr-modal-dialog-dialog-measure .smoControlContainer .toggleControl input
  {
     margin-left:64px;
     height:auto;
@@ -631,6 +631,9 @@ body.showHelpDialog .workspace {
   display:none;
 }
 
+body.translation-mode {
+  overflow: auto;
+}
 body.translation-mode .translation-editor {
   display: block;
   overflow: auto;

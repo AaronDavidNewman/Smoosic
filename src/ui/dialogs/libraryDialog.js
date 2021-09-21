@@ -18,18 +18,16 @@ export class SuiLibraryDialog extends SuiDialogBase {
   static get dialogElements() {
     SuiLibraryDialog._dialogElements = typeof (SuiLibraryDialog._dialogElements)
       !== 'undefined' ? SuiLibraryDialog._dialogElements :
-      [{
-        smoName: 'smoLibrary',
-        parameterName: 'smoLibrary',
-        control: 'SuiTreeComponent',
-        root: '',
-        label: 'Selection',
-        options: []
-      }, {
-        staticText: [
-          { label: 'Music Library' }
-        ]
-      }];
+      {
+        label: 'Music Library', elements: [{
+          smoName: 'smoLibrary',
+          parameterName: 'smoLibrary',
+          control: 'SuiTreeComponent',
+          root: '',
+          label: 'Selection',
+          options: []
+        }]
+      };
     return SuiLibraryDialog._dialogElements;
   }
   static addChildRecurse(options, parent, child) {
@@ -47,9 +45,7 @@ export class SuiLibraryDialog extends SuiDialogBase {
   }
   static _createElements(topLib) {
     const elements = JSON.parse(JSON.stringify(SuiLibraryDialog.dialogElements));
-    const txt = elements.find((ee) => typeof (ee.staticText) !== 'undefined');
-    const tree = elements.find((ee) => typeof (ee.smoName) !== 'undefined' && ee.smoName === 'smoLibrary');
-    txt.label = topLib.metadata.name;
+    const tree = elements.elements.find((ee) => typeof (ee.smoName) !== 'undefined' && ee.smoName === 'smoLibrary');
     tree.root = topLib.url;
     tree.options = SuiLibraryDialog._createOptions(topLib);
     return elements;

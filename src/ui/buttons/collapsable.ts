@@ -4,6 +4,7 @@ import { BrowserEventSource } from '../../application/eventSource';
 import { SuiMenuManager } from '../menus/manager';
 import { CompleteNotifier } from '../../application/common';
 import { smoSerialize } from '../../common/serializationHelpers';
+import { SuiMenuParams } from '../menus/menu';
 declare var $: any;
 
 
@@ -67,15 +68,18 @@ export class CollapseRibbonControl extends SuiButton {
     this.eventSource.domClick(this.buttonElement, this, '_toggleExpand', null);
     this.childButtons.forEach((cb) => {
       const ctor = eval('globalThis.Smo.' + cb.ctor);
-      if ((typeof (ctor) === 'function')) {
+      if ((typeof (ctor) === 'function') && this.completeNotifier) {
         const el = $('#' + cb.id);
-        const btn = new ctor({
+        const params: SuiButtonParams = {
+          buttonId: cb.id,
           buttonData: cb,
           buttonElement: el,
           view: this.view,
           completeNotifier: this.completeNotifier,
-          eventSource: this.eventSource
-        });
+          eventSource: this.eventSource,
+          menus: this.menus
+        }
+        const btn = new ctor(params);
         if (typeof (btn.bind) === 'function') {
           btn.bind();
         }

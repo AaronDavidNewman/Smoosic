@@ -24,100 +24,100 @@ export class SuiMeasureDialog extends SuiDialogBase {
   }
   static get dialogElements() {
     SuiMeasureDialog._dialogElements = typeof (SuiMeasureDialog._dialogElements) !== 'undefined' ? SuiMeasureDialog._dialogElements :
-      [{
-        staticText: [
-          { label: 'Measure Properties' }]
-      },
       {
-        smoName: 'pickup',
-        parameterName: 'pickup',
-        defaultValue: '',
-        control: CheckboxDropdownComponent,
-        label: 'Pickup',
-        toggleElement: {
-          smoName: 'makePickup',
-          parameterName: 'makePickup',
-          defaultValue: false,
-          control: 'SuiToggleComponent',
-          label: 'Convert to Pickup Measure'
-        },
-        dropdownElement: {
-          smoName: 'pickupMeasure',
-          parameterName: 'pickupMeasure',
-          defaultValue: 2048,
-          control: 'SuiDropdownComponent',
-          label: 'Pickup Measure',
-          options: [{
-            value: 2048,
-            label: 'Eighth Note'
+        label: 'Measure Properties',
+        elements:
+          [{
+            smoName: 'pickup',
+            parameterName: 'pickup',
+            defaultValue: '',
+            control: CheckboxDropdownComponent,
+            label: 'Pickup',
+            toggleElement: {
+              smoName: 'makePickup',
+              parameterName: 'makePickup',
+              defaultValue: false,
+              control: 'SuiToggleComponent',
+              label: 'Convert to Pickup Measure'
+            },
+            dropdownElement: {
+              smoName: 'pickupMeasure',
+              parameterName: 'pickupMeasure',
+              defaultValue: 2048,
+              control: 'SuiDropdownComponent',
+              label: 'Pickup Measure',
+              options: [{
+                value: 2048,
+                label: 'Eighth Note'
+              }, {
+                value: 4096,
+                label: 'Quarter Note'
+              }, {
+                value: 6144,
+                label: 'Dotted Quarter'
+              }, {
+                value: 8192,
+                label: 'Half Note'
+              }]
+            }
           }, {
-            value: 4096,
-            label: 'Quarter Note'
+            parameterName: 'padLeft',
+            smoName: 'padLeft',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Pad Left (px)'
           }, {
-            value: 6144,
-            label: 'Dotted Quarter'
+            parameterName: 'customStretch',
+            smoName: 'customStretch',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Stretch Contents'
           }, {
-            value: 8192,
-            label: 'Half Note'
+            parameterName: 'customProportion',
+            smoName: 'customProportion',
+            defaultValue: SmoMeasure.defaults.customProportion,
+            control: 'SuiRockerComponent',
+            increment: 10,
+            label: 'Proportionalality'
+          }, {
+            smoName: 'padAllInSystem',
+            parameterName: 'padAllInSystem',
+            defaultValue: false,
+            control: 'SuiToggleComponent',
+            label: 'Pad all measures in system'
+          }, {
+            smoName: 'autoJustify',
+            parameterName: 'autoJustify',
+            defaultValue: true,
+            control: 'SuiToggleComponent',
+            label: 'Justify Columns'
+          }, {
+            smoName: 'measureTextPosition',
+            parameterName: 'measureTextPosition',
+            defaultValue: SmoMeasureText.positions.above,
+            control: 'SuiDropdownComponent',
+            label: 'Text Position',
+            options: [{
+              value: SmoMeasureText.positions.left,
+              label: 'Left'
+            }, {
+              value: SmoMeasureText.positions.right,
+              label: 'Right'
+            }, {
+              value: SmoMeasureText.positions.above,
+              label: 'Above'
+            }, {
+              value: SmoMeasureText.positions.below,
+              label: 'Below'
+            }]
+          }, {
+            smoName: 'systemBreak',
+            parameterName: 'systemBreak',
+            defaultValue: false,
+            control: 'SuiToggleComponent',
+            label: 'System break before this measure'
           }]
-        }
-      }, {
-        parameterName: 'padLeft',
-        smoName: 'padLeft',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Pad Left (px)'
-      }, {
-        parameterName: 'customStretch',
-        smoName: 'customStretch',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Stretch Contents'
-      }, {
-        parameterName: 'customProportion',
-        smoName: 'customProportion',
-        defaultValue: SmoMeasure.defaults.customProportion,
-        control: 'SuiRockerComponent',
-        increment: 10,
-        label: 'Proportionalality'
-      }, {
-        smoName: 'padAllInSystem',
-        parameterName: 'padAllInSystem',
-        defaultValue: false,
-        control: 'SuiToggleComponent',
-        label: 'Pad all measures in system'
-      }, {
-        smoName: 'autoJustify',
-        parameterName: 'autoJustify',
-        defaultValue: true,
-        control: 'SuiToggleComponent',
-        label: 'Justify Columns'
-      }, {
-        smoName: 'measureTextPosition',
-        parameterName: 'measureTextPosition',
-        defaultValue: SmoMeasureText.positions.above,
-        control: 'SuiDropdownComponent',
-        label: 'Text Position',
-        options: [{
-          value: SmoMeasureText.positions.left,
-          label: 'Left'
-        }, {
-          value: SmoMeasureText.positions.right,
-          label: 'Right'
-        }, {
-          value: SmoMeasureText.positions.above,
-          label: 'Above'
-        }, {
-          value: SmoMeasureText.positions.below,
-          label: 'Below'
-        }]
-      }, {
-        smoName: 'systemBreak',
-        parameterName: 'systemBreak',
-        defaultValue: false,
-        control: 'SuiToggleComponent',
-        label: 'System break before this measure'
-      }];
+      };
     return SuiMeasureDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
@@ -254,35 +254,35 @@ export class SuiInstrumentDialog extends SuiDialogBase {
   static get dialogElements() {
     SuiInstrumentDialog._dialogElements = typeof (SuiInstrumentDialog._dialogElements) !== 'undefined' ?
       SuiInstrumentDialog._dialogElements :
-      [{
-        staticText: [
-          { label: 'Instrument Properties' }
-        ]
-      },
       {
-        smoName: 'transposeIndex',
-        parameterName: 'transposeIndex',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Transpose Index (1/2 steps)',
-      }, {
-        smoName: 'applyTo',
-        parameterName: 'applyTo',
-        defaultValue: SuiInstrumentDialog.applyTo.score,
-        dataType: 'int',
-        control: 'SuiDropdownComponent',
-        label: 'Apply To',
-        options: [{
-          value: SuiInstrumentDialog.applyTo.score,
-          label: 'Score'
-        }, {
-          value: SuiInstrumentDialog.applyTo.selected,
-          label: 'Selected Measures'
-        }, {
-          value: SuiInstrumentDialog.applyTo.remaining,
-          label: 'Remaining Measures'
-        }]
-      }];
+        label: 'Instrument Properties',
+        elements:
+          [{
+            smoName: 'transposeIndex',
+            parameterName: 'transposeIndex',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Transpose Index (1/2 steps)',
+          }, {
+            smoName: 'applyTo',
+            parameterName: 'applyTo',
+            defaultValue: SuiInstrumentDialog.applyTo.score,
+            dataType: 'int',
+            control: 'SuiDropdownComponent',
+            label: 'Apply To',
+            options: [{
+              value: SuiInstrumentDialog.applyTo.score,
+              label: 'Score'
+            }, {
+              value: SuiInstrumentDialog.applyTo.selected,
+              label: 'Selected Measures'
+            }, {
+              value: SuiInstrumentDialog.applyTo.remaining,
+              label: 'Remaining Measures'
+            }]
+          }
+          ]
+      };
     return SuiInstrumentDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
@@ -367,23 +367,23 @@ export class SuiInsertMeasures extends SuiDialogBase {
   static get dialogElements() {
     SuiInsertMeasures._dialogElements = typeof (SuiInsertMeasures._dialogElements) !== 'undefined' ?
       SuiInsertMeasures._dialogElements :
-      [{
-        staticText: [
-          { label: 'Insert Measures' }
-        ]
-      }, {
-        smoName: 'measureCount',
-        parameterName: 'measureCount',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Measures to Insert',
-      }, {
-        smoName: 'append',
-        parameterName: 'append',
-        defaultValue: true,
-        control: 'SuiToggleComponent',
-        label: 'Append to Selection'
-      }];
+      {
+        label: 'Insert Measures',
+        elements:
+          [{
+            smoName: 'measureCount',
+            parameterName: 'measureCount',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Measures to Insert',
+          }, {
+            smoName: 'append',
+            parameterName: 'append',
+            defaultValue: true,
+            control: 'SuiToggleComponent',
+            label: 'Append to Selection'
+          }]
+      };
     return SuiInsertMeasures._dialogElements;
   }
   static createAndDisplay(parameters) {
@@ -443,44 +443,43 @@ export class SuiTimeSignatureDialog extends SuiDialogBase {
   }
   static get dialogElements() {
     SuiTimeSignatureDialog._dialogElements = SuiTimeSignatureDialog._dialogElements ? SuiTimeSignatureDialog._dialogElements :
-      [
-        {
-          staticText: [
-            { label: 'Custom Time Signature' }
+      {
+        label: 'Custom Time Signature',
+        elements:
+          [
+            {
+              smoName: 'numerator',
+              parameterName: 'numerator',
+              defaultValue: 3,
+              control: 'SuiRockerComponent',
+              label: 'Beats/Measure',
+            },
+            {
+              parameterName: 'denominator',
+              smoName: 'denominator',
+              defaultValue: 8,
+              dataType: 'int',
+              control: 'SuiDropdownComponent',
+              label: 'Beat Value',
+              options: [{
+                value: 8,
+                label: '8',
+              }, {
+                value: 4,
+                label: '4'
+              }, {
+                value: 2,
+                label: '2'
+              }]
+            }, {
+              smoName: 'display',
+              parameterName: 'display',
+              defaultValue: true,
+              control: 'SuiToggleComponent',
+              label: 'Display',
+            },
           ]
-        },
-        {
-          smoName: 'numerator',
-          parameterName: 'numerator',
-          defaultValue: 3,
-          control: 'SuiRockerComponent',
-          label: 'Beats/Measure',
-        },
-        {
-          parameterName: 'denominator',
-          smoName: 'denominator',
-          defaultValue: 8,
-          dataType: 'int',
-          control: 'SuiDropdownComponent',
-          label: 'Beat Value',
-          options: [{
-            value: 8,
-            label: '8',
-          }, {
-            value: 4,
-            label: '4'
-          }, {
-            value: 2,
-            label: '2'
-          }]
-        }, {
-          smoName: 'display',
-          parameterName: 'display',
-          defaultValue: true,
-          control: 'SuiToggleComponent',
-          label: 'Display',
-        },
-      ];
+      };
     return SuiTimeSignatureDialog._dialogElements;
   }
   populateInitial() {
@@ -560,144 +559,142 @@ export class SuiTempoDialog extends SuiDialogBase {
   }
   static get dialogElements() {
     SuiTempoDialog._dialogElements = SuiTempoDialog._dialogElements ? SuiTempoDialog._dialogElements :
-      [
-        {
-          staticText: [
-            { label: 'Tempo Properties' }
-          ]
-        },
-        {
-          smoName: 'tempoMode',
-          parameterName: 'tempoMode',
-          defaultValue: SmoTempoText.tempoModes.durationMode,
-          control: 'SuiDropdownComponent',
-          label: 'Tempo Mode',
-          options: [{
-            value: 'duration',
-            label: 'Duration (Beats/Minute)'
+      {
+        label: 'Tempo Properties',
+        elements: [
+          {
+            smoName: 'tempoMode',
+            parameterName: 'tempoMode',
+            defaultValue: SmoTempoText.tempoModes.durationMode,
+            control: 'SuiDropdownComponent',
+            label: 'Tempo Mode',
+            options: [{
+              value: 'duration',
+              label: 'Duration (Beats/Minute)'
+            }, {
+              value: 'text',
+              label: 'Tempo Text'
+            }, {
+              value: 'custom',
+              label: 'Specify text and duration'
+            }
+            ]
+          },
+          {
+            smoName: 'customText',
+            parameterName: 'customText',
+            defaultValue: '',
+            control: 'SuiTextInputComponent',
+            label: 'Custom Text',
+            classes: 'hide-when-text-mode'
+          },
+          {
+            parameterName: 'bpm',
+            smoName: 'bpm',
+            defaultValue: 120,
+            control: 'SuiRockerComponent',
+            label: 'Notes/Minute'
+          },
+          {
+            parameterName: 'duration',
+            smoName: 'beatDuration',
+            defaultValue: 4096,
+            dataType: 'int',
+            control: 'SuiDropdownComponent',
+            label: 'Unit for Beat',
+            options: [{
+              value: 4096,
+              label: 'Quarter Note',
+            }, {
+              value: 2048,
+              label: '1/8 note'
+            }, {
+              value: 6144,
+              label: 'Dotted 1/4 note'
+            }, {
+              value: 8192,
+              label: '1/2 note'
+            }
+            ]
+          },
+          {
+            smoName: 'tempoText',
+            parameterName: 'tempoText',
+            defaultValue: SmoTempoText.tempoTexts.allegro,
+            control: 'SuiDropdownComponent',
+            label: 'Tempo Text',
+            classes: 'hide-when-not-text-mode',
+            options: [{
+              value: SmoTempoText.tempoTexts.larghissimo,
+              label: 'Larghissimo'
+            }, {
+              value: SmoTempoText.tempoTexts.grave,
+              label: 'Grave'
+            }, {
+              value: SmoTempoText.tempoTexts.lento,
+              label: 'Lento'
+            }, {
+              value: SmoTempoText.tempoTexts.largo,
+              label: 'Largo'
+            }, {
+              value: SmoTempoText.tempoTexts.larghetto,
+              label: 'Larghetto'
+            }, {
+              value: SmoTempoText.tempoTexts.adagio,
+              label: 'Adagio'
+            }, {
+              value: SmoTempoText.tempoTexts.adagietto,
+              label: 'Adagietto'
+            }, {
+              value: SmoTempoText.tempoTexts.andante_moderato,
+              label: 'Andante moderato'
+            }, {
+              value: SmoTempoText.tempoTexts.andante,
+              label: 'Andante'
+            }, {
+              value: SmoTempoText.tempoTexts.andantino,
+              label: 'Andantino'
+            }, {
+              value: SmoTempoText.tempoTexts.moderator,
+              label: 'Moderato'
+            }, {
+              value: SmoTempoText.tempoTexts.allegretto,
+              label: 'Allegretto',
+            }, {
+              value: SmoTempoText.tempoTexts.allegro,
+              label: 'Allegro'
+            }, {
+              value: SmoTempoText.tempoTexts.vivace,
+              label: 'Vivace'
+            }, {
+              value: SmoTempoText.tempoTexts.presto,
+              label: 'Presto'
+            }, {
+              value: SmoTempoText.tempoTexts.prestissimo,
+              label: 'Prestissimo'
+            }
+            ]
           }, {
-            value: 'text',
-            label: 'Tempo Text'
+            smoName: 'applyToAll',
+            parameterName: 'applyToAll',
+            defaultValue: false,
+            control: 'SuiToggleComponent',
+            label: 'Apply to all future measures?'
           }, {
-            value: 'custom',
-            label: 'Specify text and duration'
+            smoName: 'display',
+            parameterName: 'display',
+            defaultValue: true,
+            control: 'SuiToggleComponent',
+            label: 'Display Tempo'
+          }, {
+            smoName: 'yOffset',
+            parameterName: 'yOffset',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Y Offset'
           }
-          ]
-        },
-        {
-          smoName: 'customText',
-          parameterName: 'customText',
-          defaultValue: '',
-          control: 'SuiTextInputComponent',
-          label: 'Custom Text',
-          classes: 'hide-when-text-mode'
-        },
-        {
-          parameterName: 'bpm',
-          smoName: 'bpm',
-          defaultValue: 120,
-          control: 'SuiRockerComponent',
-          label: 'Notes/Minute'
-        },
-        {
-          parameterName: 'duration',
-          smoName: 'beatDuration',
-          defaultValue: 4096,
-          dataType: 'int',
-          control: 'SuiDropdownComponent',
-          label: 'Unit for Beat',
-          options: [{
-            value: 4096,
-            label: 'Quarter Note',
-          }, {
-            value: 2048,
-            label: '1/8 note'
-          }, {
-            value: 6144,
-            label: 'Dotted 1/4 note'
-          }, {
-            value: 8192,
-            label: '1/2 note'
-          }
-          ]
-        },
-        {
-          smoName: 'tempoText',
-          parameterName: 'tempoText',
-          defaultValue: SmoTempoText.tempoTexts.allegro,
-          control: 'SuiDropdownComponent',
-          label: 'Tempo Text',
-          classes: 'hide-when-not-text-mode',
-          options: [{
-            value: SmoTempoText.tempoTexts.larghissimo,
-            label: 'Larghissimo'
-          }, {
-            value: SmoTempoText.tempoTexts.grave,
-            label: 'Grave'
-          }, {
-            value: SmoTempoText.tempoTexts.lento,
-            label: 'Lento'
-          }, {
-            value: SmoTempoText.tempoTexts.largo,
-            label: 'Largo'
-          }, {
-            value: SmoTempoText.tempoTexts.larghetto,
-            label: 'Larghetto'
-          }, {
-            value: SmoTempoText.tempoTexts.adagio,
-            label: 'Adagio'
-          }, {
-            value: SmoTempoText.tempoTexts.adagietto,
-            label: 'Adagietto'
-          }, {
-            value: SmoTempoText.tempoTexts.andante_moderato,
-            label: 'Andante moderato'
-          }, {
-            value: SmoTempoText.tempoTexts.andante,
-            label: 'Andante'
-          }, {
-            value: SmoTempoText.tempoTexts.andantino,
-            label: 'Andantino'
-          }, {
-            value: SmoTempoText.tempoTexts.moderator,
-            label: 'Moderato'
-          }, {
-            value: SmoTempoText.tempoTexts.allegretto,
-            label: 'Allegretto',
-          }, {
-            value: SmoTempoText.tempoTexts.allegro,
-            label: 'Allegro'
-          }, {
-            value: SmoTempoText.tempoTexts.vivace,
-            label: 'Vivace'
-          }, {
-            value: SmoTempoText.tempoTexts.presto,
-            label: 'Presto'
-          }, {
-            value: SmoTempoText.tempoTexts.prestissimo,
-            label: 'Prestissimo'
-          }
-          ]
-        }, {
-          smoName: 'applyToAll',
-          parameterName: 'applyToAll',
-          defaultValue: false,
-          control: 'SuiToggleComponent',
-          label: 'Apply to all future measures?'
-        }, {
-          smoName: 'display',
-          parameterName: 'display',
-          defaultValue: true,
-          control: 'SuiToggleComponent',
-          label: 'Display Tempo'
-        }, {
-          smoName: 'yOffset',
-          parameterName: 'yOffset',
-          defaultValue: 0,
-          control: 'SuiRockerComponent',
-          label: 'Y Offset'
-        }
-      ];
+        ]
+      };
     return SuiTempoDialog._dialogElements;
   }
   static createAndDisplay(parameters) {

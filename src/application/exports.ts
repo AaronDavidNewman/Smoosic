@@ -62,6 +62,7 @@ import { CheckboxDropdownComponent, TieMappingComponent, StaffAddRemoveComponent
     StaffCheckComponent, TextCheckComponent} from '../ui/dialogs/staffComponents';
 // menus
 import { SuiMenuManager} from '../ui/menus/manager';
+import { SuiMenuBase } from '../ui/menus/menu';
 import { SuiScoreMenu } from '../ui/menus/score';
 import { SuiLibraryMenu } from '../ui/menus/library';
 import { SuiDynamicsMenu } from '../ui/menus/dynamics';
@@ -70,6 +71,7 @@ import { SuiKeySignatureMenu } from '../ui/menus/keySignature';
 import { SuiStaffModifierMenu } from '../ui/menus/staffModifier';
 import { SuiFileMenu } from '../ui/menus/file';
 import { SuiLanguageMenu } from '../ui/menus/language';
+import { SmoLanguage, SmoTranslator } from '../ui/i18n/language';
 import { SuiMeasureMenu } from '../ui/menus/measure';
 import { SuiStaffMenu } from '../ui/menus/staff';
 
@@ -115,9 +117,9 @@ export const Smo = {
     VoiceButtons, PlayerButtons, ArticulationButtons,  NavigationButtons,
     DisplaySettings,  ExtendedCollapseParent, CollapseRibbonControl,
     // Menus
-    SuiMenuManager, SuiScoreMenu, SuiFileMenu, SuiLibraryMenu,
+    SuiMenuManager, SuiMenuBase, SuiScoreMenu, SuiFileMenu, SuiLibraryMenu,
     SuiDynamicsMenu, SuiTimeSignatureMenu, SuiKeySignatureMenu, SuiStaffModifierMenu,
-    SuiLanguageMenu, SuiMeasureMenu, SuiStaffMenu,
+    SuiLanguageMenu, SuiMeasureMenu, SuiStaffMenu, SmoLanguage, SmoTranslator,
     // Dialogs
     SuiTempoDialog, SuiInstrumentDialog, SuiModifierDialogFactory, SuiLibraryDialog,
     SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog,

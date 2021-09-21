@@ -1,5 +1,4 @@
-
-export const smoLanguageStringDe = `{
+{
     "dialogs": [
         {
             "ctor": "SuiLoadFileDialog",
@@ -1552,4 +1551,4 @@ export const smoLanguageStringDe = `{
             "buttonText": "..."
         }
     ]
-}`;
+}

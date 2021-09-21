@@ -68,7 +68,7 @@ export abstract class SuiMenuBase {
     items.forEach((item) => {
       rvItems.push({ value: item.value, text: item.text, icon: '' });
     });
-    return { ctor: xx.ctor, label: xx.label, menuItems: items };
+    return { ctor: _class, label: xx.defaults.label, menuItems: items };
   }
 
   complete() {

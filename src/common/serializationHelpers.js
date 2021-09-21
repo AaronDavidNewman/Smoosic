@@ -6,7 +6,7 @@
 // ---
 
 Vex.Merge = (dest, src) => {
-  if (typeof(src) === 'undefined') {
+  if (typeof (src) === 'undefined') {
     return;
   }
   const keys = Object.keys(src);
@@ -30,7 +30,7 @@ export class smoSerialize {
   // Like vexMerge, but only for specific attributes.
   static filteredMerge(attrs, src, dest) {
     attrs.forEach(function (attr) {
-      if (typeof(src[attr]) != 'undefined') {
+      if (typeof (src[attr]) != 'undefined') {
         dest[attr] = src[attr];
       }
     });
@@ -52,7 +52,7 @@ export class smoSerialize {
   // This is the token map we use to reduce the size of
   // serialized data.
   static get tokenMap() {
-   var _tm=`{
+    var _tm = `{
       "a": "score",
       "b": "layout",
       "c": "leftMargin",
@@ -244,24 +244,28 @@ export class smoSerialize {
       "gg": "format",
       "hg": "pageBreak",
       "ig": "xOffsetLeft",
-      "jg": "xOffsetRight"
+      "jg": "xOffsetRight",
+      "kg": "padAllInSystem",
+      "lg": "rotate",
+      "mg": "actualBeats",
+      "ng": "useSymbol"
       }`;
-     return JSON.parse(_tm);
-    }
+    return JSON.parse(_tm);
+  }
 
-    static get valueTokens() {
-      var vm = `{"@sn","SmoNote"}`;
-      return JSON.parse(vm);
-    }
+  static get valueTokens() {
+    var vm = `{"@sn","SmoNote"}`;
+    return JSON.parse(vm);
+  }
 
-    static reverseMap(map) {
-      const rv = {};
-      const keys = Object.keys(map);
-      keys.forEach((key) => {
-        rv[map[key]] = key;
-      });
-      return rv;
-    }
+  static reverseMap(map) {
+    const rv = {};
+    const keys = Object.keys(map);
+    keys.forEach((key) => {
+      rv[map[key]] = key;
+    });
+    return rv;
+  }
 
   static get tokenValues() {
     return smoSerialize.reverseMap(smoSerialize.tokenMap);
@@ -272,49 +276,49 @@ export class smoSerialize {
   // if we are loading, replace the token keys with values so the score can
   // deserialize it
   static detokenize(json, dictionary) {
-      const rv = {};
-      const smoKey = (key) => {
-        return typeof(dictionary[key]) !== 'undefined' ? dictionary[key] : key;
+    const rv = {};
+    const smoKey = (key) => {
+      return typeof (dictionary[key]) !== 'undefined' ? dictionary[key] : key;
+    }
+    const _tokenRecurse = (input, output) => {
+      if (input === null) {
+        return;
       }
-      const _tokenRecurse = (input,output) =>  {
-        if (input === null) {
-          return;
+      const keys = Object.keys(input);
+      keys.forEach((key) => {
+        const val = input[key];
+        const dkey = smoKey(key);
+        if (typeof (val) == 'string' || typeof (val) == 'number' || typeof (val) == 'boolean') {
+          output[dkey] = val;
+          // console.log('240: output[' + dkey + '] = ' + val);
         }
-        const keys = Object.keys(input);
-        keys.forEach((key) => {
-          const val = input[key];
-          const dkey = smoKey(key);
-          if (typeof(val) == 'string' || typeof(val) == 'number' || typeof(val) == 'boolean') {
-            output[dkey] = val;
-            // console.log('240: output[' + dkey + '] = ' + val);
+        if (typeof (val) == 'object' && key != 'dictionary') {
+          if (Array.isArray(val)) {
+            output[dkey] = [];
+            // console.log('245: processing array ' + dkey);
+            val.forEach((arobj) => {
+              if (typeof (arobj) === 'string' || typeof (arobj) === 'number' || typeof (arobj) === 'boolean') {
+                output[dkey].push(arobj);
+                // console.log('249: ar element ' + arobj);
+              }
+              else if (arobj && typeof (arobj) === 'object') {
+                const nobj = {};
+                _tokenRecurse(arobj, nobj);
+                output[dkey].push(nobj);
+              }
+            });
+          } else {
+            const nobj = {};
+            // console.log('259: processing child object of ' + dkey);
+            _tokenRecurse(val, nobj);
+            output[dkey] = nobj;
           }
-          if (typeof(val) == 'object' && key != 'dictionary') {
-            if (Array.isArray(val)) {
-              output[dkey] = [];
-              // console.log('245: processing array ' + dkey);
-              val.forEach((arobj) => {
-                if (typeof(arobj) === 'string' || typeof(arobj) === 'number' || typeof(arobj) === 'boolean') {
-                  output[dkey].push(arobj);
-                  // console.log('249: ar element ' + arobj);
-                }
-                else if (arobj && typeof(arobj) === 'object') {
-                  const nobj = {};
-                  _tokenRecurse(arobj,nobj);
-                  output[dkey].push(nobj);
-                }
-              });
-            } else {
-              const nobj = {};
-              // console.log('259: processing child object of ' + dkey);
-              _tokenRecurse(val,nobj);
-              output[dkey] = nobj;
-            }
-          }
-        });
-      }
-      _tokenRecurse(json,rv);
-      // console.log(JSON.stringify(rv,null,' '));
-      return rv;
+        }
+      });
+    }
+    _tokenRecurse(json, rv);
+    // console.log(JSON.stringify(rv,null,' '));
+    return rv;
   }
 
   static incrementIdentifier(label) {
@@ -322,20 +326,20 @@ export class smoSerialize {
       const n1 = (ar[ix].charCodeAt(0) - 97) + 1;
       if (n1 > 25) {
         ar[ix] = 'a';
-        if (ar.length <= ix+1) {
+        if (ar.length <= ix + 1) {
           ar.push('a');
         } else {
-          increcurse(ar,ix+1);
+          increcurse(ar, ix + 1);
         }
       } else {
-        ar[ix] = String.fromCharCode(97+n1);
+        ar[ix] = String.fromCharCode(97 + n1);
       }
     }
     if (!label) {
       label = 'a';
     }
     const ar = label.split('');
-    increcurse(ar,0);
+    increcurse(ar, 0);
     label = ar.join('');
     return label;
   }
@@ -356,7 +360,7 @@ export class smoSerialize {
         keyLabel = smoSerialize.incrementIdentifier(keyLabel);
       }
     };
-    const _tokenRecurse = (obj) =>  {
+    const _tokenRecurse = (obj) => {
       if (!obj) {
         console.warn('failure to parse');
         return;
@@ -365,15 +369,15 @@ export class smoSerialize {
       keys.forEach((key) => {
         const val = obj[key];
         if (val !== null) {
-          if (typeof(val) === 'string' || typeof(val) === 'number'
-          || typeof(val) === 'boolean') {
+          if (typeof (val) === 'string' || typeof (val) === 'number'
+            || typeof (val) === 'boolean') {
             addMap(key);
           }
-          if (typeof(val) == 'object') {
+          if (typeof (val) == 'object') {
             if (Array.isArray(val)) {
               addMap(key);
               val.forEach((arobj) => {
-                if (arobj && typeof(arobj) === 'object') {
+                if (arobj && typeof (arobj) === 'object') {
                   _tokenRecurse(arobj);
                 }
               });
@@ -398,11 +402,11 @@ export class smoSerialize {
   // serialization-friendly, so merged, copied objects are deep-copied
   static serializedMerge(attrs, src, dest) {
     attrs.forEach(function (attr) {
-      if (typeof(src[attr]) !== 'undefined') {
+      if (typeof (src[attr]) !== 'undefined') {
         // copy the number 0
-        if (typeof(src[attr]) === 'number' ||
-          typeof(src[attr]) === 'boolean' ||
-          typeof(src[attr]) === 'string') {
+        if (typeof (src[attr]) === 'number' ||
+          typeof (src[attr]) === 'boolean' ||
+          typeof (src[attr]) === 'string') {
           dest[attr] = src[attr];
           // copy the empty array
         } else if (Array.isArray(src[attr])) {
@@ -410,7 +414,7 @@ export class smoSerialize {
         } else {
           // but don't copy empty/null objects
           if (src[attr]) {
-            if (typeof(src[attr]) == 'object') {
+            if (typeof (src[attr]) == 'object') {
               dest[attr] = JSON.parse(JSON.stringify(src[attr]));
             } else {
               dest[attr] = src[attr];
@@ -430,18 +434,18 @@ export class smoSerialize {
   //     attrs - array of attributes to save
   //     src - the object to serialize
   //     dest - the json object that is the target.
-  static serializedMergeNonDefault(defaults,attrs,src,dest) {
+  static serializedMergeNonDefault(defaults, attrs, src, dest) {
     attrs.forEach(function (attr) {
-      if (typeof(src[attr]) != 'undefined') {
+      if (typeof (src[attr]) != 'undefined') {
         // copy the number 0
-        if (typeof(src[attr]) === 'number' ||
-          typeof(src[attr]) === 'boolean' ||
-          typeof(src[attr]) === 'string' ) {
+        if (typeof (src[attr]) === 'number' ||
+          typeof (src[attr]) === 'boolean' ||
+          typeof (src[attr]) === 'string') {
           // always persist object type so it can be deserialized
           if (src[attr] !== defaults[attr] || attr === 'ctor') {
             dest[attr] = src[attr];
           }
-        // copy the empty array
+          // copy the empty array
         } else if (Array.isArray(src[attr])) {
           const defval = JSON.stringify(defaults[attr]);
           const srcval = JSON.stringify(src[attr]);
@@ -451,7 +455,7 @@ export class smoSerialize {
         } else {
           // but don't copy empty/null objects
           if (src[attr]) {
-            if (typeof(src[attr]) == 'object') {
+            if (typeof (src[attr]) == 'object') {
               const defval = JSON.stringify(defaults[attr]);
               const srcval = JSON.stringify(src[attr]);
               if (defval != srcval) {
@@ -484,7 +488,7 @@ export class smoSerialize {
   // print json with string labels to use as a translation file seed.
   static printTranslate(_class) {
     const xxx = Smo.getClass(_class + '.printTranslate');
-    if (typeof(xxx) === 'function') {
+    if (typeof (xxx) === 'function') {
       xxx();
     }
   }

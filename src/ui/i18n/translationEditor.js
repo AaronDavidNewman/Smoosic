@@ -1,6 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { htmlHelpers } from "../../common/htmlHelpers";
+import { SmoLanguage, SmoTranslator } from "./language";
+import { RibbonButtons } from "../buttons/ribbon";
 // ## SmoTranslationEditor
 // Create a somewhat user-friendly editor DOM to translate SMO
 // dialogs and menus, and any subset, into other languages.
@@ -35,7 +37,7 @@ export class SmoTranslationEditor {
     static _getMenuTextDialogHtml(menuCtor, enStrings, langStrings) {
       const menuClass = Smo.getClass(menuCtor);
       const menuItems = menuClass['defaults'].menuItems;
-      var enMenu = enStrings.find((mn) => mn.ctor === menuCtor);
+      var enMenu = enStrings.menus.find((mn) => mn.ctor === menuCtor);
 
       // Get the JSON EN menu, or copy the DB strings if it doesn't exist
       if (!enMenu) {
@@ -43,7 +45,7 @@ export class SmoTranslationEditor {
         enMenu.ctor = menuCtor;
       }
       // Get the JSON language menu strings, or copy the EN strings if it doesn't exist
-      var langMenu = langStrings.find((mn) => mn.ctor === menuCtor);
+      var langMenu = langStrings.menus.find((mn) => mn.ctor === menuCtor);
       if (!langMenu) {
         langMenu = JSON.parse(JSON.stringify(menuClass['defaults']));
         langMenu.ctor = menuCtor;
@@ -94,11 +96,11 @@ export class SmoTranslationEditor {
           b('span').classes('ribbon-translate-title').text('Button Text')
       ).dom();
 
-      var enKeys = enStrings.find((enString) => enString.ribbonButtonText);
+      var enKeys = enStrings.buttonText.find((enString) => enString.ribbonButtonText);
       if (!enKeys) {
         enKeys = JSON.parse(JSON.stringify(RibbonButtons.translateButtons));
       }
-      var langKeys = langStrings.find((langString) => langString.ribbonText);
+      var langKeys = langStrings.buttonText.find((langString) => langString.ribbonText);
       if (!langKeys) {
         langKeys = JSON.parse(JSON.stringify(RibbonButtons.translateButtons));
       } else {
@@ -121,56 +123,34 @@ export class SmoTranslationEditor {
 
     // ### _getStaticTextDialogHtml
     // create DOM for the static text section of the dialogs.
-    static _getStaticTextDialogHtml(dialogCtor,element,enDb,langDb,htmlContainer) {
+    static _getStaticTextDialogHtml(elements,enDb,langDb,htmlContainer) {
       var b = htmlHelpers.buildDom;
-
-      const dbObj = element.staticText;
-      var enStNode = enDb.find((st) => st.staticText);
-      if (!enStNode) {
-        const enStString = JSON.parse(JSON.stringify(element.staticText));
-        enStNode = { staticText:enStString };
-        enDb.push({ staticText:enStString });
-      }
-      var langStNode = langDb.find((st) => st.staticText);
-      if (!langStNode|| !langStNode.staticText) {
-        const langStString = JSON.parse(JSON.stringify(element.staticText));
-        langStNode = { staticText: langStString};
-        langDb.push(langStNode);
-      }
-      const enObj = enStNode.staticText;
-      const langObj = langStNode.staticText;
+      const keys = Object.keys(elements.staticText);
       const nodeContainer = b('div')
-        .classes('dialog-element-container')
-        .attr('data-component','staticText')
-        .dom();
-      $(htmlContainer).append(nodeContainer);
-      const elKeys = dbObj.map((st) => Object.keys(st)[0]);
-      elKeys.forEach((elKey) => {
-        var dbVal = dbObj.find((st) => st[elKey]);
-        var enVal = enObj.find((st) => st[elKey]);
-        var langVal = langObj.find((st) => st[elKey]);
-        if (!enVal) {
-          enVal = dbVal;
-        }
-        if (!langVal) {
-          langVal = dbVal;
-        }
+      .classes('dialog-element-container')
+      .attr('data-component','staticText')
+      .dom();
+      keys.forEach((key) => {
+        var enVal = enDb[key] ? enDb[key] : elements.staticText[key];
+        var langVal = langDb[key] ? langDb[key] : enDb[key];
         const translateElement = SmoTranslationEditor._getHtmlTextInput(
-          elKey,enVal[elKey],langVal[elKey],'statictext',elKey);
+          key,enVal,langVal,'statictext',key);
         $(nodeContainer).append(translateElement);
       });
+      $(htmlContainer).append(nodeContainer);
     }
-
-    static _getDialogComponentHtml(dialogCtor,element,enDb,langDb,container) {
+    static _getDialogComponentHtml(element,enDb,langDb,container) {
       var b = htmlHelpers.buildDom;
-
       var label = element.label;
       var smoName = element.smoName;
-      var enComponent = enDb.find((st) => st.id === smoName);
+      if (typeof(enDb.dialogElements.find) !== 'function') {
+        console.warn('no ENDB!');
+      }
+      var enComponent = enDb.dialogElements.find((st) => st.id === smoName);
       if (!enComponent) {
         enComponent = JSON.parse(JSON.stringify(element))
       }
-      var langComponent = langDb.find((st) => st.id === smoName);
+      var langComponent = langDb.dialogElements.find((st) => st.id === smoName);
       if (!langComponent) {
         langComponent = JSON.parse(JSON.stringify(element));
       }
@@ -213,23 +193,23 @@ export class SmoTranslationEditor {
         .append(b('span').classes('db-translate-title').text(dialogCtor)).dom();
       var ctor = Smo.getClass(dialogCtor);
       var elements = ctor.dialogElements;
-      var enDb = enStrings.find((dbStr) => dbStr.ctor === dialogCtor);
+      var enDb = enStrings.dialogs.find((dbStr) => dbStr.ctor === dialogCtor);
       if (!enDb) {
         enDb = JSON.parse(JSON.stringify(elements));
-      } else {
-        enDb = enDb.dialogElements;
       }
-      var langDb = langStrings.find((dbStr) => dbStr.ctor === dialogCtor);
+      var langDb = langStrings.dialogs.find((dbStr) => dbStr.ctor === dialogCtor);
       if (!langDb) {
         langDb = JSON.parse(JSON.stringify(elements));
-      } else {
-        langDb = langDb.dialogElements;
       }
-      elements.forEach((element) => {
-        if (element.staticText) {
-          SmoTranslationEditor._getStaticTextDialogHtml(dialogCtor,element,enDb,langDb,container);
-        } else if (element.smoName) {
-          SmoTranslationEditor._getDialogComponentHtml(dialogCtor,element,enDb,langDb,container);
+      $(container).append(
+        SmoTranslationEditor._getHtmlTextInput(dialogCtor, enDb.label, langDb.label,'dialog-label', dialogCtor)
+      );
+      if (elements.staticText) {
+        SmoTranslationEditor._getStaticTextDialogHtml(elements, enDb.staticText, langDb.staticText, container);
+      }
+      elements.elements.forEach((element) => {
+        if (element.smoName && element.label) {
+          SmoTranslationEditor._getDialogComponentHtml(element,enDb,langDb,container);
         }
       });
       return container;
@@ -253,9 +233,7 @@ export class SmoTranslationEditor {
           b('button').classes('translate-submit-button').text('Submit')
         )
       ).dom();
-
       $(container).append(resultDom);
-
       return container;
     }
     static parseDom() {
@@ -268,7 +246,6 @@ export class SmoTranslationEditor {
          var domComponents = $(dbEl).find('[data-component]');
          $(domComponents).each(function(ix,domComponent) {
            const compType = $(domComponent).attr('data-component');
-
            if (compType === 'staticText') {
              var stElements=[];
              $(domComponent).find('[data-statictext]').each((ix,stDom) => {
@@ -293,7 +270,6 @@ export class SmoTranslationEditor {
          });
          obj.dialogElements = elements;
          json.push(obj);
-
        });
        $('.menu-translate-container[data-menucontainer]').each((ix,menuEl) => {
          var menuId = $(menuEl).attr('data-menucontainer');

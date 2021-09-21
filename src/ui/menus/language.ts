@@ -9,29 +9,27 @@ export class SuiLanguageMenu extends SuiMenuBase {
   static get ctor() {
     return 'SuiLanguageMenu';
   }
-  static get defaults() {
-    return {
-        label: 'Language',
-        menuItems: [{
-          icon: '',
-          text: 'English',
-          value: 'en'
-        }, {
-          icon: '',
-          text: 'Deutsch',
-          value: 'de'
-        }, {
-          icon: '',
-          text: 'اَلْعَرَبِيَّةُ',
-          value: 'ar'
-        }, {
-          icon: '',
-          text: 'Cancel',
-          value: 'cancel'
-        }],
-        menuContainer: '.menuContainer'
-      };
-  }
+  static defaults = {
+    label: 'Language',
+    menuItems: [{
+      icon: '',
+      text: 'English',
+      value: 'en'
+    }, {
+      icon: '',
+      text: 'Deutsch',
+      value: 'de'
+    }, {
+      icon: '',
+      text: 'اَلْعَرَبِيَّةُ',
+      value: 'ar'
+    }, {
+      icon: '',
+      text: 'Cancel',
+      value: 'cancel'
+    }],
+    menuContainer: '.menuContainer'
+  };
   getDefinition() {
     return SuiLanguageMenu.defaults;
   }

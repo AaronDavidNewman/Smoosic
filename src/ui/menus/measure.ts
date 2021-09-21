@@ -2,30 +2,29 @@ import { SuiMenuBase, SuiMenuParams } from './menu';
 import { SuiMeasureDialog, SuiInsertMeasures } from '../dialogs/measureDialogs';
 declare var $: any;
 export class SuiMeasureMenu extends SuiMenuBase {
-  static get defaults() {
-    return {
-      label: 'Measure',
-      menuItems: [
-        {
-          icon: '',
-          text: 'Add Measures',
-          value: 'addMenuCmd'
-        }, {
-          icon: 'icon-cross',
-          text: 'Delete Selected Measures',
-          value: 'deleteSelected'
-        }, {
-          icon: '',
-          text: 'Format Measure',
-          value: 'formatMeasureDialog'
-        }, {
-          icon: '',
-          text: 'Cancel',
-          value: 'cancel'
-        }
-      ]
-    };
-  }
+  static defaults = {
+    label: 'Measure',
+    menuItems: [
+      {
+        icon: '',
+        text: 'Add Measures',
+        value: 'addMenuCmd'
+      }, {
+        icon: 'icon-cross',
+        text: 'Delete Selected Measures',
+        value: 'deleteSelected'
+      }, {
+        icon: '',
+        text: 'Format Measure',
+        value: 'formatMeasureDialog'
+      }, {
+        icon: '',
+        text: 'Cancel',
+        value: 'cancel'
+      }
+    ]
+  };
+
   getDefinition() {
     return SuiMeasureMenu.defaults;
   }

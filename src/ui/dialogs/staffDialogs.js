@@ -64,91 +64,89 @@ export class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
 
   static get dialogElements() {
     SuiSlurAttributesDialog._dialogElements = SuiSlurAttributesDialog._dialogElements ? SuiSlurAttributesDialog._dialogElements :
-      [{
-        staticText: [
-          { label: 'Slur Properties' }
-        ]
-      }, {
-        parameterName: 'spacing',
-        smoName: 'spacing',
-        defaultValue: 2,
-        control: 'SuiRockerComponent',
-        label: 'Spacing'
-      }, {
-        smoName: 'thickness',
-        parameterName: 'thickness',
-        defaultValue: 2,
-        control: 'SuiRockerComponent',
-        label: 'Thickness'
-      }, {
-        smoName: 'xOffset',
-        parameterName: 'xOffset',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'X Offset'
-      }, {
-        smoName: 'yOffset',
-        parameterName: 'yOffset',
-        defaultValue: 10,
-        control: 'SuiRockerComponent',
-        label: 'Y Offset'
-      }, {
-        smoName: 'position',
-        parameterName: 'position',
-        defaultValue: SmoSlur.positions.HEAD,
-        options: [{
-          value: SmoSlur.positions.HEAD,
-          label: 'Head'
+      {
+        label: 'Slur Properties', elements: [{
+          parameterName: 'spacing',
+          smoName: 'spacing',
+          defaultValue: 2,
+          control: 'SuiRockerComponent',
+          label: 'Spacing'
         }, {
-          value: SmoSlur.positions.TOP,
-          label: 'Top'
-        }],
-        control: 'SuiDropdownComponent',
-        label: 'Start Position'
-      }, {
-        smoName: 'position_end',
-        parameterName: 'position_end',
-        defaultValue: SmoSlur.positions.HEAD,
-        options: [{
-          value: SmoSlur.positions.HEAD,
-          label: 'Head'
+          smoName: 'thickness',
+          parameterName: 'thickness',
+          defaultValue: 2,
+          control: 'SuiRockerComponent',
+          label: 'Thickness'
         }, {
-          value: SmoSlur.positions.TOP,
-          label: 'Top'
-        }],
-        control: 'SuiDropdownComponent',
-        label: 'End Position'
-      }, {
-        smoName: 'invert',
-        parameterName: 'invert',
-        defaultValue: false,
-        control: 'SuiToggleComponent',
-        label: 'Invert'
-      }, {
-        parameterName: 'cp1x',
-        smoName: 'cp1x',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Control Point 1 X'
-      }, {
-        parameterName: 'cp1y',
-        smoName: 'cp1y',
-        defaultValue: 40,
-        control: 'SuiRockerComponent',
-        label: 'Control Point 1 Y'
-      }, {
-        parameterName: 'cp2x',
-        smoName: 'cp2x',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Control Point 2 X'
-      }, {
-        parameterName: 'cp2y',
-        smoName: 'cp2y',
-        defaultValue: 40,
-        control: 'SuiRockerComponent',
-        label: 'Control Point 2 Y'
-      }];
+          smoName: 'xOffset',
+          parameterName: 'xOffset',
+          defaultValue: 0,
+          control: 'SuiRockerComponent',
+          label: 'X Offset'
+        }, {
+          smoName: 'yOffset',
+          parameterName: 'yOffset',
+          defaultValue: 10,
+          control: 'SuiRockerComponent',
+          label: 'Y Offset'
+        }, {
+          smoName: 'position',
+          parameterName: 'position',
+          defaultValue: SmoSlur.positions.HEAD,
+          options: [{
+            value: SmoSlur.positions.HEAD,
+            label: 'Head'
+          }, {
+            value: SmoSlur.positions.TOP,
+            label: 'Top'
+          }],
+          control: 'SuiDropdownComponent',
+          label: 'Start Position'
+        }, {
+          smoName: 'position_end',
+          parameterName: 'position_end',
+          defaultValue: SmoSlur.positions.HEAD,
+          options: [{
+            value: SmoSlur.positions.HEAD,
+            label: 'Head'
+          }, {
+            value: SmoSlur.positions.TOP,
+            label: 'Top'
+          }],
+          control: 'SuiDropdownComponent',
+          label: 'End Position'
+        }, {
+          smoName: 'invert',
+          parameterName: 'invert',
+          defaultValue: false,
+          control: 'SuiToggleComponent',
+          label: 'Invert'
+        }, {
+          parameterName: 'cp1x',
+          smoName: 'cp1x',
+          defaultValue: 0,
+          control: 'SuiRockerComponent',
+          label: 'Control Point 1 X'
+        }, {
+          parameterName: 'cp1y',
+          smoName: 'cp1y',
+          defaultValue: 40,
+          control: 'SuiRockerComponent',
+          label: 'Control Point 1 Y'
+        }, {
+          parameterName: 'cp2x',
+          smoName: 'cp2x',
+          defaultValue: 0,
+          control: 'SuiRockerComponent',
+          label: 'Control Point 2 X'
+        }, {
+          parameterName: 'cp2y',
+          smoName: 'cp2y',
+          defaultValue: 40,
+          control: 'SuiRockerComponent',
+          label: 'Control Point 2 Y'
+        }]
+      };
     return SuiSlurAttributesDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
@@ -196,19 +194,21 @@ export class SuiTieAttributesDialog extends SuiStaffModifierDialog {
 
   static get dialogElements() {
     SuiTieAttributesDialog._dialogElements = SuiTieAttributesDialog._dialogElements ? SuiTieAttributesDialog._dialogElements :
-      [{
+      {
+        label: 'Tie Properties',
+
         staticText: [
           { label: 'Tie Properties' },
           { fromNote: 'From Note' },
           { toNote: 'To Note' }
-        ]
-      }, {
-        parameterName: 'lines',
-        smoName: 'lines',
-        defaultValue: [],
-        control: 'TieMappingComponent',
-        label: 'Lines'
-      }];
+        ], elements: [{
+          parameterName: 'lines',
+          smoName: 'lines',
+          defaultValue: [],
+          control: 'TieMappingComponent',
+          label: 'Lines'
+        }]
+      };
     return SuiTieAttributesDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
@@ -274,35 +274,34 @@ export class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
 
   static get dialogElements() {
     SuiVoltaAttributeDialog._dialogElements = SuiVoltaAttributeDialog._dialogElements ? SuiVoltaAttributeDialog._dialogElements :
-      [{
-        staticText: [
-          { label: 'Volta Properties' }
-        ]
-      }, {
-        parameterName: 'number',
-        smoName: 'number',
-        defaultValue: 1,
-        control: 'SuiRockerComponent',
-        label: 'number'
-      }, {
-        smoName: 'xOffsetStart',
-        parameterName: 'xOffsetStart',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'X1 Offset'
-      }, {
-        smoName: 'xOffsetEnd',
-        parameterName: 'xOffsetEnd',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'X2 Offset'
-      }, {
-        smoName: 'yOffset',
-        parameterName: 'yOffset',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Y Offset'
-      }];
+      {
+        label: 'Volta Properties', elements:
+          [{
+            parameterName: 'number',
+            smoName: 'number',
+            defaultValue: 1,
+            control: 'SuiRockerComponent',
+            label: 'number'
+          }, {
+            smoName: 'xOffsetStart',
+            parameterName: 'xOffsetStart',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'X1 Offset'
+          }, {
+            smoName: 'xOffsetEnd',
+            parameterName: 'xOffsetEnd',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'X2 Offset'
+          }, {
+            smoName: 'yOffset',
+            parameterName: 'yOffset',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Y Offset'
+          }]
+      };
     return SuiVoltaAttributeDialog._dialogElements;
   }
   static createAndDisplay(parameters) {
@@ -366,35 +365,34 @@ export class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
   }
   static get dialogElements() {
     SuiHairpinAttributesDialog._dialogElements = SuiHairpinAttributesDialog._dialogElements ? SuiHairpinAttributesDialog._dialogElements :
-      [{
-        staticText: [
-          { label: 'Hairpin Properties' }
-        ]
-      }, {
-        parameterName: 'height',
-        smoName: 'height',
-        defaultValue: 10,
-        control: 'SuiRockerComponent',
-        label: 'Height'
-      }, {
-        smoName: 'yOffset',
-        parameterName: 'y_shift',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Y Shift'
-      }, {
-        smoName: 'xOffsetRight',
-        parameterName: 'right_shift_px',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Right Shift'
-      }, {
-        smoName: 'xOffsetLeft',
-        parameterName: 'left_shift_px',
-        defaultValue: 0,
-        control: 'SuiRockerComponent',
-        label: 'Left Shift'
-      }];
+      {
+        label: 'Hairpin Properties', elements:
+          [{
+            parameterName: 'height',
+            smoName: 'height',
+            defaultValue: 10,
+            control: 'SuiRockerComponent',
+            label: 'Height'
+          }, {
+            smoName: 'yOffset',
+            parameterName: 'y_shift',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Y Shift'
+          }, {
+            smoName: 'xOffsetRight',
+            parameterName: 'right_shift_px',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Right Shift'
+          }, {
+            smoName: 'xOffsetLeft',
+            parameterName: 'left_shift_px',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Left Shift'
+          }]
+      };
 
     return SuiHairpinAttributesDialog._dialogElements;
   }
@@ -444,38 +442,39 @@ export class SuiStaffGroupDialog extends SuiDialogBase {
   static get dialogElements() {
     SuiStaffGroupDialog._dialogElements = typeof (SuiStaffGroupDialog._dialogElements)
       !== 'undefined' ? SuiStaffGroupDialog._dialogElements :
-      [{
-        smoName: 'staffGroups',
-        parameterName: 'staffGroups',
-        defaultValue: {},
-        control: 'StaffAddRemoveComponent',
-        label: 'Staves in Group',
-      }, {
-        smoName: 'leftConnector',
-        parameterName: 'leftConnector',
-        defaultValue: SmoScore.pageSizes.letter,
-        control: 'SuiDropdownComponent',
-        label: 'Left Connector',
-        options: [
-          {
-            value: SmoSystemGroup.connectorTypes.bracket,
-            label: 'Bracket'
+      {
+        label: 'Staff Group', elements:
+          [{
+            smoName: 'staffGroups',
+            parameterName: 'staffGroups',
+            defaultValue: {},
+            control: 'StaffAddRemoveComponent',
+            label: 'Staves in Group',
           }, {
-            value: SmoSystemGroup.connectorTypes.brace,
-            label: 'Brace'
-          }, {
-            value: SmoSystemGroup.connectorTypes.single,
-            label: 'Single'
-          }, {
-            value: SmoSystemGroup.connectorTypes.double,
-            label: 'Double'
-          }]
-      }, {
+            smoName: 'leftConnector',
+            parameterName: 'leftConnector',
+            defaultValue: SmoScore.pageSizes.letter,
+            control: 'SuiDropdownComponent',
+            label: 'Left Connector',
+            options: [
+              {
+                value: SmoSystemGroup.connectorTypes.bracket,
+                label: 'Bracket'
+              }, {
+                value: SmoSystemGroup.connectorTypes.brace,
+                label: 'Brace'
+              }, {
+                value: SmoSystemGroup.connectorTypes.single,
+                label: 'Single'
+              }, {
+                value: SmoSystemGroup.connectorTypes.double,
+                label: 'Double'
+              }]
+          }],
         staticText: [
-          { label: 'Staff Group' },
           { includeStaff: 'Include Staff' }
         ]
-      }];
+      };
     return SuiStaffGroupDialog._dialogElements;
   }
   static createAndDisplay(parameters) {

@@ -9,48 +9,47 @@ export class SuiTimeSignatureMenu extends SuiMenuBase {
   constructor(params: SuiMenuParams) {
     super(params);
   }
-  static get defaults() {
-    return {
-        label: 'Time Sig',
-        menuItems: [{
-          icon: 'sixeight',
-          text: '6/8',
-          value: '6/8',
-        }, {
-          icon: 'fourfour',
-          text: '4/4',
-          value: '4/4',
-        }, {
-          icon: 'threefour',
-          text: '3/4',
-          value: '3/4',
-        }, {
-          icon: 'twofour',
-          text: '2/4',
-          value: '2/4',
-        }, {
-          icon: 'twelveeight',
-          text: '12/8',
-          value: '12/8',
-        }, {
-          icon: 'seveneight',
-          text: '7/8',
-          value: '7/8',
-        }, {
-          icon: 'fiveeight',
-          text: '5/8',
-          value: '5/8',
-        }, {
-          icon: '',
-          text: 'Other',
-          value: 'TimeSigOther',
-        }, {
-          icon: '',
-          text: 'Cancel',
-          value: 'cancel'
-        }]
-      };
-  }
+  static defaults = {
+    label: 'Time Sig',
+    menuItems: [{
+      icon: 'sixeight',
+      text: '6/8',
+      value: '6/8',
+    }, {
+      icon: 'fourfour',
+      text: '4/4',
+      value: '4/4',
+    }, {
+      icon: 'threefour',
+      text: '3/4',
+      value: '3/4',
+    }, {
+      icon: 'twofour',
+      text: '2/4',
+      value: '2/4',
+    }, {
+      icon: 'twelveeight',
+      text: '12/8',
+      value: '12/8',
+    }, {
+      icon: 'seveneight',
+      text: '7/8',
+      value: '7/8',
+    }, {
+      icon: 'fiveeight',
+      text: '5/8',
+      value: '5/8',
+    }, {
+      icon: '',
+      text: 'Other',
+      value: 'TimeSigOther',
+    }, {
+      icon: '',
+      text: 'Cancel',
+      value: 'cancel'
+    }]
+  };
+
   getDefinition() {
     return SuiTimeSignatureMenu.defaults;
   }
@@ -72,5 +71,5 @@ export class SuiTimeSignatureMenu extends SuiMenuBase {
     this.complete();
   }
 
-  keydown() {}
+  keydown() { }
 }

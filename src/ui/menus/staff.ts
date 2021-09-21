@@ -8,47 +8,46 @@ export class SuiStaffMenu extends SuiMenuBase {
   constructor(params: SuiMenuParams) {
     super(params);
   }
-  static get defaults() {
-    return {
-      label: 'Add Staff',
-      menuItems: [
-        {
-          icon: 'treble',
-          text: 'Treble Clef Staff',
-          value: 'trebleInstrument'
-        }, {
-          icon: 'bass',
-          text: 'Bass Clef Staff',
-          value: 'bassInstrument'
-        }, {
-          icon: 'alto',
-          text: 'Alto Clef Staff',
-          value: 'altoInstrument'
-        }, {
-          icon: 'tenor',
-          text: 'Tenor Clef Staff',
-          value: 'tenorInstrument'
-        }, {
-          icon: 'percussion',
-          text: 'Percussion Clef Staff',
-          value: 'percussionInstrument'
-        }, {
-          icon: '',
-          text: 'Staff Groups',
-          value: 'staffGroups'
-        }, {
-          icon: 'cancel-circle',
-          text: 'Remove Staff',
-          value: 'remove'
-        }, {
-          icon: '',
-          text: 'Cancel',
-          value: 'cancel'
-        }
-      ],
-      menuContainer: '.menuContainer'
-    };
-  }
+  static defaults = {
+    label: 'Add Staff',
+    menuItems: [
+      {
+        icon: 'treble',
+        text: 'Treble Clef Staff',
+        value: 'trebleInstrument'
+      }, {
+        icon: 'bass',
+        text: 'Bass Clef Staff',
+        value: 'bassInstrument'
+      }, {
+        icon: 'alto',
+        text: 'Alto Clef Staff',
+        value: 'altoInstrument'
+      }, {
+        icon: 'tenor',
+        text: 'Tenor Clef Staff',
+        value: 'tenorInstrument'
+      }, {
+        icon: 'percussion',
+        text: 'Percussion Clef Staff',
+        value: 'percussionInstrument'
+      }, {
+        icon: '',
+        text: 'Staff Groups',
+        value: 'staffGroups'
+      }, {
+        icon: 'cancel-circle',
+        text: 'Remove Staff',
+        value: 'remove'
+      }, {
+        icon: '',
+        text: 'Cancel',
+        value: 'cancel'
+      }
+    ],
+    menuContainer: '.menuContainer'
+  };
+
   static get instrumentMap(): Record<string, Partial<SmoSystemStaffParams>> {
     return {
       'trebleInstrument': {
@@ -122,12 +121,12 @@ export class SuiStaffMenu extends SuiMenuBase {
     } else {
       const instrument: SmoSystemStaffParams = SmoSystemStaff.defaults;
       const params = SuiStaffMenu.instrumentMap[op];
-      if(params.instrumentInfo) {
+      if (params.instrumentInfo) {
         instrument.instrumentInfo = params.instrumentInfo;
-        this.view.addStaff(instrument);  
+        this.view.addStaff(instrument);
       }
       this.complete();
     }
   }
-  keydown() {}
+  keydown() { }
 }

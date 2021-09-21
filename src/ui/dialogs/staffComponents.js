@@ -71,7 +71,7 @@ export class TieMappingComponent extends SuiComponentBase {
         parameterName: smoName + '-left',
         classes: 'leftControl',
         defaultValue,
-        label: SuiDialogBase.getStaticText(SuiTieAttributesDialog.dialogElements, 'fromNote'),
+        label: dialog.staticText.fromNote,
         options: this._generateOptions(this.startSelection.note),
         parentControl: this
       });
@@ -79,7 +79,7 @@ export class TieMappingComponent extends SuiComponentBase {
         smoName: smoName + '-right',
         parameterName: smoName + '-right',
         classes: 'rightControl',
-        label: SuiDialogBase.getStaticText(SuiTieAttributesDialog.dialogElements, 'toNote'),
+        label: dialog.staticText.toNote,
         defaultValue,
         options: this._generateOptions(this.endSelection.note),
         parentControl: this
@@ -334,8 +334,8 @@ export class TextCheckComponent extends SuiComponentBase {
     this.view = this.dialog.view;
     const toggleName = this.smoName + 'Toggle';
     const textName = this.smoName + 'Text';
-    const label = this.dialog.staticText[textName];
-    const show = this.dialog.staticText.show;
+    const label = dialog.staticText[textName];
+    const show = dialog.staticText.show;
     this.toggleCtrl = new SuiToggleComposite(this.dialog, {
       smoName: toggleName,
       parameterName: toggleName,

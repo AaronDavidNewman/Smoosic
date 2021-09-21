@@ -26,17 +26,18 @@ export class SmoTranslator {
   }
 
   static printLanguages() {
-    var translatables = [];
+    var translatables = { dialogs: [], menus: [], buttonText: [] };
     SmoTranslator.allDialogs.forEach((key) => {
       SmoTranslator.registerDialog(key);
       const translatable = Smo.getClass('SuiDialogBase');
-      translatables.push(translatable.printTranslate(key));
+      translatables.dialogs.push(translatable.printTranslate(key));
     });
     SmoTranslator.allMenus.forEach((key) => {
       SmoTranslator.registerMenu(key);
-      const translatable = Smo.getClass('suiMenuBase');
-      translatables.push(translatable.printTranslate(key));
+      const translatable = Smo.getClass('SuiMenuBase');
+      translatables.menus.push(translatable.printTranslate(key));
     });
+    translatables.buttonText = JSON.parse(JSON.stringify(RibbonButtons.translateButtons));
 
     console.log(JSON.stringify(translatables, null, ' '));
   }
@@ -47,18 +48,17 @@ export class SmoTranslator {
       return;
     }
     _dialogClass.label = dialogStrings.label;
-    const staticText = dialogStrings.dialogElements.find((ds) => ds.staticText);
-    _dialogClass.dialogElements.forEach((component) => {
+    const staticText = dialogStrings.staticText;
+    if (staticText || _dialogClass.dialogElements.staticText) {
+      const keys = Object.keys(staticText);
+      keys.forEach((key) => {
+        _dialogClass.dialogElements.staticText[key] = staticText[key];
+      });
+    }
+    _dialogClass.dialogElements.label = dialogStrings.label;
+    _dialogClass.dialogElements.elements.forEach((component) => {
       const componentStrings = dialogStrings.dialogElements.find((ds) => ds.id === component.smoName);
-      if (component.staticText && staticText) {
-        component.staticText.forEach((st) => {
-          const trans = staticText.staticText.find((dst) => Object.keys(dst)[0] === Object.keys(st)[0]);
-          if (trans) {
-            const key = Object.keys(st)[0];
-            st[key] = trans[key];
-          }
-        });
-      } else if (componentStrings) {
+      if (componentStrings) {
         component.label = componentStrings.label;
         if (component.options) {
           component.options.forEach((option) => {
@@ -102,7 +102,7 @@ export class SmoTranslator {
     // Set the text in all the menus
     SmoTranslator.allMenus.forEach((menuClass) => {
       const _class = Smo.getClass(menuClass);
-      const menuStrings = trans.strings.find((mm) => mm.ctor === menuClass);
+      const menuStrings = trans.strings.menus.find((mm) => mm.ctor === menuClass);
       SmoTranslator._updateMenu(menuStrings, _class, menuClass);
 
       // Set text in ribbon buttons that invoke menus
@@ -114,7 +114,7 @@ export class SmoTranslator {
 
     SmoTranslator.allDialogs.forEach((dialogClass) => {
       const _class = Smo.getClass(dialogClass);
-      const dialogStrings = trans.strings.find((mm) => mm.ctor === dialogClass);
+      const dialogStrings = trans.strings.dialogs.find((mm) => mm.ctor === dialogClass);
       // Set text in ribbon buttons that invoke menus
       const dialogButton = $('.ribbonButtonContainer button.' + dialogClass).find('.left-text .text-span');
       if (dialogButton.length && dialogStrings) {
@@ -125,10 +125,10 @@ export class SmoTranslator {
     });
 
     // Translate the buttons on the ribbon
-    const langButtons = trans.strings.find((buttonObj) => buttonObj.ribbonText);
+    const langButtons = trans.strings.buttonText;
     if (langButtons) {
       RibbonButtons.translateButtons.forEach((button) => {
-        const langButton = langButtons.ribbonText.find((lb) => lb.buttonId === button.buttonId);
+        const langButton = langButtons.find((lb) => lb.buttonId === button.buttonId);
         if (langButton) {
           const buttonDom = $('.ribbonButtonContainer #' + button.buttonId);
           if (buttonDom.length) {
@@ -143,41 +143,53 @@ export class SmoTranslator {
 
   static get allMenus() {
     return [
-      'SuiAddStaffMenu',
-      'SuiMeasureMenu',
-      'SuiFileMenu',
-      'SuiTimeSignatureMenu',
-      'SuiKeySignatureMenu',
-      'SuiTimeSignatureMenu',
-      'SuiKeySignatureMenu',
-      'SuiStaffModifierMenu',
       'SuiDynamicsMenu',
+      'SuiFileMenu',
+      'SuiStaffMenu',
+      'SuiKeySignatureMenu',
+      'SuiMeasureMenu',
+      'SuiTimeSignatureMenu',
+      'SuiStaffModifierMenu',
       'SuiLanguageMenu',
+      'SuiLibraryMenu',
       'SuiScoreMenu'
     ];
   }
 
   static get allDialogs() {
     return [
+      // file dialogs
       'SuiLoadFileDialog',
       'SuiSaveFileDialog',
+      'SuiSaveXmlDialog',
       'SuiPrintFileDialog',
+      'SuiSaveMidiDialog',
+      'SuiSaveActionsDialog',
+      'SuiLoadMxmlDialog',
+      'SuiLoadActionsDialog',
+      // measure dialogs
       'SuiMeasureDialog',
       'SuiTempoDialog',
       'SuiInstrumentDialog',
+      'SuiInsertMeasures',
       'SuiTimeSignatureDialog',
+      // score dialogs
+      'SuiScoreViewDialog',
+      'SuiScoreIdentificationDialog',
+      'SuiGlobalLayoutDialog',
+      'SuiScoreFontDialog',
       'SuiLayoutDialog',
-      'SuiDynamicModifierDialog',
+      // staff dialogs
       'SuiSlurAttributesDialog',
+      'SuiTieAttributesDialog',
       'SuiVoltaAttributeDialog',
       'SuiHairpinAttributesDialog',
+      'SuiStaffGroupDialog',
+      // text dialogs
+      'SuiDynamicModifierDialog',
       'SuiLyricDialog',
       'SuiChordChangeDialog',
-      'SuiTextTransformDialog',
-      'SuiScoreViewDialog',
-      'SuiGlobalLayoutDialog',
-      'SuiLyricDialog',
-      'SuiChordChangeDialog',
+      'SuiTextTransformDialog'
     ];
   }
   static get allHelpFiles() {

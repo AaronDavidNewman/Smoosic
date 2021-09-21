@@ -1,1031 +1,1558 @@
 
-export const smoLanguageStringAr = `[
- {
-  "ctor": "SuiLoadFileDialog",
-  "dialogElements": [
-   {
-    "staticText": [
+export const smoLanguageStringAr = `{
+    "dialogs": [
      {
-      "label": "Load File"
+      "ctor": "SuiLoadFileDialog",
+      "label": "Load File",
+      "dialogElements": [
+       {}
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiSaveFileDialog",
+      "label": "Save Score",
+      "dialogElements": [
+       {
+        "label": "File Name",
+        "id": "saveFileName"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiSaveXmlDialog",
+      "label": "Save Score",
+      "dialogElements": [
+       {
+        "label": "File Name",
+        "id": "saveFileName"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiPrintFileDialog",
+      "label": "Print Complete",
+      "dialogElements": [],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiSaveMidiDialog",
+      "label": "Save Score as Midi",
+      "dialogElements": [
+       {
+        "label": "File Name",
+        "id": "saveFileName"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiSaveActionsDialog",
+      "label": "Save Score",
+      "dialogElements": [
+       {
+        "label": "File Name",
+        "id": "saveFileName"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiLoadMxmlDialog",
+      "label": "Load File",
+      "dialogElements": [
+       {},
+       {
+        "staticText": {
+         "label": "Load File"
+        }
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiLoadActionsDialog",
+      "label": "Load Action File",
+      "dialogElements": [
+       {},
+       {
+        "staticText": {
+         "label": "Load Action File"
+        }
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiMeasureDialog",
+      "label": "Measure Properties",
+      "dialogElements": [
+       {
+        "label": "Pickup",
+        "id": "pickup"
+       },
+       {
+        "label": "Pad Left (px)",
+        "id": "padLeft"
+       },
+       {
+        "label": "Stretch Contents",
+        "id": "customStretch"
+       },
+       {
+        "label": "Proportionalality",
+        "id": "customProportion"
+       },
+       {
+        "label": "Pad all measures in system",
+        "id": "padAllInSystem"
+       },
+       {
+        "label": "Justify Columns",
+        "id": "autoJustify"
+       },
+       {
+        "label": "Text Position",
+        "id": "measureTextPosition",
+        "options": [
+         {
+          "value": 2,
+          "label": "Left"
+         },
+         {
+          "value": 3,
+          "label": "Right"
+         },
+         {
+          "value": 0,
+          "label": "Above"
+         },
+         {
+          "value": 1,
+          "label": "Below"
+         }
+        ]
+       },
+       {
+        "label": "System break before this measure",
+        "id": "systemBreak"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiTempoDialog",
+      "label": "Tempo Properties",
+      "dialogElements": [
+       {
+        "label": "وضع الإيقاع",
+        "id": "tempoMode",
+        "options": [
+         {
+          "value": "duration",
+          "label": "Duration (Beats/Minute)"
+         },
+         {
+          "value": "text",
+          "label": "Tempo Text"
+         },
+         {
+          "value": "custom",
+          "label": "Specify text and duration"
+         }
+        ]
+       },
+       {
+        "label": "Custom Text",
+        "id": "customText"
+       },
+       {
+        "label": "Notes/Minute",
+        "id": "bpm"
+       },
+       {
+        "label": "وحدة لكل ضربه",
+        "id": "beatDuration",
+        "options": [
+         {
+          "value": 4096,
+          "label": "Quarter Note"
+         },
+         {
+          "value": 2048,
+          "label": "1/8 note"
+         },
+         {
+          "value": 6144,
+          "label": "Dotted 1/4 note"
+         },
+         {
+          "value": 8192,
+          "label": "1/2 note"
+         }
+        ]
+       },
+       {
+        "label": "Tempo Text",
+        "id": "tempoText",
+        "options": [
+         {
+          "value": "Larghissimo",
+          "label": "Larghissimo"
+         },
+         {
+          "value": "Grave",
+          "label": "Grave"
+         },
+         {
+          "value": "Lento",
+          "label": "Lento"
+         },
+         {
+          "value": "Largo",
+          "label": "Largo"
+         },
+         {
+          "value": "Larghetto",
+          "label": "Larghetto"
+         },
+         {
+          "value": "Adagio",
+          "label": "Adagio"
+         },
+         {
+          "value": "Adagietto",
+          "label": "Adagietto"
+         },
+         {
+          "value": "Andante moderato",
+          "label": "Andante moderato"
+         },
+         {
+          "value": "Andante",
+          "label": "Andante"
+         },
+         {
+          "value": "Andantino",
+          "label": "Andantino"
+         },
+         {
+          "value": "Moderato",
+          "label": "Moderato"
+         },
+         {
+          "value": "Allegretto",
+          "label": "Allegretto"
+         },
+         {
+          "value": "Allegro",
+          "label": "Allegro"
+         },
+         {
+          "value": "Vivace",
+          "label": "Vivace"
+         },
+         {
+          "value": "Presto",
+          "label": "Presto"
+         },
+         {
+          "value": "Prestissimo",
+          "label": "Prestissimo"
+         }
+        ]
+       },
+       {
+        "label": "Apply to all future measures?",
+        "id": "applyToAll"
+       },
+       {
+        "label": "Display Tempo",
+        "id": "display"
+       },
+       {
+        "label": "Y Offset",
+        "id": "yOffset"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiInstrumentDialog",
+      "label": "Instrument Properties",
+      "dialogElements": [
+       {
+        "label": "Transpose Index (1/2 steps)",
+        "id": "transposeIndex"
+       },
+       {
+        "label": "Apply To",
+        "id": "applyTo",
+        "options": [
+         {
+          "value": 0,
+          "label": "Score"
+         },
+         {
+          "value": 1,
+          "label": "Selected Measures"
+         },
+         {
+          "value": 3,
+          "label": "Remaining Measures"
+         }
+        ]
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiInsertMeasures",
+      "label": "Insert Measures",
+      "dialogElements": [
+       {
+        "label": "Measures to Insert",
+        "id": "measureCount"
+       },
+       {
+        "label": "Append to Selection",
+        "id": "append"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiTimeSignatureDialog",
+      "label": "Custom Time Signature",
+      "dialogElements": [
+       {
+        "label": "Beats/Measure",
+        "id": "numerator"
+       },
+       {
+        "label": "Beat Value",
+        "id": "denominator",
+        "options": [
+         {
+          "value": 8,
+          "label": "8"
+         },
+         {
+          "value": 4,
+          "label": "4"
+         },
+         {
+          "value": 2,
+          "label": "2"
+         }
+        ]
+       },
+       {
+        "label": "Display",
+        "id": "display"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiScoreViewDialog",
+      "label": "Score View",
+      "dialogElements": [
+       {
+        "label": "Show staff",
+        "id": "scoreView"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiScoreIdentificationDialog",
+      "label": "Score Preferences",
+      "dialogElements": [
+       {
+        "label": "Title",
+        "id": "title"
+       },
+       {
+        "label": "Sub Title",
+        "id": "subTitle"
+       },
+       {
+        "label": "Composer",
+        "id": "composer"
+       },
+       {
+        "label": "Copyright",
+        "id": "copyright"
+       }
+      ],
+      "staticText": {
+       "titleText": "Title",
+       "subTitleText": "Sub-title",
+       "copyrightText": "Copyright",
+       "composerText": "Composer",
+       "show": "Show"
+      }
+     },
+     {
+      "ctor": "SuiGlobalLayoutDialog",
+      "label": "Global Settings",
+      "dialogElements": [
+       {
+        "label": "Score Name",
+        "id": "scoreName"
+       },
+       {
+        "label": "Play Selections",
+        "id": "autoPlay"
+       },
+       {
+        "label": "Auto-Advance Cursor",
+        "id": "autoAdvance"
+       },
+       {
+        "label": "Note Spacing",
+        "id": "noteSpacing"
+       },
+       {
+        "label": "Page Size",
+        "id": "pageSize",
+        "options": [
+         {
+          "value": "letter",
+          "label": "Letter (Portrait)"
+         },
+         {
+          "value": "letterLandscape",
+          "label": "Letter (Landscape)"
+         },
+         {
+          "value": "tabloid",
+          "label": "Tabloid (11x17)"
+         },
+         {
+          "value": "A4",
+          "label": "A4"
+         },
+         {
+          "value": "custom",
+          "label": "Custom"
+         }
+        ]
+       },
+       {
+        "label": "Page Width (px)",
+        "id": "pageWidth"
+       },
+       {
+        "label": "Page Height (px)",
+        "id": "pageHeight"
+       },
+       {
+        "label": "% Zoom",
+        "id": "zoomScale"
+       },
+       {
+        "label": "% Note size",
+        "id": "svgScale"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiScoreFontDialog",
+      "label": "Score Fonts",
+      "dialogElements": [
+       {
+        "label": "Engraving Font",
+        "id": "engravingFont",
+        "options": [
+         {
+          "value": "Bravura",
+          "label": "Bravura"
+         },
+         {
+          "value": "Gonville",
+          "label": "Gonville"
+         },
+         {
+          "value": "Petaluma",
+          "label": "Petaluma"
+         },
+         {
+          "value": "Leland",
+          "label": "Leland"
+         }
+        ]
+       },
+       {
+        "label": "Chord Font",
+        "id": "chordFont"
+       },
+       {
+        "label": "Lyric Font",
+        "id": "lyricFont"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiLayoutDialog",
+      "label": "Page Layouts",
+      "dialogElements": [
+       {
+        "label": "Apply to Page",
+        "id": "applyToPage",
+        "options": [
+         {
+          "value": -1,
+          "label": "All"
+         },
+         {
+          "value": -2,
+          "label": "All Remaining"
+         },
+         {
+          "value": 1,
+          "label": "Page 1"
+         }
+        ]
+       },
+       {
+        "label": "Left Margin (px)",
+        "id": "leftMargin"
+       },
+       {
+        "label": "Right Margin (px)",
+        "id": "rightMargin"
+       },
+       {
+        "label": "Top Margin (px)",
+        "id": "topMargin"
+       },
+       {
+        "label": "Bottom Margin (px)",
+        "id": "bottomMargin"
+       },
+       {
+        "label": "Inter-System Margin",
+        "id": "interGap"
+       },
+       {
+        "label": "Intra-System Margin",
+        "id": "intraGap"
+       },
+       {
+        "staticText": {
+         "label": "Page Layouts"
+        }
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiSlurAttributesDialog",
+      "label": "Slur Properties",
+      "dialogElements": [
+       {
+        "label": "Spacing",
+        "id": "spacing"
+       },
+       {
+        "label": "Thickness",
+        "id": "thickness"
+       },
+       {
+        "label": "X Offset",
+        "id": "xOffset"
+       },
+       {
+        "label": "Y Offset",
+        "id": "yOffset"
+       },
+       {
+        "label": "Start Position",
+        "id": "position",
+        "options": [
+         {
+          "value": 1,
+          "label": "Head"
+         },
+         {
+          "value": 2,
+          "label": "Top"
+         }
+        ]
+       },
+       {
+        "label": "End Position",
+        "id": "position_end",
+        "options": [
+         {
+          "value": 1,
+          "label": "Head"
+         },
+         {
+          "value": 2,
+          "label": "Top"
+         }
+        ]
+       },
+       {
+        "label": "Invert",
+        "id": "invert"
+       },
+       {
+        "label": "Control Point 1 X",
+        "id": "cp1x"
+       },
+       {
+        "label": "Control Point 1 Y",
+        "id": "cp1y"
+       },
+       {
+        "label": "Control Point 2 X",
+        "id": "cp2x"
+       },
+       {
+        "label": "Control Point 2 Y",
+        "id": "cp2y"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiTieAttributesDialog",
+      "label": "Tie Properties",
+      "dialogElements": [
+       {
+        "label": "Lines",
+        "id": "lines"
+       }
+      ],
+      "staticText": {
+       "label": "Tie Properties",
+       "fromNote": "From Note",
+       "toNote": "To Note"
+      }
+     },
+     {
+      "ctor": "SuiVoltaAttributeDialog",
+      "label": "Volta Properties",
+      "dialogElements": [
+       {
+        "label": "number",
+        "id": "number"
+       },
+       {
+        "label": "X1 Offset",
+        "id": "xOffsetStart"
+       },
+       {
+        "label": "X2 Offset",
+        "id": "xOffsetEnd"
+       },
+       {
+        "label": "Y Offset",
+        "id": "yOffset"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiHairpinAttributesDialog",
+      "label": "Hairpin Properties",
+      "dialogElements": [
+       {
+        "label": "Height",
+        "id": "height"
+       },
+       {
+        "label": "Y Shift",
+        "id": "yOffset"
+       },
+       {
+        "label": "Right Shift",
+        "id": "xOffsetRight"
+       },
+       {
+        "label": "Left Shift",
+        "id": "xOffsetLeft"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiStaffGroupDialog",
+      "label": "Staff Group",
+      "dialogElements": [
+       {
+        "label": "Staves in Group",
+        "id": "staffGroups"
+       },
+       {
+        "label": "Left Connector",
+        "id": "leftConnector",
+        "options": [
+         {
+          "value": 1,
+          "label": "Bracket"
+         },
+         {
+          "value": 0,
+          "label": "Brace"
+         },
+         {
+          "value": 2,
+          "label": "Single"
+         },
+         {
+          "value": 3,
+          "label": "Double"
+         }
+        ]
+       }
+      ],
+      "staticText": {
+       "includeStaff": "Include Staff"
+      }
+     },
+     {
+      "ctor": "SuiDynamicModifierDialog",
+      "label": "Dynamics Properties",
+      "dialogElements": [
+       {
+        "label": "Y Line",
+        "id": "yOffsetLine"
+       },
+       {
+        "label": "Y Offset Px",
+        "id": "yOffsetPixels"
+       },
+       {
+        "label": "X Offset",
+        "id": "xOffset"
+       },
+       {
+        "label": "Text",
+        "id": "text",
+        "options": [
+         {
+          "value": "p",
+          "label": "Piano"
+         },
+         {
+          "value": "pp",
+          "label": "Pianissimo"
+         },
+         {
+          "value": "mp",
+          "label": "Mezzo-Piano"
+         },
+         {
+          "value": "mf",
+          "label": "Mezzo-Forte"
+         },
+         {
+          "value": "f",
+          "label": "Forte"
+         },
+         {
+          "value": "ff",
+          "label": "Fortissimo"
+         },
+         {
+          "value": "sfz",
+          "label": "Sforzando"
+         }
+        ]
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiLyricDialog",
+      "label": "Lyric Editor",
+      "dialogElements": [
+       {
+        "label": "Verse",
+        "id": "verse",
+        "options": [
+         {
+          "value": 0,
+          "label": "1"
+         },
+         {
+          "value": 1,
+          "label": "2"
+         },
+         {
+          "value": 2,
+          "label": "3"
+         },
+         {
+          "value": 3,
+          "label": "4"
+         }
+        ]
+       },
+       {
+        "label": "Y Adjustment (Px)",
+        "id": "translateY"
+       },
+       {
+        "label": "Font",
+        "id": "font"
+       },
+       {
+        "label": "Edit Lyrics",
+        "id": "lyricEditor",
+        "options": []
+       }
+      ],
+      "staticText": {
+       "doneEditing": "Done Editing Lyrics",
+       "undo": "Undo Lyrics",
+       "label": "Lyric Editor"
+      }
+     },
+     {
+      "ctor": "SuiChordChangeDialog",
+      "label": "Edit Chord Symbol",
+      "dialogElements": [
+       {
+        "label": "Ordinality",
+        "id": "verse",
+        "options": [
+         {
+          "value": 0,
+          "label": "1"
+         },
+         {
+          "value": 1,
+          "label": "2"
+         },
+         {
+          "value": 2,
+          "label": "3"
+         }
+        ]
+       },
+       {
+        "label": "Y Adjustment (Px)",
+        "id": "translateY"
+       },
+       {
+        "label": "Edit Text",
+        "id": "chordEditor",
+        "options": []
+       },
+       {
+        "label": "Chord Symbol",
+        "id": "chordSymbol",
+        "options": [
+         {
+          "value": "csymDiminished",
+          "label": "Dim"
+         },
+         {
+          "value": "csymHalfDiminished",
+          "label": "Half dim"
+         },
+         {
+          "value": "csymDiagonalArrangementSlash",
+          "label": "Slash"
+         },
+         {
+          "value": "csymMajorSeventh",
+          "label": "Maj7"
+         }
+        ]
+       },
+       {
+        "label": "Text Position",
+        "id": "textPosition",
+        "options": [
+         {
+          "value": 1,
+          "label": "Superscript"
+         },
+         {
+          "value": 2,
+          "label": "Subscript"
+         },
+         {
+          "value": 0,
+          "label": "Normal"
+         }
+        ]
+       },
+       {
+        "label": "Font",
+        "id": "font"
+       },
+       {
+        "label": "Adjust Note Width",
+        "id": "adjustWidth",
+        "options": []
+       }
+      ],
+      "staticText": {
+       "label": "Edit Chord Symbol",
+       "undo": "Undo Chord Symbols",
+       "doneEditing": "Done Editing Chord Symbols"
+      }
+     },
+     {
+      "ctor": "SuiTextTransformDialog",
+      "label": "Text Properties",
+      "dialogElements": [
+       {
+        "label": "Edit Text",
+        "id": "textEditor",
+        "options": []
+       },
+       {
+        "label": "Insert Special",
+        "id": "insertCode",
+        "options": [
+         {
+          "value": "@@@",
+          "label": "Pages"
+         },
+         {
+          "value": "###",
+          "label": "Page Number"
+         }
+        ]
+       },
+       {
+        "label": "Move Text",
+        "id": "textDragger",
+        "options": []
+       },
+       {
+        "label": "X Position (Px)",
+        "id": "x"
+       },
+       {
+        "label": "Y Position (Px)",
+        "id": "y"
+       },
+       {
+        "label": "Font Information",
+        "id": "font"
+       },
+       {
+        "label": "Text Block Properties",
+        "id": "textBlock"
+       },
+       {
+        "label": "Page Behavior",
+        "id": "pagination",
+        "options": [
+         {
+          "value": 4,
+          "label": "Once"
+         },
+         {
+          "value": 1,
+          "label": "Every"
+         },
+         {
+          "label": "Even"
+         },
+         {
+          "value": 3,
+          "label": "Odd"
+         },
+         {
+          "value": 5,
+          "label": "Subsequent"
+         }
+        ]
+       },
+       {
+        "label": "Attach to Selection",
+        "id": "attachToSelector"
+       }
+      ],
+      "staticText": {
+       "label": "Text Properties",
+       "editorLabel": "Done Editing Text",
+       "draggerLabel": "Done Dragging Text"
+      }
+     }
+    ],
+    "menus": [
+     {
+      "ctor": "SuiDynamicsMenu",
+      "label": "Dynamics",
+      "menuItems": [
+       {
+        "icon": "pianissimo",
+        "text": "Pianissimo",
+        "value": "pp"
+       },
+       {
+        "icon": "piano",
+        "text": "Piano",
+        "value": "p"
+       },
+       {
+        "icon": "mezzopiano",
+        "text": "Mezzo-piano",
+        "value": "mp"
+       },
+       {
+        "icon": "mezzoforte",
+        "text": "Mezzo-forte",
+        "value": "mf"
+       },
+       {
+        "icon": "forte",
+        "text": "Forte",
+        "value": "f"
+       },
+       {
+        "icon": "fortissimo",
+        "text": "Fortissimo",
+        "value": "ff"
+       },
+       {
+        "icon": "sfz",
+        "text": "sfortzando",
+        "value": "sfz"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiFileMenu",
+      "label": "ملف",
+      "menuItems": [
+       {
+        "icon": "folder-new",
+        "text": "جديدe",
+        "value": "newFile"
+       },
+       {
+        "icon": "folder-open",
+        "text": "فتح",
+        "value": "openFile"
+       },
+       {
+        "icon": "",
+        "text": "Quick Save",
+        "value": "quickSave"
+       },
+       {
+        "icon": "folder-save",
+        "text": "حفظ",
+        "value": "saveFile"
+       },
+       {
+        "icon": "",
+        "text": "طباعه",
+        "value": "printScore"
+       },
+       {
+        "icon": "",
+        "text": "Import MusicXML",
+        "value": "importMxml"
+       },
+       {
+        "icon": "",
+        "text": "Export MusicXML",
+        "value": "exportXml"
+       },
+       {
+        "icon": "",
+        "text": "Export Midi",
+        "value": "exportMidi"
+       },
+       {
+        "icon": "folder-save",
+        "text": "Save Actions",
+        "value": "saveActions"
+       },
+       {
+        "icon": "icon-play3",
+        "text": "Play Actions",
+        "value": "playActions"
+       },
+       {
+        "icon": "",
+        "text": "إلغاء",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiStaffMenu",
+      "label": "المفاتيح",
+      "menuItems": [
+       {
+        "icon": "treble",
+        "text": "طاقم التريبل مفتاح",
+        "value": "trebleInstrument"
+       },
+       {
+        "icon": "bass",
+        "text": "طاقم باس كلف",
+        "value": "bassInstrument"
+       },
+       {
+        "icon": "alto",
+        "text": "طاقم ألتو مفتاح",
+        "value": "altoInstrument"
+       },
+       {
+        "icon": "tenor",
+        "text": "طاقم تينور مفتاح",
+        "value": "tenorInstrument"
+       },
+       {
+        "icon": "percussion",
+        "text": "Percussion Clef Staff",
+        "value": "percussionInstrument"
+       },
+       {
+        "icon": "",
+        "text": "Staff Groups",
+        "value": "staffGroups"
+       },
+       {
+        "icon": "cancel-circle",
+        "text": "حذف الطواقم",
+        "value": "remove"
+       },
+       {
+        "icon": "",
+        "text": "إلغاء",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiKeySignatureMenu",
+      "label": "الدليل",
+      "menuItems": [
+       {
+        "icon": "key-sig-c",
+        "text": "C Major",
+        "value": "KeyOfC"
+       },
+       {
+        "icon": "key-sig-f",
+        "text": "F Major",
+        "value": "KeyOfF"
+       },
+       {
+        "icon": "key-sig-g",
+        "text": "G Major",
+        "value": "KeyOfG"
+       },
+       {
+        "icon": "key-sig-bb",
+        "text": "Bb Major",
+        "value": "KeyOfBb"
+       },
+       {
+        "icon": "key-sig-d",
+        "text": "D Major",
+        "value": "KeyOfD"
+       },
+       {
+        "icon": "key-sig-eb",
+        "text": "Eb Major",
+        "value": "KeyOfEb"
+       },
+       {
+        "icon": "key-sig-a",
+        "text": "A Major",
+        "value": "KeyOfA"
+       },
+       {
+        "icon": "key-sig-ab",
+        "text": "Ab Major",
+        "value": "KeyOfAb"
+       },
+       {
+        "icon": "key-sig-e",
+        "text": "E Major",
+        "value": "KeyOfE"
+       },
+       {
+        "icon": "key-sig-bd",
+        "text": "Db Major",
+        "value": "KeyOfDb"
+       },
+       {
+        "icon": "key-sig-b",
+        "text": "B Major",
+        "value": "KeyOfB"
+       },
+       {
+        "icon": "key-sig-fs",
+        "text": "F# Major",
+        "value": "KeyOfF#"
+       },
+       {
+        "icon": "key-sig-cs",
+        "text": "C# Major",
+        "value": "KeyOfC#"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiMeasureMenu",
+      "label": "Measure",
+      "menuItems": [
+       {
+        "icon": "",
+        "text": "Add Measures",
+        "value": "addMenuCmd"
+       },
+       {
+        "icon": "icon-cross",
+        "text": "Delete Selected Measures",
+        "value": "deleteSelected"
+       },
+       {
+        "icon": "",
+        "text": "Format Measure",
+        "value": "formatMeasureDialog"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiTimeSignatureMenu",
+      "label": "وزن الإيقاع",
+      "menuItems": [
+       {
+        "icon": "sixeight",
+        "text": "6/8",
+        "value": "6/8"
+       },
+       {
+        "icon": "fourfour",
+        "text": "4/4",
+        "value": "4/4"
+       },
+       {
+        "icon": "threefour",
+        "text": "3/4",
+        "value": "3/4"
+       },
+       {
+        "icon": "twofour",
+        "text": "2/4",
+        "value": "2/4"
+       },
+       {
+        "icon": "twelveeight",
+        "text": "12/8",
+        "value": "12/8"
+       },
+       {
+        "icon": "seveneight",
+        "text": "7/8",
+        "value": "7/8"
+       },
+       {
+        "icon": "fiveeight",
+        "text": "5/8",
+        "value": "5/8"
+       },
+       {
+        "icon": "",
+        "text": "Other",
+        "value": "TimeSigOther"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiStaffModifierMenu",
+      "label": "خطوط",
+      "menuItems": [
+       {
+        "icon": "cresc",
+        "text": "تصاعد",
+        "value": "crescendo"
+       },
+       {
+        "icon": "decresc",
+        "text": "تهابط",
+        "value": "decrescendo"
+       },
+       {
+        "icon": "slur",
+        "text": "طمس / تعادل",
+        "value": "slur"
+       },
+       {
+        "icon": "slur",
+        "text": "Tie",
+        "value": "tie"
+       },
+       {
+        "icon": "ending",
+        "text": "النهاية التاسعة",
+        "value": "ending"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiLanguageMenu",
+      "label": "Language",
+      "menuItems": [
+       {
+        "icon": "",
+        "text": "English",
+        "value": "en"
+       },
+       {
+        "icon": "",
+        "text": "Deutsch",
+        "value": "de"
+       },
+       {
+        "icon": "",
+        "text": "اَلْعَرَبِيَّةُ",
+        "value": "ar"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiLibraryMenu",
+      "label": "Score",
+      "menuItems": [
+       {
+        "icon": "",
+        "text": "Bach Invention",
+        "value": "bach"
+       },
+       {
+        "icon": "",
+        "text": "Postillion-Lied",
+        "value": "postillion"
+       },
+       {
+        "icon": "",
+        "text": "Jesu Bambino",
+        "value": "bambino"
+       },
+       {
+        "icon": "",
+        "text": "Handel Messiah 1-1",
+        "value": "handel"
+       },
+       {
+        "icon": "",
+        "text": "Precious Lord",
+        "value": "preciousLord"
+       },
+       {
+        "icon": "",
+        "text": "In Its Delightful Shade",
+        "value": "shade"
+       },
+       {
+        "icon": "",
+        "text": "Yama",
+        "value": "yamaJson"
+       },
+       {
+        "icon": "",
+        "text": "Dichterliebe (xml)",
+        "value": "dichterliebe"
+       },
+       {
+        "icon": "",
+        "text": "Beethoven - An die ferne Gliebte (xml)",
+        "value": "beethoven"
+       },
+       {
+        "icon": "",
+        "text": "Mozart - An Chloe (xml)",
+        "value": "mozart"
+       },
+       {
+        "icon": "",
+        "text": "Joplin - The Entertainer (xml)",
+        "value": "joplin"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiScoreMenu",
+      "label": "Score Settings",
+      "menuItems": [
+       {
+        "icon": "",
+        "text": "Layout",
+        "value": "layout"
+       },
+       {
+        "icon": "",
+        "text": "Fonts",
+        "value": "fonts"
+       },
+       {
+        "icon": "",
+        "text": "View",
+        "value": "view"
+       },
+       {
+        "icon": "",
+        "text": "Score Info",
+        "value": "identification"
+       },
+       {
+        "icon": "",
+        "text": "Global Settings",
+        "value": "preferences"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     }
+    ],
+    "buttonText": [
+     {
+      "buttonId": "helpDialog",
+      "buttonText": "Help"
+     },
+     {
+      "buttonId": "languageMenu",
+      "buttonText": "Language"
+     },
+     {
+      "buttonId": "fileMenu",
+      "buttonText": "ملف"
+     },
+     {
+      "buttonId": "libraryMenu",
+      "buttonText": "Library"
+     },
+     {
+      "buttonId": "addStaffMenu",
+      "buttonText": "Staves"
+     },
+     {
+      "buttonId": "measureModal",
+      "buttonText": "Measure"
+     },
+     {
+      "buttonId": "tempoModal",
+      "buttonText": "Tempo"
+     },
+     {
+      "buttonId": "timeSignatureMenu",
+      "buttonText": "Time Signature"
+     },
+     {
+      "buttonId": "keyMenu",
+      "buttonText": "Key"
+     },
+     {
+      "buttonId": "staffModifierMenu",
+      "buttonText": "Lines"
+     },
+     {
+      "buttonId": "instrumentModal",
+      "buttonText": "Instrument"
+     },
+     {
+      "buttonId": "pianoModal",
+      "buttonText": "Piano"
+     },
+     {
+      "buttonId": "layoutMenu",
+      "buttonText": "Score"
+     },
+     {
+      "buttonId": "UpOctaveButton",
+      "buttonText": "8va"
+     },
+     {
+      "buttonId": "DownOctaveButton",
+      "buttonText": "8vb"
+     },
+     {
+      "buttonId": "moreNavButtons",
+      "buttonText": "..."
+     },
+     {
+      "buttonId": "dcAlCoda",
+      "buttonText": "DC Al Coda"
+     },
+     {
+      "buttonId": "dsAlCoda",
+      "buttonText": "DS Al Coda"
+     },
+     {
+      "buttonId": "dcAlFine",
+      "buttonText": "DC Al Fine"
+     },
+     {
+      "buttonId": "dsAlFine",
+      "buttonText": "DS Al Fine"
+     },
+     {
+      "buttonId": "toCoda",
+      "buttonText": "to "
+     },
+     {
+      "buttonId": "fine",
+      "buttonText": "Fine"
+     },
+     {
+      "buttonId": "moreStaffButtons",
+      "buttonText": "..."
      }
     ]
-   }
-  ]
- },
- {
-  "ctor": "SuiSaveFileDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Save Score"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiPrintFileDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Print Complete"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiMeasureDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Measure Properties"
-     }
-    ]
-   },
-   {
-    "id": "pickupMeasure",
-    "label": "Pickup Measure",
-    "options": [
-     {
-      "value": "2048",
-      "label": "Eighth Note"
-     },
-     {
-      "value": "4096",
-      "label": "Quarter Note"
-     },
-     {
-      "value": "6144",
-      "label": "Dotted Quarter"
-     },
-     {
-      "value": "8192",
-      "label": "Half Note"
-     }
-    ]
-   },
-   {
-    "id": "measureTextPosition",
-    "label": "Text Position",
-    "options": [
-     {
-      "value": "2",
-      "label": "Left"
-     },
-     {
-      "value": "3",
-      "label": "Right"
-     },
-     {
-      "value": "0",
-      "label": "Above"
-     },
-     {
-      "value": "1",
-      "label": "Below"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiTempoDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Tempo Properties"
-     }
-    ]
-   },
-   {
-    "id": "tempoMode",
-    "label": "وضع الإيقاع",
-    "options": [
-     {
-      "value": "duration",
-      "label": "Duration (Beats/Minute)"
-     },
-     {
-      "value": "text",
-      "label": "Tempo Text"
-     },
-     {
-      "value": "custom",
-      "label": "Specify text and duration"
-     }
-    ]
-   },
-   {
-    "id": "beatDuration",
-    "label": "وحدة لكل ضربه",
-    "options": [
-     {
-      "value": "4096",
-      "label": "Quarter Note"
-     },
-     {
-      "value": "2048",
-      "label": "1/8 note"
-     },
-     {
-      "value": "6144",
-      "label": "Dotted 1/4 note"
-     },
-     {
-      "value": "8192",
-      "label": "1/2 note"
-     }
-    ]
-   },
-   {
-    "id": "tempoText",
-    "label": "Tempo Text",
-    "options": [
-     {
-      "value": "Larghissimo",
-      "label": "Larghissimo"
-     },
-     {
-      "value": "Grave",
-      "label": "Grave"
-     },
-     {
-      "value": "Lento",
-      "label": "Lento"
-     },
-     {
-      "value": "Largo",
-      "label": "Largo"
-     },
-     {
-      "value": "Larghetto",
-      "label": "Larghetto"
-     },
-     {
-      "value": "Adagio",
-      "label": "Adagio"
-     },
-     {
-      "value": "Adagietto",
-      "label": "Adagietto"
-     },
-     {
-      "value": "Andante moderato",
-      "label": "Andante moderato"
-     },
-     {
-      "value": "Andante",
-      "label": "Andante"
-     },
-     {
-      "value": "Andantino",
-      "label": "Andantino"
-     },
-     {
-      "value": "Moderato",
-      "label": "Moderato"
-     },
-     {
-      "value": "Allegretto",
-      "label": "Allegretto"
-     },
-     {
-      "value": "Allegro",
-      "label": "Allegro"
-     },
-     {
-      "value": "Vivace",
-      "label": "Vivace"
-     },
-     {
-      "value": "Presto",
-      "label": "Presto"
-     },
-     {
-      "value": "Prestissimo",
-      "label": "Prestissimo"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiInstrumentDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Instrument Properties"
-     }
-    ]
-   },
-   {
-    "id": "applyTo",
-    "label": "Apply To",
-    "options": [
-     {
-      "value": "0",
-      "label": "Score"
-     },
-     {
-      "value": "1",
-      "label": "Selected Measures"
-     },
-     {
-      "value": "3",
-      "label": "Remaining Measures"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiTimeSignatureDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Custom Time Signature"
-     }
-    ]
-   },
-   {
-    "id": "denominator",
-    "label": "Beat Value",
-    "options": [
-     {
-      "value": "8",
-      "label": "8"
-     },
-     {
-      "value": "4",
-      "label": "4"
-     },
-     {
-      "value": "2",
-      "label": "2"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiLayoutDialog",
-  "dialogElements": [
-   {
-    "id": "pageSize",
-    "label": "Page Size",
-    "options": [
-     {
-      "value": "letter",
-      "label": "Letter"
-     },
-     {
-      "value": "tabloid",
-      "label": "Tabloid (11x17)"
-     },
-     {
-      "value": "A4",
-      "label": "A4"
-     },
-     {
-      "value": "custom",
-      "label": "Custom"
-     }
-    ]
-   },
-   {
-    "id": "orientation",
-    "label": "Orientation",
-    "options": [
-     {
-      "value": "0",
-      "label": "Portrait"
-     },
-     {
-      "value": "1",
-      "label": "Landscape"
-     }
-    ]
-   },
-   {
-    "id": "engravingFont",
-    "label": "Engraving Font",
-    "options": [
-     {
-      "value": "Bravura",
-      "label": "Bravura"
-     },
-     {
-      "value": "Gonville",
-      "label": "Gonville"
-     },
-     {
-      "value": "Petaluma",
-      "label": "Petaluma"
-     }
-    ]
-   },
-   {
-    "staticText": [
-     {
-      "label": "Score Layout"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiDynamicModifierDialog",
-  "dialogElements": [
-   {
-    "id": "text",
-    "label": "Text",
-    "options": [
-     {
-      "value": "p",
-      "label": "Piano"
-     },
-     {
-      "value": "pp",
-      "label": "Pianissimo"
-     },
-     {
-      "value": "mp",
-      "label": "Mezzo-Piano"
-     },
-     {
-      "value": "mf",
-      "label": "Mezzo-Forte"
-     },
-     {
-      "value": "f",
-      "label": "Forte"
-     },
-     {
-      "value": "ff",
-      "label": "Fortissimo"
-     },
-     {
-      "value": "sfz",
-      "label": "Sforzando"
-     }
-    ]
-   },
-   {
-    "staticText": [
-     {
-      "label": "Dynamics Properties"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiSlurAttributesDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Slur Properties"
-     }
-    ]
-   },
-   {
-    "id": "position",
-    "label": "Start Position",
-    "options": [
-     {
-      "value": "1",
-      "label": "Head"
-     },
-     {
-      "value": "2",
-      "label": "Top"
-     }
-    ]
-   },
-   {
-    "id": "position_end",
-    "label": "End Position",
-    "options": [
-     {
-      "value": "1",
-      "label": "Head"
-     },
-     {
-      "value": "2",
-      "label": "Top"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiVoltaAttributeDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Volta Properties"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiHairpinAttributesDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Hairpin Properties"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiLyricDialog",
-  "dialogElements": [
-   {
-    "id": "verse",
-    "label": "Verse",
-    "options": [
-     {
-      "value": "0",
-      "label": "1"
-     },
-     {
-      "value": "1",
-      "label": "2"
-     },
-     {
-      "value": "2",
-      "label": "3"
-     }
-    ]
-   },
-   {
-    "id": "textEditor",
-    "label": "Edit Text",
-    "options": []
-   },
-   {
-    "staticText": [
-     {
-      "doneEditing": "Done Editing Lyrics"
-     },
-     {
-      "undo": "Undo Lyrics"
-     },
-     {
-      "label": "Lyric Editor"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiChordChangeDialog",
-  "dialogElements": [
-   {
-    "id": "verse",
-    "label": "Verse",
-    "options": [
-     {
-      "value": "0",
-      "label": "1"
-     },
-     {
-      "value": "1",
-      "label": "2"
-     },
-     {
-      "value": "2",
-      "label": "3"
-     }
-    ]
-   },
-   {
-    "id": "textEditor",
-    "label": "Edit Text",
-    "options": []
-   },
-   {
-    "staticText": [
-     {
-      "doneEditing": "Done Editing Lyrics"
-     },
-     {
-      "undo": "Undo Lyrics"
-     },
-     {
-      "label": "Lyric Editor"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiTextTransformDialog",
-  "dialogElements": [
-   {
-    "id": "textEditor",
-    "label": "Edit Text",
-    "options": []
-   },
-   {
-    "id": "textDragger",
-    "label": "Move Text",
-    "options": []
-   },
-   {
-    "id": "textResizer",
-    "label": "Resize Text",
-    "options": []
-   },
-   {
-    "id": "justification",
-    "label": "Justification",
-    "options": [
-     {
-      "value": "left",
-      "label": "Left"
-     },
-     {
-      "value": "right",
-      "label": "Right"
-     },
-     {
-      "value": "center",
-      "label": "Center"
-     }
-    ]
-   },
-   {
-    "id": "fontFamily",
-    "label": "Font Family",
-    "options": [
-     {
-      "value": "Merriweather,serif",
-      "label": "Serif"
-     },
-     {
-      "value": "Roboto,sans-serif",
-      "label": "Sans-Serif"
-     },
-     {
-      "value": "monospace",
-      "label": "Monospace"
-     },
-     {
-      "value": "cursive",
-      "label": "Cursive"
-     },
-     {
-      "value": "Merriweather",
-      "label": "times"
-     },
-     {
-      "value": "Arial",
-      "label": "arial"
-     },
-     {
-      "value": "Helvetica",
-      "label": "Helvetica"
-     }
-    ]
-   },
-   {
-    "id": "fontUnit",
-    "label": "Units",
-    "options": [
-     {
-      "value": "em",
-      "label": "em"
-     },
-     {
-      "value": "px",
-      "label": "px"
-     },
-     {
-      "value": "pt",
-      "label": "pt"
-     }
-    ]
-   },
-   {
-    "id": "pagination",
-    "label": "Page Behavior",
-    "options": [
-     {
-      "value": "once",
-      "label": "Once"
-     },
-     {
-      "value": "every",
-      "label": "Every"
-     },
-     {
-      "value": "even",
-      "label": "Even"
-     },
-     {
-      "value": "odd",
-      "label": "Odd"
-     },
-     {
-      "value": "subsequent",
-      "label": "Subsequent"
-     }
-    ]
-   },
-   {
-    "staticText": [
-     {
-      "label": "Text Properties"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiStaffMenu",
-  "label": "المفاتيح",
-  "menuItems": [
-   {
-    "value": "trebleInstrument",
-    "text": "طاقم التريبل مفتاح"
-   },
-   {
-    "value": "bassInstrument",
-    "text": "طاقم باس كلف"
-   },
-   {
-    "value": "altoInstrument",
-    "text": "طاقم ألتو مفتاح"
-   },
-   {
-    "value": "tenorInstrument",
-    "text": "طاقم تينور مفتاح"
-   },
-   {
-    "value": "remove",
-    "text": "حذف الطواقم"
-   },
-   {
-    "value": "cancel",
-    "text": "إلغاء"
-   }
-  ]
- },
- {
-  "ctor": "SuiMeasureMenu",
-  "label": "Measure",
-  "menuItems": [
-   {
-    "value": "addMenuBeforeCmd",
-    "text": "Add Measure Before"
-   },
-   {
-    "value": "addMenuAfterCmd",
-    "text": "Add Measure After"
-   },
-   {
-    "value": "deleteSelected",
-    "text": "Delete Selected Measures"
-   },
-   {
-    "value": "formatMeasureDialog",
-    "text": "Format Measure"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiFileMenu",
-  "label": "ملف",
-  "menuItems": [
-   {
-    "value": "newFile",
-    "text": "جديدe"
-   },
-   {
-    "value": "openFile",
-    "text": "فتح"
-   },
-   {
-    "value": "saveFile",
-    "text": "حفظ"
-   },
-   {
-    "value": "quickSave",
-    "text": "Quick Save"
-   },
-   {
-    "value": "printScore",
-    "text": "طباعه"
-   },
-   {
-    "value": "bach",
-    "text": "Bach Invention"
-   },
-   {
-    "value": "bambino",
-    "text": "Jesu Bambino"
-   },
-   {
-    "value": "microtone",
-    "text": "Microtone Sample"
-   },
-   {
-    "value": "preciousLord",
-    "text": "Precious Lord"
-   },
-   {
-    "value": "yamaJson",
-    "text": "Yama"
-   },
-   {
-    "value": "cancel",
-    "text": "إلغاء"
-   }
-  ]
- },
- {
-  "ctor": "SuiTimeSignatureMenu",
-  "label": "وزن الإيقاع",
-  "menuItems": [
-   {
-    "value": "6/8",
-    "text": "6/8"
-   },
-   {
-    "value": "3/4",
-    "text": "3/4"
-   },
-   {
-    "value": "2/4",
-    "text": "2/4"
-   },
-   {
-    "value": "12/8",
-    "text": "12/8"
-   },
-   {
-    "value": "7/8",
-    "text": "7/8"
-   },
-   {
-    "value": "5/8",
-    "text": "5/8"
-   },
-   {
-    "value": "TimeSigOther",
-    "text": "Other"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiKeySignatureMenu",
-  "label": "الدليل",
-  "menuItems": [
-   {
-    "value": "KeyOfC",
-    "text": "C Major"
-   },
-   {
-    "value": "KeyOfF",
-    "text": "F Major"
-   },
-   {
-    "value": "KeyOfG",
-    "text": "G Major"
-   },
-   {
-    "value": "KeyOfBb",
-    "text": "Bb Major"
-   },
-   {
-    "value": "KeyOfD",
-    "text": "D Major"
-   },
-   {
-    "value": "KeyOfEb",
-    "text": "Eb Major"
-   },
-   {
-    "value": "KeyOfA",
-    "text": "A Major"
-   },
-   {
-    "value": "KeyOfAb",
-    "text": "Ab Major"
-   },
-   {
-    "value": "KeyOfE",
-    "text": "E Major"
-   },
-   {
-    "value": "KeyOfDb",
-    "text": "Db Major"
-   },
-   {
-    "value": "KeyOfB",
-    "text": "B Major"
-   },
-   {
-    "value": "KeyOfF#",
-    "text": "F# Major"
-   },
-   {
-    "value": "KeyOfC#",
-    "text": "C# Major"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiTimeSignatureMenu",
-  "label": "وزن الإيقاع",
-  "menuItems": [
-   {
-    "value": "6/8",
-    "text": "6/8"
-   },
-   {
-    "value": "3/4",
-    "text": "3/4"
-   },
-   {
-    "value": "2/4",
-    "text": "2/4"
-   },
-   {
-    "value": "12/8",
-    "text": "12/8"
-   },
-   {
-    "value": "7/8",
-    "text": "7/8"
-   },
-   {
-    "value": "5/8",
-    "text": "5/8"
-   },
-   {
-    "value": "TimeSigOther",
-    "text": "Other"
-   },
-   {
-    "value": "cancel",
-    "text": "إلغاء"
-   }
-  ]
- },
- {
-  "ctor": "SuiKeySignatureMenu",
-  "label": "الدليل",
-  "menuItems": [
-   {
-    "value": "KeyOfC",
-    "text": "C Major"
-   },
-   {
-    "value": "KeyOfF",
-    "text": "F Major"
-   },
-   {
-    "value": "KeyOfG",
-    "text": "G Major"
-   },
-   {
-    "value": "KeyOfBb",
-    "text": "Bb Major"
-   },
-   {
-    "value": "KeyOfD",
-    "text": "D Major"
-   },
-   {
-    "value": "KeyOfEb",
-    "text": "Eb Major"
-   },
-   {
-    "value": "KeyOfA",
-    "text": "A Major"
-   },
-   {
-    "value": "KeyOfAb",
-    "text": "Ab Major"
-   },
-   {
-    "value": "KeyOfE",
-    "text": "E Major"
-   },
-   {
-    "value": "KeyOfDb",
-    "text": "Db Major"
-   },
-   {
-    "value": "KeyOfB",
-    "text": "B Major"
-   },
-   {
-    "value": "KeyOfF#",
-    "text": "F# Major"
-   },
-   {
-    "value": "KeyOfC#",
-    "text": "C# Major"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiStaffModifierMenu",
-  "label": "خطوط",
-  "menuItems": [
-   {
-    "value": "crescendo",
-    "text": "تصاعد"
-   },
-   {
-    "value": "decrescendo",
-    "text": "تهابط"
-   },
-   {
-    "value": "slur",
-    "text": "طمس / تعادل"
-   },
-   {
-    "value": "ending",
-    "text": "النهاية التاسعة"
-   },
-   {
-    "value": "cancel",
-    "text": "إلغاء"
-   }
-  ]
- },
- {
-  "ctor": "SuiDynamicsMenu",
-  "label": "Dynamics",
-  "menuItems": [
-   {
-    "value": "pp",
-    "text": "Pianissimo"
-   },
-   {
-    "value": "p",
-    "text": "Piano"
-   },
-   {
-    "value": "mp",
-    "text": "Mezzo-piano"
-   },
-   {
-    "value": "mf",
-    "text": "Mezzo-forte"
-   },
-   {
-    "value": "f",
-    "text": "Forte"
-   },
-   {
-    "value": "ff",
-    "text": "Fortissimo"
-   },
-   {
-    "value": "sfz",
-    "text": "sfortzando"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- }
-]`;
+   }`;
 
 
 export const quickStartHtmlar = `(Arabic)

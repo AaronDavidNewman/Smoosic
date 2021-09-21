@@ -6,38 +6,36 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
   constructor(params: SuiMenuParams) {
     super(params);
   }
-  static get defaults() {
-    return {
-        label: 'Lines',
-        menuItems: [{
-          icon: 'cresc',
-          text: 'Crescendo',
-          value: 'crescendo'
-        }, {
-          icon: 'decresc',
-          text: 'Decrescendo',
-          value: 'decrescendo'
-        }, {
-          icon: 'slur',
-          text: 'Slur',
-          value: 'slur'
-        }, {
-          icon: 'slur',
-          text: 'Tie',
-          value: 'tie'
-        }, {
-          icon: 'ending',
-          text: 'nth ending',
-          value: 'ending'
-        },
-        {
-          icon: '',
-          text: 'Cancel',
-          value: 'cancel'
-        }],
-        menuContainer: '.menuContainer'
-      };
-  }
+  static defaults = {
+    label: 'Lines',
+    menuItems: [{
+      icon: 'cresc',
+      text: 'Crescendo',
+      value: 'crescendo'
+    }, {
+      icon: 'decresc',
+      text: 'Decrescendo',
+      value: 'decrescendo'
+    }, {
+      icon: 'slur',
+      text: 'Slur',
+      value: 'slur'
+    }, {
+      icon: 'slur',
+      text: 'Tie',
+      value: 'tie'
+    }, {
+      icon: 'ending',
+      text: 'nth ending',
+      value: 'ending'
+    }, {
+      icon: '',
+      text: 'Cancel',
+      value: 'cancel'
+    }],
+    menuContainer: '.menuContainer'
+  };
+
   getDefinition() {
     return SuiStaffModifierMenu.defaults;
   }
@@ -47,7 +45,7 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
       this.view.addEnding();
     } else if (op === 'slur') {
       this.view.slur();
-    }  else if (op === 'tie') {
+    } else if (op === 'tie') {
       this.view.tie();
     } else if (op === 'crescendo') {
       this.view.crescendo();

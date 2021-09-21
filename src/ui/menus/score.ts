@@ -6,36 +6,35 @@ import {
 
 declare var $: any;
 export class SuiScoreMenu extends SuiMenuBase {
-    static get defaults(): MenuDefinition {
-        return {
-            label: 'Score Settings',
-            menuItems: [{
-                icon: '',
-                text: 'Layout',
-                value: 'layout'
-            }, {
-                icon: '',
-                text: 'Fonts',
-                value: 'fonts'
-            }, {
-                icon: '',
-                text: 'View',
-                value: 'view'
-            }, {
-                icon: '',
-                text: 'Score Info',
-                value: 'identification'
-            }, {
-                icon: '',
-                text: 'Global Settings',
-                value: 'preferences'
-            }, {
-                icon: '',
-                text: 'Cancel',
-                value: 'cancel'
-            }]
-        };
-    }
+    static defaults: MenuDefinition = {
+        label: 'Score Settings',
+        menuItems: [{
+            icon: '',
+            text: 'Layout',
+            value: 'layout'
+        }, {
+            icon: '',
+            text: 'Fonts',
+            value: 'fonts'
+        }, {
+            icon: '',
+            text: 'View',
+            value: 'view'
+        }, {
+            icon: '',
+            text: 'Score Info',
+            value: 'identification'
+        }, {
+            icon: '',
+            text: 'Global Settings',
+            value: 'preferences'
+        }, {
+            icon: '',
+            text: 'Cancel',
+            value: 'cancel'
+        }]
+    };
+
     getDefinition() {
         return SuiScoreMenu.defaults;
     }

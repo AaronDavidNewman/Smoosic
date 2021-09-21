@@ -16,7 +16,7 @@ export class SuiModifierDialogFactory {
     if (dbType === 'SuiLyricDialog' && modifier.parser === SmoLyric.parsers.chord) {
       dbType = 'SuiChordChangeDialog';
     }
-    if (typeof(dbType) === 'undefined') {
+    if (typeof (dbType) === 'undefined') {
       return null;
     }
     const ctor = Smo.getClass(dbType);
@@ -48,9 +48,11 @@ export class SuiDialogBase {
       'completeNotifier', 'keyCommands', 'modifier'];
   }
   static get displayOptions() {
-    return { BINDCOMPONENTS: 'bindComponents', BINDNAMES: '_bindComponentNames', DRAGGABLE: 'makeDraggable',
+    return {
+      BINDCOMPONENTS: 'bindComponents', BINDNAMES: '_bindComponentNames', DRAGGABLE: 'makeDraggable',
       KEYBOARD_CAPTURE: 'captureKeyboardPromise', GLOBALPOS: 'positionGlobally',
-      SELECTIONPOS: 'positionFromSelection', MODIFIERPOS: 'positionFromModifier' };
+      SELECTIONPOS: 'positionFromSelection', MODIFIERPOS: 'positionFromModifier'
+    };
   }
   static getStaticText(dialogElements, label) {
     const rv = dialogElements.find((x) => x.staticText).staticText.find((x) => x[label]);
@@ -73,15 +75,15 @@ export class SuiDialogBase {
       });
     });
 
-    const staticText = dialogElements.find((xx) => xx.staticText);
-    if (!staticText) {
-      throw 'dialog ' + this.ctor + ' needs a static text section';
+    const staticText = dialogElements.staticText;
+    this.label = dialogElements.label;
+    if (staticText) {
+      this.staticText = {};
+      staticText.forEach((st) => {
+        const key = Object.keys(st)[0];
+        this.staticText[key] = st[key];
+      });
     }
-    this.staticText = {};
-    staticText.staticText.forEach((st) => {
-      const key = Object.keys(st)[0];
-      this.staticText[key] = st[key];
-    });
 
     // If this dialog was spawned by a menu, wait for the menu to dismiss
     // before continuing.
@@ -94,7 +96,7 @@ export class SuiDialogBase {
     });
 
     const left = $('.musicRelief').offset().left + $('.musicRelief').width() / 2;
-    const top  = $('.musicRelief').offset().top + $('.musicRelief').height() / 2;
+    const top = $('.musicRelief').offset().top + $('.musicRelief').height() / 2;
 
     this.dgDom = this._constructDialog(dialogElements, {
       id: 'dialog-' + this.id,
@@ -111,7 +113,7 @@ export class SuiDialogBase {
   static printTranslate(_class) {
     const output = [];
     const xx = Smo.getClass(_class);
-    xx.dialogElements.forEach((element) => {
+    xx.dialogElements.elements.forEach((element) => {
       const component = {};
       if (element.label) {
         component.label = element.label;
@@ -133,7 +135,14 @@ export class SuiDialogBase {
       }
       output.push(component);
     });
-    return { ctor: xx.ctor, dialogElements: output };
+    const staticText = {};
+    if (xx.dialogElements.staticText) {
+      xx.dialogElements.staticText.forEach((st) => {
+        const key = Object.keys(st)[0];
+        staticText[key]  = st[key];
+      });
+    }
+    return { ctor: xx.ctor, label: xx.dialogElements.label, dialogElements: output, staticText };
   }
   get closeModalPromise() {
     return this.closeDialogPromise;
@@ -148,12 +157,12 @@ export class SuiDialogBase {
     // TODO: adjust if db is clipped by the browser.
     const dge = $(dgDom.element).find('.attributeModal');
     const dgeHeight = $(dge).height();
-    const maxY =  $('.musicRelief').height();
+    const maxY = $('.musicRelief').height();
     const maxX = $('.musicRelief').width();
     const offset = $('.dom-container').offset();
     y = y - offset.top;
 
-    const offsetY = dgeHeight + y > window.innerHeight ? (dgeHeight + y) -  window.innerHeight : 0;
+    const offsetY = dgeHeight + y > window.innerHeight ? (dgeHeight + y) - window.innerHeight : 0;
     y = (y < 0) ? -y : y - offsetY;
 
     y = (y > maxY || y < 0) ? maxY / 2 : y;
@@ -163,7 +172,7 @@ export class SuiDialogBase {
     x = box.x - scroller.netScroll.x;
     x = x - offset.left;
     const w = $(dge).width();
-    x = (x > window.innerWidth / 2)  ? x - (w + 25) : x + (w + 25);
+    x = (x > window.innerWidth / 2) ? x - (w + 25) : x + (w + 25);
 
     x = (x < 0 || x > maxX) ? maxX / 2 : x;
     $(dge).css('left', '' + x + 'px');
@@ -195,7 +204,7 @@ export class SuiDialogBase {
   }
   // ### positionModifier()
   positionFromModifier() {
-    if (typeof(this.modifier.renderedBox) === 'undefined') {
+    if (typeof (this.modifier.renderedBox) === 'undefined') {
       this.positionGlobally();
       return;
     }
@@ -219,12 +228,12 @@ export class SuiDialogBase {
     const r = b('div').classes('attributeModal').attr('id', 'attr-modal-' + id)
       .css('top', parameters.top + 'px').css('left', parameters.left + 'px')
       .append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
-      .append(b('h2').classes('dialog-label').text(this.staticText.label));
+      .append(b('h2').classes('dialog-label').text(this.label));
 
     var ctrl = b('div').classes('smoControlContainer');
-    dialogElements.filter((de) => de.control).forEach((de) => {
+    dialogElements.elements.filter((de) => de.control).forEach((de) => {
       let ctor = null;
-      if (typeof(de.control) === 'function') {
+      if (typeof (de.control) === 'function') {
         ctor = de.control;
       } else {
         ctor = Smo.getClass(de.control);
@@ -292,7 +301,7 @@ export class SuiDialogBase {
   // generic code to make the dialog box draggable so it doesn't
   // get in front of stuff.
   makeDraggable() {
-    const cb = () => {};
+    const cb = () => { };
     htmlHelpers.draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
       handle: $(this.dgDom.element).find('.jsDbMove'),
@@ -305,7 +314,7 @@ export class SuiDialogBase {
   // capture keyboard events until the dialog closes,
   // then give control back to the current keyboard
   captureKeyboardPromise() {
-    if (typeof(this.startPromise) === 'undefined') {
+    if (typeof (this.startPromise) === 'undefined') {
       this.completeNotifier.unbindKeyboardForModal(this);
       this.bindKeyboard();
       return;
