@@ -38,7 +38,12 @@ export class SuiMeasureMenu extends SuiMenuBase {
         view: this.view,
         completeNotifier: this.completeNotifier,
         startPromise: this.closePromise,
-        eventSource: this.eventSource
+        eventSource: this.eventSource,
+        tracker: this.tracker,
+        ctor: 'SuiMeasureDialog',
+        id: 'measure-dialog',
+        undoBuffer: this.undoBuffer,
+        modifier: null
       });
       this.complete();
       return;
@@ -48,7 +53,12 @@ export class SuiMeasureMenu extends SuiMenuBase {
         view: this.view,
         completeNotifier: this.completeNotifier,
         startPromise: this.closePromise,
-        eventSource: this.eventSource
+        eventSource: this.eventSource,
+        tracker: this.tracker,
+        ctor: 'SuiMeasureDialog',
+        id: 'insert-dialog',
+        undoBuffer: this.undoBuffer,
+        modifier: null
       });
       this.complete();
     }

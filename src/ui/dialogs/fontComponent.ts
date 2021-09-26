@@ -1,36 +1,44 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiToggleComposite, SuiComponentBase, SuiDropdownComposite, SuiButtonComposite, SuiRockerComposite } from '../dialogComponents';
+import { SuiToggleComposite, SuiComponentBase, SuiDropdownComposite, SuiButtonComposite,
+  SuiRockerComposite, SuiDialogNotifier, SuiComponentParent } from '../dialogComponents';
 import { SmoTextGroup, SmoScoreText } from '../../smo/data/scoreModifiers';
 import { htmlHelpers } from '../../common/htmlHelpers';
-import { smoSerialize } from '../../common/serializationHelpers';
 import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';
 import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
+import { FontInfo } from '../../smo/data/common';
+declare var $: any;
 
+export interface SuiFontComponentParams {
+  id: string,
+  classes: string,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string
+}
 // ## SuiFontComponent
 // Dialog component that lets user choose and customize fonts.
 export class SuiFontComponent extends SuiComponentBase {
-  constructor(dialog, parameter) {
-    super(parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
-    }
-    if (!this.dataType) {
-      this.dataType = 'string';
-    }
+  familyPart: SuiDropdownComposite;
+  sizePart: SuiRockerComposite;
+  italicsCtrl: SuiToggleComposite;
+  boldCtrl: SuiToggleComposite;
+  constructor(dialog: SuiDialogNotifier, parameter: SuiFontComponentParams) {
+    super(dialog, parameter);
     this.dialog = dialog;
+    const familyId = this.id + 'fontFamily';
+    const sizeId = this.id + 'fontSize';
 
     this.familyPart = new SuiDropdownComposite(this.dialog,
       {
+        id: familyId,
         smoName: 'fontFamily',
         parameterName: 'fontFamily' + this.parameterId,
         classes: 'hide-when-editing hide-when-moving',
         defaultValue: SmoScoreText.fontFamilies.times,
         control: 'SuiDropdownComponent',
         label: 'Font Family',
-        startRow: true,
         parentControl: this,
         options: [
           { label: 'Arial', value: 'Arial' },
@@ -47,6 +55,7 @@ export class SuiFontComponent extends SuiComponentBase {
     this.sizePart = new SuiRockerComposite(
       this.dialog,
       {
+        id: sizeId,
         smoName: 'fontSize',
         parameterName: 'fontSize' + this.parameterId,
         defaultValue: 1,
@@ -61,9 +70,9 @@ export class SuiFontComponent extends SuiComponentBase {
     this.italicsCtrl = new SuiToggleComposite(
       this.dialog,
       {
+        id: this.id + 'italics',
         smoName: 'italics',
         parameterName: 'italics' + this.parameterId,
-        defaultValue: false,
         parentControl: this,
         classes: 'hide-when-editing hide-when-moving',
         control: 'SuiToggleComponent',
@@ -73,10 +82,10 @@ export class SuiFontComponent extends SuiComponentBase {
     this.boldCtrl = new SuiToggleComposite(
       this.dialog,
       {
+        id: this.id + 'bold',
         smoName: 'bold',
         parameterName: 'bold' + this.parameterId,
         parentControl: this,
-        defaultValue: false,
         classes: 'hide-when-editing hide-when-moving',
         control: 'SuiToggleComponent',
         label: 'Bold'
@@ -88,7 +97,7 @@ export class SuiFontComponent extends SuiComponentBase {
   }
 
   get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
+    return this.dialog.getId() + '-' + this.parameterName;
   }
 
   get html() {
@@ -109,15 +118,15 @@ export class SuiFontComponent extends SuiComponentBase {
     var pid = this.parameterId;
     return $(this.dialog.dgDom.element).find('#' + pid).find('select');
   }
-  getValue() {
+  getValue(): FontInfo {
     return {
-      family: this.familyPart.getValue(),
+      family: this.familyPart.getValue().toString(),
       size: this.sizePart.getValue(),
       weight: this.boldCtrl.getValue() ? 'bold' : 'normal',
       style: this.italicsCtrl.getValue() ? 'italics' : 'normal'
     };
   }
-  setValue(value) {
+  setValue(value: FontInfo) {
     let italics = false;
     // upconvert font size, all font sizes now in points.
     if (typeof(value.size) !== 'number') {
@@ -142,18 +151,36 @@ export class SuiFontComponent extends SuiComponentBase {
   }
 }
 
-export class SuiTextBlockComponent extends SuiComponentBase {
-  constructor(dialog, parameter) {
-    super(parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
-    this.dialog = dialog;
+export interface SuiTextBlockComponentParams {
+  id: string,
+  classes: string,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string
+}
+export interface SuiTextBlockValue {
+  modifier: SmoTextGroup,
+  activeScoreText: SmoScoreText
+}
+export class SuiTextBlockComponent extends SuiComponentParent {
+  addBlockCtrl: SuiButtonComposite;
+  toggleBlockCtrl: SuiButtonComposite;
+  removeBlockCtrl: SuiButtonComposite;
+  relativePositionCtrl: SuiDropdownComposite;
+  justificationCtrl: SuiDropdownComposite;
+  spacingCtrl: SuiRockerComposite;
+  modifier: SmoTextGroup;
+  activeScoreText: SmoScoreText;
+
+  constructor(dialog: SuiDialogNotifier, parameter: SuiTextBlockComponentParams) {
+    super(dialog, parameter);
     this.addBlockCtrl = new SuiButtonComposite(this.dialog,
       {
+        id: this.id + 'addBlock',
         smoName: 'addBlock',
         parameterName: 'addBlock',
         parentControl: this,
-        defaultValue: false,
         icon: 'icon-plus',
         classes: 'hide-when-editing hide-when-moving',
         control: 'SuiButtonComponent',
@@ -162,10 +189,10 @@ export class SuiTextBlockComponent extends SuiComponentBase {
 
     this.toggleBlockCtrl = new SuiButtonComposite(this.dialog,
       {
+        id: this.id + 'toggleBlock',
         smoName: 'toggleBlock',
         parameterName: 'toggleBlock',
         parentControl: this,
-        defaultValue: false,
         icon: 'icon-arrow-right',
         classes: 'hide-when-editing hide-when-moving',
         control: 'SuiButtonComponent',
@@ -174,10 +201,10 @@ export class SuiTextBlockComponent extends SuiComponentBase {
 
     this.removeBlockCtrl = new SuiButtonComposite(this.dialog,
       {
+        id: this.id + 'removeBlock',
         smoName: 'removeBlock',
         parameterName: 'removeBlock',
         parentControl: this,
-        defaultValue: false,
         icon: 'icon-minus',
         classes: 'hide-when-editing hide-when-moving',
         control: 'SuiButtonComponent',
@@ -186,6 +213,7 @@ export class SuiTextBlockComponent extends SuiComponentBase {
     this.relativePositionCtrl = new SuiDropdownComposite(
       this.dialog,
       {
+        id: this.id + 'relativePosition',
         smoName: 'relativePosition',
         parameterName: 'relativePosition',
         parentControl: this,
@@ -193,7 +221,6 @@ export class SuiTextBlockComponent extends SuiComponentBase {
         classes: 'hide-when-editing hide-when-moving',
         control: 'SuiDropdownComponent',
         label: 'Block Positions',
-        startRow: true,
         options: [{
           value: SmoTextGroup.relativePositions.ABOVE,
           label: 'Above'
@@ -212,6 +239,7 @@ export class SuiTextBlockComponent extends SuiComponentBase {
     this.justificationCtrl = new SuiDropdownComposite(
       this.dialog,
       {
+        id: this.id + 'justification',
         smoName: 'justification',
         parameterName: 'justification',
         parentControl: this,
@@ -233,6 +261,7 @@ export class SuiTextBlockComponent extends SuiComponentBase {
     this.spacingCtrl = new SuiRockerComposite(
       this.dialog,
       {
+        id: this.id + 'spacing',
         smoName: 'spacing',
         parameterName: 'spacing',
         defaultValue: 0,
@@ -244,11 +273,16 @@ export class SuiTextBlockComponent extends SuiComponentBase {
         increment: 0.1
       },
     );
-    this.modifier = this.dialog.modifier;
-    this.activeScoreText = this.dialog.activeScoreText;
+    const mod = this.dialog.getModifier();
+    if (mod && SmoTextGroup.isTextGroup(mod)) {
+      this.modifier = mod;
+    } else {
+      this.modifier = new SmoTextGroup(SmoTextGroup.defaults);
+    }
+    this.activeScoreText = this.modifier.textBlocks[0].text;
   }
   changed() {
-    if (this.addBlockCtrl.changeFlag) {
+    if (this.addBlockCtrl.changeFlag && this.modifier) {
       const nt = new SmoScoreText(this.activeScoreText);
       this.modifier.addScoreText(nt);
       this.activeScoreText = nt;
@@ -256,10 +290,10 @@ export class SuiTextBlockComponent extends SuiComponentBase {
       this._updateMultiiFields();
     }
     if (this.relativePositionCtrl.changeFlag) {
-      this.modifier.setRelativePosition(parseInt(this.relativePositionCtrl.getValue(), 10));
+      this.modifier.setRelativePosition(parseInt(this.relativePositionCtrl.getValue().toString(), 10));
     }
     if (this.justificationCtrl.changeFlag) {
-      this.modifier.justification = parseInt(this.justificationCtrl.getValue(), 10);
+      this.modifier.justification = parseInt(this.justificationCtrl.getValue().toString(), 10);
     }
     if (this.removeBlockCtrl.changeFlag) {
       this.modifier.removeBlock(this.activeScoreText);
@@ -282,7 +316,7 @@ export class SuiTextBlockComponent extends SuiComponentBase {
   }
 
   get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
+    return this.dialog.getId() + '-' + this.parameterName;
   }
 
   get html() {
@@ -299,7 +333,7 @@ export class SuiTextBlockComponent extends SuiComponentBase {
   }
 
   _getInputElement() {
-    return $(this.dialog.dgDom.element).find('#' + this.pid);
+    return $(this.dialog.dgDom.element).find('#' + this.parameterId);
   }
   getValue() {
     return {
@@ -318,7 +352,7 @@ export class SuiTextBlockComponent extends SuiComponentBase {
       }
     });
   }
-  setValue(value) {
+  setValue(value: SuiTextBlockValue) {
     this.activeScoreText = value.activeScoreText;
     this.modifier = value.modifier;
     this.relativePositionCtrl.setValue(this.modifier.relativePosition);

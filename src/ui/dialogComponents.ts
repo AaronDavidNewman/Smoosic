@@ -3,13 +3,84 @@
 import { htmlHelpers } from '../common/htmlHelpers';
 import { smoSerialize } from '../common/serializationHelpers';
 import { SuiFileInput } from './fileio/fileInput';
+import { SmoModifier } from '../smo/data/score';
+import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
+import { BrowserEventSource } from '../application/eventSource';
+/**
+ * A component is a part of a dialog box that accepts some input.
+ */
+declare var $: any;
+/**
+ * Dialogs controls options, like dropdowns
+ */
+export interface DialogDefinitionOption {
+  label: string,
+  value: number | string
+}
+/**
+ * Generic parameters of a dialog component.  Specific components can define
+ * additional params
+ * @param {smoName} - the name the dialog uses to reference it 
+ * @param {parameterName} - can be used for automatic binding
+ * @param {control} - constructor of the control
+ * @param {label} - label of the element, can be translated
+ * @param {increment}  - used by components that have increment arrows
+ * @param {defaultValue} - thinking of removing this
+ * @param {dataType} - used to narrow the type by some components
+ * @param {classes} - can be used in rendering
+ */
+export interface DialogDefinitionElement {
+  smoName: string,
+  parameterName: string,
+  control: string,
+  label: string,
+  options?: DialogDefinitionOption[]
+  increment?: number,
+  defaultValue?: number | string,
+  dataType?: string,
+  classes?: string,
+}
 
+export interface SuiBaseComponentParams {
+  id: string,
+  classes: string,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string,
+  parentComponent?: SuiComponentParent
+}
+export abstract class SuiDialogNotifier {
+  abstract changed(): void;
+  abstract getId(): string;
+  abstract get dgDom(): any;
+  abstract getView(): SuiScoreViewOperations;
+  abstract getModifier(): SmoModifier | null;
+  abstract getStaticText(): Record<string, string>;
+  abstract getEventSource(): BrowserEventSource;
+}
 // # dbComponents - components of modal dialogs.
-export class SuiComponentBase {
-  constructor(parameters) {
+export abstract class SuiComponentBase {
+  changeFlag: boolean = false;
+  css: string;
+  dialog: SuiDialogNotifier;
+  id: string;
+  label: string;
+  control: string;
+  parameterName: string;
+  smoName: string;
+  constructor(dialog: SuiDialogNotifier, parameters: SuiBaseComponentParams) {
     this.changeFlag = false;
     this.css = parameters.classes;
+    this.dialog = dialog;
+    this.id = parameters.id;
+    this.label = parameters.label;
+    this.control = parameters.control;
+    this.parameterName = parameters.parameterName;
+    this.smoName = parameters.smoName;
   }
+  abstract bind(): void;
+  abstract get html(): any;
   handleChanged() {
     this.changeFlag = true;
     this.dialog.changed();
@@ -18,49 +89,60 @@ export class SuiComponentBase {
   // ### makeClasses
   // Allow specific dialogs to add css to components so they can
   // be conditionally displayed
-  makeClasses(classes) {
+  makeClasses(classes: string) {
     if (this.css) {
       return classes + ' ' + this.css;
     }
     return classes;
   }
+  get parameterId() {
+    return this.dialog.getId() + '-' + this.parameterName;
+  }
 }
 
+export abstract class SuiComponentParent extends SuiComponentBase {
+  abstract changed(): void;
+}
+
+export interface SuiRockerComponentParams {
+  id: string,
+  classes: string,
+  dataType?: string,
+  increment?: number,
+  defaultValue: number,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string
+}
 // ## SuiRockerComponent
 // A numeric input box with +- buttons.   Adjustable type and scale
 export class SuiRockerComponent extends SuiComponentBase {
   static get dataTypes() {
     return ['int', 'float', 'percent'];
   }
-  static get increments() {
+  static get increments(): Record<string, number> {
     return { 'int': 1, 'float': 0.1, 'percent': 10 };
   }
-  static get parsers() {
+  static get parsers(): Record<string, string> {
     return { 'int': '_getIntValue', 'float': '_getFloatValue', 'percent': '_getPercentValue' };
   }
-  constructor(dialog, parameter) {
-    super(parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'control', 'label', 'increment', 'type'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
+  defaultValue: number = 0;
+  dataType: string;
+  increment: number = 1;
+  parser: string;
+  constructor(dialog: SuiDialogNotifier, params: SuiRockerComponentParams) {
+    super(dialog, params);
+    this.dataType = params.dataType ?? 'int';
+    this.increment = params.increment ?? SuiRockerComponent.increments[this.dataType];
+    this.defaultValue = params.defaultValue ?? 0;
+    if (SuiRockerComponent.dataTypes.indexOf(this.dataType) < 0) {
+      throw new Error('dialog element invalid type ' + this.dataType);
     }
-    if (!this.type) {
-      this.type = 'int';
-    }
-    if (!this.increment) {
-      this.increment = SuiRockerComponent.increments[this.type];
-    }
-    if (SuiRockerComponent.dataTypes.indexOf(this.type) < 0) {
-      throw new Error('dialog element invalid type ' + this.type);
-    }
-
-    this.id = this.id ? this.id : '';
-
-    if (this.type === 'percent') {
+    if (this.dataType === 'percent') {
       this.defaultValue = 100 * this.defaultValue;
     }
-    this.parser = SuiRockerComponent.parsers[this.type];
+    this.parser = SuiRockerComponent.parsers[this.dataType];
     this.dialog = dialog;
   }
 
@@ -80,7 +162,7 @@ export class SuiRockerComponent extends SuiComponentBase {
   }
 
   get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
+    return this.dialog.getId() + '-' + this.parameterName;
   }
   handleChange() {
     this.changeFlag = true;
@@ -96,8 +178,8 @@ export class SuiRockerComponent extends SuiComponentBase {
     const self = this;
     $('#' + pid).find('button.increment').off('click').on('click',
       () => {
-        val = self[self.parser]();
-        if (self.type === 'percent') {
+        val = (this as any)[this.parser]();
+        if (self.dataType === 'percent') {
           val = 100 * val;
         }
         $(input).val(val + self.increment);
@@ -106,8 +188,8 @@ export class SuiRockerComponent extends SuiComponentBase {
     );
     $('#' + pid).find('button.decrement').off('click').on('click',
       () => {
-        val = self[self.parser]();
-        if (self.type === 'percent') {
+        val = (this as any)[this.parser]();
+        if (self.dataType === 'percent') {
           val = 100 * val;
         }
         $(input).val(val - self.increment);
@@ -131,44 +213,54 @@ export class SuiRockerComponent extends SuiComponentBase {
     return val;
   }
   _getFloatValue() {
-    let val = parseFloat(this._getInputElement().val(), 10);
+    let val = parseFloat(this._getInputElement().val());
     val = isNaN(val) ? 1.0 : val;
     return val;
   }
   _getPercentValue() {
-    let val = parseFloat(this._getInputElement().val(), 10);
+    let val = parseFloat(this._getInputElement().val());
     val = isNaN(val) ? 1 : val;
     return val / 100;
   }
-  _setIntValue(val) {
+  _setIntValue(val: string | number) {
     this._getInputElement().val(val);
   }
-  setValue(value) {
-    if (this.type === 'percent') {
+  setValue(value: number) {
+    if (this.dataType === 'percent') {
       value = value * 100;
     }
     this._setIntValue(value);
   }
   getValue() {
-    return this[this.parser]();
+    return (this as any)[this.parser]();
   }
 }
 
+export interface SuiFileDownloadComponentParams {
+  id: string,
+  classes: string,
+  type?: string,
+  increment?: number,
+  defaultValue: string,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string
+}
 // ## SuiFileDownloadComponent
 // Download a test file using the file input.
 export class SuiFileDownloadComponent extends SuiComponentBase {
-  constructor(dialog, parameter) {
-    super(parameter);
+  defaultValue: string;
+  value: string = '';
+  constructor(dialog: SuiDialogNotifier, parameter: SuiFileDownloadComponentParams) {
+    super(dialog, parameter);
     smoSerialize.filteredMerge(
       ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
-    }
+    this.defaultValue = parameter.defaultValue ?? '';
     this.dialog = dialog;
-    this.value = '';
   }
   get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
+    return this.dialog.getId() + '-' + this.parameterName;
   }
   get html() {
     const b = htmlHelpers.buildDom;
@@ -179,7 +271,7 @@ export class SuiFileDownloadComponent extends SuiComponentBase {
         b('label').attr('for', id + '-input').text(this.label));
     return r;
   }
-  _handleUploadedFiles(evt)  {
+  _handleUploadedFiles(evt: any)  {
     const localFile = new SuiFileInput(evt);
     localFile.loadAsync().then(() => {
       this.value = localFile.value;
@@ -191,22 +283,28 @@ export class SuiFileDownloadComponent extends SuiComponentBase {
   }
   bind() {
     const self = this;
-    $('#' + this.parameterId).find('input').off('change').on('change', (e) => {
+    $('#' + this.parameterId).find('input').off('change').on('change', (e: any) => {
       self._handleUploadedFiles(e);
     });
   }
 }
-
+export interface SuiToggleComponentParams {
+  id: string,
+  classes: string,
+  type?: string,
+  increment?: number,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string
+}
 // ## SuiToggleComponent
 // Simple on/off behavior
 export class SuiToggleComponent extends SuiComponentBase {
-  constructor(dialog, parameter) {
-    super(parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
-    }
+  defaultValue: boolean = false;
+  constructor(dialog: SuiDialogNotifier, parameter: SuiToggleComponentParams) {
+    super(dialog, parameter);
+    this.defaultValue = false;
     this.dialog = dialog;
   }
   get html() {
@@ -223,10 +321,10 @@ export class SuiToggleComponent extends SuiComponentBase {
     return $(this.dialog.dgDom.element).find('#' + pid).find('input');
   }
   get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
+    return this.dialog.getId() + '-' + this.parameterName;
   }
 
-  setValue(value) {
+  setValue(value: boolean) {
     $(this._getInputElement()).prop('checked', value);
   }
   getValue() {
@@ -236,25 +334,31 @@ export class SuiToggleComponent extends SuiComponentBase {
   bind() {
     const input = this._getInputElement();
     this.setValue(this.defaultValue);
-    const self = this;
     $(input).off('change').on('change',
       () => {
-        self.handleChanged();
+        this.handleChanged();
       });
   }
 }
-
+export interface SuiButtonComponentParams {
+  id: string,
+  classes: string,
+  type?: string,
+  increment?: number,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string,
+  icon: string
+}
 // ## SuiToggleComponent
-// Simple on/off behavior
+// Simple on/off behavior.  No value just used to notifiy parent dialog
 export class SuiButtonComponent extends SuiComponentBase {
-  constructor(dialog, parameter) {
-    super(parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'control', 'label', 'additionalClasses', 'icon'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
-    }
+  icon: string;
+  constructor(dialog: SuiDialogNotifier, parameter: SuiButtonComponentParams) {
+    super(dialog, parameter);
     this.dialog = dialog;
+    this.icon = parameter.icon;
   }
   get html() {
     const b = htmlHelpers.buildDom;
@@ -271,47 +375,56 @@ export class SuiButtonComponent extends SuiComponentBase {
     return $(this.dialog.dgDom.element).find('#' + pid).find('button');
   }
   get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
+    return this.dialog.getId() + '-' + this.parameterName;
   }
-
   setValue() {
   }
   getValue() {
     return null;
   }
-
   bind() {
     const input = this._getInputElement();
-    this.setValue(this.defaultValue);
-    const self = this;
     $(input).off('click').on('click',
       () => {
-        self.handleChanged();
+        this.handleChanged();
       });
   }
 }
-
+export interface SuiDropdownComponentParams {
+  id: string,
+  classes: string,
+  type?: string,
+  increment?: number,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string,
+  disabledOption?: string,
+  defaultValue: string | number,
+  dataType?: string,
+  options?: DialogDefinitionOption[]
+}
 // ### SuiDropdownComponent
 // simple dropdown select list.
 export class SuiDropdownComponent extends SuiComponentBase {
-  constructor(dialog, parameter) {
-    super(parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType', 'disabledOption'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
-    }
-    if (!this.dataType) {
-      this.dataType = 'string';
-    }
-    this.dialog = dialog;
+  options: DialogDefinitionOption[];
+  disabledOption: string;
+  dataType: string;
+  defaultValue: string | number;
+  value: string = '';
+  constructor(dialog: SuiDialogNotifier, parameter: SuiDropdownComponentParams) {
+    super(dialog, parameter);
+    this.options = parameter.options!;
+    this.disabledOption = parameter.disabledOption ?? '';
+    this.dataType = parameter.dataType ?? 'string';
+    this.defaultValue = parameter.defaultValue;
   }
 
   get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
+    return this.dialog.getId() + '-' + this.parameterName;
   }
-  checkDefault(s, b) {
-    if (typeof(this.disabledOption) === 'string') {
+  checkDefault(s: any, b: any) {
+    if (this.disabledOption.length) {
       s.prop('required', true).append(b('option').attr('selected', 'selected').prop('disabled', true).text(this.disabledOption));
     }
   }
@@ -330,7 +443,7 @@ export class SuiDropdownComponent extends SuiComponentBase {
       b('label').attr('for', id + '-input').text(this.label));
     return r;
   }
-  replaceOptions(options) {
+  replaceOptions(options: DialogDefinitionOption[]) {
     const b = htmlHelpers.buildDom;
     const s = b('select');
     const sel = this._getInputElement();
@@ -353,19 +466,19 @@ export class SuiDropdownComponent extends SuiComponentBase {
     var pid = this.parameterId;
     return $(this.dialog.dgDom.element).find('#' + pid).find('select');
   }
-  getValue() {
+  getValue(): string | number {
     const input = this._getInputElement();
     const option = input.find('option:selected');
     let val = $(option).val();
     val = (this.dataType.toLowerCase() === 'int') ?  parseInt(val, 10) : val;
-    val = (this.dataType.toLowerCase() === 'float') ?  parseFloat(val, 10) : val;
+    val = (this.dataType.toLowerCase() === 'float') ?  parseFloat(val) : val;
     if (typeof(val) === 'undefined') {
       val = $(input).find('option:first').val();
       $(input).find('option:first').prop('selected', true);
     }
     return val;
   }
-  setValue(value) {
+  setValue(value: string | number) {
     const input = this._getInputElement();
     $(input).val(value);
   }
@@ -382,11 +495,26 @@ export class SuiDropdownComponent extends SuiComponentBase {
       });
   }
 }
-
+export interface SuiDropdownCompositeParams {
+  id: string,
+  classes: string,
+  type?: string,
+  increment?: number,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string,
+  disabledOption?: string,
+  defaultValue: string | number,
+  dataType?: string,
+  options?: DialogDefinitionOption[],
+  parentControl: SuiComponentParent
+}
 // ### SuiDropdownComposite
 // Dropdown component that can be part of a composite control.
 export class SuiDropdownComposite extends SuiDropdownComponent {
-  constructor(dialog, parameters) {
+  parentControl: SuiComponentParent;
+  constructor(dialog: SuiDialogNotifier, parameters: SuiDropdownCompositeParams) {
     super(dialog, parameters);
     this.parentControl = parameters.parentControl;
   }
@@ -397,11 +525,25 @@ export class SuiDropdownComposite extends SuiDropdownComponent {
     this.changeFlag = false;
   }
 }
-
+export interface SuiToggleCompositeParams {
+  id: string,
+  classes: string,
+  type?: string,
+  increment?: number,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string,
+  disabledOption?: string,
+  defaultValue?: string | number,
+  dataType?: string,
+  parentControl: SuiComponentParent
+}
 // ### SuiToggleComposite
 // Dropdown component that can be part of a composite control.
 export class SuiToggleComposite extends SuiToggleComponent {
-  constructor(dialog, parameters) {
+  parentControl: SuiComponentParent;
+  constructor(dialog: SuiDialogNotifier, parameters: SuiToggleCompositeParams) {
     super(dialog, parameters);
     this.parentControl = parameters.parentControl;
   }
@@ -413,10 +555,23 @@ export class SuiToggleComposite extends SuiToggleComponent {
   }
 }
 
+export interface SuiButtonCompositeParams {
+  id: string,
+  classes: string,
+  type?: string,
+  increment?: number,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string,
+  icon: string,
+  parentControl: SuiComponentParent
+}
 // ### SuiButtonComposite
 // Dropdown component that can be part of a composite control.
 export class SuiButtonComposite extends SuiButtonComponent {
-  constructor(dialog, parameters) {
+ parentControl: SuiComponentParent;
+  constructor(dialog: SuiDialogNotifier, parameters: SuiButtonCompositeParams) {
     super(dialog, parameters);
     this.parentControl = parameters.parentControl;
   }
@@ -427,9 +582,21 @@ export class SuiButtonComposite extends SuiButtonComponent {
     this.changeFlag = false;
   }
 }
-
+export interface SuiRockerCompositeParams {
+  id: string,
+  classes: string,
+  type?: string,
+  increment?: number,
+  defaultValue: number,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string,
+  parentControl: SuiComponentParent
+}
 export class SuiRockerComposite extends SuiRockerComponent {
-  constructor(dialog, parameters) {
+  parentControl: SuiComponentParent;
+  constructor(dialog: SuiDialogNotifier, parameters: SuiRockerCompositeParams) {
     super(dialog, parameters);
     this.parentControl = parameters.parentControl;
   }
@@ -440,23 +607,31 @@ export class SuiRockerComposite extends SuiRockerComponent {
     this.changeFlag = false;
   }
 }
-
+export interface SuiTextInputComponentParams {
+  id: string,
+  classes: string,
+  type?: string,
+  increment?: number,
+  defaultValue: string,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string
+}
 // ## SuiTextInputComponent
 // Just get text from an input, such as a filename.
 // Note: this is HTML input, not for SVG/score editing
 export class SuiTextInputComponent extends SuiComponentBase {
-  constructor(dialog, parameter) {
-    super(parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
-    }
+  defaultValue: string = '';
+  value: string = '';
+  constructor(dialog: SuiDialogNotifier, parameter: SuiTextInputComponentParams) {
+    super(dialog, parameter);
+
     this.dialog = dialog;
     this.value = '';
   }
   get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
+    return this.dialog.getId() + '-' + this.parameterName;
   }
   get html() {
     const b = htmlHelpers.buildDom;
@@ -471,7 +646,7 @@ export class SuiTextInputComponent extends SuiComponentBase {
   getValue() {
     return this.value;
   }
-  setValue(val) {
+  setValue(val: string) {
     this.value = val;
     $('#' + this.parameterId).find('input').val(val);
   }
@@ -487,9 +662,21 @@ export class SuiTextInputComponent extends SuiComponentBase {
     });
   }
 }
-
+export interface SuiTextInputCompositeParams {
+  id: string,
+  classes: string,
+  type?: string,
+  increment?: number,
+  defaultValue: string,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string
+  parentControl: SuiComponentParent
+}
 export class SuiTextInputComposite extends SuiTextInputComponent {
-  constructor(dialog, parameters) {
+  parentControl: SuiComponentParent;
+  constructor(dialog: SuiDialogNotifier, parameters: SuiTextInputCompositeParams) {
     super(dialog, parameters);
     this.parentControl = parameters.parentControl;
   }

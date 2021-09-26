@@ -37,6 +37,11 @@ export abstract class StaffModifierBase implements SmoModifierBase {
   }
   abstract serialize(): any;
 }
+export interface SmoInstrumentParams {
+  instrument: string,
+  keyOffset: number,
+  clef: Clef
+}
 // WIP
 export class SmoInstrument {
   static get attributes() {
@@ -45,6 +50,11 @@ export class SmoInstrument {
   instrument: string = '';
   keyOffset: number = 0;
   clef: Clef = 'treble';
+  constructor(params: SmoInstrumentParams) {
+    this.instrument = params.instrument;
+    this.keyOffset = params.keyOffset;
+    this.clef = params.clef;
+  }
   serialize() {}
 }
 // WIP
@@ -282,6 +292,10 @@ export class SmoTie extends StaffModifierBase {
   static get vexParameters() {
     return ['cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
   }
+  static isTie(modifier: SmoTie | SmoModifierBase): modifier is SmoTie {
+    return modifier.ctor === 'SmoTie';
+  }
+
   static createLines(fromNote: SmoNote, toNote: SmoNote): TieLine[] {
     const maxPitches = Math.max(fromNote.pitches.length, toNote.pitches.length);
     let i = 0;

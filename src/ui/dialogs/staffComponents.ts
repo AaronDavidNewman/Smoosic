@@ -1,25 +1,50 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SuiTextInputComposite, SuiToggleComposite, SuiComponentBase, SuiDropdownComposite, SuiToggleComponent } from '../dialogComponents';
+import { SuiTextInputComposite, SuiToggleComposite, SuiComponentBase, SuiDropdownComposite, SuiToggleComponent, 
+  SuiDialogNotifier, DialogDefinitionElement, SuiComponentParent, SuiToggleCompositeParams, SuiDropdownCompositeParams } from '../dialogComponents';
 import { htmlHelpers } from '../../common/htmlHelpers';
 import { SmoSelection } from '../../smo/xform/selections';
-import { SuiDialogBase } from '../dialog';
-import { SuiTieAttributesDialog, SuiStaffGroupDialog } from './staffDialogs';
+import { SmoTie, TieLine } from '../../smo/data/staffModifiers';
+import { SmoNote } from '../../smo/data/note';
+import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
+import { SmoSystemGroup } from '../../smo/data/scoreModifiers';
+declare var $: any;
+
+export interface CheckboxDropdownComponentParams {
+  id: string,
+  classes: string,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string,
+  toggleElement: DialogDefinitionElement,
+  dropdownElement: DialogDefinitionElement
+}
 
 // ## CheckboxDropdownComponent
 // A checkbox that enables a dropdown component, for optional or dependent parameter
-export class CheckboxDropdownComponent extends SuiComponentBase {
+export class CheckboxDropdownComponent extends SuiComponentParent {
   // { dropdownElement: {...}, toggleElement: }
-  constructor(dialog, parameter) {
-    super(parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
-    this.dialog = dialog;
-    parameter.toggleElement.parentControl = this;
-    parameter.dropdownElement.parentControl = this;
-    this.toggleCtrl = new SuiToggleComposite(this.dialog, parameter.toggleElement);
-    this.dropdownCtrl = new SuiDropdownComposite(this.dialog, parameter.dropdownElement);
+  toggleCtrl: SuiToggleComposite;
+  dropdownCtrl: SuiDropdownComposite;
+  constructor(dialog: SuiDialogNotifier, parameter: CheckboxDropdownComponentParams) {
+    super(dialog, parameter);
+    const toggleParams: SuiToggleCompositeParams = {
+      id: this.id + parameter.toggleElement.smoName,
+      classes: '',
+      parentControl: this,
+      ...parameter.toggleElement
+    }
+    const dropdownParams: SuiDropdownCompositeParams = {
+      id: this.id + parameter.dropdownElement.smoName,
+      classes: '',
+      defaultValue: '',
+      parentControl: this,
+      ...parameter.dropdownElement
+    }
+    this.toggleCtrl = new SuiToggleComposite(this.dialog, toggleParams);
+    this.dropdownCtrl = new SuiDropdownComposite(this.dialog, dropdownParams);
   }
   get html() {
     const b = htmlHelpers.buildDom;
@@ -29,9 +54,7 @@ export class CheckboxDropdownComponent extends SuiComponentBase {
     q.append(this.dropdownCtrl.html);
     return q;
   }
-  get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
-  }
+
   bind() {
     this.toggleCtrl.bind();
     this.dropdownCtrl.bind();
@@ -46,44 +69,76 @@ export class CheckboxDropdownComponent extends SuiComponentBase {
   }
 }
 
+export interface PitchTieControlRow {
+  leftControl: SuiDropdownComposite,
+  rightControl: SuiDropdownComposite
+}
+export interface TieMappingComponentParams {
+  id: string,
+  classes: string,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string,
+  toggleElement: DialogDefinitionElement,
+  dropdownElement: DialogDefinitionElement
+}
 // ## TieMappingComponent
 // Represent the pitches in 2 notes that can be individually tied together
-export class TieMappingComponent extends SuiComponentBase {
+export class TieMappingComponent extends SuiComponentParent {
   // { dropdownElement: {...}, toggleElement: }
-  constructor(dialog, parameter) {
+  startSelection: SmoSelection | null;
+  endSelection: SmoSelection | null;
+  modifier: SmoTie;
+  controlRows: PitchTieControlRow[] = [];
+  constructor(dialog: SuiDialogNotifier, parameter: TieMappingComponentParams) {
+    super(dialog, parameter);
     let i = 0;
-    super(parameter);
-    this.dialog = dialog;
+    const modifier = this.dialog.getModifier();
+    if (modifier && SmoTie.isTie(modifier)) {
+      this.modifier = modifier;
+    } else { // should not happen
+      this.modifier = new SmoTie(SmoTie.defaults);
+    }
     this.startSelection = SmoSelection.noteFromSelector(
-      this.dialog.view.score, this.dialog.modifier.startSelector);
+      this.dialog.getView().score, this.modifier.startSelector);
     this.endSelection = SmoSelection.noteFromSelector(
-      this.dialog.view.score, this.dialog.modifier.endSelector);
+      this.dialog.getView().score, this.modifier.endSelector);
+    if (this.startSelection === null || this.startSelection.note === null ||
+      this.endSelection === null || this.endSelection.note === null) {
+      return;
+    }
     const pitchCount = Math.max(this.startSelection.note.pitches.length, this.endSelection.note.pitches.length);
 
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
     this.controlRows = [];
     for (i = 0; i < pitchCount; ++i) {
       const smoName = 'Line-' + (i + 1);
       const defaultValue = -1;
-      const leftControl = new SuiDropdownComposite(this.dialog, {
+      const leftParams: SuiDropdownCompositeParams = {
+        id: this.id + smoName + '-left',
         smoName: smoName + '-left',
         parameterName: smoName + '-left',
         classes: 'leftControl',
         defaultValue,
-        label: dialog.staticText.fromNote,
+        control: 'SuiDropdownComposite',
+        label: dialog.getStaticText()['fromNote'],
         options: this._generateOptions(this.startSelection.note),
         parentControl: this
-      });
-      const rightControl = new SuiDropdownComposite(this.dialog, {
+      }
+      const leftControl = new SuiDropdownComposite(this.dialog, leftParams);
+      const rightParams: SuiDropdownCompositeParams = {
+        id: this.id + smoName + '-right',
         smoName: smoName + '-right',
         parameterName: smoName + '-right',
         classes: 'rightControl',
-        label: dialog.staticText.toNote,
+        control: 'SuiDropdownComposite',
+        label: dialog.getStaticText()['toNote'],
         defaultValue,
         options: this._generateOptions(this.endSelection.note),
         parentControl: this
-      });
+
+      }
+      const rightControl = new SuiDropdownComposite(this.dialog, rightParams);
       this.controlRows.push({ leftControl, rightControl });
     }
   }
@@ -94,7 +149,7 @@ export class TieMappingComponent extends SuiComponentBase {
     });
   }
 
-  _generateOptions(note) {
+  _generateOptions(note: SmoNote) {
     const options = [];
     let index = 0;
     let label = '';
@@ -112,17 +167,17 @@ export class TieMappingComponent extends SuiComponentBase {
     return options;
   }
   getValue() {
-    const lines = [];
+    const lines: TieLine[] = [];
     this.controlRows.forEach((row) => {
-      const left = row.leftControl.getValue();
-      const right = row.rightControl.getValue();
+      const left: number = parseInt(row.leftControl.getValue().toString(), 10);
+      const right: number = parseInt(row.rightControl.getValue().toString(), 10);
       if (left >= 0 && right >= 0) {
         lines.push({ from: left, to: right });
       }
     });
     return lines;
   }
-  setValue(modifier) {
+  setValue(modifier: SmoTie) {
     let i = 0;
     for (i = 0; i < this.controlRows.length; ++i) {
       const row = this.controlRows[i];
@@ -145,20 +200,34 @@ export class TieMappingComponent extends SuiComponentBase {
     return q;
   }
 }
+export interface StaffAddControlRow {
+  showCtrl: SuiToggleComposite
+}
+export interface StaffAddRemoveComponentParams {
+  id: string,
+  classes: string,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string
+}
 export class StaffAddRemoveComponent extends SuiComponentBase {
-  get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
-  }
-  constructor(dialog, parameter) {
-    super(parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
-
-    this.dialog = dialog;
-    this.view = this.dialog.view;
-    this.createdShell = false;
-    this.staffRows = [];
-    this.label = SuiDialogBase.getStaticText(SuiStaffGroupDialog.dialogElements, 'includeStaff');
+  staffRows: StaffAddControlRow[] = [];
+  view: SuiScoreViewOperations;
+  createdShell: boolean = false;
+  staticText: Record<string, string>;
+  modifier: SmoSystemGroup;
+  constructor(dialog: SuiDialogNotifier, parameter: StaffAddRemoveComponentParams) {
+    super(dialog, parameter);
+    this.view = this.dialog.getView();
+    this.staticText = dialog.getStaticText();
+    this.label = this.staticText['includeStaff'];
+    const mod = this.dialog.getModifier();
+    if (mod && SmoSystemGroup.isSystemGroup(mod)) {
+      this.modifier = mod;
+    } else {
+      this.modifier = new SmoSystemGroup(SmoSystemGroup.defaults);
+    }
   }
   setControlRows() {
     let i = this.modifier.startSelector.staff;
@@ -166,47 +235,36 @@ export class StaffAddRemoveComponent extends SuiComponentBase {
     this.view.storeScore.staves.forEach((staff) => {
       const name = this.label + ' ' + (staff.staffId + 1);
       const id = 'show-' + i;
+      const elementParams: SuiToggleCompositeParams = {
+        smoName: id,
+        parameterName: id,
+        classes: 'toggle-add-row',
+        control: 'SuiToggleComponent',
+        label: name,
+        parentControl: this,
+        id: id
+      }      
       // Toggle add of last row + 1
       if (staff.staffId === this.modifier.endSelector.staff + 1) {
-        const rowElement = new SuiToggleComposite(this.dialog, {
-          smoName: id,
-          parameterName: id,
-          defaultValue: false,
-          classes: 'toggle-add-row',
-          control: 'SuiToggleComponent',
-          label: name
-        });
+
+        const rowElement = new SuiToggleComposite(this.dialog, elementParams);
         rowElement.parentControl = this;
         this.staffRows.push({
           showCtrl: rowElement
         });
       } else if (staff.staffId > this.modifier.startSelector.staff &&
         staff.staffId === this.modifier.endSelector.staff) {
+        elementParams.classes = 'toggle-remove-row';
         // toggle remove of ultimate row, other than first row
-        const rowElement = new SuiToggleComposite(this.dialog, {
-          smoName: id,
-          parameterName: id,
-          defaultValue: true,
-          classes: 'toggle-remove-row',
-          control: 'SuiToggleComponent',
-          label: name
-        });
-        rowElement.parentControl = this;
+        const rowElement = new SuiToggleComposite(this.dialog, elementParams);
         this.staffRows.push({
           showCtrl: rowElement
         });
       } else if ((staff.staffId <= this.modifier.endSelector.staff) &&
         (staff.staffId >= this.modifier.startSelector.staff)) {
         // toggle remove of ultimate row, other than first row
-        const rowElement = new SuiToggleComponent(this.dialog, {
-          smoName: id,
-          parameterName: id,
-          defaultValue: true,
-          classes: 'toggle-disabled',
-          control: 'SuiToggleComponent',
-          label: name
-        });
-        rowElement.parentControl = this;
+        elementParams.classes = 'toggle-disabled';
+        const rowElement = new SuiToggleComposite(this.dialog,elementParams);
         this.staffRows.push({
           showCtrl: rowElement
         });
@@ -240,13 +298,13 @@ export class StaffAddRemoveComponent extends SuiComponentBase {
     this.modifier.endSelector = JSON.parse(JSON.stringify(this.modifier.startSelector));
     this.staffRows.forEach((staffRow) => {
       if (staffRow.showCtrl.getValue()) {
-        this.modifier.endSelector = { staff: nextStaff, measure: maxMeasure };
+        this.modifier.endSelector = { staff: nextStaff, measure: maxMeasure, voice: 0, tick: 0, pitches: [] };
         nextStaff += 1;
       }
     });
     return this.modifier;
   }
-  setValue(staffGroup) {
+  setValue(staffGroup: SmoSystemGroup) {
     this.modifier = staffGroup; // would this be used?
     this.setControlRows();
   }
@@ -261,26 +319,41 @@ export class StaffAddRemoveComponent extends SuiComponentBase {
     });
   }
 }
-
+export interface StaffCheckComponentParams {
+  id: string,
+  classes: string,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string
+}
+export interface StaffCheckControlRow {
+  showCtrl: SuiToggleComposite
+}
+export interface StaffCheckValue {
+  show: boolean;
+}
 export class StaffCheckComponent extends SuiComponentBase {
-  constructor(dialog, parameter) {
-    super(parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+  view: SuiScoreViewOperations;
+  staffRows: StaffCheckControlRow[];
+  constructor(dialog: SuiDialogNotifier, parameter: StaffCheckComponentParams) {
+    super(dialog, parameter);
     this.dialog = dialog;
-    this.view = this.dialog.view;
+    this.view = this.dialog.getView();
     this.staffRows = [];
     this.view.storeScore.staves.forEach((staff) => {
       const name = 'View Staff ' + (staff.staffId + 1);
       const id = 'show-' + staff.staffId;
-      const rowElement = new SuiToggleComponent(this.dialog, {
+      const toggleParams: SuiToggleCompositeParams = {
         smoName: id,
         parameterName: id,
-        defaultValue: true,
         classes: 'hide-when-editing',
         control: 'SuiToggleComponent',
-        label: name
-      });
+        label: name,
+        id: id,
+        parentControl: this
+      }
+      const rowElement = new SuiToggleComposite(this.dialog, toggleParams);
       this.staffRows.push({
         showCtrl: rowElement
       });
@@ -299,7 +372,7 @@ export class StaffCheckComponent extends SuiComponentBase {
     var pid = this.parameterId;
     return $(this.dialog.dgDom.element).find('#' + pid).find('.staffContainer');
   }
-  getValue() {
+  getValue(): StaffCheckValue[] {
     const rv = [];
     let i = 0;
     for (i = 0; i < this.staffRows.length; ++i) {
@@ -308,7 +381,7 @@ export class StaffCheckComponent extends SuiComponentBase {
     }
     return rv;
   }
-  setValue(rows) {
+  setValue(rows: StaffCheckValue[]) {
     let i = 0;
     rows.forEach((row) => {
       this.staffRows[i].showCtrl.setValue(row.show);
@@ -324,25 +397,42 @@ export class StaffCheckComponent extends SuiComponentBase {
     });
   }
 }
-
+export interface TextCheckComponentParams {
+  id: string,
+  classes: string,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string
+}
+export interface TextCheckComponentParamsValue {
+  checked: boolean,
+  text: string
+}
 export class TextCheckComponent extends SuiComponentBase {
-  constructor(dialog, parameter) {
-    super(parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+  view: SuiScoreViewOperations;
+  staticText: Record<string, string>;
+  toggleCtrl: SuiToggleComposite;
+  textCtrl: SuiTextInputComposite;
+  defaultValue: string;
+  constructor(dialog: SuiDialogNotifier, parameter: TextCheckComponentParams) {
+    super(dialog, parameter);
     this.dialog = dialog;
-    this.view = this.dialog.view;
+    this.view = this.dialog.getView();
+    this.defaultValue = '';
     const toggleName = this.smoName + 'Toggle';
     const textName = this.smoName + 'Text';
-    const label = dialog.staticText[textName];
-    const show = dialog.staticText.show;
+    this.staticText = this.dialog.getStaticText();
+    const label = this.staticText[textName];
+    const show = this.staticText.show;
     this.toggleCtrl = new SuiToggleComposite(this.dialog, {
       smoName: toggleName,
       parameterName: toggleName,
-      defaultValue: false,
       control: 'SuiToggleComposite',
       label: show,
-      parentControl: this
+      parentControl: this,
+      classes: '',
+      id: toggleName
     });
     this.textCtrl = new SuiTextInputComposite(this.dialog, {
       smoName: textName,
@@ -350,7 +440,9 @@ export class TextCheckComponent extends SuiComponentBase {
       defaultValue: this.defaultValue,
       control: 'SuiTextInputComposite',
       label,
-      parentControl: this
+      parentControl: this,
+      classes: '',
+      id: toggleName
     });
   }
   get html() {
@@ -365,13 +457,13 @@ export class TextCheckComponent extends SuiComponentBase {
     var pid = this.parameterId;
     return $('#' + pid);
   }
-  getValue() {
+  getValue(): TextCheckComponentParamsValue {
     return {
       checked: this.toggleCtrl.getValue(),
       text: this.textCtrl.getValue()
     };
   }
-  setValue(val) {
+  setValue(val: TextCheckComponentParamsValue) {
     this.toggleCtrl.setValue(val.checked);
     this.textCtrl.setValue(val.text);
   }

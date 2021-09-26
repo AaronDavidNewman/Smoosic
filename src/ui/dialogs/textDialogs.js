@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiDialogBase } from '../dialog';
+import { SuiDialogBase } from './dialog';
 import { SuiInlineText } from '../../render/sui/textRender';
 import { SuiHelp } from '../help';
 import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
@@ -171,8 +171,6 @@ export class SuiLyricDialog extends SuiDialogBase {
       this._complete();
     });
     $(dgDom.element).find('.remove-button').remove();
-    this.lyricEditorCtrl.eventSource = this.eventSource;
-    this.lyricEditorCtrl.setView(this.eventSource, this.view);
     this.lyricEditorCtrl.startEditSession();
   }
   // ### handleKeydown

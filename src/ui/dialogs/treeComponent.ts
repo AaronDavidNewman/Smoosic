@@ -1,31 +1,45 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiComponentBase } from '../dialogComponents';
-import { smoSerialize } from '../../common/serializationHelpers';
+import { SuiComponentBase, SuiDialogNotifier } from '../dialogComponents';
 import { htmlHelpers } from '../../common/htmlHelpers';
+declare var $: any;
 
+export interface TreeComponentOption {
+  label: string,
+  value: string | undefined, 
+  parent: string | undefined,
+  format: string,
+  expanded: boolean
+}
+
+export interface SuiTreeComponentParams {
+  id: string,
+  classes: string,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string,
+  root: string,
+  options: TreeComponentOption[]
+}
 // ### SuiDropdownComponent
 // simple dropdown select list.
 export class SuiTreeComponent extends SuiComponentBase {
-  constructor(dialog, parameter) {
-    super(parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'root', 'options', 'control', 'label', 'dataType', 'disabledOption'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
-    }
-    if (!this.dataType) {
-      this.dataType = 'string';
-    }
-    this.dialog = dialog;
-    this.persistControls = false;
+  persistControls: boolean = false;
+  tree: Record<string, TreeComponentOption[]> = {};
+  options: TreeComponentOption[] = [];
+  root: string;
+  constructor(dialog: SuiDialogNotifier, parameter: SuiTreeComponentParams) {
+    super(dialog, parameter);
+    this.root = parameter.root;
+    this.options = parameter.options;
     this.calculateOptionTree();
   }
   calculateOptionTree() {
     this.tree = {};
     this.options.forEach((option) => {
       if (option.parent) {
-        if (typeof(this.tree[option.parent] === 'undefined')) {
+        if (!(this.tree[option.parent])) {
           this.tree[option.parent] = [];
         }
         this.tree[option.parent].push(option);
@@ -34,25 +48,22 @@ export class SuiTreeComponent extends SuiComponentBase {
           option.expanded = true;
         }
         if (button.length && button.hasClass('collapsed')) {
-          option.collapsed = true;
+          option.expanded = false;
         }
       }
     });
   }
-  getNodesWithParent(parent) {
+  getNodesWithParent(parent: string | undefined) {
     return this.options.filter((oo) => oo.parent === parent);
   }
-  get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
-  }
-  appendOptionRecurse(b, option, level) {
+  appendOptionRecurse(b: any, option: TreeComponentOption, level: number) {
     const children = this.getNodesWithParent(option.value);
     let treeClass = 'tree-branch';
     let buttonClass = 'expander';
     if (this.persistControls && option.expanded) {
       buttonClass += ' expanded icon-minus';
     }
-    if (this.persistControls && option.collapsed) {
+    if (this.persistControls && !option.expanded) {
       buttonClass += ' collapsed icon-plus';
       treeClass += ' collapsed';
     }
@@ -69,7 +80,7 @@ export class SuiTreeComponent extends SuiComponentBase {
     });
     return current;
   }
-  _createTree(builder, ul) {
+  _createTree(builder: any, ul: any) {
     // this.checkDefault(s, b);
     const options = this.getNodesWithParent(this.root);
     options.forEach((option) => {
@@ -87,7 +98,7 @@ export class SuiTreeComponent extends SuiComponentBase {
     this.persistControls = true;
     return r;
   }
-  updateOptions(options) {
+  updateOptions(options: TreeComponentOption[]) {
     this.options = options;
     this.calculateOptionTree();
     const parentEl = $(this._getInputElement());
@@ -110,27 +121,27 @@ export class SuiTreeComponent extends SuiComponentBase {
     return $(this.dialog.dgDom.element).find('#' + pid);
   }
   getValue() {
-    return this.value;
+    return this.root;
   }
-  setValue(value) {
+  setValue(value: string) {
     $('ul.tree li').removeClass('selected');
     const option = this.options.find((o) => o.value === value);
     const input = this._getInputElement();
     const li = $(input).find('li[data-value="' + value + '"]');
     $(li).addClass('selected');
-    if (option.format === 'library') {
+    if (option && option.format === 'library') {
       $(li).find('button').first().addClass('expanded icon-minus');
     }
     this.bindTreeControls();
   }
   bindTreeControls() {
-    $('ul.tree button.expanded').off('click').on('click', (evt) => {
+    $('ul.tree button.expanded').off('click').on('click', (evt: any) => {
       const button = evt.currentTarget;
       $(button).removeClass('expanded').removeClass('icon-minus').addClass('icon-plus').addClass('collapsed');
       $(button).closest('li').addClass('collapsed');
       this.bindTreeControls();
     });
-    $('ul.tree button.collapsed').off('click').on('click', (evt) => {
+    $('ul.tree button.collapsed').off('click').on('click', (evt: any) => {
       const button = evt.currentTarget;
       $(button).addClass('expanded').addClass('icon-minus').removeClass('icon-plus').removeClass('collapsed');
       $(button).closest('li').removeClass('collapsed');
@@ -141,11 +152,10 @@ export class SuiTreeComponent extends SuiComponentBase {
   bind() {
     const input = this._getInputElement();
     this.bindTreeControls();
-    $(input).find('a.tree-link').each((ix, el) => {
+    $(input).find('a.tree-link').each((ix: number, el: any) => {
       $(el).removeClass('selected');
-      $(el).off('click').on('click', (ev) => {
+      $(el).off('click').on('click', (ev: any) => {
         const li = $(ev.currentTarget).closest('li.tree-branch');
-        this.value = $(li).attr('data-value');
         $(li).addClass('selected');
         this.handleChanged();
       });

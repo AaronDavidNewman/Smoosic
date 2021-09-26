@@ -311,6 +311,9 @@ export class SmoSystemGroup extends SmoScoreModifierBase {
       endSelector: SmoSelector.default
     };
   }
+  static isSystemGroup(modifier: SmoSystemGroup | SmoModifierBase): modifier is SmoSystemGroup {
+    return modifier.ctor === 'SmoSystemGroup';
+  }
   leftConnector: number = SmoSystemGroup.connectorTypes.single;
   rightConnector: number = SmoSystemGroup.connectorTypes.single;
   mapType: number = SmoSystemGroup.mapTypes.allMeasures;
@@ -618,6 +621,9 @@ export class SmoTextGroup extends SmoScoreModifierBase {
   }
   static get attributes() {
     return ['textBlocks', 'justification', 'relativePosition', 'spacing', 'pagination', 'attachToSelector', 'selector', 'musicXOffset', 'musicYOffset'];
+  }
+  static isTextGroup(modifier: SmoTextGroup | SmoModifierBase): modifier is SmoTextGroup {
+    return modifier.ctor === 'SmoTextGroup';
   }
   static get purposeToFont(): Record<number | string, SmoTextPlacement> {
     const rv: Record<number | string, SmoTextPlacement> = {};

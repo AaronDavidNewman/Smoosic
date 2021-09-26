@@ -117,9 +117,9 @@ export abstract class SuiScoreView {
   }
   // ### getFocusedPage
   // Return the index of the page that is in the center of the client screen.
-  getFocusedPage() {
+  getFocusedPage(): number {
     if (this.score.layoutManager === undefined) {
-      return;
+      return 0;
     }
     const scrollAvg = this.tracker.scroller.netScroll.y + (this.tracker.scroller.viewport.height / 2);
     const midY = scrollAvg;

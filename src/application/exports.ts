@@ -32,7 +32,7 @@ import { quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHt
 
 // ui dialogs and menus
 // Dialogs
-import { SuiModifierDialogFactory, SuiDialogBase } from '../ui/dialog';
+import { SuiModifierDialogFactory, SuiDialogBase } from '../ui/dialogs/dialog';
 import { SuiTempoDialog, SuiInstrumentDialog, SuiMeasureDialog, SuiInsertMeasures,
     SuiTimeSignatureDialog } from '../ui/dialogs/measureDialogs';
 import { SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog,

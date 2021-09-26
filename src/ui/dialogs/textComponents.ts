@@ -1,12 +1,19 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiTextTransformDialog, SuiLyricDialog } from './textDialogs';
 import { SuiTextSession, SuiDragSession, SuiLyricSession, SuiChordSession } from '../../render/sui/textEdit';
 import { SuiInlineText } from '../../render/sui/textRender';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { htmlHelpers } from '../../common/htmlHelpers';
-import { SuiComponentBase } from '../dialogComponents';
+import { SuiBaseComponentParams, SuiComponentBase, SuiDialogNotifier } from '../dialogComponents';
+import { SuiScroller } from '../../render/sui/scroller';
+import { SmoTextGroup } from '../../smo/data/scoreModifiers';
+import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
+import { KeyEvent } from '../../application/common';
+import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
+import { BrowserEventSource } from '../../application/eventSource';
+import { SmoLyric } from '../../smo/data/noteModifiers';
 
+declare var $: any;
 // ## textComponents module
 // This has the text editing dialog components.  Unlike components that are
 // actual dialog controls, these actually run a text editing session of some kind.
@@ -32,22 +39,35 @@ import { SuiComponentBase } from '../dialogComponents';
 // ## SuiTextInPlace
 // Edit the text in an SVG element, in the same scale etc. as the text in the score SVG DOM.
 // This component just manages the text editing component of hte renderer.
+export interface SuiTextInPlaceParams {
+  id: string,
+  classes: string,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string
+}
 export class SuiTextInPlace extends SuiComponentBase {
-  constructor(dialog, parameter) {
-    super(parameter);
-    this.scroller = dialog.scroller;
+  scroller: SuiScroller;
+  editMode: boolean = false;
+  value: SmoTextGroup;
+  staticText: Record<string, string>;
+  altLabel: string;
+  view: SuiScoreViewOperations;
+  session: SuiTextSession | null = null;
+  constructor(dialog: SuiDialogNotifier, parameter: SuiTextInPlaceParams) {
+    super(dialog, parameter);
+    this.scroller = dialog.getView().scroller;
     smoSerialize.filteredMerge(
       ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
+    this.value = new SmoTextGroup(SmoTextGroup.defaults);
+    this.view = this.dialog.getView();
+    const modifier = this.dialog.getModifier();
+    if (modifier && SmoTextGroup.isTextGroup(modifier)) {
+      this.value = modifier;
     }
-    this.editMode = false;
-    this.dialog = dialog;
-    this.value = '';
-    const modifier = this.dialog.modifier;
-
-    this.value = modifier;
-    this.altLabel = dialog.staticText.editorLabel;
+    this.staticText = this.dialog.getStaticText();
+    this.altLabel = this.staticText.editorLabel;
   }
 
   get html() {
@@ -62,17 +82,16 @@ export class SuiTextInPlace extends SuiComponentBase {
     return r;
   }
   get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
+    return this.dialog.getId() + '-' + this.parameterName;
   }
   endSession() {
     $(this._getInputElement()).find('label').text(this.label);
     const button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
-
-    this.dialog.modifier.skipRender = false;
+    this.value.skipRender = false;
 
     const render = () => {
-      this.dialog.view.renderer.setRefresh();
+      this.view.renderer.setRefresh();
     };
     if (this.session) {
       this.session.textGroup.tryParseUnicode();
@@ -92,25 +111,25 @@ export class SuiTextInPlace extends SuiComponentBase {
     var pid = this.parameterId;
     return $(this.dialog.dgDom.element).find('#' + pid).find('button');
   }
-  mouseMove(ev) {
+  mouseMove(ev: any) {
     if (this.session && this.session.isRunning) {
       this.session.handleMouseEvent(ev);
     }
   }
 
-  mouseClick(ev) {
+  mouseClick(ev: any) {
     if (this.session && this.session.isRunning) {
       this.session.handleMouseEvent(ev);
     }
   }
   _renderInactiveBlocks() {
-    const modifier = this.dialog.modifier;
-    const context = this.dialog.view.renderer.context;
+    const modifier = this.value;
+    const context = this.view.renderer.context;
     context.save();
     context.setFillStyle('#ddd');
     modifier.textBlocks.forEach((block) => {
       const st = block.text;
-      if (st.attrs.id !== this.dialog.activeScoreText.attrs.id) {
+      if (st.attrs.id !== this.value.getActiveBlock().attrs.id) {
         const svgText = SuiInlineText.fromScoreText(st, context, this.scroller);
         if (st.logicalBox) {
           svgText.startX += st.logicalBox.x - st.x;
@@ -127,20 +146,21 @@ export class SuiTextInPlace extends SuiComponentBase {
   }
   startEditSession() {
     $(this._getInputElement()).find('label').text(this.altLabel);
-    const modifier = this.dialog.modifier;
+    const modifier = this.value;
     modifier.skipRender = true;
-    $(this.dialog.view.renderer.context.svg).find('#' + modifier.attrs.id).remove();
+    $(this.view.renderer.context.svg).find('#' + modifier.attrs.id).remove();
     this._renderInactiveBlocks();
     const ul = modifier.ul();
 
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiTextSession({
-      renderer: this.dialog.view.renderer,
-      scroller: this.dialog.view.tracker.scroller,
+      renderer: this.view.renderer,
+      scroller: this.scroller,
       x: ul.x,
       y: ul.y,
       textGroup: modifier,
-      scoreText: this.dialog.activeScoreText
+      text: modifier.getActiveBlock().text,
+      scoreText: modifier.getActiveBlock()
     });
     $('body').addClass('text-edit');
     this.value = this.session.textGroup;
@@ -150,15 +170,13 @@ export class SuiTextInPlace extends SuiComponentBase {
     // blur the button so key events don't get passed to it.
     $(this._getInputElement()).blur();
   }
-  evKey(evdata) {
+  evKey(evdata: KeyEvent) {
     if (this.session) {
       this.session.evKey(evdata);
     }
   }
 
   bind() {
-    this.fontInfo = JSON.parse(JSON.stringify(this.dialog.activeScoreText.fontInfo));
-    this.value = this.dialog.modifier;
     $(this._getInputElement()).off('click').on('click', () => {
       if (this.session && this.session.isRunning) {
         this.endSession();
@@ -169,31 +187,47 @@ export class SuiTextInPlace extends SuiComponentBase {
   }
 }
 
+export interface SuiNoteTextParams {
+  id: string,
+  classes: string,
+  label: string,
+  parameterName: string,
+  smoName: string,
+  control: string,
+  verse: number
+}
 // ## SuiNoteTextComponent
 // Base class for text editor components that navigate to
 // different notes.
-export class SuiNoteTextComponent extends SuiComponentBase {
-  constructor(dialog, parameter) {
-    super(parameter);
-
-    this.selection = dialog.view.tracker.selections[0];
+export abstract class SuiNoteTextComponent extends SuiComponentBase {
+  view: SuiScoreViewOperations;
+  selection: SmoSelection;
+  selector: SmoSelector;
+  eventSource: BrowserEventSource;
+  session: SuiLyricSession | null = null;
+  value: SmoLyric | null = null;
+  started: boolean = false;
+  staticText: Record<string, string>;
+  constructor(dialog: SuiDialogNotifier, parameter: SuiNoteTextParams) {
+    super(dialog, parameter);
+    this.view = this.dialog.getView();
+    this.eventSource = this.dialog.getEventSource();
+    this.selection = this.view.tracker.selections[0];
     this.selector = JSON.parse(JSON.stringify(this.selection.selector));
-    this.dialog = dialog;
+    this.staticText = this.dialog.getStaticText();
   }
   get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
+    return this.dialog.getId() + '-' + this.parameterName;
   }
-  setView(eventSource, view) {
-    this.eventSource = eventSource;
-    this.view = view;
-  }
-  mouseMove(ev) {
+  abstract startEditSession(): void;
+  abstract endSession(): void;
+  mouseMove(ev: any) {
     if (this.session && this.session.isRunning) {
       this.session.handleMouseEvent(ev);
     }
   }
 
-  mouseClick(ev) {
+  mouseClick(ev: any) {
     if (this.session && this.session.isRunning) {
       this.session.handleMouseEvent(ev);
     }
@@ -205,7 +239,7 @@ export class SuiNoteTextComponent extends SuiComponentBase {
   get running() {
     return this.session && this.session.isRunning;
   }
-  evKey(evdata) {
+  evKey(evdata: KeyEvent) {
     if (this.session) {
       return this.session.evKey(evdata);
     }
@@ -213,20 +247,26 @@ export class SuiNoteTextComponent extends SuiComponentBase {
   }
   setDialogLyric() {
     if (this.session && this.session.lyric) {
-      this.dialog.setLyric(this.selector, this.session.lyric);
+      (this.dialog as any).setLyric(this.selector, this.session.lyric);
     }
   }
 
   moveSelectionRight() {
-    this.session.advanceSelection(false);
-    this.setDialogLyric();
+    if (this.session) {
+      this.session.advanceSelection(false);
+      this.setDialogLyric();
+    }
   }
   moveSelectionLeft() {
-    this.session.advanceSelection(true);
-    this.setDialogLyric();
+    if (this.session) {
+      this.session.advanceSelection(true);
+      this.setDialogLyric();
+    }
   }
   removeText() {
-    this.session.removeLyric();
+    if (this.session) {
+      this.session.removeLyric();
+    }
   }
 
   _bind() {
@@ -255,19 +295,13 @@ export class SuiNoteTextComponent extends SuiComponentBase {
 // ## SuiLyricComponent
 // manage a lyric session that moves from note to note and adds lyrics.
 export class SuiLyricComponent extends SuiNoteTextComponent {
-  constructor(dialog, parameter) {
+  altLabel: string;
+  verse: number;
+  constructor(dialog: SuiDialogNotifier, parameter: SuiNoteTextParams) {
     super(dialog, parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
-    }
-    this.session = null;
-    this.altLabel = dialog.staticText.doneEditing;
-    if (!this.verse) {
-      this.verse = 0;
-    }
+    this.altLabel = this.staticText.doneEditing;
     this.started = false;
+    this.verse = parameter.verse;
   }
 
   get html() {
@@ -278,7 +312,7 @@ export class SuiLyricComponent extends SuiNoteTextComponent {
         .append(b('button').classes('toggleTextEdit')
           .attr('id', id + '-toggleInput').append(
             b('span').classes('icon icon-pencil'))).append(
-          b('label').attr('for', id + '-toggleInput').text(this.label)))
+              b('label').attr('for', id + '-toggleInput').text(this.label)))
       .append(b('div').classes('show-when-editing')
         .append(b('span')
           .append(
@@ -300,7 +334,6 @@ export class SuiLyricComponent extends SuiNoteTextComponent {
     const button = document.getElementById(this.parameterId);
     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
     if (this.session) {
-      this.value = this.session.textGroup;
       this.session.stopSession();
     }
     $('body').removeClass('text-edit');
@@ -314,11 +347,11 @@ export class SuiLyricComponent extends SuiNoteTextComponent {
     }
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiLyricSession({
-      renderer: this.dialog.view.renderer,
+      renderer: this.view.renderer,
       selector: this.selector,
-      scroller: this.dialog.view.tracker.scroller,
+      scroller: this.view.tracker.scroller,
       verse: this.verse,
-      score: this.dialog.view.score,
+      score: this.view.score,
       view: this.view
     }
     );
@@ -338,22 +371,18 @@ export class SuiLyricComponent extends SuiNoteTextComponent {
 // ## SuiChordComponent
 // manage a chord editing session that moves from note to note and adds chord symbols.
 export class SuiChordComponent extends SuiNoteTextComponent {
-  constructor(dialog, parameter) {
+  altLabel: string;
+  verse: number;
+  constructor(dialog: SuiDialogNotifier, parameter: SuiNoteTextParams) {
     super(dialog, parameter);
     smoSerialize.filteredMerge(
       ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
-    }
     this.session = null;
     this.dialog = dialog;
-
-    this.selection = dialog.view.tracker.selections[0];
+    this.selection = this.view.tracker.selections[0];
     this.selector = JSON.parse(JSON.stringify(this.selection.selector));
-    this.altLabel = dialog.staticText.doneEditing;
-    if (!this.verse) {
-      this.verse = 0;
-    }
+    this.altLabel = this.staticText.doneEditing;
+    this.verse = 0;
   }
 
   get html() {
@@ -364,7 +393,7 @@ export class SuiChordComponent extends SuiNoteTextComponent {
         .append(b('button').classes('toggleTextEdit')
           .attr('id', id + '-toggleInput').append(
             b('span').classes('icon icon-pencil'))).append(
-          b('label').attr('for', id + '-toggleInput').text(this.label)))
+              b('label').attr('for', id + '-toggleInput').text(this.label)))
 
       .append(b('div').classes('show-when-editing')
         .append(b('span')
@@ -386,10 +415,9 @@ export class SuiChordComponent extends SuiNoteTextComponent {
     $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
 
     const render = () => {
-      this.dialog.view.renderer.setRefresh();
+      this.view.renderer.setRefresh();
     };
     if (this.session) {
-      this.value = this.session.textGroup;
       this.session.stopSession().then(render);
     }
     $('body').removeClass('text-edit');
@@ -399,12 +427,12 @@ export class SuiChordComponent extends SuiNoteTextComponent {
 
     // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
     this.session = new SuiChordSession({
-      renderer: this.dialog.view.renderer,
+      renderer: this.view.renderer,
       selector: this.selector,
-      scroller: this.dialog.view.tracker.scroller,
+      scroller: this.view.tracker.scroller,
       verse: 0,
       view: this.view,
-      score: this.dialog.view.score
+      score: this.view.score
     }
     );
     $('body').addClass('text-edit');
@@ -416,11 +444,16 @@ export class SuiChordComponent extends SuiNoteTextComponent {
   bind() {
     this._bind();
   }
-  setTextType(type) {
-    this.session.textType = parseInt(type, 10);
+  setTextType(type: string | number) {
+    if (this.session) {
+      this.session.textType = parseInt(type.toString(), 10);
+    }
   }
   getTextType() {
+    if (this.session) {
     return this.session.textType;
+    }
+    return SuiInlineText.textTypes.normal;
   }
 }
 
@@ -429,19 +462,21 @@ export class SuiChordComponent extends SuiNoteTextComponent {
 // The text is not really part of the dialog but the location of the text appears
 // in other dialog fields.
 export class SuiDragText extends SuiComponentBase {
-  constructor(dialog, parameter) {
-    super(parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-    if (!this.defaultValue) {
-      this.defaultValue = 0;
-    }
+  dragging: boolean = false;
+  running: boolean = false;
+  staticText: Record<string, string>;
+  altLabel: string;
+  value: string = '';
+  session: SuiDragSession | null = null;
+  view: SuiScoreViewOperations;
+  constructor(dialog: SuiDialogNotifier, parameter: SuiBaseComponentParams) {
+    super(dialog, parameter);
     this.dragging = false;
     this.running = false;
-
-    this.dialog = dialog;
-    this.altLabel = dialog.staticText.draggerLabel;
+    this.staticText = this.dialog.getStaticText();
+    this.altLabel = this.staticText.draggerLabel;
     this.value = '';
+    this.view = this.dialog.getView();
   }
 
   get html() {
@@ -456,11 +491,7 @@ export class SuiDragText extends SuiComponentBase {
     return r;
   }
   get parameterId() {
-    return this.dialog.id + '-' + this.parameterName;
-  }
-
-  getValue() {
-    return this.dialog.modifier;
+    return this.dialog.getId() + '-' + this.parameterName;
   }
   _getInputElement() {
     var pid = this.parameterId;
@@ -477,28 +508,28 @@ export class SuiDragText extends SuiComponentBase {
   startEditSession() {
     $('body').addClass('text-move');
     this.session = new SuiDragSession({
-      textGroup: this.dialog.modifier,
-      context: this.dialog.view.renderer.context,
-      scroller: this.dialog.view.tracker.scroller
+      textGroup: (this.dialog as any).modifier,
+      context: this.view.renderer.context,
+      scroller: this.view.tracker.scroller
     });
     $(this._getInputElement()).find('label').text(this.altLabel);
     $(this._getInputElement()).find('span.icon').removeClass('icon-enlarge').addClass('icon-checkmark');
     this.running = true;
   }
-  mouseMove(e) {
+  mouseMove(e: any) {
     if (this.session && this.session.dragging) {
       this.session.mouseMove(e);
     }
   }
-  mouseDown(e) {
+  mouseDown(e: any) {
     if (this.session && !this.session.dragging) {
       this.session.startDrag(e);
       this.dragging = true;
     }
   }
-  mouseUp(e) {
+  mouseUp(e: any) {
     if (this.session && this.session.dragging) {
-      this.session.endDrag(e);
+      this.session.endDrag();
       this.dragging = false;
       this.handleChanged();
     }

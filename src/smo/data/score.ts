@@ -7,7 +7,7 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMeasure, SmoMeasureParams } from './measure';
 import { SmoMeasureFormat, SmoMeasureModifierBase } from './measureModifiers';
 import { SmoSelector, SmoSelection } from '../xform/selections';
-import { Clef, FontInfo } from './common';
+import { Clef, FontInfo, SvgDimensions } from './common';
 import { SmoNoteModifierBase } from './noteModifiers';
 import { StaffModifierBase } from './staffModifiers';
 
@@ -123,9 +123,9 @@ export class SmoScore {
     };
   }
   static get pageSizes(): string[] {
-    return ['letter', 'tabloid', 'A4', 'custom'];
+    return ['letter', 'tabloid', 'A4', 'A4Landscape', 'custom'];
   }
-  static get pageDimensions() {
+  static get pageDimensions(): Record<string, SvgDimensions> {
     return {
       'letter': { width: 8 * 96 + 48, height: 11 * 96 },
       'letterLandscape': { width: 11 * 96, height: 8 * 96 + 48 },
@@ -134,6 +134,12 @@ export class SmoScore {
       'A4Landscape': { width: 1122, height: 794 },
       'custom': { width: 1, height: 1 }
     };
+  }
+  static pageSizeFromDimensions(width: number, height: number): string | null {
+    const rv =  
+      SmoScore.pageSizes.find((sz) => SmoScore.pageDimensions[sz].width === width && SmoScore.pageDimensions[sz].height === height)
+      ?? null;
+    return rv;
   }
 
   static get defaultAttributes() {
@@ -622,8 +628,7 @@ export class SmoScore {
     this.staves.forEach((staff) => {
       staff.setLyricFont(fontInfo);
     });
-
-    const fontInst: FontPurpose | undefined = this.fonts.find((fn) => fn.name === 'lyrics');
+    const fontInst: FontPurpose | undefined = this.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.LYRICS);
     if (typeof (fontInst) === 'undefined') {
       return;
     }

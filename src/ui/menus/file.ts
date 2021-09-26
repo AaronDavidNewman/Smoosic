@@ -66,6 +66,10 @@ export class SuiFileMenu extends SuiMenuBase {
   systemPrint() {
     window.print();
     SuiPrintFileDialog.createAndDisplay({
+      ctor: 'SuiPrintFileDialog',
+      id: 'print',
+      eventSource: this.eventSource,
+      modifier: null,
       view: this.view,
       completeNotifier: this.completeNotifier,
       startPromise: this.closePromise,
@@ -78,6 +82,9 @@ export class SuiFileMenu extends SuiMenuBase {
     const self = this;
     if (text === 'saveFile') {
       SuiSaveFileDialog.createAndDisplay({
+        ctor: 'SuiSaveFileDialog',
+        id: 'save',
+        modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
@@ -87,6 +94,9 @@ export class SuiFileMenu extends SuiMenuBase {
       });
     } else if (text === 'saveActions') {
       SuiSaveActionsDialog.createAndDisplay({
+        ctor: 'SuiSaveActionsDialog',
+        id: 'save',
+        modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
@@ -96,6 +106,9 @@ export class SuiFileMenu extends SuiMenuBase {
       });
     } else if (text === 'playActions') {
       SuiLoadActionsDialog.createAndDisplay({
+        ctor: 'SuiLoadActionsDialog',
+        id: 'loadAction',
+        modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
@@ -105,6 +118,9 @@ export class SuiFileMenu extends SuiMenuBase {
       });
     } else if (text === 'openFile') {
       SuiLoadFileDialog.createAndDisplay({
+        ctor: 'SuiLoadFileDialog',
+        id: 'loadFile',
+        modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
@@ -124,6 +140,9 @@ export class SuiFileMenu extends SuiMenuBase {
       this.view.renderer.renderForPrintPromise().then(systemPrint);
     } else if (text === 'exportXml') {
       SuiSaveXmlDialog.createAndDisplay({
+        ctor: 'SuiSaveXmlDialog',
+        id: 'save',
+        modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
@@ -133,6 +152,9 @@ export class SuiFileMenu extends SuiMenuBase {
       });
     } else if (text === 'exportMidi') {
       SuiSaveMidiDialog.createAndDisplay({
+        ctor: 'SuiSaveMidiDialog',
+        id: 'save',
+        modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
@@ -142,6 +164,9 @@ export class SuiFileMenu extends SuiMenuBase {
       });
     } else if (text === 'importMxml') {
       SuiLoadMxmlDialog.createAndDisplay({
+        ctor: 'SuiLoadMxmlDialog',
+        id: 'save',
+        modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,

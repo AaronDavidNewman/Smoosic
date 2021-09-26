@@ -70,6 +70,10 @@ export class SvgBox {
         this.height = -1;
     }
 }
+export interface SvgDimensions {
+    width: number,
+    height: number
+}
 export interface Transposable {
     pitches: Pitch[],
     noteType: string,
