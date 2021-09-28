@@ -84,7 +84,6 @@ export class SuiLibraryDialog extends SuiDialogBase {
     this.libHash[topLib.url!] = topLib;
     this.topLib = topLib;
     this.selectedLib = null;
-    this.displayOptions = ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
   buildTreeRecurse(children: SmoLibrary[]) {
     children.forEach((child) => {

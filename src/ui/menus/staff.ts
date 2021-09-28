@@ -100,9 +100,14 @@ export class SuiStaffMenu extends SuiMenuBase {
   execStaffGroups() {
     SuiStaffGroupDialog.createAndDisplay(
       {
-        eventSource: this.eventSource,
-        completeNotifier: this.completeNotifier,
+        completeNotifier: this.completeNotifier!,
         view: this.view,
+        undoBuffer: this.view.undoBuffer,
+        eventSource: this.eventSource,
+        id: 'staffGroups',
+        ctor: 'SuiStaffGroupDialog',
+        tracker: this.view.tracker,
+        modifier: null,
         startPromise: this.closePromise
       }
     );

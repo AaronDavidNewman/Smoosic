@@ -10,7 +10,7 @@ export class StaveButtons extends SuiButton {
     super(parameters);
   }
   addClef(clef: Clef, clefName: string) {
-    var instrument: SmoInstrument = new SmoInstrument();
+    var instrument: SmoInstrument = new SmoInstrument(SmoInstrument.defaults);
     instrument.instrument = clefName;
     instrument.keyOffset = 0;
     instrument.clef = clef;

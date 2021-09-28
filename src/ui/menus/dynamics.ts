@@ -47,7 +47,7 @@ export class SuiDynamicsMenu extends SuiMenuBase {
 
   selection(ev: any) {
     const text = $(ev.currentTarget).attr('data-value');
-    this.view.addDynamic(text);
+    this.view.addDynamic(this.tracker.selections[0], text);
     this.complete();
   }
   keydown() { }

@@ -175,7 +175,6 @@ export class SuiTextInPlace extends SuiComponentBase {
       this.session.evKey(evdata);
     }
   }
-
   bind() {
     $(this._getInputElement()).off('click').on('click', () => {
       if (this.session && this.session.isRunning) {
@@ -303,7 +302,6 @@ export class SuiLyricComponent extends SuiNoteTextComponent {
     this.started = false;
     this.verse = parameter.verse;
   }
-
   get html() {
     var b = htmlHelpers.buildDom;
     var id = this.parameterId;

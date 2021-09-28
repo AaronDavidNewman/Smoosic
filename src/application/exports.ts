@@ -40,7 +40,7 @@ import { SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog
 import { SuiLibraryDialog } from '../ui/dialogs/libraryDialog';
 import { SuiDynamicModifierDialog, SuiTextTransformDialog, SuiLyricDialog, SuiChordChangeDialog,
   helpModal } from '../ui/dialogs/textDialogs';
-import { SuiStaffModifierDialog, SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
+import { SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
     SuiHairpinAttributesDialog, SuiStaffGroupDialog } from '../ui/dialogs/staffDialogs';
 import { SuiLoadFileDialog, SuiLoadMxmlDialog,
     SuiLoadActionsDialog, SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
@@ -125,7 +125,7 @@ export const Smo = {
     SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog,
     SuiScoreFontDialog, SuiLayoutDialog, SuiMeasureDialog, SuiInsertMeasures,
     SuiTimeSignatureDialog,SuiTextTransformDialog, SuiLyricDialog, SuiChordChangeDialog,
-    SuiStaffModifierDialog, SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
+    SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
     SuiHairpinAttributesDialog, SuiStaffGroupDialog, helpModal,
     SuiFileDialog,  SuiLoadFileDialog, SuiLoadMxmlDialog,
     SuiLoadActionsDialog, SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,

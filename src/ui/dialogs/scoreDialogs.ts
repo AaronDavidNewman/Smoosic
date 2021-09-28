@@ -39,7 +39,6 @@ export class SuiScoreViewDialog extends SuiDialogBase {
     super(SuiScoreViewDialog.dialogElements, parameters);
     this.originalValue = JSON.parse(JSON.stringify(this.view.getView()));
     this.viewChanged = false;
-    this.displayOptions = ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
   get scoreViewCtrl() {
     return this.cmap.scoreViewCtrl as StaffCheckComponent;
@@ -155,7 +154,6 @@ export class SuiGlobalLayoutDialog extends SuiDialogBase {
     this.score = this.view.score;
     this.modifier = this.score.layoutManager!.getGlobalLayout();
     this.layoutBackup = deepCopy(this.modifier);
-    this.displayOptions = ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
   display() {
     this.applyDisplayOptions();
@@ -257,7 +255,7 @@ export class SuiScoreIdentificationDialog extends SuiDialogBase {
       ...params
     });
     this.modifier = params.modifier;
-    this.displayOptions = ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+    this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
   display() {
     super.initialValue();
@@ -281,6 +279,7 @@ export class SuiScoreIdentificationDialog extends SuiDialogBase {
 }
 export class SuiScoreFontAdapter {
   fonts: FontPurpose[];
+  backups: FontPurpose[];
   changed: boolean = false;
   static get defaultFont(): FontInfo {
     return {
@@ -290,10 +289,22 @@ export class SuiScoreFontAdapter {
       style: 'normal'
     };
   }
-  constructor(fonts: FontPurpose[]) {
+  view: SuiScoreViewOperations;
+  constructor(view: SuiScoreViewOperations, fonts: FontPurpose[]) {
     this.fonts = fonts;
+    this.backups = JSON.parse(JSON.stringify(this.fonts));
+    this.view = view;
   }
-  changeFont(purpose: number, name: string, fontInfo: FontInfo) {
+  cancel() {
+    if (this.changed) {
+      this.fonts = this.backups;
+      // This takes advantage of setter/getter side-effect
+      this.engravingFont = this.engravingFont;
+      this.lyricFont = this.lyricFont;
+      this.chordFont = this.chordFont;
+    }
+  }
+  changeFont(purpose: number, name: string, fontInfo: FontInfo): FontPurpose {
     const fp: FontPurpose = {
       name,
       purpose,
@@ -304,10 +315,13 @@ export class SuiScoreFontAdapter {
     const fonts: FontPurpose[] = this.fonts.filter((ff) => ff.purpose !== purpose);
     fonts.push(fp);
     this.fonts = fonts;
+    this.changed = true;
+    return fp;
   }
   set engravingFont(fontInfo: FontInfo) {
     this.changed = true;
-    this.changeFont(SmoScore.fontPurposes.ENGRAVING, 'engraving', fontInfo);
+    const fp = this.changeFont(SmoScore.fontPurposes.ENGRAVING, 'engraving', fontInfo);
+    this.view.setEngravingFontFamily(fp.family);
   }
   toInfo(fontPurpose: FontPurpose): FontInfo {
     return {
@@ -334,7 +348,9 @@ export class SuiScoreFontAdapter {
     return ff;
   }
   set chordFont(fontInfo: FontInfo) {
-    this.changeFont(SmoScore.fontPurposes.CHORDS, 'chords', fontInfo);
+    const fp = this.changeFont(SmoScore.fontPurposes.CHORDS, 'chords', fontInfo);
+    this.view.setChordFont(this.toInfo(fp));
+
     this.changed = true;
   }
   get chordFont(): FontInfo {
@@ -342,7 +358,8 @@ export class SuiScoreFontAdapter {
   }
   set lyricFont(fontInfo: FontInfo) {
     this.changed = true;
-    this.changeFont(SmoScore.fontPurposes.LYRICS, 'lyrics', fontInfo);
+    const fp = this.changeFont(SmoScore.fontPurposes.LYRICS, 'lyrics', fontInfo);
+    this.view.setLyricFont(this.toInfo(fp));
   }
   get lyricFont(): FontInfo {
     return this.getInfo(SmoScore.fontPurposes.LYRICS);
@@ -398,17 +415,11 @@ export class SuiScoreFontDialog extends SuiDialogBase {
   modifier: SuiScoreFontAdapter;
   needRefresh: boolean;
   constructor(params: SuiDialogParams) {
-    params.modifier = new SuiScoreFontAdapter(params.view.score.fonts);
+    params.modifier = new SuiScoreFontAdapter(params.view, params.view.score.fonts);
     super(SuiScoreFontDialog.dialogElements, { autobind: true, ...params });
     this.modifier = params.modifier;
     this.fontBackup = JSON.parse(JSON.stringify(this.view.score.fonts));
     this.needRefresh = false;
-  }
-
-  display() {
-    this.applyDisplayOptions();
-    this._bindElements();
-    super.initialValue();
   }
   _bindElements() {
     const dgDom = this.dgDom;
@@ -416,34 +427,14 @@ export class SuiScoreFontDialog extends SuiDialogBase {
       this.complete();
     });
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      this._handleCancel();
+      this.modifier.cancel();
+      this.complete();
     });
     $(dgDom.element).find('.remove-button').remove();
   }
-  _handleCancel() {
-    if (this.needRefresh) {
-      const modifier = new SuiScoreFontAdapter(this.fontBackup);
-      this.view.setEngravingFontFamily(modifier.engravingFont.family);
-      this.view.setChordFont(modifier.chordFont);
-      this.view.setLyricFont(modifier.lyricFont);
-    }
-    this.complete();
-  }
-  changed() {
-    this.view.setEngravingFontFamily(this.modifier.engravingFont.family);
-    this.view.setChordFont(this.modifier.chordFont);
-    this.view.setLyricFont(this.modifier.lyricFont);
-    if (this.cmap.engravingFontCtrl.changeFlag) {
-      this.view.setEngravingFontFamily(this.modifier.engravingFont.family);
-    }
-    if (this.cmap.chordFontCtrl.changeFlag) {
-      this.view.setChordFont(this.modifier.chordFont);
-    }
-    if (this.cmap.lyricFontCtrl.changeFlag) {
-      this.view.setLyricFont(this.modifier.lyricFont);
-    }
-  }
 }
+
+
 export class SuiPageLayoutAdapter {
   static get layoutTypes(): Record<string, number> {
     return {

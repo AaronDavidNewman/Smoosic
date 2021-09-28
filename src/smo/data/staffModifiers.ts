@@ -50,6 +50,13 @@ export class SmoInstrument {
   instrument: string = '';
   keyOffset: number = 0;
   clef: Clef = 'treble';
+  static get defaults(): SmoInstrumentParams {
+    return {
+      clef: 'treble',
+      keyOffset: 0,
+      instrument: ''
+    };
+  }
   constructor(params: SmoInstrumentParams) {
     this.instrument = params.instrument;
     this.keyOffset = params.keyOffset;

@@ -55,14 +55,17 @@ export class SuiTimeSignatureMenu extends SuiMenuBase {
   }
   selection(ev: any) {
     var text = $(ev.currentTarget).attr('data-value');
-
     if (text === 'TimeSigOther') {
       SuiTimeSignatureDialog.createAndDisplay({
+        completeNotifier: this.completeNotifier!,
         view: this.view,
-        completeNotifier: this.completeNotifier,
-        startPromise: this.closePromise,
         undoBuffer: this.view.undoBuffer,
-        eventSource: this.eventSource
+        eventSource: this.eventSource,
+        id: 'staffGroups',
+        ctor: 'SuiStaffGroupDialog',
+        tracker: this.view.tracker,
+        modifier: null,
+        startPromise: this.closePromise
       });
       this.complete();
       return;

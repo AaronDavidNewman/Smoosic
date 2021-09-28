@@ -68,32 +68,6 @@ export abstract class SuiScoreView {
     this.tracker.recordBuffer = this.actionBuffer;
   }
 
-  _reverseMapSelection(selection: SmoSelection) {
-    const staffIndex = this.staffMap.indexOf(selection.selector.staff);
-    if (staffIndex < 0) {
-      return null;
-    }
-    if (typeof(selection.selector.tick) === 'undefined') {
-      return SmoSelection.measureSelection(this.score, staffIndex, selection.selector.measure);
-    }
-    if (typeof(selection.selector.pitches) === 'undefined') {
-      return SmoSelection.noteSelection(this.score, staffIndex, selection.selector.measure, selection.selector.voice,
-        selection.selector.tick);
-    }
-    return SmoSelection.pitchSelection(this.score, staffIndex, selection.selector.measure, selection.selector.voice,
-      selection.selector.tick, selection.selector.pitches);
-  }
-  _reverseMapSelections(selections: SmoSelection[]): SmoSelection[] {
-    const rv: SmoSelection[] = [];
-    selections.forEach((selection) => {
-      const rsel = this._reverseMapSelection(selection);
-      if (rsel !== null) {
-        rv.push(rsel);
-      }
-    });
-    return rv;
-  }
-
   // ### _getEquivalentSelections
   // The plural form of _getEquivalentSelection
   _getEquivalentSelections(selections: SmoSelection[]): SmoSelection[] {

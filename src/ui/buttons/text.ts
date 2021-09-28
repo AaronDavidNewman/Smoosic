@@ -8,28 +8,48 @@ export class TextButtons extends SuiButton {
     super(parameters);
   }
   lyrics() {
+    const sel = this.view.tracker.selections[0];
+    const note = sel.note;
+    if (!note) {
+      return;
+    }
+    const lyrics = note.getTrueLyrics();
+    const lyric = lyrics.length > 0 ? null : lyrics[0];
+
     SuiLyricDialog.createAndDisplay(
       {
-        buttonElement: this.buttonElement,
-        buttonData: this.buttonData,
-        completeNotifier: this.completeNotifier,
+        completeNotifier: this.completeNotifier!,
         view: this.view,
         undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
-        parser: SmoLyric.parsers.lyric
+        id: 'lyricDialog',
+        ctor: 'SuiLyricDialog',
+        tracker: this.view.tracker,
+        startPromise: null,
+        modifier: lyric
       }
     );
     // tracker, selection, controller
   }
   chordChanges() {
+    const sel = this.view.tracker.selections[0];
+    const note = sel.note;
+    if (!note) {
+      return;
+    }
+    const lyrics = note.getChords();
+    const lyric = lyrics.length > 0 ? null : lyrics[0];
     SuiChordChangeDialog.createAndDisplay(
       {
-        buttonElement: this.buttonElement,
-        buttonData: this.buttonData,
-        completeNotifier: this.completeNotifier,
+        completeNotifier: this.completeNotifier!,
         view: this.view,
+        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
-        parser: SmoLyric.parsers.chord
+        id: 'chordDialog',
+        ctor: 'SuiChordChangeDialog',
+        tracker: this.view.tracker,
+        startPromise: null,
+        modifier: lyric
       }
     );
   }
@@ -47,12 +67,15 @@ export class TextButtons extends SuiButton {
   addTextMenu() {
     SuiTextTransformDialog.createAndDisplay(
       {
-        buttonElement: this.buttonElement,
-        buttonData: this.buttonData,
-        completeNotifier: this.completeNotifier,
-        tracker: this.view.tracker,
+        completeNotifier: this.completeNotifier!,
         view: this.view,
-        eventSource: this.eventSource
+        undoBuffer: this.view.undoBuffer,
+        eventSource: this.eventSource,
+        id: 'chordDialog',
+        ctor: 'SuiChordChangeDialog',
+        tracker: this.view.tracker,
+        startPromise: null,
+        modifier: null
       });
   }
   addDynamicsMenu() {

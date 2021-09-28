@@ -712,6 +712,7 @@ export class SmoTextGroup extends SmoScoreModifierBase {
   musicXOffset: number = 0;
   musicYOffset: number = 0;
   textBlocks: SmoTextBlock[] = [];
+  edited: boolean = false;  // indicates not edited this session
   skipRender: boolean = false; // don't render if it is being edited
   static deserialize(jObj: any) {
     const blocks: any = [];

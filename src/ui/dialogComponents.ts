@@ -34,6 +34,7 @@ export interface DialogDefinitionElement {
   parameterName: string,
   control: string,
   label: string,
+  startRow?: boolean,
   options?: DialogDefinitionOption[]
   increment?: number,
   defaultValue?: number | string,

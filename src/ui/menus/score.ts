@@ -44,46 +44,71 @@ export class SuiScoreMenu extends SuiMenuBase {
 
     execView() {
         SuiScoreViewDialog.createAndDisplay(
-            {
-                eventSource: this.eventSource,
-                completeNotifier: this.completeNotifier,
+            {   
+                completeNotifier: this.completeNotifier!,
                 view: this.view,
+                undoBuffer: this.view.undoBuffer,
+                eventSource: this.eventSource,
+                id: 'scoreViewDialog',
+                ctor: 'SuiScoreViewDialog',
+                tracker: this.view.tracker,
+                modifier: null,
                 startPromise: this.closePromise
             });
     }
     execScoreId() {
         SuiScoreIdentificationDialog.createAndDisplay(
             {
-                eventSource: this.eventSource,
-                completeNotifier: this.completeNotifier,
+                completeNotifier: this.completeNotifier!,
                 view: this.view,
+                undoBuffer: this.view.undoBuffer,
+                eventSource: this.eventSource,
+                id: 'scoreIdDialog',
+                ctor: 'SuiScoreIdentificationDialog',
+                tracker: this.view.tracker,
+                modifier: null,
                 startPromise: this.closePromise
             });
     }
     execLayout() {
         SuiLayoutDialog.createAndDisplay(
             {
-                eventSource: this.eventSource,
-                completeNotifier: this.completeNotifier,
+                completeNotifier: this.completeNotifier!,
                 view: this.view,
+                undoBuffer: this.view.undoBuffer,
+                eventSource: this.eventSource,
+                id: 'layoutDialog',
+                ctor: 'SuiLayoutDialog',
+                tracker: this.view.tracker,
+                modifier: null,
                 startPromise: this.closePromise
             });
     }
     execFonts() {
         SuiScoreFontDialog.createAndDisplay(
             {
-                eventSource: this.eventSource,
-                completeNotifier: this.completeNotifier,
+                completeNotifier: this.completeNotifier!,
                 view: this.view,
+                undoBuffer: this.view.undoBuffer,
+                eventSource: this.eventSource,
+                id: 'fontDialog',
+                ctor: 'SuiScoreFontDialog',
+                tracker: this.view.tracker,
+                modifier: null,
                 startPromise: this.closePromise
             });
     }
     execPreferences() {
         SuiGlobalLayoutDialog.createAndDisplay(
             {
-                eventSource: this.eventSource,
-                completeNotifier: this.completeNotifier,
+                completeNotifier: this.completeNotifier!,
                 view: this.view,
+                undoBuffer: this.view.undoBuffer,
+                eventSource: this.eventSource,
+                id: 'globalLayout',
+                ctor: 'SuiGlobalLayoutDialog',
+                tracker: this.view.tracker,
+                modifier: null,
                 startPromise: this.closePromise
             });
     }

@@ -60,7 +60,7 @@ export interface DialogDom {
   trapper: any
 }
 /**
- * Dialogs bound to selectable elements like slurs, dynamics, or created 
+ * Dialogs bound to selectable elements like slurs, dynamics, are created 
  * directly from a button/menu option
  */
 export class SuiModifierDialogFactory {
@@ -73,7 +73,7 @@ export class SuiModifierDialogFactory {
     if (typeof (dbType) === 'undefined') {
       return null;
     }
-    const ctor: any = eval('globalThis.Smo' + dbType);
+    const ctor: any = eval('globalThis.Smo.' + dbType);
     return ctor.createAndDisplay({
       ...parameters
     });
@@ -98,124 +98,12 @@ export class SuiModifierDialogFactory {
 export abstract class SuiDialogBase extends SuiDialogNotifier {
   static get displayOptions(): Record<string, string> {
     return {
-      BINDCOMPONENTS: 'bindComponents', BINDNAMES: '_bindComponentNames', DRAGGABLE: 'makeDraggable',
+      BINDCOMPONENTS: 'bindComponents', DRAGGABLE: 'makeDraggable',
       KEYBOARD_CAPTURE: 'captureKeyboardPromise', GLOBALPOS: 'positionGlobally',
       SELECTIONPOS: 'positionFromSelection', MODIFIERPOS: 'positionFromModifier'
     };
   }
-  abstract _bindElements(): void;
-  id: string;
-  ctor: string;
-  boundKeyboard: boolean;
-  components: SuiComponentBase[] = [];
-  boundComponents: SuiComponentBase[] = [];
-  cmap: Record<string, SuiComponentBase> = {};
-  scroller: SuiScroller;
-  closeDialogPromise: Promise<void>;
-  label: string;
-  staticText: Record<string, string>[] = [];
-  startPromise: Promise<void> | null;
-  dialogElements: DialogDefinition;
-  eventSource: BrowserEventSource;
-  view: SuiScoreViewOperations;
-  completeNotifier: CompleteNotifier;
-  modifier: any;
-  dgDom: DialogDom;
-  displayOptions: string[] = ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-  keydownHandler: EventHandler | null = null;
-  autobind: boolean;
-  // ### SuiDialogBase ctor
-  // Creates the DOM element for the dialog and gets some initial elements
-  constructor(dialogElements: DialogDefinition, parameters: SuiDialogParams) {
-    super();
-    this.id = parameters.id;
-    this.boundKeyboard = false;
-    this.scroller = parameters.view.tracker.scroller;
-    this.label = dialogElements.label;
-    this.eventSource = parameters.eventSource;
-    this.view = parameters.view;
-    this.completeNotifier = parameters.completeNotifier;
-    this.modifier = parameters.modifier;
-    this.ctor = parameters.ctor;
-    this.autobind = parameters.autobind ?? false;
-
-    this.closeDialogPromise = new Promise<void>((resolve) => {
-      $('body').off('dialogDismiss').on('dialogDismiss', () => {
-        resolve();
-      });
-    });
-    this.staticText = dialogElements.staticText;
-
-    // If this dialog was spawned by a menu, wait for the menu to dismiss
-    // before continuing.
-    // this.startPromise = parameters.closeMenuPromise;
-    this.startPromise = parameters.startPromise;
-
-    this.dialogElements = dialogElements;
-
-    const left = $('.musicRelief').offset().left + $('.musicRelief').width() / 2;
-    const top = $('.musicRelief').offset().top + $('.musicRelief').height() / 2;
-
-    this.dgDom = this._constructDialog(dialogElements, {
-      id: 'dialog-' + this.id,
-      top,
-      left,
-      label: this.label
-    });
-
-    SmoTranslator.registerDialog(this.ctor);
-  }
-  static getStaticText(staticText: Record<string, string>[]) {
-    const rv: Record<string, string> = {};
-    staticText.forEach((st) => {
-      const key = Object.keys(st)[0];
-      rv[key] = st[key];
-    });
-    return rv;
-  }
-  getId(): string {
-    return this.id;
-  }
-  getModifier() : SmoModifier | null {
-    return this.modifier ?? null;
-  }
-  getEventSource() {
-    return this.eventSource;
-  }
-  getStaticText() {
-    return SuiDialogBase.getStaticText(this.staticText);
-  }
-  commit() {
-    
-  }
-  initialValue(){
-    if (this.modifier === null || this.autobind === false) {
-      return;
-    }
-    this.boundComponents.forEach((comp) => {
-      (comp as any).setValue((this.modifier as any)[comp.parameterName]);
-    });
-  }
-  changed() {
-    if (this.modifier === null || this.autobind === false) {
-      return;
-    }
-    this.boundComponents.forEach((comp) => {
-      (this.modifier as any)[comp.parameterName] = (comp as any).getValue();
-    });
-  }
-  bindAutobindComponents() {
-    if (this.autobind === false || this.modifier === null) {
-      return;
-    }
-    this.components.forEach((comp) => {
-      if (typeof((this.modifier as any)[comp.parameterName]) !== 'undefined') {
-        this.boundComponents.push(comp);
-      }
-    });
-  }
-
-  // ### printXlate
+   // ### printXlate
   // print json with string labels to use as a translation file seed.
   static printTranslate(_class: string): DialogTranslation {
     const output: DialogTranslationElement[] = [];
@@ -245,6 +133,130 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
       });
     }
     return { ctor: xx.ctor, label: xx.dialogElements.label, dialogElements: output, staticText };
+  }
+  static getStaticText(staticText: Record<string, string>[]) {
+    const rv: Record<string, string> = {};
+    staticText.forEach((st) => {
+      const key = Object.keys(st)[0];
+      rv[key] = st[key];
+    });
+    return rv;
+  }
+ abstract _bindElements(): void;
+  id: string;
+  ctor: string;
+  boundKeyboard: boolean;
+  components: SuiComponentBase[] = [];
+  boundComponents: SuiComponentBase[] = [];
+  cmap: Record<string, SuiComponentBase> = {};
+  scroller: SuiScroller;
+  closeDialogPromise: Promise<void>;
+  label: string;
+  staticText: Record<string, string>[] = [];
+  startPromise: Promise<void> | null;
+  dialogElements: DialogDefinition;
+  eventSource: BrowserEventSource;
+  view: SuiScoreViewOperations;
+  completeNotifier: CompleteNotifier;
+  modifier: any;
+  dgDom: DialogDom;
+  displayOptions: string[] = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  keydownHandler: EventHandler | null = null;
+  autobind: boolean;
+  // ### SuiDialogBase ctor
+  // Creates the DOM element for the dialog and gets some initial elements
+  constructor(dialogElements: DialogDefinition, parameters: SuiDialogParams) {
+    super();
+    this.id = parameters.id;
+    this.boundKeyboard = false;
+    this.scroller = parameters.view.tracker.scroller;
+    this.label = dialogElements.label;
+    this.eventSource = parameters.eventSource;
+    this.view = parameters.view;
+    this.completeNotifier = parameters.completeNotifier;
+    this.modifier = parameters.modifier;
+    this.ctor = parameters.ctor;
+    this.autobind = parameters.autobind ?? true;
+
+    this.closeDialogPromise = new Promise<void>((resolve) => {
+      $('body').off('dialogDismiss').on('dialogDismiss', () => {
+        resolve();
+      });
+    });
+    this.staticText = dialogElements.staticText;
+
+    // If this dialog was spawned by a menu, wait for the menu to dismiss
+    // before continuing.
+    // this.startPromise = parameters.closeMenuPromise;
+    this.startPromise = parameters.startPromise;
+
+    this.dialogElements = dialogElements;
+
+    const left = $('.musicRelief').offset().left + $('.musicRelief').width() / 2;
+    const top = $('.musicRelief').offset().top + $('.musicRelief').height() / 2;
+
+    this.dgDom = this._constructDialog(dialogElements, {
+      id: 'dialog-' + this.id,
+      top,
+      left,
+      label: this.label
+    });
+
+    SmoTranslator.registerDialog(this.ctor);
+  }
+    // ### display
+  // make3 the modal visible.  bind events and elements.
+  display() {
+    $('body').addClass('showAttributeDialog');
+    this.components.forEach((component) => {
+      component.bind();
+    });
+    this._bindElements();
+    this.bindAutobindComponents();
+    this.applyDisplayOptions();
+    this.initialValue();
+  }
+  // Bind each component to this dialog's adapter get/set methods
+  bindAutobindComponents() {
+    if (this.autobind === false || this.modifier === null) {
+      return;
+    }
+    this.components.forEach((comp) => {
+      if (typeof((this.modifier as any)[comp.parameterName]) !== 'undefined') {
+        this.boundComponents.push(comp);
+      }
+    });
+  }
+  initialValue(){
+    if (this.modifier === null || this.autobind === false) {
+      return;
+    }
+    this.boundComponents.forEach((comp) => {
+      (comp as any).setValue((this.modifier as any)[comp.parameterName]);
+    });
+  }
+  changed() {
+    if (this.modifier === null || this.autobind === false) {
+      return;
+    }
+    this.boundComponents.forEach((comp) => {
+      (this.modifier as any)[comp.parameterName] = (comp as any).getValue();
+    });
+  }
+  getId(): string {
+    return this.id;
+  }
+  getModifier() : SmoModifier | null {
+    return this.modifier ?? null;
+  }
+  getEventSource() {
+    return this.eventSource;
+  }
+  getStaticText() {
+    return SuiDialogBase.getStaticText(this.staticText);
+  }
+  commit() {
+    
   }
   get closeModalPromise() {
     return this.closeDialogPromise;
@@ -293,11 +305,6 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
     $('body').addClass('showAttributeDialog');
     this.displayOptions.forEach((option) => {
       (this as any)[SuiDialogBase.displayOptions[option]]();
-    });
-  }
-  bindComponents() {
-    this.components.forEach((component) => {
-      component.bind();
     });
   }
   // ### position
@@ -378,23 +385,6 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
     $('body').removeClass('showAttributeDialog');
     $('body').trigger('dialogDismiss');
     this.dgDom.trapper.close();
-  }
-
-  // ### display
-  // make3 the modal visible.  bind events and elements.
-  display() {
-    $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
-    this._bindElements();
-    if (this.modifier && this.modifier.renderedBox) {
-      this.position(this.modifier.renderedBox);
-    }
-    this.view.tracker.scroller.scrollVisibleBox(
-      SvgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect())
-    );
-    this.makeDraggable();
   }
   // ### makeDraggable
   // generic code to make the dialog box draggable so it doesn't

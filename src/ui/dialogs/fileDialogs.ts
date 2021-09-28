@@ -9,7 +9,6 @@ declare var $: any;
 export abstract class SuiFileDialog extends SuiDialogBase {
   constructor(elements: DialogDefinition, parameters: SuiDialogParams) {
     super(elements, parameters);
-    this.displayOptions = ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
   display() {
     this.applyDisplayOptions();
@@ -155,7 +154,6 @@ export class SuiLoadActionsDialog extends SuiFileDialog {
     parameters.ctor = 'SuiLoadActionsDialog';
     super(SuiLoadActionsDialog.dialogElements, parameters);
     this.value = '';
-    this.displayOptions = ['BINDCOMPONENTS', 'BINDNAMES', 'GLOBALPOS'];
   }
   get loadFileCtrl() {
     return this.cmap['loadFileCtrl'] as SuiFileDownloadComponent;
@@ -203,7 +201,6 @@ export class SuiPrintFileDialog extends SuiFileDialog {
   constructor(parameters: SuiDialogParams) {
     parameters.ctor = 'SuiPrintFileDialog';
     super(SuiPrintFileDialog.dialogElements, parameters);
-    this.displayOptions = ['BINDCOMPONENTS', 'BINDNAMES', 'GLOBALPOS'];
   }
   display() {
     this.applyDisplayOptions();
@@ -242,7 +239,6 @@ export class SuiSaveFileDialog extends SuiFileDialog {
     parameters.ctor = 'SuiSaveFileDialog';
     super(SuiSaveFileDialog.dialogElements, parameters);
     this.value = SuiSaveFileDialog.createName(this.view.score);
-    this.displayOptions = ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
   get saveFileNameCtrl() {
     return this.cmap['saveFileNameCtrl'] as SuiTextInputComponent;
@@ -293,7 +289,6 @@ export class SuiSaveXmlDialog extends SuiFileDialog {
   constructor(parameters: SuiDialogParams) {
     super(SuiSaveXmlDialog.dialogElements, parameters);
     this.value = SuiSaveXmlDialog.createName(this.view.score);
-    this.displayOptions = ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
   get saveFileNameCtrl() {
     return this.cmap['saveFileNameCtrl'] as SuiTextInputComponent;
@@ -345,7 +340,6 @@ export class SuiSaveMidiDialog extends SuiFileDialog {
     parameters.ctor = 'SuiSaveMidiDialog';
     super(SuiSaveMidiDialog.dialogElements, parameters);
     this.value = SuiSaveMidiDialog.createName(this.view.score);
-    this.displayOptions = ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
   get saveFileNameCtrl() {
     return this.cmap['saveFileNameCtrl'] as SuiTextInputComponent;
@@ -396,8 +390,6 @@ export class SuiSaveActionsDialog extends SuiFileDialog {
   constructor(parameters: SuiDialogParams) {
     super(SuiSaveActionsDialog.dialogElements, parameters);
     this.value = SuiSaveActionsDialog.createName(this.view.score);
-    this.displayOptions = ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-
   }
   changed() {
     this.value = this.saveFileNameCtrl.getValue();

@@ -94,21 +94,14 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.addRemoveMicrotone(null, altSelections, tone);
     this._renderChangedMeasures(measureSelections);
   }
-  addDynamic(dynamic: SmoDynamicText) {
-    const sel = this.tracker.selections[0];
-    if (typeof (dynamic) === 'string') {
-      const params = SmoDynamicText.defaults;
-      params.selector = sel.selector;
-      params.text = dynamic;
-      dynamic = new SmoDynamicText(params);
-    }
+  addDynamic(selection: SmoSelection, dynamic: SmoDynamicText) {
     this.actionBuffer.addAction('addDynamic', dynamic);
     this._undoFirstMeasureSelection('add dynamic');
-    this._removeDynamic(sel, dynamic);
-    const equiv = this._getEquivalentSelection(sel);
-    SmoOperation.addDynamic(sel, dynamic);
+    this._removeDynamic(selection, dynamic);
+    const equiv = this._getEquivalentSelection(selection);
+    SmoOperation.addDynamic(selection, dynamic);
     SmoOperation.addDynamic(equiv!, SmoNoteModifierBase.deserialize(dynamic.serialize() as any));
-    this.renderer.addToReplaceQueue(sel);
+    this.renderer.addToReplaceQueue(selection);
   }
   _removeDynamic(selection: SmoSelection, dynamic: SmoDynamicText) {
     const equiv = this._getEquivalentSelection(selection);

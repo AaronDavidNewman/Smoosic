@@ -148,7 +148,7 @@ export class SuiMeasureDialog extends SuiDialogBase {
     // The 'modifier' that this dialog acts on is a measure.
     this.measure = this.selection.measure;
     this.modifier = this.measure.format;
-    this.displayOptions = ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
+    this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
   }
   get pickupCtrl() {
     return this.cmap.pickupCtrl as CheckboxDropdownComponent;
@@ -271,7 +271,6 @@ export class SuiInstrumentDialog extends SuiDialogBase {
     this.selection = this.view.tracker.selections[0];
     this.measure = this.selection.measure;
     this.refresh = false;
-    this.displayOptions = ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
   get transposeIndexCtrl() {
     return this.cmap.transposeIndexCtrl as SuiRockerComponent;
@@ -376,7 +375,7 @@ export class SuiInsertMeasures extends SuiDialogBase {
         resolve();
       });
     }
-    this.displayOptions = ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+    this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
   commit() { }
 
@@ -457,7 +456,6 @@ export class SuiTimeSignatureDialog extends SuiDialogBase {
     const measure = selection.measure;
     this.measure = measure;
     this.refresh = false;
-    this.displayOptions =['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
   get numeratorCtrl(): SuiRockerComponent {
     return this.cmap.numeratorCtrl as SuiRockerComponent;
@@ -684,7 +682,7 @@ export class SuiTempoDialog extends SuiDialogBase {
     super(SuiTempoDialog.dialogElements, { autobind: true, ...parameters });
     this.modifier = measure.getTempo();
     this.refresh = false;
-    this.displayOptions = ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+    this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
   display() {
     this.applyDisplayOptions();

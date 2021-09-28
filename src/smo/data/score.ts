@@ -136,7 +136,7 @@ export class SmoScore {
     };
   }
   static pageSizeFromDimensions(width: number, height: number): string | null {
-    const rv =  
+    const rv =
       SmoScore.pageSizes.find((sz) => SmoScore.pageDimensions[sz].width === width && SmoScore.pageDimensions[sz].height === height)
       ?? null;
     return rv;

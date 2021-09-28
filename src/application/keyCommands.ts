@@ -27,11 +27,18 @@ export class SuiKeyCommands {
   }
 
   tempoDialog() {
+    const tempo = this.tracker.selections[0].measure.getTempo();
     SuiTempoDialog.createAndDisplay(
       {
+        id: 'tempoDialog',
+        ctor: 'SuiTempoDialog',
         completeNotifier: this.completeNotifier,
         view: this.view,
-        eventSource: this.eventSource
+        eventSource: this.eventSource,
+        tracker: this.tracker,
+        startPromise: null,
+        undoBuffer: this.view.undoBuffer,
+        modifier: tempo
       }
     );
   }
