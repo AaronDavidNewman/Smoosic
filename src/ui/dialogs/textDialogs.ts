@@ -32,7 +32,6 @@ export class SuiLyricDialog extends SuiDialogBase {
       label: 'Lyric Editor', elements:
         [{
           smoName: 'verse',
-          parameterName: 'verse',
           defaultValue: 0,
           control: 'SuiDropdownComponent',
           label: 'Verse',
@@ -54,7 +53,6 @@ export class SuiLyricDialog extends SuiDialogBase {
           ]
         }, {
           smoName: 'translateY',
-          parameterName: 'translateY',
           classes: 'hide-when-editing',
           defaultValue: 0,
           control: 'SuiRockerComponent',
@@ -62,14 +60,12 @@ export class SuiLyricDialog extends SuiDialogBase {
           dataType: 'int'
         }, {
           smoName: 'font',
-          parameterName: 'font',
           classes: 'hide-when-editing',
           defaultValue: 0,
           control: 'SuiFontComponent',
           label: 'Font'
         }, {
           smoName: 'lyricEditor',
-          parameterName: 'text',
           defaultValue: 0,
           classes: 'show-always',
           control: 'SuiLyricComponent',
@@ -225,7 +221,6 @@ export class SuiChordChangeDialog extends SuiDialogBase {
         label: 'Edit Chord Symbol', elements:
           [{
             smoName: 'verse',
-            parameterName: 'verse',
             defaultValue: 0,
             control: 'SuiDropdownComponent',
             label: 'Ordinality',
@@ -243,7 +238,6 @@ export class SuiChordChangeDialog extends SuiDialogBase {
             }]
           }, {
             smoName: 'translateY',
-            parameterName: 'translateY',
             defaultValue: 0,
             classes: 'hide-when-editing',
             control: 'SuiRockerComponent',
@@ -251,7 +245,6 @@ export class SuiChordChangeDialog extends SuiDialogBase {
             dataType: 'int'
           }, {
             smoName: 'chordEditor',
-            parameterName: 'text',
             defaultValue: 0,
             classes: 'show-always',
             control: 'SuiChordComponent',
@@ -259,7 +252,6 @@ export class SuiChordChangeDialog extends SuiDialogBase {
             options: []
           }, {
             smoName: 'chordSymbol',
-            parameterName: 'chordSymbol',
             defaultValue: '',
             classes: 'show-when-editing',
             control: 'SuiDropdownComponent',
@@ -280,7 +272,6 @@ export class SuiChordChangeDialog extends SuiDialogBase {
             }]
           }, {
             smoName: 'textPosition',
-            parameterName: 'textPosition',
             defaultValue: SuiInlineText.textTypes.normal,
             classes: 'show-when-editing',
             control: 'SuiDropdownComponent',
@@ -298,14 +289,12 @@ export class SuiChordChangeDialog extends SuiDialogBase {
             }]
           }, {
             smoName: 'font',
-            parameterName: 'font',
             classes: 'hide-when-editing',
             defaultValue: 0,
             control: 'SuiFontComponent',
             label: 'Font'
           }, {
             smoName: 'adjustWidth',
-            parameterName: 'adjustNoteWidth',
             classes: 'hide-when-editing',
             control: 'SuiToggleComponent',
             label: 'Adjust Note Width',
@@ -466,7 +455,7 @@ export class SuiChordChangeDialog extends SuiDialogBase {
 }
 export class SuiTextTransformDialog extends SuiDialogBase {
   get textEditorCtrl(): SuiTextInPlace {
-    return this.cmap.SuiTextInPlaceCtrl as SuiTextInPlace;
+    return this.cmap.textEditorCtrl as SuiTextInPlace;
   }
   get insertCodeCtrl(): SuiDropdownComponent {
     return this.cmap.insertCodeCtrl as SuiDropdownComponent;
@@ -497,7 +486,6 @@ export class SuiTextTransformDialog extends SuiDialogBase {
         label: 'Text Properties', elements:
           [{
             smoName: 'textEditor',
-            parameterName: 'text',
             defaultValue: 0,
             control: 'SuiTextInPlace',
             classes: 'show-always hide-when-moving',
@@ -505,7 +493,6 @@ export class SuiTextTransformDialog extends SuiDialogBase {
             options: []
           }, {
             smoName: 'insertCode',
-            parameterName: 'insertCode',
             classes: 'show-when-editing hide-when-moving',
             control: 'SuiDropdownComponent',
             label: 'Insert Special',
@@ -515,7 +502,6 @@ export class SuiTextTransformDialog extends SuiDialogBase {
             ]
           }, {
             smoName: 'textDragger',
-            parameterName: 'textLocation',
             classes: 'hide-when-editing show-when-moving',
             defaultValue: 0,
             control: 'SuiDragText',
@@ -523,7 +509,6 @@ export class SuiTextTransformDialog extends SuiDialogBase {
             options: []
           }, {
             smoName: 'x',
-            parameterName: 'x',
             defaultValue: 0,
             classes: 'hide-when-editing hide-when-moving',
             control: 'SuiRockerComponent',
@@ -531,7 +516,6 @@ export class SuiTextTransformDialog extends SuiDialogBase {
             dataType: 'int'
           }, {
             smoName: 'y',
-            parameterName: 'y',
             defaultValue: 0,
             classes: 'hide-when-editing hide-when-moving',
             control: 'SuiRockerComponent',
@@ -539,7 +523,6 @@ export class SuiTextTransformDialog extends SuiDialogBase {
             dataType: 'int'
           }, {
             smoName: 'font',
-            parameterName: 'font',
             classes: 'hide-when-editing hide-when-moving',
             defaultValue: SmoScoreText.fontFamilies.times,
             control: 'SuiFontComponent',
@@ -547,7 +530,6 @@ export class SuiTextTransformDialog extends SuiDialogBase {
           },
           {
             smoName: 'textBlock',
-            parameterName: 'textBlock',
             classes: 'hide-when-editing hide-when-moving',
             defaultValue: '',
             control: 'SuiTextBlockComponent',
@@ -555,7 +537,6 @@ export class SuiTextTransformDialog extends SuiDialogBase {
           },
           { // {every:'every',even:'even',odd:'odd',once:'once'}
             smoName: 'pagination',
-            parameterName: 'pagination',
             defaultValue: SmoScoreText.paginations.every,
             classes: 'hide-when-editing hide-when-moving',
             control: 'SuiDropdownComponent',
@@ -568,7 +549,6 @@ export class SuiTextTransformDialog extends SuiDialogBase {
             ]
           }, {
             smoName: 'attachToSelector',
-            parameterName: 'attachToSelector',
             classes: 'hide-when-editing hide-when-moving',
             control: 'SuiToggleComponent',
             label: 'Attach to Selection'
@@ -902,25 +882,21 @@ export class SuiDynamicModifierDialog extends SuiDialogBase {
         label: 'Dynamics Properties', elements:
           [{
             smoName: 'yOffsetLine',
-            parameterName: 'yOffsetLine',
             defaultValue: 11,
             control: 'SuiRockerComponent',
             label: 'Y Line'
           }, {
             smoName: 'yOffsetPixels',
-            parameterName: 'yOffsetPixels',
             defaultValue: 0,
             control: 'SuiRockerComponent',
             label: 'Y Offset Px'
           }, {
             smoName: 'xOffset',
-            parameterName: 'yOffset',
             defaultValue: 0,
             control: 'SuiRockerComponent',
             label: 'X Offset'
           }, {
             smoName: 'text',
-            parameterName: 'text',
             defaultValue: SmoDynamicText.dynamics.P,
             options: [{
               value: SmoDynamicText.dynamics.P,

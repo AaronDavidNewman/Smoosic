@@ -16,7 +16,6 @@ export interface SuiTreeComponentParams {
   id: string,
   classes: string,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string,
   root: string,
@@ -29,9 +28,11 @@ export class SuiTreeComponent extends SuiComponentBase {
   tree: Record<string, TreeComponentOption[]> = {};
   options: TreeComponentOption[] = [];
   root: string;
+  value: string;
   constructor(dialog: SuiDialogNotifier, parameter: SuiTreeComponentParams) {
     super(dialog, parameter);
     this.root = parameter.root;
+    this.value = this.root;
     this.options = parameter.options;
     this.calculateOptionTree();
   }
@@ -91,7 +92,7 @@ export class SuiTreeComponent extends SuiComponentBase {
   get html() {
     const b = htmlHelpers.buildDom;
     const id = this.parameterId;
-    const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.parameterName);
+    const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.smoName);
     const ul = b('ul').classes('tree tree-root');
     this._createTree(b, ul);
     r.append(ul);
@@ -121,7 +122,7 @@ export class SuiTreeComponent extends SuiComponentBase {
     return $(this.dialog.dgDom.element).find('#' + pid);
   }
   getValue() {
-    return this.root;
+    return this.value;
   }
   setValue(value: string) {
     $('ul.tree li').removeClass('selected');
@@ -157,6 +158,7 @@ export class SuiTreeComponent extends SuiComponentBase {
       $(el).off('click').on('click', (ev: any) => {
         const li = $(ev.currentTarget).closest('li.tree-branch');
         $(li).addClass('selected');
+        this.value = $(li).attr('data-value');
         this.handleChanged();
       });
     });

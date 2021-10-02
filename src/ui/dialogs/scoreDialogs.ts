@@ -10,6 +10,8 @@ import { StaffCheckComponent } from './staffComponents';
 import { FontInfo } from '../../smo/data/common';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { DialogDefinitionOption, SuiDropdownComponent } from '../dialogComponents';
+import { GlobalLayoutAttributes } from '../../smo/data/scoreModifiers';
+import { ScoreRenderParams } from '../../render/sui/renderState';
 
 declare var $: any;
 
@@ -23,7 +25,6 @@ export class SuiScoreViewDialog extends SuiDialogBase {
       label: 'Score View', elements:
         [{
           smoName: 'scoreView',
-          parameterName: 'scoreView',
           control: 'StaffCheckComponent',
           label: 'Show staff',
         }],
@@ -73,6 +74,52 @@ export class SuiScoreViewDialog extends SuiDialogBase {
   }
 }
 
+export class SuiGlobalLayoutAdapter {
+  scoreLayout: SmoGlobalLayout;
+  backup: SmoGlobalLayout;
+  view: SuiScoreViewOperations;
+  changed: boolean = false;
+  constructor(view: SuiScoreViewOperations, score: SmoScore) {
+    this.scoreLayout = score.layoutManager!.globalLayout;
+    this.backup = score.layoutManager!.getGlobalLayout();
+    this.view = view;
+  }
+  writeValue(attr: GlobalLayoutAttributes, value: number) {
+    this.scoreLayout[attr] = value;
+    this.view.setGlobalLayout(this.scoreLayout)
+    this.changed = true;
+  }
+  get noteSpacing() {
+    return this.scoreLayout.noteSpacing;
+  }
+  set noteSpacing(value: number) {
+    this.writeValue('noteSpacing', value);
+  }
+  get pageWidth() {
+    return this.scoreLayout.pageWidth;
+  }
+  set pageWidth(value: number) {
+    this.writeValue('pageWidth', value);
+  }
+  get pageHeight() {
+    return this.scoreLayout.pageHeight;
+  }
+  set pageHeight(value: number) {
+    this.writeValue('pageHeight', value);
+  }
+  get svgScale() {
+    return this.scoreLayout.svgScale;
+  }
+  set svgScale(value: number) {
+    this.writeValue('svgScale', value);
+  }
+  get zoomScale() {
+    return this.scoreLayout.zoomScale;
+  }
+  set zoomScale(value: number) {
+    this.writeValue('zoomScale', value);
+  }
+}
 // ## SuiGlobalLayoutDialog
 // change editor and formatting defaults for this score.
 export class SuiGlobalLayoutDialog extends SuiDialogBase {
@@ -81,14 +128,12 @@ export class SuiGlobalLayoutDialog extends SuiDialogBase {
       label: 'Global Settings', elements:
         [{
           smoName: 'noteSpacing',
-          parameterName: 'noteSpacing',
           defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,
           control: 'SuiRockerComponent',
           dataType: 'percent',
           label: 'Note Spacing'
         }, {
           smoName: 'pageSize',
-          parameterName: 'pageSize',
           defaultValue: SmoScore.pageSizes[0],
           control: 'SuiDropdownComponent',
           label: 'Page Size',
@@ -111,26 +156,22 @@ export class SuiGlobalLayoutDialog extends SuiDialogBase {
             }]
         }, {
           smoName: 'pageWidth',
-          parameterName: 'pageWidth',
           defaultValue: SmoLayoutManager.defaults.globalLayout.pageWidth,
           control: 'SuiRockerComponent',
           label: 'Page Width (px)'
         }, {
           smoName: 'pageHeight',
-          parameterName: 'pageHeight',
           defaultValue: SmoLayoutManager.defaults.globalLayout.pageHeight,
           control: 'SuiRockerComponent',
           label: 'Page Height (px)'
         }, {
           smoName: 'zoomScale',
-          parameterName: 'zoomScale',
           defaultValue: SmoLayoutManager.defaults.globalLayout.zoomScale,
           control: 'SuiRockerComponent',
           label: '% Zoom',
           dataType: 'percent'
         }, {
           smoName: 'svgScale',
-          parameterName: 'svgScale',
           defaultValue: SmoLayoutManager.defaults.globalLayout.svgScale,
           control: 'SuiRockerComponent',
           label: '% Note size',
@@ -154,11 +195,6 @@ export class SuiGlobalLayoutDialog extends SuiDialogBase {
     this.score = this.view.score;
     this.modifier = this.score.layoutManager!.getGlobalLayout();
     this.layoutBackup = deepCopy(this.modifier);
-  }
-  display() {
-    this.applyDisplayOptions();
-    this._bindElements();
-    this.initialValue();
   }
   _bindElements() {
     const dgDom = this.dgDom;
@@ -208,29 +244,24 @@ export class SuiScoreIdentificationDialog extends SuiDialogBase {
       label: 'Score Preferences', elements:
         [{
           smoName: 'name',
-          parameterName: 'name',
           defaultValue: '',
           control: 'TextCheckComponent',
           label: 'Score Name',
         }, {
           smoName: 'title',
-          parameterName: 'title',
           defaultValue: '',
           control: 'TextCheckComponent',
           label: 'Title',
         }, {
           smoName: 'subTitle',
-          parameterName: 'subTitle',
           control: 'TextCheckComponent',
           label: 'Sub Title',
         }, {
           smoName: 'composer',
-          parameterName: 'composer',
           control: 'TextCheckComponent',
           label: 'Composer',
         }, {
           smoName: 'copyright',
-          parameterName: 'copyright',
           defaultValue: SmoMeasureFormat.defaults.customProportion!,
           control: 'TextCheckComponent',
           label: 'Copyright'
@@ -373,7 +404,6 @@ export class SuiScoreFontDialog extends SuiDialogBase {
       label: 'Score Fonts', elements:
         [{
           smoName: 'engravingFont',
-          parameterName: 'engravingFont',
           defaultValue: SmoScore.engravingFonts.Bravura,
           control: 'SuiDropdownComponent',
           label: 'Engraving Font',
@@ -392,14 +422,12 @@ export class SuiScoreFontDialog extends SuiDialogBase {
           }]
         }, {
           smoName: 'chordFont',
-          parameterName: 'chordFont',
           classes: 'chord-font-component',
           defaultValue: 0,
           control: 'SuiFontComponent',
           label: 'Chord Font'
         }, {
           smoName: 'lyricFont',
-          parameterName: 'lyricFont',
           classes: 'lyric-font-component',
           defaultValue: 0,
           control: 'SuiFontComponent',
@@ -446,7 +474,7 @@ export class SuiPageLayoutAdapter {
   layouts: SmoPageLayout[];
   backup: SmoPageLayout[] = [];
   currentPage: number;
-  changed : boolean = false;
+  changed: boolean = false;
   currentLayout: SmoPageLayout;
   layoutManager: SmoLayoutManager;
   view: SuiScoreViewOperations
@@ -523,7 +551,7 @@ export class SuiPageLayoutAdapter {
     if (!this.changed) {
       return;
     }
-    for (i = 0;i < this.backup.length; ++i) {
+    for (i = 0; i < this.backup.length; ++i) {
       this.view.setPageLayout(this.backup[i], i);
     }
   }
@@ -565,7 +593,6 @@ export class SuiLayoutDialog extends SuiDialogBase {
       label: 'Page Layouts', elements:
         [{
           smoName: 'applyToPage',
-          parameterName: 'applyToPage',
           defaultValue: -1,
           control: 'SuiDropdownComponent',
           label: 'Apply to Page',
@@ -582,37 +609,31 @@ export class SuiLayoutDialog extends SuiDialogBase {
           }]
         }, {
           smoName: 'leftMargin',
-          parameterName: 'leftMargin',
           defaultValue: SmoPageLayout.defaults.leftMargin,
           control: 'SuiRockerComponent',
           label: 'Left Margin (px)'
         }, {
           smoName: 'rightMargin',
-          parameterName: 'rightMargin',
           defaultValue: SmoPageLayout.defaults.rightMargin,
           control: 'SuiRockerComponent',
           label: 'Right Margin (px)'
         }, {
           smoName: 'topMargin',
-          parameterName: 'topMargin',
           defaultValue: SmoPageLayout.defaults.topMargin,
           control: 'SuiRockerComponent',
           label: 'Top Margin (px)'
         }, {
           smoName: 'bottomMargin',
-          parameterName: 'bottomMargin',
           defaultValue: SmoPageLayout.defaults.bottomMargin,
           control: 'SuiRockerComponent',
           label: 'Bottom Margin (px)'
         }, {
           smoName: 'interGap',
-          parameterName: 'interGap',
           defaultValue: SmoPageLayout.defaults.interGap,
           control: 'SuiRockerComponent',
           label: 'Inter-System Margin'
         }, {
           smoName: 'intraGap',
-          parameterName: 'intraGap',
           defaultValue: SmoPageLayout.defaults.intraGap,
           control: 'SuiRockerComponent',
           label: 'Intra-System Margin'

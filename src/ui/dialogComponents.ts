@@ -21,7 +21,6 @@ export interface DialogDefinitionOption {
  * Generic parameters of a dialog component.  Specific components can define
  * additional params
  * @param {smoName} - the name the dialog uses to reference it 
- * @param {parameterName} - can be used for automatic binding
  * @param {control} - constructor of the control
  * @param {label} - label of the element, can be translated
  * @param {increment}  - used by components that have increment arrows
@@ -31,7 +30,6 @@ export interface DialogDefinitionOption {
  */
 export interface DialogDefinitionElement {
   smoName: string,
-  parameterName: string,
   control: string,
   label: string,
   startRow?: boolean,
@@ -46,7 +44,6 @@ export interface SuiBaseComponentParams {
   id: string,
   classes: string,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string,
   parentComponent?: SuiComponentParent
@@ -68,7 +65,6 @@ export abstract class SuiComponentBase {
   id: string;
   label: string;
   control: string;
-  parameterName: string;
   smoName: string;
   constructor(dialog: SuiDialogNotifier, parameters: SuiBaseComponentParams) {
     this.changeFlag = false;
@@ -77,7 +73,6 @@ export abstract class SuiComponentBase {
     this.id = parameters.id;
     this.label = parameters.label;
     this.control = parameters.control;
-    this.parameterName = parameters.parameterName;
     this.smoName = parameters.smoName;
   }
   abstract bind(): void;
@@ -97,7 +92,7 @@ export abstract class SuiComponentBase {
     return classes;
   }
   get parameterId() {
-    return this.dialog.getId() + '-' + this.parameterName;
+    return this.dialog.getId() + '-' + this.smoName;
   }
 }
 
@@ -112,7 +107,6 @@ export interface SuiRockerComponentParams {
   increment?: number,
   defaultValue: number,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string
 }
@@ -150,7 +144,7 @@ export class SuiRockerComponent extends SuiComponentBase {
   get html() {
     const b = htmlHelpers.buildDom;
     const id = this.parameterId;
-    const r = b('div').classes(this.makeClasses('rockerControl smoControl')).attr('id', id).attr('data-param', this.parameterName)
+    const r = b('div').classes(this.makeClasses('rockerControl smoControl')).attr('id', id).attr('data-param', this.smoName)
       .append(
         b('button').classes('increment').append(
           b('span').classes('icon icon-circle-up'))).append(
@@ -163,7 +157,7 @@ export class SuiRockerComponent extends SuiComponentBase {
   }
 
   get parameterId() {
-    return this.dialog.getId() + '-' + this.parameterName;
+    return this.dialog.getId() + '-' + this.smoName;
   }
   handleChange() {
     this.changeFlag = true;
@@ -244,7 +238,6 @@ export interface SuiFileDownloadComponentParams {
   increment?: number,
   defaultValue: string,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string
 }
@@ -255,18 +248,13 @@ export class SuiFileDownloadComponent extends SuiComponentBase {
   value: string = '';
   constructor(dialog: SuiDialogNotifier, parameter: SuiFileDownloadComponentParams) {
     super(dialog, parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     this.defaultValue = parameter.defaultValue ?? '';
     this.dialog = dialog;
-  }
-  get parameterId() {
-    return this.dialog.getId() + '-' + this.parameterName;
   }
   get html() {
     const b = htmlHelpers.buildDom;
     const id = this.parameterId;
-    var r = b('div').classes(this.makeClasses('select-file')).attr('id', this.parameterId).attr('data-param', this.parameterName)
+    var r = b('div').classes(this.makeClasses('select-file')).attr('id', this.parameterId).attr('data-param', this.smoName)
       .append(b('input').attr('type', 'file').classes('file-button')
         .attr('id', id + '-input')).append(
         b('label').attr('for', id + '-input').text(this.label));
@@ -295,7 +283,6 @@ export interface SuiToggleComponentParams {
   type?: string,
   increment?: number,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string
 }
@@ -311,7 +298,7 @@ export class SuiToggleComponent extends SuiComponentBase {
   get html() {
     const b = htmlHelpers.buildDom;
     const id = this.parameterId;
-    const r = b('div').classes(this.makeClasses('toggleControl smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
+    const r = b('div').classes(this.makeClasses('toggleControl smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
       .append(b('input').attr('type', 'checkbox').classes('toggleInput')
         .attr('id', id + '-input')).append(
         b('label').attr('for', id + '-input').text(this.label));
@@ -321,10 +308,6 @@ export class SuiToggleComponent extends SuiComponentBase {
     const pid = this.parameterId;
     return $(this.dialog.dgDom.element).find('#' + pid).find('input');
   }
-  get parameterId() {
-    return this.dialog.getId() + '-' + this.parameterName;
-  }
-
   setValue(value: boolean) {
     $(this._getInputElement()).prop('checked', value);
   }
@@ -347,7 +330,6 @@ export interface SuiButtonComponentParams {
   type?: string,
   increment?: number,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string,
   icon: string
@@ -365,7 +347,7 @@ export class SuiButtonComponent extends SuiComponentBase {
     const b = htmlHelpers.buildDom;
     const id = this.parameterId;
     this.icon = typeof(this.icon) === 'undefined' ? '' : this.icon;
-    const r = b('div').classes(this.makeClasses('buttonControl smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
+    const r = b('div').classes(this.makeClasses('buttonControl smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
       .append(b('button').attr('type', 'button').classes(this.icon)
         .attr('id', id + '-input')).append(
         b('label').attr('for', id + '-input').text(this.label));
@@ -374,9 +356,6 @@ export class SuiButtonComponent extends SuiComponentBase {
   _getInputElement() {
     var pid = this.parameterId;
     return $(this.dialog.dgDom.element).find('#' + pid).find('button');
-  }
-  get parameterId() {
-    return this.dialog.getId() + '-' + this.parameterName;
   }
   setValue() {
   }
@@ -397,7 +376,6 @@ export interface SuiDropdownComponentParams {
   type?: string,
   increment?: number,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string,
   disabledOption?: string,
@@ -420,10 +398,6 @@ export class SuiDropdownComponent extends SuiComponentBase {
     this.dataType = parameter.dataType ?? 'string';
     this.defaultValue = parameter.defaultValue;
   }
-
-  get parameterId() {
-    return this.dialog.getId() + '-' + this.parameterName;
-  }
   checkDefault(s: any, b: any) {
     if (this.disabledOption.length) {
       s.prop('required', true).append(b('option').attr('selected', 'selected').prop('disabled', true).text(this.disabledOption));
@@ -433,7 +407,7 @@ export class SuiDropdownComponent extends SuiComponentBase {
   get html() {
     const b = htmlHelpers.buildDom;
     const id = this.parameterId;
-    const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.parameterName);
+    const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.smoName);
     const s = b('select');
     this.checkDefault(s, b);
     this.options.forEach((option) => {
@@ -502,7 +476,6 @@ export interface SuiDropdownCompositeParams {
   type?: string,
   increment?: number,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string,
   disabledOption?: string,
@@ -532,7 +505,6 @@ export interface SuiToggleCompositeParams {
   type?: string,
   increment?: number,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string,
   disabledOption?: string,
@@ -562,7 +534,6 @@ export interface SuiButtonCompositeParams {
   type?: string,
   increment?: number,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string,
   icon: string,
@@ -590,7 +561,6 @@ export interface SuiRockerCompositeParams {
   increment?: number,
   defaultValue: number,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string,
   parentControl: SuiComponentParent
@@ -615,7 +585,6 @@ export interface SuiTextInputComponentParams {
   increment?: number,
   defaultValue: string,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string
 }
@@ -631,13 +600,10 @@ export class SuiTextInputComponent extends SuiComponentBase {
     this.dialog = dialog;
     this.value = '';
   }
-  get parameterId() {
-    return this.dialog.getId() + '-' + this.parameterName;
-  }
   get html() {
     const b = htmlHelpers.buildDom;
     const id = this.parameterId;
-    const r = b('div').classes(this.makeClasses('text-input smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
+    const r = b('div').classes(this.makeClasses('text-input smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
       .append(b('input').attr('type', 'text').classes('file-name')
         .attr('id', id + '-input')).append(
         b('label').attr('for', id + '-input').text(this.label));
@@ -670,7 +636,6 @@ export interface SuiTextInputCompositeParams {
   increment?: number,
   defaultValue: string,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string
   parentControl: SuiComponentParent

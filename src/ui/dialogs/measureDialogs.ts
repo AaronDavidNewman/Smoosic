@@ -1,21 +1,19 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';
-import { CheckboxDropdownComponent } from './staffComponents';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoMeasureText, SmoTempoText } from '../../smo/data/measureModifiers';
-import { SmoMusic } from '../../smo/data/music';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { DialogDefinitionOption, DialogDefinitionElement, SuiToggleComponent, SuiRockerComponent, SuiDropdownComponent, SuiTextInputComponent } from '../dialogComponents';
-import { SmoMeasureFormat } from '../../smo/data/measureModifiers';
+import { SmoMeasureFormat, SmoMeasureFormatNumberAttributes, SmoMeasueFormatBooleanAttributes } from '../../smo/data/measureModifiers';
+import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SmoInstrument } from '../../smo/data/staffModifiers';
 
 declare var $: any;
 
 export interface PickupCompositeElement {
   smoName: string,
-  parameterName: string,
   dataType?: string
   control: string,
   label: string,
@@ -29,95 +27,104 @@ export interface MeasureDialogDefinition {
   elements: PickupCompositeElement[],
   staticText: Record<string, string>[]
 }
+export class SuiMeasureFormatAdapter {
+  format: SmoMeasureFormat;
+  backup: SmoMeasureFormat;
+  view: SuiScoreViewOperations;
+  edited: boolean = false;
+  constructor(view: SuiScoreViewOperations, measure: SmoMeasure) {
+    this.view = view;
+    this.format = measure.format;
+    this.backup = new SmoMeasureFormat(this.format);
+  }
+  writeNumber(param: SmoMeasureFormatNumberAttributes, value: number) {
+    this.format[param] = value;
+    this.view.setMeasureFormat(this.format);
+    this.edited = true;
+  }
+  writeBoolean(param: SmoMeasueFormatBooleanAttributes, value: boolean) {
+    this.format[param] = value;
+    this.view.setMeasureFormat(this.format);
+    this.edited = true;
+  }
+  cancel() {
+    if (this.edited) {
+      this.view.setMeasureFormat(this.backup);
+    }      
+  }
+  get padLeft() {
+    return this.format.padLeft;
+  }
+  set padLeft(value: number) {
+    if (value >  0) {
+      $('.attributeDialog .attributeModal').addClass('pad-left-select');
+    } else {
+      $('.attributeDialog .attributeModal').removeClass('pad-left-select');
+    }
+    this.writeNumber('padLeft', value);
+  }
+  get customStretch() {
+    return this.format.customStretch;
+  }
+  set customStretch(value: number) {
+    this.writeNumber('customStretch', value);
+  }
+  get customProportion() {
+    return this.format.customProportion;
+  }
+  set customProportion(value: number) {
+    this.writeNumber('customProportion', value);
+  }
+  get autoJustify() {
+    return this.format.autoJustify;
+  }
+  set autoJustify(value: boolean) {
+    this.writeBoolean('autoJustify', value);
+  }
+  get padAllInSystem() {
+    return this.format.padAllInSystem;
+  }
+  set padAllInSystem(value: boolean) {
+    this.writeBoolean('padAllInSystem', value);
+  }
+  get systemBreak() {
+    return this.format.systemBreak;
+  }
+  set systemBreak(value: boolean) {
+    this.writeBoolean('systemBreak', value);
+  }
+}
 // ## measureDialogs.js
 // This file contains dialogs that affect all measures at a certain position,
 // such as tempo or time signature.
 export class SuiMeasureDialog extends SuiDialogBase {
-  static get attributes() {
-    return ['pickupMeasure', 'makePickup', 'padLeft', 'padAllInSystem',
-      'measureText', 'measureTextPosition'];
-  }
   static dialogElements: MeasureDialogDefinition = 
       {
         label: 'Measure Properties',
         elements:
           [{
-            smoName: 'pickup',
-            parameterName: 'pickup',
-            control: 'CheckboxDropdownComponent',
-            label: 'Pickup',
-            toggleElement: {
-              smoName: 'makePickup',
-              parameterName: 'makePickup',
-              control: 'SuiToggleComponent',
-              label: 'Convert to Pickup Measure'
-            },
-            dropdownElement: {
-              smoName: 'pickupMeasure',
-              parameterName: 'pickupMeasure',
-              control: 'SuiDropdownComponent',
-              label: 'Pickup Measure',
-              options: [{
-                value: 2048,
-                label: 'Eighth Note'
-              }, {
-                value: 4096,
-                label: 'Quarter Note'
-              }, {
-                value: 6144,
-                label: 'Dotted Quarter'
-              }, {
-                value: 8192,
-                label: 'Half Note'
-              }]
-            }
-          }, {
-            parameterName: 'padLeft',
             smoName: 'padLeft',
             control: 'SuiRockerComponent',
             label: 'Pad Left (px)'
           }, {
-            parameterName: 'customStretch',
             smoName: 'customStretch',
             control: 'SuiRockerComponent',
             label: 'Stretch Contents'
           }, {
-            parameterName: 'customProportion',
             smoName: 'customProportion',
             control: 'SuiRockerComponent',
             increment: 10,
             label: 'Proportionalality'
           }, {
             smoName: 'padAllInSystem',
-            parameterName: 'padAllInSystem',
             control: 'SuiToggleComponent',
             label: 'Pad all measures in system'
           }, {
             smoName: 'autoJustify',
-            parameterName: 'autoJustify',
             control: 'SuiToggleComponent',
             label: 'Justify Columns'
           }, {
-            smoName: 'measureTextPosition',
-            parameterName: 'measureTextPosition',
-            control: 'SuiDropdownComponent',
-            label: 'Text Position',
-            options: [{
-              value: SmoMeasureText.positions.left,
-              label: 'Left'
-            }, {
-              value: SmoMeasureText.positions.right,
-              label: 'Right'
-            }, {
-              value: SmoMeasureText.positions.above,
-              label: 'Above'
-            }, {
-              value: SmoMeasureText.positions.below,
-              label: 'Below'
-            }]
-          }, {
             smoName: 'systemBreak',
-            parameterName: 'systemBreak',
             control: 'SuiToggleComponent',
             label: 'System break before this measure'
           }],
@@ -130,75 +137,13 @@ export class SuiMeasureDialog extends SuiDialogBase {
     dg.display();
     return dg;
   }
-  selection: SmoSelection;
-  edited: boolean;
-  refresh: boolean;
-  measure: SmoMeasure;
-  modifier: SmoMeasureFormat
+  modifier: SuiMeasureFormatAdapter;
   constructor(parameters: SuiDialogParams) {
     const selection = parameters.view.tracker.selections[0];
     const measure = selection.measure;
     parameters.modifier = measure.format;
     super(SuiMeasureDialog.dialogElements, { autobind: true, ...parameters });
-    this.selection = selection ;
-    this.view.groupUndo(true);
-    this.edited = false;
-    this.refresh = false;
-
-    // The 'modifier' that this dialog acts on is a measure.
-    this.measure = this.selection.measure;
-    this.modifier = this.measure.format;
-    this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
-  }
-  get pickupCtrl() {
-    return this.cmap.pickupCtrl as CheckboxDropdownComponent;
-  }
-  get padLeftCtrl() {
-    return this.cmap.padLeftCtrl as SuiRockerComponent;
-  }  
-  get padAllInSystemCtrl() {
-    return this.cmap.padAllInSystemCtrl as SuiToggleComponent;
-  }
-  changed() {
-    this.edited = true;
-    let updateFormat = true;
-    super.changed();
-    // TODO: move pickup out of this dialog
-    if (this.pickupCtrl.changeFlag) {
-      if (this.pickupCtrl.toggleCtrl.getValue() === false) {
-        this.view.createPickup(SmoMusic.timeSignatureToTicks(this.measure.timeSignature.actualBeats.toString() + '/' + this.measure.timeSignature.beatDuration));
-      } else {
-        this.view.createPickup(parseInt(this.pickupCtrl.dropdownCtrl.getValue().toString(), 10));
-      }
-    }
-    if (this.padLeftCtrl.changeFlag || this.padAllInSystemCtrl.changeFlag) {
-      updateFormat = true;
-      this.modifier.padLeft = this.padLeftCtrl.getValue();
-      this.modifier.padAllInSystem = this.padAllInSystemCtrl.getValue();
-    }
-    this.view.setMeasureFormat(this.modifier);
-    //
-    this._updateConditionals();
-  }
-  display() {
-    this.applyDisplayOptions();
-    this.initialValue();
-    this._bindElements();
-  }
-  _updateConditionals() {
-    if (this.padLeftCtrl.getValue() !== 0 || this.padLeftCtrl.changeFlag) {
-      $('.attributeDialog .attributeModal').addClass('pad-left-select');
-    } else {
-      $('.attributeDialog .attributeModal').removeClass('pad-left-select');
-    }
-  }
-  initialValue() {
-    super.initialValue();
-    const isPickup = this.measure.isPickup();
-    if (isPickup) {
-      this.pickupCtrl.dropdownCtrl.setValue(this.measure.getTicksFromVoice(0));
-    }
-    this._updateConditionals();
+    this.modifier = new SuiMeasureFormatAdapter(this.view, measure);
   }
   _bindElements() {
     const dgDom = this.dgDom;
@@ -208,9 +153,7 @@ export class SuiMeasureDialog extends SuiDialogBase {
     });
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
       this.view.groupUndo(false);
-      if (this.edited) {
-        this.view.undo();
-      }
+      this.modifier.cancel();
       this.complete();
     });
     $(dgDom.element).find('.remove-button').off('click').on('click', () => {
@@ -227,19 +170,17 @@ export class SuiInstrumentDialog extends SuiDialogBase {
       score: 0, selected: 1, remaining: 3
     };
   }
-  static dialogElements = 
+  static dialogElements: DialogDefinition = 
       {
         label: 'Instrument Properties',
         elements:
           [{
             smoName: 'transposeIndex',
-            parameterName: 'transposeIndex',
             defaultValue: 0,
             control: 'SuiRockerComponent',
             label: 'Transpose Index (1/2 steps)',
           }, {
             smoName: 'applyTo',
-            parameterName: 'applyTo',
             defaultValue: SuiInstrumentDialog.applyTo.score,
             dataType: 'int',
             control: 'SuiDropdownComponent',
@@ -327,16 +268,7 @@ export class SuiInstrumentDialog extends SuiDialogBase {
     });
   }
 }
-/* export interface DialogDefinitionElement {
-  smoName: string,
-  parameterName: string,
-  increment?: number,
-  defaultValue?: number | string,
-  dataType?: string
-  control: string,
-  label: string,
-  options?: DialogDefinitionOption[]
-}*/
+
 export class SuiInsertMeasures extends SuiDialogBase {
   static dialogElements: DialogDefinition =
       {
@@ -344,13 +276,11 @@ export class SuiInsertMeasures extends SuiDialogBase {
         elements:
           [{
             smoName: 'measureCount',
-            parameterName: 'measureCount',
             defaultValue: 0,
             control: 'SuiRockerComponent',
             label: 'Measures to Insert'
           }, {
             smoName: 'append',
-            parameterName: 'append',
             control: 'SuiToggleComponent',
             label: 'Append to Selection'
           }],
@@ -417,13 +347,11 @@ export class SuiTimeSignatureDialog extends SuiDialogBase {
           [
             {
               smoName: 'numerator',
-              parameterName: 'numerator',
               defaultValue: 3,
               control: 'SuiRockerComponent',
               label: 'Beats/Measure',
             },
             {
-              parameterName: 'denominator',
               smoName: 'denominator',
               defaultValue: 8,
               dataType: 'int',
@@ -441,7 +369,6 @@ export class SuiTimeSignatureDialog extends SuiDialogBase {
               }]
             }, {
               smoName: 'display',
-              parameterName: 'display',
               control: 'SuiToggleComponent',
               label: 'Display',
             },
@@ -523,7 +450,6 @@ export class SuiTempoDialog extends SuiDialogBase {
         elements: [
           {
             smoName: 'tempoMode',
-            parameterName: 'tempoMode',
             defaultValue: SmoTempoText.tempoModes.durationMode,
             control: 'SuiDropdownComponent',
             label: 'Tempo Mode',
@@ -541,21 +467,18 @@ export class SuiTempoDialog extends SuiDialogBase {
           },
           {
             smoName: 'customText',
-            parameterName: 'customText',
             defaultValue: '',
             control: 'SuiTextInputComponent',
             label: 'Custom Text',
             classes: 'hide-when-text-mode'
           },
           {
-            parameterName: 'bpm',
             smoName: 'bpm',
             defaultValue: 120,
             control: 'SuiRockerComponent',
             label: 'Notes/Minute'
           },
           {
-            parameterName: 'duration',
             smoName: 'beatDuration',
             defaultValue: 4096,
             dataType: 'int',
@@ -578,7 +501,6 @@ export class SuiTempoDialog extends SuiDialogBase {
           },
           {
             smoName: 'tempoText',
-            parameterName: 'tempoText',
             defaultValue: SmoTempoText.tempoTexts.allegro,
             control: 'SuiDropdownComponent',
             label: 'Tempo Text',
@@ -635,17 +557,14 @@ export class SuiTempoDialog extends SuiDialogBase {
             ]
           }, {
             smoName: 'applyToAll',
-            parameterName: 'applyToAll',
             control: 'SuiToggleComponent',
             label: 'Apply to all future measures?'
           }, {
             smoName: 'display',
-            parameterName: 'display',
             control: 'SuiToggleComponent',
             label: 'Display Tempo'
           }, {
             smoName: 'yOffset',
-            parameterName: 'yOffset',
             defaultValue: 0,
             control: 'SuiRockerComponent',
             label: 'Y Offset'

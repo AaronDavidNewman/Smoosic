@@ -142,7 +142,7 @@ export class SuiLibraryDialog extends SuiDialogBase {
     });
   }
   get smoLibraryCtrl() {
-    return this.cmap['smoLibraryControl'] as SuiTreeComponent;
+    return this.cmap.smoLibraryCtrl as SuiTreeComponent;
   }
   changed() {
     if (this.cmap['smoLibraryCtrl'].changeFlag) {

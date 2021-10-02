@@ -28,6 +28,8 @@ export abstract class SmoMeasureModifierBase implements SmoModifierBase {
   abstract serialize(): any;
 }
 
+export type SmoMeasureFormatNumberAttributes = 'customStretch'| 'customProportion'| 'padLeft'| 'measureIndex';
+export type SmoMeasueFormatBooleanAttributes = 'autoJustify' | 'systemBreak' | 'pageBreak' | 'padAllInSystem';
 export interface SmoMeasureFormatParams {
   customStretch: number | null,
   customProportion: number | null,
@@ -44,7 +46,7 @@ export interface ISmoMeasureFormatMgr {
 }
 export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasureFormatParams {
   static get attributes() {
-    return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex'];
+    return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex', 'padAllInSystem'];
   }
   static get formatAttributes() {
     return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft'];

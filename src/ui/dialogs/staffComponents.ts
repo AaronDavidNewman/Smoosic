@@ -1,6 +1,5 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { smoSerialize } from '../../common/serializationHelpers';
 import { SuiTextInputComposite, SuiToggleComposite, SuiComponentBase, SuiDropdownComposite, SuiToggleComponent, 
   SuiDialogNotifier, DialogDefinitionElement, SuiComponentParent, SuiToggleCompositeParams, SuiDropdownCompositeParams } from '../dialogComponents';
 import { htmlHelpers } from '../../common/htmlHelpers';
@@ -15,7 +14,6 @@ export interface CheckboxDropdownComponentParams {
   id: string,
   classes: string,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string,
   toggleElement: DialogDefinitionElement,
@@ -77,7 +75,6 @@ export interface TieMappingComponentParams {
   id: string,
   classes: string,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string,
   toggleElement: DialogDefinitionElement,
@@ -117,7 +114,6 @@ export class TieMappingComponent extends SuiComponentParent {
       const leftParams: SuiDropdownCompositeParams = {
         id: this.id + smoName + '-left',
         smoName: smoName + '-left',
-        parameterName: smoName + '-left',
         classes: 'leftControl',
         defaultValue,
         control: 'SuiDropdownComposite',
@@ -129,7 +125,6 @@ export class TieMappingComponent extends SuiComponentParent {
       const rightParams: SuiDropdownCompositeParams = {
         id: this.id + smoName + '-right',
         smoName: smoName + '-right',
-        parameterName: smoName + '-right',
         classes: 'rightControl',
         control: 'SuiDropdownComposite',
         label: dialog.getStaticText()['toNote'],
@@ -207,7 +202,6 @@ export interface StaffAddRemoveComponentParams {
   id: string,
   classes: string,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string
 }
@@ -237,7 +231,6 @@ export class StaffAddRemoveComponent extends SuiComponentBase {
       const id = 'show-' + i;
       const elementParams: SuiToggleCompositeParams = {
         smoName: id,
-        parameterName: id,
         classes: 'toggle-add-row',
         control: 'SuiToggleComponent',
         label: name,
@@ -323,7 +316,6 @@ export interface StaffCheckComponentParams {
   id: string,
   classes: string,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string
 }
@@ -346,7 +338,6 @@ export class StaffCheckComponent extends SuiComponentBase {
       const id = 'show-' + staff.staffId;
       const toggleParams: SuiToggleCompositeParams = {
         smoName: id,
-        parameterName: id,
         classes: 'hide-when-editing',
         control: 'SuiToggleComponent',
         label: name,
@@ -401,7 +392,6 @@ export interface TextCheckComponentParams {
   id: string,
   classes: string,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string
 }
@@ -427,7 +417,6 @@ export class TextCheckComponent extends SuiComponentBase {
     const show = this.staticText.show;
     this.toggleCtrl = new SuiToggleComposite(this.dialog, {
       smoName: toggleName,
-      parameterName: toggleName,
       control: 'SuiToggleComposite',
       label: show,
       parentControl: this,
@@ -436,7 +425,6 @@ export class TextCheckComponent extends SuiComponentBase {
     });
     this.textCtrl = new SuiTextInputComposite(this.dialog, {
       smoName: textName,
-      parameterName: textName,
       defaultValue: this.defaultValue,
       control: 'SuiTextInputComposite',
       label,

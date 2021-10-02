@@ -1,11 +1,11 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';
-import { StaffModifierBase, SmoSlur, SmoStaffHairpin, SmoTie } from '../../smo/data/staffModifiers';
-import { SmoScore } from '../../smo/data/score';
+import { SmoSlur, SmoStaffHairpin, SmoTie } from '../../smo/data/staffModifiers';
 import { SmoSystemGroup } from '../../smo/data/scoreModifiers';
 import { TieMappingComponent } from './staffComponents';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
+import { SvgBox } from '../../smo/data/common';
 import { SmoVolta } from '../../smo/data/measureModifiers';
 
 declare var $: any;
@@ -27,19 +27,6 @@ export function writeSlurBool(view: SuiScoreViewOperations, slur: SmoSlur, key: 
   view.addOrUpdateStaffModifier(current, slur);
 }
 export class SuiSlurAdapter {
-  /* spacing: 2,
-      thickness: 2,
-      xOffset: -5,
-      yOffset: 10,
-      position: SmoSlur.positions.HEAD,
-      position_end: SmoSlur.positions.HEAD,
-      invert: false,
-      cp1x: 0,
-      cp1y: 15,
-      cp2x: 0,
-      cp2y: 15,
-      startSelector: SmoSelector.default,
-      endSelector: SmoSelector.default*/
   slur: SmoSlur;
   backup: SmoSlur;
   view: SuiScoreViewOperations;
@@ -121,36 +108,37 @@ export class SuiSlurAdapter {
   set spacing(value: number) {
     writeSlurNumber(this.view, this.slur, 'spacing', value);
   }
+  get renderedBox(): SvgBox {
+    return this.backup.renderedBox!;
+  }
+  remove() {
+    this.view.removeStaffModifier(this.backup);
+  }
 }
 export class SuiSlurAttributesDialog extends SuiDialogBase {
   static dialogElements: DialogDefinition = {      
         label: 'Slur Properties', elements: [{
-          parameterName: 'spacing',
           smoName: 'spacing',
           defaultValue: 2,
           control: 'SuiRockerComponent',
           label: 'Spacing'
         }, {
           smoName: 'thickness',
-          parameterName: 'thickness',
           defaultValue: 2,
           control: 'SuiRockerComponent',
           label: 'Thickness'
         }, {
           smoName: 'xOffset',
-          parameterName: 'xOffset',
           defaultValue: 0,
           control: 'SuiRockerComponent',
           label: 'X Offset'
         }, {
           smoName: 'yOffset',
-          parameterName: 'yOffset',
           defaultValue: 10,
           control: 'SuiRockerComponent',
           label: 'Y Offset'
         }, {
           smoName: 'position',
-          parameterName: 'position',
           defaultValue: SmoSlur.positions.HEAD,
           options: [{
             value: SmoSlur.positions.HEAD,
@@ -163,7 +151,6 @@ export class SuiSlurAttributesDialog extends SuiDialogBase {
           label: 'Start Position'
         }, {
           smoName: 'position_end',
-          parameterName: 'position_end',
           defaultValue: SmoSlur.positions.HEAD,
           options: [{
             value: SmoSlur.positions.HEAD,
@@ -176,29 +163,24 @@ export class SuiSlurAttributesDialog extends SuiDialogBase {
           label: 'End Position'
         }, {
           smoName: 'invert',
-          parameterName: 'invert',
           control: 'SuiToggleComponent',
           label: 'Invert'
         }, {
-          parameterName: 'cp1x',
           smoName: 'cp1x',
           defaultValue: 0,
           control: 'SuiRockerComponent',
           label: 'Control Point 1 X'
         }, {
-          parameterName: 'cp1y',
           smoName: 'cp1y',
           defaultValue: 40,
           control: 'SuiRockerComponent',
           label: 'Control Point 1 Y'
         }, {
-          parameterName: 'cp2x',
           smoName: 'cp2x',
           defaultValue: 0,
           control: 'SuiRockerComponent',
           label: 'Control Point 2 X'
         }, {
-          parameterName: 'cp2y',
           smoName: 'cp2y',
           defaultValue: 40,
           control: 'SuiRockerComponent',
@@ -206,24 +188,19 @@ export class SuiSlurAttributesDialog extends SuiDialogBase {
         }], staticText: []
       };
   static createAndDisplay(parameters: SuiDialogParams) {
+    if (!parameters.modifier.renderedBox) {
+      return null;
+    }
     var dg = new SuiSlurAttributesDialog(parameters);
     dg.display();
     return dg;
   }
   modifier: SuiSlurAdapter;
   constructor(parameters: SuiDialogParams) {
-    if (!parameters.modifier) {
-      throw new Error('modifier attribute dialog must have modifier');
-    }
+    parameters.modifier = new SuiSlurAdapter(parameters.view, parameters.modifier);
     super(SuiSlurAttributesDialog.dialogElements, { autobind: true, ...parameters });
     this.modifier = parameters.modifier;
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
-  }
-
-  display() {
-    this.applyDisplayOptions();
-    this.initialValue();
-    this._bindElements();
   }
     // ### _bindElements
   // bing the generic controls in most dialogs.
@@ -257,7 +234,6 @@ export class SuiTieAttributesDialog extends SuiDialogBase {
           { fromNote: 'From Note' },
           { toNote: 'To Note' }
         ], elements: [{
-          parameterName: 'lines',
           smoName: 'lines',
           control: 'TieMappingComponent',
           label: 'Lines'
@@ -387,6 +363,9 @@ export class SuiVoltaAdapter {
   set number(val: number) {
     this.updateVolta('number', val);
   }
+  get renderedBox(): SvgBox {
+    return this.backup.renderedBox!;
+  }
 }     
 // ## SuiVoltaAttributeDialog
 // aka first and second endings
@@ -396,26 +375,22 @@ export class SuiVoltaAttributeDialog extends SuiDialogBase {
       {
         label: 'Volta Properties', elements:
           [{
-            parameterName: 'number',
             smoName: 'number',
             defaultValue: 1,
             control: 'SuiRockerComponent',
             label: 'number'
           }, {
             smoName: 'xOffsetStart',
-            parameterName: 'xOffsetStart',
             defaultValue: 0,
             control: 'SuiRockerComponent',
             label: 'X1 Offset'
           }, {
             smoName: 'xOffsetEnd',
-            parameterName: 'xOffsetEnd',
             defaultValue: 0,
             control: 'SuiRockerComponent',
             label: 'X2 Offset'
           }, {
             smoName: 'yOffset',
-            parameterName: 'yOffset',
             defaultValue: 0,
             control: 'SuiRockerComponent',
             label: 'Y Offset'
@@ -423,6 +398,9 @@ export class SuiVoltaAttributeDialog extends SuiDialogBase {
           staticText: []
       };
   static createAndDisplay(parameters: SuiDialogParams) {
+    if (parameters.modifier.renderedBox === null) {
+      return null;
+    }
     const dg = new SuiVoltaAttributeDialog(parameters);
     dg.display();
     return dg;
@@ -484,6 +462,7 @@ export class SuiHairpinAdapter {
   }
   updateValue(param: SmoHairpinNumberParams, val: number) {
     const current = new SmoStaffHairpin(this.hairpin);
+    this.hairpin[param] = val;
     this.view.addOrUpdateStaffModifier(current, this.hairpin);
     this.changed = true;
   }
@@ -517,32 +496,31 @@ export class SuiHairpinAdapter {
   set position(val: number) {
     this.updateValue('position', val);
   }
+  get renderedBox(): SvgBox {
+    return this.hairpin.renderedBox!;
+  }
 }
 export class SuiHairpinAttributesDialog extends SuiDialogBase {
   static dialogElements: DialogDefinition =
       {
         label: 'Hairpin Properties', elements:
           [{
-            parameterName: 'height',
             smoName: 'height',
             defaultValue: 10,
             control: 'SuiRockerComponent',
             label: 'Height'
           }, {
             smoName: 'yOffset',
-            parameterName: 'y_shift',
             defaultValue: 0,
             control: 'SuiRockerComponent',
             label: 'Y Shift'
           }, {
             smoName: 'xOffsetRight',
-            parameterName: 'right_shift_px',
             defaultValue: 0,
             control: 'SuiRockerComponent',
             label: 'Right Shift'
           }, {
             smoName: 'xOffsetLeft',
-            parameterName: 'left_shift_px',
             defaultValue: 0,
             control: 'SuiRockerComponent',
             label: 'Left Shift'
@@ -550,15 +528,15 @@ export class SuiHairpinAttributesDialog extends SuiDialogBase {
           staticText: []
       };
   static createAndDisplay(parameters: SuiDialogParams) {
+    if (!parameters.modifier.renderedBox) {
+      return null;
+    }
     var dg = new SuiHairpinAttributesDialog(parameters);
     dg.display();
     return dg;
   }
   modifier: SuiHairpinAdapter;
   constructor(parameters: SuiDialogParams) {
-    if (!parameters.modifier) {
-      throw new Error('modifier attribute dialog must have modifier');
-    }
     super(SuiHairpinAttributesDialog.dialogElements, parameters);
     this.modifier = new SuiHairpinAdapter(this.view, parameters.modifier);
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
@@ -622,12 +600,10 @@ export class SuiStaffGroupDialog extends SuiDialogBase {
         label: 'Staff Group', elements:
           [{
             smoName: 'staffGroups',
-            parameterName: 'staffGroups',
             control: 'StaffAddRemoveComponent',
             label: 'Staves in Group',
           }, {
             smoName: 'leftConnector',
-            parameterName: 'leftConnector',
             control: 'SuiDropdownComponent',
             label: 'Left Connector',
             options: [

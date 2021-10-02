@@ -250,6 +250,19 @@ export class SmoScore {
       });
       jsonObj.layoutManager.pageLayouts.push(pageSetting);
     }
+    // upconvert global layout, which used to be directly on layoutManager
+    if (typeof(jsonObj.layoutManager.globalLayout) === 'undefined') {
+      jsonObj.layoutManager.globalLayout = {
+        svgScale: jsonObj.layoutManager.svgScale,
+        zoomScale: jsonObj.layoutManager.zoomScale,
+        pageWidth: jsonObj.layoutManager.pageWidth,
+        pageHeight: jsonObj.layoutManager.pageHeight,
+        noteSpacing: jsonObj.layoutManager.noteSpacing
+      };
+      if (!jsonObj.layoutManager.globalLayout.noteSpacing) {
+        jsonObj.layoutManager.globalLayout.noteSpacing = 1.0;
+      }
+    }
   }
 
   // ### deserialize
@@ -340,8 +353,7 @@ export class SmoScore {
   // ### getDefaultScore
   // Gets a score consisting of a single measure with all the defaults.
   static getDefaultScore(scoreDefaults: SmoScoreParams, measureDefaults: SmoMeasureParams | null) {
-    scoreDefaults = typeof (scoreDefaults) !== 'undefined' ? scoreDefaults : SmoScore.defaults;
-    measureDefaults = typeof (measureDefaults) !== 'undefined' ? measureDefaults : SmoMeasure.defaults;
+    measureDefaults = measureDefaults !== null ? measureDefaults : SmoMeasure.defaults;
     const score = new SmoScore(scoreDefaults);
     score.formattingManager = new SmoFormattingManager(SmoFormattingManager.defaults);
     score.addStaff(SmoSystemStaff.defaults);
@@ -536,13 +548,11 @@ export class SmoScore {
     const proto = this.staves[0];
     const measures = [];
     for (i = 0; i < proto.measures.length; ++i) {
-      const newParams: SmoMeasureParams = {} as SmoMeasureParams;
       const measure: SmoMeasure = proto.measures[i];
-      smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, measure, newParams);
-      newParams.clef = parameters.instrumentInfo.clef as Clef;
-      newParams.transposeIndex = parameters.instrumentInfo.keyOffset;
-      const newMeasure = SmoMeasure.getDefaultMeasureWithNotes(newParams);
+      const newMeasure = SmoMeasure.deserialize(measure.serialize());
       newMeasure.measureNumber = measure.measureNumber;
+      newMeasure.clef = parameters.instrumentInfo.clef as Clef;
+      newMeasure.transposeIndex = parameters.instrumentInfo.keyOffset;
       // Consider key change if the proto measure is non-concert pitch
       newMeasure.keySignature =
         SmoMusic.vexKeySigWithOffset(newMeasure.keySignature,

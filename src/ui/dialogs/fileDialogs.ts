@@ -32,12 +32,11 @@ export abstract class SuiFileDialog extends SuiDialogBase {
 }
 export class SuiLoadFileDialog extends SuiFileDialog {
 
-  static dialogElements =
+  static dialogElements: DialogDefinition =
     {
       label: 'Load File',
       elements: [{
         smoName: 'loadFile',
-        parameterName: 'jsonFile',
         defaultValue: '',
         control: 'SuiFileDownloadComponent',
         label: ''
@@ -84,12 +83,11 @@ export class SuiLoadFileDialog extends SuiFileDialog {
 }
 
 export class SuiLoadMxmlDialog extends SuiFileDialog {
-  static dialogElements =
+  static dialogElements: DialogDefinition =
     {
       label: 'Load File',
       elements: [{
         smoName: 'loadFile',
-        parameterName: 'jsonFile',
         defaultValue: '',
         control: 'SuiFileDownloadComponent',
         label: ''
@@ -137,11 +135,10 @@ export class SuiLoadMxmlDialog extends SuiFileDialog {
 }
 
 export class SuiLoadActionsDialog extends SuiFileDialog {
-  static dialogElements = {
+  static dialogElements: DialogDefinition = {
     label: 'Load Action File',
     elements: [{
       smoName: 'loadFile',
-      parameterName: 'jsonFile',
       defaultValue: '',
       control: 'SuiFileDownloadComponent',
       label: ''
@@ -187,7 +184,7 @@ export class SuiLoadActionsDialog extends SuiFileDialog {
 }
 
 export class SuiPrintFileDialog extends SuiFileDialog {
-  static dialogElements = {
+  static dialogElements: DialogDefinition = {
     label: 'Print Complete',
     elements: [],
     staticText: []
@@ -222,12 +219,11 @@ export class SuiPrintFileDialog extends SuiFileDialog {
   commit() { }
 }
 export class SuiSaveFileDialog extends SuiFileDialog {
-  static dialogElements =
+  static dialogElements: DialogDefinition =
     {
       label: 'Save Score',
       elements: [{
         smoName: 'saveFileName',
-        parameterName: 'saveFileName',
         defaultValue: '',
         control: 'SuiTextInputComponent',
         label: 'File Name'
@@ -279,7 +275,6 @@ export class SuiSaveXmlDialog extends SuiFileDialog {
       label: 'Save Score',
       elements: [{
         smoName: 'saveFileName',
-        parameterName: 'saveFileName',
         control: 'SuiTextInputComponent',
         label: 'File Name'
       }],
@@ -329,7 +324,6 @@ export class SuiSaveMidiDialog extends SuiFileDialog {
       elements:
         [{
           smoName: 'saveFileName',
-          parameterName: 'saveFileName',
           control: 'SuiTextInputComponent',
           label: 'File Name'
         }],
@@ -379,7 +373,6 @@ export class SuiSaveActionsDialog extends SuiFileDialog {
         label: 'Save Score', elements:
           [{
             smoName: 'saveFileName',
-            parameterName: 'saveFileName',
             defaultValue: '',
             control: 'SuiTextInputComponent',
             label: 'File Name'

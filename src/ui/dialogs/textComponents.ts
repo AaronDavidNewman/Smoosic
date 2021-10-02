@@ -43,7 +43,6 @@ export interface SuiTextInPlaceParams {
   id: string,
   classes: string,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string
 }
@@ -58,8 +57,6 @@ export class SuiTextInPlace extends SuiComponentBase {
   constructor(dialog: SuiDialogNotifier, parameter: SuiTextInPlaceParams) {
     super(dialog, parameter);
     this.scroller = dialog.getView().scroller;
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     this.value = new SmoTextGroup(SmoTextGroup.defaults);
     this.view = this.dialog.getView();
     const modifier = this.dialog.getModifier();
@@ -73,16 +70,13 @@ export class SuiTextInPlace extends SuiComponentBase {
   get html() {
     const b = htmlHelpers.buildDom;
     const id = this.parameterId;
-    const r = b('div').classes(this.makeClasses('cbTextInPlace smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
+    const r = b('div').classes(this.makeClasses('cbTextInPlace smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
       .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
         .attr('id', id + '-input').append(
           b('span').classes('icon icon-pencil'))
         .append(
           b('label').attr('for', id + '-input').text(this.label)));
     return r;
-  }
-  get parameterId() {
-    return this.dialog.getId() + '-' + this.parameterName;
   }
   endSession() {
     $(this._getInputElement()).find('label').text(this.label);
@@ -190,7 +184,6 @@ export interface SuiNoteTextParams {
   id: string,
   classes: string,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string,
   verse: number
@@ -214,9 +207,6 @@ export abstract class SuiNoteTextComponent extends SuiComponentBase {
     this.selection = this.view.tracker.selections[0];
     this.selector = JSON.parse(JSON.stringify(this.selection.selector));
     this.staticText = this.dialog.getStaticText();
-  }
-  get parameterId() {
-    return this.dialog.getId() + '-' + this.parameterName;
   }
   abstract startEditSession(): void;
   abstract endSession(): void;
@@ -305,7 +295,7 @@ export class SuiLyricComponent extends SuiNoteTextComponent {
   get html() {
     var b = htmlHelpers.buildDom;
     var id = this.parameterId;
-    var r = b('div').classes(this.makeClasses('cbLyricEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
+    var r = b('div').classes(this.makeClasses('cbLyricEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
       .append(b('div').classes('toggleEdit')
         .append(b('button').classes('toggleTextEdit')
           .attr('id', id + '-toggleInput').append(
@@ -373,8 +363,6 @@ export class SuiChordComponent extends SuiNoteTextComponent {
   verse: number;
   constructor(dialog: SuiDialogNotifier, parameter: SuiNoteTextParams) {
     super(dialog, parameter);
-    smoSerialize.filteredMerge(
-      ['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
     this.session = null;
     this.dialog = dialog;
     this.selection = this.view.tracker.selections[0];
@@ -386,7 +374,7 @@ export class SuiChordComponent extends SuiNoteTextComponent {
   get html() {
     const b = htmlHelpers.buildDom;
     const id = this.parameterId;
-    const r = b('div').classes(this.makeClasses('cbChordEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
+    const r = b('div').classes(this.makeClasses('cbChordEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
       .append(b('div').classes('toggleEdit')
         .append(b('button').classes('toggleTextEdit')
           .attr('id', id + '-toggleInput').append(
@@ -480,16 +468,13 @@ export class SuiDragText extends SuiComponentBase {
   get html() {
     var b = htmlHelpers.buildDom;
     var id = this.parameterId;
-    var r = b('div').classes(this.makeClasses('cbDragTextDialog smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
+    var r = b('div').classes(this.makeClasses('cbDragTextDialog smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
       .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
         .attr('id', id + '-input').append(
           b('span').classes('icon icon-move'))
         .append(
           b('label').attr('for', id + '-input').text(this.label)));
     return r;
-  }
-  get parameterId() {
-    return this.dialog.getId() + '-' + this.parameterName;
   }
   _getInputElement() {
     var pid = this.parameterId;

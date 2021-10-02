@@ -329,10 +329,7 @@ export class SuiScoreRender extends SuiRenderState {
   // See if this line breaks the page boundary
   _checkPageBreak(scoreLayout: ScaledPageLayout, currentLine: SmoMeasure[], bottomMeasure: SmoMeasure): ScaledPageLayout {
     let pageAdj = 0;
-    const lm: SmoLayoutManager | undefined= this.score?.layoutManager;
-    if (!lm) {
-      return new ScaledPageLayout();
-    }
+    const lm: SmoLayoutManager = this.score!.layoutManager!;
     // See if this measure breaks a page.
     const maxY = bottomMeasure.svg.logicalBox.y +  bottomMeasure.svg.logicalBox.height;
     if (maxY > ((this.currentPage + 1) * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {

@@ -13,7 +13,6 @@ export interface SuiFontComponentParams {
   id: string,
   classes: string,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string
 }
@@ -34,7 +33,6 @@ export class SuiFontComponent extends SuiComponentBase {
       {
         id: familyId,
         smoName: 'fontFamily',
-        parameterName: 'fontFamily' + this.parameterId,
         classes: 'hide-when-editing hide-when-moving',
         defaultValue: SmoScoreText.fontFamilies.times,
         control: 'SuiDropdownComponent',
@@ -57,7 +55,6 @@ export class SuiFontComponent extends SuiComponentBase {
       {
         id: sizeId,
         smoName: 'fontSize',
-        parameterName: 'fontSize' + this.parameterId,
         defaultValue: 1,
         parentControl: this,
         classes: 'hide-when-editing hide-when-moving',
@@ -72,7 +69,6 @@ export class SuiFontComponent extends SuiComponentBase {
       {
         id: this.id + 'italics',
         smoName: 'italics',
-        parameterName: 'italics' + this.parameterId,
         parentControl: this,
         classes: 'hide-when-editing hide-when-moving',
         control: 'SuiToggleComponent',
@@ -84,7 +80,6 @@ export class SuiFontComponent extends SuiComponentBase {
       {
         id: this.id + 'bold',
         smoName: 'bold',
-        parameterName: 'bold' + this.parameterId,
         parentControl: this,
         classes: 'hide-when-editing hide-when-moving',
         control: 'SuiToggleComponent',
@@ -94,10 +89,6 @@ export class SuiFontComponent extends SuiComponentBase {
   }
   changed() {
     this.handleChanged();
-  }
-
-  get parameterId() {
-    return this.dialog.getId() + '-' + this.parameterName;
   }
 
   get html() {
@@ -155,7 +146,6 @@ export interface SuiTextBlockComponentParams {
   id: string,
   classes: string,
   label: string,
-  parameterName: string,
   smoName: string,
   control: string
 }
@@ -179,7 +169,6 @@ export class SuiTextBlockComponent extends SuiComponentParent {
       {
         id: this.id + 'addBlock',
         smoName: 'addBlock',
-        parameterName: 'addBlock',
         parentControl: this,
         icon: 'icon-plus',
         classes: 'hide-when-editing hide-when-moving',
@@ -191,7 +180,6 @@ export class SuiTextBlockComponent extends SuiComponentParent {
       {
         id: this.id + 'toggleBlock',
         smoName: 'toggleBlock',
-        parameterName: 'toggleBlock',
         parentControl: this,
         icon: 'icon-arrow-right',
         classes: 'hide-when-editing hide-when-moving',
@@ -203,7 +191,6 @@ export class SuiTextBlockComponent extends SuiComponentParent {
       {
         id: this.id + 'removeBlock',
         smoName: 'removeBlock',
-        parameterName: 'removeBlock',
         parentControl: this,
         icon: 'icon-minus',
         classes: 'hide-when-editing hide-when-moving',
@@ -215,7 +202,6 @@ export class SuiTextBlockComponent extends SuiComponentParent {
       {
         id: this.id + 'relativePosition',
         smoName: 'relativePosition',
-        parameterName: 'relativePosition',
         parentControl: this,
         defaultValue: SmoScoreText.justifications.left,
         classes: 'hide-when-editing hide-when-moving',
@@ -241,7 +227,6 @@ export class SuiTextBlockComponent extends SuiComponentParent {
       {
         id: this.id + 'justification',
         smoName: 'justification',
-        parameterName: 'justification',
         parentControl: this,
         defaultValue: SmoScoreText.justifications.left,
         classes: 'hide-when-editing hide-when-moving',
@@ -263,7 +248,6 @@ export class SuiTextBlockComponent extends SuiComponentParent {
       {
         id: this.id + 'spacing',
         smoName: 'spacing',
-        parameterName: 'spacing',
         defaultValue: 0,
         parentControl: this,
         classes: 'hide-when-editing hide-when-moving',
@@ -314,11 +298,6 @@ export class SuiTextBlockComponent extends SuiComponentParent {
     }
     this.handleChanged();
   }
-
-  get parameterId() {
-    return this.dialog.getId() + '-' + this.parameterName;
-  }
-
   get html() {
     const b = htmlHelpers.buildDom;
     const q = b('div').classes(this.makeClasses('multiControl smoControl'));

@@ -6,7 +6,6 @@ import { SmoTranslator } from '../i18n/language';
 import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoModifier } from '../../smo/data/score';
 import { SvgBox } from '../../smo/data/common';
-import { SmoScore } from '../../smo/data/score';
 import { SuiTracker } from '../../render/sui/tracker';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { CompleteNotifier } from '../../application/common';
@@ -222,9 +221,14 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
       return;
     }
     this.components.forEach((comp) => {
-      if (typeof((this.modifier as any)[comp.parameterName]) !== 'undefined') {
+      if (typeof((this.modifier as any)[comp.smoName]) !== 'undefined') {
         this.boundComponents.push(comp);
       }
+    });
+  }
+  bindComponents() {
+    this.components.forEach((component) => {
+      component.bind();
     });
   }
   initialValue(){
@@ -232,7 +236,7 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
       return;
     }
     this.boundComponents.forEach((comp) => {
-      (comp as any).setValue((this.modifier as any)[comp.parameterName]);
+      (comp as any).setValue((this.modifier as any)[comp.smoName]);
     });
   }
   changed() {
@@ -240,7 +244,9 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
       return;
     }
     this.boundComponents.forEach((comp) => {
-      (this.modifier as any)[comp.parameterName] = (comp as any).getValue();
+      if (comp.changeFlag) {
+        (this.modifier as any)[comp.smoName] = (comp as any).getValue();
+      }
     });
   }
   getId(): string {
@@ -403,7 +409,7 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
   // capture keyboard events until the dialog closes,
   // then give control back to the current keyboard
   captureKeyboardPromise() {
-    if (typeof (this.startPromise) === 'undefined') {
+    if (!(this.startPromise)) {
       this.completeNotifier.unbindKeyboardForModal(this);
       this.bindKeyboard();
       return;
