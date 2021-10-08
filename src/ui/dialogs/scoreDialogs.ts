@@ -656,32 +656,7 @@ export class SuiLayoutDialog extends SuiDialogBase {
     super(SuiLayoutDialog.dialogElements, params);
     this.modifier = modifier;
   }
-  display() {
-    this.applyDisplayOptions();
-    if (this.modifier.enablePages === false) {
-      $((this.cmap.applyToPageCtrl as SuiDropdownComponent)._getInputElement()).prop('disabled', true);
-    }
-    this._bindElements();
-    this.initialValue();
-  }
-  _handleCancel() {
+  cancel() {
     this.modifier.cancel();
-    this.complete();
-  }
-  _bindElements() {
-    const self = this;
-    const dgDom = this.dgDom;
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      self.complete();
-    });
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      self._handleCancel();
-    });
-    $(dgDom.element).find('.remove-button').remove();
-  }
-  // ### changed
-  // One of the components has had a changed value.
-  changed() {
-    super.changed();
   }
 }
