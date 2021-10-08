@@ -43,8 +43,9 @@ import { SuiDynamicModifierDialog, SuiTextTransformDialog, SuiLyricDialog, SuiCh
 import { SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
     SuiHairpinAttributesDialog, SuiStaffGroupDialog } from '../ui/dialogs/staffDialogs';
 import { SuiLoadMxmlDialog, SuiLoadFileDialog,
-    SuiLoadActionsDialog, SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
-    SuiSaveMidiDialog, SuiSaveActionsDialog } from '../ui/dialogs/fileDialogs';
+    /* SuiLoadActionsDialog,  SuiSaveActionsDialog, */
+    SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
+    SuiSaveMidiDialog } from '../ui/dialogs/fileDialogs';
     // Dialog components
 import {
     SuiDropdownComponent, SuiRockerComponent, SuiFileDownloadComponent,
@@ -128,8 +129,9 @@ export const Smo = {
     SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
     SuiHairpinAttributesDialog, SuiStaffGroupDialog, helpModal,
     SuiLoadFileDialog, SuiLoadMxmlDialog,
-    SuiLoadActionsDialog, SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
-    SuiSaveMidiDialog, SuiSaveActionsDialog,SuiDialogBase,
+    /* SuiLoadActionsDialog, SuiSaveActionsDialog, */
+    SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
+    SuiSaveMidiDialog, SuiDialogBase,
     // Dialog components
     SuiTreeComponent,
     SuiDropdownComponent,

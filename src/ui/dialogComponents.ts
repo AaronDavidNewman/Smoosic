@@ -281,6 +281,9 @@ export class SuiFileDownloadComponent extends SuiComponentBase {
   getValue() {
     return this.value;
   }
+  setValue(value: string) {
+    this.value = value;
+  }
   bind() {
     const self = this;
     $('#' + this.parameterId).find('input').off('change').on('change', (e: any) => {

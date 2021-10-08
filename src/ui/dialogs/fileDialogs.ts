@@ -3,11 +3,15 @@
 import { SuiDialogBase, SuiDialogParams, DialogDefinition } from './dialog';
 import { SmoScore } from '../../smo/data/score';
 import { mxmlScore } from '../../smo/mxml/xmlScore';
+import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiFileDownloadComponent, SuiTextInputComponent } from '../dialogComponents';
-import { SuiScoreViewOperations } from '../../../release/smoosic';
+import { SuiSlurAdapter } from './staffDialogs';
 declare var $: any;
 
-export class FileLoadDialogAdapter {
+/**
+ * internal state of FileLoadDialog is just the string for the filename.
+ */
+export class SuiSmoLoadAdapter {
   jsonFile: string = '';
   view: SuiScoreViewOperations;
   constructor(view: SuiScoreViewOperations) {
@@ -31,10 +35,10 @@ export class FileLoadDialogAdapter {
       }
     }
   }
+  cancel() {}
 }
 
 export class SuiLoadFileDialog extends SuiDialogBase {
-
   static dialogElements: DialogDefinition =
     {
       label: 'Load File',
@@ -57,32 +61,51 @@ export class SuiLoadFileDialog extends SuiDialogBase {
   get loadFileCtrl() {
     return this.cmap['loadFileCtrl'] as SuiFileDownloadComponent;
   }
-  value: string;
+  modifier: SuiSmoLoadAdapter;
   constructor(parameters: SuiDialogParams) {
+    const adapter = new SuiSmoLoadAdapter(parameters.view);
+    parameters.modifier = adapter;
     parameters.ctor = 'SuiLoadFileDialog';
-    super(SuiLoadFileDialog.dialogElements, parameters );
-    this.value = '';
+    super(SuiLoadFileDialog.dialogElements, parameters);
+    this.modifier = adapter;
   }
   changed() {
-    this.value = this.loadFileCtrl.getValue();
-    $(this.dgDom.element).find('.ok-button').prop('disabled', false);
+    super.changed();
+    const enable = this.modifier.loadFile.length < 1;
+    $(this.dgDom.element).find('.ok-button').prop('disabled', enable);
   }
   commit() {
-    let scoreWorks = false;
-    if (this.value) {
-      try {
-        const score = SmoScore.deserialize(this.value);
-        scoreWorks = true;
-        this.view.changeScore(score);
-        this.complete();
-      } catch (e) {
-        console.warn('unable to score ' + e);
-      }
-      if (!scoreWorks) {
-        this.complete();
-      }
+    this.modifier.commit();
+  }
+}
+/**
+ * internal state of FileLoadDialog is just the string for the filename.
+ */
+ export class SuiXmlLoadAdapter {
+  xmlFile: string = '';
+  view: SuiScoreViewOperations;
+  changeScore: boolean = false;
+  constructor(view: SuiScoreViewOperations) {
+    this.view = view;
+  }
+  get loadFile() {
+    return this.xmlFile;
+  }
+  set loadFile(value: string) {
+    this.xmlFile = value;
+  }
+  commit() {
+    try {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(this.xmlFile, 'text/xml');
+      const score = mxmlScore.smoScoreFromXml(xml);
+      this.changeScore = true;
+      this.view.changeScore(score);
+    } catch (e) {
+      console.warn('unable to score ' + e);
     }
   }
+  cancel() {}
 }
 
 export class SuiLoadMxmlDialog extends SuiDialogBase {
@@ -101,33 +124,21 @@ export class SuiLoadMxmlDialog extends SuiDialogBase {
   get loadFileCtrl() {
     return this.cmap['loadFileCtrl'] as SuiFileDownloadComponent;
   }
-  value: string;
+  modifier: SuiXmlLoadAdapter;
   constructor(parameters: SuiDialogParams) {
     parameters.ctor = 'SuiLoadMxmlDialog';
+    parameters.modifier = new SuiXmlLoadAdapter(parameters.view);
     super(SuiLoadMxmlDialog.dialogElements, parameters);
-    this.value = '';
+    this.modifier = parameters.modifier;
   }
   changed() {
-    this.value = this.loadFileCtrl.getValue();
-    $(this.dgDom.element).find('.ok-button').prop('disabled', false);
+    super.changed();
+    const enable = this.modifier.loadFile.length < 1;
+    $(this.dgDom.element).find('.ok-button').prop('disabled', enable);
   }
   commit() {
-    let scoreWorks = false;
-    if (this.value) {
-      try {
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(this.value, 'text/xml');
-        const score = mxmlScore.smoScoreFromXml(xml);
-        scoreWorks = true;
-        this.view.changeScore(score);
-        this.complete();
-      } catch (e) {
-        console.warn('unable to score ' + e);
-      }
-      if (!scoreWorks) {
-        this.complete();
-      }
-    }
+    this.modifier.commit();
+    this.complete();
   }
   static createAndDisplay(params: SuiDialogParams) {
     const dg = new SuiLoadMxmlDialog(params);
@@ -136,7 +147,7 @@ export class SuiLoadMxmlDialog extends SuiDialogBase {
     $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
   }
 }
-
+/*
 export class SuiLoadActionsDialog extends SuiDialogBase {
   static dialogElements: DialogDefinition = {
     label: 'Load Action File',
@@ -185,7 +196,7 @@ export class SuiLoadActionsDialog extends SuiDialogBase {
     $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
   }
 }
-
+*/
 export class SuiPrintFileDialog extends SuiDialogBase {
   static dialogElements: DialogDefinition = {
     label: 'Print Complete',
@@ -218,6 +229,30 @@ export class SuiPrintFileDialog extends SuiDialogBase {
   }
   commit() { }
 }
+export class SuiSmoSaveAdapter {
+  view: SuiScoreViewOperations;
+  fileName: string = '';
+  constructor(view: SuiScoreViewOperations) {
+    this.view = view;
+  }
+  get saveFileName() {
+    return this.fileName;
+  }
+  set saveFileName(value: string) {
+    this.fileName = value;
+  }
+  commit() {
+    let filename = this.fileName;
+    if (!filename) {
+      filename = 'myScore.json';
+    }
+    if (filename.indexOf('.json') < 0) {
+      filename = filename + '.json';
+    }
+    this.view.score.scoreInfo.version += 1;
+    this.view.saveScore(filename);
+  }
+}
 export class SuiSaveFileDialog extends SuiDialogBase {
   static dialogElements: DialogDefinition =
     {
@@ -230,38 +265,15 @@ export class SuiSaveFileDialog extends SuiDialogBase {
       }],
       staticText: []
     };
-  value: string;
+  modifier: SuiSmoSaveAdapter;
   constructor(parameters: SuiDialogParams) {
     parameters.ctor = 'SuiSaveFileDialog';
+    parameters.modifier = new SuiSmoSaveAdapter(parameters.view);
     super(SuiSaveFileDialog.dialogElements, parameters);
-    this.value = SuiSaveFileDialog.createName(this.view.score);
-  }
-  get saveFileNameCtrl() {
-    return this.cmap['saveFileNameCtrl'] as SuiTextInputComponent;
-  }
-  changed() {
-    this.value = this.saveFileNameCtrl.getValue();
+    this.modifier = parameters.modifier;
   }
   commit() {
-    let filename = this.value;
-    if (!filename) {
-      filename = 'myScore.json';
-    }
-    if (filename.indexOf('.json') < 0) {
-      filename = filename + '.json';
-    }
-    this.view.score.scoreInfo.version += 1;
-    this.view.saveScore(filename);
-    this.complete();
-  }
-
-  display() {
-    this.applyDisplayOptions();
-    this.saveFileNameCtrl.setValue(this.value);
-    this._bindElements();
-  }
-  static createName(score: SmoScore) {
-    return score.scoreInfo.name + '-' + score.scoreInfo.version + '.json';
+    this.modifier.commit();
   }
   static createAndDisplay(params: SuiDialogParams) {
     var dg = new SuiSaveFileDialog(params);
@@ -269,6 +281,30 @@ export class SuiSaveFileDialog extends SuiDialogBase {
   }
 }
 
+export class SuiXmlSaveAdapter {
+  view: SuiScoreViewOperations;
+  fileName: string = '';
+  constructor(view: SuiScoreViewOperations) {
+    this.view = view;
+  }
+  get saveFileName() {
+    return this.fileName;
+  }
+  set saveFileName(value: string) {
+    this.fileName = value;
+  }
+  commit() {
+    let filename = this.fileName;
+    if (!filename) {
+      filename = 'myScore.xml';
+    }
+    if (filename.indexOf('.xml') < 0) {
+      filename = filename + '.xml';
+    }
+    this.view.score.scoreInfo.version += 1;
+    this.view.saveXml(filename);
+  }
+}
 export class SuiSaveXmlDialog extends SuiDialogBase {
   static dialogElements: DialogDefinition =
     {
@@ -280,36 +316,18 @@ export class SuiSaveXmlDialog extends SuiDialogBase {
       }],
       staticText: []
     };
-  value: string;
+  modifier: SuiXmlSaveAdapter;
   constructor(parameters: SuiDialogParams) {
+    parameters.ctor = 'SuiSaveXmlDialog';
+    parameters.modifier = new SuiXmlSaveAdapter(parameters.view);
     super(SuiSaveXmlDialog.dialogElements, parameters);
-    this.value = SuiSaveXmlDialog.createName(this.view.score);
+    this.modifier = parameters.modifier;
   }
   get saveFileNameCtrl() {
     return this.cmap['saveFileNameCtrl'] as SuiTextInputComponent;
   }
-  changed() {
-    this.value = this.saveFileNameCtrl.getValue();
-  }
   commit() {
-    let filename = this.value;
-    if (!filename) {
-      filename = 'myScore.xml';
-    }
-    if (filename.indexOf('.xml') < 0) {
-      filename = filename + '.xml';
-    }
-    this.view.score.scoreInfo.version += 1;
-    this.view.saveXml(filename);
-    this.complete();
-  }
-  display() {
-    this.applyDisplayOptions();
-    this._bindElements();
-    this.saveFileNameCtrl.setValue(this.value);
-  }
-  static createName(score: SmoScore) {
-    return score.scoreInfo.name + '-' + score.scoreInfo.version + '.xml';
+    this.modifier.commit();
   }
   static createAndDisplay(params: SuiDialogParams) {
     var dg = new SuiSaveXmlDialog(params);
@@ -317,6 +335,30 @@ export class SuiSaveXmlDialog extends SuiDialogBase {
   }
 }
 
+export class SuiMidiSaveAdapter {
+  view: SuiScoreViewOperations;
+  fileName: string = '';
+  constructor(view: SuiScoreViewOperations) {
+    this.view = view;
+  }
+  get saveFileName() {
+    return this.fileName;
+  }
+  set saveFileName(value: string) {
+    this.fileName = value;
+  }
+  commit() {
+    let filename = this.fileName;
+    if (!filename) {
+      filename = 'myScore.mid';
+    }
+    if (filename.indexOf('.mid') < 0) {
+      filename = filename + '.mid';
+    }
+    this.view.score.scoreInfo.version += 1;
+    this.view.saveMidi(filename);
+  }
+}
 export class SuiSaveMidiDialog extends SuiDialogBase {
   static dialogElements: DialogDefinition =
     {
@@ -329,44 +371,25 @@ export class SuiSaveMidiDialog extends SuiDialogBase {
         }],
       staticText: []
     }
-    value: string;
+  modifier: SuiMidiSaveAdapter;    
   constructor(parameters: SuiDialogParams) {
     parameters.ctor = 'SuiSaveMidiDialog';
+    parameters.modifier = new SuiMidiSaveAdapter(parameters.view);
     super(SuiSaveMidiDialog.dialogElements, parameters);
-    this.value = SuiSaveMidiDialog.createName(this.view.score);
+    this.modifier = parameters.modifier;
   }
   get saveFileNameCtrl() {
     return this.cmap['saveFileNameCtrl'] as SuiTextInputComponent;
   }
-  changed() {
-    this.value = this.saveFileNameCtrl.getValue();
-  }
   commit() {
-    let filename = this.value;
-    if (!filename) {
-      filename = 'myScore.mid';
-    }
-    if (filename.indexOf('.mid') < 0) {
-      filename = filename + '.mid';
-    }
-    this.view.score.scoreInfo.version += 1;
-    this.view.saveMidi(filename);
-    this.complete();
-  }
-  display() {
-    this.applyDisplayOptions();
-    this.saveFileNameCtrl.setValue(this.value);
-    this._bindElements();
-  }
-  static createName(score: SmoScore) {
-    return score.scoreInfo.name + '-' + score.scoreInfo.version + '.mid';
+    this.modifier.commit();
   }
   static createAndDisplay(params: SuiDialogParams) {
     var dg = new SuiSaveMidiDialog(params);
     dg.display();
   }
 }
-
+/* 
 export class SuiSaveActionsDialog extends SuiDialogBase {
   static dialogElements = 
       {
@@ -414,4 +437,4 @@ export class SuiSaveActionsDialog extends SuiDialogBase {
     var dg = new SuiSaveActionsDialog(params);
     dg.display();
   }
-}
+}  */

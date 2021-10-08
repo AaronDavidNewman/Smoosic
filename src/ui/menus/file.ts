@@ -1,6 +1,8 @@
 import { SuiMenuBase, SuiMenuParams } from './menu';
 import {
-  SuiSaveFileDialog, SuiPrintFileDialog, SuiSaveActionsDialog, SuiLoadActionsDialog, SuiLoadFileDialog,
+  SuiSaveFileDialog, SuiPrintFileDialog, 
+  // SuiSaveActionsDialog, SuiLoadActionsDialog, 
+  SuiLoadFileDialog,
   SuiSaveXmlDialog, SuiSaveMidiDialog, SuiLoadMxmlDialog
 } from '../dialogs/fileDialogs';
 import { SmoScore } from '../../smo/data/score';
@@ -91,7 +93,7 @@ export class SuiFileMenu extends SuiMenuBase {
         eventSource: this.eventSource,
         view: this.view,
         startPromise: this.closePromise
-      });
+      });/* 
     } else if (text === 'saveActions') {
       SuiSaveActionsDialog.createAndDisplay({
         ctor: 'SuiSaveActionsDialog',
@@ -115,7 +117,7 @@ export class SuiFileMenu extends SuiMenuBase {
         eventSource: this.eventSource,
         view: this.view,
         startPromise: this.closePromise
-      });
+      });  */
     } else if (text === 'openFile') {
       SuiLoadFileDialog.createAndDisplay({
         ctor: 'SuiLoadFileDialog',
