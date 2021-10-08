@@ -1,7 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { htmlHelpers } from '../common/htmlHelpers';
-import { smoSerialize } from '../common/serializationHelpers';
 import { SuiFileInput } from './fileio/fileInput';
 import { SmoModifier } from '../smo/data/score';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
@@ -18,8 +17,9 @@ export interface DialogDefinitionOption {
   value: number | string
 }
 /**
- * Generic parameters of a dialog component.  Specific components can define
- * additional params
+ * DialogDefinition is a JSON-like structure that each dialog has
+ * to define the components.  Specific components can define
+ * additional params by extending this, these are the basics.
  * @param {smoName} - the name the dialog uses to reference it 
  * @param {control} - constructor of the control
  * @param {label} - label of the element, can be translated
@@ -48,6 +48,11 @@ export interface SuiBaseComponentParams {
   control: string,
   parentComponent?: SuiComponentParent
 }
+/**
+ * components know about their parent dialog via the 
+ * DialogNotifier interface.  It allows a component to 
+ * notify parent of changing contents.
+ */
 export abstract class SuiDialogNotifier {
   abstract changed(): void;
   abstract getId(): string;
@@ -93,6 +98,12 @@ export abstract class SuiComponentBase {
   }
   get parameterId() {
     return this.dialog.getId() + '-' + this.smoName;
+  }
+  show() {
+    $('#' + this.parameterId).removeClass('hide');
+  }
+  hide() {
+    $('#' + this.parameterId).addClass('hide');
   }
 }
 

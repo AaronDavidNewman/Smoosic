@@ -99,7 +99,8 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
     return {
       BINDCOMPONENTS: 'bindComponents', DRAGGABLE: 'makeDraggable',
       KEYBOARD_CAPTURE: 'captureKeyboardPromise', GLOBALPOS: 'positionGlobally',
-      SELECTIONPOS: 'positionFromSelection', MODIFIERPOS: 'positionFromModifier'
+      SELECTIONPOS: 'positionFromSelection', MODIFIERPOS: 'positionFromModifier',
+      HIDEREMOVE: 'hideRemoveButton'
     };
   }
    // ### printXlate
@@ -141,7 +142,6 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
     });
     return rv;
   }
- abstract _bindElements(): void;
   id: string;
   ctor: string;
   boundKeyboard: boolean;
@@ -159,7 +159,7 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
   completeNotifier: CompleteNotifier;
   modifier: any;
   dgDom: DialogDom;
-  displayOptions: string[] = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
+  displayOptions: string[] = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS', 'HIDEREMOVE'];
   keydownHandler: EventHandler | null = null;
   autobind: boolean;
   // ### SuiDialogBase ctor
@@ -224,6 +224,25 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
       if (typeof((this.modifier as any)[comp.smoName]) !== 'undefined') {
         this.boundComponents.push(comp);
       }
+    });
+  }
+    // ### _bindElements
+  // bing the generic controls in most dialogs.
+  _bindElements() {
+    var dgDom = this.dgDom;
+    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
+      this.commit();
+      this.complete();
+    });
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
+      this.modifier.cancel();
+      this.complete();
+    });
+    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+      this.view.groupUndo(false);
+      this.complete();
     });
   }
   bindComponents() {
@@ -318,6 +337,9 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
   // to scrolling, make sure it is visible.
   position(box: SvgBox) {
     SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+  }
+  hideRemoveButton() {
+    $(this.dgDom.element).find('.remove-button').remove();
   }
   // ### positionModifier()
   positionFromModifier() {

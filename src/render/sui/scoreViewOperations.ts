@@ -290,12 +290,9 @@ export class SuiScoreViewOperations extends SuiScoreView {
   // Update the tempo for the entire score
   updateTempoScore(tempo: SmoTempoText, scoreMode: boolean) {
     let measureIndex = 0;
-    let startSelection = this.tracker.selections[0];
+    let startSelection = this.tracker.getExtremeSelection(-1);
     this._undoScore('update score tempo');
     this.actionBuffer.addAction('updateTempoScore', tempo, scoreMode);
-    if (!scoreMode) {
-      startSelection = this.tracker.getExtremeSelection(-1);
-    }
     const measureCount = this.score.staves[0].measures.length;
     let endSelection = SmoSelection.measureSelection(this.score,
       startSelection.selector.staff, measureCount - 1);
@@ -337,7 +334,9 @@ export class SuiScoreViewOperations extends SuiScoreView {
       const measureIx = startSelection.selector.measure - 1;
       const target = startSelection.staff.measures[measureIx];
       const tempo = target.getTempo();
-      this.updateTempoScore(tempo, scoreMode);
+      const newTempo = new SmoTempoText(tempo);
+      newTempo.display = false;
+      this.updateTempoScore(newTempo, scoreMode);
     } else {
       this.updateTempoScore(new SmoTempoText(SmoTempoText.defaults), scoreMode);
     }
@@ -1043,15 +1042,6 @@ export class SuiScoreViewOperations extends SuiScoreView {
   quickSave() {
     const scoreStr = JSON.stringify(this.storeScore.serialize());
     localStorage.setItem(smoSerialize.localScore, scoreStr);
-  }
-  createPickup(duration: number) {
-    const sel = this.tracker.selections[0];
-    const measureIndex = sel.selector.measure;
-    this._undoColumn('create pickup', measureIndex);
-    this.actionBuffer.addAction('createPickup', duration);
-    this.score.convertToPickupMeasure(sel.selector.measure, duration);
-    this.storeScore.convertToPickupMeasure(sel.selector.measure, duration);
-    this.renderer.setRefresh();
   }
   _columnAction(label: string, value: any, method: string) {
     this.actionBuffer.addAction(label, value);

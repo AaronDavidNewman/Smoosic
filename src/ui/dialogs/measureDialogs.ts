@@ -2,31 +2,15 @@
 // Copyright (c) Aaron David Newman 2021.
 import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';
 import { SmoMeasure } from '../../smo/data/measure';
-import { SmoMeasureText, SmoTempoText } from '../../smo/data/measureModifiers';
+import { SmoTempoText, SmoTempoNumberAttribute, SmoTempoStringAttribute, SmoTempoBooleanAttribute } from '../../smo/data/measureModifiers';
 import { SmoSelection } from '../../smo/xform/selections';
-import { SvgHelpers } from '../../render/sui/svgHelpers';
-import { DialogDefinitionOption, DialogDefinitionElement, SuiToggleComponent, SuiRockerComponent, SuiDropdownComponent, SuiTextInputComponent } from '../dialogComponents';
+import { SuiToggleComponent, SuiRockerComponent, SuiDropdownComponent } from '../dialogComponents';
 import { SmoMeasureFormat, SmoMeasureFormatNumberAttributes, SmoMeasueFormatBooleanAttributes } from '../../smo/data/measureModifiers';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SmoInstrument } from '../../smo/data/staffModifiers';
 
 declare var $: any;
 
-export interface PickupCompositeElement {
-  smoName: string,
-  dataType?: string
-  control: string,
-  label: string,
-  increment?: number,
-  options?: DialogDefinitionOption[],
-  toggleElement?: DialogDefinitionElement,
-  dropdownElement?: DialogDefinitionElement
-}
-export interface MeasureDialogDefinition {
-  label: string,
-  elements: PickupCompositeElement[],
-  staticText: Record<string, string>[]
-}
 export class SuiMeasureFormatAdapter {
   format: SmoMeasureFormat;
   backup: SmoMeasureFormat;
@@ -98,7 +82,7 @@ export class SuiMeasureFormatAdapter {
 // This file contains dialogs that affect all measures at a certain position,
 // such as tempo or time signature.
 export class SuiMeasureDialog extends SuiDialogBase {
-  static dialogElements: MeasureDialogDefinition = 
+  static dialogElements: DialogDefinition = 
       {
         label: 'Measure Properties',
         elements:
@@ -440,7 +424,88 @@ export class SuiTimeSignatureDialog extends SuiDialogBase {
     this._bindElements();
   }
 }
-
+/*   tempoMode: string,
+  bpm: number,
+  beatDuration: number,
+  tempoText: string,
+  yOffset: number,
+  display: boolean,
+  customText: string */
+export class SuiTempoAdapter {
+  smoTempoText: SmoTempoText;
+  backup: SmoTempoText;
+  view: SuiScoreViewOperations;
+  applyToAll: boolean = false;
+  edited: boolean = false;
+  constructor(view: SuiScoreViewOperations, tempoText: SmoTempoText) {
+    this.view = view;
+    this.smoTempoText = tempoText;
+    this.backup = new SmoTempoText(this.smoTempoText);
+  }
+  writeNumber(param: SmoTempoNumberAttribute, value: number) {
+    this.smoTempoText[param] = value;
+    this.view.updateTempoScore(this.smoTempoText, this.applyToAll);
+    this.edited = true;
+  }
+  writeBoolean(param: SmoTempoBooleanAttribute, value: boolean) {
+    this.smoTempoText[param] = value;
+    this.view.updateTempoScore(this.smoTempoText, this.applyToAll);
+    this.edited = true;
+  }
+  writeString(param: SmoTempoStringAttribute, value: string) {
+    this.smoTempoText[param] = value;
+    this.view.updateTempoScore(this.smoTempoText, this.applyToAll);
+    this.edited = true;
+  }
+  remove() {
+    this.view.removeTempo(this.applyToAll);
+  }
+  cancel() {
+    this.view.updateTempoScore(this.backup, false);
+  }
+  get tempoText() {
+    return this.smoTempoText.tempoText;
+  }
+  set tempoText(value: string) {
+    this.writeString('tempoText', value);
+  }
+  get tempoMode() {
+    return this.smoTempoText.tempoMode;
+  }
+  set tempoMode(value: string) {
+    this.writeString('tempoMode', value);
+  }
+  get customText() {
+    return this.smoTempoText.customText;
+  }
+  set customText(value: string) {
+    this.writeString('customText', value);
+  }
+  get bpm() {
+    return this.smoTempoText.bpm;
+  }
+  set bpm(value: number) {
+    this.writeNumber('bpm', value);
+  }
+  get display() {
+    return this.smoTempoText.display;
+  }
+  set display(value: boolean) {
+    this.writeBoolean('display', value);
+  }
+  get beatDuration() {
+    return this.smoTempoText.beatDuration;
+  }
+  set beatDuration(value: number) {
+    this.writeNumber('beatDuration', value);
+  }
+  get yOffset() {
+    return this.smoTempoText.yOffset;
+  }
+  set yOffset(value: number) {
+    this.writeNumber('yOffset', value);
+  }
+}
 // ## SuiTempoDialog
 // Allow user to choose a tempo or tempo change.
 export class SuiTempoDialog extends SuiDialogBase {
@@ -577,75 +642,43 @@ export class SuiTempoDialog extends SuiDialogBase {
     dg.display();
     return dg;
   }
-  get applyToAllCtrl(): SuiToggleComponent {
-    return this.cmap.applyToAllCtrl as SuiToggleComponent;
-  }
-  modifier: SmoTempoText;
-  refresh: boolean;
-  constructor(parameters: SuiDialogParams) {
-    const measures = SmoSelection.getMeasureList(parameters.view.tracker.selections)
-      .map((sel) => sel.measure);
-    const measure = measures[0];
-
-    // All measures have a default tempo, but it is not explicitly set unless it is
-    // non-default
-    if (!parameters.modifier) {
-      parameters.modifier = new SmoTempoText(SmoTempoText.defaults);
-    }
-    if (!parameters.modifier.renderedBox) {
-      parameters.modifier.renderedBox = SvgHelpers.copyBox(measure.svg.renderedBox!);
-    }
-    if (!parameters.modifier) {
-      throw new Error('modifier attribute dialog must have modifier and selection');
-    }
-    super(SuiTempoDialog.dialogElements, { autobind: true, ...parameters });
-    this.modifier = measure.getTempo();
-    this.refresh = false;
-    this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-  }
   display() {
-    this.applyDisplayOptions();
-    this.initialValue();
-    this._bindElements();
-  }
-  initialValue() {
-    super.initialValue();
-    // ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText', 'yOffset', 'customText']
-    this._updateModeClass();
-  }
-  _updateModeClass() {
-    if (this.modifier.tempoMode === SmoTempoText.tempoModes.textMode) {
-      $('.attributeModal').addClass('tempoTextMode');
-      $('.attributeModal').removeClass('tempoDurationMode');
-    } else if (this.modifier.tempoMode === SmoTempoText.tempoModes.durationMode) {
-      $('.attributeModal').addClass('tempoDurationMode');
-      $('.attributeModal').removeClass('tempoTextMode');
+    super.display();
+    if (this.modifier.smoTempoText.tempoMode === 'custom') {
+      this.cmap.customTextCtrl.show();
     } else {
-      $('.attributeModal').removeClass('tempoDurationMode');
-      $('.attributeModal').removeClass('tempoTextMode');
+      this.cmap.customTextCtrl.hide();
     }
   }
   changed() {
     super.changed();
-    // ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText', 'yOffset', 'customText']
-    this._updateModeClass();
-    this.view.updateTempoScore(this.modifier, this.applyToAllCtrl.getValue());
+    if (this.modifier.tempoMode === 'custom') {
+      this.cmap.customTextCtrl.show();
+    } else {
+      this.cmap.customTextCtrl.hide();
+    }
   }
-  // ### handleRemove
-  // Removing a tempo change is like changing the measure to the previous measure's tempo.
-  // If this is the first measure, use the default value.
-  handleRemove() {
-    this.view.removeTempo(this.applyToAllCtrl.getValue());
+
+  modifier: SuiTempoAdapter;
+  constructor(parameters: SuiDialogParams) {
+    const measures = SmoSelection.getMeasureList(parameters.view.tracker.selections)
+      .map((sel) => sel.measure);
+    const measure = measures[0];
+    super(SuiTempoDialog.dialogElements, { autobind: true, ...parameters });
+    this.modifier = new SuiTempoAdapter(parameters.view, measure.tempo);
   }
   // ### Populate the initial values and bind to the buttons.
   _bindElements() {
     const dgDom = this.dgDom;
-    $(dgDom.element).find('.cancel-button').remove();
+    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+      this.modifier.cancel();
+      this.complete();
+    });
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.complete();
     });
     $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-      this.handleRemove();
+      this.modifier.remove();
       this.complete();
     });
   }

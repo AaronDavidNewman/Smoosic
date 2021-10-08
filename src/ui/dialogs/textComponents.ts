@@ -66,6 +66,8 @@ export class SuiTextInPlace extends SuiComponentBase {
     this.staticText = this.dialog.getStaticText();
     this.altLabel = this.staticText.editorLabel;
   }
+  show() {}
+  hide() {}
 
   get html() {
     const b = htmlHelpers.buildDom;
@@ -215,6 +217,8 @@ export abstract class SuiNoteTextComponent extends SuiComponentBase {
       this.session.handleMouseEvent(ev);
     }
   }
+  show() {}
+  hide() {}
 
   mouseClick(ev: any) {
     if (this.session && this.session.isRunning) {
@@ -476,6 +480,8 @@ export class SuiDragText extends SuiComponentBase {
           b('label').attr('for', id + '-input').text(this.label)));
     return r;
   }
+  show(){}
+  hide(){}
   _getInputElement() {
     var pid = this.parameterId;
     return $(this.dialog.dgDom.element).find('#' + pid).find('button');

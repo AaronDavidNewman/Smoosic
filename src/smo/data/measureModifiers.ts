@@ -484,6 +484,10 @@ export class SmoRehearsalMark extends SmoMeasureModifierBase {
   }
 }
 
+export type SmoTempoNumberAttribute = 'bpm' | 'beatDuration' | 'yOffset';
+export type SmoTempoStringAttribute = 'tempoMode' | 'tempoText' | 'customText';
+export type SmoTempoBooleanAttribute = 'display';
+
 export interface SmoTempoTextParams {
   tempoMode: string,
   bpm: number,

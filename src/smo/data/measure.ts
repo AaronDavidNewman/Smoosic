@@ -664,21 +664,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   getClassId() {
     return 'mm-' + this.measureNumber.staffId + '-' + this.measureNumber.measureIndex;
   }
-
-  pickupMeasure(duration: number) {
-    const timeSig = this.timeSignature;
-    const proto = SmoMeasure.deserialize(this.serialize());
-    proto.attrs.id = VF.Element.newID();
-    const note = proto.voices[0].notes[0];
-    proto.voices = [];
-    note.pitches = [note.pitches[0]];
-    note.ticks.numerator = duration;
-    note.makeRest();
-    proto.voices.push({ notes: [note] });
-    proto.timeSignature = timeSig;
-    return proto;
-  }
-
   // ### getRenderedNote
   // The renderer puts a mapping between rendered svg groups and
   // the logical notes in SMO.  The UI needs this mapping to be interactive,

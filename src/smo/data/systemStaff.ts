@@ -381,19 +381,13 @@ export class SmoSystemStaff implements SmoObjectParams {
   // ### numberMeasures
   // After anything that might change the measure numbers, update them iteratively
   numberMeasures() {
-    let pickupOffset: number = 0;
     let i: number = 0;
     let renumberIndex = 0;
-    // Start measure from -1 for pickup
-    if (this.measures[0].getTicksFromVoice(0) < SmoMusic.timeSignatureToTicks(this.measures[0].timeSignature.timeSignature)) {
-      pickupOffset = -1;
-    }
-
     for (i = 0; i < this.measures.length; ++i) {
       const measure = this.measures[i];
 
       renumberIndex = typeof (this.renumberingMap[i]) === 'undefined' ? 0 : this.renumberingMap[i];
-      const localIndex: number = renumberIndex + i + pickupOffset;
+      const localIndex: number = renumberIndex + i;
       // If this is the first full measure, call it '1'
       const numberObj: MeasureNumber = {
         localIndex,

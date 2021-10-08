@@ -4,33 +4,36 @@ import { SuiDialogBase, SuiDialogParams, DialogDefinition } from './dialog';
 import { SmoScore } from '../../smo/data/score';
 import { mxmlScore } from '../../smo/mxml/xmlScore';
 import { SuiFileDownloadComponent, SuiTextInputComponent } from '../dialogComponents';
+import { SuiScoreViewOperations } from '../../../release/smoosic';
 declare var $: any;
 
-export abstract class SuiFileDialog extends SuiDialogBase {
-  constructor(elements: DialogDefinition, parameters: SuiDialogParams) {
-    super(elements, parameters);
+export class FileLoadDialogAdapter {
+  jsonFile: string = '';
+  view: SuiScoreViewOperations;
+  constructor(view: SuiScoreViewOperations) {
+    this.view = view;
   }
-  display() {
-    this.applyDisplayOptions();
-    this._bindElements();
+  get loadFile() {
+    return this.jsonFile;
   }
-
-  _bindElements() {
-    const dgDom = this.dgDom;
-
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      this.commit();
-    });
-
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      this.complete();
-    });
-
-    $(dgDom.element).find('.remove-button').remove();
-    this.bindKeyboard();
+  set loadFile(value: string) {
+    this.jsonFile = value;
+  }
+  commit() {
+    let scoreWorks = false;
+    if (this.jsonFile.length > 0) {
+      try {
+        const score = SmoScore.deserialize(this.jsonFile);
+        scoreWorks = true;
+        this.view.changeScore(score);
+      } catch (e) {
+        console.warn('unable to score ' + e);
+      }
+    }
   }
 }
-export class SuiLoadFileDialog extends SuiFileDialog {
+
+export class SuiLoadFileDialog extends SuiDialogBase {
 
   static dialogElements: DialogDefinition =
     {
@@ -82,7 +85,7 @@ export class SuiLoadFileDialog extends SuiFileDialog {
   }
 }
 
-export class SuiLoadMxmlDialog extends SuiFileDialog {
+export class SuiLoadMxmlDialog extends SuiDialogBase {
   static dialogElements: DialogDefinition =
     {
       label: 'Load File',
@@ -134,7 +137,7 @@ export class SuiLoadMxmlDialog extends SuiFileDialog {
   }
 }
 
-export class SuiLoadActionsDialog extends SuiFileDialog {
+export class SuiLoadActionsDialog extends SuiDialogBase {
   static dialogElements: DialogDefinition = {
     label: 'Load Action File',
     elements: [{
@@ -183,7 +186,7 @@ export class SuiLoadActionsDialog extends SuiFileDialog {
   }
 }
 
-export class SuiPrintFileDialog extends SuiFileDialog {
+export class SuiPrintFileDialog extends SuiDialogBase {
   static dialogElements: DialogDefinition = {
     label: 'Print Complete',
     elements: [],
@@ -199,10 +202,7 @@ export class SuiPrintFileDialog extends SuiFileDialog {
     parameters.ctor = 'SuiPrintFileDialog';
     super(SuiPrintFileDialog.dialogElements, parameters);
   }
-  display() {
-    this.applyDisplayOptions();
-    this._bindElements();
-  }
+
   changed() { }
   _bindElements() {
     const dgDom = this.dgDom;
@@ -218,7 +218,7 @@ export class SuiPrintFileDialog extends SuiFileDialog {
   }
   commit() { }
 }
-export class SuiSaveFileDialog extends SuiFileDialog {
+export class SuiSaveFileDialog extends SuiDialogBase {
   static dialogElements: DialogDefinition =
     {
       label: 'Save Score',
@@ -269,7 +269,7 @@ export class SuiSaveFileDialog extends SuiFileDialog {
   }
 }
 
-export class SuiSaveXmlDialog extends SuiFileDialog {
+export class SuiSaveXmlDialog extends SuiDialogBase {
   static dialogElements: DialogDefinition =
     {
       label: 'Save Score',
@@ -317,7 +317,7 @@ export class SuiSaveXmlDialog extends SuiFileDialog {
   }
 }
 
-export class SuiSaveMidiDialog extends SuiFileDialog {
+export class SuiSaveMidiDialog extends SuiDialogBase {
   static dialogElements: DialogDefinition =
     {
       label: 'Save Score as Midi',
@@ -367,7 +367,7 @@ export class SuiSaveMidiDialog extends SuiFileDialog {
   }
 }
 
-export class SuiSaveActionsDialog extends SuiFileDialog {
+export class SuiSaveActionsDialog extends SuiDialogBase {
   static dialogElements = 
       {
         label: 'Save Score', elements:

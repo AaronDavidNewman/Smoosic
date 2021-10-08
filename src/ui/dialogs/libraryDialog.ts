@@ -7,6 +7,7 @@ import { mxmlScore } from '../../smo/mxml/xmlScore';
 import { SmoScore } from '../../smo/data/score';
 import { DialogDefinitionOption } from '../dialogComponents';
 import { TreeComponentOption, SuiTreeComponent } from './treeComponent';
+import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SmoConfiguration } from '../../smo/data/common';
 
 declare var $: any;
@@ -27,7 +28,113 @@ export interface LibraryDefinition {
   elements: LibraryDefinitionElement[],
   staticText: Record<string, string>[]
 }
-
+export class SuiLibraryAdapter {
+  topLib: SmoLibrary;
+  selectedUrl: string = '';
+  libHash: Record<string, SmoLibrary>;
+  selectedLib: SmoLibrary | null;
+  tree: Record<string, SmoLibrary>;
+  okButton: any;
+  view: SuiScoreViewOperations;
+  // If the selected lib is a leaf node (a score), this is the same as that
+  selectedScore: SmoLibrary | null = null;
+  constructor(view: SuiScoreViewOperations, topLib: SmoLibrary) {
+    this.libHash = {};
+    this.tree = {};
+    this.view = view;
+    this.libHash[topLib.url!] = topLib;
+    this.topLib = topLib;
+    this.selectedLib = null;
+  }
+  static addChildRecurse(options: TreeComponentOption[], parent: SmoLibrary, child: SmoLibrary) {
+    options.push({ label: child.metadata.name, value: child.url, parent: parent.url, format: child.format, expanded: false });
+    child.children.forEach((gchild) => {
+      SuiLibraryAdapter.addChildRecurse(options, child, gchild);
+    });
+  }
+  static createOptions(topLib: SmoLibrary) {
+    const options: TreeComponentOption[] = [];
+    topLib.children.forEach((child) => {
+      SuiLibraryAdapter.addChildRecurse(options, topLib, child);
+    });
+    return options;
+  }
+  buildTreeRecurse(children: SmoLibrary[]) {
+    children.forEach((child) => {
+      this.tree[child.url!] = child;
+      this.buildTreeRecurse(child.children);
+    });
+  }
+  buildTree() {
+    this.tree = {};
+    this.buildTreeRecurse(this.topLib.children);
+  }
+  createOptions(topLib: SmoLibrary) {
+    const options: TreeComponentOption[] = [];
+    topLib.children.forEach((child) => {
+      SuiLibraryDialog.addChildRecurse(options, topLib, child);
+    });
+    return options;
+  }
+  loadOptions(options: TreeComponentOption[]): Promise<void> {
+    const self = this;
+    return new Promise<void>((resolve) => {
+      if (self.selectedLib!.format === 'library') {
+        if (!self.selectedLib!.loaded) {
+          self.selectedLib!.load().then(() => {
+            const nops = SuiLibraryAdapter.createOptions(self.topLib);
+            nops.forEach((option) => {
+              options.push(option);
+            });
+            resolve();
+          });
+        } else {
+          const nops = SuiLibraryAdapter.createOptions(self.topLib);
+          nops.forEach((option) => {
+            options.push(option);
+          });
+          resolve();
+        }
+      }
+      else {
+        self.selectedScore = this.selectedLib;
+        resolve();
+      }
+    });
+  }
+  _loadJsonAndComplete() {
+    const req = new SuiXhrLoader(this.selectedScore!.url);
+    req.loadAsync().then(() => {
+      const score = SmoScore.deserialize(req.value);
+      this.view.changeScore(score);
+    });
+  }
+  _loadXmlAndComplete() {
+    const req = new SuiXhrLoader(this.selectedScore!.url);
+    req.loadAsync().then(() => {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(req.value, 'text/xml');
+      const score = mxmlScore.smoScoreFromXml(xml);
+      this.view.changeScore(score);
+    });
+  }
+  get selectedLibrary(): SmoLibrary | null {
+    return this.selectedLib;
+  }
+  get smoLibrary() {
+    return this.selectedUrl;
+  }
+  set smoLibrary(value: string) {
+    this.selectedUrl = value;
+    this.buildTree();
+    this.selectedLib = this.tree[this.selectedUrl];
+    if (this.selectedLib.format !== 'library') {
+      this.selectedScore = this.selectedLib;
+    } else {
+      this.selectedScore = null;
+    }
+  }
+}
 // ## SuiLibraryDialog
 // Traverse the library nodes or load a score
 export class SuiLibraryDialog extends SuiDialogBase {
@@ -71,101 +178,38 @@ export class SuiLibraryDialog extends SuiDialogBase {
     const topLib = new SmoLibrary({ url: SmoConfig.libraryUrl });
     topLib.load().then(() => SuiLibraryDialog._createAndDisplay(parameters, topLib));
   }
-  topLib: SmoLibrary;
-  libHash: Record<string, SmoLibrary>;
-  selectedLib: SmoLibrary | null;
-  tree: Record<string, SmoLibrary>;
   okButton: any;
-  selectedScore: SmoLibrary | null = null;
+  modifier: SuiLibraryAdapter;
   constructor(parameters: SuiDialogParams, dialogElements: LibraryDefinition, topLib: SmoLibrary) {
+    parameters.modifier = new SuiLibraryAdapter(parameters.view, topLib);
     super(dialogElements, parameters);
-    this.libHash = {};
-    this.tree = {};
-    this.libHash[topLib.url!] = topLib;
-    this.topLib = topLib;
-    this.selectedLib = null;
-  }
-  buildTreeRecurse(children: SmoLibrary[]) {
-    children.forEach((child) => {
-      this.tree[child.url!] = child;
-      this.buildTreeRecurse(child.children);
-    });
-  }
-  buildTree() {
-    this.tree = {};
-    this.buildTreeRecurse(this.topLib.children);
-  }
-  display() {
-    this.applyDisplayOptions();
-    this._bindElements();
-    $(this.dgDom.element).find('.smoControlContainer').addClass('center-flex');
+    this.modifier = parameters.modifier;
   }
   commit() {
-  }
-  _bindElements() {
-    const dgDom = this.dgDom;
-    this.okButton = $(dgDom.element).find('.ok-button');
-    $(this.okButton).prop('disabled', true);
-    const cancelButton = $(dgDom.element).find('.cancel-button');
-    $(this.okButton).off('click').on('click', () => {
-      if (this.selectedScore !== null) {
-        if (this.selectedScore.format === 'mxml') {
-          this._loadXmlAndComplete();
-        } else {
-          this._loadJsonAndComplete();
-        }
+    if (this.modifier.selectedScore !== null) {
+      if (this.modifier.selectedScore.format === 'mxml') {
+        this.modifier._loadXmlAndComplete();
       } else {
-        this.complete();
+        this.modifier._loadJsonAndComplete();
       }
-    });
-    $(cancelButton).off('click').on('click', () => {
+    } else {
       this.complete();
-    });
-    $(dgDom.element).find('.remove-button').remove();
+    }
   }
-  _loadJsonAndComplete() {
-    const req = new SuiXhrLoader(this.selectedScore!.url);
-    req.loadAsync().then(() => {
-      const score = SmoScore.deserialize(req.value);
-      this.view.changeScore(score);
-      this.complete();
-    });
-  }
-  _loadXmlAndComplete() {
-    const req = new SuiXhrLoader(this.selectedScore!.url);
-    req.loadAsync().then(() => {
-      const parser = new DOMParser();
-      const xml = parser.parseFromString(req.value, 'text/xml');
-      const score = mxmlScore.smoScoreFromXml(xml);
-      this.view.changeScore(score);
-      this.complete();
-    });
-  }
+
   get smoLibraryCtrl() {
     return this.cmap.smoLibraryCtrl as SuiTreeComponent;
   }
   changed() {
-    if (this.cmap['smoLibraryCtrl'].changeFlag) {
-      const url = this.smoLibraryCtrl.getValue();
-      this.buildTree();
-      this.selectedLib = this.tree[url];
-      this.smoLibraryCtrl.setValue(this.selectedLib!.url!);
-      // User navigates to parent library
-      if (this.selectedLib.format === 'library') {
-        $(this.okButton).prop('disabled', true);
-        this.selectedScore = null;
-        if (!this.selectedLib.loaded) {
-          this.selectedLib.load().then(() => {
-            const options = SuiLibraryDialog._createOptions(this.topLib);
-            this.smoLibraryCtrl.updateOptions(options);
-            this.smoLibraryCtrl.setValue(this.selectedLib!.url!);
-          });
-        }
-      } else {
-        this.selectedScore = this.selectedLib;
-        this.smoLibraryCtrl.setValue(this.selectedLib!.url!);
-        $(this.okButton).prop('disabled', false);
-      }
+    super.changed();
+    if (this.modifier.selectedLib!.format === 'library') {
+      $(this.okButton).prop('disabled', true);
+      const options: TreeComponentOption[] = [];
+      this.modifier.loadOptions(options).then(() => {
+        this.smoLibraryCtrl.updateOptions(options);
+      });
+    } else {
+      $(this.okButton).prop('disabled', false);
     }
   }
 }

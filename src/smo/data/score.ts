@@ -232,6 +232,21 @@ export class SmoScore {
     obj.dictionary = smoSerialize.tokenMap;
     return obj;
   }
+  static upConvertGlobalLayout(jsonObj: any) {
+    // upconvert global layout, which used to be directly on layoutManager
+    if (typeof(jsonObj.layoutManager.globalLayout) === 'undefined') {
+      jsonObj.layoutManager.globalLayout = {
+        svgScale: jsonObj.layoutManager.svgScale,
+        zoomScale: jsonObj.layoutManager.zoomScale,
+        pageWidth: jsonObj.layoutManager.pageWidth,
+        pageHeight: jsonObj.layoutManager.pageHeight,
+        noteSpacing: jsonObj.layoutManager.noteSpacing
+      };
+      if (!jsonObj.layoutManager.globalLayout.noteSpacing) {
+        jsonObj.layoutManager.globalLayout.noteSpacing = 1.0;
+      }
+    }
+  }
   // ### upConvertLayout
   // Convert legacy score layout to layoutManager object parameters
   static upConvertLayout(jsonObj: any) {
@@ -250,19 +265,7 @@ export class SmoScore {
       });
       jsonObj.layoutManager.pageLayouts.push(pageSetting);
     }
-    // upconvert global layout, which used to be directly on layoutManager
-    if (typeof(jsonObj.layoutManager.globalLayout) === 'undefined') {
-      jsonObj.layoutManager.globalLayout = {
-        svgScale: jsonObj.layoutManager.svgScale,
-        zoomScale: jsonObj.layoutManager.zoomScale,
-        pageWidth: jsonObj.layoutManager.pageWidth,
-        pageHeight: jsonObj.layoutManager.pageHeight,
-        noteSpacing: jsonObj.layoutManager.noteSpacing
-      };
-      if (!jsonObj.layoutManager.globalLayout.noteSpacing) {
-        jsonObj.layoutManager.globalLayout.noteSpacing = 1.0;
-      }
-    }
+    SmoScore.upConvertGlobalLayout(jsonObj);
   }
 
   // ### deserialize
@@ -287,6 +290,9 @@ export class SmoScore {
     // up-convert legacy layout data
     if (jsonObj.score.layout) {
       SmoScore.upConvertLayout(jsonObj);
+    }
+    if (jsonObj.layoutManager && !jsonObj.layoutManager.globalLayout) {
+      SmoScore.upConvertGlobalLayout(jsonObj);
     }
     const layoutManager = new SmoLayoutManager(jsonObj.layoutManager);
     if (!upconvertFormat) {
@@ -415,20 +421,6 @@ export class SmoScore {
         (tg.selector as SmoSelector).measure -= 1;
       }
     });
-  }
-
-  convertToPickupMeasure(measureIndex: number, duration: number) {
-    let i = 0;
-    for (i = 0; i < this.staves.length; ++i) {
-      const staff = this.staves[i];
-      const protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
-      staff.measures[measureIndex] = protomeasure;
-    }
-    this.numberStaves();
-  }
-
-  addPickupMeasure(measureIndex: number, duration: number) {
-    this.convertToPickupMeasure(measureIndex, duration);
   }
   getPrototypeMeasure(measureIndex: number, staffIndex: number) {
     const staff = this.staves[staffIndex];

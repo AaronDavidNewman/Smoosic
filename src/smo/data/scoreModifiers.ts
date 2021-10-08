@@ -130,7 +130,7 @@ export class SmoPageLayout extends SmoScoreModifierBase {
     return params;
   }
 }
-export type ScaledGlobalAttributes = 'pageWidth' | 'pageHeight' | 'noteSpacing';
+export type ScaledGlobalAttributes = 'pageWidth' | 'pageHeight';
 export type GlobalLayoutAttributes = 'pageWidth' | 'pageHeight' | 'noteSpacing' | 'svgScale' | 'zoomScale';
 export interface SmoGlobalLayout {
   svgScale: number;
@@ -191,7 +191,7 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
     return ['leftMargin', 'rightMargin', 'topMargin', 'bottomMargin', 'interGap', 'intraGap'];
   }
   static get scaledGlobalAttributes(): ScaledGlobalAttributes[] {
-    return ['pageWidth', 'pageHeight', 'noteSpacing'];
+    return ['pageWidth', 'pageHeight'];
   }
   static getScaledPageLayout(globalLayout: SmoGlobalLayout, pageLayout: SmoPageLayout, pages: number): ScaledPageLayout {
     const rv: Partial<ScaledPageLayout> = {};
@@ -201,6 +201,8 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
     SmoLayoutManager.scaledGlobalAttributes.forEach((attr: ScaledGlobalAttributes) => {
       rv[attr] = globalLayout[attr] / globalLayout.svgScale;
     });
+    // Note spacing is relative, so * it and not divide
+    rv.noteSpacing = globalLayout.noteSpacing * globalLayout.svgScale;
     rv.svgScale = globalLayout.svgScale;
     rv.zoomScale = globalLayout.zoomScale;
     return rv as ScaledPageLayout;
