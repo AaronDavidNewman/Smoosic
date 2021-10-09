@@ -47,12 +47,12 @@ export class SuiScoreViewDialog extends SuiDialogBase {
   display() {
     $('body').addClass('showAttributeDialog');
     this.applyDisplayOptions();
-    this._bindElements();
+    this.bindElements();
     const currentView = this.view.getView();
     this.originalValue = JSON.parse(JSON.stringify(currentView));
     this.scoreViewCtrl.setValue(currentView);
   }
-  _bindElements() {
+  bindElements() {
     const dgDom = this.dgDom;
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       if (this.viewChanged) {
@@ -196,7 +196,7 @@ export class SuiGlobalLayoutDialog extends SuiDialogBase {
     this.modifier = this.score.layoutManager!.getGlobalLayout();
     this.layoutBackup = deepCopy(this.modifier);
   }
-  _bindElements() {
+  bindElements() {
     const dgDom = this.dgDom;
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       if (this.layoutChanged) {
@@ -292,7 +292,7 @@ export class SuiScoreIdentificationDialog extends SuiDialogBase {
     super.initialValue();
     this.applyDisplayOptions();
   }
-  _bindElements() {
+  bindElements() {
     const dgDom = this.dgDom;
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.complete();
@@ -449,7 +449,7 @@ export class SuiScoreFontDialog extends SuiDialogBase {
     this.fontBackup = JSON.parse(JSON.stringify(this.view.score.fonts));
     this.needRefresh = false;
   }
-  _bindElements() {
+  bindElements() {
     const dgDom = this.dgDom;
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.complete();

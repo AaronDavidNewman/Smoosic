@@ -5,17 +5,16 @@ import { SmoScore } from '../../smo/data/score';
 import { mxmlScore } from '../../smo/mxml/xmlScore';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiFileDownloadComponent, SuiTextInputComponent } from '../dialogComponents';
-import { SuiSlurAdapter } from './staffDialogs';
+import { SuiDialogAdapterBase, SuiDialogAdapterParams, SuiComponentAdapter } from './adapter';
 declare var $: any;
 
 /**
  * internal state of FileLoadDialog is just the string for the filename.
  */
-export class SuiSmoLoadAdapter {
+export class SuiSmoLoadAdapter extends SuiComponentAdapter {
   jsonFile: string = '';
-  view: SuiScoreViewOperations;
   constructor(view: SuiScoreViewOperations) {
-    this.view = view;
+    super(view);
   }
   get loadFile() {
     return this.jsonFile;
@@ -38,7 +37,7 @@ export class SuiSmoLoadAdapter {
   cancel() {}
 }
 
-export class SuiLoadFileDialog extends SuiDialogBase {
+export class SuiLoadFileDialog extends SuiDialogAdapterBase<SuiSmoLoadAdapter> {
   static dialogElements: DialogDefinition =
     {
       label: 'Load File',
@@ -64,9 +63,9 @@ export class SuiLoadFileDialog extends SuiDialogBase {
   modifier: SuiSmoLoadAdapter;
   constructor(parameters: SuiDialogParams) {
     const adapter = new SuiSmoLoadAdapter(parameters.view);
-    parameters.modifier = adapter;
     parameters.ctor = 'SuiLoadFileDialog';
-    super(SuiLoadFileDialog.dialogElements, parameters);
+    const params: SuiDialogAdapterParams<SuiSmoLoadAdapter> = { adapter, ...parameters }
+    super(SuiLoadFileDialog.dialogElements, params);
     this.modifier = adapter;
   }
   changed() {
@@ -81,12 +80,11 @@ export class SuiLoadFileDialog extends SuiDialogBase {
 /**
  * internal state of FileLoadDialog is just the string for the filename.
  */
- export class SuiXmlLoadAdapter {
+ export class SuiXmlLoadAdapter extends SuiComponentAdapter {
   xmlFile: string = '';
-  view: SuiScoreViewOperations;
   changeScore: boolean = false;
   constructor(view: SuiScoreViewOperations) {
-    this.view = view;
+    super(view);
   }
   get loadFile() {
     return this.xmlFile;
@@ -108,7 +106,7 @@ export class SuiLoadFileDialog extends SuiDialogBase {
   cancel() {}
 }
 
-export class SuiLoadMxmlDialog extends SuiDialogBase {
+export class SuiLoadMxmlDialog extends SuiDialogAdapterBase<SuiComponentAdapter> {
   static dialogElements: DialogDefinition =
     {
       label: 'Load File',
@@ -124,21 +122,12 @@ export class SuiLoadMxmlDialog extends SuiDialogBase {
   get loadFileCtrl() {
     return this.cmap['loadFileCtrl'] as SuiFileDownloadComponent;
   }
-  modifier: SuiXmlLoadAdapter;
   constructor(parameters: SuiDialogParams) {
     parameters.ctor = 'SuiLoadMxmlDialog';
-    parameters.modifier = new SuiXmlLoadAdapter(parameters.view);
-    super(SuiLoadMxmlDialog.dialogElements, parameters);
-    this.modifier = parameters.modifier;
-  }
-  changed() {
-    super.changed();
-    const enable = this.modifier.loadFile.length < 1;
-    $(this.dgDom.element).find('.ok-button').prop('disabled', enable);
-  }
-  commit() {
-    this.modifier.commit();
-    this.complete();
+    const adapter = new SuiXmlLoadAdapter(parameters.view);
+    const parms: SuiDialogAdapterParams<SuiXmlLoadAdapter> = 
+      { adapter, ...parameters };
+    super(SuiLoadMxmlDialog.dialogElements, parms);
   }
   static createAndDisplay(params: SuiDialogParams) {
     const dg = new SuiLoadMxmlDialog(params);
@@ -215,7 +204,7 @@ export class SuiPrintFileDialog extends SuiDialogBase {
   }
 
   changed() { }
-  _bindElements() {
+  bindElements() {
     const dgDom = this.dgDom;
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       $('body').removeClass('printing');
@@ -428,7 +417,7 @@ export class SuiSaveActionsDialog extends SuiDialogBase {
   display() {
     this.applyDisplayOptions();
     this.saveFileNameCtrl.setValue(this.value);
-    this._bindElements();
+    this.bindElements();
   }
   static createName(score: SmoScore) {
     return score.scoreInfo.name + '-' + score.scoreInfo.version + '-actions.json';

@@ -129,7 +129,7 @@ export class SuiMeasureDialog extends SuiDialogBase {
     super(SuiMeasureDialog.dialogElements, { autobind: true, ...parameters });
     this.modifier = new SuiMeasureFormatAdapter(this.view, measure);
   }
-  _bindElements() {
+  bindElements() {
     const dgDom = this.dgDom;
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.view.groupUndo(false);
@@ -207,7 +207,7 @@ export class SuiInstrumentDialog extends SuiDialogBase {
   display() {
     this.applyDisplayOptions();
     this.populateInitial();
-    this._bindElements();
+    this.bindElements();
   }
   populateInitial() {
     const ix = this.measure.transposeIndex;
@@ -237,7 +237,7 @@ export class SuiInstrumentDialog extends SuiDialogBase {
     );
   }
 
-  _bindElements() {
+  bindElements() {
     var dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
@@ -295,7 +295,7 @@ export class SuiInsertMeasures extends SuiDialogBase {
 
   display() {
     this.applyDisplayOptions();
-    this._bindElements();
+    this.bindElements();
   }
   get measureCountCtrl(): SuiRockerComponent {
     return this.cmap.measureCountCtrl as SuiRockerComponent;
@@ -309,7 +309,7 @@ export class SuiInsertMeasures extends SuiDialogBase {
   // noop
   changed() {
   }
-  _bindElements() {
+  bindElements() {
     var dgDom = this.dgDom;
     this.populateInitial();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
@@ -404,7 +404,7 @@ export class SuiTimeSignatureDialog extends SuiDialogBase {
     ts.display = this.displayCtrl.getValue();
     this.view.setTimeSignature(ts);
   }
-  _bindElements() {
+  bindElements() {
     const dgDom = this.dgDom;
     this.populateInitial();
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
@@ -421,7 +421,7 @@ export class SuiTimeSignatureDialog extends SuiDialogBase {
   display() {
     this.applyDisplayOptions();
     this.populateInitial();
-    this._bindElements();
+    this.bindElements();
   }
 }
 /*   tempoMode: string,
@@ -668,7 +668,7 @@ export class SuiTempoDialog extends SuiDialogBase {
     this.modifier = new SuiTempoAdapter(parameters.view, measure.tempo);
   }
   // ### Populate the initial values and bind to the buttons.
-  _bindElements() {
+  bindElements() {
     const dgDom = this.dgDom;
     $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
       this.modifier.cancel();

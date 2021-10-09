@@ -153,7 +153,7 @@ export class SuiLyricDialog extends SuiDialogBase {
       this.lyric.translateY = this.translateYCtrl.getValue();
     }
   }
-  _bindElements() {
+  bindElements() {
     const dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
@@ -393,7 +393,7 @@ export class SuiChordChangeDialog extends SuiDialogBase {
     }
   }
 
-  _bindElements() {
+  bindElements() {
     const dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
@@ -644,7 +644,7 @@ export class SuiTextTransformDialog extends SuiDialogBase {
     $('body').addClass('textEditor');
     this.applyDisplayOptions();
     this.populateInitial();
-    this._bindElements();
+    this.bindElements();
     if (!this.modifier.renderedBox) {
       this.view.renderer.renderTextGroup(this.modifier);
     }
@@ -803,7 +803,7 @@ export class SuiTextTransformDialog extends SuiDialogBase {
     this.view.removeTextGroup(this.modifier);
   }
 
-  _bindElements() {
+  bindElements() {
     const dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
@@ -938,9 +938,9 @@ export class SuiDynamicModifierDialog extends SuiDialogBase {
     this.modifier = new SuiDynamicDialogAdapter(this.view, parameters.modifier);
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
   }
-  // ### _bindElements
+  // ### bindElements
   // bind the generic controls in most dialogs.
-  _bindElements() {
+  bindElements() {
     var dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {

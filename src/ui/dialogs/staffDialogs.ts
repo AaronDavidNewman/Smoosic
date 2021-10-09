@@ -202,9 +202,9 @@ export class SuiSlurAttributesDialog extends SuiDialogBase {
     this.modifier = parameters.modifier;
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
   }
-    // ### _bindElements
+    // ### bindElements
   // bing the generic controls in most dialogs.
-  _bindElements() {
+  bindElements() {
     var dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
@@ -271,9 +271,9 @@ export class SuiTieAttributesDialog extends SuiDialogBase {
       this.edited = true;
     }
   }
-    // ### _bindElements
+    // ### bindElements
   // bing the generic controls in most dialogs.
-  _bindElements() {
+  bindElements() {
     var dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
@@ -418,9 +418,9 @@ export class SuiVoltaAttributeDialog extends SuiDialogBase {
     this.view.removeEnding(this.modifier);
   }
 
-  // ### _bindElements
+  // ### bindElements
   // bing the generic controls in most dialogs.
-  _bindElements() {
+  bindElements() {
     var dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
@@ -541,7 +541,7 @@ export class SuiHairpinAttributesDialog extends SuiDialogBase {
     this.modifier = new SuiHairpinAdapter(this.view, parameters.modifier);
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
   }
-  _bindElements() {
+  bindElements() {
     var dgDom = this.dgDom;
 
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
@@ -634,7 +634,7 @@ export class SuiStaffGroupDialog extends SuiDialogBase {
     super(SuiStaffGroupDialog.dialogElements, parameters);
     this.modifier = new SuiStaffGroupDialogAdapter(this.view);
   }
-  _bindElements() {
+  bindElements() {
     const dgDom = this.dgDom;
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.complete();

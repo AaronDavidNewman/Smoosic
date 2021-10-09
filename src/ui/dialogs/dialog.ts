@@ -45,7 +45,7 @@ export interface SuiDialogParams {
   eventSource: BrowserEventSource,
   undoBuffer: UndoBuffer,
   // definition: DialogDefinition,
-  modifier: any,
+  modifier?: any,
   autobind?: boolean
 }
 export interface SuiDomParams {
@@ -210,7 +210,7 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
     this.components.forEach((component) => {
       component.bind();
     });
-    this._bindElements();
+    this.bindElements();
     this.bindAutobindComponents();
     this.applyDisplayOptions();
     this.initialValue();
@@ -226,9 +226,9 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
       }
     });
   }
-    // ### _bindElements
+    // ### bindElements
   // bing the generic controls in most dialogs.
-  _bindElements() {
+  bindElements() {
     var dgDom = this.dgDom;
     $(dgDom.element).find('.ok-button').off('click').on('click', () => {
       this.view.groupUndo(false);
