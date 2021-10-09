@@ -1,23 +1,26 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';
+import { Clef } from '../../smo/data/common';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoTempoText, SmoTempoNumberAttribute, SmoTempoStringAttribute, SmoTempoBooleanAttribute } from '../../smo/data/measureModifiers';
-import { SmoSelection } from '../../smo/xform/selections';
-import { SuiToggleComponent, SuiRockerComponent, SuiDropdownComponent } from '../dialogComponents';
 import { SmoMeasureFormat, SmoMeasureFormatNumberAttributes, SmoMeasueFormatBooleanAttributes } from '../../smo/data/measureModifiers';
+import { SmoInstrument, SmoInstrumentParams } from '../../smo/data/staffModifiers';
+import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
+
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
-import { SmoInstrument } from '../../smo/data/staffModifiers';
+
+import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';
+import { SuiToggleComponent, SuiRockerComponent, SuiDropdownComponent } from '../dialogComponents';
+import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 
 declare var $: any;
 
-export class SuiMeasureFormatAdapter {
+export class SuiMeasureFormatAdapter extends SuiComponentAdapter {
   format: SmoMeasureFormat;
   backup: SmoMeasureFormat;
-  view: SuiScoreViewOperations;
   edited: boolean = false;
   constructor(view: SuiScoreViewOperations, measure: SmoMeasure) {
-    this.view = view;
+    super(view);
     this.format = measure.format;
     this.backup = new SmoMeasureFormat(this.format);
   }
@@ -31,6 +34,7 @@ export class SuiMeasureFormatAdapter {
     this.view.setMeasureFormat(this.format);
     this.edited = true;
   }
+  commit(){}
   cancel() {
     if (this.edited) {
       this.view.setMeasureFormat(this.backup);
@@ -81,7 +85,7 @@ export class SuiMeasureFormatAdapter {
 // ## measureDialogs.js
 // This file contains dialogs that affect all measures at a certain position,
 // such as tempo or time signature.
-export class SuiMeasureDialog extends SuiDialogBase {
+export class SuiMeasureDialog extends SuiDialogAdapterBase<SuiMeasureFormatAdapter> {
   static dialogElements: DialogDefinition = 
       {
         label: 'Measure Properties',
@@ -121,39 +125,80 @@ export class SuiMeasureDialog extends SuiDialogBase {
     dg.display();
     return dg;
   }
-  modifier: SuiMeasureFormatAdapter;
   constructor(parameters: SuiDialogParams) {
     const selection = parameters.view.tracker.selections[0];
     const measure = selection.measure;
-    parameters.modifier = measure.format;
-    super(SuiMeasureDialog.dialogElements, { autobind: true, ...parameters });
-    this.modifier = new SuiMeasureFormatAdapter(this.view, measure);
+    const adapter = new SuiMeasureFormatAdapter(parameters.view, measure);
+    super(SuiMeasureDialog.dialogElements, { adapter, ...parameters });
   }
-  bindElements() {
-    const dgDom = this.dgDom;
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      this.view.groupUndo(false);
-      this.complete();
-    });
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      this.view.groupUndo(false);
-      this.modifier.cancel();
-      this.complete();
-    });
-    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-      this.view.groupUndo(false);
-      this.complete();
-    });
-  }
-  commit() { }
 }
 
-export class SuiInstrumentDialog extends SuiDialogBase {
+export class SuiInstrumentAdapter extends SuiComponentAdapter {
+  instrument: SmoInstrument;
+  backup: SmoInstrument;
+  selections: SmoSelection[];
+  selector: SmoSelector;
+  applies: number = SuiInstrumentDialog.applyTo.selected;
+  constructor(view: SuiScoreViewOperations) {
+    super(view);
+    const selection = this.view.tracker.selections[0];
+    this.instrument = selection.staff.instrumentInfo;
+    this.selections = this.view.tracker.selections;
+    this.selector = JSON.parse(JSON.stringify(this.selections[0].selector));
+    this.backup = new SmoInstrument(this.instrument);
+  }
+  get transposeIndex() {
+    return this.instrument.keyOffset;
+  }
+  set transposeIndex(value: number) {
+    this.instrument.keyOffset = value;
+    this.view.changeInstrument(this.instrument, [this.selections[0]]);
+  }
+  get instrumentName() {
+    return this.instrument.instrumentName;
+  }
+  set instrumentName(value: string) {
+    this.instrument.instrumentName = value;
+    this.view.changeInstrument(this.instrument, [this.selections[0]]);
+  }
+  get clef(): Clef {
+    return this.instrument.clef;
+  }
+  set clef(value: Clef)  {
+    this.instrument.clef = value;
+    this.view.changeInstrument(this.instrument, [this.selections[0]]);
+  }
+  get applyTo() {
+    return this.applies;
+  }
+  set applyTo(value: number) {
+    this.applies = value;
+    if (value === SuiInstrumentDialog.applyTo.score) {
+      this.selections = SmoSelection.measuresInColumn(this.view.score, this.selector.staff);
+    } else if (this.applyTo === SuiInstrumentDialog.applyTo.remaining) {
+      this.selections = SmoSelection.selectionsToEnd(this.view.score, this.selector.staff, this.selector.measure);
+    } else {
+      this.selections = this.view.tracker.selections;
+    }
+  }
+  commit() {
+    this.view.changeInstrument(this.instrument, this.selections);
+  }
+  cancel() {
+    this.view.changeInstrument(this.backup, [this.selections[0]]);
+  }
+  remove() {
+    this.view.changeInstrument(new SmoInstrument(SmoInstrument.defaults), this.selections);
+  }
+}
+export class SuiInstrumentDialog extends SuiDialogAdapterBase<SuiInstrumentAdapter> {
   static get applyTo() {
     return {
       score: 0, selected: 1, remaining: 3
     };
   }
+  // export type Clef = 'treble' | 'bass' | 'tenor' | 'alto' | 'soprano' | 'percussion'
+    //| 'mezzo-soprano' | 'baritone-c' | 'baritone-f' | 'subbass' | 'french';
   static dialogElements: DialogDefinition = 
       {
         label: 'Instrument Properties',
@@ -163,6 +208,27 @@ export class SuiInstrumentDialog extends SuiDialogBase {
             defaultValue: 0,
             control: 'SuiRockerComponent',
             label: 'Transpose Index (1/2 steps)',
+          }, {
+            smoName: 'instrumentName',
+            control: 'SuiTextInputComponent',
+            label: 'Name'
+          }, {
+            smoName: 'clef',
+            control: 'SuiDropdownComponent',
+            label: 'Clef',
+            options: [{
+              value: 'treble',
+              label:'Treble'
+            }, {
+              value: 'bass',
+              label: 'Bass'
+            }, {
+              value: 'tenor',
+              label: 'Tenor'
+            }, {
+              value: 'alto',
+              label: 'Alto'
+            }]
           }, {
             smoName: 'applyTo',
             defaultValue: SuiInstrumentDialog.applyTo.score,
@@ -188,68 +254,9 @@ export class SuiInstrumentDialog extends SuiDialogBase {
     db.display();
     return db;
   }
-  measure: SmoMeasure;
-  refresh: boolean;
-  selection: SmoSelection;
   constructor(parameters: SuiDialogParams) {
-    super(SuiInstrumentDialog.dialogElements,parameters);
-    this.selection = this.view.tracker.selections[0];
-    this.measure = this.selection.measure;
-    this.refresh = false;
-  }
-  get transposeIndexCtrl() {
-    return this.cmap.transposeIndexCtrl as SuiRockerComponent;
-  }
-  get applyToCtrl() {
-    return this.cmap.applyToCtrl as SuiDropdownComponent;
-  }
-  commit() { }
-  display() {
-    this.applyDisplayOptions();
-    this.populateInitial();
-    this.bindElements();
-  }
-  populateInitial() {
-    const ix = this.measure.transposeIndex;
-    this.transposeIndexCtrl.setValue(ix);
-  }
-
-  changed() {
-    let selections: SmoSelection[] | null = [];
-    if (!this.transposeIndexCtrl.changeFlag) {
-      return;
-    }
-    const xpose = this.transposeIndexCtrl.getValue();
-    if (this.applyToCtrl.getValue() === SuiInstrumentDialog.applyTo.score) {
-      selections = SmoSelection.selectionsToEnd(this.view.score, this.selection.selector.staff, 0);
-    } else if (this.applyToCtrl.getValue() === SuiInstrumentDialog.applyTo.remaining) {
-      selections = SmoSelection.selectionsToEnd(this.view.score, this.selection.selector.staff, this.selection.selector.measure);
-    } else {
-      selections.push(this.selection);
-    }
-    this.view.changeInstrument(
-      new SmoInstrument({
-        instrument: 'Treble Instrument',
-        keyOffset: xpose,
-        clef: this.measure.clef
-      }),
-      selections
-    );
-  }
-
-  bindElements() {
-    var dgDom = this.dgDom;
-
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      this.complete();
-    });
-
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      this.complete();
-    });
-    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-      this.complete();
-    });
+    const adapter = new SuiInstrumentAdapter(parameters.view);
+    super(SuiInstrumentDialog.dialogElements, { adapter, ...parameters });
   }
 }
 

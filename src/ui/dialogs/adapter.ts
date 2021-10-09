@@ -59,16 +59,26 @@ export class SuiDialogAdapterBase<T extends SuiComponentAdapter> extends SuiDial
     this.adapter = params.adapter;
   }
   /**
+   * Call the components bind() methods to activate them.  Also, verify that each 
+   * adapter meets the contract with the components
+   */
+    bindComponents() {
+      this.components.forEach((component) => {
+        // do some runtime validation of the adapter
+        if (typeof((this.adapter as any)[component.smoName]) === 'undefined') {
+          throw ('Dialog ' + this.label + ' has component ' + component.smoName + ' but no setter in the adapter ');
+        }
+        component.bind();
+      });
+    }
+  /**
    * Called before dialog is displayed.
    * components that interface (bind) with the adapter are called 'bound' components.
    * On initialize, update the component with the score value, as told by the adapter.
    */
   initialValue() {
-    if (this.modifier === null || this.autobind === false) {
-      return;
-    }
-    this.boundComponents.forEach((comp) => {
-      (comp as any).setValue((this.modifier as any)[comp.smoName]);
+    this.components.forEach((comp) => {
+      (comp as any).setValue((this.adapter as any)[comp.smoName]);
     });
   }
   /**
@@ -78,12 +88,9 @@ export class SuiDialogAdapterBase<T extends SuiComponentAdapter> extends SuiDial
    * show or hide another component)
    */
   changed() {
-    if (this.modifier === null || this.autobind === false) {
-      return;
-    }
-    this.boundComponents.forEach((comp) => {
+    this.components.forEach((comp) => {
       if (comp.changeFlag) {
-        (this.modifier as any)[comp.smoName] = (comp as any).getValue();
+        (this.adapter as any)[comp.smoName] = (comp as any).getValue();
       }
     });
   }

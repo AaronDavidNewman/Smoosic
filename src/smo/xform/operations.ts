@@ -2,21 +2,22 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoScore } from '../data/score';
 import { SmoMeasureParams, SmoMeasure, SmoVoice } from '../data/measure';
-import { SmoSelection, SmoSelector, ModifierTab } from './selections';
-import { SmoSystemGroup, SmoTextGroup } from '../data/scoreModifiers';
 import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
+import { SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
+import { Pitch, PitchLetter, TimeSignature } from '../data/common';
+import { SmoStaffHairpin, SmoSlur, SmoTie, StaffModifierBase, SmoTieParams, SmoInstrument, SmoStaffHairpinParams, SmoSlurParams } from '../data/staffModifiers';
+import { SmoRehearsalMark, SmoMeasureText, SmoVolta, SmoMeasureFormat, SmoTempoText, SmoBarline, SmoRepeatSymbol } from '../data/measureModifiers';
+import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoNoteModifierBase, SmoOrnament } from '../data/noteModifiers';
+import { SmoSystemGroup, SmoTextGroup } from '../data/scoreModifiers';
+
+import { SmoSelection, SmoSelector, ModifierTab } from './selections';
 import {
   SmoDuration, SmoContractNoteActor, SmoStretchNoteActor, SmoMakeTupletActor,
   SmoUnmakeTupletActor, SmoContractTupletActor
 } from './tickDuration';
 import { smoBeamerFactory } from './beamers';
-import { SmoStaffHairpin, SmoSlur, SmoTie, StaffModifierBase, SmoTieParams, SmoInstrument, SmoStaffHairpinParams, SmoSlurParams } from '../data/staffModifiers';
-import { SmoRehearsalMark, SmoMeasureText, SmoVolta, SmoMeasureFormat, SmoTempoText, SmoBarline, SmoRepeatSymbol } from '../data/measureModifiers';
-import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoNoteModifierBase, SmoOrnament } from '../data/noteModifiers';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
-import { Pitch, PitchLetter, TimeSignature } from '../data/common';
 const VF = eval('Vex.Flow');
 
 export type BatchSelectionOperation = 'dotDuration' | 'undotDuration' | 'doubleDuration' | 'halveDuration' |

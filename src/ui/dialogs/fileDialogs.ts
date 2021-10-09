@@ -64,8 +64,7 @@ export class SuiLoadFileDialog extends SuiDialogAdapterBase<SuiSmoLoadAdapter> {
   constructor(parameters: SuiDialogParams) {
     const adapter = new SuiSmoLoadAdapter(parameters.view);
     parameters.ctor = 'SuiLoadFileDialog';
-    const params: SuiDialogAdapterParams<SuiSmoLoadAdapter> = { adapter, ...parameters }
-    super(SuiLoadFileDialog.dialogElements, params);
+    super(SuiLoadFileDialog.dialogElements, { adapter, ...parameters });
     this.modifier = adapter;
   }
   changed() {
@@ -106,7 +105,7 @@ export class SuiLoadFileDialog extends SuiDialogAdapterBase<SuiSmoLoadAdapter> {
   cancel() {}
 }
 
-export class SuiLoadMxmlDialog extends SuiDialogAdapterBase<SuiComponentAdapter> {
+export class SuiLoadMxmlDialog extends SuiDialogAdapterBase<SuiXmlLoadAdapter> {
   static dialogElements: DialogDefinition =
     {
       label: 'Load File',
@@ -119,21 +118,21 @@ export class SuiLoadMxmlDialog extends SuiDialogAdapterBase<SuiComponentAdapter>
       ],
       staticText: []
     };
-  get loadFileCtrl() {
-    return this.cmap['loadFileCtrl'] as SuiFileDownloadComponent;
-  }
   constructor(parameters: SuiDialogParams) {
     parameters.ctor = 'SuiLoadMxmlDialog';
     const adapter = new SuiXmlLoadAdapter(parameters.view);
-    const parms: SuiDialogAdapterParams<SuiXmlLoadAdapter> = 
-      { adapter, ...parameters };
-    super(SuiLoadMxmlDialog.dialogElements, parms);
+    super(SuiLoadMxmlDialog.dialogElements, { adapter, ...parameters });
   }
   static createAndDisplay(params: SuiDialogParams) {
     const dg = new SuiLoadMxmlDialog(params);
     dg.display();
     // disable until file is selected
     $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
+  }
+  changed() {
+    super.changed();
+    const enable = this.adapter.loadFile.length < 1;
+    $(this.dgDom.element).find('.ok-button').prop('disabled', enable);
   }
 }
 /*
@@ -218,11 +217,10 @@ export class SuiPrintFileDialog extends SuiDialogBase {
   }
   commit() { }
 }
-export class SuiSmoSaveAdapter {
-  view: SuiScoreViewOperations;
+export class SuiSmoSaveAdapter extends SuiComponentAdapter {
   fileName: string = '';
   constructor(view: SuiScoreViewOperations) {
-    this.view = view;
+    super(view);
   }
   get saveFileName() {
     return this.fileName;
@@ -241,8 +239,9 @@ export class SuiSmoSaveAdapter {
     this.view.score.scoreInfo.version += 1;
     this.view.saveScore(filename);
   }
+  cancel() {}
 }
-export class SuiSaveFileDialog extends SuiDialogBase {
+export class SuiSaveFileDialog extends SuiDialogAdapterBase<SuiSmoSaveAdapter>{
   static dialogElements: DialogDefinition =
     {
       label: 'Save Score',
@@ -254,15 +253,13 @@ export class SuiSaveFileDialog extends SuiDialogBase {
       }],
       staticText: []
     };
-  modifier: SuiSmoSaveAdapter;
-  constructor(parameters: SuiDialogParams) {
+  constructor(parameters: SuiDialogParams) {    
     parameters.ctor = 'SuiSaveFileDialog';
-    parameters.modifier = new SuiSmoSaveAdapter(parameters.view);
-    super(SuiSaveFileDialog.dialogElements, parameters);
-    this.modifier = parameters.modifier;
+    const adapter = new SuiSmoSaveAdapter(parameters.view);
+    super(SuiSaveFileDialog.dialogElements, { adapter, ...parameters });
   }
   commit() {
-    this.modifier.commit();
+    this.adapter.commit();
   }
   static createAndDisplay(params: SuiDialogParams) {
     var dg = new SuiSaveFileDialog(params);
@@ -270,11 +267,10 @@ export class SuiSaveFileDialog extends SuiDialogBase {
   }
 }
 
-export class SuiXmlSaveAdapter {
-  view: SuiScoreViewOperations;
+export class SuiXmlSaveAdapter extends SuiComponentAdapter {
   fileName: string = '';
   constructor(view: SuiScoreViewOperations) {
-    this.view = view;
+    super(view);
   }
   get saveFileName() {
     return this.fileName;
@@ -293,8 +289,10 @@ export class SuiXmlSaveAdapter {
     this.view.score.scoreInfo.version += 1;
     this.view.saveXml(filename);
   }
+  // noop
+  cancel() {}
 }
-export class SuiSaveXmlDialog extends SuiDialogBase {
+export class SuiSaveXmlDialog extends SuiDialogAdapterBase<SuiXmlSaveAdapter> {
   static dialogElements: DialogDefinition =
     {
       label: 'Save Score',
@@ -305,18 +303,13 @@ export class SuiSaveXmlDialog extends SuiDialogBase {
       }],
       staticText: []
     };
-  modifier: SuiXmlSaveAdapter;
   constructor(parameters: SuiDialogParams) {
     parameters.ctor = 'SuiSaveXmlDialog';
-    parameters.modifier = new SuiXmlSaveAdapter(parameters.view);
-    super(SuiSaveXmlDialog.dialogElements, parameters);
-    this.modifier = parameters.modifier;
-  }
-  get saveFileNameCtrl() {
-    return this.cmap['saveFileNameCtrl'] as SuiTextInputComponent;
+    const adapter = new SuiXmlSaveAdapter(parameters.view);
+    super(SuiSaveXmlDialog.dialogElements, { adapter, ...parameters });
   }
   commit() {
-    this.modifier.commit();
+    this.adapter.commit();
   }
   static createAndDisplay(params: SuiDialogParams) {
     var dg = new SuiSaveXmlDialog(params);
@@ -324,11 +317,10 @@ export class SuiSaveXmlDialog extends SuiDialogBase {
   }
 }
 
-export class SuiMidiSaveAdapter {
-  view: SuiScoreViewOperations;
+export class SuiMidiSaveAdapter extends SuiComponentAdapter {
   fileName: string = '';
   constructor(view: SuiScoreViewOperations) {
-    this.view = view;
+    super(view);
   }
   get saveFileName() {
     return this.fileName;
@@ -347,8 +339,9 @@ export class SuiMidiSaveAdapter {
     this.view.score.scoreInfo.version += 1;
     this.view.saveMidi(filename);
   }
+  cancel() {}
 }
-export class SuiSaveMidiDialog extends SuiDialogBase {
+export class SuiSaveMidiDialog extends SuiDialogAdapterBase<SuiMidiSaveAdapter> {
   static dialogElements: DialogDefinition =
     {
       label: 'Save Score as Midi',
@@ -360,18 +353,13 @@ export class SuiSaveMidiDialog extends SuiDialogBase {
         }],
       staticText: []
     }
-  modifier: SuiMidiSaveAdapter;    
   constructor(parameters: SuiDialogParams) {
     parameters.ctor = 'SuiSaveMidiDialog';
-    parameters.modifier = new SuiMidiSaveAdapter(parameters.view);
-    super(SuiSaveMidiDialog.dialogElements, parameters);
-    this.modifier = parameters.modifier;
-  }
-  get saveFileNameCtrl() {
-    return this.cmap['saveFileNameCtrl'] as SuiTextInputComponent;
+    const adapter = new SuiMidiSaveAdapter(parameters.view);
+    super(SuiSaveMidiDialog.dialogElements, { adapter, ...parameters });
   }
   commit() {
-    this.modifier.commit();
+    this.adapter.commit();
   }
   static createAndDisplay(params: SuiDialogParams) {
     var dg = new SuiSaveMidiDialog(params);

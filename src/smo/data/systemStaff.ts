@@ -2,20 +2,13 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoMeasure } from './measure';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoMusic } from './music';
 import { SmoSelector } from '../xform/selections';
 import { smoBeamerFactory } from '../xform/beamers';
-import { StaffModifierBase } from './staffModifiers';
+import { SmoInstrumentParams, StaffModifierBase, SmoInstrument } from './staffModifiers';
 import { SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta } from './measureModifiers';
 import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber } from './common';
 
 const VF = eval('Vex.Flow');
-
-export interface InstrumentInfo {
-  instrumentName: string,
-  keyOffset: number,
-  clef: string
-}
 
 export interface SmoSystemStaffParams {
   staffX: number,
@@ -26,7 +19,7 @@ export interface SmoSystemStaffParams {
   staffId: number,
   renumberingMap: Record<number, number>,
   keySignatureMap: Record<number, string>,
-  instrumentInfo: InstrumentInfo,
+  instrumentInfo: SmoInstrumentParams,
   measures: SmoMeasure[],
   modifiers: StaffModifierBase[]
 }
@@ -44,11 +37,7 @@ export class SmoSystemStaff implements SmoObjectParams {
   staffId: number = 0;
   renumberingMap: Record<number, number> = {};
   keySignatureMap: Record<number, string> = {};
-  instrumentInfo: InstrumentInfo = {
-    instrumentName: 'Treble Instrument',
-    keyOffset: 0,
-    clef: 'treble'
-  };
+  instrumentInfo: SmoInstrument;
   measures: SmoMeasure[] = [];
   modifiers: StaffModifierBase[] = [];
   attrs: SmoAttrs = {
@@ -90,6 +79,7 @@ export class SmoSystemStaff implements SmoObjectParams {
     this.measures = [];
     Vex.Merge(this, SmoSystemStaff.defaults);
     Vex.Merge(this, params);
+    this.instrumentInfo = new SmoInstrument(params.instrumentInfo);
     if (this.measures.length) {
       this.numberMeasures();
     }

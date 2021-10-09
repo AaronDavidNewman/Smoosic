@@ -96,6 +96,13 @@ export interface SmoModifierBase {
 export type Clef = 'treble' | 'bass' | 'tenor' | 'alto' | 'soprano' | 'percussion'
     | 'mezzo-soprano' | 'baritone-c' | 'baritone-f' | 'subbass' | 'french';
 
+export var Clefs: Clef[] = ['treble' , 'bass' , 'tenor' , 'alto' , 'soprano' , 'percussion'
+, 'mezzo-soprano' , 'baritone-c' , 'baritone-f' , 'subbass' , 'french'];
+
+export function IsClef(clef: Clef | string): clef is Clef {
+  return Clefs.findIndex((x) => clef === x) >= 0;
+}
+  
 export class TimeSignature {
     timeSignature: string = '4/4';
     actualBeats: number = 4;

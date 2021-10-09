@@ -207,11 +207,8 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
   // make3 the modal visible.  bind events and elements.
   display() {
     $('body').addClass('showAttributeDialog');
-    this.components.forEach((component) => {
-      component.bind();
-    });
+    this.bindComponents();
     this.bindElements();
-    this.bindAutobindComponents();
     this.applyDisplayOptions();
     this.initialValue();
   }
@@ -249,6 +246,7 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
     this.components.forEach((component) => {
       component.bind();
     });
+    this.bindAutobindComponents();
   }
   initialValue(){
     if (this.modifier === null || this.autobind === false) {

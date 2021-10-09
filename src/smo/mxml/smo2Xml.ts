@@ -3,7 +3,7 @@
 import { mxmlHelpers } from './xmlHelpers';
 import { mxmlScore } from './xmlScore';
 import { SmoSelector } from '../xform/selections';
-import { SmoStaffHairpin } from '../data/staffModifiers';
+import { SmoStaffHairpin, SmoInstrument } from '../data/staffModifiers';
 import { SmoNote } from '../data/note';
 import { SmoMusic } from '../data/music';
 import { SmoScore } from '../data/score';

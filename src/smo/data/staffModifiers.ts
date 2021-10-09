@@ -38,7 +38,7 @@ export abstract class StaffModifierBase implements SmoModifierBase {
   abstract serialize(): any;
 }
 export interface SmoInstrumentParams {
-  instrument: string,
+  instrumentName: string,
   keyOffset: number,
   clef: Clef
 }
@@ -47,18 +47,24 @@ export class SmoInstrument {
   static get attributes() {
     return ['startSelector', 'endSelector', 'transposeIndex', 'midichannel', 'midiport', 'instrument', 'abbreviation'];
   }
-  instrument: string = '';
+  instrumentName: string = '';
   keyOffset: number = 0;
   clef: Clef = 'treble';
   static get defaults(): SmoInstrumentParams {
     return {
       clef: 'treble',
       keyOffset: 0,
-      instrument: ''
+      instrumentName: ''
     };
   }
   constructor(params: SmoInstrumentParams) {
-    this.instrument = params.instrument;
+    let name = '';
+    if (typeof((params as any).instrument) === 'undefined') {
+      name = params.instrumentName;
+    } else {
+      name = (params as any).instrument;
+    }
+    this.instrumentName = name;
     this.keyOffset = params.keyOffset;
     this.clef = params.clef;
   }
