@@ -353,9 +353,17 @@ export class SuiTimeSignatureAdapter extends SuiComponentAdapter {
   set customString(value: string) {
     const tr = value.trim();
     if (!(tr.indexOf('/') >= 0)) {
-      this.measure.timeSignatureString = '';  
+      if (tr === 'C' || tr === 'C|') {
+        this.measure.timeSignatureString = tr;
+        return;
+      }
     }
-    this.measure.timeSignatureString = value;
+    const ar = tr.split('/');
+    if (isNaN(parseInt(ar[0], 10)) || isNaN(parseInt(ar[1], 10))) {
+      this.measure.timeSignatureString = '';
+      return;
+    }
+    this.measure.timeSignatureString = tr;
   }
   commit() {
     this.view.setTimeSignature(this.measure.timeSignature, this.measure.timeSignatureString);

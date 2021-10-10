@@ -6,7 +6,7 @@ import { SmoArticulation } from '../smo/data/noteModifiers';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { BrowserEventSource } from './eventSource';
 import { SuiTracker } from '../render/sui/tracker';
-import { CompleteNotifier, DialogParams, KeyEvent } from './common';
+import { CompleteNotifier, KeyCommandParams, KeyEvent } from './common';
 import { PitchLetter, IsPitchLetter } from '../smo/data/common';
 
 // ## suiEditor
@@ -18,7 +18,7 @@ export class SuiKeyCommands {
   completeNotifier: CompleteNotifier;
   tracker: SuiTracker;
   eventSource: BrowserEventSource;
-  constructor(params: DialogParams) {
+  constructor(params: KeyCommandParams) {
     this.slashMode = false;
     this.view = params.view;
     this.tracker = params.tracker;

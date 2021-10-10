@@ -11,6 +11,7 @@ import { SuiScoreRender } from '../render/sui/scoreRender';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { SuiOscillator } from '../render/audio/oscillator';
 import { SuiTracker } from '../render/sui/tracker';
+import { KeyCommandParams } from './common';
 
 import { ArialFont } from '../styles/font_metrics/arial_metrics';
 import { TimesFont } from '../styles/font_metrics/times_metrics';
@@ -29,7 +30,7 @@ import { SuiDom } from './dom';
 import { SuiKeyCommands } from './keyCommands';
 import { BrowserEventSource } from './eventSource';
 import { EventHandlerParams, SuiEventHandler } from './eventHandler';
-import { DialogParams, CompleteNotifier, KeyBinding } from './common';
+import { CompleteNotifier, KeyBinding } from './common';
 
 
 declare var SmoConfig : SmoConfiguration;
@@ -212,7 +213,7 @@ export class SuiApplication {
     params.view = new SuiScoreViewOperations(scoreRenderer, score, '.musicRelief', params.undoBuffer);
     params.menuContainer = '.menuContainer';
     if (SmoConfig.keyCommands) {
-      params.keyCommands = new SuiKeyCommands(params as DialogParams);
+      params.keyCommands = new SuiKeyCommands(params as KeyCommandParams);
     }
     if (SmoConfig.menus) {
       params.menus = new SuiMenuManager(params as SuiMenuManagerParams);

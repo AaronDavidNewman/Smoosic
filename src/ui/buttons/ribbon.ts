@@ -9,6 +9,7 @@ import { SuiTracker } from '../../render/sui/tracker';
 import { SuiMenuManager } from '../menus/manager';
 import { ButtonLabel } from './button';
 import { CollapseRibbonControl } from './collapsable';
+import { SuiDialogParams } from '../dialogs/dialog';
 
 declare var $: any;
 
@@ -80,14 +81,17 @@ export class RibbonButtons {
   }
   _executeButtonModal(buttonElement: string, buttonData: ButtonDefinition) {
     const ctor = eval('globalThis.Smo.' + buttonData.ctor);
-    ctor.createAndDisplay(
-      {
-        undoBuffer: this.view.undoBuffer,
-        eventSource: this.eventSource,
-        completeNotifier: this.controller,
-        view: this.view
-      }
-    );
+    const dialogParams: SuiDialogParams = {
+      undoBuffer: this.view.undoBuffer,
+      eventSource: this.eventSource,
+      completeNotifier: this.controller,
+      view: this.view,
+      ctor: buttonData.ctor,
+      id: buttonData.id,
+      startPromise: null,
+      tracker: this.view.tracker
+    };
+    ctor.createAndDisplay(dialogParams);
   }
   _executeButtonMenu(buttonElement: string, buttonData: ButtonDefinition) {
     this.menus.slashMenuMode(this.controller);
