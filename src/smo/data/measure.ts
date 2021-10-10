@@ -4,14 +4,14 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from './music';
 import {
   SmoBarline, SmoMeasureModifierBase, SmoRepeatSymbol, SmoTempoText, SmoMeasureFormat,
-  SmoVolta, SmoRehearsalMarkParams, SmoRehearsalMark, SmoTempoTextParams
+  SmoVolta, SmoRehearsalMarkParams, SmoRehearsalMark, SmoTempoTextParams, TimeSignature
 } from './measureModifiers';
 import { SmoNote } from './note';
 import { SmoTuplet } from './tuplet';
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { TickMap, TickAccidental } from '../xform/tickMap';
-import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, FontInfo, TimeSignature } from './common';
+import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, FontInfo } from './common';
 
 export interface SmoVoice {
   notes: SmoNote[]
@@ -55,6 +55,7 @@ export interface MeasureTickmaps {
 }
 export interface SmoMeasureParams {
   timeSignature: TimeSignature,
+  timeSignatureString: string,
   keySignature: string,
   canceledKeySignature: string | null,
   padRight: number,
@@ -86,16 +87,16 @@ export interface AccidentalArray {
 // ## SmoMeasure Methods:
 export class SmoMeasure implements SmoMeasureParams, TickMappable {
   static get timeSignatureDefault(): TimeSignature {
-    return JSON.parse(JSON.stringify({
-      timeSignature: '4/4',
+    return new TimeSignature({
       actualBeats: 4,
       beatDuration: 4,
       useSymbol: false,
       display: true
-    }));
+    });
   }
   static readonly _defaults: SmoMeasureParams = {
     timeSignature: SmoMeasure.timeSignatureDefault,
+    timeSignatureString: '',
     keySignature: 'C',
     canceledKeySignature: null,
     padRight: 10,
@@ -133,15 +134,12 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     return proto;
   }
   static convertLegacyTimeSignature(ts: string) {
-    const rv = SmoMeasure.timeSignatureDefault;
-    const num = ts.split('/')[0];
-    const den = ts.split('/')[1];
+    const rv = new TimeSignature(TimeSignature.defaults);
     rv.timeSignature = ts;
-    rv.beatDuration = parseInt(num, 10);
-    rv.actualBeats = parseInt(den, 10);
     return rv;
   }
   timeSignature: TimeSignature = SmoMeasure.timeSignatureDefault;
+  timeSignatureString: string = '';
   keySignature: string = '';
   canceledKeySignature: string = '';
   padRight: number = 10;
@@ -196,6 +194,8 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       const tsAny = params.timeSignature as any;
       if (typeof(tsAny) === 'string') {
         this.timeSignature = SmoMeasure.convertLegacyTimeSignature(tsAny);
+      } else {
+        this.timeSignature = new TimeSignature(tsAny);
       }
     }
     this.voices = params.voices ? params.voices : [];
@@ -222,7 +222,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   // attributes that are to be serialized for a measure.
   static get defaultAttributes() {
     return [
-      'timeSignature', 'keySignature',
+      'keySignature', 'timeSignatureString',
       'measureNumber',
       'activeVoice', 'clef', 'transposeIndex',
       'adjX', 'format', 'rightMargin'
@@ -381,14 +381,14 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     });
     const params: SmoMeasureParams = SmoMeasure.defaults;
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
+    // explode column-mapped
+    params.tempo = jsonObj.tempo;
+    params.timeSignature = jsonObj.timeSignature;
+    params.keySignature = jsonObj.keySignature;
     params.voices = voices;
     params.tuplets = tuplets;
     params.modifiers = modifiers;
     const rv = new SmoMeasure(params);
-    if (jsonObj.tempo) {
-      rv.tempo = new SmoTempoText(jsonObj.tempo);
-    }
-
     // Handle migration for measure-mapped parameters
     rv.modifiers.forEach((mod) => {
       if (mod.ctor === 'SmoTempoText') {
@@ -543,6 +543,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, obj);
     // Don't copy column-formatting options to new measure in new column
     smoSerialize.serializedMerge(SmoMeasure.formattingOptions, SmoMeasure.defaults, obj);
+    obj.timeSignature = new TimeSignature(params.timeSignature);
     // Don't redisplay tempo for a new measure
     const rv = new SmoMeasure(obj);
     if (rv.tempo && rv.tempo.display) {

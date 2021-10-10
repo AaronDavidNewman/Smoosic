@@ -5,10 +5,10 @@ import { SmoScore, SmoScorePreferences, SmoScoreInfo } from '../../smo/data/scor
 import { SmoSystemStaffParams } from '../../smo/data/systemStaff';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoNote } from '../../smo/data/note';
-import { TimeSignature, SvgBox, Pitch, PitchLetter, FontInfo, SmoConfiguration } from '../../smo/data/common';
+import { SvgBox, Pitch, PitchLetter, FontInfo, SmoConfiguration } from '../../smo/data/common';
 import { SmoTextGroup, SmoSystemGroup, SmoPageLayout, SmoGlobalLayout } from '../../smo/data/scoreModifiers';
 import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, SmoOrnament, SmoLyric, SmoMicrotone } from '../../smo/data/noteModifiers';
-import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat } from '../../smo/data/measureModifiers';
+import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
 import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
 import { SmoOperation } from '../../smo/xform/operations';
 import { BatchSelectionOperation } from '../../smo/xform/operations';
@@ -243,13 +243,13 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.changeInstrument(instrument, altSelections);
     this._renderChangedMeasures(selections);
   }
-  setTimeSignature(timeSignature: TimeSignature) {
+  setTimeSignature(timeSignature: TimeSignature, timeSignatureString: string) {
     this.actionBuffer.addAction('setTimeSignature', timeSignature);
     this._undoScore('Set time signature');
     const selections = this.tracker.selections;
     const altSelections = this._getEquivalentSelections(selections);
-    SmoOperation.setTimeSignature(this.score, selections, timeSignature);
-    SmoOperation.setTimeSignature(this.storeScore, altSelections, timeSignature);
+    SmoOperation.setTimeSignature(this.score, selections, timeSignature, timeSignatureString);
+    SmoOperation.setTimeSignature(this.storeScore, altSelections, timeSignature, timeSignatureString);
     this._renderChangedMeasures(SmoSelection.getMeasureList(this.tracker.selections));
   }
   moveStaffUpDown(index: number) {

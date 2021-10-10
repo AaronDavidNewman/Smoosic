@@ -2,8 +2,8 @@
 // Copyright (c) Aaron David Newman 2021.
 import { Clef } from '../../smo/data/common';
 import { SmoMeasure } from '../../smo/data/measure';
-import { SmoTempoText, SmoTempoNumberAttribute, SmoTempoStringAttribute, SmoTempoBooleanAttribute } from '../../smo/data/measureModifiers';
-import { SmoMeasureFormat, SmoMeasureFormatNumberAttributes, SmoMeasueFormatBooleanAttributes } from '../../smo/data/measureModifiers';
+import { SmoTempoText, SmoTempoNumberAttribute, SmoTempoStringAttribute, SmoTempoBooleanAttribute,
+  TimeSignature, SmoMeasureFormat, SmoMeasureFormatNumberAttributes, SmoMeasueFormatBooleanAttributes } from '../../smo/data/measureModifiers';
 import { SmoInstrument, SmoInstrumentParams } from '../../smo/data/staffModifiers';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 
@@ -296,14 +296,11 @@ export class SuiInsertMeasures extends SuiDialogBase {
         resolve();
       });
     }
-    this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
   }
-  commit() { }
+  commit() { 
+    this.view.addMeasures(this.appendCtrl.getValue(), this.measureCountCtrl.getValue());
+  }
 
-  display() {
-    this.applyDisplayOptions();
-    this.bindElements();
-  }
   get measureCountCtrl(): SuiRockerComponent {
     return this.cmap.measureCountCtrl as SuiRockerComponent;
   }
@@ -314,23 +311,60 @@ export class SuiInsertMeasures extends SuiDialogBase {
     this.measureCountCtrl.setValue(1);
   }
   // noop
-  changed() {
-  }
-  bindElements() {
-    var dgDom = this.dgDom;
-    this.populateInitial();
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      this.view.addMeasures(this.appendCtrl.getValue(), this.measureCountCtrl.getValue());
-      this.complete();
-    });
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      this.complete();
-    });
-    $(dgDom.element).find('.remove-button').remove();
-  }
 }
 
-export class SuiTimeSignatureDialog extends SuiDialogBase {
+export class SuiTimeSignatureAdapter extends SuiComponentAdapter {
+  measure: SmoMeasure;
+  backup: TimeSignature;
+  backupString: string;
+  constructor(view: SuiScoreViewOperations) {
+    super(view);
+    this.measure = this.view.tracker.selections[0].measure;
+    this.backup = new TimeSignature(this.measure.timeSignature);
+    this.backupString = this.measure.timeSignatureString;
+  }
+  get numerator() {
+    return this.measure.timeSignature.actualBeats;
+  }
+  set numerator(value: number) {
+    this.measure.timeSignature.actualBeats = value;
+  }
+  get denominator() {
+    return this.measure.timeSignature.beatDuration;
+  }
+  set denominator(value: number) {
+    this.measure.timeSignature.beatDuration = value;
+  }
+  get display() {
+    return this.measure.timeSignature.display;
+  }
+  set display(value: boolean) {
+    this.measure.timeSignature.display = value;
+  }
+  get useSymbol() {
+    return this.measure.timeSignature.useSymbol;
+  }
+  set useSymbol(value: boolean) {
+    this.measure.timeSignature.useSymbol = value;
+  }
+  get customString() {
+    return this.measure.timeSignatureString;
+  }
+  set customString(value: string) {
+    const tr = value.trim();
+    if (!(tr.indexOf('/') >= 0)) {
+      this.measure.timeSignatureString = '';  
+    }
+    this.measure.timeSignatureString = value;
+  }
+  commit() {
+    this.view.setTimeSignature(this.measure.timeSignature, this.measure.timeSignatureString);
+  }
+  cancel() {
+    this.measure.timeSignature = this.backup;
+  }
+}
+export class SuiTimeSignatureDialog extends SuiDialogAdapterBase<SuiTimeSignatureAdapter> {
   static dialogElements: DialogDefinition =
     {
         label: 'Custom Time Signature',
@@ -362,41 +396,21 @@ export class SuiTimeSignatureDialog extends SuiDialogBase {
               smoName: 'display',
               control: 'SuiToggleComponent',
               label: 'Display',
-            },
+            }, {
+              smoName: 'useSymbol',
+              control: 'SuiToggleComponent',
+              label: 'Common/Cut',
+            }, {
+              smoName: 'customString',
+              control: 'SuiTextInputComponent',
+              label: 'Custom',
+            }
           ],
           staticText: []
       };
-    measure: SmoMeasure;
-    refresh: boolean;
   constructor(parameters: SuiDialogParams) {
-    super(SuiTimeSignatureDialog.dialogElements, parameters);
-    const selection = parameters.view.tracker.selections[0];
-    const measure = selection.measure;
-    this.measure = measure;
-    this.refresh = false;
-  }
-  get numeratorCtrl(): SuiRockerComponent {
-    return this.cmap.numeratorCtrl as SuiRockerComponent;
-  }
-  get denominatorCtrl(): SuiDropdownComponent {
-    return this.cmap.denominatorCtrl as SuiDropdownComponent;
-  }
-  get displayCtrl(): SuiToggleComponent {
-    return this.cmap.displayCtrl as SuiToggleComponent;
-  }
-  commit() {
-
-  }
-  populateInitial() {
-    const num = this.measure.timeSignature.actualBeats;
-    const den = this.measure.timeSignature.beatDuration;
-    this.numeratorCtrl.setValue(num);
-    this.denominatorCtrl.setValue(den);
-    this.displayCtrl.setValue(this.measure.timeSignature.display);
-  }
-
-  changed() {
-    // no dynamic change for time  signatures
+    const adapter = new SuiTimeSignatureAdapter(parameters.view);
+    super(SuiTimeSignatureDialog.dialogElements, { adapter, ...parameters });
   }
   static createAndDisplay(params: SuiDialogParams) {
     var dg = new SuiTimeSignatureDialog(
@@ -405,47 +419,15 @@ export class SuiTimeSignatureDialog extends SuiDialogBase {
     dg.display();
     return dg;
   }
-
-  changeTimeSignature() {
-    const ts = SmoMeasure.convertLegacyTimeSignature('' + this.numeratorCtrl.getValue() + '/' + this.denominatorCtrl.getValue());
-    ts.display = this.displayCtrl.getValue();
-    this.view.setTimeSignature(ts);
-  }
-  bindElements() {
-    const dgDom = this.dgDom;
-    this.populateInitial();
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      this.changeTimeSignature();
-      this.complete();
-    });
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      this.complete();
-    });
-    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-      this.complete();
-    });
-  }
-  display() {
-    this.applyDisplayOptions();
-    this.populateInitial();
-    this.bindElements();
-  }
 }
-/*   tempoMode: string,
-  bpm: number,
-  beatDuration: number,
-  tempoText: string,
-  yOffset: number,
-  display: boolean,
-  customText: string */
-export class SuiTempoAdapter {
+
+export class SuiTempoAdapter extends SuiComponentAdapter {
   smoTempoText: SmoTempoText;
   backup: SmoTempoText;
-  view: SuiScoreViewOperations;
   applyToAll: boolean = false;
   edited: boolean = false;
   constructor(view: SuiScoreViewOperations, tempoText: SmoTempoText) {
-    this.view = view;
+    super(view);
     this.smoTempoText = tempoText;
     this.backup = new SmoTempoText(this.smoTempoText);
   }
@@ -470,6 +452,7 @@ export class SuiTempoAdapter {
   cancel() {
     this.view.updateTempoScore(this.backup, false);
   }
+  commit(){}
   get tempoText() {
     return this.smoTempoText.tempoText;
   }
@@ -515,7 +498,7 @@ export class SuiTempoAdapter {
 }
 // ## SuiTempoDialog
 // Allow user to choose a tempo or tempo change.
-export class SuiTempoDialog extends SuiDialogBase {
+export class SuiTempoDialog extends SuiDialogAdapterBase<SuiTempoAdapter> {
   static dialogElements: DialogDefinition = 
       {
         label: 'Tempo Properties',
@@ -649,9 +632,8 @@ export class SuiTempoDialog extends SuiDialogBase {
     dg.display();
     return dg;
   }
-  display() {
-    super.display();
-    if (this.modifier.smoTempoText.tempoMode === 'custom') {
+  showHideCustom() {
+    if (this.adapter.tempoMode === 'custom') {
       this.cmap.customTextCtrl.show();
     } else {
       this.cmap.customTextCtrl.hide();
@@ -659,34 +641,18 @@ export class SuiTempoDialog extends SuiDialogBase {
   }
   changed() {
     super.changed();
-    if (this.modifier.tempoMode === 'custom') {
-      this.cmap.customTextCtrl.show();
-    } else {
-      this.cmap.customTextCtrl.hide();
-    }
+    this.showHideCustom();
+  }
+  initialValue() {
+    super.initialValue();
+    this.showHideCustom();
   }
 
-  modifier: SuiTempoAdapter;
   constructor(parameters: SuiDialogParams) {
     const measures = SmoSelection.getMeasureList(parameters.view.tracker.selections)
       .map((sel) => sel.measure);
     const measure = measures[0];
-    super(SuiTempoDialog.dialogElements, { autobind: true, ...parameters });
-    this.modifier = new SuiTempoAdapter(parameters.view, measure.tempo);
-  }
-  // ### Populate the initial values and bind to the buttons.
-  bindElements() {
-    const dgDom = this.dgDom;
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      this.modifier.cancel();
-      this.complete();
-    });
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      this.complete();
-    });
-    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-      this.modifier.remove();
-      this.complete();
-    });
+    const adapter = new SuiTempoAdapter(parameters.view, measure.tempo);
+    super(SuiTempoDialog.dialogElements, { adapter, ...parameters });
   }
 }

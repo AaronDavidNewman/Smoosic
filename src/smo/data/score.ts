@@ -1,15 +1,15 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoMusic } from './music';
+import { Clef, FontInfo, SvgDimensions } from './common';
+import { SmoMeasure, SmoMeasureParams } from './measure';
+import { SmoNoteModifierBase } from './noteModifiers';
+import { SmoMeasureFormat, SmoMeasureModifierBase, TimeSignature, TimeSignatureParameters } from './measureModifiers';
+import { StaffModifierBase } from './staffModifiers';
 import { SmoSystemGroup, SmoTextGroup, SmoScoreModifierBase, SmoPageLayout, SmoLayoutManager, SmoFormattingManager } from './scoreModifiers';
 import { SmoSystemStaff, SmoSystemStaffParams } from './systemStaff';
-import { SmoMusic } from './music';
-import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoMeasure, SmoMeasureParams } from './measure';
-import { SmoMeasureFormat, SmoMeasureModifierBase } from './measureModifiers';
 import { SmoSelector, SmoSelection } from '../xform/selections';
-import { Clef, FontInfo, SvgDimensions } from './common';
-import { SmoNoteModifierBase } from './noteModifiers';
-import { StaffModifierBase } from './staffModifiers';
+import { smoSerialize } from '../../common/serializationHelpers';
 
 export interface FontPurpose {
   name: string,
@@ -163,7 +163,7 @@ export class SmoScore {
   // changed, like key-signatures.  We don't store each measure value to
   // make the files smaller
   static deserializeColumnMapped(scoreObj: any) {
-    let curValue: number = 0;
+    let curValue: any;
     let mapIx: number = 0;
     if (!scoreObj.columnAttributeMap) {
       return;
@@ -188,7 +188,21 @@ export class SmoScore {
               curValue = curHash[attrKeys[mapIx.toString()]];
             }
           }
-          measure[attr] = curValue;
+          // legacy timeSignature format was just a string 2/4, 3/8 etc.
+          if (attr === 'timeSignature') {
+            const ts = new TimeSignature(TimeSignature.defaults);
+            if (typeof(curValue) === 'string') {
+              ts.timeSignature = curValue;
+              measure[attr] = ts;
+            } else {
+              if (typeof(curValue.isPickup) === 'undefined') {
+                curValue.isPickup = false;
+              }
+              measure[attr] = new TimeSignature(curValue as TimeSignatureParameters);
+            }
+          } else {
+            measure[attr] = curValue;
+          }
           attrIxMap[attr] = mapIx;
         });
       });

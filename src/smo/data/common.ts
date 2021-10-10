@@ -102,18 +102,7 @@ export var Clefs: Clef[] = ['treble' , 'bass' , 'tenor' , 'alto' , 'soprano' , '
 export function IsClef(clef: Clef | string): clef is Clef {
   return Clefs.findIndex((x) => clef === x) >= 0;
 }
-  
-export class TimeSignature {
-    timeSignature: string = '4/4';
-    actualBeats: number = 4;
-    beatDuration: number = 4;
-    useSymbol: boolean = false;
-    display: boolean = true;
 
-    static equal(ts1: TimeSignature, ts2: TimeSignature): boolean {
-        return (ts1.actualBeats == ts2.actualBeats && ts1.beatDuration == ts2.beatDuration);
-    }
-}
 export interface SmoConfiguration {
     smoPath?: string,
     language: string,

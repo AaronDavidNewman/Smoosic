@@ -1,14 +1,17 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoScore } from '../data/score';
-import { SmoMeasureParams, SmoMeasure, SmoVoice } from '../data/measure';
+import { Pitch, PitchLetter } from '../data/common';
 import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
+import { SmoScore } from '../data/score';
+import { SmoMeasureParams, SmoMeasure, SmoVoice } from '../data/measure';
 import { SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
-import { Pitch, PitchLetter, TimeSignature } from '../data/common';
-import { SmoStaffHairpin, SmoSlur, SmoTie, StaffModifierBase, SmoTieParams, SmoInstrument, SmoStaffHairpinParams, SmoSlurParams } from '../data/staffModifiers';
-import { SmoRehearsalMark, SmoMeasureText, SmoVolta, SmoMeasureFormat, SmoTempoText, SmoBarline, SmoRepeatSymbol } from '../data/measureModifiers';
 import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoNoteModifierBase, SmoOrnament } from '../data/noteModifiers';
+import {
+  SmoRehearsalMark, SmoMeasureText, SmoVolta, SmoMeasureFormat, SmoTempoText, SmoBarline,
+  TimeSignature, SmoRepeatSymbol
+} from '../data/measureModifiers';
+import { SmoStaffHairpin, SmoSlur, SmoTie, StaffModifierBase, SmoTieParams, SmoInstrument, SmoStaffHairpinParams, SmoSlurParams } from '../data/staffModifiers';
 import { SmoSystemGroup, SmoTextGroup } from '../data/scoreModifiers';
 
 import { SmoSelection, SmoSelector, ModifierTab } from './selections';
@@ -116,7 +119,7 @@ export class SmoOperation {
   static populateVoice(selection: SmoSelection, voiceIx: number) {
     selection.measure.populateVoice(voiceIx);
   }
-  static setTimeSignature(score: SmoScore, selections: SmoSelection[], timeSignature: TimeSignature) {
+  static setTimeSignature(score: SmoScore, selections: SmoSelection[], timeSignature: TimeSignature, timeSignatureString: string) {
     const selectors: SmoSelector[] = [];
     let i = 0;
     let ticks = 0;
@@ -141,6 +144,7 @@ export class SmoOperation {
         smoSerialize.serializedMerge(attrs, proto, params);
         params.timeSignature = timeSignature;
         nm = SmoMeasure.getDefaultMeasure(params);
+        nm.timeSignatureString = timeSignatureString;
         nm.setX(rowSelection.measure.staffX, 'op:setTimeSignature');
         nm.setY(rowSelection.measure.staffY, 'op:setTimeSignature');
         nm.setWidth(rowSelection.measure.staffWidth, 'op:setTimeSignature');
@@ -158,7 +162,7 @@ export class SmoOperation {
               nvoice.push(nnote);
               ticks += nnote.tickCount;
             } else {
-              const remain = (ticks + pnote.tickCount) - tsTicks;
+              const remain = tsTicks - ticks;
               nnote.ticks = { numerator: remain, denominator: 1, remainder: 0 };
               nvoice.push(nnote);
               ticks += nnote.tickCount;

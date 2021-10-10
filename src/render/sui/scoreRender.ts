@@ -7,12 +7,12 @@ import { suiLayoutFormatter } from './formatter';
 import { ScaledPageLayout, SmoTextGroup, SmoPageLayout, SmoLayoutManager } from '../../smo/data/scoreModifiers';
 import { SuiTextBlock } from './textRender';
 import { SmoSelection } from '../../smo/xform/selections';
-import { SmoTempoText, SmoMeasureFormat } from '../../smo/data/measureModifiers';
+import { SmoTempoText, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
 import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { layoutDebug } from './layoutDebug';
 import { smoBeamerFactory } from '../../smo/xform/beamers';
 import { SmoMusic } from '../../smo/data/music';
-import { SvgBox, TimeSignature } from '../../smo/data/common';
+import { SvgBox } from '../../smo/data/common';
 import { SmoMeasure, MeasureSvg } from '../../smo/data/measure';
 import { SmoScore } from '../../smo/data/score';
 

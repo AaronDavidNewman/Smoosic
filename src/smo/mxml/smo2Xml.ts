@@ -1,17 +1,18 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { mxmlHelpers } from './xmlHelpers';
-import { mxmlScore } from './xmlScore';
-import { SmoSelector } from '../xform/selections';
-import { SmoStaffHairpin, SmoInstrument } from '../data/staffModifiers';
+import { Pitch } from '../data/common';
 import { SmoNote } from '../data/note';
 import { SmoMusic } from '../data/music';
-import { SmoScore } from '../data/score';
 import { SmoMeasure } from '../data/measure';
 import { SmoSystemStaff } from '../data/systemStaff';
-import { SmoSlur } from '../data/staffModifiers';
-import { Pitch, TimeSignature } from '../data/common';
+import { SmoScore } from '../data/score';
+import { TimeSignature } from '../data/measureModifiers';
+import { SmoStaffHairpin, SmoSlur } from '../data/staffModifiers';
 import { SmoLyric } from '../data/noteModifiers';
+import { SmoSelector } from '../xform/selections';
+
+import { mxmlHelpers } from './xmlHelpers';
+import { mxmlScore } from './xmlScore';
 export class SmoToXml {
   static get beamStates() {
     return {

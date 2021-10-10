@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from './music';
-import { SmoAttrs, MeasureNumber, FontInfo, SmoObjectParams, SvgBox,  SmoModifierBase } from './common';
+import { SmoAttrs, MeasureNumber, FontInfo, SmoObjectParams, SvgBox, SmoModifierBase } from './common';
 import { SmoSelector } from '../xform/selections';
 
 const VF = eval('Vex.Flow');
@@ -28,7 +28,7 @@ export abstract class SmoMeasureModifierBase implements SmoModifierBase {
   abstract serialize(): any;
 }
 
-export type SmoMeasureFormatNumberAttributes = 'customStretch'| 'customProportion'| 'padLeft'| 'measureIndex';
+export type SmoMeasureFormatNumberAttributes = 'customStretch' | 'customProportion' | 'padLeft' | 'measureIndex';
 export type SmoMeasueFormatBooleanAttributes = 'autoJustify' | 'systemBreak' | 'pageBreak' | 'padAllInSystem';
 export interface SmoMeasureFormatParams {
   customStretch: number | null,
@@ -101,7 +101,7 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
   constructor(parameters: SmoMeasureFormatParams | null) {
     super('SmoMeasureFormat');
     let pobj: any = parameters;
-    if (typeof(parameters) === 'undefined' || parameters === null) {
+    if (typeof (parameters) === 'undefined' || parameters === null) {
       pobj = {};
     }
     SmoMeasureFormat.attributes.forEach((attr) => {
@@ -170,7 +170,7 @@ export class SmoBarline extends SmoMeasureModifierBase {
   constructor(parameters: SmoBarlineParams | null) {
     super('SmoBarline');
     let ops = parameters as any;
-    if (typeof(parameters) === 'undefined' || parameters === null) {
+    if (typeof (parameters) === 'undefined' || parameters === null) {
       ops = {};
     }
     smoSerialize.serializedMerge(SmoBarline.attributes, SmoBarline.defaults, this);
@@ -473,7 +473,7 @@ export class SmoRehearsalMark extends SmoMeasureModifierBase {
   constructor(parameters: SmoRehearsalMarkParams) {
     super('SmoRehearsalMark');
     let pobj = parameters;
-    if (typeof(pobj) === 'undefined' || pobj === null) {
+    if (typeof (pobj) === 'undefined' || pobj === null) {
       pobj = SmoRehearsalMark.defaults;
     }
     smoSerialize.serializedMerge(SmoRehearsalMark.attributes, SmoRehearsalMark.defaults, this);
@@ -629,10 +629,53 @@ export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoText
   constructor(parameters: SmoTempoTextParams | null) {
     super('SmoTempoText');
     let pobj: any = parameters;
-    if (typeof(pobj) === 'undefined' || pobj === null) {
+    if (typeof (pobj) === 'undefined' || pobj === null) {
       pobj = {};
     }
     smoSerialize.serializedMerge(SmoTempoText.attributes, SmoTempoText.defaults, this);
     smoSerialize.serializedMerge(SmoTempoText.attributes, pobj, this);
+  }
+}
+
+export interface TimeSignatureParameters  {
+  actualBeats: number,
+  beatDuration: number,
+  useSymbol: boolean,
+  display: boolean
+}
+export class TimeSignature extends SmoMeasureModifierBase {
+  static get defaults(): TimeSignatureParameters {
+    return {
+      actualBeats: 4,
+      beatDuration: 4,
+      useSymbol: false,
+      display: true
+    };
+  }
+  static equal(ts1: TimeSignature, ts2: TimeSignature): boolean {
+    return (ts1.actualBeats === ts2.actualBeats && ts1.beatDuration === ts2.beatDuration);
+  }
+  // timeSignature: string = '4/4';
+  actualBeats: number = 4;
+  beatDuration: number = 4;
+  useSymbol: boolean = false;
+  display: boolean = true;
+  get timeSignature() {
+    return this.actualBeats.toString() + '/' + this.beatDuration.toString();
+  }
+  set timeSignature(value: string) {
+    const ar = value.split('/');
+    this.actualBeats = parseInt(ar[0], 10);
+    this.beatDuration = parseInt(ar[1], 10);
+  }
+  serialize() {
+    return JSON.parse(JSON.stringify((this as any)));
+  }
+  constructor(params: TimeSignatureParameters) {
+    super('TimeSignature');
+    this.actualBeats = params.actualBeats;
+    this.beatDuration = params.beatDuration;
+    this.useSymbol = params.useSymbol;
+    this.display = params.display;
   }
 }
