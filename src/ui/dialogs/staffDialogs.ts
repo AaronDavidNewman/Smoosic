@@ -1,12 +1,13 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';
-import { SmoSlur, SmoStaffHairpin, SmoTie } from '../../smo/data/staffModifiers';
+import { SmoSlur, SmoStaffHairpin, SmoTie, TieLine } from '../../smo/data/staffModifiers';
 import { SmoSystemGroup } from '../../smo/data/scoreModifiers';
-import { TieMappingComponent } from './staffComponents';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SvgBox } from '../../smo/data/common';
+import { StaffAddRemoveComponent } from './staffComponents';
 import { SmoVolta } from '../../smo/data/measureModifiers';
+import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 
 declare var $: any;
 
@@ -15,26 +16,28 @@ declare var $: any;
 
 export type SlurNumber = 'spacing' | 'thickness' | 'xOffset' | 'yOffset' | 'position' | 'position_end' | 'cp1x'
   | 'cp1y' | 'cp2x' | 'cp2y';
-export function writeSlurNumber(view: SuiScoreViewOperations, slur: SmoSlur, key: SlurNumber, value: number) {
-  const current = new SmoSlur(slur);
-  slur[key] = value;
-  view.addOrUpdateStaffModifier(current, slur);
-}
 export type SlurBool = 'invert';
-export function writeSlurBool(view: SuiScoreViewOperations, slur: SmoSlur, key: SlurBool, value: boolean) {
-  const current = new SmoSlur(slur);
-  slur[key] = value;
-  view.addOrUpdateStaffModifier(current, slur);
-}
-export class SuiSlurAdapter {
+export class SuiSlurAdapter extends SuiComponentAdapter {
   slur: SmoSlur;
   backup: SmoSlur;
-  view: SuiScoreViewOperations;
   changed: boolean = false;
   constructor(view: SuiScoreViewOperations, slur: SmoSlur) {
+    super(view);
     this.slur = slur;
     this.view = view;
     this.backup = new SmoSlur(this.slur);
+  }
+  writeSlurNumber(view: SuiScoreViewOperations, slur: SmoSlur, key: SlurNumber, value: number) {
+    const current = new SmoSlur(slur);
+    slur[key] = value;
+    view.addOrUpdateStaffModifier(current, slur);
+    this.changed = true;
+  }
+  writeSlurBool(view: SuiScoreViewOperations, slur: SmoSlur, key: SlurBool, value: boolean) {
+    const current = new SmoSlur(slur);
+    slur[key] = value;
+    view.addOrUpdateStaffModifier(current, slur);
+    this.changed = true;
   }
   cancel() {
     if (!this.changed) {
@@ -42,71 +45,74 @@ export class SuiSlurAdapter {
     }
     this.view.addOrUpdateStaffModifier(this.slur, this.backup);
   }
+  commit() {
+
+  }
   get cp2y(): number {
     return this.slur.cp2y;
   }
   set cp2y(value: number) {
-    writeSlurNumber(this.view, this.slur, 'cp2y', value);
+    this.writeSlurNumber(this.view, this.slur, 'cp2y', value);
   }  
   get cp2x(): number {
     return this.slur.cp2x;
   }
   set cp2x(value: number) {
-    writeSlurNumber(this.view, this.slur, 'cp2x', value);
+    this.writeSlurNumber(this.view, this.slur, 'cp2x', value);
   }  
   get cp1y(): number {
     return this.slur.cp1y;
   }
   set cp1y(value: number) {
-    writeSlurNumber(this.view, this.slur, 'cp1y', value);
+    this.writeSlurNumber(this.view, this.slur, 'cp1y', value);
   }  
   get cp1x(): number {
     return this.slur.cp1x;
   }
   set cp1x(value: number) {
-    writeSlurNumber(this.view, this.slur, 'cp1x', value);
+    this.writeSlurNumber(this.view, this.slur, 'cp1x', value);
   }  
   get invert(): boolean {
     return this.slur.invert;
   }
   set invert(value: boolean) {
-    writeSlurBool(this.view, this.slur, 'invert', value);
+    this.writeSlurBool(this.view, this.slur, 'invert', value);
   }
   get position_end(): number {
     return this.slur.position_end;
   }
   set position_end(value: number) {
-    writeSlurNumber(this.view, this.slur, 'position_end', value);
+    this.writeSlurNumber(this.view, this.slur, 'position_end', value);
   }
   get position(): number {
     return this.slur.position;
   }
   set position(value: number) {
-    writeSlurNumber(this.view, this.slur, 'position', value);
+    this.writeSlurNumber(this.view, this.slur, 'position', value);
   }
   get yOffset(): number {
     return this.slur.yOffset;
   }
   set yOffset(value: number) {
-    writeSlurNumber(this.view, this.slur, 'yOffset', value);
+    this.writeSlurNumber(this.view, this.slur, 'yOffset', value);
   }
   get xOffset(): number {
     return this.slur.xOffset;
   }
   set xOffset(value: number) {
-    writeSlurNumber(this.view, this.slur, 'xOffset', value);
+    this.writeSlurNumber(this.view, this.slur, 'xOffset', value);
   }
   get thickness(): number {
     return this.slur.thickness;
   }
   set thickness(value: number) {
-    writeSlurNumber(this.view, this.slur, 'thickness', value);
+    this.writeSlurNumber(this.view, this.slur, 'thickness', value);
   }
   get spacing(): number {
     return this.slur.spacing;
   }
   set spacing(value: number) {
-    writeSlurNumber(this.view, this.slur, 'spacing', value);
+    this.writeSlurNumber(this.view, this.slur, 'spacing', value);
   }
   get renderedBox(): SvgBox {
     return this.backup.renderedBox!;
@@ -115,7 +121,7 @@ export class SuiSlurAdapter {
     this.view.removeStaffModifier(this.backup);
   }
 }
-export class SuiSlurAttributesDialog extends SuiDialogBase {
+export class SuiSlurAttributesDialog extends SuiDialogAdapterBase<SuiSlurAdapter> {
   static dialogElements: DialogDefinition = {      
         label: 'Slur Properties', elements: [{
           smoName: 'spacing',
@@ -195,36 +201,84 @@ export class SuiSlurAttributesDialog extends SuiDialogBase {
     dg.display();
     return dg;
   }
-  modifier: SuiSlurAdapter;
   constructor(parameters: SuiDialogParams) {
-    parameters.modifier = new SuiSlurAdapter(parameters.view, parameters.modifier);
-    super(SuiSlurAttributesDialog.dialogElements, { autobind: true, ...parameters });
-    this.modifier = parameters.modifier;
-    this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
-  }
-    // ### bindElements
-  // bing the generic controls in most dialogs.
-  bindElements() {
-    var dgDom = this.dgDom;
-
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      this.view.groupUndo(false);
-      this.complete();
-    });
-
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      this.view.groupUndo(false);
-      this.modifier.cancel();
-      this.complete();
-    });
-    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-      this.view.groupUndo(false);
-      this.complete();
-    });
+    const adapter = new SuiSlurAdapter(parameters.view, parameters.modifier);
+    super(SuiSlurAttributesDialog.dialogElements, { adapter, ...parameters });
   }
 }
 
-export class SuiTieAttributesDialog extends SuiDialogBase {
+export type TieNumber = 'tie_spacing' | 'cp1' | 'cp2' | 'first_x_shift' | 'last_x_shift' | 'y_shift';
+
+export class SuiTieAdapter extends SuiComponentAdapter {
+  tie: SmoTie;
+  backup: SmoTie;
+  changed: boolean = false;
+  constructor(view: SuiScoreViewOperations, tie: SmoTie) {
+    super(view);
+    this.tie = tie;
+    this.backup = new SmoTie(tie);
+  }
+  writeTieNumber(value: number, param: TieNumber) {
+    this.tie[param] = value;
+    this.view.addOrUpdateStaffModifier(this.backup, this.tie);
+    this.changed = true;
+  }
+  get lines(): TieLine[] {
+    return this.tie.lines;
+  }
+  set lines(value: TieLine[]) {
+    this.tie.lines = JSON.parse(JSON.stringify(value));
+    this.view.addOrUpdateStaffModifier(this.backup, this.tie);
+  }
+  get tie_spacing(): number {
+    return this.tie.tie_spacing;
+  }
+  set tie_spacing(value: number) {
+    this.writeTieNumber(value, 'tie_spacing');
+  }  
+  get first_x_shift(): number {
+    return this.tie.first_x_shift;
+  }
+  set first_x_shift(value: number) {
+    this.writeTieNumber(value, 'first_x_shift');
+  }  
+  get last_x_shift(): number {
+    return this.tie.last_x_shift;
+  }
+  set last_x_shift(value: number) {
+    this.writeTieNumber(value, 'last_x_shift');
+  }  
+  get y_shift(): number {
+    return this.tie.y_shift;
+  }
+  set y_shift(value: number) {
+    this.writeTieNumber(value, 'y_shift');
+  }  
+  get cp1(): number {
+    return this.tie.cp1;
+  }
+  set cp1(value: number) {
+    this.writeTieNumber(value, 'cp1');
+  }
+  get cp2(): number {
+    return this.tie.cp2;
+  }
+  set cp2(value: number) {
+    this.writeTieNumber(value, 'cp2');
+  }
+  commit() {
+
+  }
+  cancel() {
+    if (this.changed) {
+      this.view.addOrUpdateStaffModifier(this.backup, this.backup);
+    }
+  }
+  remove() {
+    this.view.removeStaffModifier(this.backup);
+  }
+}
+export class SuiTieAttributesDialog extends SuiDialogAdapterBase<SuiTieAdapter> {
   static dialogElements: DialogDefinition =
       {
         label: 'Tie Properties',
@@ -237,6 +291,32 @@ export class SuiTieAttributesDialog extends SuiDialogBase {
           smoName: 'lines',
           control: 'TieMappingComponent',
           label: 'Lines'
+        }, {
+          smoName: 'cp1',
+          control: 'SuiRockerComponent',
+          label: 'Control Point 1'
+        }, {
+          smoName: 'cp2',
+          control: 'SuiRockerComponent',
+          label: 'Control Point 2'
+        }, {
+          smoName: 'first_x_shift',
+          control: 'SuiRockerComponent',
+          label: 'X Offset 1'
+        }, {
+          smoName: 'last_x_shift',
+          control: 'SuiRockerComponent',
+          label: 'X Offset 2'
+        }, {
+          smoName: 'y_shift',
+          defaultValue: 0,
+          control: 'SuiRockerComponent',
+          label: 'Y Offset'
+        }, {
+          smoName: 'tie_spacing',
+          defaultValue: 40,
+          control: 'SuiRockerComponent',
+          label: 'Tie Spacing'
         }],
       };
   static createAndDisplay(parameters: SuiDialogParams) {
@@ -244,67 +324,26 @@ export class SuiTieAttributesDialog extends SuiDialogBase {
     dg.display();
     return dg;
   }
-  modifier: SmoTie;
-  backup: SmoTie;
-  edited: boolean;
   constructor(parameters: SuiDialogParams) {
     if (!parameters.modifier) {
       throw new Error('modifier attribute dialog must have modifier');
     }
-    super(SuiTieAttributesDialog.dialogElements, parameters);
-    this.modifier = parameters.modifier;
-    this.backup = new SmoTie(this.modifier);
+    const tie = parameters.modifier as SmoTie;
+    const adapter = new SuiTieAdapter(parameters.view, tie);
+    super(SuiTieAttributesDialog.dialogElements, { adapter, ...parameters });
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
-    this.edited = false;
-  }
-  get linesCtrl() {
-    return this.cmap.linesCtrl as TieMappingComponent;
-  }
-  initialValue() {
-    this.linesCtrl.setValue(this.modifier);
-  }
-  changed() {
-    if (this.linesCtrl.changeFlag) {
-      const current = new SmoTie(this.modifier);
-      this.modifier.lines = JSON.parse(JSON.stringify(this.linesCtrl.getValue()));
-      this.view.addOrUpdateStaffModifier(current, this.modifier);
-      this.edited = true;
-    }
-  }
-    // ### bindElements
-  // bing the generic controls in most dialogs.
-  bindElements() {
-    var dgDom = this.dgDom;
-
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      this.view.groupUndo(false);
-      this.complete();
-    });
-
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      this.view.groupUndo(false);
-      if (this.edited) {
-        this.view.undo();
-      }
-      this.complete();
-    });
-    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-      this.view.groupUndo(false);
-      this.view.removeStaffModifier(this.backup);
-      this.complete();
-    });
   }
 }
 
-export type SmoVoltaNumberParam = 'startBar' | 'endBar' | 'xOffsetStart' | 'xOffsetEnd' | 'yOffset' | 'number' ; 
-export class SuiVoltaAdapter {
+export type SmoVoltaNumberParam = 'startBar' | 'endBar' | 'xOffsetStart' | 'xOffsetEnd' | 'yOffset' | 'number';
+
+export class SuiVoltaAdapter extends SuiComponentAdapter {
   volta: SmoVolta;
   backup: SmoVolta;
-  view: SuiScoreViewOperations;
   changed: boolean = false;
   constructor(view: SuiScoreViewOperations, volta: SmoVolta) {
+    super(view);
     this.volta = volta;
-    this.view = view;
     this.backup = new SmoVolta(this.volta);    
   }
   remove() {
@@ -314,6 +353,9 @@ export class SuiVoltaAdapter {
     if (this.changed) {
       this.view.updateEnding(this.backup);
     }
+  }
+  commit() {
+
   }
   updateVolta(param: SmoVoltaNumberParam, value: number) {
     this.volta[param] = value;
@@ -326,13 +368,6 @@ export class SuiVoltaAdapter {
   set startBar(val: number) {
     this.updateVolta('startBar', val);
   }
-  /*       startBar: 1,
-      endBar: 1,
-      xOffsetStart: 0,
-      xOffsetEnd: 0,
-      yOffset: 20,
-      number: 1
-      */
   get endBar() {
     return this.volta.endBar;
   }
@@ -369,7 +404,7 @@ export class SuiVoltaAdapter {
 }     
 // ## SuiVoltaAttributeDialog
 // aka first and second endings
-export class SuiVoltaAttributeDialog extends SuiDialogBase {
+export class SuiVoltaAttributeDialog extends SuiDialogAdapterBase<SuiVoltaAdapter> {
 
   static dialogElements: DialogDefinition =
       {
@@ -406,48 +441,21 @@ export class SuiVoltaAttributeDialog extends SuiDialogBase {
     return dg;
   }
   constructor(parameters: SuiDialogParams) {
-    if (!parameters.modifier) {
-      throw new Error('modifier attribute dialog must have modifier');
-    }
-    super(SuiVoltaAttributeDialog.dialogElements, parameters);
+    const adapter = new SuiVoltaAdapter(parameters.view, parameters.modifier)
+    super(SuiVoltaAttributeDialog.dialogElements, { adapter, ...parameters });
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
     const volta = parameters.modifier;
     this.modifier = new SuiVoltaAdapter(this.view, volta);
   }
-  handleRemove() {
-    this.view.removeEnding(this.modifier);
-  }
-
-  // ### bindElements
-  // bing the generic controls in most dialogs.
-  bindElements() {
-    var dgDom = this.dgDom;
-
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      this.view.groupUndo(false);
-      this.complete();
-    });
-
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      this.view.groupUndo(false);
-      this.modifier.cancel();
-      this.complete();
-    });
-    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-      this.view.groupUndo(false);
-      this.modifier.remove();
-      this.complete();
-    });
-  }
 }
 
 export type SmoHairpinNumberParams = 'xOffsetLeft' | 'xOffsetRight' | 'yOffset' | 'height' | 'position';
-export class SuiHairpinAdapter {
+export class SuiHairpinAdapter extends SuiComponentAdapter {
   backup: SmoStaffHairpin;
   hairpin: SmoStaffHairpin;
-  view: SuiScoreViewOperations;
   changed: boolean = false;
   constructor(view: SuiScoreViewOperations, hairpin: SmoStaffHairpin) {
+    super(view);
     this.hairpin = hairpin;
     this.view = view;
     this.backup = new SmoStaffHairpin(this.hairpin);
@@ -459,6 +467,8 @@ export class SuiHairpinAdapter {
   }
   remove() {
     this.view.removeStaffModifier(this.hairpin);
+  }
+  commit() {
   }
   updateValue(param: SmoHairpinNumberParams, val: number) {
     const current = new SmoStaffHairpin(this.hairpin);
@@ -500,7 +510,7 @@ export class SuiHairpinAdapter {
     return this.hairpin.renderedBox!;
   }
 }
-export class SuiHairpinAttributesDialog extends SuiDialogBase {
+export class SuiHairpinAttributesDialog extends SuiDialogAdapterBase<SuiHairpinAdapter> {
   static dialogElements: DialogDefinition =
       {
         label: 'Hairpin Properties', elements:
@@ -524,6 +534,16 @@ export class SuiHairpinAttributesDialog extends SuiDialogBase {
             defaultValue: 0,
             control: 'SuiRockerComponent',
             label: 'Left Shift'
+          }, {
+            smoName: 'position',
+            control: 'SuiDropdownComponent',
+            label: 'Position',
+            options: [
+              { label: 'Left', value: SmoStaffHairpin.positions.LEFT },
+              { label: 'Right', value: SmoStaffHairpin.positions.RIGHT },
+              { label: 'Above', value: SmoStaffHairpin.positions.ABOVE },
+              { label: 'Left', value: SmoStaffHairpin.positions.BELOW }
+            ]
           }],
           staticText: []
       };
@@ -535,33 +555,13 @@ export class SuiHairpinAttributesDialog extends SuiDialogBase {
     dg.display();
     return dg;
   }
-  modifier: SuiHairpinAdapter;
   constructor(parameters: SuiDialogParams) {
-    super(SuiHairpinAttributesDialog.dialogElements, parameters);
-    this.modifier = new SuiHairpinAdapter(this.view, parameters.modifier);
+    const adapter = new SuiHairpinAdapter(parameters.view, parameters.modifier);
+    super(SuiHairpinAttributesDialog.dialogElements, { adapter, ...parameters });
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
   }
-  bindElements() {
-    var dgDom = this.dgDom;
-
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      this.view.groupUndo(false);
-      this.complete();
-    });
-
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      this.view.groupUndo(false);
-      this.modifier.cancel();
-      this.complete();
-    });
-    $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-      this.view.groupUndo(false);
-      this.modifier.remove();
-      this.complete();
-    });
-  }
 }
-export class SuiStaffGroupDialogAdapter {
+export class SuiStaffGroupDialogAdapter extends SuiComponentAdapter {
   /*       leftConnector: SmoSystemGroup.connectorTypes.single,
       rightConnector: SmoSystemGroup.connectorTypes.single,
       mapType: SmoSystemGroup.mapTypes.allMeasures,
@@ -569,20 +569,33 @@ export class SuiStaffGroupDialogAdapter {
       shortText: '',
       justify: true, */
   staffGroup: SmoSystemGroup;
-  view: SuiScoreViewOperations;
   constructor(view: SuiScoreViewOperations) {
-    this.view = view;
+    super(view);
     const selection = this.view.tracker.selections[0];
     // Reset the view so we can see all the staves
     this.view.viewAll();
     const staffGroup = this.view.score.getSystemGroupForStaff(selection);
-    this.staffGroup = staffGroup ?? new SmoSystemGroup(SmoSystemGroup.defaults);
+    if (!staffGroup) {
+      const params = SmoSystemGroup.defaults;
+      params.startSelector = JSON.parse(JSON.stringify(selection.selector));
+      params.endSelector = JSON.parse(JSON.stringify(selection.selector));
+      this.staffGroup = new SmoSystemGroup(params);
+    } else {
+      this.staffGroup = staffGroup;
+    }
+  }
+  commit() {
+
+  }
+  cancel() {
+
   }
   get leftConnector() {
     return this.staffGroup.leftConnector;
   }
   set leftConnector(val: number) {
     this.staffGroup.leftConnector = val;
+    this.view.addOrUpdateStaffGroup(this.staffGroup);
   }
   get staffGroups() {
     return this.staffGroup;
@@ -594,7 +607,7 @@ export class SuiStaffGroupDialogAdapter {
 }
 // ## SuiStaffGroupDialog
 // A staff group is a grouping of staves that can be bracketed and justified
-export class SuiStaffGroupDialog extends SuiDialogBase {
+export class SuiStaffGroupDialog extends SuiDialogAdapterBase<SuiStaffGroupDialogAdapter> {
   static dialogElements: DialogDefinition = 
       {
         label: 'Staff Group', elements:
@@ -629,31 +642,8 @@ export class SuiStaffGroupDialog extends SuiDialogBase {
     const dg = new SuiStaffGroupDialog(parameters);
     dg.display();
   }
-  modifier: SuiStaffGroupDialogAdapter;
   constructor(parameters: SuiDialogParams) {
-    super(SuiStaffGroupDialog.dialogElements, parameters);
-    this.modifier = new SuiStaffGroupDialogAdapter(this.view);
+    const adapter = new SuiStaffGroupDialogAdapter(parameters.view);
+    super(SuiStaffGroupDialog.dialogElements, { adapter, ...parameters });
   }
-  bindElements() {
-    const dgDom = this.dgDom;
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      this.complete();
-    });
-
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      this.complete();
-    });
-
-    $(dgDom.element).find('.remove-button').remove();
-  }
-  // TODO: this behavior should be in the dialog component
-  /* _updateGroupMembership() {
-    const updateEl = this.staffGroupsCtrl.getInputElement();
-    this.staffGroupsCtrl.setControlRows();
-    $(updateEl).html('');
-    $(updateEl).append(this.staffGroupsCtrl.html.dom());
-    this.staffGroupsCtrl.bind();
-    $(this.staffGroupsCtrl.getInputElement()).find('input').prop('disabled', false);
-    $(this.staffGroupsCtrl.getInputElement()).find('.toggle-disabled input').prop('disabled', true);
-  } */
 }

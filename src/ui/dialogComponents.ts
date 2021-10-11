@@ -331,7 +331,6 @@ export class SuiToggleComponent extends SuiComponentBase {
 
   bind() {
     const input = this._getInputElement();
-    this.setValue(this.defaultValue);
     $(input).off('change').on('change',
       () => {
         this.handleChanged();

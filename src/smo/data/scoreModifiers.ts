@@ -301,7 +301,7 @@ export class SmoSystemGroup extends SmoScoreModifierBase {
       'startSelector', 'endSelector', 'mapType'];
   }
   static get defaults(): SmoSystemGroupParams {
-    return {
+    return JSON.parse(JSON.stringify({
       leftConnector: SmoSystemGroup.connectorTypes.single,
       rightConnector: SmoSystemGroup.connectorTypes.single,
       mapType: SmoSystemGroup.mapTypes.allMeasures,
@@ -310,7 +310,7 @@ export class SmoSystemGroup extends SmoScoreModifierBase {
       justify: true,
       startSelector: SmoSelector.default,
       endSelector: SmoSelector.default
-    };
+    }));
   }
   static isSystemGroup(modifier: SmoSystemGroup | SmoModifierBase): modifier is SmoSystemGroup {
     return modifier.ctor === 'SmoSystemGroup';
@@ -454,7 +454,7 @@ export class SmoScoreText extends SmoScoreModifierBase {
     return { none: 'none', spacing: 'spacing', spacingAndGlyphs: 'spacingAndGlyphs', wrap: 'wrap' };
   }
   static get defaults(): SmoScoreTextParams {
-    return {
+    return JSON.parse(JSON.stringify({
       x: 15,
       y: 15,
       width: 0,
@@ -478,7 +478,7 @@ export class SmoScoreText extends SmoScoreModifierBase {
       pagination: 'once',
       position: 'custom',
       autoLayout: false // set to true if one of the pre-canned positions are used.
-    };
+    }));
   }
   x: number = 15;
   y: number = 15;

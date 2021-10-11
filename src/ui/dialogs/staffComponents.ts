@@ -172,13 +172,13 @@ export class TieMappingComponent extends SuiComponentParent {
     });
     return lines;
   }
-  setValue(modifier: SmoTie) {
+  setValue(modifier: TieLine[]) {
     let i = 0;
     for (i = 0; i < this.controlRows.length; ++i) {
       const row = this.controlRows[i];
-      if (modifier.lines.length > i) {
-        row.leftControl.setValue(modifier.lines[i].from);
-        row.rightControl.setValue(modifier.lines[i].to);
+      if (modifier.length > i) {
+        row.leftControl.setValue(modifier[i].from);
+        row.rightControl.setValue(modifier[i].to);
       }
     }
   }
@@ -299,17 +299,29 @@ export class StaffAddRemoveComponent extends SuiComponentBase {
   }
   setValue(staffGroup: SmoSystemGroup) {
     this.modifier = staffGroup; // would this be used?
-    this.setControlRows();
+    this.updateGroupMembership();
   }
   changed() {
     this.getValue(); // update modifier
     this.handleChanged();
-    this.setControlRows();
+    this.updateGroupMembership();
   }
   bind() {
     this.staffRows.forEach((row) => {
       row.showCtrl.bind();
     });
+  }
+  updateGroupMembership() {
+    const updateEl = this.getInputElement();
+    this.setControlRows();
+    $(updateEl).html('');
+    $(updateEl).append(this.html.dom());
+    $(updateEl).find('input').prop('disabled', false);
+    $(updateEl).find('.toggle-disabled input').prop('checked', true);
+    $(updateEl).find('.toggle-remove-row input').prop('checked', true);
+    $(updateEl).find('.toggle-add-row input').prop('checked', false);
+    $(updateEl).find('.toggle-disabled input').prop('disabled', true);
+    this.bind();
   }
 }
 export interface StaffCheckComponentParams {

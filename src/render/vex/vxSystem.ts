@@ -322,7 +322,11 @@ export class VxSystem {
           first_note: vxStart,
           last_note: vxEnd,
           first_indices: fromLines,
-          last_indices: toLines
+          last_indices: toLines,
+          options: {
+            cp1: ctie.cp1,
+            cp2: ctie.cp2
+          }
         });
         Vex.Merge(tie.render_options, ctie.vexOptions);
         tie.setContext(this.context).draw();

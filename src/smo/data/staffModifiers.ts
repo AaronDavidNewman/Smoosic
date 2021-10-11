@@ -265,11 +265,12 @@ export interface TieLine {
   to: number
 }
 export interface SmoTieParams {
-  invert: boolean,
+  tie_spacing: number,
   cp1: number,
   cp2: number,
   first_x_shift: number,
   last_x_shift: number,
+  y_shift: number,
   lines: TieLine[],
   startSelector: SmoSelector | null,
   endSelector: SmoSelector | null
@@ -283,6 +284,8 @@ export class SmoTie extends StaffModifierBase {
   cp2: number = 12;
   first_x_shift: number = 0;
   last_x_shift: number = 0;
+  y_shift: number = 7;
+  tie_spacing: number = 0;
   lines: TieLine[] = [];
   startSelector: SmoSelector = SmoSelector.default;
   endSelector: SmoSelector = SmoSelector.default;
@@ -291,6 +294,7 @@ export class SmoTie extends StaffModifierBase {
       invert: false,
       cp1: 8,
       cp2: 12,
+      y_shift: 7,
       first_x_shift: 0,
       last_x_shift: 0,
       lines: [],
@@ -300,7 +304,7 @@ export class SmoTie extends StaffModifierBase {
   }
 
   static get parameterArray() {
-    return ['startSelector', 'endSelector', 'invert', 'lines', 'cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
+    return ['startSelector', 'endSelector', 'invert', 'lines', 'y_shift', 'tie_spacing', 'cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
   }
   static get vexParameters() {
     return ['cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
