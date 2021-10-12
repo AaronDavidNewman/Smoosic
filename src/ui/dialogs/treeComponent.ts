@@ -44,13 +44,6 @@ export class SuiTreeComponent extends SuiComponentBase {
           this.tree[option.parent] = [];
         }
         this.tree[option.parent].push(option);
-        const button = $('ul.tree li[data-value="' + option.value + '"] button');
-        if (button.length && button.hasClass('expanded')) {
-          option.expanded = true;
-        }
-        if (button.length && button.hasClass('collapsed')) {
-          option.expanded = false;
-        }
       }
     });
   }
@@ -61,12 +54,14 @@ export class SuiTreeComponent extends SuiComponentBase {
     const children = this.getNodesWithParent(option.value);
     let treeClass = 'tree-branch';
     let buttonClass = 'expander';
-    if (this.persistControls && option.expanded) {
-      buttonClass += ' expanded icon-minus';
-    }
-    if (this.persistControls && !option.expanded) {
-      buttonClass += ' collapsed icon-plus';
-      treeClass += ' collapsed';
+    if (option.format === 'library' && children.length > 0) {
+      if (this.persistControls && option.expanded) {
+        buttonClass += ' expanded icon-minus';
+      }
+      if (this.persistControls && !option.expanded) {
+        buttonClass += ' collapsed icon-plus';
+        treeClass += ' collapsed';
+      }
     }
     const current = b('li').classes(treeClass).attr('data-value', option.value).attr('data-level', level);
     current.append(b('button').classes(buttonClass));

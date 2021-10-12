@@ -900,6 +900,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
       altEngrave.family = family;
       SuiRenderState.setFont(engrave.family);
     }
+    this.renderer.setRefresh();
   }
   setChordFont(fontInfo: FontInfo) {
     this.actionBuffer.addAction('setChordFont', fontInfo);

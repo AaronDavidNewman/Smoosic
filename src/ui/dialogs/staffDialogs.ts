@@ -534,16 +534,6 @@ export class SuiHairpinAttributesDialog extends SuiDialogAdapterBase<SuiHairpinA
             defaultValue: 0,
             control: 'SuiRockerComponent',
             label: 'Left Shift'
-          }, {
-            smoName: 'position',
-            control: 'SuiDropdownComponent',
-            label: 'Position',
-            options: [
-              { label: 'Left', value: SmoStaffHairpin.positions.LEFT },
-              { label: 'Right', value: SmoStaffHairpin.positions.RIGHT },
-              { label: 'Above', value: SmoStaffHairpin.positions.ABOVE },
-              { label: 'Left', value: SmoStaffHairpin.positions.BELOW }
-            ]
           }],
           staticText: []
       };
@@ -562,12 +552,6 @@ export class SuiHairpinAttributesDialog extends SuiDialogAdapterBase<SuiHairpinA
   }
 }
 export class SuiStaffGroupDialogAdapter extends SuiComponentAdapter {
-  /*       leftConnector: SmoSystemGroup.connectorTypes.single,
-      rightConnector: SmoSystemGroup.connectorTypes.single,
-      mapType: SmoSystemGroup.mapTypes.allMeasures,
-      text: '',
-      shortText: '',
-      justify: true, */
   staffGroup: SmoSystemGroup;
   constructor(view: SuiScoreViewOperations) {
     super(view);
@@ -641,6 +625,9 @@ export class SuiStaffGroupDialog extends SuiDialogAdapterBase<SuiStaffGroupDialo
   static createAndDisplay(parameters: SuiDialogParams) {
     const dg = new SuiStaffGroupDialog(parameters);
     dg.display();
+  }
+  getModifier() {
+    return this.adapter.staffGroups;
   }
   constructor(parameters: SuiDialogParams) {
     const adapter = new SuiStaffGroupDialogAdapter(parameters.view);

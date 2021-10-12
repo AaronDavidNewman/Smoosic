@@ -189,6 +189,9 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     const defaults = SmoMeasure.defaults;
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, this);
+    if (params.tempo) {
+      this.tempo = new SmoTempoText(params.tempo);
+    }
     // Handle legacy time signature format
     if (params.timeSignature) {
       const tsAny = params.timeSignature as any;

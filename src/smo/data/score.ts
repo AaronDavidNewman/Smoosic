@@ -18,6 +18,7 @@ export interface FontPurpose {
   size: number,
   custom: boolean
 }
+export type SmoScoreInfoKeys = 'name'|'title'|'subTitle'|'composer'|'copyright';
 export class SmoScoreInfo {
   name: string = 'Smoosical'; // deprecated
   title: string = 'Smoosical';

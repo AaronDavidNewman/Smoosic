@@ -221,6 +221,7 @@ export class SuiSmoSaveAdapter extends SuiComponentAdapter {
   fileName: string = '';
   constructor(view: SuiScoreViewOperations) {
     super(view);
+    this.fileName = this.view.score.scoreInfo.name;
   }
   get saveFileName() {
     return this.fileName;
@@ -230,13 +231,17 @@ export class SuiSmoSaveAdapter extends SuiComponentAdapter {
   }
   commit() {
     let filename = this.fileName;
+    const rawFile = filename.split('.')[0];
     if (!filename) {
       filename = 'myScore.json';
     }
     if (filename.indexOf('.json') < 0) {
       filename = filename + '.json';
     }
-    this.view.score.scoreInfo.version += 1;
+    const scoreInfo = this.view.score.scoreInfo;
+    scoreInfo.name = rawFile;
+    scoreInfo.version = scoreInfo.version + 1;
+    this.view.updateScoreInfo(scoreInfo);
     this.view.saveScore(filename);
   }
   cancel() {}

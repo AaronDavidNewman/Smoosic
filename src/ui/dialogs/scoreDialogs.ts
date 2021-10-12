@@ -1,25 +1,54 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';
-import { SmoScore, SmoScoreInfo } from '../../smo/data/score';
-import { SmoPageLayout, SmoLayoutManager, SmoGlobalLayout } from '../../smo/data/scoreModifiers';
-import { SmoMeasureFormat } from '../../smo/data/measureModifiers';
-import { FontPurpose } from '../../smo/data/score';
-import { ViewMapEntry } from '../../render/sui/scoreView';
-import { StaffCheckComponent } from './staffComponents';
 import { FontInfo } from '../../smo/data/common';
+import { SmoScore, SmoScoreInfo, FontPurpose, SmoScoreInfoKeys } from '../../smo/data/score';
+import { SmoMeasureFormat } from '../../smo/data/measureModifiers';
+import { GlobalLayoutAttributes, SmoTextGroup, SmoPageLayout, SmoLayoutManager, SmoGlobalLayout, SmoTextGroupPurpose } from '../../smo/data/scoreModifiers';
+
+import { ViewMapEntry } from '../../render/sui/scoreView';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
-import { DialogDefinitionOption, SuiDropdownComponent } from '../dialogComponents';
-import { GlobalLayoutAttributes } from '../../smo/data/scoreModifiers';
-import { ScoreRenderParams } from '../../render/sui/renderState';
+
+import { DialogDefinitionOption } from '../dialogComponents';
+import { StaffCheckComponent, TextCheckPair } from './staffComponents';
+import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
+import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';
 
 declare var $: any;
 
 const deepCopy = (x: any) => JSON.parse(JSON.stringify(x));
 
+export class SuiScoreViewAdapter extends SuiComponentAdapter {
+  originalView: ViewMapEntry[];
+  currentView: ViewMapEntry[];
+  constructor(view: SuiScoreViewOperations) {
+    super(view);
+    this.currentView = this.view.getView();
+    this.originalView = JSON.parse(JSON.stringify(this.currentView));
+  }
+  cancel() {
+    const s1 = JSON.stringify(this.originalView);
+    const s2 = JSON.stringify(this.currentView);
+    if (s1 !== s2) {
+      this.view.setView(this.originalView);
+    }
+  }
+  commit() {
+    const s1 = JSON.stringify(this.originalView);
+    const s2 = JSON.stringify(this.currentView);
+    if (s1 !== s2) {
+      this.view.setView(this.currentView);
+    }
+  }
+  get scoreView(): ViewMapEntry[] {
+    return this.currentView;
+  }
+  set scoreView(value: ViewMapEntry[]) {
+    this.currentView = value;
+  }
+}
 // ## SuiScoreViewDialog
 // decide which rows of the score to look at
-export class SuiScoreViewDialog extends SuiDialogBase {
+export class SuiScoreViewDialog extends SuiDialogAdapterBase<SuiScoreViewAdapter> {
   static dialogElements: DialogDefinition =
     {
       label: 'Score View', elements:
@@ -34,54 +63,25 @@ export class SuiScoreViewDialog extends SuiDialogBase {
     const dg = new SuiScoreViewDialog(parameters);
     dg.display();
   }
-  viewChanged: boolean;
-  originalValue: ViewMapEntry[];
+  originalValue: number[];
   constructor(parameters: SuiDialogParams) {
-    super(SuiScoreViewDialog.dialogElements, parameters);
+    const adapter = new SuiScoreViewAdapter(parameters.view);
+    super(SuiScoreViewDialog.dialogElements, { adapter, ...parameters });
     this.originalValue = JSON.parse(JSON.stringify(this.view.getView()));
-    this.viewChanged = false;
   }
   get scoreViewCtrl() {
     return this.cmap.scoreViewCtrl as StaffCheckComponent;
   }
-  display() {
-    $('body').addClass('showAttributeDialog');
-    this.applyDisplayOptions();
-    this.bindElements();
-    const currentView = this.view.getView();
-    this.originalValue = JSON.parse(JSON.stringify(currentView));
-    this.scoreViewCtrl.setValue(currentView);
-  }
-  bindElements() {
-    const dgDom = this.dgDom;
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      if (this.viewChanged) {
-        this.view.setView(this.scoreViewCtrl.getValue());
-      }
-      this.complete();
-    });
-
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      if (this.viewChanged) {
-        this.view.setView(this.originalValue);
-      }
-      this.complete();
-    });
-    $(dgDom.element).find('.remove-button').remove();
-  }
-  changed() {
-    this.viewChanged = true;
-  }
 }
 
-export class SuiGlobalLayoutAdapter {
+export class SuiGlobalLayoutAdapter extends SuiComponentAdapter {
   scoreLayout: SmoGlobalLayout;
   backup: SmoGlobalLayout;
-  view: SuiScoreViewOperations;
   changed: boolean = false;
-  constructor(view: SuiScoreViewOperations, score: SmoScore) {
-    this.scoreLayout = score.layoutManager!.globalLayout;
-    this.backup = score.layoutManager!.getGlobalLayout();
+  constructor(view: SuiScoreViewOperations) {
+    super(view);
+    this.scoreLayout = this.view.score.layoutManager!.globalLayout;
+    this.backup = this.view.score.layoutManager!.getGlobalLayout();
     this.view = view;
   }
   writeValue(attr: GlobalLayoutAttributes, value: number) {
@@ -119,10 +119,34 @@ export class SuiGlobalLayoutAdapter {
   set zoomScale(value: number) {
     this.writeValue('zoomScale', value);
   }
+  get pageSize() {
+    const sz = SmoScore.pageSizeFromDimensions(this.scoreLayout.pageWidth, this.scoreLayout.pageHeight);
+    if (sz === null) {
+      return 'custom';
+    }
+    return sz;
+  }
+  set pageSize(value: string) {
+    if (value === 'custom') {
+      return;
+    }
+    if (SmoScore.pageDimensions[value]) {
+      const dims = SmoScore.pageDimensions[value];
+      this.scoreLayout.pageWidth = dims.width;
+      this.scoreLayout.pageHeight = dims.height;
+    }
+    this.view.setGlobalLayout(this.scoreLayout)
+  }
+  commit() { }
+  cancel() {
+    if (this.changed) {
+      this.view.setGlobalLayout(this.backup);
+    }
+  }
 }
 // ## SuiGlobalLayoutDialog
 // change editor and formatting defaults for this score.
-export class SuiGlobalLayoutDialog extends SuiDialogBase {
+export class SuiGlobalLayoutDialog extends SuiDialogAdapterBase<SuiGlobalLayoutAdapter> {
   static dialogElements: DialogDefinition =
     {
       label: 'Global Settings', elements:
@@ -183,69 +207,103 @@ export class SuiGlobalLayoutDialog extends SuiDialogBase {
     const dg = new SuiGlobalLayoutDialog(parameters);
     dg.display();
   }
-  layoutChanged: boolean;
-  score: SmoScore;
-  modifier: SmoGlobalLayout;
-  layoutBackup: SmoGlobalLayout;
-
+  get dimensionControls() {
+    return [this.cmap.pageSizeCtrl, this.cmap.pageWidthCtrl, this.cmap.pageHeightCtrl];
+  }
   constructor(params: SuiDialogParams) {
-    params.modifier = params.view.score.layoutManager!.getGlobalLayout();
-    super(SuiGlobalLayoutDialog.dialogElements, { autobind: true, ...params });
-    this.layoutChanged = false;
-    this.score = this.view.score;
-    this.modifier = this.score.layoutManager!.getGlobalLayout();
-    this.layoutBackup = deepCopy(this.modifier);
-  }
-  bindElements() {
-    const dgDom = this.dgDom;
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      if (this.layoutChanged) {
-        this.view.renderer.rerenderAll();
-      }
-      this.complete();
-    });
-
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      if (this.layoutChanged) {
-        this.view.setGlobalLayout(this.layoutBackup);
-        this.view.renderer.rerenderAll();
-      }
-      this.complete();
-    });
-    $(dgDom.element).find('.remove-button').remove();
-  }
-  // ### _handlePageSizeChange
-  // see if the dimensions have changed.
-  _handlePageSizeChange() {
-    const customSize = SmoScore.pageSizeFromDimensions(this.modifier.pageWidth, this.modifier.pageHeight) !== null;
-    if (customSize) {
-      $('.attributeModal').addClass('customPage');
-    } else {
-      $('.attributeModal').removeClass('customPage');
-      if (this.cmap.pageWidthCtrl.changeFlag || this.cmap.pageWidthCtrl.changeFlag) {
-        this.view.setGlobalLayout(this.modifier);
-      }
-    }
+    const adapter = new SuiGlobalLayoutAdapter(params.view);
+    super(SuiGlobalLayoutDialog.dialogElements, { adapter, ...params });
   }
   changed() {
     super.changed();
-    if (this.cmap.pageSizeCtrl.changeFlag) {
-      this._handlePageSizeChange();
+    if (this.dimensionControls.find((x) => x.changeFlag)) {
+      this.initialValue();
     }
-    this.view.setGlobalLayout(this.modifier);
   }
 }
 
+export class SuiScoreIdentificationAdapter extends SuiComponentAdapter {
+  scoreInfo: SmoScoreInfo;
+  backup: SmoScoreInfo;
+  current: Partial<Record<SmoTextGroupPurpose, TextCheckPair>> = {};
+  constructor(view: SuiScoreViewOperations) {
+    super(view);
+    this.scoreInfo = this.view.score.scoreInfo;
+    this.backup = JSON.parse(JSON.stringify(this.scoreInfo));
+    (Object.keys(SmoTextGroup.purposes) as SmoTextGroupPurpose[]).forEach((purpose) => {
+      const grp = this.view.score.textGroups.find((tg) => tg.purpose === SmoTextGroup.purposes[purpose]);
+      if (grp) {
+        this.current[purpose] = { checked: true, text: grp.textBlocks[0].text.text }
+      } else {
+        this.current[purpose] = { checked: false, text: '' }
+      }
+    });
+  }
+  updateValues(purpose: SmoTextGroupPurpose, infoKey: SmoScoreInfoKeys, value: TextCheckPair) {
+    const grp = this.view.score.textGroups.find((tg) => tg.purpose === SmoTextGroup.purposes[purpose]);
+    if (grp) {
+      if (value.checked) {
+        grp.textBlocks[0].text.text = value.text;
+        this.view.updateTextGroup(grp, grp);
+      } else {
+        this.view.removeTextGroup(grp);
+      }
+    } else {
+      if (value.checked) {
+        const tg = SmoTextGroup.createTextForLayout(SmoTextGroup.purposes[purpose], value.text, this.view.score.layoutManager!.getScaledPageLayout(0));
+        this.view.addTextGroup(tg);
+      }
+    }
+    this.current[purpose] = value;
+    this.scoreInfo[infoKey] = value.text;
+  }
+  get title(): TextCheckPair {
+    return this.current.TITLE!;
+  }
+  set title(value: TextCheckPair) {
+    this.updateValues('TITLE', 'title', value);
+  }
+  get subTitle(): TextCheckPair {
+    return this.current.SUBTITLE!;
+  }
+  set subTitle(value: TextCheckPair) {
+    this.updateValues('SUBTITLE', 'subTitle', value);
+  }
+  get composer(): TextCheckPair {
+    return this.current.COMPOSER!;
+  }
+  set composer(value: TextCheckPair) {
+    this.updateValues('COMPOSER', 'composer', value);
+  }
+  get copyright(): TextCheckPair {
+    return this.current.COPYRIGHT!;
+  }
+  set copyright(value: TextCheckPair) {
+    this.updateValues('COPYRIGHT', 'copyright', value);
+  }
+  get name() {
+    return this.scoreInfo.name;
+  }
+  set name(value: string) {
+    this.scoreInfo.name = value;
+  }
+  commit() {
+    this.view.updateScoreInfo(this.scoreInfo);
+  }
+  cancel() {
+
+  }
+}
 // ## SuiScoreIdentificationDialog
 // change editor and formatting defaults for this score.
-export class SuiScoreIdentificationDialog extends SuiDialogBase {
+export class SuiScoreIdentificationDialog extends SuiDialogAdapterBase<SuiScoreIdentificationAdapter> {
   static dialogElements: DialogDefinition =
     {
       label: 'Score Preferences', elements:
         [{
           smoName: 'name',
           defaultValue: '',
-          control: 'TextCheckComponent',
+          control: 'SuiTextInputComponent',
           label: 'Score Name',
         }, {
           smoName: 'title',
@@ -262,7 +320,6 @@ export class SuiScoreIdentificationDialog extends SuiDialogBase {
           label: 'Composer',
         }, {
           smoName: 'copyright',
-          defaultValue: SmoMeasureFormat.defaults.customProportion!,
           control: 'TextCheckComponent',
           label: 'Copyright'
         }],
@@ -278,37 +335,12 @@ export class SuiScoreIdentificationDialog extends SuiDialogBase {
     const dg = new SuiScoreIdentificationDialog(parameters);
     dg.display();
   }
-  modifier: SmoScoreInfo;
   constructor(params: SuiDialogParams) {
-    params.modifier = params.view.score.scoreInfo;
-    super(SuiScoreIdentificationDialog.dialogElements, {
-      autobind: true,
-      ...params
-    });
-    this.modifier = params.modifier;
-    this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-  }
-  display() {
-    super.initialValue();
-    this.applyDisplayOptions();
-  }
-  bindElements() {
-    const dgDom = this.dgDom;
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      this.complete();
-    });
-
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      this.complete();
-    });
-
-    $(dgDom.element).find('.remove-button').remove();
-  }
-  changed() {
-    super.changed();
+    const adapter = new SuiScoreIdentificationAdapter(params.view);
+    super(SuiScoreIdentificationDialog.dialogElements, { adapter, ...params });
   }
 }
-export class SuiScoreFontAdapter {
+export class SuiScoreFontAdapter extends SuiComponentAdapter {
   fonts: FontPurpose[];
   backups: FontPurpose[];
   changed: boolean = false;
@@ -320,9 +352,9 @@ export class SuiScoreFontAdapter {
       style: 'normal'
     };
   }
-  view: SuiScoreViewOperations;
-  constructor(view: SuiScoreViewOperations, fonts: FontPurpose[]) {
-    this.fonts = fonts;
+  constructor(view: SuiScoreViewOperations) {
+    super(view);
+    this.fonts = this.view.score.fonts;
     this.backups = JSON.parse(JSON.stringify(this.fonts));
     this.view = view;
   }
@@ -334,6 +366,8 @@ export class SuiScoreFontAdapter {
       this.lyricFont = this.lyricFont;
       this.chordFont = this.chordFont;
     }
+  }
+  commit() {
   }
   changeFont(purpose: number, name: string, fontInfo: FontInfo): FontPurpose {
     const fp: FontPurpose = {
@@ -349,11 +383,7 @@ export class SuiScoreFontAdapter {
     this.changed = true;
     return fp;
   }
-  set engravingFont(fontInfo: FontInfo) {
-    this.changed = true;
-    const fp = this.changeFont(SmoScore.fontPurposes.ENGRAVING, 'engraving', fontInfo);
-    this.view.setEngravingFontFamily(fp.family);
-  }
+
   toInfo(fontPurpose: FontPurpose): FontInfo {
     return {
       weight: 'normal',
@@ -368,15 +398,20 @@ export class SuiScoreFontAdapter {
     }
     return SuiScoreFontAdapter.defaultFont;
   }
-  get engravingFont(): FontInfo {
+  // Only family can be editor for engraving font, so parameter is just a string
+  get engravingFont(): string {
     const font = this.fonts.find((ff) => ff.purpose === SmoScore.fontPurposes.ENGRAVING);
     if (font) {
-      return this.toInfo(font);
+      return this.toInfo(font).family;
     }
-    const ff = SuiScoreFontAdapter.defaultFont;
-    ff.family = 'Bravura';
-    ff.size = 38;
-    return ff;
+    return 'Bravura';
+  }
+  set engravingFont(value: string) {
+    this.changed = true;
+    const current = this.getInfo(SmoScore.fontPurposes.ENGRAVING);
+    current.family = value;
+    const fp = this.changeFont(SmoScore.fontPurposes.ENGRAVING, 'engraving', current);
+    this.view.setEngravingFontFamily(fp.family);
   }
   set chordFont(fontInfo: FontInfo) {
     const fp = this.changeFont(SmoScore.fontPurposes.CHORDS, 'chords', fontInfo);
@@ -396,7 +431,7 @@ export class SuiScoreFontAdapter {
     return this.getInfo(SmoScore.fontPurposes.LYRICS);
   }
 }
-export class SuiScoreFontDialog extends SuiDialogBase {
+export class SuiScoreFontDialog extends SuiDialogAdapterBase<SuiScoreFontAdapter> {
   // ### dialogElements
   // all dialogs have elements define the controls of the dialog.
   static dialogElements: DialogDefinition =
@@ -439,31 +474,15 @@ export class SuiScoreFontDialog extends SuiDialogBase {
     const dg = new SuiScoreFontDialog(parameters);
     dg.display();
   }
-  fontBackup: FontPurpose[];
-  modifier: SuiScoreFontAdapter;
-  needRefresh: boolean;
   constructor(params: SuiDialogParams) {
-    params.modifier = new SuiScoreFontAdapter(params.view, params.view.score.fonts);
-    super(SuiScoreFontDialog.dialogElements, { autobind: true, ...params });
+    const adapter = new SuiScoreFontAdapter(params.view);
+    super(SuiScoreFontDialog.dialogElements, { adapter, ...params });
     this.modifier = params.modifier;
-    this.fontBackup = JSON.parse(JSON.stringify(this.view.score.fonts));
-    this.needRefresh = false;
-  }
-  bindElements() {
-    const dgDom = this.dgDom;
-    $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-      this.complete();
-    });
-    $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-      this.modifier.cancel();
-      this.complete();
-    });
-    $(dgDom.element).find('.remove-button').remove();
   }
 }
 
 
-export class SuiPageLayoutAdapter {
+export class SuiPageLayoutAdapter extends SuiComponentAdapter {
   static get layoutTypes(): Record<string, number> {
     return {
       'all': -1,
@@ -555,8 +574,10 @@ export class SuiPageLayoutAdapter {
       this.view.setPageLayout(this.backup[i], i);
     }
   }
+  commit(){}
 
   constructor(view: SuiScoreViewOperations) {
+    super(view);
     let i = 0;
     this.view = view;
     this.layoutManager = this.view.score.layoutManager!;
@@ -582,7 +603,7 @@ export class SuiPageLayoutAdapter {
 }
 // ## SuiLayoutDialog
 // The layout dialog has page-specific layout parameters
-export class SuiLayoutDialog extends SuiDialogBase {
+export class SuiLayoutDialog extends SuiDialogAdapterBase<SuiPageLayoutAdapter> {
   static get layoutParams() {
     return ['leftMargin', 'rightMargin', 'topMargin', 'bottomMargin', 'interGap', 'intraGap'];
   }
@@ -650,13 +671,9 @@ export class SuiLayoutDialog extends SuiDialogBase {
     const dg = new SuiLayoutDialog(parameters);
     dg.display();
   }
-  modifier: SuiPageLayoutAdapter;
   constructor(params: SuiDialogParams) {
-    const modifier = new SuiPageLayoutAdapter(params.view);
-    super(SuiLayoutDialog.dialogElements, params);
-    this.modifier = modifier;
+    const adapter = new SuiPageLayoutAdapter(params.view);
+    super(SuiLayoutDialog.dialogElements, { adapter, ...params });
   }
-  cancel() {
-    this.modifier.cancel();
-  }
+
 }

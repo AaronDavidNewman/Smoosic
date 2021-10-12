@@ -594,6 +594,7 @@ export interface SmoTextGroupParams {
   blocks: SmoTextBlock[]
 }
 
+export type SmoTextGroupPurpose = 'NONE' |'TITLE' | 'SUBTITLE' | 'COMPOSER' | 'COPYRIGHT';
 // ## SmoTextGroup
 // A grouping of text that can be used as a block for
 // justification, alignment etc.
@@ -615,7 +616,7 @@ export class SmoTextGroup extends SmoScoreModifierBase {
     return { ABOVE: 1, BELOW: 2, LEFT: 3, RIGHT: 4 };
   }
 
-  static get purposes() {
+  static get purposes(): Record<SmoTextGroupPurpose, number> {
     return {
       NONE: 1, TITLE: 2, SUBTITLE: 3, COMPOSER: 4, COPYRIGHT: 5
     };

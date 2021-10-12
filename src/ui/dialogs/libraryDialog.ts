@@ -1,50 +1,72 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiDialogBase, SuiDialogParams } from './dialog';
+import { SmoConfiguration } from '../../smo/data/common';
+import { SmoScore } from '../../smo/data/score';
+import { mxmlScore } from '../../smo/mxml/xmlScore';
+
+import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
+
 import { SmoLibrary } from '../fileio/library';
 import { SuiXhrLoader } from '../fileio/xhrLoader';
-import { mxmlScore } from '../../smo/mxml/xmlScore';
-import { SmoScore } from '../../smo/data/score';
+
+import { SuiDialogBase, SuiDialogParams } from './dialog';
 import { DialogDefinitionOption } from '../dialogComponents';
 import { TreeComponentOption, SuiTreeComponent } from './treeComponent';
-import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
-import { SmoConfiguration } from '../../smo/data/common';
+import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 
 declare var $: any;
 declare var SmoConfig: SmoConfiguration;
 
 export interface LibraryDefinitionElement {
   smoName: string,
-  parameterName: string,
-  dataType?: string
   control: string,
   root: string,
   label: string,
   options?: DialogDefinitionOption[]
 }
+/* export interface DialogDefinitionElement {
+  smoName: string,
+  control: string,
+  label: string,
+  startRow?: boolean,
+  options?: DialogDefinitionOption[]
+  increment?: number,
+  defaultValue?: number | string,
+  dataType?: string,
+  classes?: string,
+} */
 
 export interface LibraryDefinition {
   label: string,
   elements: LibraryDefinitionElement[],
   staticText: Record<string, string>[]
 }
-export class SuiLibraryAdapter {
+export class SuiLibraryAdapter extends SuiComponentAdapter {
   topLib: SmoLibrary;
+  elements: LibraryDefinition | null = null;
   selectedUrl: string = '';
-  libHash: Record<string, SmoLibrary>;
+  libHash: Record<string, SmoLibrary> = {};
   selectedLib: SmoLibrary | null;
-  tree: Record<string, SmoLibrary>;
-  okButton: any;
-  view: SuiScoreViewOperations;
+  tree: Record<string, SmoLibrary> = {};
   // If the selected lib is a leaf node (a score), this is the same as that
   selectedScore: SmoLibrary | null = null;
-  constructor(view: SuiScoreViewOperations, topLib: SmoLibrary) {
+  constructor(view: SuiScoreViewOperations) {
+    super(view);
+    this.topLib = new SmoLibrary({ url: SmoConfig.libraryUrl });
     this.libHash = {};
-    this.tree = {};
-    this.view = view;
-    this.libHash[topLib.url!] = topLib;
-    this.topLib = topLib;
     this.selectedLib = null;
+  }
+  loadPromise() {
+
+  }
+  initialize(): Promise<void> {
+    const self = this;
+    return new Promise<void>((resolve) => {
+      self.topLib.load().then(() => {
+        self.libHash[self.topLib.url!] = self.topLib;
+        resolve();
+      });
+    });
   }
   static addChildRecurse(options: TreeComponentOption[], parent: SmoLibrary, child: SmoLibrary) {
     options.push({ label: child.metadata.name, value: child.url, parent: parent.url, format: child.format, expanded: false });
@@ -69,12 +91,11 @@ export class SuiLibraryAdapter {
     this.tree = {};
     this.buildTreeRecurse(this.topLib.children);
   }
-  createOptions(topLib: SmoLibrary) {
-    const options: TreeComponentOption[] = [];
-    topLib.children.forEach((child) => {
-      SuiLibraryDialog.addChildRecurse(options, topLib, child);
-    });
-    return options;
+  commit() {
+
+  }
+  cancel() {
+
   }
   loadOptions(options: TreeComponentOption[]): Promise<void> {
     const self = this;
@@ -137,11 +158,10 @@ export class SuiLibraryAdapter {
 }
 // ## SuiLibraryDialog
 // Traverse the library nodes or load a score
-export class SuiLibraryDialog extends SuiDialogBase {
+export class SuiLibraryDialog extends SuiDialogAdapterBase<SuiLibraryAdapter> {
   static dialogElements: LibraryDefinition = {
     label: 'Music Library', elements: [{
       smoName: 'smoLibrary',
-      parameterName: 'smoLibrary',
       control: 'SuiTreeComponent',
       root: '',
       label: 'Selection',
@@ -149,67 +169,51 @@ export class SuiLibraryDialog extends SuiDialogBase {
     }],
     staticText: []
   };
-  static addChildRecurse(options: TreeComponentOption[], parent: SmoLibrary, child: SmoLibrary) {
-    options.push({ label: child.metadata.name, value: child.url, parent: parent.url, format: child.format, expanded: false });
-    child.children.forEach((gchild) => {
-      SuiLibraryDialog.addChildRecurse(options, child, gchild);
-    });
-  }
-  static _createOptions(topLib: SmoLibrary) {
-    const options: TreeComponentOption[] = [];
-    topLib.children.forEach((child) => {
-      SuiLibraryDialog.addChildRecurse(options, topLib, child);
-    });
-    return options;
-  }
   static _createElements(topLib: SmoLibrary) {
-    const elements = JSON.parse(JSON.stringify(SuiLibraryDialog.dialogElements));
+    const elements: LibraryDefinition = JSON.parse(JSON.stringify(SuiLibraryDialog.dialogElements));
     const tree = elements.elements[0];
-    tree.root = topLib.url;
-    tree.options = SuiLibraryDialog._createOptions(topLib);
+    tree.root = topLib.url!;
+    (tree.options as any) = SuiLibraryAdapter.createOptions(topLib);
     return elements;
   }
-  static _createAndDisplay(parameters: SuiDialogParams, topLib: SmoLibrary) {
-    const elements = SuiLibraryDialog._createElements(topLib);
-    const dg = new SuiLibraryDialog(parameters, elements, topLib);
+  static _createAndDisplay(parameters: SuiDialogParams, adapter: SuiLibraryAdapter) {
+    const elements = SuiLibraryDialog._createElements(adapter.topLib);
+    const dg = new SuiLibraryDialog(parameters, elements, adapter);
     dg.display();
   }
   static createAndDisplay(parameters: SuiDialogParams) {
-    const topLib = new SmoLibrary({ url: SmoConfig.libraryUrl });
-    topLib.load().then(() => SuiLibraryDialog._createAndDisplay(parameters, topLib));
+    const adapter = new SuiLibraryAdapter(parameters.view);
+    adapter.initialize().then(() => SuiLibraryDialog._createAndDisplay(parameters, adapter));
   }
-  okButton: any;
-  modifier: SuiLibraryAdapter;
-  constructor(parameters: SuiDialogParams, dialogElements: LibraryDefinition, topLib: SmoLibrary) {
-    parameters.modifier = new SuiLibraryAdapter(parameters.view, topLib);
-    super(dialogElements, parameters);
-    this.modifier = parameters.modifier;
+  constructor(parameters: SuiDialogParams, dialogElements: LibraryDefinition, adapter: SuiLibraryAdapter) {
+    super(dialogElements, { adapter, ...parameters });
   }
   commit() {
-    if (this.modifier.selectedScore !== null) {
-      if (this.modifier.selectedScore.format === 'mxml') {
-        this.modifier._loadXmlAndComplete();
+    if (this.adapter.selectedScore !== null) {
+      if (this.adapter.selectedScore.format === 'mxml') {
+        this.adapter._loadXmlAndComplete();
       } else {
-        this.modifier._loadJsonAndComplete();
+        this.adapter._loadJsonAndComplete();
       }
     } else {
       this.complete();
     }
   }
-
   get smoLibraryCtrl() {
     return this.cmap.smoLibraryCtrl as SuiTreeComponent;
   }
   changed() {
+    const okButton = $(this.dgDom.element).find('.ok-button');
     super.changed();
-    if (this.modifier.selectedLib!.format === 'library') {
-      $(this.okButton).prop('disabled', true);
+    if (this.adapter.selectedLib!.format === 'library') {
+      $(okButton).prop('disabled', true);
       const options: TreeComponentOption[] = [];
-      this.modifier.loadOptions(options).then(() => {
+      this.adapter.loadOptions(options).then(() => {
         this.smoLibraryCtrl.updateOptions(options);
+        $(this.smoLibraryCtrl._getInputElement()).find('li[data-value="'+this.smoLibraryCtrl.getValue()+'"] button.expander').click();
       });
     } else {
-      $(this.okButton).prop('disabled', false);
+      $(okButton).prop('disabled', false);
     }
   }
 }

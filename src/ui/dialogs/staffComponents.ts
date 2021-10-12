@@ -210,21 +210,16 @@ export class StaffAddRemoveComponent extends SuiComponentBase {
   view: SuiScoreViewOperations;
   createdShell: boolean = false;
   staticText: Record<string, string>;
-  modifier: SmoSystemGroup;
+  modifier: SmoSystemGroup | null = null;
   constructor(dialog: SuiDialogNotifier, parameter: StaffAddRemoveComponentParams) {
     super(dialog, parameter);
     this.view = this.dialog.getView();
     this.staticText = dialog.getStaticText();
     this.label = this.staticText['includeStaff'];
-    const mod = this.dialog.getModifier();
-    if (mod && SmoSystemGroup.isSystemGroup(mod)) {
-      this.modifier = mod;
-    } else {
-      this.modifier = new SmoSystemGroup(SmoSystemGroup.defaults);
-    }
   }
   setControlRows() {
-    let i = this.modifier.startSelector.staff;
+    const mod = this.modifier!;
+    let i = mod.startSelector.staff;
     this.staffRows = [];
     this.view.storeScore.staves.forEach((staff) => {
       const name = this.label + ' ' + (staff.staffId + 1);
@@ -238,23 +233,23 @@ export class StaffAddRemoveComponent extends SuiComponentBase {
         id: id
       }      
       // Toggle add of last row + 1
-      if (staff.staffId === this.modifier.endSelector.staff + 1) {
+      if (staff.staffId === mod.endSelector.staff + 1) {
 
         const rowElement = new SuiToggleComposite(this.dialog, elementParams);
         rowElement.parentControl = this;
         this.staffRows.push({
           showCtrl: rowElement
         });
-      } else if (staff.staffId > this.modifier.startSelector.staff &&
-        staff.staffId === this.modifier.endSelector.staff) {
+      } else if (staff.staffId > mod.startSelector.staff &&
+        staff.staffId === mod.endSelector.staff) {
         elementParams.classes = 'toggle-remove-row';
         // toggle remove of ultimate row, other than first row
         const rowElement = new SuiToggleComposite(this.dialog, elementParams);
         this.staffRows.push({
           showCtrl: rowElement
         });
-      } else if ((staff.staffId <= this.modifier.endSelector.staff) &&
-        (staff.staffId >= this.modifier.startSelector.staff)) {
+      } else if ((staff.staffId <= mod.endSelector.staff) &&
+        (staff.staffId >= mod.startSelector.staff)) {
         // toggle remove of ultimate row, other than first row
         elementParams.classes = 'toggle-disabled';
         const rowElement = new SuiToggleComposite(this.dialog,elementParams);
@@ -286,19 +281,23 @@ export class StaffAddRemoveComponent extends SuiComponentBase {
     return $('#' + pid);
   }
   getValue() {
-    let nextStaff = this.modifier.startSelector.staff;
-    const maxMeasure = this.modifier.endSelector.measure;
-    this.modifier.endSelector = JSON.parse(JSON.stringify(this.modifier.startSelector));
+    if (!this.modifier) {
+      throw 'No staff groups set for staff group component';
+    }
+    const mod = this.modifier;
+    let nextStaff = mod.startSelector.staff;
+    const maxMeasure = mod.endSelector.measure;
+    mod.endSelector = JSON.parse(JSON.stringify(mod.startSelector));
     this.staffRows.forEach((staffRow) => {
       if (staffRow.showCtrl.getValue()) {
-        this.modifier.endSelector = { staff: nextStaff, measure: maxMeasure, voice: 0, tick: 0, pitches: [] };
+        mod.endSelector = { staff: nextStaff, measure: maxMeasure, voice: 0, tick: 0, pitches: [] };
         nextStaff += 1;
       }
     });
     return this.modifier;
   }
   setValue(staffGroup: SmoSystemGroup) {
-    this.modifier = staffGroup; // would this be used?
+    this.modifier = staffGroup;
     this.updateGroupMembership();
   }
   changed() {
@@ -307,6 +306,10 @@ export class StaffAddRemoveComponent extends SuiComponentBase {
     this.updateGroupMembership();
   }
   bind() {
+    if (!this.modifier) {
+      return;
+    }
+    // Can't bind before initial set of modifier
     this.staffRows.forEach((row) => {
       row.showCtrl.bind();
     });
@@ -375,6 +378,9 @@ export class StaffCheckComponent extends SuiComponentBase {
     var pid = this.parameterId;
     return $(this.dialog.dgDom.element).find('#' + pid).find('.staffContainer');
   }
+  /* export interface StaffCheckValue {
+  show: boolean;
+}*/
   getValue(): StaffCheckValue[] {
     const rv = [];
     let i = 0;
@@ -407,7 +413,7 @@ export interface TextCheckComponentParams {
   smoName: string,
   control: string
 }
-export interface TextCheckComponentParamsValue {
+export interface TextCheckPair {
   checked: boolean,
   text: string
 }
@@ -457,13 +463,13 @@ export class TextCheckComponent extends SuiComponentBase {
     var pid = this.parameterId;
     return $('#' + pid);
   }
-  getValue(): TextCheckComponentParamsValue {
+  getValue(): TextCheckPair {
     return {
       checked: this.toggleCtrl.getValue(),
       text: this.textCtrl.getValue()
     };
   }
-  setValue(val: TextCheckComponentParamsValue) {
+  setValue(val: TextCheckPair) {
     this.toggleCtrl.setValue(val.checked);
     this.textCtrl.setValue(val.text);
   }
