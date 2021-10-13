@@ -145,6 +145,9 @@ export class SuiRockerComponent extends SuiComponentBase {
     if (SuiRockerComponent.dataTypes.indexOf(this.dataType) < 0) {
       throw new Error('dialog element invalid type ' + this.dataType);
     }
+    if (this.dataType === 'int' && this.increment < 1) {
+      throw new Error('int component with decimal increment');
+    }
     if (this.dataType === 'percent') {
       this.defaultValue = 100 * this.defaultValue;
     }
@@ -168,7 +171,7 @@ export class SuiRockerComponent extends SuiComponentBase {
   }
 
   get parameterId() {
-    return this.dialog.getId() + '-' + this.smoName;
+    return this.id;
   }
   handleChange() {
     this.changeFlag = true;
@@ -570,7 +573,7 @@ export class SuiButtonComposite extends SuiButtonComponent {
 export interface SuiRockerCompositeParams {
   id: string,
   classes: string,
-  type?: string,
+  dataType?: string,
   increment?: number,
   defaultValue: number,
   label: string,

@@ -11,7 +11,8 @@ import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { CompleteNotifier } from '../../application/common';
 import { BrowserEventSource } from '../../application/eventSource';
 import { UndoBuffer } from '../../smo/xform/undo';
-import { SuiDialogNotifier, DialogDefinitionElement, SuiComponentBase, DialogDefinitionOption } from '../dialogComponents';
+import { SuiDialogNotifier, DialogDefinitionElement, 
+  SuiComponentBase, DialogDefinitionOption, SuiBaseComponentParams } from '../dialogComponents';
 import { SuiScroller } from '../../render/sui/scroller';
 import { SmoNote } from '../../smo/data/note';
 import { EventHandler } from '../../application/eventSource';
@@ -212,17 +213,7 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
     this.applyDisplayOptions();
     this.initialValue();
   }
-  // Bind each component to this dialog's adapter get/set methods
-  bindAutobindComponents() {
-    if (this.autobind === false || this.modifier === null) {
-      return;
-    }
-    this.components.forEach((comp) => {
-      if (typeof((this.modifier as any)[comp.smoName]) !== 'undefined') {
-        this.boundComponents.push(comp);
-      }
-    });
-  }
+
     // ### bindElements
   // bing the generic controls in most dialogs.
   bindElements() {
@@ -246,7 +237,6 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
     this.components.forEach((component) => {
       component.bind();
     });
-    this.bindAutobindComponents();
   }
   initialValue(){
     if (this.modifier === null || this.autobind === false) {
@@ -378,7 +368,11 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
       } else {
         ctor = eval('globalThis.Smo.' + de.control);
       }
-      const control: SuiComponentBase = new ctor(this, de);
+      const classes = de.classes ? de.classes : '';
+      const compParams: SuiBaseComponentParams = {
+        classes, id: id + de.smoName, ...de
+      }
+      const control: SuiComponentBase = new ctor(this, compParams);
       this.components.push(control);
       this.cmap[de.smoName + 'Ctrl'] = control;
       ctrl.append(control.html);

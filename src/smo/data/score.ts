@@ -447,6 +447,8 @@ export class SmoScore {
       protomeasure = staff.measures[measureIndex];
     } else if (staff.measures.length) {
       protomeasure = staff.measures[staff.measures.length - 1];
+    } else {
+      protomeasure = SmoMeasure.defaults;
     }
     return SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
   }

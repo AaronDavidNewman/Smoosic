@@ -60,7 +60,7 @@ export class SuiFontComponent extends SuiComponentBase {
         classes: 'hide-when-editing hide-when-moving',
         control: 'SuiRockerComponent',
         label: 'Font Size',
-        type: 'float',
+        dataType: 'float',
         increment: 0.1
       },
     );
@@ -253,7 +253,7 @@ export class SuiTextBlockComponent extends SuiComponentParent {
         classes: 'hide-when-editing hide-when-moving',
         control: 'SuiRockerComponent',
         label: 'Spacing',
-        type: 'float',
+        dataType: 'float',
         increment: 0.1
       },
     );
