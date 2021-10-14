@@ -33,6 +33,7 @@ export class SmoScorePreferences {
   defaultDupleDuration: number = 4096;
   defaultTripleDuration: number = 6144;
   customProportion: number = 100;
+  showPiano: boolean = true;
 }
 export interface SmoScoreParams {
   instrumentMap: any[],
@@ -81,6 +82,9 @@ export class SmoScore {
     if (this.staves.length) {
       this.numberStaves();
     }
+    if (typeof(this.preferences.showPiano) === 'undefined') {
+      this.preferences.showPiano = true;
+    }
 
     this.updateMeasureFormats();
   }
@@ -114,7 +118,8 @@ export class SmoScore {
         autoAdvance: true,
         defaultDupleDuration: 4096,
         defaultTripleDuration: 6144,
-        customProportion: 100
+        customProportion: 100,
+        showPiano: true
       },
       startIndex: 0,
       staves: [],

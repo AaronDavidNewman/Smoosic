@@ -1,32 +1,17 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { htmlHelpers } from '../../common/htmlHelpers';
-import { SmoScore } from '../../smo/data/score';
-import { mxmlScore } from '../../smo/mxml/xmlScore';
-import { SmoMeasure } from '../../smo/data/measure';
 import { SvgBox } from '../../smo/data/common';
 import { UndoBuffer } from '../../smo/xform/undo';
-import { SmoSystemStaff, SmoSystemStaffParams } from '../../smo/data/systemStaff';
 
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiTracker } from '../../render/sui/tracker';
-
-import { SmoTranslator } from '../i18n/language';
-
 import { CompleteNotifier, ModalComponent } from '../../application/common';
 import { BrowserEventSource, EventHandler } from '../../application/eventSource';
-import { KeyEvent, KeyBinding } from '../../application/common';
+import { KeyBinding } from '../../application/common';
 
-import { SuiXhrLoader } from '../fileio/xhrLoader';
-import { SuiLayoutDialog, SuiScoreIdentificationDialog,
-  SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreFontDialog } from '../dialogs/scoreDialogs';
-import { SuiPrintFileDialog, SuiSaveFileDialog, 
-  /* SuiSaveActionsDialog,   SuiLoadActionsDialog, */
-  SuiLoadFileDialog, SuiSaveXmlDialog, SuiSaveMidiDialog, SuiLoadMxmlDialog } from '../dialogs/fileDialogs';
-import { SuiTimeSignatureDialog, SuiMeasureDialog, SuiInsertMeasures } from '../dialogs/measureDialogs';
-import { SuiStaffGroupDialog } from '../dialogs/staffDialogs';
-import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
+import { SuiMenuBase, SuiMenuParams } from './menu';
 declare var $: any;
 
 export interface SuiMenuManagerParams {

@@ -170,6 +170,20 @@ export class SuiPiano {
       $('body').trigger('forceResizeEvent');
     });
   }
+  static hidePiano() {
+    if ($('body').hasClass('show-piano')) {
+      $('body').removeClass('show-piano');
+      // resize the work area.
+      $('body').trigger('forceResizeEvent');
+    }
+  }
+  static showPiano() {
+    if ($('body').hasClass('show-piano') === false) {
+      $('body').addClass('show-piano');
+      // resize the work area.
+      $('body').trigger('forceResizeEvent');
+    }
+  }
   _updateSelections(ev: any) {
     // fake a scroller (piano scroller w/b cool tho...)
     var keyPressed =

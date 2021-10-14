@@ -62,7 +62,7 @@ export abstract class SuiMenuBase {
   abstract selection(ev: any): void;
   abstract getDefinition(): MenuDefinition;
   static printTranslate(_class: string): MenuChoiceTranslation {
-    const xx: any = eval('Smo.' + _class);    
+    const xx: any = eval('Smo.' + _class);
     const items: MenuChoiceDefinition[] = xx.defaults.menuItems as MenuChoiceDefinition[];
     const rvItems: MenuChoiceDefinition[] = [];
     items.forEach((item) => {

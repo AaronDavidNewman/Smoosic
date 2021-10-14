@@ -29,6 +29,7 @@ import { RibbonButtons } from '../ui/buttons/ribbon';
 // Language strings
 import { quickStartHtmlen, selectionHtmlen, enterDurationsHtmlen, enterPitchesHtmlen } from '../ui/i18n/language_en';
 import { quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHtmlar } from '../ui/i18n/language_ar';
+import { SuiScorePreferencesDialog } from '../ui/dialogs/scoreDialogs';
 
 // ui dialogs and menus
 // Dialogs
@@ -128,7 +129,7 @@ export const Smo = {
     SuiTimeSignatureDialog,SuiTextTransformDialog, SuiLyricDialog, SuiChordChangeDialog,
     SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
     SuiHairpinAttributesDialog, SuiStaffGroupDialog, helpModal,
-    SuiLoadFileDialog, SuiLoadMxmlDialog,
+    SuiLoadFileDialog, SuiLoadMxmlDialog, SuiScorePreferencesDialog,
     /* SuiLoadActionsDialog, SuiSaveActionsDialog, */
     SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
     SuiSaveMidiDialog, SuiDialogBase,

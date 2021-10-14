@@ -23,6 +23,7 @@ import { StaffModifierBase, SmoInstrument } from '../../smo/data/staffModifiers'
 import { SuiRenderState } from './renderState';
 import { htmlHelpers } from '../../common/htmlHelpers';
 import { SuiActionPlayback } from './actionPlayback';
+import { SuiPiano } from './piano';
 import { KeyEvent } from '../../application/common';
 declare var $: any;
 declare var SmoConfig: SmoConfiguration;
@@ -70,8 +71,8 @@ export class SuiScoreViewOperations extends SuiScoreView {
   updateScorePreferences(pref: SmoScorePreferences) {
     this._undoScorePreferences('Update preferences');
     // TODO: add action buffer here?
-    smoSerialize.serializedMerge(SmoScore.preferences, this.score, pref);
-    smoSerialize.serializedMerge(SmoScore.preferences, this.storeScore, pref);
+    this.score.preferences = JSON.parse(JSON.stringify(pref));
+    this.storeScore.preferences = JSON.parse(JSON.stringify(pref));
     this.renderer.setDirty();
   }
   // ### updateScorePreferences
@@ -660,6 +661,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
       }
     });
     this._renderChangedMeasures(measureSelections);
+  }
+  showPiano(value: boolean) {
+    this.score.preferences.showPiano = value;
+    this.storeScore.preferences.showPiano = value;
+    if (value) {
+      SuiPiano.showPiano();
+    } else {
+      SuiPiano.hidePiano();
+    }
   }
   /**
    * Add a pitch to the score at the cursor.  This tries to find the best pitch
