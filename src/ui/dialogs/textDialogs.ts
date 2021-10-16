@@ -2,7 +2,9 @@
 // Copyright (c) Aaron David Newman 2021.
 import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';
 import { SuiLyricComponent, SuiChordComponent, SuiTextInPlace, SuiDragText } from './textComponents';
-import { SuiRockerComponent, SuiDropdownComponent, SuiToggleComponent  } from '../dialogComponents';
+import { SuiDropdownComponent } from './components/dropdown';
+import { SuiToggleComponent } from './components/toggle';
+import { SuiRockerComponent } from './components/rocker';
 import { SuiHelp } from '../help';
 import { SmoConfiguration, SvgBox } from '../../smo/data/common';
 import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';

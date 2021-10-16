@@ -1,8 +1,12 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiTextInputComposite, SuiToggleComposite, SuiComponentBase, SuiDropdownComposite, SuiToggleComponent, 
-  SuiDialogNotifier, DialogDefinitionElement, SuiComponentParent, SuiToggleCompositeParams, SuiDropdownCompositeParams } from '../dialogComponents';
-import { htmlHelpers } from '../../common/htmlHelpers';
+import { SuiComponentBase,  
+  SuiDialogNotifier, DialogDefinitionElement, SuiComponentParent } from './components/baseComponent';
+import { SuiToggleCompositeParams, SuiToggleComposite } from './components/toggle';
+import { SuiTextInputComposite } from './components/textInput';
+import { SuiDropdownCompositeParams, SuiDropdownComposite } from './components/dropdown';
+
+  import { htmlHelpers } from '../../common/htmlHelpers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SmoTie, TieLine } from '../../smo/data/staffModifiers';
 import { SmoNote } from '../../smo/data/note';

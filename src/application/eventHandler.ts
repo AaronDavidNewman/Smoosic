@@ -4,7 +4,7 @@
 import { RibbonButtons } from '../ui/buttons/ribbon';
 import { SuiExceptionHandler } from '../ui/exceptions';
 import { Qwerty } from '../ui/qwerty';
-import { SuiModifierDialogFactory } from '../ui/dialogs/dialog';
+import { SuiModifierDialogFactory } from '../ui/dialogs/factory';
 import { SuiPiano } from '../render/sui/piano'
 import { layoutDebug } from '../render/sui/layoutDebug';
 import { SuiHelp } from '../ui/help';
@@ -16,6 +16,7 @@ import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { BrowserEventSource, EventHandler } from './eventSource';
 import { SuiKeyCommands } from './keyCommands';
 import { ModalComponent, KeyBinding, KeyEvent } from './common';
+import { ModifierTab } from '../smo/xform/selections';
 import { SvgHelpers } from '../render/sui/svgHelpers';
 import { SuiMenuManager } from '../ui/menus/manager';
 
@@ -143,7 +144,7 @@ export class SuiEventHandler {
     }, 1);
   }
 
-  createModifierDialog(modifierSelection: any) {
+  createModifierDialog(modifierSelection: ModifierTab) {
     var parameters = {
       modifier: modifierSelection.modifier,
       view: this.view, eventSource: this.eventSource,
@@ -154,7 +155,7 @@ export class SuiEventHandler {
       id: 'modifier-dialog',
       undoBuffer: this.view.undoBuffer
     }
-    return SuiModifierDialogFactory.createDialog(modifierSelection.modifier, parameters);
+    return SuiModifierDialogFactory.createModifierDialog(modifierSelection.modifier, parameters);
   }
 
   // If the user has selected a modifier via the mouse/touch, bring up mod dialog

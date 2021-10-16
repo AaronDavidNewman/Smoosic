@@ -8,7 +8,7 @@ import { GlobalLayoutAttributes, SmoTextGroup, SmoPageLayout, SmoLayoutManager, 
 import { ViewMapEntry } from '../../render/sui/scoreView';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 
-import { DialogDefinitionOption } from '../dialogComponents';
+import { DialogDefinitionOption } from './components/baseComponent';
 import { StaffCheckComponent, TextCheckPair } from './staffComponents';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';

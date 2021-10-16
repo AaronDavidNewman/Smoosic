@@ -35,9 +35,10 @@ export interface LocalModifier {
 export interface HighlightQueue {
   selectionCount: number, deferred: boolean
 }
-// ## SuiMapper
-// Map the notes in the svg so they can respond to events and interact
-// with the mouse/keyboard
+/**
+ * Map the notes in the svg so they can respond to events and interact
+ * with the mouse/keyboard
+ */
 export abstract class SuiMapper {
   renderer: SuiRendererBase;
   scroller: SuiScroller;

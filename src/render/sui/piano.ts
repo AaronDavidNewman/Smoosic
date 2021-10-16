@@ -165,9 +165,8 @@ export class SuiPiano {
     });
     // the close button on piano itself
     $('.close-piano').off('click').on('click', () => {
-      $('body').removeClass('show-piano');
-      // resize the work area.
-      $('body').trigger('forceResizeEvent');
+      this.view.score.preferences.showPiano = false;
+      this.view.updateScorePreferences(this.view.score.preferences);
     });
   }
   static hidePiano() {

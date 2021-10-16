@@ -10,7 +10,7 @@ import { SmoLibrary } from '../fileio/library';
 import { SuiXhrLoader } from '../fileio/xhrLoader';
 
 import { SuiDialogBase, SuiDialogParams } from './dialog';
-import { DialogDefinitionOption } from '../dialogComponents';
+import { DialogDefinitionOption } from './components/baseComponent';
 import { TreeComponentOption, SuiTreeComponent } from './treeComponent';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 

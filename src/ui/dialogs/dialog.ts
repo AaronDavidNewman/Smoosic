@@ -12,22 +12,43 @@ import { CompleteNotifier } from '../../application/common';
 import { BrowserEventSource } from '../../application/eventSource';
 import { UndoBuffer } from '../../smo/xform/undo';
 import { SuiDialogNotifier, DialogDefinitionElement, 
-  SuiComponentBase, DialogDefinitionOption, SuiBaseComponentParams } from '../dialogComponents';
+  SuiComponentBase, DialogDefinitionOption, SuiBaseComponentParams } from './components/baseComponent';
 import { SuiScroller } from '../../render/sui/scroller';
 import { SmoNote } from '../../smo/data/note';
 import { EventHandler } from '../../application/eventSource';
+import { TimeSignature } from '../../../release/smoosic';
 
 declare var $: any;
+/**
+ * The JSON dialog template.  
+ * @param label for the dialog itself
+ * @param elements a series of elements that define the component
+ * @param staticText a hash of text for the dialog and components to use
+ */
 export interface DialogDefinition {
   label: string,
   elements: DialogDefinitionElement[],
   staticText: Record<string, string>[]
 }
+/**
+ * A translation of the labels in DialogDefintionElement
+ * @param label the component label
+ * @param id used as a key in translation tool
+ * @param options options for dropdown and other array components
+ */
 export interface DialogTranslationElement {
   label: string,
   id: string,
   options?: DialogDefinitionOption[]
 }
+/**
+ * A translation of all the strings in the dialog itself, used 
+ * when switching languages.
+ * @param ctor the constructor for the dialog class, used to call static methods
+ * @param label the translated label
+ * @param dialogElements the translated component json
+ * @param staticText translated misc text 
+ */
 export interface DialogTranslation {
   ctor: string,
   label: string,
@@ -35,7 +56,18 @@ export interface DialogTranslation {
   staticText: Record<string, string>
 }
 
-// # Dialog base classes
+/**
+ * Dialog params always contain basic information about the runtime
+ * for modal functionality
+ * @param ctor dialog constructor
+ * @param id DOM id for the dialog
+ * @param tracker to get and set selections
+ * @param completeNotifier used to take over key/mouse control
+ * @param startPromise used if this is called from another modal element
+ * @param view the MVVM object to change the score
+ * @param eventSource event source to register for additional events like mouseup
+ * @param undoBuffer used to create undo
+ */
 export interface SuiDialogParams {
   ctor: string,
   id: string,
@@ -49,48 +81,24 @@ export interface SuiDialogParams {
   modifier?: any,
   autobind?: boolean
 }
+
+/**
+ * internal interface used to create the DOM
+ */
 export interface SuiDomParams {
   id: string,
   top: number,
   left: number,
   label: string
 }
+/**
+ * DOM interface for the dialog
+ * @param element parent element
+ * @param trapper used to trap focus events for the dialog
+ */
 export interface DialogDom {
   element: any,
   trapper: any
-}
-/**
- * Dialogs bound to selectable elements like slurs, dynamics, are created 
- * directly from a button/menu option
- */
-export class SuiModifierDialogFactory {
-  static createDialog(modifier: SmoModifier, parameters: SuiDialogParams) {
-    let dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
-    parameters.modifier = modifier;
-    if (dbType === 'SuiLyricDialog' && (modifier as SmoLyric).parser === SmoLyric.parsers.chord) {
-      dbType = 'SuiChordChangeDialog';
-    }
-    if (typeof (dbType) === 'undefined') {
-      return null;
-    }
-    const ctor: any = eval('globalThis.Smo.' + dbType);
-    return ctor.createAndDisplay({
-      ...parameters
-    });
-  }
-  static get modifierDialogMap(): Record<string, string> {
-    return {
-      SmoStaffHairpin: 'SuiHairpinAttributesDialog',
-      SmoTie: 'SuiTieAttributesDialog',
-      SmoSlur: 'SuiSlurAttributesDialog',
-      SmoDynamicText: 'SuiDynamicModifierDialog',
-      SmoVolta: 'SuiVoltaAttributeDialog',
-      SmoScoreText: 'SuiTextTransformDialog',
-      SmoTextGroup: 'SuiTextTransformDialog',
-      SmoLoadScore: 'SuiLoadFileDialog',
-      SmoLyric: 'SuiLyricDialog'
-    };
-  }
 }
 
 // ## SuiDialogBase

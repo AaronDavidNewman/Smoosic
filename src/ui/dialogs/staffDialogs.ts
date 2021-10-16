@@ -193,14 +193,6 @@ export class SuiSlurAttributesDialog extends SuiDialogAdapterBase<SuiSlurAdapter
           label: 'Control Point 2 Y'
         }], staticText: []
       };
-  static createAndDisplay(parameters: SuiDialogParams) {
-    if (!parameters.modifier.renderedBox) {
-      return null;
-    }
-    var dg = new SuiSlurAttributesDialog(parameters);
-    dg.display();
-    return dg;
-  }
   constructor(parameters: SuiDialogParams) {
     const adapter = new SuiSlurAdapter(parameters.view, parameters.modifier);
     super(SuiSlurAttributesDialog.dialogElements, { adapter, ...parameters });

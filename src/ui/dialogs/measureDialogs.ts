@@ -6,11 +6,11 @@ import { SmoTempoText, SmoTempoNumberAttribute, SmoTempoStringAttribute, SmoTemp
   TimeSignature, SmoMeasureFormat, SmoMeasureFormatNumberAttributes, SmoMeasueFormatBooleanAttributes } from '../../smo/data/measureModifiers';
 import { SmoInstrument, SmoInstrumentParams } from '../../smo/data/staffModifiers';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
+import { SuiToggleComponent } from './components/toggle';
 
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
-
+import { SuiRockerComponent } from './components/rocker';
 import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';
-import { SuiToggleComponent, SuiRockerComponent, SuiDropdownComponent } from '../dialogComponents';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 
 declare var $: any;

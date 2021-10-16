@@ -1,7 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiToggleComposite, SuiComponentBase, SuiDropdownComposite, SuiButtonComposite,
-  SuiRockerComposite, SuiDialogNotifier, SuiComponentParent } from '../dialogComponents';
+import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent } from './components/baseComponent';
+import { SuiDropdownComposite } from './components/dropdown';
+import { SuiRockerComposite } from './components/rocker';
+import { SuiToggleComposite } from './components/toggle';
+import { SuiButtonComposite } from './components/button';
 import { SmoTextGroup, SmoScoreText } from '../../smo/data/scoreModifiers';
 import { htmlHelpers } from '../../common/htmlHelpers';
 import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';

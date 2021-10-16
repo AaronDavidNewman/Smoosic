@@ -33,7 +33,8 @@ import { SuiScorePreferencesDialog } from '../ui/dialogs/scoreDialogs';
 
 // ui dialogs and menus
 // Dialogs
-import { SuiModifierDialogFactory, SuiDialogBase } from '../ui/dialogs/dialog';
+import { SuiDialogBase } from '../ui/dialogs/dialog';
+import { SuiModifierDialogFactory } from '../ui/dialogs/factory';
 import { SuiTempoDialog, SuiInstrumentDialog, SuiMeasureDialog, SuiInsertMeasures,
     SuiTimeSignatureDialog } from '../ui/dialogs/measureDialogs';
 import { SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog,
@@ -48,12 +49,12 @@ import { SuiLoadMxmlDialog, SuiLoadFileDialog,
     SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
     SuiSaveMidiDialog } from '../ui/dialogs/fileDialogs';
     // Dialog components
-import {
-    SuiDropdownComponent, SuiRockerComponent, SuiFileDownloadComponent,
-    SuiToggleComponent, SuiButtonComponent, SuiDropdownComposite,
-    SuiToggleComposite, SuiButtonComposite, SuiRockerComposite, SuiTextInputComposite,
-    SuiTextInputComponent
-} from '../ui/dialogComponents';
+import { SuiTextInputComponent, SuiTextInputComposite } from '../ui/dialogs/components/textInput';
+import { SuiDropdownComponent, SuiDropdownComposite } from '../ui/dialogs/components/dropdown';
+import { SuiButtonComposite, SuiButtonComponent } from '../ui/dialogs/components/button';
+import { SuiToggleComponent, SuiToggleComposite } from '../ui/dialogs/components/toggle';
+import { SuiFileDownloadComponent } from '../ui/dialogs/components/fileDownload';
+import { SuiRockerComponent, SuiRockerComposite } from '../ui/dialogs/components/rocker';
 import { SuiFontComponent, SuiTextBlockComponent } from '../ui/dialogs/fontComponent';
 import { SuiTreeComponent } from '../ui/dialogs/treeComponent';
 import {

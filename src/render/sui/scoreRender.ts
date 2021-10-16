@@ -152,7 +152,7 @@ export class SuiScoreRender extends SuiRenderState {
     const measureKeySig = SmoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
     measure.svg.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
     measure.svg.forceTimeSignature = (measure.measureNumber.measureIndex === 0 || 
-      (!SmoMeasure.timeSigEqual(timeSigLast, measure.timeSignature)) || measure.timeSignatureString.length >= 0);
+      (!SmoMeasure.timeSigEqual(timeSigLast, measure.timeSignature)) || measure.timeSignatureString.length > 0);
     if (measure.timeSignature.display === false) {
       measure.svg.forceTimeSignature = false;
     }

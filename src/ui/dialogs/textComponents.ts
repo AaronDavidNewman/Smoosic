@@ -4,7 +4,7 @@ import { SuiTextSession, SuiDragSession, SuiLyricSession, SuiChordSession } from
 import { SuiInlineText } from '../../render/sui/textRender';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { htmlHelpers } from '../../common/htmlHelpers';
-import { SuiBaseComponentParams, SuiComponentBase, SuiDialogNotifier } from '../dialogComponents';
+import { SuiBaseComponentParams, SuiComponentBase, SuiDialogNotifier } from './components/baseComponent';
 import { SuiScroller } from '../../render/sui/scroller';
 import { SmoTextGroup } from '../../smo/data/scoreModifiers';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';

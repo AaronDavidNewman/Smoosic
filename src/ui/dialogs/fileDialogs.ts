@@ -4,8 +4,8 @@ import { SuiDialogBase, SuiDialogParams, DialogDefinition } from './dialog';
 import { SmoScore } from '../../smo/data/score';
 import { mxmlScore } from '../../smo/mxml/xmlScore';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
-import { SuiFileDownloadComponent, SuiTextInputComponent } from '../dialogComponents';
-import { SuiDialogAdapterBase, SuiDialogAdapterParams, SuiComponentAdapter } from './adapter';
+import { SuiFileDownloadComponent } from './components/fileDownload';
+import { SuiDialogAdapterBase, SuiComponentAdapter } from './adapter';
 declare var $: any;
 
 /**
