@@ -1,7 +1,8 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 import { SuiMenuBase, SuiMenuParams } from './menu';
 import { SmoMeasure } from '../../smo/data/measure';
-import { SuiTimeSignatureDialog } from '../dialogs/measureDialogs';
-import { SmoScore } from '../../smo/data/score';
+import { SuiTimeSignatureDialog } from '../dialogs/timeSignature';
 
 declare var $: any;
 

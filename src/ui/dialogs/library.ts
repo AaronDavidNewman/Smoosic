@@ -9,9 +9,9 @@ import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SmoLibrary } from '../fileio/library';
 import { SuiXhrLoader } from '../fileio/xhrLoader';
 
-import { SuiDialogBase, SuiDialogParams } from './dialog';
+import { SuiDialogParams } from './dialog';
 import { DialogDefinitionOption } from './components/baseComponent';
-import { TreeComponentOption, SuiTreeComponent } from './treeComponent';
+import { TreeComponentOption, SuiTreeComponent } from './components/tree';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 
 declare var $: any;
@@ -24,18 +24,6 @@ export interface LibraryDefinitionElement {
   label: string,
   options?: DialogDefinitionOption[]
 }
-/* export interface DialogDefinitionElement {
-  smoName: string,
-  control: string,
-  label: string,
-  startRow?: boolean,
-  options?: DialogDefinitionOption[]
-  increment?: number,
-  defaultValue?: number | string,
-  dataType?: string,
-  classes?: string,
-} */
-
 export interface LibraryDefinition {
   label: string,
   elements: LibraryDefinitionElement[],

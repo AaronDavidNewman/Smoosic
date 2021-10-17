@@ -50,13 +50,6 @@ export class SuiLoadFileDialog extends SuiDialogAdapterBase<SuiSmoLoadAdapter> {
       ],
       staticText: []
     };
-  static createAndDisplay(params: SuiDialogParams) {
-    const dg = new SuiLoadFileDialog(params);
-    dg.display();
-    // disable until file is selected
-    $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
-  }
-
   get loadFileCtrl() {
     return this.cmap['loadFileCtrl'] as SuiFileDownloadComponent;
   }
@@ -123,12 +116,6 @@ export class SuiLoadMxmlDialog extends SuiDialogAdapterBase<SuiXmlLoadAdapter> {
     const adapter = new SuiXmlLoadAdapter(parameters.view);
     super(SuiLoadMxmlDialog.dialogElements, { adapter, ...parameters });
   }
-  static createAndDisplay(params: SuiDialogParams) {
-    const dg = new SuiLoadMxmlDialog(params);
-    dg.display();
-    // disable until file is selected
-    $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
-  }
   changed() {
     super.changed();
     const enable = this.adapter.loadFile.length < 1;
@@ -191,12 +178,6 @@ export class SuiPrintFileDialog extends SuiDialogBase {
     elements: [],
     staticText: []
   };
-
-  static createAndDisplay(params: SuiDialogParams) {
-    var dg = new SuiPrintFileDialog(params);
-    dg.display();
-  }
-
   constructor(parameters: SuiDialogParams) {
     parameters.ctor = 'SuiPrintFileDialog';
     super(SuiPrintFileDialog.dialogElements, parameters);
@@ -266,10 +247,6 @@ export class SuiSaveFileDialog extends SuiDialogAdapterBase<SuiSmoSaveAdapter>{
   commit() {
     this.adapter.commit();
   }
-  static createAndDisplay(params: SuiDialogParams) {
-    var dg = new SuiSaveFileDialog(params);
-    dg.display();
-  }
 }
 
 export class SuiXmlSaveAdapter extends SuiComponentAdapter {
@@ -316,10 +293,6 @@ export class SuiSaveXmlDialog extends SuiDialogAdapterBase<SuiXmlSaveAdapter> {
   commit() {
     this.adapter.commit();
   }
-  static createAndDisplay(params: SuiDialogParams) {
-    var dg = new SuiSaveXmlDialog(params);
-    dg.display();
-  }
 }
 
 export class SuiMidiSaveAdapter extends SuiComponentAdapter {
@@ -365,10 +338,6 @@ export class SuiSaveMidiDialog extends SuiDialogAdapterBase<SuiMidiSaveAdapter> 
   }
   commit() {
     this.adapter.commit();
-  }
-  static createAndDisplay(params: SuiDialogParams) {
-    var dg = new SuiSaveMidiDialog(params);
-    dg.display();
   }
 }
 /* 

@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiComponentBase, SuiDialogNotifier } from './components/baseComponent';
-import { htmlHelpers } from '../../common/htmlHelpers';
+import { SuiComponentBase, SuiDialogNotifier } from './baseComponent';
+import { htmlHelpers } from '../../../common/htmlHelpers';
 declare var $: any;
 
 export interface TreeComponentOption {

@@ -1,6 +1,6 @@
 import { SuiMenuBase, SuiMenuParams } from './menu';
 import { SmoSystemStaffParams, SmoSystemStaff } from '../../smo/data/systemStaff';
-import { SuiStaffGroupDialog } from '../dialogs/staffDialogs';
+import { SuiStaffGroupDialog } from '../dialogs/staffGroup';
 
 declare var $: any;
 

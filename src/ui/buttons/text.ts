@@ -1,6 +1,8 @@
 import { SuiButton, SuiButtonParams } from './button';
-import { SuiLyricDialog, SuiChordChangeDialog, SuiTextTransformDialog } from '../dialogs/textDialogs';
-import { SmoLyric } from '../../smo/data/noteModifiers';
+import { SuiTextBlockDialog } from '../dialogs/textBlock';
+import { SuiLyricDialog } from '../dialogs/lyric';
+import { SuiChordChangeDialog } from '../dialogs/chordChange';
+import { createAndDisplayDialog } from '../dialogs/dialog';
 declare var $: any;
 
 export class TextButtons extends SuiButton {
@@ -39,7 +41,7 @@ export class TextButtons extends SuiButton {
     }
     const lyrics = note.getChords();
     const lyric = lyrics.length > 0 ? null : lyrics[0];
-    SuiChordChangeDialog.createAndDisplay(
+    createAndDisplayDialog(SuiChordChangeDialog,
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,
@@ -65,8 +67,7 @@ export class TextButtons extends SuiButton {
   }
 
   addTextMenu() {
-    SuiTextTransformDialog.createAndDisplay(
-      {
+    createAndDisplayDialog(SuiTextBlockDialog, {
         completeNotifier: this.completeNotifier!,
         view: this.view,
         undoBuffer: this.view.undoBuffer,

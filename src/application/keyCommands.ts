@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiTempoDialog } from '../ui/dialogs/measureDialogs';
+import { SuiTempoDialog } from '../ui/dialogs/tempo';
 import { SuiAudioPlayer } from '../render/audio/player';
 import { SmoArticulation } from '../smo/data/noteModifiers';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';

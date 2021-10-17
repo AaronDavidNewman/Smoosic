@@ -20,7 +20,8 @@ import { TimeSignature } from '../../../release/smoosic';
 
 declare var $: any;
 /**
- * The JSON dialog template.  
+ * The JSON dialog template is a declaritive structore for the html of the dialog
+ * and components.  
  * @param label for the dialog itself
  * @param elements a series of elements that define the component
  * @param staticText a hash of text for the dialog and components to use
@@ -460,4 +461,12 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
     this.boundKeyboard = true;
     this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
   }
+}
+export function dialogConstructor<T extends SuiDialogBase>(type: { new(parameters: SuiDialogParams): T; }, parameters: SuiDialogParams ): T {
+  return new type(parameters);
+}
+export function createAndDisplayDialog<T extends SuiDialogBase>(ctor: new (parameters: SuiDialogParams) => T, parameters: SuiDialogParams): T {
+  const instance: T = dialogConstructor<T>(ctor, parameters);
+  instance.display();
+  return instance;
 }

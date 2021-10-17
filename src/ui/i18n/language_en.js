@@ -906,7 +906,7 @@ export const smoLanguageStringEn = `{
       }
      },
      {
-      "ctor": "SuiTextTransformDialog",
+      "ctor": "SuiTextBlockDialog",
       "label": "Text Properties",
       "dialogElements": [
        {

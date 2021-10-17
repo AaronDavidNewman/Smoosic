@@ -193,7 +193,7 @@ export class SmoTranslator {
       'SuiDynamicModifierDialog',
       'SuiLyricDialog',
       'SuiChordChangeDialog',
-      'SuiTextTransformDialog'
+      'SuiTextBlockDialog'
     ];
   }
   static get allHelpFiles() {

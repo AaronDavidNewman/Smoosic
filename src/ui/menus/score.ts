@@ -1,8 +1,10 @@
 import { MenuDefinition, SuiMenuBase, SuiMenuParams } from './menu';
-import {
-  SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog,
-  SuiScoreFontDialog, SuiLayoutDialog, SuiScorePreferencesDialog
-} from '../dialogs/scoreDialogs';
+import { SuiScorePreferencesDialog } from '../dialogs/preferences';
+import { SuiScoreIdentificationDialog } from '../dialogs/scoreId';
+import { SuiPageLayoutDialog } from '../dialogs/pageLayout';
+import { SuiScoreFontDialog } from '../dialogs/scoreId';
+import { SuiGlobalLayoutDialog } from '../dialogs/globalLayout';
+import { SuiScoreViewDialog } from '../dialogs/scoreView';
 
 declare var $: any;
 export class SuiScoreMenu extends SuiMenuBase {
@@ -75,14 +77,14 @@ export class SuiScoreMenu extends SuiMenuBase {
       });
   }
   execPageLayout() {
-    SuiLayoutDialog.createAndDisplay(
+    SuiPageLayoutDialog.createAndDisplay(
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,
         undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         id: 'layoutDialog',
-        ctor: 'SuiLayoutDialog',
+        ctor: 'SuiPageLayoutDialog',
         tracker: this.view.tracker,
         modifier: null,
         startPromise: this.closePromise

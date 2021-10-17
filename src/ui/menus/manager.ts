@@ -20,7 +20,6 @@ export interface SuiMenuManagerParams {
   completeNotifier: CompleteNotifier;
   undoBuffer: UndoBuffer;
   menuContainer: string;
-  tracker: SuiTracker
 }
 
 export class SuiMenuManager {
@@ -43,7 +42,7 @@ export class SuiMenuManager {
     this.bound = false;
     this.menuContainer = params.menuContainer;
     this.undoBuffer = params.undoBuffer;
-    this.tracker = params.tracker;
+    this.tracker = params.view.tracker;
   }
 
   static get defaults() {

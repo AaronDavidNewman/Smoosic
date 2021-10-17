@@ -1,149 +1,163 @@
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent } from './components/baseComponent';
-import { SuiDropdownComposite } from './components/dropdown';
-import { SuiRockerComposite } from './components/rocker';
-import { SuiToggleComposite } from './components/toggle';
-import { SuiButtonComposite } from './components/button';
-import { SmoTextGroup, SmoScoreText } from '../../smo/data/scoreModifiers';
-import { htmlHelpers } from '../../common/htmlHelpers';
-import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';
-import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
-import { FontInfo } from '../../smo/data/common';
+import { SuiTextSession } from '../../../render/sui/textEdit';
+import { SuiScroller } from '../../../render/sui/scroller';
+import { SmoScoreText, SmoTextGroup } from '../../../smo/data/scoreModifiers';
+import { SuiScoreViewOperations } from '../../../render/sui/scoreViewOperations';
+import { SuiDialogNotifier, SuiComponentBase, SuiComponentParent } from './baseComponent';
+import { SuiButtonComposite } from './button';
+import { SuiRockerComposite } from './rocker';
+import { SuiDropdownComposite } from './dropdown';
+import { SuiInlineText } from '../../../render/sui/textRender';
+import { KeyEvent } from '../../../application/common';
+import { htmlHelpers } from '../../../common/htmlHelpers';
+
 declare var $: any;
 
-export interface SuiFontComponentParams {
+// ## SuiTextInPlace
+// Edit the text in an SVG element, in the same scale etc. as the text in the score SVG DOM.
+// This component just manages the text editing component of hte renderer.
+export interface SuiTextInPlaceParams {
   id: string,
   classes: string,
   label: string,
   smoName: string,
   control: string
 }
-// ## SuiFontComponent
-// Dialog component that lets user choose and customize fonts.
-export class SuiFontComponent extends SuiComponentBase {
-  familyPart: SuiDropdownComposite;
-  sizePart: SuiRockerComposite;
-  italicsCtrl: SuiToggleComposite;
-  boldCtrl: SuiToggleComposite;
-  constructor(dialog: SuiDialogNotifier, parameter: SuiFontComponentParams) {
+export class SuiTextInPlace extends SuiComponentBase {
+  scroller: SuiScroller;
+  editMode: boolean = false;
+  value: SmoTextGroup;
+  staticText: Record<string, string>;
+  altLabel: string;
+  view: SuiScoreViewOperations;
+  session: SuiTextSession | null = null;
+  constructor(dialog: SuiDialogNotifier, parameter: SuiTextInPlaceParams) {
     super(dialog, parameter);
-    this.dialog = dialog;
-    const familyId = this.id + 'fontFamily';
-    const sizeId = this.id + 'fontSize';
-
-    this.familyPart = new SuiDropdownComposite(this.dialog,
-      {
-        id: familyId,
-        smoName: 'fontFamily',
-        classes: 'hide-when-editing hide-when-moving',
-        defaultValue: SmoScoreText.fontFamilies.times,
-        control: 'SuiDropdownComponent',
-        label: 'Font Family',
-        parentControl: this,
-        options: [
-          { label: 'Arial', value: 'Arial' },
-          { label: 'Times New Roman', value: 'Times New Roman' },
-          { label: 'Serif', value: SourceSerifProFont.fontFamily },
-          { label: 'Sans', value: SourceSansProFont.fontFamily },
-          { label: 'Roboto Slab', value: 'Roboto Slab' },
-          { label: 'Petaluma', value: 'Petaluma Script' },
-          { label: 'Commissioner', value: 'Commissioner' },
-          { label: 'Concert One', value: 'ConcertOne' },
-          { label: 'Merriweather', value: 'Merriweather' }
-        ]
-      });
-    this.sizePart = new SuiRockerComposite(
-      this.dialog,
-      {
-        id: sizeId,
-        smoName: 'fontSize',
-        defaultValue: 1,
-        parentControl: this,
-        classes: 'hide-when-editing hide-when-moving',
-        control: 'SuiRockerComponent',
-        label: 'Font Size',
-        dataType: 'float',
-        increment: 0.1
-      },
-    );
-    this.italicsCtrl = new SuiToggleComposite(
-      this.dialog,
-      {
-        id: this.id + 'italics',
-        smoName: 'italics',
-        parentControl: this,
-        classes: 'hide-when-editing hide-when-moving',
-        control: 'SuiToggleComponent',
-        label: 'Italics'
-      }
-    );
-    this.boldCtrl = new SuiToggleComposite(
-      this.dialog,
-      {
-        id: this.id + 'bold',
-        smoName: 'bold',
-        parentControl: this,
-        classes: 'hide-when-editing hide-when-moving',
-        control: 'SuiToggleComponent',
-        label: 'Bold'
-      }
-    );
+    this.scroller = dialog.getView().scroller;
+    this.value = new SmoTextGroup(SmoTextGroup.defaults);
+    this.view = this.dialog.getView();
+    const modifier = this.dialog.getModifier();
+    if (modifier && SmoTextGroup.isTextGroup(modifier)) {
+      this.value = modifier;
+    }
+    this.staticText = this.dialog.getStaticText();
+    this.altLabel = this.staticText.editorLabel;
   }
-  changed() {
-    this.handleChanged();
-  }
+  show() {}
+  hide() {}
 
   get html() {
     const b = htmlHelpers.buildDom;
-    const q = b('div').classes(this.makeClasses('multiControl smoControl')).attr('id', this.parameterId);
-    if (this.label) {
-      q.append(b('h3').classes('font-purpose').text(this.label));
-    }
-    q.append(this.familyPart.html);
-    q.append(this.sizePart.html);
-    q.append(this.boldCtrl.html);
-    q.append(this.italicsCtrl.html);
-
-    return q;
+    const id = this.parameterId;
+    const r = b('div').classes(this.makeClasses('cbTextInPlace smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
+      .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
+        .attr('id', id + '-input').append(
+          b('span').classes('icon icon-pencil'))
+        .append(
+          b('label').attr('for', id + '-input').text(this.label)));
+    return r;
   }
+  endSession() {
+    $(this._getInputElement()).find('label').text(this.label);
+    const button = document.getElementById(this.parameterId);
+    $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
+    this.value.skipRender = false;
 
+    const render = () => {
+      this.view.renderer.setRefresh();
+    };
+    if (this.session) {
+      this.session.textGroup.tryParseUnicode();
+      this.value = this.session.textGroup;
+      this.session.stopSession().then(render);
+    }
+    $('body').removeClass('text-edit');
+    this.handleChanged();
+  }
+  get isRunning() {
+    return this.session && this.session.isRunning;
+  }
+  getValue() {
+    return this.value;
+  }
   _getInputElement() {
     var pid = this.parameterId;
-    return $(this.dialog.dgDom.element).find('#' + pid).find('select');
+    return $(this.dialog.dgDom.element).find('#' + pid).find('button');
   }
-  getValue(): FontInfo {
-    return {
-      family: this.familyPart.getValue().toString(),
-      size: this.sizePart.getValue(),
-      weight: this.boldCtrl.getValue() ? 'bold' : 'normal',
-      style: this.italicsCtrl.getValue() ? 'italics' : 'normal'
-    };
-  }
-  setValue(value: FontInfo) {
-    let italics = false;
-    // upconvert font size, all font sizes now in points.
-    if (typeof(value.size) !== 'number') {
-      value.size = SmoScoreText.fontPointSize(value.size);
+  mouseMove(ev: any) {
+    if (this.session && this.session.isRunning) {
+      this.session.handleMouseEvent(ev);
     }
-    if (value.style && value.style === 'italics') {
-      italics = true;
-    }
-    const boldString = SmoScoreText.weightString(value.weight);
-    const bold = boldString === 'bold';
-    this.boldCtrl.setValue(bold);
-    this.italicsCtrl.setValue(italics);
-    this.familyPart.setValue(value.family);
-    this.sizePart.setValue(value.size);
   }
 
+  mouseClick(ev: any) {
+    if (this.session && this.session.isRunning) {
+      this.session.handleMouseEvent(ev);
+    }
+  }
+  _renderInactiveBlocks() {
+    const modifier = this.value;
+    const context = this.view.renderer.context;
+    context.save();
+    context.setFillStyle('#ddd');
+    modifier.textBlocks.forEach((block) => {
+      const st = block.text;
+      if (st.attrs.id !== this.value.getActiveBlock().attrs.id) {
+        const svgText = SuiInlineText.fromScoreText(st, context, this.scroller);
+        if (st.logicalBox) {
+          svgText.startX += st.logicalBox.x - st.x;
+          svgText.startY += (st.y - st.logicalBox.y) - st.logicalBox.height / 2;
+        }
+        const sgrp = context.openGroup();
+        sgrp.classList.add('inactive-text');
+        sgrp.classList.add('suiInlineText');
+        svgText.render();
+        context.closeGroup();
+      }
+    });
+    context.restore();
+  }
+  startEditSession() {
+    $(this._getInputElement()).find('label').text(this.altLabel);
+    const modifier = this.value;
+    modifier.skipRender = true;
+    $(this.view.renderer.context.svg).find('#' + modifier.attrs.id).remove();
+    this._renderInactiveBlocks();
+    const ul = modifier.ul();
+
+    // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
+    this.session = new SuiTextSession({
+      renderer: this.view.renderer,
+      scroller: this.scroller,
+      x: ul.x,
+      y: ul.y,
+      textGroup: modifier,
+      text: modifier.getActiveBlock().text,
+      scoreText: modifier.getActiveBlock()
+    });
+    $('body').addClass('text-edit');
+    this.value = this.session.textGroup;
+    const button = document.getElementById(this.parameterId);
+    $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
+    this.session.startSession();
+    // blur the button so key events don't get passed to it.
+    $(this._getInputElement()).blur();
+  }
+  evKey(evdata: KeyEvent) {
+    if (this.session) {
+      this.session.evKey(evdata);
+    }
+  }
   bind() {
-    this.familyPart.bind();
-    this.sizePart.bind();
-    this.boldCtrl.bind();
-    this.italicsCtrl.bind();
+    $(this._getInputElement()).off('click').on('click', () => {
+      if (this.session && this.session.isRunning) {
+        this.endSession();
+      } else {
+        this.startEditSession();
+      }
+    });
   }
 }
+
 
 export interface SuiTextBlockComponentParams {
   id: string,
@@ -352,3 +366,4 @@ export class SuiTextBlockComponent extends SuiComponentParent {
     this.spacingCtrl.bind();
   }
 }
+

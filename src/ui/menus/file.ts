@@ -1,4 +1,5 @@
 import { SuiMenuBase, SuiMenuParams } from './menu';
+import { createAndDisplayDialog } from '../dialogs/dialog';
 import {
   SuiSaveFileDialog, SuiPrintFileDialog, 
   // SuiSaveActionsDialog, SuiLoadActionsDialog, 
@@ -67,7 +68,7 @@ export class SuiFileMenu extends SuiMenuBase {
   }
   systemPrint() {
     window.print();
-    SuiPrintFileDialog.createAndDisplay({
+    createAndDisplayDialog(SuiPrintFileDialog, {
       ctor: 'SuiPrintFileDialog',
       id: 'print',
       eventSource: this.eventSource,
@@ -83,7 +84,7 @@ export class SuiFileMenu extends SuiMenuBase {
     const text = $(ev.currentTarget).attr('data-value');
     const self = this;
     if (text === 'saveFile') {
-      SuiSaveFileDialog.createAndDisplay({
+      createAndDisplayDialog(SuiSaveFileDialog, {
         ctor: 'SuiSaveFileDialog',
         id: 'save',
         modifier: null,
@@ -119,7 +120,7 @@ export class SuiFileMenu extends SuiMenuBase {
         startPromise: this.closePromise
       });  */
     } else if (text === 'openFile') {
-      SuiLoadFileDialog.createAndDisplay({
+      createAndDisplayDialog(SuiLoadFileDialog, {
         ctor: 'SuiLoadFileDialog',
         id: 'loadFile',
         modifier: null,
@@ -141,7 +142,7 @@ export class SuiFileMenu extends SuiMenuBase {
       };
       this.view.renderer.renderForPrintPromise().then(systemPrint);
     } else if (text === 'exportXml') {
-      SuiSaveXmlDialog.createAndDisplay({
+      createAndDisplayDialog(SuiSaveXmlDialog, {
         ctor: 'SuiSaveXmlDialog',
         id: 'save',
         modifier: null,
@@ -153,7 +154,7 @@ export class SuiFileMenu extends SuiMenuBase {
         startPromise: this.closePromise
       });
     } else if (text === 'exportMidi') {
-      SuiSaveMidiDialog.createAndDisplay({
+      createAndDisplayDialog(SuiSaveMidiDialog, {
         ctor: 'SuiSaveMidiDialog',
         id: 'save',
         modifier: null,
@@ -165,7 +166,7 @@ export class SuiFileMenu extends SuiMenuBase {
         startPromise: this.closePromise
       });
     } else if (text === 'importMxml') {
-      SuiLoadMxmlDialog.createAndDisplay({
+      createAndDisplayDialog(SuiLoadMxmlDialog, {
         ctor: 'SuiLoadMxmlDialog',
         id: 'save',
         modifier: null,

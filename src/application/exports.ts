@@ -29,21 +29,31 @@ import { RibbonButtons } from '../ui/buttons/ribbon';
 // Language strings
 import { quickStartHtmlen, selectionHtmlen, enterDurationsHtmlen, enterPitchesHtmlen } from '../ui/i18n/language_en';
 import { quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHtmlar } from '../ui/i18n/language_ar';
-import { SuiScorePreferencesDialog } from '../ui/dialogs/scoreDialogs';
 
 // ui dialogs and menus
 // Dialogs
 import { SuiDialogBase } from '../ui/dialogs/dialog';
 import { SuiModifierDialogFactory } from '../ui/dialogs/factory';
-import { SuiTempoDialog, SuiInstrumentDialog, SuiMeasureDialog, SuiInsertMeasures,
-    SuiTimeSignatureDialog } from '../ui/dialogs/measureDialogs';
-import { SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog,
-    SuiScoreFontDialog, SuiLayoutDialog,  } from '../ui/dialogs/scoreDialogs';
-import { SuiLibraryDialog } from '../ui/dialogs/libraryDialog';
-import { SuiDynamicModifierDialog, SuiTextTransformDialog, SuiLyricDialog, SuiChordChangeDialog,
-  helpModal } from '../ui/dialogs/textDialogs';
-import { SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
-    SuiHairpinAttributesDialog, SuiStaffGroupDialog } from '../ui/dialogs/staffDialogs';
+import { SuiMeasureDialog } from '../ui/dialogs/measureFormat';
+import { SuiInsertMeasures } from '../ui/dialogs/addMeasure';
+import { SuiInstrumentDialog } from '../ui/dialogs/instrument';
+import { SuiTimeSignatureDialog } from '../ui/dialogs/timeSignature';
+import { SuiTempoDialog } from '../ui/dialogs/tempo';
+import { SuiScoreIdentificationDialog } from '../ui/dialogs/scoreId';
+import { SuiScorePreferencesDialog } from '../ui/dialogs/preferences';
+import { SuiPageLayoutDialog } from '../ui/dialogs/pageLayout';
+import { SuiScoreFontDialog } from '../ui/dialogs/scoreId';
+import { SuiGlobalLayoutDialog } from '../ui/dialogs/globalLayout';
+import { SuiScoreViewDialog } from '../ui/dialogs/scoreView';import { SuiLibraryDialog } from '../ui/dialogs/library';
+import { SuiChordChangeDialog } from '../ui/dialogs/chordChange';
+import { SuiLyricDialog } from '../ui/dialogs/lyric';
+import { SuiTextBlockDialog, helpModal } from '../ui/dialogs/textBlock';
+import { SuiDynamicModifierDialog } from '../ui/dialogs/dynamics';
+import { SuiSlurAttributesDialog } from '../ui/dialogs/slur';
+import { SuiTieAttributesDialog } from '../ui/dialogs/tie';
+import { SuiVoltaAttributeDialog } from '../ui/dialogs/volta';
+import { SuiHairpinAttributesDialog } from '../ui/dialogs/hairpin';
+import { SuiStaffGroupDialog } from '../ui/dialogs/staffGroup';
 import { SuiLoadMxmlDialog, SuiLoadFileDialog,
     /* SuiLoadActionsDialog,  SuiSaveActionsDialog, */
     SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
@@ -55,14 +65,20 @@ import { SuiButtonComposite, SuiButtonComponent } from '../ui/dialogs/components
 import { SuiToggleComponent, SuiToggleComposite } from '../ui/dialogs/components/toggle';
 import { SuiFileDownloadComponent } from '../ui/dialogs/components/fileDownload';
 import { SuiRockerComponent, SuiRockerComposite } from '../ui/dialogs/components/rocker';
-import { SuiFontComponent, SuiTextBlockComponent } from '../ui/dialogs/fontComponent';
-import { SuiTreeComponent } from '../ui/dialogs/treeComponent';
+import { SuiFontComponent } from '../ui/dialogs/components/fontComponent';
+import { SuiTextBlockComponent } from '../ui/dialogs/components/textInPlace';
+import { SuiTreeComponent } from '../ui/dialogs/components/tree';
 import {
-    SuiTextInPlace, SuiLyricComponent, SuiChordComponent, SuiDragText,
+    SuiLyricComponent, SuiChordComponent,
     SuiNoteTextComponent
-} from '../ui/dialogs/textComponents';
-import { CheckboxDropdownComponent, TieMappingComponent, StaffAddRemoveComponent,
-    StaffCheckComponent, TextCheckComponent} from '../ui/dialogs/staffComponents';
+} from '../ui/dialogs/components/noteText';
+import { SuiDragText } from '../ui/dialogs/components/dragText';
+import { SuiTextInPlace } from '../ui/dialogs/components/textInPlace';
+import { CheckboxDropdownComponent } from '../ui/dialogs/components/checkdrop';
+import { TieMappingComponent } from '../ui/dialogs/components/tie';
+import { StaffAddRemoveComponent,
+    StaffCheckComponent} from '../ui/dialogs/components/staffComponents';
+import { TextCheckComponent } from '../ui/dialogs/components/textCheck';
 // menus
 import { SuiMenuManager} from '../ui/menus/manager';
 import { SuiMenuBase } from '../ui/menus/menu';
@@ -126,8 +142,8 @@ export const Smo = {
     // Dialogs
     SuiTempoDialog, SuiInstrumentDialog, SuiModifierDialogFactory, SuiLibraryDialog,
     SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog,
-    SuiScoreFontDialog, SuiLayoutDialog, SuiMeasureDialog, SuiInsertMeasures,
-    SuiTimeSignatureDialog,SuiTextTransformDialog, SuiLyricDialog, SuiChordChangeDialog,
+    SuiScoreFontDialog, SuiPageLayoutDialog, SuiMeasureDialog, SuiInsertMeasures,
+    SuiTimeSignatureDialog,SuiTextBlockDialog, SuiLyricDialog, SuiChordChangeDialog,
     SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
     SuiHairpinAttributesDialog, SuiStaffGroupDialog, helpModal,
     SuiLoadFileDialog, SuiLoadMxmlDialog, SuiScorePreferencesDialog,

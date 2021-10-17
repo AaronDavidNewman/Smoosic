@@ -1,24 +1,17 @@
 
 import { SmoModifier } from '../../smo/data/score';
-import { SuiDialogBase, SuiDialogParams } from './dialog';
-import { SuiHairpinAttributesDialog } from './staffDialogs';
-import { SuiTieAttributesDialog } from './staffDialogs';
-import { SuiLyricDialog } from './textDialogs';
-import { SuiTextTransformDialog } from './textDialogs';
-import { SmoLyric } from '../../smo/data/noteModifiers';
+import { SuiDialogBase, SuiDialogParams, createAndDisplayDialog } from './dialog';
+import { SuiHairpinAttributesDialog } from './hairpin';
+import { SuiSlurAttributesDialog } from './slur';
+import { SuiVoltaAttributeDialog } from './volta';
+import { SuiLyricDialog } from './lyric';
+import { SuiTieAttributesDialog } from './tie';
+import { SuiDynamicModifierDialog } from './dynamics';
+import { SuiTextBlockDialog } from './textBlock';
 
-
-export function dialogConstructor<T extends SuiDialogBase>(type: { new(parameters: SuiDialogParams): T; }, parameters: SuiDialogParams ): T {
-  return new type(parameters);
-}
-export function createAndDisplay<T extends SuiDialogBase>(ctor: new (parameters: SuiDialogParams) => T, parameters: SuiDialogParams): T {
-  const instance: T = dialogConstructor<T>(ctor, parameters);
-  instance.display();
-  return instance;
-}
 export type ModifiersWithDialogs = 'SmoStaffHairpin' | 'SmoTie' | 'SmoSlur' | 'SmoDynamicText' | 'SmoVolta' | 'SmoScoreText' | 'SmoLoadScore' | 'SmoLyric';
 export var ModifiersWithDialogNames = ['SmoStaffHairpin', 'SmoTie', 'SmoSlur', 'SmoDynamicText', 'SmoVolta',
-  'SmoScoreText', 'SmoLoadScore', 'SmoLyric'];
+  'SmoScoreText', 'SmoLoadScore', 'SmoLyric', 'SmoTextGroup'];
 
 export function isModifierWithDialog(modifier: SmoModifier) {
   return ModifiersWithDialogNames.indexOf(modifier.attrs.type) >= 0;
@@ -28,52 +21,26 @@ export function isModifierWithDialog(modifier: SmoModifier) {
  * directly from a button/menu option
  */
  export class SuiModifierDialogFactory {
-  static createDialog(modifier: SmoModifier, parameters: SuiDialogParams) {
-    let dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
-    parameters.modifier = modifier;
-    if (dbType === 'SuiLyricDialog' && (modifier as SmoLyric).parser === SmoLyric.parsers.chord) {
-      dbType = 'SuiChordChangeDialog';
-    }
-    if (typeof (dbType) === 'undefined') {
-      return null;
-    }
-    const ctor: any = eval('globalThis.Smo.' + dbType);
-    return ctor.createAndDisplay({
-      ...parameters
-    });
-  }
   static createModifierDialog(modifier: SmoModifier, parameters: SuiDialogParams): SuiDialogBase | null {
     if (!isModifierWithDialog(modifier)) {
       return null;
     }
     const ctor = modifier.attrs.type;
+    parameters.modifier = modifier;
     if (ctor === 'SmoStaffHairpin') {
-      return createAndDisplay(SuiHairpinAttributesDialog, parameters);
+      return createAndDisplayDialog(SuiHairpinAttributesDialog, parameters);
     } else if (ctor === 'SmoTie') {
-      return createAndDisplay(SuiTieAttributesDialog, parameters);
+      return createAndDisplayDialog(SuiTieAttributesDialog, parameters);
     } else if (ctor === 'SmoSlur') {
-      return createAndDisplay(SuiTieAttributesDialog, parameters);
+      return createAndDisplayDialog(SuiSlurAttributesDialog, parameters);
     } else if (ctor === 'SmoDynamicText') {
-      return createAndDisplay(SuiTieAttributesDialog, parameters);
+      return createAndDisplayDialog(SuiDynamicModifierDialog, parameters);
     } else if (ctor === 'SmoVolta') {
-      return createAndDisplay(SuiTieAttributesDialog, parameters);
+      return createAndDisplayDialog(SuiVoltaAttributeDialog, parameters);
     } else if (ctor === 'SmoTextGroup') {
-      return createAndDisplay(SuiTextTransformDialog, parameters);
+      return createAndDisplayDialog(SuiTextBlockDialog, parameters);
     } else {
-      return createAndDisplay(SuiLyricDialog, parameters);
+      return createAndDisplayDialog(SuiLyricDialog, parameters);
     }
-  }
-  static get modifierDialogMap(): Record<string, string> {
-    return {
-      SmoStaffHairpin: 'SuiHairpinAttributesDialog',
-      SmoTie: 'SuiTieAttributesDialog',
-      SmoSlur: 'SuiSlurAttributesDialog',
-      SmoDynamicText: 'SuiDynamicModifierDialog',
-      SmoVolta: 'SuiVoltaAttributeDialog',
-      SmoScoreText: 'SuiTextTransformDialog',
-      SmoTextGroup: 'SuiTextTransformDialog',
-      SmoLoadScore: 'SuiLoadFileDialog',
-      SmoLyric: 'SuiLyricDialog'
-    };
   }
 }
