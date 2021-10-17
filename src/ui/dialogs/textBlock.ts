@@ -125,11 +125,6 @@ export class SuiTextBlockDialog extends SuiDialogBase {
           { draggerLabel: 'Done Dragging Text' }
         ]
       };
-  static createAndDisplay(parameters: SuiDialogParams) {
-    const dg = new SuiTextBlockDialog(parameters);
-    dg.display();
-    return dg;
-  }
   edited: boolean;
   modifier: SmoTextGroup;
   backup: SmoTextGroup;

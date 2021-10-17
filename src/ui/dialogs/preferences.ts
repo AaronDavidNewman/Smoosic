@@ -105,12 +105,6 @@ export class SuiScorePreferencesDialog extends SuiDialogAdapterBase<SuiScorePref
       }],
       staticText: []
     }
-  // ### createAndDisplay
-  // static method to create the object and then display it.
-  static createAndDisplay(parameters: SuiDialogParams) {
-    const dg = new SuiScorePreferencesDialog(parameters);
-    dg.display();
-  }
   constructor(params: SuiDialogParams) {
     const adapter = new SuiScorePreferencesAdapter(params.view);
     super(SuiScorePreferencesDialog.dialogElements, { adapter, ...params });

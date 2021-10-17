@@ -193,12 +193,6 @@ export class SuiPageLayoutDialog extends SuiDialogAdapterBase<SuiPageLayoutAdapt
         { current: 'Current Page' }
       ]
     };
-  // ### createAndDisplay
-  // static method to create the object and then display it.
-  static createAndDisplay(parameters: SuiDialogParams) {
-    const dg = new SuiPageLayoutDialog(parameters);
-    dg.display();
-  }
   constructor(params: SuiDialogParams) {
     const adapter = new SuiPageLayoutAdapter(params.view);
     super(SuiPageLayoutDialog.dialogElements, { adapter, ...params });

@@ -111,13 +111,6 @@ export class SuiMeasureDialog extends SuiDialogAdapterBase<SuiMeasureFormatAdapt
           }],
           staticText: []
       };
-  static createAndDisplay(parameters: SuiDialogParams) {
-    // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
-    //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
-    const dg = new SuiMeasureDialog(parameters);
-    dg.display();
-    return dg;
-  }
   constructor(parameters: SuiDialogParams) {
     const selection = parameters.view.tracker.selections[0];
     const measure = selection.measure;

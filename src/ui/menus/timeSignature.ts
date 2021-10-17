@@ -2,6 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SuiMenuBase, SuiMenuParams } from './menu';
 import { SmoMeasure } from '../../smo/data/measure';
+import { createAndDisplayDialog } from '../dialogs/dialog';
 import { SuiTimeSignatureDialog } from '../dialogs/timeSignature';
 
 declare var $: any;
@@ -57,7 +58,7 @@ export class SuiTimeSignatureMenu extends SuiMenuBase {
   selection(ev: any) {
     var text = $(ev.currentTarget).attr('data-value');
     if (text === 'TimeSigOther') {
-      SuiTimeSignatureDialog.createAndDisplay({
+      createAndDisplayDialog(SuiTimeSignatureDialog, {
         completeNotifier: this.completeNotifier!,
         view: this.view,
         undoBuffer: this.view.undoBuffer,

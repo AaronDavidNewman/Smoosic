@@ -1,6 +1,7 @@
 import { SuiMenuBase, SuiMenuParams } from './menu';
 import { SmoSystemStaffParams, SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SuiStaffGroupDialog } from '../dialogs/staffGroup';
+import { createAndDisplayDialog } from '../dialogs/dialog';
 
 declare var $: any;
 
@@ -98,7 +99,7 @@ export class SuiStaffMenu extends SuiMenuBase {
     return SuiStaffMenu.defaults;
   }
   execStaffGroups() {
-    SuiStaffGroupDialog.createAndDisplay(
+    createAndDisplayDialog(SuiStaffGroupDialog,
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,

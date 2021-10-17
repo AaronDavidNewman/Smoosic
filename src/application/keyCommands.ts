@@ -1,6 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SuiTempoDialog } from '../ui/dialogs/tempo';
+import { createAndDisplayDialog } from '../ui/dialogs/dialog';
 import { SuiAudioPlayer } from '../render/audio/player';
 import { SmoArticulation } from '../smo/data/noteModifiers';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
@@ -28,7 +29,7 @@ export class SuiKeyCommands {
 
   tempoDialog() {
     const tempo = this.tracker.selections[0].measure.getTempo();
-    SuiTempoDialog.createAndDisplay(
+    createAndDisplayDialog(SuiTempoDialog,
       {
         id: 'tempoDialog',
         ctor: 'SuiTempoDialog',

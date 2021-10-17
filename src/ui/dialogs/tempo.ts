@@ -216,12 +216,7 @@ export class SuiTempoDialog extends SuiDialogAdapterBase<SuiTempoAdapter> {
         ],
         staticText: []
       };
-  static createAndDisplay(parameters: SuiDialogParams) {
-    const dg = new SuiTempoDialog(parameters);
-    dg.display();
-    return dg;
-  }
-  showHideCustom() {
+  showHideCustom(): void {
     if (this.adapter.tempoMode === 'custom') {
       this.cmap.customTextCtrl.show();
     } else {

@@ -69,11 +69,6 @@ export class SuiLyricDialog extends SuiDialogBase {
           { label: 'Lyric Editor' }
         ]
     };
-  static createAndDisplay(parameters: SuiDialogParams) {
-    const dg = new SuiLyricDialog(parameters);
-    dg.display();
-    return dg;
-  }
   originalRefreshTimer: number;
   modifier: SmoLyric | null = null;
   verse: number = 0;

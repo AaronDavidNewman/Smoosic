@@ -7,11 +7,21 @@ import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { CompleteNotifier } from '../../application/common';
 import { SuiTracker } from '../../render/sui/tracker';
 import { SuiMenuManager } from '../menus/manager';
+import { SuiLibraryDialog } from '../dialogs/library';
+import { SuiTempoDialog } from '../dialogs/tempo';
+import { SuiInstrumentDialog } from '../dialogs/instrument';
 import { ButtonLabel } from './button';
+import { SuiPiano } from '../../render/sui/piano';
 import { CollapseRibbonControl } from './collapsable';
-import { SuiDialogParams } from '../dialogs/dialog';
+import { createAndDisplayDialog, SuiDialogParams } from '../dialogs/dialog';
 
 declare var $: any;
+
+export type SuiModalButtonTypes = 'SuiLibraryDialog' | 'SuiTempoDialog' | 'SuiInstrumentDialog';
+export var SuiModalButtonStrings = ['SuiLibraryDialog', 'SuiTempoDialog', 'SuiInstrumentDialog'];
+export function isModalButtonType(but: string | SuiModalButtonTypes): but is SuiModalButtonTypes {
+  return SuiModalButtonStrings.indexOf(but) >= 0;
+}
 
 export interface RibbonLayout {
   left: string[],
@@ -80,18 +90,27 @@ export class RibbonButtons {
     this.collapseChildren = [];
   }
   _executeButtonModal(buttonElement: string, buttonData: ButtonDefinition) {
-    const ctor = eval('globalThis.Smo.' + buttonData.ctor);
-    const dialogParams: SuiDialogParams = {
-      undoBuffer: this.view.undoBuffer,
-      eventSource: this.eventSource,
-      completeNotifier: this.controller,
-      view: this.view,
-      ctor: buttonData.ctor,
-      id: buttonData.id,
-      startPromise: null,
-      tracker: this.view.tracker
-    };
-    ctor.createAndDisplay(dialogParams);
+    if (buttonData.ctor === 'SuiPiano') {
+      SuiPiano.createAndDisplay();
+    } else if (isModalButtonType(buttonData.ctor)) {
+      const params = {
+        undoBuffer: this.view.undoBuffer,
+        eventSource: this.eventSource,
+        completeNotifier: this.controller,
+        view: this.view,
+        ctor: buttonData.ctor,
+        id: buttonData.id,
+        startPromise: null,
+        tracker: this.view.tracker
+      };
+      if (buttonData.ctor === 'SuiInstrumentDialog') {
+        createAndDisplayDialog(SuiInstrumentDialog, params);
+      } else if (buttonData.ctor === 'SuiLibraryDialog') {
+        SuiLibraryDialog.createAndDisplay(params);
+      } else {
+        createAndDisplayDialog(SuiTempoDialog, params);
+      }
+    }
   }
   _executeButtonMenu(buttonElement: string, buttonData: ButtonDefinition) {
     this.menus.slashMenuMode(this.controller);

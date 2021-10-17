@@ -18,7 +18,7 @@ export class TextButtons extends SuiButton {
     const lyrics = note.getTrueLyrics();
     const lyric = lyrics.length > 0 ? null : lyrics[0];
 
-    SuiLyricDialog.createAndDisplay(
+    createAndDisplayDialog(SuiLyricDialog, 
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,

@@ -119,11 +119,6 @@ export class SuiTieAttributesDialog extends SuiDialogAdapterBase<SuiTieAdapter> 
           label: 'Tie Spacing'
         }],
       };
-  static createAndDisplay(parameters: SuiDialogParams) {
-    var dg = new SuiTieAttributesDialog(parameters);
-    dg.display();
-    return dg;
-  }
   constructor(parameters: SuiDialogParams) {
     if (!parameters.modifier) {
       throw new Error('modifier attribute dialog must have modifier');

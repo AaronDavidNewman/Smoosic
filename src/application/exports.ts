@@ -42,7 +42,7 @@ import { SuiTempoDialog } from '../ui/dialogs/tempo';
 import { SuiScoreIdentificationDialog } from '../ui/dialogs/scoreId';
 import { SuiScorePreferencesDialog } from '../ui/dialogs/preferences';
 import { SuiPageLayoutDialog } from '../ui/dialogs/pageLayout';
-import { SuiScoreFontDialog } from '../ui/dialogs/scoreId';
+import { SuiScoreFontDialog } from '../ui/dialogs/fonts';
 import { SuiGlobalLayoutDialog } from '../ui/dialogs/globalLayout';
 import { SuiScoreViewDialog } from '../ui/dialogs/scoreView';import { SuiLibraryDialog } from '../ui/dialogs/library';
 import { SuiChordChangeDialog } from '../ui/dialogs/chordChange';

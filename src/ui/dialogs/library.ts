@@ -169,6 +169,7 @@ export class SuiLibraryDialog extends SuiDialogAdapterBase<SuiLibraryAdapter> {
     const dg = new SuiLibraryDialog(parameters, elements, adapter);
     dg.display();
   }
+  /** Library requires a load first, so createAndDisplayDialog won't work on it */
   static createAndDisplay(parameters: SuiDialogParams) {
     const adapter = new SuiLibraryAdapter(parameters.view);
     adapter.initialize().then(() => SuiLibraryDialog._createAndDisplay(parameters, adapter));

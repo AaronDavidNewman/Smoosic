@@ -126,11 +126,6 @@ export class SuiInstrumentDialog extends SuiDialogAdapterBase<SuiInstrumentAdapt
           ],
           staticText: []
       };
-  static createAndDisplay(parameters: SuiDialogParams) {
-    var db = new SuiInstrumentDialog(parameters);
-    db.display();
-    return db;
-  }
   constructor(parameters: SuiDialogParams) {
     const adapter = new SuiInstrumentAdapter(parameters.view);
     super(SuiInstrumentDialog.dialogElements, { adapter, ...parameters });

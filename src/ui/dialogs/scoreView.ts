@@ -52,10 +52,6 @@ export class SuiScoreViewDialog extends SuiDialogAdapterBase<SuiScoreViewAdapter
         }],
       staticText: []
     };
-  static createAndDisplay(parameters: SuiDialogParams) {
-    const dg = new SuiScoreViewDialog(parameters);
-    dg.display();
-  }
   originalValue: number[];
   constructor(parameters: SuiDialogParams) {
     const adapter = new SuiScoreViewAdapter(parameters.view);

@@ -137,10 +137,6 @@ export class SuiGlobalLayoutDialog extends SuiDialogAdapterBase<SuiGlobalLayoutA
         }],
       staticText: []
     };
-  static createAndDisplay(parameters: SuiDialogParams) {
-    const dg = new SuiGlobalLayoutDialog(parameters);
-    dg.display();
-  }
   get dimensionControls() {
     return [this.cmap.pageSizeCtrl, this.cmap.pageWidthCtrl, this.cmap.pageHeightCtrl];
   }

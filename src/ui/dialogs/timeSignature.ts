@@ -115,11 +115,4 @@ export class SuiTimeSignatureDialog extends SuiDialogAdapterBase<SuiTimeSignatur
     const adapter = new SuiTimeSignatureAdapter(parameters.view);
     super(SuiTimeSignatureDialog.dialogElements, { adapter, ...parameters });
   }
-  static createAndDisplay(params: SuiDialogParams) {
-    var dg = new SuiTimeSignatureDialog(
-      params
-    );
-    dg.display();
-    return dg;
-  }
 }
