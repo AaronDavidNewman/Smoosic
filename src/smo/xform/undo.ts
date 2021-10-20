@@ -54,12 +54,10 @@ export class UndoBuffer {
   // ### serializeMeasure
   // serialize a measure, preserving the column-mapped bits which aren't serialized on a full score save.
   static serializeMeasure(measure: SmoMeasure) {
-    const attrColumnHash: any = {};
-    const attrCurrentValue: any  = {};
     const json: any = measure.serialize();
-    measure.serializeColumnMapped(attrColumnHash, attrCurrentValue);
-    Object.keys(attrCurrentValue).forEach((key) => {
-      json[key] = attrCurrentValue[key];
+    const columnMapped : any = measure.serializeColumnMapped();
+    Object.keys(columnMapped).forEach((key) => {
+      json[key] = columnMapped[key];
     });
     return json;
   }

@@ -509,7 +509,7 @@ export class SmoMusic {
    */
   static vexKeySigWithOffset(vexKey: string, offset: number): string {
     const pk: PitchKey = SmoMusic.vexToSmoKey(vexKey);
-    const pi: number = SmoMusic.smoPitchToInt(SmoMusic.pitchKeyToPitch(pk));
+    const pi: number = SmoMusic.smoPitchToInt(SmoMusic.pitchKeyToPitch(pk)) + offset;
     let newKey: string = SmoMusic.toValidKeySignature(SmoMusic.pitchToVexKey(SmoMusic.smoIntToPitch(pi)));
     // handle equivalent ks
     if (newKey === 'c#' && vexKey.indexOf('b') >= 0) {

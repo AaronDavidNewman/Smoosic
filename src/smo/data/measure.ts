@@ -53,6 +53,13 @@ export interface MeasureTickmaps {
   accidentalMap: Record<string | number, Record<PitchLetter, TickAccidental>>,
   accidentalArray: AccidentalArray[]
 }
+export interface ColumnMappedParams {
+  // ['timeSignature', 'keySignature', 'tempo']
+  timeSignature: any,
+  keySignature: string,
+  tempo: any
+}
+
 export interface SmoMeasureParams {
   timeSignature: TimeSignature,
   timeSignatureString: string,
@@ -195,7 +202,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     // Handle legacy time signature format
     if (params.timeSignature) {
       const tsAny = params.timeSignature as any;
-      if (typeof(tsAny) === 'string') {
+      if (typeof (tsAny) === 'string') {
         this.timeSignature = SmoMeasure.convertLegacyTimeSignature(tsAny);
       } else {
         this.timeSignature = new TimeSignature(tsAny);
@@ -261,33 +268,13 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   // Some measure attributes that apply to the entire column are serialized
   // separately.  Serialize those attributes, but only add them to the
   // hash if they already exist for an earlier measure
-  serializeColumnMapped(attrColumnHash: any, attrCurrentValue: any) {
-    let curValue = '';
-    SmoMeasure.columnMappedAttributes.forEach((attr) => {
-      const field: any = (this as any)[attr];
-      if (field) {
-        curValue = field;
-        if (!attrColumnHash[attr]) {
-          attrColumnHash[attr] = {};
-          attrCurrentValue[attr] = {};
-        }
-        const curAttrHash = attrColumnHash[attr];
-        // If this is key signature, make sure we normalize to concert pitch
-        // from instrument pitch
-        if (attr === 'keySignature') {
-          curValue = SmoMusic.vexKeySigWithOffset(curValue, -1 * this.transposeIndex);
-        }
-        if (field.ctor && field.ctor === 'SmoTempoText') {
-          if (field.compare(attrCurrentValue[attr]) === false) {
-            curAttrHash[this.measureNumber.measureIndex] = curValue;
-            attrCurrentValue[attr] = curValue;
-          }
-        } else if (attrCurrentValue[attr] !== curValue) {
-          curAttrHash[this.measureNumber.measureIndex] = curValue;
-          attrCurrentValue[attr] = curValue;
-        }
-      } // else attr doesn't exist in this measure
-    });
+  serializeColumnMapped(): ColumnMappedParams {
+    //
+    return {
+      timeSignature: this.timeSignature.serialize(),
+      keySignature: this.keySignature,
+      tempo: this.tempo.serialize()
+    };
   }
 
   // ### serialize
@@ -337,6 +324,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
         params.modifiers.push(modifier.serialize());
       }
     });
+    // ['timeSignature', 'keySignature', 'tempo']
     return params;
   }
 
@@ -476,7 +464,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   // ### getDefaultNotes
   // Get a measure full of default notes for a given timeSignature/clef.
   // returns 8th notes for triple-time meters, etc.
-  static getDefaultNotes(params: SmoMeasureParams) {
+  static getDefaultNotes(params: SmoMeasureParams): SmoNote[] {
     let beamBeats = 0;
     let beats = 0;
     let i = 0;

@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoMusic } from './music';
 import { Clef, FontInfo, SvgDimensions } from './common';
-import { SmoMeasure, SmoMeasureParams } from './measure';
+import { SmoMeasure, SmoMeasureParams, ColumnMappedParams } from './measure';
 import { SmoNoteModifierBase } from './noteModifiers';
 import { SmoMeasureFormat, SmoMeasureModifierBase, TimeSignature, TimeSignatureParameters } from './measureModifiers';
 import { StaffModifierBase } from './staffModifiers';
@@ -10,6 +10,7 @@ import { SmoSystemGroup, SmoTextGroup, SmoScoreModifierBase, SmoPageLayout, SmoL
 import { SmoSystemStaff, SmoSystemStaffParams } from './systemStaff';
 import { SmoSelector, SmoSelection } from '../xform/selections';
 import { smoSerialize } from '../../common/serializationHelpers';
+import { SmoTempoText } from '../../../release/smoosic';
 
 export interface FontPurpose {
   name: string,
@@ -18,7 +19,7 @@ export interface FontPurpose {
   size: number,
   custom: boolean
 }
-export type SmoScoreInfoKeys = 'name'|'title'|'subTitle'|'composer'|'copyright';
+export type SmoScoreInfoKeys = 'name' | 'title' | 'subTitle' | 'composer' | 'copyright';
 export class SmoScoreInfo {
   name: string = 'Smoosical'; // deprecated
   title: string = 'Smoosical';
@@ -82,7 +83,7 @@ export class SmoScore {
     if (this.staves.length) {
       this.numberStaves();
     }
-    if (typeof(this.preferences.showPiano) === 'undefined') {
+    if (typeof (this.preferences.showPiano) === 'undefined') {
       this.preferences.showPiano = true;
     }
 
@@ -156,12 +157,35 @@ export class SmoScore {
     return ['preferences', 'fonts', 'scoreInfo'];
   }
   serializeColumnMapped() {
-    const attrColumnHash = {};
-    const attrCurrentValue = {};
+    const keySignature: Record<number, string> = {};
+    const tempo: Record<number, SmoTempoText> = {};
+    const timeSignature: Record<number, TimeSignature> = {};
+    let previous: ColumnMappedParams | null = null;
     this.staves[0].measures.forEach((measure) => {
-      measure.serializeColumnMapped(attrColumnHash, attrCurrentValue);
+      const current = measure.serializeColumnMapped();
+      const ix = measure.measureNumber.measureIndex;
+      current.keySignature = SmoMusic.vexKeySigWithOffset(current.keySignature, -1 * measure.transposeIndex);
+      if (ix === 0) {
+        keySignature[0] = current.keySignature;
+        tempo[0] = current.tempo;
+        timeSignature[0] = current.timeSignature;
+        previous = current;
+      } else {
+        if (current.keySignature !== previous!.keySignature) {
+          previous!.keySignature = current.keySignature;
+          keySignature[ix] = current.keySignature;
+        }
+        if (!(TimeSignature.equal(current.timeSignature, previous!.timeSignature))) {
+          previous!.timeSignature = current.timeSignature;
+          timeSignature[ix] = current.timeSignature;
+        }
+        if (!(SmoTempoText.eq(current.tempo, previous!.tempo))) {
+          previous!.tempo = current.tempo;
+          tempo[ix] = current.tempo;
+        }
+      }
     });
-    return attrColumnHash;
+    return { keySignature, tempo, timeSignature };
   }
 
   // ### deserializeColumnMapped
@@ -197,11 +221,11 @@ export class SmoScore {
           // legacy timeSignature format was just a string 2/4, 3/8 etc.
           if (attr === 'timeSignature') {
             const ts = new TimeSignature(TimeSignature.defaults);
-            if (typeof(curValue) === 'string') {
+            if (typeof (curValue) === 'string') {
               ts.timeSignature = curValue;
               measure[attr] = ts;
             } else {
-              if (typeof(curValue.isPickup) === 'undefined') {
+              if (typeof (curValue.isPickup) === 'undefined') {
                 curValue.isPickup = false;
               }
               measure[attr] = new TimeSignature(curValue as TimeSignatureParameters);
@@ -254,7 +278,7 @@ export class SmoScore {
   }
   static upConvertGlobalLayout(jsonObj: any) {
     // upconvert global layout, which used to be directly on layoutManager
-    if (typeof(jsonObj.layoutManager.globalLayout) === 'undefined') {
+    if (typeof (jsonObj.layoutManager.globalLayout) === 'undefined') {
       jsonObj.layoutManager.globalLayout = {
         svgScale: jsonObj.layoutManager.svgScale,
         zoomScale: jsonObj.layoutManager.zoomScale,
@@ -566,12 +590,13 @@ export class SmoScore {
       const newMeasure = SmoMeasure.deserialize(measure.serialize());
       newMeasure.measureNumber = measure.measureNumber;
       newMeasure.clef = parameters.instrumentInfo.clef as Clef;
-      newMeasure.transposeIndex = parameters.instrumentInfo.keyOffset;
+      newMeasure.modifiers = [];
+      newMeasure.transposeIndex = 0;
       // Consider key change if the proto measure is non-concert pitch
       newMeasure.keySignature =
         SmoMusic.vexKeySigWithOffset(newMeasure.keySignature,
           newMeasure.transposeIndex - measure.transposeIndex);
-      newMeasure.modifiers = [];
+      newMeasure.voices = [{ notes: SmoMeasure.getDefaultNotes(newMeasure) }];
       measure.modifiers.forEach((modifier) => {
         const nmod: SmoMeasureModifierBase = SmoMeasureModifierBase.deserialize(modifier);
         newMeasure.modifiers.push(nmod);
