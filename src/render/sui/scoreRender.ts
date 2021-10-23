@@ -168,7 +168,7 @@ export class SuiScoreRender extends SuiRenderState {
       measure.svg.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
     }
     if (measureKeySig !== keySigLast) {
-      measure.canceledKeySignature = keySigLast;
+      measure.canceledKeySignature = SmoMusic.vexKeySigWithOffset(keySigLast, -1 * measure.transposeIndex);
       measure.svg.forceKeySignature = true;
     } else if (systemIndex === 0 && measureKeySig !== 'C') {
       measure.svg.forceKeySignature = true;

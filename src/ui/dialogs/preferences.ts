@@ -96,7 +96,7 @@ export class SuiScorePreferencesDialog extends SuiDialogAdapterBase<SuiScorePref
         label: 'Default Duration (triple meter)',
         dataType: 'int',
         options: [{
-          value: 6188,
+          value: 6144,
           label: 'dotted 1/4'
         }, {
           value: 2048,
