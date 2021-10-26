@@ -73,7 +73,7 @@ export class SuiScorePreferencesDialog extends SuiDialogAdapterBase<SuiScorePref
       }, {
         smoName: 'autoPlay',
         control: 'SuiToggleComponent',
-        label: 'Auto-advance after pitch'
+        label: 'Auto-play sounds for note entry'
       }, {
         smoName: 'showPiano',
         control: 'SuiToggleComponent',

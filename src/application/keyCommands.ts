@@ -22,7 +22,7 @@ export class SuiKeyCommands {
   constructor(params: KeyCommandParams) {
     this.slashMode = false;
     this.view = params.view;
-    this.tracker = params.tracker;
+    this.tracker = params.view.tracker;
     this.completeNotifier = params.completeNotifier;
     this.eventSource = params.eventSource;
   }

@@ -71,8 +71,8 @@ export class SuiScoreViewOperations extends SuiScoreView {
   updateScorePreferences(pref: SmoScorePreferences) {
     this._undoScorePreferences('Update preferences');
     // TODO: add action buffer here?
-    this.score.preferences = JSON.parse(JSON.stringify(pref));
-    this.storeScore.preferences = JSON.parse(JSON.stringify(pref));
+    this.score.updateScorePreferences(JSON.parse(JSON.stringify(pref)));
+    this.storeScore.updateScorePreferences(JSON.parse(JSON.stringify(pref)));
     this.renderer.setDirty();
   }
   // ### updateScorePreferences

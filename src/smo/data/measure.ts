@@ -101,6 +101,8 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       display: true
     });
   }
+  static defaultDupleDuration: number = 4096;
+  static defaultTripleDuration: number = 2048 * 3;
   static readonly _defaults: SmoMeasureParams = {
     timeSignature: SmoMeasure.timeSignatureDefault,
     timeSignatureString: '',
@@ -211,9 +213,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     this.voices = params.voices ? params.voices : [];
     this.tuplets = params.tuplets ? params.tuplets : [];
     this.modifiers = params.modifiers ? params.modifiers : defaults.modifiers;
-
     this.setDefaultBarlines();
-
     this.keySignature = SmoMusic.vexKeySigWithOffset(this.keySignature, this.transposeIndex);
 
     if (typeof (params.format) === 'undefined') {
@@ -468,8 +468,9 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     let beamBeats = 0;
     let beats = 0;
     let i = 0;
+    let tripleTime: boolean = false;
     let ticks = {
-      numerator: 4096,
+      numerator: SmoMeasure.defaultDupleDuration,
       denominator: 1,
       remainder: 0
     };
@@ -480,7 +481,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       params.timeSignature = SmoMeasure.timeSignatureDefault;
     }
     params.clef = params.clef ? params.clef : 'treble';
-    beamBeats = ticks.numerator;
+    beamBeats = 4096;
     beats = params.timeSignature.actualBeats;
     if (params.timeSignature.beatDuration === 8) {
       ticks = {
@@ -489,7 +490,8 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
         remainder: 0
       };
       if (params.timeSignature.actualBeats % 3 === 0) {
-        ticks.numerator = 2048 * 3;
+        tripleTime = true;
+        ticks.numerator = SmoMeasure.defaultTripleDuration;
         beats = params.timeSignature.actualBeats / 3;
       }
       beamBeats = 2048 * 3;
@@ -499,7 +501,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     const rv = [];
 
     // Treat 2/2 like 4/4 time.
-    if (params.timeSignature.beatDuration === 2) {
+    if (params.timeSignature.beatDuration === 2 || ticks.numerator === 2048 && !tripleTime) {
       beats = beats * 2;
     }
 
@@ -535,6 +537,9 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     // Don't copy column-formatting options to new measure in new column
     smoSerialize.serializedMerge(SmoMeasure.formattingOptions, SmoMeasure.defaults, obj);
     obj.timeSignature = new TimeSignature(params.timeSignature);
+    // The measure expects to get concert KS in constructor and adjust for instrument.  So do the
+    // opposite.
+    obj.keySignature = SmoMusic.vexKeySigWithOffset(obj.keySignature, -1 * obj.transposeIndex);
     // Don't redisplay tempo for a new measure
     const rv = new SmoMeasure(obj);
     if (rv.tempo && rv.tempo.display) {

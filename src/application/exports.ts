@@ -112,6 +112,7 @@ import { SmoNote } from '../smo/data/note';
 import { SmoDuration } from '../smo/xform/tickDuration';
 import { SmoStaffHairpin, StaffModifierBase, SmoInstrument, SmoPartMap, SmoSlur, SmoTie } from '../smo/data/staffModifiers';
 import { SmoMeasure } from '../smo/data/measure';
+import { SmoMusic } from '../smo/data/music';
 import { SmoSelection } from '../smo/xform/selections';
 import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoGraceNote, SmoMicrotone, SmoLyric } from '../smo/data/noteModifiers';
 import { SmoSystemStaff } from '../smo/data/systemStaff';
@@ -167,6 +168,7 @@ export const Smo = {
     // Smo Music Objects
     SmoScore,
     mxmlScore,
+    SmoMusic,
     SmoMeasure,
     SmoSystemStaff,
     SmoNote,

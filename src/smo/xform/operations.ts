@@ -11,7 +11,8 @@ import {
   SmoRehearsalMark, SmoMeasureText, SmoVolta, SmoMeasureFormat, SmoTempoText, SmoBarline,
   TimeSignature, SmoRepeatSymbol
 } from '../data/measureModifiers';
-import { SmoStaffHairpin, SmoSlur, SmoTie, StaffModifierBase, SmoTieParams, SmoInstrument, SmoStaffHairpinParams, SmoSlurParams } from '../data/staffModifiers';
+import { SmoStaffHairpin, SmoSlur, SmoTie, StaffModifierBase, SmoTieParams, SmoInstrument, SmoStaffHairpinParams,
+  SmoSlurParams, SmoInstrumentMeasure } from '../data/staffModifiers';
 import { SmoSystemGroup, SmoTextGroup } from '../data/scoreModifiers';
 
 import { SmoSelection, SmoSelector, ModifierTab } from './selections';
@@ -845,39 +846,34 @@ export class SmoOperation {
       }
     });
   }
+  /**
+   * Compute new map based on current instrument selections, adjusting existing instruments as required
+   * @param instrument
+   * @param selections
+   */
   static changeInstrument(instrument: SmoInstrument, selections: SmoSelection[]) {
-    const measureHash: Record<number, number> = {};
-    let newKey = '';
-    selections.forEach((selection: SmoSelection) => {
-      if (!measureHash[selection.selector.measure]) {
-        measureHash[selection.selector.measure] = 1;
-        const netOffset = instrument.keyOffset - selection.measure.transposeIndex;
-        newKey = SmoMusic.pitchToVexKey(SmoMusic.smoIntToPitch(
-          SmoMusic.smoPitchToInt(
-            SmoMusic.pitchKeyToPitch(SmoMusic.vexToSmoKey(selection.measure.keySignature))) + netOffset));
-        newKey = SmoMusic.toValidKeySignature(newKey);
-        if (newKey.length > 1 && newKey[1] === 'n') {
-          newKey = newKey[0];
-        }
-        newKey = newKey[0].toUpperCase() + newKey.substr(1, newKey.length);
-        selection.measure.keySignature = newKey;
-        selection.measure.clef = instrument.clef;
-        selection.measure.transposeIndex = instrument.keyOffset;
-        selection.measure.voices.forEach((voice) => {
-          voice.notes.forEach((note) => {
-            if (note.noteType === 'n') {
-              const pitches: Pitch[] = [];
-              note.pitches.forEach((pitch: Pitch) => {
-                const pint = SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(pitch) + netOffset);
-                pitches.push(JSON.parse(JSON.stringify(SmoMusic.getEnharmonicInKey(pint, newKey))));
-              });
-              note.pitches = pitches;
-              SmoOperation.transposeChords(note, netOffset, newKey);
-            }
-            note.clef = instrument.clef;
-          });
-        });
+    const measureSel = SmoSelection.getMeasureList(selections);
+    const measureIndex = measureSel[0].selector.measure;
+    const measureEnd = measureIndex + (measureSel.length - 1);
+    instrument.startSelector = JSON.parse(JSON.stringify(measureSel[0].selector));
+    instrument.endSelector = JSON.parse(JSON.stringify(measureSel[measureSel.length - 1].selector));
+    const instMap: Record<number, SmoInstrument> = {};
+    const staffArray: SmoInstrumentMeasure[] = SmoSystemStaff.getStaffInstrumentArray(measureSel[0].staff.measureInstrumentMap);
+    instMap[measureIndex] = instrument;
+    staffArray.forEach((ar) => {
+      if (ar.instrument.startSelector.measure > measureEnd) {
+        instMap[ar.instrument.startSelector.measure] = new SmoInstrument(ar.instrument);
+      } else if (ar.instrument.endSelector.measure < measureIndex) {
+        instMap[ar.instrument.startSelector.measure] = new SmoInstrument(ar.instrument);
+      } else if (ar.instrument.startSelector.measure < measureIndex) {
+        ar.instrument.endSelector.measure = measureIndex - 1;
+        instMap[ar.instrument.startSelector.measure] = new SmoInstrument(ar.instrument);
+      } else if (ar.instrument.endSelector.measure > measureEnd) {
+        ar.instrument.startSelector.measure = measureEnd + 1;
+        instMap[ar.instrument.startSelector.measure] = new SmoInstrument(ar.instrument);
       }
     });
+    selections[0].staff.measureInstrumentMap = instMap;
+    selections[0].staff.updateInstrumentOffsets();
   }
 }

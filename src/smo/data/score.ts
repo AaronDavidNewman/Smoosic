@@ -5,12 +5,12 @@ import { Clef, FontInfo, SvgDimensions } from './common';
 import { SmoMeasure, SmoMeasureParams, ColumnMappedParams } from './measure';
 import { SmoNoteModifierBase } from './noteModifiers';
 import { SmoMeasureFormat, SmoMeasureModifierBase, TimeSignature, TimeSignatureParameters } from './measureModifiers';
-import { StaffModifierBase } from './staffModifiers';
+import { StaffModifierBase, SmoInstrument } from './staffModifiers';
 import { SmoSystemGroup, SmoTextGroup, SmoScoreModifierBase, SmoPageLayout, SmoLayoutManager, SmoFormattingManager } from './scoreModifiers';
 import { SmoSystemStaff, SmoSystemStaffParams } from './systemStaff';
+import { SmoTempoText } from './measureModifiers';
 import { SmoSelector, SmoSelection } from '../xform/selections';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoTempoText } from '../../../release/smoosic';
 
 export interface FontPurpose {
   name: string,
@@ -164,7 +164,8 @@ export class SmoScore {
     this.staves[0].measures.forEach((measure) => {
       const current = measure.serializeColumnMapped();
       const ix = measure.measureNumber.measureIndex;
-      current.keySignature = SmoMusic.vexKeySigWithOffset(current.keySignature, -1 * measure.transposeIndex);
+      const currentInstrument = this.staves[0].getStaffInstrument(ix);
+      current.keySignature = SmoMusic.vexKeySigWithOffset(current.keySignature, -1 * currentInstrument.keyOffset);
       if (ix === 0) {
         keySignature[0] = current.keySignature;
         tempo[0] = current.tempo;
@@ -275,6 +276,11 @@ export class SmoScore {
     obj = smoSerialize.detokenize(obj, smoSerialize.tokenValues);
     obj.dictionary = smoSerialize.tokenMap;
     return obj;
+  }
+  updateScorePreferences(pref: SmoScorePreferences) {
+    this.preferences = pref;
+    SmoMeasure.defaultDupleDuration = pref.defaultDupleDuration;
+    SmoMeasure.defaultTripleDuration = pref.defaultTripleDuration;
   }
   static upConvertGlobalLayout(jsonObj: any) {
     // upconvert global layout, which used to be directly on layoutManager
@@ -589,7 +595,7 @@ export class SmoScore {
       const measure: SmoMeasure = proto.measures[i];
       const newMeasure = SmoMeasure.deserialize(measure.serialize());
       newMeasure.measureNumber = measure.measureNumber;
-      newMeasure.clef = parameters.instrumentInfo.clef as Clef;
+      newMeasure.clef = parameters.measureInstrumentMap[0].clef as Clef;
       newMeasure.modifiers = [];
       newMeasure.transposeIndex = 0;
       // Consider key change if the proto measure is non-concert pitch
@@ -624,8 +630,12 @@ export class SmoScore {
     this.staves = staves;
     this.numberStaves();
   }
+  getStaffInstrument(selector: SmoSelector): SmoInstrument {
+    const staff: SmoSystemStaff = this.staves[selector.staff];
+    return staff.getStaffInstrument(selector.measure);
+  }
 
-  swapStaves(index1: number, index2: number) {
+  swapStaves(index1: number, index2: number): void {
     if (this.staves.length < index1 || this.staves.length < index2) {
       return;
     }

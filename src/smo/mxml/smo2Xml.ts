@@ -51,7 +51,7 @@ export class SmoToXml {
       const id = 'P' + staff.staffId;
       const scorePart = nn(partList, 'score-part', null, '');
       mxmlHelpers.createAttributes(scorePart, { id });
-      nn(scorePart, 'part-name', { name: staff.instrumentInfo.instrumentName }, 'name');
+      nn(scorePart, 'part-name', { name: staff.measureInstrumentMap[0].instrumentName }, 'name');
     });
     const smoState: any = {};
     score.staves.forEach((staff) => {

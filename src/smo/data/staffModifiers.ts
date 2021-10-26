@@ -38,28 +38,49 @@ export abstract class StaffModifierBase implements SmoModifierBase {
   abstract serialize(): any;
 }
 export interface SmoInstrumentParams {
+  startSelector: SmoSelector,
+  endSelector: SmoSelector,
   instrumentName: string,
+  abbreviation: string,
   keyOffset: number,
+  midichannel: number,
+  midiport: number,
   clef: Clef
 }
+
+export type SmoInstrumentNumParamType = 'keyOffset' | 'midichannel' | 'midiport';
+export const SmoInstrumentNumParams: SmoInstrumentNumParamType[] = ['keyOffset', 'midichannel', 'midiport'];
+export type SmoInstrumentStringParamType = 'instrumentName' | 'abbreviation';
+export const SmoInstrumentStringParams: SmoInstrumentStringParamType[] = ['instrumentName', 'abbreviation'];
 // WIP
-export class SmoInstrument {
+export class SmoInstrument extends StaffModifierBase {
   static get attributes() {
-    return ['startSelector', 'endSelector', 'transposeIndex', 'midichannel', 'midiport', 'instrument', 'abbreviation'];
+    return ['startSelector', 'endSelector', 'keyOffset', 'midichannel', 'midiport', 'instrumentName', 'abbreviation'];
   }
+  startSelector: SmoSelector;
+  endSelector: SmoSelector;
   instrumentName: string = '';
+  abbreviation: string = '';
   keyOffset: number = 0;
   clef: Clef = 'treble';
+  midichannel: number;
+  midiport: number;
   static get defaults(): SmoInstrumentParams {
-    return {
+    return JSON.parse(JSON.stringify({
       clef: 'treble',
       keyOffset: 0,
-      instrumentName: ''
-    };
+      instrumentName: '',
+      abbreviation: '',
+      midichannel: 0,
+      midiport: 0,
+      startSelector: SmoSelector.default,
+      endSelector: SmoSelector.default
+    }));
   }
   constructor(params: SmoInstrumentParams) {
+    super('SmoInstrument');
     let name = '';
-    if (typeof((params as any).instrument) === 'undefined') {
+    if (typeof ((params as any).instrument) === 'undefined') {
       name = params.instrumentName;
     } else {
       name = (params as any).instrument;
@@ -67,8 +88,36 @@ export class SmoInstrument {
     this.instrumentName = name;
     this.keyOffset = params.keyOffset;
     this.clef = params.clef;
+    this.midiport = params.midiport;
+    this.midichannel = params.midichannel;
+    this.startSelector = params.startSelector;
+    this.endSelector = params.endSelector;
   }
-  serialize() {}
+  serialize() {
+    const params: any = {};
+    smoSerialize.serializedMergeNonDefault(SmoInstrument.defaults, SmoInstrument.attributes, this, params);
+    params.ctor = 'SmoInstrument';
+    return params;
+  }
+  eq(other: SmoInstrument): boolean {
+    let rv = true;
+    SmoInstrumentNumParams.forEach((param) => {
+      if (other[param] !== this[param]) {
+        rv = false;
+      }
+    });
+    SmoInstrumentStringParams.forEach((param) => {
+      if (other[param] !== this[param]) {
+        rv = false;
+      }
+    });
+    return rv;
+  }
+}
+
+export interface SmoInstrumentMeasure {
+  measureIndex: number,
+  instrument: SmoInstrumentParams;
 }
 // WIP
 export class SmoPartMap {

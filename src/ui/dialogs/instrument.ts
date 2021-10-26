@@ -19,7 +19,7 @@ export class SuiInstrumentAdapter extends SuiComponentAdapter {
   constructor(view: SuiScoreViewOperations) {
     super(view);
     const selection = this.view.tracker.selections[0];
-    this.instrument = selection.staff.instrumentInfo;
+    this.instrument = this.view.score.getStaffInstrument(selection.selector);
     this.selections = this.view.tracker.selections;
     this.selector = JSON.parse(JSON.stringify(this.selections[0].selector));
     this.backup = new SmoInstrument(this.instrument);

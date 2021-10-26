@@ -2,6 +2,8 @@ import { SuiMenuBase, SuiMenuParams } from './menu';
 import { SmoSystemStaffParams, SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SuiStaffGroupDialog } from '../dialogs/staffGroup';
 import { createAndDisplayDialog } from '../dialogs/dialog';
+import { SmoSelector } from '../../smo/xform/selections';
+import { SmoInstrumentParams } from '../../smo/data/staffModifiers';
 
 declare var $: any;
 
@@ -49,49 +51,67 @@ export class SuiStaffMenu extends SuiMenuBase {
     menuContainer: '.menuContainer'
   };
 
-  static get instrumentMap(): Record<string, Partial<SmoSystemStaffParams>> {
+  static get instrumentMap(): Record<string, SmoInstrumentParams> {
     return {
       'trebleInstrument': {
-        instrumentInfo: {
-          instrumentName: 'Treble Clef Staff',
-          keyOffset: 0,
-          clef: 'treble'
-        }
+        instrumentName: 'Treble Clef Staff',
+        keyOffset: 0,
+        abbreviation: 'treble',
+        midichannel: 0,
+        midiport: 0,
+        clef: 'treble',
+        startSelector: SmoSelector.default,
+        endSelector: SmoSelector.default
       },
       'bassInstrument': {
-        instrumentInfo: {
-          instrumentName: 'Bass Clef Staff',
-          keyOffset: 0,
-          clef: 'bass'
-        }
+        instrumentName: 'Bass Clef Staff',
+        keyOffset: 0,
+        abbreviation: 'treble',
+        midichannel: 0,
+        midiport: 0,
+        clef: 'bass',
+        startSelector: SmoSelector.default,
+        endSelector: SmoSelector.default
       },
       'altoInstrument': {
-        instrumentInfo: {
-          instrumentName: 'Alto Clef Staff',
-          keyOffset: 0,
-          clef: 'alto'
-        }
+        instrumentName: 'Alto Clef Staff',
+        keyOffset: 0,
+        abbreviation: 'treble',
+        midichannel: 0,
+        midiport: 0,
+        clef: 'alto',
+        startSelector: SmoSelector.default,
+        endSelector: SmoSelector.default
       },
       'tenorInstrument': {
-        instrumentInfo: {
-          instrumentName: 'Tenor Clef Staff',
-          keyOffset: 0,
-          clef: 'tenor'
-        }
+        instrumentName: 'Tenor Clef Staff',
+        keyOffset: 0,
+        abbreviation: 'treble',
+        midichannel: 0,
+        midiport: 0,
+        clef: 'tenor',
+        startSelector: SmoSelector.default,
+        endSelector: SmoSelector.default
       },
       'percussionInstrument': {
-        instrumentInfo: {
-          instrumentName: 'Percussion Clef Staff',
-          keyOffset: 0,
-          clef: 'percussion'
-        }
+        instrumentName: 'Percussion Clef Staff',
+        keyOffset: 0,
+        abbreviation: 'treble',
+        midichannel: 0,
+        midiport: 0,
+        clef: 'percussion',
+        startSelector: SmoSelector.default,
+        endSelector: SmoSelector.default
       },
       'remove': {
-        instrumentInfo: {
-          instrumentName: 'Remove clef',
-          keyOffset: 0,
-          clef: 'tenor'
-        }
+        instrumentName: 'Remove clef',
+        keyOffset: 0,
+        abbreviation: 'treble',
+        midichannel: 0,
+        midiport: 0,
+        clef: 'tenor',
+        startSelector: SmoSelector.default,
+        endSelector: SmoSelector.default
       }
     };
   }
@@ -127,8 +147,8 @@ export class SuiStaffMenu extends SuiMenuBase {
     } else {
       const instrument: SmoSystemStaffParams = SmoSystemStaff.defaults;
       const params = SuiStaffMenu.instrumentMap[op];
-      if (params.instrumentInfo) {
-        instrument.instrumentInfo = params.instrumentInfo;
+      if (op !== 'remove') {
+        instrument.measureInstrumentMap = { 0: params };
         this.view.addStaff(instrument);
       }
       this.complete();
