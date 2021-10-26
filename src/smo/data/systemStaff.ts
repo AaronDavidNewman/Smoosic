@@ -5,12 +5,51 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { smoBeamerFactory } from '../xform/beamers';
 import { SmoMusic } from './music';
+import { SmoGlobalLayout, SmoPageLayout, SmoLayoutManager } from './scoreModifiers';
 import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMeasure, SmoInstrumentStringParams, SmoInstrumentNumParams } from './staffModifiers';
 import { SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta } from './measureModifiers';
 import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber } from './common';
 
 const VF = eval('Vex.Flow');
 
+export interface SmoPartInfoParams {
+  partName: string,
+  partAbbreviation: string,
+  globalLayout: SmoGlobalLayout,
+  pageLayoutMap: Record<number, SmoPageLayout>,
+  stavesAfter: number,
+  stavesBefore: number
+}
+export class SmoPartInfo {
+  partName: string;
+  partAbbreviation: string;
+  globalLayout: SmoGlobalLayout = SmoLayoutManager.defaultLayout;
+  pageLayoutMap: Record<number, SmoPageLayout> = {};
+  stavesAfter: number = 0;
+  stavesBefore: number = 0;
+  static get defaults(): SmoPartInfoParams {
+    return JSON.parse(JSON.stringify({
+      partName: 'Staff ',
+      partAbbreviation: '',
+      globalLayout: SmoLayoutManager.defaultLayout,
+      pageLayoutMap: {},
+      stavesAfter: 0,
+      stavesBefore: 0
+    }));
+  }
+  constructor(params: SmoPartInfoParams) {
+    this.globalLayout = params.globalLayout;
+    if (Object.keys(params.pageLayoutMap).length > 0) {
+      this.pageLayoutMap = params.pageLayoutMap;
+    } else {
+      this.pageLayoutMap[0] = new SmoPageLayout(SmoPageLayout.defaults);
+    }
+    this.stavesAfter = params.stavesAfter;
+    this.stavesBefore = params.stavesBefore;
+    this.partName = params.partName;
+    this.partAbbreviation = params.partAbbreviation;
+  }
+}
 export interface SmoSystemStaffParams {
   staffX: number,
   staffY: number,
@@ -22,7 +61,8 @@ export interface SmoSystemStaffParams {
   keySignatureMap: Record<number, string>,
   measureInstrumentMap: Record<number, SmoInstrumentParams>,
   measures: SmoMeasure[],
-  modifiers: StaffModifierBase[]
+  modifiers: StaffModifierBase[],
+  partInfo?: SmoPartInfo;
 }
 export type SmoStaffNumberParamType = 'staffId' | 'staffX' | 'staffY' | 'adjY' | 'staffWidth' | 'staffHeight';
 export const SmoStaffNumberParams: SmoStaffNumberParamType[] = [
@@ -64,6 +104,7 @@ export class SmoSystemStaff implements SmoObjectParams {
   staffId: number = 0;
   renumberingMap: Record<number, number> = {};
   keySignatureMap: Record<number, string> = {};
+  partInfo: SmoPartInfo;
   measureInstrumentMap: Record<number, SmoInstrument> = {};
   measures: SmoMeasure[] = [];
   modifiers: StaffModifierBase[] = [];
@@ -121,6 +162,11 @@ export class SmoSystemStaff implements SmoObjectParams {
       id: VF.Element.newID(),
       type: 'SmoSystemStaff'
     };
+    if (params.partInfo) {
+      this.partInfo = params.partInfo;
+    } else {
+      this.partInfo = new SmoPartInfo(SmoPartInfo.defaults);
+    }
   }
 
   // ### defaultParameters

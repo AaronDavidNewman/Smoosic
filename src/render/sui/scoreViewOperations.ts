@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SuiScoreView } from './scoreView';
 import { SmoScore, SmoScorePreferences, SmoScoreInfo } from '../../smo/data/score';
-import { SmoSystemStaffParams, SmoSystemStaff } from '../../smo/data/systemStaff';
+import { SmoSystemStaffParams, SmoSystemStaff, SmoPartInfo } from '../../smo/data/systemStaff';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoNote } from '../../smo/data/note';
 import { SvgBox, Pitch, PitchLetter, FontInfo, SmoConfiguration } from '../../smo/data/common';
@@ -1026,6 +1026,32 @@ export class SuiScoreViewOperations extends SuiScoreView {
     // revert to the full view
     SmoOperation.addStaff(this.storeScore, instrument);
     this.viewAll();
+  }
+  updatePartInfo(info: SmoPartInfo) {
+    this._undoScore('Update part info');
+    let allVisible = true;
+    const selection = this.tracker.selections[0];
+    const selector = selection.selector;
+    let i = 0;
+    for (i = 1; allVisible && i <= info.stavesAfter; ++i) {
+      if (!this.isStaffVisible(selector.staff + i)) {
+        allVisible = false;
+      }
+    }
+    for (i = 1; allVisible && i <= info.stavesBefore; ++i) {
+      if (!this.isStaffVisible(selector.staff - i)) {
+        allVisible = false;
+      }
+    }
+    if (!allVisible) {
+      this.viewAll();
+    }
+    SmoOperation.updatePartInfo(this.score, info, selection);
+    const alt = this._getEquivalentSelection(selection);
+    if (alt) {
+      SmoOperation.updatePartInfo(this.storeScore, new SmoPartInfo(info), alt);
+    }
+    this.exposePart(selection.staff);
   }
   addStaffSimple(params: any) {
     const instrumentParams = SmoInstrument.defaults;

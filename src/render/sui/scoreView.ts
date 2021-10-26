@@ -1,21 +1,22 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoMeasure } from '../../smo/data/measure';
+import { SmoModifierBase } from '../../smo/data/common';
+import { SmoScore } from '../../smo/data/score';
+import { SmoGraceNote } from '../../smo/data/noteModifiers';
+import { SmoSystemStaff } from '../../smo/data/systemStaff';
+import { StaffModifierBase } from '../../smo/data/staffModifiers';
+import { Action } from '../../smo/xform/actions';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { UndoBuffer } from '../../smo/xform/undo';
-import { StaffModifierBase } from '../../smo/data/staffModifiers';
+import { PasteBuffer } from '../../smo/xform/copypaste';
+import { SmoActionRecord } from '../../smo/xform/actions';
 import { SuiScroller } from './scroller';
 import { SvgHelpers } from './svgHelpers';
-import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SuiTracker } from './tracker';
-import { SmoScore } from '../../smo/data/score';
-import { SmoActionRecord } from '../../smo/xform/actions';
 import { SuiRenderDemon } from './layoutDemon';
 import { testCase1 } from '../../music/utActions';
-import { SmoModifierBase } from '../../smo/data/common';
-import { SmoGraceNote } from '../../smo/data/noteModifiers';
 import { SuiRenderState } from './renderState';
-import { SmoMeasure } from '../../smo/data/measure';
-import { Action } from '../../smo/xform/actions';
 
 declare var $: any;
 
@@ -324,6 +325,47 @@ export abstract class SuiScoreView {
       staff.setMappedStaffId(this.staffMap[staff.staffId]);
     });
   }
+  exposePart(staff: SmoSystemStaff) {
+    let i = 0;
+    const partInfo = staff.partInfo;
+    const staffId = staff.staffId;
+    const exposeMap: ViewMapEntry[] = [];
+    for (i = 0;i < this.storeScore.staves.length; ++i) {
+      const show = (i >= staffId - partInfo.stavesBefore && i <= staffId + partInfo.stavesAfter);
+      exposeMap.push({ show });
+    }
+    this.setView(exposeMap);
+  }
+  isStaffVisible(staffId: number): boolean {
+    let rv = true;
+    this.staffMap.forEach((num: number) => {
+      if (num === staffId) {
+        rv = false;
+      }
+    });
+    return rv;
+  }
+  isPartVisible(staff: SmoSystemStaff): boolean {
+    let allVisible = true;
+    let i = 0;
+    const info = staff.partInfo;
+    const staffId = staff.staffId;
+    for (i = 1; allVisible && i <= info.stavesAfter; ++i) {
+      if (!this.isStaffVisible(staffId + i)) {
+        allVisible = false;
+      }
+    }
+    for (i = 1; allVisible && i <= info.stavesBefore; ++i) {
+      if (!this.isStaffVisible(staffId - i)) {
+        allVisible = false;
+      }
+    }
+    return allVisible;
+  }
+  isPartExposed(staff: SmoSystemStaff): boolean {
+    const staveCount = staff.partInfo.stavesAfter + staff.partInfo.stavesBefore + 1;
+    return (staveCount === this.staffMap.length && this.isPartVisible(staff));
+  }
 
   // ### setView
   // Send a list of rows with a 'show' boolean in each, we display that line
@@ -352,6 +394,10 @@ export abstract class SuiScoreView {
     // Indicate which score staff view staves are mapped to, to decide to display
     // modifiers.
     this.setMappedStaffIds();
+    // If this current view is a part, show the part layout
+    if (this.isPartExposed(this.score.staves[0])) {
+      this.score.layoutManager!.globalLayout = this.score.staves[0].partInfo.globalLayout;
+    }
     this.renderer.score = nscore;
     this.renderer.setViewport(true);
     setTimeout(() => {

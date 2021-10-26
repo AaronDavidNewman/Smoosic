@@ -4,6 +4,7 @@ import { SuiStaffGroupDialog } from '../dialogs/staffGroup';
 import { createAndDisplayDialog } from '../dialogs/dialog';
 import { SmoSelector } from '../../smo/xform/selections';
 import { SmoInstrumentParams } from '../../smo/data/staffModifiers';
+import { SuiPartInfoDialog } from '../dialogs/partInfo';
 
 declare var $: any;
 
@@ -38,6 +39,10 @@ export class SuiStaffMenu extends SuiMenuBase {
         icon: '',
         text: 'Staff Groups',
         value: 'staffGroups'
+      }, {
+        icon: '',
+        text: 'Edit Part',
+        value: 'editPart'
       }, {
         icon: 'cancel-circle',
         text: 'Remove Staff',
@@ -102,16 +107,6 @@ export class SuiStaffMenu extends SuiMenuBase {
         clef: 'percussion',
         startSelector: SmoSelector.default,
         endSelector: SmoSelector.default
-      },
-      'remove': {
-        instrumentName: 'Remove clef',
-        keyOffset: 0,
-        abbreviation: 'treble',
-        midichannel: 0,
-        midiport: 0,
-        clef: 'tenor',
-        startSelector: SmoSelector.default,
-        endSelector: SmoSelector.default
       }
     };
   }
@@ -133,6 +128,21 @@ export class SuiStaffMenu extends SuiMenuBase {
       }
     );
   }
+  editPart() {
+    createAndDisplayDialog(SuiPartInfoDialog,
+      {
+        completeNotifier: this.completeNotifier!,
+        view: this.view,
+        undoBuffer: this.view.undoBuffer,
+        eventSource: this.eventSource,
+        id: 'editPart',
+        ctor: 'SuiPartInfoDialog',
+        tracker: this.view.tracker,
+        modifier: null,
+        startPromise: this.closePromise
+      }
+    );
+  }
 
   selection(ev: any) {
     const op: string = $(ev.currentTarget).attr('data-value');
@@ -141,6 +151,9 @@ export class SuiStaffMenu extends SuiMenuBase {
       this.complete();
     } else if (op === 'staffGroups') {
       this.execStaffGroups();
+      this.complete();
+    } else if (op === 'editPart') {
+      this.editPart();
       this.complete();
     } else if (op === 'cancel') {
       this.complete();
