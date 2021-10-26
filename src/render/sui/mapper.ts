@@ -55,6 +55,8 @@ export abstract class SuiMapper {
   modifierIndex: number = -1;
   modifierSuggestion: number = -1;
   pitchIndex: number = -1;
+  // By default, defer highlights for performance.
+  deferHighlightMode: boolean = true;
   suggestion: SmoSelection | null = null;
   pasteBuffer: PasteBuffer;
   highlightQueue: HighlightQueue;
@@ -91,6 +93,9 @@ export abstract class SuiMapper {
     }
   }
   deferHighlight() {
+    if (!this.deferHighlightMode) {
+      this.highlightSelection();
+    }
     const self = this;
     if (!this.highlightQueue.deferred) {
       this.highlightQueue.deferred = true;

@@ -4,22 +4,33 @@ import { SuiMenuManager } from '../menus/manager';
 import { CompleteNotifier } from '../../application/common';
 
 /**
+ * Button actions are one of the following.  
+ * - collapse... buttons are used to expand/collapse button groups in a ribbon.
+ *   all buttons with these classes have 'ctor' constructor, and perform actions based on 
+ *   their bind method
+ * - menu brings up a modal menu with class 'ctor'
+ * - modal brings up a modal dialog with class 'ctor'
+ * - collapseChildMenu brings up a modal menu, and is also collapsable.
+ */
+export type ButtonAction = 'menu' | 'modal' | 'collapseChild' | 'collapseChildMenu' | 'collapseParent' | 'collapseGrandchild' | 'collapseMore';
+/**
  * structure of a button object.
- * @param {string} leftText - can be used in place of an icon for display
- * @param {string} rightText - usually used to represent a keyboard shortcut
- * @param {string} classes - to control button display
- * @param {string} icon - icon for the button face
- * @param {string} action - indicates to the button the action to perform
- * @param {string} ctor - the constructor of the button object
- * @param {string} group - the logical group, used to group the ribbon buttons
- * @param {string} id - unique ID for DOM selector
+ * @param leftText - can be used in place of an icon for display
+ * @param rightText - usually used to represent a keyboard shortcut
+ * @param classes - to control button display
+ * @param icon - icon for the button face
+ * @param action - indicates to the button the action to perform
+ * @param ctor - the constructor of the button object
+ * @param group - the logical group, used to group the ribbon buttons
+ * @param id - unique ID for DOM selector
+ * @param dataElements - can be used to give  buttons in a group basic parameters
  */
 export interface ButtonDefinition {
     leftText: string,
     rightText: string,
     classes: string,
     icon: string,
-    action: string,
+    action: ButtonAction,
     ctor: string,
     group: string,
     id: string
@@ -64,4 +75,5 @@ export interface SuiButtonParams {
       this.menus = params.menus;
       this.completeNotifier = params.completeNotifier;
     }
+    abstract bind(): void;
   }

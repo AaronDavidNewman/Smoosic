@@ -145,12 +145,8 @@ export class SuiStaffMenu extends SuiMenuBase {
     } else if (op === 'cancel') {
       this.complete();
     } else {
-      const instrument: SmoSystemStaffParams = SmoSystemStaff.defaults;
       const params = SuiStaffMenu.instrumentMap[op];
-      if (op !== 'remove') {
-        instrument.measureInstrumentMap = { 0: params };
-        this.view.addStaff(instrument);
-      }
+      this.view.addStaffSimple(params);
       this.complete();
     }
   }

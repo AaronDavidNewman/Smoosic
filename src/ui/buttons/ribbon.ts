@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { htmlHelpers } from '../../common/htmlHelpers';
-import { ButtonDefinition } from './button';
+import { ButtonDefinition, ButtonAction } from './button';
 import { BrowserEventSource } from '../../application/eventSource';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { CompleteNotifier } from '../../application/common';
@@ -161,7 +161,7 @@ export class RibbonButtons {
     });
   }
 
-  static isCollapsible(action: string) {
+  static isCollapsible(action: ButtonAction) {
     return ['collapseChild', 'collapseChildMenu', 'collapseGrandchild', 'collapseMore'].indexOf(action) >= 0;
   }
 
@@ -214,6 +214,10 @@ export class RibbonButtons {
         }
       }
     });
+  }
+  addButton(button: ButtonDefinition, parentElement: string) {
+    this.ribbonButtons.push(button);
+    this.createRibbon([button.id], parentElement);
   }
 
   createRibbon(buttonDataArray: string[], parentElement: string) {

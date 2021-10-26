@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SuiScoreView } from './scoreView';
 import { SmoScore, SmoScorePreferences, SmoScoreInfo } from '../../smo/data/score';
-import { SmoSystemStaffParams } from '../../smo/data/systemStaff';
+import { SmoSystemStaffParams, SmoSystemStaff } from '../../smo/data/systemStaff';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoNote } from '../../smo/data/note';
 import { SvgBox, Pitch, PitchLetter, FontInfo, SmoConfiguration } from '../../smo/data/common';
@@ -1026,6 +1026,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
     // revert to the full view
     SmoOperation.addStaff(this.storeScore, instrument);
     this.viewAll();
+  }
+  addStaffSimple(params: any) {
+    const instrumentParams = SmoInstrument.defaults;
+    instrumentParams.startSelector.staff = instrumentParams.endSelector.staff = this.score.staves.length;
+    instrumentParams.clef = params.clef;
+
+    const staffParams = SmoSystemStaff.defaults;
+    staffParams.measureInstrumentMap[0] = new SmoInstrument(instrumentParams);
+    this.addStaff(staffParams);
   }
   saveScore(filename: string) {
     const json = this.storeScore.serialize();

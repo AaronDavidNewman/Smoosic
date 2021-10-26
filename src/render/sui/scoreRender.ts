@@ -254,7 +254,12 @@ export class SuiScoreRender extends SuiRenderState {
     } else {
       this.renderScoreModifiers();
       this.numberMeasures();
-      this.renderTime = new Date().valueOf() - this.startRenderTime;
+      // We pro-rate the background render timer on how long it takes
+      // to actually render the score, so we are not thrashing on a large
+      // score.
+      if (this.autoAdjustRenderTime) {
+        this.renderTime = new Date().valueOf() - this.startRenderTime;
+      }
       $('body').removeClass('show-render-progress');
       // indicate the display is 'clean' and up-to-date with the score
       $('body').removeClass('refresh-1');

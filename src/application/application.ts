@@ -25,6 +25,7 @@ import { SuiMenuManager, SuiMenuManagerParams } from '../ui/menus/manager';
 import { librarySeed } from '../ui/fileio/library';
 import { SmoTranslationEditor } from '../ui/i18n/translationEditor';
 import { SmoTranslator } from '../ui/i18n/language';
+import { RibbonButtons } from '../ui/buttons/ribbon';
 
 import { SuiDom } from './dom';
 import { SuiKeyCommands } from './keyCommands';
@@ -53,6 +54,8 @@ export interface SuiInstance {
   keyBindingDefaults: KeyBinding[];
   keyCommands: SuiKeyCommands;
   menus: SuiMenuManager;
+  eventHandler: SuiEventHandler | null;
+  ribbon: RibbonButtons
 }
 const VF = eval('Vex.Flow');
 const Smo = eval('globalThis.Smo');
@@ -220,8 +223,10 @@ export class SuiApplication {
     }
     // Start the application event processing and render the initial score
     // eslint-disable-next-line
-    new SuiEventHandler(params as EventHandlerParams);
     this.instance = params as SuiInstance;
+    this.instance.eventHandler = new SuiEventHandler(params as EventHandlerParams);
+    this.instance.ribbon = this.instance.eventHandler.ribbon;
+    
     SuiApplication.instance = this.instance;
     SuiDom.splash();
   }

@@ -43,6 +43,10 @@ export abstract class SuiRenderState {
   renderer: any;
   elementId: any;
   _backupZoomScale: number = 0;
+  // signal to render demon that we have suspended background
+  // rendering because we are recording or playing actions.
+  suspendRendering: boolean = false;
+  autoAdjustRenderTime: boolean = true;
 
   constructor(ctor: string) {
     this.attrs = {
@@ -66,6 +70,13 @@ export abstract class SuiRenderState {
   // so the UI stays in sync with the location of elements in the score.
   setMeasureMapper(mapper: SuiMapper) {
     this.measureMapper = mapper;
+  }
+  set stepMode(value: boolean) {
+    this.suspendRendering = value;
+    this.autoAdjustRenderTime = !value;
+    if (this.measureMapper) {
+      this.measureMapper.deferHighlightMode = !value;
+    }
   }
 
   static get Fonts(): any {
@@ -134,16 +145,28 @@ export abstract class SuiRenderState {
     });
   }
 
+  _renderStatePromise(condition: string): Promise<void> {
+    const oldSuspend = this.suspendRendering;
+    this.suspendRendering = false;
+    const self = this;
+    const endAction = () => {
+      self.suspendRendering = oldSuspend;
+    };
+    return PromiseHelpers.makePromise(this, condition, endAction, null, SmoConfig.demonPollTime);
+  }
   // ### renderPromise
   // return a promise that resolves when the score is in a fully rendered state.
-  renderPromise() {
-    return PromiseHelpers.makePromise(this, 'renderStateClean', null, null, (SmoConfig as any).demonPollTime);
+  renderPromise(): Promise<void> {
+    return this._renderStatePromise('renderStateClean');
   }
 
   // ### renderPromise
   // return a promise that resolves when the score is in a fully rendered state.
   updatePromise() {
-    return PromiseHelpers.makePromise(this, 'renderStateRendered', null, null, SmoConfig.demonPollTime);
+    if (this.suspendRendering) {
+      this._replaceMeasures();
+    }
+    return this._renderStatePromise('renderStateRendered');
   }
   // Number the measures at the first measure in each system.
   numberMeasures() {
