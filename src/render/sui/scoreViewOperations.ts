@@ -2,7 +2,8 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SuiScoreView } from './scoreView';
 import { SmoScore, SmoScorePreferences, SmoScoreInfo } from '../../smo/data/score';
-import { SmoSystemStaffParams, SmoSystemStaff, SmoPartInfo } from '../../smo/data/systemStaff';
+import { SmoSystemStaffParams, SmoSystemStaff } from '../../smo/data/systemStaff';
+import { SmoPartInfo } from '../../smo/data/parts';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoNote } from '../../smo/data/note';
 import { SvgBox, Pitch, PitchLetter, FontInfo, SmoConfiguration } from '../../smo/data/common';

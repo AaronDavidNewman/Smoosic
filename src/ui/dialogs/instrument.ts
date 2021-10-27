@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { Clef } from '../../smo/data/common';
-import { SmoInstrument } from '../../smo/data/staffModifiers';
+import { SmoInstrument, SmoInstrumentNumParamType, SmoInstrumentStringParamType } from '../../smo/data/staffModifiers';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
@@ -19,31 +19,40 @@ export class SuiInstrumentAdapter extends SuiComponentAdapter {
   constructor(view: SuiScoreViewOperations) {
     super(view);
     const selection = this.view.tracker.selections[0];
-    this.instrument = this.view.score.getStaffInstrument(selection.selector);
-    this.selections = this.view.tracker.selections;
+    this.instrument = new SmoInstrument(this.view.score.getStaffInstrument(selection.selector));
+    this.selections = SmoSelection.getMeasureList(this.view.tracker.selections);
     this.selector = JSON.parse(JSON.stringify(this.selections[0].selector));
     this.backup = new SmoInstrument(this.instrument);
+  }
+  writeNumParam(paramName: SmoInstrumentNumParamType, value: number) {
+    this.instrument[paramName] = value;
+    this.view.changeInstrument(this.instrument, this.selections);
+    this.instrument = new SmoInstrument(this.instrument);
+  }
+  writeStringParam(paramName: SmoInstrumentStringParamType, value: string) {
+    this.instrument[paramName] = value;
+    this.view.changeInstrument(this.instrument, this.selections);
+    this.instrument = new SmoInstrument(this.instrument);
   }
   get transposeIndex() {
     return this.instrument.keyOffset;
   }
   set transposeIndex(value: number) {
-    this.instrument.keyOffset = value;
-    this.view.changeInstrument(this.instrument, [this.selections[0]]);
+    this.writeNumParam('keyOffset', value);
   }
   get instrumentName() {
     return this.instrument.instrumentName;
   }
   set instrumentName(value: string) {
-    this.instrument.instrumentName = value;
-    this.view.changeInstrument(this.instrument, [this.selections[0]]);
+    this.writeStringParam('instrumentName', value);
   }
   get clef(): Clef {
     return this.instrument.clef;
   }
   set clef(value: Clef)  {
     this.instrument.clef = value;
-    this.view.changeInstrument(this.instrument, [this.selections[0]]);
+    this.view.changeInstrument(this.instrument, this.selections);
+    this.instrument = new SmoInstrument(this.instrument);
   }
   get applyTo() {
     return this.applies;
@@ -51,7 +60,7 @@ export class SuiInstrumentAdapter extends SuiComponentAdapter {
   set applyTo(value: number) {
     this.applies = value;
     if (value === SuiInstrumentDialog.applyTo.score) {
-      this.selections = SmoSelection.measuresInColumn(this.view.score, this.selector.staff);
+      this.selections = SmoSelection.getMeasureList(this.view.tracker.selections);
     } else if (this.applyTo === SuiInstrumentDialog.applyTo.remaining) {
       this.selections = SmoSelection.selectionsToEnd(this.view.score, this.selector.staff, this.selector.measure);
     } else {
@@ -62,11 +71,9 @@ export class SuiInstrumentAdapter extends SuiComponentAdapter {
     this.view.changeInstrument(this.instrument, this.selections);
   }
   cancel() {
-    this.view.changeInstrument(this.backup, [this.selections[0]]);
+    this.view.changeInstrument(this.backup, this.selections);
   }
-  remove() {
-    this.view.changeInstrument(new SmoInstrument(SmoInstrument.defaults), this.selections);
-  }
+  remove() { }
 }
 export class SuiInstrumentDialog extends SuiDialogAdapterBase<SuiInstrumentAdapter> {
   static get applyTo() {

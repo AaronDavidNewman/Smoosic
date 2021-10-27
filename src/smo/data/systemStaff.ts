@@ -5,51 +5,13 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { smoBeamerFactory } from '../xform/beamers';
 import { SmoMusic } from './music';
-import { SmoGlobalLayout, SmoPageLayout, SmoLayoutManager } from './scoreModifiers';
+import { SmoPartInfo, SmoPartInfoParams } from './parts';
 import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMeasure, SmoInstrumentStringParams, SmoInstrumentNumParams } from './staffModifiers';
 import { SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta } from './measureModifiers';
 import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber } from './common';
 
 const VF = eval('Vex.Flow');
 
-export interface SmoPartInfoParams {
-  partName: string,
-  partAbbreviation: string,
-  globalLayout: SmoGlobalLayout,
-  pageLayoutMap: Record<number, SmoPageLayout>,
-  stavesAfter: number,
-  stavesBefore: number
-}
-export class SmoPartInfo {
-  partName: string;
-  partAbbreviation: string;
-  globalLayout: SmoGlobalLayout = SmoLayoutManager.defaultLayout;
-  pageLayoutMap: Record<number, SmoPageLayout> = {};
-  stavesAfter: number = 0;
-  stavesBefore: number = 0;
-  static get defaults(): SmoPartInfoParams {
-    return JSON.parse(JSON.stringify({
-      partName: 'Staff ',
-      partAbbreviation: '',
-      globalLayout: SmoLayoutManager.defaultLayout,
-      pageLayoutMap: {},
-      stavesAfter: 0,
-      stavesBefore: 0
-    }));
-  }
-  constructor(params: SmoPartInfoParams) {
-    this.globalLayout = params.globalLayout;
-    if (Object.keys(params.pageLayoutMap).length > 0) {
-      this.pageLayoutMap = params.pageLayoutMap;
-    } else {
-      this.pageLayoutMap[0] = new SmoPageLayout(SmoPageLayout.defaults);
-    }
-    this.stavesAfter = params.stavesAfter;
-    this.stavesBefore = params.stavesBefore;
-    this.partName = params.partName;
-    this.partAbbreviation = params.partAbbreviation;
-  }
-}
 export interface SmoSystemStaffParams {
   staffX: number,
   staffY: number,
@@ -227,7 +189,7 @@ export class SmoSystemStaff implements SmoObjectParams {
       }
       params.measureInstrumentMap[0].startSelector.staff = params.staffId;
       params.measureInstrumentMap[0].endSelector.staff = params.staffId;
-      params.measureInstrumentMap[0].endSelector.measure = jsonObj.measures.length;
+      params.measureInstrumentMap[0].endSelector.measure = jsonObj.measures.length - 1;
       params.measureInstrumentMap[0].keyOffset = jsonObj.measures[0].transposeIndex ?? 0;
     } else {
       const ikeys = Object.keys(jsonObj.measureInstrumentMap);
@@ -291,6 +253,7 @@ export class SmoSystemStaff implements SmoObjectParams {
         const concertKey = SmoMusic.vexKeySigWithOffset(measure.keySignature, -1 * measure.transposeIndex);
         measure.transposeIndex = entry.instrument.keyOffset;
         measure.keySignature = SmoMusic.vexKeySigWithOffset(concertKey, measure.transposeIndex);
+        measure.setClef(entry.instrument.clef);
       }
     });
   }
@@ -500,6 +463,16 @@ export class SmoSystemStaff implements SmoObjectParams {
         }
         sm.push(mod);
       }
+    });
+    const instMap: Record<number, SmoInstrument> = {};
+    SmoSystemStaff.getStaffInstrumentArray(this.measureInstrumentMap).forEach((mm) => {
+      if (mm.instrument.startSelector.measure > index || mm.instrument.startSelector.measure > this.measures.length - 1) {
+        mm.instrument.startSelector.measure -= 1;
+      }
+      if (mm.instrument.endSelector.measure > index || mm.instrument.endSelector.measure > this.measures.length - 1) {
+        mm.instrument.endSelector.measure -= 1;
+      }
+      instMap[mm.instrument.startSelector.measure] = new SmoInstrument(mm.instrument);
     });
     this.measures = nm;
     this.modifiers = sm;

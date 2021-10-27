@@ -4,9 +4,9 @@ import { SmoScore } from '../../smo/data/score';
 import { GlobalLayoutAttributes, SmoLayoutManager, SmoGlobalLayout } from '../../smo/data/scoreModifiers';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
-import { SmoPartInfo, SmoPartInfoParams } from '../../smo/data/systemStaff';
+import { SmoPartInfo } from '../../smo/data/parts';
 import { SmoSelection } from '../../smo/xform/selections';
-import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';
+import { DialogDefinition, SuiDialogParams } from './dialog';
 
 declare var $: any;
 

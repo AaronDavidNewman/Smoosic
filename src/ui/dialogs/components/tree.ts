@@ -106,12 +106,6 @@ export class SuiTreeComponent extends SuiComponentBase {
     $(parentEl).append(ul.dom());
     this.bind();
   }
-
-  unselect() {
-    $(this._getInputElement())[0].selectedIndex = -1;
-    $(this._getInputElement()).blur();
-  }
-
   _getInputElement() {
     var pid = this.parameterId;
     return $(this.dialog.dgDom.element).find('#' + pid);
@@ -151,6 +145,7 @@ export class SuiTreeComponent extends SuiComponentBase {
     $(input).find('a.tree-link').each((ix: number, el: any) => {
       $(el).removeClass('selected');
       $(el).off('click').on('click', (ev: any) => {
+        $(this._getInputElement()).find('li').removeClass('selected');
         const li = $(ev.currentTarget).closest('li.tree-branch');
         $(li).addClass('selected');
         this.value = $(li).attr('data-value');

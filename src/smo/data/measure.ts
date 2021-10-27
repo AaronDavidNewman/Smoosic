@@ -888,6 +888,15 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     }
     this.tuplets = tuplets;
   }
+  setClef(clef: Clef) {
+    const oldClef = this.clef;
+    this.clef = clef;
+    this.voices.forEach((voice) => {
+      voice.notes.forEach((note) => {
+        note.clef = clef;
+      });
+    });
+  }
 
   // ### populateVoice
   // Create a new voice in this measure, and populate it with the default note

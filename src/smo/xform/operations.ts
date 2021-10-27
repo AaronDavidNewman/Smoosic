@@ -5,7 +5,8 @@ import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
 import { SmoScore } from '../data/score';
 import { SmoMeasureParams, SmoMeasure, SmoVoice } from '../data/measure';
-import { SmoPartInfo, SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
+import { SmoPartInfo } from '../data/parts';
+import { SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
 import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoNoteModifierBase, SmoOrnament } from '../data/noteModifiers';
 import {
   SmoRehearsalMark, SmoMeasureText, SmoVolta, SmoMeasureFormat, SmoTempoText, SmoBarline,
@@ -861,16 +862,28 @@ export class SmoOperation {
     const staffArray: SmoInstrumentMeasure[] = SmoSystemStaff.getStaffInstrumentArray(measureSel[0].staff.measureInstrumentMap);
     instMap[measureIndex] = instrument;
     staffArray.forEach((ar) => {
-      if (ar.instrument.startSelector.measure > measureEnd) {
-        instMap[ar.instrument.startSelector.measure] = new SmoInstrument(ar.instrument);
-      } else if (ar.instrument.endSelector.measure < measureIndex) {
+      if (ar.instrument.endSelector.measure < measureIndex || ar.instrument.startSelector.measure > measureEnd) {
+        // No overlap, juse use the original instrument
         instMap[ar.instrument.startSelector.measure] = new SmoInstrument(ar.instrument);
       } else if (ar.instrument.startSelector.measure < measureIndex) {
-        ar.instrument.endSelector.measure = measureIndex - 1;
+        // overlap on left
+        const split1 = new SmoInstrument(ar.instrument);
+        split1.startSelector.measure = ar.instrument.startSelector.measure;
+        instMap[split1.startSelector.measure] = split1;
+        split1.endSelector.measure = measureIndex - 1;
+        if (ar.instrument.endSelector.measure > measureEnd) {
+          // overlap on left and right
+          const split2 = new SmoInstrument(ar.instrument);
+          split2.startSelector.measure = measureEnd + 1;
+          split2.endSelector.measure = ar.instrument.endSelector.measure;
+          instMap[split2.startSelector.measure] = split2;
+        }
         instMap[ar.instrument.startSelector.measure] = new SmoInstrument(ar.instrument);
       } else if (ar.instrument.endSelector.measure > measureEnd) {
-        ar.instrument.startSelector.measure = measureEnd + 1;
-        instMap[ar.instrument.startSelector.measure] = new SmoInstrument(ar.instrument);
+        // overlap on right only
+        const split1 = new SmoInstrument(ar.instrument);
+        split1.startSelector.measure = measureEnd + 1;
+        instMap[split1.startSelector.measure] = split1;
       }
     });
     selections[0].staff.measureInstrumentMap = instMap;
