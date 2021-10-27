@@ -163,9 +163,7 @@ export abstract class SuiRenderState {
   // ### renderPromise
   // return a promise that resolves when the score is in a fully rendered state.
   updatePromise() {
-    if (this.suspendRendering) {
-      this._replaceMeasures();
-    }
+    this._replaceMeasures();
     return this._renderStatePromise('renderStateRendered');
   }
   // Number the measures at the first measure in each system.

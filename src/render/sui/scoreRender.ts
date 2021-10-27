@@ -397,7 +397,7 @@ export class SuiScoreRender extends SuiRenderState {
     const timestamp = new Date().valueOf();
 
     const svg = this.context.svg;
-    const startPageCount = scoreLayout.pages;
+    const startPageCount = this.score.layoutManager!.pageLayouts.length;
 
     y = scoreLayout.topMargin;
     x = scoreLayout.leftMargin;
