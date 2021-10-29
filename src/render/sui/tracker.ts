@@ -62,18 +62,13 @@ export class SuiTracker extends SuiMapper {
     }
   }
 
-  replaceSelectedMeasures() {
-    const mm = SmoSelection.getMeasureList(this.selections);
-    this.renderer.addToReplaceQueue(mm);
-  }
-
   // ### renderElement
   // the element the score is rendered on
   get renderElement(): Element {
     return this.renderer.renderElement;
   }
 
-  get score(): SmoScore {
+  get score(): SmoScore | null {
     return this.renderer.score;
   }
 
@@ -89,11 +84,14 @@ export class SuiTracker extends SuiMapper {
   // the little birdie that follows the music as it plays
   musicCursor(selector: SmoSelector) {
     const key = SmoSelector.getNoteKey(selector);
+    if (!this.score) {
+      return;
+    }
     // Get note from 0th staff if we can
     if (this.measureNoteMap[key]) {
-      const measureSel = SmoSelection.measureSelection(this.renderer.score,
-        this.renderer.score.staves.length - 1, selector.measure);
-      const zmeasureSel = SmoSelection.measureSelection(this.renderer.score,
+      const measureSel = SmoSelection.measureSelection(this.score,
+        this.score.staves.length - 1, selector.measure);
+      const zmeasureSel = SmoSelection.measureSelection(this.score,
         0, selector.measure);
       const measure = measureSel?.measure as SmoMeasure;
       const y1: number = zmeasureSel?.measure?.svg?.renderedBox?.y ?? 0;
@@ -180,7 +178,10 @@ export class SuiTracker extends SuiMapper {
 
   // ### _getOffsetSelection
   // Get the selector that is the offset of the first existing selection
-  _getOffsetSelection(offset: number) {
+  _getOffsetSelection(offset: number): SmoSelector {
+    if (!this.score) {
+      return SmoSelector.default;
+    }
     let testSelection = this.getExtremeSelection(Math.sign(offset));
     const scopyTick = JSON.parse(JSON.stringify(testSelection.selector));
     const scopyMeasure = JSON.parse(JSON.stringify(testSelection.selector));
@@ -246,8 +247,8 @@ export class SuiTracker extends SuiMapper {
     this.modifierSelections.push(left[ix + offset]);
     this._highlightModifier();
   }
-  get autoPlay() {
-    return this.renderer.score.preferences.autoPlay;
+  get autoPlay(): boolean {
+    return this.renderer.score ? this.renderer.score.preferences.autoPlay : false;
   }
 
   growSelectionRight() {
@@ -478,7 +479,7 @@ export class SuiTracker extends SuiMapper {
   }
 
   _moveStaffOffset(offset: number) {
-    if (this.selections.length === 0) {
+    if (this.selections.length === 0 || this.score === null) {
       return;
     }
     this.idleTimer = Date.now();
@@ -541,6 +542,9 @@ export class SuiTracker extends SuiMapper {
   }
 
   _replaceSelection(nselector: SmoSelector, skipPlay: boolean) {
+    if (this.score === null) {
+      return;
+    }
     var artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, nselector.voice, nselector.tick);
     if (!artifact) {
       artifact = SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, 0, nselector.tick);
@@ -590,8 +594,11 @@ export class SuiTracker extends SuiMapper {
   getSelectedMeasures(): SmoSelection[] {
     const set: number[] = [];
     const rv: SmoSelection[] = [];
+    if (!this.score) {
+      return [];
+    }
     this.selections.forEach((sel) => {
-      const measure = SmoSelection.measureSelection(this.score, sel.selector.staff, sel.selector.measure);
+      const measure = SmoSelection.measureSelection(this.score!, sel.selector.staff, sel.selector.measure);
       if (measure) {
         const ix = measure.selector.measure;
         if (set.indexOf(ix) === -1) {
@@ -660,7 +667,7 @@ export class SuiTracker extends SuiMapper {
   // assumes a modifier is selected
   _matchSelectionToModifier() {
     const mod = this.modifierSelections[0].modifier;
-    if ((mod as StaffModifierBase).startSelector && (mod as StaffModifierBase).endSelector) {
+    if ((mod as StaffModifierBase).startSelector && (mod as StaffModifierBase).endSelector && this.score) {
       const sm = mod as StaffModifierBase;
       const s1: SmoSelection | null = SmoSelection.noteFromSelector(this.score, sm.startSelector);
       const s2: SmoSelection | null = SmoSelection.noteFromSelector(this.score, sm.endSelector);
@@ -670,7 +677,7 @@ export class SuiTracker extends SuiMapper {
     }
   }
   selectSuggestion(ev: KeyEvent) {
-    if (!this.suggestion || !this.suggestion.measure) {
+    if (!this.suggestion || !this.suggestion.measure || this.score === null) {
       return;
     }
     this.idleTimer = Date.now();
@@ -876,6 +883,10 @@ export class SuiTracker extends SuiMapper {
         this._highlightModifier();
         return;
       }
+    }
+    // If there is a race condition with a change, avoid referencing null note
+    if (!this.selections[0].note) {
+      return;
     }
     const note = this.selections[0].note as SmoNote;
     if (this.pitchIndex >= 0 && this.selections.length === 1 &&

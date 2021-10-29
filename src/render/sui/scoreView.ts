@@ -24,25 +24,22 @@ export interface ViewMapEntry {
   show: boolean;
 }
 
-// ## SuiScoreView
-// Do a thing to the music.  Save in undo buffer before.  Render the score to reflect
-// the change after.  Map the operation on the score view to the actual score.
+/**
+ * Base class for all operations on the rendered score.  The base class handles the following:
+ * 1. Undo and recording actions for the operation
+ * 2. Maintain/change which staves in the score are displayed (staff map)
+ * 3. Mapping between the displayed score and the data representation
+ */
 export abstract class SuiScoreView {
   static Instance: SuiScoreView | null = null;
   abstract replayActions(): void;
-
-  // ### _reverseMapSelection
-  // For operations that affect all columns, we operate on the
-  // entire score and update the view score.  Some selections
-  // will not have an equivalent in the reverse map since the
-  // view can be a subset.
-  score: SmoScore;
-  storeScore: SmoScore;
-  staffMap: number[];
-  storeUndo: UndoBuffer;
+  score: SmoScore; // The score that is displayed
+  storeScore: SmoScore;  // the full score, including invisible staves
+  staffMap: number[]; // mapping the 2 things above
+  storeUndo: UndoBuffer; // undo buffer for operations to above
   undoBuffer: UndoBuffer;
-  tracker: SuiTracker;
-  renderer: any;
+  tracker: SuiTracker; // UI selections
+  renderer: SuiRenderState;
   scroller: SuiScroller;
   pasteBuffer: PasteBuffer;
   storePaste: PasteBuffer;
@@ -325,46 +322,31 @@ export abstract class SuiScoreView {
       staff.setMappedStaffId(this.staffMap[staff.staffId]);
     });
   }
+  /**
+   * Exposes a part:  hides non-part staves, shows part staves.
+   * Note this will reset the view.  After this operation, staff 0 will
+   * be the selected part.
+   * @param staff 
+   */
   exposePart(staff: SmoSystemStaff) {
     let i = 0;
     const partInfo = staff.partInfo;
-    const staffId = staff.staffId;
+    const startIndex = this.staffMap[staff.staffId] - partInfo.stavesBefore;
+    const partLength = partInfo.stavesBefore + partInfo.stavesAfter + 1; 
     const exposeMap: ViewMapEntry[] = [];
-    for (i = 0;i < this.storeScore.staves.length; ++i) {
-      const show = (i >= staffId - partInfo.stavesBefore && i <= staffId + partInfo.stavesAfter);
+    for (i = 0; i < this.storeScore.staves.length; ++i) {
+      const show = (i >= startIndex && i < startIndex + partLength);
       exposeMap.push({ show });
     }
     this.setView(exposeMap);
   }
   isStaffVisible(staffId: number): boolean {
-    let rv = true;
-    this.staffMap.forEach((num: number) => {
-      if (num === staffId) {
-        rv = false;
-      }
-    });
-    return rv;
-  }
-  isPartVisible(staff: SmoSystemStaff): boolean {
-    let allVisible = true;
-    let i = 0;
-    const info = staff.partInfo;
-    const staffId = staff.staffId;
-    for (i = 1; allVisible && i <= info.stavesAfter; ++i) {
-      if (!this.isStaffVisible(staffId + i)) {
-        allVisible = false;
-      }
-    }
-    for (i = 1; allVisible && i <= info.stavesBefore; ++i) {
-      if (!this.isStaffVisible(staffId - i)) {
-        allVisible = false;
-      }
-    }
-    return allVisible;
+    return this.staffMap.findIndex((x) => x === staffId) >= 0;
   }
   isPartExposed(staff: SmoSystemStaff): boolean {
     const staveCount = staff.partInfo.stavesAfter + staff.partInfo.stavesBefore + 1;
-    return (staveCount === this.staffMap.length && this.isPartVisible(staff));
+    return this.score.staves[0].staffId === staff.staffId && staveCount === this.score.staves.length
+      && staff.partInfo.stavesBefore === 0;
   }
 
   // ### setView
@@ -394,11 +376,12 @@ export abstract class SuiScoreView {
     // Indicate which score staff view staves are mapped to, to decide to display
     // modifiers.
     this.setMappedStaffIds();
+    // TODO: add part-specific measure formatting, etc.
+    this.renderer.score = nscore;
     // If this current view is a part, show the part layout
     if (this.isPartExposed(this.score.staves[0])) {
-      this.score.layoutManager!.globalLayout = this.score.staves[0].partInfo.globalLayout;
+      this.score.layoutManager = this.score.staves[0].partInfo.layoutManager;
     }
-    this.renderer.score = nscore;
     this.renderer.setViewport(true);
     setTimeout(() => {
       $('body').trigger('forceResizeEvent');
@@ -430,6 +413,9 @@ export abstract class SuiScoreView {
   // for the view score, we the renderer decides what to render
   // depending on what is undone.
   undo() {
+    if (!this.renderer.score) {
+      return;
+    }
     this.renderer.undo(this.undoBuffer);
     // A score-level undo might have changed the score.
     this.score = this.renderer.score;

@@ -9,7 +9,6 @@ import { SuiPiano } from '../render/sui/piano';
 import { SuiDom } from './dom';
 import { basicJson, emptyScoreJson } from '../music/basic';
 import { SuiHelp } from '../ui/help';
-
 import { ArticulationButtons } from '../ui/buttons/articulation';
 import { BeamButtons } from '../ui/buttons/beam';
 import { ChordButtons } from '../ui/buttons/chord';
@@ -83,6 +82,7 @@ import { TextCheckComponent } from '../ui/dialogs/components/textCheck';
 import { SuiMenuManager} from '../ui/menus/manager';
 import { SuiMenuBase } from '../ui/menus/menu';
 import { SuiScoreMenu } from '../ui/menus/score';
+import { SuiPartMenu } from '../ui/menus/parts';
 import { SuiLibraryMenu } from '../ui/menus/library';
 import { SuiDynamicsMenu } from '../ui/menus/dynamics';
 import { SuiTimeSignatureMenu } from '../ui/menus/timeSignature';
@@ -139,7 +139,7 @@ export const Smo = {
     // Menus
     SuiMenuManager, SuiMenuBase, SuiScoreMenu, SuiFileMenu, SuiLibraryMenu,
     SuiDynamicsMenu, SuiTimeSignatureMenu, SuiKeySignatureMenu, SuiStaffModifierMenu,
-    SuiLanguageMenu, SuiMeasureMenu, SuiStaffMenu, SmoLanguage, SmoTranslator,
+    SuiLanguageMenu, SuiMeasureMenu, SuiStaffMenu, SmoLanguage, SmoTranslator, SuiPartMenu,
     // Dialogs
     SuiTempoDialog, SuiInstrumentDialog, SuiModifierDialogFactory, SuiLibraryDialog,
     SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreIdentificationDialog,

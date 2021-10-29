@@ -1,11 +1,12 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SmoScore } from '../../smo/data/score';
-import { GlobalLayoutAttributes, SmoLayoutManager, SmoGlobalLayout } from '../../smo/data/scoreModifiers';
+import { GlobalLayoutAttributes, SmoLayoutManager } from '../../smo/data/scoreModifiers';
+import { SmoPartInfo, SmoPartInfoStringType } from '../../smo/data/partInfo';
+import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
-import { SmoPartInfo } from '../../smo/data/parts';
-import { SmoSelection } from '../../smo/xform/selections';
+import { ViewMapEntry } from '../../render/sui/scoreView';
 import { DialogDefinition, SuiDialogParams } from './dialog';
 
 declare var $: any;
@@ -15,50 +16,80 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
   backup: SmoPartInfo;
   selection: SmoSelection;
   changed: boolean = false;
+  currentView: ViewMapEntry[] = [];
+  restoreView: boolean = true;
   constructor(view: SuiScoreViewOperations) {
     super(view);
-    this.selection = this.view.tracker.selections[0];
+    this.currentView = this.view.getView();
+    const selection = this.view.tracker.selections[0];
+    const selector = SmoSelector.default;
+
+    // Note: this will change the score, need to reselect.  The new score will have the part as the 
+    // 0th stave
+    this.view.exposePart(selection.staff);
+    this.selection = SmoSelection.measureSelection(this.view.score, selector.staff, selector.measure)!;
     this.partInfo = this.selection.staff.partInfo;
     this.backup = new SmoPartInfo(this.selection.staff.partInfo);
-    this.view.exposePart(this.selection.staff);
   }
-  writeValue(attr: GlobalLayoutAttributes, value: number) {
-    this.partInfo.globalLayout[attr] = value;
-    this.view.updatePartInfo(this.partInfo);
+  update() {
+    const self = this;
     this.changed = true;
+    this.view.renderer.updatePromise().then(() => {
+      self.view.updatePartInfo(self.partInfo);
+    })
+  }
+  writeLayoutValue(attr: GlobalLayoutAttributes, value: number) {
+    // no change?
+    if (this.partInfo.layoutManager.globalLayout[attr] === value) {
+      return;
+    }
+    this.partInfo.layoutManager.globalLayout[attr] = value;
+    this.update();
+  }
+  writeStringValue(attr: SmoPartInfoStringType, value: string) {
+    if (this.partInfo[attr] === value) {
+      return;
+    }
+    this.partInfo[attr] = value;
+  }
+  get restoreScoreView() {
+    return this.restoreView;
+  }
+  set restoreScoreView(value: boolean) {
+    this.restoreView = value;
   }
   get noteSpacing() {
-    return this.partInfo.globalLayout.noteSpacing;
+    return this.partInfo.layoutManager.globalLayout.noteSpacing;
   }
   set noteSpacing(value: number) {
-    this.writeValue('noteSpacing', value);
+    this.writeLayoutValue('noteSpacing', value);
   }
   get pageWidth() {
-    return this.partInfo.globalLayout.pageWidth;
+    return this.partInfo.layoutManager.globalLayout.pageWidth;
   }
   set pageWidth(value: number) {
-    this.writeValue('pageWidth', value);
+    this.writeLayoutValue('pageWidth', value);
   }
   get pageHeight() {
-    return this.partInfo.globalLayout.pageHeight;
+    return this.partInfo.layoutManager.globalLayout.pageHeight;
   }
   set pageHeight(value: number) {
-    this.writeValue('pageHeight', value);
+    this.writeLayoutValue('pageHeight', value);
   }
   get svgScale() {
-    return this.partInfo.globalLayout.svgScale;
+    return this.partInfo.layoutManager.globalLayout.svgScale;
   }
   set svgScale(value: number) {
-    this.writeValue('svgScale', value);
+    this.writeLayoutValue('svgScale', value);
   }
   get zoomScale() {
-    return this.partInfo.globalLayout.zoomScale;
+    return this.partInfo.layoutManager.globalLayout.zoomScale;
   }
   set zoomScale(value: number) {
-    this.writeValue('zoomScale', value);
+    this.writeLayoutValue('zoomScale', value);
   }
   get pageSize() {
-    const sz = SmoScore.pageSizeFromDimensions(this.partInfo.globalLayout.pageWidth, this.partInfo.globalLayout.pageHeight);
+    const sz = SmoScore.pageSizeFromDimensions(this.partInfo.layoutManager.globalLayout.pageWidth, this.partInfo.layoutManager.globalLayout.pageHeight);
     if (sz === null) {
       return 'custom';
     }
@@ -70,24 +101,22 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
     }
     if (SmoScore.pageDimensions[value]) {
       const dims = SmoScore.pageDimensions[value];
-      this.partInfo.globalLayout.pageWidth = dims.width;
-      this.partInfo.globalLayout.pageHeight = dims.height;
+      this.partInfo.layoutManager.globalLayout.pageWidth = dims.width;
+      this.partInfo.layoutManager.globalLayout.pageHeight = dims.height;
     }
-    this.view.updatePartInfo(this.partInfo);
+    this.update();
   }
   get partName(): string {
     return this.partInfo.partName;
   }
   set partName(value: string) {
-    this.partInfo.partName = value;
-    this.view.updatePartInfo;
+    this.writeStringValue('partName', value);
   }
   get partAbbreviation(): string {
-    return this.partInfo.partName;
+    return this.partInfo.partAbbreviation;
   }
   set partAbbreviation(value: string) {
-    this.partInfo.partName = value;
-    this.view.updatePartInfo;
+    this.writeStringValue('partAbbreviation', value);
   }
   get includeNext(): boolean {
     return this.partInfo.stavesAfter === 1 && this.partInfo.stavesBefore === 0;
@@ -98,12 +127,27 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
     } else {
       this.partInfo.stavesAfter = 0;
     }
-    this.view.updatePartInfo(this.partInfo);;
+    this.update();
   }
-  commit() { }
+  restoreViewMap() {
+    const current = this.currentView;
+    const viewObj = this.view;
+    this.view.renderer.updatePromise().then(() => {
+      viewObj.setView(current);
+    });
+  }
+  commit() {
+    if (this.restoreView) {
+      this.restoreViewMap();
+    }
+  }
   cancel() {
     if (this.changed) {
-      this.view.updatePartInfo(this.backup);
+      this.update();
+    }
+    // restore previous view
+    if (this.restoreView) {
+      this.restoreViewMap();
     }
   }
 }
@@ -128,6 +172,11 @@ export class SuiPartInfoDialog extends SuiDialogAdapterBase<SuiPartInfoAdapter> 
           defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,
           control: 'SuiToggleComponent',
           label: 'Include Next'
+        }, {
+          smoName: 'restoreScoreView',
+          defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,
+          control: 'SuiToggleComponent',
+          label: 'Restore View on Close'
         }, {
           smoName: 'noteSpacing',
           defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,

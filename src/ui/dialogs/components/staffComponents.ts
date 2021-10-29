@@ -161,8 +161,14 @@ export class StaffCheckComponent extends SuiComponentBase {
     this.dialog = dialog;
     this.view = this.dialog.getView();
     this.staffRows = [];
+    let previousStaff: string | null = null;
     this.view.storeScore.staves.forEach((staff) => {
-      const name = 'View Staff ' + (staff.staffId + 1);
+      ;
+      let name = 'View ' + staff.partInfo.partName;
+      if (staff.partInfo.stavesBefore > 0 && previousStaff) {
+        name = previousStaff + ' (2)';
+      }
+      previousStaff = name;
       const id = 'show-' + staff.staffId;
       const toggleParams: SuiToggleCompositeParams = {
         smoName: id,

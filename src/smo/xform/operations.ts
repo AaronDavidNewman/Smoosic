@@ -5,7 +5,7 @@ import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
 import { SmoScore } from '../data/score';
 import { SmoMeasureParams, SmoMeasure, SmoVoice } from '../data/measure';
-import { SmoPartInfo } from '../data/parts';
+import { SmoPartInfo } from '../data/partInfo';
 import { SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
 import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoNoteModifierBase, SmoOrnament } from '../data/noteModifiers';
 import {
@@ -888,27 +888,5 @@ export class SmoOperation {
     });
     selections[0].staff.measureInstrumentMap = instMap;
     selections[0].staff.updateInstrumentOffsets();
-  }
-
-  static updatePartInfo(score: SmoScore, partInfo: SmoPartInfo, selection: SmoSelection) {
-    const selector = selection.selector;
-    let i = 0;
-    score.staves[selector.staff].partInfo = partInfo;
-    for (i = 1; i <= partInfo.stavesAfter; ++i) {
-      if (score.staves.length > selector.staff + i) {
-        const info = new SmoPartInfo(partInfo);
-        info.stavesBefore = info.stavesAfter;
-        info.stavesAfter = 0;
-        score.staves[selector.staff + i].partInfo = info;
-      }
-    }
-    for (i = 1; i <= partInfo.stavesBefore; ++i) {
-      if (selector.staff - i >= 0) {
-        const info = new SmoPartInfo(partInfo);
-        info.stavesAfter = info.stavesBefore;
-        info.stavesBefore = 0;
-        score.staves[selector.staff - i].partInfo = info;
-      }
-    }
   }
 }

@@ -3,11 +3,11 @@
 import { SuiScoreView } from './scoreView';
 import { SmoScore, SmoScorePreferences, SmoScoreInfo } from '../../smo/data/score';
 import { SmoSystemStaffParams, SmoSystemStaff } from '../../smo/data/systemStaff';
-import { SmoPartInfo } from '../../smo/data/parts';
+import { SmoPartInfo } from '../../smo/data/partInfo';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoNote } from '../../smo/data/note';
 import { SvgBox, Pitch, PitchLetter, FontInfo, SmoConfiguration } from '../../smo/data/common';
-import { SmoTextGroup, SmoSystemGroup, SmoPageLayout, SmoGlobalLayout } from '../../smo/data/scoreModifiers';
+import { SmoTextGroup, SmoSystemGroup, SmoPageLayout, SmoGlobalLayout, SmoLayoutManager } from '../../smo/data/scoreModifiers';
 import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, SmoOrnament, SmoLyric, SmoMicrotone } from '../../smo/data/noteModifiers';
 import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
 import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
@@ -1028,31 +1028,33 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.addStaff(this.storeScore, instrument);
     this.viewAll();
   }
+  /**
+   * Update part info assumes that the part is currently exposed - that
+   * staff 0 is the first staff in the part prior to editing.
+   * @param info
+   */
   updatePartInfo(info: SmoPartInfo) {
+    let i: number = 0;
     this._undoScore('Update part info');
-    let allVisible = true;
-    const selection = this.tracker.selections[0];
-    const selector = selection.selector;
-    let i = 0;
-    for (i = 1; allVisible && i <= info.stavesAfter; ++i) {
-      if (!this.isStaffVisible(selector.staff + i)) {
-        allVisible = false;
+    const storeStaff = this.staffMap[0] - info.stavesBefore;
+    const partLength = info.stavesBefore + info.stavesAfter + 1;
+    const resetView = !SmoLayoutManager.areLayoutsEqual(info.layoutManager.getGlobalLayout(), this.score.layoutManager!.getGlobalLayout());
+    for (i = 0; i < partLength; ++i) {
+      const nStaffIndex = storeStaff + i;
+      const nInfo = new SmoPartInfo(info);
+      nInfo.stavesBefore = i;
+      nInfo.stavesAfter = partLength - i - 1;
+      this.storeScore.staves[nStaffIndex].partInfo = nInfo;
+      // If the staff index is currently displayed, 
+      const displayedIndex = this.staffMap.findIndex((x) => x === nStaffIndex);
+      if (displayedIndex >= 0) {
+        this.score.staves[displayedIndex].partInfo = new SmoPartInfo(nInfo);
+        this.score.layoutManager = nInfo.layoutManager;
       }
     }
-    for (i = 1; allVisible && i <= info.stavesBefore; ++i) {
-      if (!this.isStaffVisible(selector.staff - i)) {
-        allVisible = false;
-      }
+    if (resetView) {
+      this.renderer.rerenderAll()
     }
-    if (!allVisible) {
-      this.viewAll();
-    }
-    SmoOperation.updatePartInfo(this.score, info, selection);
-    const alt = this._getEquivalentSelection(selection);
-    if (alt) {
-      SmoOperation.updatePartInfo(this.storeScore, new SmoPartInfo(info), alt);
-    }
-    this.exposePart(selection.staff);
   }
   addStaffSimple(params: any) {
     const instrumentParams = SmoInstrument.defaults;

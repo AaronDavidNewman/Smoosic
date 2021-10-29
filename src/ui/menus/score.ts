@@ -5,7 +5,7 @@ import { SuiPageLayoutDialog } from '../dialogs/pageLayout';
 import { SuiScoreFontDialog } from '../dialogs/fonts';
 import { SuiGlobalLayoutDialog } from '../dialogs/globalLayout';
 import { createAndDisplayDialog } from '../dialogs/dialog';
-import { SuiScoreViewDialog } from '../dialogs/scoreView';
+import { SuiStaffGroupDialog } from '../dialogs/staffGroup';
 
 declare var $: any;
 export class SuiScoreMenu extends SuiMenuBase {
@@ -23,14 +23,14 @@ export class SuiScoreMenu extends SuiMenuBase {
       icon: '',
       text: 'Page Layout',
       value: 'pageLayout'
+    },  {
+      icon: '',
+      text: 'System Groups',
+      value: 'staffGroups'
     }, {
       icon: '',
       text: 'Score Fonts',
       value: 'fonts'
-    }, {
-      icon: '',
-      text: 'Stave View',
-      value: 'view'
     }, {
       icon: '',
       text: 'Score Info',
@@ -48,20 +48,20 @@ export class SuiScoreMenu extends SuiMenuBase {
   constructor(params: SuiMenuParams) {
     super(params);
   }
-
-  execView() {
-    createAndDisplayDialog(SuiScoreViewDialog,
+  execStaffGroups() {
+    createAndDisplayDialog(SuiStaffGroupDialog,
       {
         completeNotifier: this.completeNotifier!,
         view: this.view,
         undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
-        id: 'scoreViewDialog',
-        ctor: 'SuiScoreViewDialog',
+        id: 'staffGroups',
+        ctor: 'SuiStaffGroupDialog',
         tracker: this.view.tracker,
         modifier: null,
         startPromise: this.closePromise
-      });
+      }
+    );
   }
   execScoreId() {
     SuiScoreIdentificationDialog.createAndDisplay(
@@ -135,9 +135,7 @@ export class SuiScoreMenu extends SuiMenuBase {
   }
   selection(ev: any) {
     const text = $(ev.currentTarget).attr('data-value');
-    if (text === 'view') {
-      this.execView();
-    } else if (text === 'pageLayout') {
+    if (text === 'pageLayout') {
       this.execPageLayout();
     } else if (text === 'preferences') {
       this.execPreferences();

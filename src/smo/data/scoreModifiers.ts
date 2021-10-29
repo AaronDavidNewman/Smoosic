@@ -132,6 +132,7 @@ export class SmoPageLayout extends SmoScoreModifierBase {
 }
 export type ScaledGlobalAttributes = 'pageWidth' | 'pageHeight';
 export type GlobalLayoutAttributes = 'pageWidth' | 'pageHeight' | 'noteSpacing' | 'svgScale' | 'zoomScale';
+export const GlobalLayoutAttributesArray: GlobalLayoutAttributes[]  = ['pageWidth', 'pageHeight', 'noteSpacing', 'svgScale', 'zoomScale'];
 export interface SmoGlobalLayout {
   svgScale: number;
   zoomScale: number;
@@ -192,6 +193,15 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
   }
   static get scaledGlobalAttributes(): ScaledGlobalAttributes[] {
     return ['pageWidth', 'pageHeight'];
+  }
+  static areLayoutsEqual(g1: SmoGlobalLayout, g2: SmoGlobalLayout) {
+    let rv = true;
+    GlobalLayoutAttributesArray.forEach((attr) => {
+      if (g1[attr] !== g2[attr]) {
+        rv = false;
+      }
+    });
+    return rv;
   }
   static getScaledPageLayout(globalLayout: SmoGlobalLayout, pageLayout: SmoPageLayout, pages: number): ScaledPageLayout {
     const rv: Partial<ScaledPageLayout> = {};

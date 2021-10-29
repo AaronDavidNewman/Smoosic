@@ -36,14 +36,6 @@ export class SuiStaffMenu extends SuiMenuBase {
         text: 'Percussion Clef Staff',
         value: 'percussionInstrument'
       }, {
-        icon: '',
-        text: 'Staff Groups',
-        value: 'staffGroups'
-      }, {
-        icon: '',
-        text: 'Edit Part',
-        value: 'editPart'
-      }, {
         icon: 'cancel-circle',
         text: 'Remove Staff',
         value: 'remove'
@@ -113,47 +105,11 @@ export class SuiStaffMenu extends SuiMenuBase {
   getDefinition() {
     return SuiStaffMenu.defaults;
   }
-  execStaffGroups() {
-    createAndDisplayDialog(SuiStaffGroupDialog,
-      {
-        completeNotifier: this.completeNotifier!,
-        view: this.view,
-        undoBuffer: this.view.undoBuffer,
-        eventSource: this.eventSource,
-        id: 'staffGroups',
-        ctor: 'SuiStaffGroupDialog',
-        tracker: this.view.tracker,
-        modifier: null,
-        startPromise: this.closePromise
-      }
-    );
-  }
-  editPart() {
-    createAndDisplayDialog(SuiPartInfoDialog,
-      {
-        completeNotifier: this.completeNotifier!,
-        view: this.view,
-        undoBuffer: this.view.undoBuffer,
-        eventSource: this.eventSource,
-        id: 'editPart',
-        ctor: 'SuiPartInfoDialog',
-        tracker: this.view.tracker,
-        modifier: null,
-        startPromise: this.closePromise
-      }
-    );
-  }
 
   selection(ev: any) {
     const op: string = $(ev.currentTarget).attr('data-value');
     if (op === 'remove') {
       this.view.removeStaff();
-      this.complete();
-    } else if (op === 'staffGroups') {
-      this.execStaffGroups();
-      this.complete();
-    } else if (op === 'editPart') {
-      this.editPart();
       this.complete();
     } else if (op === 'cancel') {
       this.complete();

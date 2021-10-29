@@ -14,6 +14,7 @@ import { SuiMapper } from './mapper';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
 import { VxMeasure } from '../vex/vxMeasure';
+import { SmoTextGroup } from '../../smo/data/scoreModifiers';
 
 export interface ScoreRenderParams {
   elementId: any,
@@ -65,6 +66,9 @@ export abstract class SuiRenderState {
   }
   abstract unrenderAll(): void;
   abstract layout(): void;
+  abstract renderScoreModifiers(): void;
+  abstract renderTextGroup(t: SmoTextGroup): void;
+  
   // ### setMeasureMapper
   // DI/notifier pattern.  The measure mapper/tracker is updated when the score is rendered
   // so the UI stays in sync with the location of elements in the score.
@@ -98,7 +102,7 @@ export abstract class SuiRenderState {
   get renderElement(): Element {
     return this.elementId;
   }
-  addToReplaceQueue(selection: SmoSelection) {
+  addToReplaceQueue(selection: SmoSelection | SmoSelection[]) {
     if (this.passState === SuiRenderState.passStates.clean ||
       this.passState === SuiRenderState.passStates.replace) {
       if (Array.isArray(selection)) {
@@ -244,11 +248,11 @@ export abstract class SuiRenderState {
       });
     });
   }
-  renderForPrintPromise() {
+  renderForPrintPromise(): Promise<void> {
     $('body').addClass('print-render');
     const self = this;
     if (!this.score) {
-      return;
+      return PromiseHelpers.emptyPromise();
     }
     const layoutMgr = this.score!.layoutManager!;
     const layout = layoutMgr.getGlobalLayout();
@@ -258,7 +262,7 @@ export abstract class SuiRenderState {
     this.setViewport(true);
     this.setRefresh();
 
-    const promise = new Promise((resolve: any) => {
+    const promise = new Promise<void>((resolve) => {
       const poll = () => {
         setTimeout(() => {
           if (!self.dirty && !self.backgroundRender) {

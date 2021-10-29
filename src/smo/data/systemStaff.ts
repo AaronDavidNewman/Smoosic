@@ -5,7 +5,7 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { smoBeamerFactory } from '../xform/beamers';
 import { SmoMusic } from './music';
-import { SmoPartInfo, SmoPartInfoParams } from './parts';
+import { SmoPartInfo, SmoPartInfoParams } from './partInfo';
 import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMeasure, SmoInstrumentStringParams, SmoInstrumentNumParams } from './staffModifiers';
 import { SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta } from './measureModifiers';
 import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber } from './common';
@@ -127,7 +127,11 @@ export class SmoSystemStaff implements SmoObjectParams {
     if (params.partInfo) {
       this.partInfo = params.partInfo;
     } else {
-      this.partInfo = new SmoPartInfo(SmoPartInfo.defaults);
+      const staveNo = this.staffId + 1;
+      const partDefs = SmoPartInfo.defaults;
+      partDefs.partName = 'Staff ' + staveNo;
+      partDefs.partAbbreviation = staveNo.toString() + '.';
+      this.partInfo = new SmoPartInfo(partDefs);
     }
   }
 
@@ -157,6 +161,7 @@ export class SmoSystemStaff implements SmoObjectParams {
     this.modifiers.forEach((modifier) => {
       params.modifiers.push(modifier.serialize());
     });
+    params.partInfo = this.partInfo.serialize();
     return params;
   }
 
@@ -174,6 +179,9 @@ export class SmoSystemStaff implements SmoObjectParams {
     });
     params.measures = [];
     params.modifiers = [];
+    if (jsonObj.partInfo) {
+      params.partInfo = new SmoPartInfo(jsonObj.partInfo);
+    }
     // Up-convert legacy instrument info, which was split between different objects
     if (!jsonObj.measureInstrumentMap) {
       if (jsonObj.instrumentInfo) {
