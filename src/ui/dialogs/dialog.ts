@@ -312,13 +312,6 @@ export abstract class SuiDialogBase extends SuiDialogNotifier {
 
     x = (x < 0 || x > maxX) ? maxX / 2 : x;
     $(dge).css('left', '' + x + 'px');
-
-    // Make sure the dialog is visible if the selection is not
-    setTimeout(() => {
-      scroller.scrollVisibleBox(
-        SvgHelpers.smoBox(box)
-      );
-    }, 1);
   }
   getView() {
     return this.view;

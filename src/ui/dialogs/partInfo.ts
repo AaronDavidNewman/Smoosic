@@ -24,9 +24,11 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
     const selection = this.view.tracker.selections[0];
     const selector = SmoSelector.default;
 
-    // Note: this will change the score, need to reselect.  The new score will have the part as the 
+    if (this.view.score.staves.length !== selection.staff.partInfo.stavesAfter + selection.staff.partInfo.stavesBefore + 1) {
+      this.view.exposePart(selection.staff);
+    }
+    // Note: exposing the part will change the score, need to reselect.  The new score will have the part as the 
     // 0th stave
-    this.view.exposePart(selection.staff);
     this.selection = SmoSelection.measureSelection(this.view.score, selector.staff, selector.measure)!;
     this.partInfo = this.selection.staff.partInfo;
     this.backup = new SmoPartInfo(this.selection.staff.partInfo);
@@ -34,9 +36,15 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
   update() {
     const self = this;
     this.changed = true;
+
+    const shouldReset = (this.partInfo.stavesAfter + 1 !== this.view.score.staves.length);
+    // Since update will change the displayed score, wait for any display change to complete first.
     this.view.renderer.updatePromise().then(() => {
       self.view.updatePartInfo(self.partInfo);
-    })
+      if (shouldReset) {
+        self.view.exposePart(self.view.score.staves[0]);
+      }
+    });
   }
   writeLayoutValue(attr: GlobalLayoutAttributes, value: number) {
     // no change?

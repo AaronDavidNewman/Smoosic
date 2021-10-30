@@ -4,6 +4,7 @@ import { SmoMeasure } from './measure';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { smoBeamerFactory } from '../xform/beamers';
+import { SmoMeasureFormat } from './measureModifiers';
 import { SmoMusic } from './music';
 import { SmoPartInfo, SmoPartInfoParams } from './partInfo';
 import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMeasure, SmoInstrumentStringParams, SmoInstrumentNumParams } from './staffModifiers';
@@ -243,6 +244,15 @@ export class SmoSystemStaff implements SmoObjectParams {
     }
     const rv = new SmoSystemStaff(params);
     return rv;
+  }
+  updateMeasureFormatsForPart() {
+    this.measures.forEach((measure, mix) => {
+      if (this.partInfo.measureFormatting[mix]) {
+        measure.format = new SmoMeasureFormat(this.partInfo.measureFormatting[mix]);
+      } else {
+        measure.format = new SmoMeasureFormat(SmoMeasureFormat.defaults);
+      }
+    });
   }
   /**
    * Get the active instrument at the given measure

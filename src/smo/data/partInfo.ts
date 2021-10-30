@@ -1,6 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SmoMeasureFormat } from './measureModifiers';
+import { SmoSystemStaff } from './systemStaff';
 import { SmoLayoutManager, SmoTextGroup } from './scoreModifiers';
 import { StaffModifierBase } from './staffModifiers';
 

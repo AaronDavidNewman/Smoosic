@@ -381,6 +381,7 @@ export abstract class SuiScoreView {
     // If this current view is a part, show the part layout
     if (this.isPartExposed(this.score.staves[0])) {
       this.score.layoutManager = this.score.staves[0].partInfo.layoutManager;
+      this.score.staves.forEach((staff) => staff.updateMeasureFormatsForPart());
     }
     this.renderer.setViewport(true);
     setTimeout(() => {

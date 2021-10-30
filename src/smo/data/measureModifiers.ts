@@ -29,7 +29,10 @@ export abstract class SmoMeasureModifierBase implements SmoModifierBase {
 }
 
 export type SmoMeasureFormatNumberAttributes = 'customStretch' | 'customProportion' | 'padLeft' | 'measureIndex';
+export const SmoMeasureFormatNumberKeys: SmoMeasureFormatNumberAttributes[] =
+  ['customStretch', 'customProportion', 'padLeft', 'measureIndex'];
 export type SmoMeasueFormatBooleanAttributes = 'autoJustify' | 'systemBreak' | 'pageBreak' | 'padAllInSystem';
+export const SmoMeasureFormatBooleanKeys: SmoMeasueFormatBooleanAttributes[] = ['autoJustify', 'systemBreak', 'pageBreak', 'padAllInSystem'];
 export interface SmoMeasureFormatParams {
   customStretch: number | null,
   customProportion: number | null,
@@ -86,10 +89,13 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
   measureIndex: number = 0;
   eq(o: SmoMeasureFormatParams) {
     let rv = true;
-    SmoMeasureFormat.formatAttributes.forEach((attr: string | number) => {
-      const obj1 = (o as any)[attr];
-      const obj2 = (this as any)[attr];
-      if (obj1 !== obj2) {
+    SmoMeasureFormatBooleanKeys.forEach((attr) => {
+      if (o[attr] !== this[attr]) {
+        rv = false;
+      }
+    });
+    SmoMeasureFormatNumberKeys.forEach((attr) => {
+      if (o[attr] !== this[attr]) {
         rv = false;
       }
     });

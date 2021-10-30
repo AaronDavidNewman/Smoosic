@@ -187,14 +187,14 @@ export abstract class SuiRenderState {
         SvgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
 
         // Show line-feed symbol
-        const formatIndex = SmoMeasure.systemOptions.findIndex((option) => (measure as any)[option] !== (SmoMeasure.defaults as any)[option]);
-        if (formatIndex >= 0 && !printing) {
+        if (!measure.format.isDefault && !printing) {
           const starAr = [];
+          const symbol = measure.format.systemBreak ? '\u21b5' : '\u21b0';
           starAr.push({ y: measure.svg.logicalBox.y - 5 });
           starAr.push({ x: measure.svg.logicalBox.x + 25 });
           starAr.push({ 'font-family': SourceSansProFont.fontFamily });
           starAr.push({ 'font-size': '12pt' });
-          SvgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', '\u21b0');
+          SvgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', symbol);
         }
       }
     });

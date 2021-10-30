@@ -1092,21 +1092,27 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const scoreStr = JSON.stringify(this.storeScore.serialize());
     localStorage.setItem(smoSerialize.localScore, scoreStr);
   }
-  _columnAction(label: string, value: any, method: string) {
-    this.actionBuffer.addAction(label, value);
+  setMeasureFormat(format: SmoMeasureFormat) {
+    const label = 'set measure format';
+    this.actionBuffer.addAction(label, format);
     const fromSelector = this.tracker.getExtremeSelection(-1).selector;
     const toSelector = this.tracker.getExtremeSelection(1).selector;
     const measureSelections = this.tracker.getSelectedMeasures();
+    // If the formatting is on a part, preserve it in the part's info
+    const isPart = this.isPartExposed(measureSelections[0].staff);
     measureSelections.forEach((m) => {
-      this._undoColumn(label + value.toString(), m.selector.measure);
-      (SmoOperation as any)[method](this.score, m, value);
+      this._undoColumn(label, m.selector.measure);
+      SmoOperation.setMeasureFormat(this.score, m, format);
+      if (isPart) {
+        m.staff.partInfo.measureFormatting[m.measure.measureNumber.measureIndex] = new SmoMeasureFormat(format);
+      }
       const alt = this._getEquivalentSelection(m);
-      (SmoOperation as any)[method](this.storeScore, alt, value);
+      SmoOperation.setMeasureFormat(this.storeScore, alt!, format);
+      if (isPart) {
+        alt!.staff.partInfo.measureFormatting[m.measure.measureNumber.measureIndex] = new SmoMeasureFormat(format);
+      }
     });
     this._renderRectangle(fromSelector, toSelector);
-  }
-  setMeasureFormat(format: SmoMeasureFormat) {
-    this._columnAction('set measure format', format, 'setMeasureFormat');
   }
 
   playFromSelection() {
