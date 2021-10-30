@@ -70,6 +70,10 @@ export class SvgBox {
         this.height = -1;
     }
 }
+export interface SvgDimensions {
+    width: number,
+    height: number
+}
 export interface Transposable {
     pitches: Pitch[],
     noteType: string,
@@ -92,17 +96,13 @@ export interface SmoModifierBase {
 export type Clef = 'treble' | 'bass' | 'tenor' | 'alto' | 'soprano' | 'percussion'
     | 'mezzo-soprano' | 'baritone-c' | 'baritone-f' | 'subbass' | 'french';
 
-export class TimeSignature {
-    timeSignature: string = '4/4';
-    actualBeats: number = 4;
-    beatDuration: number = 4;
-    useSymbol: boolean = false;
-    display: boolean = true;
+export var Clefs: Clef[] = ['treble' , 'bass' , 'tenor' , 'alto' , 'soprano' , 'percussion'
+, 'mezzo-soprano' , 'baritone-c' , 'baritone-f' , 'subbass' , 'french'];
 
-    static equal(ts1: TimeSignature, ts2: TimeSignature): boolean {
-        return (ts1.actualBeats == ts2.actualBeats && ts1.beatDuration == ts2.beatDuration);
-    }
+export function IsClef(clef: Clef | string): clef is Clef {
+  return Clefs.findIndex((x) => clef === x) >= 0;
 }
+
 export interface SmoConfiguration {
     smoPath?: string,
     language: string,

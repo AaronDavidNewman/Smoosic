@@ -14,6 +14,7 @@ import { SuiMapper } from './mapper';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
 import { VxMeasure } from '../vex/vxMeasure';
+import { SmoTextGroup } from '../../smo/data/scoreModifiers';
 
 export interface ScoreRenderParams {
   elementId: any,
@@ -43,6 +44,10 @@ export abstract class SuiRenderState {
   renderer: any;
   elementId: any;
   _backupZoomScale: number = 0;
+  // signal to render demon that we have suspended background
+  // rendering because we are recording or playing actions.
+  suspendRendering: boolean = false;
+  autoAdjustRenderTime: boolean = true;
 
   constructor(ctor: string) {
     this.attrs = {
@@ -61,11 +66,21 @@ export abstract class SuiRenderState {
   }
   abstract unrenderAll(): void;
   abstract layout(): void;
+  abstract renderScoreModifiers(): void;
+  abstract renderTextGroup(t: SmoTextGroup): void;
+  
   // ### setMeasureMapper
   // DI/notifier pattern.  The measure mapper/tracker is updated when the score is rendered
   // so the UI stays in sync with the location of elements in the score.
   setMeasureMapper(mapper: SuiMapper) {
     this.measureMapper = mapper;
+  }
+  set stepMode(value: boolean) {
+    this.suspendRendering = value;
+    this.autoAdjustRenderTime = !value;
+    if (this.measureMapper) {
+      this.measureMapper.deferHighlightMode = !value;
+    }
   }
 
   static get Fonts(): any {
@@ -87,7 +102,7 @@ export abstract class SuiRenderState {
   get renderElement(): Element {
     return this.elementId;
   }
-  addToReplaceQueue(selection: SmoSelection) {
+  addToReplaceQueue(selection: SmoSelection | SmoSelection[]) {
     if (this.passState === SuiRenderState.passStates.clean ||
       this.passState === SuiRenderState.passStates.replace) {
       if (Array.isArray(selection)) {
@@ -134,16 +149,26 @@ export abstract class SuiRenderState {
     });
   }
 
+  _renderStatePromise(condition: string): Promise<void> {
+    const oldSuspend = this.suspendRendering;
+    this.suspendRendering = false;
+    const self = this;
+    const endAction = () => {
+      self.suspendRendering = oldSuspend;
+    };
+    return PromiseHelpers.makePromise(this, condition, endAction, null, SmoConfig.demonPollTime);
+  }
   // ### renderPromise
   // return a promise that resolves when the score is in a fully rendered state.
-  renderPromise() {
-    return PromiseHelpers.makePromise(this, 'renderStateClean', null, null, (SmoConfig as any).demonPollTime);
+  renderPromise(): Promise<void> {
+    return this._renderStatePromise('renderStateClean');
   }
 
   // ### renderPromise
   // return a promise that resolves when the score is in a fully rendered state.
   updatePromise() {
-    return PromiseHelpers.makePromise(this, 'renderStateRendered', null, null, SmoConfig.demonPollTime);
+    this._replaceMeasures();
+    return this._renderStatePromise('renderStateRendered');
   }
   // Number the measures at the first measure in each system.
   numberMeasures() {
@@ -162,14 +187,14 @@ export abstract class SuiRenderState {
         SvgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
 
         // Show line-feed symbol
-        const formatIndex = SmoMeasure.systemOptions.findIndex((option) => (measure as any)[option] !== (SmoMeasure.defaults as any)[option]);
-        if (formatIndex >= 0 && !printing) {
+        if (!measure.format.isDefault && !printing) {
           const starAr = [];
+          const symbol = measure.format.systemBreak ? '\u21b5' : '\u21b0';
           starAr.push({ y: measure.svg.logicalBox.y - 5 });
           starAr.push({ x: measure.svg.logicalBox.x + 25 });
           starAr.push({ 'font-family': SourceSansProFont.fontFamily });
           starAr.push({ 'font-size': '12pt' });
-          SvgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', '\u21b0');
+          SvgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', symbol);
         }
       }
     });
@@ -223,11 +248,11 @@ export abstract class SuiRenderState {
       });
     });
   }
-  renderForPrintPromise() {
+  renderForPrintPromise(): Promise<void> {
     $('body').addClass('print-render');
     const self = this;
     if (!this.score) {
-      return;
+      return PromiseHelpers.emptyPromise();
     }
     const layoutMgr = this.score!.layoutManager!;
     const layout = layoutMgr.getGlobalLayout();
@@ -237,7 +262,7 @@ export abstract class SuiRenderState {
     this.setViewport(true);
     this.setRefresh();
 
-    const promise = new Promise((resolve: any) => {
+    const promise = new Promise<void>((resolve) => {
       const poll = () => {
         setTimeout(() => {
           if (!self.dirty && !self.backgroundRender) {

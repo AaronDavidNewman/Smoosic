@@ -1,12 +1,13 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiTempoDialog } from '../ui/dialogs/measureDialogs';
+import { SuiTempoDialog } from '../ui/dialogs/tempo';
+import { createAndDisplayDialog } from '../ui/dialogs/dialog';
 import { SuiAudioPlayer } from '../render/audio/player';
 import { SmoArticulation } from '../smo/data/noteModifiers';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { BrowserEventSource } from './eventSource';
 import { SuiTracker } from '../render/sui/tracker';
-import { CompleteNotifier, DialogParams, KeyEvent } from './common';
+import { CompleteNotifier, KeyCommandParams, KeyEvent } from './common';
 import { PitchLetter, IsPitchLetter } from '../smo/data/common';
 
 // ## suiEditor
@@ -18,20 +19,27 @@ export class SuiKeyCommands {
   completeNotifier: CompleteNotifier;
   tracker: SuiTracker;
   eventSource: BrowserEventSource;
-  constructor(params: DialogParams) {
+  constructor(params: KeyCommandParams) {
     this.slashMode = false;
     this.view = params.view;
-    this.tracker = params.tracker;
+    this.tracker = params.view.tracker;
     this.completeNotifier = params.completeNotifier;
     this.eventSource = params.eventSource;
   }
 
   tempoDialog() {
-    SuiTempoDialog.createAndDisplay(
+    const tempo = this.tracker.selections[0].measure.getTempo();
+    createAndDisplayDialog(SuiTempoDialog,
       {
+        id: 'tempoDialog',
+        ctor: 'SuiTempoDialog',
         completeNotifier: this.completeNotifier,
         view: this.view,
-        eventSource: this.eventSource
+        eventSource: this.eventSource,
+        tracker: this.tracker,
+        startPromise: null,
+        undoBuffer: this.view.undoBuffer,
+        modifier: tempo
       }
     );
   }

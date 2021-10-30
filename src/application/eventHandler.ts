@@ -4,7 +4,7 @@
 import { RibbonButtons } from '../ui/buttons/ribbon';
 import { SuiExceptionHandler } from '../ui/exceptions';
 import { Qwerty } from '../ui/qwerty';
-import { SuiModifierDialogFactory } from '../ui/dialog';
+import { SuiModifierDialogFactory } from '../ui/dialogs/factory';
 import { SuiPiano } from '../render/sui/piano'
 import { layoutDebug } from '../render/sui/layoutDebug';
 import { SuiHelp } from '../ui/help';
@@ -16,6 +16,7 @@ import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { BrowserEventSource, EventHandler } from './eventSource';
 import { SuiKeyCommands } from './keyCommands';
 import { ModalComponent, KeyBinding, KeyEvent } from './common';
+import { ModifierTab } from '../smo/xform/selections';
 import { SvgHelpers } from '../render/sui/svgHelpers';
 import { SuiMenuManager } from '../ui/menus/manager';
 
@@ -41,7 +42,7 @@ export interface EventHandlerParams {
 // 5. tracker change events tracker-selection
 export class SuiEventHandler {
   static reentry: boolean = false;
-  static keyboardUi: Qwerty;  
+  static keyboardUi: Qwerty;
   view: SuiScoreViewOperations;
   eventSource: BrowserEventSource;
   tracker: SuiTracker;
@@ -70,7 +71,7 @@ export class SuiEventHandler {
     this.keyCommands.completeNotifier = this;
     this.keyCommands.view = this.view;
     this.resizing = false;
-    this.undoStatus=0;
+    this.undoStatus = 0;
     this.trackScrolling = false;
     this.keyHandlerObj = null;
     this.keyBind = SuiEventHandler.keyBindingDefaults;
@@ -80,7 +81,7 @@ export class SuiEventHandler {
       menus: this.menus,
       completeNotifier: this,
       view: this.view,
-      eventSource:this.eventSource,
+      eventSource: this.eventSource,
       tracker: this.tracker
     });
 
@@ -105,19 +106,19 @@ export class SuiEventHandler {
   handleScrollEvent() {
     const self = this;
     if (self.trackScrolling) {
-        return;
+      return;
     }
     self.trackScrolling = true;
-    setTimeout(function() {
+    setTimeout(function () {
       try {
         // wait until redraw is done to track scroll events.
         self.trackScrolling = false;
-          // Thisi s a WIP...
+        // Thisi s a WIP...
         self.view.tracker.scroller.handleScroll($(SuiEventHandler.scrollable)[0].scrollLeft, $(SuiEventHandler.scrollable)[0].scrollTop);
-      } catch(e) {
+      } catch (e) {
         SuiExceptionHandler.instance.exceptionHandler(e);
       }
-    },500);
+    }, 500);
   }
 
   createPiano() {
@@ -143,13 +144,18 @@ export class SuiEventHandler {
     }, 1);
   }
 
-  createModifierDialog(modifierSelection: any) {
+  createModifierDialog(modifierSelection: ModifierTab) {
     var parameters = {
       modifier: modifierSelection.modifier,
-        view: this.view, eventSource:this.eventSource,
-         completeNotifier:this, keyCommands:this.keyCommands
+      view: this.view, eventSource: this.eventSource,
+      completeNotifier: this, keyCommands: this.keyCommands, 
+      ctor: '', // filled in by the factory
+      tracker: this.tracker,
+      startPromise: null,
+      id: 'modifier-dialog',
+      undoBuffer: this.view.undoBuffer
     }
-    return SuiModifierDialogFactory.createDialog(modifierSelection.modifier, parameters);
+    return SuiModifierDialogFactory.createModifierDialog(modifierSelection.modifier, parameters);
   }
 
   // If the user has selected a modifier via the mouse/touch, bring up mod dialog
@@ -171,7 +177,7 @@ export class SuiEventHandler {
     return;
   }
 
-    // ### bindResize
+  // ### bindResize
   // This handles both resizing of the music area (scrolling) and resizing of the window.
   // The latter results in a redraw, the former just resets the client/logical map of elements
   // in the tracker.
@@ -275,7 +281,7 @@ export class SuiEventHandler {
 
     console.log("KeyboardEvent: key='" + evdata.key + "' | code='" +
       evdata.code + "'"
-       + " shift='" + evdata.shiftKey + "' control='" + evdata.ctrlKey + "'" + " alt='" + evdata.altKey + "'");
+      + " shift='" + evdata.shiftKey + "' control='" + evdata.ctrlKey + "'" + " alt='" + evdata.altKey + "'");
     evdata.preventDefault();
 
     if (SuiEventHandler.keyboardUi) {
@@ -309,7 +315,7 @@ export class SuiEventHandler {
             (this.keyCommands as any)[binding.action](dataCopy);
           }
         } catch (e) {
-          if (typeof(e) === 'string') {
+          if (typeof (e) === 'string') {
             console.error(e);
           }
           this.exhandler.exceptionHandler(e);
@@ -338,10 +344,10 @@ export class SuiEventHandler {
   bindEvents() {
     const self = this;
     const tracker = this.view.tracker;
-    $('body').off('forceScrollEvent').on('forceScrollEvent', function() {
+    $('body').off('forceScrollEvent').on('forceScrollEvent', function () {
       self.handleScrollEvent();
     });
-    $('body').off('forceResizeEvent').on('forceResizeEvent', function() {
+    $('body').off('forceResizeEvent').on('forceResizeEvent', function () {
       self.resizeEvent();
     });
     this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');

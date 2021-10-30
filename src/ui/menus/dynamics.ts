@@ -1,3 +1,4 @@
+import { SmoDynamicText } from '../../smo/data/noteModifiers';
 import { SuiMenuBase, SuiMenuParams } from './menu';
 declare var $: any;
 export class SuiDynamicsMenu extends SuiMenuBase {
@@ -46,8 +47,11 @@ export class SuiDynamicsMenu extends SuiMenuBase {
   }
 
   selection(ev: any) {
-    const text = $(ev.currentTarget).attr('data-value');
-    this.view.addDynamic(text);
+    const text: string = $(ev.currentTarget).attr('data-value');
+    const props = SmoDynamicText.defaults;
+    props.text = text;
+    const dynamic = new SmoDynamicText(props);
+    this.view.addDynamic(this.tracker.selections[0], dynamic);
     this.complete();
   }
   keydown() { }

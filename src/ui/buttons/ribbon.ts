@@ -1,16 +1,27 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { htmlHelpers } from '../../common/htmlHelpers';
-import { ButtonDefinition } from './button';
+import { ButtonDefinition, ButtonAction } from './button';
 import { BrowserEventSource } from '../../application/eventSource';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { CompleteNotifier } from '../../application/common';
 import { SuiTracker } from '../../render/sui/tracker';
 import { SuiMenuManager } from '../menus/manager';
+import { SuiLibraryDialog } from '../dialogs/library';
+import { SuiTempoDialog } from '../dialogs/tempo';
+import { SuiInstrumentDialog } from '../dialogs/instrument';
 import { ButtonLabel } from './button';
+import { SuiPiano } from '../../render/sui/piano';
 import { CollapseRibbonControl } from './collapsable';
+import { createAndDisplayDialog, SuiDialogParams } from '../dialogs/dialog';
 
 declare var $: any;
+
+export type SuiModalButtonTypes = 'SuiLibraryDialog' | 'SuiTempoDialog' | 'SuiInstrumentDialog';
+export var SuiModalButtonStrings = ['SuiLibraryDialog', 'SuiTempoDialog', 'SuiInstrumentDialog'];
+export function isModalButtonType(but: string | SuiModalButtonTypes): but is SuiModalButtonTypes {
+  return SuiModalButtonStrings.indexOf(but) >= 0;
+}
 
 export interface RibbonLayout {
   left: string[],
@@ -79,15 +90,27 @@ export class RibbonButtons {
     this.collapseChildren = [];
   }
   _executeButtonModal(buttonElement: string, buttonData: ButtonDefinition) {
-    const ctor = eval('globalThis.Smo.' + buttonData.ctor);
-    ctor.createAndDisplay(
-      {
+    if (buttonData.ctor === 'SuiPiano') {
+      SuiPiano.createAndDisplay();
+    } else if (isModalButtonType(buttonData.ctor)) {
+      const params = {
         undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
         completeNotifier: this.controller,
-        view: this.view
+        view: this.view,
+        ctor: buttonData.ctor,
+        id: buttonData.id,
+        startPromise: null,
+        tracker: this.view.tracker
+      };
+      if (buttonData.ctor === 'SuiInstrumentDialog') {
+        createAndDisplayDialog(SuiInstrumentDialog, params);
+      } else if (buttonData.ctor === 'SuiLibraryDialog') {
+        SuiLibraryDialog.createAndDisplay(params);
+      } else {
+        createAndDisplayDialog(SuiTempoDialog, params);
       }
-    );
+    }
   }
   _executeButtonMenu(buttonElement: string, buttonData: ButtonDefinition) {
     this.menus.slashMenuMode(this.controller);
@@ -138,7 +161,7 @@ export class RibbonButtons {
     });
   }
 
-  static isCollapsible(action: string) {
+  static isCollapsible(action: ButtonAction) {
     return ['collapseChild', 'collapseChildMenu', 'collapseGrandchild', 'collapseMore'].indexOf(action) >= 0;
   }
 
@@ -191,6 +214,10 @@ export class RibbonButtons {
         }
       }
     });
+  }
+  addButton(button: ButtonDefinition, parentElement: string) {
+    this.ribbonButtons.push(button);
+    this.createRibbon([button.id], parentElement);
   }
 
   createRibbon(buttonDataArray: string[], parentElement: string) {

@@ -182,13 +182,14 @@ export class SvgHelpers {
   // ### eraseOutline
   // Erases old outlineRects.
   static eraseOutline(svg: SVGSVGElement, style: string) {
-    $(svg).find('g.vf-' + style).remove();
+    $(svg).find(style).remove();
   }
 
   static _outlineRect(params: OutlineInfo) {
     const scroll = params.scroll;
     const context = params.context;
-    SvgHelpers.eraseOutline(context, params.classes);
+    // vex puts 'vf-' before everything rendered by context API
+    SvgHelpers.eraseOutline(context.svg, 'g.vf-' + params.classes);
     // Don't highlight in print mode.
     if ($('body').hasClass('printing')) {
       return;

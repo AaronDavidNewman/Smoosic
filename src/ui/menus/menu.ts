@@ -7,21 +7,49 @@ import { BrowserEventSource } from '../../application/eventSource';
 import { UndoBuffer } from '../../smo/xform/undo';
 import { SmoTranslator } from '../i18n/language';
 declare var $: any;
+/**
+ * Data for a menu choice.  'value' indicates which options selected
+ * @param icon - .icon class will be added to the choice
+ * @param text - text to describe the choice
+ * @param value - the value received by the menu loop
+ * @param hotkey - optional key binding, if not supplied one is selected
+ */
 export interface MenuChoiceDefinition {
     icon: string,
     text: string,
     value: string,
     hotkey?: string
 }
+/**
+ * Menu just array of choices
+ * @param label - Not currently displayed
+ * @param menuItems - list of choices
+ */
 export interface MenuDefinition {
   label: string,
   menuItems: MenuChoiceDefinition[]
 }
+/**
+ * All menus can be translated, choosing the language will update all the static options.
+ * @param ctor - the constructor name for the dialog
+ */
 export interface MenuChoiceTranslation {
   label: string,
   menuItems: MenuChoiceDefinition[],
   ctor: string
 }
+/**
+ * All menus take the same options.  Menu choices can alter the score
+ * directly, or call dialogs or even other menus
+ * @param ctor dialog constructor
+ * @param position - menu position
+ * @param view the MVVM object to change the score
+ * @param score SmoScore, could also be read from the view
+ * @param completeNotifier used to take over key/mouse control
+ * @param closePromise resolved when the menu closes, used to syncronize with other modals
+ * @param eventSource event source to register for additional events like mouseup
+ * @param undoBuffer used to create undo
+*/
 export interface SuiMenuParams {
   ctor: string,
   position: SvgBox,
@@ -61,8 +89,13 @@ export abstract class SuiMenuBase {
   }
   abstract selection(ev: any): void;
   abstract getDefinition(): MenuDefinition;
+  /**
+   * Base class can override this, called before display and event binding to 
+   * add or remove options from the static list
+   */
+  preAttach() { }
   static printTranslate(_class: string): MenuChoiceTranslation {
-    const xx: any = eval('Smo.' + _class);    
+    const xx: any = eval('Smo.' + _class);
     const items: MenuChoiceDefinition[] = xx.defaults.menuItems as MenuChoiceDefinition[];
     const rvItems: MenuChoiceDefinition[] = [];
     items.forEach((item) => {

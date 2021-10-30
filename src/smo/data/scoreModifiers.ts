@@ -85,6 +85,7 @@ export class SmoFormattingManager extends SmoScoreModifierBase {
     return rv;
   }
 }
+export type ScaledPageAttributes = 'leftMargin' | 'rightMargin' | 'topMargin' | 'bottomMargin' | 'interGap' | 'intraGap';
 export interface SmoPageLayoutParams {
   leftMargin: number,
   rightMargin: number,
@@ -104,7 +105,7 @@ export class SmoPageLayout extends SmoScoreModifierBase {
       intraGap: 10
     }));
   }
-  static get attributes(): string[] {
+  static get attributes(): ScaledPageAttributes[] {
     return ['leftMargin', 'rightMargin', 'topMargin', 'bottomMargin', 'interGap', 'intraGap'];
   }
   leftMargin: number = 30;
@@ -113,12 +114,14 @@ export class SmoPageLayout extends SmoScoreModifierBase {
   bottomMargin: number = 40;
   interGap: number = 30;
   intraGap: number = 10;
-  constructor(params?: SmoPageLayoutParams) {
+  constructor(params: SmoPageLayoutParams) {
     super('SmoPageLayout');
-    smoSerialize.serializedMerge(SmoPageLayout.attributes, SmoPageLayout.defaults, this);
-    if (typeof (params) !== 'undefined') {
-      smoSerialize.serializedMerge(SmoPageLayout.attributes, params, this);
-    }
+    this.leftMargin = params.leftMargin;
+    this.rightMargin = params.rightMargin;
+    this.topMargin = params.topMargin;
+    this.bottomMargin = params.bottomMargin;
+    this.interGap = params.interGap;
+    this.intraGap = params.intraGap;
   }
   serialize(): any {
     const params: any = {};
@@ -127,51 +130,35 @@ export class SmoPageLayout extends SmoScoreModifierBase {
     return params;
   }
 }
-export class SmoGlobalLayout {
-  svgScale: number = 1.0;
-  zoomScale: number = 2.0;
-  noteSpacing: number = 1.0;
-  pageWidth: number = 8 * 96 + 48;
-  pageHeight: number = 11 * 96;
-  static get attributes(): string[] {
-    return ['svgScale', 'zoomScale', 'noteSpacing', 'pageWidth', 'pageHeight'];
-  }
-  // Page width and page height are absolute, but must be scaled by svgScale
-  // to be rendered
-  static get scaledAttributes(): string[] {
-    return ['pageHeight', 'pageWidth'];
-  }
+export type ScaledGlobalAttributes = 'pageWidth' | 'pageHeight';
+export type GlobalLayoutAttributes = 'pageWidth' | 'pageHeight' | 'noteSpacing' | 'svgScale' | 'zoomScale';
+export const GlobalLayoutAttributesArray: GlobalLayoutAttributes[]  = ['pageWidth', 'pageHeight', 'noteSpacing', 'svgScale', 'zoomScale'];
+export interface SmoGlobalLayout {
+  svgScale: number;
+  zoomScale: number;
+  noteSpacing: number;
+  pageWidth: number;
+  pageHeight: number;
 }
 // A scaled page layout is a union of global layout settings and
 // page layout settings, including number of pages and page number
-export class ScaledPageLayout {
-  svgScale: number = 1.0;
-  zoomScale: number = 2.0;
-  noteSpacing: number = 1.0;
-  pageWidth: number = 8 * 96 + 48;
-  pageHeight: number = 11 * 96;
-  leftMargin: number = 30;
-  rightMargin: number = 30;
-  topMargin: number = 40;
-  bottomMargin: number = 40;
-  interGap: number = 30;
-  intraGap: number = 10;
-  pages: number = 1;
-  // Update global layout parameters, and scale scalable page parameters
-  updatePageLayout(globalLayout: SmoGlobalLayout, pageLayout: SmoPageLayout, pages: number): void {
-    smoSerialize.serializedMerge(SmoGlobalLayout.attributes, globalLayout, this);
-    SmoPageLayout.attributes.forEach((attr: string | number) => {
-      (this as any)[attr] = (pageLayout as any)[attr] / this.svgScale;
-    });
-    SmoGlobalLayout.scaledAttributes.forEach((attr: string | number) => {
-      (this as any)[attr] = (this as any)[attr] / this.svgScale;
-    });
-    this.pages = pages;
-  }
+export interface ScaledPageLayout {
+  svgScale: number;
+  zoomScale: number;
+  noteSpacing: number;
+  pageWidth: number;
+  pageHeight: number;
+  leftMargin: number;
+  rightMargin: number;
+  topMargin: number;
+  bottomMargin: number;
+  interGap: number;
+  intraGap: number;
+  pages: number;
 }
 export interface SmoLayoutManagerParams {
   globalLayout: SmoGlobalLayout,
-  pageLayouts?: SmoPageLayout[]
+  pageLayouts: SmoPageLayout[]
 }
 // ## SmoLayoutManager
 // Storage and utilities for layout information in the score.  Each
@@ -190,46 +177,75 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
   }
   static get defaults(): SmoLayoutManagerParams {
     return {
-      globalLayout: new SmoGlobalLayout(),
+      globalLayout: JSON.parse(JSON.stringify(SmoLayoutManager.defaultLayout)),
       pageLayouts: []
     };
   }
-  static get attributes() {
-    return SmoGlobalLayout.attributes;
+  static get attributes(): GlobalLayoutAttributes[] {
+    return ['pageWidth', 'pageHeight', 'noteSpacing', 'svgScale', 'zoomScale'];
   }
   // Attributes that are scaled by svgScale
-  static get scalableAttributes() {
+  /* static get scalableAttributes(): Global {
+    return ['pageWidth', 'pageHeight'];
+  }*/
+  static get scaledPageAttributes(): ScaledPageAttributes[] {
+    return ['leftMargin', 'rightMargin', 'topMargin', 'bottomMargin', 'interGap', 'intraGap'];
+  }
+  static get scaledGlobalAttributes(): ScaledGlobalAttributes[] {
     return ['pageWidth', 'pageHeight'];
   }
-  globalLayout: SmoGlobalLayout = new SmoGlobalLayout();
+  static areLayoutsEqual(g1: SmoGlobalLayout, g2: SmoGlobalLayout) {
+    let rv = true;
+    GlobalLayoutAttributesArray.forEach((attr) => {
+      if (g1[attr] !== g2[attr]) {
+        rv = false;
+      }
+    });
+    return rv;
+  }
+  static getScaledPageLayout(globalLayout: SmoGlobalLayout, pageLayout: SmoPageLayout, pages: number): ScaledPageLayout {
+    const rv: Partial<ScaledPageLayout> = {};
+    SmoLayoutManager.scaledPageAttributes.forEach((attr: ScaledPageAttributes) => {
+      rv[attr] = pageLayout[attr] / globalLayout.svgScale;
+    });
+    SmoLayoutManager.scaledGlobalAttributes.forEach((attr: ScaledGlobalAttributes) => {
+      rv[attr] = globalLayout[attr] / globalLayout.svgScale;
+    });
+    // Note spacing is relative, so * it and not divide
+    rv.noteSpacing = globalLayout.noteSpacing * globalLayout.svgScale;
+    rv.svgScale = globalLayout.svgScale;
+    rv.zoomScale = globalLayout.zoomScale;
+    return rv as ScaledPageLayout;
+  }
+  globalLayout: SmoGlobalLayout;
   pageLayouts: SmoPageLayout[] = [];
-
   constructor(params: SmoLayoutManagerParams) {
     super('SmoLayoutManager');
-    if (typeof (params) === 'undefined') {
-      params = SmoLayoutManager.defaults;
-    }
-    smoSerialize.serializedMerge(SmoLayoutManager.attributes, SmoLayoutManager.defaults, this.globalLayout);
-    smoSerialize.serializedMerge(SmoLayoutManager.attributes, params, this.globalLayout);
-    this.pageLayouts = [];
-    if (params.pageLayouts && params.pageLayouts.length) {
-      params.pageLayouts.forEach((page) => {
-        this.pageLayouts.push(new SmoPageLayout(page));
+    this.globalLayout = JSON.parse(JSON.stringify(params.globalLayout));
+    if (params.pageLayouts.length) {
+      params.pageLayouts.forEach((plp) => {
+        const pageParams: SmoPageLayoutParams = SmoPageLayout.defaults;
+        SmoPageLayout.attributes.forEach((attr) => {
+          if (typeof (plp[attr]) !== 'undefined') {
+            pageParams[attr] = plp[attr];
+          }
+        });
+        this.pageLayouts.push(new SmoPageLayout(pageParams));
       });
     } else {
-      this.pageLayouts.push(new SmoPageLayout());
+      this.pageLayouts.push(new SmoPageLayout(SmoPageLayout.defaults));
     }
   }
   getZoomScale() {
     return this.globalLayout.zoomScale;
   }
-  serialize() {
+  serialize(): any {
     const rv: any = {};
     rv.pageLayouts = [];
     this.pageLayouts.forEach((pl) => {
       rv.pageLayouts.push(pl.serialize());
     });
-    smoSerialize.serializedMerge(SmoLayoutManager.attributes, this.globalLayout, rv);
+    rv.globalLayout = JSON.parse(JSON.stringify(this.globalLayout));
     return rv;
   }
   updateGlobalLayout(params: SmoGlobalLayout) {
@@ -249,16 +265,11 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
     }
   }
   getGlobalLayout(): SmoGlobalLayout {
-    const rv = {} as SmoGlobalLayout;
-    smoSerialize.serializedMerge(SmoLayoutManager.attributes, this.globalLayout, rv);
-    return rv;
+    return JSON.parse(JSON.stringify(this.globalLayout));
   }
   // Return a deep copy of the page parameters, adjusted for the global scale.
   getScaledPageLayout(pageIndex: number): ScaledPageLayout {
-    const rv: ScaledPageLayout = new ScaledPageLayout();
-    const pageCopy: SmoPageLayout = new SmoPageLayout(this.pageLayouts[pageIndex]);
-    rv.updatePageLayout(this.globalLayout, pageCopy, this.pageLayouts.length);
-    return rv;
+    return SmoLayoutManager.getScaledPageLayout(this.globalLayout, this.pageLayouts[pageIndex], this.pageLayouts.length);
   }
   getPageLayout(pageIndex: number): SmoPageLayout {
     return new SmoPageLayout(this.pageLayouts[pageIndex]);
@@ -300,7 +311,7 @@ export class SmoSystemGroup extends SmoScoreModifierBase {
       'startSelector', 'endSelector', 'mapType'];
   }
   static get defaults(): SmoSystemGroupParams {
-    return {
+    return JSON.parse(JSON.stringify({
       leftConnector: SmoSystemGroup.connectorTypes.single,
       rightConnector: SmoSystemGroup.connectorTypes.single,
       mapType: SmoSystemGroup.mapTypes.allMeasures,
@@ -309,7 +320,10 @@ export class SmoSystemGroup extends SmoScoreModifierBase {
       justify: true,
       startSelector: SmoSelector.default,
       endSelector: SmoSelector.default
-    };
+    }));
+  }
+  static isSystemGroup(modifier: SmoSystemGroup | SmoModifierBase): modifier is SmoSystemGroup {
+    return modifier.ctor === 'SmoSystemGroup';
   }
   leftConnector: number = SmoSystemGroup.connectorTypes.single;
   rightConnector: number = SmoSystemGroup.connectorTypes.single;
@@ -450,7 +464,7 @@ export class SmoScoreText extends SmoScoreModifierBase {
     return { none: 'none', spacing: 'spacing', spacingAndGlyphs: 'spacingAndGlyphs', wrap: 'wrap' };
   }
   static get defaults(): SmoScoreTextParams {
-    return {
+    return JSON.parse(JSON.stringify({
       x: 15,
       y: 15,
       width: 0,
@@ -474,7 +488,7 @@ export class SmoScoreText extends SmoScoreModifierBase {
       pagination: 'once',
       position: 'custom',
       autoLayout: false // set to true if one of the pre-canned positions are used.
-    };
+    }));
   }
   x: number = 15;
   y: number = 15;
@@ -590,6 +604,7 @@ export interface SmoTextGroupParams {
   blocks: SmoTextBlock[]
 }
 
+export type SmoTextGroupPurpose = 'NONE' |'TITLE' | 'SUBTITLE' | 'COMPOSER' | 'COPYRIGHT';
 // ## SmoTextGroup
 // A grouping of text that can be used as a block for
 // justification, alignment etc.
@@ -611,13 +626,16 @@ export class SmoTextGroup extends SmoScoreModifierBase {
     return { ABOVE: 1, BELOW: 2, LEFT: 3, RIGHT: 4 };
   }
 
-  static get purposes() {
+  static get purposes(): Record<SmoTextGroupPurpose, number> {
     return {
       NONE: 1, TITLE: 2, SUBTITLE: 3, COMPOSER: 4, COPYRIGHT: 5
     };
   }
   static get attributes() {
     return ['textBlocks', 'justification', 'relativePosition', 'spacing', 'pagination', 'attachToSelector', 'selector', 'musicXOffset', 'musicYOffset'];
+  }
+  static isTextGroup(modifier: SmoTextGroup | SmoModifierBase): modifier is SmoTextGroup {
+    return modifier.ctor === 'SmoTextGroup';
   }
   static get purposeToFont(): Record<number | string, SmoTextPlacement> {
     const rv: Record<number | string, SmoTextPlacement> = {};
@@ -706,6 +724,7 @@ export class SmoTextGroup extends SmoScoreModifierBase {
   musicXOffset: number = 0;
   musicYOffset: number = 0;
   textBlocks: SmoTextBlock[] = [];
+  edited: boolean = false;  // indicates not edited this session
   skipRender: boolean = false; // don't render if it is being edited
   static deserialize(jObj: any) {
     const blocks: any = [];
@@ -713,7 +732,7 @@ export class SmoTextGroup extends SmoScoreModifierBase {
 
     // Create new scoreText object for the text blocks
     jObj.textBlocks.forEach((st: any) => {
-      if (typeof(st.text.fontInfo.size === 'string')) {
+      if (typeof (st.text.fontInfo.size === 'string')) {
         st.text.fontInfo.size = SmoScoreText.fontPointSize(st.text.fontInfo.size);
       }
       const tx = new SmoScoreText(st.text);

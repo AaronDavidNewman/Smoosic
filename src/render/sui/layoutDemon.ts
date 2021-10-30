@@ -31,6 +31,9 @@ export class SuiRenderDemon {
     if (this.handling) {
       return;
     }
+    if (this.renderer.suspendRendering) {
+      return;
+    }
     this.handling = true;
     const redrawTime = Math.max(this.renderer.renderTime, SmoConfig.idleRedrawTime);
     // If there has been a change, redraw the score

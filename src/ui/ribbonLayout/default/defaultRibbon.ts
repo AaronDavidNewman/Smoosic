@@ -33,8 +33,9 @@ export class defaultRibbonLayout {
 
   static get leftRibbonIds() {
     return ['helpDialog', 'languageMenu', 'fileMenu', 'libraryMenu',
-      'addStaffMenu', 'measureModal', 'tempoModal', 'timeSignatureMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2',
-      'instrumentModal', 'pianoModal', 'layoutMenu'];
+    'layoutMenu', 'instrumentMenu', 'addStaffMenu', 'measureModal', 
+    'tempoModal', 'timeSignatureMenu', 'keyMenu', 'staffModifierMenu',
+       'pianoModal'];
   }
   static get noteButtonIds() {
     return ['NoteButtons',
@@ -1551,23 +1552,24 @@ export class defaultRibbonLayout {
       group: 'scoreEdit',
       id: 'libraryMenu'
     }, {
-      leftText: 'Tempo',
-      rightText: 't',
+      leftText: 'Score',
+      rightText: '',
       icon: '',
       classes: 'icon ',
-      action: 'modal',
-      ctor: 'SuiTempoDialog',
-      group: 'scoreEdit',
-      id: 'tempoModal'
-    }, {
-      leftText: 'Time Signature',
-      rightText: '/m',
-      icon: '',
-      classes: 'staff-modify menu-select',
       action: 'menu',
-      ctor: 'SuiTimeSignatureMenu',
+      ctor: 'SuiScoreMenu',
       group: 'scoreEdit',
-      id: 'timeSignatureMenu'
+      id: 'layoutMenu'
+    },
+    {
+      leftText: 'Parts',
+      rightText: '',
+      icon: '',
+      classes: 'icon',
+      action: 'menu',
+      ctor: 'SuiPartMenu',
+      group: 'scoreEdit',
+      id: 'instrumentMenu'
     }, {
       leftText: 'Staves',
       rightText: '/s',
@@ -1587,6 +1589,24 @@ export class defaultRibbonLayout {
       ctor: 'SuiMeasureMenu',
       group: 'scoreEdit',
       id: 'measureModal'
+    }, {
+      leftText: 'Tempo',
+      rightText: 't',
+      icon: '',
+      classes: 'icon ',
+      action: 'modal',
+      ctor: 'SuiTempoDialog',
+      group: 'scoreEdit',
+      id: 'tempoModal'
+    }, {
+      leftText: 'Time Signature',
+      rightText: '/m',
+      icon: '',
+      classes: 'staff-modify menu-select',
+      action: 'menu',
+      ctor: 'SuiTimeSignatureMenu',
+      group: 'scoreEdit',
+      id: 'timeSignatureMenu'
     },
     {
       leftText: 'Key',
@@ -1597,16 +1617,6 @@ export class defaultRibbonLayout {
       ctor: 'SuiKeySignatureMenu',
       group: 'scoreEdit',
       id: 'keyMenu'
-    },
-    {
-      leftText: 'Instrument',
-      rightText: '',
-      icon: '',
-      classes: 'icon',
-      action: 'modal',
-      ctor: 'SuiInstrumentDialog',
-      group: 'scoreEdit',
-      id: 'instrumentModal'
     },
     {
       leftText: 'Lines',
@@ -1628,16 +1638,6 @@ export class defaultRibbonLayout {
       group: 'scoreEdit',
       id: 'pianoModal'
     },
-    {
-      leftText: 'Score',
-      rightText: '',
-      icon: '',
-      classes: 'icon ',
-      action: 'menu',
-      ctor: 'SuiScoreMenu',
-      group: 'scoreEdit',
-      id: 'layoutMenu'
-    }
     ];
   }
 }

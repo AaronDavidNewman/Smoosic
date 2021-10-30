@@ -1,0 +1,106 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+import { SmoMeasureFormat } from './measureModifiers';
+import { SmoSystemStaff } from './systemStaff';
+import { SmoLayoutManager, SmoTextGroup } from './scoreModifiers';
+import { StaffModifierBase } from './staffModifiers';
+
+const VF = eval('Vex.Flow');
+
+export type SmoPartInfoStringType = 'partName' | 'partAbbreviation';
+export const SmoPartInfoStringTypes: SmoPartInfoStringType[] = ['partName', 'partAbbreviation'];
+export type SmoPartInfoNumType = 'stavesAfter' | 'stavesBefore';
+export const SmoPartInfoNumTypes: SmoPartInfoNumType[] = ['stavesAfter', 'stavesBefore'];
+export type SmoPartInfoBooleanType = 'preserveTextGroups';
+export const SmoPartInfoBooleanTypes: SmoPartInfoBooleanType[] = ['preserveTextGroups'];
+
+/**
+ * Data contained in a part.  A part has its own text, measure formatting and page layouts,
+ * and contains the notes from the score.  It can be comprised of 1 or 2 adjacent staves
+ * @param partName Name of the part, can be used in headers
+ * @param partAbbreviation
+ * @stavesAfter for multi-stave parts (e.g. piano), indicates the relative position in the full score.
+ * @stavesBefore
+ * @layoutManager page/layout settings for the part
+ * @measureFormatting a map of measure format to measures for the part
+ * @textGroups if preserveTextGroups is true, the part has its own text.
+ * @preseverTextGroups if false, we use the full score text
+ */
+export interface SmoPartInfoParams {
+  partName: string,
+  partAbbreviation: string,
+  stavesAfter: number,
+  stavesBefore: number,
+  layoutManager?: SmoLayoutManager;
+  measureFormatting?: Record<number, SmoMeasureFormat>,
+  textGroups: SmoTextGroup[],
+  preserveTextGroups: boolean
+}
+export class SmoPartInfo extends StaffModifierBase {
+  partName: string;
+  partAbbreviation: string;
+  layoutManager: SmoLayoutManager;
+  measureFormatting: Record<number, SmoMeasureFormat> = {};
+  textGroups: SmoTextGroup[] = [];
+  stavesAfter: number = 0;
+  stavesBefore: number = 0;
+  preserveTextGroups: boolean = false;
+  static get defaults(): SmoPartInfoParams {
+    return JSON.parse(JSON.stringify({
+      partName: 'Staff ',
+      partAbbreviation: '',
+      globalLayout: SmoLayoutManager.defaultLayout,
+      textGroups: [],
+      preserveTextGroups: false,
+      pageLayoutMap: {},
+      stavesAfter: 0,
+      stavesBefore: 0
+    }));
+  }
+  constructor(params: SmoPartInfoParams) {
+    super('SmoPartInfo');
+    if (!params.layoutManager) {
+      this.layoutManager = new SmoLayoutManager(SmoLayoutManager.defaults);
+    } else {
+      this.layoutManager = new SmoLayoutManager(params.layoutManager);
+    }
+    if (typeof(params.measureFormatting) !== 'undefined') {
+      const formatKeys = Object.keys(params.measureFormatting);
+      formatKeys.forEach((key) => {
+        const numKey = parseInt(key, 10);
+        this.measureFormatting[numKey] = new SmoMeasureFormat(params.measureFormatting![numKey]);
+      });
+    }
+    if (params.textGroups) {
+      this.textGroups = params.textGroups;
+    }
+    this.stavesAfter = params.stavesAfter;
+    this.stavesBefore = params.stavesBefore;
+    this.partName = params.partName;
+    this.partAbbreviation = params.partAbbreviation;
+    this.preserveTextGroups = params.preserveTextGroups ?? false;
+  }
+  serialize() {
+    const rv : any = {};
+    SmoPartInfoStringTypes.forEach((st) => {
+      rv[st] = this[st];
+    });
+    SmoPartInfoNumTypes.forEach((st) => {
+      rv[st] = this[st];
+    });
+    SmoPartInfoBooleanTypes.forEach((st) => {
+      rv[st] = this[st];
+    });
+    rv.layoutManager = this.layoutManager.serialize();
+    rv.textGroups = [];
+    this.textGroups.forEach((tg) => {
+      rv.textGroups.push(tg.serialize());
+    });
+    rv.measureFormatting = {};
+    Object.keys(this.measureFormatting).forEach((key) => {
+      const numKey = parseInt(key, 10);
+      rv.measureFormatting[numKey] = this.measureFormatting[numKey];
+    });
+    return rv;
+  }
+}

@@ -1,31 +1,17 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { htmlHelpers } from '../../common/htmlHelpers';
-import { SmoScore } from '../../smo/data/score';
-import { mxmlScore } from '../../smo/mxml/xmlScore';
-import { SmoMeasure } from '../../smo/data/measure';
 import { SvgBox } from '../../smo/data/common';
 import { UndoBuffer } from '../../smo/xform/undo';
-import { SmoSystemStaff, SmoSystemStaffParams } from '../../smo/data/systemStaff';
 
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiTracker } from '../../render/sui/tracker';
-
-import { SmoTranslator } from '../i18n/language';
-
 import { CompleteNotifier, ModalComponent } from '../../application/common';
 import { BrowserEventSource, EventHandler } from '../../application/eventSource';
-import { KeyEvent, KeyBinding } from '../../application/common';
+import { KeyBinding } from '../../application/common';
 
-import { SuiXhrLoader } from '../fileio/xhrLoader';
-import { SuiLayoutDialog, SuiScoreIdentificationDialog,
-  SuiScoreViewDialog, SuiGlobalLayoutDialog, SuiScoreFontDialog } from '../dialogs/scoreDialogs';
-import { SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveActionsDialog, SuiLoadActionsDialog,
-  SuiLoadFileDialog, SuiSaveXmlDialog, SuiSaveMidiDialog, SuiLoadMxmlDialog } from '../dialogs/fileDialogs';
-import { SuiTimeSignatureDialog, SuiMeasureDialog, SuiInsertMeasures } from '../dialogs/measureDialogs';
-import { SuiStaffGroupDialog } from '../dialogs/staffDialogs';
-import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
+import { SuiMenuBase, SuiMenuParams } from './menu';
 declare var $: any;
 
 export interface SuiMenuManagerParams {
@@ -34,7 +20,6 @@ export interface SuiMenuManagerParams {
   completeNotifier: CompleteNotifier;
   undoBuffer: UndoBuffer;
   menuContainer: string;
-  tracker: SuiTracker
 }
 
 export class SuiMenuManager {
@@ -57,7 +42,7 @@ export class SuiMenuManager {
     this.bound = false;
     this.menuContainer = params.menuContainer;
     this.undoBuffer = params.undoBuffer;
-    this.tracker = params.tracker;
+    this.tracker = params.view.tracker;
   }
 
   static get defaults() {
@@ -224,6 +209,19 @@ export class SuiMenuManager {
   dismiss() {
     $('body').trigger('menuDismiss');
   }
+  displayMenu(menu: SuiMenuBase | null) {
+    this.menu = menu;
+    if (!this.menu) {
+      return;
+    }
+    this.menu.preAttach();
+    this.attach();
+    this.menu!.menuItems.forEach((item) => {
+      if (typeof(item.hotkey) !== 'undefined') {
+        this.hotkeyBindings[item.hotkey] = item.value;
+      }
+    });
+  }
 
   createMenu(action: string) {
     if (!this.completeNotifier) {
@@ -246,13 +244,7 @@ export class SuiMenuManager {
       undoBuffer: this.undoBuffer,
       ctor: action
     };
-    this.menu = new ctor(params);
-    this.attach();
-    this.menu!.menuItems.forEach((item) => {
-      if (typeof(item.hotkey) !== 'undefined') {
-        this.hotkeyBindings[item.hotkey] = item.value;
-      }
-    });
+    this.displayMenu(new ctor(params));
   }
 
   // ### evKey

@@ -2,13 +2,14 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SuiScoreView } from './scoreView';
 import { SmoScore, SmoScorePreferences, SmoScoreInfo } from '../../smo/data/score';
-import { SmoSystemStaffParams } from '../../smo/data/systemStaff';
+import { SmoSystemStaffParams, SmoSystemStaff } from '../../smo/data/systemStaff';
+import { SmoPartInfo } from '../../smo/data/partInfo';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoNote } from '../../smo/data/note';
-import { TimeSignature, SvgBox, Pitch, PitchLetter, FontInfo, SmoConfiguration } from '../../smo/data/common';
-import { SmoTextGroup, SmoSystemGroup, SmoPageLayout, SmoGlobalLayout } from '../../smo/data/scoreModifiers';
+import { SvgBox, Pitch, PitchLetter, FontInfo, SmoConfiguration } from '../../smo/data/common';
+import { SmoTextGroup, SmoSystemGroup, SmoPageLayout, SmoGlobalLayout, SmoLayoutManager } from '../../smo/data/scoreModifiers';
 import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, SmoOrnament, SmoLyric, SmoMicrotone } from '../../smo/data/noteModifiers';
-import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat } from '../../smo/data/measureModifiers';
+import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
 import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
 import { SmoOperation } from '../../smo/xform/operations';
 import { BatchSelectionOperation } from '../../smo/xform/operations';
@@ -23,6 +24,7 @@ import { StaffModifierBase, SmoInstrument } from '../../smo/data/staffModifiers'
 import { SuiRenderState } from './renderState';
 import { htmlHelpers } from '../../common/htmlHelpers';
 import { SuiActionPlayback } from './actionPlayback';
+import { SuiPiano } from './piano';
 import { KeyEvent } from '../../application/common';
 declare var $: any;
 declare var SmoConfig: SmoConfiguration;
@@ -57,11 +59,25 @@ export class SuiScoreViewOperations extends SuiScoreView {
   updateTextGroup(oldVersion: SmoTextGroup, newVersion: SmoTextGroup) {
     this.actionBuffer.addAction('updateTextGroup', oldVersion, newVersion);
     const index = this.score.textGroups.findIndex((grp) => oldVersion.attrs.id === grp.attrs.id);
+    const isPartExposed = this.isPartExposed(this.score.staves[0]);
     SmoUndoable.changeTextGroup(this.score, this.undoBuffer, oldVersion,
       UndoBuffer.bufferSubtypes.UPDATE);
-    SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, this.storeScore.textGroups[index], UndoBuffer.bufferSubtypes.UPDATE);
-    const altNew = SmoTextGroup.deserialize(newVersion.serialize());
-    this.storeScore.textGroups[index] = altNew;
+    // If this is part text, don't store it in the score text, except for the displayed score
+    if (!isPartExposed) {
+      SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, this.storeScore.textGroups[index], UndoBuffer.bufferSubtypes.UPDATE);
+      const altNew = SmoTextGroup.deserialize(newVersion.serialize());
+      this.storeScore.textGroups[index] = altNew;
+    } else {
+      const partInfo = this.score.staves[0].partInfo;
+      if (partInfo.preserveTextGroups) {
+        partInfo.textGroups = this.score.textGroups;
+      }
+      const tgs: SmoTextGroup[] = [];
+      partInfo.textGroups.forEach((tg) => {
+        tgs.push(SmoTextGroup.deserialize(tg.serialize()));
+      })
+      this.storeScore.staves[this.staffMap[0]].partInfo.textGroups = tgs;
+    }
     // TODO: only render the one TG.
     this.renderer.renderScoreModifiers();
   }
@@ -70,8 +86,8 @@ export class SuiScoreViewOperations extends SuiScoreView {
   updateScorePreferences(pref: SmoScorePreferences) {
     this._undoScorePreferences('Update preferences');
     // TODO: add action buffer here?
-    smoSerialize.serializedMerge(SmoScore.preferences, this.score, pref);
-    smoSerialize.serializedMerge(SmoScore.preferences, this.storeScore, pref);
+    this.score.updateScorePreferences(JSON.parse(JSON.stringify(pref)));
+    this.storeScore.updateScorePreferences(JSON.parse(JSON.stringify(pref)));
     this.renderer.setDirty();
   }
   // ### updateScorePreferences
@@ -94,21 +110,14 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.addRemoveMicrotone(null, altSelections, tone);
     this._renderChangedMeasures(measureSelections);
   }
-  addDynamic(dynamic: SmoDynamicText) {
-    const sel = this.tracker.selections[0];
-    if (typeof (dynamic) === 'string') {
-      const params = SmoDynamicText.defaults;
-      params.selector = sel.selector;
-      params.text = dynamic;
-      dynamic = new SmoDynamicText(params);
-    }
+  addDynamic(selection: SmoSelection, dynamic: SmoDynamicText) {
     this.actionBuffer.addAction('addDynamic', dynamic);
     this._undoFirstMeasureSelection('add dynamic');
-    this._removeDynamic(sel, dynamic);
-    const equiv = this._getEquivalentSelection(sel);
-    SmoOperation.addDynamic(sel, dynamic);
+    this._removeDynamic(selection, dynamic);
+    const equiv = this._getEquivalentSelection(selection);
+    SmoOperation.addDynamic(selection, dynamic);
     SmoOperation.addDynamic(equiv!, SmoNoteModifierBase.deserialize(dynamic.serialize() as any));
-    this.renderer.addToReplaceQueue(sel);
+    this.renderer.addToReplaceQueue(selection);
   }
   _removeDynamic(selection: SmoSelection, dynamic: SmoDynamicText) {
     const equiv = this._getEquivalentSelection(selection);
@@ -250,13 +259,13 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.changeInstrument(instrument, altSelections);
     this._renderChangedMeasures(selections);
   }
-  setTimeSignature(timeSignature: TimeSignature) {
+  setTimeSignature(timeSignature: TimeSignature, timeSignatureString: string) {
     this.actionBuffer.addAction('setTimeSignature', timeSignature);
     this._undoScore('Set time signature');
     const selections = this.tracker.selections;
     const altSelections = this._getEquivalentSelections(selections);
-    SmoOperation.setTimeSignature(this.score, selections, timeSignature);
-    SmoOperation.setTimeSignature(this.storeScore, altSelections, timeSignature);
+    SmoOperation.setTimeSignature(this.score, selections, timeSignature, timeSignatureString);
+    SmoOperation.setTimeSignature(this.storeScore, altSelections, timeSignature, timeSignatureString);
     this._renderChangedMeasures(SmoSelection.getMeasureList(this.tracker.selections));
   }
   moveStaffUpDown(index: number) {
@@ -297,12 +306,9 @@ export class SuiScoreViewOperations extends SuiScoreView {
   // Update the tempo for the entire score
   updateTempoScore(tempo: SmoTempoText, scoreMode: boolean) {
     let measureIndex = 0;
-    let startSelection = this.tracker.selections[0];
+    let startSelection = this.tracker.getExtremeSelection(-1);
     this._undoScore('update score tempo');
     this.actionBuffer.addAction('updateTempoScore', tempo, scoreMode);
-    if (!scoreMode) {
-      startSelection = this.tracker.getExtremeSelection(-1);
-    }
     const measureCount = this.score.staves[0].measures.length;
     let endSelection = SmoSelection.measureSelection(this.score,
       startSelection.selector.staff, measureCount - 1);
@@ -344,7 +350,9 @@ export class SuiScoreViewOperations extends SuiScoreView {
       const measureIx = startSelection.selector.measure - 1;
       const target = startSelection.staff.measures[measureIx];
       const tempo = target.getTempo();
-      this.updateTempoScore(tempo, scoreMode);
+      const newTempo = new SmoTempoText(tempo);
+      newTempo.display = false;
+      this.updateTempoScore(newTempo, scoreMode);
     } else {
       this.updateTempoScore(new SmoTempoText(SmoTempoText.defaults), scoreMode);
     }
@@ -669,6 +677,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
     });
     this._renderChangedMeasures(measureSelections);
   }
+  showPiano(value: boolean) {
+    this.score.preferences.showPiano = value;
+    this.storeScore.preferences.showPiano = value;
+    if (value) {
+      SuiPiano.showPiano();
+    } else {
+      SuiPiano.hidePiano();
+    }
+  }
   /**
    * Add a pitch to the score at the cursor.  This tries to find the best pitch
    * to match the letter key (F vs F# for instance) based on key and surrounding notes
@@ -908,6 +925,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
       altEngrave.family = family;
       SuiRenderState.setFont(engrave.family);
     }
+    this.renderer.setRefresh();
   }
   setChordFont(fontInfo: FontInfo) {
     this.actionBuffer.addAction('setChordFont', fontInfo);
@@ -1024,6 +1042,43 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.addStaff(this.storeScore, instrument);
     this.viewAll();
   }
+  /**
+   * Update part info assumes that the part is currently exposed - that
+   * staff 0 is the first staff in the part prior to editing.
+   * @param info
+   */
+  updatePartInfo(info: SmoPartInfo) {
+    let i: number = 0;
+    this._undoScore('Update part info');
+    const storeStaff = this.staffMap[0] - info.stavesBefore;
+    const partLength = info.stavesBefore + info.stavesAfter + 1;
+    const resetView = !SmoLayoutManager.areLayoutsEqual(info.layoutManager.getGlobalLayout(), this.score.layoutManager!.getGlobalLayout());
+    for (i = 0; i < partLength; ++i) {
+      const nStaffIndex = storeStaff + i;
+      const nInfo = new SmoPartInfo(info);
+      nInfo.stavesBefore = i;
+      nInfo.stavesAfter = partLength - i - 1;
+      this.storeScore.staves[nStaffIndex].partInfo = nInfo;
+      // If the staff index is currently displayed, 
+      const displayedIndex = this.staffMap.findIndex((x) => x === nStaffIndex);
+      if (displayedIndex >= 0) {
+        this.score.staves[displayedIndex].partInfo = new SmoPartInfo(nInfo);
+        this.score.layoutManager = nInfo.layoutManager;
+      }
+    }
+    if (resetView) {
+      this.renderer.rerenderAll()
+    }
+  }
+  addStaffSimple(params: any) {
+    const instrumentParams = SmoInstrument.defaults;
+    instrumentParams.startSelector.staff = instrumentParams.endSelector.staff = this.score.staves.length;
+    instrumentParams.clef = params.clef;
+
+    const staffParams = SmoSystemStaff.defaults;
+    staffParams.measureInstrumentMap[0] = new SmoInstrument(instrumentParams);
+    this.addStaff(staffParams);
+  }
   saveScore(filename: string) {
     const json = this.storeScore.serialize();
     const jsonText = JSON.stringify(json);
@@ -1051,30 +1106,27 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const scoreStr = JSON.stringify(this.storeScore.serialize());
     localStorage.setItem(smoSerialize.localScore, scoreStr);
   }
-  createPickup(duration: number) {
-    const sel = this.tracker.selections[0];
-    const measureIndex = sel.selector.measure;
-    this._undoColumn('create pickup', measureIndex);
-    this.actionBuffer.addAction('createPickup', duration);
-    this.score.convertToPickupMeasure(sel.selector.measure, duration);
-    this.storeScore.convertToPickupMeasure(sel.selector.measure, duration);
-    this.renderer.setRefresh();
-  }
-  _columnAction(label: string, value: any, method: string) {
-    this.actionBuffer.addAction(label, value);
+  setMeasureFormat(format: SmoMeasureFormat) {
+    const label = 'set measure format';
+    this.actionBuffer.addAction(label, format);
     const fromSelector = this.tracker.getExtremeSelection(-1).selector;
     const toSelector = this.tracker.getExtremeSelection(1).selector;
     const measureSelections = this.tracker.getSelectedMeasures();
+    // If the formatting is on a part, preserve it in the part's info
+    const isPart = this.isPartExposed(measureSelections[0].staff);
     measureSelections.forEach((m) => {
-      this._undoColumn(label + value.toString(), m.selector.measure);
-      (SmoOperation as any)[method](this.score, m, value);
+      this._undoColumn(label, m.selector.measure);
+      SmoOperation.setMeasureFormat(this.score, m, format);
+      if (isPart) {
+        m.staff.partInfo.measureFormatting[m.measure.measureNumber.measureIndex] = new SmoMeasureFormat(format);
+      }
       const alt = this._getEquivalentSelection(m);
-      (SmoOperation as any)[method](this.storeScore, alt, value);
+      SmoOperation.setMeasureFormat(this.storeScore, alt!, format);
+      if (isPart) {
+        alt!.staff.partInfo.measureFormatting[m.measure.measureNumber.measureIndex] = new SmoMeasureFormat(format);
+      }
     });
     this._renderRectangle(fromSelector, toSelector);
-  }
-  setMeasureFormat(format: SmoMeasureFormat) {
-    this._columnAction('set measure format', format, 'setMeasureFormat');
   }
 
   playFromSelection() {

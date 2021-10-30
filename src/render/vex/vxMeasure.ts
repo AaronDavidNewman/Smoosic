@@ -505,7 +505,16 @@ export class VxMeasure {
       sig.addToStave(this.stave);
     }
     if (this.smoMeasure.svg.forceTimeSignature) {
-      this.stave.addTimeSignature(this.smoMeasure.timeSignature.timeSignature);
+      const ts = this.smoMeasure.timeSignature;
+      let tsString = ts.timeSignature;
+      if (this.smoMeasure.timeSignature.useSymbol && ts.actualBeats === 4 && ts.beatDuration === 4) {
+        tsString = 'C';
+      } else if (this.smoMeasure.timeSignature.useSymbol && ts.actualBeats === 2 && ts.beatDuration === 4) {
+        tsString = 'C|';
+      } else if (this.smoMeasure.timeSignatureString.length) {
+        tsString = this.smoMeasure.timeSignatureString;
+      }
+      this.stave.addTimeSignature(tsString);
     }
     // Connect it to the rendering context and draw!
     this.stave.setContext(this.context);

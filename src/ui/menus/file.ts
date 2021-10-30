@@ -1,6 +1,9 @@
 import { SuiMenuBase, SuiMenuParams } from './menu';
+import { createAndDisplayDialog } from '../dialogs/dialog';
 import {
-  SuiSaveFileDialog, SuiPrintFileDialog, SuiSaveActionsDialog, SuiLoadActionsDialog, SuiLoadFileDialog,
+  SuiSaveFileDialog, SuiPrintFileDialog, 
+  // SuiSaveActionsDialog, SuiLoadActionsDialog, 
+  SuiLoadFileDialog,
   SuiSaveXmlDialog, SuiSaveMidiDialog, SuiLoadMxmlDialog
 } from '../dialogs/fileDialogs';
 import { SmoScore } from '../../smo/data/score';
@@ -65,7 +68,11 @@ export class SuiFileMenu extends SuiMenuBase {
   }
   systemPrint() {
     window.print();
-    SuiPrintFileDialog.createAndDisplay({
+    createAndDisplayDialog(SuiPrintFileDialog, {
+      ctor: 'SuiPrintFileDialog',
+      id: 'print',
+      eventSource: this.eventSource,
+      modifier: null,
       view: this.view,
       completeNotifier: this.completeNotifier,
       startPromise: this.closePromise,
@@ -77,16 +84,22 @@ export class SuiFileMenu extends SuiMenuBase {
     const text = $(ev.currentTarget).attr('data-value');
     const self = this;
     if (text === 'saveFile') {
-      SuiSaveFileDialog.createAndDisplay({
+      createAndDisplayDialog(SuiSaveFileDialog, {
+        ctor: 'SuiSaveFileDialog',
+        id: 'save',
+        modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
         eventSource: this.eventSource,
         view: this.view,
         startPromise: this.closePromise
-      });
+      });/* 
     } else if (text === 'saveActions') {
       SuiSaveActionsDialog.createAndDisplay({
+        ctor: 'SuiSaveActionsDialog',
+        id: 'save',
+        modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
@@ -96,15 +109,21 @@ export class SuiFileMenu extends SuiMenuBase {
       });
     } else if (text === 'playActions') {
       SuiLoadActionsDialog.createAndDisplay({
+        ctor: 'SuiLoadActionsDialog',
+        id: 'loadAction',
+        modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
         eventSource: this.eventSource,
         view: this.view,
         startPromise: this.closePromise
-      });
+      });  */
     } else if (text === 'openFile') {
-      SuiLoadFileDialog.createAndDisplay({
+      createAndDisplayDialog(SuiLoadFileDialog, {
+        ctor: 'SuiLoadFileDialog',
+        id: 'loadFile',
+        modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
@@ -123,7 +142,10 @@ export class SuiFileMenu extends SuiMenuBase {
       };
       this.view.renderer.renderForPrintPromise().then(systemPrint);
     } else if (text === 'exportXml') {
-      SuiSaveXmlDialog.createAndDisplay({
+      createAndDisplayDialog(SuiSaveXmlDialog, {
+        ctor: 'SuiSaveXmlDialog',
+        id: 'save',
+        modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
@@ -132,7 +154,10 @@ export class SuiFileMenu extends SuiMenuBase {
         startPromise: this.closePromise
       });
     } else if (text === 'exportMidi') {
-      SuiSaveMidiDialog.createAndDisplay({
+      createAndDisplayDialog(SuiSaveMidiDialog, {
+        ctor: 'SuiSaveMidiDialog',
+        id: 'save',
+        modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,
@@ -141,7 +166,10 @@ export class SuiFileMenu extends SuiMenuBase {
         startPromise: this.closePromise
       });
     } else if (text === 'importMxml') {
-      SuiLoadMxmlDialog.createAndDisplay({
+      createAndDisplayDialog(SuiLoadMxmlDialog, {
+        ctor: 'SuiLoadMxmlDialog',
+        id: 'save',
+        modifier: null,
         completeNotifier: this.completeNotifier,
         tracker: this.tracker,
         undoBuffer: this.undoBuffer,

@@ -21,7 +21,7 @@
   <script type="text/javascript" src="../smoosic.js"></script>
   <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function (event) {
-
+      // renderer: SuiRenderState, score: SmoScore, scrollSelector: string, undoBuffer: UndoBuffer
       // A simple music program using Smoosic in library mode.  
       // Load a Smoosic JSON file and render the score
       const renderScore = (score) => {
@@ -34,7 +34,7 @@
         const renderer = Smo.SuiScoreRender.createScoreRenderer(document.getElementById('container1'), score);
         // Create and start the view object.  
         // The outer container DOM is for scrolling
-        const view = new Smo.SuiScoreViewOperations(renderer, score, '#outer-container');
+        const view = new Smo.SuiScoreViewOperations(renderer, score, '#outer-container', new Smo.UndoBuffer());
         view.startRenderingEngine();
       }
 

@@ -1,15 +1,16 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoMusic } from './music';
+import { Clef, FontInfo, SvgDimensions } from './common';
+import { SmoMeasure, SmoMeasureParams, ColumnMappedParams } from './measure';
+import { SmoNoteModifierBase } from './noteModifiers';
+import { SmoMeasureFormat, SmoMeasureModifierBase, TimeSignature, TimeSignatureParameters } from './measureModifiers';
+import { StaffModifierBase, SmoInstrument } from './staffModifiers';
 import { SmoSystemGroup, SmoTextGroup, SmoScoreModifierBase, SmoPageLayout, SmoLayoutManager, SmoFormattingManager } from './scoreModifiers';
 import { SmoSystemStaff, SmoSystemStaffParams } from './systemStaff';
-import { SmoMusic } from './music';
-import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoMeasure, SmoMeasureParams } from './measure';
-import { SmoMeasureFormat, SmoMeasureModifierBase } from './measureModifiers';
+import { SmoTempoText } from './measureModifiers';
 import { SmoSelector, SmoSelection } from '../xform/selections';
-import { Clef, FontInfo } from './common';
-import { SmoNoteModifierBase } from './noteModifiers';
-import { StaffModifierBase } from './staffModifiers';
+import { smoSerialize } from '../../common/serializationHelpers';
 
 export interface FontPurpose {
   name: string,
@@ -18,6 +19,7 @@ export interface FontPurpose {
   size: number,
   custom: boolean
 }
+export type SmoScoreInfoKeys = 'name' | 'title' | 'subTitle' | 'composer' | 'copyright';
 export class SmoScoreInfo {
   name: string = 'Smoosical'; // deprecated
   title: string = 'Smoosical';
@@ -32,6 +34,7 @@ export class SmoScorePreferences {
   defaultDupleDuration: number = 4096;
   defaultTripleDuration: number = 6144;
   customProportion: number = 100;
+  showPiano: boolean = true;
 }
 export interface SmoScoreParams {
   instrumentMap: any[],
@@ -80,6 +83,9 @@ export class SmoScore {
     if (this.staves.length) {
       this.numberStaves();
     }
+    if (typeof (this.preferences.showPiano) === 'undefined') {
+      this.preferences.showPiano = true;
+    }
 
     this.updateMeasureFormats();
   }
@@ -113,7 +119,8 @@ export class SmoScore {
         autoAdvance: true,
         defaultDupleDuration: 4096,
         defaultTripleDuration: 6144,
-        customProportion: 100
+        customProportion: 100,
+        showPiano: true
       },
       startIndex: 0,
       staves: [],
@@ -123,9 +130,9 @@ export class SmoScore {
     };
   }
   static get pageSizes(): string[] {
-    return ['letter', 'tabloid', 'A4', 'custom'];
+    return ['letter', 'tabloid', 'A4', 'A4Landscape', 'custom'];
   }
-  static get pageDimensions() {
+  static get pageDimensions(): Record<string, SvgDimensions> {
     return {
       'letter': { width: 8 * 96 + 48, height: 11 * 96 },
       'letterLandscape': { width: 11 * 96, height: 8 * 96 + 48 },
@@ -134,6 +141,12 @@ export class SmoScore {
       'A4Landscape': { width: 1122, height: 794 },
       'custom': { width: 1, height: 1 }
     };
+  }
+  static pageSizeFromDimensions(width: number, height: number): string | null {
+    const rv =
+      SmoScore.pageSizes.find((sz) => SmoScore.pageDimensions[sz].width === width && SmoScore.pageDimensions[sz].height === height)
+      ?? null;
+    return rv;
   }
 
   static get defaultAttributes() {
@@ -144,12 +157,36 @@ export class SmoScore {
     return ['preferences', 'fonts', 'scoreInfo'];
   }
   serializeColumnMapped() {
-    const attrColumnHash = {};
-    const attrCurrentValue = {};
+    const keySignature: Record<number, string> = {};
+    const tempo: Record<number, SmoTempoText> = {};
+    const timeSignature: Record<number, TimeSignature> = {};
+    let previous: ColumnMappedParams | null = null;
     this.staves[0].measures.forEach((measure) => {
-      measure.serializeColumnMapped(attrColumnHash, attrCurrentValue);
+      const current = measure.serializeColumnMapped();
+      const ix = measure.measureNumber.measureIndex;
+      const currentInstrument = this.staves[0].getStaffInstrument(ix);
+      current.keySignature = SmoMusic.vexKeySigWithOffset(current.keySignature, -1 * currentInstrument.keyOffset);
+      if (ix === 0) {
+        keySignature[0] = current.keySignature;
+        tempo[0] = current.tempo;
+        timeSignature[0] = current.timeSignature;
+        previous = current;
+      } else {
+        if (current.keySignature !== previous!.keySignature) {
+          previous!.keySignature = current.keySignature;
+          keySignature[ix] = current.keySignature;
+        }
+        if (!(TimeSignature.equal(current.timeSignature, previous!.timeSignature))) {
+          previous!.timeSignature = current.timeSignature;
+          timeSignature[ix] = current.timeSignature;
+        }
+        if (!(SmoTempoText.eq(current.tempo, previous!.tempo))) {
+          previous!.tempo = current.tempo;
+          tempo[ix] = current.tempo;
+        }
+      }
     });
-    return attrColumnHash;
+    return { keySignature, tempo, timeSignature };
   }
 
   // ### deserializeColumnMapped
@@ -157,7 +194,7 @@ export class SmoScore {
   // changed, like key-signatures.  We don't store each measure value to
   // make the files smaller
   static deserializeColumnMapped(scoreObj: any) {
-    let curValue: number = 0;
+    let curValue: any;
     let mapIx: number = 0;
     if (!scoreObj.columnAttributeMap) {
       return;
@@ -182,7 +219,21 @@ export class SmoScore {
               curValue = curHash[attrKeys[mapIx.toString()]];
             }
           }
-          measure[attr] = curValue;
+          // legacy timeSignature format was just a string 2/4, 3/8 etc.
+          if (attr === 'timeSignature') {
+            const ts = new TimeSignature(TimeSignature.defaults);
+            if (typeof (curValue) === 'string') {
+              ts.timeSignature = curValue;
+              measure[attr] = ts;
+            } else {
+              if (typeof (curValue.isPickup) === 'undefined') {
+                curValue.isPickup = false;
+              }
+              measure[attr] = new TimeSignature(curValue as TimeSignatureParameters);
+            }
+          } else {
+            measure[attr] = curValue;
+          }
           attrIxMap[attr] = mapIx;
         });
       });
@@ -226,6 +277,26 @@ export class SmoScore {
     obj.dictionary = smoSerialize.tokenMap;
     return obj;
   }
+  updateScorePreferences(pref: SmoScorePreferences) {
+    this.preferences = pref;
+    SmoMeasure.defaultDupleDuration = pref.defaultDupleDuration;
+    SmoMeasure.defaultTripleDuration = pref.defaultTripleDuration;
+  }
+  static upConvertGlobalLayout(jsonObj: any) {
+    // upconvert global layout, which used to be directly on layoutManager
+    if (typeof (jsonObj.layoutManager.globalLayout) === 'undefined') {
+      jsonObj.layoutManager.globalLayout = {
+        svgScale: jsonObj.layoutManager.svgScale,
+        zoomScale: jsonObj.layoutManager.zoomScale,
+        pageWidth: jsonObj.layoutManager.pageWidth,
+        pageHeight: jsonObj.layoutManager.pageHeight,
+        noteSpacing: jsonObj.layoutManager.noteSpacing
+      };
+      if (!jsonObj.layoutManager.globalLayout.noteSpacing) {
+        jsonObj.layoutManager.globalLayout.noteSpacing = 1.0;
+      }
+    }
+  }
   // ### upConvertLayout
   // Convert legacy score layout to layoutManager object parameters
   static upConvertLayout(jsonObj: any) {
@@ -244,6 +315,7 @@ export class SmoScore {
       });
       jsonObj.layoutManager.pageLayouts.push(pageSetting);
     }
+    SmoScore.upConvertGlobalLayout(jsonObj);
   }
 
   // ### deserialize
@@ -268,6 +340,9 @@ export class SmoScore {
     // up-convert legacy layout data
     if (jsonObj.score.layout) {
       SmoScore.upConvertLayout(jsonObj);
+    }
+    if (jsonObj.layoutManager && !jsonObj.layoutManager.globalLayout) {
+      SmoScore.upConvertGlobalLayout(jsonObj);
     }
     const layoutManager = new SmoLayoutManager(jsonObj.layoutManager);
     if (!upconvertFormat) {
@@ -334,8 +409,7 @@ export class SmoScore {
   // ### getDefaultScore
   // Gets a score consisting of a single measure with all the defaults.
   static getDefaultScore(scoreDefaults: SmoScoreParams, measureDefaults: SmoMeasureParams | null) {
-    scoreDefaults = typeof (scoreDefaults) !== 'undefined' ? scoreDefaults : SmoScore.defaults;
-    measureDefaults = typeof (measureDefaults) !== 'undefined' ? measureDefaults : SmoMeasure.defaults;
+    measureDefaults = measureDefaults !== null ? measureDefaults : SmoMeasure.defaults;
     const score = new SmoScore(scoreDefaults);
     score.formattingManager = new SmoFormattingManager(SmoFormattingManager.defaults);
     score.addStaff(SmoSystemStaff.defaults);
@@ -398,20 +472,6 @@ export class SmoScore {
       }
     });
   }
-
-  convertToPickupMeasure(measureIndex: number, duration: number) {
-    let i = 0;
-    for (i = 0; i < this.staves.length; ++i) {
-      const staff = this.staves[i];
-      const protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
-      staff.measures[measureIndex] = protomeasure;
-    }
-    this.numberStaves();
-  }
-
-  addPickupMeasure(measureIndex: number, duration: number) {
-    this.convertToPickupMeasure(measureIndex, duration);
-  }
   getPrototypeMeasure(measureIndex: number, staffIndex: number) {
     const staff = this.staves[staffIndex];
     let protomeasure: SmoMeasureParams = {} as SmoMeasureParams;
@@ -422,6 +482,8 @@ export class SmoScore {
       protomeasure = staff.measures[measureIndex];
     } else if (staff.measures.length) {
       protomeasure = staff.measures[staff.measures.length - 1];
+    } else {
+      protomeasure = SmoMeasure.defaults;
     }
     return SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
   }
@@ -530,18 +592,17 @@ export class SmoScore {
     const proto = this.staves[0];
     const measures = [];
     for (i = 0; i < proto.measures.length; ++i) {
-      const newParams: SmoMeasureParams = {} as SmoMeasureParams;
       const measure: SmoMeasure = proto.measures[i];
-      smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, measure, newParams);
-      newParams.clef = parameters.instrumentInfo.clef as Clef;
-      newParams.transposeIndex = parameters.instrumentInfo.keyOffset;
-      const newMeasure = SmoMeasure.getDefaultMeasureWithNotes(newParams);
+      const newMeasure = SmoMeasure.deserialize(measure.serialize());
       newMeasure.measureNumber = measure.measureNumber;
+      newMeasure.clef = parameters.measureInstrumentMap[0].clef as Clef;
+      newMeasure.modifiers = [];
+      newMeasure.transposeIndex = 0;
       // Consider key change if the proto measure is non-concert pitch
       newMeasure.keySignature =
         SmoMusic.vexKeySigWithOffset(newMeasure.keySignature,
           newMeasure.transposeIndex - measure.transposeIndex);
-      newMeasure.modifiers = [];
+      newMeasure.voices = [{ notes: SmoMeasure.getDefaultNotes(newMeasure) }];
       measure.modifiers.forEach((modifier) => {
         const nmod: SmoMeasureModifierBase = SmoMeasureModifierBase.deserialize(modifier);
         newMeasure.modifiers.push(nmod);
@@ -569,8 +630,12 @@ export class SmoScore {
     this.staves = staves;
     this.numberStaves();
   }
+  getStaffInstrument(selector: SmoSelector): SmoInstrument {
+    const staff: SmoSystemStaff = this.staves[selector.staff];
+    return staff.getStaffInstrument(selector.measure);
+  }
 
-  swapStaves(index1: number, index2: number) {
+  swapStaves(index1: number, index2: number): void {
     if (this.staves.length < index1 || this.staves.length < index2) {
       return;
     }
@@ -622,8 +687,7 @@ export class SmoScore {
     this.staves.forEach((staff) => {
       staff.setLyricFont(fontInfo);
     });
-
-    const fontInst: FontPurpose | undefined = this.fonts.find((fn) => fn.name === 'lyrics');
+    const fontInst: FontPurpose | undefined = this.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.LYRICS);
     if (typeof (fontInst) === 'undefined') {
       return;
     }

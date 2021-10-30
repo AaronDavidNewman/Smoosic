@@ -1,21 +1,17 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoMeasure } from './measure';
-import { smoSerialize } from '../../common/serializationHelpers';
+import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber } from './common';
 import { SmoMusic } from './music';
+import { SmoMeasure } from './measure';
+import { SmoMeasureFormat, SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta } from './measureModifiers';
+import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMeasure, SmoInstrumentStringParams, SmoInstrumentNumParams } from './staffModifiers';
+import { SmoPartInfo } from './partInfo';
+import { SmoTextGroup } from './scoreModifiers';
 import { SmoSelector } from '../xform/selections';
 import { smoBeamerFactory } from '../xform/beamers';
-import { StaffModifierBase } from './staffModifiers';
-import { SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta } from './measureModifiers';
-import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber } from './common';
+import { smoSerialize } from '../../common/serializationHelpers';
 
 const VF = eval('Vex.Flow');
-
-export interface InstrumentInfo {
-  instrumentName: string,
-  keyOffset: number,
-  clef: string
-}
 
 export interface SmoSystemStaffParams {
   staffX: number,
@@ -26,16 +22,43 @@ export interface SmoSystemStaffParams {
   staffId: number,
   renumberingMap: Record<number, number>,
   keySignatureMap: Record<number, string>,
-  instrumentInfo: InstrumentInfo,
+  measureInstrumentMap: Record<number, SmoInstrumentParams>,
   measures: SmoMeasure[],
-  modifiers: StaffModifierBase[]
+  modifiers: StaffModifierBase[],
+  partInfo?: SmoPartInfo;
 }
+export type SmoStaffNumberParamType = 'staffId' | 'staffX' | 'staffY' | 'adjY' | 'staffWidth' | 'staffHeight';
+export const SmoStaffNumberParams: SmoStaffNumberParamType[] = [
+  'staffId', 'staffX', 'staffY', 'adjY', 'staffWidth', 'staffHeight'
+];
+
 // ## SmoSystemStaff
 // A staff is a line of music that can span multiple measures.
 // A system is a line of music for each staff in the score.  So a staff
 // spans multiple systems.
 // A staff modifier connects 2 points in the staff.
 export class SmoSystemStaff implements SmoObjectParams {
+  static getStaffInstrument(measureInstrumentMap: Record<number, SmoInstrument>, measureIndex: number) {
+    const keyar: string[] = Object.keys(measureInstrumentMap);
+    let fit = 0;
+    keyar.forEach((key) => {
+      const numkey = parseInt(key, 10);
+      if (numkey <= measureIndex && numkey > fit) {
+        fit = numkey;
+      }
+    });
+    return measureInstrumentMap[fit];
+  }
+  static getStaffInstrumentArray(measureInstrumentMap: Record<number, SmoInstrumentParams>): SmoInstrumentMeasure[] {
+    const rv: SmoInstrumentMeasure[] = [];
+    const keyar: string[] = Object.keys(measureInstrumentMap);
+    keyar.forEach((key) => {
+      const measureIndex = parseInt(key, 10);
+      rv.push({ measureIndex, instrument: measureInstrumentMap[measureIndex] });
+    });
+    return rv;
+  }
+
   staffX: number = 10;
   staffY: number = 40;
   adjY: number = 0;
@@ -44,11 +67,8 @@ export class SmoSystemStaff implements SmoObjectParams {
   staffId: number = 0;
   renumberingMap: Record<number, number> = {};
   keySignatureMap: Record<number, string> = {};
-  instrumentInfo: InstrumentInfo = {
-    instrumentName: 'Treble Instrument',
-    keyOffset: 0,
-    clef: 'treble'
-  };
+  partInfo: SmoPartInfo;
+  measureInstrumentMap: Record<number, SmoInstrument> = {};
   measures: SmoMeasure[] = [];
   modifiers: StaffModifierBase[] = [];
   attrs: SmoAttrs = {
@@ -70,11 +90,7 @@ export class SmoSystemStaff implements SmoObjectParams {
       staffId: 0,
       renumberingMap: {},
       keySignatureMap: {},
-      instrumentInfo: {
-        instrumentName: 'Treble Instrument',
-        keyOffset: 0,
-        clef: 'treble'
-      },
+      measureInstrumentMap: {},
       measures: [],
       modifiers: []
     }));
@@ -87,9 +103,21 @@ export class SmoSystemStaff implements SmoObjectParams {
   }
 
   constructor(params: SmoSystemStaffParams) {
-    this.measures = [];
-    Vex.Merge(this, SmoSystemStaff.defaults);
-    Vex.Merge(this, params);
+    SmoStaffNumberParams.forEach((numParam) => {
+      this[numParam] = params[numParam];
+    });
+    this.measures = params.measures;
+    this.modifiers = params.modifiers;
+    if (Object.keys(params.measureInstrumentMap).length === 0) {
+      this.measureInstrumentMap[0] = new SmoInstrument(SmoInstrument.defaults);
+      this.measureInstrumentMap[0].startSelector.staff = this.staffId;
+      this.measureInstrumentMap[0].endSelector.staff = this.measures.length;
+    } else {
+      Object.keys(params.measureInstrumentMap).forEach((p) => {
+        const pnum = parseInt(p, 10);
+        this.measureInstrumentMap[pnum] = new SmoInstrument(params.measureInstrumentMap[pnum]);
+      });
+    }
     if (this.measures.length) {
       this.numberMeasures();
     }
@@ -97,6 +125,15 @@ export class SmoSystemStaff implements SmoObjectParams {
       id: VF.Element.newID(),
       type: 'SmoSystemStaff'
     };
+    if (params.partInfo) {
+      this.partInfo = params.partInfo;
+    } else {
+      const staveNo = this.staffId + 1;
+      const partDefs = SmoPartInfo.defaults;
+      partDefs.partName = 'Staff ' + staveNo;
+      partDefs.partAbbreviation = staveNo.toString() + '.';
+      this.partInfo = new SmoPartInfo(partDefs);
+    }
   }
 
   // ### defaultParameters
@@ -114,38 +151,136 @@ export class SmoSystemStaff implements SmoObjectParams {
     smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters, this, params);
     params.modifiers = [];
     params.measures = [];
+    params.measureInstrumentMap = {};
+    const ikeys: string[] = Object.keys(this.measureInstrumentMap);
+    ikeys.forEach((ikey) => {
+      params.measureInstrumentMap[ikey] = this.measureInstrumentMap[parseInt(ikey, 10)].serialize();
+    });
     this.measures.forEach((measure) => {
       params.measures.push(measure.serialize());
     });
     this.modifiers.forEach((modifier) => {
       params.modifiers.push(modifier.serialize());
     });
+    params.partInfo = this.partInfo.serialize();
     return params;
   }
 
   // ### deserialize
   // parse formerly serialized staff.
-  static deserialize(jsonObj: any) {
-    const params: any = {};
-    smoSerialize.serializedMerge(
-      ['staffId', 'staffX', 'staffY', 'staffWidth',
-        'renumberingMap', 'instrumentInfo'],
-      jsonObj, params);
-    params.measures = [];
-    jsonObj.measures.forEach((measureObj: any) => {
-      const measure = SmoMeasure.deserialize(measureObj);
-      params.measures.push(measure);
+  static deserialize(jsonObj: any): SmoSystemStaff {
+    const defaults = SmoSystemStaff.defaults;
+    const params: SmoSystemStaffParams = SmoSystemStaff.defaults;
+    SmoStaffNumberParams.forEach((numParam) => {
+      if (typeof (jsonObj[numParam]) === 'number') {
+        params[numParam] = jsonObj[numParam];
+      } else {
+        params[numParam] = defaults[numParam];
+      }
     });
-    const rv = new SmoSystemStaff(params);
-    if (jsonObj.modifiers) {
-      jsonObj.modifiers.forEach((params: any) => {
-        const mod = StaffModifierBase.deserialize(params);
-        rv.modifiers.push(mod);
+    params.measures = [];
+    params.modifiers = [];
+    if (jsonObj.partInfo) {
+      // Deserialize the text groups first
+      const tgs: SmoTextGroup[] = [];
+      jsonObj.partInfo.textGroups.forEach((tgSer: any) => {
+        tgs.push(SmoTextGroup.deserialize(tgSer));
+      });
+      jsonObj.partInfo.textGroups = tgs;
+      params.partInfo = new SmoPartInfo(jsonObj.partInfo);
+    }
+    // Up-convert legacy instrument info, which was split between different objects
+    if (!jsonObj.measureInstrumentMap) {
+      if (jsonObj.instrumentInfo) {
+        const defs = SmoInstrument.defaults;
+        defs.keyOffset = jsonObj.instrumentInfo.keyOffset;
+        defs.clef = jsonObj.instrumentInfo.clef;
+        defs.instrumentName = jsonObj.instrumentInfo.instrumentName;
+        const ii: SmoInstrument = new SmoInstrument(defs);
+        params.measureInstrumentMap = { 0: ii };
+      } else {
+        const ii: SmoInstrument = new SmoInstrument(SmoInstrument.defaults);
+        params.measureInstrumentMap = { 0: ii };
+      }
+      params.measureInstrumentMap[0].startSelector.staff = params.staffId;
+      params.measureInstrumentMap[0].endSelector.staff = params.staffId;
+      params.measureInstrumentMap[0].endSelector.measure = jsonObj.measures.length - 1;
+      params.measureInstrumentMap[0].keyOffset = jsonObj.measures[0].transposeIndex ?? 0;
+    } else {
+      const ikeys = Object.keys(jsonObj.measureInstrumentMap);
+      ikeys.forEach((ikey) => {
+        const ix = parseInt(ikey, 10);
+        const inst = jsonObj.measureInstrumentMap[ix];
+        const defs = SmoInstrument.defaults;
+        SmoInstrumentStringParams.forEach((str) => {
+          if (typeof(inst[str]) === 'string') {
+            defs[str] = inst[str];
+          }
+        });
+        SmoInstrumentNumParams.forEach((str) => {
+          if (typeof(inst[str]) === 'number') {
+            defs[str] = inst[str];
+          }
+        });
+        if (typeof(inst.startSelector) !== 'undefined') {
+          defs.startSelector = inst.startSelector;
+        }
+        if (typeof(inst.endSelector) !== 'undefined') {
+          defs.endSelector = inst.endSelector;
+        }
+        params.measureInstrumentMap[ix] = new SmoInstrument(defs);
       });
     }
+    const instrumentAr = SmoSystemStaff.getStaffInstrumentArray(params.measureInstrumentMap);
+    let curInstrumentIndex = 0;
+    jsonObj.measures.forEach((measureObj: any) => {
+      const measure = SmoMeasure.deserialize(measureObj);
+      if (instrumentAr.length > (curInstrumentIndex + 1) && measure.measureNumber.measureIndex >=
+        instrumentAr[curInstrumentIndex + 1].measureIndex) {
+        curInstrumentIndex += 1;
+      }
+      measure.transposeIndex = instrumentAr[curInstrumentIndex].instrument.keyOffset;
+      params.measures.push(measure);
+    });
+    if (jsonObj.modifiers) {
+      jsonObj.modifiers.forEach((modParams: any) => {
+        const mod = StaffModifierBase.deserialize(modParams);
+        params.modifiers.push(mod);
+      });
+    }
+    const rv = new SmoSystemStaff(params);
     return rv;
   }
-
+  updateMeasureFormatsForPart() {
+    this.measures.forEach((measure, mix) => {
+      if (this.partInfo.measureFormatting[mix]) {
+        measure.format = new SmoMeasureFormat(this.partInfo.measureFormatting[mix]);
+      } else {
+        measure.format = new SmoMeasureFormat(SmoMeasureFormat.defaults);
+      }
+    });
+  }
+  /**
+   * Get the active instrument at the given measure
+   * @param measureIndex
+   * @returns
+   */
+  getStaffInstrument(measureIndex: number): SmoInstrument {
+    return SmoSystemStaff.getStaffInstrument(this.measureInstrumentMap, measureIndex);
+  }
+  updateInstrumentOffsets() {
+    const ar = SmoSystemStaff.getStaffInstrumentArray(this.measureInstrumentMap);
+    ar.forEach((entry) => {
+      let i = entry.instrument.startSelector.measure;
+      for (i; i <= entry.instrument.endSelector.measure; ++i) {
+        const measure = this.measures[i];
+        const concertKey = SmoMusic.vexKeySigWithOffset(measure.keySignature, -1 * measure.transposeIndex);
+        measure.transposeIndex = entry.instrument.keyOffset;
+        measure.keySignature = SmoMusic.vexKeySigWithOffset(concertKey, measure.transposeIndex);
+        measure.setClef(entry.instrument.clef);
+      }
+    });
+  }
   // ### addStaffModifier
   // add a staff modifier, or replace a modifier of same type
   // with same endpoints.
@@ -353,6 +488,16 @@ export class SmoSystemStaff implements SmoObjectParams {
         sm.push(mod);
       }
     });
+    const instMap: Record<number, SmoInstrument> = {};
+    SmoSystemStaff.getStaffInstrumentArray(this.measureInstrumentMap).forEach((mm) => {
+      if (mm.instrument.startSelector.measure > index || mm.instrument.startSelector.measure > this.measures.length - 1) {
+        mm.instrument.startSelector.measure -= 1;
+      }
+      if (mm.instrument.endSelector.measure > index || mm.instrument.endSelector.measure > this.measures.length - 1) {
+        mm.instrument.endSelector.measure -= 1;
+      }
+      instMap[mm.instrument.startSelector.measure] = new SmoInstrument(mm.instrument);
+    });
     this.measures = nm;
     this.modifiers = sm;
     this.numberMeasures();
@@ -381,19 +526,13 @@ export class SmoSystemStaff implements SmoObjectParams {
   // ### numberMeasures
   // After anything that might change the measure numbers, update them iteratively
   numberMeasures() {
-    let pickupOffset: number = 0;
     let i: number = 0;
     let renumberIndex = 0;
-    // Start measure from -1 for pickup
-    if (this.measures[0].getTicksFromVoice(0) < SmoMusic.timeSignatureToTicks(this.measures[0].timeSignature.timeSignature)) {
-      pickupOffset = -1;
-    }
-
     for (i = 0; i < this.measures.length; ++i) {
       const measure = this.measures[i];
 
       renumberIndex = typeof (this.renumberingMap[i]) === 'undefined' ? 0 : this.renumberingMap[i];
-      const localIndex: number = renumberIndex + i + pickupOffset;
+      const localIndex: number = renumberIndex + i;
       // If this is the first full measure, call it '1'
       const numberObj: MeasureNumber = {
         localIndex,

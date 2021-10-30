@@ -16,8 +16,8 @@ declare var $: any;
 
 export interface SuiRendererBase {
   svg: SVGSVGElement,
-  score: SmoScore,
-  isDirty: boolean,
+  score: SmoScore | null,
+  dirty: boolean,
   passState: number,
   remapAll(): void,
   renderPromise(): Promise<any>,
@@ -35,9 +35,10 @@ export interface LocalModifier {
 export interface HighlightQueue {
   selectionCount: number, deferred: boolean
 }
-// ## SuiMapper
-// Map the notes in the svg so they can respond to events and interact
-// with the mouse/keyboard
+/**
+ * Map the notes in the svg so they can respond to events and interact
+ * with the mouse/keyboard
+ */
 export abstract class SuiMapper {
   renderer: SuiRendererBase;
   scroller: SuiScroller;
@@ -54,6 +55,8 @@ export abstract class SuiMapper {
   modifierIndex: number = -1;
   modifierSuggestion: number = -1;
   pitchIndex: number = -1;
+  // By default, defer highlights for performance.
+  deferHighlightMode: boolean = true;
   suggestion: SmoSelection | null = null;
   pasteBuffer: PasteBuffer;
   highlightQueue: HighlightQueue;
@@ -90,6 +93,9 @@ export abstract class SuiMapper {
     }
   }
   deferHighlight() {
+    if (!this.deferHighlightMode) {
+      this.highlightSelection();
+    }
     const self = this;
     if (!this.highlightQueue.deferred) {
       this.highlightQueue.deferred = true;
@@ -206,6 +212,9 @@ export abstract class SuiMapper {
     let ix = 0;
     this.modifierTabs = [];
     const modMap: Record<string, boolean> = {};
+    if (!this.renderer.score) {
+      return;
+    }
     this.renderer.score.textGroups.forEach((modifier) => {
       if (!modMap[modifier.attrs.id] && modifier.logicalBox) {
         this.modifierTabs.push({
@@ -414,7 +423,7 @@ export abstract class SuiMapper {
   }
   // ### getExtremeSelection
   // Get the rightmost (1) or leftmost (-1) selection
-  getExtremeSelection(sign: number) {
+  getExtremeSelection(sign: number): SmoSelection {
     let i = 0;
     let rv = this.selections[0];
     for (i = 1; i < this.selections.length; ++i) {
@@ -427,7 +436,7 @@ export abstract class SuiMapper {
     }
     return rv;
   }
-  _findClosestSelection(selector: SmoSelector) {
+  _selectClosest(selector: SmoSelector) {
     var artifact = this._getClosestTick(selector);
     if (!artifact) {
       return;
@@ -467,7 +476,7 @@ export abstract class SuiMapper {
         layoutDebug.setTimestamp(layoutDebug.codeRegions.UPDATE_MAP, new Date().valueOf() - ts);
         return;
       }
-      this._findClosestSelection(firstSelection.selector);
+      this._selectClosest(firstSelection.selector);
       const first = this.selections[0];
       tickSelected = (first.note as SmoNote).tickCount ??  0;
       while (tickSelected < ticksSelectedCopy && first) {
@@ -482,7 +491,7 @@ export abstract class SuiMapper {
     this._createLocalModifiersList();
     // Is this right?  Don't update the past buffer with data until the display is redrawn
     // because some of the selections may not exist in the score.
-    if (this.renderer.isDirty === false) {
+    if (this.renderer.dirty === false && this.renderer.score) {
       this.pasteBuffer.clearSelections();
       this.pasteBuffer.setSelections(this.renderer.score, this.selections);
     }

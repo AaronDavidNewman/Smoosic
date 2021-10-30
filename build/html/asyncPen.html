@@ -18,9 +18,8 @@
     <script type="text/javascript">
            document.addEventListener("DOMContentLoaded", function (event) {
                // @@@@@@
-               // This pen may be broke for a while while I get TypeScript working.
                // A simple music program using Smoosic in library mode.  We perform async
-               // actions so the selections and music will be in sync as the music changes
+               // actions so the selections and music will be in sync as the music changes.
                var app = async (Smo) => {
                  // create the app in library mode (no UI)
                  // Create an empty score (1 measure rests)
@@ -32,7 +31,8 @@
                  const renderer = Smo.SuiScoreRender.createScoreRenderer(document.getElementById('container1'), score);
                  // Create and start the view object.
                  // The outer container DOM is for scrolling
-                 const view = new Smo.SuiScoreViewOperations(renderer, score, '#outer-container');
+                 const view = new Smo.SuiScoreViewOperations(renderer, score, '#outer-container', new Smo.UndoBuffer());
+                 renderer.stepMode = true;
                  view.startRenderingEngine();
 
                  // Convienence object that sends a command to the view object, and
@@ -117,7 +117,7 @@
 
                  // Add the bass cleff staff.  It automatically adds
                  // all the measures
-                 await action(view, 'addStaff', [{
+                 await action(view, 'addStaffSimple', [{
                    instrumentInfo: {
                      "instrumentName": "Bass Clef Staff",
                      "keyOffset": 0,
@@ -210,7 +210,7 @@
                };
                  Smo.SuiApplication.configure({
                    mode: 'library',
-                   idleRedrawTime: 500
+                   idleRedrawTime: 5
                  });
                app(Smo);
            });

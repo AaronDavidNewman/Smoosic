@@ -14,7 +14,11 @@ export class PromiseHelpers {
         setTimeout(() => {
           if (instance[endCondition]) {
             if (preResolveMethod) {
-              instance[preResolveMethod]();
+              if (typeof(preResolveMethod) === 'string') {
+                instance[preResolveMethod]();
+              } else {
+                preResolveMethod();
+              }
             }
             resolve();
           }

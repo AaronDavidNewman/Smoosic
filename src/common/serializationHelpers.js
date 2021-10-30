@@ -248,7 +248,16 @@ export class smoSerialize {
       "kg": "padAllInSystem",
       "lg": "rotate",
       "mg": "actualBeats",
-      "ng": "useSymbol"
+      "ng": "useSymbol",
+      "og": "showPiano",
+      "pg": "globalLayout",
+      "qg": "measureInstrumentMap",
+      "rg": "partInfo",
+      "sg": "partName",
+      "tg": "partAbbreviation",
+      "ug": "stavesAfter",
+      "vg": "stavesBefore",
+      "wg": "measureFormatting"
       }`;
     return JSON.parse(_tm);
   }

@@ -1,20 +1,22 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoMusic } from '../../smo/data/music';
+import { SvgBox } from '../../smo/data/common';
+import { SmoMeasure, MeasureSvg } from '../../smo/data/measure';
+import { SmoScore } from '../../smo/data/score';
+import { SmoTempoText, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
+import { ScaledPageLayout, SmoTextGroup, SmoPageLayout, SmoLayoutManager } from '../../smo/data/scoreModifiers';
+import { SmoSelection } from '../../smo/xform/selections';
+import { smoBeamerFactory } from '../../smo/xform/beamers';
+
 import { SuiRenderState } from './renderState';
 import { VxSystem } from '../vex/vxSystem';
 import { SvgHelpers } from './svgHelpers';
+import { SuiPiano } from './piano';
 import { suiLayoutFormatter } from './formatter';
-import { ScaledPageLayout, SmoTextGroup, SmoPageLayout, SmoLayoutManager } from '../../smo/data/scoreModifiers';
 import { SuiTextBlock } from './textRender';
-import { SmoSelection } from '../../smo/xform/selections';
-import { SmoTempoText, SmoMeasureFormat } from '../../smo/data/measureModifiers';
-import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { layoutDebug } from './layoutDebug';
-import { smoBeamerFactory } from '../../smo/xform/beamers';
-import { SmoMusic } from '../../smo/data/music';
-import { SvgBox, TimeSignature } from '../../smo/data/common';
-import { SmoMeasure, MeasureSvg } from '../../smo/data/measure';
-import { SmoScore } from '../../smo/data/score';
+import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 
 declare var $: any;
 const VF = eval('Vex.Flow');
@@ -149,7 +151,8 @@ export class SuiScoreRender extends SuiRenderState {
   calculateBeginningSymbols(systemIndex: number, measure: SmoMeasure, clefLast: string, keySigLast: string, timeSigLast: TimeSignature, tempoLast: SmoTempoText) {
     const measureKeySig = SmoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
     measure.svg.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
-    measure.svg.forceTimeSignature = (measure.measureNumber.measureIndex === 0 || (!SmoMeasure.timeSigEqual(timeSigLast, measure.timeSignature)));
+    measure.svg.forceTimeSignature = (measure.measureNumber.measureIndex === 0 || 
+      (!SmoMeasure.timeSigEqual(timeSigLast, measure.timeSignature)) || measure.timeSignatureString.length > 0);
     if (measure.timeSignature.display === false) {
       measure.svg.forceTimeSignature = false;
     }
@@ -165,7 +168,7 @@ export class SuiScoreRender extends SuiRenderState {
       measure.svg.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
     }
     if (measureKeySig !== keySigLast) {
-      measure.canceledKeySignature = keySigLast;
+      measure.canceledKeySignature = SmoMusic.vexKeySigWithOffset(keySigLast, -1 * measure.transposeIndex);
       measure.svg.forceKeySignature = true;
     } else if (systemIndex === 0 && measureKeySig !== 'C') {
       measure.svg.forceKeySignature = true;
@@ -251,7 +254,12 @@ export class SuiScoreRender extends SuiRenderState {
     } else {
       this.renderScoreModifiers();
       this.numberMeasures();
-      this.renderTime = new Date().valueOf() - this.startRenderTime;
+      // We pro-rate the background render timer on how long it takes
+      // to actually render the score, so we are not thrashing on a large
+      // score.
+      if (this.autoAdjustRenderTime) {
+        this.renderTime = new Date().valueOf() - this.startRenderTime;
+      }
       $('body').removeClass('show-render-progress');
       // indicate the display is 'clean' and up-to-date with the score
       $('body').removeClass('refresh-1');
@@ -281,6 +289,11 @@ export class SuiScoreRender extends SuiRenderState {
     const keys = Object.keys(mscore);
     if (!printing) {
       $('body').addClass('show-render-progress');
+      if (this.score.preferences.showPiano) {
+        SuiPiano.showPiano();
+      } else {
+        SuiPiano.hidePiano();
+      }
     }
     this.backgroundRender = true;
     this.startRenderTime = new Date().valueOf();
@@ -329,10 +342,7 @@ export class SuiScoreRender extends SuiRenderState {
   // See if this line breaks the page boundary
   _checkPageBreak(scoreLayout: ScaledPageLayout, currentLine: SmoMeasure[], bottomMeasure: SmoMeasure): ScaledPageLayout {
     let pageAdj = 0;
-    const lm: SmoLayoutManager | undefined= this.score?.layoutManager;
-    if (!lm) {
-      return new ScaledPageLayout();
-    }
+    const lm: SmoLayoutManager = this.score!.layoutManager!;
     // See if this measure breaks a page.
     const maxY = bottomMeasure.svg.logicalBox.y +  bottomMeasure.svg.logicalBox.height;
     if (maxY > ((this.currentPage + 1) * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
@@ -387,7 +397,7 @@ export class SuiScoreRender extends SuiRenderState {
     const timestamp = new Date().valueOf();
 
     const svg = this.context.svg;
-    const startPageCount = scoreLayout.pages;
+    const startPageCount = this.score.layoutManager!.pageLayouts.length;
 
     y = scoreLayout.topMargin;
     x = scoreLayout.leftMargin;

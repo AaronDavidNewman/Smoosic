@@ -11,6 +11,7 @@ import { SuiScoreRender } from '../render/sui/scoreRender';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { SuiOscillator } from '../render/audio/oscillator';
 import { SuiTracker } from '../render/sui/tracker';
+import { KeyCommandParams } from './common';
 
 import { ArialFont } from '../styles/font_metrics/arial_metrics';
 import { TimesFont } from '../styles/font_metrics/times_metrics';
@@ -24,12 +25,13 @@ import { SuiMenuManager, SuiMenuManagerParams } from '../ui/menus/manager';
 import { librarySeed } from '../ui/fileio/library';
 import { SmoTranslationEditor } from '../ui/i18n/translationEditor';
 import { SmoTranslator } from '../ui/i18n/language';
+import { RibbonButtons } from '../ui/buttons/ribbon';
 
 import { SuiDom } from './dom';
 import { SuiKeyCommands } from './keyCommands';
 import { BrowserEventSource } from './eventSource';
 import { EventHandlerParams, SuiEventHandler } from './eventHandler';
-import { DialogParams, CompleteNotifier, KeyBinding } from './common';
+import { CompleteNotifier, KeyBinding } from './common';
 
 
 declare var SmoConfig : SmoConfiguration;
@@ -52,6 +54,8 @@ export interface SuiInstance {
   keyBindingDefaults: KeyBinding[];
   keyCommands: SuiKeyCommands;
   menus: SuiMenuManager;
+  eventHandler: SuiEventHandler | null;
+  ribbon: RibbonButtons
 }
 const VF = eval('Vex.Flow');
 const Smo = eval('globalThis.Smo');
@@ -212,15 +216,17 @@ export class SuiApplication {
     params.view = new SuiScoreViewOperations(scoreRenderer, score, '.musicRelief', params.undoBuffer);
     params.menuContainer = '.menuContainer';
     if (SmoConfig.keyCommands) {
-      params.keyCommands = new SuiKeyCommands(params as DialogParams);
+      params.keyCommands = new SuiKeyCommands(params as KeyCommandParams);
     }
     if (SmoConfig.menus) {
       params.menus = new SuiMenuManager(params as SuiMenuManagerParams);
     }
     // Start the application event processing and render the initial score
     // eslint-disable-next-line
-    new SuiEventHandler(params as EventHandlerParams);
     this.instance = params as SuiInstance;
+    this.instance.eventHandler = new SuiEventHandler(params as EventHandlerParams);
+    this.instance.ribbon = this.instance.eventHandler.ribbon;
+    
     SuiApplication.instance = this.instance;
     SuiDom.splash();
   }

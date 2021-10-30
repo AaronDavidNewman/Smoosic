@@ -1,6 +1,8 @@
 import { SuiButton, SuiButtonParams } from './button';
-import { SuiLyricDialog, SuiChordChangeDialog, SuiTextTransformDialog } from '../dialogs/textDialogs';
-import { SmoLyric } from '../../smo/data/noteModifiers';
+import { SuiTextBlockDialog } from '../dialogs/textBlock';
+import { SuiLyricDialog } from '../dialogs/lyric';
+import { SuiChordChangeDialog } from '../dialogs/chordChange';
+import { createAndDisplayDialog } from '../dialogs/dialog';
 declare var $: any;
 
 export class TextButtons extends SuiButton {
@@ -8,28 +10,48 @@ export class TextButtons extends SuiButton {
     super(parameters);
   }
   lyrics() {
-    SuiLyricDialog.createAndDisplay(
+    const sel = this.view.tracker.selections[0];
+    const note = sel.note;
+    if (!note) {
+      return;
+    }
+    const lyrics = note.getTrueLyrics();
+    const lyric = lyrics.length > 0 ? null : lyrics[0];
+
+    createAndDisplayDialog(SuiLyricDialog, 
       {
-        buttonElement: this.buttonElement,
-        buttonData: this.buttonData,
-        completeNotifier: this.completeNotifier,
+        completeNotifier: this.completeNotifier!,
         view: this.view,
         undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
-        parser: SmoLyric.parsers.lyric
+        id: 'lyricDialog',
+        ctor: 'SuiLyricDialog',
+        tracker: this.view.tracker,
+        startPromise: null,
+        modifier: lyric
       }
     );
     // tracker, selection, controller
   }
   chordChanges() {
-    SuiChordChangeDialog.createAndDisplay(
+    const sel = this.view.tracker.selections[0];
+    const note = sel.note;
+    if (!note) {
+      return;
+    }
+    const lyrics = note.getChords();
+    const lyric = lyrics.length > 0 ? null : lyrics[0];
+    createAndDisplayDialog(SuiChordChangeDialog,
       {
-        buttonElement: this.buttonElement,
-        buttonData: this.buttonData,
-        completeNotifier: this.completeNotifier,
+        completeNotifier: this.completeNotifier!,
         view: this.view,
+        undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
-        parser: SmoLyric.parsers.chord
+        id: 'chordDialog',
+        ctor: 'SuiChordChangeDialog',
+        tracker: this.view.tracker,
+        startPromise: null,
+        modifier: lyric
       }
     );
   }
@@ -45,14 +67,16 @@ export class TextButtons extends SuiButton {
   }
 
   addTextMenu() {
-    SuiTextTransformDialog.createAndDisplay(
-      {
-        buttonElement: this.buttonElement,
-        buttonData: this.buttonData,
-        completeNotifier: this.completeNotifier,
-        tracker: this.view.tracker,
+    createAndDisplayDialog(SuiTextBlockDialog, {
+        completeNotifier: this.completeNotifier!,
         view: this.view,
-        eventSource: this.eventSource
+        undoBuffer: this.view.undoBuffer,
+        eventSource: this.eventSource,
+        id: 'chordDialog',
+        ctor: 'SuiChordChangeDialog',
+        tracker: this.view.tracker,
+        startPromise: null,
+        modifier: null
       });
   }
   addDynamicsMenu() {

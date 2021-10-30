@@ -241,11 +241,14 @@ export class SmoSelection {
 
   // ### selectionsToEnd
   // Select all the measures from startMeasure to the end of the score in the given staff.
-  static selectionsToEnd(score: SmoScore, staff: number, startMeasure: number) {
+  static selectionsToEnd(score: SmoScore, staff: number, startMeasure: number): SmoSelection[] {
     let i = 0;
-    const rv = [];
+    const rv: SmoSelection[] = [];
     for (i = startMeasure; i < score.staves[staff].measures.length; ++i) {
-      rv.push(SmoSelection.measureSelection(score, staff, i));
+      const selection = SmoSelection.measureSelection(score, staff, i);
+      if (selection) {
+        rv.push(selection);
+      }
     }
     return rv;
   }

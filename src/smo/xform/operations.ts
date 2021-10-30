@@ -1,22 +1,28 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoScore } from '../data/score';
-import { SmoMeasureParams, SmoMeasure, SmoVoice } from '../data/measure';
-import { SmoSelection, SmoSelector, ModifierTab } from './selections';
-import { SmoSystemGroup, SmoTextGroup } from '../data/scoreModifiers';
+import { Pitch, PitchLetter } from '../data/common';
 import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
+import { SmoScore } from '../data/score';
+import { SmoMeasureParams, SmoMeasure, SmoVoice } from '../data/measure';
+import { SmoPartInfo } from '../data/partInfo';
+import { SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
+import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoNoteModifierBase, SmoOrnament } from '../data/noteModifiers';
+import {
+  SmoRehearsalMark, SmoMeasureText, SmoVolta, SmoMeasureFormat, SmoTempoText, SmoBarline,
+  TimeSignature, SmoRepeatSymbol
+} from '../data/measureModifiers';
+import { SmoStaffHairpin, SmoSlur, SmoTie, StaffModifierBase, SmoTieParams, SmoInstrument, SmoStaffHairpinParams,
+  SmoSlurParams, SmoInstrumentMeasure } from '../data/staffModifiers';
+import { SmoSystemGroup, SmoTextGroup } from '../data/scoreModifiers';
+
+import { SmoSelection, SmoSelector, ModifierTab } from './selections';
 import {
   SmoDuration, SmoContractNoteActor, SmoStretchNoteActor, SmoMakeTupletActor,
   SmoUnmakeTupletActor, SmoContractTupletActor
 } from './tickDuration';
 import { smoBeamerFactory } from './beamers';
-import { SmoStaffHairpin, SmoSlur, SmoTie, StaffModifierBase, SmoTieParams, SmoInstrument, SmoStaffHairpinParams, SmoSlurParams } from '../data/staffModifiers';
-import { SmoRehearsalMark, SmoMeasureText, SmoVolta, SmoMeasureFormat, SmoTempoText, SmoBarline, SmoRepeatSymbol } from '../data/measureModifiers';
-import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoNoteModifierBase, SmoOrnament } from '../data/noteModifiers';
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
-import { Pitch, PitchLetter, TimeSignature } from '../data/common';
 const VF = eval('Vex.Flow');
 
 export type BatchSelectionOperation = 'dotDuration' | 'undotDuration' | 'doubleDuration' | 'halveDuration' |
@@ -115,7 +121,7 @@ export class SmoOperation {
   static populateVoice(selection: SmoSelection, voiceIx: number) {
     selection.measure.populateVoice(voiceIx);
   }
-  static setTimeSignature(score: SmoScore, selections: SmoSelection[], timeSignature: TimeSignature) {
+  static setTimeSignature(score: SmoScore, selections: SmoSelection[], timeSignature: TimeSignature, timeSignatureString: string) {
     const selectors: SmoSelector[] = [];
     let i = 0;
     let ticks = 0;
@@ -140,6 +146,7 @@ export class SmoOperation {
         smoSerialize.serializedMerge(attrs, proto, params);
         params.timeSignature = timeSignature;
         nm = SmoMeasure.getDefaultMeasure(params);
+        nm.timeSignatureString = timeSignatureString;
         nm.setX(rowSelection.measure.staffX, 'op:setTimeSignature');
         nm.setY(rowSelection.measure.staffY, 'op:setTimeSignature');
         nm.setWidth(rowSelection.measure.staffWidth, 'op:setTimeSignature');
@@ -157,7 +164,7 @@ export class SmoOperation {
               nvoice.push(nnote);
               ticks += nnote.tickCount;
             } else {
-              const remain = (ticks + pnote.tickCount) - tsTicks;
+              const remain = tsTicks - ticks;
               nnote.ticks = { numerator: remain, denominator: 1, remainder: 0 };
               nvoice.push(nnote);
               ticks += nnote.tickCount;
@@ -840,39 +847,46 @@ export class SmoOperation {
       }
     });
   }
+  /**
+   * Compute new map based on current instrument selections, adjusting existing instruments as required
+   * @param instrument
+   * @param selections
+   */
   static changeInstrument(instrument: SmoInstrument, selections: SmoSelection[]) {
-    const measureHash: Record<number, number> = {};
-    let newKey = '';
-    selections.forEach((selection: SmoSelection) => {
-      if (!measureHash[selection.selector.measure]) {
-        measureHash[selection.selector.measure] = 1;
-        const netOffset = instrument.keyOffset - selection.measure.transposeIndex;
-        newKey = SmoMusic.pitchToVexKey(SmoMusic.smoIntToPitch(
-          SmoMusic.smoPitchToInt(
-            SmoMusic.pitchKeyToPitch(SmoMusic.vexToSmoKey(selection.measure.keySignature))) + netOffset));
-        newKey = SmoMusic.toValidKeySignature(newKey);
-        if (newKey.length > 1 && newKey[1] === 'n') {
-          newKey = newKey[0];
+    const measureSel = SmoSelection.getMeasureList(selections);
+    const measureIndex = measureSel[0].selector.measure;
+    const measureEnd = measureIndex + (measureSel.length - 1);
+    instrument.startSelector = JSON.parse(JSON.stringify(measureSel[0].selector));
+    instrument.endSelector = JSON.parse(JSON.stringify(measureSel[measureSel.length - 1].selector));
+    const instMap: Record<number, SmoInstrument> = {};
+    const staffArray: SmoInstrumentMeasure[] = SmoSystemStaff.getStaffInstrumentArray(measureSel[0].staff.measureInstrumentMap);
+    instMap[measureIndex] = instrument;
+    staffArray.forEach((ar) => {
+      if (ar.instrument.endSelector.measure < measureIndex || ar.instrument.startSelector.measure > measureEnd) {
+        // No overlap, juse use the original instrument
+        instMap[ar.instrument.startSelector.measure] = new SmoInstrument(ar.instrument);
+      } else if (ar.instrument.startSelector.measure < measureIndex) {
+        // overlap on left
+        const split1 = new SmoInstrument(ar.instrument);
+        split1.startSelector.measure = ar.instrument.startSelector.measure;
+        instMap[split1.startSelector.measure] = split1;
+        split1.endSelector.measure = measureIndex - 1;
+        if (ar.instrument.endSelector.measure > measureEnd) {
+          // overlap on left and right
+          const split2 = new SmoInstrument(ar.instrument);
+          split2.startSelector.measure = measureEnd + 1;
+          split2.endSelector.measure = ar.instrument.endSelector.measure;
+          instMap[split2.startSelector.measure] = split2;
         }
-        newKey = newKey[0].toUpperCase() + newKey.substr(1, newKey.length);
-        selection.measure.keySignature = newKey;
-        selection.measure.clef = instrument.clef;
-        selection.measure.transposeIndex = instrument.keyOffset;
-        selection.measure.voices.forEach((voice) => {
-          voice.notes.forEach((note) => {
-            if (note.noteType === 'n') {
-              const pitches: Pitch[] = [];
-              note.pitches.forEach((pitch: Pitch) => {
-                const pint = SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(pitch) + netOffset);
-                pitches.push(JSON.parse(JSON.stringify(SmoMusic.getEnharmonicInKey(pint, newKey))));
-              });
-              note.pitches = pitches;
-              SmoOperation.transposeChords(note, netOffset, newKey);
-            }
-            note.clef = instrument.clef;
-          });
-        });
+        instMap[ar.instrument.startSelector.measure] = new SmoInstrument(ar.instrument);
+      } else if (ar.instrument.endSelector.measure > measureEnd) {
+        // overlap on right only
+        const split1 = new SmoInstrument(ar.instrument);
+        split1.startSelector.measure = measureEnd + 1;
+        instMap[split1.startSelector.measure] = split1;
       }
     });
+    selections[0].staff.measureInstrumentMap = instMap;
+    selections[0].staff.updateInstrumentOffsets();
   }
 }

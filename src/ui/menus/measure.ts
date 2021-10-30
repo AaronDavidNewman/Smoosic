@@ -1,5 +1,7 @@
 import { SuiMenuBase, SuiMenuParams } from './menu';
-import { SuiMeasureDialog, SuiInsertMeasures } from '../dialogs/measureDialogs';
+import { createAndDisplayDialog } from '../dialogs/dialog';
+import { SuiInsertMeasures } from '../dialogs/addMeasure';
+import { SuiMeasureDialog } from '../dialogs/measureFormat';
 declare var $: any;
 export class SuiMeasureMenu extends SuiMenuBase {
   static defaults = {
@@ -34,21 +36,31 @@ export class SuiMeasureMenu extends SuiMenuBase {
   selection(ev: any) {
     const text = $(ev.currentTarget).attr('data-value');
     if (text === 'formatMeasureDialog') {
-      SuiMeasureDialog.createAndDisplay({
+      createAndDisplayDialog(SuiMeasureDialog, {
         view: this.view,
         completeNotifier: this.completeNotifier,
         startPromise: this.closePromise,
-        eventSource: this.eventSource
+        eventSource: this.eventSource,
+        tracker: this.tracker,
+        ctor: 'SuiMeasureDialog',
+        id: 'measure-dialog',
+        undoBuffer: this.undoBuffer,
+        modifier: null
       });
       this.complete();
       return;
     }
     if (text === 'addMenuCmd') {
-      SuiInsertMeasures.createAndDisplay({
+      createAndDisplayDialog(SuiInsertMeasures, {
         view: this.view,
         completeNotifier: this.completeNotifier,
         startPromise: this.closePromise,
-        eventSource: this.eventSource
+        eventSource: this.eventSource,
+        tracker: this.tracker,
+        ctor: 'SuiMeasureDialog',
+        id: 'insert-dialog',
+        undoBuffer: this.undoBuffer,
+        modifier: null
       });
       this.complete();
     }

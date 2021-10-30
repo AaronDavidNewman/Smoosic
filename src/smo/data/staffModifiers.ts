@@ -37,15 +37,87 @@ export abstract class StaffModifierBase implements SmoModifierBase {
   }
   abstract serialize(): any;
 }
+export interface SmoInstrumentParams {
+  startSelector: SmoSelector,
+  endSelector: SmoSelector,
+  instrumentName: string,
+  abbreviation: string,
+  keyOffset: number,
+  midichannel: number,
+  midiport: number,
+  clef: Clef
+}
+
+export type SmoInstrumentNumParamType = 'keyOffset' | 'midichannel' | 'midiport';
+export const SmoInstrumentNumParams: SmoInstrumentNumParamType[] = ['keyOffset', 'midichannel', 'midiport'];
+export type SmoInstrumentStringParamType = 'instrumentName' | 'abbreviation';
+export const SmoInstrumentStringParams: SmoInstrumentStringParamType[] = ['instrumentName', 'abbreviation'];
 // WIP
-export class SmoInstrument {
+export class SmoInstrument extends StaffModifierBase {
   static get attributes() {
-    return ['startSelector', 'endSelector', 'transposeIndex', 'midichannel', 'midiport', 'instrument', 'abbreviation'];
+    return ['startSelector', 'endSelector', 'keyOffset', 'midichannel', 'midiport', 'instrumentName', 'abbreviation'];
   }
-  instrument: string = '';
+  startSelector: SmoSelector;
+  endSelector: SmoSelector;
+  instrumentName: string = '';
+  abbreviation: string = '';
   keyOffset: number = 0;
   clef: Clef = 'treble';
-  serialize() {}
+  midichannel: number;
+  midiport: number;
+  static get defaults(): SmoInstrumentParams {
+    return JSON.parse(JSON.stringify({
+      clef: 'treble',
+      keyOffset: 0,
+      instrumentName: '',
+      abbreviation: '',
+      midichannel: 0,
+      midiport: 0,
+      startSelector: SmoSelector.default,
+      endSelector: SmoSelector.default
+    }));
+  }
+  constructor(params: SmoInstrumentParams) {
+    super('SmoInstrument');
+    let name = '';
+    if (typeof ((params as any).instrument) === 'undefined') {
+      name = params.instrumentName;
+    } else {
+      name = (params as any).instrument;
+    }
+    this.instrumentName = name;
+    this.keyOffset = params.keyOffset;
+    this.clef = params.clef;
+    this.midiport = params.midiport;
+    this.midichannel = params.midichannel;
+    this.startSelector = params.startSelector;
+    this.endSelector = params.endSelector;
+  }
+  serialize() {
+    const params: any = {};
+    smoSerialize.serializedMergeNonDefault(SmoInstrument.defaults, SmoInstrument.attributes, this, params);
+    params.ctor = 'SmoInstrument';
+    return params;
+  }
+  eq(other: SmoInstrument): boolean {
+    let rv = true;
+    SmoInstrumentNumParams.forEach((param) => {
+      if (other[param] !== this[param]) {
+        rv = false;
+      }
+    });
+    SmoInstrumentStringParams.forEach((param) => {
+      if (other[param] !== this[param]) {
+        rv = false;
+      }
+    });
+    return rv;
+  }
+}
+
+export interface SmoInstrumentMeasure {
+  measureIndex: number,
+  instrument: SmoInstrumentParams;
 }
 // WIP
 export class SmoPartMap {
@@ -242,11 +314,12 @@ export interface TieLine {
   to: number
 }
 export interface SmoTieParams {
-  invert: boolean,
+  tie_spacing: number,
   cp1: number,
   cp2: number,
   first_x_shift: number,
   last_x_shift: number,
+  y_shift: number,
   lines: TieLine[],
   startSelector: SmoSelector | null,
   endSelector: SmoSelector | null
@@ -260,6 +333,8 @@ export class SmoTie extends StaffModifierBase {
   cp2: number = 12;
   first_x_shift: number = 0;
   last_x_shift: number = 0;
+  y_shift: number = 7;
+  tie_spacing: number = 0;
   lines: TieLine[] = [];
   startSelector: SmoSelector = SmoSelector.default;
   endSelector: SmoSelector = SmoSelector.default;
@@ -268,6 +343,7 @@ export class SmoTie extends StaffModifierBase {
       invert: false,
       cp1: 8,
       cp2: 12,
+      y_shift: 7,
       first_x_shift: 0,
       last_x_shift: 0,
       lines: [],
@@ -277,11 +353,15 @@ export class SmoTie extends StaffModifierBase {
   }
 
   static get parameterArray() {
-    return ['startSelector', 'endSelector', 'invert', 'lines', 'cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
+    return ['startSelector', 'endSelector', 'invert', 'lines', 'y_shift', 'tie_spacing', 'cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
   }
   static get vexParameters() {
     return ['cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
   }
+  static isTie(modifier: SmoTie | SmoModifierBase): modifier is SmoTie {
+    return modifier.ctor === 'SmoTie';
+  }
+
   static createLines(fromNote: SmoNote, toNote: SmoNote): TieLine[] {
     const maxPitches = Math.max(fromNote.pitches.length, toNote.pitches.length);
     let i = 0;

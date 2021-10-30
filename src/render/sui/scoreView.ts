@@ -1,21 +1,23 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoMeasure } from '../../smo/data/measure';
+import { SmoModifierBase } from '../../smo/data/common';
+import { SmoScore } from '../../smo/data/score';
+import { SmoTextGroup } from '../../smo/data/scoreModifiers';
+import { SmoGraceNote } from '../../smo/data/noteModifiers';
+import { SmoSystemStaff } from '../../smo/data/systemStaff';
+import { StaffModifierBase } from '../../smo/data/staffModifiers';
+import { Action } from '../../smo/xform/actions';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { UndoBuffer } from '../../smo/xform/undo';
-import { StaffModifierBase } from '../../smo/data/staffModifiers';
+import { PasteBuffer } from '../../smo/xform/copypaste';
+import { SmoActionRecord } from '../../smo/xform/actions';
 import { SuiScroller } from './scroller';
 import { SvgHelpers } from './svgHelpers';
-import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SuiTracker } from './tracker';
-import { SmoScore } from '../../smo/data/score';
-import { SmoActionRecord } from '../../smo/xform/actions';
 import { SuiRenderDemon } from './layoutDemon';
 import { testCase1 } from '../../music/utActions';
-import { SmoModifierBase } from '../../smo/data/common';
-import { SmoGraceNote } from '../../smo/data/noteModifiers';
 import { SuiRenderState } from './renderState';
-import { SmoMeasure } from '../../smo/data/measure';
-import { Action } from '../../smo/xform/actions';
 
 declare var $: any;
 
@@ -23,25 +25,22 @@ export interface ViewMapEntry {
   show: boolean;
 }
 
-// ## SuiScoreView
-// Do a thing to the music.  Save in undo buffer before.  Render the score to reflect
-// the change after.  Map the operation on the score view to the actual score.
+/**
+ * Base class for all operations on the rendered score.  The base class handles the following:
+ * 1. Undo and recording actions for the operation
+ * 2. Maintain/change which staves in the score are displayed (staff map)
+ * 3. Mapping between the displayed score and the data representation
+ */
 export abstract class SuiScoreView {
   static Instance: SuiScoreView | null = null;
   abstract replayActions(): void;
-
-  // ### _reverseMapSelection
-  // For operations that affect all columns, we operate on the
-  // entire score and update the view score.  Some selections
-  // will not have an equivalent in the reverse map since the
-  // view can be a subset.
-  score: SmoScore;
-  storeScore: SmoScore;
-  staffMap: number[];
-  storeUndo: UndoBuffer;
+  score: SmoScore; // The score that is displayed
+  storeScore: SmoScore;  // the full score, including invisible staves
+  staffMap: number[]; // mapping the 2 things above
+  storeUndo: UndoBuffer; // undo buffer for operations to above
   undoBuffer: UndoBuffer;
-  tracker: SuiTracker;
-  renderer: any;
+  tracker: SuiTracker; // UI selections
+  renderer: SuiRenderState;
   scroller: SuiScroller;
   pasteBuffer: PasteBuffer;
   storePaste: PasteBuffer;
@@ -68,32 +67,6 @@ export abstract class SuiScoreView {
     this.tracker.recordBuffer = this.actionBuffer;
   }
 
-  _reverseMapSelection(selection: SmoSelection) {
-    const staffIndex = this.staffMap.indexOf(selection.selector.staff);
-    if (staffIndex < 0) {
-      return null;
-    }
-    if (typeof(selection.selector.tick) === 'undefined') {
-      return SmoSelection.measureSelection(this.score, staffIndex, selection.selector.measure);
-    }
-    if (typeof(selection.selector.pitches) === 'undefined') {
-      return SmoSelection.noteSelection(this.score, staffIndex, selection.selector.measure, selection.selector.voice,
-        selection.selector.tick);
-    }
-    return SmoSelection.pitchSelection(this.score, staffIndex, selection.selector.measure, selection.selector.voice,
-      selection.selector.tick, selection.selector.pitches);
-  }
-  _reverseMapSelections(selections: SmoSelection[]): SmoSelection[] {
-    const rv: SmoSelection[] = [];
-    selections.forEach((selection) => {
-      const rsel = this._reverseMapSelection(selection);
-      if (rsel !== null) {
-        rv.push(rsel);
-      }
-    });
-    return rv;
-  }
-
   // ### _getEquivalentSelections
   // The plural form of _getEquivalentSelection
   _getEquivalentSelections(selections: SmoSelection[]): SmoSelection[] {
@@ -117,9 +90,9 @@ export abstract class SuiScoreView {
   }
   // ### getFocusedPage
   // Return the index of the page that is in the center of the client screen.
-  getFocusedPage() {
+  getFocusedPage(): number {
     if (this.score.layoutManager === undefined) {
-      return;
+      return 0;
     }
     const scrollAvg = this.tracker.scroller.netScroll.y + (this.tracker.scroller.viewport.height / 2);
     const midY = scrollAvg;
@@ -350,6 +323,48 @@ export abstract class SuiScoreView {
       staff.setMappedStaffId(this.staffMap[staff.staffId]);
     });
   }
+  /**
+   * Exposes a part:  hides non-part staves, shows part staves.
+   * Note this will reset the view.  After this operation, staff 0 will
+   * be the selected part.
+   * @param staff 
+   */
+  exposePart(staff: SmoSystemStaff) {
+    let i = 0;
+    const partInfo = staff.partInfo;
+    const startIndex = this.staffMap[staff.staffId] - partInfo.stavesBefore;
+    const partLength = partInfo.stavesBefore + partInfo.stavesAfter + 1; 
+    const exposeMap: ViewMapEntry[] = [];
+    for (i = 0; i < this.storeScore.staves.length; ++i) {
+      const show = (i >= startIndex && i < startIndex + partLength);
+      exposeMap.push({ show });
+    }
+    this.setView(exposeMap);
+  }
+  isStaffVisible(staffId: number): boolean {
+    return this.staffMap.findIndex((x) => x === staffId) >= 0;
+  }
+  isPartExposed(staff: SmoSystemStaff): boolean {
+    const staveCount = staff.partInfo.stavesAfter + staff.partInfo.stavesBefore + 1;
+    return this.score.staves[0].staffId === staff.staffId && staveCount === this.score.staves.length
+      && staff.partInfo.stavesBefore === 0;
+  }
+  _mapPartFormatting() {
+    this.score.layoutManager = this.score.staves[0].partInfo.layoutManager;
+    let replacedText = false;
+    this.score.staves.forEach((staff) => { 
+      staff.updateMeasureFormatsForPart();
+      if (staff.partInfo.preserveTextGroups && !replacedText) {
+        const tga: SmoTextGroup[] = [];
+        replacedText = true;
+        staff.partInfo.textGroups.forEach((tg) => {
+          tga.push(tg)
+        });
+        this.score.textGroups = tga;
+      }
+    });
+
+  }
 
   // ### setView
   // Send a list of rows with a 'show' boolean in each, we display that line
@@ -378,7 +393,12 @@ export abstract class SuiScoreView {
     // Indicate which score staff view staves are mapped to, to decide to display
     // modifiers.
     this.setMappedStaffIds();
+    // TODO: add part-specific measure formatting, etc.
     this.renderer.score = nscore;
+    // If this current view is a part, show the part layout
+    if (this.isPartExposed(this.score.staves[0])) {
+      this._mapPartFormatting();
+    }
     this.renderer.setViewport(true);
     setTimeout(() => {
       $('body').trigger('forceResizeEvent');
@@ -410,6 +430,9 @@ export abstract class SuiScoreView {
   // for the view score, we the renderer decides what to render
   // depending on what is undone.
   undo() {
+    if (!this.renderer.score) {
+      return;
+    }
     this.renderer.undo(this.undoBuffer);
     // A score-level undo might have changed the score.
     this.score = this.renderer.score;

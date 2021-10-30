@@ -113,8 +113,12 @@ export class SmoTranslator {
     });
 
     SmoTranslator.allDialogs.forEach((dialogClass) => {
-      const _class = Smo.getClass(dialogClass);
+      const _class = eval('globalThis.Smo.' + dialogClass);
       const dialogStrings = trans.strings.dialogs.find((mm) => mm.ctor === dialogClass);
+      if (typeof (_class) === 'undefined') {
+        console.log('no eval for class ' + dialogClass);
+        return;
+      }
       // Set text in ribbon buttons that invoke menus
       const dialogButton = $('.ribbonButtonContainer button.' + dialogClass).find('.left-text .text-span');
       if (dialogButton.length && dialogStrings) {
@@ -189,7 +193,7 @@ export class SmoTranslator {
       'SuiDynamicModifierDialog',
       'SuiLyricDialog',
       'SuiChordChangeDialog',
-      'SuiTextTransformDialog'
+      'SuiTextBlockDialog'
     ];
   }
   static get allHelpFiles() {

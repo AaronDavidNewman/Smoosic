@@ -24,20 +24,6 @@ export interface SuiTextEditorParams {
   y: number,
   text: string
 }
-
-export interface SuiDragSessionParams {
-  context: any;
-  scroller: SuiScroller;
-  xOffset: number;
-  yOffset: number;
-  textObject: SuiTextBlock;
-  dragging: boolean;
-  startBox: SvgBox;
-  currentBox: SvgBox;
-  currentClientBox: SvgBox;
-  textGroup: SmoTextGroup;
-}
-
 export interface SuiLyricEditorParams extends SuiTextEditorParams {
   lyric: SmoLyric
 }
@@ -57,12 +43,8 @@ export interface SuiLyricSessionParams {
   renderer: SuiRenderState;
   scroller: SuiScroller;
   view: any;
-  parser: number;
   verse: number;
   selector: SmoSelector;
-  selection: SmoSelection;
-  note: SmoNote;
-  originalText: string;
 }
 // The heirarchy of text editing objects goes:
 // dialog -> component -> session -> editor
@@ -802,6 +784,12 @@ export class SuiChordEditor extends SuiTextEditor {
     this.state = SuiTextEditor.States.STOPPED;
   }
 }
+export interface SuiDragSessionParams {
+  context: any;
+  scroller: SuiScroller;
+  textGroup: SmoTextGroup;
+}
+
 export class SuiDragSession {
   context: any;
   scroller: SuiScroller;
@@ -1035,7 +1023,7 @@ export class SuiLyricSession {
     this.renderer = params.renderer;
     this.scroller = params.scroller;
     this.view = params.view;
-    this.parser = params.parser ? params.parser : SmoLyric.parsers.lyric;
+    this.parser = SmoLyric.parsers.lyric;
     this.verse = params.verse;
     this.selector = params.selector;
     this.selection = SmoSelection.noteFromSelector(this.score, this.selector);
@@ -1228,7 +1216,18 @@ export class SuiLyricSession {
       this._hideLyric();
     }
   }
+  get textType(): number {
+    if (this.isRunning && this.editor !== null) {
+      return this.editor.textType;
+    }
+    return SuiInlineText.textTypes.normal;
+  }
 
+  set textType(type) {
+    if (this.editor) {
+      this.editor.textType = type;
+    }
+  }
   // ### handleMouseEvent
   // Mouse event (send to editor)
   handleMouseEvent(ev: any) {
@@ -1244,18 +1243,6 @@ export class SuiChordSession extends SuiLyricSession {
   constructor(params: SuiLyricSessionParams) {
     super(params);
     this.parser = SmoLyric.parsers.chord;
-  }
-  get textType(): number {
-    if (this.isRunning && this.editor !== null) {
-      return this.editor.textType;
-    }
-    return SuiInlineText.textTypes.normal;
-  }
-
-  set textType(type) {
-    if (this.editor) {
-      this.editor.textType = type;
-    }
   }
 
   // ### evKey
