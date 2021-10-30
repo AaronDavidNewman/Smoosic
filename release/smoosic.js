@@ -24,15 +24,11 @@ exports.SuiApplication = exports.SuiScoreBuilder = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../common/serializationHelpers */ "./src/common/serializationHelpers.js");
-const eventHandler_1 = __webpack_require__(/*! ./eventHandler */ "./src/application/eventHandler.ts");
-const scoreRender_1 = __webpack_require__(/*! ../render/sui/scoreRender */ "./src/render/sui/scoreRender.ts");
-const menus_1 = __webpack_require__(/*! ../ui/menus */ "./src/ui/menus.js");
-const keyCommands_1 = __webpack_require__(/*! ./keyCommands */ "./src/application/keyCommands.ts");
-const scoreViewOperations_1 = __webpack_require__(/*! ../render/sui/scoreViewOperations */ "./src/render/sui/scoreViewOperations.ts");
+const midiWriter_1 = __webpack_require__(/*! ../common/midiWriter */ "./src/common/midiWriter.js");
 const score_1 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
-const translationEditor_1 = __webpack_require__(/*! ../ui/i18n/translationEditor */ "./src/ui/i18n/translationEditor.js");
-const language_1 = __webpack_require__(/*! ../ui/i18n/language */ "./src/ui/i18n/language.js");
-const eventSource_1 = __webpack_require__(/*! ./eventSource */ "./src/application/eventSource.ts");
+const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
+const scoreRender_1 = __webpack_require__(/*! ../render/sui/scoreRender */ "./src/render/sui/scoreRender.ts");
+const scoreViewOperations_1 = __webpack_require__(/*! ../render/sui/scoreViewOperations */ "./src/render/sui/scoreViewOperations.ts");
 const oscillator_1 = __webpack_require__(/*! ../render/audio/oscillator */ "./src/render/audio/oscillator.ts");
 const arial_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/arial_metrics */ "./src/styles/font_metrics/arial_metrics.js");
 const times_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/times_metrics */ "./src/styles/font_metrics/times_metrics.js");
@@ -41,8 +37,13 @@ const ConcertOne_Regular_1 = __webpack_require__(/*! ../styles/font_metrics/Conc
 const Merriweather_Regular_1 = __webpack_require__(/*! ../styles/font_metrics/Merriweather-Regular */ "./src/styles/font_metrics/Merriweather-Regular.js");
 const ssp_sans_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
 const ssp_serif_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/ssp-serif-metrics */ "./src/styles/font_metrics/ssp-serif-metrics.js");
-const midiWriter_1 = __webpack_require__(/*! ../common/midiWriter */ "./src/common/midiWriter.js");
+const manager_1 = __webpack_require__(/*! ../ui/menus/manager */ "./src/ui/menus/manager.ts");
+const translationEditor_1 = __webpack_require__(/*! ../ui/i18n/translationEditor */ "./src/ui/i18n/translationEditor.js");
+const language_1 = __webpack_require__(/*! ../ui/i18n/language */ "./src/ui/i18n/language.js");
 const dom_1 = __webpack_require__(/*! ./dom */ "./src/application/dom.ts");
+const keyCommands_1 = __webpack_require__(/*! ./keyCommands */ "./src/application/keyCommands.ts");
+const eventSource_1 = __webpack_require__(/*! ./eventSource */ "./src/application/eventSource.ts");
+const eventHandler_1 = __webpack_require__(/*! ./eventHandler */ "./src/application/eventHandler.ts");
 const VF = eval('Vex.Flow');
 const Smo = eval('globalThis.Smo');
 /**
@@ -111,6 +112,7 @@ exports.SuiScoreBuilder = SuiScoreBuilder;
  */
 class SuiApplication {
     constructor(params) {
+        this.instance = null;
         SuiApplication.configure(params);
         this.startApplication();
     }
@@ -194,20 +196,24 @@ class SuiApplication {
         const params = {};
         params.keyBindingDefaults = eventHandler_1.SuiEventHandler.keyBindingDefaults;
         params.eventSource = new eventSource_1.BrowserEventSource(); // events come from the browser UI.
+        params.undoBuffer = new undo_1.UndoBuffer();
         const selector = typeof (SmoConfig.vexDomContainer) === 'undefined' ? '' : SmoConfig.vexDomContainer;
         const scoreRenderer = scoreRender_1.SuiScoreRender.createScoreRenderer(document.getElementById(selector), score);
         params.eventSource.setRenderElement(scoreRenderer.renderElement);
-        params.view = new scoreViewOperations_1.SuiScoreViewOperations(scoreRenderer, score, '.musicRelief');
+        params.view = new scoreViewOperations_1.SuiScoreViewOperations(scoreRenderer, score, '.musicRelief', params.undoBuffer);
+        params.menuContainer = '.menuContainer';
         if (SmoConfig.keyCommands) {
             params.keyCommands = new keyCommands_1.SuiKeyCommands(params);
         }
         if (SmoConfig.menus) {
-            params.menus = new menus_1.suiMenuManager(params);
+            params.menus = new manager_1.SuiMenuManager(params);
         }
-        params.layoutDemon = params.view.layoutDemon;
         // Start the application event processing and render the initial score
         // eslint-disable-next-line
-        new eventHandler_1.SuiEventHandler(params);
+        this.instance = params;
+        this.instance.eventHandler = new eventHandler_1.SuiEventHandler(params);
+        this.instance.ribbon = this.instance.eventHandler.ribbon;
+        SuiApplication.instance = this.instance;
         dom_1.SuiDom.splash();
     }
     static registerFonts() {
@@ -442,10 +448,10 @@ exports.SuiDom = SuiDom;
 // Copyright (c) Aaron David Newman 2021.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiEventHandler = void 0;
-const ribbon_1 = __webpack_require__(/*! ../ui/ribbon */ "./src/ui/ribbon.ts");
+const ribbon_1 = __webpack_require__(/*! ../ui/buttons/ribbon */ "./src/ui/buttons/ribbon.ts");
 const exceptions_1 = __webpack_require__(/*! ../ui/exceptions */ "./src/ui/exceptions.js");
 const qwerty_1 = __webpack_require__(/*! ../ui/qwerty */ "./src/ui/qwerty.js");
-const dialog_1 = __webpack_require__(/*! ../ui/dialog */ "./src/ui/dialog.js");
+const factory_1 = __webpack_require__(/*! ../ui/dialogs/factory */ "./src/ui/dialogs/factory.ts");
 const piano_1 = __webpack_require__(/*! ../render/sui/piano */ "./src/render/sui/piano.ts");
 const layoutDebug_1 = __webpack_require__(/*! ../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const help_1 = __webpack_require__(/*! ../ui/help */ "./src/ui/help.js");
@@ -556,9 +562,14 @@ class SuiEventHandler {
         var parameters = {
             modifier: modifierSelection.modifier,
             view: this.view, eventSource: this.eventSource,
-            completeNotifier: this, keyCommands: this.keyCommands
+            completeNotifier: this, keyCommands: this.keyCommands,
+            ctor: '',
+            tracker: this.tracker,
+            startPromise: null,
+            id: 'modifier-dialog',
+            undoBuffer: this.view.undoBuffer
         };
-        return dialog_1.SuiModifierDialogFactory.createDialog(modifierSelection.modifier, parameters);
+        return factory_1.SuiModifierDialogFactory.createModifierDialog(modifierSelection.modifier, parameters);
     }
     // If the user has selected a modifier via the mouse/touch, bring up mod dialog
     // for that modifier
@@ -923,31 +934,72 @@ const player_1 = __webpack_require__(/*! ../ui/buttons/player */ "./src/ui/butto
 const stave_1 = __webpack_require__(/*! ../ui/buttons/stave */ "./src/ui/buttons/stave.ts");
 const text_1 = __webpack_require__(/*! ../ui/buttons/text */ "./src/ui/buttons/text.ts");
 const voice_1 = __webpack_require__(/*! ../ui/buttons/voice */ "./src/ui/buttons/voice.ts");
-const ribbon_1 = __webpack_require__(/*! ../ui/ribbon */ "./src/ui/ribbon.ts");
+const ribbon_1 = __webpack_require__(/*! ../ui/buttons/ribbon */ "./src/ui/buttons/ribbon.ts");
 // Language strings
 const language_en_1 = __webpack_require__(/*! ../ui/i18n/language_en */ "./src/ui/i18n/language_en.js");
 const language_ar_1 = __webpack_require__(/*! ../ui/i18n/language_ar */ "./src/ui/i18n/language_ar.js");
 // ui dialogs and menus
 // Dialogs
-const dialog_1 = __webpack_require__(/*! ../ui/dialog */ "./src/ui/dialog.js");
-const measureDialogs_1 = __webpack_require__(/*! ../ui/dialogs/measureDialogs */ "./src/ui/dialogs/measureDialogs.js");
-const scoreDialogs_1 = __webpack_require__(/*! ../ui/dialogs/scoreDialogs */ "./src/ui/dialogs/scoreDialogs.js");
-const libraryDialog_1 = __webpack_require__(/*! ../ui/dialogs/libraryDialog */ "./src/ui/dialogs/libraryDialog.js");
-const textDialogs_1 = __webpack_require__(/*! ../ui/dialogs/textDialogs */ "./src/ui/dialogs/textDialogs.js");
-const staffDialogs_1 = __webpack_require__(/*! ../ui/dialogs/staffDialogs */ "./src/ui/dialogs/staffDialogs.js");
-const fileDialogs_1 = __webpack_require__(/*! ../ui/dialogs/fileDialogs */ "./src/ui/dialogs/fileDialogs.js");
+const dialog_1 = __webpack_require__(/*! ../ui/dialogs/dialog */ "./src/ui/dialogs/dialog.ts");
+const factory_1 = __webpack_require__(/*! ../ui/dialogs/factory */ "./src/ui/dialogs/factory.ts");
+const measureFormat_1 = __webpack_require__(/*! ../ui/dialogs/measureFormat */ "./src/ui/dialogs/measureFormat.ts");
+const addMeasure_1 = __webpack_require__(/*! ../ui/dialogs/addMeasure */ "./src/ui/dialogs/addMeasure.ts");
+const instrument_1 = __webpack_require__(/*! ../ui/dialogs/instrument */ "./src/ui/dialogs/instrument.ts");
+const timeSignature_1 = __webpack_require__(/*! ../ui/dialogs/timeSignature */ "./src/ui/dialogs/timeSignature.ts");
+const tempo_1 = __webpack_require__(/*! ../ui/dialogs/tempo */ "./src/ui/dialogs/tempo.ts");
+const scoreId_1 = __webpack_require__(/*! ../ui/dialogs/scoreId */ "./src/ui/dialogs/scoreId.ts");
+const preferences_1 = __webpack_require__(/*! ../ui/dialogs/preferences */ "./src/ui/dialogs/preferences.ts");
+const pageLayout_1 = __webpack_require__(/*! ../ui/dialogs/pageLayout */ "./src/ui/dialogs/pageLayout.ts");
+const fonts_1 = __webpack_require__(/*! ../ui/dialogs/fonts */ "./src/ui/dialogs/fonts.ts");
+const globalLayout_1 = __webpack_require__(/*! ../ui/dialogs/globalLayout */ "./src/ui/dialogs/globalLayout.ts");
+const scoreView_1 = __webpack_require__(/*! ../ui/dialogs/scoreView */ "./src/ui/dialogs/scoreView.ts");
+const library_1 = __webpack_require__(/*! ../ui/dialogs/library */ "./src/ui/dialogs/library.ts");
+const chordChange_1 = __webpack_require__(/*! ../ui/dialogs/chordChange */ "./src/ui/dialogs/chordChange.ts");
+const lyric_1 = __webpack_require__(/*! ../ui/dialogs/lyric */ "./src/ui/dialogs/lyric.ts");
+const textBlock_1 = __webpack_require__(/*! ../ui/dialogs/textBlock */ "./src/ui/dialogs/textBlock.ts");
+const dynamics_1 = __webpack_require__(/*! ../ui/dialogs/dynamics */ "./src/ui/dialogs/dynamics.ts");
+const slur_1 = __webpack_require__(/*! ../ui/dialogs/slur */ "./src/ui/dialogs/slur.ts");
+const tie_1 = __webpack_require__(/*! ../ui/dialogs/tie */ "./src/ui/dialogs/tie.ts");
+const volta_1 = __webpack_require__(/*! ../ui/dialogs/volta */ "./src/ui/dialogs/volta.ts");
+const hairpin_1 = __webpack_require__(/*! ../ui/dialogs/hairpin */ "./src/ui/dialogs/hairpin.ts");
+const staffGroup_1 = __webpack_require__(/*! ../ui/dialogs/staffGroup */ "./src/ui/dialogs/staffGroup.ts");
+const fileDialogs_1 = __webpack_require__(/*! ../ui/dialogs/fileDialogs */ "./src/ui/dialogs/fileDialogs.ts");
 // Dialog components
-const dialogComponents_1 = __webpack_require__(/*! ../ui/dialogComponents */ "./src/ui/dialogComponents.js");
-const fontComponent_1 = __webpack_require__(/*! ../ui/dialogs/fontComponent */ "./src/ui/dialogs/fontComponent.js");
-const treeComponent_1 = __webpack_require__(/*! ../ui/dialogs/treeComponent */ "./src/ui/dialogs/treeComponent.js");
-const textComponents_1 = __webpack_require__(/*! ../ui/dialogs/textComponents */ "./src/ui/dialogs/textComponents.js");
-const staffComponents_1 = __webpack_require__(/*! ../ui/dialogs/staffComponents */ "./src/ui/dialogs/staffComponents.js");
+const textInput_1 = __webpack_require__(/*! ../ui/dialogs/components/textInput */ "./src/ui/dialogs/components/textInput.ts");
+const dropdown_1 = __webpack_require__(/*! ../ui/dialogs/components/dropdown */ "./src/ui/dialogs/components/dropdown.ts");
+const button_1 = __webpack_require__(/*! ../ui/dialogs/components/button */ "./src/ui/dialogs/components/button.ts");
+const toggle_1 = __webpack_require__(/*! ../ui/dialogs/components/toggle */ "./src/ui/dialogs/components/toggle.ts");
+const fileDownload_1 = __webpack_require__(/*! ../ui/dialogs/components/fileDownload */ "./src/ui/dialogs/components/fileDownload.ts");
+const rocker_1 = __webpack_require__(/*! ../ui/dialogs/components/rocker */ "./src/ui/dialogs/components/rocker.ts");
+const fontComponent_1 = __webpack_require__(/*! ../ui/dialogs/components/fontComponent */ "./src/ui/dialogs/components/fontComponent.ts");
+const textInPlace_1 = __webpack_require__(/*! ../ui/dialogs/components/textInPlace */ "./src/ui/dialogs/components/textInPlace.ts");
+const tree_1 = __webpack_require__(/*! ../ui/dialogs/components/tree */ "./src/ui/dialogs/components/tree.ts");
+const noteText_1 = __webpack_require__(/*! ../ui/dialogs/components/noteText */ "./src/ui/dialogs/components/noteText.ts");
+const dragText_1 = __webpack_require__(/*! ../ui/dialogs/components/dragText */ "./src/ui/dialogs/components/dragText.ts");
+const textInPlace_2 = __webpack_require__(/*! ../ui/dialogs/components/textInPlace */ "./src/ui/dialogs/components/textInPlace.ts");
+const checkdrop_1 = __webpack_require__(/*! ../ui/dialogs/components/checkdrop */ "./src/ui/dialogs/components/checkdrop.ts");
+const tie_2 = __webpack_require__(/*! ../ui/dialogs/components/tie */ "./src/ui/dialogs/components/tie.ts");
+const staffComponents_1 = __webpack_require__(/*! ../ui/dialogs/components/staffComponents */ "./src/ui/dialogs/components/staffComponents.ts");
+const textCheck_1 = __webpack_require__(/*! ../ui/dialogs/components/textCheck */ "./src/ui/dialogs/components/textCheck.ts");
 // menus
-const menus_1 = __webpack_require__(/*! ../ui/menus */ "./src/ui/menus.js");
+const manager_1 = __webpack_require__(/*! ../ui/menus/manager */ "./src/ui/menus/manager.ts");
+const menu_1 = __webpack_require__(/*! ../ui/menus/menu */ "./src/ui/menus/menu.ts");
+const score_1 = __webpack_require__(/*! ../ui/menus/score */ "./src/ui/menus/score.ts");
+const parts_1 = __webpack_require__(/*! ../ui/menus/parts */ "./src/ui/menus/parts.ts");
+const library_2 = __webpack_require__(/*! ../ui/menus/library */ "./src/ui/menus/library.ts");
+const dynamics_2 = __webpack_require__(/*! ../ui/menus/dynamics */ "./src/ui/menus/dynamics.ts");
+const timeSignature_2 = __webpack_require__(/*! ../ui/menus/timeSignature */ "./src/ui/menus/timeSignature.ts");
+const keySignature_1 = __webpack_require__(/*! ../ui/menus/keySignature */ "./src/ui/menus/keySignature.ts");
+const staffModifier_1 = __webpack_require__(/*! ../ui/menus/staffModifier */ "./src/ui/menus/staffModifier.ts");
+const file_1 = __webpack_require__(/*! ../ui/menus/file */ "./src/ui/menus/file.ts");
+const language_1 = __webpack_require__(/*! ../ui/menus/language */ "./src/ui/menus/language.ts");
+const language_2 = __webpack_require__(/*! ../ui/i18n/language */ "./src/ui/i18n/language.js");
+const measure_2 = __webpack_require__(/*! ../ui/menus/measure */ "./src/ui/menus/measure.ts");
+const staff_1 = __webpack_require__(/*! ../ui/menus/staff */ "./src/ui/menus/staff.ts");
 const xhrLoader_1 = __webpack_require__(/*! ../ui/fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.js");
 const promiseHelpers_1 = __webpack_require__(/*! ../common/promiseHelpers */ "./src/common/promiseHelpers.js");
 // render library
-const scoreView_1 = __webpack_require__(/*! ../render/sui/scoreView */ "./src/render/sui/scoreView.ts");
+const scoreView_2 = __webpack_require__(/*! ../render/sui/scoreView */ "./src/render/sui/scoreView.ts");
 const scoreViewOperations_1 = __webpack_require__(/*! ../render/sui/scoreViewOperations */ "./src/render/sui/scoreViewOperations.ts");
 const scoreRender_1 = __webpack_require__(/*! ../render/sui/scoreRender */ "./src/render/sui/scoreRender.ts");
 const layoutDebug_1 = __webpack_require__(/*! ../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
@@ -955,13 +1007,14 @@ const mapper_1 = __webpack_require__(/*! ../render/sui/mapper */ "./src/render/s
 const scroller_1 = __webpack_require__(/*! ../render/sui/scroller */ "./src/render/sui/scroller.ts");
 const actionPlayback_1 = __webpack_require__(/*! ../render/sui/actionPlayback */ "./src/render/sui/actionPlayback.ts");
 // SMO components
-const score_1 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
+const score_2 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
 const xmlScore_1 = __webpack_require__(/*! ../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
 const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
 const note_2 = __webpack_require__(/*! ../smo/data/note */ "./src/smo/data/note.ts");
 const tickDuration_1 = __webpack_require__(/*! ../smo/xform/tickDuration */ "./src/smo/xform/tickDuration.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
-const measure_2 = __webpack_require__(/*! ../smo/data/measure */ "./src/smo/data/measure.ts");
+const measure_3 = __webpack_require__(/*! ../smo/data/measure */ "./src/smo/data/measure.ts");
+const music_1 = __webpack_require__(/*! ../smo/data/music */ "./src/smo/data/music.ts");
 const selections_1 = __webpack_require__(/*! ../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const systemStaff_1 = __webpack_require__(/*! ../smo/data/systemStaff */ "./src/smo/data/systemStaff.ts");
@@ -980,39 +1033,41 @@ exports.Smo = {
     RibbonButtons: ribbon_1.RibbonButtons, NoteButtons: note_1.NoteButtons, TextButtons: text_1.TextButtons, ChordButtons: chord_1.ChordButtons, MicrotoneButtons: microtone_1.MicrotoneButtons,
     StaveButtons: stave_1.StaveButtons, BeamButtons: beam_1.BeamButtons, MeasureButtons: measure_1.MeasureButtons, DurationButtons: duration_1.DurationButtons,
     VoiceButtons: voice_1.VoiceButtons, PlayerButtons: player_1.PlayerButtons, ArticulationButtons: articulation_1.ArticulationButtons, NavigationButtons: navigation_1.NavigationButtons,
-    DisplaySettings: display_1.DisplaySettings, ExtendedCollapseParent: collapsable_1.ExtendedCollapseParent,
+    DisplaySettings: display_1.DisplaySettings, ExtendedCollapseParent: collapsable_1.ExtendedCollapseParent, CollapseRibbonControl: collapsable_1.CollapseRibbonControl,
     // Menus
-    suiMenuManager: menus_1.suiMenuManager, SuiScoreMenu: menus_1.SuiScoreMenu, SuiFileMenu: menus_1.SuiFileMenu, SuiLibraryMenu: menus_1.SuiLibraryMenu,
-    SuiDynamicsMenu: menus_1.SuiDynamicsMenu, SuiTimeSignatureMenu: menus_1.SuiTimeSignatureMenu, SuiKeySignatureMenu: menus_1.SuiKeySignatureMenu, SuiStaffModifierMenu: menus_1.SuiStaffModifierMenu,
-    SuiLanguageMenu: menus_1.SuiLanguageMenu, SuiMeasureMenu: menus_1.SuiMeasureMenu, SuiAddStaffMenu: menus_1.SuiAddStaffMenu,
+    SuiMenuManager: manager_1.SuiMenuManager, SuiMenuBase: menu_1.SuiMenuBase, SuiScoreMenu: score_1.SuiScoreMenu, SuiFileMenu: file_1.SuiFileMenu, SuiLibraryMenu: library_2.SuiLibraryMenu,
+    SuiDynamicsMenu: dynamics_2.SuiDynamicsMenu, SuiTimeSignatureMenu: timeSignature_2.SuiTimeSignatureMenu, SuiKeySignatureMenu: keySignature_1.SuiKeySignatureMenu, SuiStaffModifierMenu: staffModifier_1.SuiStaffModifierMenu,
+    SuiLanguageMenu: language_1.SuiLanguageMenu, SuiMeasureMenu: measure_2.SuiMeasureMenu, SuiStaffMenu: staff_1.SuiStaffMenu, SmoLanguage: language_2.SmoLanguage, SmoTranslator: language_2.SmoTranslator, SuiPartMenu: parts_1.SuiPartMenu,
     // Dialogs
-    SuiTempoDialog: measureDialogs_1.SuiTempoDialog, SuiInstrumentDialog: measureDialogs_1.SuiInstrumentDialog, SuiModifierDialogFactory: dialog_1.SuiModifierDialogFactory, SuiLibraryDialog: libraryDialog_1.SuiLibraryDialog,
-    SuiScoreViewDialog: scoreDialogs_1.SuiScoreViewDialog, SuiGlobalLayoutDialog: scoreDialogs_1.SuiGlobalLayoutDialog, SuiScoreIdentificationDialog: scoreDialogs_1.SuiScoreIdentificationDialog,
-    SuiScoreFontDialog: scoreDialogs_1.SuiScoreFontDialog, SuiLayoutDialog: scoreDialogs_1.SuiLayoutDialog, SuiMeasureDialog: measureDialogs_1.SuiMeasureDialog, SuiInsertMeasures: measureDialogs_1.SuiInsertMeasures,
-    SuiTimeSignatureDialog: measureDialogs_1.SuiTimeSignatureDialog, SuiTextTransformDialog: textDialogs_1.SuiTextTransformDialog, SuiLyricDialog: textDialogs_1.SuiLyricDialog, SuiChordChangeDialog: textDialogs_1.SuiChordChangeDialog,
-    SuiStaffModifierDialog: staffDialogs_1.SuiStaffModifierDialog, SuiSlurAttributesDialog: staffDialogs_1.SuiSlurAttributesDialog, SuiTieAttributesDialog: staffDialogs_1.SuiTieAttributesDialog, SuiVoltaAttributeDialog: staffDialogs_1.SuiVoltaAttributeDialog,
-    SuiHairpinAttributesDialog: staffDialogs_1.SuiHairpinAttributesDialog, SuiStaffGroupDialog: staffDialogs_1.SuiStaffGroupDialog, helpModal: textDialogs_1.helpModal,
-    SuiFileDialog: fileDialogs_1.SuiFileDialog, SuiLoadFileDialog: fileDialogs_1.SuiLoadFileDialog, SuiLoadMxmlDialog: fileDialogs_1.SuiLoadMxmlDialog,
-    SuiLoadActionsDialog: fileDialogs_1.SuiLoadActionsDialog, SuiPrintFileDialog: fileDialogs_1.SuiPrintFileDialog, SuiSaveFileDialog: fileDialogs_1.SuiSaveFileDialog, SuiSaveXmlDialog: fileDialogs_1.SuiSaveXmlDialog,
-    SuiSaveMidiDialog: fileDialogs_1.SuiSaveMidiDialog, SuiSaveActionsDialog: fileDialogs_1.SuiSaveActionsDialog,
+    SuiTempoDialog: tempo_1.SuiTempoDialog, SuiInstrumentDialog: instrument_1.SuiInstrumentDialog, SuiModifierDialogFactory: factory_1.SuiModifierDialogFactory, SuiLibraryDialog: library_1.SuiLibraryDialog,
+    SuiScoreViewDialog: scoreView_1.SuiScoreViewDialog, SuiGlobalLayoutDialog: globalLayout_1.SuiGlobalLayoutDialog, SuiScoreIdentificationDialog: scoreId_1.SuiScoreIdentificationDialog,
+    SuiScoreFontDialog: fonts_1.SuiScoreFontDialog, SuiPageLayoutDialog: pageLayout_1.SuiPageLayoutDialog, SuiMeasureDialog: measureFormat_1.SuiMeasureDialog, SuiInsertMeasures: addMeasure_1.SuiInsertMeasures,
+    SuiTimeSignatureDialog: timeSignature_1.SuiTimeSignatureDialog, SuiTextBlockDialog: textBlock_1.SuiTextBlockDialog, SuiLyricDialog: lyric_1.SuiLyricDialog, SuiChordChangeDialog: chordChange_1.SuiChordChangeDialog,
+    SuiSlurAttributesDialog: slur_1.SuiSlurAttributesDialog, SuiTieAttributesDialog: tie_1.SuiTieAttributesDialog, SuiVoltaAttributeDialog: volta_1.SuiVoltaAttributeDialog,
+    SuiHairpinAttributesDialog: hairpin_1.SuiHairpinAttributesDialog, SuiStaffGroupDialog: staffGroup_1.SuiStaffGroupDialog, helpModal: textBlock_1.helpModal,
+    SuiLoadFileDialog: fileDialogs_1.SuiLoadFileDialog, SuiLoadMxmlDialog: fileDialogs_1.SuiLoadMxmlDialog, SuiScorePreferencesDialog: preferences_1.SuiScorePreferencesDialog,
+    /* SuiLoadActionsDialog, SuiSaveActionsDialog, */
+    SuiPrintFileDialog: fileDialogs_1.SuiPrintFileDialog, SuiSaveFileDialog: fileDialogs_1.SuiSaveFileDialog, SuiSaveXmlDialog: fileDialogs_1.SuiSaveXmlDialog,
+    SuiSaveMidiDialog: fileDialogs_1.SuiSaveMidiDialog, SuiDialogBase: dialog_1.SuiDialogBase,
     // Dialog components
-    SuiTreeComponent: treeComponent_1.SuiTreeComponent,
-    SuiDropdownComponent: dialogComponents_1.SuiDropdownComponent,
-    SuiRockerComponent: dialogComponents_1.SuiRockerComponent, SuiFileDownloadComponent: dialogComponents_1.SuiFileDownloadComponent,
-    SuiToggleComponent: dialogComponents_1.SuiToggleComponent, SuiButtonComponent: dialogComponents_1.SuiButtonComponent, SuiDropdownComposite: dialogComponents_1.SuiDropdownComposite,
-    SuiToggleComposite: dialogComponents_1.SuiToggleComposite, SuiButtonComposite: dialogComponents_1.SuiButtonComposite, SuiRockerComposite: dialogComponents_1.SuiRockerComposite, SuiTextInputComposite: dialogComponents_1.SuiTextInputComposite,
-    SuiFontComponent: fontComponent_1.SuiFontComponent, SuiTextInPlace: textComponents_1.SuiTextInPlace, SuiLyricComponent: textComponents_1.SuiLyricComponent, SuiChordComponent: textComponents_1.SuiChordComponent, SuiDragText: textComponents_1.SuiDragText,
-    SuiNoteTextComponent: textComponents_1.SuiNoteTextComponent, SuiTextBlockComponent: fontComponent_1.SuiTextBlockComponent, SuiTextInputComponent: dialogComponents_1.SuiTextInputComponent,
-    SuiDynamicModifierDialog: textDialogs_1.SuiDynamicModifierDialog, CheckboxDropdownComponent: staffComponents_1.CheckboxDropdownComponent, TieMappingComponent: staffComponents_1.TieMappingComponent, StaffAddRemoveComponent: staffComponents_1.StaffAddRemoveComponent,
-    StaffCheckComponent: staffComponents_1.StaffCheckComponent, TextCheckComponent: staffComponents_1.TextCheckComponent,
+    SuiTreeComponent: tree_1.SuiTreeComponent,
+    SuiDropdownComponent: dropdown_1.SuiDropdownComponent,
+    SuiRockerComponent: rocker_1.SuiRockerComponent, SuiFileDownloadComponent: fileDownload_1.SuiFileDownloadComponent,
+    SuiToggleComponent: toggle_1.SuiToggleComponent, SuiButtonComponent: button_1.SuiButtonComponent, SuiDropdownComposite: dropdown_1.SuiDropdownComposite,
+    SuiToggleComposite: toggle_1.SuiToggleComposite, SuiButtonComposite: button_1.SuiButtonComposite, SuiRockerComposite: rocker_1.SuiRockerComposite, SuiTextInputComposite: textInput_1.SuiTextInputComposite,
+    SuiFontComponent: fontComponent_1.SuiFontComponent, SuiTextInPlace: textInPlace_2.SuiTextInPlace, SuiLyricComponent: noteText_1.SuiLyricComponent, SuiChordComponent: noteText_1.SuiChordComponent, SuiDragText: dragText_1.SuiDragText,
+    SuiNoteTextComponent: noteText_1.SuiNoteTextComponent, SuiTextBlockComponent: textInPlace_1.SuiTextBlockComponent, SuiTextInputComponent: textInput_1.SuiTextInputComponent,
+    SuiDynamicModifierDialog: dynamics_1.SuiDynamicModifierDialog, CheckboxDropdownComponent: checkdrop_1.CheckboxDropdownComponent, TieMappingComponent: tie_2.TieMappingComponent, StaffAddRemoveComponent: staffComponents_1.StaffAddRemoveComponent,
+    StaffCheckComponent: staffComponents_1.StaffCheckComponent, TextCheckComponent: textCheck_1.TextCheckComponent,
     SuiXhrLoader: xhrLoader_1.SuiXhrLoader, PromiseHelpers: promiseHelpers_1.PromiseHelpers,
     // Rendering components
-    SuiPiano: piano_1.SuiPiano, layoutDebug: layoutDebug_1.layoutDebug, SuiScoreView: scoreView_1.SuiScoreView, SuiScroller: scroller_1.SuiScroller, SuiMapper: mapper_1.SuiMapper, SuiScoreRender: scoreRender_1.SuiScoreRender,
+    SuiPiano: piano_1.SuiPiano, layoutDebug: layoutDebug_1.layoutDebug, SuiScoreView: scoreView_2.SuiScoreView, SuiScroller: scroller_1.SuiScroller, SuiMapper: mapper_1.SuiMapper, SuiScoreRender: scoreRender_1.SuiScoreRender,
     SuiScoreViewOperations: scoreViewOperations_1.SuiScoreViewOperations, SuiActionPlayback: actionPlayback_1.SuiActionPlayback,
     // Smo Music Objects
-    SmoScore: score_1.SmoScore,
+    SmoScore: score_2.SmoScore,
     mxmlScore: xmlScore_1.mxmlScore,
-    SmoMeasure: measure_2.SmoMeasure,
+    SmoMusic: music_1.SmoMusic,
+    SmoMeasure: measure_3.SmoMeasure,
     SmoSystemStaff: systemStaff_1.SmoSystemStaff,
     SmoNote: note_2.SmoNote,
     // staff modifier
@@ -1050,7 +1105,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiKeyCommands = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const measureDialogs_1 = __webpack_require__(/*! ../ui/dialogs/measureDialogs */ "./src/ui/dialogs/measureDialogs.js");
+const tempo_1 = __webpack_require__(/*! ../ui/dialogs/tempo */ "./src/ui/dialogs/tempo.ts");
+const dialog_1 = __webpack_require__(/*! ../ui/dialogs/dialog */ "./src/ui/dialogs/dialog.ts");
 const player_1 = __webpack_require__(/*! ../render/audio/player */ "./src/render/audio/player.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const common_1 = __webpack_require__(/*! ../smo/data/common */ "./src/smo/data/common.ts");
@@ -1062,15 +1118,22 @@ class SuiKeyCommands {
         this.slashMode = false;
         this.slashMode = false;
         this.view = params.view;
-        this.tracker = params.tracker;
+        this.tracker = params.view.tracker;
         this.completeNotifier = params.completeNotifier;
         this.eventSource = params.eventSource;
     }
     tempoDialog() {
-        measureDialogs_1.SuiTempoDialog.createAndDisplay({
+        const tempo = this.tracker.selections[0].measure.getTempo();
+        dialog_1.createAndDisplayDialog(tempo_1.SuiTempoDialog, {
+            id: 'tempoDialog',
+            ctor: 'SuiTempoDialog',
             completeNotifier: this.completeNotifier,
             view: this.view,
-            eventSource: this.eventSource
+            eventSource: this.eventSource,
+            tracker: this.tracker,
+            startPromise: null,
+            undoBuffer: this.view.undoBuffer,
+            modifier: tempo
         });
     }
     get score() {
@@ -3010,7 +3073,12 @@ class PromiseHelpers {
                 setTimeout(() => {
                     if (instance[endCondition]) {
                         if (preResolveMethod) {
-                            instance[preResolveMethod]();
+                            if (typeof (preResolveMethod) === 'string') {
+                                instance[preResolveMethod]();
+                            }
+                            else {
+                                preResolveMethod();
+                            }
                         }
                         resolve();
                     }
@@ -3338,7 +3406,20 @@ class smoSerialize {
       "gg": "format",
       "hg": "pageBreak",
       "ig": "xOffsetLeft",
-      "jg": "xOffsetRight"
+      "jg": "xOffsetRight",
+      "kg": "padAllInSystem",
+      "lg": "rotate",
+      "mg": "actualBeats",
+      "ng": "useSymbol",
+      "og": "showPiano",
+      "pg": "globalLayout",
+      "qg": "measureInstrumentMap",
+      "rg": "partInfo",
+      "sg": "partName",
+      "tg": "partAbbreviation",
+      "ug": "stavesAfter",
+      "vg": "stavesBefore",
+      "wg": "measureFormatting"
       }`;
         return JSON.parse(_tm);
     }
@@ -4739,6 +4820,9 @@ class SuiRenderDemon {
         if (this.handling) {
             return;
         }
+        if (this.renderer.suspendRendering) {
+            return;
+        }
         this.handling = true;
         const redrawTime = Math.max(this.renderer.renderTime, SmoConfig.idleRedrawTime);
         // If there has been a change, redraw the score
@@ -4819,9 +4903,10 @@ const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./sr
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
-// ## SuiMapper
-// Map the notes in the svg so they can respond to events and interact
-// with the mouse/keyboard
+/**
+ * Map the notes in the svg so they can respond to events and interact
+ * with the mouse/keyboard
+ */
 class SuiMapper {
     constructor(renderer, scroller, pasteBuffer) {
         // measure to selector map
@@ -4837,6 +4922,8 @@ class SuiMapper {
         this.modifierIndex = -1;
         this.modifierSuggestion = -1;
         this.pitchIndex = -1;
+        // By default, defer highlights for performance.
+        this.deferHighlightMode = true;
         this.suggestion = null;
         this.mapping = false;
         // renderer renders the music when it changes
@@ -4866,6 +4953,9 @@ class SuiMapper {
         }
     }
     deferHighlight() {
+        if (!this.deferHighlightMode) {
+            this.highlightSelection();
+        }
         const self = this;
         if (!this.highlightQueue.deferred) {
             this.highlightQueue.deferred = true;
@@ -4984,6 +5074,9 @@ class SuiMapper {
         let ix = 0;
         this.modifierTabs = [];
         const modMap = {};
+        if (!this.renderer.score) {
+            return;
+        }
         this.renderer.score.textGroups.forEach((modifier) => {
             if (!modMap[modifier.attrs.id] && modifier.logicalBox) {
                 this.modifierTabs.push({
@@ -5200,7 +5293,7 @@ class SuiMapper {
         }
         return rv;
     }
-    _findClosestSelection(selector) {
+    _selectClosest(selector) {
         var artifact = this._getClosestTick(selector);
         if (!artifact) {
             return;
@@ -5241,7 +5334,7 @@ class SuiMapper {
                 layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.UPDATE_MAP, new Date().valueOf() - ts);
                 return;
             }
-            this._findClosestSelection(firstSelection.selector);
+            this._selectClosest(firstSelection.selector);
             const first = this.selections[0];
             tickSelected = (_a = first.note.tickCount) !== null && _a !== void 0 ? _a : 0;
             while (tickSelected < ticksSelectedCopy && first) {
@@ -5256,7 +5349,7 @@ class SuiMapper {
         this._createLocalModifiersList();
         // Is this right?  Don't update the past buffer with data until the display is redrawn
         // because some of the selections may not exist in the score.
-        if (this.renderer.isDirty === false) {
+        if (this.renderer.dirty === false && this.renderer.score) {
             this.pasteBuffer.clearSelections();
             this.pasteBuffer.setSelections(this.renderer.score, this.selections);
         }
@@ -5475,10 +5568,23 @@ class SuiPiano {
         });
         // the close button on piano itself
         $('.close-piano').off('click').on('click', () => {
+            this.view.score.preferences.showPiano = false;
+            this.view.updateScorePreferences(this.view.score.preferences);
+        });
+    }
+    static hidePiano() {
+        if ($('body').hasClass('show-piano')) {
             $('body').removeClass('show-piano');
             // resize the work area.
             $('body').trigger('forceResizeEvent');
-        });
+        }
+    }
+    static showPiano() {
+        if ($('body').hasClass('show-piano') === false) {
+            $('body').addClass('show-piano');
+            // resize the work area.
+            $('body').trigger('forceResizeEvent');
+        }
     }
     _updateSelections(ev) {
         // fake a scroller (piano scroller w/b cool tho...)
@@ -5638,9 +5744,6 @@ exports.SuiPiano = SuiPiano;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiRenderState = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const measure_1 = __webpack_require__(/*! ../../smo/data/measure */ "./src/smo/data/measure.ts");
 const undo_1 = __webpack_require__(/*! ../../smo/xform/undo */ "./src/smo/xform/undo.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.js");
@@ -5661,6 +5764,10 @@ class SuiRenderState {
         this.passState = SuiRenderState.passStates.initial;
         this._score = null;
         this._backupZoomScale = 0;
+        // signal to render demon that we have suspended background
+        // rendering because we are recording or playing actions.
+        this.suspendRendering = false;
+        this.autoAdjustRenderTime = true;
         this.attrs = {
             id: VF.Element.newID(),
             type: ctor
@@ -5680,6 +5787,13 @@ class SuiRenderState {
     // so the UI stays in sync with the location of elements in the score.
     setMeasureMapper(mapper) {
         this.measureMapper = mapper;
+    }
+    set stepMode(value) {
+        this.suspendRendering = value;
+        this.autoAdjustRenderTime = !value;
+        if (this.measureMapper) {
+            this.measureMapper.deferHighlightMode = !value;
+        }
     }
     static get Fonts() {
         return {
@@ -5743,15 +5857,25 @@ class SuiRenderState {
             this.measureMapper.scroller.restoreScrollState(scrollState);
         });
     }
+    _renderStatePromise(condition) {
+        const oldSuspend = this.suspendRendering;
+        this.suspendRendering = false;
+        const self = this;
+        const endAction = () => {
+            self.suspendRendering = oldSuspend;
+        };
+        return promiseHelpers_1.PromiseHelpers.makePromise(this, condition, endAction, null, SmoConfig.demonPollTime);
+    }
     // ### renderPromise
     // return a promise that resolves when the score is in a fully rendered state.
     renderPromise() {
-        return promiseHelpers_1.PromiseHelpers.makePromise(this, 'renderStateClean', null, null, SmoConfig.demonPollTime);
+        return this._renderStatePromise('renderStateClean');
     }
     // ### renderPromise
     // return a promise that resolves when the score is in a fully rendered state.
     updatePromise() {
-        return promiseHelpers_1.PromiseHelpers.makePromise(this, 'renderStateRendered', null, null, SmoConfig.demonPollTime);
+        this._replaceMeasures();
+        return this._renderStatePromise('renderStateRendered');
     }
     // Number the measures at the first measure in each system.
     numberMeasures() {
@@ -5768,14 +5892,14 @@ class SuiRenderState {
                 numAr.push({ 'font-size': '10pt' });
                 svgHelpers_1.SvgHelpers.placeSvgText(this.context.svg, numAr, 'measure-number', (measure.measureNumber.localIndex + 1).toString());
                 // Show line-feed symbol
-                const formatIndex = measure_1.SmoMeasure.systemOptions.findIndex((option) => measure[option] !== measure_1.SmoMeasure.defaults[option]);
-                if (formatIndex >= 0 && !printing) {
+                if (!measure.format.isDefault && !printing) {
                     const starAr = [];
+                    const symbol = measure.format.systemBreak ? '\u21b5' : '\u21b0';
                     starAr.push({ y: measure.svg.logicalBox.y - 5 });
                     starAr.push({ x: measure.svg.logicalBox.x + 25 });
                     starAr.push({ 'font-family': ssp_sans_metrics_1.SourceSansProFont.fontFamily });
                     starAr.push({ 'font-size': '12pt' });
-                    svgHelpers_1.SvgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', '\u21b0');
+                    svgHelpers_1.SvgHelpers.placeSvgText(this.context.svg, starAr, 'measure-format', symbol);
                 }
             }
         });
@@ -5830,7 +5954,7 @@ class SuiRenderState {
         $('body').addClass('print-render');
         const self = this;
         if (!this.score) {
-            return;
+            return promiseHelpers_1.PromiseHelpers.emptyPromise();
         }
         const layoutMgr = this.score.layoutManager;
         const layout = layoutMgr.getGlobalLayout();
@@ -6165,20 +6289,21 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiScoreRender = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
-const vxSystem_1 = __webpack_require__(/*! ../vex/vxSystem */ "./src/render/vex/vxSystem.ts");
-const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
-const formatter_1 = __webpack_require__(/*! ./formatter */ "./src/render/sui/formatter.ts");
-const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
-const textRender_1 = __webpack_require__(/*! ./textRender */ "./src/render/sui/textRender.ts");
-const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
-const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
-const ssp_sans_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
-const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
-const beamers_1 = __webpack_require__(/*! ../../smo/xform/beamers */ "./src/smo/xform/beamers.ts");
 const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
 const measure_1 = __webpack_require__(/*! ../../smo/data/measure */ "./src/smo/data/measure.ts");
+const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
+const beamers_1 = __webpack_require__(/*! ../../smo/xform/beamers */ "./src/smo/xform/beamers.ts");
+const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
+const vxSystem_1 = __webpack_require__(/*! ../vex/vxSystem */ "./src/render/vex/vxSystem.ts");
+const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
+const piano_1 = __webpack_require__(/*! ./piano */ "./src/render/sui/piano.ts");
+const formatter_1 = __webpack_require__(/*! ./formatter */ "./src/render/sui/formatter.ts");
+const textRender_1 = __webpack_require__(/*! ./textRender */ "./src/render/sui/textRender.ts");
+const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
+const ssp_sans_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
 const VF = eval('Vex.Flow');
 // ## SuiScoreRender
 // This module renders the entire score.  It calculates the layout first based on the
@@ -6297,7 +6422,8 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
     calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast, tempoLast) {
         const measureKeySig = music_1.SmoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
         measure.svg.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
-        measure.svg.forceTimeSignature = (measure.measureNumber.measureIndex === 0 || (!measure_1.SmoMeasure.timeSigEqual(timeSigLast, measure.timeSignature)));
+        measure.svg.forceTimeSignature = (measure.measureNumber.measureIndex === 0 ||
+            (!measure_1.SmoMeasure.timeSigEqual(timeSigLast, measure.timeSignature)) || measure.timeSignatureString.length > 0);
         if (measure.timeSignature.display === false) {
             measure.svg.forceTimeSignature = false;
         }
@@ -6315,7 +6441,7 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
             measure.svg.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
         }
         if (measureKeySig !== keySigLast) {
-            measure.canceledKeySignature = keySigLast;
+            measure.canceledKeySignature = music_1.SmoMusic.vexKeySigWithOffset(keySigLast, -1 * measure.transposeIndex);
             measure.svg.forceKeySignature = true;
         }
         else if (systemIndex === 0 && measureKeySig !== 'C') {
@@ -6403,7 +6529,12 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
         else {
             this.renderScoreModifiers();
             this.numberMeasures();
-            this.renderTime = new Date().valueOf() - this.startRenderTime;
+            // We pro-rate the background render timer on how long it takes
+            // to actually render the score, so we are not thrashing on a large
+            // score.
+            if (this.autoAdjustRenderTime) {
+                this.renderTime = new Date().valueOf() - this.startRenderTime;
+            }
             $('body').removeClass('show-render-progress');
             // indicate the display is 'clean' and up-to-date with the score
             $('body').removeClass('refresh-1');
@@ -6431,6 +6562,12 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
         const keys = Object.keys(mscore);
         if (!printing) {
             $('body').addClass('show-render-progress');
+            if (this.score.preferences.showPiano) {
+                piano_1.SuiPiano.showPiano();
+            }
+            else {
+                piano_1.SuiPiano.hidePiano();
+            }
         }
         this.backgroundRender = true;
         this.startRenderTime = new Date().valueOf();
@@ -6473,12 +6610,8 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
     // ### _checkPageBreak
     // See if this line breaks the page boundary
     _checkPageBreak(scoreLayout, currentLine, bottomMeasure) {
-        var _a;
         let pageAdj = 0;
-        const lm = (_a = this.score) === null || _a === void 0 ? void 0 : _a.layoutManager;
-        if (!lm) {
-            return new scoreModifiers_1.ScaledPageLayout();
-        }
+        const lm = this.score.layoutManager;
         // See if this measure breaks a page.
         const maxY = bottomMeasure.svg.logicalBox.y + bottomMeasure.svg.logicalBox.height;
         if (maxY > ((this.currentPage + 1) * scoreLayout.pageHeight) - scoreLayout.bottomMargin) {
@@ -6526,7 +6659,7 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
         this.currentPage = 0;
         const timestamp = new Date().valueOf();
         const svg = this.context.svg;
-        const startPageCount = scoreLayout.pages;
+        const startPageCount = this.score.layoutManager.pageLayouts.length;
         y = scoreLayout.topMargin;
         x = scoreLayout.leftMargin;
         while (measureIx < this.score.staves[0].measures.length) {
@@ -6649,23 +6782,26 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiScoreView = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+const measure_1 = __webpack_require__(/*! ../../smo/data/measure */ "./src/smo/data/measure.ts");
+const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
+const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const undo_1 = __webpack_require__(/*! ../../smo/xform/undo */ "./src/smo/xform/undo.ts");
-const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const copypaste_1 = __webpack_require__(/*! ../../smo/xform/copypaste */ "./src/smo/xform/copypaste.ts");
+const actions_1 = __webpack_require__(/*! ../../smo/xform/actions */ "./src/smo/xform/actions.ts");
 const scroller_1 = __webpack_require__(/*! ./scroller */ "./src/render/sui/scroller.ts");
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
-const copypaste_1 = __webpack_require__(/*! ../../smo/xform/copypaste */ "./src/smo/xform/copypaste.ts");
 const tracker_1 = __webpack_require__(/*! ./tracker */ "./src/render/sui/tracker.ts");
-const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
-const actions_1 = __webpack_require__(/*! ../../smo/xform/actions */ "./src/smo/xform/actions.ts");
 const layoutDemon_1 = __webpack_require__(/*! ./layoutDemon */ "./src/render/sui/layoutDemon.ts");
 const utActions_1 = __webpack_require__(/*! ../../music/utActions */ "./src/music/utActions.js");
-const measure_1 = __webpack_require__(/*! ../../smo/data/measure */ "./src/smo/data/measure.ts");
-// ## SuiScoreView
-// Do a thing to the music.  Save in undo buffer before.  Render the score to reflect
-// the change after.  Map the operation on the score view to the actual score.
+/**
+ * Base class for all operations on the rendered score.  The base class handles the following:
+ * 1. Undo and recording actions for the operation
+ * 2. Maintain/change which staves in the score are displayed (staff map)
+ * 3. Mapping between the displayed score and the data representation
+ */
 class SuiScoreView {
-    constructor(renderer, score, scrollSelector) {
+    constructor(renderer, score, scrollSelector, undoBuffer) {
         this.score = score;
         this.renderer = renderer;
         const scoreJson = score.serialize();
@@ -6675,7 +6811,7 @@ class SuiScoreView {
         this.tracker = new tracker_1.SuiTracker(this.renderer, this.scroller, this.pasteBuffer);
         this.renderer.setMeasureMapper(this.tracker);
         this.storeScore = score_1.SmoScore.deserialize(JSON.stringify(scoreJson));
-        this.undoBuffer = new undo_1.UndoBuffer();
+        this.undoBuffer = undoBuffer;
         this.layoutDemon = new layoutDemon_1.SuiRenderDemon(this.renderer, this.undoBuffer, this.tracker);
         this.storeUndo = new undo_1.UndoBuffer();
         this.staffMap = this.defaultStaffMap;
@@ -6683,29 +6819,6 @@ class SuiScoreView {
         this.setMappedStaffIds();
         this.actionBuffer = new actions_1.SmoActionRecord();
         this.tracker.recordBuffer = this.actionBuffer;
-    }
-    _reverseMapSelection(selection) {
-        const staffIndex = this.staffMap.indexOf(selection.selector.staff);
-        if (staffIndex < 0) {
-            return null;
-        }
-        if (typeof (selection.selector.tick) === 'undefined') {
-            return selections_1.SmoSelection.measureSelection(this.score, staffIndex, selection.selector.measure);
-        }
-        if (typeof (selection.selector.pitches) === 'undefined') {
-            return selections_1.SmoSelection.noteSelection(this.score, staffIndex, selection.selector.measure, selection.selector.voice, selection.selector.tick);
-        }
-        return selections_1.SmoSelection.pitchSelection(this.score, staffIndex, selection.selector.measure, selection.selector.voice, selection.selector.tick, selection.selector.pitches);
-    }
-    _reverseMapSelections(selections) {
-        const rv = [];
-        selections.forEach((selection) => {
-            const rsel = this._reverseMapSelection(selection);
-            if (rsel !== null) {
-                rv.push(rsel);
-            }
-        });
-        return rv;
     }
     // ### _getEquivalentSelections
     // The plural form of _getEquivalentSelection
@@ -6730,7 +6843,7 @@ class SuiScoreView {
     // Return the index of the page that is in the center of the client screen.
     getFocusedPage() {
         if (this.score.layoutManager === undefined) {
-            return;
+            return 0;
         }
         const scrollAvg = this.tracker.scroller.netScroll.y + (this.tracker.scroller.viewport.height / 2);
         const midY = scrollAvg;
@@ -6944,6 +7057,47 @@ class SuiScoreView {
             staff.setMappedStaffId(this.staffMap[staff.staffId]);
         });
     }
+    /**
+     * Exposes a part:  hides non-part staves, shows part staves.
+     * Note this will reset the view.  After this operation, staff 0 will
+     * be the selected part.
+     * @param staff
+     */
+    exposePart(staff) {
+        let i = 0;
+        const partInfo = staff.partInfo;
+        const startIndex = this.staffMap[staff.staffId] - partInfo.stavesBefore;
+        const partLength = partInfo.stavesBefore + partInfo.stavesAfter + 1;
+        const exposeMap = [];
+        for (i = 0; i < this.storeScore.staves.length; ++i) {
+            const show = (i >= startIndex && i < startIndex + partLength);
+            exposeMap.push({ show });
+        }
+        this.setView(exposeMap);
+    }
+    isStaffVisible(staffId) {
+        return this.staffMap.findIndex((x) => x === staffId) >= 0;
+    }
+    isPartExposed(staff) {
+        const staveCount = staff.partInfo.stavesAfter + staff.partInfo.stavesBefore + 1;
+        return this.score.staves[0].staffId === staff.staffId && staveCount === this.score.staves.length
+            && staff.partInfo.stavesBefore === 0;
+    }
+    _mapPartFormatting() {
+        this.score.layoutManager = this.score.staves[0].partInfo.layoutManager;
+        let replacedText = false;
+        this.score.staves.forEach((staff) => {
+            staff.updateMeasureFormatsForPart();
+            if (staff.partInfo.preserveTextGroups && !replacedText) {
+                const tga = [];
+                replacedText = true;
+                staff.partInfo.textGroups.forEach((tg) => {
+                    tga.push(tg);
+                });
+                this.score.textGroups = tga;
+            }
+        });
+    }
     // ### setView
     // Send a list of rows with a 'show' boolean in each, we display that line
     // in the staff and hide the rest
@@ -6971,7 +7125,12 @@ class SuiScoreView {
         // Indicate which score staff view staves are mapped to, to decide to display
         // modifiers.
         this.setMappedStaffIds();
+        // TODO: add part-specific measure formatting, etc.
         this.renderer.score = nscore;
+        // If this current view is a part, show the part layout
+        if (this.isPartExposed(this.score.staves[0])) {
+            this._mapPartFormatting();
+        }
         this.renderer.setViewport(true);
         setTimeout(() => {
             $('body').trigger('forceResizeEvent');
@@ -6997,14 +7156,14 @@ class SuiScoreView {
         this.staffMap = this.defaultStaffMap;
         this.setMappedStaffIds();
         this.actionBuffer.clearActions();
-        /* setTimeout(() => {
-          $('body').trigger('forceResizeEvent');
-        }, 1);  */
     }
     // ### undo
     // for the view score, we the renderer decides what to render
     // depending on what is undone.
     undo() {
+        if (!this.renderer.score) {
+            return;
+        }
         this.renderer.undo(this.undoBuffer);
         // A score-level undo might have changed the score.
         this.score = this.renderer.score;
@@ -7030,6 +7189,8 @@ exports.SuiScoreViewOperations = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const scoreView_1 = __webpack_require__(/*! ./scoreView */ "./src/render/sui/scoreView.ts");
 const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
+const systemStaff_1 = __webpack_require__(/*! ../../smo/data/systemStaff */ "./src/smo/data/systemStaff.ts");
+const partInfo_1 = __webpack_require__(/*! ../../smo/data/partInfo */ "./src/smo/data/partInfo.ts");
 const measure_1 = __webpack_require__(/*! ../../smo/data/measure */ "./src/smo/data/measure.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
 const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
@@ -7048,6 +7209,7 @@ const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers *
 const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
 const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
 const actionPlayback_1 = __webpack_require__(/*! ./actionPlayback */ "./src/render/sui/actionPlayback.ts");
+const piano_1 = __webpack_require__(/*! ./piano */ "./src/render/sui/piano.ts");
 // ## ScoreViewOperations
 // MVVM-like operations on the displayed score.
 // All operations that can be performed on a 'live' score go through this
@@ -7072,10 +7234,25 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     updateTextGroup(oldVersion, newVersion) {
         this.actionBuffer.addAction('updateTextGroup', oldVersion, newVersion);
         const index = this.score.textGroups.findIndex((grp) => oldVersion.attrs.id === grp.attrs.id);
+        const isPartExposed = this.isPartExposed(this.score.staves[0]);
         undo_1.SmoUndoable.changeTextGroup(this.score, this.undoBuffer, oldVersion, undo_1.UndoBuffer.bufferSubtypes.UPDATE);
-        undo_1.SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, this.storeScore.textGroups[index], undo_1.UndoBuffer.bufferSubtypes.UPDATE);
-        const altNew = scoreModifiers_1.SmoTextGroup.deserialize(newVersion.serialize());
-        this.storeScore.textGroups[index] = altNew;
+        // If this is part text, don't store it in the score text, except for the displayed score
+        if (!isPartExposed) {
+            undo_1.SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, this.storeScore.textGroups[index], undo_1.UndoBuffer.bufferSubtypes.UPDATE);
+            const altNew = scoreModifiers_1.SmoTextGroup.deserialize(newVersion.serialize());
+            this.storeScore.textGroups[index] = altNew;
+        }
+        else {
+            const partInfo = this.score.staves[0].partInfo;
+            if (partInfo.preserveTextGroups) {
+                partInfo.textGroups = this.score.textGroups;
+            }
+            const tgs = [];
+            partInfo.textGroups.forEach((tg) => {
+                tgs.push(scoreModifiers_1.SmoTextGroup.deserialize(tg.serialize()));
+            });
+            this.storeScore.staves[this.staffMap[0]].partInfo.textGroups = tgs;
+        }
         // TODO: only render the one TG.
         this.renderer.renderScoreModifiers();
     }
@@ -7084,8 +7261,8 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     updateScorePreferences(pref) {
         this._undoScorePreferences('Update preferences');
         // TODO: add action buffer here?
-        serializationHelpers_1.smoSerialize.serializedMerge(score_1.SmoScore.preferences, this.score, pref);
-        serializationHelpers_1.smoSerialize.serializedMerge(score_1.SmoScore.preferences, this.storeScore, pref);
+        this.score.updateScorePreferences(JSON.parse(JSON.stringify(pref)));
+        this.storeScore.updateScorePreferences(JSON.parse(JSON.stringify(pref)));
         this.renderer.setDirty();
     }
     // ### updateScorePreferences
@@ -7106,21 +7283,14 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         operations_1.SmoOperation.addRemoveMicrotone(null, altSelections, tone);
         this._renderChangedMeasures(measureSelections);
     }
-    addDynamic(dynamic) {
-        const sel = this.tracker.selections[0];
-        if (typeof (dynamic) === 'string') {
-            const params = noteModifiers_1.SmoDynamicText.defaults;
-            params.selector = sel.selector;
-            params.text = dynamic;
-            dynamic = new noteModifiers_1.SmoDynamicText(params);
-        }
+    addDynamic(selection, dynamic) {
         this.actionBuffer.addAction('addDynamic', dynamic);
         this._undoFirstMeasureSelection('add dynamic');
-        this._removeDynamic(sel, dynamic);
-        const equiv = this._getEquivalentSelection(sel);
-        operations_1.SmoOperation.addDynamic(sel, dynamic);
+        this._removeDynamic(selection, dynamic);
+        const equiv = this._getEquivalentSelection(selection);
+        operations_1.SmoOperation.addDynamic(selection, dynamic);
         operations_1.SmoOperation.addDynamic(equiv, noteModifiers_1.SmoNoteModifierBase.deserialize(dynamic.serialize()));
-        this.renderer.addToReplaceQueue(sel);
+        this.renderer.addToReplaceQueue(selection);
     }
     _removeDynamic(selection, dynamic) {
         const equiv = this._getEquivalentSelection(selection);
@@ -7256,13 +7426,13 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         operations_1.SmoOperation.changeInstrument(instrument, altSelections);
         this._renderChangedMeasures(selections);
     }
-    setTimeSignature(timeSignature) {
+    setTimeSignature(timeSignature, timeSignatureString) {
         this.actionBuffer.addAction('setTimeSignature', timeSignature);
         this._undoScore('Set time signature');
         const selections = this.tracker.selections;
         const altSelections = this._getEquivalentSelections(selections);
-        operations_1.SmoOperation.setTimeSignature(this.score, selections, timeSignature);
-        operations_1.SmoOperation.setTimeSignature(this.storeScore, altSelections, timeSignature);
+        operations_1.SmoOperation.setTimeSignature(this.score, selections, timeSignature, timeSignatureString);
+        operations_1.SmoOperation.setTimeSignature(this.storeScore, altSelections, timeSignature, timeSignatureString);
         this._renderChangedMeasures(selections_1.SmoSelection.getMeasureList(this.tracker.selections));
     }
     moveStaffUpDown(index) {
@@ -7302,12 +7472,9 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     // Update the tempo for the entire score
     updateTempoScore(tempo, scoreMode) {
         let measureIndex = 0;
-        let startSelection = this.tracker.selections[0];
+        let startSelection = this.tracker.getExtremeSelection(-1);
         this._undoScore('update score tempo');
         this.actionBuffer.addAction('updateTempoScore', tempo, scoreMode);
-        if (!scoreMode) {
-            startSelection = this.tracker.getExtremeSelection(-1);
-        }
         const measureCount = this.score.staves[0].measures.length;
         let endSelection = selections_1.SmoSelection.measureSelection(this.score, startSelection.selector.staff, measureCount - 1);
         if (!scoreMode) {
@@ -7346,7 +7513,9 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
             const measureIx = startSelection.selector.measure - 1;
             const target = startSelection.staff.measures[measureIx];
             const tempo = target.getTempo();
-            this.updateTempoScore(tempo, scoreMode);
+            const newTempo = new measureModifiers_1.SmoTempoText(tempo);
+            newTempo.display = false;
+            this.updateTempoScore(newTempo, scoreMode);
         }
         else {
             this.updateTempoScore(new measureModifiers_1.SmoTempoText(measureModifiers_1.SmoTempoText.defaults), scoreMode);
@@ -7664,6 +7833,16 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         });
         this._renderChangedMeasures(measureSelections);
     }
+    showPiano(value) {
+        this.score.preferences.showPiano = value;
+        this.storeScore.preferences.showPiano = value;
+        if (value) {
+            piano_1.SuiPiano.showPiano();
+        }
+        else {
+            piano_1.SuiPiano.hidePiano();
+        }
+    }
     /**
      * Add a pitch to the score at the cursor.  This tries to find the best pitch
      * to match the letter key (F vs F# for instance) based on key and surrounding notes
@@ -7898,6 +8077,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
             altEngrave.family = family;
             renderState_1.SuiRenderState.setFont(engrave.family);
         }
+        this.renderer.setRefresh();
     }
     setChordFont(fontInfo) {
         this.actionBuffer.addAction('setChordFont', fontInfo);
@@ -8014,6 +8194,42 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         operations_1.SmoOperation.addStaff(this.storeScore, instrument);
         this.viewAll();
     }
+    /**
+     * Update part info assumes that the part is currently exposed - that
+     * staff 0 is the first staff in the part prior to editing.
+     * @param info
+     */
+    updatePartInfo(info) {
+        let i = 0;
+        this._undoScore('Update part info');
+        const storeStaff = this.staffMap[0] - info.stavesBefore;
+        const partLength = info.stavesBefore + info.stavesAfter + 1;
+        const resetView = !scoreModifiers_1.SmoLayoutManager.areLayoutsEqual(info.layoutManager.getGlobalLayout(), this.score.layoutManager.getGlobalLayout());
+        for (i = 0; i < partLength; ++i) {
+            const nStaffIndex = storeStaff + i;
+            const nInfo = new partInfo_1.SmoPartInfo(info);
+            nInfo.stavesBefore = i;
+            nInfo.stavesAfter = partLength - i - 1;
+            this.storeScore.staves[nStaffIndex].partInfo = nInfo;
+            // If the staff index is currently displayed, 
+            const displayedIndex = this.staffMap.findIndex((x) => x === nStaffIndex);
+            if (displayedIndex >= 0) {
+                this.score.staves[displayedIndex].partInfo = new partInfo_1.SmoPartInfo(nInfo);
+                this.score.layoutManager = nInfo.layoutManager;
+            }
+        }
+        if (resetView) {
+            this.renderer.rerenderAll();
+        }
+    }
+    addStaffSimple(params) {
+        const instrumentParams = staffModifiers_1.SmoInstrument.defaults;
+        instrumentParams.startSelector.staff = instrumentParams.endSelector.staff = this.score.staves.length;
+        instrumentParams.clef = params.clef;
+        const staffParams = systemStaff_1.SmoSystemStaff.defaults;
+        staffParams.measureInstrumentMap[0] = new staffModifiers_1.SmoInstrument(instrumentParams);
+        this.addStaff(staffParams);
+    }
     saveScore(filename) {
         const json = this.storeScore.serialize();
         const jsonText = JSON.stringify(json);
@@ -8041,30 +8257,27 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         const scoreStr = JSON.stringify(this.storeScore.serialize());
         localStorage.setItem(serializationHelpers_1.smoSerialize.localScore, scoreStr);
     }
-    createPickup(duration) {
-        const sel = this.tracker.selections[0];
-        const measureIndex = sel.selector.measure;
-        this._undoColumn('create pickup', measureIndex);
-        this.actionBuffer.addAction('createPickup', duration);
-        this.score.convertToPickupMeasure(sel.selector.measure, duration);
-        this.storeScore.convertToPickupMeasure(sel.selector.measure, duration);
-        this.renderer.setRefresh();
-    }
-    _columnAction(label, value, method) {
-        this.actionBuffer.addAction(label, value);
+    setMeasureFormat(format) {
+        const label = 'set measure format';
+        this.actionBuffer.addAction(label, format);
         const fromSelector = this.tracker.getExtremeSelection(-1).selector;
         const toSelector = this.tracker.getExtremeSelection(1).selector;
         const measureSelections = this.tracker.getSelectedMeasures();
+        // If the formatting is on a part, preserve it in the part's info
+        const isPart = this.isPartExposed(measureSelections[0].staff);
         measureSelections.forEach((m) => {
-            this._undoColumn(label + value.toString(), m.selector.measure);
-            operations_1.SmoOperation[method](this.score, m, value);
+            this._undoColumn(label, m.selector.measure);
+            operations_1.SmoOperation.setMeasureFormat(this.score, m, format);
+            if (isPart) {
+                m.staff.partInfo.measureFormatting[m.measure.measureNumber.measureIndex] = new measureModifiers_1.SmoMeasureFormat(format);
+            }
             const alt = this._getEquivalentSelection(m);
-            operations_1.SmoOperation[method](this.storeScore, alt, value);
+            operations_1.SmoOperation.setMeasureFormat(this.storeScore, alt, format);
+            if (isPart) {
+                alt.staff.partInfo.measureFormatting[m.measure.measureNumber.measureIndex] = new measureModifiers_1.SmoMeasureFormat(format);
+            }
         });
         this._renderRectangle(fromSelector, toSelector);
-    }
-    setMeasureFormat(format) {
-        this._columnAction('set measure format', format, 'setMeasureFormat');
     }
     playFromSelection() {
         var mm = this.tracker.getExtremeSelection(-1);
@@ -8480,12 +8693,13 @@ class SvgHelpers {
     // ### eraseOutline
     // Erases old outlineRects.
     static eraseOutline(svg, style) {
-        $(svg).find('g.vf-' + style).remove();
+        $(svg).find(style).remove();
     }
     static _outlineRect(params) {
         const scroll = params.scroll;
         const context = params.context;
-        SvgHelpers.eraseOutline(context, params.classes);
+        // vex puts 'vf-' before everything rendered by context API
+        SvgHelpers.eraseOutline(context.svg, 'g.vf-' + params.classes);
         // Don't highlight in print mode.
         if ($('body').hasClass('printing')) {
             return;
@@ -9805,7 +10019,7 @@ class SuiLyricSession {
         this.renderer = params.renderer;
         this.scroller = params.scroller;
         this.view = params.view;
-        this.parser = params.parser ? params.parser : noteModifiers_1.SmoLyric.parsers.lyric;
+        this.parser = noteModifiers_1.SmoLyric.parsers.lyric;
         this.verse = params.verse;
         this.selector = params.selector;
         this.selection = selections_1.SmoSelection.noteFromSelector(this.score, this.selector);
@@ -9986,6 +10200,17 @@ class SuiLyricSession {
             this._hideLyric();
         }
     }
+    get textType() {
+        if (this.isRunning && this.editor !== null) {
+            return this.editor.textType;
+        }
+        return textRender_1.SuiInlineText.textTypes.normal;
+    }
+    set textType(type) {
+        if (this.editor) {
+            this.editor.textType = type;
+        }
+    }
     // ### handleMouseEvent
     // Mouse event (send to editor)
     handleMouseEvent(ev) {
@@ -10001,17 +10226,6 @@ class SuiChordSession extends SuiLyricSession {
         super(params);
         this.editor = null;
         this.parser = noteModifiers_1.SmoLyric.parsers.chord;
-    }
-    get textType() {
-        if (this.isRunning && this.editor !== null) {
-            return this.editor.textType;
-        }
-        return textRender_1.SuiInlineText.textTypes.normal;
-    }
-    set textType(type) {
-        if (this.editor) {
-            this.editor.textType = type;
-        }
     }
     // ### evKey
     // Key handler (pass to editor)
@@ -10877,10 +11091,6 @@ class SuiTracker extends mapper_1.SuiMapper {
             }
         }
     }
-    replaceSelectedMeasures() {
-        const mm = selections_1.SmoSelection.getMeasureList(this.selections);
-        this.renderer.addToReplaceQueue(mm);
-    }
     // ### renderElement
     // the element the score is rendered on
     get renderElement() {
@@ -10900,10 +11110,13 @@ class SuiTracker extends mapper_1.SuiMapper {
     musicCursor(selector) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
         const key = selections_1.SmoSelector.getNoteKey(selector);
+        if (!this.score) {
+            return;
+        }
         // Get note from 0th staff if we can
         if (this.measureNoteMap[key]) {
-            const measureSel = selections_1.SmoSelection.measureSelection(this.renderer.score, this.renderer.score.staves.length - 1, selector.measure);
-            const zmeasureSel = selections_1.SmoSelection.measureSelection(this.renderer.score, 0, selector.measure);
+            const measureSel = selections_1.SmoSelection.measureSelection(this.score, this.score.staves.length - 1, selector.measure);
+            const zmeasureSel = selections_1.SmoSelection.measureSelection(this.score, 0, selector.measure);
             const measure = measureSel === null || measureSel === void 0 ? void 0 : measureSel.measure;
             const y1 = (_d = (_c = (_b = (_a = zmeasureSel === null || zmeasureSel === void 0 ? void 0 : zmeasureSel.measure) === null || _a === void 0 ? void 0 : _a.svg) === null || _b === void 0 ? void 0 : _b.renderedBox) === null || _c === void 0 ? void 0 : _c.y) !== null && _d !== void 0 ? _d : 0;
             const y2 = (_h = (_g = (_f = (_e = zmeasureSel === null || zmeasureSel === void 0 ? void 0 : zmeasureSel.measure) === null || _e === void 0 ? void 0 : _e.svg) === null || _f === void 0 ? void 0 : _f.renderedBox) === null || _g === void 0 ? void 0 : _g.height) !== null && _h !== void 0 ? _h : 0;
@@ -10979,6 +11192,9 @@ class SuiTracker extends mapper_1.SuiMapper {
     // ### _getOffsetSelection
     // Get the selector that is the offset of the first existing selection
     _getOffsetSelection(offset) {
+        if (!this.score) {
+            return selections_1.SmoSelector.default;
+        }
         let testSelection = this.getExtremeSelection(Math.sign(offset));
         const scopyTick = JSON.parse(JSON.stringify(testSelection.selector));
         const scopyMeasure = JSON.parse(JSON.stringify(testSelection.selector));
@@ -11040,7 +11256,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         this._highlightModifier();
     }
     get autoPlay() {
-        return this.renderer.score.preferences.autoPlay;
+        return this.renderer.score ? this.renderer.score.preferences.autoPlay : false;
     }
     growSelectionRight() {
         if (this.recordBuffer) {
@@ -11269,7 +11485,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         this.deferHighlight();
     }
     _moveStaffOffset(offset) {
-        if (this.selections.length === 0) {
+        if (this.selections.length === 0 || this.score === null) {
             return;
         }
         this.idleTimer = Date.now();
@@ -11328,6 +11544,9 @@ class SuiTracker extends mapper_1.SuiMapper {
         return this.selections.length > 0;
     }
     _replaceSelection(nselector, skipPlay) {
+        if (this.score === null) {
+            return;
+        }
         var artifact = selections_1.SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, nselector.voice, nselector.tick);
         if (!artifact) {
             artifact = selections_1.SmoSelection.noteSelection(this.score, nselector.staff, nselector.measure, 0, nselector.tick);
@@ -11372,6 +11591,9 @@ class SuiTracker extends mapper_1.SuiMapper {
     getSelectedMeasures() {
         const set = [];
         const rv = [];
+        if (!this.score) {
+            return [];
+        }
         this.selections.forEach((sel) => {
             const measure = selections_1.SmoSelection.measureSelection(this.score, sel.selector.staff, sel.selector.measure);
             if (measure) {
@@ -11435,7 +11657,7 @@ class SuiTracker extends mapper_1.SuiMapper {
     // assumes a modifier is selected
     _matchSelectionToModifier() {
         const mod = this.modifierSelections[0].modifier;
-        if (mod.startSelector && mod.endSelector) {
+        if (mod.startSelector && mod.endSelector && this.score) {
             const sm = mod;
             const s1 = selections_1.SmoSelection.noteFromSelector(this.score, sm.startSelector);
             const s2 = selections_1.SmoSelection.noteFromSelector(this.score, sm.endSelector);
@@ -11445,7 +11667,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         }
     }
     selectSuggestion(ev) {
-        if (!this.suggestion || !this.suggestion.measure) {
+        if (!this.suggestion || !this.suggestion.measure || this.score === null) {
             return;
         }
         this.idleTimer = Date.now();
@@ -11638,6 +11860,10 @@ class SuiTracker extends mapper_1.SuiMapper {
                 this._highlightModifier();
                 return;
             }
+        }
+        // If there is a race condition with a change, avoid referencing null note
+        if (!this.selections[0].note) {
+            return;
         }
         const note = this.selections[0].note;
         if (this.pitchIndex >= 0 && this.selections.length === 1 &&
@@ -12432,7 +12658,18 @@ class VxMeasure {
             sig.addToStave(this.stave);
         }
         if (this.smoMeasure.svg.forceTimeSignature) {
-            this.stave.addTimeSignature(this.smoMeasure.timeSignature.timeSignature);
+            const ts = this.smoMeasure.timeSignature;
+            let tsString = ts.timeSignature;
+            if (this.smoMeasure.timeSignature.useSymbol && ts.actualBeats === 4 && ts.beatDuration === 4) {
+                tsString = 'C';
+            }
+            else if (this.smoMeasure.timeSignature.useSymbol && ts.actualBeats === 2 && ts.beatDuration === 4) {
+                tsString = 'C|';
+            }
+            else if (this.smoMeasure.timeSignatureString.length) {
+                tsString = this.smoMeasure.timeSignatureString;
+            }
+            this.stave.addTimeSignature(tsString);
         }
         // Connect it to the rendering context and draw!
         this.stave.setContext(this.context);
@@ -12809,7 +13046,11 @@ class VxSystem {
                     first_note: vxStart,
                     last_note: vxEnd,
                     first_indices: fromLines,
-                    last_indices: toLines
+                    last_indices: toLines,
+                    options: {
+                        cp1: ctie.cp1,
+                        cp2: ctie.cp2
+                    }
                 });
                 Vex.Merge(tie.render_options, ctie.vexOptions);
                 tie.setContext(this.context).draw();
@@ -13016,7 +13257,7 @@ exports.VxSystem = VxSystem;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TimeSignature = exports.SvgBox = exports.SvgPoint = exports.IsPitchLetter = void 0;
+exports.IsClef = exports.Clefs = exports.SvgBox = exports.SvgPoint = exports.IsPitchLetter = void 0;
 function IsPitchLetter(letter) {
     return letter.length === 1 && letter[0] >= 'a' && letter[0] <= 'g';
 }
@@ -13043,19 +13284,12 @@ class SvgBox {
     }
 }
 exports.SvgBox = SvgBox;
-class TimeSignature {
-    constructor() {
-        this.timeSignature = '4/4';
-        this.actualBeats = 4;
-        this.beatDuration = 4;
-        this.useSymbol = false;
-        this.display = true;
-    }
-    static equal(ts1, ts2) {
-        return (ts1.actualBeats == ts2.actualBeats && ts1.beatDuration == ts2.beatDuration);
-    }
+exports.Clefs = ['treble', 'bass', 'tenor', 'alto', 'soprano', 'percussion',
+    'mezzo-soprano', 'baritone-c', 'baritone-f', 'subbass', 'french'];
+function IsClef(clef) {
+    return exports.Clefs.findIndex((x) => clef === x) >= 0;
 }
-exports.TimeSignature = TimeSignature;
+exports.IsClef = IsClef;
 
 
 /***/ }),
@@ -13090,6 +13324,7 @@ const VF = eval('Vex.Flow');
 class SmoMeasure {
     constructor(params) {
         this.timeSignature = SmoMeasure.timeSignatureDefault;
+        this.timeSignatureString = '';
         this.keySignature = '';
         this.canceledKeySignature = '';
         this.padRight = 10;
@@ -13132,11 +13367,17 @@ class SmoMeasure {
         const defaults = SmoMeasure.defaults;
         serializationHelpers_1.smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
         serializationHelpers_1.smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, this);
+        if (params.tempo) {
+            this.tempo = new measureModifiers_1.SmoTempoText(params.tempo);
+        }
         // Handle legacy time signature format
         if (params.timeSignature) {
             const tsAny = params.timeSignature;
             if (typeof (tsAny) === 'string') {
                 this.timeSignature = SmoMeasure.convertLegacyTimeSignature(tsAny);
+            }
+            else {
+                this.timeSignature = new measureModifiers_1.TimeSignature(tsAny);
             }
         }
         this.voices = params.voices ? params.voices : [];
@@ -13157,13 +13398,12 @@ class SmoMeasure {
         };
     }
     static get timeSignatureDefault() {
-        return JSON.parse(JSON.stringify({
-            timeSignature: '4/4',
+        return new measureModifiers_1.TimeSignature({
             actualBeats: 4,
             beatDuration: 4,
             useSymbol: false,
             display: true
-        }));
+        });
     }
     static get defaults() {
         const proto = JSON.parse(JSON.stringify(SmoMeasure._defaults));
@@ -13180,19 +13420,15 @@ class SmoMeasure {
         return proto;
     }
     static convertLegacyTimeSignature(ts) {
-        const rv = SmoMeasure.timeSignatureDefault;
-        const num = ts.split('/')[0];
-        const den = ts.split('/')[1];
+        const rv = new measureModifiers_1.TimeSignature(measureModifiers_1.TimeSignature.defaults);
         rv.timeSignature = ts;
-        rv.beatDuration = parseInt(num, 10);
-        rv.actualBeats = parseInt(den, 10);
         return rv;
     }
     // ### defaultAttributes
     // attributes that are to be serialized for a measure.
     static get defaultAttributes() {
         return [
-            'timeSignature', 'keySignature',
+            'keySignature', 'timeSignatureString',
             'measureNumber',
             'activeVoice', 'clef', 'transposeIndex',
             'adjX', 'format', 'rightMargin'
@@ -13226,34 +13462,13 @@ class SmoMeasure {
     // Some measure attributes that apply to the entire column are serialized
     // separately.  Serialize those attributes, but only add them to the
     // hash if they already exist for an earlier measure
-    serializeColumnMapped(attrColumnHash, attrCurrentValue) {
-        let curValue = '';
-        SmoMeasure.columnMappedAttributes.forEach((attr) => {
-            const field = this[attr];
-            if (field) {
-                curValue = field;
-                if (!attrColumnHash[attr]) {
-                    attrColumnHash[attr] = {};
-                    attrCurrentValue[attr] = {};
-                }
-                const curAttrHash = attrColumnHash[attr];
-                // If this is key signature, make sure we normalize to concert pitch
-                // from instrument pitch
-                if (attr === 'keySignature') {
-                    curValue = music_1.SmoMusic.vexKeySigWithOffset(curValue, -1 * this.transposeIndex);
-                }
-                if (field.ctor && field.ctor === 'SmoTempoText') {
-                    if (field.compare(attrCurrentValue[attr]) === false) {
-                        curAttrHash[this.measureNumber.measureIndex] = curValue;
-                        attrCurrentValue[attr] = curValue;
-                    }
-                }
-                else if (attrCurrentValue[attr] !== curValue) {
-                    curAttrHash[this.measureNumber.measureIndex] = curValue;
-                    attrCurrentValue[attr] = curValue;
-                }
-            } // else attr doesn't exist in this measure
-        });
+    serializeColumnMapped() {
+        //
+        return {
+            timeSignature: this.timeSignature.serialize(),
+            keySignature: this.keySignature,
+            tempo: this.tempo.serialize()
+        };
     }
     // ### serialize
     // Convert this measure object to a JSON object, recursively serializing all the notes,
@@ -13302,6 +13517,7 @@ class SmoMeasure {
                 params.modifiers.push(modifier.serialize());
             }
         });
+        // ['timeSignature', 'keySignature', 'tempo']
         return params;
     }
     // ### deserialize
@@ -13344,13 +13560,14 @@ class SmoMeasure {
         });
         const params = SmoMeasure.defaults;
         serializationHelpers_1.smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, jsonObj, params);
+        // explode column-mapped
+        params.tempo = jsonObj.tempo;
+        params.timeSignature = jsonObj.timeSignature;
+        params.keySignature = jsonObj.keySignature;
         params.voices = voices;
         params.tuplets = tuplets;
         params.modifiers = modifiers;
         const rv = new SmoMeasure(params);
-        if (jsonObj.tempo) {
-            rv.tempo = new measureModifiers_1.SmoTempoText(jsonObj.tempo);
-        }
         // Handle migration for measure-mapped parameters
         rv.modifiers.forEach((mod) => {
             if (mod.ctor === 'SmoTempoText') {
@@ -13437,8 +13654,9 @@ class SmoMeasure {
         let beamBeats = 0;
         let beats = 0;
         let i = 0;
+        let tripleTime = false;
         let ticks = {
-            numerator: 4096,
+            numerator: SmoMeasure.defaultDupleDuration,
             denominator: 1,
             remainder: 0
         };
@@ -13449,7 +13667,7 @@ class SmoMeasure {
             params.timeSignature = SmoMeasure.timeSignatureDefault;
         }
         params.clef = params.clef ? params.clef : 'treble';
-        beamBeats = ticks.numerator;
+        beamBeats = 4096;
         beats = params.timeSignature.actualBeats;
         if (params.timeSignature.beatDuration === 8) {
             ticks = {
@@ -13458,7 +13676,8 @@ class SmoMeasure {
                 remainder: 0
             };
             if (params.timeSignature.actualBeats % 3 === 0) {
-                ticks.numerator = 2048 * 3;
+                tripleTime = true;
+                ticks.numerator = SmoMeasure.defaultTripleDuration;
                 beats = params.timeSignature.actualBeats / 3;
             }
             beamBeats = 2048 * 3;
@@ -13466,7 +13685,7 @@ class SmoMeasure {
         const pitches = JSON.parse(JSON.stringify(SmoMeasure.defaultPitchForClef[params.clef]));
         const rv = [];
         // Treat 2/2 like 4/4 time.
-        if (params.timeSignature.beatDuration === 2) {
+        if (params.timeSignature.beatDuration === 2 || ticks.numerator === 2048 && !tripleTime) {
             beats = beats * 2;
         }
         for (i = 0; i < beats; ++i) {
@@ -13499,6 +13718,10 @@ class SmoMeasure {
         serializationHelpers_1.smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, obj);
         // Don't copy column-formatting options to new measure in new column
         serializationHelpers_1.smoSerialize.serializedMerge(SmoMeasure.formattingOptions, SmoMeasure.defaults, obj);
+        obj.timeSignature = new measureModifiers_1.TimeSignature(params.timeSignature);
+        // The measure expects to get concert KS in constructor and adjust for instrument.  So do the
+        // opposite.
+        obj.keySignature = music_1.SmoMusic.vexKeySigWithOffset(obj.keySignature, -1 * obj.transposeIndex);
         // Don't redisplay tempo for a new measure
         const rv = new SmoMeasure(obj);
         if (rv.tempo && rv.tempo.display) {
@@ -13602,19 +13825,6 @@ class SmoMeasure {
     // create a identifier unique to this measure index so it can be easily removed.
     getClassId() {
         return 'mm-' + this.measureNumber.staffId + '-' + this.measureNumber.measureIndex;
-    }
-    pickupMeasure(duration) {
-        const timeSig = this.timeSignature;
-        const proto = SmoMeasure.deserialize(this.serialize());
-        proto.attrs.id = VF.Element.newID();
-        const note = proto.voices[0].notes[0];
-        proto.voices = [];
-        note.pitches = [note.pitches[0]];
-        note.ticks.numerator = duration;
-        note.makeRest();
-        proto.voices.push({ notes: [note] });
-        proto.timeSignature = timeSig;
-        return proto;
     }
     // ### getRenderedNote
     // The renderer puts a mapping between rendered svg groups and
@@ -13824,6 +14034,15 @@ class SmoMeasure {
         }
         this.tuplets = tuplets;
     }
+    setClef(clef) {
+        const oldClef = this.clef;
+        this.clef = clef;
+        this.voices.forEach((voice) => {
+            voice.notes.forEach((note) => {
+                note.clef = clef;
+            });
+        });
+    }
     // ### populateVoice
     // Create a new voice in this measure, and populate it with the default note
     // for this measure/key/clef
@@ -14028,8 +14247,11 @@ class SmoMeasure {
     }
 }
 exports.SmoMeasure = SmoMeasure;
+SmoMeasure.defaultDupleDuration = 4096;
+SmoMeasure.defaultTripleDuration = 2048 * 3;
 SmoMeasure._defaults = {
     timeSignature: SmoMeasure.timeSignatureDefault,
+    timeSignatureString: '',
     keySignature: 'C',
     canceledKeySignature: null,
     padRight: 10,
@@ -14064,7 +14286,7 @@ SmoMeasure._emptyMeasureNoteType = 'r';
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmoTempoText = exports.SmoRehearsalMark = exports.SmoMeasureText = exports.SmoVolta = exports.SmoRepeatSymbol = exports.SmoBarline = exports.SmoMeasureFormat = exports.SmoMeasureModifierBase = void 0;
+exports.TimeSignature = exports.SmoTempoText = exports.SmoRehearsalMark = exports.SmoMeasureText = exports.SmoVolta = exports.SmoRepeatSymbol = exports.SmoBarline = exports.SmoMeasureFormat = exports.SmoMeasureFormatBooleanKeys = exports.SmoMeasureFormatNumberKeys = exports.SmoMeasureModifierBase = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
@@ -14089,6 +14311,8 @@ class SmoMeasureModifierBase {
     }
 }
 exports.SmoMeasureModifierBase = SmoMeasureModifierBase;
+exports.SmoMeasureFormatNumberKeys = ['customStretch', 'customProportion', 'padLeft', 'measureIndex'];
+exports.SmoMeasureFormatBooleanKeys = ['autoJustify', 'systemBreak', 'pageBreak', 'padAllInSystem'];
 class SmoMeasureFormat extends SmoMeasureModifierBase {
     constructor(parameters) {
         super('SmoMeasureFormat');
@@ -14115,7 +14339,7 @@ class SmoMeasureFormat extends SmoMeasureModifierBase {
         });
     }
     static get attributes() {
-        return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex'];
+        return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex', 'padAllInSystem'];
     }
     static get formatAttributes() {
         return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft'];
@@ -14148,10 +14372,13 @@ class SmoMeasureFormat extends SmoMeasureModifierBase {
     }
     eq(o) {
         let rv = true;
-        SmoMeasureFormat.formatAttributes.forEach((attr) => {
-            const obj1 = o[attr];
-            const obj2 = this[attr];
-            if (obj1 !== obj2) {
+        exports.SmoMeasureFormatBooleanKeys.forEach((attr) => {
+            if (o[attr] !== this[attr]) {
+                rv = false;
+            }
+        });
+        exports.SmoMeasureFormatNumberKeys.forEach((attr) => {
+            if (o[attr] !== this[attr]) {
                 rv = false;
             }
         });
@@ -14613,6 +14840,43 @@ class SmoTempoText extends SmoMeasureModifierBase {
     }
 }
 exports.SmoTempoText = SmoTempoText;
+class TimeSignature extends SmoMeasureModifierBase {
+    constructor(params) {
+        super('TimeSignature');
+        // timeSignature: string = '4/4';
+        this.actualBeats = 4;
+        this.beatDuration = 4;
+        this.useSymbol = false;
+        this.display = true;
+        this.actualBeats = params.actualBeats;
+        this.beatDuration = params.beatDuration;
+        this.useSymbol = params.useSymbol;
+        this.display = params.display;
+    }
+    static get defaults() {
+        return {
+            actualBeats: 4,
+            beatDuration: 4,
+            useSymbol: false,
+            display: true
+        };
+    }
+    static equal(ts1, ts2) {
+        return (ts1.actualBeats === ts2.actualBeats && ts1.beatDuration === ts2.beatDuration);
+    }
+    get timeSignature() {
+        return this.actualBeats.toString() + '/' + this.beatDuration.toString();
+    }
+    set timeSignature(value) {
+        const ar = value.split('/');
+        this.actualBeats = parseInt(ar[0], 10);
+        this.beatDuration = parseInt(ar[1], 10);
+    }
+    serialize() {
+        return JSON.parse(JSON.stringify(this));
+    }
+}
+exports.TimeSignature = TimeSignature;
 
 
 /***/ }),
@@ -15095,7 +15359,7 @@ class SmoMusic {
      */
     static vexKeySigWithOffset(vexKey, offset) {
         const pk = SmoMusic.vexToSmoKey(vexKey);
-        const pi = SmoMusic.smoPitchToInt(SmoMusic.pitchKeyToPitch(pk));
+        const pi = SmoMusic.smoPitchToInt(SmoMusic.pitchKeyToPitch(pk)) + offset;
         let newKey = SmoMusic.toValidKeySignature(SmoMusic.pitchToVexKey(SmoMusic.smoIntToPitch(pi)));
         // handle equivalent ks
         if (newKey === 'c#' && vexKey.indexOf('b') >= 0) {
@@ -16726,6 +16990,96 @@ exports.SmoDynamicText = SmoDynamicText;
 
 /***/ }),
 
+/***/ "./src/smo/data/partInfo.ts":
+/*!**********************************!*\
+  !*** ./src/smo/data/partInfo.ts ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SmoPartInfo = exports.SmoPartInfoBooleanTypes = exports.SmoPartInfoNumTypes = exports.SmoPartInfoStringTypes = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const measureModifiers_1 = __webpack_require__(/*! ./measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const scoreModifiers_1 = __webpack_require__(/*! ./scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const staffModifiers_1 = __webpack_require__(/*! ./staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const VF = eval('Vex.Flow');
+exports.SmoPartInfoStringTypes = ['partName', 'partAbbreviation'];
+exports.SmoPartInfoNumTypes = ['stavesAfter', 'stavesBefore'];
+exports.SmoPartInfoBooleanTypes = ['preserveTextGroups'];
+class SmoPartInfo extends staffModifiers_1.StaffModifierBase {
+    constructor(params) {
+        var _a;
+        super('SmoPartInfo');
+        this.measureFormatting = {};
+        this.textGroups = [];
+        this.stavesAfter = 0;
+        this.stavesBefore = 0;
+        this.preserveTextGroups = false;
+        if (!params.layoutManager) {
+            this.layoutManager = new scoreModifiers_1.SmoLayoutManager(scoreModifiers_1.SmoLayoutManager.defaults);
+        }
+        else {
+            this.layoutManager = new scoreModifiers_1.SmoLayoutManager(params.layoutManager);
+        }
+        if (typeof (params.measureFormatting) !== 'undefined') {
+            const formatKeys = Object.keys(params.measureFormatting);
+            formatKeys.forEach((key) => {
+                const numKey = parseInt(key, 10);
+                this.measureFormatting[numKey] = new measureModifiers_1.SmoMeasureFormat(params.measureFormatting[numKey]);
+            });
+        }
+        if (params.textGroups) {
+            this.textGroups = params.textGroups;
+        }
+        this.stavesAfter = params.stavesAfter;
+        this.stavesBefore = params.stavesBefore;
+        this.partName = params.partName;
+        this.partAbbreviation = params.partAbbreviation;
+        this.preserveTextGroups = (_a = params.preserveTextGroups) !== null && _a !== void 0 ? _a : false;
+    }
+    static get defaults() {
+        return JSON.parse(JSON.stringify({
+            partName: 'Staff ',
+            partAbbreviation: '',
+            globalLayout: scoreModifiers_1.SmoLayoutManager.defaultLayout,
+            textGroups: [],
+            preserveTextGroups: false,
+            pageLayoutMap: {},
+            stavesAfter: 0,
+            stavesBefore: 0
+        }));
+    }
+    serialize() {
+        const rv = {};
+        exports.SmoPartInfoStringTypes.forEach((st) => {
+            rv[st] = this[st];
+        });
+        exports.SmoPartInfoNumTypes.forEach((st) => {
+            rv[st] = this[st];
+        });
+        exports.SmoPartInfoBooleanTypes.forEach((st) => {
+            rv[st] = this[st];
+        });
+        rv.layoutManager = this.layoutManager.serialize();
+        rv.textGroups = [];
+        this.textGroups.forEach((tg) => {
+            rv.textGroups.push(tg.serialize());
+        });
+        rv.measureFormatting = {};
+        Object.keys(this.measureFormatting).forEach((key) => {
+            const numKey = parseInt(key, 10);
+            rv.measureFormatting[numKey] = this.measureFormatting[numKey];
+        });
+        return rv;
+    }
+}
+exports.SmoPartInfo = SmoPartInfo;
+
+
+/***/ }),
+
 /***/ "./src/smo/data/score.ts":
 /*!*******************************!*\
   !*** ./src/smo/data/score.ts ***!
@@ -16737,12 +17091,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SmoScore = exports.SmoScorePreferences = exports.SmoScoreInfo = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const scoreModifiers_1 = __webpack_require__(/*! ./scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
-const systemStaff_1 = __webpack_require__(/*! ./systemStaff */ "./src/smo/data/systemStaff.ts");
 const music_1 = __webpack_require__(/*! ./music */ "./src/smo/data/music.ts");
-const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const measure_1 = __webpack_require__(/*! ./measure */ "./src/smo/data/measure.ts");
 const measureModifiers_1 = __webpack_require__(/*! ./measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const scoreModifiers_1 = __webpack_require__(/*! ./scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const systemStaff_1 = __webpack_require__(/*! ./systemStaff */ "./src/smo/data/systemStaff.ts");
+const measureModifiers_2 = __webpack_require__(/*! ./measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 class SmoScoreInfo {
     constructor() {
         this.name = 'Smoosical'; // deprecated
@@ -16761,6 +17116,7 @@ class SmoScorePreferences {
         this.defaultDupleDuration = 4096;
         this.defaultTripleDuration = 6144;
         this.customProportion = 100;
+        this.showPiano = true;
     }
 }
 exports.SmoScorePreferences = SmoScorePreferences;
@@ -16791,6 +17147,9 @@ class SmoScore {
         }
         if (this.staves.length) {
             this.numberStaves();
+        }
+        if (typeof (this.preferences.showPiano) === 'undefined') {
+            this.preferences.showPiano = true;
         }
         this.updateMeasureFormats();
     }
@@ -16824,7 +17183,8 @@ class SmoScore {
                 autoAdvance: true,
                 defaultDupleDuration: 4096,
                 defaultTripleDuration: 6144,
-                customProportion: 100
+                customProportion: 100,
+                showPiano: true
             },
             startIndex: 0,
             staves: [],
@@ -16834,7 +17194,7 @@ class SmoScore {
         };
     }
     static get pageSizes() {
-        return ['letter', 'tabloid', 'A4', 'custom'];
+        return ['letter', 'tabloid', 'A4', 'A4Landscape', 'custom'];
     }
     static get pageDimensions() {
         return {
@@ -16846,6 +17206,11 @@ class SmoScore {
             'custom': { width: 1, height: 1 }
         };
     }
+    static pageSizeFromDimensions(width, height) {
+        var _a;
+        const rv = (_a = SmoScore.pageSizes.find((sz) => SmoScore.pageDimensions[sz].width === width && SmoScore.pageDimensions[sz].height === height)) !== null && _a !== void 0 ? _a : null;
+        return rv;
+    }
     static get defaultAttributes() {
         return ['startIndex', 'renumberingMap', 'renumberIndex', 'fonts',
             'preferences', 'scoreInfo'];
@@ -16854,19 +17219,44 @@ class SmoScore {
         return ['preferences', 'fonts', 'scoreInfo'];
     }
     serializeColumnMapped() {
-        const attrColumnHash = {};
-        const attrCurrentValue = {};
+        const keySignature = {};
+        const tempo = {};
+        const timeSignature = {};
+        let previous = null;
         this.staves[0].measures.forEach((measure) => {
-            measure.serializeColumnMapped(attrColumnHash, attrCurrentValue);
+            const current = measure.serializeColumnMapped();
+            const ix = measure.measureNumber.measureIndex;
+            const currentInstrument = this.staves[0].getStaffInstrument(ix);
+            current.keySignature = music_1.SmoMusic.vexKeySigWithOffset(current.keySignature, -1 * currentInstrument.keyOffset);
+            if (ix === 0) {
+                keySignature[0] = current.keySignature;
+                tempo[0] = current.tempo;
+                timeSignature[0] = current.timeSignature;
+                previous = current;
+            }
+            else {
+                if (current.keySignature !== previous.keySignature) {
+                    previous.keySignature = current.keySignature;
+                    keySignature[ix] = current.keySignature;
+                }
+                if (!(measureModifiers_1.TimeSignature.equal(current.timeSignature, previous.timeSignature))) {
+                    previous.timeSignature = current.timeSignature;
+                    timeSignature[ix] = current.timeSignature;
+                }
+                if (!(measureModifiers_2.SmoTempoText.eq(current.tempo, previous.tempo))) {
+                    previous.tempo = current.tempo;
+                    tempo[ix] = current.tempo;
+                }
+            }
         });
-        return attrColumnHash;
+        return { keySignature, tempo, timeSignature };
     }
     // ### deserializeColumnMapped
     // Column-mapped attributes stay the same in each measure until
     // changed, like key-signatures.  We don't store each measure value to
     // make the files smaller
     static deserializeColumnMapped(scoreObj) {
-        let curValue = 0;
+        let curValue;
         let mapIx = 0;
         if (!scoreObj.columnAttributeMap) {
             return;
@@ -16890,7 +17280,23 @@ class SmoScore {
                             curValue = curHash[attrKeys[mapIx.toString()]];
                         }
                     }
-                    measure[attr] = curValue;
+                    // legacy timeSignature format was just a string 2/4, 3/8 etc.
+                    if (attr === 'timeSignature') {
+                        const ts = new measureModifiers_1.TimeSignature(measureModifiers_1.TimeSignature.defaults);
+                        if (typeof (curValue) === 'string') {
+                            ts.timeSignature = curValue;
+                            measure[attr] = ts;
+                        }
+                        else {
+                            if (typeof (curValue.isPickup) === 'undefined') {
+                                curValue.isPickup = false;
+                            }
+                            measure[attr] = new measureModifiers_1.TimeSignature(curValue);
+                        }
+                    }
+                    else {
+                        measure[attr] = curValue;
+                    }
                     attrIxMap[attr] = mapIx;
                 });
             });
@@ -16933,6 +17339,26 @@ class SmoScore {
         obj.dictionary = serializationHelpers_1.smoSerialize.tokenMap;
         return obj;
     }
+    updateScorePreferences(pref) {
+        this.preferences = pref;
+        measure_1.SmoMeasure.defaultDupleDuration = pref.defaultDupleDuration;
+        measure_1.SmoMeasure.defaultTripleDuration = pref.defaultTripleDuration;
+    }
+    static upConvertGlobalLayout(jsonObj) {
+        // upconvert global layout, which used to be directly on layoutManager
+        if (typeof (jsonObj.layoutManager.globalLayout) === 'undefined') {
+            jsonObj.layoutManager.globalLayout = {
+                svgScale: jsonObj.layoutManager.svgScale,
+                zoomScale: jsonObj.layoutManager.zoomScale,
+                pageWidth: jsonObj.layoutManager.pageWidth,
+                pageHeight: jsonObj.layoutManager.pageHeight,
+                noteSpacing: jsonObj.layoutManager.noteSpacing
+            };
+            if (!jsonObj.layoutManager.globalLayout.noteSpacing) {
+                jsonObj.layoutManager.globalLayout.noteSpacing = 1.0;
+            }
+        }
+    }
     // ### upConvertLayout
     // Convert legacy score layout to layoutManager object parameters
     static upConvertLayout(jsonObj) {
@@ -16951,6 +17377,7 @@ class SmoScore {
             });
             jsonObj.layoutManager.pageLayouts.push(pageSetting);
         }
+        SmoScore.upConvertGlobalLayout(jsonObj);
     }
     // ### deserialize
     // Restore an earlier JSON string.  Unlike other deserialize methods, this one expects the string.
@@ -16973,6 +17400,9 @@ class SmoScore {
         // up-convert legacy layout data
         if (jsonObj.score.layout) {
             SmoScore.upConvertLayout(jsonObj);
+        }
+        if (jsonObj.layoutManager && !jsonObj.layoutManager.globalLayout) {
+            SmoScore.upConvertGlobalLayout(jsonObj);
         }
         const layoutManager = new scoreModifiers_1.SmoLayoutManager(jsonObj.layoutManager);
         if (!upconvertFormat) {
@@ -17033,8 +17463,7 @@ class SmoScore {
     // ### getDefaultScore
     // Gets a score consisting of a single measure with all the defaults.
     static getDefaultScore(scoreDefaults, measureDefaults) {
-        scoreDefaults = typeof (scoreDefaults) !== 'undefined' ? scoreDefaults : SmoScore.defaults;
-        measureDefaults = typeof (measureDefaults) !== 'undefined' ? measureDefaults : measure_1.SmoMeasure.defaults;
+        measureDefaults = measureDefaults !== null ? measureDefaults : measure_1.SmoMeasure.defaults;
         const score = new SmoScore(scoreDefaults);
         score.formattingManager = new scoreModifiers_1.SmoFormattingManager(scoreModifiers_1.SmoFormattingManager.defaults);
         score.addStaff(systemStaff_1.SmoSystemStaff.defaults);
@@ -17092,18 +17521,6 @@ class SmoScore {
             }
         });
     }
-    convertToPickupMeasure(measureIndex, duration) {
-        let i = 0;
-        for (i = 0; i < this.staves.length; ++i) {
-            const staff = this.staves[i];
-            const protomeasure = staff.measures[measureIndex].pickupMeasure(duration);
-            staff.measures[measureIndex] = protomeasure;
-        }
-        this.numberStaves();
-    }
-    addPickupMeasure(measureIndex, duration) {
-        this.convertToPickupMeasure(measureIndex, duration);
-    }
     getPrototypeMeasure(measureIndex, staffIndex) {
         const staff = this.staves[staffIndex];
         let protomeasure = {};
@@ -17114,6 +17531,9 @@ class SmoScore {
         }
         else if (staff.measures.length) {
             protomeasure = staff.measures[staff.measures.length - 1];
+        }
+        else {
+            protomeasure = measure_1.SmoMeasure.defaults;
         }
         return measure_1.SmoMeasure.getDefaultMeasureWithNotes(protomeasure);
     }
@@ -17214,17 +17634,16 @@ class SmoScore {
         const proto = this.staves[0];
         const measures = [];
         for (i = 0; i < proto.measures.length; ++i) {
-            const newParams = {};
             const measure = proto.measures[i];
-            serializationHelpers_1.smoSerialize.serializedMerge(measure_1.SmoMeasure.defaultAttributes, measure, newParams);
-            newParams.clef = parameters.instrumentInfo.clef;
-            newParams.transposeIndex = parameters.instrumentInfo.keyOffset;
-            const newMeasure = measure_1.SmoMeasure.getDefaultMeasureWithNotes(newParams);
+            const newMeasure = measure_1.SmoMeasure.deserialize(measure.serialize());
             newMeasure.measureNumber = measure.measureNumber;
+            newMeasure.clef = parameters.measureInstrumentMap[0].clef;
+            newMeasure.modifiers = [];
+            newMeasure.transposeIndex = 0;
             // Consider key change if the proto measure is non-concert pitch
             newMeasure.keySignature =
                 music_1.SmoMusic.vexKeySigWithOffset(newMeasure.keySignature, newMeasure.transposeIndex - measure.transposeIndex);
-            newMeasure.modifiers = [];
+            newMeasure.voices = [{ notes: measure_1.SmoMeasure.getDefaultNotes(newMeasure) }];
             measure.modifiers.forEach((modifier) => {
                 const nmod = measureModifiers_1.SmoMeasureModifierBase.deserialize(modifier);
                 newMeasure.modifiers.push(nmod);
@@ -17250,6 +17669,10 @@ class SmoScore {
         });
         this.staves = staves;
         this.numberStaves();
+    }
+    getStaffInstrument(selector) {
+        const staff = this.staves[selector.staff];
+        return staff.getStaffInstrument(selector.measure);
     }
     swapStaves(index1, index2) {
         if (this.staves.length < index1 || this.staves.length < index2) {
@@ -17299,7 +17722,7 @@ class SmoScore {
         this.staves.forEach((staff) => {
             staff.setLyricFont(fontInfo);
         });
-        const fontInst = this.fonts.find((fn) => fn.name === 'lyrics');
+        const fontInst = this.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.LYRICS);
         if (typeof (fontInst) === 'undefined') {
             return;
         }
@@ -17345,7 +17768,7 @@ exports.SmoScore = SmoScore;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmoTextGroup = exports.SmoScoreText = exports.SmoSystemGroup = exports.SmoLayoutManager = exports.ScaledPageLayout = exports.SmoGlobalLayout = exports.SmoPageLayout = exports.SmoFormattingManager = exports.SmoScoreModifierBase = void 0;
+exports.SmoTextGroup = exports.SmoScoreText = exports.SmoSystemGroup = exports.SmoLayoutManager = exports.GlobalLayoutAttributesArray = exports.SmoPageLayout = exports.SmoFormattingManager = exports.SmoScoreModifierBase = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
@@ -17431,10 +17854,12 @@ class SmoPageLayout extends SmoScoreModifierBase {
         this.bottomMargin = 40;
         this.interGap = 30;
         this.intraGap = 10;
-        serializationHelpers_1.smoSerialize.serializedMerge(SmoPageLayout.attributes, SmoPageLayout.defaults, this);
-        if (typeof (params) !== 'undefined') {
-            serializationHelpers_1.smoSerialize.serializedMerge(SmoPageLayout.attributes, params, this);
-        }
+        this.leftMargin = params.leftMargin;
+        this.rightMargin = params.rightMargin;
+        this.topMargin = params.topMargin;
+        this.bottomMargin = params.bottomMargin;
+        this.interGap = params.interGap;
+        this.intraGap = params.intraGap;
     }
     static get defaults() {
         return JSON.parse(JSON.stringify({
@@ -17457,54 +17882,7 @@ class SmoPageLayout extends SmoScoreModifierBase {
     }
 }
 exports.SmoPageLayout = SmoPageLayout;
-class SmoGlobalLayout {
-    constructor() {
-        this.svgScale = 1.0;
-        this.zoomScale = 2.0;
-        this.noteSpacing = 1.0;
-        this.pageWidth = 8 * 96 + 48;
-        this.pageHeight = 11 * 96;
-    }
-    static get attributes() {
-        return ['svgScale', 'zoomScale', 'noteSpacing', 'pageWidth', 'pageHeight'];
-    }
-    // Page width and page height are absolute, but must be scaled by svgScale
-    // to be rendered
-    static get scaledAttributes() {
-        return ['pageHeight', 'pageWidth'];
-    }
-}
-exports.SmoGlobalLayout = SmoGlobalLayout;
-// A scaled page layout is a union of global layout settings and
-// page layout settings, including number of pages and page number
-class ScaledPageLayout {
-    constructor() {
-        this.svgScale = 1.0;
-        this.zoomScale = 2.0;
-        this.noteSpacing = 1.0;
-        this.pageWidth = 8 * 96 + 48;
-        this.pageHeight = 11 * 96;
-        this.leftMargin = 30;
-        this.rightMargin = 30;
-        this.topMargin = 40;
-        this.bottomMargin = 40;
-        this.interGap = 30;
-        this.intraGap = 10;
-        this.pages = 1;
-    }
-    // Update global layout parameters, and scale scalable page parameters
-    updatePageLayout(globalLayout, pageLayout, pages) {
-        serializationHelpers_1.smoSerialize.serializedMerge(SmoGlobalLayout.attributes, globalLayout, this);
-        SmoPageLayout.attributes.forEach((attr) => {
-            this[attr] = pageLayout[attr] / this.svgScale;
-        });
-        SmoGlobalLayout.scaledAttributes.forEach((attr) => {
-            this[attr] = this[attr] / this.svgScale;
-        });
-        this.pages = pages;
-    }
-}
-exports.ScaledPageLayout = ScaledPageLayout;
+exports.GlobalLayoutAttributesArray = ['pageWidth', 'pageHeight', 'noteSpacing', 'svgScale', 'zoomScale'];
 // ## SmoLayoutManager
 // Storage and utilities for layout information in the score.  Each
 // manager has one set of page height/width, since svg element
@@ -17513,21 +17891,21 @@ exports.ScaledPageLayout = ScaledPageLayout;
 class SmoLayoutManager extends SmoScoreModifierBase {
     constructor(params) {
         super('SmoLayoutManager');
-        this.globalLayout = new SmoGlobalLayout();
         this.pageLayouts = [];
-        if (typeof (params) === 'undefined') {
-            params = SmoLayoutManager.defaults;
-        }
-        serializationHelpers_1.smoSerialize.serializedMerge(SmoLayoutManager.attributes, SmoLayoutManager.defaults, this.globalLayout);
-        serializationHelpers_1.smoSerialize.serializedMerge(SmoLayoutManager.attributes, params, this.globalLayout);
-        this.pageLayouts = [];
-        if (params.pageLayouts && params.pageLayouts.length) {
-            params.pageLayouts.forEach((page) => {
-                this.pageLayouts.push(new SmoPageLayout(page));
+        this.globalLayout = JSON.parse(JSON.stringify(params.globalLayout));
+        if (params.pageLayouts.length) {
+            params.pageLayouts.forEach((plp) => {
+                const pageParams = SmoPageLayout.defaults;
+                SmoPageLayout.attributes.forEach((attr) => {
+                    if (typeof (plp[attr]) !== 'undefined') {
+                        pageParams[attr] = plp[attr];
+                    }
+                });
+                this.pageLayouts.push(new SmoPageLayout(pageParams));
             });
         }
         else {
-            this.pageLayouts.push(new SmoPageLayout());
+            this.pageLayouts.push(new SmoPageLayout(SmoPageLayout.defaults));
         }
     }
     static get defaultLayout() {
@@ -17541,16 +17919,45 @@ class SmoLayoutManager extends SmoScoreModifierBase {
     }
     static get defaults() {
         return {
-            globalLayout: new SmoGlobalLayout(),
+            globalLayout: JSON.parse(JSON.stringify(SmoLayoutManager.defaultLayout)),
             pageLayouts: []
         };
     }
     static get attributes() {
-        return SmoGlobalLayout.attributes;
+        return ['pageWidth', 'pageHeight', 'noteSpacing', 'svgScale', 'zoomScale'];
     }
     // Attributes that are scaled by svgScale
-    static get scalableAttributes() {
+    /* static get scalableAttributes(): Global {
+      return ['pageWidth', 'pageHeight'];
+    }*/
+    static get scaledPageAttributes() {
+        return ['leftMargin', 'rightMargin', 'topMargin', 'bottomMargin', 'interGap', 'intraGap'];
+    }
+    static get scaledGlobalAttributes() {
         return ['pageWidth', 'pageHeight'];
+    }
+    static areLayoutsEqual(g1, g2) {
+        let rv = true;
+        exports.GlobalLayoutAttributesArray.forEach((attr) => {
+            if (g1[attr] !== g2[attr]) {
+                rv = false;
+            }
+        });
+        return rv;
+    }
+    static getScaledPageLayout(globalLayout, pageLayout, pages) {
+        const rv = {};
+        SmoLayoutManager.scaledPageAttributes.forEach((attr) => {
+            rv[attr] = pageLayout[attr] / globalLayout.svgScale;
+        });
+        SmoLayoutManager.scaledGlobalAttributes.forEach((attr) => {
+            rv[attr] = globalLayout[attr] / globalLayout.svgScale;
+        });
+        // Note spacing is relative, so * it and not divide
+        rv.noteSpacing = globalLayout.noteSpacing * globalLayout.svgScale;
+        rv.svgScale = globalLayout.svgScale;
+        rv.zoomScale = globalLayout.zoomScale;
+        return rv;
     }
     getZoomScale() {
         return this.globalLayout.zoomScale;
@@ -17561,7 +17968,7 @@ class SmoLayoutManager extends SmoScoreModifierBase {
         this.pageLayouts.forEach((pl) => {
             rv.pageLayouts.push(pl.serialize());
         });
-        serializationHelpers_1.smoSerialize.serializedMerge(SmoLayoutManager.attributes, this.globalLayout, rv);
+        rv.globalLayout = JSON.parse(JSON.stringify(this.globalLayout));
         return rv;
     }
     updateGlobalLayout(params) {
@@ -17581,16 +17988,11 @@ class SmoLayoutManager extends SmoScoreModifierBase {
         }
     }
     getGlobalLayout() {
-        const rv = {};
-        serializationHelpers_1.smoSerialize.serializedMerge(SmoLayoutManager.attributes, this.globalLayout, rv);
-        return rv;
+        return JSON.parse(JSON.stringify(this.globalLayout));
     }
     // Return a deep copy of the page parameters, adjusted for the global scale.
     getScaledPageLayout(pageIndex) {
-        const rv = new ScaledPageLayout();
-        const pageCopy = new SmoPageLayout(this.pageLayouts[pageIndex]);
-        rv.updatePageLayout(this.globalLayout, pageCopy, this.pageLayouts.length);
-        return rv;
+        return SmoLayoutManager.getScaledPageLayout(this.globalLayout, this.pageLayouts[pageIndex], this.pageLayouts.length);
     }
     getPageLayout(pageIndex) {
         return new SmoPageLayout(this.pageLayouts[pageIndex]);
@@ -17640,7 +18042,7 @@ class SmoSystemGroup extends SmoScoreModifierBase {
             'startSelector', 'endSelector', 'mapType'];
     }
     static get defaults() {
-        return {
+        return JSON.parse(JSON.stringify({
             leftConnector: SmoSystemGroup.connectorTypes.single,
             rightConnector: SmoSystemGroup.connectorTypes.single,
             mapType: SmoSystemGroup.mapTypes.allMeasures,
@@ -17649,7 +18051,10 @@ class SmoSystemGroup extends SmoScoreModifierBase {
             justify: true,
             startSelector: selections_1.SmoSelector.default,
             endSelector: selections_1.SmoSelector.default
-        };
+        }));
+    }
+    static isSystemGroup(modifier) {
+        return modifier.ctor === 'SmoSystemGroup';
     }
     stavesOverlap(group) {
         return (this.startSelector.staff >= group.startSelector.staff && this.startSelector.staff <= group.endSelector.staff) ||
@@ -17797,7 +18202,7 @@ class SmoScoreText extends SmoScoreModifierBase {
         return { none: 'none', spacing: 'spacing', spacingAndGlyphs: 'spacingAndGlyphs', wrap: 'wrap' };
     }
     static get defaults() {
-        return {
+        return JSON.parse(JSON.stringify({
             x: 15,
             y: 15,
             width: 0,
@@ -17821,7 +18226,7 @@ class SmoScoreText extends SmoScoreModifierBase {
             pagination: 'once',
             position: 'custom',
             autoLayout: false // set to true if one of the pre-canned positions are used.
-        };
+        }));
     }
     getText() {
         return this.text;
@@ -17881,6 +18286,7 @@ class SmoTextGroup extends SmoScoreModifierBase {
         this.musicXOffset = 0;
         this.musicYOffset = 0;
         this.textBlocks = [];
+        this.edited = false; // indicates not edited this session
         this.skipRender = false; // don't render if it is being edited
         if (typeof (params) === 'undefined') {
             params = {};
@@ -17916,6 +18322,9 @@ class SmoTextGroup extends SmoScoreModifierBase {
     }
     static get attributes() {
         return ['textBlocks', 'justification', 'relativePosition', 'spacing', 'pagination', 'attachToSelector', 'selector', 'musicXOffset', 'musicYOffset'];
+    }
+    static isTextGroup(modifier) {
+        return modifier.ctor === 'SmoTextGroup';
     }
     static get purposeToFont() {
         const rv = {};
@@ -18175,7 +18584,7 @@ exports.SmoTextGroup = SmoTextGroup;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmoTie = exports.SmoSlur = exports.SmoStaffHairpin = exports.SmoPartMap = exports.SmoInstrument = exports.StaffModifierBase = void 0;
+exports.SmoTie = exports.SmoSlur = exports.SmoStaffHairpin = exports.SmoPartMap = exports.SmoInstrument = exports.SmoInstrumentStringParams = exports.SmoInstrumentNumParams = exports.StaffModifierBase = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
@@ -18209,17 +18618,66 @@ class StaffModifierBase {
     }
 }
 exports.StaffModifierBase = StaffModifierBase;
+exports.SmoInstrumentNumParams = ['keyOffset', 'midichannel', 'midiport'];
+exports.SmoInstrumentStringParams = ['instrumentName', 'abbreviation'];
 // WIP
-class SmoInstrument {
-    constructor() {
-        this.instrument = '';
+class SmoInstrument extends StaffModifierBase {
+    constructor(params) {
+        super('SmoInstrument');
+        this.instrumentName = '';
+        this.abbreviation = '';
         this.keyOffset = 0;
         this.clef = 'treble';
+        let name = '';
+        if (typeof (params.instrument) === 'undefined') {
+            name = params.instrumentName;
+        }
+        else {
+            name = params.instrument;
+        }
+        this.instrumentName = name;
+        this.keyOffset = params.keyOffset;
+        this.clef = params.clef;
+        this.midiport = params.midiport;
+        this.midichannel = params.midichannel;
+        this.startSelector = params.startSelector;
+        this.endSelector = params.endSelector;
     }
     static get attributes() {
-        return ['startSelector', 'endSelector', 'transposeIndex', 'midichannel', 'midiport', 'instrument', 'abbreviation'];
+        return ['startSelector', 'endSelector', 'keyOffset', 'midichannel', 'midiport', 'instrumentName', 'abbreviation'];
     }
-    serialize() { }
+    static get defaults() {
+        return JSON.parse(JSON.stringify({
+            clef: 'treble',
+            keyOffset: 0,
+            instrumentName: '',
+            abbreviation: '',
+            midichannel: 0,
+            midiport: 0,
+            startSelector: selections_1.SmoSelector.default,
+            endSelector: selections_1.SmoSelector.default
+        }));
+    }
+    serialize() {
+        const params = {};
+        serializationHelpers_1.smoSerialize.serializedMergeNonDefault(SmoInstrument.defaults, SmoInstrument.attributes, this, params);
+        params.ctor = 'SmoInstrument';
+        return params;
+    }
+    eq(other) {
+        let rv = true;
+        exports.SmoInstrumentNumParams.forEach((param) => {
+            if (other[param] !== this[param]) {
+                rv = false;
+            }
+        });
+        exports.SmoInstrumentStringParams.forEach((param) => {
+            if (other[param] !== this[param]) {
+                rv = false;
+            }
+        });
+        return rv;
+    }
 }
 exports.SmoInstrument = SmoInstrument;
 // WIP
@@ -18392,6 +18850,8 @@ class SmoTie extends StaffModifierBase {
         this.cp2 = 12;
         this.first_x_shift = 0;
         this.last_x_shift = 0;
+        this.y_shift = 7;
+        this.tie_spacing = 0;
         this.lines = [];
         this.startSelector = selections_1.SmoSelector.default;
         this.endSelector = selections_1.SmoSelector.default;
@@ -18409,6 +18869,7 @@ class SmoTie extends StaffModifierBase {
             invert: false,
             cp1: 8,
             cp2: 12,
+            y_shift: 7,
             first_x_shift: 0,
             last_x_shift: 0,
             lines: [],
@@ -18417,10 +18878,13 @@ class SmoTie extends StaffModifierBase {
         }));
     }
     static get parameterArray() {
-        return ['startSelector', 'endSelector', 'invert', 'lines', 'cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
+        return ['startSelector', 'endSelector', 'invert', 'lines', 'y_shift', 'tie_spacing', 'cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
     }
     static get vexParameters() {
         return ['cp1', 'cp2', 'first_x_shift', 'last_x_shift'];
+    }
+    static isTie(modifier) {
+        return modifier.ctor === 'SmoTie';
     }
     static createLines(fromNote, toNote) {
         const maxPitches = Math.max(fromNote.pitches.length, toNote.pitches.length);
@@ -18472,17 +18936,20 @@ exports.SmoTie = SmoTie;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmoSystemStaff = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const measure_1 = __webpack_require__(/*! ./measure */ "./src/smo/data/measure.ts");
-const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
+exports.SmoSystemStaff = exports.SmoStaffNumberParams = void 0;
 const music_1 = __webpack_require__(/*! ./music */ "./src/smo/data/music.ts");
+const measure_1 = __webpack_require__(/*! ./measure */ "./src/smo/data/measure.ts");
+const measureModifiers_1 = __webpack_require__(/*! ./measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const staffModifiers_1 = __webpack_require__(/*! ./staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const partInfo_1 = __webpack_require__(/*! ./partInfo */ "./src/smo/data/partInfo.ts");
+const scoreModifiers_1 = __webpack_require__(/*! ./scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
 const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
 const beamers_1 = __webpack_require__(/*! ../xform/beamers */ "./src/smo/xform/beamers.ts");
-const staffModifiers_1 = __webpack_require__(/*! ./staffModifiers */ "./src/smo/data/staffModifiers.ts");
-const measureModifiers_1 = __webpack_require__(/*! ./measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const VF = eval('Vex.Flow');
+exports.SmoStaffNumberParams = [
+    'staffId', 'staffX', 'staffY', 'adjY', 'staffWidth', 'staffHeight'
+];
 // ## SmoSystemStaff
 // A staff is a line of music that can span multiple measures.
 // A system is a line of music for each staff in the score.  So a staff
@@ -18498,11 +18965,7 @@ class SmoSystemStaff {
         this.staffId = 0;
         this.renumberingMap = {};
         this.keySignatureMap = {};
-        this.instrumentInfo = {
-            instrumentName: 'Treble Instrument',
-            keyOffset: 0,
-            clef: 'treble'
-        };
+        this.measureInstrumentMap = {};
         this.measures = [];
         this.modifiers = [];
         this.attrs = {
@@ -18511,9 +18974,22 @@ class SmoSystemStaff {
         };
         this.ctor = 'SmoSystemStaff';
         this._mappedStaffId = 0;
-        this.measures = [];
-        Vex.Merge(this, SmoSystemStaff.defaults);
-        Vex.Merge(this, params);
+        exports.SmoStaffNumberParams.forEach((numParam) => {
+            this[numParam] = params[numParam];
+        });
+        this.measures = params.measures;
+        this.modifiers = params.modifiers;
+        if (Object.keys(params.measureInstrumentMap).length === 0) {
+            this.measureInstrumentMap[0] = new staffModifiers_1.SmoInstrument(staffModifiers_1.SmoInstrument.defaults);
+            this.measureInstrumentMap[0].startSelector.staff = this.staffId;
+            this.measureInstrumentMap[0].endSelector.staff = this.measures.length;
+        }
+        else {
+            Object.keys(params.measureInstrumentMap).forEach((p) => {
+                const pnum = parseInt(p, 10);
+                this.measureInstrumentMap[pnum] = new staffModifiers_1.SmoInstrument(params.measureInstrumentMap[pnum]);
+            });
+        }
         if (this.measures.length) {
             this.numberMeasures();
         }
@@ -18521,6 +18997,36 @@ class SmoSystemStaff {
             id: VF.Element.newID(),
             type: 'SmoSystemStaff'
         };
+        if (params.partInfo) {
+            this.partInfo = params.partInfo;
+        }
+        else {
+            const staveNo = this.staffId + 1;
+            const partDefs = partInfo_1.SmoPartInfo.defaults;
+            partDefs.partName = 'Staff ' + staveNo;
+            partDefs.partAbbreviation = staveNo.toString() + '.';
+            this.partInfo = new partInfo_1.SmoPartInfo(partDefs);
+        }
+    }
+    static getStaffInstrument(measureInstrumentMap, measureIndex) {
+        const keyar = Object.keys(measureInstrumentMap);
+        let fit = 0;
+        keyar.forEach((key) => {
+            const numkey = parseInt(key, 10);
+            if (numkey <= measureIndex && numkey > fit) {
+                fit = numkey;
+            }
+        });
+        return measureInstrumentMap[fit];
+    }
+    static getStaffInstrumentArray(measureInstrumentMap) {
+        const rv = [];
+        const keyar = Object.keys(measureInstrumentMap);
+        keyar.forEach((key) => {
+            const measureIndex = parseInt(key, 10);
+            rv.push({ measureIndex, instrument: measureInstrumentMap[measureIndex] });
+        });
+        return rv;
     }
     // ### defaults
     // default values for all instances
@@ -18534,11 +19040,7 @@ class SmoSystemStaff {
             staffId: 0,
             renumberingMap: {},
             keySignatureMap: {},
-            instrumentInfo: {
-                instrumentName: 'Treble Instrument',
-                keyOffset: 0,
-                clef: 'treble'
-            },
+            measureInstrumentMap: {},
             measures: [],
             modifiers: []
         }));
@@ -18564,33 +19066,139 @@ class SmoSystemStaff {
         serializationHelpers_1.smoSerialize.serializedMerge(SmoSystemStaff.defaultParameters, this, params);
         params.modifiers = [];
         params.measures = [];
+        params.measureInstrumentMap = {};
+        const ikeys = Object.keys(this.measureInstrumentMap);
+        ikeys.forEach((ikey) => {
+            params.measureInstrumentMap[ikey] = this.measureInstrumentMap[parseInt(ikey, 10)].serialize();
+        });
         this.measures.forEach((measure) => {
             params.measures.push(measure.serialize());
         });
         this.modifiers.forEach((modifier) => {
             params.modifiers.push(modifier.serialize());
         });
+        params.partInfo = this.partInfo.serialize();
         return params;
     }
     // ### deserialize
     // parse formerly serialized staff.
     static deserialize(jsonObj) {
-        const params = {};
-        serializationHelpers_1.smoSerialize.serializedMerge(['staffId', 'staffX', 'staffY', 'staffWidth',
-            'renumberingMap', 'instrumentInfo'], jsonObj, params);
-        params.measures = [];
-        jsonObj.measures.forEach((measureObj) => {
-            const measure = measure_1.SmoMeasure.deserialize(measureObj);
-            params.measures.push(measure);
+        var _a;
+        const defaults = SmoSystemStaff.defaults;
+        const params = SmoSystemStaff.defaults;
+        exports.SmoStaffNumberParams.forEach((numParam) => {
+            if (typeof (jsonObj[numParam]) === 'number') {
+                params[numParam] = jsonObj[numParam];
+            }
+            else {
+                params[numParam] = defaults[numParam];
+            }
         });
-        const rv = new SmoSystemStaff(params);
-        if (jsonObj.modifiers) {
-            jsonObj.modifiers.forEach((params) => {
-                const mod = staffModifiers_1.StaffModifierBase.deserialize(params);
-                rv.modifiers.push(mod);
+        params.measures = [];
+        params.modifiers = [];
+        if (jsonObj.partInfo) {
+            // Deserialize the text groups first
+            const tgs = [];
+            jsonObj.partInfo.textGroups.forEach((tgSer) => {
+                tgs.push(scoreModifiers_1.SmoTextGroup.deserialize(tgSer));
+            });
+            jsonObj.partInfo.textGroups = tgs;
+            params.partInfo = new partInfo_1.SmoPartInfo(jsonObj.partInfo);
+        }
+        // Up-convert legacy instrument info, which was split between different objects
+        if (!jsonObj.measureInstrumentMap) {
+            if (jsonObj.instrumentInfo) {
+                const defs = staffModifiers_1.SmoInstrument.defaults;
+                defs.keyOffset = jsonObj.instrumentInfo.keyOffset;
+                defs.clef = jsonObj.instrumentInfo.clef;
+                defs.instrumentName = jsonObj.instrumentInfo.instrumentName;
+                const ii = new staffModifiers_1.SmoInstrument(defs);
+                params.measureInstrumentMap = { 0: ii };
+            }
+            else {
+                const ii = new staffModifiers_1.SmoInstrument(staffModifiers_1.SmoInstrument.defaults);
+                params.measureInstrumentMap = { 0: ii };
+            }
+            params.measureInstrumentMap[0].startSelector.staff = params.staffId;
+            params.measureInstrumentMap[0].endSelector.staff = params.staffId;
+            params.measureInstrumentMap[0].endSelector.measure = jsonObj.measures.length - 1;
+            params.measureInstrumentMap[0].keyOffset = (_a = jsonObj.measures[0].transposeIndex) !== null && _a !== void 0 ? _a : 0;
+        }
+        else {
+            const ikeys = Object.keys(jsonObj.measureInstrumentMap);
+            ikeys.forEach((ikey) => {
+                const ix = parseInt(ikey, 10);
+                const inst = jsonObj.measureInstrumentMap[ix];
+                const defs = staffModifiers_1.SmoInstrument.defaults;
+                staffModifiers_1.SmoInstrumentStringParams.forEach((str) => {
+                    if (typeof (inst[str]) === 'string') {
+                        defs[str] = inst[str];
+                    }
+                });
+                staffModifiers_1.SmoInstrumentNumParams.forEach((str) => {
+                    if (typeof (inst[str]) === 'number') {
+                        defs[str] = inst[str];
+                    }
+                });
+                if (typeof (inst.startSelector) !== 'undefined') {
+                    defs.startSelector = inst.startSelector;
+                }
+                if (typeof (inst.endSelector) !== 'undefined') {
+                    defs.endSelector = inst.endSelector;
+                }
+                params.measureInstrumentMap[ix] = new staffModifiers_1.SmoInstrument(defs);
             });
         }
+        const instrumentAr = SmoSystemStaff.getStaffInstrumentArray(params.measureInstrumentMap);
+        let curInstrumentIndex = 0;
+        jsonObj.measures.forEach((measureObj) => {
+            const measure = measure_1.SmoMeasure.deserialize(measureObj);
+            if (instrumentAr.length > (curInstrumentIndex + 1) && measure.measureNumber.measureIndex >=
+                instrumentAr[curInstrumentIndex + 1].measureIndex) {
+                curInstrumentIndex += 1;
+            }
+            measure.transposeIndex = instrumentAr[curInstrumentIndex].instrument.keyOffset;
+            params.measures.push(measure);
+        });
+        if (jsonObj.modifiers) {
+            jsonObj.modifiers.forEach((modParams) => {
+                const mod = staffModifiers_1.StaffModifierBase.deserialize(modParams);
+                params.modifiers.push(mod);
+            });
+        }
+        const rv = new SmoSystemStaff(params);
         return rv;
+    }
+    updateMeasureFormatsForPart() {
+        this.measures.forEach((measure, mix) => {
+            if (this.partInfo.measureFormatting[mix]) {
+                measure.format = new measureModifiers_1.SmoMeasureFormat(this.partInfo.measureFormatting[mix]);
+            }
+            else {
+                measure.format = new measureModifiers_1.SmoMeasureFormat(measureModifiers_1.SmoMeasureFormat.defaults);
+            }
+        });
+    }
+    /**
+     * Get the active instrument at the given measure
+     * @param measureIndex
+     * @returns
+     */
+    getStaffInstrument(measureIndex) {
+        return SmoSystemStaff.getStaffInstrument(this.measureInstrumentMap, measureIndex);
+    }
+    updateInstrumentOffsets() {
+        const ar = SmoSystemStaff.getStaffInstrumentArray(this.measureInstrumentMap);
+        ar.forEach((entry) => {
+            let i = entry.instrument.startSelector.measure;
+            for (i; i <= entry.instrument.endSelector.measure; ++i) {
+                const measure = this.measures[i];
+                const concertKey = music_1.SmoMusic.vexKeySigWithOffset(measure.keySignature, -1 * measure.transposeIndex);
+                measure.transposeIndex = entry.instrument.keyOffset;
+                measure.keySignature = music_1.SmoMusic.vexKeySigWithOffset(concertKey, measure.transposeIndex);
+                measure.setClef(entry.instrument.clef);
+            }
+        });
     }
     // ### addStaffModifier
     // add a staff modifier, or replace a modifier of same type
@@ -18777,6 +19385,16 @@ class SmoSystemStaff {
                 sm.push(mod);
             }
         });
+        const instMap = {};
+        SmoSystemStaff.getStaffInstrumentArray(this.measureInstrumentMap).forEach((mm) => {
+            if (mm.instrument.startSelector.measure > index || mm.instrument.startSelector.measure > this.measures.length - 1) {
+                mm.instrument.startSelector.measure -= 1;
+            }
+            if (mm.instrument.endSelector.measure > index || mm.instrument.endSelector.measure > this.measures.length - 1) {
+                mm.instrument.endSelector.measure -= 1;
+            }
+            instMap[mm.instrument.startSelector.measure] = new staffModifiers_1.SmoInstrument(mm.instrument);
+        });
         this.measures = nm;
         this.modifiers = sm;
         this.numberMeasures();
@@ -18801,17 +19419,12 @@ class SmoSystemStaff {
     // ### numberMeasures
     // After anything that might change the measure numbers, update them iteratively
     numberMeasures() {
-        let pickupOffset = 0;
         let i = 0;
         let renumberIndex = 0;
-        // Start measure from -1 for pickup
-        if (this.measures[0].getTicksFromVoice(0) < music_1.SmoMusic.timeSignatureToTicks(this.measures[0].timeSignature.timeSignature)) {
-            pickupOffset = -1;
-        }
         for (i = 0; i < this.measures.length; ++i) {
             const measure = this.measures[i];
             renumberIndex = typeof (this.renumberingMap[i]) === 'undefined' ? 0 : this.renumberingMap[i];
-            const localIndex = renumberIndex + i + pickupOffset;
+            const localIndex = renumberIndex + i;
             // If this is the first full measure, call it '1'
             const numberObj = {
                 localIndex,
@@ -19206,15 +19819,13 @@ exports.SmoToMidi = SmoToMidi;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SmoToXml = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const xmlHelpers_1 = __webpack_require__(/*! ./xmlHelpers */ "./src/smo/mxml/xmlHelpers.ts");
-const xmlScore_1 = __webpack_require__(/*! ./xmlScore */ "./src/smo/mxml/xmlScore.ts");
-const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
-const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
 const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
-const common_1 = __webpack_require__(/*! ../data/common */ "./src/smo/data/common.ts");
+const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
+const xmlHelpers_1 = __webpack_require__(/*! ./xmlHelpers */ "./src/smo/mxml/xmlHelpers.ts");
+const xmlScore_1 = __webpack_require__(/*! ./xmlScore */ "./src/smo/mxml/xmlScore.ts");
 class SmoToXml {
     static get beamStates() {
         return {
@@ -19253,7 +19864,7 @@ class SmoToXml {
             const id = 'P' + staff.staffId;
             const scorePart = nn(partList, 'score-part', null, '');
             xmlHelpers_1.mxmlHelpers.createAttributes(scorePart, { id });
-            nn(scorePart, 'part-name', { name: staff.instrumentInfo.instrumentName }, 'name');
+            nn(scorePart, 'part-name', { name: staff.measureInstrumentMap[0].instrumentName }, 'name');
         });
         const smoState = {};
         score.staves.forEach((staff) => {
@@ -19583,7 +20194,7 @@ class SmoToXml {
         const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
         const measure = smoState.measure;
         const currentTs = (_a = smoState.timeSignature) !== null && _a !== void 0 ? _a : null;
-        if (currentTs !== null && common_1.TimeSignature.equal(currentTs, measure.timeSignature) === false) {
+        if (currentTs !== null && measureModifiers_1.TimeSignature.equal(currentTs, measure.timeSignature) === false) {
             return;
         }
         smoState.timeSignature = measure.timeSignature;
@@ -22324,16 +22935,17 @@ exports.PasteBuffer = PasteBuffer;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SmoOperation = void 0;
-const measure_1 = __webpack_require__(/*! ../data/measure */ "./src/smo/data/measure.ts");
-const selections_1 = __webpack_require__(/*! ./selections */ "./src/smo/xform/selections.ts");
-const scoreModifiers_1 = __webpack_require__(/*! ../data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
 const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
+const measure_1 = __webpack_require__(/*! ../data/measure */ "./src/smo/data/measure.ts");
+const systemStaff_1 = __webpack_require__(/*! ../data/systemStaff */ "./src/smo/data/systemStaff.ts");
+const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
+const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const scoreModifiers_1 = __webpack_require__(/*! ../data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const selections_1 = __webpack_require__(/*! ./selections */ "./src/smo/xform/selections.ts");
 const tickDuration_1 = __webpack_require__(/*! ./tickDuration */ "./src/smo/xform/tickDuration.ts");
 const beamers_1 = __webpack_require__(/*! ./beamers */ "./src/smo/xform/beamers.ts");
-const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
-const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
-const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const VF = eval('Vex.Flow');
 /**
@@ -22425,7 +23037,7 @@ class SmoOperation {
     static populateVoice(selection, voiceIx) {
         selection.measure.populateVoice(voiceIx);
     }
-    static setTimeSignature(score, selections, timeSignature) {
+    static setTimeSignature(score, selections, timeSignature, timeSignatureString) {
         const selectors = [];
         let i = 0;
         let ticks = 0;
@@ -22452,6 +23064,7 @@ class SmoOperation {
                 serializationHelpers_1.smoSerialize.serializedMerge(attrs, proto, params);
                 params.timeSignature = timeSignature;
                 nm = measure_1.SmoMeasure.getDefaultMeasure(params);
+                nm.timeSignatureString = timeSignatureString;
                 nm.setX(rowSelection.measure.staffX, 'op:setTimeSignature');
                 nm.setY(rowSelection.measure.staffY, 'op:setTimeSignature');
                 nm.setWidth(rowSelection.measure.staffWidth, 'op:setTimeSignature');
@@ -22470,7 +23083,7 @@ class SmoOperation {
                             ticks += nnote.tickCount;
                         }
                         else {
-                            const remain = (ticks + pnote.tickCount) - tsTicks;
+                            const remain = tsTicks - ticks;
                             nnote.ticks = { numerator: remain, denominator: 1, remainder: 0 };
                             nvoice.push(nnote);
                             ticks += nnote.tickCount;
@@ -23114,38 +23727,49 @@ class SmoOperation {
             }
         });
     }
+    /**
+     * Compute new map based on current instrument selections, adjusting existing instruments as required
+     * @param instrument
+     * @param selections
+     */
     static changeInstrument(instrument, selections) {
-        const measureHash = {};
-        let newKey = '';
-        selections.forEach((selection) => {
-            if (!measureHash[selection.selector.measure]) {
-                measureHash[selection.selector.measure] = 1;
-                const netOffset = instrument.keyOffset - selection.measure.transposeIndex;
-                newKey = music_1.SmoMusic.pitchToVexKey(music_1.SmoMusic.smoIntToPitch(music_1.SmoMusic.smoPitchToInt(music_1.SmoMusic.pitchKeyToPitch(music_1.SmoMusic.vexToSmoKey(selection.measure.keySignature))) + netOffset));
-                newKey = music_1.SmoMusic.toValidKeySignature(newKey);
-                if (newKey.length > 1 && newKey[1] === 'n') {
-                    newKey = newKey[0];
+        const measureSel = selections_1.SmoSelection.getMeasureList(selections);
+        const measureIndex = measureSel[0].selector.measure;
+        const measureEnd = measureIndex + (measureSel.length - 1);
+        instrument.startSelector = JSON.parse(JSON.stringify(measureSel[0].selector));
+        instrument.endSelector = JSON.parse(JSON.stringify(measureSel[measureSel.length - 1].selector));
+        const instMap = {};
+        const staffArray = systemStaff_1.SmoSystemStaff.getStaffInstrumentArray(measureSel[0].staff.measureInstrumentMap);
+        instMap[measureIndex] = instrument;
+        staffArray.forEach((ar) => {
+            if (ar.instrument.endSelector.measure < measureIndex || ar.instrument.startSelector.measure > measureEnd) {
+                // No overlap, juse use the original instrument
+                instMap[ar.instrument.startSelector.measure] = new staffModifiers_1.SmoInstrument(ar.instrument);
+            }
+            else if (ar.instrument.startSelector.measure < measureIndex) {
+                // overlap on left
+                const split1 = new staffModifiers_1.SmoInstrument(ar.instrument);
+                split1.startSelector.measure = ar.instrument.startSelector.measure;
+                instMap[split1.startSelector.measure] = split1;
+                split1.endSelector.measure = measureIndex - 1;
+                if (ar.instrument.endSelector.measure > measureEnd) {
+                    // overlap on left and right
+                    const split2 = new staffModifiers_1.SmoInstrument(ar.instrument);
+                    split2.startSelector.measure = measureEnd + 1;
+                    split2.endSelector.measure = ar.instrument.endSelector.measure;
+                    instMap[split2.startSelector.measure] = split2;
                 }
-                newKey = newKey[0].toUpperCase() + newKey.substr(1, newKey.length);
-                selection.measure.keySignature = newKey;
-                selection.measure.clef = instrument.clef;
-                selection.measure.transposeIndex = instrument.keyOffset;
-                selection.measure.voices.forEach((voice) => {
-                    voice.notes.forEach((note) => {
-                        if (note.noteType === 'n') {
-                            const pitches = [];
-                            note.pitches.forEach((pitch) => {
-                                const pint = music_1.SmoMusic.smoIntToPitch(music_1.SmoMusic.smoPitchToInt(pitch) + netOffset);
-                                pitches.push(JSON.parse(JSON.stringify(music_1.SmoMusic.getEnharmonicInKey(pint, newKey))));
-                            });
-                            note.pitches = pitches;
-                            SmoOperation.transposeChords(note, netOffset, newKey);
-                        }
-                        note.clef = instrument.clef;
-                    });
-                });
+                instMap[ar.instrument.startSelector.measure] = new staffModifiers_1.SmoInstrument(ar.instrument);
+            }
+            else if (ar.instrument.endSelector.measure > measureEnd) {
+                // overlap on right only
+                const split1 = new staffModifiers_1.SmoInstrument(ar.instrument);
+                split1.startSelector.measure = measureEnd + 1;
+                instMap[split1.startSelector.measure] = split1;
             }
         });
+        selections[0].staff.measureInstrumentMap = instMap;
+        selections[0].staff.updateInstrumentOffsets();
     }
 }
 exports.SmoOperation = SmoOperation;
@@ -23376,7 +24000,10 @@ class SmoSelection {
         let i = 0;
         const rv = [];
         for (i = startMeasure; i < score.staves[staff].measures.length; ++i) {
-            rv.push(SmoSelection.measureSelection(score, staff, i));
+            const selection = SmoSelection.measureSelection(score, staff, i);
+            if (selection) {
+                rv.push(selection);
+            }
         }
         return rv;
     }
@@ -24332,12 +24959,10 @@ class UndoBuffer {
     // ### serializeMeasure
     // serialize a measure, preserving the column-mapped bits which aren't serialized on a full score save.
     static serializeMeasure(measure) {
-        const attrColumnHash = {};
-        const attrCurrentValue = {};
         const json = measure.serialize();
-        measure.serializeColumnMapped(attrColumnHash, attrCurrentValue);
-        Object.keys(attrCurrentValue).forEach((key) => {
-            json[key] = attrCurrentValue[key];
+        const columnMapped = measure.serializeColumnMapped();
+        Object.keys(columnMapped).forEach((key) => {
+            json[key] = columnMapped[key];
         });
         return json;
     }
@@ -30962,15 +31587,18 @@ class CollapseRibbonControl extends button_1.SuiButton {
         this.eventSource.domClick(this.buttonElement, this, '_toggleExpand', null);
         this.childButtons.forEach((cb) => {
             const ctor = eval('globalThis.Smo.' + cb.ctor);
-            if ((typeof (ctor) === 'function')) {
+            if ((typeof (ctor) === 'function') && this.completeNotifier) {
                 const el = $('#' + cb.id);
-                const btn = new ctor({
+                const params = {
+                    buttonId: cb.id,
                     buttonData: cb,
                     buttonElement: el,
                     view: this.view,
                     completeNotifier: this.completeNotifier,
-                    eventSource: this.eventSource
-                });
+                    eventSource: this.eventSource,
+                    menus: this.menus
+                };
+                const btn = new ctor(params);
                 if (typeof (btn.bind) === 'function') {
                     btn.bind();
                 }
@@ -31344,6 +31972,199 @@ exports.PlayerButtons = PlayerButtons;
 
 /***/ }),
 
+/***/ "./src/ui/buttons/ribbon.ts":
+/*!**********************************!*\
+  !*** ./src/ui/buttons/ribbon.ts ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RibbonButtons = exports.isModalButtonType = exports.SuiModalButtonStrings = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const library_1 = __webpack_require__(/*! ../dialogs/library */ "./src/ui/dialogs/library.ts");
+const tempo_1 = __webpack_require__(/*! ../dialogs/tempo */ "./src/ui/dialogs/tempo.ts");
+const instrument_1 = __webpack_require__(/*! ../dialogs/instrument */ "./src/ui/dialogs/instrument.ts");
+const piano_1 = __webpack_require__(/*! ../../render/sui/piano */ "./src/render/sui/piano.ts");
+const collapsable_1 = __webpack_require__(/*! ./collapsable */ "./src/ui/buttons/collapsable.ts");
+const dialog_1 = __webpack_require__(/*! ../dialogs/dialog */ "./src/ui/dialogs/dialog.ts");
+exports.SuiModalButtonStrings = ['SuiLibraryDialog', 'SuiTempoDialog', 'SuiInstrumentDialog'];
+function isModalButtonType(but) {
+    return exports.SuiModalButtonStrings.indexOf(but) >= 0;
+}
+exports.isModalButtonType = isModalButtonType;
+// ## RibbonButtons
+// Render the ribbon buttons based on group, function, and underlying UI handler.
+// Also handles UI events.
+// ### RibbonButton methods
+// ---
+class RibbonButtons {
+    constructor(params) {
+        this.collapsables = [];
+        this.collapseChildren = [];
+        this.controller = params.completeNotifier;
+        this.eventSource = params.eventSource;
+        this.view = params.view;
+        this.menus = params.menus;
+        this.ribbonButtons = params.ribbonButtons;
+        this.ribbons = params.ribbons;
+        this.collapsables = [];
+        this.collapseChildren = [];
+    }
+    static get paramArray() {
+        return ['ribbonButtons', 'ribbons', 'keyCommands', 'controller', 'menus', 'eventSource', 'view'];
+    }
+    static _buttonHtml(containerClass, buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
+        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const r = b('div').classes(containerClass).append(b('button').attr('id', buttonId).classes(buttonClass).append(b('span').classes('left-text').append(b('span').classes('text-span').text(buttonText)).append(b('span').classes('ribbon-button-text icon ' + buttonIcon))).append(b('span').classes('ribbon-button-hotkey').text(buttonKey)));
+        return r.dom();
+    }
+    _executeButtonModal(buttonElement, buttonData) {
+        if (buttonData.ctor === 'SuiPiano') {
+            piano_1.SuiPiano.createAndDisplay();
+        }
+        else if (isModalButtonType(buttonData.ctor)) {
+            const params = {
+                undoBuffer: this.view.undoBuffer,
+                eventSource: this.eventSource,
+                completeNotifier: this.controller,
+                view: this.view,
+                ctor: buttonData.ctor,
+                id: buttonData.id,
+                startPromise: null,
+                tracker: this.view.tracker
+            };
+            if (buttonData.ctor === 'SuiInstrumentDialog') {
+                dialog_1.createAndDisplayDialog(instrument_1.SuiInstrumentDialog, params);
+            }
+            else if (buttonData.ctor === 'SuiLibraryDialog') {
+                library_1.SuiLibraryDialog.createAndDisplay(params);
+            }
+            else {
+                dialog_1.createAndDisplayDialog(tempo_1.SuiTempoDialog, params);
+            }
+        }
+    }
+    _executeButtonMenu(buttonElement, buttonData) {
+        this.menus.slashMenuMode(this.controller);
+        this.menus.createMenu(buttonData.ctor);
+    }
+    _executeButton(buttonElement, buttonData) {
+        if (buttonData.action === 'modal') {
+            this._executeButtonModal(buttonElement, buttonData);
+            return;
+        }
+        if (buttonData.action === 'menu' || buttonData.action === 'collapseChildMenu') {
+            this._executeButtonMenu(buttonElement, buttonData);
+        }
+    }
+    _bindButton(buttonElement, buttonData) {
+        this.eventSource.domClick(buttonElement, this, '_executeButton', buttonData);
+    }
+    _createCollapsibleButtonGroups(selector) {
+        let containerClass = '';
+        // Now all the button elements have been bound.  Join child and parent buttons
+        // For all the children of a button group, add it to the parent group
+        this.collapseChildren.forEach((b) => {
+            containerClass = 'ribbonButtonContainer';
+            if (b.action === 'collapseGrandchild') {
+                containerClass = 'ribbonButtonContainerMore';
+            }
+            const buttonHtml = RibbonButtons._buttonHtml(containerClass, b.id, b.classes, b.leftText, b.icon, b.rightText);
+            if (b.dataElements) {
+                const bkeys = Object.keys(b.dataElements);
+                bkeys.forEach((bkey) => {
+                    var de = b.dataElements[bkey];
+                    $(buttonHtml).find('button').attr('data-' + bkey, de);
+                });
+            }
+            // Bind the child button actions
+            const parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
+            $(parent).append(buttonHtml);
+            const el = $(selector).find('#' + b.id);
+            this._bindButton(el, b);
+        });
+        this.collapsables.forEach((cb) => {
+            // Bind the events of the parent button
+            cb.bind();
+        });
+    }
+    static isCollapsible(action) {
+        return ['collapseChild', 'collapseChildMenu', 'collapseGrandchild', 'collapseMore'].indexOf(action) >= 0;
+    }
+    // ### _createButtonHtml
+    // For each button, create the html and bind the events based on
+    // the button's configured action.
+    _createRibbonHtml(buttonAr, selector) {
+        let buttonClass = '';
+        buttonAr.forEach((buttonId) => {
+            const buttonData = this.ribbonButtons.find((e) => e.id === buttonId);
+            if (buttonData) {
+                if (buttonData.leftText) {
+                    RibbonButtons.translateButtons.push({ buttonId: buttonData.id, buttonText: buttonData.leftText });
+                }
+                // collapse child is hidden until the parent button is selected, exposing the button group
+                if (RibbonButtons.isCollapsible(buttonData.action)) {
+                    this.collapseChildren.push(buttonData);
+                }
+                if (buttonData.action !== 'collapseChild') {
+                    // else the button has a specific action, such as a menu or dialog, or a parent button
+                    // for translation, add the menu name to the button class
+                    buttonClass = buttonData.classes;
+                    if (buttonData.action === 'menu' || buttonData.action === 'modal') {
+                        buttonClass += ' ' + buttonData.ctor;
+                    }
+                    const buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer', buttonData.id, buttonClass, buttonData.leftText, buttonData.icon, buttonData.rightText);
+                    $(buttonHtml).attr('data-group', buttonData.group);
+                    $(selector).append(buttonHtml);
+                    const buttonElement = $('#' + buttonData.id);
+                    // If this is a collabsable button, create it, otherwise bind its execute function.
+                    if (buttonData.action === 'collapseParent') {
+                        $(buttonHtml).addClass('collapseContainer');
+                        // collapseParent
+                        this.collapsables.push(new collapsable_1.CollapseRibbonControl({
+                            buttons: this.ribbonButtons,
+                            view: this.view,
+                            menus: this.menus,
+                            eventSource: this.eventSource,
+                            completeNotifier: this.controller,
+                            buttonId: buttonData.id,
+                            buttonElement,
+                            buttonData
+                        }));
+                    }
+                    else {
+                        this.eventSource.domClick(buttonElement, this, '_executeButton', buttonData);
+                    }
+                }
+            }
+        });
+    }
+    addButton(button, parentElement) {
+        this.ribbonButtons.push(button);
+        this.createRibbon([button.id], parentElement);
+    }
+    createRibbon(buttonDataArray, parentElement) {
+        this._createRibbonHtml(buttonDataArray, parentElement);
+        this._createCollapsibleButtonGroups(parentElement);
+    }
+    display() {
+        $('body .controls-left').html('');
+        $('body .controls-top').html('');
+        const lbuttons = this.ribbons.left;
+        this.createRibbon(lbuttons, 'body .controls-left');
+        const tbuttons = this.ribbons.top;
+        this.createRibbon(tbuttons, 'body .controls-top');
+    }
+}
+exports.RibbonButtons = RibbonButtons;
+RibbonButtons.translateButtons = [];
+
+
+/***/ }),
+
 /***/ "./src/ui/buttons/stave.ts":
 /*!*********************************!*\
   !*** ./src/ui/buttons/stave.ts ***!
@@ -31361,8 +32182,8 @@ class StaveButtons extends button_1.SuiButton {
         super(parameters);
     }
     addClef(clef, clefName) {
-        var instrument = new staffModifiers_1.SmoInstrument();
-        instrument.instrument = clefName;
+        var instrument = new staffModifiers_1.SmoInstrument(staffModifiers_1.SmoInstrument.defaults);
+        instrument.instrumentName = clefName;
         instrument.keyOffset = 0;
         instrument.clef = clef;
         this.view.changeInstrument(instrument, this.view.tracker.selections);
@@ -31425,49 +32246,76 @@ exports.StaveButtons = StaveButtons;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TextButtons = void 0;
 const button_1 = __webpack_require__(/*! ./button */ "./src/ui/buttons/button.ts");
-const textDialogs_1 = __webpack_require__(/*! ../dialogs/textDialogs */ "./src/ui/dialogs/textDialogs.js");
-const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
+const textBlock_1 = __webpack_require__(/*! ../dialogs/textBlock */ "./src/ui/dialogs/textBlock.ts");
+const lyric_1 = __webpack_require__(/*! ../dialogs/lyric */ "./src/ui/dialogs/lyric.ts");
+const chordChange_1 = __webpack_require__(/*! ../dialogs/chordChange */ "./src/ui/dialogs/chordChange.ts");
+const dialog_1 = __webpack_require__(/*! ../dialogs/dialog */ "./src/ui/dialogs/dialog.ts");
 class TextButtons extends button_1.SuiButton {
     constructor(parameters) {
         super(parameters);
     }
     lyrics() {
-        textDialogs_1.SuiLyricDialog.createAndDisplay({
-            buttonElement: this.buttonElement,
-            buttonData: this.buttonData,
+        const sel = this.view.tracker.selections[0];
+        const note = sel.note;
+        if (!note) {
+            return;
+        }
+        const lyrics = note.getTrueLyrics();
+        const lyric = lyrics.length > 0 ? null : lyrics[0];
+        dialog_1.createAndDisplayDialog(lyric_1.SuiLyricDialog, {
             completeNotifier: this.completeNotifier,
             view: this.view,
             undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
-            parser: noteModifiers_1.SmoLyric.parsers.lyric
+            id: 'lyricDialog',
+            ctor: 'SuiLyricDialog',
+            tracker: this.view.tracker,
+            startPromise: null,
+            modifier: lyric
         });
         // tracker, selection, controller
     }
     chordChanges() {
-        textDialogs_1.SuiChordChangeDialog.createAndDisplay({
-            buttonElement: this.buttonElement,
-            buttonData: this.buttonData,
+        const sel = this.view.tracker.selections[0];
+        const note = sel.note;
+        if (!note) {
+            return;
+        }
+        const lyrics = note.getChords();
+        const lyric = lyrics.length > 0 ? null : lyrics[0];
+        dialog_1.createAndDisplayDialog(chordChange_1.SuiChordChangeDialog, {
             completeNotifier: this.completeNotifier,
             view: this.view,
+            undoBuffer: this.view.undoBuffer,
             eventSource: this.eventSource,
-            parser: noteModifiers_1.SmoLyric.parsers.chord
+            id: 'chordDialog',
+            ctor: 'SuiChordChangeDialog',
+            tracker: this.view.tracker,
+            startPromise: null,
+            modifier: lyric
         });
     }
     rehearsalMark() {
         this.view.toggleRehearsalMark();
     }
     _invokeMenu(cmd) {
+        if (!this.completeNotifier) {
+            return;
+        }
         this.menus.slashMenuMode(this.completeNotifier);
         this.menus.createMenu(cmd);
     }
     addTextMenu() {
-        textDialogs_1.SuiTextTransformDialog.createAndDisplay({
-            buttonElement: this.buttonElement,
-            buttonData: this.buttonData,
+        dialog_1.createAndDisplayDialog(textBlock_1.SuiTextBlockDialog, {
             completeNotifier: this.completeNotifier,
-            tracker: this.view.tracker,
             view: this.view,
-            eventSource: this.eventSource
+            undoBuffer: this.view.undoBuffer,
+            eventSource: this.eventSource,
+            id: 'chordDialog',
+            ctor: 'SuiChordChangeDialog',
+            tracker: this.view.tracker,
+            startPromise: null,
+            modifier: null
         });
     }
     addDynamicsMenu() {
@@ -31524,297 +32372,294 @@ exports.VoiceButtons = VoiceButtons;
 
 /***/ }),
 
-/***/ "./src/ui/dialog.js":
-/*!**************************!*\
-  !*** ./src/ui/dialog.js ***!
-  \**************************/
+/***/ "./src/ui/dialogs/adapter.ts":
+/*!***********************************!*\
+  !*** ./src/ui/dialogs/adapter.ts ***!
+  \***********************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiDialogBase = exports.SuiModifierDialogFactory = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const svgHelpers_1 = __webpack_require__(/*! ../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const language_1 = __webpack_require__(/*! ./i18n/language */ "./src/ui/i18n/language.js");
-const noteModifiers_1 = __webpack_require__(/*! ../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
-// # Dialog base classes
-// ## SuiModifierDialogFactory
-// Automatic dialog constructors for dialogs without too many parameters
-// that operated on a selection.
-class SuiModifierDialogFactory {
-    static createDialog(modifier, parameters) {
-        let dbType = SuiModifierDialogFactory.modifierDialogMap[modifier.attrs.type];
-        if (dbType === 'SuiLyricDialog' && modifier.parser === noteModifiers_1.SmoLyric.parsers.chord) {
-            dbType = 'SuiChordChangeDialog';
-        }
-        if (typeof (dbType) === 'undefined') {
-            return null;
-        }
-        const ctor = Smo.getClass(dbType);
-        return ctor.createAndDisplay(Object.assign({ modifier }, parameters));
+exports.SuiDialogAdapterBase = exports.SuiComponentAdapter = void 0;
+const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialogs/dialog.ts");
+/**
+ * An adapter is the glue logic between UI components and the score view
+ * An adapter consists mostly of accessors (get/set) for the component data.  The
+ * components have their initial values set from the adapter get, and changes to components
+ * result in sets to the adapter.  The adapter can then update the score.
+ * For dialogs that use this pattern,
+ * the dialog automatically creates the components and binds their values with the
+ * adapter.
+ * @method commit - called when OK button of dialog is clicked
+ * @method cancel - called when cancel button of dialog is clicked
+ * @method remove - optional.  Called when 'remove' button is clicked, for artifacts like dynamics that can be removed.
+ */
+class SuiComponentAdapter {
+    constructor(view) {
+        this.view = view;
     }
-    static get modifierDialogMap() {
-        return {
-            SmoStaffHairpin: 'SuiHairpinAttributesDialog',
-            SmoTie: 'SuiTieAttributesDialog',
-            SmoSlur: 'SuiSlurAttributesDialog',
-            SmoDynamicText: 'SuiDynamicModifierDialog',
-            SmoVolta: 'SuiVoltaAttributeDialog',
-            SmoScoreText: 'SuiTextTransformDialog',
-            SmoTextGroup: 'SuiTextTransformDialog',
-            SmoLoadScore: 'SuiLoadFileDialog',
-            SmoLyric: 'SuiLyricDialog'
-        };
-    }
+    remove() { }
+    ;
 }
-exports.SuiModifierDialogFactory = SuiModifierDialogFactory;
-// ## SuiDialogBase
-// Base class for dialogs.
-class SuiDialogBase {
-    static get parameters() {
-        return ['eventSource', 'view',
-            'completeNotifier', 'keyCommands', 'modifier'];
+exports.SuiComponentAdapter = SuiComponentAdapter;
+/**
+ * SuiDialogAdapterBase is the base class for dialogs that use the adapter pattern
+ * (almost all of them).
+ */
+class SuiDialogAdapterBase extends dialog_1.SuiDialogBase {
+    constructor(def, params) {
+        super(def, params);
+        this.adapter = params.adapter;
     }
-    static get displayOptions() {
-        return { BINDCOMPONENTS: 'bindComponents', BINDNAMES: '_bindComponentNames', DRAGGABLE: 'makeDraggable',
-            KEYBOARD_CAPTURE: 'captureKeyboardPromise', GLOBALPOS: 'positionGlobally',
-            SELECTIONPOS: 'positionFromSelection', MODIFIERPOS: 'positionFromModifier' };
-    }
-    static getStaticText(dialogElements, label) {
-        const rv = dialogElements.find((x) => x.staticText).staticText.find((x) => x[label]);
-        if (rv !== null && rv[label]) {
-            return rv[label];
-        }
-        return 'text not found';
-    }
-    // ### SuiDialogBase ctor
-    // Creates the DOM element for the dialog and gets some initial elements
-    constructor(dialogElements, parameters) {
-        this.id = parameters.id;
-        this.boundKeyboard = false;
-        this.components = [];
-        this.scroller = parameters.view.tracker.scroller;
-        this.closeDialogPromise = new Promise((resolve) => {
-            $('body').off('dialogDismiss').on('dialogDismiss', () => {
-                resolve();
-            });
-        });
-        const staticText = dialogElements.find((xx) => xx.staticText);
-        if (!staticText) {
-            throw 'dialog ' + this.ctor + ' needs a static text section';
-        }
-        this.staticText = {};
-        staticText.staticText.forEach((st) => {
-            const key = Object.keys(st)[0];
-            this.staticText[key] = st[key];
-        });
-        // If this dialog was spawned by a menu, wait for the menu to dismiss
-        // before continuing.
-        // this.startPromise = parameters.closeMenuPromise;
-        this.startPromise = parameters.startPromise;
-        this.dialogElements = dialogElements;
-        SuiDialogBase.parameters.forEach((param) => {
-            this[param] = parameters[param];
-        });
-        const left = $('.musicRelief').offset().left + $('.musicRelief').width() / 2;
-        const top = $('.musicRelief').offset().top + $('.musicRelief').height() / 2;
-        this.dgDom = this._constructDialog(dialogElements, {
-            id: 'dialog-' + this.id,
-            top,
-            left,
-            label: this.label
-        });
-        language_1.SmoTranslator.registerDialog(this.ctor);
-    }
-    // ### printXlate
-    // print json with string labels to use as a translation file seed.
-    static printTranslate(_class) {
-        const output = [];
-        const xx = Smo.getClass(_class);
-        xx.dialogElements.forEach((element) => {
-            const component = {};
-            if (element.label) {
-                component.label = element.label;
-                component.id = element.smoName;
-                if (element.options) {
-                    component.options = [];
-                    element.options.forEach((option) => {
-                        component.options.push({ value: option.value, label: option.label });
-                    });
-                }
-            }
-            if (element.staticText) {
-                component.staticText = {};
-                element.staticText.forEach((st) => {
-                    var key = Object.keys(st)[0];
-                    component.staticText[key] = st[key];
-                });
-            }
-            output.push(component);
-        });
-        return { ctor: xx.ctor, dialogElements: output };
-    }
-    get closeModalPromise() {
-        return this.closeDialogPromise;
-    }
-    // ### position
-    // For dialogs based on selections, tries to place the dialog near the selection and also
-    // to scroll so the dialog is in view
-    static position(box, dgDom, scroller) {
-        let y = (box.y + box.height) - scroller.netScroll.y;
-        let x = 0;
-        // TODO: adjust if db is clipped by the browser.
-        const dge = $(dgDom.element).find('.attributeModal');
-        const dgeHeight = $(dge).height();
-        const maxY = $('.musicRelief').height();
-        const maxX = $('.musicRelief').width();
-        const offset = $('.dom-container').offset();
-        y = y - offset.top;
-        const offsetY = dgeHeight + y > window.innerHeight ? (dgeHeight + y) - window.innerHeight : 0;
-        y = (y < 0) ? -y : y - offsetY;
-        y = (y > maxY || y < 0) ? maxY / 2 : y;
-        $(dge).css('top', '' + y + 'px');
-        x = box.x - scroller.netScroll.x;
-        x = x - offset.left;
-        const w = $(dge).width();
-        x = (x > window.innerWidth / 2) ? x - (w + 25) : x + (w + 25);
-        x = (x < 0 || x > maxX) ? maxX / 2 : x;
-        $(dge).css('left', '' + x + 'px');
-        // Make sure the dialog is visible if the selection is not
-        setTimeout(() => {
-            scroller.scrollVisibleBox(svgHelpers_1.SvgHelpers.smoBox(box));
-        }, 1);
-    }
-    applyDisplayOptions() {
-        $('body').addClass('showAttributeDialog');
-        this.displayOptions.forEach((option) => {
-            this[SuiDialogBase.displayOptions[option]]();
-        });
-    }
+    /**
+     * Call the components bind() methods to activate them.  Also, verify that each
+     * adapter meets the contract with the components
+     */
     bindComponents() {
         this.components.forEach((component) => {
+            // do some runtime validation of the adapter
+            if (typeof (this.adapter[component.smoName]) === 'undefined') {
+                throw ('Dialog ' + this.label + ' has component ' + component.smoName + ' but no setter in the adapter ');
+            }
             component.bind();
         });
     }
-    // ### position
-    // Position the dialog near a selection.  If the dialog is not visible due
-    // to scrolling, make sure it is visible.
-    position(box) {
-        SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
-    }
-    // ### positionModifier()
-    positionFromModifier() {
-        if (typeof (this.modifier.renderedBox) === 'undefined') {
-            this.positionGlobally();
-            return;
-        }
-        this.position(this.modifier.renderedBox);
-    }
-    // ### positionGlobally
-    // position the dialog box in the center of the current scroll region
-    positionGlobally() {
-        const box = svgHelpers_1.SvgHelpers.boxPoints(250, 250, 1, 1);
-        SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
-    }
-    // ### postionFromSelection
-    // set initial position of dialog based on first selection
-    positionFromSelection() {
-        this.position(this.view.tracker.selections[0].note.renderedBox);
-    }
-    // ### build the html for the dialog, based on the instance-specific components.
-    _constructDialog(dialogElements, parameters) {
-        const id = parameters.id;
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
-        const r = b('div').classes('attributeModal').attr('id', 'attr-modal-' + id)
-            .css('top', parameters.top + 'px').css('left', parameters.left + 'px')
-            .append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
-            .append(b('h2').classes('dialog-label').text(this.staticText.label));
-        var ctrl = b('div').classes('smoControlContainer');
-        dialogElements.filter((de) => de.control).forEach((de) => {
-            let ctor = null;
-            if (typeof (de.control) === 'function') {
-                ctor = de.control;
-            }
-            else {
-                ctor = Smo.getClass(de.control);
-            }
-            const control = new ctor(this, de);
-            this.components.push(control);
-            ctrl.append(control.html);
-        });
-        r.append(ctrl);
-        r.append(b('div').classes('buttonContainer').append(b('button').classes('ok-button button-left').text('OK')).append(b('button').classes('cancel-button button-center').text('Cancel')).append(b('button').classes('remove-button button-right').text('Remove').append(b('span').classes('icon icon-cancel-circle'))));
-        $('.attributeDialog').html('');
-        $('.attributeDialog').append(r.dom());
-        const trapper = htmlHelpers_1.htmlHelpers.inputTrapper('.attributeDialog');
-        $('.attributeDialog').find('.cancel-button').focus();
-        return {
-            element: $('.attributeDialog'),
-            trapper
-        };
-    }
-    // ### Complete
-    // Dialogs take over the keyboard, so release that and trigger an event
-    // that the dialog is closing that can resolve any outstanding promises.
-    complete() {
-        if (this.boundKeyboard) {
-            this.eventSource.unbindKeydownHandler(this.keydownHandler);
-        }
-        $('body').removeClass('showAttributeDialog');
-        $('body').trigger('dialogDismiss');
-        this.dgDom.trapper.close();
-    }
-    // ### _bindComponentNames
-    // helper method to give components class names based on their static configuration
-    _bindComponentNames() {
-        this.components.forEach((component) => {
-            var nm = component.smoName + 'Ctrl';
-            this[nm] = component;
+    /**
+     * Called before dialog is displayed.
+     * components that interface (bind) with the adapter are called 'bound' components.
+     * On initialize, update the component with the score value, as told by the adapter.
+     */
+    initialValue() {
+        this.components.forEach((comp) => {
+            comp.setValue(this.adapter[comp.smoName]);
         });
     }
-    // ### display
-    // make3 the modal visible.  bind events and elements.
+    /**
+     * When a component changes, it notifies the parent dialog.  Usually, we just
+     * proxy the call to the adapter.  The specific dialog can override this method if
+     * something in the UI needs to change as a result of the component state (e.g.
+     * show or hide another component)
+     */
+    changed() {
+        this.components.forEach((comp) => {
+            if (comp.changeFlag) {
+                this.adapter[comp.smoName] = comp.getValue();
+            }
+        });
+    }
+    /**
+     * If there is any 'saving' to be done when the dialog clicks OK,
+     * that is handled by the adapter.  Else it can be a noop.
+     */
+    commit() {
+        this.adapter.commit();
+    }
+    /**
+     * If there is any undo or restore to be done when the dialog clicks OK,
+     * that is handled by the adapter.  Else it can be a noop.
+     */
+    cancel() {
+        this.adapter.cancel();
+    }
+    /**
+     * For score artifacts that can be removed,
+     */
+    remove() {
+        this.adapter.remove();
+    }
+    /**
+     * Binds the main dialog buttons.  For OK/Cancel/remove, the logic calls the appropriate
+     * derived function, which calls the appropriate adapter method, then calls complete()
+     * to restore the event handling loop to the application
+     */
+    bindElements() {
+        var dgDom = this.dgDom;
+        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+            this.view.groupUndo(false);
+            this.commit();
+            this.complete();
+        });
+        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+            this.view.groupUndo(false);
+            this.cancel();
+            this.complete();
+        });
+        $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+            this.view.groupUndo(false);
+            this.remove();
+            this.complete();
+        });
+    }
+}
+exports.SuiDialogAdapterBase = SuiDialogAdapterBase;
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/addMeasure.ts":
+/*!**************************************!*\
+  !*** ./src/ui/dialogs/addMeasure.ts ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiInsertMeasures = void 0;
+const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialogs/dialog.ts");
+class SuiInsertMeasures extends dialog_1.SuiDialogBase {
+    constructor(parameters) {
+        super(SuiInsertMeasures.dialogElements, parameters);
+        this.selection = this.view.tracker.selections[0];
+        const selection = parameters.view.tracker.selections[0];
+        const measure = selection.measure;
+        this.measure = measure;
+        if (!this.startPromise) {
+            this.startPromise = new Promise((resolve) => {
+                resolve();
+            });
+        }
+    }
+    commit() {
+        this.view.addMeasures(this.appendCtrl.getValue(), this.measureCountCtrl.getValue());
+    }
+    get measureCountCtrl() {
+        return this.cmap.measureCountCtrl;
+    }
+    get appendCtrl() {
+        return this.cmap.appendCtrl;
+    }
+    populateInitial() {
+        this.measureCountCtrl.setValue(1);
+    }
+}
+exports.SuiInsertMeasures = SuiInsertMeasures;
+SuiInsertMeasures.dialogElements = {
+    label: 'Insert Measures',
+    elements: [{
+            smoName: 'measureCount',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Measures to Insert'
+        }, {
+            smoName: 'append',
+            control: 'SuiToggleComponent',
+            label: 'Append to Selection'
+        }],
+    staticText: []
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/chordChange.ts":
+/*!***************************************!*\
+  !*** ./src/ui/dialogs/chordChange.ts ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiChordChangeDialog = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialogs/dialog.ts");
+const textRender_1 = __webpack_require__(/*! ../../render/sui/textRender */ "./src/render/sui/textRender.ts");
+class SuiChordChangeDialog extends dialog_1.SuiDialogBase {
+    constructor(parameters) {
+        super(SuiChordChangeDialog.dialogElements, parameters);
+        this.lyric = null;
+        this.selector = null;
+        this.mouseMoveHandler = null;
+        this.mouseClickHandler = null;
+        parameters.ctor = 'SuiChordChangeDialog';
+        this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
+    }
+    get chordEditorCtrl() {
+        return this.cmap.chordEditorCtrl;
+    }
+    get chordSymbolCtrl() {
+        return this.cmap.chordSymbolCtrl;
+    }
+    get translateYCtrl() {
+        return this.cmap.translateYCtrl;
+    }
+    get textPositionCtrl() {
+        return this.cmap.textPositionCtrl;
+    }
+    get adjustWidthCtrl() {
+        return this.cmap.adjustWidthCtrl;
+    }
+    get fontCtrl() {
+        return this.cmap.fontCtrl;
+    }
+    changed() {
+        let val = '';
+        if (this.chordSymbolCtrl.changeFlag && this.chordEditorCtrl.running) {
+            val = '@' + this.chordSymbolCtrl.getValue() + '@';
+            var kv;
+            /*     type: string, shiftKey: boolean, ctrlKey: boolean, altKey: boolean, key: string, keyCode: string,
+          code: string*/
+            this.chordEditorCtrl.evKey({
+                type: 'keydown',
+                shiftKey: false,
+                ctrlKey: false,
+                altKey: false,
+                key: val,
+                code: val,
+                event: null,
+                keyCode: '0'
+            });
+            // Move focus outside the element so it doesn't intercept keys
+            this.chordSymbolCtrl.unselect();
+        }
+        if (this.translateYCtrl.changeFlag) {
+            if (this.lyric && this.selector) {
+                this.lyric.translateY = this.translateYCtrl.getValue();
+                this.view.addOrUpdateLyric(this.selector, this.lyric);
+            }
+        }
+        if (this.textPositionCtrl.changeFlag) {
+            this.chordEditorCtrl.setTextType(this.textPositionCtrl.getValue());
+            $(this.textPositionCtrl._getInputElement())[0].selectedIndex = -1;
+            $(this.textPositionCtrl._getInputElement()).blur();
+        }
+        if (this.fontCtrl.changeFlag) {
+            const fontInfo = this.fontCtrl.getValue();
+            this.view.setChordFont(fontInfo);
+        }
+        if (this.adjustWidthCtrl.changeFlag) {
+            this.view.score.setChordAdjustWidth(this.adjustWidthCtrl.getValue());
+        }
+    }
+    setLyric(selector, lyric) {
+        this.selector = selector;
+        this.lyric = lyric;
+        this.translateYCtrl.setValue(lyric.translateY);
+    }
     display() {
-        $('body').addClass('showAttributeDialog');
-        this.components.forEach((component) => {
-            component.bind();
-        });
-        this._bindElements();
-        if (this.modifier && this.modifier.renderedBox) {
-            this.position(this.modifier.renderedBox);
+        super.display();
+        this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
+        this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
+        if (this.chordEditorCtrl && this.chordEditorCtrl.session && this.chordEditorCtrl.session.lyric) {
+            const lyric = this.chordEditorCtrl.session.lyric;
+            this.adjustWidthCtrl.setValue(lyric.adjustNoteWidthChord);
+            this.fontCtrl.setValue({
+                family: lyric.fontInfo.family,
+                size: lyric.fontInfo.size, weight: 'normal'
+            });
         }
-        this.view.tracker.scroller.scrollVisibleBox(svgHelpers_1.SvgHelpers.smoBox($(this.dgDom.element)[0].getBoundingClientRect()));
-        this.makeDraggable();
     }
-    // ### makeDraggable
-    // generic code to make the dialog box draggable so it doesn't
-    // get in front of stuff.
-    makeDraggable() {
-        const cb = () => { };
-        htmlHelpers_1.htmlHelpers.draggable({
-            parent: $(this.dgDom.element).find('.attributeModal'),
-            handle: $(this.dgDom.element).find('.jsDbMove'),
-            animateDiv: '.draganime',
-            cb,
-            moveParent: true
+    bindElements() {
+        const dgDom = this.dgDom;
+        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+            this._complete();
         });
-    }
-    // ### captureKeyboardPromise
-    // capture keyboard events until the dialog closes,
-    // then give control back to the current keyboard
-    captureKeyboardPromise() {
-        if (typeof (this.startPromise) === 'undefined') {
-            this.completeNotifier.unbindKeyboardForModal(this);
-            this.bindKeyboard();
-            return;
-        }
-        const getKeys = () => {
-            this.completeNotifier.unbindKeyboardForModal(this);
-            this.bindKeyboard();
-        };
-        this.startPromise.then(getKeys);
+        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+            this._complete();
+        });
+        $(dgDom.element).find('.remove-button').remove();
+        // this.chordEditorCtrl.setView(this.eventSource, this.view);
+        this.chordEditorCtrl.startEditSession();
     }
     // ### handleKeydown
     // allow a dialog to be dismissed by esc.
@@ -31823,263 +32668,235 @@ class SuiDialogBase {
             $(this.dgDom.element).find('.cancel-button').click();
             evdata.preventDefault();
         }
+        else {
+            if (!this.chordEditorCtrl.running) {
+                return;
+            }
+            const edited = this.chordEditorCtrl.evKey(evdata);
+            if (edited) {
+                evdata.stopPropagation();
+            }
+        }
     }
-    // ### bindKeyboard
-    // generic logic to grab keyboard elements for modal
-    bindKeyboard() {
-        this.boundKeyboard = true;
-        this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
+    _complete() {
+        if (this.chordEditorCtrl.running) {
+            this.chordEditorCtrl.endSession();
+        }
+        this.view.renderer.setDirty();
+        if (this.mouseMoveHandler) {
+            this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
+        }
+        if (this.mouseClickHandler) {
+            this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
+        }
+        $('body').removeClass('showAttributeDialog');
+        $('body').removeClass('textEditor');
+        this.complete();
+    }
+    mouseMove(ev) {
+        if (this.chordEditorCtrl && this.chordEditorCtrl.running) {
+            this.chordEditorCtrl.mouseMove(ev);
+        }
+    }
+    mouseClick(ev) {
+        if (this.chordEditorCtrl && this.chordEditorCtrl.running) {
+            this.chordEditorCtrl.mouseClick(ev);
+            ev.stopPropagation();
+        }
     }
 }
-exports.SuiDialogBase = SuiDialogBase;
+exports.SuiChordChangeDialog = SuiChordChangeDialog;
+SuiChordChangeDialog.dialogElements = {
+    label: 'Edit Chord Symbol', elements: [{
+            smoName: 'verse',
+            defaultValue: 0,
+            control: 'SuiDropdownComponent',
+            label: 'Ordinality',
+            classes: 'hide-when-editing',
+            startRow: true,
+            options: [{
+                    value: 0,
+                    label: '1'
+                }, {
+                    value: 1,
+                    label: '2'
+                }, {
+                    value: 2,
+                    label: '3'
+                }]
+        }, {
+            smoName: 'translateY',
+            defaultValue: 0,
+            classes: 'hide-when-editing',
+            control: 'SuiRockerComponent',
+            label: 'Y Adjustment (Px)',
+            dataType: 'int'
+        }, {
+            smoName: 'chordEditor',
+            defaultValue: 0,
+            classes: 'show-always',
+            control: 'SuiChordComponent',
+            label: 'Edit Text',
+            options: []
+        }, {
+            smoName: 'chordSymbol',
+            defaultValue: '',
+            classes: 'show-when-editing',
+            control: 'SuiDropdownComponent',
+            label: 'Chord Symbol',
+            startRow: true,
+            options: [{
+                    value: 'csymDiminished',
+                    label: 'Dim'
+                }, {
+                    value: 'csymHalfDiminished',
+                    label: 'Half dim'
+                }, {
+                    value: 'csymDiagonalArrangementSlash',
+                    label: 'Slash'
+                }, {
+                    value: 'csymMajorSeventh',
+                    label: 'Maj7'
+                }]
+        }, {
+            smoName: 'textPosition',
+            defaultValue: textRender_1.SuiInlineText.textTypes.normal,
+            classes: 'show-when-editing',
+            control: 'SuiDropdownComponent',
+            label: 'Text Position',
+            startRow: true,
+            options: [{
+                    value: textRender_1.SuiInlineText.textTypes.superScript,
+                    label: 'Superscript'
+                }, {
+                    value: textRender_1.SuiInlineText.textTypes.subScript,
+                    label: 'Subscript'
+                }, {
+                    value: textRender_1.SuiInlineText.textTypes.normal,
+                    label: 'Normal'
+                }]
+        }, {
+            smoName: 'font',
+            classes: 'hide-when-editing',
+            defaultValue: 0,
+            control: 'SuiFontComponent',
+            label: 'Font'
+        }, {
+            smoName: 'adjustWidth',
+            classes: 'hide-when-editing',
+            control: 'SuiToggleComponent',
+            label: 'Adjust Note Width',
+            options: []
+        }],
+    staticText: [
+        { label: 'Edit Chord Symbol' },
+        { undo: 'Undo Chord Symbols' },
+        { doneEditing: 'Done Editing Chord Symbols' }
+    ]
+};
 
 
 /***/ }),
 
-/***/ "./src/ui/dialogComponents.js":
-/*!************************************!*\
-  !*** ./src/ui/dialogComponents.js ***!
-  \************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ "./src/ui/dialogs/components/baseComponent.ts":
+/*!****************************************************!*\
+  !*** ./src/ui/dialogs/components/baseComponent.ts ***!
+  \****************************************************/
+/***/ ((__unused_webpack_module, exports) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiTextInputComposite = exports.SuiTextInputComponent = exports.SuiRockerComposite = exports.SuiButtonComposite = exports.SuiToggleComposite = exports.SuiDropdownComposite = exports.SuiDropdownComponent = exports.SuiButtonComponent = exports.SuiToggleComponent = exports.SuiFileDownloadComponent = exports.SuiRockerComponent = exports.SuiComponentBase = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const serializationHelpers_1 = __webpack_require__(/*! ../common/serializationHelpers */ "./src/common/serializationHelpers.js");
-const fileInput_1 = __webpack_require__(/*! ./fileio/fileInput */ "./src/ui/fileio/fileInput.js");
-// # dbComponents - components of modal dialogs.
+exports.SuiComponentParent = exports.SuiComponentBase = exports.SuiDialogNotifier = void 0;
+/**
+ * components know about their parent dialog via the
+ * DialogNotifier interface.  It allows a component to
+ * notify parent of changing contents.
+ */
+class SuiDialogNotifier {
+}
+exports.SuiDialogNotifier = SuiDialogNotifier;
+/**
+ * base class for Dialog components.  Notifies parent
+ * dialog of state change via `change()`
+ */
 class SuiComponentBase {
-    constructor(parameters) {
+    constructor(dialog, parameters) {
+        this.changeFlag = false;
         this.changeFlag = false;
         this.css = parameters.classes;
+        this.dialog = dialog;
+        this.id = parameters.id;
+        this.label = parameters.label;
+        this.control = parameters.control;
+        this.smoName = parameters.smoName;
     }
+    /**
+     * Called by the derived class when the value changes.  The change flag is set to true, so the dialog will
+     * know which component changed.
+     */
     handleChanged() {
         this.changeFlag = true;
         this.dialog.changed();
         this.changeFlag = false;
     }
-    // ### makeClasses
-    // Allow specific dialogs to add css to components so they can
-    // be conditionally displayed
+    /**
+     * combine component classes with string, used for composites
+     * @param classes string ot append
+     * @returns combined strings
+     */
     makeClasses(classes) {
         if (this.css) {
             return classes + ' ' + this.css;
         }
         return classes;
     }
+    get parameterId() {
+        return this.dialog.getId() + '-' + this.smoName;
+    }
+    show() {
+        $('#' + this.parameterId).removeClass('hide');
+    }
+    hide() {
+        $('#' + this.parameterId).addClass('hide');
+    }
 }
 exports.SuiComponentBase = SuiComponentBase;
-// ## SuiRockerComponent
-// A numeric input box with +- buttons.   Adjustable type and scale
-class SuiRockerComponent extends SuiComponentBase {
-    static get dataTypes() {
-        return ['int', 'float', 'percent'];
-    }
-    static get increments() {
-        return { 'int': 1, 'float': 0.1, 'percent': 10 };
-    }
-    static get parsers() {
-        return { 'int': '_getIntValue', 'float': '_getFloatValue', 'percent': '_getPercentValue' };
-    }
-    constructor(dialog, parameter) {
-        super(parameter);
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'defaultValue', 'control', 'label', 'increment', 'type'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        if (!this.type) {
-            this.type = 'int';
-        }
-        if (!this.increment) {
-            this.increment = SuiRockerComponent.increments[this.type];
-        }
-        if (SuiRockerComponent.dataTypes.indexOf(this.type) < 0) {
-            throw new Error('dialog element invalid type ' + this.type);
-        }
-        this.id = this.id ? this.id : '';
-        if (this.type === 'percent') {
-            this.defaultValue = 100 * this.defaultValue;
-        }
-        this.parser = SuiRockerComponent.parsers[this.type];
-        this.dialog = dialog;
-    }
-    get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
-        const id = this.parameterId;
-        const r = b('div').classes(this.makeClasses('rockerControl smoControl')).attr('id', id).attr('data-param', this.parameterName)
-            .append(b('button').classes('increment').append(b('span').classes('icon icon-circle-up'))).append(b('button').classes('decrement').append(b('span').classes('icon icon-circle-down'))).append(b('input').attr('type', 'text').classes('rockerInput')
-            .attr('id', id + '-input')).append(b('label').attr('for', id + '-input').text(this.label));
-        return r;
-    }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
-    handleChange() {
-        this.changeFlag = true;
-        this.dialog.changed();
-        this.changeFlag = false;
-    }
-    bind() {
-        const pid = this.parameterId;
-        const input = this._getInputElement();
-        let val = 0;
-        this.setValue(this.defaultValue);
-        const self = this;
-        $('#' + pid).find('button.increment').off('click').on('click', () => {
-            val = self[self.parser]();
-            if (self.type === 'percent') {
-                val = 100 * val;
-            }
-            $(input).val(val + self.increment);
-            self.handleChanged();
-        });
-        $('#' + pid).find('button.decrement').off('click').on('click', () => {
-            val = self[self.parser]();
-            if (self.type === 'percent') {
-                val = 100 * val;
-            }
-            $(input).val(val - self.increment);
-            self.handleChanged();
-        });
-        $(input).off('blur').on('blur', () => {
-            self.handleChanged();
-        });
-    }
-    _getInputElement() {
-        const pid = this.parameterId;
-        return $(this.dialog.dgDom.element).find('#' + pid).find('input');
-    }
-    _getIntValue() {
-        let val = parseInt(this._getInputElement().val(), 10);
-        val = isNaN(val) ? 0 : val;
-        return val;
-    }
-    _getFloatValue() {
-        let val = parseFloat(this._getInputElement().val(), 10);
-        val = isNaN(val) ? 1.0 : val;
-        return val;
-    }
-    _getPercentValue() {
-        let val = parseFloat(this._getInputElement().val(), 10);
-        val = isNaN(val) ? 1 : val;
-        return val / 100;
-    }
-    _setIntValue(val) {
-        this._getInputElement().val(val);
-    }
-    setValue(value) {
-        if (this.type === 'percent') {
-            value = value * 100;
-        }
-        this._setIntValue(value);
-    }
-    getValue() {
-        return this[this.parser]();
-    }
+/**
+ * Parent components are really containers for other components
+ * For instance, FontComponent has size, family, weight, etc.
+ *
+ */
+class SuiComponentParent extends SuiComponentBase {
 }
-exports.SuiRockerComponent = SuiRockerComponent;
-// ## SuiFileDownloadComponent
-// Download a test file using the file input.
-class SuiFileDownloadComponent extends SuiComponentBase {
-    constructor(dialog, parameter) {
-        super(parameter);
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        this.dialog = dialog;
-        this.value = '';
-    }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
-    get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
-        const id = this.parameterId;
-        var r = b('div').classes(this.makeClasses('select-file')).attr('id', this.parameterId).attr('data-param', this.parameterName)
-            .append(b('input').attr('type', 'file').classes('file-button')
-            .attr('id', id + '-input')).append(b('label').attr('for', id + '-input').text(this.label));
-        return r;
-    }
-    _handleUploadedFiles(evt) {
-        const localFile = new fileInput_1.SuiFileInput(evt);
-        localFile.loadAsync().then(() => {
-            this.value = localFile.value;
-            this.handleChanged();
-        });
-    }
-    getValue() {
-        return this.value;
-    }
-    bind() {
-        const self = this;
-        $('#' + this.parameterId).find('input').off('change').on('change', (e) => {
-            self._handleUploadedFiles(e);
-        });
-    }
-}
-exports.SuiFileDownloadComponent = SuiFileDownloadComponent;
+exports.SuiComponentParent = SuiComponentParent;
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/components/button.ts":
+/*!*********************************************!*\
+  !*** ./src/ui/dialogs/components/button.ts ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiButtonComposite = exports.SuiButtonComponent = void 0;
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 // ## SuiToggleComponent
-// Simple on/off behavior
-class SuiToggleComponent extends SuiComponentBase {
+// Simple on/off behavior.  No value just used to notifiy parent dialog
+class SuiButtonComponent extends baseComponent_1.SuiComponentBase {
     constructor(dialog, parameter) {
-        super(parameter);
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
+        super(dialog, parameter);
         this.dialog = dialog;
-    }
-    get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
-        const id = this.parameterId;
-        const r = b('div').classes(this.makeClasses('toggleControl smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
-            .append(b('input').attr('type', 'checkbox').classes('toggleInput')
-            .attr('id', id + '-input')).append(b('label').attr('for', id + '-input').text(this.label));
-        return r;
-    }
-    _getInputElement() {
-        const pid = this.parameterId;
-        return $(this.dialog.dgDom.element).find('#' + pid).find('input');
-    }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
-    setValue(value) {
-        $(this._getInputElement()).prop('checked', value);
-    }
-    getValue() {
-        return $(this._getInputElement()).prop('checked');
-    }
-    bind() {
-        const input = this._getInputElement();
-        this.setValue(this.defaultValue);
-        const self = this;
-        $(input).off('change').on('change', () => {
-            self.handleChanged();
-        });
-    }
-}
-exports.SuiToggleComponent = SuiToggleComponent;
-// ## SuiToggleComponent
-// Simple on/off behavior
-class SuiButtonComponent extends SuiComponentBase {
-    constructor(dialog, parameter) {
-        super(parameter);
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'defaultValue', 'control', 'label', 'additionalClasses', 'icon'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        this.dialog = dialog;
+        this.icon = parameter.icon;
     }
     get html() {
         const b = htmlHelpers_1.htmlHelpers.buildDom;
         const id = this.parameterId;
         this.icon = typeof (this.icon) === 'undefined' ? '' : this.icon;
-        const r = b('div').classes(this.makeClasses('buttonControl smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
+        const r = b('div').classes(this.makeClasses('buttonControl smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
             .append(b('button').attr('type', 'button').classes(this.icon)
             .attr('id', id + '-input')).append(b('label').attr('for', id + '-input').text(this.label));
         return r;
@@ -32088,9 +32905,6 @@ class SuiButtonComponent extends SuiComponentBase {
         var pid = this.parameterId;
         return $(this.dialog.dgDom.element).find('#' + pid).find('button');
     }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
     setValue() {
     }
     getValue() {
@@ -32098,40 +32912,212 @@ class SuiButtonComponent extends SuiComponentBase {
     }
     bind() {
         const input = this._getInputElement();
-        this.setValue(this.defaultValue);
-        const self = this;
         $(input).off('click').on('click', () => {
-            self.handleChanged();
+            this.handleChanged();
         });
     }
 }
 exports.SuiButtonComponent = SuiButtonComponent;
-// ### SuiDropdownComponent
-// simple dropdown select list.
-class SuiDropdownComponent extends SuiComponentBase {
-    constructor(dialog, parameter) {
-        super(parameter);
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType', 'disabledOption'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        if (!this.dataType) {
-            this.dataType = 'string';
-        }
-        this.dialog = dialog;
+// ### SuiButtonComposite
+// Dropdown component that can be part of a composite control.
+class SuiButtonComposite extends SuiButtonComponent {
+    constructor(dialog, parameters) {
+        super(dialog, parameters);
+        this.parentControl = parameters.parentControl;
     }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
+    handleChanged() {
+        this.changeFlag = true;
+        this.parentControl.changed();
+        this.changeFlag = false;
+    }
+}
+exports.SuiButtonComposite = SuiButtonComposite;
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/components/checkdrop.ts":
+/*!************************************************!*\
+  !*** ./src/ui/dialogs/components/checkdrop.ts ***!
+  \************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CheckboxDropdownComponent = void 0;
+const baseComponent_1 = __webpack_require__(/*! ../components/baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
+const toggle_1 = __webpack_require__(/*! ../components/toggle */ "./src/ui/dialogs/components/toggle.ts");
+const dropdown_1 = __webpack_require__(/*! ../components/dropdown */ "./src/ui/dialogs/components/dropdown.ts");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+// ## CheckboxDropdownComponent
+// A checkbox that enables a dropdown component, for optional or dependent parameter
+class CheckboxDropdownComponent extends baseComponent_1.SuiComponentParent {
+    constructor(dialog, parameter) {
+        super(dialog, parameter);
+        const toggleParams = Object.assign({ id: this.id + parameter.toggleElement.smoName, classes: '', parentControl: this }, parameter.toggleElement);
+        const dropdownParams = Object.assign({ id: this.id + parameter.dropdownElement.smoName, classes: '', defaultValue: '', parentControl: this }, parameter.dropdownElement);
+        this.toggleCtrl = new toggle_1.SuiToggleComposite(this.dialog, toggleParams);
+        this.dropdownCtrl = new dropdown_1.SuiDropdownComposite(this.dialog, dropdownParams);
+    }
+    get html() {
+        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const q = b('div').classes(this.makeClasses('multiControl smoControl checkboxDropdown'))
+            .attr('id', this.parameterId);
+        q.append(this.toggleCtrl.html);
+        q.append(this.dropdownCtrl.html);
+        return q;
+    }
+    bind() {
+        this.toggleCtrl.bind();
+        this.dropdownCtrl.bind();
+    }
+    changed() {
+        if (this.toggleCtrl.getValue()) {
+            $('#' + this.parameterId).addClass('checked');
+        }
+        else {
+            $('#' + this.parameterId).removeClass('checked');
+        }
+        this.handleChanged();
+    }
+}
+exports.CheckboxDropdownComponent = CheckboxDropdownComponent;
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/components/dragText.ts":
+/*!***********************************************!*\
+  !*** ./src/ui/dialogs/components/dragText.ts ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiDragText = void 0;
+const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
+const textEdit_1 = __webpack_require__(/*! ../../../render/sui/textEdit */ "./src/render/sui/textEdit.ts");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+// ## SuiDragText
+// A component that lets you drag the text you are editing to anywhere on the score.
+// The text is not really part of the dialog but the location of the text appears
+// in other dialog fields.
+class SuiDragText extends baseComponent_1.SuiComponentBase {
+    constructor(dialog, parameter) {
+        super(dialog, parameter);
+        this.dragging = false;
+        this.running = false;
+        this.value = '';
+        this.session = null;
+        this.dragging = false;
+        this.running = false;
+        this.staticText = this.dialog.getStaticText();
+        this.altLabel = this.staticText.draggerLabel;
+        this.value = '';
+        this.view = this.dialog.getView();
+    }
+    get html() {
+        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var r = b('div').classes(this.makeClasses('cbDragTextDialog smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
+            .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
+            .attr('id', id + '-input').append(b('span').classes('icon icon-move'))
+            .append(b('label').attr('for', id + '-input').text(this.label)));
+        return r;
+    }
+    show() { }
+    hide() { }
+    _getInputElement() {
+        var pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+    }
+    stopEditSession() {
+        $('body').removeClass('text-move');
+        $(this._getInputElement()).find('span.icon').removeClass('icon-checkmark').addClass('icon-move');
+        if (this.session && this.session.dragging) {
+            this.session.dragging = false;
+        }
+        this.running = false;
+    }
+    startEditSession() {
+        $('body').addClass('text-move');
+        this.session = new textEdit_1.SuiDragSession({
+            textGroup: this.dialog.modifier,
+            context: this.view.renderer.context,
+            scroller: this.view.tracker.scroller
+        });
+        $(this._getInputElement()).find('label').text(this.altLabel);
+        $(this._getInputElement()).find('span.icon').removeClass('icon-enlarge').addClass('icon-checkmark');
+        this.running = true;
+    }
+    mouseMove(e) {
+        if (this.session && this.session.dragging) {
+            this.session.mouseMove(e);
+        }
+    }
+    mouseDown(e) {
+        if (this.session && !this.session.dragging) {
+            this.session.startDrag(e);
+            this.dragging = true;
+        }
+    }
+    mouseUp(e) {
+        if (this.session && this.session.dragging) {
+            this.session.endDrag();
+            this.dragging = false;
+            this.handleChanged();
+        }
+    }
+    bind() {
+        const self = this;
+        $(this._getInputElement()).off('click').on('click', () => {
+            if (self.running) {
+                self.stopEditSession();
+            }
+            else {
+                self.startEditSession();
+            }
+        });
+    }
+}
+exports.SuiDragText = SuiDragText;
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/components/dropdown.ts":
+/*!***********************************************!*\
+  !*** ./src/ui/dialogs/components/dropdown.ts ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiDropdownComposite = exports.SuiDropdownComponent = void 0;
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
+/**
+ * single-select dropdown list
+ */
+class SuiDropdownComponent extends baseComponent_1.SuiComponentBase {
+    constructor(dialog, parameter) {
+        var _a, _b;
+        super(dialog, parameter);
+        this.value = '';
+        this.options = parameter.options;
+        this.disabledOption = (_a = parameter.disabledOption) !== null && _a !== void 0 ? _a : '';
+        this.dataType = (_b = parameter.dataType) !== null && _b !== void 0 ? _b : 'string';
+        this.defaultValue = parameter.defaultValue;
     }
     checkDefault(s, b) {
-        if (typeof (this.disabledOption) === 'string') {
+        if (this.disabledOption.length) {
             s.prop('required', true).append(b('option').attr('selected', 'selected').prop('disabled', true).text(this.disabledOption));
         }
     }
     get html() {
         const b = htmlHelpers_1.htmlHelpers.buildDom;
         const id = this.parameterId;
-        const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.parameterName);
+        const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.smoName);
         const s = b('select');
         this.checkDefault(s, b);
         this.options.forEach((option) => {
@@ -32166,7 +33152,7 @@ class SuiDropdownComponent extends SuiComponentBase {
         const option = input.find('option:selected');
         let val = $(option).val();
         val = (this.dataType.toLowerCase() === 'int') ? parseInt(val, 10) : val;
-        val = (this.dataType.toLowerCase() === 'float') ? parseFloat(val, 10) : val;
+        val = (this.dataType.toLowerCase() === 'float') ? parseFloat(val) : val;
         if (typeof (val) === 'undefined') {
             val = $(input).find('option:first').val();
             $(input).find('option:first').prop('selected', true);
@@ -32203,653 +33189,99 @@ class SuiDropdownComposite extends SuiDropdownComponent {
     }
 }
 exports.SuiDropdownComposite = SuiDropdownComposite;
-// ### SuiToggleComposite
-// Dropdown component that can be part of a composite control.
-class SuiToggleComposite extends SuiToggleComponent {
-    constructor(dialog, parameters) {
-        super(dialog, parameters);
-        this.parentControl = parameters.parentControl;
-    }
-    handleChanged() {
-        this.changeFlag = true;
-        this.parentControl.changed();
-        this.changeFlag = false;
-    }
-}
-exports.SuiToggleComposite = SuiToggleComposite;
-// ### SuiButtonComposite
-// Dropdown component that can be part of a composite control.
-class SuiButtonComposite extends SuiButtonComponent {
-    constructor(dialog, parameters) {
-        super(dialog, parameters);
-        this.parentControl = parameters.parentControl;
-    }
-    handleChanged() {
-        this.changeFlag = true;
-        this.parentControl.changed();
-        this.changeFlag = false;
-    }
-}
-exports.SuiButtonComposite = SuiButtonComposite;
-class SuiRockerComposite extends SuiRockerComponent {
-    constructor(dialog, parameters) {
-        super(dialog, parameters);
-        this.parentControl = parameters.parentControl;
-    }
-    handleChanged() {
-        this.changeFlag = true;
-        this.parentControl.changed();
-        this.changeFlag = false;
-    }
-}
-exports.SuiRockerComposite = SuiRockerComposite;
-// ## SuiTextInputComponent
-// Just get text from an input, such as a filename.
-// Note: this is HTML input, not for SVG/score editing
-class SuiTextInputComponent extends SuiComponentBase {
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/components/fileDownload.ts":
+/*!***************************************************!*\
+  !*** ./src/ui/dialogs/components/fileDownload.ts ***!
+  \***************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiFileDownloadComponent = void 0;
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
+const fileInput_1 = __webpack_require__(/*! ../../fileio/fileInput */ "./src/ui/fileio/fileInput.js");
+// ## SuiFileDownloadComponent
+// Download a test file using the file input.
+class SuiFileDownloadComponent extends baseComponent_1.SuiComponentBase {
     constructor(dialog, parameter) {
-        super(parameter);
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        this.dialog = dialog;
+        var _a;
+        super(dialog, parameter);
         this.value = '';
-    }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
+        this.defaultValue = (_a = parameter.defaultValue) !== null && _a !== void 0 ? _a : '';
+        this.dialog = dialog;
     }
     get html() {
         const b = htmlHelpers_1.htmlHelpers.buildDom;
         const id = this.parameterId;
-        const r = b('div').classes(this.makeClasses('text-input smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
-            .append(b('input').attr('type', 'text').classes('file-name')
+        var r = b('div').classes(this.makeClasses('select-file')).attr('id', this.parameterId).attr('data-param', this.smoName)
+            .append(b('input').attr('type', 'file').classes('file-button')
             .attr('id', id + '-input')).append(b('label').attr('for', id + '-input').text(this.label));
         return r;
+    }
+    _handleUploadedFiles(evt) {
+        const localFile = new fileInput_1.SuiFileInput(evt);
+        localFile.loadAsync().then(() => {
+            this.value = localFile.value;
+            this.handleChanged();
+        });
     }
     getValue() {
         return this.value;
     }
-    setValue(val) {
-        this.value = val;
-        $('#' + this.parameterId).find('input').val(val);
-    }
-    _getInputElement() {
-        const pid = this.parameterId;
-        return $(this.dialog.dgDom.element).find('#' + pid).find('input');
+    setValue(value) {
+        this.value = value;
     }
     bind() {
         const self = this;
-        $('#' + this.parameterId).find('input').off('change').on('change', () => {
-            self.value = $(this._getInputElement()).val();
-            self.handleChanged();
+        $('#' + this.parameterId).find('input').off('change').on('change', (e) => {
+            self._handleUploadedFiles(e);
         });
     }
 }
-exports.SuiTextInputComponent = SuiTextInputComponent;
-class SuiTextInputComposite extends SuiTextInputComponent {
-    constructor(dialog, parameters) {
-        super(dialog, parameters);
-        this.parentControl = parameters.parentControl;
-    }
-    handleChanged() {
-        this.changeFlag = true;
-        this.parentControl.changed();
-        this.changeFlag = false;
-    }
-}
-exports.SuiTextInputComposite = SuiTextInputComposite;
+exports.SuiFileDownloadComponent = SuiFileDownloadComponent;
 
 
 /***/ }),
 
-/***/ "./src/ui/dialogs/fileDialogs.js":
-/*!***************************************!*\
-  !*** ./src/ui/dialogs/fileDialogs.js ***!
-  \***************************************/
+/***/ "./src/ui/dialogs/components/fontComponent.ts":
+/*!****************************************************!*\
+  !*** ./src/ui/dialogs/components/fontComponent.ts ***!
+  \****************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiSaveActionsDialog = exports.SuiSaveMidiDialog = exports.SuiSaveXmlDialog = exports.SuiSaveFileDialog = exports.SuiPrintFileDialog = exports.SuiLoadActionsDialog = exports.SuiLoadMxmlDialog = exports.SuiLoadFileDialog = exports.SuiFileDialog = void 0;
+exports.SuiFontComponent = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const dialog_1 = __webpack_require__(/*! ../dialog */ "./src/ui/dialog.js");
-const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
-const xmlScore_1 = __webpack_require__(/*! ../../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
-class SuiFileDialog extends dialog_1.SuiDialogBase {
-    constructor(parameters) {
-        var p = parameters;
-        var ctor = Smo.getClass(parameters.ctor);
-        p.label = parameters.label ? parameters.label : 'Dialog Box';
-        p.id = 'dialog-file';
-        super(ctor.dialogElements, p);
-        this.value = '';
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this._bindElements();
-    }
-    _bindElements() {
-        const dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            this.commit();
-        });
-        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-            this.complete();
-        });
-        $(dgDom.element).find('.remove-button').remove();
-        this.bindKeyboard();
-    }
-}
-exports.SuiFileDialog = SuiFileDialog;
-class SuiLoadFileDialog extends SuiFileDialog {
-    static get ctor() {
-        return 'SuiLoadFileDialog';
-    }
-    get ctor() {
-        return SuiLoadFileDialog.ctor;
-    }
-    static get dialogElements() {
-        SuiLoadFileDialog._dialogElements = SuiLoadFileDialog._dialogElements ? SuiLoadFileDialog._dialogElements :
-            [{
-                    smoName: 'loadFile',
-                    parameterName: 'jsonFile',
-                    defaultValue: '',
-                    control: 'SuiFileDownloadComponent',
-                    label: ''
-                }, { staticText: [
-                        { label: 'Load File' }
-                    ] }
-            ];
-        return SuiLoadFileDialog._dialogElements;
-    }
-    changed() {
-        this.value = this.components[0].getValue();
-        $(this.dgDom.element).find('.ok-button').prop('disabled', false);
-    }
-    commit() {
-        let scoreWorks = false;
-        if (this.value) {
-            try {
-                const score = score_1.SmoScore.deserialize(this.value);
-                scoreWorks = true;
-                this.view.changeScore(score);
-                this.complete();
-            }
-            catch (e) {
-                console.warn('unable to score ' + e);
-            }
-            if (!scoreWorks) {
-                this.complete();
-            }
-        }
-    }
-    static createAndDisplay(params) {
-        const dg = new SuiLoadFileDialog(params);
-        dg.display();
-        // disable until file is selected
-        $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
-    }
-    constructor(parameters) {
-        parameters.ctor = 'SuiLoadFileDialog';
-        super(parameters);
-    }
-}
-exports.SuiLoadFileDialog = SuiLoadFileDialog;
-class SuiLoadMxmlDialog extends SuiFileDialog {
-    static get ctor() {
-        return 'SuiLoadMxmlDialog';
-    }
-    get ctor() {
-        return SuiLoadMxmlDialog.ctor;
-    }
-    static get dialogElements() {
-        SuiLoadMxmlDialog._dialogElements = SuiLoadMxmlDialog._dialogElements ? SuiLoadMxmlDialog._dialogElements :
-            [{
-                    smoName: 'loadFile',
-                    parameterName: 'jsonFile',
-                    defaultValue: '',
-                    control: 'SuiFileDownloadComponent',
-                    label: ''
-                }, { staticText: [
-                        { label: 'Load File' }
-                    ] }
-            ];
-        return SuiLoadMxmlDialog._dialogElements;
-    }
-    changed() {
-        this.value = this.components[0].getValue();
-        $(this.dgDom.element).find('.ok-button').prop('disabled', false);
-    }
-    _readZipAsync() {
-    }
-    commit() {
-        let scoreWorks = false;
-        if (this.value) {
-            try {
-                const parser = new DOMParser();
-                const xml = parser.parseFromString(this.value, 'text/xml');
-                const score = xmlScore_1.mxmlScore.smoScoreFromXml(xml);
-                scoreWorks = true;
-                this.view.changeScore(score);
-                this.complete();
-            }
-            catch (e) {
-                console.warn('unable to score ' + e);
-            }
-            if (!scoreWorks) {
-                this.complete();
-            }
-        }
-    }
-    static createAndDisplay(params) {
-        const dg = new SuiLoadMxmlDialog(params);
-        dg.display();
-        // disable until file is selected
-        $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
-    }
-    constructor(parameters) {
-        parameters.ctor = 'SuiLoadMxmlDialog';
-        super(parameters);
-    }
-}
-exports.SuiLoadMxmlDialog = SuiLoadMxmlDialog;
-class SuiLoadActionsDialog extends SuiFileDialog {
-    static get ctor() {
-        return 'SuiLoadActionsDialog';
-    }
-    get ctor() {
-        return SuiLoadActionsDialog.ctor;
-    }
-    static get dialogElements() {
-        SuiLoadActionsDialog._dialogElements = SuiLoadActionsDialog._dialogElements ? SuiLoadActionsDialog._dialogElements :
-            [{
-                    smoName: 'loadFile',
-                    parameterName: 'jsonFile',
-                    defaultValue: '',
-                    control: 'SuiFileDownloadComponent',
-                    label: ''
-                }, { staticText: [
-                        { label: 'Load Action File' }
-                    ] }
-            ];
-        return SuiLoadActionsDialog._dialogElements;
-    }
-    changed() {
-        this.value = this.loadFileCtrl.getValue();
-        $(this.dgDom.element).find('.ok-button').prop('disabled', false);
-    }
-    commit() {
-        let scoreWorks = false;
-        if (this.value) {
-            try {
-                const json = JSON.parse(this.value);
-                this.view.playActions(json);
-                scoreWorks = true;
-                this.complete();
-            }
-            catch (e) {
-                console.warn('unable to score ' + e);
-            }
-            if (!scoreWorks) {
-                this.complete();
-            }
-        }
-    }
-    static createAndDisplay(params) {
-        const dg = new SuiLoadActionsDialog(params);
-        dg.display();
-        dg._bindComponentNames();
-        // disable until file is selected
-        $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
-    }
-    constructor(parameters) {
-        parameters.ctor = 'SuiLoadActionsDialog';
-        super(parameters);
-    }
-}
-exports.SuiLoadActionsDialog = SuiLoadActionsDialog;
-class SuiPrintFileDialog extends SuiFileDialog {
-    static get ctor() {
-        return 'SuiPrintFileDialog';
-    }
-    get ctor() {
-        return SuiPrintFileDialog.ctor;
-    }
-    static get label() {
-        SuiPrintFileDialog._label = typeof (SuiPrintFileDialog._label) !== 'undefined' ? SuiPrintFileDialog._label :
-            'Print Complete';
-        return SuiPrintFileDialog._label;
-    }
-    static set label(value) {
-        SuiPrintFileDialog._label = value;
-    }
-    static get dialogElements() {
-        return [
-            { staticText: [
-                    { label: 'Print Complete' }
-                ] }
-        ];
-    }
-    static createAndDisplay(params) {
-        var dg = new SuiPrintFileDialog(params);
-        dg.display();
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'GLOBALPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this._bindElements();
-    }
-    constructor(parameters) {
-        parameters.ctor = 'SuiPrintFileDialog';
-        super(parameters);
-    }
-    changed() { }
-    _bindElements() {
-        const dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            $('body').removeClass('printing');
-            this.view.renderer.restoreLayoutAfterPrint();
-            window.dispatchEvent(new Event('resize'));
-            this.complete();
-        });
-        $(dgDom.element).find('.cancel-button').remove();
-        $(dgDom.element).find('.remove-button').remove();
-    }
-}
-exports.SuiPrintFileDialog = SuiPrintFileDialog;
-class SuiSaveFileDialog extends SuiFileDialog {
-    static get ctor() {
-        return 'SuiSaveFileDialog';
-    }
-    get ctor() {
-        return SuiSaveFileDialog.ctor;
-    }
-    static get dialogElements() {
-        SuiSaveFileDialog._dialogElements = typeof (SuiSaveFileDialog._dialogElements) !== 'undefined' ?
-            SuiSaveFileDialog._dialogElements :
-            [{
-                    smoName: 'saveFileName',
-                    parameterName: 'saveFileName',
-                    defaultValue: '',
-                    control: 'SuiTextInputComponent',
-                    label: 'File Name'
-                },
-                {
-                    staticText: [
-                        { label: 'Save Score' }
-                    ]
-                }];
-        return SuiSaveFileDialog._dialogElements;
-    }
-    changed() {
-        this.value = this.components[0].getValue();
-    }
-    commit() {
-        let filename = this.value;
-        if (!filename) {
-            filename = 'myScore.json';
-        }
-        if (filename.indexOf('.json') < 0) {
-            filename = filename + '.json';
-        }
-        this.view.score.scoreInfo.version += 1;
-        this.view.saveScore(filename);
-        this.complete();
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this.saveFileNameCtrl.setValue(this.value);
-        this._bindElements();
-    }
-    static createName(score) {
-        return score.scoreInfo.name + '-' + score.scoreInfo.version + '.json';
-    }
-    static createAndDisplay(params) {
-        var dg = new SuiSaveFileDialog(params);
-        dg.display();
-    }
-    constructor(parameters) {
-        parameters.ctor = 'SuiSaveFileDialog';
-        super(parameters);
-        this.value = SuiSaveFileDialog.createName(this.view.score);
-    }
-}
-exports.SuiSaveFileDialog = SuiSaveFileDialog;
-class SuiSaveXmlDialog extends SuiFileDialog {
-    static get ctor() {
-        return 'SuiSaveXmlDialog';
-    }
-    get ctor() {
-        return SuiSaveXmlDialog.ctor;
-    }
-    static get dialogElements() {
-        SuiSaveXmlDialog._dialogElements = typeof (SuiSaveXmlDialog._dialogElements) !== 'undefined' ?
-            SuiSaveXmlDialog._dialogElements :
-            [{
-                    smoName: 'saveFileName',
-                    parameterName: 'saveFileName',
-                    defaultValue: '',
-                    control: 'SuiTextInputComponent',
-                    label: 'File Name'
-                },
-                {
-                    staticText: [
-                        { label: 'Save Score' }
-                    ]
-                }];
-        return SuiSaveXmlDialog._dialogElements;
-    }
-    changed() {
-        this.value = this.components[0].getValue();
-    }
-    commit() {
-        let filename = this.value;
-        if (!filename) {
-            filename = 'myScore.xml';
-        }
-        if (filename.indexOf('.xml') < 0) {
-            filename = filename + '.xml';
-        }
-        this.view.score.scoreInfo.version += 1;
-        this.view.saveXml(filename);
-        this.complete();
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this._bindElements();
-        this.saveFileNameCtrl.setValue(this.value);
-    }
-    static createName(score) {
-        return score.scoreInfo.name + '-' + score.scoreInfo.version + '.xml';
-    }
-    static createAndDisplay(params) {
-        var dg = new SuiSaveXmlDialog(params);
-        dg.display();
-    }
-    constructor(parameters) {
-        parameters.ctor = 'SuiSaveXmlDialog';
-        super(parameters);
-        this.value = SuiSaveXmlDialog.createName(this.view.score);
-    }
-}
-exports.SuiSaveXmlDialog = SuiSaveXmlDialog;
-class SuiSaveMidiDialog extends SuiFileDialog {
-    static get ctor() {
-        return 'SuiSaveMidiDialog';
-    }
-    get ctor() {
-        return SuiSaveMidiDialog.ctor;
-    }
-    static get dialogElements() {
-        SuiSaveMidiDialog._dialogElements = typeof (SuiSaveMidiDialog._dialogElements) !== 'undefined' ?
-            SuiSaveMidiDialog._dialogElements :
-            [{
-                    smoName: 'saveFileName',
-                    parameterName: 'saveFileName',
-                    defaultValue: '',
-                    control: 'SuiTextInputComponent',
-                    label: 'File Name'
-                },
-                {
-                    staticText: [
-                        { label: 'Save Score as Midi' }
-                    ]
-                }];
-        return SuiSaveMidiDialog._dialogElements;
-    }
-    changed() {
-        this.value = this.components[0].getValue();
-    }
-    commit() {
-        let filename = this.value;
-        if (!filename) {
-            filename = 'myScore.mid';
-        }
-        if (filename.indexOf('.mid') < 0) {
-            filename = filename + '.mid';
-        }
-        this.view.score.scoreInfo.version += 1;
-        this.view.saveMidi(filename);
-        this.complete();
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this.saveFileNameCtrl.setValue(this.value);
-        this._bindElements();
-    }
-    static createName(score) {
-        return score.scoreInfo.name + '-' + score.scoreInfo.version + '.mid';
-    }
-    static createAndDisplay(params) {
-        var dg = new SuiSaveMidiDialog(params);
-        dg.display();
-    }
-    constructor(parameters) {
-        parameters.ctor = 'SuiSaveMidiDialog';
-        super(parameters);
-        this.value = SuiSaveMidiDialog.createName(this.view.score);
-    }
-}
-exports.SuiSaveMidiDialog = SuiSaveMidiDialog;
-class SuiSaveActionsDialog extends SuiFileDialog {
-    static get ctor() {
-        return 'SuiSaveActionsDialog';
-    }
-    get ctor() {
-        return SuiSaveActionsDialog.ctor;
-    }
-    static get dialogElements() {
-        SuiSaveActionsDialog._dialogElements = typeof (SuiSaveActionsDialog._dialogElements) !== 'undefined' ?
-            SuiSaveActionsDialog._dialogElements :
-            [{
-                    smoName: 'saveFileName',
-                    parameterName: 'saveFileName',
-                    defaultValue: '',
-                    control: 'SuiTextInputComponent',
-                    label: 'File Name'
-                },
-                {
-                    staticText: [
-                        { label: 'Save Score' }
-                    ]
-                }];
-        return SuiSaveActionsDialog._dialogElements;
-    }
-    changed() {
-        this.value = this.components[0].getValue();
-    }
-    commit() {
-        let filename = this.value;
-        if (!filename) {
-            filename = 'myScore.json';
-        }
-        if (filename.indexOf('.json') < 0) {
-            filename = filename + '.json';
-        }
-        this.view.score.scoreInfo.version += 1;
-        this.view.saveActions(filename);
-        this.complete();
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this.saveFileNameCtrl.setValue(this.value);
-        this._bindElements();
-    }
-    static createName(score) {
-        return score.scoreInfo.name + '-' + score.scoreInfo.version + '-actions.json';
-    }
-    static createAndDisplay(params) {
-        var dg = new SuiSaveActionsDialog(params);
-        dg.display();
-    }
-    constructor(parameters) {
-        parameters.ctor = 'SuiSaveActionsDialog';
-        super(parameters);
-        this.value = SuiSaveActionsDialog.createName(this.view.score);
-    }
-}
-exports.SuiSaveActionsDialog = SuiSaveActionsDialog;
-
-
-/***/ }),
-
-/***/ "./src/ui/dialogs/fontComponent.js":
-/*!*****************************************!*\
-  !*** ./src/ui/dialogs/fontComponent.js ***!
-  \*****************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiTextBlockComponent = exports.SuiFontComponent = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const dialogComponents_1 = __webpack_require__(/*! ../dialogComponents */ "./src/ui/dialogComponents.js");
-const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
-const ssp_serif_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-serif-metrics */ "./src/styles/font_metrics/ssp-serif-metrics.js");
-const ssp_sans_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
+const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
+const dropdown_1 = __webpack_require__(/*! ./dropdown */ "./src/ui/dialogs/components/dropdown.ts");
+const rocker_1 = __webpack_require__(/*! ./rocker */ "./src/ui/dialogs/components/rocker.ts");
+const toggle_1 = __webpack_require__(/*! ./toggle */ "./src/ui/dialogs/components/toggle.ts");
+const scoreModifiers_1 = __webpack_require__(/*! ../../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const ssp_serif_metrics_1 = __webpack_require__(/*! ../../../styles/font_metrics/ssp-serif-metrics */ "./src/styles/font_metrics/ssp-serif-metrics.js");
+const ssp_sans_metrics_1 = __webpack_require__(/*! ../../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
 // ## SuiFontComponent
 // Dialog component that lets user choose and customize fonts.
-class SuiFontComponent extends dialogComponents_1.SuiComponentBase {
+class SuiFontComponent extends baseComponent_1.SuiComponentBase {
     constructor(dialog, parameter) {
-        super(parameter);
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        if (!this.dataType) {
-            this.dataType = 'string';
-        }
+        super(dialog, parameter);
         this.dialog = dialog;
-        this.familyPart = new dialogComponents_1.SuiDropdownComposite(this.dialog, {
+        const familyId = this.id + 'fontFamily';
+        const sizeId = this.id + 'fontSize';
+        this.familyPart = new dropdown_1.SuiDropdownComposite(this.dialog, {
+            id: familyId,
             smoName: 'fontFamily',
-            parameterName: 'fontFamily' + this.parameterId,
             classes: 'hide-when-editing hide-when-moving',
             defaultValue: scoreModifiers_1.SmoScoreText.fontFamilies.times,
             control: 'SuiDropdownComponent',
             label: 'Font Family',
-            startRow: true,
             parentControl: this,
             options: [
                 { label: 'Arial', value: 'Arial' },
@@ -32863,31 +33295,29 @@ class SuiFontComponent extends dialogComponents_1.SuiComponentBase {
                 { label: 'Merriweather', value: 'Merriweather' }
             ]
         });
-        this.sizePart = new dialogComponents_1.SuiRockerComposite(this.dialog, {
+        this.sizePart = new rocker_1.SuiRockerComposite(this.dialog, {
+            id: sizeId,
             smoName: 'fontSize',
-            parameterName: 'fontSize' + this.parameterId,
             defaultValue: 1,
             parentControl: this,
             classes: 'hide-when-editing hide-when-moving',
             control: 'SuiRockerComponent',
             label: 'Font Size',
-            type: 'float',
+            dataType: 'float',
             increment: 0.1
         });
-        this.italicsCtrl = new dialogComponents_1.SuiToggleComposite(this.dialog, {
+        this.italicsCtrl = new toggle_1.SuiToggleComposite(this.dialog, {
+            id: this.id + 'italics',
             smoName: 'italics',
-            parameterName: 'italics' + this.parameterId,
-            defaultValue: false,
             parentControl: this,
             classes: 'hide-when-editing hide-when-moving',
             control: 'SuiToggleComponent',
             label: 'Italics'
         });
-        this.boldCtrl = new dialogComponents_1.SuiToggleComposite(this.dialog, {
+        this.boldCtrl = new toggle_1.SuiToggleComposite(this.dialog, {
+            id: this.id + 'bold',
             smoName: 'bold',
-            parameterName: 'bold' + this.parameterId,
             parentControl: this,
-            defaultValue: false,
             classes: 'hide-when-editing hide-when-moving',
             control: 'SuiToggleComponent',
             label: 'Bold'
@@ -32895,9 +33325,6 @@ class SuiFontComponent extends dialogComponents_1.SuiComponentBase {
     }
     changed() {
         this.handleChanged();
-    }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
     }
     get html() {
         const b = htmlHelpers_1.htmlHelpers.buildDom;
@@ -32917,7 +33344,7 @@ class SuiFontComponent extends dialogComponents_1.SuiComponentBase {
     }
     getValue() {
         return {
-            family: this.familyPart.getValue(),
+            family: this.familyPart.getValue().toString(),
             size: this.sizePart.getValue(),
             weight: this.boldCtrl.getValue() ? 'bold' : 'normal',
             style: this.italicsCtrl.getValue() ? 'italics' : 'normal'
@@ -32947,50 +33374,860 @@ class SuiFontComponent extends dialogComponents_1.SuiComponentBase {
     }
 }
 exports.SuiFontComponent = SuiFontComponent;
-class SuiTextBlockComponent extends dialogComponents_1.SuiComponentBase {
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/components/noteText.ts":
+/*!***********************************************!*\
+  !*** ./src/ui/dialogs/components/noteText.ts ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiChordComponent = exports.SuiLyricComponent = exports.SuiNoteTextComponent = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const textEdit_1 = __webpack_require__(/*! ../../../render/sui/textEdit */ "./src/render/sui/textEdit.ts");
+const textRender_1 = __webpack_require__(/*! ../../../render/sui/textRender */ "./src/render/sui/textRender.ts");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
+/**
+ * Base class for text editor components that navigate to
+ * different notes.
+ * */
+class SuiNoteTextComponent extends baseComponent_1.SuiComponentBase {
     constructor(dialog, parameter) {
-        super(parameter);
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
+        super(dialog, parameter);
+        this.session = null;
+        this.value = null;
+        this.started = false;
+        this.view = this.dialog.getView();
+        this.eventSource = this.dialog.getEventSource();
+        this.selection = this.view.tracker.selections[0];
+        this.selector = JSON.parse(JSON.stringify(this.selection.selector));
+        this.staticText = this.dialog.getStaticText();
+    }
+    mouseMove(ev) {
+        if (this.session && this.session.isRunning) {
+            this.session.handleMouseEvent(ev);
+        }
+    }
+    show() { }
+    hide() { }
+    mouseClick(ev) {
+        if (this.session && this.session.isRunning) {
+            this.session.handleMouseEvent(ev);
+        }
+    }
+    _getInputElement() {
+        var pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+    }
+    get running() {
+        return this.session && this.session.isRunning;
+    }
+    evKey(evdata) {
+        if (this.session) {
+            return this.session.evKey(evdata);
+        }
+        return false;
+    }
+    setDialogLyric() {
+        if (this.session && this.session.lyric) {
+            this.dialog.setLyric(this.selector, this.session.lyric);
+        }
+    }
+    moveSelectionRight() {
+        if (this.session) {
+            this.session.advanceSelection(false);
+            this.setDialogLyric();
+        }
+    }
+    moveSelectionLeft() {
+        if (this.session) {
+            this.session.advanceSelection(true);
+            this.setDialogLyric();
+        }
+    }
+    removeText() {
+        if (this.session) {
+            this.session.removeLyric();
+        }
+    }
+    _bind() {
+        $(this._getInputElement()).off('click').on('click', () => {
+            if (this.session && this.session.isRunning) {
+                this.endSession();
+            }
+            else {
+                this.startEditSession();
+            }
+        });
+        $('#' + this.parameterId + '-left').off('click').on('click', () => {
+            this.moveSelectionLeft();
+        });
+        $('#' + this.parameterId + '-right').off('click').on('click', () => {
+            this.moveSelectionRight();
+        });
+        $('#' + this.parameterId + '-remove').off('click').on('click', () => {
+            this.removeText();
+        });
+    }
+    getValue() {
+        return this.value;
+    }
+}
+exports.SuiNoteTextComponent = SuiNoteTextComponent;
+/**
+ * manage a lyric session that moves from note to note and adds lyrics.
+**/
+class SuiLyricComponent extends SuiNoteTextComponent {
+    constructor(dialog, parameter) {
+        super(dialog, parameter);
+        this.altLabel = this.staticText.doneEditing;
+        this.started = false;
+        this.verse = parameter.verse;
+    }
+    get html() {
+        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var id = this.parameterId;
+        var r = b('div').classes(this.makeClasses('cbLyricEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
+            .append(b('div').classes('toggleEdit')
+            .append(b('button').classes('toggleTextEdit')
+            .attr('id', id + '-toggleInput').append(b('span').classes('icon icon-pencil'))).append(b('label').attr('for', id + '-toggleInput').text(this.label)))
+            .append(b('div').classes('show-when-editing')
+            .append(b('span')
+            .append(b('button').attr('id', id + '-left').classes('icon-arrow-left buttonComponent')))
+            .append(b('span')
+            .append(b('button').attr('id', id + '-right').classes('icon-arrow-right buttonComponent')))
+            .append(b('span')
+            .append(b('button').attr('id', id + '-remove').classes('icon-cross buttonComponent'))));
+        return r;
+    }
+    endSession() {
+        this.started = false;
+        console.log('ending text session');
+        $(this._getInputElement()).find('label').text(this.label);
+        const button = document.getElementById(this.parameterId);
+        $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
+        if (this.session) {
+            this.session.stopSession();
+        }
+        $('body').removeClass('text-edit');
+    }
+    startEditSession() {
+        $(this._getInputElement()).find('label').text(this.altLabel);
+        console.log('starting text session');
+        if (this.started) {
+            return;
+        }
+        // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
+        this.session = new textEdit_1.SuiLyricSession({
+            renderer: this.view.renderer,
+            selector: this.selector,
+            scroller: this.view.tracker.scroller,
+            verse: this.verse,
+            score: this.view.score,
+            view: this.view
+        });
+        this.started = true;
+        $('body').addClass('text-edit');
+        const button = document.getElementById(this.parameterId);
+        $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
+        this.session.startSession();
+        this.setDialogLyric();
+    }
+    bind() {
+        this._bind();
+    }
+}
+exports.SuiLyricComponent = SuiLyricComponent;
+// ## SuiChordComponent
+// manage a chord editing session that moves from note to note and adds chord symbols.
+class SuiChordComponent extends SuiNoteTextComponent {
+    constructor(dialog, parameter) {
+        super(dialog, parameter);
+        this.session = null;
         this.dialog = dialog;
-        this.addBlockCtrl = new dialogComponents_1.SuiButtonComposite(this.dialog, {
-            smoName: 'addBlock',
-            parameterName: 'addBlock',
+        this.selection = this.view.tracker.selections[0];
+        this.selector = JSON.parse(JSON.stringify(this.selection.selector));
+        this.altLabel = this.staticText.doneEditing;
+        this.verse = 0;
+    }
+    get html() {
+        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const id = this.parameterId;
+        const r = b('div').classes(this.makeClasses('cbChordEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
+            .append(b('div').classes('toggleEdit')
+            .append(b('button').classes('toggleTextEdit')
+            .attr('id', id + '-toggleInput').append(b('span').classes('icon icon-pencil'))).append(b('label').attr('for', id + '-toggleInput').text(this.label)))
+            .append(b('div').classes('show-when-editing')
+            .append(b('span')
+            .append(b('button').attr('id', id + '-left').classes('icon-arrow-left buttonComponent')))
+            .append(b('span')
+            .append(b('button').attr('id', id + '-right').classes('icon-arrow-right buttonComponent')))
+            .append(b('span')
+            .append(b('button').attr('id', id + '-remove').classes('icon-cross buttonComponent'))));
+        return r;
+    }
+    endSession() {
+        $(this._getInputElement()).find('label').text(this.label);
+        const button = document.getElementById(this.parameterId);
+        $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
+        const render = () => {
+            this.view.renderer.setRefresh();
+        };
+        if (this.session) {
+            this.session.stopSession().then(render);
+        }
+        $('body').removeClass('text-edit');
+    }
+    startEditSession() {
+        $(this._getInputElement()).find('label').text(this.altLabel);
+        // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
+        this.session = new textEdit_1.SuiChordSession({
+            renderer: this.view.renderer,
+            selector: this.selector,
+            scroller: this.view.tracker.scroller,
+            verse: 0,
+            view: this.view,
+            score: this.view.score
+        });
+        $('body').addClass('text-edit');
+        const button = document.getElementById(this.parameterId);
+        $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
+        this.session.startSession();
+        this.setDialogLyric();
+    }
+    bind() {
+        this._bind();
+    }
+    setTextType(type) {
+        if (this.session) {
+            this.session.textType = parseInt(type.toString(), 10);
+        }
+    }
+    getTextType() {
+        if (this.session) {
+            return this.session.textType;
+        }
+        return textRender_1.SuiInlineText.textTypes.normal;
+    }
+}
+exports.SuiChordComponent = SuiChordComponent;
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/components/rocker.ts":
+/*!*********************************************!*\
+  !*** ./src/ui/dialogs/components/rocker.ts ***!
+  \*********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiRockerComposite = exports.SuiRockerComponent = void 0;
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
+/**
+ * A numeric input box with +- buttons.   Adjustable type and scale
+ * */
+class SuiRockerComponent extends baseComponent_1.SuiComponentBase {
+    constructor(dialog, params) {
+        var _a, _b, _c;
+        super(dialog, params);
+        this.defaultValue = 0;
+        this.increment = 1;
+        this.dataType = (_a = params.dataType) !== null && _a !== void 0 ? _a : 'int';
+        this.increment = (_b = params.increment) !== null && _b !== void 0 ? _b : SuiRockerComponent.increments[this.dataType];
+        this.defaultValue = (_c = params.defaultValue) !== null && _c !== void 0 ? _c : 0;
+        if (SuiRockerComponent.dataTypes.indexOf(this.dataType) < 0) {
+            throw new Error('dialog element invalid type ' + this.dataType);
+        }
+        if (this.dataType === 'int' && this.increment < 1) {
+            throw new Error('int component with decimal increment');
+        }
+        if (this.dataType === 'percent') {
+            this.defaultValue = 100 * this.defaultValue;
+        }
+        this.parser = SuiRockerComponent.parsers[this.dataType];
+        this.dialog = dialog;
+    }
+    static get dataTypes() {
+        return ['int', 'float', 'percent'];
+    }
+    static get increments() {
+        return { 'int': 1, 'float': 0.1, 'percent': 10 };
+    }
+    static get parsers() {
+        return { 'int': '_getIntValue', 'float': '_getFloatValue', 'percent': '_getPercentValue' };
+    }
+    get html() {
+        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const id = this.parameterId;
+        const r = b('div').classes(this.makeClasses('rockerControl smoControl')).attr('id', id).attr('data-param', this.smoName)
+            .append(b('button').classes('increment').append(b('span').classes('icon icon-circle-up'))).append(b('button').classes('decrement').append(b('span').classes('icon icon-circle-down'))).append(b('input').attr('type', 'text').classes('rockerInput')
+            .attr('id', id + '-input')).append(b('label').attr('for', id + '-input').text(this.label));
+        return r;
+    }
+    get parameterId() {
+        return this.id;
+    }
+    handleChange() {
+        this.changeFlag = true;
+        this.dialog.changed();
+        this.changeFlag = false;
+    }
+    bind() {
+        const pid = this.parameterId;
+        const input = this._getInputElement();
+        let val = 0;
+        this.setValue(this.defaultValue);
+        const self = this;
+        $('#' + pid).find('button.increment').off('click').on('click', () => {
+            val = this[this.parser]();
+            if (self.dataType === 'percent') {
+                val = 100 * val;
+            }
+            $(input).val(val + self.increment);
+            self.handleChanged();
+        });
+        $('#' + pid).find('button.decrement').off('click').on('click', () => {
+            val = this[this.parser]();
+            if (self.dataType === 'percent') {
+                val = 100 * val;
+            }
+            $(input).val(val - self.increment);
+            self.handleChanged();
+        });
+        $(input).off('blur').on('blur', () => {
+            self.handleChanged();
+        });
+    }
+    _getInputElement() {
+        const pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('input');
+    }
+    _getIntValue() {
+        let val = parseInt(this._getInputElement().val(), 10);
+        val = isNaN(val) ? 0 : val;
+        return val;
+    }
+    _getFloatValue() {
+        let val = parseFloat(this._getInputElement().val());
+        val = isNaN(val) ? 1.0 : val;
+        return val;
+    }
+    _getPercentValue() {
+        let val = parseFloat(this._getInputElement().val());
+        val = isNaN(val) ? 1 : val;
+        return val / 100;
+    }
+    _setIntValue(val) {
+        this._getInputElement().val(val);
+    }
+    setValue(value) {
+        if (this.dataType === 'percent') {
+            value = value * 100;
+        }
+        this._setIntValue(value);
+    }
+    getValue() {
+        return this[this.parser]();
+    }
+}
+exports.SuiRockerComponent = SuiRockerComponent;
+class SuiRockerComposite extends SuiRockerComponent {
+    constructor(dialog, parameters) {
+        super(dialog, parameters);
+        this.parentControl = parameters.parentControl;
+    }
+    handleChanged() {
+        this.changeFlag = true;
+        this.parentControl.changed();
+        this.changeFlag = false;
+    }
+}
+exports.SuiRockerComposite = SuiRockerComposite;
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/components/staffComponents.ts":
+/*!******************************************************!*\
+  !*** ./src/ui/dialogs/components/staffComponents.ts ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.StaffCheckComponent = exports.StaffAddRemoveComponent = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
+const toggle_1 = __webpack_require__(/*! ./toggle */ "./src/ui/dialogs/components/toggle.ts");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+class StaffAddRemoveComponent extends baseComponent_1.SuiComponentBase {
+    constructor(dialog, parameter) {
+        super(dialog, parameter);
+        this.staffRows = [];
+        this.createdShell = false;
+        this.modifier = null;
+        this.view = this.dialog.getView();
+        this.staticText = dialog.getStaticText();
+        this.label = this.staticText['includeStaff'];
+    }
+    setControlRows() {
+        const mod = this.modifier;
+        let i = mod.startSelector.staff;
+        this.staffRows = [];
+        this.view.storeScore.staves.forEach((staff) => {
+            const name = this.label + ' ' + (staff.staffId + 1);
+            const id = 'show-' + i;
+            const elementParams = {
+                smoName: id,
+                classes: 'toggle-add-row',
+                control: 'SuiToggleComponent',
+                label: name,
+                parentControl: this,
+                id: id
+            };
+            // Toggle add of last row + 1
+            if (staff.staffId === mod.endSelector.staff + 1) {
+                const rowElement = new toggle_1.SuiToggleComposite(this.dialog, elementParams);
+                rowElement.parentControl = this;
+                this.staffRows.push({
+                    showCtrl: rowElement
+                });
+            }
+            else if (staff.staffId > mod.startSelector.staff &&
+                staff.staffId === mod.endSelector.staff) {
+                elementParams.classes = 'toggle-remove-row';
+                // toggle remove of ultimate row, other than first row
+                const rowElement = new toggle_1.SuiToggleComposite(this.dialog, elementParams);
+                this.staffRows.push({
+                    showCtrl: rowElement
+                });
+            }
+            else if ((staff.staffId <= mod.endSelector.staff) &&
+                (staff.staffId >= mod.startSelector.staff)) {
+                // toggle remove of ultimate row, other than first row
+                elementParams.classes = 'toggle-disabled';
+                const rowElement = new toggle_1.SuiToggleComposite(this.dialog, elementParams);
+                this.staffRows.push({
+                    showCtrl: rowElement
+                });
+            }
+            i += 1;
+        });
+    }
+    get html() {
+        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        // a little hacky.  The first time we create an empty html shell for the control
+        // subsequent times, we fill the html with the row information
+        if (!this.createdShell) {
+            this.createdShell = true;
+            const q = b('div').classes(this.makeClasses('multiControl smoControl staffContainer')).attr('id', this.parameterId);
+            return q;
+        }
+        else {
+            const q = b('div').classes(this.makeClasses('smoControl'));
+            this.staffRows.forEach((row) => {
+                q.append(row.showCtrl.html);
+            });
+            return q;
+        }
+    }
+    getInputElement() {
+        var pid = this.parameterId;
+        return $('#' + pid);
+    }
+    getValue() {
+        if (!this.modifier) {
+            throw 'No staff groups set for staff group component';
+        }
+        const mod = this.modifier;
+        let nextStaff = mod.startSelector.staff;
+        const maxMeasure = mod.endSelector.measure;
+        mod.endSelector = JSON.parse(JSON.stringify(mod.startSelector));
+        this.staffRows.forEach((staffRow) => {
+            if (staffRow.showCtrl.getValue()) {
+                mod.endSelector = { staff: nextStaff, measure: maxMeasure, voice: 0, tick: 0, pitches: [] };
+                nextStaff += 1;
+            }
+        });
+        return this.modifier;
+    }
+    setValue(staffGroup) {
+        this.modifier = staffGroup;
+        this.updateGroupMembership();
+    }
+    changed() {
+        this.getValue(); // update modifier
+        this.handleChanged();
+        this.updateGroupMembership();
+    }
+    bind() {
+        if (!this.modifier) {
+            return;
+        }
+        // Can't bind before initial set of modifier
+        this.staffRows.forEach((row) => {
+            row.showCtrl.bind();
+        });
+    }
+    updateGroupMembership() {
+        const updateEl = this.getInputElement();
+        this.setControlRows();
+        $(updateEl).html('');
+        $(updateEl).append(this.html.dom());
+        $(updateEl).find('input').prop('disabled', false);
+        $(updateEl).find('.toggle-disabled input').prop('checked', true);
+        $(updateEl).find('.toggle-remove-row input').prop('checked', true);
+        $(updateEl).find('.toggle-add-row input').prop('checked', false);
+        $(updateEl).find('.toggle-disabled input').prop('disabled', true);
+        this.bind();
+    }
+}
+exports.StaffAddRemoveComponent = StaffAddRemoveComponent;
+class StaffCheckComponent extends baseComponent_1.SuiComponentBase {
+    constructor(dialog, parameter) {
+        super(dialog, parameter);
+        this.dialog = dialog;
+        this.view = this.dialog.getView();
+        this.staffRows = [];
+        let previousStaff = null;
+        this.view.storeScore.staves.forEach((staff) => {
+            ;
+            let name = 'View ' + staff.partInfo.partName;
+            if (staff.partInfo.stavesBefore > 0 && previousStaff) {
+                name = previousStaff + ' (2)';
+            }
+            previousStaff = name;
+            const id = 'show-' + staff.staffId;
+            const toggleParams = {
+                smoName: id,
+                classes: 'hide-when-editing',
+                control: 'SuiToggleComponent',
+                label: name,
+                id: id,
+                parentControl: this
+            };
+            const rowElement = new toggle_1.SuiToggleComposite(this.dialog, toggleParams);
+            this.staffRows.push({
+                showCtrl: rowElement
+            });
+        });
+    }
+    get html() {
+        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const q = b('div').classes(this.makeClasses('multiControl smoControl staffContainer'));
+        this.staffRows.forEach((row) => {
+            q.append(row.showCtrl.html);
+        });
+        return q;
+    }
+    // Is this used for compound controls?
+    _getInputElement() {
+        var pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('.staffContainer');
+    }
+    /* export interface StaffCheckValue {
+    show: boolean;
+  }*/
+    getValue() {
+        const rv = [];
+        let i = 0;
+        for (i = 0; i < this.staffRows.length; ++i) {
+            const show = this.staffRows[i].showCtrl.getValue();
+            rv.push({ show });
+        }
+        return rv;
+    }
+    setValue(rows) {
+        let i = 0;
+        rows.forEach((row) => {
+            this.staffRows[i].showCtrl.setValue(row.show);
+            i += 1;
+        });
+    }
+    changed() {
+        this.handleChanged();
+    }
+    bind() {
+        this.staffRows.forEach((row) => {
+            row.showCtrl.bind();
+        });
+    }
+}
+exports.StaffCheckComponent = StaffCheckComponent;
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/components/textCheck.ts":
+/*!************************************************!*\
+  !*** ./src/ui/dialogs/components/textCheck.ts ***!
+  \************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TextCheckComponent = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const baseComponent_1 = __webpack_require__(/*! ../components/baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
+const toggle_1 = __webpack_require__(/*! ../components/toggle */ "./src/ui/dialogs/components/toggle.ts");
+const textInput_1 = __webpack_require__(/*! ../components/textInput */ "./src/ui/dialogs/components/textInput.ts");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+class TextCheckComponent extends baseComponent_1.SuiComponentBase {
+    constructor(dialog, parameter) {
+        super(dialog, parameter);
+        this.dialog = dialog;
+        this.view = this.dialog.getView();
+        this.defaultValue = '';
+        const toggleName = this.smoName + 'Toggle';
+        const textName = this.smoName + 'Text';
+        this.staticText = this.dialog.getStaticText();
+        const label = this.staticText[textName];
+        const show = this.staticText.show;
+        this.toggleCtrl = new toggle_1.SuiToggleComposite(this.dialog, {
+            smoName: toggleName,
+            control: 'SuiToggleComposite',
+            label: show,
             parentControl: this,
-            defaultValue: false,
+            classes: '',
+            id: toggleName
+        });
+        this.textCtrl = new textInput_1.SuiTextInputComposite(this.dialog, {
+            smoName: textName,
+            defaultValue: this.defaultValue,
+            control: 'SuiTextInputComposite',
+            label,
+            parentControl: this,
+            classes: '',
+            id: toggleName
+        });
+    }
+    get html() {
+        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const q = b('div').classes(this.makeClasses('multiControl smoControl textCheckContainer'))
+            .attr('id', this.parameterId);
+        q.append(this.textCtrl.html);
+        q.append(this.toggleCtrl.html);
+        return q;
+    }
+    getInputElement() {
+        var pid = this.parameterId;
+        return $('#' + pid);
+    }
+    getValue() {
+        return {
+            checked: this.toggleCtrl.getValue(),
+            text: this.textCtrl.getValue()
+        };
+    }
+    setValue(val) {
+        this.toggleCtrl.setValue(val.checked);
+        this.textCtrl.setValue(val.text);
+    }
+    changed() {
+        this.handleChanged();
+    }
+    bind() {
+        this.toggleCtrl.bind();
+        this.textCtrl.bind();
+    }
+}
+exports.TextCheckComponent = TextCheckComponent;
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/components/textInPlace.ts":
+/*!**************************************************!*\
+  !*** ./src/ui/dialogs/components/textInPlace.ts ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiTextBlockComponent = exports.SuiTextInPlace = void 0;
+const textEdit_1 = __webpack_require__(/*! ../../../render/sui/textEdit */ "./src/render/sui/textEdit.ts");
+const scoreModifiers_1 = __webpack_require__(/*! ../../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
+const button_1 = __webpack_require__(/*! ./button */ "./src/ui/dialogs/components/button.ts");
+const rocker_1 = __webpack_require__(/*! ./rocker */ "./src/ui/dialogs/components/rocker.ts");
+const dropdown_1 = __webpack_require__(/*! ./dropdown */ "./src/ui/dialogs/components/dropdown.ts");
+const textRender_1 = __webpack_require__(/*! ../../../render/sui/textRender */ "./src/render/sui/textRender.ts");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+class SuiTextInPlace extends baseComponent_1.SuiComponentBase {
+    constructor(dialog, parameter) {
+        super(dialog, parameter);
+        this.editMode = false;
+        this.session = null;
+        this.scroller = dialog.getView().scroller;
+        this.value = new scoreModifiers_1.SmoTextGroup(scoreModifiers_1.SmoTextGroup.defaults);
+        this.view = this.dialog.getView();
+        const modifier = this.dialog.getModifier();
+        if (modifier && scoreModifiers_1.SmoTextGroup.isTextGroup(modifier)) {
+            this.value = modifier;
+        }
+        this.staticText = this.dialog.getStaticText();
+        this.altLabel = this.staticText.editorLabel;
+    }
+    show() { }
+    hide() { }
+    get html() {
+        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const id = this.parameterId;
+        const r = b('div').classes(this.makeClasses('cbTextInPlace smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
+            .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
+            .attr('id', id + '-input').append(b('span').classes('icon icon-pencil'))
+            .append(b('label').attr('for', id + '-input').text(this.label)));
+        return r;
+    }
+    endSession() {
+        $(this._getInputElement()).find('label').text(this.label);
+        const button = document.getElementById(this.parameterId);
+        $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
+        this.value.skipRender = false;
+        const render = () => {
+            this.view.renderer.setRefresh();
+        };
+        if (this.session) {
+            this.session.textGroup.tryParseUnicode();
+            this.value = this.session.textGroup;
+            this.session.stopSession().then(render);
+        }
+        $('body').removeClass('text-edit');
+        this.handleChanged();
+    }
+    get isRunning() {
+        return this.session && this.session.isRunning;
+    }
+    getValue() {
+        return this.value;
+    }
+    _getInputElement() {
+        var pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+    }
+    mouseMove(ev) {
+        if (this.session && this.session.isRunning) {
+            this.session.handleMouseEvent(ev);
+        }
+    }
+    mouseClick(ev) {
+        if (this.session && this.session.isRunning) {
+            this.session.handleMouseEvent(ev);
+        }
+    }
+    _renderInactiveBlocks() {
+        const modifier = this.value;
+        const context = this.view.renderer.context;
+        context.save();
+        context.setFillStyle('#ddd');
+        modifier.textBlocks.forEach((block) => {
+            const st = block.text;
+            if (st.attrs.id !== this.value.getActiveBlock().attrs.id) {
+                const svgText = textRender_1.SuiInlineText.fromScoreText(st, context, this.scroller);
+                if (st.logicalBox) {
+                    svgText.startX += st.logicalBox.x - st.x;
+                    svgText.startY += (st.y - st.logicalBox.y) - st.logicalBox.height / 2;
+                }
+                const sgrp = context.openGroup();
+                sgrp.classList.add('inactive-text');
+                sgrp.classList.add('suiInlineText');
+                svgText.render();
+                context.closeGroup();
+            }
+        });
+        context.restore();
+    }
+    startEditSession() {
+        $(this._getInputElement()).find('label').text(this.altLabel);
+        const modifier = this.value;
+        modifier.skipRender = true;
+        $(this.view.renderer.context.svg).find('#' + modifier.attrs.id).remove();
+        this._renderInactiveBlocks();
+        const ul = modifier.ul();
+        // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
+        this.session = new textEdit_1.SuiTextSession({
+            renderer: this.view.renderer,
+            scroller: this.scroller,
+            x: ul.x,
+            y: ul.y,
+            textGroup: modifier,
+            text: modifier.getActiveBlock().text,
+            scoreText: modifier.getActiveBlock()
+        });
+        $('body').addClass('text-edit');
+        this.value = this.session.textGroup;
+        const button = document.getElementById(this.parameterId);
+        $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
+        this.session.startSession();
+        // blur the button so key events don't get passed to it.
+        $(this._getInputElement()).blur();
+    }
+    evKey(evdata) {
+        if (this.session) {
+            this.session.evKey(evdata);
+        }
+    }
+    bind() {
+        $(this._getInputElement()).off('click').on('click', () => {
+            if (this.session && this.session.isRunning) {
+                this.endSession();
+            }
+            else {
+                this.startEditSession();
+            }
+        });
+    }
+}
+exports.SuiTextInPlace = SuiTextInPlace;
+class SuiTextBlockComponent extends baseComponent_1.SuiComponentParent {
+    constructor(dialog, parameter) {
+        super(dialog, parameter);
+        this.addBlockCtrl = new button_1.SuiButtonComposite(this.dialog, {
+            id: this.id + 'addBlock',
+            smoName: 'addBlock',
+            parentControl: this,
             icon: 'icon-plus',
             classes: 'hide-when-editing hide-when-moving',
             control: 'SuiButtonComponent',
             label: 'Add Text Block'
         });
-        this.toggleBlockCtrl = new dialogComponents_1.SuiButtonComposite(this.dialog, {
+        this.toggleBlockCtrl = new button_1.SuiButtonComposite(this.dialog, {
+            id: this.id + 'toggleBlock',
             smoName: 'toggleBlock',
-            parameterName: 'toggleBlock',
             parentControl: this,
-            defaultValue: false,
             icon: 'icon-arrow-right',
             classes: 'hide-when-editing hide-when-moving',
             control: 'SuiButtonComponent',
             label: 'Next Block'
         });
-        this.removeBlockCtrl = new dialogComponents_1.SuiButtonComposite(this.dialog, {
+        this.removeBlockCtrl = new button_1.SuiButtonComposite(this.dialog, {
+            id: this.id + 'removeBlock',
             smoName: 'removeBlock',
-            parameterName: 'removeBlock',
             parentControl: this,
-            defaultValue: false,
             icon: 'icon-minus',
             classes: 'hide-when-editing hide-when-moving',
             control: 'SuiButtonComponent',
             label: 'Remove Block'
         });
-        this.relativePositionCtrl = new dialogComponents_1.SuiDropdownComposite(this.dialog, {
+        this.relativePositionCtrl = new dropdown_1.SuiDropdownComposite(this.dialog, {
+            id: this.id + 'relativePosition',
             smoName: 'relativePosition',
-            parameterName: 'relativePosition',
             parentControl: this,
             defaultValue: scoreModifiers_1.SmoScoreText.justifications.left,
             classes: 'hide-when-editing hide-when-moving',
             control: 'SuiDropdownComponent',
             label: 'Block Positions',
-            startRow: true,
             options: [{
                     value: scoreModifiers_1.SmoTextGroup.relativePositions.ABOVE,
                     label: 'Above'
@@ -33005,9 +34242,9 @@ class SuiTextBlockComponent extends dialogComponents_1.SuiComponentBase {
                     label: 'Right'
                 }]
         });
-        this.justificationCtrl = new dialogComponents_1.SuiDropdownComposite(this.dialog, {
+        this.justificationCtrl = new dropdown_1.SuiDropdownComposite(this.dialog, {
+            id: this.id + 'justification',
             smoName: 'justification',
-            parameterName: 'justification',
             parentControl: this,
             defaultValue: scoreModifiers_1.SmoScoreText.justifications.left,
             classes: 'hide-when-editing hide-when-moving',
@@ -33024,22 +34261,28 @@ class SuiTextBlockComponent extends dialogComponents_1.SuiComponentBase {
                     label: 'Center'
                 }]
         });
-        this.spacingCtrl = new dialogComponents_1.SuiRockerComposite(this.dialog, {
+        this.spacingCtrl = new rocker_1.SuiRockerComposite(this.dialog, {
+            id: this.id + 'spacing',
             smoName: 'spacing',
-            parameterName: 'spacing',
             defaultValue: 0,
             parentControl: this,
             classes: 'hide-when-editing hide-when-moving',
             control: 'SuiRockerComponent',
             label: 'Spacing',
-            type: 'float',
+            dataType: 'float',
             increment: 0.1
         });
-        this.modifier = this.dialog.modifier;
-        this.activeScoreText = this.dialog.activeScoreText;
+        const mod = this.dialog.getModifier();
+        if (mod && scoreModifiers_1.SmoTextGroup.isTextGroup(mod)) {
+            this.modifier = mod;
+        }
+        else {
+            this.modifier = new scoreModifiers_1.SmoTextGroup(scoreModifiers_1.SmoTextGroup.defaults);
+        }
+        this.activeScoreText = this.modifier.textBlocks[0].text;
     }
     changed() {
-        if (this.addBlockCtrl.changeFlag) {
+        if (this.addBlockCtrl.changeFlag && this.modifier) {
             const nt = new scoreModifiers_1.SmoScoreText(this.activeScoreText);
             this.modifier.addScoreText(nt);
             this.activeScoreText = nt;
@@ -33047,10 +34290,10 @@ class SuiTextBlockComponent extends dialogComponents_1.SuiComponentBase {
             this._updateMultiiFields();
         }
         if (this.relativePositionCtrl.changeFlag) {
-            this.modifier.setRelativePosition(parseInt(this.relativePositionCtrl.getValue(), 10));
+            this.modifier.setRelativePosition(parseInt(this.relativePositionCtrl.getValue().toString(), 10));
         }
         if (this.justificationCtrl.changeFlag) {
-            this.modifier.justification = parseInt(this.justificationCtrl.getValue(), 10);
+            this.modifier.justification = parseInt(this.justificationCtrl.getValue().toString(), 10);
         }
         if (this.removeBlockCtrl.changeFlag) {
             this.modifier.removeBlock(this.activeScoreText);
@@ -33071,9 +34314,6 @@ class SuiTextBlockComponent extends dialogComponents_1.SuiComponentBase {
         }
         this.handleChanged();
     }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
     get html() {
         const b = htmlHelpers_1.htmlHelpers.buildDom;
         const q = b('div').classes(this.makeClasses('multiControl smoControl'));
@@ -33086,7 +34326,7 @@ class SuiTextBlockComponent extends dialogComponents_1.SuiComponentBase {
         return q;
     }
     _getInputElement() {
-        return $(this.dialog.dgDom.element).find('#' + this.pid);
+        return $(this.dialog.dgDom.element).find('#' + this.parameterId);
     }
     getValue() {
         return {
@@ -33128,1773 +34368,135 @@ exports.SuiTextBlockComponent = SuiTextBlockComponent;
 
 /***/ }),
 
-/***/ "./src/ui/dialogs/libraryDialog.js":
-/*!*****************************************!*\
-  !*** ./src/ui/dialogs/libraryDialog.js ***!
-  \*****************************************/
+/***/ "./src/ui/dialogs/components/textInput.ts":
+/*!************************************************!*\
+  !*** ./src/ui/dialogs/components/textInput.ts ***!
+  \************************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiLibraryDialog = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const dialog_1 = __webpack_require__(/*! ../dialog */ "./src/ui/dialog.js");
-const library_1 = __webpack_require__(/*! ../fileio/library */ "./src/ui/fileio/library.ts");
-const xhrLoader_1 = __webpack_require__(/*! ../fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.js");
-const xmlScore_1 = __webpack_require__(/*! ../../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
-const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
-// ## SuiLibraryDialog
-// Traverse the library nodes or load a score
-class SuiLibraryDialog extends dialog_1.SuiDialogBase {
-    static get ctor() {
-        return 'SuiLibraryDialog';
+exports.SuiTextInputComposite = exports.SuiTextInputComponent = void 0;
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
+/**
+ * Simple text input, like for a filename.  Not the text editing component.
+ */
+class SuiTextInputComponent extends baseComponent_1.SuiComponentBase {
+    constructor(dialog, parameter) {
+        super(dialog, parameter);
+        this.defaultValue = '';
+        this.value = '';
+        this.dialog = dialog;
+        this.value = '';
     }
-    get ctor() {
-        return SuiLibraryDialog.ctor;
+    get html() {
+        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const id = this.parameterId;
+        const r = b('div').classes(this.makeClasses('text-input smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
+            .append(b('input').attr('type', 'text').classes('file-name')
+            .attr('id', id + '-input')).append(b('label').attr('for', id + '-input').text(this.label));
+        return r;
     }
-    static get dialogElements() {
-        SuiLibraryDialog._dialogElements = typeof (SuiLibraryDialog._dialogElements)
-            !== 'undefined' ? SuiLibraryDialog._dialogElements :
-            [{
-                    smoName: 'smoLibrary',
-                    parameterName: 'smoLibrary',
-                    control: 'SuiTreeComponent',
-                    root: '',
-                    label: 'Selection',
-                    options: []
-                }, {
-                    staticText: [
-                        { label: 'Music Library' }
-                    ]
-                }];
-        return SuiLibraryDialog._dialogElements;
+    getValue() {
+        return this.value;
     }
-    static addChildRecurse(options, parent, child) {
-        options.push({ label: child.metadata.name, value: child.url, parent: parent.url, format: child.format, expanded: false });
-        child.children.forEach((gchild) => {
-            SuiLibraryDialog.addChildRecurse(options, child, gchild);
+    setValue(val) {
+        this.value = val;
+        $('#' + this.parameterId).find('input').val(val);
+    }
+    _getInputElement() {
+        const pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('input');
+    }
+    bind() {
+        const self = this;
+        $('#' + this.parameterId).find('input').off('change').on('change', () => {
+            self.value = $(this._getInputElement()).val();
+            self.handleChanged();
         });
-    }
-    static _createOptions(topLib) {
-        const options = [];
-        topLib.children.forEach((child) => {
-            SuiLibraryDialog.addChildRecurse(options, topLib, child);
-        });
-        return options;
-    }
-    static _createElements(topLib) {
-        const elements = JSON.parse(JSON.stringify(SuiLibraryDialog.dialogElements));
-        const txt = elements.find((ee) => typeof (ee.staticText) !== 'undefined');
-        const tree = elements.find((ee) => typeof (ee.smoName) !== 'undefined' && ee.smoName === 'smoLibrary');
-        txt.label = topLib.metadata.name;
-        tree.root = topLib.url;
-        tree.options = SuiLibraryDialog._createOptions(topLib);
-        return elements;
-    }
-    static _createAndDisplay(parameters, topLib) {
-        const elements = SuiLibraryDialog._createElements(topLib);
-        const dg = new SuiLibraryDialog(parameters, elements, topLib);
-        dg.display();
-    }
-    static createAndDisplay(parameters) {
-        const topLib = new library_1.SmoLibrary({ url: SmoConfig.libraryUrl });
-        topLib.load().then(() => SuiLibraryDialog._createAndDisplay(parameters, topLib));
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-    }
-    buildTreeRecurse(children) {
-        children.forEach((child) => {
-            this.tree[child.url] = child;
-            this.buildTreeRecurse(child.children);
-        });
-    }
-    buildTree() {
-        this.tree = {};
-        this.buildTreeRecurse(this.topLib.children);
-    }
-    display() {
-        this.applyDisplayOptions();
-        this._bindElements();
-        $(this.dgDom.element).find('.smoControlContainer').addClass('center-flex');
-    }
-    _bindElements() {
-        const dgDom = this.dgDom;
-        this.okButton = $(dgDom.element).find('.ok-button');
-        $(this.okButton).prop('disabled', true);
-        this.cancelButton = $(dgDom.element).find('.cancel-button');
-        $(this.okButton).off('click').on('click', () => {
-            if (this.selectedScore !== null) {
-                if (this.selectedScore.format === 'mxml') {
-                    this._loadXmlAndComplete();
-                }
-                else {
-                    this._loadJsonAndComplete();
-                }
-            }
-            else {
-                this.complete();
-            }
-        });
-        $(this.cancelButton).off('click').on('click', () => {
-            this.complete();
-        });
-        $(dgDom.element).find('.remove-button').remove();
-    }
-    _loadJsonAndComplete() {
-        const req = new xhrLoader_1.SuiXhrLoader(this.selectedScore.url);
-        req.loadAsync().then(() => {
-            const score = score_1.SmoScore.deserialize(req.value);
-            this.view.changeScore(score);
-            this.complete();
-        });
-    }
-    _loadXmlAndComplete() {
-        const req = new xhrLoader_1.SuiXhrLoader(this.selectedScore.url);
-        req.loadAsync().then(() => {
-            const parser = new DOMParser();
-            const xml = parser.parseFromString(req.value, 'text/xml');
-            const score = xmlScore_1.mxmlScore.smoScoreFromXml(xml);
-            this.view.changeScore(score);
-            this.complete();
-        });
-    }
-    changed() {
-        if (this.smoLibraryCtrl.changeFlag) {
-            const url = this.smoLibraryCtrl.getValue();
-            this.buildTree();
-            this.selectedLib = this.tree[url];
-            this.smoLibraryCtrl.setValue(this.selectedLib.url);
-            // User navigates to parent library
-            if (this.selectedLib.format === 'library') {
-                $(this.okButton).prop('disabled', true);
-                this.selectedScore = null;
-                if (!this.selectedLib.loaded) {
-                    this.selectedLib.load().then(() => {
-                        const options = SuiLibraryDialog._createOptions(this.topLib);
-                        this.smoLibraryCtrl.updateOptions(options);
-                        this.smoLibraryCtrl.setValue(this.selectedLib.url);
-                    });
-                }
-            }
-            else {
-                this.selectedScore = this.selectedLib;
-                this.smoLibraryCtrl.setValue(this.selectedLib.url);
-                $(this.okButton).prop('disabled', false);
-            }
-        }
-    }
-    constructor(parameters, dialogElements, topLib) {
-        super(dialogElements, Object.assign({ id: 'dialog-layout' }, parameters));
-        this.libHash = {};
-        this.libHash[topLib.url] = topLib;
-        this.topLib = topLib;
-        this.selectedLib = null;
-        this.parentLib = {};
     }
 }
-exports.SuiLibraryDialog = SuiLibraryDialog;
+exports.SuiTextInputComponent = SuiTextInputComponent;
+class SuiTextInputComposite extends SuiTextInputComponent {
+    constructor(dialog, parameters) {
+        super(dialog, parameters);
+        this.parentControl = parameters.parentControl;
+    }
+    handleChanged() {
+        this.changeFlag = true;
+        this.parentControl.changed();
+        this.changeFlag = false;
+    }
+}
+exports.SuiTextInputComposite = SuiTextInputComposite;
 
 
 /***/ }),
 
-/***/ "./src/ui/dialogs/measureDialogs.js":
+/***/ "./src/ui/dialogs/components/tie.ts":
 /*!******************************************!*\
-  !*** ./src/ui/dialogs/measureDialogs.js ***!
+  !*** ./src/ui/dialogs/components/tie.ts ***!
   \******************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiTempoDialog = exports.SuiTimeSignatureDialog = exports.SuiInsertMeasures = exports.SuiInstrumentDialog = exports.SuiMeasureDialog = void 0;
+exports.TieMappingComponent = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const dialog_1 = __webpack_require__(/*! ../dialog */ "./src/ui/dialog.js");
-const staffComponents_1 = __webpack_require__(/*! ./staffComponents */ "./src/ui/dialogs/staffComponents.js");
-const measure_1 = __webpack_require__(/*! ../../smo/data/measure */ "./src/smo/data/measure.ts");
-const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
-const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
-const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
-const svgHelpers_1 = __webpack_require__(/*! ../../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
-// ## measureDialogs.js
-// This file contains dialogs that affect all measures at a certain position,
-// such as tempo or time signature.
-class SuiMeasureDialog extends dialog_1.SuiDialogBase {
-    static get attributes() {
-        return ['pickupMeasure', 'makePickup', 'padLeft', 'padAllInSystem',
-            'measureText', 'measureTextPosition'];
-    }
-    static get ctor() {
-        return 'SuiMeasureDialog';
-    }
-    get ctor() {
-        return SuiMeasureDialog.ctor;
-    }
-    static get dialogElements() {
-        SuiMeasureDialog._dialogElements = typeof (SuiMeasureDialog._dialogElements) !== 'undefined' ? SuiMeasureDialog._dialogElements :
-            [{
-                    staticText: [
-                        { label: 'Measure Properties' }
-                    ]
-                },
-                {
-                    smoName: 'pickup',
-                    parameterName: 'pickup',
-                    defaultValue: '',
-                    control: staffComponents_1.CheckboxDropdownComponent,
-                    label: 'Pickup',
-                    toggleElement: {
-                        smoName: 'makePickup',
-                        parameterName: 'makePickup',
-                        defaultValue: false,
-                        control: 'SuiToggleComponent',
-                        label: 'Convert to Pickup Measure'
-                    },
-                    dropdownElement: {
-                        smoName: 'pickupMeasure',
-                        parameterName: 'pickupMeasure',
-                        defaultValue: 2048,
-                        control: 'SuiDropdownComponent',
-                        label: 'Pickup Measure',
-                        options: [{
-                                value: 2048,
-                                label: 'Eighth Note'
-                            }, {
-                                value: 4096,
-                                label: 'Quarter Note'
-                            }, {
-                                value: 6144,
-                                label: 'Dotted Quarter'
-                            }, {
-                                value: 8192,
-                                label: 'Half Note'
-                            }]
-                    }
-                }, {
-                    parameterName: 'padLeft',
-                    smoName: 'padLeft',
-                    defaultValue: 0,
-                    control: 'SuiRockerComponent',
-                    label: 'Pad Left (px)'
-                }, {
-                    parameterName: 'customStretch',
-                    smoName: 'customStretch',
-                    defaultValue: 0,
-                    control: 'SuiRockerComponent',
-                    label: 'Stretch Contents'
-                }, {
-                    parameterName: 'customProportion',
-                    smoName: 'customProportion',
-                    defaultValue: measure_1.SmoMeasure.defaults.customProportion,
-                    control: 'SuiRockerComponent',
-                    increment: 10,
-                    label: 'Proportionalality'
-                }, {
-                    smoName: 'padAllInSystem',
-                    parameterName: 'padAllInSystem',
-                    defaultValue: false,
-                    control: 'SuiToggleComponent',
-                    label: 'Pad all measures in system'
-                }, {
-                    smoName: 'autoJustify',
-                    parameterName: 'autoJustify',
-                    defaultValue: true,
-                    control: 'SuiToggleComponent',
-                    label: 'Justify Columns'
-                }, {
-                    smoName: 'measureTextPosition',
-                    parameterName: 'measureTextPosition',
-                    defaultValue: measureModifiers_1.SmoMeasureText.positions.above,
-                    control: 'SuiDropdownComponent',
-                    label: 'Text Position',
-                    options: [{
-                            value: measureModifiers_1.SmoMeasureText.positions.left,
-                            label: 'Left'
-                        }, {
-                            value: measureModifiers_1.SmoMeasureText.positions.right,
-                            label: 'Right'
-                        }, {
-                            value: measureModifiers_1.SmoMeasureText.positions.above,
-                            label: 'Above'
-                        }, {
-                            value: measureModifiers_1.SmoMeasureText.positions.below,
-                            label: 'Below'
-                        }]
-                }, {
-                    smoName: 'systemBreak',
-                    parameterName: 'systemBreak',
-                    defaultValue: false,
-                    control: 'SuiToggleComponent',
-                    label: 'System break before this measure'
-                }];
-        return SuiMeasureDialog._dialogElements;
-    }
-    static createAndDisplay(parameters) {
-        // SmoUndoable.scoreSelectionOp(score,selection,'addTempo',
-        //      new SmoTempoText({bpm:144}),undo,'tempo test 1.3');
-        parameters.selection = parameters.view.tracker.selections[0];
-        const dg = new SuiMeasureDialog(parameters);
-        dg.display();
-        return dg;
-    }
-    changed() {
-        this.edited = true;
-        let updateFormat = true;
-        // TODO: move pickup out of this dialog
-        if (this.pickupCtrl.changeFlag) {
-            if (this.pickupCtrl.toggleCtrl.getValue() === false) {
-                this.view.createPickup(music_1.SmoMusic.timeSignatureToTicks(this.measure.timeSignature));
-            }
-            else {
-                this.view.createPickup(this.pickupCtrl.dropdownCtrl.getValue());
-            }
-        }
-        if (this.customStretchCtrl.changeFlag) {
-            this.modifier.customStretch = this.customStretchCtrl.getValue();
-            updateFormat = true;
-        }
-        if (this.customProportionCtrl.changeFlag) {
-            this.modifier.customProportion = this.customProportionCtrl.getValue();
-            updateFormat = true;
-        }
-        if (this.systemBreakCtrl.changeFlag) {
-            updateFormat = true;
-            this.modifier.systemBreak = this.systemBreakCtrl.getValue();
-        }
-        if (this.autoJustifyCtrl.changeFlag) {
-            updateFormat = true;
-            this.modifier.autoJustify = this.autoJustifyCtrl.getValue();
-        }
-        if (this.padLeftCtrl.changeFlag || this.padAllInSystemCtrl.changeFlag) {
-            updateFormat = true;
-            this.modifier.padLeft = this.padLeftCtrl.getValue();
-            this.modifier.padAllInSystem = this.padAllInSystemCtrl.getValue();
-        }
-        if (updateFormat) {
-            this.view.setMeasureFormat(this.modifier);
-        }
-        //
-        this._updateConditionals();
-    }
-    constructor(parameters) {
-        if (!parameters.selection) {
-            throw new Error('measure dialogmust have measure and selection');
-        }
-        super(SuiMeasureDialog.dialogElements, Object.assign({ id: 'dialog-measure', label: 'Measure Properties' }, parameters));
-        this.view.groupUndo(true);
-        this.edited = false;
-        this.refresh = false;
-        Vex.Merge(this, parameters);
-        // The 'modifier' that this dialog acts on is a measure.
-        this.measure = this.selection.measure;
-        this.modifier = this.measure.format;
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this.populateInitial();
-        this._bindElements();
-    }
-    _updateConditionals() {
-        if (this.padLeftCtrl.getValue() !== 0 || this.padLeftCtrl.changeFlag) {
-            $('.attributeDialog .attributeModal').addClass('pad-left-select');
-        }
-        else {
-            $('.attributeDialog .attributeModal').removeClass('pad-left-select');
-        }
-    }
-    populateInitial() {
-        this.padLeftCtrl.setValue(this.modifier.padLeft);
-        this.autoJustifyCtrl.setValue(this.modifier.autoJustify);
-        const isPickup = this.measure.isPickup();
-        this.customStretchCtrl.setValue(this.modifier.customStretch);
-        this.customProportionCtrl.setValue(this.modifier.customProportion);
-        this.pickupCtrl.toggleCtrl.setValue(isPickup);
-        if (isPickup) {
-            this.pickupCtrl.dropdownCtrl.setValue(this.measure.getTicksFromVoice(0));
-        }
-        const isSystemBreak = this.modifier.systemBreak;
-        this.systemBreakCtrl.setValue(isSystemBreak);
-        this._updateConditionals();
-        // TODO: handle multiples (above/below)
-        this.measure.getMeasureText();
-    }
-    _bindElements() {
-        const dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            this.view.groupUndo(false);
-            this.complete();
-        });
-        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-            this.view.groupUndo(false);
-            if (this.edited) {
-                this.view.undo();
-            }
-            this.complete();
-        });
-        $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-            this.groupUndo(false);
-            this.complete();
-        });
-    }
-}
-exports.SuiMeasureDialog = SuiMeasureDialog;
-class SuiInstrumentDialog extends dialog_1.SuiDialogBase {
-    static get ctor() {
-        return 'SuiInstrumentDialog';
-    }
-    get ctor() {
-        return SuiInstrumentDialog.ctor;
-    }
-    static get applyTo() {
-        return {
-            score: 0, selected: 1, remaining: 3
-        };
-    }
-    static get dialogElements() {
-        SuiInstrumentDialog._dialogElements = typeof (SuiInstrumentDialog._dialogElements) !== 'undefined' ?
-            SuiInstrumentDialog._dialogElements :
-            [{
-                    staticText: [
-                        { label: 'Instrument Properties' }
-                    ]
-                },
-                {
-                    smoName: 'transposeIndex',
-                    parameterName: 'transposeIndex',
-                    defaultValue: 0,
-                    control: 'SuiRockerComponent',
-                    label: 'Transpose Index (1/2 steps)',
-                }, {
-                    smoName: 'applyTo',
-                    parameterName: 'applyTo',
-                    defaultValue: SuiInstrumentDialog.applyTo.score,
-                    dataType: 'int',
-                    control: 'SuiDropdownComponent',
-                    label: 'Apply To',
-                    options: [{
-                            value: SuiInstrumentDialog.applyTo.score,
-                            label: 'Score'
-                        }, {
-                            value: SuiInstrumentDialog.applyTo.selected,
-                            label: 'Selected Measures'
-                        }, {
-                            value: SuiInstrumentDialog.applyTo.remaining,
-                            label: 'Remaining Measures'
-                        }]
-                }];
-        return SuiInstrumentDialog._dialogElements;
-    }
-    static createAndDisplay(parameters) {
-        var db = new SuiInstrumentDialog(parameters);
-        db.display();
-        return db;
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this.populateInitial();
-        this._bindElements();
-    }
-    populateInitial() {
-        const ix = this.measure.transposeIndex;
-        this.transposeIndexCtrl.setValue(ix);
-    }
-    changed() {
-        let selections = [];
-        if (!this.transposeIndexCtrl.changeFlag) {
-            return;
-        }
-        const xpose = this.transposeIndexCtrl.getValue();
-        if (this.applyToCtrl.getValue() === SuiInstrumentDialog.applyTo.score) {
-            selections = selections_1.SmoSelection.selectionsToEnd(this.view.score, this.selection.selector.staff, 0);
-        }
-        else if (this.applyToCtrl.getValue() === SuiInstrumentDialog.applyTo.remaining) {
-            selections = selections_1.SmoSelection.selectionsToEnd(this.view.score, this.selection.selector.staff, this.selection.selector.measure);
-        }
-        else {
-            selections.push(this.selection);
-        }
-        this.view.changeInstrument({
-            instrumentName: 'Treble Instrument',
-            keyOffset: xpose,
-            clef: this.measure.clef
-        }, selections);
-    }
-    constructor(parameters) {
-        const selection = parameters.view.tracker.selections[0];
-        const measure = selection.measure;
-        parameters = Object.assign({ selection, measure }, parameters);
-        super(SuiInstrumentDialog.dialogElements, Object.assign({ id: 'instrument-measure' }, parameters));
-        this.measure = measure;
-        this.refresh = false;
-        this.selection = parameters.selection;
-    }
-    _bindElements() {
-        var dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            this.complete();
-        });
-        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-            this.complete();
-        });
-        $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-            this.complete();
-        });
-    }
-}
-exports.SuiInstrumentDialog = SuiInstrumentDialog;
-class SuiInsertMeasures extends dialog_1.SuiDialogBase {
-    static get ctor() {
-        return 'SuiInsertMeasures';
-    }
-    get ctor() {
-        return SuiInsertMeasures.ctor;
-    }
-    static get dialogElements() {
-        SuiInsertMeasures._dialogElements = typeof (SuiInsertMeasures._dialogElements) !== 'undefined' ?
-            SuiInsertMeasures._dialogElements :
-            [{
-                    staticText: [
-                        { label: 'Insert Measures' }
-                    ]
-                }, {
-                    smoName: 'measureCount',
-                    parameterName: 'measureCount',
-                    defaultValue: 0,
-                    control: 'SuiRockerComponent',
-                    label: 'Measures to Insert',
-                }, {
-                    smoName: 'append',
-                    parameterName: 'append',
-                    defaultValue: true,
-                    control: 'SuiToggleComponent',
-                    label: 'Append to Selection'
-                }];
-        return SuiInsertMeasures._dialogElements;
-    }
-    static createAndDisplay(parameters) {
-        var db = new SuiInsertMeasures(parameters);
-        db.display();
-        return db;
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this._bindElements();
-    }
-    populateInitial() {
-        this.measureCountCtrl.setValue(1);
-    }
-    // noop
-    changed() {
-    }
-    constructor(parameters) {
-        const selection = parameters.view.tracker.selections[0];
-        const measure = selection.measure;
-        parameters = Object.assign({ selection, measure }, parameters);
-        super(SuiInsertMeasures.dialogElements, Object.assign({ id: 'time-signature-measure' }, parameters));
-        this.measure = measure;
-        Vex.Merge(this, parameters);
-        if (!this.startPromise) {
-            this.startPromise = new Promise((resolve) => {
-                resolve();
-            });
-        }
-    }
-    _bindElements() {
-        var dgDom = this.dgDom;
-        this.populateInitial();
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            this.view.addMeasures(this.appendCtrl.getValue(), this.measureCountCtrl.getValue());
-            this.complete();
-        });
-        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-            this.complete();
-        });
-        $(dgDom.element).find('.remove-button').remove();
-    }
-}
-exports.SuiInsertMeasures = SuiInsertMeasures;
-class SuiTimeSignatureDialog extends dialog_1.SuiDialogBase {
-    static get ctor() {
-        return 'SuiTimeSignatureDialog';
-    }
-    get ctor() {
-        return SuiTimeSignatureDialog.ctor;
-    }
-    static get dialogElements() {
-        SuiTimeSignatureDialog._dialogElements = SuiTimeSignatureDialog._dialogElements ? SuiTimeSignatureDialog._dialogElements :
-            [
-                {
-                    staticText: [
-                        { label: 'Custom Time Signature' }
-                    ]
-                },
-                {
-                    smoName: 'numerator',
-                    parameterName: 'numerator',
-                    defaultValue: 3,
-                    control: 'SuiRockerComponent',
-                    label: 'Beats/Measure',
-                },
-                {
-                    parameterName: 'denominator',
-                    smoName: 'denominator',
-                    defaultValue: 8,
-                    dataType: 'int',
-                    control: 'SuiDropdownComponent',
-                    label: 'Beat Value',
-                    options: [{
-                            value: 8,
-                            label: '8',
-                        }, {
-                            value: 4,
-                            label: '4'
-                        }, {
-                            value: 2,
-                            label: '2'
-                        }]
-                }, {
-                    smoName: 'display',
-                    parameterName: 'display',
-                    defaultValue: true,
-                    control: 'SuiToggleComponent',
-                    label: 'Display',
-                },
-            ];
-        return SuiTimeSignatureDialog._dialogElements;
-    }
-    populateInitial() {
-        const num = this.measure.timeSignature.actualBeats;
-        const den = this.measure.timeSignature.beatDuration;
-        this.numeratorCtrl.setValue(num);
-        this.denominatorCtrl.setValue(den);
-        this.displayCtrl.setValue(this.measure.timeSignature.display);
-    }
-    changed() {
-        // no dynamic change for time  signatures
-    }
-    static createAndDisplay(params) {
-        var dg = new SuiTimeSignatureDialog(params);
-        dg.display();
-        return dg;
-    }
-    changeTimeSignature() {
-        const ts = measure_1.SmoMeasure.convertLegacyTimeSignature('' + this.numeratorCtrl.getValue() + '/' + this.denominatorCtrl.getValue());
-        ts.display = this.displayCtrl.getValue();
-        this.view.setTimeSignature(ts);
-    }
-    _bindElements() {
-        const dgDom = this.dgDom;
-        this.numeratorCtrl = this.components.find((comp) => comp.smoName === 'numerator');
-        this.denominatorCtrl = this.components.find((comp) => comp.smoName === 'denominator');
-        this.populateInitial();
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            this.changeTimeSignature();
-            this.complete();
-        });
-        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-            this.complete();
-        });
-        $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-            this.complete();
-        });
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this.populateInitial();
-        this._bindElements();
-    }
-    constructor(parameters) {
-        const measure = parameters.view.tracker.selections[0].measure;
-        super(SuiTimeSignatureDialog.dialogElements, Object.assign({ id: 'time-signature-measure', label: 'Custom Time Signature' }, parameters));
-        this.measure = measure;
-        this.refresh = false;
-        this.startPromise = parameters.closeMenuPromise;
-        Vex.Merge(this, parameters);
-    }
-}
-exports.SuiTimeSignatureDialog = SuiTimeSignatureDialog;
-// ## SuiTempoDialog
-// Allow user to choose a tempo or tempo change.
-class SuiTempoDialog extends dialog_1.SuiDialogBase {
-    static get ctor() {
-        return 'SuiTempoDialog';
-    }
-    get ctor() {
-        return SuiTempoDialog.ctor;
-    }
-    static get attributes() {
-        return ['tempoMode', 'bpm', 'beatDuration', 'tempoText', 'yOffset'];
-    }
-    static get dialogElements() {
-        SuiTempoDialog._dialogElements = SuiTempoDialog._dialogElements ? SuiTempoDialog._dialogElements :
-            [
-                {
-                    staticText: [
-                        { label: 'Tempo Properties' }
-                    ]
-                },
-                {
-                    smoName: 'tempoMode',
-                    parameterName: 'tempoMode',
-                    defaultValue: measureModifiers_1.SmoTempoText.tempoModes.durationMode,
-                    control: 'SuiDropdownComponent',
-                    label: 'Tempo Mode',
-                    options: [{
-                            value: 'duration',
-                            label: 'Duration (Beats/Minute)'
-                        }, {
-                            value: 'text',
-                            label: 'Tempo Text'
-                        }, {
-                            value: 'custom',
-                            label: 'Specify text and duration'
-                        }
-                    ]
-                },
-                {
-                    smoName: 'customText',
-                    parameterName: 'customText',
-                    defaultValue: '',
-                    control: 'SuiTextInputComponent',
-                    label: 'Custom Text',
-                    classes: 'hide-when-text-mode'
-                },
-                {
-                    parameterName: 'bpm',
-                    smoName: 'bpm',
-                    defaultValue: 120,
-                    control: 'SuiRockerComponent',
-                    label: 'Notes/Minute'
-                },
-                {
-                    parameterName: 'duration',
-                    smoName: 'beatDuration',
-                    defaultValue: 4096,
-                    dataType: 'int',
-                    control: 'SuiDropdownComponent',
-                    label: 'Unit for Beat',
-                    options: [{
-                            value: 4096,
-                            label: 'Quarter Note',
-                        }, {
-                            value: 2048,
-                            label: '1/8 note'
-                        }, {
-                            value: 6144,
-                            label: 'Dotted 1/4 note'
-                        }, {
-                            value: 8192,
-                            label: '1/2 note'
-                        }
-                    ]
-                },
-                {
-                    smoName: 'tempoText',
-                    parameterName: 'tempoText',
-                    defaultValue: measureModifiers_1.SmoTempoText.tempoTexts.allegro,
-                    control: 'SuiDropdownComponent',
-                    label: 'Tempo Text',
-                    classes: 'hide-when-not-text-mode',
-                    options: [{
-                            value: measureModifiers_1.SmoTempoText.tempoTexts.larghissimo,
-                            label: 'Larghissimo'
-                        }, {
-                            value: measureModifiers_1.SmoTempoText.tempoTexts.grave,
-                            label: 'Grave'
-                        }, {
-                            value: measureModifiers_1.SmoTempoText.tempoTexts.lento,
-                            label: 'Lento'
-                        }, {
-                            value: measureModifiers_1.SmoTempoText.tempoTexts.largo,
-                            label: 'Largo'
-                        }, {
-                            value: measureModifiers_1.SmoTempoText.tempoTexts.larghetto,
-                            label: 'Larghetto'
-                        }, {
-                            value: measureModifiers_1.SmoTempoText.tempoTexts.adagio,
-                            label: 'Adagio'
-                        }, {
-                            value: measureModifiers_1.SmoTempoText.tempoTexts.adagietto,
-                            label: 'Adagietto'
-                        }, {
-                            value: measureModifiers_1.SmoTempoText.tempoTexts.andante_moderato,
-                            label: 'Andante moderato'
-                        }, {
-                            value: measureModifiers_1.SmoTempoText.tempoTexts.andante,
-                            label: 'Andante'
-                        }, {
-                            value: measureModifiers_1.SmoTempoText.tempoTexts.andantino,
-                            label: 'Andantino'
-                        }, {
-                            value: measureModifiers_1.SmoTempoText.tempoTexts.moderator,
-                            label: 'Moderato'
-                        }, {
-                            value: measureModifiers_1.SmoTempoText.tempoTexts.allegretto,
-                            label: 'Allegretto',
-                        }, {
-                            value: measureModifiers_1.SmoTempoText.tempoTexts.allegro,
-                            label: 'Allegro'
-                        }, {
-                            value: measureModifiers_1.SmoTempoText.tempoTexts.vivace,
-                            label: 'Vivace'
-                        }, {
-                            value: measureModifiers_1.SmoTempoText.tempoTexts.presto,
-                            label: 'Presto'
-                        }, {
-                            value: measureModifiers_1.SmoTempoText.tempoTexts.prestissimo,
-                            label: 'Prestissimo'
-                        }
-                    ]
-                }, {
-                    smoName: 'applyToAll',
-                    parameterName: 'applyToAll',
-                    defaultValue: false,
-                    control: 'SuiToggleComponent',
-                    label: 'Apply to all future measures?'
-                }, {
-                    smoName: 'display',
-                    parameterName: 'display',
-                    defaultValue: true,
-                    control: 'SuiToggleComponent',
-                    label: 'Display Tempo'
-                }, {
-                    smoName: 'yOffset',
-                    parameterName: 'yOffset',
-                    defaultValue: 0,
-                    control: 'SuiRockerComponent',
-                    label: 'Y Offset'
-                }
-            ];
-        return SuiTempoDialog._dialogElements;
-    }
-    static createAndDisplay(parameters) {
-        const dg = new SuiTempoDialog(parameters);
-        dg.display();
-        return dg;
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this.populateInitial();
-        this._bindElements();
-    }
-    constructor(parameters) {
-        parameters.measures = selections_1.SmoSelection.getMeasureList(parameters.view.tracker.selections)
-            .map((sel) => sel.measure);
-        const measure = parameters.measures[0];
-        // All measures have a default tempo, but it is not explicitly set unless it is
-        // non-default
-        parameters.modifier = measure.getTempo();
-        if (!parameters.modifier) {
-            parameters.modifier = new measureModifiers_1.SmoTempoText();
-        }
-        if (!parameters.modifier.renderedBox) {
-            parameters.modifier.renderedBox = svgHelpers_1.SvgHelpers.copyBox(measure.svg.renderedBox);
-        }
-        if (!parameters.modifier || !parameters.measures) {
-            throw new Error('modifier attribute dialog must have modifier and selection');
-        }
-        super(SuiTempoDialog.dialogElements, Object.assign({ id: 'dialog-tempo', top: parameters.modifier.renderedBox.y, left: parameters.modifier.renderedBox.x }, parameters));
-        this.refresh = false;
-        Vex.Merge(this, parameters);
-    }
-    populateInitial() {
-        measureModifiers_1.SmoTempoText.attributes.forEach((attr) => {
-            var comp = this.components.find((cc) => cc.smoName === attr);
-            if (comp) {
-                comp.setValue(this.modifier[attr]);
-            }
-        });
-        this._updateModeClass();
-    }
-    _updateModeClass() {
-        if (this.modifier.tempoMode === measureModifiers_1.SmoTempoText.tempoModes.textMode) {
-            $('.attributeModal').addClass('tempoTextMode');
-            $('.attributeModal').removeClass('tempoDurationMode');
-        }
-        else if (this.modifier.tempoMode === measureModifiers_1.SmoTempoText.tempoModes.durationMode) {
-            $('.attributeModal').addClass('tempoDurationMode');
-            $('.attributeModal').removeClass('tempoTextMode');
-        }
-        else {
-            $('.attributeModal').removeClass('tempoDurationMode');
-            $('.attributeModal').removeClass('tempoTextMode');
-        }
-    }
-    changed() {
-        this.components.forEach((component) => {
-            if (measureModifiers_1.SmoTempoText.attributes.indexOf(component.smoName) >= 0) {
-                this.modifier[component.smoName] = component.getValue();
-            }
-        });
-        if (this.modifier.tempoMode === measureModifiers_1.SmoTempoText.tempoModes.textMode) {
-            this.modifier.bpm = measureModifiers_1.SmoTempoText.bpmFromText[this.modifier.tempoText];
-        }
-        if (this.customTextCtrl.changeFlag) {
-            this.modifier.customText = this.customTextCtrl.getValue();
-        }
-        this._updateModeClass();
-        this.view.updateTempoScore(this.modifier, this.applyToAllCtrl.getValue());
-    }
-    // ### handleRemove
-    // Removing a tempo change is like changing the measure to the previous measure's tempo.
-    // If this is the first measure, use the default value.
-    handleRemove() {
-        this.view.removeTempo(this.applyToAllCtrl.getValue());
-    }
-    // ### Populate the initial values and bind to the buttons.
-    _bindElements() {
-        const dgDom = this.dgDom;
-        $(dgDom.element).find('.cancel-button').remove();
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            this.complete();
-        });
-        $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-            this.handleRemove();
-            this.complete();
-        });
-    }
-}
-exports.SuiTempoDialog = SuiTempoDialog;
-
-
-/***/ }),
-
-/***/ "./src/ui/dialogs/scoreDialogs.js":
-/*!****************************************!*\
-  !*** ./src/ui/dialogs/scoreDialogs.js ***!
-  \****************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiLayoutDialog = exports.SuiScoreFontDialog = exports.SuiScoreIdentificationDialog = exports.SuiGlobalLayoutDialog = exports.SuiScoreViewDialog = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const dialog_1 = __webpack_require__(/*! ../dialog */ "./src/ui/dialog.js");
-const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
-const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
-const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
-const deepCopy = (x) => JSON.parse(JSON.stringify(x));
-// ## SuiScoreViewDialog
-// decide which rows of the score to look at
-class SuiScoreViewDialog extends dialog_1.SuiDialogBase {
-    static get ctor() {
-        return 'SuiScoreViewDialog';
-    }
-    get ctor() {
-        return SuiScoreViewDialog.ctor;
-    }
-    static get dialogElements() {
-        SuiScoreViewDialog._dialogElements = typeof (SuiScoreViewDialog._dialogElements) !== 'undefined' ? SuiScoreViewDialog._dialogElements :
-            [{
-                    smoName: 'scoreView',
-                    parameterName: 'scoreView',
-                    defaultValue: [],
-                    control: 'StaffCheckComponent',
-                    label: 'Show staff',
-                }, {
-                    staticText: [
-                        { label: 'Score View' }
-                    ]
-                }];
-        return SuiScoreViewDialog._dialogElements;
-    }
-    static createAndDisplay(parameters) {
-        const dg = new SuiScoreViewDialog(parameters);
-        dg.display();
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-    }
-    display() {
-        $('body').addClass('showAttributeDialog');
-        this.applyDisplayOptions();
-        this._bindElements();
-        const currentView = this.view.getView();
-        this.originalValue = JSON.parse(JSON.stringify(currentView));
-        this.scoreViewCtrl.setValue(currentView);
-    }
-    _bindElements() {
-        const dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            if (this.viewChanged) {
-                this.view.setView(this.scoreViewCtrl.getValue());
-            }
-            this.complete();
-        });
-        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-            if (this.viewChanged) {
-                this.view.setView(this.originalValue);
-            }
-            this.complete();
-        });
-        $(dgDom.element).find('.remove-button').remove();
-    }
-    changed() {
-        this.viewChanged = true;
-    }
-    constructor(parameters) {
-        super(SuiScoreViewDialog.dialogElements, Object.assign({ id: 'dialog-layout' }, parameters));
-        this.viewChanged = false;
-    }
-}
-exports.SuiScoreViewDialog = SuiScoreViewDialog;
-// ## SuiGlobalLayoutDialog
-// change editor and formatting defaults for this score.
-class SuiGlobalLayoutDialog extends dialog_1.SuiDialogBase {
-    static get ctor() {
-        return 'SuiGlobalLayoutDialog';
-    }
-    get ctor() {
-        return SuiGlobalLayoutDialog.ctor;
-    }
-    static get dialogElements() {
-        SuiGlobalLayoutDialog._dialogElements = typeof (SuiGlobalLayoutDialog._dialogElements)
-            !== 'undefined' ? SuiGlobalLayoutDialog._dialogElements :
-            [{
-                    smoName: 'scoreName',
-                    parameterName: 'scoreName',
-                    defaultValue: [],
-                    control: 'SuiTextInputComponent',
-                    label: 'Score Name',
-                }, {
-                    smoName: 'autoPlay',
-                    parameterName: 'autoPlay',
-                    defaultValue: [],
-                    control: 'SuiToggleComponent',
-                    label: 'Play Selections',
-                }, {
-                    smoName: 'autoAdvance',
-                    parameterName: 'autoAdvance',
-                    defaultValue: [],
-                    control: 'SuiToggleComponent',
-                    label: 'Auto-Advance Cursor',
-                }, {
-                    smoName: 'noteSpacing',
-                    parameterName: 'noteSpacing',
-                    defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.noteSpacing,
-                    control: 'SuiRockerComponent',
-                    type: 'percent',
-                    label: 'Note Spacing'
-                }, {
-                    smoName: 'pageSize',
-                    parameterName: 'pageSize',
-                    defaultValue: score_1.SmoScore.pageSizes.letter,
-                    control: 'SuiDropdownComponent',
-                    label: 'Page Size',
-                    options: [
-                        {
-                            value: 'letter',
-                            label: 'Letter (Portrait)'
-                        }, {
-                            value: 'letterLandscape',
-                            label: 'Letter (Landscape)'
-                        }, {
-                            value: 'tabloid',
-                            label: 'Tabloid (11x17)'
-                        }, {
-                            value: 'A4',
-                            label: 'A4'
-                        }, {
-                            value: 'custom',
-                            label: 'Custom'
-                        }
-                    ]
-                }, {
-                    smoName: 'pageWidth',
-                    parameterName: 'pageWidth',
-                    defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.pageWidth,
-                    control: 'SuiRockerComponent',
-                    label: 'Page Width (px)'
-                }, {
-                    smoName: 'pageHeight',
-                    parameterName: 'pageHeight',
-                    defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.pageHeight,
-                    control: 'SuiRockerComponent',
-                    label: 'Page Height (px)'
-                }, {
-                    smoName: 'zoomScale',
-                    parameterName: 'zoomScale',
-                    defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.zoomScale,
-                    control: 'SuiRockerComponent',
-                    label: '% Zoom',
-                    type: 'percent'
-                }, {
-                    smoName: 'svgScale',
-                    parameterName: 'svgScale',
-                    defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.svgScale,
-                    control: 'SuiRockerComponent',
-                    label: '% Note size',
-                    type: 'percent'
-                }, {
-                    staticText: [
-                        { label: 'Global Settings' }
-                    ]
-                }];
-        return SuiGlobalLayoutDialog._dialogElements;
-    }
-    static createAndDisplay(parameters) {
-        const dg = new SuiGlobalLayoutDialog(parameters);
-        dg.display();
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this._bindElements();
-        this.scoreNameCtrl.setValue(this.view.score.scoreInfo.name);
-        this.autoPlayCtrl.setValue(this.view.score.preferences.autoPlay);
-        this.autoAdvanceCtrl.setValue(this.view.score.preferences.autoAdvance);
-        this.noteSpacingCtrl.setValue(this.globalLayout.noteSpacing);
-        this.zoomScaleCtrl.setValue(this.globalLayout.zoomScale);
-        this.svgScaleCtrl.setValue(this.globalLayout.svgScale);
-        this.pageWidthCtrl.setValue(this.globalLayout.pageWidth);
-        this.pageHeightCtrl.setValue(this.globalLayout.pageHeight);
-        this._setPageSizeDefault();
-    }
-    _bindElements() {
-        const dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            if (this.layoutChanged) {
-                this.view.renderer.rerenderAll();
-            }
-            this.complete();
-        });
-        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-            if (this.layoutChanged) {
-                this.view.setGlobalLayout(this.layoutBackup);
-                this.view.renderer.rerenderAll();
-            }
-            this.complete();
-        });
-        $(dgDom.element).find('.remove-button').remove();
-    }
-    // ### _handlePageSizeChange
-    // see if the dimensions have changed.
-    _handlePageSizeChange() {
-        const sel = this.pageSizeCtrl.getValue();
-        if (sel === 'custom') {
-            $('.attributeModal').addClass('customPage');
-        }
-        else {
-            $('.attributeModal').removeClass('customPage');
-            const dim = score_1.SmoScore.pageDimensions[sel];
-            this.pageHeightCtrl.setValue(dim.height);
-            this.pageWidthCtrl.setValue(dim.width);
-            this.globalLayout.pageHeight = dim.height;
-            this.globalLayout.pageWidth = dim.width;
-            this.view.setGlobalLayout(this.globalLayout);
-        }
-    }
-    _setPageSizeDefault() {
-        let value = 'custom';
-        const scoreDims = this.globalLayout;
-        score_1.SmoScore.pageSizes.forEach((sz) => {
-            const dim = score_1.SmoScore.pageDimensions[sz];
-            if (scoreDims.pageWidth === dim.width && scoreDims.pageHeight === dim.height) {
-                value = sz;
-            }
-            else if (scoreDims.pageHeight === dim.width && scoreDims.pageWidth === dim.height) {
-                value = sz;
-            }
-        });
-        this.pageSizeCtrl.setValue(value);
-        this._handlePageSizeChange();
-    }
-    changed() {
-        let layoutChanged = false;
-        let prefChanged = false;
-        if (this.scoreNameCtrl.changeFlag) {
-            const newInfo = JSON.parse(JSON.stringify(this.view.score.scoreInfo));
-            newInfo.name = this.scoreNameCtrl.getValue();
-            this.view.updateScoreInfo(newInfo);
-            return;
-        }
-        if (this.pageWidthCtrl.changeFlag) {
-            this.globalLayout.pageWidth = this.pageWidthCtrl.getValue();
-            layoutChanged = true;
-        }
-        if (this.pageHeightCtrl.changeFlag) {
-            this.globalLayout.pageHeight = this.pageHeightCtrl.getValue();
-            layoutChanged = true;
-        }
-        if (this.pageSizeCtrl.changeFlag) {
-            this._handlePageSizeChange();
-        }
-        if (this.autoPlayCtrl.changeFlag) {
-            this.preferences.autoPlay = this.autoPlayCtrl.getValue();
-            prefChanged = true;
-        }
-        if (this.autoAdvanceCtrl.changeFlag) {
-            this.preferences.autoAdvance = this.autoAdvanceCtrl.getValue();
-            prefChanged = true;
-        }
-        if (this.noteSpacingCtrl.changeFlag) {
-            layoutChanged = true;
-            this.globalLayout.noteSpacing = this.noteSpacingCtrl.getValue();
-        }
-        if (this.zoomScaleCtrl.changeFlag) {
-            layoutChanged = true;
-            this.globalLayout.zoomScale = this.zoomScaleCtrl.getValue();
-        }
-        if (this.svgScaleCtrl.changeFlag) {
-            layoutChanged = true;
-            this.globalLayout.svgScale = this.svgScaleCtrl.getValue();
-        }
-        if (layoutChanged) {
-            this.view.setGlobalLayout(this.globalLayout);
-            this.layoutChanged = true;
-        }
-        if (prefChanged) {
-            this.view.updateScorePreferences(this.preferences);
-        }
-    }
-    constructor(parameters) {
-        super(SuiGlobalLayoutDialog.dialogElements, Object.assign({ id: 'dialog-layout' }, parameters));
-        this.layoutChanged = false;
-        this.score = this.view.score;
-        this.globalLayout = this.score.layoutManager.getGlobalLayout();
-        this.layoutBackup = deepCopy(this.globalLayout);
-        this.preferences = deepCopy(this.view.score.preferences);
-    }
-}
-exports.SuiGlobalLayoutDialog = SuiGlobalLayoutDialog;
-// ## SuiScoreIdentificationDialog
-// change editor and formatting defaults for this score.
-class SuiScoreIdentificationDialog extends dialog_1.SuiDialogBase {
-    static get ctor() {
-        return 'SuiScoreIdentificationDialog';
-    }
-    get ctor() {
-        return SuiScoreIdentificationDialog.ctor;
-    }
-    static get dialogElements() {
-        SuiScoreIdentificationDialog._dialogElements = typeof (SuiScoreIdentificationDialog._dialogElements)
-            !== 'undefined' ? SuiScoreIdentificationDialog._dialogElements :
-            [{
-                    smoName: 'title',
-                    parameterName: 'title',
-                    defaultValue: '',
-                    control: 'TextCheckComponent',
-                    label: 'Title',
-                }, {
-                    smoName: 'subTitle',
-                    parameterName: 'subTitle',
-                    defaultValue: [],
-                    control: 'TextCheckComponent',
-                    label: 'Sub Title',
-                }, {
-                    smoName: 'composer',
-                    parameterName: 'composer',
-                    defaultValue: [],
-                    control: 'TextCheckComponent',
-                    label: 'Composer',
-                }, {
-                    smoName: 'copyright',
-                    parameterName: 'copyright',
-                    defaultValue: measureModifiers_1.SmoMeasureFormat.defaults.customProportion,
-                    control: 'TextCheckComponent',
-                    label: 'Copyright'
-                }, {
-                    staticText: [
-                        { label: 'Score Preferences' },
-                        { titleText: 'Title' },
-                        { subTitleText: 'Sub-title' },
-                        { copyrightText: 'Copyright' },
-                        { composerText: 'Composer' },
-                        { show: 'Show' }
-                    ]
-                }];
-        return SuiScoreIdentificationDialog._dialogElements;
-    }
-    static createAndDisplay(parameters) {
-        const dg = new SuiScoreIdentificationDialog(parameters);
-        dg.display();
-    }
-    _setInitialValues() {
-        const titleText = this.score.getTextGroups().find((tg) => tg.purpose === scoreModifiers_1.SmoTextGroup.purposes.TITLE);
-        const subText = this.score.getTextGroups().find((tg) => tg.purpose === scoreModifiers_1.SmoTextGroup.purposes.SUBTITLE);
-        const composerText = this.score.getTextGroups().find((tg) => tg.purpose === scoreModifiers_1.SmoTextGroup.purposes.COMPOSER);
-        const copyrightText = this.score.getTextGroups().find((tg) => tg.purpose === scoreModifiers_1.SmoTextGroup.purposes.COPYRIGHT);
-        this.titleCtrl.setValue({ text: this.scoreInfo.title, checked: titleText !== null });
-        this.subTitleCtrl.setValue({ text: this.scoreInfo.subTitle, checked: subText !== null });
-        this.composerCtrl.setValue({ text: this.scoreInfo.composer, checked: composerText !== null });
-        this.copyrightCtrl.setValue({ text: this.scoreInfo.copyright, checked: copyrightText !== null });
-    }
-    _createText(purpose, text) {
-        const existing = this.score.getTextGroups().find((tg) => tg.purpose === purpose);
-        if (existing) {
-            const copy = scoreModifiers_1.SmoTextGroup.deserialize(existing.serialize());
-            copy.attrs.id = existing.attrs.id;
-            copy.firstBlock().text = text;
-            this.view.updateTextGroup(existing, copy);
-            return;
-        }
-        const tg = scoreModifiers_1.SmoTextGroup.createTextForLayout(purpose, text, this.score.layoutManager.getScaledPageLayout(0));
-        this.view.addTextGroup(tg);
-    }
-    _removeText(purpose) {
-        const existing = this.score.getTextGroups().find((tg) => tg.purpose === purpose);
-        if (existing) {
-            this.view.removeTextGroup(existing);
-        }
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this._bindElements();
-        this._setInitialValues();
-    }
-    _bindElements() {
-        const dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            this.complete();
-        });
-        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-            this.complete();
-        });
-        $(dgDom.element).find('.remove-button').remove();
-    }
-    changed() {
-        const params = [
-            { control: 'titleCtrl', purpose: scoreModifiers_1.SmoTextGroup.purposes.TITLE, scoreField: 'title' },
-            { control: 'subTitleCtrl', purpose: scoreModifiers_1.SmoTextGroup.purposes.SUBTITLE, scoreField: 'subTitle' },
-            { control: 'composerCtrl', purpose: scoreModifiers_1.SmoTextGroup.purposes.COMPOSER, scoreField: 'composer' },
-            { control: 'copyrightCtrl', purpose: scoreModifiers_1.SmoTextGroup.purposes.COPYRIGHT, scoreField: 'copyright' },
-        ];
-        params.forEach((param) => {
-            if (this[param.control].changeFlag) {
-                const val = this[param.control].getValue();
-                if (val.checked === true) {
-                    this._createText(param.purpose, val.text);
-                }
-                else {
-                    this._removeText(param.purpose, val.text);
-                }
-                const scoreInfo = JSON.parse(JSON.stringify(this.scoreInfo));
-                scoreInfo.name = scoreInfo.title;
-                scoreInfo[param.scoreField] = val.text;
-                this.view.updateScoreInfo(scoreInfo);
-                this.scoreInfo = this.score.scoreInfo;
-            }
-        });
-    }
-    constructor(parameters) {
-        var p = parameters;
-        super(SuiScoreIdentificationDialog.dialogElements, Object.assign({ id: 'dialog-layout' }, parameters));
-        this.startPromise = p.startPromise;
-        this.scoreInfo = this.view.score.scoreInfo;
-        this.score = this.view.score;
-    }
-}
-exports.SuiScoreIdentificationDialog = SuiScoreIdentificationDialog;
-class SuiScoreFontDialog extends dialog_1.SuiDialogBase {
-    static get ctor() {
-        return 'SuiScoreFontDialog';
-    }
-    get ctor() {
-        return SuiScoreFontDialog.ctor;
-    }
-    // ### dialogElements
-    // all dialogs have elements define the controls of the dialog.
-    static get dialogElements() {
-        SuiScoreFontDialog._dialogElements = typeof (SuiScoreFontDialog._dialogElements) !== 'undefined' ? SuiScoreFontDialog._dialogElements :
-            [{
-                    smoName: 'engravingFont',
-                    parameterName: 'engravingFont',
-                    defaultValue: score_1.SmoScore.engravingFonts.Bravura,
-                    control: 'SuiDropdownComponent',
-                    label: 'Engraving Font',
-                    options: [{
-                            value: 'Bravura',
-                            label: 'Bravura'
-                        }, {
-                            value: 'Gonville',
-                            label: 'Gonville'
-                        }, {
-                            value: 'Petaluma',
-                            label: 'Petaluma'
-                        }, {
-                            value: 'Leland',
-                            label: 'Leland'
-                        }]
-                }, {
-                    smoName: 'chordFont',
-                    parameterName: 'chordFont',
-                    classes: 'chord-font-component',
-                    defaultValue: 0,
-                    control: 'SuiFontComponent',
-                    label: 'Chord Font'
-                }, {
-                    smoName: 'lyricFont',
-                    parameterName: 'lyricFont',
-                    classes: 'lyric-font-component',
-                    defaultValue: 0,
-                    control: 'SuiFontComponent',
-                    label: 'Lyric Font'
-                }, {
-                    staticText: [
-                        { label: 'Score Fonts' }
-                    ]
-                }];
-        return SuiScoreFontDialog._dialogElements;
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-    }
-    display() {
-        $('body').addClass('showAttributeDialog');
-        this.applyDisplayOptions();
-        this._bindElements();
-        const engraving = this.fontBackup.find((ff) => ff.purpose === score_1.SmoScore.fontPurposes.ENGRAVING);
-        const chords = this.fontBackup.find((ff) => ff.purpose === score_1.SmoScore.fontPurposes.CHORDS);
-        const lyrics = this.fontBackup.find((ff) => ff.purpose === score_1.SmoScore.fontPurposes.LYRICS);
-        this.engravingFontCtrl.setValue(engraving.family);
-        this.chordFontCtrl.setValue(chords);
-        this.lyricFontCtrl.setValue(lyrics);
-    }
-    _bindElements() {
-        const dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            this.complete();
-        });
-        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-            this._handleCancel();
-        });
-        $(dgDom.element).find('.remove-button').remove();
-    }
-    _handleCancel() {
-        if (this.needRefresh) {
-            const engrave = this.fontBackup.find((fn) => fn.purpose === score_1.SmoScore.fontPurposes.ENGRAVING);
-            const chords = this.fontBackup.find((ff) => ff.purpose === score_1.SmoScore.fontPurposes.CHORDS);
-            const lyrics = this.fontBackup.find((ff) => ff.purpose === score_1.SmoScore.fontPurposes.LYRICS);
-            this.view.setEngravingFontFamily(engrave.family);
-            this.chordFontCtrl.setValue(chords);
-            this.lyricFontCtrl.setValue(lyrics);
-            this.view.renderer.rerenderAll();
-        }
-        this.complete();
-    }
-    changed() {
-        if (this.engravingFontCtrl.changeFlag) {
-            this.needRefresh = true;
-            this.view.setEngravingFontFamily(this.engravingFontCtrl.getValue());
-            this.view.renderer.rerenderAll();
-        }
-        if (this.chordFontCtrl.changeFlag) {
-            this.needRefresh = true;
-            this.view.setChordFont(this.chordFontCtrl.getValue());
-            this.view.renderer.rerenderAll();
-        }
-        if (this.lyricFontCtrl.changeFlag) {
-            this.needRefresh = true;
-            this.view.setLyricFont(this.lyricFontCtrl.getValue());
-            this.view.renderer.rerenderAll();
-        }
-    }
-    static createAndDisplay(parameters) {
-        const dg = new SuiScoreFontDialog(parameters);
-        dg.display();
-    }
-    constructor(parameters) {
-        var p = parameters;
-        super(SuiScoreFontDialog.dialogElements, Object.assign({ id: 'dialog-scorefont' }, parameters));
-        this.score = p.view.score;
-        this.fontBackup = JSON.parse(JSON.stringify(this.score.fonts));
-        this.startPromise = p.startPromise;
-        this.needRefresh = false;
-    }
-}
-exports.SuiScoreFontDialog = SuiScoreFontDialog;
-// ## SuiLayoutDialog
-// The layout dialog has page-specific layout parameters
-class SuiLayoutDialog extends dialog_1.SuiDialogBase {
-    static get ctor() {
-        return 'SuiLayoutDialog';
-    }
-    get ctor() {
-        return SuiLayoutDialog.ctor;
-    }
-    static get layoutParams() {
-        return ['leftMargin', 'rightMargin', 'topMargin', 'bottomMargin', 'interGap', 'intraGap'];
-    }
-    // ### dialogElements
-    // all dialogs have elements define the controls of the dialog.
-    static get dialogElements() {
-        SuiLayoutDialog._dialogElements = typeof (SuiLayoutDialog._dialogElements) !== 'undefined' ? SuiLayoutDialog._dialogElements :
-            [{
-                    smoName: 'applyToPage',
-                    parameterName: 'applyToPage',
-                    defaultValue: -1,
-                    control: 'SuiDropdownComponent',
-                    label: 'Apply to Page',
-                    dataType: 'int',
-                    options: [{
-                            value: -1,
-                            label: 'All'
-                        }, {
-                            value: -2,
-                            label: 'All Remaining'
-                        }, {
-                            value: 1,
-                            label: 'Page 1'
-                        }]
-                }, {
-                    smoName: 'leftMargin',
-                    parameterName: 'leftMargin',
-                    defaultValue: scoreModifiers_1.SmoPageLayout.defaults.leftMargin,
-                    control: 'SuiRockerComponent',
-                    label: 'Left Margin (px)'
-                }, {
-                    smoName: 'rightMargin',
-                    parameterName: 'rightMargin',
-                    defaultValue: scoreModifiers_1.SmoPageLayout.defaults.rightMargin,
-                    control: 'SuiRockerComponent',
-                    label: 'Right Margin (px)'
-                }, {
-                    smoName: 'topMargin',
-                    parameterName: 'topMargin',
-                    defaultValue: scoreModifiers_1.SmoPageLayout.defaults.topMargin,
-                    control: 'SuiRockerComponent',
-                    label: 'Top Margin (px)'
-                }, {
-                    smoName: 'bottomMargin',
-                    parameterName: 'bottomMargin',
-                    defaultValue: scoreModifiers_1.SmoPageLayout.defaults.bottomMargin,
-                    control: 'SuiRockerComponent',
-                    label: 'Bottom Margin (px)'
-                }, {
-                    smoName: 'interGap',
-                    parameterName: 'interGap',
-                    defaultValue: scoreModifiers_1.SmoPageLayout.defaults.interGap,
-                    control: 'SuiRockerComponent',
-                    label: 'Inter-System Margin'
-                }, {
-                    smoName: 'intraGap',
-                    parameterName: 'intraGap',
-                    defaultValue: scoreModifiers_1.SmoPageLayout.defaults.intraGap,
-                    control: 'SuiRockerComponent',
-                    label: 'Intra-System Margin'
-                }, {
-                    staticText: [
-                        { label: 'Page Layouts' }
-                    ]
-                }];
-        return SuiLayoutDialog._dialogElements;
-    }
-    // ### backupOriginal
-    // backup the original layout parameters for trial period
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this.focusedPage = this.view.getFocusedPage();
-        // Set the control that says which pages this dialog will apply to
-        if (this.layoutManager.pageLayouts.length === 1) {
-            this.applyToPageCtrl.setValue(-1); // 1 page, applies to all
-            $(this.applyToPageCtrl._getInputElement()).prop('disabled', true);
-        }
-        else {
-            if (this.focusedPage >= 1) {
-                this.applyToPageCtrl.setValue(-2); // apply to subsequent
-            }
-            else {
-                this.applyToPageCtrl.setValue(-1); // apply to all
-            }
-        }
-        // Get the initial values from the currently focused page
-        const pl = this.layoutManager.pageLayouts[this.focusedPage];
-        SuiLayoutDialog.layoutParams.forEach((attr) => {
-            const ctrlName = attr + 'Ctrl';
-            this[ctrlName].setValue(pl[attr]);
-        });
-        this._bindElements();
-    }
-    _handleCancel() {
-        this.backup.forEach((page, pageIx) => {
-            this.view.setPageLayout(page, pageIx);
-        });
-        this.complete();
-    }
-    _bindElements() {
-        const self = this;
-        const dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            // TODO:  allow user to select a zoom mode.
-            self.complete();
-        });
-        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-            self._handleCancel();
-        });
-        $(dgDom.element).find('.remove-button').remove();
-    }
-    _pagesFromCtrl() {
-        const ap = this.applyToPageCtrl.getValue();
-        const pages = this.layoutManager.pageLayouts.length;
-        if (ap === -1) {
-            return [...Array(pages)].map((v, i) => i);
-        }
-        else if (ap === -2) {
-            return [...Array(pages - this.focusedPage)].map((v, i) => this.focusedPage + i);
-        }
-        return [ap - 1];
-    }
-    // ### changed
-    // One of the components has had a changed value.
-    changed() {
-        const pages = this._pagesFromCtrl();
-        pages.forEach((page) => {
-            const pl = this.layoutManager.getPageLayout(page);
-            SuiLayoutDialog.layoutParams.forEach((param) => {
-                const ctrl = param + 'Ctrl';
-                if (this.applyToPageCtrl.changeFlag) {
-                    this[ctrl].setValue(pl[param]);
-                }
-                else {
-                    if (this[ctrl].changeFlag) {
-                        pl[param] = this[ctrl].getValue();
-                    }
-                }
-            });
-            this.view.setPageLayout(pl, page);
-        });
-    }
-    // ### createAndDisplay
-    // static method to create the object and then display it.
-    static createAndDisplay(parameters) {
-        const dg = new SuiLayoutDialog(parameters);
-        dg.display();
-    }
-    constructor(parameters) {
-        const p = parameters;
-        const dialogElements = JSON.parse(JSON.stringify(SuiLayoutDialog.dialogElements));
-        let i = 1;
-        const score = p.view.score;
-        const pageCtrl = dialogElements.find((pp) => pp.smoName === 'applyToPage');
-        for (i = 1; i < score.layoutManager.pageLayouts.length; ++i) {
-            pageCtrl.options.push({ value: i + 1, label: 'Page ' + (i + 1) });
-        }
-        super(dialogElements, Object.assign({ id: 'dialog-layout' }, parameters));
-        this.score = score;
-        this.layoutManager = this.score.layoutManager;
-        this.backup = this.layoutManager.getPageLayouts();
-    }
-}
-exports.SuiLayoutDialog = SuiLayoutDialog;
-
-
-/***/ }),
-
-/***/ "./src/ui/dialogs/staffComponents.js":
-/*!*******************************************!*\
-  !*** ./src/ui/dialogs/staffComponents.js ***!
-  \*******************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TextCheckComponent = exports.StaffCheckComponent = exports.StaffAddRemoveComponent = exports.TieMappingComponent = exports.CheckboxDropdownComponent = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
-const dialogComponents_1 = __webpack_require__(/*! ../dialogComponents */ "./src/ui/dialogComponents.js");
-const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
-const dialog_1 = __webpack_require__(/*! ../dialog */ "./src/ui/dialog.js");
-const staffDialogs_1 = __webpack_require__(/*! ./staffDialogs */ "./src/ui/dialogs/staffDialogs.js");
-// ## CheckboxDropdownComponent
-// A checkbox that enables a dropdown component, for optional or dependent parameter
-class CheckboxDropdownComponent extends dialogComponents_1.SuiComponentBase {
-    // { dropdownElement: {...}, toggleElement: }
-    constructor(dialog, parameter) {
-        super(parameter);
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
-        this.dialog = dialog;
-        parameter.toggleElement.parentControl = this;
-        parameter.dropdownElement.parentControl = this;
-        this.toggleCtrl = new dialogComponents_1.SuiToggleComposite(this.dialog, parameter.toggleElement);
-        this.dropdownCtrl = new dialogComponents_1.SuiDropdownComposite(this.dialog, parameter.dropdownElement);
-    }
-    get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
-        const q = b('div').classes(this.makeClasses('multiControl smoControl checkboxDropdown'))
-            .attr('id', this.parameterId);
-        q.append(this.toggleCtrl.html);
-        q.append(this.dropdownCtrl.html);
-        return q;
-    }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
-    bind() {
-        this.toggleCtrl.bind();
-        this.dropdownCtrl.bind();
-    }
-    changed() {
-        if (this.toggleCtrl.getValue()) {
-            $('#' + this.parameterId).addClass('checked');
-        }
-        else {
-            $('#' + this.parameterId).removeClass('checked');
-        }
-        this.handleChanged();
-    }
-}
-exports.CheckboxDropdownComponent = CheckboxDropdownComponent;
+const baseComponent_1 = __webpack_require__(/*! ../components/baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
+const dropdown_1 = __webpack_require__(/*! ../components/dropdown */ "./src/ui/dialogs/components/dropdown.ts");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const selections_1 = __webpack_require__(/*! ../../../smo/xform/selections */ "./src/smo/xform/selections.ts");
+const staffModifiers_1 = __webpack_require__(/*! ../../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 // ## TieMappingComponent
 // Represent the pitches in 2 notes that can be individually tied together
-class TieMappingComponent extends dialogComponents_1.SuiComponentBase {
-    // { dropdownElement: {...}, toggleElement: }
+class TieMappingComponent extends baseComponent_1.SuiComponentParent {
     constructor(dialog, parameter) {
+        super(dialog, parameter);
+        this.controlRows = [];
         let i = 0;
-        super(parameter);
-        this.dialog = dialog;
-        this.startSelection = selections_1.SmoSelection.noteFromSelector(this.dialog.view.score, this.dialog.modifier.startSelector);
-        this.endSelection = selections_1.SmoSelection.noteFromSelector(this.dialog.view.score, this.dialog.modifier.endSelector);
+        const modifier = this.dialog.getModifier();
+        if (modifier && staffModifiers_1.SmoTie.isTie(modifier)) {
+            this.modifier = modifier;
+        }
+        else { // should not happen
+            this.modifier = new staffModifiers_1.SmoTie(staffModifiers_1.SmoTie.defaults);
+        }
+        this.startSelection = selections_1.SmoSelection.noteFromSelector(this.dialog.getView().score, this.modifier.startSelector);
+        this.endSelection = selections_1.SmoSelection.noteFromSelector(this.dialog.getView().score, this.modifier.endSelector);
+        if (this.startSelection === null || this.startSelection.note === null ||
+            this.endSelection === null || this.endSelection.note === null) {
+            return;
+        }
         const pitchCount = Math.max(this.startSelection.note.pitches.length, this.endSelection.note.pitches.length);
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
         this.controlRows = [];
         for (i = 0; i < pitchCount; ++i) {
             const smoName = 'Line-' + (i + 1);
             const defaultValue = -1;
-            const leftControl = new dialogComponents_1.SuiDropdownComposite(this.dialog, {
+            const leftParams = {
+                id: this.id + smoName + '-left',
                 smoName: smoName + '-left',
-                parameterName: smoName + '-left',
                 classes: 'leftControl',
                 defaultValue,
-                label: dialog_1.SuiDialogBase.getStaticText(staffDialogs_1.SuiTieAttributesDialog.dialogElements, 'fromNote'),
+                control: 'SuiDropdownComposite',
+                label: dialog.getStaticText()['fromNote'],
                 options: this._generateOptions(this.startSelection.note),
                 parentControl: this
-            });
-            const rightControl = new dialogComponents_1.SuiDropdownComposite(this.dialog, {
+            };
+            const leftControl = new dropdown_1.SuiDropdownComposite(this.dialog, leftParams);
+            const rightParams = {
+                id: this.id + smoName + '-right',
                 smoName: smoName + '-right',
-                parameterName: smoName + '-right',
                 classes: 'rightControl',
-                label: dialog_1.SuiDialogBase.getStaticText(staffDialogs_1.SuiTieAttributesDialog.dialogElements, 'toNote'),
+                control: 'SuiDropdownComposite',
+                label: dialog.getStaticText()['toNote'],
                 defaultValue,
                 options: this._generateOptions(this.endSelection.note),
                 parentControl: this
-            });
+            };
+            const rightControl = new dropdown_1.SuiDropdownComposite(this.dialog, rightParams);
             this.controlRows.push({ leftControl, rightControl });
         }
     }
@@ -34924,8 +34526,8 @@ class TieMappingComponent extends dialogComponents_1.SuiComponentBase {
     getValue() {
         const lines = [];
         this.controlRows.forEach((row) => {
-            const left = row.leftControl.getValue();
-            const right = row.rightControl.getValue();
+            const left = parseInt(row.leftControl.getValue().toString(), 10);
+            const right = parseInt(row.rightControl.getValue().toString(), 10);
             if (left >= 0 && right >= 0) {
                 lines.push({ from: left, to: right });
             }
@@ -34936,9 +34538,9 @@ class TieMappingComponent extends dialogComponents_1.SuiComponentBase {
         let i = 0;
         for (i = 0; i < this.controlRows.length; ++i) {
             const row = this.controlRows[i];
-            if (modifier.lines.length > i) {
-                row.leftControl.setValue(modifier.lines[i].from);
-                row.rightControl.setValue(modifier.lines[i].to);
+            if (modifier.length > i) {
+                row.leftControl.setValue(modifier[i].from);
+                row.rightControl.setValue(modifier[i].to);
             }
         }
     }
@@ -34956,2194 +34558,79 @@ class TieMappingComponent extends dialogComponents_1.SuiComponentBase {
     }
 }
 exports.TieMappingComponent = TieMappingComponent;
-class StaffAddRemoveComponent extends dialogComponents_1.SuiComponentBase {
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
-    constructor(dialog, parameter) {
-        super(parameter);
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
-        this.dialog = dialog;
-        this.view = this.dialog.view;
-        this.createdShell = false;
-        this.staffRows = [];
-        this.label = dialog_1.SuiDialogBase.getStaticText(staffDialogs_1.SuiStaffGroupDialog.dialogElements, 'includeStaff');
-    }
-    setControlRows() {
-        let i = this.modifier.startSelector.staff;
-        this.staffRows = [];
-        this.view.storeScore.staves.forEach((staff) => {
-            const name = this.label + ' ' + (staff.staffId + 1);
-            const id = 'show-' + i;
-            // Toggle add of last row + 1
-            if (staff.staffId === this.modifier.endSelector.staff + 1) {
-                const rowElement = new dialogComponents_1.SuiToggleComposite(this.dialog, {
-                    smoName: id,
-                    parameterName: id,
-                    defaultValue: false,
-                    classes: 'toggle-add-row',
-                    control: 'SuiToggleComponent',
-                    label: name
-                });
-                rowElement.parentControl = this;
-                this.staffRows.push({
-                    showCtrl: rowElement
-                });
-            }
-            else if (staff.staffId > this.modifier.startSelector.staff &&
-                staff.staffId === this.modifier.endSelector.staff) {
-                // toggle remove of ultimate row, other than first row
-                const rowElement = new dialogComponents_1.SuiToggleComposite(this.dialog, {
-                    smoName: id,
-                    parameterName: id,
-                    defaultValue: true,
-                    classes: 'toggle-remove-row',
-                    control: 'SuiToggleComponent',
-                    label: name
-                });
-                rowElement.parentControl = this;
-                this.staffRows.push({
-                    showCtrl: rowElement
-                });
-            }
-            else if ((staff.staffId <= this.modifier.endSelector.staff) &&
-                (staff.staffId >= this.modifier.startSelector.staff)) {
-                // toggle remove of ultimate row, other than first row
-                const rowElement = new dialogComponents_1.SuiToggleComponent(this.dialog, {
-                    smoName: id,
-                    parameterName: id,
-                    defaultValue: true,
-                    classes: 'toggle-disabled',
-                    control: 'SuiToggleComponent',
-                    label: name
-                });
-                rowElement.parentControl = this;
-                this.staffRows.push({
-                    showCtrl: rowElement
-                });
-            }
-            i += 1;
-        });
-    }
-    get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
-        // a little hacky.  The first time we create an empty html shell for the control
-        // subsequent times, we fill the html with the row information
-        if (!this.createdShell) {
-            this.createdShell = true;
-            const q = b('div').classes(this.makeClasses('multiControl smoControl staffContainer')).attr('id', this.parameterId);
-            return q;
-        }
-        else {
-            const q = b('div').classes(this.makeClasses('smoControl'));
-            this.staffRows.forEach((row) => {
-                q.append(row.showCtrl.html);
-            });
-            return q;
-        }
-    }
-    getInputElement() {
-        var pid = this.parameterId;
-        return $('#' + pid);
-    }
-    getValue() {
-        let nextStaff = this.modifier.startSelector.staff;
-        const maxMeasure = this.modifier.endSelector.measure;
-        this.modifier.endSelector = JSON.parse(JSON.stringify(this.modifier.startSelector));
-        this.staffRows.forEach((staffRow) => {
-            if (staffRow.showCtrl.getValue()) {
-                this.modifier.endSelector = { staff: nextStaff, measure: maxMeasure };
-                nextStaff += 1;
-            }
-        });
-        return this.modifier;
-    }
-    setValue(staffGroup) {
-        this.modifier = staffGroup; // would this be used?
-        this.setControlRows();
-    }
-    changed() {
-        this.getValue(); // update modifier
-        this.handleChanged();
-        this.setControlRows();
-    }
-    bind() {
-        this.staffRows.forEach((row) => {
-            row.showCtrl.bind();
-        });
-    }
-}
-exports.StaffAddRemoveComponent = StaffAddRemoveComponent;
-class StaffCheckComponent extends dialogComponents_1.SuiComponentBase {
-    constructor(dialog, parameter) {
-        super(parameter);
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
-        this.dialog = dialog;
-        this.view = this.dialog.view;
-        this.staffRows = [];
-        this.view.storeScore.staves.forEach((staff) => {
-            const name = 'View Staff ' + (staff.staffId + 1);
-            const id = 'show-' + staff.staffId;
-            const rowElement = new dialogComponents_1.SuiToggleComponent(this.dialog, {
-                smoName: id,
-                parameterName: id,
-                defaultValue: true,
-                classes: 'hide-when-editing',
-                control: 'SuiToggleComponent',
-                label: name
-            });
-            this.staffRows.push({
-                showCtrl: rowElement
-            });
-        });
-    }
-    get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
-        const q = b('div').classes(this.makeClasses('multiControl smoControl staffContainer'));
-        this.staffRows.forEach((row) => {
-            q.append(row.showCtrl.html);
-        });
-        return q;
-    }
-    // Is this used for compound controls?
-    _getInputElement() {
-        var pid = this.parameterId;
-        return $(this.dialog.dgDom.element).find('#' + pid).find('.staffContainer');
-    }
-    getValue() {
-        const rv = [];
-        let i = 0;
-        for (i = 0; i < this.staffRows.length; ++i) {
-            const show = this.staffRows[i].showCtrl.getValue();
-            rv.push({ show });
-        }
-        return rv;
-    }
-    setValue(rows) {
-        let i = 0;
-        rows.forEach((row) => {
-            this.staffRows[i].showCtrl.setValue(row.show);
-            i += 1;
-        });
-    }
-    changed() {
-        this.handleChanged();
-    }
-    bind() {
-        this.staffRows.forEach((row) => {
-            row.showCtrl.bind();
-        });
-    }
-}
-exports.StaffCheckComponent = StaffCheckComponent;
-class TextCheckComponent extends dialogComponents_1.SuiComponentBase {
-    constructor(dialog, parameter) {
-        super(parameter);
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'defaultValue', 'options', 'control', 'label', 'dataType'], parameter, this);
-        this.dialog = dialog;
-        this.view = this.dialog.view;
-        const toggleName = this.smoName + 'Toggle';
-        const textName = this.smoName + 'Text';
-        const label = this.dialog.staticText[textName];
-        const show = this.dialog.staticText.show;
-        this.toggleCtrl = new dialogComponents_1.SuiToggleComposite(this.dialog, {
-            smoName: toggleName,
-            parameterName: toggleName,
-            defaultValue: false,
-            control: 'SuiToggleComposite',
-            label: show,
-            parentControl: this
-        });
-        this.textCtrl = new dialogComponents_1.SuiTextInputComposite(this.dialog, {
-            smoName: textName,
-            parameterName: textName,
-            defaultValue: this.defaultValue,
-            control: 'SuiTextInputComposite',
-            label,
-            parentControl: this
-        });
-    }
-    get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
-        const q = b('div').classes(this.makeClasses('multiControl smoControl textCheckContainer'))
-            .attr('id', this.parameterId);
-        q.append(this.textCtrl.html);
-        q.append(this.toggleCtrl.html);
-        return q;
-    }
-    getInputElement() {
-        var pid = this.parameterId;
-        return $('#' + pid);
-    }
-    getValue() {
-        return {
-            checked: this.toggleCtrl.getValue(),
-            text: this.textCtrl.getValue()
-        };
-    }
-    setValue(val) {
-        this.toggleCtrl.setValue(val.checked);
-        this.textCtrl.setValue(val.text);
-    }
-    changed() {
-        this.handleChanged();
-    }
-    bind() {
-        this.toggleCtrl.bind();
-        this.textCtrl.bind();
-    }
-}
-exports.TextCheckComponent = TextCheckComponent;
 
 
 /***/ }),
 
-/***/ "./src/ui/dialogs/staffDialogs.js":
-/*!****************************************!*\
-  !*** ./src/ui/dialogs/staffDialogs.js ***!
-  \****************************************/
+/***/ "./src/ui/dialogs/components/toggle.ts":
+/*!*********************************************!*\
+  !*** ./src/ui/dialogs/components/toggle.ts ***!
+  \*********************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiStaffGroupDialog = exports.SuiHairpinAttributesDialog = exports.SuiVoltaAttributeDialog = exports.SuiTieAttributesDialog = exports.SuiSlurAttributesDialog = exports.SuiStaffModifierDialog = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const dialog_1 = __webpack_require__(/*! ../dialog */ "./src/ui/dialog.js");
-const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
-const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
-const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
-const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
-const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
-// ## SuiStaffModifierDialog
-// Edit the attributes of a staff modifier (connects notes in the same staff)
-class SuiStaffModifierDialog extends dialog_1.SuiDialogBase {
-    constructor(elements, params) {
-        super(elements, params);
-        this.original = staffModifiers_1.StaffModifierBase.deserialize(params.modifier);
-        this.edited = false;
-        this.view.groupUndo(true);
-    }
-    handleRemove() {
-        this.view.removeStaffModifier(this.modifier);
-    }
-    changed() {
-        this.edited = true;
-        this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
-        });
-        this.view.addOrUpdateStaffModifier(this.original, this.modifier);
-        this.original = this.modifier;
-    }
-    // ### _bindElements
-    // bing the generic controls in most dialogs.
-    _bindElements() {
-        var dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            this.view.groupUndo(false);
-            this.complete();
-        });
-        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-            this.view.groupUndo(false);
-            if (this.edited) {
-                this.view.undo();
-            }
-            this.complete();
-        });
-        $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-            this.view.groupUndo(false);
-            this.handleRemove();
-            this.complete();
-        });
-    }
-}
-exports.SuiStaffModifierDialog = SuiStaffModifierDialog;
-class SuiSlurAttributesDialog extends SuiStaffModifierDialog {
-    get ctor() {
-        return SuiSlurAttributesDialog.ctor;
-    }
-    static get ctor() {
-        return 'SuiSlurAttributesDialog';
-    }
-    static get dialogElements() {
-        SuiSlurAttributesDialog._dialogElements = SuiSlurAttributesDialog._dialogElements ? SuiSlurAttributesDialog._dialogElements :
-            [{
-                    staticText: [
-                        { label: 'Slur Properties' }
-                    ]
-                }, {
-                    parameterName: 'spacing',
-                    smoName: 'spacing',
-                    defaultValue: 2,
-                    control: 'SuiRockerComponent',
-                    label: 'Spacing'
-                }, {
-                    smoName: 'thickness',
-                    parameterName: 'thickness',
-                    defaultValue: 2,
-                    control: 'SuiRockerComponent',
-                    label: 'Thickness'
-                }, {
-                    smoName: 'xOffset',
-                    parameterName: 'xOffset',
-                    defaultValue: 0,
-                    control: 'SuiRockerComponent',
-                    label: 'X Offset'
-                }, {
-                    smoName: 'yOffset',
-                    parameterName: 'yOffset',
-                    defaultValue: 10,
-                    control: 'SuiRockerComponent',
-                    label: 'Y Offset'
-                }, {
-                    smoName: 'position',
-                    parameterName: 'position',
-                    defaultValue: staffModifiers_1.SmoSlur.positions.HEAD,
-                    options: [{
-                            value: staffModifiers_1.SmoSlur.positions.HEAD,
-                            label: 'Head'
-                        }, {
-                            value: staffModifiers_1.SmoSlur.positions.TOP,
-                            label: 'Top'
-                        }],
-                    control: 'SuiDropdownComponent',
-                    label: 'Start Position'
-                }, {
-                    smoName: 'position_end',
-                    parameterName: 'position_end',
-                    defaultValue: staffModifiers_1.SmoSlur.positions.HEAD,
-                    options: [{
-                            value: staffModifiers_1.SmoSlur.positions.HEAD,
-                            label: 'Head'
-                        }, {
-                            value: staffModifiers_1.SmoSlur.positions.TOP,
-                            label: 'Top'
-                        }],
-                    control: 'SuiDropdownComponent',
-                    label: 'End Position'
-                }, {
-                    smoName: 'invert',
-                    parameterName: 'invert',
-                    defaultValue: false,
-                    control: 'SuiToggleComponent',
-                    label: 'Invert'
-                }, {
-                    parameterName: 'cp1x',
-                    smoName: 'cp1x',
-                    defaultValue: 0,
-                    control: 'SuiRockerComponent',
-                    label: 'Control Point 1 X'
-                }, {
-                    parameterName: 'cp1y',
-                    smoName: 'cp1y',
-                    defaultValue: 40,
-                    control: 'SuiRockerComponent',
-                    label: 'Control Point 1 Y'
-                }, {
-                    parameterName: 'cp2x',
-                    smoName: 'cp2x',
-                    defaultValue: 0,
-                    control: 'SuiRockerComponent',
-                    label: 'Control Point 2 X'
-                }, {
-                    parameterName: 'cp2y',
-                    smoName: 'cp2y',
-                    defaultValue: 40,
-                    control: 'SuiRockerComponent',
-                    label: 'Control Point 2 Y'
-                }];
-        return SuiSlurAttributesDialog._dialogElements;
-    }
-    static createAndDisplay(parameters) {
-        var dg = new SuiSlurAttributesDialog(parameters);
-        dg.display();
-        return dg;
-    }
-    constructor(parameters) {
-        if (!parameters.modifier) {
-            throw new Error('modifier attribute dialog must have modifier');
-        }
-        super(SuiSlurAttributesDialog.dialogElements, Object.assign({ id: 'dialog-' + parameters.modifier.attrs.id, label: 'Slur Properties' }, parameters));
-        Vex.Merge(this, parameters);
-    }
-    populateInitial() {
-        this.components.forEach((comp) => {
-            if (typeof (this.modifier[comp.smoName]) !== 'undefined') {
-                comp.setValue(this.modifier[comp.smoName]);
-            }
-        });
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this.populateInitial();
-        this._bindElements();
-    }
-}
-exports.SuiSlurAttributesDialog = SuiSlurAttributesDialog;
-class SuiTieAttributesDialog extends SuiStaffModifierDialog {
-    get ctor() {
-        return SuiTieAttributesDialog.ctor;
-    }
-    static get ctor() {
-        return 'SuiTieAttributesDialog';
-    }
-    static get dialogElements() {
-        SuiTieAttributesDialog._dialogElements = SuiTieAttributesDialog._dialogElements ? SuiTieAttributesDialog._dialogElements :
-            [{
-                    staticText: [
-                        { label: 'Tie Properties' },
-                        { fromNote: 'From Note' },
-                        { toNote: 'To Note' }
-                    ]
-                }, {
-                    parameterName: 'lines',
-                    smoName: 'lines',
-                    defaultValue: [],
-                    control: 'TieMappingComponent',
-                    label: 'Lines'
-                }];
-        return SuiTieAttributesDialog._dialogElements;
-    }
-    static createAndDisplay(parameters) {
-        var dg = new SuiTieAttributesDialog(parameters);
-        dg.display();
-        return dg;
-    }
-    staticText(label) {
-        return dialog_1.SuiDialogBase.getStaticText(SuiTieAttributesDialog.dialogElements, label);
-    }
-    constructor(parameters) {
-        if (!parameters.modifier) {
-            throw new Error('modifier attribute dialog must have modifier');
-        }
-        super(SuiTieAttributesDialog.dialogElements, Object.assign({ id: 'dialog-' + parameters.modifier.attrs.id, label: 'Slur Properties' }, parameters));
-        Vex.Merge(this, parameters);
-        this.completeNotifier.unbindKeyboardForModal(this);
-    }
-    populateInitial() {
-        this.linesCtrl.setValue(this.modifier);
-    }
-    changed() {
-        if (this.linesCtrl.changeFlag) {
-            this.modifier.lines = JSON.parse(JSON.stringify(this.linesCtrl.getValue()));
-            this.view.addOrUpdateStaffModifier(this.original, this.modifier);
-            this.original = this.modifier;
-            this.edited = true;
-        }
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this.populateInitial();
-        this._bindElements();
-    }
-}
-exports.SuiTieAttributesDialog = SuiTieAttributesDialog;
-// ## SuiVoltaAttributeDialog
-// aka first and second endings
-class SuiVoltaAttributeDialog extends SuiStaffModifierDialog {
-    get ctor() {
-        return SuiVoltaAttributeDialog.ctor;
-    }
-    static get ctor() {
-        return 'SuiVoltaAttributeDialog';
-    }
-    static get label() {
-        SuiVoltaAttributeDialog._label = SuiVoltaAttributeDialog._label ?
-            SuiVoltaAttributeDialog._label : 'Volta Properties';
-        return SuiVoltaAttributeDialog._label;
-    }
-    static set label(value) {
-        SuiVoltaAttributeDialog._label = value;
-    }
-    static get dialogElements() {
-        SuiVoltaAttributeDialog._dialogElements = SuiVoltaAttributeDialog._dialogElements ? SuiVoltaAttributeDialog._dialogElements :
-            [{
-                    staticText: [
-                        { label: 'Volta Properties' }
-                    ]
-                }, {
-                    parameterName: 'number',
-                    smoName: 'number',
-                    defaultValue: 1,
-                    control: 'SuiRockerComponent',
-                    label: 'number'
-                }, {
-                    smoName: 'xOffsetStart',
-                    parameterName: 'xOffsetStart',
-                    defaultValue: 0,
-                    control: 'SuiRockerComponent',
-                    label: 'X1 Offset'
-                }, {
-                    smoName: 'xOffsetEnd',
-                    parameterName: 'xOffsetEnd',
-                    defaultValue: 0,
-                    control: 'SuiRockerComponent',
-                    label: 'X2 Offset'
-                }, {
-                    smoName: 'yOffset',
-                    parameterName: 'yOffset',
-                    defaultValue: 0,
-                    control: 'SuiRockerComponent',
-                    label: 'Y Offset'
-                }];
-        return SuiVoltaAttributeDialog._dialogElements;
-    }
-    static createAndDisplay(parameters) {
-        const dg = new SuiVoltaAttributeDialog(parameters);
-        dg.display();
-        return dg;
-    }
-    handleRemove() {
-        this.view.removeEnding(this.modifier);
-    }
-    changed() {
-        this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
-        });
-        this.view.updateEnding(this.modifier);
-    }
-    populateInitial() {
-        measureModifiers_1.SmoVolta.editableAttributes.forEach((attr) => {
-            const comp = this.components.find((cc) => cc.smoName === attr);
-            if (comp) {
-                comp.setValue(this.modifier[attr]);
-            }
-        });
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this.populateInitial();
-        this._bindElements();
-    }
-    constructor(parameters) {
-        if (!parameters.modifier) {
-            throw new Error('modifier attribute dialog must have modifier');
-        }
-        super(SuiVoltaAttributeDialog.dialogElements, Object.assign({ id: 'dialog-' + parameters.modifier.attrs.id }, parameters));
-        Vex.Merge(this, parameters);
-        this.selection = selections_1.SmoSelection.measureSelection(this.view.score, this.modifier.startSelector.staff, this.modifier.startSelector.measure);
-    }
-}
-exports.SuiVoltaAttributeDialog = SuiVoltaAttributeDialog;
-class SuiHairpinAttributesDialog extends SuiStaffModifierDialog {
-    get ctor() {
-        return SuiHairpinAttributesDialog.ctor;
-    }
-    static get ctor() {
-        return 'SuiHairpinAttributesDialog';
-    }
-    static get label() {
-        SuiHairpinAttributesDialog._label = SuiHairpinAttributesDialog._label ? SuiHairpinAttributesDialog._label
-            : 'Hairpin Properties';
-        return SuiHairpinAttributesDialog._label;
-    }
-    static set label(value) {
-        SuiHairpinAttributesDialog._label = value;
-    }
-    static get dialogElements() {
-        SuiHairpinAttributesDialog._dialogElements = SuiHairpinAttributesDialog._dialogElements ? SuiHairpinAttributesDialog._dialogElements :
-            [{
-                    staticText: [
-                        { label: 'Hairpin Properties' }
-                    ]
-                }, {
-                    parameterName: 'height',
-                    smoName: 'height',
-                    defaultValue: 10,
-                    control: 'SuiRockerComponent',
-                    label: 'Height'
-                }, {
-                    smoName: 'yOffset',
-                    parameterName: 'y_shift',
-                    defaultValue: 0,
-                    control: 'SuiRockerComponent',
-                    label: 'Y Shift'
-                }, {
-                    smoName: 'xOffsetRight',
-                    parameterName: 'right_shift_px',
-                    defaultValue: 0,
-                    control: 'SuiRockerComponent',
-                    label: 'Right Shift'
-                }, {
-                    smoName: 'xOffsetLeft',
-                    parameterName: 'left_shift_px',
-                    defaultValue: 0,
-                    control: 'SuiRockerComponent',
-                    label: 'Left Shift'
-                }];
-        return SuiHairpinAttributesDialog._dialogElements;
-    }
-    static createAndDisplay(parameters) {
-        var dg = new SuiHairpinAttributesDialog(parameters);
-        dg.display();
-        return dg;
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
-    }
-    populateInitial() {
-        staffModifiers_1.SmoStaffHairpin.editableAttributes.forEach((attr) => {
-            var comp = this.components.find((cc) => cc.smoName === attr);
-            if (comp) {
-                comp.setValue(this.modifier[attr]);
-            }
-        });
-    }
-    display() {
-        this.applyDisplayOptions();
-        this.populateInitial();
-        this._bindElements();
-    }
-    constructor(parameters) {
-        if (!parameters.modifier) {
-            throw new Error('modifier attribute dialog must have modifier');
-        }
-        super(SuiHairpinAttributesDialog.dialogElements, Object.assign({ id: 'dialog-' + parameters.modifier.attrs.id, top: parameters.modifier.renderedBox.y, left: parameters.modifier.renderedBox.x }, parameters));
-        Vex.Merge(this, parameters);
-    }
-}
-exports.SuiHairpinAttributesDialog = SuiHairpinAttributesDialog;
-// ## SuiStaffGroupDialog
-// A staff group is a grouping of staves that can be bracketed and justified
-class SuiStaffGroupDialog extends dialog_1.SuiDialogBase {
-    static get ctor() {
-        return 'SuiStaffGroupDialog';
-    }
-    get ctor() {
-        return SuiStaffGroupDialog.ctor;
-    }
-    static get dialogElements() {
-        SuiStaffGroupDialog._dialogElements = typeof (SuiStaffGroupDialog._dialogElements)
-            !== 'undefined' ? SuiStaffGroupDialog._dialogElements :
-            [{
-                    smoName: 'staffGroups',
-                    parameterName: 'staffGroups',
-                    defaultValue: {},
-                    control: 'StaffAddRemoveComponent',
-                    label: 'Staves in Group',
-                }, {
-                    smoName: 'leftConnector',
-                    parameterName: 'leftConnector',
-                    defaultValue: score_1.SmoScore.pageSizes.letter,
-                    control: 'SuiDropdownComponent',
-                    label: 'Left Connector',
-                    options: [
-                        {
-                            value: scoreModifiers_1.SmoSystemGroup.connectorTypes.bracket,
-                            label: 'Bracket'
-                        }, {
-                            value: scoreModifiers_1.SmoSystemGroup.connectorTypes.brace,
-                            label: 'Brace'
-                        }, {
-                            value: scoreModifiers_1.SmoSystemGroup.connectorTypes.single,
-                            label: 'Single'
-                        }, {
-                            value: scoreModifiers_1.SmoSystemGroup.connectorTypes.double,
-                            label: 'Double'
-                        }
-                    ]
-                }, {
-                    staticText: [
-                        { label: 'Staff Group' },
-                        { includeStaff: 'Include Staff' }
-                    ]
-                }];
-        return SuiStaffGroupDialog._dialogElements;
-    }
-    static createAndDisplay(parameters) {
-        const dg = new SuiStaffGroupDialog(parameters);
-        dg.display();
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS'];
-    }
-    display() {
-        this.applyDisplayOptions();
-        this._bindElements();
-        this.populateInitial();
-        this._updateGroupMembership();
-    }
-    _bindElements() {
-        const dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            this.complete();
-        });
-        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-            this.complete();
-        });
-        $(dgDom.element).find('.remove-button').remove();
-    }
-    populateInitial() {
-        this.staffGroupsCtrl.setValue(this.modifier);
-        this.leftConnectorCtrl.setValue(this.modifier.leftConnector);
-    }
-    _updateGroupMembership() {
-        const updateEl = this.staffGroupsCtrl.getInputElement();
-        this.staffGroupsCtrl.setControlRows();
-        $(updateEl).html('');
-        $(updateEl).append(this.staffGroupsCtrl.html.dom());
-        this.staffGroupsCtrl.bind();
-        $(this.staffGroupsCtrl.getInputElement()).find('input').prop('disabled', false);
-        $(this.staffGroupsCtrl.getInputElement()).find('.toggle-disabled input').prop('disabled', true);
-    }
-    changed() {
-        if (this.leftConnectorCtrl.changeFlag) {
-            this.modifier.leftConnector = parseInt(this.leftConnectorCtrl.getValue(), 10);
-        }
-        if (this.staffGroupsCtrl.changeFlag) {
-            // Recreate the new staff group with updated values
-            this._updateGroupMembership();
-        }
-        this.view.addOrUpdateStaffGroup(this.modifier);
-    }
-    constructor(parameters) {
-        var p = parameters;
-        super(SuiStaffGroupDialog.dialogElements, Object.assign({ id: 'dialog-layout' }, parameters));
-        this.startPromise = p.startPromise;
-        const measureCount = this.view.score.staves[0].measures.length;
-        const selection = this.view.tracker.selections[0];
-        // Reset the view so we can see all the staves
-        this.view.setView(this.view.defaultStaffMap);
-        this.modifier = this.view.score.getSystemGroupForStaff(selection);
-        if (!this.modifier) {
-            this.modifier = new scoreModifiers_1.SmoSystemGroup({
-                mapType: scoreModifiers_1.SmoSystemGroup.mapTypes.allMeasures,
-                startSelector: { staff: selection.selector.staff, measure: 0 },
-                endSelector: { staff: selection.selector.staff, measure: measureCount - 1 }
-            });
-        }
-    }
-}
-exports.SuiStaffGroupDialog = SuiStaffGroupDialog;
-
-
-/***/ }),
-
-/***/ "./src/ui/dialogs/textComponents.js":
-/*!******************************************!*\
-  !*** ./src/ui/dialogs/textComponents.js ***!
-  \******************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiDragText = exports.SuiChordComponent = exports.SuiLyricComponent = exports.SuiNoteTextComponent = exports.SuiTextInPlace = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const textDialogs_1 = __webpack_require__(/*! ./textDialogs */ "./src/ui/dialogs/textDialogs.js");
-const textEdit_1 = __webpack_require__(/*! ../../render/sui/textEdit */ "./src/render/sui/textEdit.ts");
-const textRender_1 = __webpack_require__(/*! ../../render/sui/textRender */ "./src/render/sui/textRender.ts");
-const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
-const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const dialogComponents_1 = __webpack_require__(/*! ../dialogComponents */ "./src/ui/dialogComponents.js");
-// ## textComponents module
-// This has the text editing dialog components.  Unlike components that are
-// actual dialog controls, these actually run a text editing session of some kind.
-//
-// The heirarchy of text editing objects goes:
-// dialog -> component -> session -> editor
-//
-// ### editor
-//  handles low-level events and renders the preview using one
-// of the text layout objects.
-//
-// ### session
-// creates and destroys editors, e.g. for lyrics that have a Different
-// editor instance for each note.
-//
-// ### component
-// is defined in the dialog, and creates/destroys the session based on input from
-// the dialog
-//
-// ### dialog
-// manages the coponent session, as well as other components of the text like font etc.
-//
-// ## SuiTextInPlace
-// Edit the text in an SVG element, in the same scale etc. as the text in the score SVG DOM.
-// This component just manages the text editing component of hte renderer.
-class SuiTextInPlace extends dialogComponents_1.SuiComponentBase {
+exports.SuiToggleComposite = exports.SuiToggleComponent = void 0;
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
+/**
+ * Simple boolean checkbox component
+ */
+class SuiToggleComponent extends baseComponent_1.SuiComponentBase {
     constructor(dialog, parameter) {
-        super(parameter);
-        this.scroller = dialog.scroller;
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        this.editMode = false;
+        super(dialog, parameter);
+        this.defaultValue = false;
+        this.defaultValue = false;
         this.dialog = dialog;
-        this.value = '';
-        const modifier = this.dialog.modifier;
-        this.value = modifier;
-        this.altLabel = textDialogs_1.SuiTextTransformDialog.getStaticText('editorLabel');
     }
     get html() {
         const b = htmlHelpers_1.htmlHelpers.buildDom;
         const id = this.parameterId;
-        const r = b('div').classes(this.makeClasses('cbTextInPlace smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
-            .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
-            .attr('id', id + '-input').append(b('span').classes('icon icon-pencil'))
-            .append(b('label').attr('for', id + '-input').text(this.label)));
+        const r = b('div').classes(this.makeClasses('toggleControl smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
+            .append(b('input').attr('type', 'checkbox').classes('toggleInput')
+            .attr('id', id + '-input')).append(b('label').attr('for', id + '-input').text(this.label));
         return r;
-    }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
-    endSession() {
-        $(this._getInputElement()).find('label').text(this.label);
-        const button = document.getElementById(this.parameterId);
-        $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
-        this.dialog.modifier.skipRender = false;
-        const render = () => {
-            this.dialog.view.renderer.setRefresh();
-        };
-        if (this.session) {
-            this.session.textGroup.tryParseUnicode();
-            this.value = this.session.textGroup;
-            this.session.stopSession().then(render);
-        }
-        $('body').removeClass('text-edit');
-        this.handleChanged();
-    }
-    get isRunning() {
-        return this.session && this.session.isRunning;
-    }
-    getValue() {
-        return this.value;
     }
     _getInputElement() {
-        var pid = this.parameterId;
-        return $(this.dialog.dgDom.element).find('#' + pid).find('button');
+        const pid = this.parameterId;
+        return $(this.dialog.dgDom.element).find('#' + pid).find('input');
     }
-    mouseMove(ev) {
-        if (this.session && this.session.isRunning) {
-            this.session.handleMouseEvent(ev);
-        }
-    }
-    mouseClick(ev) {
-        if (this.session && this.session.isRunning) {
-            this.session.handleMouseEvent(ev);
-        }
-    }
-    _renderInactiveBlocks() {
-        const modifier = this.dialog.modifier;
-        const context = this.dialog.view.renderer.context;
-        context.save();
-        context.setFillStyle('#ddd');
-        modifier.textBlocks.forEach((block) => {
-            const st = block.text;
-            if (st.attrs.id !== this.dialog.activeScoreText.attrs.id) {
-                const svgText = textRender_1.SuiInlineText.fromScoreText(st, context, this.scroller);
-                if (st.logicalBox) {
-                    svgText.startX += st.logicalBox.x - st.x;
-                    svgText.startY += (st.y - st.logicalBox.y) - st.logicalBox.height / 2;
-                }
-                const sgrp = context.openGroup();
-                sgrp.classList.add('inactive-text');
-                sgrp.classList.add('suiInlineText');
-                svgText.render();
-                context.closeGroup();
-            }
-        });
-        context.restore();
-    }
-    startEditSession() {
-        $(this._getInputElement()).find('label').text(this.altLabel);
-        const modifier = this.dialog.modifier;
-        modifier.skipRender = true;
-        $(this.dialog.view.renderer.context.svg).find('#' + modifier.attrs.id).remove();
-        this._renderInactiveBlocks();
-        const ul = modifier.ul();
-        // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
-        this.session = new textEdit_1.SuiTextSession({
-            renderer: this.dialog.view.renderer,
-            scroller: this.dialog.view.tracker.scroller,
-            x: ul.x,
-            y: ul.y,
-            textGroup: modifier,
-            scoreText: this.dialog.activeScoreText
-        });
-        $('body').addClass('text-edit');
-        this.value = this.session.textGroup;
-        const button = document.getElementById(this.parameterId);
-        $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
-        this.session.startSession();
-        // blur the button so key events don't get passed to it.
-        $(this._getInputElement()).blur();
-    }
-    evKey(evdata) {
-        if (this.session) {
-            this.session.evKey(evdata);
-        }
-    }
-    bind() {
-        this.fontInfo = JSON.parse(JSON.stringify(this.dialog.activeScoreText.fontInfo));
-        this.value = this.dialog.modifier;
-        $(this._getInputElement()).off('click').on('click', () => {
-            if (this.session && this.session.isRunning) {
-                this.endSession();
-            }
-            else {
-                this.startEditSession();
-            }
-        });
-    }
-}
-exports.SuiTextInPlace = SuiTextInPlace;
-// ## SuiNoteTextComponent
-// Base class for text editor components that navigate to
-// different notes.
-class SuiNoteTextComponent extends dialogComponents_1.SuiComponentBase {
-    constructor(dialog, parameter) {
-        super(parameter);
-        this.selection = dialog.view.tracker.selections[0];
-        this.selector = JSON.parse(JSON.stringify(this.selection.selector));
-        this.dialog = dialog;
-    }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
-    setView(eventSource, view) {
-        this.eventSource = eventSource;
-        this.view = view;
-    }
-    mouseMove(ev) {
-        if (this.session && this.session.isRunning) {
-            this.session.handleMouseEvent(ev);
-        }
-    }
-    mouseClick(ev) {
-        if (this.session && this.session.isRunning) {
-            this.session.handleMouseEvent(ev);
-        }
-    }
-    _getInputElement() {
-        var pid = this.parameterId;
-        return $(this.dialog.dgDom.element).find('#' + pid).find('button');
-    }
-    get running() {
-        return this.session && this.session.isRunning;
-    }
-    evKey(evdata) {
-        if (this.session) {
-            return this.session.evKey(evdata);
-        }
-        return false;
-    }
-    setDialogLyric() {
-        if (this.session && this.session.lyric) {
-            this.dialog.setLyric(this.selector, this.session.lyric);
-        }
-    }
-    moveSelectionRight() {
-        this.session.advanceSelection(false);
-        this.setDialogLyric();
-    }
-    moveSelectionLeft() {
-        this.session.advanceSelection(true);
-        this.setDialogLyric();
-    }
-    removeText() {
-        this.session.removeLyric();
-    }
-    _bind() {
-        $(this._getInputElement()).off('click').on('click', () => {
-            if (this.session && this.session.isRunning) {
-                this.endSession();
-            }
-            else {
-                this.startEditSession();
-            }
-        });
-        $('#' + this.parameterId + '-left').off('click').on('click', () => {
-            this.moveSelectionLeft();
-        });
-        $('#' + this.parameterId + '-right').off('click').on('click', () => {
-            this.moveSelectionRight();
-        });
-        $('#' + this.parameterId + '-remove').off('click').on('click', () => {
-            this.removeText();
-        });
+    setValue(value) {
+        $(this._getInputElement()).prop('checked', value);
     }
     getValue() {
-        return this.value;
-    }
-}
-exports.SuiNoteTextComponent = SuiNoteTextComponent;
-// ## SuiLyricComponent
-// manage a lyric session that moves from note to note and adds lyrics.
-class SuiLyricComponent extends SuiNoteTextComponent {
-    constructor(dialog, parameter) {
-        super(dialog, parameter);
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        this.session = null;
-        this.altLabel = textDialogs_1.SuiLyricDialog.getStaticText('doneEditing');
-        if (!this.verse) {
-            this.verse = 0;
-        }
-        this.started = false;
-    }
-    get html() {
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
-        var id = this.parameterId;
-        var r = b('div').classes(this.makeClasses('cbLyricEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
-            .append(b('div').classes('toggleEdit')
-            .append(b('button').classes('toggleTextEdit')
-            .attr('id', id + '-toggleInput').append(b('span').classes('icon icon-pencil'))).append(b('label').attr('for', id + '-toggleInput').text(this.label)))
-            .append(b('div').classes('show-when-editing')
-            .append(b('span')
-            .append(b('button').attr('id', id + '-left').classes('icon-arrow-left buttonComponent')))
-            .append(b('span')
-            .append(b('button').attr('id', id + '-right').classes('icon-arrow-right buttonComponent')))
-            .append(b('span')
-            .append(b('button').attr('id', id + '-remove').classes('icon-cross buttonComponent'))));
-        return r;
-    }
-    endSession() {
-        this.started = false;
-        console.log('ending text session');
-        $(this._getInputElement()).find('label').text(this.label);
-        const button = document.getElementById(this.parameterId);
-        $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
-        if (this.session) {
-            this.value = this.session.textGroup;
-            this.session.stopSession();
-        }
-        $('body').removeClass('text-edit');
-    }
-    startEditSession() {
-        $(this._getInputElement()).find('label').text(this.altLabel);
-        console.log('starting text session');
-        if (this.started) {
-            return;
-        }
-        // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
-        this.session = new textEdit_1.SuiLyricSession({
-            renderer: this.dialog.view.renderer,
-            selector: this.selector,
-            scroller: this.dialog.view.tracker.scroller,
-            verse: this.verse,
-            score: this.dialog.view.score,
-            view: this.view
-        });
-        this.started = true;
-        $('body').addClass('text-edit');
-        const button = document.getElementById(this.parameterId);
-        $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
-        this.session.startSession();
-        this.setDialogLyric();
+        return $(this._getInputElement()).prop('checked');
     }
     bind() {
-        this._bind();
-    }
-}
-exports.SuiLyricComponent = SuiLyricComponent;
-// ## SuiChordComponent
-// manage a chord editing session that moves from note to note and adds chord symbols.
-class SuiChordComponent extends SuiNoteTextComponent {
-    constructor(dialog, parameter) {
-        super(dialog, parameter);
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        this.session = null;
-        this.dialog = dialog;
-        this.selection = dialog.view.tracker.selections[0];
-        this.selector = JSON.parse(JSON.stringify(this.selection.selector));
-        this.altLabel = textDialogs_1.SuiLyricDialog.getStaticText('doneEditing');
-        if (!this.verse) {
-            this.verse = 0;
-        }
-    }
-    get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
-        const id = this.parameterId;
-        const r = b('div').classes(this.makeClasses('cbChordEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
-            .append(b('div').classes('toggleEdit')
-            .append(b('button').classes('toggleTextEdit')
-            .attr('id', id + '-toggleInput').append(b('span').classes('icon icon-pencil'))).append(b('label').attr('for', id + '-toggleInput').text(this.label)))
-            .append(b('div').classes('show-when-editing')
-            .append(b('span')
-            .append(b('button').attr('id', id + '-left').classes('icon-arrow-left buttonComponent')))
-            .append(b('span')
-            .append(b('button').attr('id', id + '-right').classes('icon-arrow-right buttonComponent')))
-            .append(b('span')
-            .append(b('button').attr('id', id + '-remove').classes('icon-cross buttonComponent'))));
-        return r;
-    }
-    endSession() {
-        $(this._getInputElement()).find('label').text(this.label);
-        const button = document.getElementById(this.parameterId);
-        $(button).find('span.icon').removeClass('icon-checkmark').addClass('icon-pencil');
-        const render = () => {
-            this.dialog.view.renderer.setRefresh();
-        };
-        if (this.session) {
-            this.value = this.session.textGroup;
-            this.session.stopSession().then(render);
-        }
-        $('body').removeClass('text-edit');
-    }
-    startEditSession() {
-        $(this._getInputElement()).find('label').text(this.altLabel);
-        // this.textElement=$(this.dialog.layout.svg).find('.'+modifier.attrs.id)[0];
-        this.session = new textEdit_1.SuiChordSession({
-            renderer: this.dialog.view.renderer,
-            selector: this.selector,
-            scroller: this.dialog.view.tracker.scroller,
-            verse: 0,
-            view: this.view,
-            score: this.dialog.view.score
-        });
-        $('body').addClass('text-edit');
-        const button = document.getElementById(this.parameterId);
-        $(button).find('span.icon').removeClass('icon-pencil').addClass('icon-checkmark');
-        this.session.startSession();
-        this.setDialogLyric();
-    }
-    bind() {
-        this._bind();
-    }
-    setTextType(type) {
-        this.session.textType = parseInt(type, 10);
-    }
-    getTextType() {
-        return this.session.textType;
-    }
-}
-exports.SuiChordComponent = SuiChordComponent;
-// ## SuiDragText
-// A component that lets you drag the text you are editing to anywhere on the score.
-// The text is not really part of the dialog but the location of the text appears
-// in other dialog fields.
-class SuiDragText extends dialogComponents_1.SuiComponentBase {
-    constructor(dialog, parameter) {
-        super(parameter);
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'defaultValue', 'control', 'label'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        this.dragging = false;
-        this.running = false;
-        this.dialog = dialog;
-        this.altLabel = textDialogs_1.SuiTextTransformDialog.getStaticText('draggerLabel');
-        this.value = '';
-    }
-    get html() {
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
-        var id = this.parameterId;
-        var r = b('div').classes(this.makeClasses('cbDragTextDialog smoControl')).attr('id', this.parameterId).attr('data-param', this.parameterName)
-            .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
-            .attr('id', id + '-input').append(b('span').classes('icon icon-move'))
-            .append(b('label').attr('for', id + '-input').text(this.label)));
-        return r;
-    }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
-    getValue() {
-        return this.dialog.modifier;
-    }
-    _getInputElement() {
-        var pid = this.parameterId;
-        return $(this.dialog.dgDom.element).find('#' + pid).find('button');
-    }
-    stopEditSession() {
-        $('body').removeClass('text-move');
-        $(this._getInputElement()).find('span.icon').removeClass('icon-checkmark').addClass('icon-move');
-        if (this.session && this.session.dragging) {
-            this.session.dragging = false;
-        }
-        this.running = false;
-    }
-    startEditSession() {
-        $('body').addClass('text-move');
-        this.session = new textEdit_1.SuiDragSession({
-            textGroup: this.dialog.modifier,
-            context: this.dialog.view.renderer.context,
-            scroller: this.dialog.view.tracker.scroller
-        });
-        $(this._getInputElement()).find('label').text(this.altLabel);
-        $(this._getInputElement()).find('span.icon').removeClass('icon-enlarge').addClass('icon-checkmark');
-        this.running = true;
-    }
-    mouseMove(e) {
-        if (this.session && this.session.dragging) {
-            this.session.mouseMove(e);
-        }
-    }
-    mouseDown(e) {
-        if (this.session && !this.session.dragging) {
-            this.session.startDrag(e);
-            this.dragging = true;
-        }
-    }
-    mouseUp(e) {
-        if (this.session && this.session.dragging) {
-            this.session.endDrag(e);
-            this.dragging = false;
+        const input = this._getInputElement();
+        $(input).off('change').on('change', () => {
             this.handleChanged();
-        }
-    }
-    bind() {
-        const self = this;
-        $(this._getInputElement()).off('click').on('click', () => {
-            if (self.running) {
-                self.stopEditSession();
-            }
-            else {
-                self.startEditSession();
-            }
         });
     }
 }
-exports.SuiDragText = SuiDragText;
+exports.SuiToggleComponent = SuiToggleComponent;
+// ### SuiToggleComposite
+// Dropdown component that can be part of a composite control.
+class SuiToggleComposite extends SuiToggleComponent {
+    constructor(dialog, parameters) {
+        super(dialog, parameters);
+        this.parentControl = parameters.parentControl;
+    }
+    handleChanged() {
+        this.changeFlag = true;
+        this.parentControl.changed();
+        this.changeFlag = false;
+    }
+}
+exports.SuiToggleComposite = SuiToggleComposite;
 
 
 /***/ }),
 
-/***/ "./src/ui/dialogs/textDialogs.js":
-/*!***************************************!*\
-  !*** ./src/ui/dialogs/textDialogs.js ***!
-  \***************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.helpModal = exports.SuiDynamicModifierDialog = exports.SuiTextTransformDialog = exports.SuiChordChangeDialog = exports.SuiLyricDialog = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const dialog_1 = __webpack_require__(/*! ../dialog */ "./src/ui/dialog.js");
-const textRender_1 = __webpack_require__(/*! ../../render/sui/textRender */ "./src/render/sui/textRender.ts");
-const help_1 = __webpack_require__(/*! ../help */ "./src/ui/help.js");
-const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
-const layoutDebug_1 = __webpack_require__(/*! ../../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
-const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const svgHelpers_1 = __webpack_require__(/*! ../../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
-class SuiLyricDialog extends dialog_1.SuiDialogBase {
-    static get ctor() {
-        return 'SuiLyricDialog';
-    }
-    get ctor() {
-        return SuiLyricDialog.ctor;
-    }
-    static get idleLyricTime() {
-        return 5000;
-    }
-    static createAndDisplay(parameters) {
-        const dg = new SuiLyricDialog(parameters);
-        dg.display();
-        return dg;
-    }
-    static get dialogElements() {
-        SuiLyricDialog._dialogElements = SuiLyricDialog._dialogElements ? SuiLyricDialog._dialogElements :
-            [{
-                    smoName: 'verse',
-                    parameterName: 'verse',
-                    defaultValue: 0,
-                    control: 'SuiDropdownComponent',
-                    label: 'Verse',
-                    classes: 'hide-when-editing',
-                    startRow: true,
-                    options: [{
-                            value: 0,
-                            label: '1'
-                        }, {
-                            value: 1,
-                            label: '2'
-                        }, {
-                            value: 2,
-                            label: '3'
-                        }, {
-                            value: 3,
-                            label: '4'
-                        }
-                    ]
-                }, {
-                    smoName: 'translateY',
-                    parameterName: 'translateY',
-                    classes: 'hide-when-editing',
-                    defaultValue: 0,
-                    control: 'SuiRockerComponent',
-                    label: 'Y Adjustment (Px)',
-                    type: 'int'
-                }, {
-                    smoName: 'font',
-                    parameterName: 'font',
-                    classes: 'hide-when-editing',
-                    defaultValue: 0,
-                    control: 'SuiFontComponent',
-                    label: 'Font'
-                }, {
-                    smoName: 'lyricEditor',
-                    parameterName: 'text',
-                    defaultValue: 0,
-                    classes: 'show-always',
-                    control: 'SuiLyricComponent',
-                    label: 'Edit Lyrics',
-                    options: []
-                }, {
-                    staticText: [
-                        { doneEditing: 'Done Editing Lyrics' },
-                        { undo: 'Undo Lyrics' },
-                        { label: 'Lyric Editor' }
-                    ]
-                }];
-        return SuiLyricDialog._dialogElements;
-    }
-    // ### getStaticText
-    // given 'foo' return dialogElements.staticText value that has key of 'foo'
-    static getStaticText(label) {
-        return SuiLyricDialog.dialogElements.find((x) => x.staticText).staticText.find((x) => x[label])[label];
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
-    }
-    constructor(parameters) {
-        parameters.ctor = typeof (parameters.ctor) !== 'undefined' ? parameters.ctor : 'SuiLyricDialog';
-        const p = parameters;
-        const _class = Smo.getClass(p.ctor);
-        const dialogElements = _class.dialogElements;
-        super(dialogElements, Object.assign({ id: 'dialog-lyrics' }, p));
-        this.originalRefreshTimer = SmoConfig.idleRedrawTime;
-        SmoConfig.idleRedrawTime = SuiLyricDialog.idleLyricTime;
-        // If we are editing existing lyrics, make sure it is the same type of session.
-        // Note: the actual lyric (modifier) is picked later from the selection. We just
-        // need to keep track of which type of thing we are editing.
-        if (parameters.modifier) {
-            this.parser = parameters.modifier.parser;
-        }
-        else {
-            this.parser = parameters.parser; // lyrics or chord changes
-        }
-    }
-    display() {
-        $('body').addClass('showAttributeDialog');
-        $('body').addClass('textEditor');
-        this.applyDisplayOptions();
-        // this.editor = this.components.find((c) => c.smoName === 'textEditor');
-        this.verse = this.components.find((c) => c.smoName === 'verse');
-        this._bindElements();
-        $(this.dgDom.element).find('.smoControl').each((ix, ctrl) => {
-            if (!$(ctrl).hasClass('cbLyricEdit')) {
-                $(ctrl).addClass('fold-textedit');
-            }
-        });
-        this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
-        this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
-        if (this.lyricEditorCtrl && this.lyricEditorCtrl.session && this.lyricEditorCtrl.session.lyric) {
-            const lyric = this.lyricEditorCtrl.session.lyric;
-            this.fontCtrl.setValue({
-                family: lyric.fontInfo.family,
-                size: lyric.fontInfo.size,
-            });
-        }
-    }
-    setLyric(lyric) {
-        this.lyric = lyric;
-        this.translateYCtrl.setValue(lyric.translateY);
-    }
-    _focusSelection() {
-        if (this.lyricEditorCtrl.editor.selection &&
-            this.lyricEditorCtrl.editor.selection.note &&
-            this.lyricEditorCtrl.editor.selection.note.renderedBox) {
-            this.view.scroller.scrollVisibleBox(this.lyricEditorCtrl.editor.selection.note.renderedBox);
-        }
-    }
-    changed() {
-        this.lyricEditorCtrl.verse = parseInt(this.verse.getValue(), 10);
-        // TODO: make these undoable
-        if (this.fontCtrl.changeFlag) {
-            const fontInfo = this.fontCtrl.getValue();
-            this.view.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size });
-        }
-        if (this.translateYCtrl && this.lyric) {
-            this.lyric.translateY = this.translateYCtrl.getValue();
-        }
-    }
-    _bindElements() {
-        const dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            this._complete();
-        });
-        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-            this._complete();
-        });
-        $(dgDom.element).find('.remove-button').remove();
-        this.lyricEditorCtrl.eventSource = this.eventSource;
-        this.lyricEditorCtrl.setView(this.eventSource, this.view);
-        this.lyricEditorCtrl.startEditSession();
-    }
-    // ### handleKeydown
-    // allow a dialog to be dismissed by esc.
-    evKey(evdata) {
-        if (evdata.key === 'Escape') {
-            $(this.dgDom.element).find('.cancel-button').click();
-            evdata.preventDefault();
-        }
-        else {
-            if (!this.lyricEditorCtrl.running) {
-                return;
-            }
-            const edited = this.lyricEditorCtrl.evKey(evdata);
-            if (edited) {
-                evdata.stopPropagation();
-            }
-        }
-    }
-    _complete() {
-        if (this.lyricEditorCtrl.running) {
-            this.lyricEditorCtrl.endSession();
-        }
-        this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
-        this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
-        $('body').removeClass('showAttributeDialog');
-        $('body').removeClass('textEditor');
-        SmoConfig.idleRedrawTime = this.originalRefreshTimer;
-        this.complete();
-    }
-    mouseMove(ev) {
-        if (this.lyricEditorCtrl && this.lyricEditorCtrl.running) {
-            this.lyricEditorCtrl.mouseMove(ev);
-        }
-    }
-    mouseClick(ev) {
-        if (this.lyricEditorCtrl && this.lyricEditorCtrl.running) {
-            this.lyricEditorCtrl.mouseClick(ev);
-            ev.stopPropagation();
-        }
-    }
-}
-exports.SuiLyricDialog = SuiLyricDialog;
-class SuiChordChangeDialog extends dialog_1.SuiDialogBase {
-    static get ctor() {
-        return 'SuiChordChangeDialog';
-    }
-    get ctor() {
-        return SuiChordChangeDialog.ctor;
-    }
-    static createAndDisplay(parameters) {
-        var dg = new SuiChordChangeDialog(parameters);
-        dg.display();
-        return dg;
-    }
-    constructor(parameters) {
-        parameters.ctor = 'SuiChordChangeDialog';
-        const p = parameters;
-        const _class = Smo.getClass(p.ctor);
-        const dialogElements = _class.dialogElements;
-        super(dialogElements, Object.assign({ id: 'dialog-chords' }, p));
-    }
-    static get dialogElements() {
-        SuiChordChangeDialog._dialogElements = SuiChordChangeDialog._dialogElements ? SuiChordChangeDialog._dialogElements :
-            [{
-                    smoName: 'verse',
-                    parameterName: 'verse',
-                    defaultValue: 0,
-                    control: 'SuiDropdownComponent',
-                    label: 'Ordinality',
-                    classes: 'hide-when-editing',
-                    startRow: true,
-                    options: [{
-                            value: 0,
-                            label: '1'
-                        }, {
-                            value: 1,
-                            label: '2'
-                        }, {
-                            value: 2,
-                            label: '3'
-                        }]
-                }, {
-                    smoName: 'translateY',
-                    parameterName: 'translateY',
-                    defaultValue: 0,
-                    classes: 'hide-when-editing',
-                    control: 'SuiRockerComponent',
-                    label: 'Y Adjustment (Px)',
-                    type: 'int'
-                }, {
-                    smoName: 'chordEditor',
-                    parameterName: 'text',
-                    defaultValue: 0,
-                    classes: 'show-always',
-                    control: 'SuiChordComponent',
-                    label: 'Edit Text',
-                    options: []
-                }, {
-                    smoName: 'chordSymbol',
-                    parameterName: 'chordSymbol',
-                    defaultValue: '',
-                    classes: 'show-when-editing',
-                    control: 'SuiDropdownComponent',
-                    label: 'Chord Symbol',
-                    startRow: true,
-                    options: [{
-                            value: 'csymDiminished',
-                            label: 'Dim'
-                        }, {
-                            value: 'csymHalfDiminished',
-                            label: 'Half dim'
-                        }, {
-                            value: 'csymDiagonalArrangementSlash',
-                            label: 'Slash'
-                        }, {
-                            value: 'csymMajorSeventh',
-                            label: 'Maj7'
-                        }]
-                }, {
-                    smoName: 'textPosition',
-                    parameterName: 'textPosition',
-                    defaultValue: textRender_1.SuiInlineText.textTypes.normal,
-                    classes: 'show-when-editing',
-                    control: 'SuiDropdownComponent',
-                    label: 'Text Position',
-                    startRow: true,
-                    options: [{
-                            value: textRender_1.SuiInlineText.textTypes.superScript,
-                            label: 'Superscript'
-                        }, {
-                            value: textRender_1.SuiInlineText.textTypes.subScript,
-                            label: 'Subscript'
-                        }, {
-                            value: textRender_1.SuiInlineText.textTypes.normal,
-                            label: 'Normal'
-                        }]
-                }, {
-                    smoName: 'font',
-                    parameterName: 'font',
-                    classes: 'hide-when-editing',
-                    defaultValue: 0,
-                    control: 'SuiFontComponent',
-                    label: 'Font'
-                }, {
-                    smoName: 'adjustWidth',
-                    parameterName: 'adjustNoteWidth',
-                    defaultValue: true,
-                    classes: 'hide-when-editing',
-                    control: 'SuiToggleComponent',
-                    label: 'Adjust Note Width',
-                    options: []
-                }, {
-                    staticText: [
-                        { label: 'Edit Chord Symbol' },
-                        { undo: 'Undo Chord Symbols' },
-                        { doneEditing: 'Done Editing Chord Symbols' }
-                    ]
-                }];
-        return SuiChordChangeDialog._dialogElements;
-    }
-    changed() {
-        let val = '';
-        if (this.chordSymbolCtrl.changeFlag && this.chordEditorCtrl.running) {
-            val = '@' + this.chordSymbolCtrl.getValue() + '@';
-            this.chordEditorCtrl.evKey({
-                key: val
-            });
-            // Move focus outside the element so it doesn't intercept keys
-            this.chordSymbolCtrl.unselect();
-        }
-        if (this.translateYCtrl.changeFlag) {
-            if (this.lyric && this.selector) {
-                this.lyric.translateY = this.translateYCtrl.getValue();
-                this.view.addOrUpdateLyric(this.selector, this.lyric);
-            }
-        }
-        if (this.textPositionCtrl.changeFlag) {
-            this.chordEditorCtrl.setTextType(this.textPositionCtrl.getValue());
-            $(this.textPositionCtrl._getInputElement())[0].selectedIndex = -1;
-            $(this.textPositionCtrl._getInputElement()).blur();
-        }
-        if (this.fontCtrl.changeFlag) {
-            const fontInfo = this.fontCtrl.getValue();
-            this.view.setChordFont(fontInfo);
-        }
-        if (this.adjustWidthCtrl.changeFlag) {
-            this.view.score.setChordAdjustWidth(this.adjustWidthCtrl.getValue());
-        }
-    }
-    setLyric(selector, lyric) {
-        this.selector = selector;
-        this.lyric = lyric;
-        this.translateYCtrl.setValue(lyric.translateY);
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
-    }
-    display() {
-        $('body').addClass('showAttributeDialog');
-        $('body').addClass('textEditor');
-        this.applyDisplayOptions();
-        // this.editor = this.components.find((c) => c.smoName === 'textEditor');
-        this.verse = this.components.find((c) => c.smoName === 'verse');
-        this._bindElements();
-        $(this.dgDom.element).find('.smoControl').each((ix, ctrl) => {
-            if (!$(ctrl).hasClass('cbLyricEdit')) {
-                $(ctrl).addClass('fold-textedit');
-            }
-        });
-        this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
-        this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
-        if (this.chordEditorCtrl && this.chordEditorCtrl.session && this.chordEditorCtrl.session.lyric) {
-            const lyric = this.chordEditorCtrl.session.lyric;
-            this.adjustWidthCtrl.setValue(lyric.adjustNoteWidth);
-            this.fontCtrl.setValue({
-                family: lyric.fontInfo.family,
-                size: lyric.fontInfo.size
-            });
-        }
-    }
-    _bindElements() {
-        const dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            this._complete();
-        });
-        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-            this._complete();
-        });
-        $(dgDom.element).find('.remove-button').remove();
-        this.chordEditorCtrl.setView(this.eventSource, this.view);
-        this.chordEditorCtrl.startEditSession();
-    }
-    // ### handleKeydown
-    // allow a dialog to be dismissed by esc.
-    evKey(evdata) {
-        if (evdata.key === 'Escape') {
-            $(this.dgDom.element).find('.cancel-button').click();
-            evdata.preventDefault();
-        }
-        else {
-            if (!this.chordEditorCtrl.running) {
-                return;
-            }
-            const edited = this.chordEditorCtrl.evKey(evdata);
-            if (edited) {
-                evdata.stopPropagation();
-            }
-        }
-    }
-    _complete() {
-        if (this.chordEditorCtrl.running) {
-            this.chordEditorCtrl.endSession();
-        }
-        this.view.renderer.setDirty();
-        this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
-        this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
-        $('body').removeClass('showAttributeDialog');
-        $('body').removeClass('textEditor');
-        this.complete();
-    }
-    mouseMove(ev) {
-        if (this.chordEditorCtrl && this.chordEditorCtrl.running) {
-            this.chordEditorCtrl.mouseMove(ev);
-        }
-    }
-    mouseClick(ev) {
-        if (this.chordEditorCtrl && this.chordEditorCtrl.running) {
-            this.chordEditorCtrl.mouseClick(ev);
-            ev.stopPropagation();
-        }
-    }
-}
-exports.SuiChordChangeDialog = SuiChordChangeDialog;
-class SuiTextTransformDialog extends dialog_1.SuiDialogBase {
-    static createAndDisplay(parameters) {
-        const dg = new SuiTextTransformDialog(parameters);
-        dg.display();
-        return dg;
-    }
-    static get ctor() {
-        return 'SuiTextTransformDialog';
-    }
-    get ctor() {
-        return SuiTextTransformDialog.ctor;
-    }
-    static get dialogElements() {
-        SuiTextTransformDialog._dialogElements = SuiTextTransformDialog._dialogElements ? SuiTextTransformDialog._dialogElements :
-            [{
-                    smoName: 'textEditor',
-                    parameterName: 'text',
-                    defaultValue: 0,
-                    control: 'SuiTextInPlace',
-                    classes: 'show-always hide-when-moving',
-                    label: 'Edit Text',
-                    options: []
-                }, {
-                    smoName: 'insertCode',
-                    parameterName: 'insertCode',
-                    defaultValue: false,
-                    classes: 'show-when-editing hide-when-moving',
-                    control: 'SuiDropdownComponent',
-                    label: 'Insert Special',
-                    options: [
-                        { value: '@@@', label: 'Pages' },
-                        { value: '###', label: 'Page Number' }
-                    ]
-                }, {
-                    smoName: 'textDragger',
-                    parameterName: 'textLocation',
-                    classes: 'hide-when-editing show-when-moving',
-                    defaultValue: 0,
-                    control: 'SuiDragText',
-                    label: 'Move Text',
-                    options: []
-                }, {
-                    smoName: 'x',
-                    parameterName: 'x',
-                    defaultValue: 0,
-                    classes: 'hide-when-editing hide-when-moving',
-                    control: 'SuiRockerComponent',
-                    label: 'X Position (Px)',
-                    type: 'int'
-                }, {
-                    smoName: 'y',
-                    parameterName: 'y',
-                    defaultValue: 0,
-                    classes: 'hide-when-editing hide-when-moving',
-                    control: 'SuiRockerComponent',
-                    label: 'Y Position (Px)',
-                    type: 'int'
-                }, {
-                    smoName: 'font',
-                    parameterName: 'font',
-                    classes: 'hide-when-editing hide-when-moving',
-                    defaultValue: scoreModifiers_1.SmoScoreText.fontFamilies.times,
-                    control: 'SuiFontComponent',
-                    label: 'Font Information'
-                },
-                {
-                    smoName: 'textBlock',
-                    parameterName: 'textBlock',
-                    classes: 'hide-when-editing hide-when-moving',
-                    defaultValue: '',
-                    control: 'SuiTextBlockComponent',
-                    label: 'Text Block Properties'
-                },
-                {
-                    smoName: 'pagination',
-                    parameterName: 'pagination',
-                    defaultValue: scoreModifiers_1.SmoScoreText.paginations.every,
-                    classes: 'hide-when-editing hide-when-moving',
-                    control: 'SuiDropdownComponent',
-                    label: 'Page Behavior',
-                    startRow: true,
-                    options: [{ value: scoreModifiers_1.SmoTextGroup.paginations.ONCE, label: 'Once' },
-                        { value: scoreModifiers_1.SmoTextGroup.paginations.EVERY, label: 'Every' },
-                        { value: scoreModifiers_1.SmoTextGroup.paginations.EVEN, label: 'Even' },
-                        { value: scoreModifiers_1.SmoTextGroup.paginations.ODD, label: 'Odd' },
-                        { value: scoreModifiers_1.SmoTextGroup.paginations.SUBSEQUENT, label: 'Subsequent' }
-                    ]
-                }, {
-                    smoName: 'attachToSelector',
-                    parameterName: 'attachToSelector',
-                    defaultValue: false,
-                    parentControl: this,
-                    classes: 'hide-when-editing hide-when-moving',
-                    control: 'SuiToggleComponent',
-                    label: 'Attach to Selection'
-                }, {
-                    staticText: [
-                        { label: 'Text Properties' },
-                        { editorLabel: 'Done Editing Text' },
-                        { draggerLabel: 'Done Dragging Text' }
-                    ]
-                }];
-        return SuiTextTransformDialog._dialogElements;
-    }
-    static getStaticText(label) {
-        return SuiTextTransformDialog.dialogElements.find((x) => x.staticText).staticText.find((x) => x[label])[label];
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
-    }
-    populateInitial() {
-        this.textBlockCtrl.setValue({
-            activeScoreText: this.activeScoreText,
-            modifier: this.modifier
-        });
-        const fontFamily = this.activeScoreText.fontInfo.family;
-        const fontSize = this.activeScoreText.fontInfo.size;
-        this.fontCtrl.setValue({
-            family: fontFamily,
-            size: fontSize,
-            style: this.activeScoreText.fontInfo.style,
-            weight: this.activeScoreText.fontInfo.weight
-        });
-        this.attachToSelectorCtrl.setValue(this.modifier.attachToSelector);
-        this.paginationsComponent = this.components.find((c) => c.smoName === 'pagination');
-        this.paginationsComponent.setValue(this.modifier.pagination);
-        const ul = this.modifier.ul();
-        this.xCtrl.setValue(ul.x);
-        this.yCtrl.setValue(ul.y);
-    }
-    display() {
-        this.textElement = $(this.view.renderer.context.svg).find('.' + this.modifier.attrs.id)[0];
-        $('body').addClass('showAttributeDialog');
-        $('body').addClass('textEditor');
-        this.applyDisplayOptions();
-        this.populateInitial();
-        this._bindElements();
-        if (!this.modifier.renderedBox) {
-            this.view.renderer.renderTextGroup(this.modifier);
-        }
-        // If this control has not been edited this session, assume they want to
-        // edit the text and just right into that.
-        if (!this.modifier.edited) {
-            this.modifier.edited = true;
-            layoutDebug_1.layoutDebug.addDialogDebug('text transform db: startEditSession');
-            this.textEditorCtrl.startEditSession();
-        }
-        this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
-        this.mouseUpHandler = this.eventSource.bindMouseUpHandler(this, 'mouseUp');
-        this.mouseDownHandler = this.eventSource.bindMouseDownHandler(this, 'mouseDown');
-        this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
-    }
-    _resetAttachToSelector() {
-        this.modifier.attachToSelector = false;
-        this.modifier.selector = scoreModifiers_1.SmoTextGroup.defaults.selector;
-        this.modifier.musicXOffset = scoreModifiers_1.SmoTextGroup.defaults.musicXOffset;
-        this.modifier.musicYOffset = scoreModifiers_1.SmoTextGroup.defaults.musicYOffset;
-    }
-    _activateAttachToSelector() {
-        this.modifier.attachToSelector = true;
-        this.modifier.selector = JSON.parse(JSON.stringify(this.view.tracker.selections[0].selector));
-        this.modifier.musicXOffset = this.modifier.logicalBox.x - this.view.tracker.selections[0].measure.svg.logicalBox.x;
-        this.modifier.musicYOffset = this.modifier.logicalBox.y - this.view.tracker.selections[0].measure.svg.logicalBox.y;
-    }
-    changed() {
-        this.edited = true;
-        if (this.insertCodeCtrl.changeFlag && this.textEditorCtrl.session) {
-            const val = this.insertCodeCtrl.getValue().split('');
-            val.forEach((key) => {
-                this.evKey({ key });
-            });
-            this.insertCodeCtrl.unselect();
-        }
-        if (this.textBlockCtrl.changeFlag) {
-            const nval = this.textBlockCtrl.getValue();
-            this.activeScoreText = nval.activeScoreText;
-            this.textEditorCtrl.activeScoreText = this.activeScoreText;
-        }
-        if (this.attachToSelectorCtrl.changeFlag) {
-            const toSet = this.attachToSelectorCtrl.getValue();
-            if (toSet) {
-                this._activateAttachToSelector();
-                this.paginationsComponent.setValue(scoreModifiers_1.SmoTextGroup.paginations.ONCE);
-                this.modifier.pagination = scoreModifiers_1.SmoTextGroup.paginations.ONCE;
-            }
-            else {
-                this._resetAttachToSelector();
-            }
-        }
-        const pos = this.modifier.ul();
-        // position can change from drag or by dialog - only update from
-        // dialog entries if that changed.
-        if (this.xCtrl.changeFlag) {
-            this.modifier.offsetX(this.xCtrl.getValue() - pos.x);
-        }
-        if (this.yCtrl.changeFlag) {
-            this.modifier.offsetY(this.yCtrl.getValue() - pos.y);
-        }
-        if (this.textDraggerCtrl.changeFlag) {
-            this.xCtrl.setValue(pos.x);
-            this.yCtrl.setValue(pos.y);
-        }
-        if (this.paginationsComponent.changeFlag) {
-            this.modifier.pagination = parseInt(this.paginationsComponent.getValue(), 10);
-            // Pagination and attach to measure don't mix.
-            this._resetAttachToSelector();
-            this.attachToSelectorCtrl.setValue(false);
-        }
-        if (this.fontCtrl.changeFlag) {
-            const fontInfo = this.fontCtrl.getValue();
-            this.activeScoreText.fontInfo.family = fontInfo.family;
-            // transitioning away from non-point-based font size units
-            this.activeScoreText.fontInfo.size = fontInfo.size;
-            this.activeScoreText.fontInfo.weight = fontInfo.weight;
-            this.activeScoreText.fontInfo.style = fontInfo.style;
-        }
-        // Use layout context because render may have reset svg.
-        this.view.updateTextGroup(this.previousModifier, this.modifier);
-        this.previousModifier = this.modifier.serialize();
-    }
-    // ### handleKeydown
-    // allow a dialog to be dismissed by esc.
-    evKey(evdata) {
-        if (evdata.key === 'Escape') {
-            $(this.dgDom.element).find('.cancel-button').click();
-            evdata.preventDefault();
-        }
-        else {
-            this.textEditorCtrl.evKey(evdata);
-        }
-    }
-    // ### Event handlers, passed from dialog
-    mouseUp() {
-        if (this.textResizerCtrl && this.textResizerCtrl.running) {
-            this.textResizerCtrl.mouseUp();
-        }
-        else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
-            this.textDraggerCtrl.mouseUp();
-        }
-    }
-    mouseMove(ev) {
-        if (this.textResizerCtrl && this.textResizerCtrl.running) {
-            this.textResizerCtrl.mouseMove(ev);
-        }
-        else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
-            this.textDraggerCtrl.mouseMove(ev);
-        }
-        else if (this.textEditorCtrl && this.textEditorCtrl.isRunning) {
-            this.textEditorCtrl.mouseMove(ev);
-        }
-    }
-    mouseClick(ev) {
-        if (this.textEditorCtrl && this.textEditorCtrl.isRunning) {
-            this.textEditorCtrl.mouseClick(ev);
-            ev.stopPropagation();
-        }
-    }
-    mouseDown(ev) {
-        if (this.textResizerCtrl && this.textResizerCtrl.running) {
-            this.textResizerCtrl.mouseDown(ev);
-        }
-        else if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
-            this.textDraggerCtrl.mouseDown(ev);
-        }
-    }
-    constructor(parameters) {
-        let edited = false;
-        const tracker = parameters.view.tracker;
-        const layout = parameters.view.score.layoutManager.getGlobalLayout();
-        // Create a new text modifier, if this is new text.   Else use selection
-        if (!parameters.modifier) {
-            const newText = new scoreModifiers_1.SmoScoreText({ position: scoreModifiers_1.SmoScoreText.positions.custom });
-            newText.y += tracker.scroller.scrollState.scroll.y;
-            if (tracker.selections.length > 0) {
-                const sel = tracker.selections[0].measure.svg;
-                if (typeof (sel.logicalBox) !== 'undefined') {
-                    if (sel.logicalBox.y >= newText.y) {
-                        newText.y = sel.logicalBox.y;
-                        newText.x = sel.logicalBox.x;
-                    }
-                }
-            }
-            const newGroup = new scoreModifiers_1.SmoTextGroup({ blocks: [{ text: newText, position: scoreModifiers_1.SmoTextGroup.relativePositions.LEFT }] });
-            parameters.modifier = newGroup;
-            parameters.modifier.setActiveBlock(newText);
-            parameters.view.addTextGroup(parameters.modifier);
-            edited = true;
-        }
-        else {
-            // Make sure there is a score text to start the editing.
-            parameters.modifier.setActiveBlock(parameters.modifier.textBlocks[0].text);
-        }
-        const scrollPosition = tracker.scroller.absScroll;
-        scrollPosition.y = scrollPosition.y / (layout.svgScale * layout.zoomScale);
-        scrollPosition.x = scrollPosition.x / (layout.svgScale * layout.zoomScale);
-        super(SuiTextTransformDialog.dialogElements, Object.assign({ id: 'dialog-' + parameters.modifier.attrs.id, top: scrollPosition.y + 100, left: scrollPosition.x + 100 }, parameters));
-        this.edited = edited;
-        this.view.groupUndo(true);
-        this.previousModifier = this.modifier.serialize();
-        this.activeScoreText = this.modifier.getActiveBlock();
-        Vex.Merge(this, parameters);
-    }
-    _complete() {
-        this.view.groupUndo(false);
-        this.modifier.setActiveBlock(null);
-        this.view.tracker.updateMap(); // update the text map
-        this.view.renderer.setDirty();
-        this.eventSource.unbindMouseDownHandler(this.mouseDownHandler);
-        this.eventSource.unbindMouseUpHandler(this.mouseUpHandler);
-        this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
-        this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
-        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.context.svg, 'text-drag');
-        $('body').removeClass('showAttributeDialog');
-        $('body').removeClass('textEditor');
-        this.complete();
-    }
-    _removeText() {
-        this.view.removeTextGroup(this.modifier);
-    }
-    _bindElements() {
-        const dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            this._complete();
-        });
-        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-            this.view.groupUndo(false);
-            if (this.edited) {
-                this.view.undo();
-            }
-            this._complete();
-        });
-        $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-            this._removeText();
-            this._complete();
-        });
-    }
-}
-exports.SuiTextTransformDialog = SuiTextTransformDialog;
-// ## SuiDynamicModifierDialog
-// This is a poorly named class, it just allows you to placeText
-// dynamic text so it doesn't collide with something.
-class SuiDynamicModifierDialog extends dialog_1.SuiDialogBase {
-    static get ctor() {
-        return 'SuiDynamicModifierDialog';
-    }
-    get ctor() {
-        return SuiDynamicModifierDialog.ctor;
-    }
-    static get label() {
-        SuiDynamicModifierDialog._label = SuiDynamicModifierDialog._label ? SuiDynamicModifierDialog._label :
-            'Dynamics Properties';
-        return SuiDynamicModifierDialog._label;
-    }
-    static set label(value) {
-        SuiDynamicModifierDialog._label = value;
-    }
-    static get dialogElements() {
-        SuiDynamicModifierDialog._dialogElements = SuiDynamicModifierDialog._dialogElements ? SuiDynamicModifierDialog._dialogElements :
-            [{
-                    smoName: 'yOffsetLine',
-                    parameterName: 'yOffsetLine',
-                    defaultValue: 11,
-                    control: 'SuiRockerComponent',
-                    label: 'Y Line'
-                }, {
-                    smoName: 'yOffsetPixels',
-                    parameterName: 'yOffsetPixels',
-                    defaultValue: 0,
-                    control: 'SuiRockerComponent',
-                    label: 'Y Offset Px'
-                }, {
-                    smoName: 'xOffset',
-                    parameterName: 'yOffset',
-                    defaultValue: 0,
-                    control: 'SuiRockerComponent',
-                    label: 'X Offset'
-                }, {
-                    smoName: 'text',
-                    parameterName: 'text',
-                    defaultValue: noteModifiers_1.SmoDynamicText.dynamics.P,
-                    options: [{
-                            value: noteModifiers_1.SmoDynamicText.dynamics.P,
-                            label: 'Piano'
-                        }, {
-                            value: noteModifiers_1.SmoDynamicText.dynamics.PP,
-                            label: 'Pianissimo'
-                        }, {
-                            value: noteModifiers_1.SmoDynamicText.dynamics.MP,
-                            label: 'Mezzo-Piano'
-                        }, {
-                            value: noteModifiers_1.SmoDynamicText.dynamics.MF,
-                            label: 'Mezzo-Forte'
-                        }, {
-                            value: noteModifiers_1.SmoDynamicText.dynamics.F,
-                            label: 'Forte'
-                        }, {
-                            value: noteModifiers_1.SmoDynamicText.dynamics.FF,
-                            label: 'Fortissimo'
-                        }, {
-                            value: noteModifiers_1.SmoDynamicText.dynamics.SFZ,
-                            label: 'Sforzando'
-                        }],
-                    control: 'SuiDropdownComponent',
-                    label: 'Text'
-                },
-                {
-                    staticText: [
-                        { label: 'Dynamics Properties' }
-                    ]
-                }
-            ];
-        return SuiDynamicModifierDialog._dialogElements;
-    }
-    static createAndDisplay(parameters) {
-        const dg = new SuiDynamicModifierDialog(parameters);
-        dg.display();
-        return dg;
-    }
-    constructor(parameters) {
-        super(SuiDynamicModifierDialog.dialogElements, Object.assign({ id: 'dialog-' + parameters.modifier.id }, parameters));
-        Vex.Merge(this, parameters);
-        this.edited = false;
-        this.view.groupUndo(true);
-        this.components.find((x) => x.parameterName === 'text').defaultValue = parameters.modifier.text;
-    }
-    get displayOptions() {
-        return ['BINDCOMPONENTS', 'BINDNAMES', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
-    }
-    display() {
-        $('body').addClass('showAttributeDialog');
-        this.applyDisplayOptions();
-        this._bindElements();
-        this.textCtrl.setValue(this.modifier.text);
-        this.xOffsetCtrl.setValue(this.modifier.xOffset);
-        this.yOffsetLineCtrl.setValue(this.modifier.yOffsetLine);
-        this.yOffsetPixelsCtrl.setValue(this.modifier.yOffsetPixels);
-    }
-    // ### _bindElements
-    // bing the generic controls in most dialogs.
-    _bindElements() {
-        var dgDom = this.dgDom;
-        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
-            this.view.groupUndo(false);
-            this.complete();
-        });
-        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
-            this.view.groupUndo(false);
-            if (this.edited) {
-                this.view.undo();
-            }
-            this.complete();
-        });
-        $(dgDom.element).find('.remove-button').off('click').on('click', () => {
-            this.view.groupUndo(false);
-            this.handleRemove();
-            this.complete();
-        });
-    }
-    handleRemove() {
-        this.view.removeDynamic(this.modifier);
-    }
-    changed() {
-        this.edited = true;
-        this.components.forEach((component) => {
-            this.modifier[component.smoName] = component.getValue();
-        });
-        this.view.addDynamic(this.modifier);
-    }
-}
-exports.SuiDynamicModifierDialog = SuiDynamicModifierDialog;
-class helpModal {
-    static createAndDisplay() {
-        help_1.SuiHelp.displayHelp();
-        return htmlHelpers_1.htmlHelpers.closeDialogPromise();
-    }
-}
-exports.helpModal = helpModal;
-
-
-/***/ }),
-
-/***/ "./src/ui/dialogs/treeComponent.js":
-/*!*****************************************!*\
-  !*** ./src/ui/dialogs/treeComponent.js ***!
-  \*****************************************/
+/***/ "./src/ui/dialogs/components/tree.ts":
+/*!*******************************************!*\
+  !*** ./src/ui/dialogs/components/tree.ts ***!
+  \*******************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
@@ -37151,59 +34638,47 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiTreeComponent = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const dialogComponents_1 = __webpack_require__(/*! ../dialogComponents */ "./src/ui/dialogComponents.js");
-const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
-const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
 // ### SuiDropdownComponent
 // simple dropdown select list.
-class SuiTreeComponent extends dialogComponents_1.SuiComponentBase {
+class SuiTreeComponent extends baseComponent_1.SuiComponentBase {
     constructor(dialog, parameter) {
-        super(parameter);
-        serializationHelpers_1.smoSerialize.filteredMerge(['parameterName', 'smoName', 'root', 'options', 'control', 'label', 'dataType', 'disabledOption'], parameter, this);
-        if (!this.defaultValue) {
-            this.defaultValue = 0;
-        }
-        if (!this.dataType) {
-            this.dataType = 'string';
-        }
-        this.dialog = dialog;
+        super(dialog, parameter);
         this.persistControls = false;
+        this.tree = {};
+        this.options = [];
+        this.root = parameter.root;
+        this.value = this.root;
+        this.options = parameter.options;
         this.calculateOptionTree();
     }
     calculateOptionTree() {
         this.tree = {};
         this.options.forEach((option) => {
             if (option.parent) {
-                if (typeof (this.tree[option.parent] === 'undefined')) {
+                if (!(this.tree[option.parent])) {
                     this.tree[option.parent] = [];
                 }
                 this.tree[option.parent].push(option);
-                const button = $('ul.tree li[data-value="' + option.value + '"] button');
-                if (button.length && button.hasClass('expanded')) {
-                    option.expanded = true;
-                }
-                if (button.length && button.hasClass('collapsed')) {
-                    option.collapsed = true;
-                }
             }
         });
     }
     getNodesWithParent(parent) {
         return this.options.filter((oo) => oo.parent === parent);
     }
-    get parameterId() {
-        return this.dialog.id + '-' + this.parameterName;
-    }
     appendOptionRecurse(b, option, level) {
         const children = this.getNodesWithParent(option.value);
         let treeClass = 'tree-branch';
         let buttonClass = 'expander';
-        if (this.persistControls && option.expanded) {
-            buttonClass += ' expanded icon-minus';
-        }
-        if (this.persistControls && option.collapsed) {
-            buttonClass += ' collapsed icon-plus';
-            treeClass += ' collapsed';
+        if (option.format === 'library' && children.length > 0) {
+            if (this.persistControls && option.expanded) {
+                buttonClass += ' expanded icon-minus';
+            }
+            if (this.persistControls && !option.expanded) {
+                buttonClass += ' collapsed icon-plus';
+                treeClass += ' collapsed';
+            }
         }
         const current = b('li').classes(treeClass).attr('data-value', option.value).attr('data-level', level);
         current.append(b('button').classes(buttonClass));
@@ -37229,7 +34704,7 @@ class SuiTreeComponent extends dialogComponents_1.SuiComponentBase {
     get html() {
         const b = htmlHelpers_1.htmlHelpers.buildDom;
         const id = this.parameterId;
-        const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.parameterName);
+        const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.smoName);
         const ul = b('ul').classes('tree tree-root');
         this._createTree(b, ul);
         r.append(ul);
@@ -37248,10 +34723,6 @@ class SuiTreeComponent extends dialogComponents_1.SuiComponentBase {
         $(parentEl).append(ul.dom());
         this.bind();
     }
-    unselect() {
-        $(this._getInputElement())[0].selectedIndex = -1;
-        $(this._getInputElement()).blur();
-    }
     _getInputElement() {
         var pid = this.parameterId;
         return $(this.dialog.dgDom.element).find('#' + pid);
@@ -37265,7 +34736,7 @@ class SuiTreeComponent extends dialogComponents_1.SuiComponentBase {
         const input = this._getInputElement();
         const li = $(input).find('li[data-value="' + value + '"]');
         $(li).addClass('selected');
-        if (option.format === 'library') {
+        if (option && option.format === 'library') {
             $(li).find('button').first().addClass('expanded icon-minus');
         }
         this.bindTreeControls();
@@ -37290,15 +34761,4091 @@ class SuiTreeComponent extends dialogComponents_1.SuiComponentBase {
         $(input).find('a.tree-link').each((ix, el) => {
             $(el).removeClass('selected');
             $(el).off('click').on('click', (ev) => {
+                $(this._getInputElement()).find('li').removeClass('selected');
                 const li = $(ev.currentTarget).closest('li.tree-branch');
-                this.value = $(li).attr('data-value');
                 $(li).addClass('selected');
+                this.value = $(li).attr('data-value');
                 this.handleChanged();
             });
         });
     }
 }
 exports.SuiTreeComponent = SuiTreeComponent;
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/dialog.ts":
+/*!**********************************!*\
+  !*** ./src/ui/dialogs/dialog.ts ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.createAndDisplayDialog = exports.dialogConstructor = exports.SuiDialogBase = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const svgHelpers_1 = __webpack_require__(/*! ../../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
+const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const language_1 = __webpack_require__(/*! ../i18n/language */ "./src/ui/i18n/language.js");
+const baseComponent_1 = __webpack_require__(/*! ./components/baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
+/**
+ * Note: Most dialogs will inherit from SuiDialogAdapter, not SuiDialogBase.
+ * You will only want to inherit from SuiDialogBase under 2 conditions:
+ * 1. the dialog is triviailly simple, like an alert box that makes no changes to the score, or
+ * 2. the dialog is extremely complicated in how it interacts with the user, such that a form-based approach won't work
+ */
+class SuiDialogBase extends baseComponent_1.SuiDialogNotifier {
+    // ### SuiDialogBase ctor
+    // Creates the DOM element for the dialog and gets some initial elements
+    constructor(dialogElements, parameters) {
+        var _a;
+        super();
+        this.components = [];
+        this.boundComponents = [];
+        this.cmap = {};
+        this.staticText = [];
+        this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS', 'HIDEREMOVE'];
+        this.keydownHandler = null;
+        this.id = parameters.id;
+        this.boundKeyboard = false;
+        this.scroller = parameters.view.tracker.scroller;
+        this.label = dialogElements.label;
+        this.eventSource = parameters.eventSource;
+        this.view = parameters.view;
+        this.completeNotifier = parameters.completeNotifier;
+        this.modifier = parameters.modifier;
+        this.ctor = parameters.ctor;
+        this.autobind = (_a = parameters.autobind) !== null && _a !== void 0 ? _a : true;
+        this.closeDialogPromise = new Promise((resolve) => {
+            $('body').off('dialogDismiss').on('dialogDismiss', () => {
+                resolve();
+            });
+        });
+        this.staticText = dialogElements.staticText;
+        // If this dialog was spawned by a menu, wait for the menu to dismiss
+        // before continuing.
+        // this.startPromise = parameters.closeMenuPromise;
+        this.startPromise = parameters.startPromise;
+        this.dialogElements = dialogElements;
+        const left = $('.musicRelief').offset().left + $('.musicRelief').width() / 2;
+        const top = $('.musicRelief').offset().top + $('.musicRelief').height() / 2;
+        this.dgDom = this._constructDialog(dialogElements, {
+            id: 'dialog-' + this.id,
+            top,
+            left,
+            label: this.label
+        });
+        language_1.SmoTranslator.registerDialog(this.ctor);
+    }
+    static get displayOptions() {
+        return {
+            BINDCOMPONENTS: 'bindComponents', DRAGGABLE: 'makeDraggable',
+            KEYBOARD_CAPTURE: 'captureKeyboardPromise', GLOBALPOS: 'positionGlobally',
+            SELECTIONPOS: 'positionFromSelection', MODIFIERPOS: 'positionFromModifier',
+            HIDEREMOVE: 'hideRemoveButton'
+        };
+    }
+    // ### printXlate
+    // print json with string labels to use as a translation file seed.
+    static printTranslate(_class) {
+        const output = [];
+        const xx = eval('globalThis.Smo' + _class);
+        xx.dialogElements.elements.forEach((element) => {
+            var _a;
+            const component = {};
+            if (element.label) {
+                component.label = (_a = element.label) !== null && _a !== void 0 ? _a : '';
+                component.id = element.smoName;
+                if (element.options) {
+                    component.options = [];
+                    element.options.forEach((option) => {
+                        component.options.push({ value: option.value, label: option.label });
+                    });
+                }
+                output.push(component);
+            }
+        });
+        // convert static text from an array of name/value pairs to a record for translation
+        const staticText = {};
+        const dialogStaticText = xx.dialogElements.staticText;
+        if (dialogStaticText) {
+            dialogStaticText.forEach((st) => {
+                const key = Object.keys(st)[0];
+                staticText[key] = st[key];
+            });
+        }
+        return { ctor: xx.ctor, label: xx.dialogElements.label, dialogElements: output, staticText };
+    }
+    static getStaticText(staticText) {
+        const rv = {};
+        staticText.forEach((st) => {
+            const key = Object.keys(st)[0];
+            rv[key] = st[key];
+        });
+        return rv;
+    }
+    // ### display
+    // make3 the modal visible.  bind events and elements.
+    display() {
+        $('body').addClass('showAttributeDialog');
+        this.bindComponents();
+        this.bindElements();
+        this.applyDisplayOptions();
+        this.initialValue();
+    }
+    // ### bindElements
+    // bing the generic controls in most dialogs.
+    bindElements() {
+        var dgDom = this.dgDom;
+        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+            this.view.groupUndo(false);
+            this.commit();
+            this.complete();
+        });
+        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+            this.view.groupUndo(false);
+            this.modifier.cancel();
+            this.complete();
+        });
+        $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+            this.view.groupUndo(false);
+            this.complete();
+        });
+    }
+    bindComponents() {
+        this.components.forEach((component) => {
+            component.bind();
+        });
+    }
+    initialValue() {
+        if (this.modifier === null || this.autobind === false) {
+            return;
+        }
+        this.boundComponents.forEach((comp) => {
+            comp.setValue(this.modifier[comp.smoName]);
+        });
+    }
+    changed() {
+        if (this.modifier === null || this.autobind === false) {
+            return;
+        }
+        this.boundComponents.forEach((comp) => {
+            if (comp.changeFlag) {
+                this.modifier[comp.smoName] = comp.getValue();
+            }
+        });
+    }
+    getId() {
+        return this.id;
+    }
+    getModifier() {
+        var _a;
+        return (_a = this.modifier) !== null && _a !== void 0 ? _a : null;
+    }
+    getEventSource() {
+        return this.eventSource;
+    }
+    getStaticText() {
+        return SuiDialogBase.getStaticText(this.staticText);
+    }
+    commit() {
+    }
+    get closeModalPromise() {
+        return this.closeDialogPromise;
+    }
+    // ### position
+    // For dialogs based on selections, tries to place the dialog near the selection and also
+    // to scroll so the dialog is in view
+    static position(box, dgDom, scroller) {
+        let y = (box.y + box.height) - scroller.netScroll.y;
+        let x = 0;
+        // TODO: adjust if db is clipped by the browser.
+        const dge = $(dgDom.element).find('.attributeModal');
+        const dgeHeight = $(dge).height();
+        const maxY = $('.musicRelief').height();
+        const maxX = $('.musicRelief').width();
+        const offset = $('.dom-container').offset();
+        y = y - offset.top;
+        const offsetY = dgeHeight + y > window.innerHeight ? (dgeHeight + y) - window.innerHeight : 0;
+        y = (y < 0) ? -y : y - offsetY;
+        y = (y > maxY || y < 0) ? maxY / 2 : y;
+        $(dge).css('top', '' + y + 'px');
+        x = box.x - scroller.netScroll.x;
+        x = x - offset.left;
+        const w = $(dge).width();
+        x = (x > window.innerWidth / 2) ? x - (w + 25) : x + (w + 25);
+        x = (x < 0 || x > maxX) ? maxX / 2 : x;
+        $(dge).css('left', '' + x + 'px');
+    }
+    getView() {
+        return this.view;
+    }
+    applyDisplayOptions() {
+        $('body').addClass('showAttributeDialog');
+        this.displayOptions.forEach((option) => {
+            this[SuiDialogBase.displayOptions[option]]();
+        });
+    }
+    // ### position
+    // Position the dialog near a selection.  If the dialog is not visible due
+    // to scrolling, make sure it is visible.
+    position(box) {
+        SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+    }
+    hideRemoveButton() {
+        $(this.dgDom.element).find('.remove-button').remove();
+    }
+    // ### positionModifier()
+    positionFromModifier() {
+        if (this.modifier === null || this.modifier.renderedBox === null) {
+            this.positionGlobally();
+            return;
+        }
+        this.position(this.modifier.renderedBox);
+    }
+    // ### positionGlobally
+    // position the dialog box in the center of the current scroll region
+    positionGlobally() {
+        const box = svgHelpers_1.SvgHelpers.boxPoints(250, 250, 1, 1);
+        SuiDialogBase.position(box, this.dgDom, this.view.tracker.scroller);
+    }
+    // ### postionFromSelection
+    // set initial position of dialog based on first selection
+    positionFromSelection() {
+        const note = this.view.tracker.selections[0].note;
+        if (note && note.renderedBox) {
+            this.position(note.renderedBox);
+        }
+    }
+    // ### build the html for the dialog, based on the instance-specific components.
+    _constructDialog(dialogElements, parameters) {
+        const id = parameters.id;
+        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const r = b('div').classes('attributeModal').attr('id', 'attr-modal-' + id)
+            .css('top', parameters.top + 'px').css('left', parameters.left + 'px')
+            .append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
+            .append(b('h2').classes('dialog-label').text(this.label));
+        var ctrl = b('div').classes('smoControlContainer');
+        dialogElements.elements.filter((de) => de.control).forEach((de) => {
+            let ctor = null;
+            if (typeof (de.control) === 'function') {
+                ctor = de.control;
+            }
+            else {
+                ctor = eval('globalThis.Smo.' + de.control);
+            }
+            const classes = de.classes ? de.classes : '';
+            const compParams = Object.assign({ classes, id: id + de.smoName }, de);
+            const control = new ctor(this, compParams);
+            this.components.push(control);
+            this.cmap[de.smoName + 'Ctrl'] = control;
+            ctrl.append(control.html);
+        });
+        r.append(ctrl);
+        r.append(b('div').classes('buttonContainer').append(b('button').classes('ok-button button-left').text('OK')).append(b('button').classes('cancel-button button-center').text('Cancel')).append(b('button').classes('remove-button button-right').text('Remove').append(b('span').classes('icon icon-cancel-circle'))));
+        $('.attributeDialog').html('');
+        $('.attributeDialog').append(r.dom());
+        const trapper = htmlHelpers_1.htmlHelpers.inputTrapper('.attributeDialog');
+        $('.attributeDialog').find('.cancel-button').focus();
+        return {
+            element: $('.attributeDialog'),
+            trapper
+        };
+    }
+    // ### Complete
+    // Dialogs take over the keyboard, so release that and trigger an event
+    // that the dialog is closing that can resolve any outstanding promises.
+    complete() {
+        if (this.boundKeyboard && this.keydownHandler) {
+            this.eventSource.unbindKeydownHandler(this.keydownHandler);
+        }
+        $('body').removeClass('showAttributeDialog');
+        $('body').trigger('dialogDismiss');
+        this.dgDom.trapper.close();
+    }
+    // ### makeDraggable
+    // generic code to make the dialog box draggable so it doesn't
+    // get in front of stuff.
+    makeDraggable() {
+        const cb = () => { };
+        htmlHelpers_1.htmlHelpers.draggable({
+            parent: $(this.dgDom.element).find('.attributeModal'),
+            handle: $(this.dgDom.element).find('.jsDbMove'),
+            animateDiv: '.draganime',
+            cb,
+            moveParent: true
+        });
+    }
+    // ### captureKeyboardPromise
+    // capture keyboard events until the dialog closes,
+    // then give control back to the current keyboard
+    captureKeyboardPromise() {
+        if (!(this.startPromise)) {
+            this.completeNotifier.unbindKeyboardForModal(this);
+            this.bindKeyboard();
+            return;
+        }
+        const getKeys = () => {
+            this.completeNotifier.unbindKeyboardForModal(this);
+            this.bindKeyboard();
+        };
+        if (this.startPromise) {
+            this.startPromise.then(getKeys);
+        }
+    }
+    // ### handleKeydown
+    // allow a dialog to be dismissed by esc.
+    evKey(evdata) {
+        if (evdata.key === 'Escape') {
+            $(this.dgDom.element).find('.cancel-button').click();
+            evdata.preventDefault();
+        }
+    }
+    // ### bindKeyboard
+    // generic logic to grab keyboard elements for modal
+    bindKeyboard() {
+        this.boundKeyboard = true;
+        this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
+    }
+}
+exports.SuiDialogBase = SuiDialogBase;
+function dialogConstructor(type, parameters) {
+    return new type(parameters);
+}
+exports.dialogConstructor = dialogConstructor;
+function createAndDisplayDialog(ctor, parameters) {
+    const instance = dialogConstructor(ctor, parameters);
+    instance.display();
+    return instance;
+}
+exports.createAndDisplayDialog = createAndDisplayDialog;
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/dynamics.ts":
+/*!************************************!*\
+  !*** ./src/ui/dialogs/dynamics.ts ***!
+  \************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiDynamicModifierDialog = exports.SuiDynamicDialogAdapter = void 0;
+const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+class SuiDynamicDialogAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view, modifier) {
+        super(view);
+        this.modifier = modifier;
+        this.backup = new noteModifiers_1.SmoDynamicText(this.modifier);
+        this.selection = this.view.tracker.modifierSelections[0].selection;
+    }
+    cancel() {
+        this.view.addDynamic(this.selection, this.backup);
+    }
+    commit() { }
+    get xOffset() {
+        return this.modifier.xOffset;
+    }
+    set xOffset(value) {
+        this.modifier.xOffset = value;
+        this.view.addDynamic(this.selection, this.modifier);
+    }
+    get fontSize() {
+        return this.modifier.fontSize;
+    }
+    set fontSize(value) {
+        this.modifier.fontSize = value;
+        this.view.addDynamic(this.selection, this.modifier);
+    }
+    get yOffsetLine() {
+        return this.modifier.yOffsetLine;
+    }
+    set yOffsetLine(value) {
+        this.modifier.yOffsetLine = value;
+        this.view.addDynamic(this.selection, this.modifier);
+    }
+    get yOffsetPixels() {
+        return this.modifier.yOffsetPixels;
+    }
+    set yOffsetPixels(value) {
+        this.modifier.yOffsetPixels = value;
+        this.view.addDynamic(this.selection, this.modifier);
+    }
+    get text() {
+        return this.modifier.text;
+    }
+    set text(value) {
+        this.modifier.text = value;
+        this.view.addDynamic(this.selection, this.modifier);
+    }
+}
+exports.SuiDynamicDialogAdapter = SuiDynamicDialogAdapter;
+// ## SuiDynamicModifierDialog
+// This is a poorly named class, it just allows you to placeText
+// dynamic text so it doesn't collide with something.
+class SuiDynamicModifierDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        const adapter = new SuiDynamicDialogAdapter(parameters.view, parameters.modifier);
+        super(SuiDynamicModifierDialog.dialogElements, Object.assign({ adapter }, parameters));
+        this.view.groupUndo(true);
+        this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+    }
+}
+exports.SuiDynamicModifierDialog = SuiDynamicModifierDialog;
+SuiDynamicModifierDialog.dialogElements = {
+    label: 'Dynamics Properties', elements: [{
+            smoName: 'yOffsetLine',
+            defaultValue: 11,
+            control: 'SuiRockerComponent',
+            label: 'Y Line'
+        }, {
+            smoName: 'yOffsetPixels',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Y Offset Px'
+        }, {
+            smoName: 'xOffset',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'X Offset'
+        }, {
+            smoName: 'text',
+            defaultValue: noteModifiers_1.SmoDynamicText.dynamics.P,
+            options: [{
+                    value: noteModifiers_1.SmoDynamicText.dynamics.P,
+                    label: 'Piano'
+                }, {
+                    value: noteModifiers_1.SmoDynamicText.dynamics.PP,
+                    label: 'Pianissimo'
+                }, {
+                    value: noteModifiers_1.SmoDynamicText.dynamics.MP,
+                    label: 'Mezzo-Piano'
+                }, {
+                    value: noteModifiers_1.SmoDynamicText.dynamics.MF,
+                    label: 'Mezzo-Forte'
+                }, {
+                    value: noteModifiers_1.SmoDynamicText.dynamics.F,
+                    label: 'Forte'
+                }, {
+                    value: noteModifiers_1.SmoDynamicText.dynamics.FF,
+                    label: 'Fortissimo'
+                }, {
+                    value: noteModifiers_1.SmoDynamicText.dynamics.SFZ,
+                    label: 'Sforzando'
+                }],
+            control: 'SuiDropdownComponent',
+            label: 'Text'
+        }],
+    staticText: []
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/factory.ts":
+/*!***********************************!*\
+  !*** ./src/ui/dialogs/factory.ts ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiModifierDialogFactory = exports.isModifierWithDialog = exports.ModifiersWithDialogNames = void 0;
+const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialogs/dialog.ts");
+const hairpin_1 = __webpack_require__(/*! ./hairpin */ "./src/ui/dialogs/hairpin.ts");
+const slur_1 = __webpack_require__(/*! ./slur */ "./src/ui/dialogs/slur.ts");
+const volta_1 = __webpack_require__(/*! ./volta */ "./src/ui/dialogs/volta.ts");
+const lyric_1 = __webpack_require__(/*! ./lyric */ "./src/ui/dialogs/lyric.ts");
+const tie_1 = __webpack_require__(/*! ./tie */ "./src/ui/dialogs/tie.ts");
+const dynamics_1 = __webpack_require__(/*! ./dynamics */ "./src/ui/dialogs/dynamics.ts");
+const textBlock_1 = __webpack_require__(/*! ./textBlock */ "./src/ui/dialogs/textBlock.ts");
+exports.ModifiersWithDialogNames = ['SmoStaffHairpin', 'SmoTie', 'SmoSlur', 'SmoDynamicText', 'SmoVolta',
+    'SmoScoreText', 'SmoLoadScore', 'SmoLyric', 'SmoTextGroup'];
+function isModifierWithDialog(modifier) {
+    return exports.ModifiersWithDialogNames.indexOf(modifier.attrs.type) >= 0;
+}
+exports.isModifierWithDialog = isModifierWithDialog;
+/**
+ * Dialogs bound to selectable elements like slurs, dynamics, are created
+ * directly from a button/menu option
+ */
+class SuiModifierDialogFactory {
+    static createModifierDialog(modifier, parameters) {
+        if (!isModifierWithDialog(modifier)) {
+            return null;
+        }
+        const ctor = modifier.attrs.type;
+        parameters.modifier = modifier;
+        if (ctor === 'SmoStaffHairpin') {
+            return dialog_1.createAndDisplayDialog(hairpin_1.SuiHairpinAttributesDialog, parameters);
+        }
+        else if (ctor === 'SmoTie') {
+            return dialog_1.createAndDisplayDialog(tie_1.SuiTieAttributesDialog, parameters);
+        }
+        else if (ctor === 'SmoSlur') {
+            return dialog_1.createAndDisplayDialog(slur_1.SuiSlurAttributesDialog, parameters);
+        }
+        else if (ctor === 'SmoDynamicText') {
+            return dialog_1.createAndDisplayDialog(dynamics_1.SuiDynamicModifierDialog, parameters);
+        }
+        else if (ctor === 'SmoVolta') {
+            return dialog_1.createAndDisplayDialog(volta_1.SuiVoltaAttributeDialog, parameters);
+        }
+        else if (ctor === 'SmoTextGroup') {
+            return dialog_1.createAndDisplayDialog(textBlock_1.SuiTextBlockDialog, parameters);
+        }
+        else {
+            return dialog_1.createAndDisplayDialog(lyric_1.SuiLyricDialog, parameters);
+        }
+    }
+}
+exports.SuiModifierDialogFactory = SuiModifierDialogFactory;
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/fileDialogs.ts":
+/*!***************************************!*\
+  !*** ./src/ui/dialogs/fileDialogs.ts ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiSaveMidiDialog = exports.SuiMidiSaveAdapter = exports.SuiSaveXmlDialog = exports.SuiXmlSaveAdapter = exports.SuiSaveFileDialog = exports.SuiSmoSaveAdapter = exports.SuiPrintFileDialog = exports.SuiLoadMxmlDialog = exports.SuiXmlLoadAdapter = exports.SuiLoadFileDialog = exports.SuiSmoLoadAdapter = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialogs/dialog.ts");
+const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
+const xmlScore_1 = __webpack_require__(/*! ../../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+/**
+ * internal state of FileLoadDialog is just the string for the filename.
+ */
+class SuiSmoLoadAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.jsonFile = '';
+    }
+    get loadFile() {
+        return this.jsonFile;
+    }
+    set loadFile(value) {
+        this.jsonFile = value;
+    }
+    commit() {
+        let scoreWorks = false;
+        if (this.jsonFile.length > 0) {
+            try {
+                const score = score_1.SmoScore.deserialize(this.jsonFile);
+                scoreWorks = true;
+                this.view.changeScore(score);
+            }
+            catch (e) {
+                console.warn('unable to score ' + e);
+            }
+        }
+    }
+    cancel() { }
+}
+exports.SuiSmoLoadAdapter = SuiSmoLoadAdapter;
+class SuiLoadFileDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        const adapter = new SuiSmoLoadAdapter(parameters.view);
+        parameters.ctor = 'SuiLoadFileDialog';
+        super(SuiLoadFileDialog.dialogElements, Object.assign({ adapter }, parameters));
+        this.modifier = adapter;
+    }
+    get loadFileCtrl() {
+        return this.cmap['loadFileCtrl'];
+    }
+    changed() {
+        super.changed();
+        const enable = this.modifier.loadFile.length < 1;
+        $(this.dgDom.element).find('.ok-button').prop('disabled', enable);
+    }
+    commit() {
+        this.modifier.commit();
+    }
+}
+exports.SuiLoadFileDialog = SuiLoadFileDialog;
+SuiLoadFileDialog.dialogElements = {
+    label: 'Load File',
+    elements: [{
+            smoName: 'loadFile',
+            defaultValue: '',
+            control: 'SuiFileDownloadComponent',
+            label: ''
+        }
+    ],
+    staticText: []
+};
+/**
+ * internal state of FileLoadDialog is just the string for the filename.
+ */
+class SuiXmlLoadAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.xmlFile = '';
+        this.changeScore = false;
+    }
+    get loadFile() {
+        return this.xmlFile;
+    }
+    set loadFile(value) {
+        this.xmlFile = value;
+    }
+    commit() {
+        try {
+            const parser = new DOMParser();
+            const xml = parser.parseFromString(this.xmlFile, 'text/xml');
+            const score = xmlScore_1.mxmlScore.smoScoreFromXml(xml);
+            this.changeScore = true;
+            this.view.changeScore(score);
+        }
+        catch (e) {
+            console.warn('unable to score ' + e);
+        }
+    }
+    cancel() { }
+}
+exports.SuiXmlLoadAdapter = SuiXmlLoadAdapter;
+class SuiLoadMxmlDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        parameters.ctor = 'SuiLoadMxmlDialog';
+        const adapter = new SuiXmlLoadAdapter(parameters.view);
+        super(SuiLoadMxmlDialog.dialogElements, Object.assign({ adapter }, parameters));
+    }
+    changed() {
+        super.changed();
+        const enable = this.adapter.loadFile.length < 1;
+        $(this.dgDom.element).find('.ok-button').prop('disabled', enable);
+    }
+}
+exports.SuiLoadMxmlDialog = SuiLoadMxmlDialog;
+SuiLoadMxmlDialog.dialogElements = {
+    label: 'Load File',
+    elements: [{
+            smoName: 'loadFile',
+            defaultValue: '',
+            control: 'SuiFileDownloadComponent',
+            label: ''
+        },
+    ],
+    staticText: []
+};
+/*
+export class SuiLoadActionsDialog extends SuiDialogBase {
+  static dialogElements: DialogDefinition = {
+    label: 'Load Action File',
+    elements: [{
+      smoName: 'loadFile',
+      defaultValue: '',
+      control: 'SuiFileDownloadComponent',
+      label: ''
+    }
+    ],
+    staticText: []
+  };
+  value: string;
+  constructor(parameters: SuiDialogParams) {
+    parameters.ctor = 'SuiLoadActionsDialog';
+    super(SuiLoadActionsDialog.dialogElements, parameters);
+    this.value = '';
+  }
+  get loadFileCtrl() {
+    return this.cmap['loadFileCtrl'] as SuiFileDownloadComponent;
+  }
+  changed() {
+    this.value = this.loadFileCtrl.getValue();
+    $(this.dgDom.element).find('.ok-button').prop('disabled', false);
+  }
+  commit() {
+    let scoreWorks = false;
+    if (this.value) {
+      try {
+        const json = JSON.parse(this.value);
+        this.view.playActions(json);
+        scoreWorks = true;
+        this.complete();
+      } catch (e) {
+        console.warn('unable to score ' + e);
+      }
+      if (!scoreWorks) {
+        this.complete();
+      }
+    }
+  }
+  static createAndDisplay(params: SuiDialogParams) {
+    const dg = new SuiLoadActionsDialog(params);
+    dg.display();
+    // disable until file is selected
+    $(dg.dgDom.element).find('.ok-button').prop('disabled', true);
+  }
+}
+*/
+class SuiPrintFileDialog extends dialog_1.SuiDialogBase {
+    constructor(parameters) {
+        parameters.ctor = 'SuiPrintFileDialog';
+        super(SuiPrintFileDialog.dialogElements, parameters);
+    }
+    changed() { }
+    bindElements() {
+        const dgDom = this.dgDom;
+        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+            $('body').removeClass('printing');
+            this.view.renderer.restoreLayoutAfterPrint();
+            window.dispatchEvent(new Event('resize'));
+            this.complete();
+        });
+        $(dgDom.element).find('.cancel-button').remove();
+        $(dgDom.element).find('.remove-button').remove();
+    }
+    commit() { }
+}
+exports.SuiPrintFileDialog = SuiPrintFileDialog;
+SuiPrintFileDialog.dialogElements = {
+    label: 'Print Complete',
+    elements: [],
+    staticText: []
+};
+class SuiSmoSaveAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.fileName = '';
+        this.fileName = this.view.score.scoreInfo.name;
+    }
+    get saveFileName() {
+        return this.fileName;
+    }
+    set saveFileName(value) {
+        this.fileName = value;
+    }
+    commit() {
+        let filename = this.fileName;
+        const rawFile = filename.split('.')[0];
+        if (!filename) {
+            filename = 'myScore.json';
+        }
+        if (filename.indexOf('.json') < 0) {
+            filename = filename + '.json';
+        }
+        const scoreInfo = this.view.score.scoreInfo;
+        scoreInfo.name = rawFile;
+        scoreInfo.version = scoreInfo.version + 1;
+        this.view.updateScoreInfo(scoreInfo);
+        this.view.saveScore(filename);
+    }
+    cancel() { }
+}
+exports.SuiSmoSaveAdapter = SuiSmoSaveAdapter;
+class SuiSaveFileDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        parameters.ctor = 'SuiSaveFileDialog';
+        const adapter = new SuiSmoSaveAdapter(parameters.view);
+        super(SuiSaveFileDialog.dialogElements, Object.assign({ adapter }, parameters));
+    }
+    commit() {
+        this.adapter.commit();
+    }
+}
+exports.SuiSaveFileDialog = SuiSaveFileDialog;
+SuiSaveFileDialog.dialogElements = {
+    label: 'Save Score',
+    elements: [{
+            smoName: 'saveFileName',
+            defaultValue: '',
+            control: 'SuiTextInputComponent',
+            label: 'File Name'
+        }],
+    staticText: []
+};
+class SuiXmlSaveAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.fileName = '';
+    }
+    get saveFileName() {
+        return this.fileName;
+    }
+    set saveFileName(value) {
+        this.fileName = value;
+    }
+    commit() {
+        let filename = this.fileName;
+        if (!filename) {
+            filename = 'myScore.xml';
+        }
+        if (filename.indexOf('.xml') < 0) {
+            filename = filename + '.xml';
+        }
+        this.view.score.scoreInfo.version += 1;
+        this.view.saveXml(filename);
+    }
+    // noop
+    cancel() { }
+}
+exports.SuiXmlSaveAdapter = SuiXmlSaveAdapter;
+class SuiSaveXmlDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        parameters.ctor = 'SuiSaveXmlDialog';
+        const adapter = new SuiXmlSaveAdapter(parameters.view);
+        super(SuiSaveXmlDialog.dialogElements, Object.assign({ adapter }, parameters));
+    }
+    commit() {
+        this.adapter.commit();
+    }
+}
+exports.SuiSaveXmlDialog = SuiSaveXmlDialog;
+SuiSaveXmlDialog.dialogElements = {
+    label: 'Save Score',
+    elements: [{
+            smoName: 'saveFileName',
+            control: 'SuiTextInputComponent',
+            label: 'File Name'
+        }],
+    staticText: []
+};
+class SuiMidiSaveAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.fileName = '';
+    }
+    get saveFileName() {
+        return this.fileName;
+    }
+    set saveFileName(value) {
+        this.fileName = value;
+    }
+    commit() {
+        let filename = this.fileName;
+        if (!filename) {
+            filename = 'myScore.mid';
+        }
+        if (filename.indexOf('.mid') < 0) {
+            filename = filename + '.mid';
+        }
+        this.view.score.scoreInfo.version += 1;
+        this.view.saveMidi(filename);
+    }
+    cancel() { }
+}
+exports.SuiMidiSaveAdapter = SuiMidiSaveAdapter;
+class SuiSaveMidiDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        parameters.ctor = 'SuiSaveMidiDialog';
+        const adapter = new SuiMidiSaveAdapter(parameters.view);
+        super(SuiSaveMidiDialog.dialogElements, Object.assign({ adapter }, parameters));
+    }
+    commit() {
+        this.adapter.commit();
+    }
+}
+exports.SuiSaveMidiDialog = SuiSaveMidiDialog;
+SuiSaveMidiDialog.dialogElements = {
+    label: 'Save Score as Midi',
+    elements: [{
+            smoName: 'saveFileName',
+            control: 'SuiTextInputComponent',
+            label: 'File Name'
+        }],
+    staticText: []
+};
+/*
+export class SuiSaveActionsDialog extends SuiDialogBase {
+  static dialogElements =
+      {
+        label: 'Save Score', elements:
+          [{
+            smoName: 'saveFileName',
+            defaultValue: '',
+            control: 'SuiTextInputComponent',
+            label: 'File Name'
+          }],
+          staticText: []
+      };
+      value: string;
+  constructor(parameters: SuiDialogParams) {
+    super(SuiSaveActionsDialog.dialogElements, parameters);
+    this.value = SuiSaveActionsDialog.createName(this.view.score);
+  }
+  changed() {
+    this.value = this.saveFileNameCtrl.getValue();
+  }
+  get saveFileNameCtrl() {
+    return this.cmap['saveFileNameCtrl'] as SuiTextInputComponent;
+  }
+  commit() {
+    let filename = this.value;
+    if (!filename) {
+      filename = 'myScore.json';
+    }
+    if (filename.indexOf('.json') < 0) {
+      filename = filename + '.json';
+    }
+    this.view.score.scoreInfo.version += 1;
+    this.view.saveActions(filename);
+    this.complete();
+  }
+  display() {
+    this.applyDisplayOptions();
+    this.saveFileNameCtrl.setValue(this.value);
+    this.bindElements();
+  }
+  static createName(score: SmoScore) {
+    return score.scoreInfo.name + '-' + score.scoreInfo.version + '-actions.json';
+  }
+  static createAndDisplay(params: SuiDialogParams) {
+    var dg = new SuiSaveActionsDialog(params);
+    dg.display();
+  }
+}  */
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/fonts.ts":
+/*!*********************************!*\
+  !*** ./src/ui/dialogs/fonts.ts ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiScoreFontDialog = exports.SuiScoreFontAdapter = void 0;
+const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+class SuiScoreFontAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.changed = false;
+        this.fonts = this.view.score.fonts;
+        this.backups = JSON.parse(JSON.stringify(this.fonts));
+        this.view = view;
+    }
+    static get defaultFont() {
+        return {
+            family: 'Merriweather',
+            size: 14,
+            weight: 'normal',
+            style: 'normal'
+        };
+    }
+    cancel() {
+        if (this.changed) {
+            this.fonts = this.backups;
+            // This takes advantage of setter/getter side-effect
+            this.engravingFont = this.engravingFont;
+            this.lyricFont = this.lyricFont;
+            this.chordFont = this.chordFont;
+        }
+    }
+    commit() {
+    }
+    changeFont(purpose, name, fontInfo) {
+        const fp = {
+            name,
+            purpose,
+            family: fontInfo.family,
+            size: fontInfo.size,
+            custom: false
+        };
+        const fonts = this.fonts.filter((ff) => ff.purpose !== purpose);
+        fonts.push(fp);
+        this.fonts = fonts;
+        this.changed = true;
+        return fp;
+    }
+    toInfo(fontPurpose) {
+        return Object.assign({ weight: 'normal', style: 'normal' }, fontPurpose);
+    }
+    getInfo(purpose) {
+        const font = this.fonts.find((ff) => ff.purpose === purpose);
+        if (font) {
+            return this.toInfo(font);
+        }
+        return SuiScoreFontAdapter.defaultFont;
+    }
+    // Only family can be editor for engraving font, so parameter is just a string
+    get engravingFont() {
+        const font = this.fonts.find((ff) => ff.purpose === score_1.SmoScore.fontPurposes.ENGRAVING);
+        if (font) {
+            return this.toInfo(font).family;
+        }
+        return 'Bravura';
+    }
+    set engravingFont(value) {
+        this.changed = true;
+        const current = this.getInfo(score_1.SmoScore.fontPurposes.ENGRAVING);
+        current.family = value;
+        const fp = this.changeFont(score_1.SmoScore.fontPurposes.ENGRAVING, 'engraving', current);
+        this.view.setEngravingFontFamily(fp.family);
+    }
+    set chordFont(fontInfo) {
+        const fp = this.changeFont(score_1.SmoScore.fontPurposes.CHORDS, 'chords', fontInfo);
+        this.view.setChordFont(this.toInfo(fp));
+        this.changed = true;
+    }
+    get chordFont() {
+        return this.getInfo(score_1.SmoScore.fontPurposes.CHORDS);
+    }
+    set lyricFont(fontInfo) {
+        this.changed = true;
+        const fp = this.changeFont(score_1.SmoScore.fontPurposes.LYRICS, 'lyrics', fontInfo);
+        this.view.setLyricFont(this.toInfo(fp));
+    }
+    get lyricFont() {
+        return this.getInfo(score_1.SmoScore.fontPurposes.LYRICS);
+    }
+}
+exports.SuiScoreFontAdapter = SuiScoreFontAdapter;
+class SuiScoreFontDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(params) {
+        const adapter = new SuiScoreFontAdapter(params.view);
+        super(SuiScoreFontDialog.dialogElements, Object.assign({ adapter }, params));
+        this.modifier = params.modifier;
+    }
+    static createAndDisplay(parameters) {
+        const dg = new SuiScoreFontDialog(parameters);
+        dg.display();
+    }
+}
+exports.SuiScoreFontDialog = SuiScoreFontDialog;
+// ### dialogElements
+// all dialogs have elements define the controls of the dialog.
+SuiScoreFontDialog.dialogElements = {
+    label: 'Score Fonts', elements: [{
+            smoName: 'engravingFont',
+            defaultValue: score_1.SmoScore.engravingFonts.Bravura,
+            control: 'SuiDropdownComponent',
+            label: 'Engraving Font',
+            options: [{
+                    value: 'Bravura',
+                    label: 'Bravura'
+                }, {
+                    value: 'Gonville',
+                    label: 'Gonville'
+                }, {
+                    value: 'Petaluma',
+                    label: 'Petaluma'
+                }, {
+                    value: 'Leland',
+                    label: 'Leland'
+                }]
+        }, {
+            smoName: 'chordFont',
+            classes: 'chord-font-component',
+            defaultValue: 0,
+            control: 'SuiFontComponent',
+            label: 'Chord Font'
+        }, {
+            smoName: 'lyricFont',
+            classes: 'lyric-font-component',
+            defaultValue: 0,
+            control: 'SuiFontComponent',
+            label: 'Lyric Font'
+        }],
+    staticText: []
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/globalLayout.ts":
+/*!****************************************!*\
+  !*** ./src/ui/dialogs/globalLayout.ts ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiGlobalLayoutDialog = exports.SuiGlobalLayoutAdapter = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
+const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+class SuiGlobalLayoutAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.changed = false;
+        this.scoreLayout = this.view.score.layoutManager.globalLayout;
+        this.backup = this.view.score.layoutManager.getGlobalLayout();
+        this.view = view;
+    }
+    writeValue(attr, value) {
+        this.scoreLayout[attr] = value;
+        this.view.setGlobalLayout(this.scoreLayout);
+        this.changed = true;
+    }
+    get noteSpacing() {
+        return this.scoreLayout.noteSpacing;
+    }
+    set noteSpacing(value) {
+        this.writeValue('noteSpacing', value);
+    }
+    get pageWidth() {
+        return this.scoreLayout.pageWidth;
+    }
+    set pageWidth(value) {
+        this.writeValue('pageWidth', value);
+    }
+    get pageHeight() {
+        return this.scoreLayout.pageHeight;
+    }
+    set pageHeight(value) {
+        this.writeValue('pageHeight', value);
+    }
+    get svgScale() {
+        return this.scoreLayout.svgScale;
+    }
+    set svgScale(value) {
+        this.writeValue('svgScale', value);
+    }
+    get zoomScale() {
+        return this.scoreLayout.zoomScale;
+    }
+    set zoomScale(value) {
+        this.writeValue('zoomScale', value);
+    }
+    get pageSize() {
+        const sz = score_1.SmoScore.pageSizeFromDimensions(this.scoreLayout.pageWidth, this.scoreLayout.pageHeight);
+        if (sz === null) {
+            return 'custom';
+        }
+        return sz;
+    }
+    set pageSize(value) {
+        if (value === 'custom') {
+            return;
+        }
+        if (score_1.SmoScore.pageDimensions[value]) {
+            const dims = score_1.SmoScore.pageDimensions[value];
+            this.scoreLayout.pageWidth = dims.width;
+            this.scoreLayout.pageHeight = dims.height;
+        }
+        this.view.setGlobalLayout(this.scoreLayout);
+    }
+    commit() { }
+    cancel() {
+        if (this.changed) {
+            this.view.setGlobalLayout(this.backup);
+        }
+    }
+}
+exports.SuiGlobalLayoutAdapter = SuiGlobalLayoutAdapter;
+// ## SuiGlobalLayoutDialog
+// change editor and formatting defaults for this score.
+class SuiGlobalLayoutDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(params) {
+        const adapter = new SuiGlobalLayoutAdapter(params.view);
+        super(SuiGlobalLayoutDialog.dialogElements, Object.assign({ adapter }, params));
+    }
+    get dimensionControls() {
+        return [this.cmap.pageSizeCtrl, this.cmap.pageWidthCtrl, this.cmap.pageHeightCtrl];
+    }
+    changed() {
+        super.changed();
+        if (this.dimensionControls.find((x) => x.changeFlag)) {
+            this.initialValue();
+        }
+    }
+}
+exports.SuiGlobalLayoutDialog = SuiGlobalLayoutDialog;
+SuiGlobalLayoutDialog.dialogElements = {
+    label: 'Global Settings', elements: [{
+            smoName: 'noteSpacing',
+            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.noteSpacing,
+            control: 'SuiRockerComponent',
+            dataType: 'percent',
+            label: 'Note Spacing'
+        }, {
+            smoName: 'pageSize',
+            defaultValue: score_1.SmoScore.pageSizes[0],
+            control: 'SuiDropdownComponent',
+            label: 'Page Size',
+            options: [
+                {
+                    value: 'letter',
+                    label: 'Letter (Portrait)'
+                }, {
+                    value: 'letterLandscape',
+                    label: 'Letter (Landscape)'
+                }, {
+                    value: 'tabloid',
+                    label: 'Tabloid (11x17)'
+                }, {
+                    value: 'A4',
+                    label: 'A4'
+                }, {
+                    value: 'custom',
+                    label: 'Custom'
+                }
+            ]
+        }, {
+            smoName: 'pageWidth',
+            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.pageWidth,
+            control: 'SuiRockerComponent',
+            label: 'Page Width (px)'
+        }, {
+            smoName: 'pageHeight',
+            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.pageHeight,
+            control: 'SuiRockerComponent',
+            label: 'Page Height (px)'
+        }, {
+            smoName: 'zoomScale',
+            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.zoomScale,
+            control: 'SuiRockerComponent',
+            label: '% Zoom',
+            dataType: 'percent'
+        }, {
+            smoName: 'svgScale',
+            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.svgScale,
+            control: 'SuiRockerComponent',
+            label: '% Note size',
+            dataType: 'percent'
+        }],
+    staticText: []
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/hairpin.ts":
+/*!***********************************!*\
+  !*** ./src/ui/dialogs/hairpin.ts ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiHairpinAttributesDialog = exports.SuiHairpinAdapter = void 0;
+const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+class SuiHairpinAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view, hairpin) {
+        super(view);
+        this.changed = false;
+        this.hairpin = hairpin;
+        this.view = view;
+        this.backup = new staffModifiers_1.SmoStaffHairpin(this.hairpin);
+    }
+    cancel() {
+        if (this.changed) {
+            this.view.addOrUpdateStaffModifier(this.hairpin, this.backup);
+        }
+    }
+    remove() {
+        this.view.removeStaffModifier(this.hairpin);
+    }
+    commit() {
+    }
+    updateValue(param, val) {
+        const current = new staffModifiers_1.SmoStaffHairpin(this.hairpin);
+        this.hairpin[param] = val;
+        this.view.addOrUpdateStaffModifier(current, this.hairpin);
+        this.changed = true;
+    }
+    get xOffsetLeft() {
+        return this.hairpin.xOffsetLeft;
+    }
+    set xOffsetLeft(val) {
+        this.updateValue('xOffsetLeft', val);
+    }
+    get xOffsetRight() {
+        return this.hairpin.xOffsetRight;
+    }
+    set xOffsetRight(val) {
+        this.updateValue('xOffsetRight', val);
+    }
+    get yOffset() {
+        return this.hairpin.yOffset;
+    }
+    set yOffset(val) {
+        this.updateValue('yOffset', val);
+    }
+    get height() {
+        return this.hairpin.height;
+    }
+    set height(val) {
+        this.updateValue('height', val);
+    }
+    get position() {
+        return this.hairpin.position;
+    }
+    set position(val) {
+        this.updateValue('position', val);
+    }
+    get renderedBox() {
+        return this.hairpin.renderedBox;
+    }
+}
+exports.SuiHairpinAdapter = SuiHairpinAdapter;
+class SuiHairpinAttributesDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        const adapter = new SuiHairpinAdapter(parameters.view, parameters.modifier);
+        super(SuiHairpinAttributesDialog.dialogElements, Object.assign({ adapter }, parameters));
+        this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+    }
+}
+exports.SuiHairpinAttributesDialog = SuiHairpinAttributesDialog;
+SuiHairpinAttributesDialog.dialogElements = {
+    label: 'Hairpin Properties', elements: [{
+            smoName: 'height',
+            defaultValue: 10,
+            control: 'SuiRockerComponent',
+            label: 'Height'
+        }, {
+            smoName: 'yOffset',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Y Shift'
+        }, {
+            smoName: 'xOffsetRight',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Right Shift'
+        }, {
+            smoName: 'xOffsetLeft',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Left Shift'
+        }],
+    staticText: []
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/instrument.ts":
+/*!**************************************!*\
+  !*** ./src/ui/dialogs/instrument.ts ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiInstrumentDialog = exports.SuiInstrumentAdapter = void 0;
+const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+class SuiInstrumentAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.applies = SuiInstrumentDialog.applyTo.selected;
+        const selection = this.view.tracker.selections[0];
+        this.instrument = new staffModifiers_1.SmoInstrument(this.view.score.getStaffInstrument(selection.selector));
+        this.selections = selections_1.SmoSelection.getMeasureList(this.view.tracker.selections);
+        this.selector = JSON.parse(JSON.stringify(this.selections[0].selector));
+        this.backup = new staffModifiers_1.SmoInstrument(this.instrument);
+    }
+    writeNumParam(paramName, value) {
+        this.instrument[paramName] = value;
+        this.view.changeInstrument(this.instrument, this.selections);
+        this.instrument = new staffModifiers_1.SmoInstrument(this.instrument);
+    }
+    writeStringParam(paramName, value) {
+        this.instrument[paramName] = value;
+        this.view.changeInstrument(this.instrument, this.selections);
+        this.instrument = new staffModifiers_1.SmoInstrument(this.instrument);
+    }
+    get transposeIndex() {
+        return this.instrument.keyOffset;
+    }
+    set transposeIndex(value) {
+        this.writeNumParam('keyOffset', value);
+    }
+    get instrumentName() {
+        return this.instrument.instrumentName;
+    }
+    set instrumentName(value) {
+        this.writeStringParam('instrumentName', value);
+    }
+    get clef() {
+        return this.instrument.clef;
+    }
+    set clef(value) {
+        this.instrument.clef = value;
+        this.view.changeInstrument(this.instrument, this.selections);
+        this.instrument = new staffModifiers_1.SmoInstrument(this.instrument);
+    }
+    get applyTo() {
+        return this.applies;
+    }
+    set applyTo(value) {
+        this.applies = value;
+        if (value === SuiInstrumentDialog.applyTo.score) {
+            this.selections = selections_1.SmoSelection.getMeasureList(this.view.tracker.selections);
+        }
+        else if (this.applyTo === SuiInstrumentDialog.applyTo.remaining) {
+            this.selections = selections_1.SmoSelection.selectionsToEnd(this.view.score, this.selector.staff, this.selector.measure);
+        }
+        else {
+            this.selections = this.view.tracker.selections;
+        }
+    }
+    commit() {
+        this.view.changeInstrument(this.instrument, this.selections);
+    }
+    cancel() {
+        this.view.changeInstrument(this.backup, this.selections);
+    }
+    remove() { }
+}
+exports.SuiInstrumentAdapter = SuiInstrumentAdapter;
+class SuiInstrumentDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        const adapter = new SuiInstrumentAdapter(parameters.view);
+        super(SuiInstrumentDialog.dialogElements, Object.assign({ adapter }, parameters));
+    }
+    static get applyTo() {
+        return {
+            score: 0, selected: 1, remaining: 3
+        };
+    }
+}
+exports.SuiInstrumentDialog = SuiInstrumentDialog;
+// export type Clef = 'treble' | 'bass' | 'tenor' | 'alto' | 'soprano' | 'percussion'
+//| 'mezzo-soprano' | 'baritone-c' | 'baritone-f' | 'subbass' | 'french';
+SuiInstrumentDialog.dialogElements = {
+    label: 'Instrument Properties',
+    elements: [{
+            smoName: 'transposeIndex',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Transpose Index (1/2 steps)',
+        }, {
+            smoName: 'instrumentName',
+            control: 'SuiTextInputComponent',
+            label: 'Name'
+        }, {
+            smoName: 'clef',
+            control: 'SuiDropdownComponent',
+            label: 'Clef',
+            options: [{
+                    value: 'treble',
+                    label: 'Treble'
+                }, {
+                    value: 'bass',
+                    label: 'Bass'
+                }, {
+                    value: 'tenor',
+                    label: 'Tenor'
+                }, {
+                    value: 'alto',
+                    label: 'Alto'
+                }]
+        }, {
+            smoName: 'applyTo',
+            defaultValue: SuiInstrumentDialog.applyTo.score,
+            dataType: 'int',
+            control: 'SuiDropdownComponent',
+            label: 'Apply To',
+            options: [{
+                    value: SuiInstrumentDialog.applyTo.score,
+                    label: 'Score'
+                }, {
+                    value: SuiInstrumentDialog.applyTo.selected,
+                    label: 'Selected Measures'
+                }, {
+                    value: SuiInstrumentDialog.applyTo.remaining,
+                    label: 'Remaining Measures'
+                }]
+        }
+    ],
+    staticText: []
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/library.ts":
+/*!***********************************!*\
+  !*** ./src/ui/dialogs/library.ts ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiLibraryDialog = exports.SuiLibraryAdapter = void 0;
+const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
+const xmlScore_1 = __webpack_require__(/*! ../../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
+const library_1 = __webpack_require__(/*! ../fileio/library */ "./src/ui/fileio/library.ts");
+const xhrLoader_1 = __webpack_require__(/*! ../fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.js");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+class SuiLibraryAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.elements = null;
+        this.selectedUrl = '';
+        this.libHash = {};
+        this.tree = {};
+        // If the selected lib is a leaf node (a score), this is the same as that
+        this.selectedScore = null;
+        this.topLib = new library_1.SmoLibrary({ url: SmoConfig.libraryUrl });
+        this.libHash = {};
+        this.selectedLib = null;
+    }
+    loadPromise() {
+    }
+    initialize() {
+        const self = this;
+        return new Promise((resolve) => {
+            self.topLib.load().then(() => {
+                self.libHash[self.topLib.url] = self.topLib;
+                resolve();
+            });
+        });
+    }
+    static addChildRecurse(options, parent, child) {
+        options.push({ label: child.metadata.name, value: child.url, parent: parent.url, format: child.format, expanded: false });
+        child.children.forEach((gchild) => {
+            SuiLibraryAdapter.addChildRecurse(options, child, gchild);
+        });
+    }
+    static createOptions(topLib) {
+        const options = [];
+        topLib.children.forEach((child) => {
+            SuiLibraryAdapter.addChildRecurse(options, topLib, child);
+        });
+        return options;
+    }
+    buildTreeRecurse(children) {
+        children.forEach((child) => {
+            this.tree[child.url] = child;
+            this.buildTreeRecurse(child.children);
+        });
+    }
+    buildTree() {
+        this.tree = {};
+        this.buildTreeRecurse(this.topLib.children);
+    }
+    commit() {
+    }
+    cancel() {
+    }
+    loadOptions(options) {
+        const self = this;
+        return new Promise((resolve) => {
+            if (self.selectedLib.format === 'library') {
+                if (!self.selectedLib.loaded) {
+                    self.selectedLib.load().then(() => {
+                        const nops = SuiLibraryAdapter.createOptions(self.topLib);
+                        nops.forEach((option) => {
+                            options.push(option);
+                        });
+                        resolve();
+                    });
+                }
+                else {
+                    const nops = SuiLibraryAdapter.createOptions(self.topLib);
+                    nops.forEach((option) => {
+                        options.push(option);
+                    });
+                    resolve();
+                }
+            }
+            else {
+                self.selectedScore = this.selectedLib;
+                resolve();
+            }
+        });
+    }
+    _loadJsonAndComplete() {
+        const req = new xhrLoader_1.SuiXhrLoader(this.selectedScore.url);
+        req.loadAsync().then(() => {
+            const score = score_1.SmoScore.deserialize(req.value);
+            this.view.changeScore(score);
+        });
+    }
+    _loadXmlAndComplete() {
+        const req = new xhrLoader_1.SuiXhrLoader(this.selectedScore.url);
+        req.loadAsync().then(() => {
+            const parser = new DOMParser();
+            const xml = parser.parseFromString(req.value, 'text/xml');
+            const score = xmlScore_1.mxmlScore.smoScoreFromXml(xml);
+            this.view.changeScore(score);
+        });
+    }
+    get selectedLibrary() {
+        return this.selectedLib;
+    }
+    get smoLibrary() {
+        return this.selectedUrl;
+    }
+    set smoLibrary(value) {
+        this.selectedUrl = value;
+        this.buildTree();
+        this.selectedLib = this.tree[this.selectedUrl];
+        if (this.selectedLib.format !== 'library') {
+            this.selectedScore = this.selectedLib;
+        }
+        else {
+            this.selectedScore = null;
+        }
+    }
+}
+exports.SuiLibraryAdapter = SuiLibraryAdapter;
+// ## SuiLibraryDialog
+// Traverse the library nodes or load a score
+class SuiLibraryDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters, dialogElements, adapter) {
+        super(dialogElements, Object.assign({ adapter }, parameters));
+    }
+    static _createElements(topLib) {
+        const elements = JSON.parse(JSON.stringify(SuiLibraryDialog.dialogElements));
+        const tree = elements.elements[0];
+        tree.root = topLib.url;
+        tree.options = SuiLibraryAdapter.createOptions(topLib);
+        return elements;
+    }
+    static _createAndDisplay(parameters, adapter) {
+        const elements = SuiLibraryDialog._createElements(adapter.topLib);
+        const dg = new SuiLibraryDialog(parameters, elements, adapter);
+        dg.display();
+    }
+    /** Library requires a load first, so createAndDisplayDialog won't work on it */
+    static createAndDisplay(parameters) {
+        const adapter = new SuiLibraryAdapter(parameters.view);
+        adapter.initialize().then(() => SuiLibraryDialog._createAndDisplay(parameters, adapter));
+    }
+    commit() {
+        if (this.adapter.selectedScore !== null) {
+            if (this.adapter.selectedScore.format === 'mxml') {
+                this.adapter._loadXmlAndComplete();
+            }
+            else {
+                this.adapter._loadJsonAndComplete();
+            }
+        }
+        else {
+            this.complete();
+        }
+    }
+    get smoLibraryCtrl() {
+        return this.cmap.smoLibraryCtrl;
+    }
+    changed() {
+        const okButton = $(this.dgDom.element).find('.ok-button');
+        super.changed();
+        if (this.adapter.selectedLib.format === 'library') {
+            $(okButton).prop('disabled', true);
+            const options = [];
+            this.adapter.loadOptions(options).then(() => {
+                this.smoLibraryCtrl.updateOptions(options);
+                $(this.smoLibraryCtrl._getInputElement()).find('li[data-value="' + this.smoLibraryCtrl.getValue() + '"] button.expander').click();
+            });
+        }
+        else {
+            $(okButton).prop('disabled', false);
+        }
+    }
+}
+exports.SuiLibraryDialog = SuiLibraryDialog;
+SuiLibraryDialog.dialogElements = {
+    label: 'Music Library', elements: [{
+            smoName: 'smoLibrary',
+            control: 'SuiTreeComponent',
+            root: '',
+            label: 'Selection',
+            options: []
+        }],
+    staticText: []
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/lyric.ts":
+/*!*********************************!*\
+  !*** ./src/ui/dialogs/lyric.ts ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiLyricDialog = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialogs/dialog.ts");
+class SuiLyricDialog extends dialog_1.SuiDialogBase {
+    constructor(parameters) {
+        super(SuiLyricDialog.dialogElements, parameters);
+        this.modifier = null;
+        this.verse = 0;
+        this.mouseMoveHandler = null;
+        this.mouseClickHandler = null;
+        this.lyric = null;
+        this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
+        this.originalRefreshTimer = SmoConfig.idleRedrawTime;
+        SmoConfig.idleRedrawTime = SuiLyricDialog.idleLyricTime;
+        if (this.modifier) {
+            this.verse = this.modifier.verse;
+        }
+    }
+    static get ctor() {
+        return 'SuiLyricDialog';
+    }
+    static get idleLyricTime() {
+        return 5000;
+    }
+    get lyricEditorCtrl() {
+        return this.cmap.lyricEditorCtrl;
+    }
+    get fontCtrl() {
+        return this.cmap.fontCtrl;
+    }
+    get translateYCtrl() {
+        return this.cmap.translateYCtrl;
+    }
+    get verseCtrl() {
+        return this.cmap.verseCtrl;
+    }
+    display() {
+        super.display();
+        $(this.dgDom.element).find('.smoControl').each((ix, ctrl) => {
+            if (!$(ctrl).hasClass('cbLyricEdit')) {
+                $(ctrl).addClass('fold-textedit');
+            }
+        });
+        this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
+        this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
+        if (this.lyricEditorCtrl.session && this.lyricEditorCtrl.session.lyric) {
+            const lyric = this.lyricEditorCtrl.session.lyric;
+            this.fontCtrl.setValue({
+                family: lyric.fontInfo.family,
+                size: lyric.fontInfo.size,
+                weight: 'normal'
+            });
+        }
+    }
+    setLyric(lyric) {
+        this.lyric = lyric;
+        this.translateYCtrl.setValue(lyric.translateY);
+    }
+    _focusSelection() {
+        var _a, _b;
+        const selection = (_a = this.lyricEditorCtrl.session) === null || _a === void 0 ? void 0 : _a.selection;
+        const note = selection === null || selection === void 0 ? void 0 : selection.note;
+        const box = (_b = note === null || note === void 0 ? void 0 : note.renderedBox) !== null && _b !== void 0 ? _b : null;
+        if (box) {
+            this.view.scroller.scrollVisibleBox(box);
+        }
+    }
+    changed() {
+        this.lyricEditorCtrl.verse = parseInt(this.verseCtrl.getValue().toString(), 10);
+        // TODO: make these undoable
+        if (this.fontCtrl.changeFlag) {
+            const fontInfo = this.fontCtrl.getValue();
+            this.view.setLyricFont({ 'family': fontInfo.family, size: fontInfo.size, weight: 'normal' });
+        }
+        if (this.translateYCtrl && this.lyric) {
+            this.lyric.translateY = this.translateYCtrl.getValue();
+        }
+    }
+    bindElements() {
+        const dgDom = this.dgDom;
+        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+            this._complete();
+        });
+        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+            this._complete();
+        });
+        $(dgDom.element).find('.remove-button').remove();
+        this.lyricEditorCtrl.startEditSession();
+    }
+    // ### handleKeydown
+    // allow a dialog to be dismissed by esc.
+    evKey(evdata) {
+        if (evdata.key === 'Escape') {
+            $(this.dgDom.element).find('.cancel-button').click();
+            evdata.preventDefault();
+        }
+        else {
+            if (!this.lyricEditorCtrl.running) {
+                return;
+            }
+            const edited = this.lyricEditorCtrl.evKey(evdata);
+            if (edited) {
+                evdata.stopPropagation();
+            }
+        }
+    }
+    _complete() {
+        if (this.lyricEditorCtrl.running) {
+            this.lyricEditorCtrl.endSession();
+        }
+        if (this.mouseMoveHandler) {
+            this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
+        }
+        if (this.mouseClickHandler) {
+            this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
+        }
+        $('body').removeClass('showAttributeDialog');
+        $('body').removeClass('textEditor');
+        SmoConfig.idleRedrawTime = this.originalRefreshTimer;
+        this.complete();
+    }
+    mouseMove(ev) {
+        if (this.lyricEditorCtrl && this.lyricEditorCtrl.running) {
+            this.lyricEditorCtrl.mouseMove(ev);
+        }
+    }
+    mouseClick(ev) {
+        if (this.lyricEditorCtrl && this.lyricEditorCtrl.running) {
+            this.lyricEditorCtrl.mouseClick(ev);
+            ev.stopPropagation();
+        }
+    }
+}
+exports.SuiLyricDialog = SuiLyricDialog;
+SuiLyricDialog.dialogElements = {
+    label: 'Lyric Editor', elements: [{
+            smoName: 'verse',
+            defaultValue: 0,
+            control: 'SuiDropdownComponent',
+            label: 'Verse',
+            classes: 'hide-when-editing',
+            startRow: true,
+            options: [{
+                    value: 0,
+                    label: '1'
+                }, {
+                    value: 1,
+                    label: '2'
+                }, {
+                    value: 2,
+                    label: '3'
+                }, {
+                    value: 3,
+                    label: '4'
+                }
+            ]
+        }, {
+            smoName: 'translateY',
+            classes: 'hide-when-editing',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Y Adjustment (Px)',
+            dataType: 'int'
+        }, {
+            smoName: 'font',
+            classes: 'hide-when-editing',
+            defaultValue: 0,
+            control: 'SuiFontComponent',
+            label: 'Font'
+        }, {
+            smoName: 'lyricEditor',
+            defaultValue: 0,
+            classes: 'show-always',
+            control: 'SuiLyricComponent',
+            label: 'Edit Lyrics',
+            options: []
+        },
+    ], staticText: [
+        { doneEditing: 'Done Editing Lyrics' },
+        { undo: 'Undo Lyrics' },
+        { label: 'Lyric Editor' }
+    ]
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/measureFormat.ts":
+/*!*****************************************!*\
+  !*** ./src/ui/dialogs/measureFormat.ts ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiMeasureDialog = exports.SuiMeasureFormatAdapter = void 0;
+const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+class SuiMeasureFormatAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view, measure) {
+        super(view);
+        this.edited = false;
+        this.format = measure.format;
+        this.backup = new measureModifiers_1.SmoMeasureFormat(this.format);
+    }
+    writeNumber(param, value) {
+        this.format[param] = value;
+        this.view.setMeasureFormat(this.format);
+        this.edited = true;
+    }
+    writeBoolean(param, value) {
+        this.format[param] = value;
+        this.view.setMeasureFormat(this.format);
+        this.edited = true;
+    }
+    commit() { }
+    cancel() {
+        if (this.edited) {
+            this.view.setMeasureFormat(this.backup);
+        }
+    }
+    get padLeft() {
+        return this.format.padLeft;
+    }
+    set padLeft(value) {
+        if (value > 0) {
+            $('.attributeDialog .attributeModal').addClass('pad-left-select');
+        }
+        else {
+            $('.attributeDialog .attributeModal').removeClass('pad-left-select');
+        }
+        this.writeNumber('padLeft', value);
+    }
+    get customStretch() {
+        return this.format.customStretch;
+    }
+    set customStretch(value) {
+        this.writeNumber('customStretch', value);
+    }
+    get customProportion() {
+        return this.format.customProportion;
+    }
+    set customProportion(value) {
+        this.writeNumber('customProportion', value);
+    }
+    get autoJustify() {
+        return this.format.autoJustify;
+    }
+    set autoJustify(value) {
+        this.writeBoolean('autoJustify', value);
+    }
+    get padAllInSystem() {
+        return this.format.padAllInSystem;
+    }
+    set padAllInSystem(value) {
+        this.writeBoolean('padAllInSystem', value);
+    }
+    get systemBreak() {
+        return this.format.systemBreak;
+    }
+    set systemBreak(value) {
+        this.writeBoolean('systemBreak', value);
+    }
+}
+exports.SuiMeasureFormatAdapter = SuiMeasureFormatAdapter;
+// ## measureDialogs.js
+// This file contains dialogs that affect all measures at a certain position,
+// such as tempo or time signature.
+class SuiMeasureDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        const selection = parameters.view.tracker.selections[0];
+        const measure = selection.measure;
+        const adapter = new SuiMeasureFormatAdapter(parameters.view, measure);
+        super(SuiMeasureDialog.dialogElements, Object.assign({ adapter }, parameters));
+    }
+}
+exports.SuiMeasureDialog = SuiMeasureDialog;
+SuiMeasureDialog.dialogElements = {
+    label: 'Measure Properties',
+    elements: [{
+            smoName: 'padLeft',
+            control: 'SuiRockerComponent',
+            label: 'Pad Left (px)'
+        }, {
+            smoName: 'customStretch',
+            control: 'SuiRockerComponent',
+            label: 'Stretch Contents'
+        }, {
+            smoName: 'customProportion',
+            control: 'SuiRockerComponent',
+            increment: 10,
+            label: 'Proportionalality'
+        }, {
+            smoName: 'padAllInSystem',
+            control: 'SuiToggleComponent',
+            label: 'Pad all measures in system'
+        }, {
+            smoName: 'autoJustify',
+            control: 'SuiToggleComponent',
+            label: 'Justify Columns'
+        }, {
+            smoName: 'systemBreak',
+            control: 'SuiToggleComponent',
+            label: 'System break before this measure'
+        }],
+    staticText: []
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/pageLayout.ts":
+/*!**************************************!*\
+  !*** ./src/ui/dialogs/pageLayout.ts ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiPageLayoutDialog = exports.SuiPageLayoutAdapter = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+class SuiPageLayoutAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.backup = [];
+        this.changed = false;
+        this.applyTo = SuiPageLayoutAdapter.layoutTypes.all;
+        this.options = [];
+        let i = 0;
+        this.view = view;
+        this.layoutManager = this.view.score.layoutManager;
+        this.currentPage = this.view.getFocusedPage();
+        for (i = 0; i < this.layoutManager.pageLayouts.length; ++i) {
+            this.backup.push(new scoreModifiers_1.SmoPageLayout(this.layoutManager.pageLayouts[i]));
+        }
+        for (i = 1; i < this.layoutManager.pageLayouts.length; ++i) {
+            this.options.push({ value: i + 1, label: 'Page ' + (i + 1) });
+        }
+        this.layouts = this.layoutManager.getPageLayouts();
+        this.currentLayout = this.layoutManager.pageLayouts[this.currentPage];
+        if (this.layoutManager.pageLayouts.length === 1) {
+            this.applyTo = SuiPageLayoutAdapter.layoutTypes.all;
+        }
+        else {
+            if (this.currentPage >= 1) {
+                this.applyTo = SuiPageLayoutAdapter.layoutTypes.remaining;
+            }
+            else {
+                this.applyTo = SuiPageLayoutAdapter.layoutTypes.all;
+            }
+        }
+    }
+    static get layoutTypes() {
+        return {
+            'all': -1,
+            'remaining': -2,
+            'page': -3
+        };
+    }
+    updateLayouts() {
+        let i = 0;
+        let startPage = this.currentPage;
+        let endPage = this.layouts.length;
+        if (this.applyTo === SuiPageLayoutAdapter.layoutTypes.page) {
+            endPage = startPage;
+        }
+        else if (this.applyTo === SuiPageLayoutAdapter.layoutTypes.all) {
+            startPage = 0;
+        }
+        for (i = startPage; i < endPage; ++i) {
+            this.view.setPageLayout(this.currentLayout, i);
+        }
+        this.changed = true;
+    }
+    get enablePages() {
+        return this.layouts.length > 1;
+    }
+    get applyToPage() {
+        return this.applyTo;
+    }
+    set applyToPage(value) {
+        this.applyTo = value;
+        this.updateLayouts();
+    }
+    set leftMargin(value) {
+        this.currentLayout.leftMargin = value;
+        this.updateLayouts();
+    }
+    get leftMargin() {
+        return this.currentLayout.leftMargin;
+    }
+    get rightMargin() {
+        return this.currentLayout.rightMargin;
+    }
+    set rightMargin(value) {
+        this.currentLayout.rightMargin = value;
+        this.updateLayouts();
+    }
+    get topMargin() {
+        return this.currentLayout.topMargin;
+    }
+    set topMargin(value) {
+        this.currentLayout.topMargin = value;
+        this.updateLayouts();
+    }
+    get bottomMargin() {
+        return this.currentLayout.bottomMargin;
+    }
+    set bottomMargin(value) {
+        this.currentLayout.bottomMargin = value;
+        this.updateLayouts();
+    }
+    get interGap() {
+        return this.currentLayout.interGap;
+    }
+    set interGap(value) {
+        this.currentLayout.interGap = value;
+        this.updateLayouts();
+    }
+    get intraGap() {
+        return this.currentLayout.intraGap;
+    }
+    set intraGap(value) {
+        this.currentLayout.intraGap = value;
+        this.updateLayouts();
+    }
+    cancel() {
+        let i = 0;
+        if (!this.changed) {
+            return;
+        }
+        for (i = 0; i < this.backup.length; ++i) {
+            this.view.setPageLayout(this.backup[i], i);
+        }
+    }
+    commit() { }
+}
+exports.SuiPageLayoutAdapter = SuiPageLayoutAdapter;
+// ## SuiLayoutDialog
+// The layout dialog has page-specific layout parameters
+class SuiPageLayoutDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(params) {
+        const adapter = new SuiPageLayoutAdapter(params.view);
+        super(SuiPageLayoutDialog.dialogElements, Object.assign({ adapter }, params));
+    }
+    static get layoutParams() {
+        return ['leftMargin', 'rightMargin', 'topMargin', 'bottomMargin', 'interGap', 'intraGap'];
+    }
+}
+exports.SuiPageLayoutDialog = SuiPageLayoutDialog;
+// ### dialogElements
+// all dialogs have elements define the controls of the dialog.
+SuiPageLayoutDialog.dialogElements = {
+    label: 'Page Layouts', elements: [{
+            smoName: 'applyToPage',
+            defaultValue: -1,
+            control: 'SuiDropdownComponent',
+            label: 'Apply to Page',
+            dataType: 'int',
+            options: [{
+                    value: -1,
+                    label: 'All'
+                }, {
+                    value: -2,
+                    label: 'All Remaining'
+                }, {
+                    value: 1,
+                    label: 'Page 1'
+                }]
+        }, {
+            smoName: 'leftMargin',
+            defaultValue: scoreModifiers_1.SmoPageLayout.defaults.leftMargin,
+            control: 'SuiRockerComponent',
+            label: 'Left Margin (px)'
+        }, {
+            smoName: 'rightMargin',
+            defaultValue: scoreModifiers_1.SmoPageLayout.defaults.rightMargin,
+            control: 'SuiRockerComponent',
+            label: 'Right Margin (px)'
+        }, {
+            smoName: 'topMargin',
+            defaultValue: scoreModifiers_1.SmoPageLayout.defaults.topMargin,
+            control: 'SuiRockerComponent',
+            label: 'Top Margin (px)'
+        }, {
+            smoName: 'bottomMargin',
+            defaultValue: scoreModifiers_1.SmoPageLayout.defaults.bottomMargin,
+            control: 'SuiRockerComponent',
+            label: 'Bottom Margin (px)'
+        }, {
+            smoName: 'interGap',
+            defaultValue: scoreModifiers_1.SmoPageLayout.defaults.interGap,
+            control: 'SuiRockerComponent',
+            label: 'Inter-System Margin'
+        }, {
+            smoName: 'intraGap',
+            defaultValue: scoreModifiers_1.SmoPageLayout.defaults.intraGap,
+            control: 'SuiRockerComponent',
+            label: 'Intra-System Margin'
+        }],
+    staticText: [
+        { all: 'Entire Score' },
+        { remaining: 'Remaining Pages' },
+        { current: 'Current Page' }
+    ]
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/partInfo.ts":
+/*!************************************!*\
+  !*** ./src/ui/dialogs/partInfo.ts ***!
+  \************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiPartInfoDialog = exports.SuiPartInfoAdapter = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
+const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const partInfo_1 = __webpack_require__(/*! ../../smo/data/partInfo */ "./src/smo/data/partInfo.ts");
+const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+class SuiPartInfoAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.changed = false;
+        this.currentView = [];
+        this.restoreView = true;
+        this.currentView = this.view.getView();
+        const selection = this.view.tracker.selections[0];
+        const selector = selections_1.SmoSelector.default;
+        if (this.view.score.staves.length !== selection.staff.partInfo.stavesAfter + selection.staff.partInfo.stavesBefore + 1) {
+            this.view.exposePart(selection.staff);
+        }
+        // Note: exposing the part will change the score, need to reselect.  The new score will have the part as the 
+        // 0th stave
+        this.selection = selections_1.SmoSelection.measureSelection(this.view.score, selector.staff, selector.measure);
+        this.partInfo = this.selection.staff.partInfo;
+        this.backup = new partInfo_1.SmoPartInfo(this.selection.staff.partInfo);
+    }
+    update() {
+        const self = this;
+        this.changed = true;
+        const shouldReset = (this.partInfo.stavesAfter + 1 !== this.view.score.staves.length);
+        // Since update will change the displayed score, wait for any display change to complete first.
+        this.view.renderer.updatePromise().then(() => {
+            self.view.updatePartInfo(self.partInfo);
+            if (shouldReset) {
+                self.view.exposePart(self.view.score.staves[0]);
+            }
+        });
+    }
+    writeLayoutValue(attr, value) {
+        // no change?
+        if (this.partInfo.layoutManager.globalLayout[attr] === value) {
+            return;
+        }
+        this.partInfo.layoutManager.globalLayout[attr] = value;
+        this.update();
+    }
+    writeStringValue(attr, value) {
+        if (this.partInfo[attr] === value) {
+            return;
+        }
+        this.partInfo[attr] = value;
+    }
+    get restoreScoreView() {
+        return this.restoreView;
+    }
+    set restoreScoreView(value) {
+        this.restoreView = value;
+    }
+    get noteSpacing() {
+        return this.partInfo.layoutManager.globalLayout.noteSpacing;
+    }
+    set noteSpacing(value) {
+        this.writeLayoutValue('noteSpacing', value);
+    }
+    get pageWidth() {
+        return this.partInfo.layoutManager.globalLayout.pageWidth;
+    }
+    set pageWidth(value) {
+        this.writeLayoutValue('pageWidth', value);
+    }
+    get pageHeight() {
+        return this.partInfo.layoutManager.globalLayout.pageHeight;
+    }
+    set pageHeight(value) {
+        this.writeLayoutValue('pageHeight', value);
+    }
+    get svgScale() {
+        return this.partInfo.layoutManager.globalLayout.svgScale;
+    }
+    set svgScale(value) {
+        this.writeLayoutValue('svgScale', value);
+    }
+    get zoomScale() {
+        return this.partInfo.layoutManager.globalLayout.zoomScale;
+    }
+    set zoomScale(value) {
+        this.writeLayoutValue('zoomScale', value);
+    }
+    get pageSize() {
+        const sz = score_1.SmoScore.pageSizeFromDimensions(this.partInfo.layoutManager.globalLayout.pageWidth, this.partInfo.layoutManager.globalLayout.pageHeight);
+        if (sz === null) {
+            return 'custom';
+        }
+        return sz;
+    }
+    set pageSize(value) {
+        if (value === 'custom') {
+            return;
+        }
+        if (score_1.SmoScore.pageDimensions[value]) {
+            const dims = score_1.SmoScore.pageDimensions[value];
+            this.partInfo.layoutManager.globalLayout.pageWidth = dims.width;
+            this.partInfo.layoutManager.globalLayout.pageHeight = dims.height;
+        }
+        this.update();
+    }
+    get partName() {
+        return this.partInfo.partName;
+    }
+    set partName(value) {
+        this.writeStringValue('partName', value);
+    }
+    get partAbbreviation() {
+        return this.partInfo.partAbbreviation;
+    }
+    set partAbbreviation(value) {
+        this.writeStringValue('partAbbreviation', value);
+    }
+    get includeNext() {
+        return this.partInfo.stavesAfter === 1 && this.partInfo.stavesBefore === 0;
+    }
+    set includeNext(value) {
+        if (value) {
+            this.partInfo.stavesAfter = 1;
+        }
+        else {
+            this.partInfo.stavesAfter = 0;
+        }
+        this.update();
+    }
+    get preserveTextGroups() {
+        return this.partInfo.preserveTextGroups;
+    }
+    set preserveTextGroups(value) {
+        if (value === true && this.partInfo.textGroups.length === 0) {
+            this.view.score.textGroups.forEach((tg) => {
+                const ngrp = scoreModifiers_1.SmoTextGroup.deserialize(tg.serialize());
+                this.partInfo.textGroups.push(ngrp);
+            });
+        }
+        this.partInfo.preserveTextGroups = value;
+        this.update();
+    }
+    restoreViewMap() {
+        const current = this.currentView;
+        const viewObj = this.view;
+        this.view.renderer.updatePromise().then(() => {
+            viewObj.setView(current);
+        });
+    }
+    commit() {
+        if (this.restoreView) {
+            this.restoreViewMap();
+        }
+    }
+    cancel() {
+        if (this.changed) {
+            this.update();
+        }
+        // restore previous view
+        if (this.restoreView) {
+            this.restoreViewMap();
+        }
+    }
+}
+exports.SuiPartInfoAdapter = SuiPartInfoAdapter;
+// ## SuiGlobalLayoutDialog
+// change editor and formatting defaults for this score.
+class SuiPartInfoDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(params) {
+        const adapter = new SuiPartInfoAdapter(params.view);
+        super(SuiPartInfoDialog.dialogElements, Object.assign({ adapter }, params));
+    }
+    get dimensionControls() {
+        return [this.cmap.pageSizeCtrl, this.cmap.pageWidthCtrl, this.cmap.pageHeightCtrl];
+    }
+    changed() {
+        super.changed();
+        if (this.dimensionControls.find((x) => x.changeFlag)) {
+            this.initialValue();
+        }
+    }
+}
+exports.SuiPartInfoDialog = SuiPartInfoDialog;
+SuiPartInfoDialog.dialogElements = {
+    label: 'Part Settings', elements: [{
+            smoName: 'partName',
+            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.noteSpacing,
+            control: 'SuiTextInputComponent',
+            label: 'Part Name'
+        }, {
+            smoName: 'partAbbreviation',
+            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.noteSpacing,
+            control: 'SuiTextInputComponent',
+            label: 'Part Abbrev.'
+        }, {
+            smoName: 'preserveTextGroups',
+            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.noteSpacing,
+            control: 'SuiToggleComponent',
+            label: 'Part-specific text'
+        }, {
+            smoName: 'includeNext',
+            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.noteSpacing,
+            control: 'SuiToggleComponent',
+            label: 'Include Next Staff in Part'
+        }, {
+            smoName: 'restoreScoreView',
+            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.noteSpacing,
+            control: 'SuiToggleComponent',
+            label: 'Restore View on Close'
+        }, {
+            smoName: 'noteSpacing',
+            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.noteSpacing,
+            control: 'SuiRockerComponent',
+            dataType: 'percent',
+            label: 'Note Spacing'
+        }, {
+            smoName: 'pageSize',
+            defaultValue: score_1.SmoScore.pageSizes[0],
+            control: 'SuiDropdownComponent',
+            label: 'Page Size',
+            options: [
+                {
+                    value: 'letter',
+                    label: 'Letter (Portrait)'
+                }, {
+                    value: 'letterLandscape',
+                    label: 'Letter (Landscape)'
+                }, {
+                    value: 'tabloid',
+                    label: 'Tabloid (11x17)'
+                }, {
+                    value: 'A4',
+                    label: 'A4'
+                }, {
+                    value: 'custom',
+                    label: 'Custom'
+                }
+            ]
+        }, {
+            smoName: 'pageWidth',
+            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.pageWidth,
+            control: 'SuiRockerComponent',
+            label: 'Page Width (px)'
+        }, {
+            smoName: 'pageHeight',
+            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.pageHeight,
+            control: 'SuiRockerComponent',
+            label: 'Page Height (px)'
+        }, {
+            smoName: 'zoomScale',
+            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.zoomScale,
+            control: 'SuiRockerComponent',
+            label: '% Zoom',
+            dataType: 'percent'
+        }, {
+            smoName: 'svgScale',
+            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.svgScale,
+            control: 'SuiRockerComponent',
+            label: '% Note size',
+            dataType: 'percent'
+        }],
+    staticText: []
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/preferences.ts":
+/*!***************************************!*\
+  !*** ./src/ui/dialogs/preferences.ts ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiScorePreferencesDialog = exports.SuiScorePreferencesAdapter = void 0;
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+const deepCopy = (x) => JSON.parse(JSON.stringify(x));
+class SuiScorePreferencesAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.preferences = view.score.preferences;
+        this.backup = JSON.parse(JSON.stringify(this.preferences));
+    }
+    get autoAdvance() {
+        return this.preferences.autoAdvance;
+    }
+    set autoAdvance(value) {
+        this.preferences.autoAdvance = value;
+        this.view.updateScorePreferences(this.preferences);
+    }
+    get autoPlay() {
+        return this.preferences.autoPlay;
+    }
+    set autoPlay(value) {
+        this.preferences.autoPlay = value;
+        this.view.updateScorePreferences(this.preferences);
+    }
+    get showPiano() {
+        return this.preferences.showPiano;
+    }
+    set showPiano(value) {
+        this.preferences.showPiano = value;
+        this.view.updateScorePreferences(this.preferences);
+    }
+    get defaultDupleDuration() {
+        return this.preferences.defaultDupleDuration;
+    }
+    set defaultDupleDuration(value) {
+        this.preferences.defaultDupleDuration = value;
+        this.view.updateScorePreferences(this.preferences);
+    }
+    get defaultTripleDuration() {
+        return this.preferences.defaultTripleDuration;
+    }
+    set defaultTripleDuration(value) {
+        this.preferences.defaultTripleDuration = value;
+        this.view.updateScorePreferences(this.preferences);
+    }
+    cancel() {
+        const p1 = JSON.stringify(this.preferences);
+        const p2 = JSON.stringify(this.backup);
+        if (p1 !== p2) {
+            this.view.updateScorePreferences(this.backup);
+        }
+    }
+    commit() {
+    }
+}
+exports.SuiScorePreferencesAdapter = SuiScorePreferencesAdapter;
+class SuiScorePreferencesDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(params) {
+        const adapter = new SuiScorePreferencesAdapter(params.view);
+        super(SuiScorePreferencesDialog.dialogElements, Object.assign({ adapter }, params));
+    }
+}
+exports.SuiScorePreferencesDialog = SuiScorePreferencesDialog;
+SuiScorePreferencesDialog.dialogElements = {
+    label: 'Score Preferences',
+    elements: [{
+            smoName: 'autoAdvance',
+            control: 'SuiToggleComponent',
+            label: 'Auto-advance after pitch'
+        }, {
+            smoName: 'autoPlay',
+            control: 'SuiToggleComponent',
+            label: 'Auto-play sounds for note entry'
+        }, {
+            smoName: 'showPiano',
+            control: 'SuiToggleComponent',
+            label: 'Show Piano widget'
+        }, {
+            smoName: 'defaultDupleDuration',
+            control: 'SuiDropdownComponent',
+            label: 'Default Duration (even meter)',
+            dataType: 'int',
+            options: [{
+                    value: 4096,
+                    label: '1/4'
+                }, {
+                    value: 2048,
+                    label: '1/8'
+                }]
+        }, {
+            smoName: 'defaultTripleDuration',
+            control: 'SuiDropdownComponent',
+            label: 'Default Duration (triple meter)',
+            dataType: 'int',
+            options: [{
+                    value: 6144,
+                    label: 'dotted 1/4'
+                }, {
+                    value: 2048,
+                    label: '1/8'
+                }]
+        }],
+    staticText: []
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/scoreId.ts":
+/*!***********************************!*\
+  !*** ./src/ui/dialogs/scoreId.ts ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiScoreIdentificationDialog = exports.SuiScoreIdentificationAdapter = void 0;
+const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+class SuiScoreIdentificationAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.current = {};
+        this.scoreInfo = this.view.score.scoreInfo;
+        this.backup = JSON.parse(JSON.stringify(this.scoreInfo));
+        Object.keys(scoreModifiers_1.SmoTextGroup.purposes).forEach((purpose) => {
+            const grp = this.view.score.textGroups.find((tg) => tg.purpose === scoreModifiers_1.SmoTextGroup.purposes[purpose]);
+            if (grp) {
+                this.current[purpose] = { checked: true, text: grp.textBlocks[0].text.text };
+            }
+            else {
+                this.current[purpose] = { checked: false, text: '' };
+            }
+        });
+    }
+    updateValues(purpose, infoKey, value) {
+        const grp = this.view.score.textGroups.find((tg) => tg.purpose === scoreModifiers_1.SmoTextGroup.purposes[purpose]);
+        if (grp) {
+            if (value.checked) {
+                grp.textBlocks[0].text.text = value.text;
+                this.view.updateTextGroup(grp, grp);
+            }
+            else {
+                this.view.removeTextGroup(grp);
+            }
+        }
+        else {
+            if (value.checked) {
+                const tg = scoreModifiers_1.SmoTextGroup.createTextForLayout(scoreModifiers_1.SmoTextGroup.purposes[purpose], value.text, this.view.score.layoutManager.getScaledPageLayout(0));
+                this.view.addTextGroup(tg);
+            }
+        }
+        this.current[purpose] = value;
+        this.scoreInfo[infoKey] = value.text;
+    }
+    get title() {
+        return this.current.TITLE;
+    }
+    set title(value) {
+        this.updateValues('TITLE', 'title', value);
+    }
+    get subTitle() {
+        return this.current.SUBTITLE;
+    }
+    set subTitle(value) {
+        this.updateValues('SUBTITLE', 'subTitle', value);
+    }
+    get composer() {
+        return this.current.COMPOSER;
+    }
+    set composer(value) {
+        this.updateValues('COMPOSER', 'composer', value);
+    }
+    get copyright() {
+        return this.current.COPYRIGHT;
+    }
+    set copyright(value) {
+        this.updateValues('COPYRIGHT', 'copyright', value);
+    }
+    get name() {
+        return this.scoreInfo.name;
+    }
+    set name(value) {
+        this.scoreInfo.name = value;
+    }
+    commit() {
+        this.view.updateScoreInfo(this.scoreInfo);
+    }
+    cancel() {
+    }
+}
+exports.SuiScoreIdentificationAdapter = SuiScoreIdentificationAdapter;
+// ## SuiScoreIdentificationDialog
+// change editor and formatting defaults for this score.
+class SuiScoreIdentificationDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(params) {
+        const adapter = new SuiScoreIdentificationAdapter(params.view);
+        super(SuiScoreIdentificationDialog.dialogElements, Object.assign({ adapter }, params));
+    }
+    static createAndDisplay(parameters) {
+        const dg = new SuiScoreIdentificationDialog(parameters);
+        dg.display();
+    }
+}
+exports.SuiScoreIdentificationDialog = SuiScoreIdentificationDialog;
+SuiScoreIdentificationDialog.dialogElements = {
+    label: 'Score Preferences', elements: [{
+            smoName: 'name',
+            defaultValue: '',
+            control: 'SuiTextInputComponent',
+            label: 'Score Name',
+        }, {
+            smoName: 'title',
+            defaultValue: '',
+            control: 'TextCheckComponent',
+            label: 'Title',
+        }, {
+            smoName: 'subTitle',
+            control: 'TextCheckComponent',
+            label: 'Sub Title',
+        }, {
+            smoName: 'composer',
+            control: 'TextCheckComponent',
+            label: 'Composer',
+        }, {
+            smoName: 'copyright',
+            control: 'TextCheckComponent',
+            label: 'Copyright'
+        }],
+    staticText: [
+        { titleText: 'Title' },
+        { subTitleText: 'Sub-title' },
+        { copyrightText: 'Copyright' },
+        { composerText: 'Composer' },
+        { show: 'Show' }
+    ]
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/scoreView.ts":
+/*!*************************************!*\
+  !*** ./src/ui/dialogs/scoreView.ts ***!
+  \*************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiScoreViewDialog = exports.SuiScoreViewAdapter = void 0;
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+const deepCopy = (x) => JSON.parse(JSON.stringify(x));
+class SuiScoreViewAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.currentView = this.view.getView();
+        this.originalView = JSON.parse(JSON.stringify(this.currentView));
+    }
+    cancel() {
+        const s1 = JSON.stringify(this.originalView);
+        const s2 = JSON.stringify(this.currentView);
+        if (s1 !== s2) {
+            this.view.setView(this.originalView);
+        }
+    }
+    commit() {
+        const s1 = JSON.stringify(this.originalView);
+        const s2 = JSON.stringify(this.currentView);
+        if (s1 !== s2) {
+            this.view.setView(this.currentView);
+        }
+    }
+    get scoreView() {
+        return this.currentView;
+    }
+    set scoreView(value) {
+        this.currentView = value;
+    }
+}
+exports.SuiScoreViewAdapter = SuiScoreViewAdapter;
+// ## SuiScoreViewDialog
+// decide which rows of the score to look at
+class SuiScoreViewDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        const adapter = new SuiScoreViewAdapter(parameters.view);
+        super(SuiScoreViewDialog.dialogElements, Object.assign({ adapter }, parameters));
+        this.originalValue = JSON.parse(JSON.stringify(this.view.getView()));
+    }
+    get scoreViewCtrl() {
+        return this.cmap.scoreViewCtrl;
+    }
+}
+exports.SuiScoreViewDialog = SuiScoreViewDialog;
+SuiScoreViewDialog.dialogElements = {
+    label: 'Score View', elements: [{
+            smoName: 'scoreView',
+            control: 'StaffCheckComponent',
+            label: 'Show staff',
+        }],
+    staticText: []
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/slur.ts":
+/*!********************************!*\
+  !*** ./src/ui/dialogs/slur.ts ***!
+  \********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiSlurAttributesDialog = exports.SuiSlurAdapter = void 0;
+const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+class SuiSlurAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view, slur) {
+        super(view);
+        this.changed = false;
+        this.slur = slur;
+        this.view = view;
+        this.backup = new staffModifiers_1.SmoSlur(this.slur);
+    }
+    writeSlurNumber(view, slur, key, value) {
+        const current = new staffModifiers_1.SmoSlur(slur);
+        slur[key] = value;
+        view.addOrUpdateStaffModifier(current, slur);
+        this.changed = true;
+    }
+    writeSlurBool(view, slur, key, value) {
+        const current = new staffModifiers_1.SmoSlur(slur);
+        slur[key] = value;
+        view.addOrUpdateStaffModifier(current, slur);
+        this.changed = true;
+    }
+    cancel() {
+        if (!this.changed) {
+            return;
+        }
+        this.view.addOrUpdateStaffModifier(this.slur, this.backup);
+    }
+    commit() {
+    }
+    get cp2y() {
+        return this.slur.cp2y;
+    }
+    set cp2y(value) {
+        this.writeSlurNumber(this.view, this.slur, 'cp2y', value);
+    }
+    get cp2x() {
+        return this.slur.cp2x;
+    }
+    set cp2x(value) {
+        this.writeSlurNumber(this.view, this.slur, 'cp2x', value);
+    }
+    get cp1y() {
+        return this.slur.cp1y;
+    }
+    set cp1y(value) {
+        this.writeSlurNumber(this.view, this.slur, 'cp1y', value);
+    }
+    get cp1x() {
+        return this.slur.cp1x;
+    }
+    set cp1x(value) {
+        this.writeSlurNumber(this.view, this.slur, 'cp1x', value);
+    }
+    get invert() {
+        return this.slur.invert;
+    }
+    set invert(value) {
+        this.writeSlurBool(this.view, this.slur, 'invert', value);
+    }
+    get position_end() {
+        return this.slur.position_end;
+    }
+    set position_end(value) {
+        this.writeSlurNumber(this.view, this.slur, 'position_end', value);
+    }
+    get position() {
+        return this.slur.position;
+    }
+    set position(value) {
+        this.writeSlurNumber(this.view, this.slur, 'position', value);
+    }
+    get yOffset() {
+        return this.slur.yOffset;
+    }
+    set yOffset(value) {
+        this.writeSlurNumber(this.view, this.slur, 'yOffset', value);
+    }
+    get xOffset() {
+        return this.slur.xOffset;
+    }
+    set xOffset(value) {
+        this.writeSlurNumber(this.view, this.slur, 'xOffset', value);
+    }
+    get thickness() {
+        return this.slur.thickness;
+    }
+    set thickness(value) {
+        this.writeSlurNumber(this.view, this.slur, 'thickness', value);
+    }
+    get spacing() {
+        return this.slur.spacing;
+    }
+    set spacing(value) {
+        this.writeSlurNumber(this.view, this.slur, 'spacing', value);
+    }
+    get renderedBox() {
+        return this.backup.renderedBox;
+    }
+    remove() {
+        this.view.removeStaffModifier(this.backup);
+    }
+}
+exports.SuiSlurAdapter = SuiSlurAdapter;
+class SuiSlurAttributesDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        const adapter = new SuiSlurAdapter(parameters.view, parameters.modifier);
+        super(SuiSlurAttributesDialog.dialogElements, Object.assign({ adapter }, parameters));
+    }
+}
+exports.SuiSlurAttributesDialog = SuiSlurAttributesDialog;
+SuiSlurAttributesDialog.dialogElements = {
+    label: 'Slur Properties', elements: [{
+            smoName: 'spacing',
+            defaultValue: 2,
+            control: 'SuiRockerComponent',
+            label: 'Spacing'
+        }, {
+            smoName: 'thickness',
+            defaultValue: 2,
+            control: 'SuiRockerComponent',
+            label: 'Thickness'
+        }, {
+            smoName: 'xOffset',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'X Offset'
+        }, {
+            smoName: 'yOffset',
+            defaultValue: 10,
+            control: 'SuiRockerComponent',
+            label: 'Y Offset'
+        }, {
+            smoName: 'position',
+            defaultValue: staffModifiers_1.SmoSlur.positions.HEAD,
+            options: [{
+                    value: staffModifiers_1.SmoSlur.positions.HEAD,
+                    label: 'Head'
+                }, {
+                    value: staffModifiers_1.SmoSlur.positions.TOP,
+                    label: 'Top'
+                }],
+            control: 'SuiDropdownComponent',
+            label: 'Start Position'
+        }, {
+            smoName: 'position_end',
+            defaultValue: staffModifiers_1.SmoSlur.positions.HEAD,
+            options: [{
+                    value: staffModifiers_1.SmoSlur.positions.HEAD,
+                    label: 'Head'
+                }, {
+                    value: staffModifiers_1.SmoSlur.positions.TOP,
+                    label: 'Top'
+                }],
+            control: 'SuiDropdownComponent',
+            label: 'End Position'
+        }, {
+            smoName: 'invert',
+            control: 'SuiToggleComponent',
+            label: 'Invert'
+        }, {
+            smoName: 'cp1x',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Control Point 1 X'
+        }, {
+            smoName: 'cp1y',
+            defaultValue: 40,
+            control: 'SuiRockerComponent',
+            label: 'Control Point 1 Y'
+        }, {
+            smoName: 'cp2x',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Control Point 2 X'
+        }, {
+            smoName: 'cp2y',
+            defaultValue: 40,
+            control: 'SuiRockerComponent',
+            label: 'Control Point 2 Y'
+        }], staticText: []
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/staffGroup.ts":
+/*!**************************************!*\
+  !*** ./src/ui/dialogs/staffGroup.ts ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiStaffGroupDialog = exports.SuiStaffGroupDialogAdapter = void 0;
+const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+class SuiStaffGroupDialogAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        const selection = this.view.tracker.selections[0];
+        // Reset the view so we can see all the staves
+        this.view.viewAll();
+        const staffGroup = this.view.score.getSystemGroupForStaff(selection);
+        if (!staffGroup) {
+            const params = scoreModifiers_1.SmoSystemGroup.defaults;
+            params.startSelector = JSON.parse(JSON.stringify(selection.selector));
+            params.endSelector = JSON.parse(JSON.stringify(selection.selector));
+            this.staffGroup = new scoreModifiers_1.SmoSystemGroup(params);
+        }
+        else {
+            this.staffGroup = staffGroup;
+        }
+    }
+    commit() {
+    }
+    cancel() {
+    }
+    get leftConnector() {
+        return this.staffGroup.leftConnector;
+    }
+    set leftConnector(val) {
+        this.staffGroup.leftConnector = val;
+        this.view.addOrUpdateStaffGroup(this.staffGroup);
+    }
+    get staffGroups() {
+        return this.staffGroup;
+    }
+    set staffGroups(val) {
+        this.staffGroup = val;
+        this.view.addOrUpdateStaffGroup(this.staffGroup);
+    }
+}
+exports.SuiStaffGroupDialogAdapter = SuiStaffGroupDialogAdapter;
+// ## SuiStaffGroupDialog
+// A staff group is a grouping of staves that can be bracketed and justified
+class SuiStaffGroupDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        const adapter = new SuiStaffGroupDialogAdapter(parameters.view);
+        super(SuiStaffGroupDialog.dialogElements, Object.assign({ adapter }, parameters));
+    }
+    static createAndDisplay(parameters) {
+        const dg = new SuiStaffGroupDialog(parameters);
+        dg.display();
+    }
+    getModifier() {
+        return this.adapter.staffGroups;
+    }
+}
+exports.SuiStaffGroupDialog = SuiStaffGroupDialog;
+SuiStaffGroupDialog.dialogElements = {
+    label: 'Staff Group', elements: [{
+            smoName: 'staffGroups',
+            control: 'StaffAddRemoveComponent',
+            label: 'Staves in Group',
+        }, {
+            smoName: 'leftConnector',
+            control: 'SuiDropdownComponent',
+            label: 'Left Connector',
+            options: [
+                {
+                    value: scoreModifiers_1.SmoSystemGroup.connectorTypes.bracket,
+                    label: 'Bracket'
+                }, {
+                    value: scoreModifiers_1.SmoSystemGroup.connectorTypes.brace,
+                    label: 'Brace'
+                }, {
+                    value: scoreModifiers_1.SmoSystemGroup.connectorTypes.single,
+                    label: 'Single'
+                }, {
+                    value: scoreModifiers_1.SmoSystemGroup.connectorTypes.double,
+                    label: 'Double'
+                }
+            ]
+        }],
+    staticText: [
+        { includeStaff: 'Include Staff' }
+    ]
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/tempo.ts":
+/*!*********************************!*\
+  !*** ./src/ui/dialogs/tempo.ts ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiTempoDialog = exports.SuiTempoAdapter = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+class SuiTempoAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view, tempoText) {
+        super(view);
+        this.applyToAll = false;
+        this.edited = false;
+        this.smoTempoText = tempoText;
+        this.backup = new measureModifiers_1.SmoTempoText(this.smoTempoText);
+    }
+    writeNumber(param, value) {
+        this.smoTempoText[param] = value;
+        this.view.updateTempoScore(this.smoTempoText, this.applyToAll);
+        this.edited = true;
+    }
+    writeBoolean(param, value) {
+        this.smoTempoText[param] = value;
+        this.view.updateTempoScore(this.smoTempoText, this.applyToAll);
+        this.edited = true;
+    }
+    writeString(param, value) {
+        this.smoTempoText[param] = value;
+        this.view.updateTempoScore(this.smoTempoText, this.applyToAll);
+        this.edited = true;
+    }
+    remove() {
+        this.view.removeTempo(this.applyToAll);
+    }
+    cancel() {
+        this.view.updateTempoScore(this.backup, false);
+    }
+    commit() { }
+    get tempoText() {
+        return this.smoTempoText.tempoText;
+    }
+    set tempoText(value) {
+        this.writeString('tempoText', value);
+    }
+    get tempoMode() {
+        return this.smoTempoText.tempoMode;
+    }
+    set tempoMode(value) {
+        this.writeString('tempoMode', value);
+    }
+    get customText() {
+        return this.smoTempoText.customText;
+    }
+    set customText(value) {
+        this.writeString('customText', value);
+    }
+    get bpm() {
+        return this.smoTempoText.bpm;
+    }
+    set bpm(value) {
+        this.writeNumber('bpm', value);
+    }
+    get display() {
+        return this.smoTempoText.display;
+    }
+    set display(value) {
+        this.writeBoolean('display', value);
+    }
+    get beatDuration() {
+        return this.smoTempoText.beatDuration;
+    }
+    set beatDuration(value) {
+        this.writeNumber('beatDuration', value);
+    }
+    get yOffset() {
+        return this.smoTempoText.yOffset;
+    }
+    set yOffset(value) {
+        this.writeNumber('yOffset', value);
+    }
+}
+exports.SuiTempoAdapter = SuiTempoAdapter;
+// ## SuiTempoDialog
+// Allow user to choose a tempo or tempo change.
+class SuiTempoDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        const measures = selections_1.SmoSelection.getMeasureList(parameters.view.tracker.selections)
+            .map((sel) => sel.measure);
+        const measure = measures[0];
+        const adapter = new SuiTempoAdapter(parameters.view, measure.tempo);
+        super(SuiTempoDialog.dialogElements, Object.assign({ adapter }, parameters));
+    }
+    showHideCustom() {
+        if (this.adapter.tempoMode === 'custom') {
+            this.cmap.customTextCtrl.show();
+        }
+        else {
+            this.cmap.customTextCtrl.hide();
+        }
+    }
+    changed() {
+        super.changed();
+        this.showHideCustom();
+    }
+    initialValue() {
+        super.initialValue();
+        this.showHideCustom();
+    }
+}
+exports.SuiTempoDialog = SuiTempoDialog;
+SuiTempoDialog.dialogElements = {
+    label: 'Tempo Properties',
+    elements: [
+        {
+            smoName: 'tempoMode',
+            defaultValue: measureModifiers_1.SmoTempoText.tempoModes.durationMode,
+            control: 'SuiDropdownComponent',
+            label: 'Tempo Mode',
+            options: [{
+                    value: 'duration',
+                    label: 'Duration (Beats/Minute)'
+                }, {
+                    value: 'text',
+                    label: 'Tempo Text'
+                }, {
+                    value: 'custom',
+                    label: 'Specify text and duration'
+                }
+            ]
+        },
+        {
+            smoName: 'customText',
+            defaultValue: '',
+            control: 'SuiTextInputComponent',
+            label: 'Custom Text',
+            classes: 'hide-when-text-mode'
+        },
+        {
+            smoName: 'bpm',
+            defaultValue: 120,
+            control: 'SuiRockerComponent',
+            label: 'Notes/Minute'
+        },
+        {
+            smoName: 'beatDuration',
+            defaultValue: 4096,
+            dataType: 'int',
+            control: 'SuiDropdownComponent',
+            label: 'Unit for Beat',
+            options: [{
+                    value: 4096,
+                    label: 'Quarter Note',
+                }, {
+                    value: 2048,
+                    label: '1/8 note'
+                }, {
+                    value: 6144,
+                    label: 'Dotted 1/4 note'
+                }, {
+                    value: 8192,
+                    label: '1/2 note'
+                }
+            ]
+        },
+        {
+            smoName: 'tempoText',
+            defaultValue: measureModifiers_1.SmoTempoText.tempoTexts.allegro,
+            control: 'SuiDropdownComponent',
+            label: 'Tempo Text',
+            classes: 'hide-when-not-text-mode',
+            options: [{
+                    value: measureModifiers_1.SmoTempoText.tempoTexts.larghissimo,
+                    label: 'Larghissimo'
+                }, {
+                    value: measureModifiers_1.SmoTempoText.tempoTexts.grave,
+                    label: 'Grave'
+                }, {
+                    value: measureModifiers_1.SmoTempoText.tempoTexts.lento,
+                    label: 'Lento'
+                }, {
+                    value: measureModifiers_1.SmoTempoText.tempoTexts.largo,
+                    label: 'Largo'
+                }, {
+                    value: measureModifiers_1.SmoTempoText.tempoTexts.larghetto,
+                    label: 'Larghetto'
+                }, {
+                    value: measureModifiers_1.SmoTempoText.tempoTexts.adagio,
+                    label: 'Adagio'
+                }, {
+                    value: measureModifiers_1.SmoTempoText.tempoTexts.adagietto,
+                    label: 'Adagietto'
+                }, {
+                    value: measureModifiers_1.SmoTempoText.tempoTexts.andante_moderato,
+                    label: 'Andante moderato'
+                }, {
+                    value: measureModifiers_1.SmoTempoText.tempoTexts.andante,
+                    label: 'Andante'
+                }, {
+                    value: measureModifiers_1.SmoTempoText.tempoTexts.andantino,
+                    label: 'Andantino'
+                }, {
+                    value: measureModifiers_1.SmoTempoText.tempoTexts.moderator,
+                    label: 'Moderato'
+                }, {
+                    value: measureModifiers_1.SmoTempoText.tempoTexts.allegretto,
+                    label: 'Allegretto',
+                }, {
+                    value: measureModifiers_1.SmoTempoText.tempoTexts.allegro,
+                    label: 'Allegro'
+                }, {
+                    value: measureModifiers_1.SmoTempoText.tempoTexts.vivace,
+                    label: 'Vivace'
+                }, {
+                    value: measureModifiers_1.SmoTempoText.tempoTexts.presto,
+                    label: 'Presto'
+                }, {
+                    value: measureModifiers_1.SmoTempoText.tempoTexts.prestissimo,
+                    label: 'Prestissimo'
+                }
+            ]
+        }, {
+            smoName: 'applyToAll',
+            control: 'SuiToggleComponent',
+            label: 'Apply to all future measures?'
+        }, {
+            smoName: 'display',
+            control: 'SuiToggleComponent',
+            label: 'Display Tempo'
+        }, {
+            smoName: 'yOffset',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Y Offset'
+        }
+    ],
+    staticText: []
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/textBlock.ts":
+/*!*************************************!*\
+  !*** ./src/ui/dialogs/textBlock.ts ***!
+  \*************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.helpModal = exports.SuiTextBlockDialog = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialogs/dialog.ts");
+const help_1 = __webpack_require__(/*! ../help */ "./src/ui/help.js");
+const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const layoutDebug_1 = __webpack_require__(/*! ../../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
+const svgHelpers_1 = __webpack_require__(/*! ../../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
+const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
+    constructor(parameters) {
+        let edited = false;
+        const tracker = parameters.view.tracker;
+        const layout = parameters.view.score.layoutManager.getGlobalLayout();
+        // Create a new text modifier, if this is new text.   Else use selection
+        if (!parameters.modifier) {
+            const textParams = scoreModifiers_1.SmoScoreText.defaults;
+            textParams.position = scoreModifiers_1.SmoScoreText.positions.custom;
+            const newText = new scoreModifiers_1.SmoScoreText(textParams);
+            newText.y += tracker.scroller.scrollState.scroll.y;
+            if (tracker.selections.length > 0) {
+                const sel = tracker.selections[0].measure.svg;
+                if (typeof (sel.logicalBox) !== 'undefined') {
+                    if (sel.logicalBox.y >= newText.y) {
+                        newText.y = sel.logicalBox.y;
+                        newText.x = sel.logicalBox.x;
+                    }
+                }
+            }
+            const grpParams = scoreModifiers_1.SmoTextGroup.defaults;
+            grpParams.blocks = [{ text: newText, position: scoreModifiers_1.SmoTextGroup.relativePositions.LEFT }];
+            const newGroup = new scoreModifiers_1.SmoTextGroup(grpParams);
+            parameters.modifier = newGroup;
+            parameters.modifier.setActiveBlock(newText);
+            parameters.view.addTextGroup(parameters.modifier);
+            edited = true;
+        }
+        else {
+            // Make sure there is a score text to start the editing.
+            parameters.modifier.setActiveBlock(parameters.modifier.textBlocks[0].text);
+        }
+        const scrollPosition = tracker.scroller.absScroll;
+        scrollPosition.y = scrollPosition.y / (layout.svgScale * layout.zoomScale);
+        scrollPosition.x = scrollPosition.x / (layout.svgScale * layout.zoomScale);
+        super(SuiTextBlockDialog.dialogElements, parameters);
+        this.modifier = parameters.modifier;
+        this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+        this.edited = edited;
+        this.view.groupUndo(true);
+        this.backup = this.modifier.serialize();
+        this.activeScoreText = this.modifier.getActiveBlock();
+        this.mouseMoveHandler = null;
+        this.mouseUpHandler = null;
+        this.mouseDownHandler = null;
+        this.mouseClickHandler = null;
+    }
+    get textEditorCtrl() {
+        return this.cmap.textEditorCtrl;
+    }
+    get insertCodeCtrl() {
+        return this.cmap.insertCodeCtrl;
+    }
+    get textDraggerCtrl() {
+        return this.cmap.textDraggerCtrl;
+    }
+    get yCtrl() {
+        return this.cmap.yCtrl;
+    }
+    get xCtrl() {
+        return this.cmap.xCtrl;
+    }
+    get fontCtrl() {
+        return this.cmap.fontCtrl;
+    }
+    get textBlockCtrl() {
+        return this.cmap.textBlockCtrl;
+    }
+    get paginationCtrl() {
+        return this.cmap.paginationCtrl;
+    }
+    get attachToSelectorCtrl() {
+        return this.cmap.attachToSelectorCtrl;
+    }
+    populateInitial() {
+        this.textBlockCtrl.setValue({
+            activeScoreText: this.activeScoreText,
+            modifier: this.modifier
+        });
+        const fontFamily = this.activeScoreText.fontInfo.family;
+        const fontSize = this.activeScoreText.fontInfo.size;
+        this.fontCtrl.setValue({
+            family: fontFamily,
+            size: fontSize,
+            style: this.activeScoreText.fontInfo.style,
+            weight: this.activeScoreText.fontInfo.weight
+        });
+        this.attachToSelectorCtrl.setValue(this.modifier.attachToSelector);
+        const ul = this.modifier.ul();
+        this.xCtrl.setValue(ul.x);
+        this.yCtrl.setValue(ul.y);
+    }
+    display() {
+        this.textElement = $(this.view.renderer.context.svg).find('.' + this.modifier.attrs.id)[0];
+        $('body').addClass('showAttributeDialog');
+        $('body').addClass('textEditor');
+        this.applyDisplayOptions();
+        this.populateInitial();
+        this.bindElements();
+        if (!this.modifier.renderedBox) {
+            this.view.renderer.renderTextGroup(this.modifier);
+        }
+        // If this control has not been edited this session, assume they want to
+        // edit the text and just right into that.
+        if (!this.modifier.edited) {
+            this.modifier.edited = true;
+            layoutDebug_1.layoutDebug.addDialogDebug('text transform db: startEditSession');
+            this.textEditorCtrl.startEditSession();
+        }
+        this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
+        this.mouseUpHandler = this.eventSource.bindMouseUpHandler(this, 'mouseUp');
+        this.mouseDownHandler = this.eventSource.bindMouseDownHandler(this, 'mouseDown');
+        this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
+    }
+    _resetAttachToSelector() {
+        this.modifier.attachToSelector = false;
+        this.modifier.selector = scoreModifiers_1.SmoTextGroup.defaults.selector;
+        this.modifier.musicXOffset = scoreModifiers_1.SmoTextGroup.defaults.musicXOffset;
+        this.modifier.musicYOffset = scoreModifiers_1.SmoTextGroup.defaults.musicYOffset;
+    }
+    _activateAttachToSelector() {
+        this.modifier.attachToSelector = true;
+        this.modifier.selector = JSON.parse(JSON.stringify(this.view.tracker.selections[0].selector));
+        if (this.modifier.logicalBox) {
+            this.modifier.musicXOffset = this.modifier.logicalBox.x - this.view.tracker.selections[0].measure.svg.logicalBox.x;
+            this.modifier.musicYOffset = this.modifier.logicalBox.y - this.view.tracker.selections[0].measure.svg.logicalBox.y;
+        }
+    }
+    changed() {
+        this.edited = true;
+        if (this.insertCodeCtrl.changeFlag && this.textEditorCtrl.session) {
+            const val = this.insertCodeCtrl.getValue().toString().split('');
+            val.forEach((key) => {
+                this.evKey({ key });
+            });
+            this.insertCodeCtrl.unselect();
+        }
+        if (this.textBlockCtrl.changeFlag) {
+            const nval = this.textBlockCtrl.getValue();
+            this.activeScoreText = nval.activeScoreText;
+        }
+        if (this.attachToSelectorCtrl.changeFlag) {
+            const toSet = this.attachToSelectorCtrl.getValue();
+            if (toSet) {
+                this._activateAttachToSelector();
+                this.paginationCtrl.setValue(scoreModifiers_1.SmoTextGroup.paginations.ONCE);
+                this.modifier.pagination = scoreModifiers_1.SmoTextGroup.paginations.ONCE;
+            }
+            else {
+                this._resetAttachToSelector();
+            }
+        }
+        const pos = this.modifier.ul();
+        // position can change from drag or by dialog - only update from
+        // dialog entries if that changed.
+        if (this.xCtrl.changeFlag) {
+            this.modifier.offsetX(this.xCtrl.getValue() - pos.x);
+        }
+        if (this.yCtrl.changeFlag) {
+            this.modifier.offsetY(this.yCtrl.getValue() - pos.y);
+        }
+        if (this.textDraggerCtrl.changeFlag) {
+            this.xCtrl.setValue(pos.x);
+            this.yCtrl.setValue(pos.y);
+        }
+        if (this.paginationCtrl.changeFlag) {
+            this.modifier.pagination = parseInt(this.paginationCtrl.getValue().toString(), 10);
+            // Pagination and attach to measure don't mix.
+            this._resetAttachToSelector();
+            this.attachToSelectorCtrl.setValue(false);
+        }
+        if (this.fontCtrl.changeFlag) {
+            const fontInfo = this.fontCtrl.getValue();
+            this.activeScoreText.fontInfo.family = fontInfo.family;
+            // transitioning away from non-point-based font size units
+            this.activeScoreText.fontInfo.size = fontInfo.size;
+            this.activeScoreText.fontInfo.weight = fontInfo.weight;
+            this.activeScoreText.fontInfo.style = fontInfo.style;
+        }
+        // Use layout context because render may have reset svg.
+        this.view.updateTextGroup(this.backup, this.modifier);
+        this.backup = this.modifier.serialize();
+    }
+    // ### handleKeydown
+    // allow a dialog to be dismissed by esc.
+    evKey(evdata) {
+        if (evdata.key === 'Escape') {
+            $(this.dgDom.element).find('.cancel-button').click();
+            evdata.preventDefault();
+        }
+        else {
+            this.textEditorCtrl.evKey(evdata);
+        }
+    }
+    // ### Event handlers, passed from dialog
+    mouseUp() {
+        if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
+            this.textDraggerCtrl.mouseUp(null);
+        }
+    }
+    mouseMove(ev) {
+        if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
+            this.textDraggerCtrl.mouseMove(ev);
+        }
+        else if (this.textEditorCtrl && this.textEditorCtrl.isRunning) {
+            this.textEditorCtrl.mouseMove(ev);
+        }
+    }
+    mouseClick(ev) {
+        if (this.textEditorCtrl && this.textEditorCtrl.isRunning) {
+            this.textEditorCtrl.mouseClick(ev);
+            ev.stopPropagation();
+        }
+    }
+    mouseDown(ev) {
+        if (this.textDraggerCtrl && this.textDraggerCtrl.running) {
+            this.textDraggerCtrl.mouseDown(ev);
+        }
+    }
+    _complete() {
+        this.view.groupUndo(false);
+        this.modifier.setActiveBlock(null);
+        this.view.tracker.updateMap(); // update the text map
+        this.view.renderer.setDirty();
+        if (this.mouseDownHandler) {
+            this.eventSource.unbindMouseDownHandler(this.mouseDownHandler);
+        }
+        if (this.mouseUpHandler) {
+            this.eventSource.unbindMouseUpHandler(this.mouseUpHandler);
+        }
+        if (this.mouseMoveHandler) {
+            this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
+        }
+        if (this.mouseClickHandler) {
+            this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
+        }
+        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.context.svg, 'text-drag');
+        $('body').removeClass('showAttributeDialog');
+        $('body').removeClass('textEditor');
+        this.complete();
+    }
+    _removeText() {
+        this.view.removeTextGroup(this.modifier);
+    }
+    bindElements() {
+        const dgDom = this.dgDom;
+        $(dgDom.element).find('.ok-button').off('click').on('click', () => {
+            this._complete();
+        });
+        $(dgDom.element).find('.cancel-button').off('click').on('click', () => {
+            this.view.groupUndo(false);
+            if (this.edited) {
+                this.view.undo();
+            }
+            this._complete();
+        });
+        $(dgDom.element).find('.remove-button').off('click').on('click', () => {
+            this._removeText();
+            this._complete();
+        });
+    }
+}
+exports.SuiTextBlockDialog = SuiTextBlockDialog;
+SuiTextBlockDialog.dialogElements = {
+    label: 'Text Properties', elements: [{
+            smoName: 'textEditor',
+            defaultValue: 0,
+            control: 'SuiTextInPlace',
+            classes: 'show-always hide-when-moving',
+            label: 'Edit Text',
+            options: []
+        }, {
+            smoName: 'insertCode',
+            classes: 'show-when-editing hide-when-moving',
+            control: 'SuiDropdownComponent',
+            label: 'Insert Special',
+            options: [
+                { value: '@@@', label: 'Pages' },
+                { value: '###', label: 'Page Number' }
+            ]
+        }, {
+            smoName: 'textDragger',
+            classes: 'hide-when-editing show-when-moving',
+            defaultValue: 0,
+            control: 'SuiDragText',
+            label: 'Move Text',
+            options: []
+        }, {
+            smoName: 'x',
+            defaultValue: 0,
+            classes: 'hide-when-editing hide-when-moving',
+            control: 'SuiRockerComponent',
+            label: 'X Position (Px)',
+            dataType: 'int'
+        }, {
+            smoName: 'y',
+            defaultValue: 0,
+            classes: 'hide-when-editing hide-when-moving',
+            control: 'SuiRockerComponent',
+            label: 'Y Position (Px)',
+            dataType: 'int'
+        }, {
+            smoName: 'font',
+            classes: 'hide-when-editing hide-when-moving',
+            defaultValue: scoreModifiers_1.SmoScoreText.fontFamilies.times,
+            control: 'SuiFontComponent',
+            label: 'Font Information'
+        },
+        {
+            smoName: 'textBlock',
+            classes: 'hide-when-editing hide-when-moving',
+            defaultValue: '',
+            control: 'SuiTextBlockComponent',
+            label: 'Text Block Properties'
+        },
+        {
+            smoName: 'pagination',
+            defaultValue: scoreModifiers_1.SmoScoreText.paginations.every,
+            classes: 'hide-when-editing hide-when-moving',
+            control: 'SuiDropdownComponent',
+            label: 'Page Behavior',
+            startRow: true,
+            options: [{ value: scoreModifiers_1.SmoTextGroup.paginations.ONCE, label: 'Once' },
+                { value: scoreModifiers_1.SmoTextGroup.paginations.EVERY, label: 'Every' },
+                { value: scoreModifiers_1.SmoTextGroup.paginations.ODD, label: 'Odd' },
+                { value: scoreModifiers_1.SmoTextGroup.paginations.SUBSEQUENT, label: 'Subsequent' }
+            ]
+        }, {
+            smoName: 'attachToSelector',
+            classes: 'hide-when-editing hide-when-moving',
+            control: 'SuiToggleComponent',
+            label: 'Attach to Selection'
+        }],
+    staticText: [
+        { label: 'Text Properties' },
+        { editorLabel: 'Done Editing Text' },
+        { draggerLabel: 'Done Dragging Text' }
+    ]
+};
+class helpModal {
+    static createAndDisplay() {
+        help_1.SuiHelp.displayHelp();
+        return htmlHelpers_1.htmlHelpers.closeDialogPromise();
+    }
+}
+exports.helpModal = helpModal;
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/tie.ts":
+/*!*******************************!*\
+  !*** ./src/ui/dialogs/tie.ts ***!
+  \*******************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiTieAttributesDialog = exports.SuiTieAdapter = void 0;
+const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+class SuiTieAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view, tie) {
+        super(view);
+        this.changed = false;
+        this.tie = tie;
+        this.backup = new staffModifiers_1.SmoTie(tie);
+    }
+    writeTieNumber(value, param) {
+        this.tie[param] = value;
+        this.view.addOrUpdateStaffModifier(this.backup, this.tie);
+        this.changed = true;
+    }
+    get lines() {
+        return this.tie.lines;
+    }
+    set lines(value) {
+        this.tie.lines = JSON.parse(JSON.stringify(value));
+        this.view.addOrUpdateStaffModifier(this.backup, this.tie);
+    }
+    get tie_spacing() {
+        return this.tie.tie_spacing;
+    }
+    set tie_spacing(value) {
+        this.writeTieNumber(value, 'tie_spacing');
+    }
+    get first_x_shift() {
+        return this.tie.first_x_shift;
+    }
+    set first_x_shift(value) {
+        this.writeTieNumber(value, 'first_x_shift');
+    }
+    get last_x_shift() {
+        return this.tie.last_x_shift;
+    }
+    set last_x_shift(value) {
+        this.writeTieNumber(value, 'last_x_shift');
+    }
+    get y_shift() {
+        return this.tie.y_shift;
+    }
+    set y_shift(value) {
+        this.writeTieNumber(value, 'y_shift');
+    }
+    get cp1() {
+        return this.tie.cp1;
+    }
+    set cp1(value) {
+        this.writeTieNumber(value, 'cp1');
+    }
+    get cp2() {
+        return this.tie.cp2;
+    }
+    set cp2(value) {
+        this.writeTieNumber(value, 'cp2');
+    }
+    commit() {
+    }
+    cancel() {
+        if (this.changed) {
+            this.view.addOrUpdateStaffModifier(this.backup, this.backup);
+        }
+    }
+    remove() {
+        this.view.removeStaffModifier(this.backup);
+    }
+}
+exports.SuiTieAdapter = SuiTieAdapter;
+class SuiTieAttributesDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        if (!parameters.modifier) {
+            throw new Error('modifier attribute dialog must have modifier');
+        }
+        const tie = parameters.modifier;
+        const adapter = new SuiTieAdapter(parameters.view, tie);
+        super(SuiTieAttributesDialog.dialogElements, Object.assign({ adapter }, parameters));
+        this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+    }
+}
+exports.SuiTieAttributesDialog = SuiTieAttributesDialog;
+SuiTieAttributesDialog.dialogElements = {
+    label: 'Tie Properties',
+    staticText: [
+        { label: 'Tie Properties' },
+        { fromNote: 'From Note' },
+        { toNote: 'To Note' }
+    ], elements: [{
+            smoName: 'lines',
+            control: 'TieMappingComponent',
+            label: 'Lines'
+        }, {
+            smoName: 'cp1',
+            control: 'SuiRockerComponent',
+            label: 'Control Point 1'
+        }, {
+            smoName: 'cp2',
+            control: 'SuiRockerComponent',
+            label: 'Control Point 2'
+        }, {
+            smoName: 'first_x_shift',
+            control: 'SuiRockerComponent',
+            label: 'X Offset 1'
+        }, {
+            smoName: 'last_x_shift',
+            control: 'SuiRockerComponent',
+            label: 'X Offset 2'
+        }, {
+            smoName: 'y_shift',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Y Offset'
+        }, {
+            smoName: 'tie_spacing',
+            defaultValue: 40,
+            control: 'SuiRockerComponent',
+            label: 'Tie Spacing'
+        }],
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/timeSignature.ts":
+/*!*****************************************!*\
+  !*** ./src/ui/dialogs/timeSignature.ts ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiTimeSignatureDialog = exports.SuiTimeSignatureAdapter = void 0;
+const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+class SuiTimeSignatureAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.measure = this.view.tracker.selections[0].measure;
+        this.backup = new measureModifiers_1.TimeSignature(this.measure.timeSignature);
+        this.backupString = this.measure.timeSignatureString;
+    }
+    get numerator() {
+        return this.measure.timeSignature.actualBeats;
+    }
+    set numerator(value) {
+        this.measure.timeSignature.actualBeats = value;
+    }
+    get denominator() {
+        return this.measure.timeSignature.beatDuration;
+    }
+    set denominator(value) {
+        this.measure.timeSignature.beatDuration = value;
+    }
+    get display() {
+        return this.measure.timeSignature.display;
+    }
+    set display(value) {
+        this.measure.timeSignature.display = value;
+    }
+    get useSymbol() {
+        return this.measure.timeSignature.useSymbol;
+    }
+    set useSymbol(value) {
+        this.measure.timeSignature.useSymbol = value;
+    }
+    get customString() {
+        return this.measure.timeSignatureString;
+    }
+    set customString(value) {
+        const tr = value.trim();
+        if (!(tr.indexOf('/') >= 0)) {
+            if (tr === 'C' || tr === 'C|') {
+                this.measure.timeSignatureString = tr;
+                return;
+            }
+        }
+        const ar = tr.split('/');
+        if (isNaN(parseInt(ar[0], 10)) || isNaN(parseInt(ar[1], 10))) {
+            this.measure.timeSignatureString = '';
+            return;
+        }
+        this.measure.timeSignatureString = tr;
+    }
+    commit() {
+        this.view.setTimeSignature(this.measure.timeSignature, this.measure.timeSignatureString);
+    }
+    cancel() {
+        this.measure.timeSignature = this.backup;
+    }
+}
+exports.SuiTimeSignatureAdapter = SuiTimeSignatureAdapter;
+class SuiTimeSignatureDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        const adapter = new SuiTimeSignatureAdapter(parameters.view);
+        super(SuiTimeSignatureDialog.dialogElements, Object.assign({ adapter }, parameters));
+    }
+}
+exports.SuiTimeSignatureDialog = SuiTimeSignatureDialog;
+SuiTimeSignatureDialog.dialogElements = {
+    label: 'Custom Time Signature',
+    elements: [
+        {
+            smoName: 'numerator',
+            defaultValue: 3,
+            control: 'SuiRockerComponent',
+            label: 'Beats/Measure',
+        },
+        {
+            smoName: 'denominator',
+            defaultValue: 8,
+            dataType: 'int',
+            control: 'SuiDropdownComponent',
+            label: 'Beat Value',
+            options: [{
+                    value: 8,
+                    label: '8',
+                }, {
+                    value: 4,
+                    label: '4'
+                }, {
+                    value: 2,
+                    label: '2'
+                }]
+        }, {
+            smoName: 'display',
+            control: 'SuiToggleComponent',
+            label: 'Display',
+        }, {
+            smoName: 'useSymbol',
+            control: 'SuiToggleComponent',
+            label: 'Common/Cut',
+        }, {
+            smoName: 'customString',
+            control: 'SuiTextInputComponent',
+            label: 'Custom',
+        }
+    ],
+    staticText: []
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/dialogs/volta.ts":
+/*!*********************************!*\
+  !*** ./src/ui/dialogs/volta.ts ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiVoltaAttributeDialog = exports.SuiVoltaAdapter = void 0;
+const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+class SuiVoltaAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view, volta) {
+        super(view);
+        this.changed = false;
+        this.volta = volta;
+        this.backup = new measureModifiers_1.SmoVolta(this.volta);
+    }
+    remove() {
+        this.view.removeEnding(this.volta);
+    }
+    cancel() {
+        if (this.changed) {
+            this.view.updateEnding(this.backup);
+        }
+    }
+    commit() {
+    }
+    updateVolta(param, value) {
+        this.volta[param] = value;
+        this.view.updateEnding(this.volta);
+        this.changed = true;
+    }
+    get startBar() {
+        return this.volta.startBar;
+    }
+    set startBar(val) {
+        this.updateVolta('startBar', val);
+    }
+    get endBar() {
+        return this.volta.endBar;
+    }
+    set endBar(val) {
+        this.updateVolta('endBar', val);
+    }
+    get xOffsetStart() {
+        return this.volta.xOffsetStart;
+    }
+    set xOffsetStart(val) {
+        this.updateVolta('xOffsetStart', val);
+    }
+    get xOffsetEnd() {
+        return this.volta.xOffsetEnd;
+    }
+    set xOffsetEnd(val) {
+        this.updateVolta('xOffsetEnd', val);
+    }
+    get yOffset() {
+        return this.volta.yOffset;
+    }
+    set yOffset(val) {
+        this.updateVolta('yOffset', val);
+    }
+    get number() {
+        return this.volta.number;
+    }
+    set number(val) {
+        this.updateVolta('number', val);
+    }
+    get renderedBox() {
+        return this.backup.renderedBox;
+    }
+}
+exports.SuiVoltaAdapter = SuiVoltaAdapter;
+// ## SuiVoltaAttributeDialog
+// aka first and second endings
+class SuiVoltaAttributeDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        const adapter = new SuiVoltaAdapter(parameters.view, parameters.modifier);
+        super(SuiVoltaAttributeDialog.dialogElements, Object.assign({ adapter }, parameters));
+        this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+        const volta = parameters.modifier;
+        this.modifier = new SuiVoltaAdapter(this.view, volta);
+    }
+    static createAndDisplay(parameters) {
+        if (parameters.modifier.renderedBox === null) {
+            return null;
+        }
+        const dg = new SuiVoltaAttributeDialog(parameters);
+        dg.display();
+        return dg;
+    }
+}
+exports.SuiVoltaAttributeDialog = SuiVoltaAttributeDialog;
+SuiVoltaAttributeDialog.dialogElements = {
+    label: 'Volta Properties', elements: [{
+            smoName: 'number',
+            defaultValue: 1,
+            control: 'SuiRockerComponent',
+            label: 'number'
+        }, {
+            smoName: 'xOffsetStart',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'X1 Offset'
+        }, {
+            smoName: 'xOffsetEnd',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'X2 Offset'
+        }, {
+            smoName: 'yOffset',
+            defaultValue: 0,
+            control: 'SuiRockerComponent',
+            label: 'Y Offset'
+        }],
+    staticText: []
+};
 
 
 /***/ }),
@@ -37732,7 +39279,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SmoLanguage = exports.SmoTranslator = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const ribbon_1 = __webpack_require__(/*! ../ribbon */ "./src/ui/ribbon.ts");
+const ribbon_1 = __webpack_require__(/*! ../buttons/ribbon */ "./src/ui/buttons/ribbon.ts");
 const language_ar_1 = __webpack_require__(/*! ./language_ar */ "./src/ui/i18n/language_ar.js");
 const language_de_1 = __webpack_require__(/*! ./language_de */ "./src/ui/i18n/language_de.js");
 const language_en_1 = __webpack_require__(/*! ./language_en */ "./src/ui/i18n/language_en.js");
@@ -37756,17 +39303,18 @@ class SmoTranslator {
         }
     }
     static printLanguages() {
-        var translatables = [];
+        var translatables = { dialogs: [], menus: [], buttonText: [] };
         SmoTranslator.allDialogs.forEach((key) => {
             SmoTranslator.registerDialog(key);
             const translatable = Smo.getClass('SuiDialogBase');
-            translatables.push(translatable.printTranslate(key));
+            translatables.dialogs.push(translatable.printTranslate(key));
         });
         SmoTranslator.allMenus.forEach((key) => {
             SmoTranslator.registerMenu(key);
-            const translatable = Smo.getClass('suiMenuBase');
-            translatables.push(translatable.printTranslate(key));
+            const translatable = Smo.getClass('SuiMenuBase');
+            translatables.menus.push(translatable.printTranslate(key));
         });
+        translatables.buttonText = JSON.parse(JSON.stringify(ribbon_1.RibbonButtons.translateButtons));
         console.log(JSON.stringify(translatables, null, ' '));
     }
     static _updateDialog(dialogStrings, _dialogClass, dialogClass) {
@@ -37775,19 +39323,17 @@ class SmoTranslator {
             return;
         }
         _dialogClass.label = dialogStrings.label;
-        const staticText = dialogStrings.dialogElements.find((ds) => ds.staticText);
-        _dialogClass.dialogElements.forEach((component) => {
+        const staticText = dialogStrings.staticText;
+        if (staticText || _dialogClass.dialogElements.staticText) {
+            const keys = Object.keys(staticText);
+            keys.forEach((key) => {
+                _dialogClass.dialogElements.staticText[key] = staticText[key];
+            });
+        }
+        _dialogClass.dialogElements.label = dialogStrings.label;
+        _dialogClass.dialogElements.elements.forEach((component) => {
             const componentStrings = dialogStrings.dialogElements.find((ds) => ds.id === component.smoName);
-            if (component.staticText && staticText) {
-                component.staticText.forEach((st) => {
-                    const trans = staticText.staticText.find((dst) => Object.keys(dst)[0] === Object.keys(st)[0]);
-                    if (trans) {
-                        const key = Object.keys(st)[0];
-                        st[key] = trans[key];
-                    }
-                });
-            }
-            else if (componentStrings) {
+            if (componentStrings) {
                 component.label = componentStrings.label;
                 if (component.options) {
                     component.options.forEach((option) => {
@@ -37831,7 +39377,7 @@ class SmoTranslator {
         // Set the text in all the menus
         SmoTranslator.allMenus.forEach((menuClass) => {
             const _class = Smo.getClass(menuClass);
-            const menuStrings = trans.strings.find((mm) => mm.ctor === menuClass);
+            const menuStrings = trans.strings.menus.find((mm) => mm.ctor === menuClass);
             SmoTranslator._updateMenu(menuStrings, _class, menuClass);
             // Set text in ribbon buttons that invoke menus
             const menuButton = $('.ribbonButtonContainer button.' + menuClass).find('.left-text .text-span');
@@ -37840,8 +39386,12 @@ class SmoTranslator {
             }
         });
         SmoTranslator.allDialogs.forEach((dialogClass) => {
-            const _class = Smo.getClass(dialogClass);
-            const dialogStrings = trans.strings.find((mm) => mm.ctor === dialogClass);
+            const _class = eval('globalThis.Smo.' + dialogClass);
+            const dialogStrings = trans.strings.dialogs.find((mm) => mm.ctor === dialogClass);
+            if (typeof (_class) === 'undefined') {
+                console.log('no eval for class ' + dialogClass);
+                return;
+            }
             // Set text in ribbon buttons that invoke menus
             const dialogButton = $('.ribbonButtonContainer button.' + dialogClass).find('.left-text .text-span');
             if (dialogButton.length && dialogStrings) {
@@ -37850,10 +39400,10 @@ class SmoTranslator {
             SmoTranslator._updateDialog(dialogStrings, _class, dialogClass);
         });
         // Translate the buttons on the ribbon
-        const langButtons = trans.strings.find((buttonObj) => buttonObj.ribbonText);
+        const langButtons = trans.strings.buttonText;
         if (langButtons) {
             ribbon_1.RibbonButtons.translateButtons.forEach((button) => {
-                const langButton = langButtons.ribbonText.find((lb) => lb.buttonId === button.buttonId);
+                const langButton = langButtons.find((lb) => lb.buttonId === button.buttonId);
                 if (langButton) {
                     const buttonDom = $('.ribbonButtonContainer #' + button.buttonId);
                     if (buttonDom.length) {
@@ -37867,40 +39417,52 @@ class SmoTranslator {
     }
     static get allMenus() {
         return [
-            'SuiAddStaffMenu',
-            'SuiMeasureMenu',
-            'SuiFileMenu',
-            'SuiTimeSignatureMenu',
-            'SuiKeySignatureMenu',
-            'SuiTimeSignatureMenu',
-            'SuiKeySignatureMenu',
-            'SuiStaffModifierMenu',
             'SuiDynamicsMenu',
+            'SuiFileMenu',
+            'SuiStaffMenu',
+            'SuiKeySignatureMenu',
+            'SuiMeasureMenu',
+            'SuiTimeSignatureMenu',
+            'SuiStaffModifierMenu',
             'SuiLanguageMenu',
+            'SuiLibraryMenu',
             'SuiScoreMenu'
         ];
     }
     static get allDialogs() {
         return [
+            // file dialogs
             'SuiLoadFileDialog',
             'SuiSaveFileDialog',
+            'SuiSaveXmlDialog',
             'SuiPrintFileDialog',
+            'SuiSaveMidiDialog',
+            'SuiSaveActionsDialog',
+            'SuiLoadMxmlDialog',
+            'SuiLoadActionsDialog',
+            // measure dialogs
             'SuiMeasureDialog',
             'SuiTempoDialog',
             'SuiInstrumentDialog',
+            'SuiInsertMeasures',
             'SuiTimeSignatureDialog',
+            // score dialogs
+            'SuiScoreViewDialog',
+            'SuiScoreIdentificationDialog',
+            'SuiGlobalLayoutDialog',
+            'SuiScoreFontDialog',
             'SuiLayoutDialog',
-            'SuiDynamicModifierDialog',
+            // staff dialogs
             'SuiSlurAttributesDialog',
+            'SuiTieAttributesDialog',
             'SuiVoltaAttributeDialog',
             'SuiHairpinAttributesDialog',
+            'SuiStaffGroupDialog',
+            // text dialogs
+            'SuiDynamicModifierDialog',
             'SuiLyricDialog',
             'SuiChordChangeDialog',
-            'SuiTextTransformDialog',
-            'SuiScoreViewDialog',
-            'SuiGlobalLayoutDialog',
-            'SuiLyricDialog',
-            'SuiChordChangeDialog',
+            'SuiTextBlockDialog'
         ];
     }
     static get allHelpFiles() {
@@ -37947,1033 +39509,1560 @@ exports.SmoLanguage = SmoLanguage;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.enterPitchesHtmlar = exports.enterDurationsHtmlar = exports.selectionHtmlar = exports.quickStartHtmlar = exports.smoLanguageStringAr = void 0;
-exports.smoLanguageStringAr = `[
- {
-  "ctor": "SuiLoadFileDialog",
-  "dialogElements": [
-   {
-    "staticText": [
+exports.smoLanguageStringAr = `{
+    "dialogs": [
      {
-      "label": "Load File"
+      "ctor": "SuiLoadFileDialog",
+      "label": "Load File",
+      "dialogElements": [
+       {}
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiSaveFileDialog",
+      "label": "Save Score",
+      "dialogElements": [
+       {
+        "label": "File Name",
+        "id": "saveFileName"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiSaveXmlDialog",
+      "label": "Save Score",
+      "dialogElements": [
+       {
+        "label": "File Name",
+        "id": "saveFileName"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiPrintFileDialog",
+      "label": "Print Complete",
+      "dialogElements": [],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiSaveMidiDialog",
+      "label": "Save Score as Midi",
+      "dialogElements": [
+       {
+        "label": "File Name",
+        "id": "saveFileName"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiSaveActionsDialog",
+      "label": "Save Score",
+      "dialogElements": [
+       {
+        "label": "File Name",
+        "id": "saveFileName"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiLoadMxmlDialog",
+      "label": "Load File",
+      "dialogElements": [
+       {},
+       {
+        "staticText": {
+         "label": "Load File"
+        }
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiLoadActionsDialog",
+      "label": "Load Action File",
+      "dialogElements": [
+       {},
+       {
+        "staticText": {
+         "label": "Load Action File"
+        }
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiMeasureDialog",
+      "label": "Measure Properties",
+      "dialogElements": [
+       {
+        "label": "Pickup",
+        "id": "pickup"
+       },
+       {
+        "label": "Pad Left (px)",
+        "id": "padLeft"
+       },
+       {
+        "label": "Stretch Contents",
+        "id": "customStretch"
+       },
+       {
+        "label": "Proportionalality",
+        "id": "customProportion"
+       },
+       {
+        "label": "Pad all measures in system",
+        "id": "padAllInSystem"
+       },
+       {
+        "label": "Justify Columns",
+        "id": "autoJustify"
+       },
+       {
+        "label": "Text Position",
+        "id": "measureTextPosition",
+        "options": [
+         {
+          "value": 2,
+          "label": "Left"
+         },
+         {
+          "value": 3,
+          "label": "Right"
+         },
+         {
+          "value": 0,
+          "label": "Above"
+         },
+         {
+          "value": 1,
+          "label": "Below"
+         }
+        ]
+       },
+       {
+        "label": "System break before this measure",
+        "id": "systemBreak"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiTempoDialog",
+      "label": "Tempo Properties",
+      "dialogElements": [
+       {
+        "label": "وضع الإيقاع",
+        "id": "tempoMode",
+        "options": [
+         {
+          "value": "duration",
+          "label": "Duration (Beats/Minute)"
+         },
+         {
+          "value": "text",
+          "label": "Tempo Text"
+         },
+         {
+          "value": "custom",
+          "label": "Specify text and duration"
+         }
+        ]
+       },
+       {
+        "label": "Custom Text",
+        "id": "customText"
+       },
+       {
+        "label": "Notes/Minute",
+        "id": "bpm"
+       },
+       {
+        "label": "وحدة لكل ضربه",
+        "id": "beatDuration",
+        "options": [
+         {
+          "value": 4096,
+          "label": "Quarter Note"
+         },
+         {
+          "value": 2048,
+          "label": "1/8 note"
+         },
+         {
+          "value": 6144,
+          "label": "Dotted 1/4 note"
+         },
+         {
+          "value": 8192,
+          "label": "1/2 note"
+         }
+        ]
+       },
+       {
+        "label": "Tempo Text",
+        "id": "tempoText",
+        "options": [
+         {
+          "value": "Larghissimo",
+          "label": "Larghissimo"
+         },
+         {
+          "value": "Grave",
+          "label": "Grave"
+         },
+         {
+          "value": "Lento",
+          "label": "Lento"
+         },
+         {
+          "value": "Largo",
+          "label": "Largo"
+         },
+         {
+          "value": "Larghetto",
+          "label": "Larghetto"
+         },
+         {
+          "value": "Adagio",
+          "label": "Adagio"
+         },
+         {
+          "value": "Adagietto",
+          "label": "Adagietto"
+         },
+         {
+          "value": "Andante moderato",
+          "label": "Andante moderato"
+         },
+         {
+          "value": "Andante",
+          "label": "Andante"
+         },
+         {
+          "value": "Andantino",
+          "label": "Andantino"
+         },
+         {
+          "value": "Moderato",
+          "label": "Moderato"
+         },
+         {
+          "value": "Allegretto",
+          "label": "Allegretto"
+         },
+         {
+          "value": "Allegro",
+          "label": "Allegro"
+         },
+         {
+          "value": "Vivace",
+          "label": "Vivace"
+         },
+         {
+          "value": "Presto",
+          "label": "Presto"
+         },
+         {
+          "value": "Prestissimo",
+          "label": "Prestissimo"
+         }
+        ]
+       },
+       {
+        "label": "Apply to all future measures?",
+        "id": "applyToAll"
+       },
+       {
+        "label": "Display Tempo",
+        "id": "display"
+       },
+       {
+        "label": "Y Offset",
+        "id": "yOffset"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiInstrumentDialog",
+      "label": "Instrument Properties",
+      "dialogElements": [
+       {
+        "label": "Transpose Index (1/2 steps)",
+        "id": "transposeIndex"
+       },
+       {
+        "label": "Apply To",
+        "id": "applyTo",
+        "options": [
+         {
+          "value": 0,
+          "label": "Score"
+         },
+         {
+          "value": 1,
+          "label": "Selected Measures"
+         },
+         {
+          "value": 3,
+          "label": "Remaining Measures"
+         }
+        ]
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiInsertMeasures",
+      "label": "Insert Measures",
+      "dialogElements": [
+       {
+        "label": "Measures to Insert",
+        "id": "measureCount"
+       },
+       {
+        "label": "Append to Selection",
+        "id": "append"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiTimeSignatureDialog",
+      "label": "Custom Time Signature",
+      "dialogElements": [
+       {
+        "label": "Beats/Measure",
+        "id": "numerator"
+       },
+       {
+        "label": "Beat Value",
+        "id": "denominator",
+        "options": [
+         {
+          "value": 8,
+          "label": "8"
+         },
+         {
+          "value": 4,
+          "label": "4"
+         },
+         {
+          "value": 2,
+          "label": "2"
+         }
+        ]
+       },
+       {
+        "label": "Display",
+        "id": "display"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiScoreViewDialog",
+      "label": "Score View",
+      "dialogElements": [
+       {
+        "label": "Show staff",
+        "id": "scoreView"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiScoreIdentificationDialog",
+      "label": "Score Preferences",
+      "dialogElements": [
+       {
+        "label": "Title",
+        "id": "title"
+       },
+       {
+        "label": "Sub Title",
+        "id": "subTitle"
+       },
+       {
+        "label": "Composer",
+        "id": "composer"
+       },
+       {
+        "label": "Copyright",
+        "id": "copyright"
+       }
+      ],
+      "staticText": {
+       "titleText": "Title",
+       "subTitleText": "Sub-title",
+       "copyrightText": "Copyright",
+       "composerText": "Composer",
+       "show": "Show"
+      }
+     },
+     {
+      "ctor": "SuiGlobalLayoutDialog",
+      "label": "Global Settings",
+      "dialogElements": [
+       {
+        "label": "Score Name",
+        "id": "scoreName"
+       },
+       {
+        "label": "Play Selections",
+        "id": "autoPlay"
+       },
+       {
+        "label": "Auto-Advance Cursor",
+        "id": "autoAdvance"
+       },
+       {
+        "label": "Note Spacing",
+        "id": "noteSpacing"
+       },
+       {
+        "label": "Page Size",
+        "id": "pageSize",
+        "options": [
+         {
+          "value": "letter",
+          "label": "Letter (Portrait)"
+         },
+         {
+          "value": "letterLandscape",
+          "label": "Letter (Landscape)"
+         },
+         {
+          "value": "tabloid",
+          "label": "Tabloid (11x17)"
+         },
+         {
+          "value": "A4",
+          "label": "A4"
+         },
+         {
+          "value": "custom",
+          "label": "Custom"
+         }
+        ]
+       },
+       {
+        "label": "Page Width (px)",
+        "id": "pageWidth"
+       },
+       {
+        "label": "Page Height (px)",
+        "id": "pageHeight"
+       },
+       {
+        "label": "% Zoom",
+        "id": "zoomScale"
+       },
+       {
+        "label": "% Note size",
+        "id": "svgScale"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiScoreFontDialog",
+      "label": "Score Fonts",
+      "dialogElements": [
+       {
+        "label": "Engraving Font",
+        "id": "engravingFont",
+        "options": [
+         {
+          "value": "Bravura",
+          "label": "Bravura"
+         },
+         {
+          "value": "Gonville",
+          "label": "Gonville"
+         },
+         {
+          "value": "Petaluma",
+          "label": "Petaluma"
+         },
+         {
+          "value": "Leland",
+          "label": "Leland"
+         }
+        ]
+       },
+       {
+        "label": "Chord Font",
+        "id": "chordFont"
+       },
+       {
+        "label": "Lyric Font",
+        "id": "lyricFont"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiLayoutDialog",
+      "label": "Page Layouts",
+      "dialogElements": [
+       {
+        "label": "Apply to Page",
+        "id": "applyToPage",
+        "options": [
+         {
+          "value": -1,
+          "label": "All"
+         },
+         {
+          "value": -2,
+          "label": "All Remaining"
+         },
+         {
+          "value": 1,
+          "label": "Page 1"
+         }
+        ]
+       },
+       {
+        "label": "Left Margin (px)",
+        "id": "leftMargin"
+       },
+       {
+        "label": "Right Margin (px)",
+        "id": "rightMargin"
+       },
+       {
+        "label": "Top Margin (px)",
+        "id": "topMargin"
+       },
+       {
+        "label": "Bottom Margin (px)",
+        "id": "bottomMargin"
+       },
+       {
+        "label": "Inter-System Margin",
+        "id": "interGap"
+       },
+       {
+        "label": "Intra-System Margin",
+        "id": "intraGap"
+       },
+       {
+        "staticText": {
+         "label": "Page Layouts"
+        }
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiSlurAttributesDialog",
+      "label": "Slur Properties",
+      "dialogElements": [
+       {
+        "label": "Spacing",
+        "id": "spacing"
+       },
+       {
+        "label": "Thickness",
+        "id": "thickness"
+       },
+       {
+        "label": "X Offset",
+        "id": "xOffset"
+       },
+       {
+        "label": "Y Offset",
+        "id": "yOffset"
+       },
+       {
+        "label": "Start Position",
+        "id": "position",
+        "options": [
+         {
+          "value": 1,
+          "label": "Head"
+         },
+         {
+          "value": 2,
+          "label": "Top"
+         }
+        ]
+       },
+       {
+        "label": "End Position",
+        "id": "position_end",
+        "options": [
+         {
+          "value": 1,
+          "label": "Head"
+         },
+         {
+          "value": 2,
+          "label": "Top"
+         }
+        ]
+       },
+       {
+        "label": "Invert",
+        "id": "invert"
+       },
+       {
+        "label": "Control Point 1 X",
+        "id": "cp1x"
+       },
+       {
+        "label": "Control Point 1 Y",
+        "id": "cp1y"
+       },
+       {
+        "label": "Control Point 2 X",
+        "id": "cp2x"
+       },
+       {
+        "label": "Control Point 2 Y",
+        "id": "cp2y"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiTieAttributesDialog",
+      "label": "Tie Properties",
+      "dialogElements": [
+       {
+        "label": "Lines",
+        "id": "lines"
+       }
+      ],
+      "staticText": {
+       "label": "Tie Properties",
+       "fromNote": "From Note",
+       "toNote": "To Note"
+      }
+     },
+     {
+      "ctor": "SuiVoltaAttributeDialog",
+      "label": "Volta Properties",
+      "dialogElements": [
+       {
+        "label": "number",
+        "id": "number"
+       },
+       {
+        "label": "X1 Offset",
+        "id": "xOffsetStart"
+       },
+       {
+        "label": "X2 Offset",
+        "id": "xOffsetEnd"
+       },
+       {
+        "label": "Y Offset",
+        "id": "yOffset"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiHairpinAttributesDialog",
+      "label": "Hairpin Properties",
+      "dialogElements": [
+       {
+        "label": "Height",
+        "id": "height"
+       },
+       {
+        "label": "Y Shift",
+        "id": "yOffset"
+       },
+       {
+        "label": "Right Shift",
+        "id": "xOffsetRight"
+       },
+       {
+        "label": "Left Shift",
+        "id": "xOffsetLeft"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiStaffGroupDialog",
+      "label": "Staff Group",
+      "dialogElements": [
+       {
+        "label": "Staves in Group",
+        "id": "staffGroups"
+       },
+       {
+        "label": "Left Connector",
+        "id": "leftConnector",
+        "options": [
+         {
+          "value": 1,
+          "label": "Bracket"
+         },
+         {
+          "value": 0,
+          "label": "Brace"
+         },
+         {
+          "value": 2,
+          "label": "Single"
+         },
+         {
+          "value": 3,
+          "label": "Double"
+         }
+        ]
+       }
+      ],
+      "staticText": {
+       "includeStaff": "Include Staff"
+      }
+     },
+     {
+      "ctor": "SuiDynamicModifierDialog",
+      "label": "Dynamics Properties",
+      "dialogElements": [
+       {
+        "label": "Y Line",
+        "id": "yOffsetLine"
+       },
+       {
+        "label": "Y Offset Px",
+        "id": "yOffsetPixels"
+       },
+       {
+        "label": "X Offset",
+        "id": "xOffset"
+       },
+       {
+        "label": "Text",
+        "id": "text",
+        "options": [
+         {
+          "value": "p",
+          "label": "Piano"
+         },
+         {
+          "value": "pp",
+          "label": "Pianissimo"
+         },
+         {
+          "value": "mp",
+          "label": "Mezzo-Piano"
+         },
+         {
+          "value": "mf",
+          "label": "Mezzo-Forte"
+         },
+         {
+          "value": "f",
+          "label": "Forte"
+         },
+         {
+          "value": "ff",
+          "label": "Fortissimo"
+         },
+         {
+          "value": "sfz",
+          "label": "Sforzando"
+         }
+        ]
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiLyricDialog",
+      "label": "Lyric Editor",
+      "dialogElements": [
+       {
+        "label": "Verse",
+        "id": "verse",
+        "options": [
+         {
+          "value": 0,
+          "label": "1"
+         },
+         {
+          "value": 1,
+          "label": "2"
+         },
+         {
+          "value": 2,
+          "label": "3"
+         },
+         {
+          "value": 3,
+          "label": "4"
+         }
+        ]
+       },
+       {
+        "label": "Y Adjustment (Px)",
+        "id": "translateY"
+       },
+       {
+        "label": "Font",
+        "id": "font"
+       },
+       {
+        "label": "Edit Lyrics",
+        "id": "lyricEditor",
+        "options": []
+       }
+      ],
+      "staticText": {
+       "doneEditing": "Done Editing Lyrics",
+       "undo": "Undo Lyrics",
+       "label": "Lyric Editor"
+      }
+     },
+     {
+      "ctor": "SuiChordChangeDialog",
+      "label": "Edit Chord Symbol",
+      "dialogElements": [
+       {
+        "label": "Ordinality",
+        "id": "verse",
+        "options": [
+         {
+          "value": 0,
+          "label": "1"
+         },
+         {
+          "value": 1,
+          "label": "2"
+         },
+         {
+          "value": 2,
+          "label": "3"
+         }
+        ]
+       },
+       {
+        "label": "Y Adjustment (Px)",
+        "id": "translateY"
+       },
+       {
+        "label": "Edit Text",
+        "id": "chordEditor",
+        "options": []
+       },
+       {
+        "label": "Chord Symbol",
+        "id": "chordSymbol",
+        "options": [
+         {
+          "value": "csymDiminished",
+          "label": "Dim"
+         },
+         {
+          "value": "csymHalfDiminished",
+          "label": "Half dim"
+         },
+         {
+          "value": "csymDiagonalArrangementSlash",
+          "label": "Slash"
+         },
+         {
+          "value": "csymMajorSeventh",
+          "label": "Maj7"
+         }
+        ]
+       },
+       {
+        "label": "Text Position",
+        "id": "textPosition",
+        "options": [
+         {
+          "value": 1,
+          "label": "Superscript"
+         },
+         {
+          "value": 2,
+          "label": "Subscript"
+         },
+         {
+          "value": 0,
+          "label": "Normal"
+         }
+        ]
+       },
+       {
+        "label": "Font",
+        "id": "font"
+       },
+       {
+        "label": "Adjust Note Width",
+        "id": "adjustWidth",
+        "options": []
+       }
+      ],
+      "staticText": {
+       "label": "Edit Chord Symbol",
+       "undo": "Undo Chord Symbols",
+       "doneEditing": "Done Editing Chord Symbols"
+      }
+     },
+     {
+      "ctor": "SuiTextBlockDialog",
+      "label": "Text Properties",
+      "dialogElements": [
+       {
+        "label": "Edit Text",
+        "id": "textEditor",
+        "options": []
+       },
+       {
+        "label": "Insert Special",
+        "id": "insertCode",
+        "options": [
+         {
+          "value": "@@@",
+          "label": "Pages"
+         },
+         {
+          "value": "###",
+          "label": "Page Number"
+         }
+        ]
+       },
+       {
+        "label": "Move Text",
+        "id": "textDragger",
+        "options": []
+       },
+       {
+        "label": "X Position (Px)",
+        "id": "x"
+       },
+       {
+        "label": "Y Position (Px)",
+        "id": "y"
+       },
+       {
+        "label": "Font Information",
+        "id": "font"
+       },
+       {
+        "label": "Text Block Properties",
+        "id": "textBlock"
+       },
+       {
+        "label": "Page Behavior",
+        "id": "pagination",
+        "options": [
+         {
+          "value": 4,
+          "label": "Once"
+         },
+         {
+          "value": 1,
+          "label": "Every"
+         },
+         {
+          "label": "Even"
+         },
+         {
+          "value": 3,
+          "label": "Odd"
+         },
+         {
+          "value": 5,
+          "label": "Subsequent"
+         }
+        ]
+       },
+       {
+        "label": "Attach to Selection",
+        "id": "attachToSelector"
+       }
+      ],
+      "staticText": {
+       "label": "Text Properties",
+       "editorLabel": "Done Editing Text",
+       "draggerLabel": "Done Dragging Text"
+      }
+     }
+    ],
+    "menus": [
+     {
+      "ctor": "SuiDynamicsMenu",
+      "label": "Dynamics",
+      "menuItems": [
+       {
+        "icon": "pianissimo",
+        "text": "Pianissimo",
+        "value": "pp"
+       },
+       {
+        "icon": "piano",
+        "text": "Piano",
+        "value": "p"
+       },
+       {
+        "icon": "mezzopiano",
+        "text": "Mezzo-piano",
+        "value": "mp"
+       },
+       {
+        "icon": "mezzoforte",
+        "text": "Mezzo-forte",
+        "value": "mf"
+       },
+       {
+        "icon": "forte",
+        "text": "Forte",
+        "value": "f"
+       },
+       {
+        "icon": "fortissimo",
+        "text": "Fortissimo",
+        "value": "ff"
+       },
+       {
+        "icon": "sfz",
+        "text": "sfortzando",
+        "value": "sfz"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiFileMenu",
+      "label": "ملف",
+      "menuItems": [
+       {
+        "icon": "folder-new",
+        "text": "جديدe",
+        "value": "newFile"
+       },
+       {
+        "icon": "folder-open",
+        "text": "فتح",
+        "value": "openFile"
+       },
+       {
+        "icon": "",
+        "text": "Quick Save",
+        "value": "quickSave"
+       },
+       {
+        "icon": "folder-save",
+        "text": "حفظ",
+        "value": "saveFile"
+       },
+       {
+        "icon": "",
+        "text": "طباعه",
+        "value": "printScore"
+       },
+       {
+        "icon": "",
+        "text": "Import MusicXML",
+        "value": "importMxml"
+       },
+       {
+        "icon": "",
+        "text": "Export MusicXML",
+        "value": "exportXml"
+       },
+       {
+        "icon": "",
+        "text": "Export Midi",
+        "value": "exportMidi"
+       },
+       {
+        "icon": "folder-save",
+        "text": "Save Actions",
+        "value": "saveActions"
+       },
+       {
+        "icon": "icon-play3",
+        "text": "Play Actions",
+        "value": "playActions"
+       },
+       {
+        "icon": "",
+        "text": "إلغاء",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiStaffMenu",
+      "label": "المفاتيح",
+      "menuItems": [
+       {
+        "icon": "treble",
+        "text": "طاقم التريبل مفتاح",
+        "value": "trebleInstrument"
+       },
+       {
+        "icon": "bass",
+        "text": "طاقم باس كلف",
+        "value": "bassInstrument"
+       },
+       {
+        "icon": "alto",
+        "text": "طاقم ألتو مفتاح",
+        "value": "altoInstrument"
+       },
+       {
+        "icon": "tenor",
+        "text": "طاقم تينور مفتاح",
+        "value": "tenorInstrument"
+       },
+       {
+        "icon": "percussion",
+        "text": "Percussion Clef Staff",
+        "value": "percussionInstrument"
+       },
+       {
+        "icon": "",
+        "text": "Staff Groups",
+        "value": "staffGroups"
+       },
+       {
+        "icon": "cancel-circle",
+        "text": "حذف الطواقم",
+        "value": "remove"
+       },
+       {
+        "icon": "",
+        "text": "إلغاء",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiKeySignatureMenu",
+      "label": "الدليل",
+      "menuItems": [
+       {
+        "icon": "key-sig-c",
+        "text": "C Major",
+        "value": "KeyOfC"
+       },
+       {
+        "icon": "key-sig-f",
+        "text": "F Major",
+        "value": "KeyOfF"
+       },
+       {
+        "icon": "key-sig-g",
+        "text": "G Major",
+        "value": "KeyOfG"
+       },
+       {
+        "icon": "key-sig-bb",
+        "text": "Bb Major",
+        "value": "KeyOfBb"
+       },
+       {
+        "icon": "key-sig-d",
+        "text": "D Major",
+        "value": "KeyOfD"
+       },
+       {
+        "icon": "key-sig-eb",
+        "text": "Eb Major",
+        "value": "KeyOfEb"
+       },
+       {
+        "icon": "key-sig-a",
+        "text": "A Major",
+        "value": "KeyOfA"
+       },
+       {
+        "icon": "key-sig-ab",
+        "text": "Ab Major",
+        "value": "KeyOfAb"
+       },
+       {
+        "icon": "key-sig-e",
+        "text": "E Major",
+        "value": "KeyOfE"
+       },
+       {
+        "icon": "key-sig-bd",
+        "text": "Db Major",
+        "value": "KeyOfDb"
+       },
+       {
+        "icon": "key-sig-b",
+        "text": "B Major",
+        "value": "KeyOfB"
+       },
+       {
+        "icon": "key-sig-fs",
+        "text": "F# Major",
+        "value": "KeyOfF#"
+       },
+       {
+        "icon": "key-sig-cs",
+        "text": "C# Major",
+        "value": "KeyOfC#"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiMeasureMenu",
+      "label": "Measure",
+      "menuItems": [
+       {
+        "icon": "",
+        "text": "Add Measures",
+        "value": "addMenuCmd"
+       },
+       {
+        "icon": "icon-cross",
+        "text": "Delete Selected Measures",
+        "value": "deleteSelected"
+       },
+       {
+        "icon": "",
+        "text": "Format Measure",
+        "value": "formatMeasureDialog"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiTimeSignatureMenu",
+      "label": "وزن الإيقاع",
+      "menuItems": [
+       {
+        "icon": "sixeight",
+        "text": "6/8",
+        "value": "6/8"
+       },
+       {
+        "icon": "fourfour",
+        "text": "4/4",
+        "value": "4/4"
+       },
+       {
+        "icon": "threefour",
+        "text": "3/4",
+        "value": "3/4"
+       },
+       {
+        "icon": "twofour",
+        "text": "2/4",
+        "value": "2/4"
+       },
+       {
+        "icon": "twelveeight",
+        "text": "12/8",
+        "value": "12/8"
+       },
+       {
+        "icon": "seveneight",
+        "text": "7/8",
+        "value": "7/8"
+       },
+       {
+        "icon": "fiveeight",
+        "text": "5/8",
+        "value": "5/8"
+       },
+       {
+        "icon": "",
+        "text": "Other",
+        "value": "TimeSigOther"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiStaffModifierMenu",
+      "label": "خطوط",
+      "menuItems": [
+       {
+        "icon": "cresc",
+        "text": "تصاعد",
+        "value": "crescendo"
+       },
+       {
+        "icon": "decresc",
+        "text": "تهابط",
+        "value": "decrescendo"
+       },
+       {
+        "icon": "slur",
+        "text": "طمس / تعادل",
+        "value": "slur"
+       },
+       {
+        "icon": "slur",
+        "text": "Tie",
+        "value": "tie"
+       },
+       {
+        "icon": "ending",
+        "text": "النهاية التاسعة",
+        "value": "ending"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiLanguageMenu",
+      "label": "Language",
+      "menuItems": [
+       {
+        "icon": "",
+        "text": "English",
+        "value": "en"
+       },
+       {
+        "icon": "",
+        "text": "Deutsch",
+        "value": "de"
+       },
+       {
+        "icon": "",
+        "text": "اَلْعَرَبِيَّةُ",
+        "value": "ar"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiLibraryMenu",
+      "label": "Score",
+      "menuItems": [
+       {
+        "icon": "",
+        "text": "Bach Invention",
+        "value": "bach"
+       },
+       {
+        "icon": "",
+        "text": "Postillion-Lied",
+        "value": "postillion"
+       },
+       {
+        "icon": "",
+        "text": "Jesu Bambino",
+        "value": "bambino"
+       },
+       {
+        "icon": "",
+        "text": "Handel Messiah 1-1",
+        "value": "handel"
+       },
+       {
+        "icon": "",
+        "text": "Precious Lord",
+        "value": "preciousLord"
+       },
+       {
+        "icon": "",
+        "text": "In Its Delightful Shade",
+        "value": "shade"
+       },
+       {
+        "icon": "",
+        "text": "Yama",
+        "value": "yamaJson"
+       },
+       {
+        "icon": "",
+        "text": "Dichterliebe (xml)",
+        "value": "dichterliebe"
+       },
+       {
+        "icon": "",
+        "text": "Beethoven - An die ferne Gliebte (xml)",
+        "value": "beethoven"
+       },
+       {
+        "icon": "",
+        "text": "Mozart - An Chloe (xml)",
+        "value": "mozart"
+       },
+       {
+        "icon": "",
+        "text": "Joplin - The Entertainer (xml)",
+        "value": "joplin"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiScoreMenu",
+      "label": "Score Settings",
+      "menuItems": [
+       {
+        "icon": "",
+        "text": "Layout",
+        "value": "layout"
+       },
+       {
+        "icon": "",
+        "text": "Fonts",
+        "value": "fonts"
+       },
+       {
+        "icon": "",
+        "text": "View",
+        "value": "view"
+       },
+       {
+        "icon": "",
+        "text": "Score Info",
+        "value": "identification"
+       },
+       {
+        "icon": "",
+        "text": "Global Settings",
+        "value": "preferences"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     }
+    ],
+    "buttonText": [
+     {
+      "buttonId": "helpDialog",
+      "buttonText": "Help"
+     },
+     {
+      "buttonId": "languageMenu",
+      "buttonText": "Language"
+     },
+     {
+      "buttonId": "fileMenu",
+      "buttonText": "ملف"
+     },
+     {
+      "buttonId": "libraryMenu",
+      "buttonText": "Library"
+     },
+     {
+      "buttonId": "addStaffMenu",
+      "buttonText": "Staves"
+     },
+     {
+      "buttonId": "measureModal",
+      "buttonText": "Measure"
+     },
+     {
+      "buttonId": "tempoModal",
+      "buttonText": "Tempo"
+     },
+     {
+      "buttonId": "timeSignatureMenu",
+      "buttonText": "Time Signature"
+     },
+     {
+      "buttonId": "keyMenu",
+      "buttonText": "Key"
+     },
+     {
+      "buttonId": "staffModifierMenu",
+      "buttonText": "Lines"
+     },
+     {
+      "buttonId": "instrumentModal",
+      "buttonText": "Instrument"
+     },
+     {
+      "buttonId": "pianoModal",
+      "buttonText": "Piano"
+     },
+     {
+      "buttonId": "layoutMenu",
+      "buttonText": "Score"
+     },
+     {
+      "buttonId": "UpOctaveButton",
+      "buttonText": "8va"
+     },
+     {
+      "buttonId": "DownOctaveButton",
+      "buttonText": "8vb"
+     },
+     {
+      "buttonId": "moreNavButtons",
+      "buttonText": "..."
+     },
+     {
+      "buttonId": "dcAlCoda",
+      "buttonText": "DC Al Coda"
+     },
+     {
+      "buttonId": "dsAlCoda",
+      "buttonText": "DS Al Coda"
+     },
+     {
+      "buttonId": "dcAlFine",
+      "buttonText": "DC Al Fine"
+     },
+     {
+      "buttonId": "dsAlFine",
+      "buttonText": "DS Al Fine"
+     },
+     {
+      "buttonId": "toCoda",
+      "buttonText": "to "
+     },
+     {
+      "buttonId": "fine",
+      "buttonText": "Fine"
+     },
+     {
+      "buttonId": "moreStaffButtons",
+      "buttonText": "..."
      }
     ]
-   }
-  ]
- },
- {
-  "ctor": "SuiSaveFileDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Save Score"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiPrintFileDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Print Complete"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiMeasureDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Measure Properties"
-     }
-    ]
-   },
-   {
-    "id": "pickupMeasure",
-    "label": "Pickup Measure",
-    "options": [
-     {
-      "value": "2048",
-      "label": "Eighth Note"
-     },
-     {
-      "value": "4096",
-      "label": "Quarter Note"
-     },
-     {
-      "value": "6144",
-      "label": "Dotted Quarter"
-     },
-     {
-      "value": "8192",
-      "label": "Half Note"
-     }
-    ]
-   },
-   {
-    "id": "measureTextPosition",
-    "label": "Text Position",
-    "options": [
-     {
-      "value": "2",
-      "label": "Left"
-     },
-     {
-      "value": "3",
-      "label": "Right"
-     },
-     {
-      "value": "0",
-      "label": "Above"
-     },
-     {
-      "value": "1",
-      "label": "Below"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiTempoDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Tempo Properties"
-     }
-    ]
-   },
-   {
-    "id": "tempoMode",
-    "label": "وضع الإيقاع",
-    "options": [
-     {
-      "value": "duration",
-      "label": "Duration (Beats/Minute)"
-     },
-     {
-      "value": "text",
-      "label": "Tempo Text"
-     },
-     {
-      "value": "custom",
-      "label": "Specify text and duration"
-     }
-    ]
-   },
-   {
-    "id": "beatDuration",
-    "label": "وحدة لكل ضربه",
-    "options": [
-     {
-      "value": "4096",
-      "label": "Quarter Note"
-     },
-     {
-      "value": "2048",
-      "label": "1/8 note"
-     },
-     {
-      "value": "6144",
-      "label": "Dotted 1/4 note"
-     },
-     {
-      "value": "8192",
-      "label": "1/2 note"
-     }
-    ]
-   },
-   {
-    "id": "tempoText",
-    "label": "Tempo Text",
-    "options": [
-     {
-      "value": "Larghissimo",
-      "label": "Larghissimo"
-     },
-     {
-      "value": "Grave",
-      "label": "Grave"
-     },
-     {
-      "value": "Lento",
-      "label": "Lento"
-     },
-     {
-      "value": "Largo",
-      "label": "Largo"
-     },
-     {
-      "value": "Larghetto",
-      "label": "Larghetto"
-     },
-     {
-      "value": "Adagio",
-      "label": "Adagio"
-     },
-     {
-      "value": "Adagietto",
-      "label": "Adagietto"
-     },
-     {
-      "value": "Andante moderato",
-      "label": "Andante moderato"
-     },
-     {
-      "value": "Andante",
-      "label": "Andante"
-     },
-     {
-      "value": "Andantino",
-      "label": "Andantino"
-     },
-     {
-      "value": "Moderato",
-      "label": "Moderato"
-     },
-     {
-      "value": "Allegretto",
-      "label": "Allegretto"
-     },
-     {
-      "value": "Allegro",
-      "label": "Allegro"
-     },
-     {
-      "value": "Vivace",
-      "label": "Vivace"
-     },
-     {
-      "value": "Presto",
-      "label": "Presto"
-     },
-     {
-      "value": "Prestissimo",
-      "label": "Prestissimo"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiInstrumentDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Instrument Properties"
-     }
-    ]
-   },
-   {
-    "id": "applyTo",
-    "label": "Apply To",
-    "options": [
-     {
-      "value": "0",
-      "label": "Score"
-     },
-     {
-      "value": "1",
-      "label": "Selected Measures"
-     },
-     {
-      "value": "3",
-      "label": "Remaining Measures"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiTimeSignatureDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Custom Time Signature"
-     }
-    ]
-   },
-   {
-    "id": "denominator",
-    "label": "Beat Value",
-    "options": [
-     {
-      "value": "8",
-      "label": "8"
-     },
-     {
-      "value": "4",
-      "label": "4"
-     },
-     {
-      "value": "2",
-      "label": "2"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiLayoutDialog",
-  "dialogElements": [
-   {
-    "id": "pageSize",
-    "label": "Page Size",
-    "options": [
-     {
-      "value": "letter",
-      "label": "Letter"
-     },
-     {
-      "value": "tabloid",
-      "label": "Tabloid (11x17)"
-     },
-     {
-      "value": "A4",
-      "label": "A4"
-     },
-     {
-      "value": "custom",
-      "label": "Custom"
-     }
-    ]
-   },
-   {
-    "id": "orientation",
-    "label": "Orientation",
-    "options": [
-     {
-      "value": "0",
-      "label": "Portrait"
-     },
-     {
-      "value": "1",
-      "label": "Landscape"
-     }
-    ]
-   },
-   {
-    "id": "engravingFont",
-    "label": "Engraving Font",
-    "options": [
-     {
-      "value": "Bravura",
-      "label": "Bravura"
-     },
-     {
-      "value": "Gonville",
-      "label": "Gonville"
-     },
-     {
-      "value": "Petaluma",
-      "label": "Petaluma"
-     }
-    ]
-   },
-   {
-    "staticText": [
-     {
-      "label": "Score Layout"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiDynamicModifierDialog",
-  "dialogElements": [
-   {
-    "id": "text",
-    "label": "Text",
-    "options": [
-     {
-      "value": "p",
-      "label": "Piano"
-     },
-     {
-      "value": "pp",
-      "label": "Pianissimo"
-     },
-     {
-      "value": "mp",
-      "label": "Mezzo-Piano"
-     },
-     {
-      "value": "mf",
-      "label": "Mezzo-Forte"
-     },
-     {
-      "value": "f",
-      "label": "Forte"
-     },
-     {
-      "value": "ff",
-      "label": "Fortissimo"
-     },
-     {
-      "value": "sfz",
-      "label": "Sforzando"
-     }
-    ]
-   },
-   {
-    "staticText": [
-     {
-      "label": "Dynamics Properties"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiSlurAttributesDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Slur Properties"
-     }
-    ]
-   },
-   {
-    "id": "position",
-    "label": "Start Position",
-    "options": [
-     {
-      "value": "1",
-      "label": "Head"
-     },
-     {
-      "value": "2",
-      "label": "Top"
-     }
-    ]
-   },
-   {
-    "id": "position_end",
-    "label": "End Position",
-    "options": [
-     {
-      "value": "1",
-      "label": "Head"
-     },
-     {
-      "value": "2",
-      "label": "Top"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiVoltaAttributeDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Volta Properties"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiHairpinAttributesDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Hairpin Properties"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiLyricDialog",
-  "dialogElements": [
-   {
-    "id": "verse",
-    "label": "Verse",
-    "options": [
-     {
-      "value": "0",
-      "label": "1"
-     },
-     {
-      "value": "1",
-      "label": "2"
-     },
-     {
-      "value": "2",
-      "label": "3"
-     }
-    ]
-   },
-   {
-    "id": "textEditor",
-    "label": "Edit Text",
-    "options": []
-   },
-   {
-    "staticText": [
-     {
-      "doneEditing": "Done Editing Lyrics"
-     },
-     {
-      "undo": "Undo Lyrics"
-     },
-     {
-      "label": "Lyric Editor"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiChordChangeDialog",
-  "dialogElements": [
-   {
-    "id": "verse",
-    "label": "Verse",
-    "options": [
-     {
-      "value": "0",
-      "label": "1"
-     },
-     {
-      "value": "1",
-      "label": "2"
-     },
-     {
-      "value": "2",
-      "label": "3"
-     }
-    ]
-   },
-   {
-    "id": "textEditor",
-    "label": "Edit Text",
-    "options": []
-   },
-   {
-    "staticText": [
-     {
-      "doneEditing": "Done Editing Lyrics"
-     },
-     {
-      "undo": "Undo Lyrics"
-     },
-     {
-      "label": "Lyric Editor"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiTextTransformDialog",
-  "dialogElements": [
-   {
-    "id": "textEditor",
-    "label": "Edit Text",
-    "options": []
-   },
-   {
-    "id": "textDragger",
-    "label": "Move Text",
-    "options": []
-   },
-   {
-    "id": "textResizer",
-    "label": "Resize Text",
-    "options": []
-   },
-   {
-    "id": "justification",
-    "label": "Justification",
-    "options": [
-     {
-      "value": "left",
-      "label": "Left"
-     },
-     {
-      "value": "right",
-      "label": "Right"
-     },
-     {
-      "value": "center",
-      "label": "Center"
-     }
-    ]
-   },
-   {
-    "id": "fontFamily",
-    "label": "Font Family",
-    "options": [
-     {
-      "value": "Merriweather,serif",
-      "label": "Serif"
-     },
-     {
-      "value": "Roboto,sans-serif",
-      "label": "Sans-Serif"
-     },
-     {
-      "value": "monospace",
-      "label": "Monospace"
-     },
-     {
-      "value": "cursive",
-      "label": "Cursive"
-     },
-     {
-      "value": "Merriweather",
-      "label": "times"
-     },
-     {
-      "value": "Arial",
-      "label": "arial"
-     },
-     {
-      "value": "Helvetica",
-      "label": "Helvetica"
-     }
-    ]
-   },
-   {
-    "id": "fontUnit",
-    "label": "Units",
-    "options": [
-     {
-      "value": "em",
-      "label": "em"
-     },
-     {
-      "value": "px",
-      "label": "px"
-     },
-     {
-      "value": "pt",
-      "label": "pt"
-     }
-    ]
-   },
-   {
-    "id": "pagination",
-    "label": "Page Behavior",
-    "options": [
-     {
-      "value": "once",
-      "label": "Once"
-     },
-     {
-      "value": "every",
-      "label": "Every"
-     },
-     {
-      "value": "even",
-      "label": "Even"
-     },
-     {
-      "value": "odd",
-      "label": "Odd"
-     },
-     {
-      "value": "subsequent",
-      "label": "Subsequent"
-     }
-    ]
-   },
-   {
-    "staticText": [
-     {
-      "label": "Text Properties"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiAddStaffMenu",
-  "label": "المفاتيح",
-  "menuItems": [
-   {
-    "value": "trebleInstrument",
-    "text": "طاقم التريبل مفتاح"
-   },
-   {
-    "value": "bassInstrument",
-    "text": "طاقم باس كلف"
-   },
-   {
-    "value": "altoInstrument",
-    "text": "طاقم ألتو مفتاح"
-   },
-   {
-    "value": "tenorInstrument",
-    "text": "طاقم تينور مفتاح"
-   },
-   {
-    "value": "remove",
-    "text": "حذف الطواقم"
-   },
-   {
-    "value": "cancel",
-    "text": "إلغاء"
-   }
-  ]
- },
- {
-  "ctor": "SuiMeasureMenu",
-  "label": "Measure",
-  "menuItems": [
-   {
-    "value": "addMenuBeforeCmd",
-    "text": "Add Measure Before"
-   },
-   {
-    "value": "addMenuAfterCmd",
-    "text": "Add Measure After"
-   },
-   {
-    "value": "deleteSelected",
-    "text": "Delete Selected Measures"
-   },
-   {
-    "value": "formatMeasureDialog",
-    "text": "Format Measure"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiFileMenu",
-  "label": "ملف",
-  "menuItems": [
-   {
-    "value": "newFile",
-    "text": "جديدe"
-   },
-   {
-    "value": "openFile",
-    "text": "فتح"
-   },
-   {
-    "value": "saveFile",
-    "text": "حفظ"
-   },
-   {
-    "value": "quickSave",
-    "text": "Quick Save"
-   },
-   {
-    "value": "printScore",
-    "text": "طباعه"
-   },
-   {
-    "value": "bach",
-    "text": "Bach Invention"
-   },
-   {
-    "value": "bambino",
-    "text": "Jesu Bambino"
-   },
-   {
-    "value": "microtone",
-    "text": "Microtone Sample"
-   },
-   {
-    "value": "preciousLord",
-    "text": "Precious Lord"
-   },
-   {
-    "value": "yamaJson",
-    "text": "Yama"
-   },
-   {
-    "value": "cancel",
-    "text": "إلغاء"
-   }
-  ]
- },
- {
-  "ctor": "SuiTimeSignatureMenu",
-  "label": "وزن الإيقاع",
-  "menuItems": [
-   {
-    "value": "6/8",
-    "text": "6/8"
-   },
-   {
-    "value": "3/4",
-    "text": "3/4"
-   },
-   {
-    "value": "2/4",
-    "text": "2/4"
-   },
-   {
-    "value": "12/8",
-    "text": "12/8"
-   },
-   {
-    "value": "7/8",
-    "text": "7/8"
-   },
-   {
-    "value": "5/8",
-    "text": "5/8"
-   },
-   {
-    "value": "TimeSigOther",
-    "text": "Other"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiKeySignatureMenu",
-  "label": "الدليل",
-  "menuItems": [
-   {
-    "value": "KeyOfC",
-    "text": "C Major"
-   },
-   {
-    "value": "KeyOfF",
-    "text": "F Major"
-   },
-   {
-    "value": "KeyOfG",
-    "text": "G Major"
-   },
-   {
-    "value": "KeyOfBb",
-    "text": "Bb Major"
-   },
-   {
-    "value": "KeyOfD",
-    "text": "D Major"
-   },
-   {
-    "value": "KeyOfEb",
-    "text": "Eb Major"
-   },
-   {
-    "value": "KeyOfA",
-    "text": "A Major"
-   },
-   {
-    "value": "KeyOfAb",
-    "text": "Ab Major"
-   },
-   {
-    "value": "KeyOfE",
-    "text": "E Major"
-   },
-   {
-    "value": "KeyOfDb",
-    "text": "Db Major"
-   },
-   {
-    "value": "KeyOfB",
-    "text": "B Major"
-   },
-   {
-    "value": "KeyOfF#",
-    "text": "F# Major"
-   },
-   {
-    "value": "KeyOfC#",
-    "text": "C# Major"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiTimeSignatureMenu",
-  "label": "وزن الإيقاع",
-  "menuItems": [
-   {
-    "value": "6/8",
-    "text": "6/8"
-   },
-   {
-    "value": "3/4",
-    "text": "3/4"
-   },
-   {
-    "value": "2/4",
-    "text": "2/4"
-   },
-   {
-    "value": "12/8",
-    "text": "12/8"
-   },
-   {
-    "value": "7/8",
-    "text": "7/8"
-   },
-   {
-    "value": "5/8",
-    "text": "5/8"
-   },
-   {
-    "value": "TimeSigOther",
-    "text": "Other"
-   },
-   {
-    "value": "cancel",
-    "text": "إلغاء"
-   }
-  ]
- },
- {
-  "ctor": "SuiKeySignatureMenu",
-  "label": "الدليل",
-  "menuItems": [
-   {
-    "value": "KeyOfC",
-    "text": "C Major"
-   },
-   {
-    "value": "KeyOfF",
-    "text": "F Major"
-   },
-   {
-    "value": "KeyOfG",
-    "text": "G Major"
-   },
-   {
-    "value": "KeyOfBb",
-    "text": "Bb Major"
-   },
-   {
-    "value": "KeyOfD",
-    "text": "D Major"
-   },
-   {
-    "value": "KeyOfEb",
-    "text": "Eb Major"
-   },
-   {
-    "value": "KeyOfA",
-    "text": "A Major"
-   },
-   {
-    "value": "KeyOfAb",
-    "text": "Ab Major"
-   },
-   {
-    "value": "KeyOfE",
-    "text": "E Major"
-   },
-   {
-    "value": "KeyOfDb",
-    "text": "Db Major"
-   },
-   {
-    "value": "KeyOfB",
-    "text": "B Major"
-   },
-   {
-    "value": "KeyOfF#",
-    "text": "F# Major"
-   },
-   {
-    "value": "KeyOfC#",
-    "text": "C# Major"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiStaffModifierMenu",
-  "label": "خطوط",
-  "menuItems": [
-   {
-    "value": "crescendo",
-    "text": "تصاعد"
-   },
-   {
-    "value": "decrescendo",
-    "text": "تهابط"
-   },
-   {
-    "value": "slur",
-    "text": "طمس / تعادل"
-   },
-   {
-    "value": "ending",
-    "text": "النهاية التاسعة"
-   },
-   {
-    "value": "cancel",
-    "text": "إلغاء"
-   }
-  ]
- },
- {
-  "ctor": "SuiDynamicsMenu",
-  "label": "Dynamics",
-  "menuItems": [
-   {
-    "value": "pp",
-    "text": "Pianissimo"
-   },
-   {
-    "value": "p",
-    "text": "Piano"
-   },
-   {
-    "value": "mp",
-    "text": "Mezzo-piano"
-   },
-   {
-    "value": "mf",
-    "text": "Mezzo-forte"
-   },
-   {
-    "value": "f",
-    "text": "Forte"
-   },
-   {
-    "value": "ff",
-    "text": "Fortissimo"
-   },
-   {
-    "value": "sfz",
-    "text": "sfortzando"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- }
-]`;
+   }`;
 exports.quickStartHtmlar = `(Arabic)
     <h3 id="quick-start-guide">Quick start guide</h3>
 <p>If you don&#39;t like to read instructions, this cook&#39;s tour of Smoosic was made for you.</p>
@@ -39061,1147 +41150,1560 @@ exports.enterPitchesHtmlar = `(Arabic)
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.smoLanguageStringDe = void 0;
-exports.smoLanguageStringDe = `[
- {
-  "ctor": "SuiLoadFileDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Datei laden"
-     }
+exports.smoLanguageStringDe = `{
+    "dialogs": [
+        {
+            "ctor": "SuiLoadFileDialog",
+            "label": "Datei laden",
+            "dialogElements": [
+                {}
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiSaveFileDialog",
+            "label": "Score speichern",
+            "dialogElements": [
+                {
+                    "label": "File Name",
+                    "id": "saveFileName"
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiSaveXmlDialog",
+            "label": "Score speichern",
+            "dialogElements": [
+                {
+                    "label": "File Name",
+                    "id": "saveFileName"
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiPrintFileDialog",
+            "label": "Print Complete",
+            "dialogElements": [],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiSaveMidiDialog",
+            "label": "Save Score as Midi",
+            "dialogElements": [
+                {
+                    "label": "File Name",
+                    "id": "saveFileName"
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiSaveActionsDialog",
+            "label": "Save Score",
+            "dialogElements": [
+                {
+                    "label": "File Name",
+                    "id": "saveFileName"
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiLoadMxmlDialog",
+            "label": "Load File",
+            "dialogElements": [
+                {},
+                {
+                    "staticText": {
+                        "label": "Load File"
+                    }
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiLoadActionsDialog",
+            "label": "Load Action File",
+            "dialogElements": [
+                {},
+                {
+                    "staticText": {
+                        "label": "Load Action File"
+                    }
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiMeasureDialog",
+            "label": "Takt Voreinstellungen",
+            "dialogElements": [
+                {
+                    "label": "Takt Pickup",
+                    "id": "pickup"
+                },
+                {
+                    "label": "Pad Left (px)",
+                    "id": "padLeft"
+                },
+                {
+                    "label": "Stretch Contents",
+                    "id": "customStretch"
+                },
+                {
+                    "label": "Proportionalality",
+                    "id": "customProportion"
+                },
+                {
+                    "label": "Pad all measures in system",
+                    "id": "padAllInSystem"
+                },
+                {
+                    "label": "Justify Columns",
+                    "id": "autoJustify"
+                },
+                {
+                    "label": "Text Position",
+                    "id": "measureTextPosition",
+                    "options": [
+                        {
+                            "value": 2,
+                            "label": "Left"
+                        },
+                        {
+                            "value": 3,
+                            "label": "Right"
+                        },
+                        {
+                            "value": 0,
+                            "label": "Above"
+                        },
+                        {
+                            "value": 1,
+                            "label": "Below"
+                        }
+                    ]
+                },
+                {
+                    "label": "System break before this measure",
+                    "id": "systemBreak"
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiTempoDialog",
+            "label": "Tempo Voreinstellungen",
+            "dialogElements": [
+                {
+                    "label": "Tempo Modus",
+                    "id": "tempoMode",
+                    "options": [
+                        {
+                            "value": "duration",
+                            "label": "Dauer (Beats/Minute)"
+                        },
+                        {
+                            "value": "text",
+                            "label": "Tempo Text"
+                        },
+                        {
+                            "value": "custom",
+                            "label": "Text und Dauer festlegen"
+                        }
+                    ]
+                },
+                {
+                    "label": "Custom Text",
+                    "id": "customText"
+                },
+                {
+                    "label": "Notes/Minute",
+                    "id": "bpm"
+                },
+                {
+                    "label": "Einheit für Beat",
+                    "id": "beatDuration",
+                    "options": [
+                        {
+                            "value": 4096,
+                            "label": "Quarter Note"
+                        },
+                        {
+                            "value": 2048,
+                            "label": "1/8 note"
+                        },
+                        {
+                            "value": 6144,
+                            "label": "Dotted 1/4 note"
+                        },
+                        {
+                            "value": 8192,
+                            "label": "1/2 note"
+                        }
+                    ]
+                },
+                {
+                    "label": "Tempo Text",
+                    "id": "tempoText",
+                    "options": [
+                        {
+                            "value": "Larghissimo",
+                            "label": "Larghissimo"
+                        },
+                        {
+                            "value": "Grave",
+                            "label": "Grave"
+                        },
+                        {
+                            "value": "Lento",
+                            "label": "Lento"
+                        },
+                        {
+                            "value": "Largo",
+                            "label": "Largo"
+                        },
+                        {
+                            "value": "Larghetto",
+                            "label": "Larghetto"
+                        },
+                        {
+                            "value": "Adagio",
+                            "label": "Adagio"
+                        },
+                        {
+                            "value": "Adagietto",
+                            "label": "Adagietto"
+                        },
+                        {
+                            "value": "Andante moderato",
+                            "label": "Andante moderato"
+                        },
+                        {
+                            "value": "Andante",
+                            "label": "Andante"
+                        },
+                        {
+                            "value": "Andantino",
+                            "label": "Andantino"
+                        },
+                        {
+                            "value": "Moderato",
+                            "label": "Moderato"
+                        },
+                        {
+                            "value": "Allegretto",
+                            "label": "Allegretto"
+                        },
+                        {
+                            "value": "Allegro",
+                            "label": "Allegro"
+                        },
+                        {
+                            "value": "Vivace",
+                            "label": "Vivace"
+                        },
+                        {
+                            "value": "Presto",
+                            "label": "Presto"
+                        },
+                        {
+                            "value": "Prestissimo",
+                            "label": "Prestissimo"
+                        }
+                    ]
+                },
+                {
+                    "label": "Apply to all future measures?",
+                    "id": "applyToAll"
+                },
+                {
+                    "label": "Display Tempo",
+                    "id": "display"
+                },
+                {
+                    "label": "Y Offset",
+                    "id": "yOffset"
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiInstrumentDialog",
+            "label": "Instrument Properties",
+            "dialogElements": [
+                {
+                    "label": "Transpose Index (1/2 steps)",
+                    "id": "transposeIndex"
+                },
+                {
+                    "label": "Apply To",
+                    "id": "applyTo",
+                    "options": [
+                        {
+                            "value": 0,
+                            "label": "Score"
+                        },
+                        {
+                            "value": 1,
+                            "label": "Selected Measures"
+                        },
+                        {
+                            "value": 3,
+                            "label": "Remaining Measures"
+                        }
+                    ]
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiInsertMeasures",
+            "label": "Insert Measures",
+            "dialogElements": [
+                {
+                    "label": "Measures to Insert",
+                    "id": "measureCount"
+                },
+                {
+                    "label": "Append to Selection",
+                    "id": "append"
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiTimeSignatureDialog",
+            "label": "Custom Time Signature",
+            "dialogElements": [
+                {
+                    "label": "Beats/Measure",
+                    "id": "numerator"
+                },
+                {
+                    "label": "Beat Value",
+                    "id": "denominator",
+                    "options": [
+                        {
+                            "value": 8,
+                            "label": "8"
+                        },
+                        {
+                            "value": 4,
+                            "label": "4"
+                        },
+                        {
+                            "value": 2,
+                            "label": "2"
+                        }
+                    ]
+                },
+                {
+                    "label": "Display",
+                    "id": "display"
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiScoreViewDialog",
+            "label": "Score View",
+            "dialogElements": [
+                {
+                    "label": "Show staff",
+                    "id": "scoreView"
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiScoreIdentificationDialog",
+            "label": "Score Preferences",
+            "dialogElements": [
+                {
+                    "label": "Title",
+                    "id": "title"
+                },
+                {
+                    "label": "Sub Title",
+                    "id": "subTitle"
+                },
+                {
+                    "label": "Composer",
+                    "id": "composer"
+                },
+                {
+                    "label": "Copyright",
+                    "id": "copyright"
+                }
+            ],
+            "staticText": {
+                "titleText": "Title",
+                "subTitleText": "Sub-title",
+                "copyrightText": "Copyright",
+                "composerText": "Composer",
+                "show": "Show"
+            }
+        },
+        {
+            "ctor": "SuiGlobalLayoutDialog",
+            "label": "Global Settings",
+            "dialogElements": [
+                {
+                    "label": "Score Name",
+                    "id": "scoreName"
+                },
+                {
+                    "label": "Play Selections",
+                    "id": "autoPlay"
+                },
+                {
+                    "label": "Auto-Advance Cursor",
+                    "id": "autoAdvance"
+                },
+                {
+                    "label": "Note Spacing",
+                    "id": "noteSpacing"
+                },
+                {
+                    "label": "Seitengröße",
+                    "id": "pageSize",
+                    "options": [
+                        {
+                            "value": "letter",
+                            "label": "Brief"
+                        },
+                        {
+                            "value": "letterLandscape",
+                            "label": "Brief (Landscape)"
+                        },
+                        {
+                            "value": "tabloid",
+                            "label": "Tabloid (11x17)"
+                        },
+                        {
+                            "value": "A4",
+                            "label": "A4"
+                        },
+                        {
+                            "value": "custom",
+                            "label": "benutzerdefiniert"
+                        }
+                    ]
+                },
+                {
+                    "label": "Page Width (px)",
+                    "id": "pageWidth"
+                },
+                {
+                    "label": "Page Height (px)",
+                    "id": "pageHeight"
+                },
+                {
+                    "label": "% Zoom",
+                    "id": "zoomScale"
+                },
+                {
+                    "label": "% Note size",
+                    "id": "svgScale"
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiScoreFontDialog",
+            "label": "Schriftart",
+            "dialogElements": [
+                {
+                    "label": "Schriftart",
+                    "id": "engravingFont",
+                    "options": [
+                        {
+                            "value": "Bravura",
+                            "label": "Bravura"
+                        },
+                        {
+                            "value": "Gonville",
+                            "label": "Gonville"
+                        },
+                        {
+                            "value": "Petaluma",
+                            "label": "Petaluma"
+                        },
+                        {
+                            "value": "Leland",
+                            "label": "Leland"
+                        }
+                    ]
+                },
+                {
+                    "label": "Chord Font",
+                    "id": "chordFont"
+                },
+                {
+                    "label": "Lyric Font",
+                    "id": "lyricFont"
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiLayoutDialog",
+            "label": "Page Layouts",
+            "dialogElements": [
+                {
+                    "label": "Apply to Page",
+                    "id": "applyToPage",
+                    "options": [
+                        {
+                            "value": -1,
+                            "label": "All"
+                        },
+                        {
+                            "value": -2,
+                            "label": "All Remaining"
+                        },
+                        {
+                            "value": 1,
+                            "label": "Page 1"
+                        }
+                    ]
+                },
+                {
+                    "label": "Left Margin (px)",
+                    "id": "leftMargin"
+                },
+                {
+                    "label": "Right Margin (px)",
+                    "id": "rightMargin"
+                },
+                {
+                    "label": "Top Margin (px)",
+                    "id": "topMargin"
+                },
+                {
+                    "label": "Bottom Margin (px)",
+                    "id": "bottomMargin"
+                },
+                {
+                    "label": "Inter-System Margin",
+                    "id": "interGap"
+                },
+                {
+                    "label": "Intra-System Margin",
+                    "id": "intraGap"
+                },
+                {
+                    "staticText": {
+                        "label": "Page Layouts"
+                    }
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiSlurAttributesDialog",
+            "label": "Slur Properties",
+            "dialogElements": [
+                {
+                    "label": "Spacing",
+                    "id": "spacing"
+                },
+                {
+                    "label": "Thickness",
+                    "id": "thickness"
+                },
+                {
+                    "label": "X Offset",
+                    "id": "xOffset"
+                },
+                {
+                    "label": "Y Offset",
+                    "id": "yOffset"
+                },
+                {
+                    "label": "Startposition",
+                    "id": "position",
+                    "options": [
+                        {
+                            "value": 1,
+                            "label": "Head"
+                        },
+                        {
+                            "value": 2,
+                            "label": "Top"
+                        }
+                    ]
+                },
+                {
+                    "label": "Endposition",
+                    "id": "position_end",
+                    "options": [
+                        {
+                            "value": 1,
+                            "label": "Head"
+                        },
+                        {
+                            "value": 2,
+                            "label": "Top"
+                        }
+                    ]
+                },
+                {
+                    "label": "Invert",
+                    "id": "invert"
+                },
+                {
+                    "label": "Control Point 1 X",
+                    "id": "cp1x"
+                },
+                {
+                    "label": "Control Point 1 Y",
+                    "id": "cp1y"
+                },
+                {
+                    "label": "Control Point 2 X",
+                    "id": "cp2x"
+                },
+                {
+                    "label": "Control Point 2 Y",
+                    "id": "cp2y"
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiTieAttributesDialog",
+            "label": "Tie Properties",
+            "dialogElements": [
+                {
+                    "label": "Lines",
+                    "id": "lines"
+                }
+            ],
+            "staticText": {
+                "label": "Tie Properties",
+                "fromNote": "From Note",
+                "toNote": "To Note"
+            }
+        },
+        {
+            "ctor": "SuiVoltaAttributeDialog",
+            "label": "Volta Properties",
+            "dialogElements": [
+                {
+                    "label": "number",
+                    "id": "number"
+                },
+                {
+                    "label": "X1 Offset",
+                    "id": "xOffsetStart"
+                },
+                {
+                    "label": "X2 Offset",
+                    "id": "xOffsetEnd"
+                },
+                {
+                    "label": "Y Offset",
+                    "id": "yOffset"
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiHairpinAttributesDialog",
+            "label": "Hairpin Properties",
+            "dialogElements": [
+                {
+                    "label": "Height",
+                    "id": "height"
+                },
+                {
+                    "label": "Y Shift",
+                    "id": "yOffset"
+                },
+                {
+                    "label": "Right Shift",
+                    "id": "xOffsetRight"
+                },
+                {
+                    "label": "Left Shift",
+                    "id": "xOffsetLeft"
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiStaffGroupDialog",
+            "label": "Staff Group",
+            "dialogElements": [
+                {
+                    "label": "Staves in Group",
+                    "id": "staffGroups"
+                },
+                {
+                    "label": "Left Connector",
+                    "id": "leftConnector",
+                    "options": [
+                        {
+                            "value": 1,
+                            "label": "Bracket"
+                        },
+                        {
+                            "value": 0,
+                            "label": "Brace"
+                        },
+                        {
+                            "value": 2,
+                            "label": "Single"
+                        },
+                        {
+                            "value": 3,
+                            "label": "Double"
+                        }
+                    ]
+                }
+            ],
+            "staticText": {
+                "includeStaff": "Include Staff"
+            }
+        },
+        {
+            "ctor": "SuiDynamicModifierDialog",
+            "label": "Dynamics Properties",
+            "dialogElements": [
+                {
+                    "label": "Y Line",
+                    "id": "yOffsetLine"
+                },
+                {
+                    "label": "Y Offset Px",
+                    "id": "yOffsetPixels"
+                },
+                {
+                    "label": "X Offset",
+                    "id": "xOffset"
+                },
+                {
+                    "label": "Text",
+                    "id": "text",
+                    "options": [
+                        {
+                            "value": "p",
+                            "label": "Piano"
+                        },
+                        {
+                            "value": "pp",
+                            "label": "Pianissimo"
+                        },
+                        {
+                            "value": "mp",
+                            "label": "Mezzo-Piano"
+                        },
+                        {
+                            "value": "mf",
+                            "label": "Mezzo-Forte"
+                        },
+                        {
+                            "value": "f",
+                            "label": "Forte"
+                        },
+                        {
+                            "value": "ff",
+                            "label": "Fortissimo"
+                        },
+                        {
+                            "value": "sfz",
+                            "label": "Sforzando"
+                        }
+                    ]
+                }
+            ],
+            "staticText": {}
+        },
+        {
+            "ctor": "SuiLyricDialog",
+            "label": "Lyric Editor",
+            "dialogElements": [
+                {
+                    "label": "Verse",
+                    "id": "verse",
+                    "options": [
+                        {
+                            "value": 0,
+                            "label": "1"
+                        },
+                        {
+                            "value": 1,
+                            "label": "2"
+                        },
+                        {
+                            "value": 2,
+                            "label": "3"
+                        },
+                        {
+                            "value": 3,
+                            "label": "4"
+                        }
+                    ]
+                },
+                {
+                    "label": "Y Adjustment (Px)",
+                    "id": "translateY"
+                },
+                {
+                    "label": "Font",
+                    "id": "font"
+                },
+                {
+                    "label": "Edit Lyrics",
+                    "id": "lyricEditor",
+                    "options": []
+                }
+            ],
+            "staticText": {
+                "doneEditing": "Done Editing Lyrics",
+                "undo": "Undo Lyrics",
+                "label": "Lyric Editor"
+            }
+        },
+        {
+            "ctor": "SuiChordChangeDialog",
+            "label": "Edit Chord Symbol",
+            "dialogElements": [
+                {
+                    "label": "Ordinality",
+                    "id": "verse",
+                    "options": [
+                        {
+                            "value": 0,
+                            "label": "1"
+                        },
+                        {
+                            "value": 1,
+                            "label": "2"
+                        },
+                        {
+                            "value": 2,
+                            "label": "3"
+                        }
+                    ]
+                },
+                {
+                    "label": "Y Adjustment (Px)",
+                    "id": "translateY"
+                },
+                {
+                    "label": "Edit Text",
+                    "id": "chordEditor",
+                    "options": []
+                },
+                {
+                    "label": "Chord Symbol",
+                    "id": "chordSymbol",
+                    "options": [
+                        {
+                            "value": "csymDiminished",
+                            "label": "Dim"
+                        },
+                        {
+                            "value": "csymHalfDiminished",
+                            "label": "Half dim"
+                        },
+                        {
+                            "value": "csymDiagonalArrangementSlash",
+                            "label": "Slash"
+                        },
+                        {
+                            "value": "csymMajorSeventh",
+                            "label": "Maj7"
+                        }
+                    ]
+                },
+                {
+                    "label": "Text Position",
+                    "id": "textPosition",
+                    "options": [
+                        {
+                            "value": 1,
+                            "label": "Superscript"
+                        },
+                        {
+                            "value": 2,
+                            "label": "Subscript"
+                        },
+                        {
+                            "value": 0,
+                            "label": "Normal"
+                        }
+                    ]
+                },
+                {
+                    "label": "Font",
+                    "id": "font"
+                },
+                {
+                    "label": "Adjust Note Width",
+                    "id": "adjustWidth",
+                    "options": []
+                }
+            ],
+            "staticText": {
+                "label": "Edit Chord Symbol",
+                "undo": "Undo Chord Symbols",
+                "doneEditing": "Done Editing Chord Symbols"
+            }
+        },
+        {
+            "ctor": "SuiTextBlockDialog",
+            "label": "Text Properties",
+            "dialogElements": [
+                {
+                    "label": "Edit Text",
+                    "id": "textEditor",
+                    "options": []
+                },
+                {
+                    "label": "Insert Special",
+                    "id": "insertCode",
+                    "options": [
+                        {
+                            "value": "@@@",
+                            "label": "Pages"
+                        },
+                        {
+                            "value": "###",
+                            "label": "Page Number"
+                        }
+                    ]
+                },
+                {
+                    "label": "Move Text",
+                    "id": "textDragger",
+                    "options": []
+                },
+                {
+                    "label": "X Position (Px)",
+                    "id": "x"
+                },
+                {
+                    "label": "Y Position (Px)",
+                    "id": "y"
+                },
+                {
+                    "label": "Font Information",
+                    "id": "font"
+                },
+                {
+                    "label": "Text Block Properties",
+                    "id": "textBlock"
+                },
+                {
+                    "label": "Page Behavior",
+                    "id": "pagination",
+                    "options": [
+                        {
+                            "value": 4,
+                            "label": "Once"
+                        },
+                        {
+                            "value": 1,
+                            "label": "Every"
+                        },
+                        {
+                            "label": "Even"
+                        },
+                        {
+                            "value": 3,
+                            "label": "Odd"
+                        },
+                        {
+                            "value": 5,
+                            "label": "Subsequent"
+                        }
+                    ]
+                },
+                {
+                    "label": "Attach to Selection",
+                    "id": "attachToSelector"
+                }
+            ],
+            "staticText": {
+                "label": "Text Properties",
+                "editorLabel": "Done Editing Text",
+                "draggerLabel": "Done Dragging Text"
+            }
+        }
+    ],
+    "menus": [
+        {
+            "ctor": "SuiDynamicsMenu",
+            "label": "Dynamics",
+            "menuItems": [
+                {
+                    "icon": "pianissimo",
+                    "text": "Pianissimo",
+                    "value": "pp"
+                },
+                {
+                    "icon": "piano",
+                    "text": "Piano",
+                    "value": "p"
+                },
+                {
+                    "icon": "mezzopiano",
+                    "text": "Mezzo-piano",
+                    "value": "mp"
+                },
+                {
+                    "icon": "mezzoforte",
+                    "text": "Mezzo-forte",
+                    "value": "mf"
+                },
+                {
+                    "icon": "forte",
+                    "text": "Forte",
+                    "value": "f"
+                },
+                {
+                    "icon": "fortissimo",
+                    "text": "Fortissimo",
+                    "value": "ff"
+                },
+                {
+                    "icon": "sfz",
+                    "text": "sfortzando",
+                    "value": "sfz"
+                },
+                {
+                    "icon": "",
+                    "text": "Abbrechen",
+                    "value": "cancel"
+                }
+            ]
+        },
+        {
+            "ctor": "SuiFileMenu",
+            "label": "Datei",
+            "menuItems": [
+                {
+                    "icon": "folder-new",
+                    "text": "Neu",
+                    "value": "newFile"
+                },
+                {
+                    "icon": "folder-open",
+                    "text": "Öffnen",
+                    "value": "openFile"
+                },
+                {
+                    "icon": "",
+                    "text": "Schnellspeichern",
+                    "value": "quickSave"
+                },
+                {
+                    "icon": "folder-save",
+                    "text": "Speichern",
+                    "value": "saveFile"
+                },
+                {
+                    "icon": "",
+                    "text": "Drucken",
+                    "value": "printScore"
+                },
+                {
+                    "icon": "",
+                    "text": "Import MusicXML",
+                    "value": "importMxml"
+                },
+                {
+                    "icon": "",
+                    "text": "Export MusicXML",
+                    "value": "exportXml"
+                },
+                {
+                    "icon": "",
+                    "text": "Export Midi",
+                    "value": "exportMidi"
+                },
+                {
+                    "icon": "folder-save",
+                    "text": "Save Actions",
+                    "value": "saveActions"
+                },
+                {
+                    "icon": "icon-play3",
+                    "text": "Play Actions",
+                    "value": "playActions"
+                },
+                {
+                    "icon": "",
+                    "text": "Abbrechen",
+                    "value": "cancel"
+                }
+            ]
+        },
+        {
+            "ctor": "SuiStaffMenu",
+            "label": "Notenschlüssel",
+            "menuItems": [
+                {
+                    "icon": "treble",
+                    "text": "Violinschlüssel",
+                    "value": "trebleInstrument"
+                },
+                {
+                    "icon": "bass",
+                    "text": "Basschlüssel",
+                    "value": "bassInstrument"
+                },
+                {
+                    "icon": "alto",
+                    "text": "Altschlüssel",
+                    "value": "altoInstrument"
+                },
+                {
+                    "icon": "tenor",
+                    "text": "Tenorschlüssel",
+                    "value": "tenorInstrument"
+                },
+                {
+                    "icon": "percussion",
+                    "text": "Percussion Clef Staff",
+                    "value": "percussionInstrument"
+                },
+                {
+                    "icon": "",
+                    "text": "Staff Groups",
+                    "value": "staffGroups"
+                },
+                {
+                    "icon": "cancel-circle",
+                    "text": "Notenschlüssel entfernen",
+                    "value": "remove"
+                },
+                {
+                    "icon": "",
+                    "text": "Cancel",
+                    "value": "cancel"
+                }
+            ]
+        },
+        {
+            "ctor": "SuiKeySignatureMenu",
+            "label": "Tonlage",
+            "menuItems": [
+                {
+                    "icon": "key-sig-c",
+                    "text": "C Major",
+                    "value": "KeyOfC"
+                },
+                {
+                    "icon": "key-sig-f",
+                    "text": "F Major",
+                    "value": "KeyOfF"
+                },
+                {
+                    "icon": "key-sig-g",
+                    "text": "G Major",
+                    "value": "KeyOfG"
+                },
+                {
+                    "icon": "key-sig-bb",
+                    "text": "Bb Major",
+                    "value": "KeyOfBb"
+                },
+                {
+                    "icon": "key-sig-d",
+                    "text": "D Major",
+                    "value": "KeyOfD"
+                },
+                {
+                    "icon": "key-sig-eb",
+                    "text": "Eb Major",
+                    "value": "KeyOfEb"
+                },
+                {
+                    "icon": "key-sig-a",
+                    "text": "A Major",
+                    "value": "KeyOfA"
+                },
+                {
+                    "icon": "key-sig-ab",
+                    "text": "Ab Major",
+                    "value": "KeyOfAb"
+                },
+                {
+                    "icon": "key-sig-e",
+                    "text": "E Major",
+                    "value": "KeyOfE"
+                },
+                {
+                    "icon": "key-sig-bd",
+                    "text": "Db Major",
+                    "value": "KeyOfDb"
+                },
+                {
+                    "icon": "key-sig-b",
+                    "text": "B Major",
+                    "value": "KeyOfB"
+                },
+                {
+                    "icon": "key-sig-fs",
+                    "text": "F# Major",
+                    "value": "KeyOfF#"
+                },
+                {
+                    "icon": "key-sig-cs",
+                    "text": "C# Major",
+                    "value": "KeyOfC#"
+                },
+                {
+                    "icon": "",
+                    "text": "Abbrechen",
+                    "value": "cancel"
+                }
+            ]
+        },
+        {
+            "ctor": "SuiMeasureMenu",
+            "label": "Measure",
+            "menuItems": [
+                {
+                    "icon": "",
+                    "text": "Add Measures",
+                    "value": "addMenuCmd"
+                },
+                {
+                    "icon": "icon-cross",
+                    "text": "Delete Selected Measures",
+                    "value": "deleteSelected"
+                },
+                {
+                    "icon": "",
+                    "text": "Format Measure",
+                    "value": "formatMeasureDialog"
+                },
+                {
+                    "icon": "",
+                    "text": "Cancel",
+                    "value": "cancel"
+                }
+            ]
+        },
+        {
+            "ctor": "SuiTimeSignatureMenu",
+            "label": "Taktzeit",
+            "menuItems": [
+                {
+                    "icon": "sixeight",
+                    "text": "6/8",
+                    "value": "6/8"
+                },
+                {
+                    "icon": "fourfour",
+                    "text": "4/4",
+                    "value": "4/4"
+                },
+                {
+                    "icon": "threefour",
+                    "text": "3/4",
+                    "value": "3/4"
+                },
+                {
+                    "icon": "twofour",
+                    "text": "2/4",
+                    "value": "2/4"
+                },
+                {
+                    "icon": "twelveeight",
+                    "text": "12/8",
+                    "value": "12/8"
+                },
+                {
+                    "icon": "seveneight",
+                    "text": "7/8",
+                    "value": "7/8"
+                },
+                {
+                    "icon": "fiveeight",
+                    "text": "5/8",
+                    "value": "5/8"
+                },
+                {
+                    "icon": "",
+                    "text": "benutzerdefiniert",
+                    "value": "TimeSigOther"
+                },
+                {
+                    "icon": "",
+                    "text": "Abbrechen",
+                    "value": "cancel"
+                }
+            ]
+        },
+        {
+            "ctor": "SuiStaffModifierMenu",
+            "label": "Lines",
+            "menuItems": [
+                {
+                    "icon": "cresc",
+                    "text": "Crescendo",
+                    "value": "crescendo"
+                },
+                {
+                    "icon": "decresc",
+                    "text": "Decrescendo",
+                    "value": "decrescendo"
+                },
+                {
+                    "icon": "slur",
+                    "text": "Bogen/Bindung",
+                    "value": "slur"
+                },
+                {
+                    "icon": "slur",
+                    "text": "Tie",
+                    "value": "tie"
+                },
+                {
+                    "icon": "ending",
+                    "text": "nth Ende",
+                    "value": "ending"
+                },
+                {
+                    "icon": "",
+                    "text": "Abbrechen",
+                    "value": "cancel"
+                }
+            ]
+        },
+        {
+            "ctor": "SuiLanguageMenu",
+            "label": "Language",
+            "menuItems": [
+                {
+                    "icon": "",
+                    "text": "English",
+                    "value": "en"
+                },
+                {
+                    "icon": "",
+                    "text": "Deutsch",
+                    "value": "de"
+                },
+                {
+                    "icon": "",
+                    "text": "اَلْعَرَبِيَّةُ",
+                    "value": "ar"
+                },
+                {
+                    "icon": "",
+                    "text": "Cancel",
+                    "value": "cancel"
+                }
+            ]
+        },
+        {
+            "ctor": "SuiLibraryMenu",
+            "label": "Score",
+            "menuItems": [
+                {
+                    "icon": "",
+                    "text": "Bach Invention",
+                    "value": "bach"
+                },
+                {
+                    "icon": "",
+                    "text": "Postillion-Lied",
+                    "value": "postillion"
+                },
+                {
+                    "icon": "",
+                    "text": "Jesu Bambino",
+                    "value": "bambino"
+                },
+                {
+                    "icon": "",
+                    "text": "Handel Messiah 1-1",
+                    "value": "handel"
+                },
+                {
+                    "icon": "",
+                    "text": "Precious Lord",
+                    "value": "preciousLord"
+                },
+                {
+                    "icon": "",
+                    "text": "In Its Delightful Shade",
+                    "value": "shade"
+                },
+                {
+                    "icon": "",
+                    "text": "Yama",
+                    "value": "yamaJson"
+                },
+                {
+                    "icon": "",
+                    "text": "Dichterliebe (xml)",
+                    "value": "dichterliebe"
+                },
+                {
+                    "icon": "",
+                    "text": "Beethoven - An die ferne Gliebte (xml)",
+                    "value": "beethoven"
+                },
+                {
+                    "icon": "",
+                    "text": "Mozart - An Chloe (xml)",
+                    "value": "mozart"
+                },
+                {
+                    "icon": "",
+                    "text": "Joplin - The Entertainer (xml)",
+                    "value": "joplin"
+                },
+                {
+                    "icon": "",
+                    "text": "Cancel",
+                    "value": "cancel"
+                }
+            ]
+        },
+        {
+            "ctor": "SuiScoreMenu",
+            "label": "Score Settings",
+            "menuItems": [
+                {
+                    "icon": "",
+                    "text": "Layout",
+                    "value": "layout"
+                },
+                {
+                    "icon": "",
+                    "text": "Fonts",
+                    "value": "fonts"
+                },
+                {
+                    "icon": "",
+                    "text": "View",
+                    "value": "view"
+                },
+                {
+                    "icon": "",
+                    "text": "Score Info",
+                    "value": "identification"
+                },
+                {
+                    "icon": "",
+                    "text": "Global Settings",
+                    "value": "preferences"
+                },
+                {
+                    "icon": "",
+                    "text": "Cancel",
+                    "value": "cancel"
+                }
+            ]
+        }
+    ],
+    "buttonText": [
+        {
+            "buttonId": "helpDialog",
+            "buttonText": "Help"
+        },
+        {
+            "buttonId": "languageMenu",
+            "buttonText": "Language"
+        },
+        {
+            "buttonId": "fileMenu",
+            "buttonText": "File"
+        },
+        {
+            "buttonId": "libraryMenu",
+            "buttonText": "Library"
+        },
+        {
+            "buttonId": "addStaffMenu",
+            "buttonText": "Staves"
+        },
+        {
+            "buttonId": "measureModal",
+            "buttonText": "Measure"
+        },
+        {
+            "buttonId": "tempoModal",
+            "buttonText": "Tempo"
+        },
+        {
+            "buttonId": "timeSignatureMenu",
+            "buttonText": "Time Signature"
+        },
+        {
+            "buttonId": "keyMenu",
+            "buttonText": "Key"
+        },
+        {
+            "buttonId": "staffModifierMenu",
+            "buttonText": "Lines"
+        },
+        {
+            "buttonId": "instrumentModal",
+            "buttonText": "Instrument"
+        },
+        {
+            "buttonId": "pianoModal",
+            "buttonText": "Piano"
+        },
+        {
+            "buttonId": "layoutMenu",
+            "buttonText": "Score"
+        },
+        {
+            "buttonId": "UpOctaveButton",
+            "buttonText": "8va"
+        },
+        {
+            "buttonId": "DownOctaveButton",
+            "buttonText": "8vb"
+        },
+        {
+            "buttonId": "moreNavButtons",
+            "buttonText": "..."
+        },
+        {
+            "buttonId": "dcAlCoda",
+            "buttonText": "DC Al Coda"
+        },
+        {
+            "buttonId": "dsAlCoda",
+            "buttonText": "DS Al Coda"
+        },
+        {
+            "buttonId": "dcAlFine",
+            "buttonText": "DC Al Fine"
+        },
+        {
+            "buttonId": "dsAlFine",
+            "buttonText": "DS Al Fine"
+        },
+        {
+            "buttonId": "toCoda",
+            "buttonText": "to "
+        },
+        {
+            "buttonId": "fine",
+            "buttonText": "Fine"
+        },
+        {
+            "buttonId": "moreStaffButtons",
+            "buttonText": "..."
+        }
     ]
-   }
-  ]
- },
- {
-  "ctor": "SuiSaveFileDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Score speichern"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiPrintFileDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Druck abgeschlossen"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiMeasureDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Takt Voreinstellungen"
-     }
-    ]
-   },
-   {
-    "id": "pickupMeasure",
-    "label": "Takt Pickup",
-    "options": [
-     {
-      "value": "2048",
-      "label": "Eighth Note"
-     },
-     {
-      "value": "4096",
-      "label": "Quarter Note"
-     },
-     {
-      "value": "6144",
-      "label": "Dotted Quarter"
-     },
-     {
-      "value": "8192",
-      "label": "Half Note"
-     }
-    ]
-   },
-   {
-    "id": "measureTextPosition",
-    "label": "Text Position",
-    "options": [
-     {
-      "value": "2",
-      "label": "Left"
-     },
-     {
-      "value": "3",
-      "label": "Right"
-     },
-     {
-      "value": "0",
-      "label": "Above"
-     },
-     {
-      "value": "1",
-      "label": "Below"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiTempoDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Tempo Voreinstellungen"
-     }
-    ]
-   },
-   {
-    "id": "tempoMode",
-    "label": "Tempo Modus",
-    "options": [
-     {
-      "value": "duration",
-      "label": "Dauer (Beats/Minute)"
-     },
-     {
-      "value": "text",
-      "label": "Tempo Text"
-     },
-     {
-      "value": "custom",
-      "label": "Text und Dauer festlegen"
-     }
-    ]
-   },
-   {
-    "id": "beatDuration",
-    "label": "Einheit für Beat",
-    "options": [
-     {
-      "value": "4096",
-      "label": "Quarter Note"
-     },
-     {
-      "value": "2048",
-      "label": "1/8 note"
-     },
-     {
-      "value": "6144",
-      "label": "Dotted 1/4 note"
-     },
-     {
-      "value": "8192",
-      "label": "1/2 note"
-     }
-    ]
-   },
-   {
-    "id": "tempoText",
-    "label": "Tempo Text",
-    "options": [
-     {
-      "value": "Larghissimo",
-      "label": "Larghissimo"
-     },
-     {
-      "value": "Grave",
-      "label": "Grave"
-     },
-     {
-      "value": "Lento",
-      "label": "Lento"
-     },
-     {
-      "value": "Largo",
-      "label": "Largo"
-     },
-     {
-      "value": "Larghetto",
-      "label": "Larghetto"
-     },
-     {
-      "value": "Adagio",
-      "label": "Adagio"
-     },
-     {
-      "value": "Adagietto",
-      "label": "Adagietto"
-     },
-     {
-      "value": "Andante moderato",
-      "label": "Andante moderato"
-     },
-     {
-      "value": "Andante",
-      "label": "Andante"
-     },
-     {
-      "value": "Andantino",
-      "label": "Andantino"
-     },
-     {
-      "value": "Moderato",
-      "label": "Moderato"
-     },
-     {
-      "value": "Allegretto",
-      "label": "Allegretto"
-     },
-     {
-      "value": "Allegro",
-      "label": "Allegro"
-     },
-     {
-      "value": "Vivace",
-      "label": "Vivace"
-     },
-     {
-      "value": "Presto",
-      "label": "Presto"
-     },
-     {
-      "value": "Prestissimo",
-      "label": "Prestissimo"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiInstrumentDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Instrument Properties"
-     }
-    ]
-   },
-   {
-    "id": "applyTo",
-    "label": "Apply To",
-    "options": [
-     {
-      "value": "0",
-      "label": "Score"
-     },
-     {
-      "value": "1",
-      "label": "Selected Measures"
-     },
-     {
-      "value": "3",
-      "label": "Remaining Measures"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiTimeSignatureDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Custom Time Signature"
-     }
-    ]
-   },
-   {
-    "id": "denominator",
-    "label": "Beat Value",
-    "options": [
-     {
-      "value": "8",
-      "label": "8"
-     },
-     {
-      "value": "4",
-      "label": "4"
-     },
-     {
-      "value": "2",
-      "label": "2"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiLayoutDialog",
-  "dialogElements": [
-   {
-    "id": "pageSize",
-    "label": "Seitengröße",
-    "options": [
-     {
-      "value": "letter",
-      "label": "Brief"
-     },
-     {
-      "value": "tabloid",
-      "label": "Tabloid (11x17)"
-     },
-     {
-      "value": "A4",
-      "label": "A4"
-     },
-     {
-      "value": "custom",
-      "label": "benutzerdefiniert"
-     }
-    ]
-   },
-   {
-    "id": "orientation",
-    "label": "Ausrichtung",
-    "options": [
-     {
-      "value": "0",
-      "label": "Portrait"
-     },
-     {
-      "value": "1",
-      "label": "Landscape"
-     }
-    ]
-   },
-   {
-    "id": "engravingFont",
-    "label": "Schriftart",
-    "options": [
-     {
-      "value": "Bravura",
-      "label": "Bravura"
-     },
-     {
-      "value": "Gonville",
-      "label": "Gonville"
-     },
-     {
-      "value": "Petaluma",
-      "label": "Petaluma"
-     }
-    ]
-   },
-   {
-    "staticText": [
-     {
-      "label": "Score Layout"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiDynamicModifierDialog",
-  "dialogElements": [
-   {
-    "id": "text",
-    "label": "Text",
-    "options": [
-     {
-      "value": "p",
-      "label": "Piano"
-     },
-     {
-      "value": "pp",
-      "label": "Pianissimo"
-     },
-     {
-      "value": "mp",
-      "label": "Mezzo-Piano"
-     },
-     {
-      "value": "mf",
-      "label": "Mezzo-Forte"
-     },
-     {
-      "value": "f",
-      "label": "Forte"
-     },
-     {
-      "value": "ff",
-      "label": "Fortissimo"
-     },
-     {
-      "value": "sfz",
-      "label": "Sforzando"
-     }
-    ]
-   },
-   {
-    "staticText": [
-     {
-      "label": "Dynamics Properties"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiSlurAttributesDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Slur Properties"
-     }
-    ]
-   },
-   {
-    "id": "position",
-    "label": "Startposition",
-    "options": [
-     {
-      "value": "1",
-      "label": "Head"
-     },
-     {
-      "value": "2",
-      "label": "Top"
-     }
-    ]
-   },
-   {
-    "id": "position_end",
-    "label": "Endposition",
-    "options": [
-     {
-      "value": "1",
-      "label": "Head"
-     },
-     {
-      "value": "2",
-      "label": "Top"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiVoltaAttributeDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Volta Properties"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiHairpinAttributesDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Hairpin Properties"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiLyricDialog",
-  "dialogElements": [
-   {
-    "id": "verse",
-    "label": "Verse",
-    "options": [
-     {
-      "value": "0",
-      "label": "1"
-     },
-     {
-      "value": "1",
-      "label": "2"
-     },
-     {
-      "value": "2",
-      "label": "3"
-     }
-    ]
-   },
-   {
-    "id": "textEditor",
-    "label": "Edit Text",
-    "options": []
-   },
-   {
-    "staticText": [
-     {
-      "doneEditing": "Done Editing Lyrics"
-     },
-     {
-      "undo": "Undo Lyrics"
-     },
-     {
-      "label": "Lyric Editor"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiChordChangeDialog",
-  "dialogElements": [
-   {
-    "id": "verse",
-    "label": "Verse",
-    "options": [
-     {
-      "value": "0",
-      "label": "1"
-     },
-     {
-      "value": "1",
-      "label": "2"
-     },
-     {
-      "value": "2",
-      "label": "3"
-     }
-    ]
-   },
-   {
-    "id": "textEditor",
-    "label": "Edit Text",
-    "options": []
-   },
-   {
-    "staticText": [
-     {
-      "doneEditing": "Done Editing Lyrics"
-     },
-     {
-      "undo": "Undo Lyrics"
-     },
-     {
-      "label": "Lyric Editor"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiTextTransformDialog",
-  "dialogElements": [
-   {
-    "id": "textEditor",
-    "label": "Edit Text",
-    "options": []
-   },
-   {
-    "id": "textDragger",
-    "label": "Move Text",
-    "options": []
-   },
-   {
-    "id": "textResizer",
-    "label": "Resize Text",
-    "options": []
-   },
-   {
-    "id": "justification",
-    "label": "Justification",
-    "options": [
-     {
-      "value": "left",
-      "label": "Left"
-     },
-     {
-      "value": "right",
-      "label": "Right"
-     },
-     {
-      "value": "center",
-      "label": "Center"
-     }
-    ]
-   },
-   {
-    "id": "fontFamily",
-    "label": "Font Family",
-    "options": [
-     {
-      "value": "Merriweather,serif",
-      "label": "Serif"
-     },
-     {
-      "value": "Roboto,sans-serif",
-      "label": "Sans-Serif"
-     },
-     {
-      "value": "monospace",
-      "label": "Monospace"
-     },
-     {
-      "value": "cursive",
-      "label": "Cursive"
-     },
-     {
-      "value": "Merriweather",
-      "label": "times"
-     },
-     {
-      "value": "Arial",
-      "label": "arial"
-     },
-     {
-      "value": "Helvetica",
-      "label": "Helvetica"
-     }
-    ]
-   },
-   {
-    "id": "fontUnit",
-    "label": "Units",
-    "options": [
-     {
-      "value": "em",
-      "label": "em"
-     },
-     {
-      "value": "px",
-      "label": "px"
-     },
-     {
-      "value": "pt",
-      "label": "pt"
-     }
-    ]
-   },
-   {
-    "id": "pagination",
-    "label": "Page Behavior",
-    "options": [
-     {
-      "value": "once",
-      "label": "Once"
-     },
-     {
-      "value": "every",
-      "label": "Every"
-     },
-     {
-      "value": "even",
-      "label": "Even"
-     },
-     {
-      "value": "odd",
-      "label": "Odd"
-     },
-     {
-      "value": "subsequent",
-      "label": "Subsequent"
-     }
-    ]
-   },
-   {
-    "staticText": [
-     {
-      "label": "Text Properties"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiAddStaffMenu",
-  "label": "Notenschlüssel",
-  "menuItems": [
-   {
-    "value": "trebleInstrument",
-    "text": "Violinschlüssel"
-   },
-   {
-    "value": "bassInstrument",
-    "text": "Basschlüssel"
-   },
-   {
-    "value": "altoInstrument",
-    "text": "Altschlüssel"
-   },
-   {
-    "value": "tenorInstrument",
-    "text": "Tenorschlüssel"
-   },
-   {
-    "value": "remove",
-    "text": "Notenschlüssel entfernen"
-   },
-   {
-    "value": "cancel",
-    "text": "Abbrechen"
-   }
-  ]
- },
- {
-  "ctor": "SuiMeasureMenu",
-  "label": "Measure",
-  "menuItems": [
-   {
-    "value": "addMenuBeforeCmd",
-    "text": "Add Measure Before"
-   },
-   {
-    "value": "addMenuAfterCmd",
-    "text": "Add Measure After"
-   },
-   {
-    "value": "deleteSelected",
-    "text": "Delete Selected Measures"
-   },
-   {
-    "value": "formatMeasureDialog",
-    "text": "Format Measure"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiFileMenu",
-  "label": "Datei",
-  "menuItems": [
-   {
-    "value": "newFile",
-    "text": "Neu"
-   },
-   {
-    "value": "openFile",
-    "text": "Öffnen"
-   },
-   {
-    "value": "saveFile",
-    "text": "Speichern"
-   },
-   {
-    "value": "quickSave",
-    "text": "Schnellspeichern"
-   },
-   {
-    "value": "printScore",
-    "text": "Drucken"
-   },
-   {
-    "value": "bach",
-    "text": "Bach Invention"
-   },
-   {
-    "value": "bambino",
-    "text": "Jesu Bambino"
-   },
-   {
-    "value": "microtone",
-    "text": "Microtone Sample"
-   },
-   {
-    "value": "preciousLord",
-    "text": "Precious Lord"
-   },
-   {
-    "value": "yamaJson",
-    "text": "Yama"
-   },
-   {
-    "value": "cancel",
-    "text": "Abbrechen"
-   }
-  ]
- },
- {
-  "ctor": "SuiTimeSignatureMenu",
-  "label": "Taktzeit",
-  "menuItems": [
-   {
-    "value": "6/8",
-    "text": "6/8"
-   },
-   {
-    "value": "3/4",
-    "text": "3/4"
-   },
-   {
-    "value": "2/4",
-    "text": "2/4"
-   },
-   {
-    "value": "12/8",
-    "text": "12/8"
-   },
-   {
-    "value": "7/8",
-    "text": "7/8"
-   },
-   {
-    "value": "5/8",
-    "text": "5/8"
-   },
-   {
-    "value": "TimeSigOther",
-    "text": "benutzerdefiniert"
-   },
-   {
-    "value": "cancel",
-    "text": "Abbrechen"
-   }
-  ]
- },
- {
-  "ctor": "SuiKeySignatureMenu",
-  "label": "Tonlage",
-  "menuItems": [
-   {
-    "value": "KeyOfC",
-    "text": "C Major"
-   },
-   {
-    "value": "KeyOfF",
-    "text": "F Major"
-   },
-   {
-    "value": "KeyOfG",
-    "text": "G Major"
-   },
-   {
-    "value": "KeyOfBb",
-    "text": "Bb Major"
-   },
-   {
-    "value": "KeyOfD",
-    "text": "D Major"
-   },
-   {
-    "value": "KeyOfEb",
-    "text": "Eb Major"
-   },
-   {
-    "value": "KeyOfA",
-    "text": "A Major"
-   },
-   {
-    "value": "KeyOfAb",
-    "text": "Ab Major"
-   },
-   {
-    "value": "KeyOfE",
-    "text": "E Major"
-   },
-   {
-    "value": "KeyOfDb",
-    "text": "Db Major"
-   },
-   {
-    "value": "KeyOfB",
-    "text": "B Major"
-   },
-   {
-    "value": "KeyOfF#",
-    "text": "F# Major"
-   },
-   {
-    "value": "KeyOfC#",
-    "text": "C# Major"
-   },
-   {
-    "value": "cancel",
-    "text": "Abbrechen"
-   }
-  ]
- },
- {
-  "ctor": "SuiTimeSignatureMenu",
-  "label": "Taktzeit",
-  "menuItems": [
-   {
-    "value": "6/8",
-    "text": "6/8"
-   },
-   {
-    "value": "3/4",
-    "text": "3/4"
-   },
-   {
-    "value": "2/4",
-    "text": "2/4"
-   },
-   {
-    "value": "12/8",
-    "text": "12/8"
-   },
-   {
-    "value": "7/8",
-    "text": "7/8"
-   },
-   {
-    "value": "5/8",
-    "text": "5/8"
-   },
-   {
-    "value": "TimeSigOther",
-    "text": "benutzerdefiniert"
-   },
-   {
-    "value": "cancel",
-    "text": "Abbrechen"
-   }
-  ]
- },
- {
-  "ctor": "SuiKeySignatureMenu",
-  "label": "Tonlage",
-  "menuItems": [
-   {
-    "value": "KeyOfC",
-    "text": "C Major"
-   },
-   {
-    "value": "KeyOfF",
-    "text": "F Major"
-   },
-   {
-    "value": "KeyOfG",
-    "text": "G Major"
-   },
-   {
-    "value": "KeyOfBb",
-    "text": "Bb Major"
-   },
-   {
-    "value": "KeyOfD",
-    "text": "D Major"
-   },
-   {
-    "value": "KeyOfEb",
-    "text": "Eb Major"
-   },
-   {
-    "value": "KeyOfA",
-    "text": "A Major"
-   },
-   {
-    "value": "KeyOfAb",
-    "text": "Ab Major"
-   },
-   {
-    "value": "KeyOfE",
-    "text": "E Major"
-   },
-   {
-    "value": "KeyOfDb",
-    "text": "Db Major"
-   },
-   {
-    "value": "KeyOfB",
-    "text": "B Major"
-   },
-   {
-    "value": "KeyOfF#",
-    "text": "F# Major"
-   },
-   {
-    "value": "KeyOfC#",
-    "text": "C# Major"
-   },
-   {
-    "value": "cancel",
-    "text": "Abbrechen"
-   }
-  ]
- },
- {
-  "ctor": "SuiStaffModifierMenu",
-  "label": "Lines",
-  "menuItems": [
-   {
-    "value": "crescendo",
-    "text": "Crescendo"
-   },
-   {
-    "value": "decrescendo",
-    "text": "Decrescendo"
-   },
-   {
-    "value": "slur",
-    "text": "Bogen/Bindung"
-   },
-   {
-    "value": "ending",
-    "text": "nth Ende"
-   },
-   {
-    "value": "cancel",
-    "text": "Abbrechen"
-   }
-  ]
- },
- {
-  "ctor": "SuiDynamicsMenu",
-  "label": "Dynamics",
-  "menuItems": [
-   {
-    "value": "pp",
-    "text": "Pianissimo"
-   },
-   {
-    "value": "p",
-    "text": "Piano"
-   },
-   {
-    "value": "mp",
-    "text": "Mezzo-piano"
-   },
-   {
-    "value": "mf",
-    "text": "Mezzo-forte"
-   },
-   {
-    "value": "f",
-    "text": "Forte"
-   },
-   {
-    "value": "ff",
-    "text": "Fortissimo"
-   },
-   {
-    "value": "sfz",
-    "text": "sfortzando"
-   },
-   {
-    "value": "cancel",
-    "text": "Abbrechen"
-   }
-  ]
- },
- {
-  "ctor": "SuiLanguageMenu",
-  "label": "Language",
-  "menuItems": [
-   {
-    "value": "en",
-    "text": "English"
-   },
-   {
-    "value": "de",
-    "text": "Deutsch"
-   },
-   {
-    "value": "ar",
-    "text": "اَلْعَرَبِيَّةُ"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ribbonText": [
-   {
-    "buttonId": "helpDialog",
-    "buttonText": "(de)Help"
-   },
-   {
-    "buttonId": "languageMenu",
-    "buttonText": "Language"
-   },
-   {
-    "buttonId": "fileMenu",
-    "buttonText": "File"
-   },
-   {
-    "buttonId": "addStaffMenu",
-    "buttonText": "Staves"
-   },
-   {
-    "buttonId": "measureModal",
-    "buttonText": "Measure"
-   },
-   {
-    "buttonId": "tempoModal",
-    "buttonText": "Tempo"
-   },
-   {
-    "buttonId": "timeSignatureMenu",
-    "buttonText": "Time Signature"
-   },
-   {
-    "buttonId": "keyMenu",
-    "buttonText": "Key"
-   },
-   {
-    "buttonId": "staffModifierMenu",
-    "buttonText": "Lines"
-   },
-   {
-    "buttonId": "instrumentModal",
-    "buttonText": "Instrument"
-   },
-   {
-    "buttonId": "pianoModal",
-    "buttonText": "Piano"
-   },
-   {
-    "buttonId": "layoutModal",
-    "buttonText": "Layout"
-   },
-   {
-    "buttonId": "UpOctaveButton",
-    "buttonText": "8va"
-   },
-   {
-    "buttonId": "DownOctaveButton",
-    "buttonText": "8vb"
-   },
-   {
-    "buttonId": "moreNavButtons",
-    "buttonText": "..."
-   },
-   {
-    "buttonId": "dcAlCoda",
-    "buttonText": "DC Al Coda"
-   },
-   {
-    "buttonId": "dsAlCoda",
-    "buttonText": "DS Al Coda"
-   },
-   {
-    "buttonId": "dcAlFine",
-    "buttonText": "DC Al Fine"
-   },
-   {
-    "buttonId": "dsAlFine",
-    "buttonText": "DS Al Fine"
-   },
-   {
-    "buttonId": "toCoda",
-    "buttonText": "to "
-   },
-   {
-    "buttonId": "fine",
-    "buttonText": "Fine"
-   },
-   {
-    "buttonId": "moreStaffButtons",
-    "buttonText": "..."
-   }
-  ]
- }
-]`;
+}`;
 
 
 /***/ }),
@@ -40215,1147 +42717,1560 @@ exports.smoLanguageStringDe = `[
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.workingWithTexten = exports.enterPitchesHtmlen = exports.enterDurationsHtmlen = exports.selectionHtmlen = exports.quickStartHtmlen = exports.smoLanguageStringEn = void 0;
-exports.smoLanguageStringEn = `[
- {
-  "ctor": "SuiLoadFileDialog",
-  "dialogElements": [
-   {
-    "staticText": [
+exports.smoLanguageStringEn = `{
+    "dialogs": [
      {
-      "label": "Load File"
+      "ctor": "SuiLoadFileDialog",
+      "label": "Load File",
+      "dialogElements": [
+       {}
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiSaveFileDialog",
+      "label": "Save Score",
+      "dialogElements": [
+       {
+        "label": "File Name",
+        "id": "saveFileName"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiSaveXmlDialog",
+      "label": "Save Score",
+      "dialogElements": [
+       {
+        "label": "File Name",
+        "id": "saveFileName"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiPrintFileDialog",
+      "label": "Print Complete",
+      "dialogElements": [],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiSaveMidiDialog",
+      "label": "Save Score as Midi",
+      "dialogElements": [
+       {
+        "label": "File Name",
+        "id": "saveFileName"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiSaveActionsDialog",
+      "label": "Save Score",
+      "dialogElements": [
+       {
+        "label": "File Name",
+        "id": "saveFileName"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiLoadMxmlDialog",
+      "label": "Load File",
+      "dialogElements": [
+       {},
+       {
+        "staticText": {
+         "label": "Load File"
+        }
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiLoadActionsDialog",
+      "label": "Load Action File",
+      "dialogElements": [
+       {},
+       {
+        "staticText": {
+         "label": "Load Action File"
+        }
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiMeasureDialog",
+      "label": "Measure Properties",
+      "dialogElements": [
+       {
+        "label": "Pickup",
+        "id": "pickup"
+       },
+       {
+        "label": "Pad Left (px)",
+        "id": "padLeft"
+       },
+       {
+        "label": "Stretch Contents",
+        "id": "customStretch"
+       },
+       {
+        "label": "Proportionalality",
+        "id": "customProportion"
+       },
+       {
+        "label": "Pad all measures in system",
+        "id": "padAllInSystem"
+       },
+       {
+        "label": "Justify Columns",
+        "id": "autoJustify"
+       },
+       {
+        "label": "Text Position",
+        "id": "measureTextPosition",
+        "options": [
+         {
+          "value": 2,
+          "label": "Left"
+         },
+         {
+          "value": 3,
+          "label": "Right"
+         },
+         {
+          "value": 0,
+          "label": "Above"
+         },
+         {
+          "value": 1,
+          "label": "Below"
+         }
+        ]
+       },
+       {
+        "label": "System break before this measure",
+        "id": "systemBreak"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiTempoDialog",
+      "label": "Tempo Properties",
+      "dialogElements": [
+       {
+        "label": "Tempo Mode",
+        "id": "tempoMode",
+        "options": [
+         {
+          "value": "duration",
+          "label": "Duration (Beats/Minute)"
+         },
+         {
+          "value": "text",
+          "label": "Tempo Text"
+         },
+         {
+          "value": "custom",
+          "label": "Specify text and duration"
+         }
+        ]
+       },
+       {
+        "label": "Custom Text",
+        "id": "customText"
+       },
+       {
+        "label": "Notes/Minute",
+        "id": "bpm"
+       },
+       {
+        "label": "Unit for Beat",
+        "id": "beatDuration",
+        "options": [
+         {
+          "value": 4096,
+          "label": "Quarter Note"
+         },
+         {
+          "value": 2048,
+          "label": "1/8 note"
+         },
+         {
+          "value": 6144,
+          "label": "Dotted 1/4 note"
+         },
+         {
+          "value": 8192,
+          "label": "1/2 note"
+         }
+        ]
+       },
+       {
+        "label": "Tempo Text",
+        "id": "tempoText",
+        "options": [
+         {
+          "value": "Larghissimo",
+          "label": "Larghissimo"
+         },
+         {
+          "value": "Grave",
+          "label": "Grave"
+         },
+         {
+          "value": "Lento",
+          "label": "Lento"
+         },
+         {
+          "value": "Largo",
+          "label": "Largo"
+         },
+         {
+          "value": "Larghetto",
+          "label": "Larghetto"
+         },
+         {
+          "value": "Adagio",
+          "label": "Adagio"
+         },
+         {
+          "value": "Adagietto",
+          "label": "Adagietto"
+         },
+         {
+          "value": "Andante moderato",
+          "label": "Andante moderato"
+         },
+         {
+          "value": "Andante",
+          "label": "Andante"
+         },
+         {
+          "value": "Andantino",
+          "label": "Andantino"
+         },
+         {
+          "value": "Moderato",
+          "label": "Moderato"
+         },
+         {
+          "value": "Allegretto",
+          "label": "Allegretto"
+         },
+         {
+          "value": "Allegro",
+          "label": "Allegro"
+         },
+         {
+          "value": "Vivace",
+          "label": "Vivace"
+         },
+         {
+          "value": "Presto",
+          "label": "Presto"
+         },
+         {
+          "value": "Prestissimo",
+          "label": "Prestissimo"
+         }
+        ]
+       },
+       {
+        "label": "Apply to all future measures?",
+        "id": "applyToAll"
+       },
+       {
+        "label": "Display Tempo",
+        "id": "display"
+       },
+       {
+        "label": "Y Offset",
+        "id": "yOffset"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiInstrumentDialog",
+      "label": "Instrument Properties",
+      "dialogElements": [
+       {
+        "label": "Transpose Index (1/2 steps)",
+        "id": "transposeIndex"
+       },
+       {
+        "label": "Apply To",
+        "id": "applyTo",
+        "options": [
+         {
+          "value": 0,
+          "label": "Score"
+         },
+         {
+          "value": 1,
+          "label": "Selected Measures"
+         },
+         {
+          "value": 3,
+          "label": "Remaining Measures"
+         }
+        ]
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiInsertMeasures",
+      "label": "Insert Measures",
+      "dialogElements": [
+       {
+        "label": "Measures to Insert",
+        "id": "measureCount"
+       },
+       {
+        "label": "Append to Selection",
+        "id": "append"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiTimeSignatureDialog",
+      "label": "Custom Time Signature",
+      "dialogElements": [
+       {
+        "label": "Beats/Measure",
+        "id": "numerator"
+       },
+       {
+        "label": "Beat Value",
+        "id": "denominator",
+        "options": [
+         {
+          "value": 8,
+          "label": "8"
+         },
+         {
+          "value": 4,
+          "label": "4"
+         },
+         {
+          "value": 2,
+          "label": "2"
+         }
+        ]
+       },
+       {
+        "label": "Display",
+        "id": "display"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiScoreViewDialog",
+      "label": "Score View",
+      "dialogElements": [
+       {
+        "label": "Show staff",
+        "id": "scoreView"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiScoreIdentificationDialog",
+      "label": "Score Preferences",
+      "dialogElements": [
+       {
+        "label": "Title",
+        "id": "title"
+       },
+       {
+        "label": "Sub Title",
+        "id": "subTitle"
+       },
+       {
+        "label": "Composer",
+        "id": "composer"
+       },
+       {
+        "label": "Copyright",
+        "id": "copyright"
+       }
+      ],
+      "staticText": {
+       "titleText": "Title",
+       "subTitleText": "Sub-title",
+       "copyrightText": "Copyright",
+       "composerText": "Composer",
+       "show": "Show"
+      }
+     },
+     {
+      "ctor": "SuiGlobalLayoutDialog",
+      "label": "Global Settings",
+      "dialogElements": [
+       {
+        "label": "Score Name",
+        "id": "scoreName"
+       },
+       {
+        "label": "Play Selections",
+        "id": "autoPlay"
+       },
+       {
+        "label": "Auto-Advance Cursor",
+        "id": "autoAdvance"
+       },
+       {
+        "label": "Note Spacing",
+        "id": "noteSpacing"
+       },
+       {
+        "label": "Page Size",
+        "id": "pageSize",
+        "options": [
+         {
+          "value": "letter",
+          "label": "Letter (Portrait)"
+         },
+         {
+          "value": "letterLandscape",
+          "label": "Letter (Landscape)"
+         },
+         {
+          "value": "tabloid",
+          "label": "Tabloid (11x17)"
+         },
+         {
+          "value": "A4",
+          "label": "A4"
+         },
+         {
+          "value": "custom",
+          "label": "Custom"
+         }
+        ]
+       },
+       {
+        "label": "Page Width (px)",
+        "id": "pageWidth"
+       },
+       {
+        "label": "Page Height (px)",
+        "id": "pageHeight"
+       },
+       {
+        "label": "% Zoom",
+        "id": "zoomScale"
+       },
+       {
+        "label": "% Note size",
+        "id": "svgScale"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiScoreFontDialog",
+      "label": "Score Fonts",
+      "dialogElements": [
+       {
+        "label": "Engraving Font",
+        "id": "engravingFont",
+        "options": [
+         {
+          "value": "Bravura",
+          "label": "Bravura"
+         },
+         {
+          "value": "Gonville",
+          "label": "Gonville"
+         },
+         {
+          "value": "Petaluma",
+          "label": "Petaluma"
+         },
+         {
+          "value": "Leland",
+          "label": "Leland"
+         }
+        ]
+       },
+       {
+        "label": "Chord Font",
+        "id": "chordFont"
+       },
+       {
+        "label": "Lyric Font",
+        "id": "lyricFont"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiLayoutDialog",
+      "label": "Page Layouts",
+      "dialogElements": [
+       {
+        "label": "Apply to Page",
+        "id": "applyToPage",
+        "options": [
+         {
+          "value": -1,
+          "label": "All"
+         },
+         {
+          "value": -2,
+          "label": "All Remaining"
+         },
+         {
+          "value": 1,
+          "label": "Page 1"
+         }
+        ]
+       },
+       {
+        "label": "Left Margin (px)",
+        "id": "leftMargin"
+       },
+       {
+        "label": "Right Margin (px)",
+        "id": "rightMargin"
+       },
+       {
+        "label": "Top Margin (px)",
+        "id": "topMargin"
+       },
+       {
+        "label": "Bottom Margin (px)",
+        "id": "bottomMargin"
+       },
+       {
+        "label": "Inter-System Margin",
+        "id": "interGap"
+       },
+       {
+        "label": "Intra-System Margin",
+        "id": "intraGap"
+       },
+       {
+        "staticText": {
+         "label": "Page Layouts"
+        }
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiSlurAttributesDialog",
+      "label": "Slur Properties",
+      "dialogElements": [
+       {
+        "label": "Spacing",
+        "id": "spacing"
+       },
+       {
+        "label": "Thickness",
+        "id": "thickness"
+       },
+       {
+        "label": "X Offset",
+        "id": "xOffset"
+       },
+       {
+        "label": "Y Offset",
+        "id": "yOffset"
+       },
+       {
+        "label": "Start Position",
+        "id": "position",
+        "options": [
+         {
+          "value": 1,
+          "label": "Head"
+         },
+         {
+          "value": 2,
+          "label": "Top"
+         }
+        ]
+       },
+       {
+        "label": "End Position",
+        "id": "position_end",
+        "options": [
+         {
+          "value": 1,
+          "label": "Head"
+         },
+         {
+          "value": 2,
+          "label": "Top"
+         }
+        ]
+       },
+       {
+        "label": "Invert",
+        "id": "invert"
+       },
+       {
+        "label": "Control Point 1 X",
+        "id": "cp1x"
+       },
+       {
+        "label": "Control Point 1 Y",
+        "id": "cp1y"
+       },
+       {
+        "label": "Control Point 2 X",
+        "id": "cp2x"
+       },
+       {
+        "label": "Control Point 2 Y",
+        "id": "cp2y"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiTieAttributesDialog",
+      "label": "Tie Properties",
+      "dialogElements": [
+       {
+        "label": "Lines",
+        "id": "lines"
+       }
+      ],
+      "staticText": {
+       "label": "Tie Properties",
+       "fromNote": "From Note",
+       "toNote": "To Note"
+      }
+     },
+     {
+      "ctor": "SuiVoltaAttributeDialog",
+      "label": "Volta Properties",
+      "dialogElements": [
+       {
+        "label": "number",
+        "id": "number"
+       },
+       {
+        "label": "X1 Offset",
+        "id": "xOffsetStart"
+       },
+       {
+        "label": "X2 Offset",
+        "id": "xOffsetEnd"
+       },
+       {
+        "label": "Y Offset",
+        "id": "yOffset"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiHairpinAttributesDialog",
+      "label": "Hairpin Properties",
+      "dialogElements": [
+       {
+        "label": "Height",
+        "id": "height"
+       },
+       {
+        "label": "Y Shift",
+        "id": "yOffset"
+       },
+       {
+        "label": "Right Shift",
+        "id": "xOffsetRight"
+       },
+       {
+        "label": "Left Shift",
+        "id": "xOffsetLeft"
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiStaffGroupDialog",
+      "label": "Staff Group",
+      "dialogElements": [
+       {
+        "label": "Staves in Group",
+        "id": "staffGroups"
+       },
+       {
+        "label": "Left Connector",
+        "id": "leftConnector",
+        "options": [
+         {
+          "value": 1,
+          "label": "Bracket"
+         },
+         {
+          "value": 0,
+          "label": "Brace"
+         },
+         {
+          "value": 2,
+          "label": "Single"
+         },
+         {
+          "value": 3,
+          "label": "Double"
+         }
+        ]
+       }
+      ],
+      "staticText": {
+       "includeStaff": "Include Staff"
+      }
+     },
+     {
+      "ctor": "SuiDynamicModifierDialog",
+      "label": "Dynamics Properties",
+      "dialogElements": [
+       {
+        "label": "Y Line",
+        "id": "yOffsetLine"
+       },
+       {
+        "label": "Y Offset Px",
+        "id": "yOffsetPixels"
+       },
+       {
+        "label": "X Offset",
+        "id": "xOffset"
+       },
+       {
+        "label": "Text",
+        "id": "text",
+        "options": [
+         {
+          "value": "p",
+          "label": "Piano"
+         },
+         {
+          "value": "pp",
+          "label": "Pianissimo"
+         },
+         {
+          "value": "mp",
+          "label": "Mezzo-Piano"
+         },
+         {
+          "value": "mf",
+          "label": "Mezzo-Forte"
+         },
+         {
+          "value": "f",
+          "label": "Forte"
+         },
+         {
+          "value": "ff",
+          "label": "Fortissimo"
+         },
+         {
+          "value": "sfz",
+          "label": "Sforzando"
+         }
+        ]
+       }
+      ],
+      "staticText": {}
+     },
+     {
+      "ctor": "SuiLyricDialog",
+      "label": "Lyric Editor",
+      "dialogElements": [
+       {
+        "label": "Verse",
+        "id": "verse",
+        "options": [
+         {
+          "value": 0,
+          "label": "1"
+         },
+         {
+          "value": 1,
+          "label": "2"
+         },
+         {
+          "value": 2,
+          "label": "3"
+         },
+         {
+          "value": 3,
+          "label": "4"
+         }
+        ]
+       },
+       {
+        "label": "Y Adjustment (Px)",
+        "id": "translateY"
+       },
+       {
+        "label": "Font",
+        "id": "font"
+       },
+       {
+        "label": "Edit Lyrics",
+        "id": "lyricEditor",
+        "options": []
+       }
+      ],
+      "staticText": {
+       "doneEditing": "Done Editing Lyrics",
+       "undo": "Undo Lyrics",
+       "label": "Lyric Editor"
+      }
+     },
+     {
+      "ctor": "SuiChordChangeDialog",
+      "label": "Edit Chord Symbol",
+      "dialogElements": [
+       {
+        "label": "Ordinality",
+        "id": "verse",
+        "options": [
+         {
+          "value": 0,
+          "label": "1"
+         },
+         {
+          "value": 1,
+          "label": "2"
+         },
+         {
+          "value": 2,
+          "label": "3"
+         }
+        ]
+       },
+       {
+        "label": "Y Adjustment (Px)",
+        "id": "translateY"
+       },
+       {
+        "label": "Edit Text",
+        "id": "chordEditor",
+        "options": []
+       },
+       {
+        "label": "Chord Symbol",
+        "id": "chordSymbol",
+        "options": [
+         {
+          "value": "csymDiminished",
+          "label": "Dim"
+         },
+         {
+          "value": "csymHalfDiminished",
+          "label": "Half dim"
+         },
+         {
+          "value": "csymDiagonalArrangementSlash",
+          "label": "Slash"
+         },
+         {
+          "value": "csymMajorSeventh",
+          "label": "Maj7"
+         }
+        ]
+       },
+       {
+        "label": "Text Position",
+        "id": "textPosition",
+        "options": [
+         {
+          "value": 1,
+          "label": "Superscript"
+         },
+         {
+          "value": 2,
+          "label": "Subscript"
+         },
+         {
+          "value": 0,
+          "label": "Normal"
+         }
+        ]
+       },
+       {
+        "label": "Font",
+        "id": "font"
+       },
+       {
+        "label": "Adjust Note Width",
+        "id": "adjustWidth",
+        "options": []
+       }
+      ],
+      "staticText": {
+       "label": "Edit Chord Symbol",
+       "undo": "Undo Chord Symbols",
+       "doneEditing": "Done Editing Chord Symbols"
+      }
+     },
+     {
+      "ctor": "SuiTextBlockDialog",
+      "label": "Text Properties",
+      "dialogElements": [
+       {
+        "label": "Edit Text",
+        "id": "textEditor",
+        "options": []
+       },
+       {
+        "label": "Insert Special",
+        "id": "insertCode",
+        "options": [
+         {
+          "value": "@@@",
+          "label": "Pages"
+         },
+         {
+          "value": "###",
+          "label": "Page Number"
+         }
+        ]
+       },
+       {
+        "label": "Move Text",
+        "id": "textDragger",
+        "options": []
+       },
+       {
+        "label": "X Position (Px)",
+        "id": "x"
+       },
+       {
+        "label": "Y Position (Px)",
+        "id": "y"
+       },
+       {
+        "label": "Font Information",
+        "id": "font"
+       },
+       {
+        "label": "Text Block Properties",
+        "id": "textBlock"
+       },
+       {
+        "label": "Page Behavior",
+        "id": "pagination",
+        "options": [
+         {
+          "value": 4,
+          "label": "Once"
+         },
+         {
+          "value": 1,
+          "label": "Every"
+         },
+         {
+          "label": "Even"
+         },
+         {
+          "value": 3,
+          "label": "Odd"
+         },
+         {
+          "value": 5,
+          "label": "Subsequent"
+         }
+        ]
+       },
+       {
+        "label": "Attach to Selection",
+        "id": "attachToSelector"
+       }
+      ],
+      "staticText": {
+       "label": "Text Properties",
+       "editorLabel": "Done Editing Text",
+       "draggerLabel": "Done Dragging Text"
+      }
+     }
+    ],
+    "menus": [
+     {
+      "ctor": "SuiDynamicsMenu",
+      "label": "Dynamics",
+      "menuItems": [
+       {
+        "icon": "pianissimo",
+        "text": "Pianissimo",
+        "value": "pp"
+       },
+       {
+        "icon": "piano",
+        "text": "Piano",
+        "value": "p"
+       },
+       {
+        "icon": "mezzopiano",
+        "text": "Mezzo-piano",
+        "value": "mp"
+       },
+       {
+        "icon": "mezzoforte",
+        "text": "Mezzo-forte",
+        "value": "mf"
+       },
+       {
+        "icon": "forte",
+        "text": "Forte",
+        "value": "f"
+       },
+       {
+        "icon": "fortissimo",
+        "text": "Fortissimo",
+        "value": "ff"
+       },
+       {
+        "icon": "sfz",
+        "text": "sfortzando",
+        "value": "sfz"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiFileMenu",
+      "label": "File",
+      "menuItems": [
+       {
+        "icon": "folder-new",
+        "text": "New Score",
+        "value": "newFile"
+       },
+       {
+        "icon": "folder-open",
+        "text": "Open",
+        "value": "openFile"
+       },
+       {
+        "icon": "",
+        "text": "Quick Save",
+        "value": "quickSave"
+       },
+       {
+        "icon": "folder-save",
+        "text": "Save",
+        "value": "saveFile"
+       },
+       {
+        "icon": "",
+        "text": "Print",
+        "value": "printScore"
+       },
+       {
+        "icon": "",
+        "text": "Import MusicXML",
+        "value": "importMxml"
+       },
+       {
+        "icon": "",
+        "text": "Export MusicXML",
+        "value": "exportXml"
+       },
+       {
+        "icon": "",
+        "text": "Export Midi",
+        "value": "exportMidi"
+       },
+       {
+        "icon": "folder-save",
+        "text": "Save Actions",
+        "value": "saveActions"
+       },
+       {
+        "icon": "icon-play3",
+        "text": "Play Actions",
+        "value": "playActions"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiStaffMenu",
+      "label": "Add Staff",
+      "menuItems": [
+       {
+        "icon": "treble",
+        "text": "Treble Clef Staff",
+        "value": "trebleInstrument"
+       },
+       {
+        "icon": "bass",
+        "text": "Bass Clef Staff",
+        "value": "bassInstrument"
+       },
+       {
+        "icon": "alto",
+        "text": "Alto Clef Staff",
+        "value": "altoInstrument"
+       },
+       {
+        "icon": "tenor",
+        "text": "Tenor Clef Staff",
+        "value": "tenorInstrument"
+       },
+       {
+        "icon": "percussion",
+        "text": "Percussion Clef Staff",
+        "value": "percussionInstrument"
+       },
+       {
+        "icon": "",
+        "text": "Staff Groups",
+        "value": "staffGroups"
+       },
+       {
+        "icon": "cancel-circle",
+        "text": "Remove Staff",
+        "value": "remove"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiKeySignatureMenu",
+      "label": "Key",
+      "menuItems": [
+       {
+        "icon": "key-sig-c",
+        "text": "C Major",
+        "value": "KeyOfC"
+       },
+       {
+        "icon": "key-sig-f",
+        "text": "F Major",
+        "value": "KeyOfF"
+       },
+       {
+        "icon": "key-sig-g",
+        "text": "G Major",
+        "value": "KeyOfG"
+       },
+       {
+        "icon": "key-sig-bb",
+        "text": "Bb Major",
+        "value": "KeyOfBb"
+       },
+       {
+        "icon": "key-sig-d",
+        "text": "D Major",
+        "value": "KeyOfD"
+       },
+       {
+        "icon": "key-sig-eb",
+        "text": "Eb Major",
+        "value": "KeyOfEb"
+       },
+       {
+        "icon": "key-sig-a",
+        "text": "A Major",
+        "value": "KeyOfA"
+       },
+       {
+        "icon": "key-sig-ab",
+        "text": "Ab Major",
+        "value": "KeyOfAb"
+       },
+       {
+        "icon": "key-sig-e",
+        "text": "E Major",
+        "value": "KeyOfE"
+       },
+       {
+        "icon": "key-sig-bd",
+        "text": "Db Major",
+        "value": "KeyOfDb"
+       },
+       {
+        "icon": "key-sig-b",
+        "text": "B Major",
+        "value": "KeyOfB"
+       },
+       {
+        "icon": "key-sig-fs",
+        "text": "F# Major",
+        "value": "KeyOfF#"
+       },
+       {
+        "icon": "key-sig-cs",
+        "text": "C# Major",
+        "value": "KeyOfC#"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiMeasureMenu",
+      "label": "Measure",
+      "menuItems": [
+       {
+        "icon": "",
+        "text": "Add Measures",
+        "value": "addMenuCmd"
+       },
+       {
+        "icon": "icon-cross",
+        "text": "Delete Selected Measures",
+        "value": "deleteSelected"
+       },
+       {
+        "icon": "",
+        "text": "Format Measure",
+        "value": "formatMeasureDialog"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiTimeSignatureMenu",
+      "label": "Time Sig",
+      "menuItems": [
+       {
+        "icon": "sixeight",
+        "text": "6/8",
+        "value": "6/8"
+       },
+       {
+        "icon": "fourfour",
+        "text": "4/4",
+        "value": "4/4"
+       },
+       {
+        "icon": "threefour",
+        "text": "3/4",
+        "value": "3/4"
+       },
+       {
+        "icon": "twofour",
+        "text": "2/4",
+        "value": "2/4"
+       },
+       {
+        "icon": "twelveeight",
+        "text": "12/8",
+        "value": "12/8"
+       },
+       {
+        "icon": "seveneight",
+        "text": "7/8",
+        "value": "7/8"
+       },
+       {
+        "icon": "fiveeight",
+        "text": "5/8",
+        "value": "5/8"
+       },
+       {
+        "icon": "",
+        "text": "Other",
+        "value": "TimeSigOther"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiStaffModifierMenu",
+      "label": "Lines",
+      "menuItems": [
+       {
+        "icon": "cresc",
+        "text": "Crescendo",
+        "value": "crescendo"
+       },
+       {
+        "icon": "decresc",
+        "text": "Decrescendo",
+        "value": "decrescendo"
+       },
+       {
+        "icon": "slur",
+        "text": "Slur",
+        "value": "slur"
+       },
+       {
+        "icon": "slur",
+        "text": "Tie",
+        "value": "tie"
+       },
+       {
+        "icon": "ending",
+        "text": "nth ending",
+        "value": "ending"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiLanguageMenu",
+      "label": "Language",
+      "menuItems": [
+       {
+        "icon": "",
+        "text": "English",
+        "value": "en"
+       },
+       {
+        "icon": "",
+        "text": "Deutsch",
+        "value": "de"
+       },
+       {
+        "icon": "",
+        "text": "اَلْعَرَبِيَّةُ",
+        "value": "ar"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiLibraryMenu",
+      "label": "Score",
+      "menuItems": [
+       {
+        "icon": "",
+        "text": "Bach Invention",
+        "value": "bach"
+       },
+       {
+        "icon": "",
+        "text": "Postillion-Lied",
+        "value": "postillion"
+       },
+       {
+        "icon": "",
+        "text": "Jesu Bambino",
+        "value": "bambino"
+       },
+       {
+        "icon": "",
+        "text": "Handel Messiah 1-1",
+        "value": "handel"
+       },
+       {
+        "icon": "",
+        "text": "Precious Lord",
+        "value": "preciousLord"
+       },
+       {
+        "icon": "",
+        "text": "In Its Delightful Shade",
+        "value": "shade"
+       },
+       {
+        "icon": "",
+        "text": "Yama",
+        "value": "yamaJson"
+       },
+       {
+        "icon": "",
+        "text": "Dichterliebe (xml)",
+        "value": "dichterliebe"
+       },
+       {
+        "icon": "",
+        "text": "Beethoven - An die ferne Gliebte (xml)",
+        "value": "beethoven"
+       },
+       {
+        "icon": "",
+        "text": "Mozart - An Chloe (xml)",
+        "value": "mozart"
+       },
+       {
+        "icon": "",
+        "text": "Joplin - The Entertainer (xml)",
+        "value": "joplin"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     },
+     {
+      "ctor": "SuiScoreMenu",
+      "label": "Score Settings",
+      "menuItems": [
+       {
+        "icon": "",
+        "text": "Layout",
+        "value": "layout"
+       },
+       {
+        "icon": "",
+        "text": "Fonts",
+        "value": "fonts"
+       },
+       {
+        "icon": "",
+        "text": "View",
+        "value": "view"
+       },
+       {
+        "icon": "",
+        "text": "Score Info",
+        "value": "identification"
+       },
+       {
+        "icon": "",
+        "text": "Global Settings",
+        "value": "preferences"
+       },
+       {
+        "icon": "",
+        "text": "Cancel",
+        "value": "cancel"
+       }
+      ]
+     }
+    ],
+    "buttonText": [
+     {
+      "buttonId": "helpDialog",
+      "buttonText": "Help"
+     },
+     {
+      "buttonId": "languageMenu",
+      "buttonText": "Language"
+     },
+     {
+      "buttonId": "fileMenu",
+      "buttonText": "File"
+     },
+     {
+      "buttonId": "libraryMenu",
+      "buttonText": "Library"
+     },
+     {
+      "buttonId": "addStaffMenu",
+      "buttonText": "Staves"
+     },
+     {
+      "buttonId": "measureModal",
+      "buttonText": "Measure"
+     },
+     {
+      "buttonId": "tempoModal",
+      "buttonText": "Tempo"
+     },
+     {
+      "buttonId": "timeSignatureMenu",
+      "buttonText": "Time Signature"
+     },
+     {
+      "buttonId": "keyMenu",
+      "buttonText": "Key"
+     },
+     {
+      "buttonId": "staffModifierMenu",
+      "buttonText": "Lines"
+     },
+     {
+      "buttonId": "instrumentModal",
+      "buttonText": "Instrument"
+     },
+     {
+      "buttonId": "pianoModal",
+      "buttonText": "Piano"
+     },
+     {
+      "buttonId": "layoutMenu",
+      "buttonText": "Score"
+     },
+     {
+      "buttonId": "UpOctaveButton",
+      "buttonText": "8va"
+     },
+     {
+      "buttonId": "DownOctaveButton",
+      "buttonText": "8vb"
+     },
+     {
+      "buttonId": "moreNavButtons",
+      "buttonText": "..."
+     },
+     {
+      "buttonId": "dcAlCoda",
+      "buttonText": "DC Al Coda"
+     },
+     {
+      "buttonId": "dsAlCoda",
+      "buttonText": "DS Al Coda"
+     },
+     {
+      "buttonId": "dcAlFine",
+      "buttonText": "DC Al Fine"
+     },
+     {
+      "buttonId": "dsAlFine",
+      "buttonText": "DS Al Fine"
+     },
+     {
+      "buttonId": "toCoda",
+      "buttonText": "to "
+     },
+     {
+      "buttonId": "fine",
+      "buttonText": "Fine"
+     },
+     {
+      "buttonId": "moreStaffButtons",
+      "buttonText": "..."
      }
     ]
-   }
-  ]
- },
- {
-  "ctor": "SuiSaveFileDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Save Score"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiPrintFileDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Print Complete"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiMeasureDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Measure Properties"
-     }
-    ]
-   },
-   {
-    "id": "pickupMeasure",
-    "label": "Pickup Measure",
-    "options": [
-     {
-      "value": "2048",
-      "label": "Eighth Note"
-     },
-     {
-      "value": "4096",
-      "label": "Quarter Note"
-     },
-     {
-      "value": "6144",
-      "label": "Dotted Quarter"
-     },
-     {
-      "value": "8192",
-      "label": "Half Note"
-     }
-    ]
-   },
-   {
-    "id": "measureTextPosition",
-    "label": "Text Position",
-    "options": [
-     {
-      "value": "2",
-      "label": "Left"
-     },
-     {
-      "value": "3",
-      "label": "Right"
-     },
-     {
-      "value": "0",
-      "label": "Above"
-     },
-     {
-      "value": "1",
-      "label": "Below"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiTempoDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Tempo Properties"
-     }
-    ]
-   },
-   {
-    "id": "tempoMode",
-    "label": "Tempo Mode",
-    "options": [
-     {
-      "value": "duration",
-      "label": "Duration (Beats/Minute)"
-     },
-     {
-      "value": "text",
-      "label": "Tempo Text"
-     },
-     {
-      "value": "custom",
-      "label": "Specify text and duration"
-     }
-    ]
-   },
-   {
-    "id": "beatDuration",
-    "label": "Unit for Beat",
-    "options": [
-     {
-      "value": "4096",
-      "label": "Quarter Note"
-     },
-     {
-      "value": "2048",
-      "label": "1/8 note"
-     },
-     {
-      "value": "6144",
-      "label": "Dotted 1/4 note"
-     },
-     {
-      "value": "8192",
-      "label": "1/2 note"
-     }
-    ]
-   },
-   {
-    "id": "tempoText",
-    "label": "Tempo Text",
-    "options": [
-     {
-      "value": "Larghissimo",
-      "label": "Larghissimo"
-     },
-     {
-      "value": "Grave",
-      "label": "Grave"
-     },
-     {
-      "value": "Lento",
-      "label": "Lento"
-     },
-     {
-      "value": "Largo",
-      "label": "Largo"
-     },
-     {
-      "value": "Larghetto",
-      "label": "Larghetto"
-     },
-     {
-      "value": "Adagio",
-      "label": "Adagio"
-     },
-     {
-      "value": "Adagietto",
-      "label": "Adagietto"
-     },
-     {
-      "value": "Andante moderato",
-      "label": "Andante moderato"
-     },
-     {
-      "value": "Andante",
-      "label": "Andante"
-     },
-     {
-      "value": "Andantino",
-      "label": "Andantino"
-     },
-     {
-      "value": "Moderato",
-      "label": "Moderato"
-     },
-     {
-      "value": "Allegretto",
-      "label": "Allegretto"
-     },
-     {
-      "value": "Allegro",
-      "label": "Allegro"
-     },
-     {
-      "value": "Vivace",
-      "label": "Vivace"
-     },
-     {
-      "value": "Presto",
-      "label": "Presto"
-     },
-     {
-      "value": "Prestissimo",
-      "label": "Prestissimo"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiInstrumentDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Instrument Properties"
-     }
-    ]
-   },
-   {
-    "id": "applyTo",
-    "label": "Apply To",
-    "options": [
-     {
-      "value": "0",
-      "label": "Score"
-     },
-     {
-      "value": "1",
-      "label": "Selected Measures"
-     },
-     {
-      "value": "3",
-      "label": "Remaining Measures"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiTimeSignatureDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Custom Time Signature"
-     }
-    ]
-   },
-   {
-    "id": "denominator",
-    "label": "Beat Value",
-    "options": [
-     {
-      "value": "8",
-      "label": "8"
-     },
-     {
-      "value": "4",
-      "label": "4"
-     },
-     {
-      "value": "2",
-      "label": "2"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiLayoutDialog",
-  "dialogElements": [
-   {
-    "id": "pageSize",
-    "label": "Page Size",
-    "options": [
-     {
-      "value": "letter",
-      "label": "Letter"
-     },
-     {
-      "value": "tabloid",
-      "label": "Tabloid (11x17)"
-     },
-     {
-      "value": "A4",
-      "label": "A4"
-     },
-     {
-      "value": "custom",
-      "label": "Custom"
-     }
-    ]
-   },
-   {
-    "id": "orientation",
-    "label": "Orientation",
-    "options": [
-     {
-      "value": "0",
-      "label": "Portrait"
-     },
-     {
-      "value": "1",
-      "label": "Landscape"
-     }
-    ]
-   },
-   {
-    "id": "engravingFont",
-    "label": "Engraving Font",
-    "options": [
-     {
-      "value": "Bravura",
-      "label": "Bravura"
-     },
-     {
-      "value": "Gonville",
-      "label": "Gonville"
-     },
-     {
-      "value": "Petaluma",
-      "label": "Petaluma"
-     }
-    ]
-   },
-   {
-    "staticText": [
-     {
-      "label": "Score Layout"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiDynamicModifierDialog",
-  "dialogElements": [
-   {
-    "id": "text",
-    "label": "Text",
-    "options": [
-     {
-      "value": "p",
-      "label": "Piano"
-     },
-     {
-      "value": "pp",
-      "label": "Pianissimo"
-     },
-     {
-      "value": "mp",
-      "label": "Mezzo-Piano"
-     },
-     {
-      "value": "mf",
-      "label": "Mezzo-Forte"
-     },
-     {
-      "value": "f",
-      "label": "Forte"
-     },
-     {
-      "value": "ff",
-      "label": "Fortissimo"
-     },
-     {
-      "value": "sfz",
-      "label": "Sforzando"
-     }
-    ]
-   },
-   {
-    "staticText": [
-     {
-      "label": "Dynamics Properties"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiSlurAttributesDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Slur Properties"
-     }
-    ]
-   },
-   {
-    "id": "position",
-    "label": "Start Position",
-    "options": [
-     {
-      "value": "1",
-      "label": "Head"
-     },
-     {
-      "value": "2",
-      "label": "Top"
-     }
-    ]
-   },
-   {
-    "id": "position_end",
-    "label": "End Position",
-    "options": [
-     {
-      "value": "1",
-      "label": "Head"
-     },
-     {
-      "value": "2",
-      "label": "Top"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiVoltaAttributeDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Volta Properties"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiHairpinAttributesDialog",
-  "dialogElements": [
-   {
-    "staticText": [
-     {
-      "label": "Hairpin Properties"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiLyricDialog",
-  "dialogElements": [
-   {
-    "id": "verse",
-    "label": "Verse",
-    "options": [
-     {
-      "value": "0",
-      "label": "1"
-     },
-     {
-      "value": "1",
-      "label": "2"
-     },
-     {
-      "value": "2",
-      "label": "3"
-     }
-    ]
-   },
-   {
-    "id": "textEditor",
-    "label": "Edit Text",
-    "options": []
-   },
-   {
-    "staticText": [
-     {
-      "doneEditing": "Done Editing Lyrics"
-     },
-     {
-      "undo": "Undo Lyrics"
-     },
-     {
-      "label": "Lyric Editor"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiChordChangeDialog",
-  "dialogElements": [
-   {
-    "id": "verse",
-    "label": "Verse",
-    "options": [
-     {
-      "value": "0",
-      "label": "1"
-     },
-     {
-      "value": "1",
-      "label": "2"
-     },
-     {
-      "value": "2",
-      "label": "3"
-     }
-    ]
-   },
-   {
-    "id": "textEditor",
-    "label": "Edit Text",
-    "options": []
-   },
-   {
-    "staticText": [
-     {
-      "doneEditing": "Done Editing Lyrics"
-     },
-     {
-      "undo": "Undo Lyrics"
-     },
-     {
-      "label": "Lyric Editor"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiTextTransformDialog",
-  "dialogElements": [
-   {
-    "id": "textEditor",
-    "label": "Edit Text",
-    "options": []
-   },
-   {
-    "id": "textDragger",
-    "label": "Move Text",
-    "options": []
-   },
-   {
-    "id": "textResizer",
-    "label": "Resize Text",
-    "options": []
-   },
-   {
-    "id": "justification",
-    "label": "Justification",
-    "options": [
-     {
-      "value": "left",
-      "label": "Left"
-     },
-     {
-      "value": "right",
-      "label": "Right"
-     },
-     {
-      "value": "center",
-      "label": "Center"
-     }
-    ]
-   },
-   {
-    "id": "fontFamily",
-    "label": "Font Family",
-    "options": [
-     {
-      "value": "Merriweather,serif",
-      "label": "Serif"
-     },
-     {
-      "value": "Roboto,sans-serif",
-      "label": "Sans-Serif"
-     },
-     {
-      "value": "monospace",
-      "label": "Monospace"
-     },
-     {
-      "value": "cursive",
-      "label": "Cursive"
-     },
-     {
-      "value": "Merriweather",
-      "label": "times"
-     },
-     {
-      "value": "Arial",
-      "label": "arial"
-     },
-     {
-      "value": "Helvetica",
-      "label": "Helvetica"
-     }
-    ]
-   },
-   {
-    "id": "fontUnit",
-    "label": "Units",
-    "options": [
-     {
-      "value": "em",
-      "label": "em"
-     },
-     {
-      "value": "px",
-      "label": "px"
-     },
-     {
-      "value": "pt",
-      "label": "pt"
-     }
-    ]
-   },
-   {
-    "id": "pagination",
-    "label": "Page Behavior",
-    "options": [
-     {
-      "value": "once",
-      "label": "Once"
-     },
-     {
-      "value": "every",
-      "label": "Every"
-     },
-     {
-      "value": "even",
-      "label": "Even"
-     },
-     {
-      "value": "odd",
-      "label": "Odd"
-     },
-     {
-      "value": "subsequent",
-      "label": "Subsequent"
-     }
-    ]
-   },
-   {
-    "staticText": [
-     {
-      "label": "Text Properties"
-     }
-    ]
-   }
-  ]
- },
- {
-  "ctor": "SuiAddStaffMenu",
-  "label": "Staves",
-  "menuItems": [
-   {
-    "value": "trebleInstrument",
-    "text": "Treble Clef Staff"
-   },
-   {
-    "value": "bassInstrument",
-    "text": "Bass Clef Staff"
-   },
-   {
-    "value": "altoInstrument",
-    "text": "Alto Clef Staff"
-   },
-   {
-    "value": "tenorInstrument",
-    "text": "Tenor Clef Staff"
-   },
-   {
-    "value": "remove",
-    "text": "Remove Staff"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiMeasureMenu",
-  "label": "Measure",
-  "menuItems": [
-   {
-    "value": "addMenuBeforeCmd",
-    "text": "Add Measure Before"
-   },
-   {
-    "value": "addMenuAfterCmd",
-    "text": "Add Measure After"
-   },
-   {
-    "value": "deleteSelected",
-    "text": "Delete Selected Measures"
-   },
-   {
-    "value": "formatMeasureDialog",
-    "text": "Format Measure"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiFileMenu",
-  "label": "File",
-  "menuItems": [
-   {
-    "value": "newFile",
-    "text": "New Score"
-   },
-   {
-    "value": "openFile",
-    "text": "Open"
-   },
-   {
-    "value": "saveFile",
-    "text": "Save"
-   },
-   {
-    "value": "quickSave",
-    "text": "Quick Save"
-   },
-   {
-    "value": "printScore",
-    "text": "Print"
-   },
-   {
-    "value": "bach",
-    "text": "Bach Invention"
-   },
-   {
-    "value": "bambino",
-    "text": "Jesu Bambino"
-   },
-   {
-    "value": "microtone",
-    "text": "Microtone Sample"
-   },
-   {
-    "value": "preciousLord",
-    "text": "Precious Lord"
-   },
-   {
-    "value": "yamaJson",
-    "text": "Yama"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiTimeSignatureMenu",
-  "label": "Time Signature",
-  "menuItems": [
-   {
-    "value": "6/8",
-    "text": "6/8"
-   },
-   {
-    "value": "3/4",
-    "text": "3/4"
-   },
-   {
-    "value": "2/4",
-    "text": "2/4"
-   },
-   {
-    "value": "12/8",
-    "text": "12/8"
-   },
-   {
-    "value": "7/8",
-    "text": "7/8"
-   },
-   {
-    "value": "5/8",
-    "text": "5/8"
-   },
-   {
-    "value": "TimeSigOther",
-    "text": "Other"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiKeySignatureMenu",
-  "label": "Key",
-  "menuItems": [
-   {
-    "value": "KeyOfC",
-    "text": "C Major"
-   },
-   {
-    "value": "KeyOfF",
-    "text": "F Major"
-   },
-   {
-    "value": "KeyOfG",
-    "text": "G Major"
-   },
-   {
-    "value": "KeyOfBb",
-    "text": "Bb Major"
-   },
-   {
-    "value": "KeyOfD",
-    "text": "D Major"
-   },
-   {
-    "value": "KeyOfEb",
-    "text": "Eb Major"
-   },
-   {
-    "value": "KeyOfA",
-    "text": "A Major"
-   },
-   {
-    "value": "KeyOfAb",
-    "text": "Ab Major"
-   },
-   {
-    "value": "KeyOfE",
-    "text": "E Major"
-   },
-   {
-    "value": "KeyOfDb",
-    "text": "Db Major"
-   },
-   {
-    "value": "KeyOfB",
-    "text": "B Major"
-   },
-   {
-    "value": "KeyOfF#",
-    "text": "F# Major"
-   },
-   {
-    "value": "KeyOfC#",
-    "text": "C# Major"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiTimeSignatureMenu",
-  "label": "Time Signature",
-  "menuItems": [
-   {
-    "value": "6/8",
-    "text": "6/8"
-   },
-   {
-    "value": "3/4",
-    "text": "3/4"
-   },
-   {
-    "value": "2/4",
-    "text": "2/4"
-   },
-   {
-    "value": "12/8",
-    "text": "12/8"
-   },
-   {
-    "value": "7/8",
-    "text": "7/8"
-   },
-   {
-    "value": "5/8",
-    "text": "5/8"
-   },
-   {
-    "value": "TimeSigOther",
-    "text": "Other"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiKeySignatureMenu",
-  "label": "Key",
-  "menuItems": [
-   {
-    "value": "KeyOfC",
-    "text": "C Major"
-   },
-   {
-    "value": "KeyOfF",
-    "text": "F Major"
-   },
-   {
-    "value": "KeyOfG",
-    "text": "G Major"
-   },
-   {
-    "value": "KeyOfBb",
-    "text": "Bb Major"
-   },
-   {
-    "value": "KeyOfD",
-    "text": "D Major"
-   },
-   {
-    "value": "KeyOfEb",
-    "text": "Eb Major"
-   },
-   {
-    "value": "KeyOfA",
-    "text": "A Major"
-   },
-   {
-    "value": "KeyOfAb",
-    "text": "Ab Major"
-   },
-   {
-    "value": "KeyOfE",
-    "text": "E Major"
-   },
-   {
-    "value": "KeyOfDb",
-    "text": "Db Major"
-   },
-   {
-    "value": "KeyOfB",
-    "text": "B Major"
-   },
-   {
-    "value": "KeyOfF#",
-    "text": "F# Major"
-   },
-   {
-    "value": "KeyOfC#",
-    "text": "C# Major"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiStaffModifierMenu",
-  "label": "Lines",
-  "menuItems": [
-   {
-    "value": "crescendo",
-    "text": "Crescendo"
-   },
-   {
-    "value": "decrescendo",
-    "text": "Decrescendo"
-   },
-   {
-    "value": "slur",
-    "text": "Slur/Tie"
-   },
-   {
-    "value": "ending",
-    "text": "nth ending"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiDynamicsMenu",
-  "label": "Dynamics",
-  "menuItems": [
-   {
-    "value": "pp",
-    "text": "Pianissimo"
-   },
-   {
-    "value": "p",
-    "text": "Piano"
-   },
-   {
-    "value": "mp",
-    "text": "Mezzo-piano"
-   },
-   {
-    "value": "mf",
-    "text": "Mezzo-forte"
-   },
-   {
-    "value": "f",
-    "text": "Forte"
-   },
-   {
-    "value": "ff",
-    "text": "Fortissimo"
-   },
-   {
-    "value": "sfz",
-    "text": "sfortzando"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ctor": "SuiLanguageMenu",
-  "label": "Language",
-  "menuItems": [
-   {
-    "value": "en",
-    "text": "English"
-   },
-   {
-    "value": "de",
-    "text": "Deutsch"
-   },
-   {
-    "value": "ar",
-    "text": "اَلْعَرَبِيَّةُ"
-   },
-   {
-    "value": "cancel",
-    "text": "Cancel"
-   }
-  ]
- },
- {
-  "ribbonText": [
-   {
-    "buttonId": "helpDialog",
-    "buttonText": "Help"
-   },
-   {
-    "buttonId": "languageMenu",
-    "buttonText": "Language"
-   },
-   {
-    "buttonId": "fileMenu",
-    "buttonText": "File"
-   },
-   {
-    "buttonId": "addStaffMenu",
-    "buttonText": "Staves"
-   },
-   {
-    "buttonId": "measureModal",
-    "buttonText": "Measure"
-   },
-   {
-    "buttonId": "tempoModal",
-    "buttonText": "Tempo"
-   },
-   {
-    "buttonId": "timeSignatureMenu",
-    "buttonText": "Time Signature"
-   },
-   {
-    "buttonId": "keyMenu",
-    "buttonText": "Key"
-   },
-   {
-    "buttonId": "staffModifierMenu",
-    "buttonText": "Lines"
-   },
-   {
-    "buttonId": "instrumentModal",
-    "buttonText": "Instrument"
-   },
-   {
-    "buttonId": "pianoModal",
-    "buttonText": "Piano"
-   },
-   {
-    "buttonId": "layoutModal",
-    "buttonText": "Layout"
-   },
-   {
-    "buttonId": "UpOctaveButton",
-    "buttonText": "8va"
-   },
-   {
-    "buttonId": "DownOctaveButton",
-    "buttonText": "8vb"
-   },
-   {
-    "buttonId": "moreNavButtons",
-    "buttonText": "..."
-   },
-   {
-    "buttonId": "dcAlCoda",
-    "buttonText": "DC Al Coda"
-   },
-   {
-    "buttonId": "dsAlCoda",
-    "buttonText": "DS Al Coda"
-   },
-   {
-    "buttonId": "dcAlFine",
-    "buttonText": "DC Al Fine"
-   },
-   {
-    "buttonId": "dsAlFine",
-    "buttonText": "DS Al Fine"
-   },
-   {
-    "buttonId": "toCoda",
-    "buttonText": "to "
-   },
-   {
-    "buttonId": "fine",
-    "buttonText": "Fine"
-   },
-   {
-    "buttonId": "moreStaffButtons",
-    "buttonText": "..."
-   }
-  ]
- }
-]`;
+   }`;
 exports.quickStartHtmlen = `
     <h3 id="quick-start-guide">Quick start guide</h3>
 <p>If you don&#39;t like to read instructions, this cook&#39;s tour of Smoosic was made for you.</p>
@@ -41467,6 +44382,8 @@ exports.SmoTranslationEditor = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const language_1 = __webpack_require__(/*! ./language */ "./src/ui/i18n/language.js");
+const ribbon_1 = __webpack_require__(/*! ../buttons/ribbon */ "./src/ui/buttons/ribbon.ts");
 // ## SmoTranslationEditor
 // Create a somewhat user-friendly editor DOM to translate SMO
 // dialogs and menus, and any subset, into other languages.
@@ -41486,14 +44403,14 @@ class SmoTranslationEditor {
     static _getMenuTextDialogHtml(menuCtor, enStrings, langStrings) {
         const menuClass = Smo.getClass(menuCtor);
         const menuItems = menuClass['defaults'].menuItems;
-        var enMenu = enStrings.find((mn) => mn.ctor === menuCtor);
+        var enMenu = enStrings.menus.find((mn) => mn.ctor === menuCtor);
         // Get the JSON EN menu, or copy the DB strings if it doesn't exist
         if (!enMenu) {
             enMenu = JSON.parse(JSON.stringify(menuClass['defaults']));
             enMenu.ctor = menuCtor;
         }
         // Get the JSON language menu strings, or copy the EN strings if it doesn't exist
-        var langMenu = langStrings.find((mn) => mn.ctor === menuCtor);
+        var langMenu = langStrings.menus.find((mn) => mn.ctor === menuCtor);
         if (!langMenu) {
             langMenu = JSON.parse(JSON.stringify(menuClass['defaults']));
             langMenu.ctor = menuCtor;
@@ -41531,18 +44448,18 @@ class SmoTranslationEditor {
         var b = htmlHelpers_1.htmlHelpers.buildDom;
         var buttonDom = b('div').classes('ribbon-translate-container')
             .attr('data-ribbon-translate', 'buttons').append(b('button').classes('icon-plus trans-expander')).append(b('span').classes('ribbon-translate-title').text('Button Text')).dom();
-        var enKeys = enStrings.find((enString) => enString.ribbonButtonText);
+        var enKeys = enStrings.buttonText.find((enString) => enString.ribbonButtonText);
         if (!enKeys) {
-            enKeys = JSON.parse(JSON.stringify(RibbonButtons.translateButtons));
+            enKeys = JSON.parse(JSON.stringify(ribbon_1.RibbonButtons.translateButtons));
         }
-        var langKeys = langStrings.find((langString) => langString.ribbonText);
+        var langKeys = langStrings.buttonText.find((langString) => langString.ribbonText);
         if (!langKeys) {
-            langKeys = JSON.parse(JSON.stringify(RibbonButtons.translateButtons));
+            langKeys = JSON.parse(JSON.stringify(ribbon_1.RibbonButtons.translateButtons));
         }
         else {
             langKeys = langKeys.ribbonText;
         }
-        RibbonButtons.translateButtons.forEach((button) => {
+        ribbon_1.RibbonButtons.translateButtons.forEach((button) => {
             const langObj = langKeys.find((langText) => langText.buttonId === button.buttonId);
             const enObj = enKeys.find((enText) => enText.buttonId === button.buttonId);
             const enString = enObj ? enObj.buttonText : button.buttonText;
@@ -41556,52 +44473,33 @@ class SmoTranslationEditor {
     }
     // ### _getStaticTextDialogHtml
     // create DOM for the static text section of the dialogs.
-    static _getStaticTextDialogHtml(dialogCtor, element, enDb, langDb, htmlContainer) {
+    static _getStaticTextDialogHtml(elements, enDb, langDb, htmlContainer) {
         var b = htmlHelpers_1.htmlHelpers.buildDom;
-        const dbObj = element.staticText;
-        var enStNode = enDb.find((st) => st.staticText);
-        if (!enStNode) {
-            const enStString = JSON.parse(JSON.stringify(element.staticText));
-            enStNode = { staticText: enStString };
-            enDb.push({ staticText: enStString });
-        }
-        var langStNode = langDb.find((st) => st.staticText);
-        if (!langStNode || !langStNode.staticText) {
-            const langStString = JSON.parse(JSON.stringify(element.staticText));
-            langStNode = { staticText: langStString };
-            langDb.push(langStNode);
-        }
-        const enObj = enStNode.staticText;
-        const langObj = langStNode.staticText;
+        const keys = Object.keys(elements.staticText);
         const nodeContainer = b('div')
             .classes('dialog-element-container')
             .attr('data-component', 'staticText')
             .dom();
-        $(htmlContainer).append(nodeContainer);
-        const elKeys = dbObj.map((st) => Object.keys(st)[0]);
-        elKeys.forEach((elKey) => {
-            var dbVal = dbObj.find((st) => st[elKey]);
-            var enVal = enObj.find((st) => st[elKey]);
-            var langVal = langObj.find((st) => st[elKey]);
-            if (!enVal) {
-                enVal = dbVal;
-            }
-            if (!langVal) {
-                langVal = dbVal;
-            }
-            const translateElement = SmoTranslationEditor._getHtmlTextInput(elKey, enVal[elKey], langVal[elKey], 'statictext', elKey);
+        keys.forEach((key) => {
+            var enVal = enDb[key] ? enDb[key] : elements.staticText[key];
+            var langVal = langDb[key] ? langDb[key] : enDb[key];
+            const translateElement = SmoTranslationEditor._getHtmlTextInput(key, enVal, langVal, 'statictext', key);
             $(nodeContainer).append(translateElement);
         });
+        $(htmlContainer).append(nodeContainer);
     }
-    static _getDialogComponentHtml(dialogCtor, element, enDb, langDb, container) {
+    static _getDialogComponentHtml(element, enDb, langDb, container) {
         var b = htmlHelpers_1.htmlHelpers.buildDom;
         var label = element.label;
         var smoName = element.smoName;
-        var enComponent = enDb.find((st) => st.id === smoName);
+        if (typeof (enDb.dialogElements.find) !== 'function') {
+            console.warn('no ENDB!');
+        }
+        var enComponent = enDb.dialogElements.find((st) => st.id === smoName);
         if (!enComponent) {
             enComponent = JSON.parse(JSON.stringify(element));
         }
-        var langComponent = langDb.find((st) => st.id === smoName);
+        var langComponent = langDb.dialogElements.find((st) => st.id === smoName);
         if (!langComponent) {
             langComponent = JSON.parse(JSON.stringify(element));
         }
@@ -41639,40 +44537,35 @@ class SmoTranslationEditor {
             .append(b('span').classes('db-translate-title').text(dialogCtor)).dom();
         var ctor = Smo.getClass(dialogCtor);
         var elements = ctor.dialogElements;
-        var enDb = enStrings.find((dbStr) => dbStr.ctor === dialogCtor);
+        var enDb = enStrings.dialogs.find((dbStr) => dbStr.ctor === dialogCtor);
         if (!enDb) {
             enDb = JSON.parse(JSON.stringify(elements));
         }
-        else {
-            enDb = enDb.dialogElements;
-        }
-        var langDb = langStrings.find((dbStr) => dbStr.ctor === dialogCtor);
+        var langDb = langStrings.dialogs.find((dbStr) => dbStr.ctor === dialogCtor);
         if (!langDb) {
             langDb = JSON.parse(JSON.stringify(elements));
         }
-        else {
-            langDb = langDb.dialogElements;
+        $(container).append(SmoTranslationEditor._getHtmlTextInput(dialogCtor, enDb.label, langDb.label, 'dialog-label', dialogCtor));
+        if (elements.staticText) {
+            SmoTranslationEditor._getStaticTextDialogHtml(elements, enDb.staticText, langDb.staticText, container);
         }
-        elements.forEach((element) => {
-            if (element.staticText) {
-                SmoTranslationEditor._getStaticTextDialogHtml(dialogCtor, element, enDb, langDb, container);
-            }
-            else if (element.smoName) {
-                SmoTranslationEditor._getDialogComponentHtml(dialogCtor, element, enDb, langDb, container);
+        elements.elements.forEach((element) => {
+            if (element.smoName && element.label) {
+                SmoTranslationEditor._getDialogComponentHtml(element, enDb, langDb, container);
             }
         });
         return container;
     }
     static getAllTranslationHtml(lang) {
-        var enStr = SmoLanguage.en.strings;
-        var langStr = SmoLanguage[lang].strings;
+        var enStr = language_1.SmoLanguage.en.strings;
+        var langStr = language_1.SmoLanguage[lang].strings;
         var b = htmlHelpers_1.htmlHelpers.buildDom;
         var container = b('div').classes('top-translate-container')
-            .attr('dir', SmoLanguage[lang].dir).dom();
-        SmoTranslator.allDialogs.forEach((dialog) => {
+            .attr('dir', language_1.SmoLanguage[lang].dir).dom();
+        language_1.SmoTranslator.allDialogs.forEach((dialog) => {
             $(container).append(SmoTranslationEditor.getDialogTranslationHtml(dialog, enStr, langStr));
         });
-        SmoTranslator.allMenus.forEach((menu) => {
+        language_1.SmoTranslator.allMenus.forEach((menu) => {
             $(container).append(SmoTranslationEditor._getMenuTextDialogHtml(menu, enStr, langStr));
         });
         SmoTranslationEditor.getButtonTranslateHtml(enStr, langStr, container);
@@ -42460,508 +45353,164 @@ exports.defaultTrackerKeys = defaultTrackerKeys;
 
 /***/ }),
 
-/***/ "./src/ui/menus.js":
-/*!*************************!*\
-  !*** ./src/ui/menus.js ***!
-  \*************************/
+/***/ "./src/ui/menus/dynamics.ts":
+/*!**********************************!*\
+  !*** ./src/ui/menus/dynamics.ts ***!
+  \**********************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiAddStaffMenu = exports.SuiMeasureMenu = exports.SuiLanguageMenu = exports.SuiStaffModifierMenu = exports.SuiKeySignatureMenu = exports.SuiTimeSignatureMenu = exports.SuiDynamicsMenu = exports.SuiLibraryMenu = exports.SuiFileMenu = exports.SuiScoreMenu = exports.suiMenuManager = exports.suiMenuBase = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const language_1 = __webpack_require__(/*! ./i18n/language */ "./src/ui/i18n/language.js");
-const scoreDialogs_1 = __webpack_require__(/*! ./dialogs/scoreDialogs */ "./src/ui/dialogs/scoreDialogs.js");
-const score_1 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
-const xhrLoader_1 = __webpack_require__(/*! ./fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.js");
-const xmlScore_1 = __webpack_require__(/*! ../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
-const layoutDebug_1 = __webpack_require__(/*! ../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
-const fileDialogs_1 = __webpack_require__(/*! ./dialogs/fileDialogs */ "./src/ui/dialogs/fileDialogs.js");
-const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const measureDialogs_1 = __webpack_require__(/*! ./dialogs/measureDialogs */ "./src/ui/dialogs/measureDialogs.js");
-const staffDialogs_1 = __webpack_require__(/*! ./dialogs/staffDialogs */ "./src/ui/dialogs/staffDialogs.js");
-const measure_1 = __webpack_require__(/*! ../smo/data/measure */ "./src/smo/data/measure.ts");
-class suiMenuBase {
+exports.SuiDynamicsMenu = void 0;
+const noteModifiers_1 = __webpack_require__(/*! ../../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
+const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
+class SuiDynamicsMenu extends menu_1.SuiMenuBase {
     constructor(params) {
-        Vex.Merge(this, params);
-        this.focusIndex = -1;
-        language_1.SmoTranslator.registerMenu(this.ctor);
-    }
-    get closeModalPromise() {
-        return this.closePromise();
-    }
-    static printTranslate(_class) {
-        const xx = Smo.getClass(_class);
-        const items = [];
-        xx.defaults.menuItems.forEach((item) => {
-            items.push({ value: item.value, text: item.text });
-        });
-        return { ctor: xx.ctor, label: xx.label, menuItems: items };
-    }
-    complete() {
-        $('body').trigger('menuDismiss');
-    }
-    // Most menus don't process their own events
-    keydown() { }
-}
-exports.suiMenuBase = suiMenuBase;
-class suiMenuManager {
-    constructor(params) {
-        Vex.Merge(this, suiMenuManager.defaults);
-        Vex.Merge(this, params);
-        this.eventSource = params.eventSource;
-        this.view = params.view;
-        this.bound = false;
-        this.hotkeyBindings = {};
-    }
-    static get defaults() {
-        return {
-            menuBind: suiMenuManager.menuKeyBindingDefaults,
-            menuContainer: '.menuContainer'
-        };
-    }
-    get closeModalPromise() {
-        return this.closeMenuPromise;
-    }
-    setController(c) {
-        this.controller = c;
-    }
-    get score() {
-        return this.view.score;
-    }
-    // ### Description:
-    // slash ('/') menu key bindings.  The slash key followed by another key brings up
-    // a menu.
-    static get menuKeyBindingDefaults() {
-        return [
-            {
-                event: 'keydown',
-                key: 'n',
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: 'SuiLanguageMenu'
-            }, {
-                event: 'keydown',
-                key: 'k',
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: 'SuiKeySignatureMenu'
-            }, {
-                event: 'keydown',
-                key: 'l',
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: 'SuiStaffModifierMenu'
-            }, {
-                event: 'keydown',
-                key: 'd',
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: 'SuiDynamicsMenu'
-            }, {
-                event: 'keydown',
-                key: 's',
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: 'SuiAddStaffMenu'
-            }, {
-                event: 'keydown',
-                key: 'f',
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: 'SuiFileMenu'
-            }, {
-                event: 'keydown',
-                key: 'L',
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: 'SuiLibraryMenu'
-            }, {
-                event: 'keydown',
-                key: 'm',
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: 'SuiTimeSignatureMenu'
-            }, {
-                event: 'keydown',
-                key: 'a',
-                ctrlKey: false,
-                altKey: false,
-                shiftKey: false,
-                action: 'SuiMeasureMenu'
-            }
-        ];
-    }
-    _advanceSelection(inc) {
-        const options = $('.menuContainer ul.menuElement li.menuOption');
-        inc = inc < 0 ? options.length - 1 : 1;
-        this.menu.focusIndex = (this.menu.focusIndex + inc) % options.length;
-        $(options[this.menu.focusIndex]).find('button').focus();
-    }
-    get menuBindings() {
-        return this.menuBind;
-    }
-    unattach() {
-        this.eventSource.unbindKeydownHandler(this.keydownHandler);
-        $('body').removeClass('modal');
-        $(this.menuContainer).html('');
-        $('body').off('dismissMenu');
-        this.bound = false;
-        this.menu = null;
-    }
-    attach() {
-        let hotkey = 0;
-        $(this.menuContainer).html('');
-        $(this.menuContainer).attr('z-index', '12');
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
-        const r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
-            .css('left', '' + this.menuPosition.x + 'px')
-            .css('top', '' + this.menuPosition.y + 'px');
-        this.menu.menuItems.forEach((item) => {
-            var vkey = (hotkey < 10) ? String.fromCharCode(48 + hotkey) :
-                String.fromCharCode(87 + hotkey);
-            r.append(b('li').classes('menuOption').append(b('button').attr('data-value', item.value).append(b('span').classes('menuText').text(item.text))
-                .append(b('span').classes('icon icon-' + item.icon))
-                .append(b('span').classes('menu-key').text('' + vkey))));
-            item.hotkey = vkey;
-            hotkey += 1;
-        });
-        $(this.menuContainer).append(r.dom());
-        $('body').addClass('modal');
-        this.bindEvents();
-    }
-    slashMenuMode(completeNotifier) {
-        var self = this;
-        this.bindEvents();
-        layoutDebug_1.layoutDebug.addDialogDebug('slash menu creating closeMenuPromise');
-        // A menu asserts this event when it is done.
-        this.closeMenuPromise = new Promise((resolve) => {
-            $('body').off('menuDismiss').on('menuDismiss', () => {
-                layoutDebug_1.layoutDebug.addDialogDebug('menuDismiss received, resolve closeMenuPromise');
-                self.unattach();
-                $('body').removeClass('slash-menu');
-                resolve();
-            });
-        });
-        // take over the keyboard
-        completeNotifier.unbindKeyboardForModal(this);
-    }
-    dismiss() {
-        $('body').trigger('menuDismiss');
-    }
-    createMenu(action) {
-        this.menuPosition = { x: 250, y: 40, width: 1, height: 1 };
-        // If we were called from the ribbon, we notify the controller that we are
-        // taking over the keyboard.  If this was a key-based command we already did.
-        layoutDebug_1.layoutDebug.addDialogDebug('createMenu creating ' + action);
-        const ctor = Smo.getClass(action);
-        this.menu = new ctor({
-            position: this.menuPosition,
-            tracker: this.tracker,
-            keyCommands: this.keyCommands,
-            score: this.score,
-            completeNotifier: this.controller,
-            closePromise: this.closeMenuPromise,
-            view: this.view,
-            eventSource: this.eventSource,
-            undoBuffer: this.undoBuffer
-        });
-        this.attach(this.menuContainer);
-        this.menu.menuItems.forEach((item) => {
-            if (typeof (item.hotkey) !== 'undefined') {
-                this.hotkeyBindings[item.hotkey] = item.value;
-            }
-        });
-    }
-    // ### evKey
-    // We have taken over menu commands from controller.  If there is a menu active, send the key
-    // to it.  If there is not, see if the keystroke creates one.  If neither, dismissi the menu.
-    evKey(event) {
-        if (['Tab', 'Enter'].indexOf(event.code) >= 0) {
-            return;
-        }
-        event.preventDefault();
-        if (event.code === 'Escape') {
-            this.dismiss();
-        }
-        if (this.menu) {
-            if (event.code === 'ArrowUp') {
-                this._advanceSelection(-1);
-            }
-            else if (event.code === 'ArrowDown') {
-                this._advanceSelection(1);
-            }
-            else if (this.hotkeyBindings[event.key]) {
-                $('button[data-value="' + this.hotkeyBindings[event.key] + '"]').click();
-            }
-            else {
-                this.menu.keydown(event);
-            }
-            return;
-        }
-        const binding = this.menuBind.find((ev) => ev.key === event.key);
-        if (!binding) {
-            this.dismiss();
-            return;
-        }
-        this.createMenu(binding.action);
-    }
-    bindEvents() {
-        const self = this;
-        this.hotkeyBindings = {};
-        $('body').addClass('slash-menu');
-        // We need to keep track of is bound, b/c the menu can be created from
-        // different sources.
-        if (!this.bound) {
-            this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
-            this.bound = true;
-        }
-        $(this.menuContainer).find('button').off('click').on('click', (ev) => {
-            if ($(ev.currentTarget).attr('data-value') === 'cancel') {
-                self.menu.complete();
-                return;
-            }
-            self.menu.selection(ev);
-        });
-    }
-}
-exports.suiMenuManager = suiMenuManager;
-class SuiScoreMenu extends suiMenuBase {
-    static get defaults() {
-        SuiScoreMenu._defaults = typeof (SuiScoreMenu._defaults) !== 'undefined' ? SuiScoreMenu._defaults : {
-            label: 'Score Settings',
-            menuItems: [{
-                    icon: '',
-                    text: 'Layout',
-                    value: 'layout'
-                }, {
-                    icon: '',
-                    text: 'Fonts',
-                    value: 'fonts'
-                }, {
-                    icon: '',
-                    text: 'View',
-                    value: 'view'
-                }, {
-                    icon: '',
-                    text: 'Score Info',
-                    value: 'identification'
-                }, {
-                    icon: '',
-                    text: 'Global Settings',
-                    value: 'preferences'
-                }, {
-                    icon: '',
-                    text: 'Cancel',
-                    value: 'cancel'
-                }]
-        };
-        return SuiScoreMenu._defaults;
-    }
-    constructor(params) {
-        params = (typeof (params) !== 'undefined' ? params : {});
-        Vex.Merge(params, SuiScoreMenu.defaults);
         super(params);
     }
-    execView() {
-        scoreDialogs_1.SuiScoreViewDialog.createAndDisplay({
-            eventSource: this.eventSource,
-            keyCommands: this.keyCommands,
-            completeNotifier: this.completeNotifier,
-            view: this.view,
-            startPromise: this.closePromise
-        });
-    }
-    execScoreId() {
-        scoreDialogs_1.SuiScoreIdentificationDialog.createAndDisplay({
-            eventSource: this.eventSource,
-            keyCommands: this.keyCommands,
-            completeNotifier: this.completeNotifier,
-            view: this.view,
-            startPromise: this.closePromise
-        });
-    }
-    execLayout() {
-        scoreDialogs_1.SuiLayoutDialog.createAndDisplay({
-            eventSource: this.eventSource,
-            keyCommands: this.keyCommands,
-            completeNotifier: this.completeNotifier,
-            view: this.view,
-            startPromise: this.closePromise
-        });
-    }
-    execFonts() {
-        scoreDialogs_1.SuiScoreFontDialog.createAndDisplay({
-            eventSource: this.eventSource,
-            keyCommands: this.keyCommands,
-            completeNotifier: this.completeNotifier,
-            view: this.view,
-            startPromise: this.closePromise
-        });
-    }
-    execPreferences() {
-        scoreDialogs_1.SuiGlobalLayoutDialog.createAndDisplay({
-            eventSource: this.eventSource,
-            keyCommands: this.keyCommands,
-            completeNotifier: this.completeNotifier,
-            view: this.view,
-            startPromise: this.closePromise
-        });
+    getDefinition() {
+        return SuiDynamicsMenu.defaults;
     }
     selection(ev) {
         const text = $(ev.currentTarget).attr('data-value');
-        if (text === 'view') {
-            this.execView();
-        }
-        else if (text === 'layout') {
-            this.execLayout();
-        }
-        else if (text === 'fonts') {
-            this.execFonts();
-        }
-        else if (text === 'preferences') {
-            this.execPreferences();
-        }
-        else if (text === 'identification') {
-            this.execScoreId();
-        }
+        const props = noteModifiers_1.SmoDynamicText.defaults;
+        props.text = text;
+        const dynamic = new noteModifiers_1.SmoDynamicText(props);
+        this.view.addDynamic(this.tracker.selections[0], dynamic);
         this.complete();
     }
     keydown() { }
 }
-exports.SuiScoreMenu = SuiScoreMenu;
-class SuiFileMenu extends suiMenuBase {
+exports.SuiDynamicsMenu = SuiDynamicsMenu;
+SuiDynamicsMenu.defaults = {
+    label: 'Dynamics',
+    menuItems: [{
+            icon: 'pianissimo',
+            text: 'Pianissimo',
+            value: 'pp'
+        }, {
+            icon: 'piano',
+            text: 'Piano',
+            value: 'p'
+        }, {
+            icon: 'mezzopiano',
+            text: 'Mezzo-piano',
+            value: 'mp'
+        }, {
+            icon: 'mezzoforte',
+            text: 'Mezzo-forte',
+            value: 'mf'
+        }, {
+            icon: 'forte',
+            text: 'Forte',
+            value: 'f'
+        }, {
+            icon: 'fortissimo',
+            text: 'Fortissimo',
+            value: 'ff'
+        }, {
+            icon: 'sfz',
+            text: 'sfortzando',
+            value: 'sfz'
+        }, {
+            icon: '',
+            text: 'Cancel',
+            value: 'cancel'
+        }]
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/menus/file.ts":
+/*!******************************!*\
+  !*** ./src/ui/menus/file.ts ***!
+  \******************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiFileMenu = void 0;
+const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
+const dialog_1 = __webpack_require__(/*! ../dialogs/dialog */ "./src/ui/dialogs/dialog.ts");
+const fileDialogs_1 = __webpack_require__(/*! ../dialogs/fileDialogs */ "./src/ui/dialogs/fileDialogs.ts");
+const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
+class SuiFileMenu extends menu_1.SuiMenuBase {
     constructor(params) {
-        params = (typeof (params) !== 'undefined' ? params : {});
-        Vex.Merge(params, SuiFileMenu.defaults);
         super(params);
     }
-    static get ctor() {
-        return 'SuiFileMenu';
-    }
-    get ctor() {
-        return SuiFileMenu.ctor;
-    }
-    static get defaults() {
-        SuiFileMenu._defaults = typeof (SuiFileMenu._defaults) !== 'undefined' ? SuiFileMenu._defaults : {
-            label: 'File',
-            menuItems: [{
-                    icon: 'folder-new',
-                    text: 'New Score',
-                    value: 'newFile'
-                }, {
-                    icon: 'folder-open',
-                    text: 'Open',
-                    value: 'openFile'
-                }, {
-                    icon: '',
-                    text: 'Quick Save',
-                    value: 'quickSave'
-                }, {
-                    icon: 'folder-save',
-                    text: 'Save',
-                    value: 'saveFile'
-                }, {
-                    icon: '',
-                    text: 'Print',
-                    value: 'printScore'
-                }, {
-                    icon: '',
-                    text: 'Import MusicXML',
-                    value: 'importMxml'
-                }, {
-                    icon: '',
-                    text: 'Export MusicXML',
-                    value: 'exportXml'
-                }, {
-                    icon: '',
-                    text: 'Export Midi',
-                    value: 'exportMidi'
-                }, {
-                    icon: 'folder-save',
-                    text: 'Save Actions',
-                    value: 'saveActions'
-                }, {
-                    icon: 'icon-play3',
-                    text: 'Play Actions',
-                    value: 'playActions'
-                }, {
-                    icon: '',
-                    text: 'Cancel',
-                    value: 'cancel'
-                }]
-        };
-        return SuiFileMenu._defaults;
+    getDefinition() {
+        return SuiFileMenu.defaults;
     }
     systemPrint() {
-        const self = this;
         window.print();
-        fileDialogs_1.SuiPrintFileDialog.createAndDisplay({
-            view: self.view,
-            completeNotifier: self.completeNotifier,
-            startPromise: self.closePromise,
-            tracker: self.tracker,
-            undoBuffer: self.undoBuffer,
+        dialog_1.createAndDisplayDialog(fileDialogs_1.SuiPrintFileDialog, {
+            ctor: 'SuiPrintFileDialog',
+            id: 'print',
+            eventSource: this.eventSource,
+            modifier: null,
+            view: this.view,
+            completeNotifier: this.completeNotifier,
+            startPromise: this.closePromise,
+            tracker: this.tracker,
+            undoBuffer: this.undoBuffer,
         });
     }
     selection(ev) {
         const text = $(ev.currentTarget).attr('data-value');
         const self = this;
         if (text === 'saveFile') {
-            fileDialogs_1.SuiSaveFileDialog.createAndDisplay({
-                completeNotifier: this.completeNotifier,
-                tracker: this.tracker,
-                undoBuffer: this.keyCommands.undoBuffer,
-                eventSource: this.eventSource,
-                keyCommands: this.keyCommands,
-                view: this.view,
-                startPromise: this.closePromise
-            });
-        }
-        else if (text === 'saveActions') {
-            fileDialogs_1.SuiSaveActionsDialog.createAndDisplay({
-                completeNotifier: this.completeNotifier,
-                tracker: this.tracker,
-                undoBuffer: this.keyCommands.undoBuffer,
-                eventSource: this.eventSource,
-                keyCommands: this.keyCommands,
-                view: this.view,
-                startPromise: this.closePromise
-            });
-        }
-        else if (text === 'playActions') {
-            fileDialogs_1.SuiLoadActionsDialog.createAndDisplay({
-                completeNotifier: this.completeNotifier,
-                tracker: this.tracker,
-                undoBuffer: this.keyCommands.undoBuffer,
-                eventSource: this.eventSource,
-                keyCommands: this.keyCommands,
-                view: this.view,
-                startPromise: this.closePromise
-            });
-        }
-        else if (text === 'openFile') {
-            fileDialogs_1.SuiLoadFileDialog.createAndDisplay({
+            dialog_1.createAndDisplayDialog(fileDialogs_1.SuiSaveFileDialog, {
+                ctor: 'SuiSaveFileDialog',
+                id: 'save',
+                modifier: null,
                 completeNotifier: this.completeNotifier,
                 tracker: this.tracker,
                 undoBuffer: this.undoBuffer,
                 eventSource: this.eventSource,
-                editor: this.keyCommands,
+                view: this.view,
+                startPromise: this.closePromise
+            }); /*
+          } else if (text === 'saveActions') {
+            SuiSaveActionsDialog.createAndDisplay({
+              ctor: 'SuiSaveActionsDialog',
+              id: 'save',
+              modifier: null,
+              completeNotifier: this.completeNotifier,
+              tracker: this.tracker,
+              undoBuffer: this.undoBuffer,
+              eventSource: this.eventSource,
+              view: this.view,
+              startPromise: this.closePromise
+            });
+          } else if (text === 'playActions') {
+            SuiLoadActionsDialog.createAndDisplay({
+              ctor: 'SuiLoadActionsDialog',
+              id: 'loadAction',
+              modifier: null,
+              completeNotifier: this.completeNotifier,
+              tracker: this.tracker,
+              undoBuffer: this.undoBuffer,
+              eventSource: this.eventSource,
+              view: this.view,
+              startPromise: this.closePromise
+            });  */
+        }
+        else if (text === 'openFile') {
+            dialog_1.createAndDisplayDialog(fileDialogs_1.SuiLoadFileDialog, {
+                ctor: 'SuiLoadFileDialog',
+                id: 'loadFile',
+                modifier: null,
+                completeNotifier: this.completeNotifier,
+                tracker: this.tracker,
+                undoBuffer: this.undoBuffer,
+                eventSource: this.eventSource,
                 view: this.view,
                 startPromise: this.closePromise
             });
         }
         else if (text === 'newFile') {
-            const score = score_1.SmoScore.getDefaultScore();
+            const score = score_1.SmoScore.getDefaultScore(score_1.SmoScore.defaults, null);
             this.view.changeScore(score);
         }
         else if (text === 'quickSave') {
@@ -42974,34 +45523,40 @@ class SuiFileMenu extends suiMenuBase {
             this.view.renderer.renderForPrintPromise().then(systemPrint);
         }
         else if (text === 'exportXml') {
-            fileDialogs_1.SuiSaveXmlDialog.createAndDisplay({
+            dialog_1.createAndDisplayDialog(fileDialogs_1.SuiSaveXmlDialog, {
+                ctor: 'SuiSaveXmlDialog',
+                id: 'save',
+                modifier: null,
                 completeNotifier: this.completeNotifier,
                 tracker: this.tracker,
                 undoBuffer: this.undoBuffer,
                 eventSource: this.eventSource,
-                editor: this.keyCommands,
                 view: this.view,
                 startPromise: this.closePromise
             });
         }
         else if (text === 'exportMidi') {
-            fileDialogs_1.SuiSaveMidiDialog.createAndDisplay({
+            dialog_1.createAndDisplayDialog(fileDialogs_1.SuiSaveMidiDialog, {
+                ctor: 'SuiSaveMidiDialog',
+                id: 'save',
+                modifier: null,
                 completeNotifier: this.completeNotifier,
                 tracker: this.tracker,
                 undoBuffer: this.undoBuffer,
                 eventSource: this.eventSource,
-                editor: this.keyCommands,
                 view: this.view,
                 startPromise: this.closePromise
             });
         }
         else if (text === 'importMxml') {
-            fileDialogs_1.SuiLoadMxmlDialog.createAndDisplay({
+            dialog_1.createAndDisplayDialog(fileDialogs_1.SuiLoadMxmlDialog, {
+                ctor: 'SuiLoadMxmlDialog',
+                id: 'save',
+                modifier: null,
                 completeNotifier: this.completeNotifier,
                 tracker: this.tracker,
                 undoBuffer: this.undoBuffer,
                 eventSource: this.eventSource,
-                editor: this.keyCommands,
                 view: this.view,
                 startPromise: this.closePromise
             });
@@ -43011,72 +45566,230 @@ class SuiFileMenu extends suiMenuBase {
     keydown() { }
 }
 exports.SuiFileMenu = SuiFileMenu;
-class SuiLibraryMenu extends suiMenuBase {
+SuiFileMenu.defaults = {
+    label: 'File',
+    menuItems: [{
+            icon: 'folder-new',
+            text: 'New Score',
+            value: 'newFile'
+        }, {
+            icon: 'folder-open',
+            text: 'Open',
+            value: 'openFile'
+        }, {
+            icon: '',
+            text: 'Quick Save',
+            value: 'quickSave'
+        }, {
+            icon: 'folder-save',
+            text: 'Save',
+            value: 'saveFile'
+        }, {
+            icon: '',
+            text: 'Print',
+            value: 'printScore'
+        }, {
+            icon: '',
+            text: 'Import MusicXML',
+            value: 'importMxml'
+        }, {
+            icon: '',
+            text: 'Export MusicXML',
+            value: 'exportXml'
+        }, {
+            icon: '',
+            text: 'Export Midi',
+            value: 'exportMidi'
+        }, {
+            icon: 'folder-save',
+            text: 'Save Actions',
+            value: 'saveActions'
+        }, {
+            icon: 'icon-play3',
+            text: 'Play Actions',
+            value: 'playActions'
+        }, {
+            icon: '',
+            text: 'Cancel',
+            value: 'cancel'
+        }]
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/menus/keySignature.ts":
+/*!**************************************!*\
+  !*** ./src/ui/menus/keySignature.ts ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiKeySignatureMenu = void 0;
+const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
+class SuiKeySignatureMenu extends menu_1.SuiMenuBase {
     constructor(params) {
-        params = (typeof (params) !== 'undefined' ? params : {});
-        Vex.Merge(params, SuiLibraryMenu.defaults);
         super(params);
     }
     static get ctor() {
-        return 'SuiFileMenu';
+        return 'SuiKeySignatureMenu';
     }
-    get ctor() {
-        return SuiFileMenu.ctor;
+    getDefinition() {
+        return SuiKeySignatureMenu.defaults;
     }
-    static get defaults() {
-        SuiLibraryMenu._defaults = typeof (SuiLibraryMenu._defaults) !== 'undefined' ? SuiLibraryMenu._defaults : {
-            label: 'Score',
-            menuItems: [{
-                    icon: '',
-                    text: 'Bach Invention',
-                    value: 'bach'
-                }, {
-                    icon: '',
-                    text: 'Postillion-Lied',
-                    value: 'postillion'
-                }, {
-                    icon: '',
-                    text: 'Jesu Bambino',
-                    value: 'bambino'
-                }, {
-                    icon: '',
-                    text: 'Handel Messiah 1-1',
-                    value: 'handel'
-                }, {
-                    icon: '',
-                    text: 'Precious Lord',
-                    value: 'preciousLord'
-                }, {
-                    icon: '',
-                    text: 'In Its Delightful Shade',
-                    value: 'shade'
-                }, {
-                    icon: '',
-                    text: 'Yama',
-                    value: 'yamaJson'
-                }, {
-                    icon: '',
-                    text: 'Dichterliebe (xml)',
-                    value: 'dichterliebe'
-                }, {
-                    icon: '',
-                    text: 'Beethoven - An die ferne Gliebte (xml)',
-                    value: 'beethoven'
-                }, {
-                    icon: '',
-                    text: 'Mozart - An Chloe (xml)',
-                    value: 'mozart'
-                }, {
-                    icon: '',
-                    text: 'Joplin - The Entertainer (xml)',
-                    value: 'joplin'
-                }, {
-                    icon: '',
-                    text: 'Cancel',
-                    value: 'cancel'
-                }]
-        };
-        return SuiLibraryMenu._defaults;
+    selection(ev) {
+        let keySig = $(ev.currentTarget).attr('data-value');
+        keySig = (keySig === 'cancel' ? keySig : keySig.substring(5, keySig.length));
+        if (keySig === 'cancel') {
+            return;
+        }
+        this.view.addKeySignature(keySig);
+        this.complete();
+    }
+    keydown() { }
+}
+exports.SuiKeySignatureMenu = SuiKeySignatureMenu;
+SuiKeySignatureMenu.defaults = {
+    label: 'Key',
+    menuItems: [{
+            icon: 'key-sig-c',
+            text: 'C Major',
+            value: 'KeyOfC',
+        }, {
+            icon: 'key-sig-f',
+            text: 'F Major',
+            value: 'KeyOfF',
+        }, {
+            icon: 'key-sig-g',
+            text: 'G Major',
+            value: 'KeyOfG',
+        }, {
+            icon: 'key-sig-bb',
+            text: 'Bb Major',
+            value: 'KeyOfBb'
+        }, {
+            icon: 'key-sig-d',
+            text: 'D Major',
+            value: 'KeyOfD'
+        }, {
+            icon: 'key-sig-eb',
+            text: 'Eb Major',
+            value: 'KeyOfEb'
+        }, {
+            icon: 'key-sig-a',
+            text: 'A Major',
+            value: 'KeyOfA'
+        }, {
+            icon: 'key-sig-ab',
+            text: 'Ab Major',
+            value: 'KeyOfAb'
+        }, {
+            icon: 'key-sig-e',
+            text: 'E Major',
+            value: 'KeyOfE'
+        }, {
+            icon: 'key-sig-bd',
+            text: 'Db Major',
+            value: 'KeyOfDb'
+        }, {
+            icon: 'key-sig-b',
+            text: 'B Major',
+            value: 'KeyOfB'
+        }, {
+            icon: 'key-sig-fs',
+            text: 'F# Major',
+            value: 'KeyOfF#'
+        }, {
+            icon: 'key-sig-cs',
+            text: 'C# Major',
+            value: 'KeyOfC#'
+        },
+        {
+            icon: '',
+            text: 'Cancel',
+            value: 'cancel'
+        }],
+    menuContainer: '.menuContainer'
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/menus/language.ts":
+/*!**********************************!*\
+  !*** ./src/ui/menus/language.ts ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiLanguageMenu = void 0;
+const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
+const language_1 = __webpack_require__(/*! ../i18n/language */ "./src/ui/i18n/language.js");
+class SuiLanguageMenu extends menu_1.SuiMenuBase {
+    constructor(params) {
+        super(params);
+    }
+    static get ctor() {
+        return 'SuiLanguageMenu';
+    }
+    getDefinition() {
+        return SuiLanguageMenu.defaults;
+    }
+    selection(ev) {
+        var op = $(ev.currentTarget).attr('data-value');
+        language_1.SmoTranslator.setLanguage(op);
+        this.complete();
+    }
+    keydown() {
+    }
+}
+exports.SuiLanguageMenu = SuiLanguageMenu;
+SuiLanguageMenu.defaults = {
+    label: 'Language',
+    menuItems: [{
+            icon: '',
+            text: 'English',
+            value: 'en'
+        }, {
+            icon: '',
+            text: 'Deutsch',
+            value: 'de'
+        }, {
+            icon: '',
+            text: 'اَلْعَرَبِيَّةُ',
+            value: 'ar'
+        }, {
+            icon: '',
+            text: 'Cancel',
+            value: 'cancel'
+        }],
+    menuContainer: '.menuContainer'
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/menus/library.ts":
+/*!*********************************!*\
+  !*** ./src/ui/menus/library.ts ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiLibraryMenu = void 0;
+const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
+const xhrLoader_1 = __webpack_require__(/*! ../fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.js");
+const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
+const xmlScore_1 = __webpack_require__(/*! ../../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
+class SuiLibraryMenu extends menu_1.SuiMenuBase {
+    constructor(params) {
+        super(params);
+    }
+    getDefinition() {
+        return SuiLibraryMenu.defaults;
     }
     _loadJsonAndComplete(path) {
         const req = new xhrLoader_1.SuiXhrLoader(path);
@@ -43136,277 +45849,906 @@ class SuiLibraryMenu extends suiMenuBase {
     keydown() { }
 }
 exports.SuiLibraryMenu = SuiLibraryMenu;
-class SuiDynamicsMenu extends suiMenuBase {
+SuiLibraryMenu.defaults = {
+    label: 'Score',
+    menuItems: [{
+            icon: '',
+            text: 'Bach Invention',
+            value: 'bach'
+        }, {
+            icon: '',
+            text: 'Postillion-Lied',
+            value: 'postillion'
+        }, {
+            icon: '',
+            text: 'Jesu Bambino',
+            value: 'bambino'
+        }, {
+            icon: '',
+            text: 'Handel Messiah 1-1',
+            value: 'handel'
+        }, {
+            icon: '',
+            text: 'Precious Lord',
+            value: 'preciousLord'
+        }, {
+            icon: '',
+            text: 'In Its Delightful Shade',
+            value: 'shade'
+        }, {
+            icon: '',
+            text: 'Yama',
+            value: 'yamaJson'
+        }, {
+            icon: '',
+            text: 'Dichterliebe (xml)',
+            value: 'dichterliebe'
+        }, {
+            icon: '',
+            text: 'Beethoven - An die ferne Gliebte (xml)',
+            value: 'beethoven'
+        }, {
+            icon: '',
+            text: 'Mozart - An Chloe (xml)',
+            value: 'mozart'
+        }, {
+            icon: '',
+            text: 'Joplin - The Entertainer (xml)',
+            value: 'joplin'
+        }, {
+            icon: '',
+            text: 'Cancel',
+            value: 'cancel'
+        }]
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/menus/manager.ts":
+/*!*********************************!*\
+  !*** ./src/ui/menus/manager.ts ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiMenuManager = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const layoutDebug_1 = __webpack_require__(/*! ../../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
+class SuiMenuManager {
     constructor(params) {
-        params = (typeof (params) !== 'undefined' ? params : {});
-        Vex.Merge(params, SuiDynamicsMenu.defaults);
-        super(params);
-    }
-    static get ctor() {
-        return 'SuiDynamicsMenu';
-    }
-    get ctor() {
-        return SuiDynamicsMenu.ctor;
+        this.completeNotifier = null;
+        this.bound = false;
+        this.hotkeyBindings = {};
+        this.closeMenuPromise = null;
+        this.menu = null;
+        this.keydownHandler = null;
+        this.menuPosition = { x: 250, y: 40, width: 1, height: 1 };
+        this.menuBind = SuiMenuManager.menuKeyBindingDefaults;
+        this.eventSource = params.eventSource;
+        this.view = params.view;
+        this.bound = false;
+        this.menuContainer = params.menuContainer;
+        this.undoBuffer = params.undoBuffer;
+        this.tracker = params.view.tracker;
     }
     static get defaults() {
-        SuiDynamicsMenu._defaults = SuiDynamicsMenu._defaults ? SuiDynamicsMenu._defaults :
+        return {
+            menuBind: SuiMenuManager.menuKeyBindingDefaults,
+            menuContainer: '.menuContainer'
+        };
+    }
+    get closeModalPromise() {
+        return this.closeMenuPromise;
+    }
+    setController(c) {
+        this.completeNotifier = c;
+    }
+    get score() {
+        return this.view.score;
+    }
+    // ### Description:
+    // slash ('/') menu key bindings.  The slash key followed by another key brings up
+    // a menu.
+    static get menuKeyBindingDefaults() {
+        return [
             {
-                label: 'Dynamics',
-                menuItems: [{
-                        icon: 'pianissimo',
-                        text: 'Pianissimo',
-                        value: 'pp'
-                    }, {
-                        icon: 'piano',
-                        text: 'Piano',
-                        value: 'p'
-                    }, {
-                        icon: 'mezzopiano',
-                        text: 'Mezzo-piano',
-                        value: 'mp'
-                    }, {
-                        icon: 'mezzoforte',
-                        text: 'Mezzo-forte',
-                        value: 'mf'
-                    }, {
-                        icon: 'forte',
-                        text: 'Forte',
-                        value: 'f'
-                    }, {
-                        icon: 'fortissimo',
-                        text: 'Fortissimo',
-                        value: 'ff'
-                    }, {
-                        icon: 'sfz',
-                        text: 'sfortzando',
-                        value: 'sfz'
-                    }, {
-                        icon: '',
-                        text: 'Cancel',
-                        value: 'cancel'
-                    }]
-            };
-        return SuiDynamicsMenu._defaults;
+                event: 'keydown',
+                key: 'n',
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: 'SuiLanguageMenu'
+            }, {
+                event: 'keydown',
+                key: 'k',
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: 'SuiKeySignatureMenu'
+            }, {
+                event: 'keydown',
+                key: 'l',
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: 'SuiStaffModifierMenu'
+            }, {
+                event: 'keydown',
+                key: 'd',
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: 'SuiDynamicsMenu'
+            }, {
+                event: 'keydown',
+                key: 's',
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: 'SuiStaffMenu'
+            }, {
+                event: 'keydown',
+                key: 'f',
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: 'SuiFileMenu'
+            }, {
+                event: 'keydown',
+                key: 'L',
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: 'SuiLibraryMenu'
+            }, {
+                event: 'keydown',
+                key: 'm',
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: 'SuiTimeSignatureMenu'
+            }, {
+                event: 'keydown',
+                key: 'a',
+                ctrlKey: false,
+                altKey: false,
+                shiftKey: false,
+                action: 'SuiMeasureMenu'
+            }
+        ];
+    }
+    _advanceSelection(inc) {
+        if (!this.menu) {
+            return;
+        }
+        const options = $('.menuContainer ul.menuElement li.menuOption');
+        inc = inc < 0 ? options.length - 1 : 1;
+        this.menu.focusIndex = (this.menu.focusIndex + inc) % options.length;
+        $(options[this.menu.focusIndex]).find('button').focus();
+    }
+    unattach() {
+        if (!this.keydownHandler) {
+            return;
+        }
+        this.eventSource.unbindKeydownHandler(this.keydownHandler);
+        $('body').removeClass('modal');
+        $(this.menuContainer).html('');
+        $('body').off('dismissMenu');
+        this.bound = false;
+        this.menu = null;
+    }
+    attach() {
+        if (!this.menu) {
+            return;
+        }
+        let hotkey = 0;
+        $(this.menuContainer).html('');
+        $(this.menuContainer).attr('z-index', '12');
+        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
+            .css('left', '' + this.menuPosition.x + 'px')
+            .css('top', '' + this.menuPosition.y + 'px');
+        this.menu.menuItems.forEach((item) => {
+            var vkey = (hotkey < 10) ? String.fromCharCode(48 + hotkey) :
+                String.fromCharCode(87 + hotkey);
+            r.append(b('li').classes('menuOption').append(b('button').attr('data-value', item.value).append(b('span').classes('menuText').text(item.text))
+                .append(b('span').classes('icon icon-' + item.icon))
+                .append(b('span').classes('menu-key').text('' + vkey))));
+            item.hotkey = vkey;
+            hotkey += 1;
+        });
+        $(this.menuContainer).append(r.dom());
+        $('body').addClass('modal');
+        this.bindEvents();
+    }
+    slashMenuMode(completeNotifier) {
+        var self = this;
+        this.bindEvents();
+        layoutDebug_1.layoutDebug.addDialogDebug('slash menu creating closeMenuPromise');
+        // A menu asserts this event when it is done.
+        this.closeMenuPromise = new Promise((resolve) => {
+            $('body').off('menuDismiss').on('menuDismiss', () => {
+                layoutDebug_1.layoutDebug.addDialogDebug('menuDismiss received, resolve closeMenuPromise');
+                self.unattach();
+                $('body').removeClass('slash-menu');
+                resolve();
+            });
+        });
+        // take over the keyboard
+        if (this.closeModalPromise) {
+            completeNotifier.unbindKeyboardForModal(this);
+        }
+    }
+    dismiss() {
+        $('body').trigger('menuDismiss');
+    }
+    displayMenu(menu) {
+        this.menu = menu;
+        if (!this.menu) {
+            return;
+        }
+        this.menu.preAttach();
+        this.attach();
+        this.menu.menuItems.forEach((item) => {
+            if (typeof (item.hotkey) !== 'undefined') {
+                this.hotkeyBindings[item.hotkey] = item.value;
+            }
+        });
+    }
+    createMenu(action) {
+        if (!this.completeNotifier) {
+            return;
+        }
+        this.menuPosition = { x: 250, y: 40, width: 1, height: 1 };
+        // If we were called from the ribbon, we notify the controller that we are
+        // taking over the keyboard.  If this was a key-based command we already did.
+        layoutDebug_1.layoutDebug.addDialogDebug('createMenu creating ' + action);
+        const ctor = eval('globalThis.Smo.' + action);
+        const params = {
+            position: this.menuPosition,
+            tracker: this.tracker,
+            score: this.score,
+            completeNotifier: this.completeNotifier,
+            closePromise: this.closeMenuPromise,
+            view: this.view,
+            eventSource: this.eventSource,
+            undoBuffer: this.undoBuffer,
+            ctor: action
+        };
+        this.displayMenu(new ctor(params));
+    }
+    // ### evKey
+    // We have taken over menu commands from controller.  If there is a menu active, send the key
+    // to it.  If there is not, see if the keystroke creates one.  If neither, dismissi the menu.
+    evKey(event) {
+        if (['Tab', 'Enter'].indexOf(event.code) >= 0) {
+            return;
+        }
+        event.preventDefault();
+        if (event.code === 'Escape') {
+            this.dismiss();
+        }
+        if (this.menu) {
+            if (event.code === 'ArrowUp') {
+                this._advanceSelection(-1);
+            }
+            else if (event.code === 'ArrowDown') {
+                this._advanceSelection(1);
+            }
+            else if (this.hotkeyBindings[event.key]) {
+                $('button[data-value="' + this.hotkeyBindings[event.key] + '"]').click();
+            }
+            else {
+                this.menu.keydown();
+            }
+            return;
+        }
+        const binding = this.menuBind.find((ev) => ev.key === event.key);
+        if (!binding) {
+            this.dismiss();
+            return;
+        }
+        this.createMenu(binding.action);
+    }
+    bindEvents() {
+        this.hotkeyBindings = {};
+        $('body').addClass('slash-menu');
+        // We need to keep track of is bound, b/c the menu can be created from
+        // different sources.
+        if (!this.bound) {
+            this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
+            this.bound = true;
+        }
+        $(this.menuContainer).find('button').off('click').on('click', (ev) => {
+            if ($(ev.currentTarget).attr('data-value') === 'cancel') {
+                this.menu.complete();
+                return;
+            }
+            this.menu.selection(ev);
+        });
+    }
+}
+exports.SuiMenuManager = SuiMenuManager;
+
+
+/***/ }),
+
+/***/ "./src/ui/menus/measure.ts":
+/*!*********************************!*\
+  !*** ./src/ui/menus/measure.ts ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiMeasureMenu = void 0;
+const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
+const dialog_1 = __webpack_require__(/*! ../dialogs/dialog */ "./src/ui/dialogs/dialog.ts");
+const addMeasure_1 = __webpack_require__(/*! ../dialogs/addMeasure */ "./src/ui/dialogs/addMeasure.ts");
+const measureFormat_1 = __webpack_require__(/*! ../dialogs/measureFormat */ "./src/ui/dialogs/measureFormat.ts");
+class SuiMeasureMenu extends menu_1.SuiMenuBase {
+    constructor(params) {
+        super(params);
+    }
+    getDefinition() {
+        return SuiMeasureMenu.defaults;
     }
     selection(ev) {
         const text = $(ev.currentTarget).attr('data-value');
-        this.view.addDynamic(text);
-        this.complete();
-    }
-    keydown() { }
-}
-exports.SuiDynamicsMenu = SuiDynamicsMenu;
-class SuiTimeSignatureMenu extends suiMenuBase {
-    constructor(params) {
-        params = (typeof (params) !== 'undefined' ? params : {});
-        Vex.Merge(params, SuiTimeSignatureMenu.defaults);
-        super(params);
-    }
-    static get ctor() {
-        return 'SuiTimeSignatureMenu';
-    }
-    get ctor() {
-        return SuiTimeSignatureMenu.ctor;
-    }
-    static get defaults() {
-        SuiTimeSignatureMenu._defaults = SuiTimeSignatureMenu._defaults ? SuiTimeSignatureMenu._defaults :
-            {
-                label: 'Time Sig',
-                menuItems: [{
-                        icon: 'sixeight',
-                        text: '6/8',
-                        value: '6/8',
-                    }, {
-                        icon: 'fourfour',
-                        text: '4/4',
-                        value: '4/4',
-                    }, {
-                        icon: 'threefour',
-                        text: '3/4',
-                        value: '3/4',
-                    }, {
-                        icon: 'twofour',
-                        text: '2/4',
-                        value: '2/4',
-                    }, {
-                        icon: 'twelveeight',
-                        text: '12/8',
-                        value: '12/8',
-                    }, {
-                        icon: 'seveneight',
-                        text: '7/8',
-                        value: '7/8',
-                    }, {
-                        icon: 'fiveeight',
-                        text: '5/8',
-                        value: '5/8',
-                    }, {
-                        icon: '',
-                        text: 'Other',
-                        value: 'TimeSigOther',
-                    }, {
-                        icon: '',
-                        text: 'Cancel',
-                        value: 'cancel'
-                    }]
-            };
-        return SuiTimeSignatureMenu._defaults;
-    }
-    selection(ev) {
-        var text = $(ev.currentTarget).attr('data-value');
-        if (text === 'TimeSigOther') {
-            measureDialogs_1.SuiTimeSignatureDialog.createAndDisplay({
+        if (text === 'formatMeasureDialog') {
+            dialog_1.createAndDisplayDialog(measureFormat_1.SuiMeasureDialog, {
                 view: this.view,
                 completeNotifier: this.completeNotifier,
                 startPromise: this.closePromise,
-                undoBuffer: this.view.undoBuffer,
-                eventSource: this.eventSource
+                eventSource: this.eventSource,
+                tracker: this.tracker,
+                ctor: 'SuiMeasureDialog',
+                id: 'measure-dialog',
+                undoBuffer: this.undoBuffer,
+                modifier: null
             });
             this.complete();
             return;
         }
-        this.view.setTimeSignature(measure_1.SmoMeasure.convertLegacyTimeSignature(text));
+        if (text === 'addMenuCmd') {
+            dialog_1.createAndDisplayDialog(addMeasure_1.SuiInsertMeasures, {
+                view: this.view,
+                completeNotifier: this.completeNotifier,
+                startPromise: this.closePromise,
+                eventSource: this.eventSource,
+                tracker: this.tracker,
+                ctor: 'SuiMeasureDialog',
+                id: 'insert-dialog',
+                undoBuffer: this.undoBuffer,
+                modifier: null
+            });
+            this.complete();
+        }
+        if (text === 'addMenuAfterCmd') {
+            this.view.addMeasure(true);
+            this.complete();
+        }
+        if (text === 'deleteSelected') {
+            this.view.deleteMeasure();
+        }
         this.complete();
     }
+}
+exports.SuiMeasureMenu = SuiMeasureMenu;
+SuiMeasureMenu.defaults = {
+    label: 'Measure',
+    menuItems: [
+        {
+            icon: '',
+            text: 'Add Measures',
+            value: 'addMenuCmd'
+        }, {
+            icon: 'icon-cross',
+            text: 'Delete Selected Measures',
+            value: 'deleteSelected'
+        }, {
+            icon: '',
+            text: 'Format Measure',
+            value: 'formatMeasureDialog'
+        }, {
+            icon: '',
+            text: 'Cancel',
+            value: 'cancel'
+        }
+    ]
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/menus/menu.ts":
+/*!******************************!*\
+  !*** ./src/ui/menus/menu.ts ***!
+  \******************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiMenuBase = void 0;
+const language_1 = __webpack_require__(/*! ../i18n/language */ "./src/ui/i18n/language.js");
+class SuiMenuBase {
+    constructor(params) {
+        this.focusIndex = -1;
+        this.ctor = params.ctor;
+        const definition = this.getDefinition();
+        this.label = definition.label;
+        this.menuItems = definition.menuItems;
+        this.completeNotifier = params.completeNotifier;
+        this.score = params.score;
+        this.view = params.view;
+        this.undoBuffer = params.undoBuffer;
+        this.eventSource = params.eventSource;
+        this.closePromise = params.closePromise;
+        this.tracker = params.tracker;
+        language_1.SmoTranslator.registerMenu(this.ctor);
+    }
+    /**
+     * Base class can override this, called before display and event binding to
+     * add or remove options from the static list
+     */
+    preAttach() { }
+    static printTranslate(_class) {
+        const xx = eval('Smo.' + _class);
+        const items = xx.defaults.menuItems;
+        const rvItems = [];
+        items.forEach((item) => {
+            rvItems.push({ value: item.value, text: item.text, icon: '' });
+        });
+        return { ctor: _class, label: xx.defaults.label, menuItems: items };
+    }
+    complete() {
+        $('body').trigger('menuDismiss');
+    }
+    // Most menus don't process their own events
     keydown() { }
 }
-exports.SuiTimeSignatureMenu = SuiTimeSignatureMenu;
-class SuiKeySignatureMenu extends suiMenuBase {
+exports.SuiMenuBase = SuiMenuBase;
+
+
+/***/ }),
+
+/***/ "./src/ui/menus/parts.ts":
+/*!*******************************!*\
+  !*** ./src/ui/menus/parts.ts ***!
+  \*******************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiPartMenu = void 0;
+const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
+const dialog_1 = __webpack_require__(/*! ../dialogs/dialog */ "./src/ui/dialogs/dialog.ts");
+const scoreView_1 = __webpack_require__(/*! ../dialogs/scoreView */ "./src/ui/dialogs/scoreView.ts");
+const instrument_1 = __webpack_require__(/*! ../dialogs/instrument */ "./src/ui/dialogs/instrument.ts");
+const partInfo_1 = __webpack_require__(/*! ../dialogs/partInfo */ "./src/ui/dialogs/partInfo.ts");
+class SuiPartMenu extends menu_1.SuiMenuBase {
     constructor(params) {
-        params = (typeof (params) !== 'undefined' ? params : {});
-        Vex.Merge(params, SuiKeySignatureMenu.defaults);
         super(params);
     }
-    static get ctor() {
-        return 'SuiKeySignatureMenu';
+    getDefinition() {
+        return SuiPartMenu.defaults;
     }
-    get ctor() {
-        return SuiKeySignatureMenu.ctor;
+    execView() {
+        dialog_1.createAndDisplayDialog(scoreView_1.SuiScoreViewDialog, {
+            completeNotifier: this.completeNotifier,
+            view: this.view,
+            undoBuffer: this.view.undoBuffer,
+            eventSource: this.eventSource,
+            id: 'scoreViewDialog',
+            ctor: 'SuiScoreViewDialog',
+            tracker: this.view.tracker,
+            modifier: null,
+            startPromise: this.closePromise
+        });
     }
-    static get defaults() {
-        SuiKeySignatureMenu._defaults = typeof (SuiKeySignatureMenu._defaults) !== 'undefined'
-            ? SuiKeySignatureMenu._defaults :
-            {
-                label: 'Key',
-                menuItems: [{
-                        icon: 'key-sig-c',
-                        text: 'C Major',
-                        value: 'KeyOfC',
-                    }, {
-                        icon: 'key-sig-f',
-                        text: 'F Major',
-                        value: 'KeyOfF',
-                    }, {
-                        icon: 'key-sig-g',
-                        text: 'G Major',
-                        value: 'KeyOfG',
-                    }, {
-                        icon: 'key-sig-bb',
-                        text: 'Bb Major',
-                        value: 'KeyOfBb'
-                    }, {
-                        icon: 'key-sig-d',
-                        text: 'D Major',
-                        value: 'KeyOfD'
-                    }, {
-                        icon: 'key-sig-eb',
-                        text: 'Eb Major',
-                        value: 'KeyOfEb'
-                    }, {
-                        icon: 'key-sig-a',
-                        text: 'A Major',
-                        value: 'KeyOfA'
-                    }, {
-                        icon: 'key-sig-ab',
-                        text: 'Ab Major',
-                        value: 'KeyOfAb'
-                    }, {
-                        icon: 'key-sig-e',
-                        text: 'E Major',
-                        value: 'KeyOfE'
-                    }, {
-                        icon: 'key-sig-bd',
-                        text: 'Db Major',
-                        value: 'KeyOfDb'
-                    }, {
-                        icon: 'key-sig-b',
-                        text: 'B Major',
-                        value: 'KeyOfB'
-                    }, {
-                        icon: 'key-sig-fs',
-                        text: 'F# Major',
-                        value: 'KeyOfF#'
-                    }, {
-                        icon: 'key-sig-cs',
-                        text: 'C# Major',
-                        value: 'KeyOfC#'
-                    },
-                    {
-                        icon: '',
-                        text: 'Cancel',
-                        value: 'cancel'
-                    }],
-                menuContainer: '.menuContainer'
-            };
-        return SuiKeySignatureMenu._defaults;
+    editPart() {
+        dialog_1.createAndDisplayDialog(partInfo_1.SuiPartInfoDialog, {
+            completeNotifier: this.completeNotifier,
+            view: this.view,
+            undoBuffer: this.view.undoBuffer,
+            eventSource: this.eventSource,
+            id: 'editPart',
+            ctor: 'SuiPartInfoDialog',
+            tracker: this.view.tracker,
+            modifier: null,
+            startPromise: this.closePromise
+        });
     }
-    selection(ev) {
-        let keySig = $(ev.currentTarget).attr('data-value');
-        keySig = (keySig === 'cancel' ? keySig : keySig.substring(5, keySig.length));
-        if (keySig === 'cancel') {
+    editInstrument() {
+        dialog_1.createAndDisplayDialog(instrument_1.SuiInstrumentDialog, {
+            completeNotifier: this.completeNotifier,
+            view: this.view,
+            undoBuffer: this.view.undoBuffer,
+            eventSource: this.eventSource,
+            id: 'instrumentModal',
+            ctor: 'SuiInstrumentDialog',
+            tracker: this.view.tracker,
+            modifier: null,
+            startPromise: this.closePromise
+        });
+    }
+    preAttach() {
+        if (this.view.storeScore.staves.length !== this.view.score.staves.length) {
             return;
         }
-        this.view.addKeySignature(keySig);
+        const defs = [];
+        this.menuItems.forEach((item) => {
+            if (item.value !== 'viewAll') {
+                defs.push(item);
+            }
+        });
+        this.menuItems = defs;
+    }
+    selection(ev) {
+        const op = $(ev.currentTarget).attr('data-value');
+        if (op === 'view') {
+            this.execView();
+            this.complete();
+        }
+        else if (op === 'editPart') {
+            this.editPart();
+            this.complete();
+        }
+        else if (op === 'editInstrument') {
+            this.editInstrument();
+            this.complete();
+        }
+        else if (op === 'cancel') {
+            this.complete();
+        }
+        else if (op === 'viewAll') {
+            this.view.viewAll();
+            this.complete();
+        }
+    }
+    keydown() { }
+}
+exports.SuiPartMenu = SuiPartMenu;
+SuiPartMenu.defaults = {
+    label: 'Parts',
+    menuItems: [
+        {
+            icon: '',
+            text: 'Part Properties',
+            value: 'editPart'
+        }, {
+            icon: '',
+            text: 'View Parts/Staves',
+            value: 'view'
+        }, {
+            icon: '',
+            text: 'View All',
+            value: 'viewAll'
+        }, {
+            icon: '',
+            text: 'Instrument Properties',
+            value: 'editInstrument'
+        }, {
+            icon: '',
+            text: 'Cancel',
+            value: 'cancel'
+        }
+    ],
+    menuContainer: '.menuContainer'
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/menus/score.ts":
+/*!*******************************!*\
+  !*** ./src/ui/menus/score.ts ***!
+  \*******************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiScoreMenu = void 0;
+const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
+const preferences_1 = __webpack_require__(/*! ../dialogs/preferences */ "./src/ui/dialogs/preferences.ts");
+const scoreId_1 = __webpack_require__(/*! ../dialogs/scoreId */ "./src/ui/dialogs/scoreId.ts");
+const pageLayout_1 = __webpack_require__(/*! ../dialogs/pageLayout */ "./src/ui/dialogs/pageLayout.ts");
+const fonts_1 = __webpack_require__(/*! ../dialogs/fonts */ "./src/ui/dialogs/fonts.ts");
+const globalLayout_1 = __webpack_require__(/*! ../dialogs/globalLayout */ "./src/ui/dialogs/globalLayout.ts");
+const dialog_1 = __webpack_require__(/*! ../dialogs/dialog */ "./src/ui/dialogs/dialog.ts");
+const staffGroup_1 = __webpack_require__(/*! ../dialogs/staffGroup */ "./src/ui/dialogs/staffGroup.ts");
+class SuiScoreMenu extends menu_1.SuiMenuBase {
+    constructor(params) {
+        super(params);
+    }
+    getDefinition() {
+        return SuiScoreMenu.defaults;
+    }
+    execStaffGroups() {
+        dialog_1.createAndDisplayDialog(staffGroup_1.SuiStaffGroupDialog, {
+            completeNotifier: this.completeNotifier,
+            view: this.view,
+            undoBuffer: this.view.undoBuffer,
+            eventSource: this.eventSource,
+            id: 'staffGroups',
+            ctor: 'SuiStaffGroupDialog',
+            tracker: this.view.tracker,
+            modifier: null,
+            startPromise: this.closePromise
+        });
+    }
+    execScoreId() {
+        scoreId_1.SuiScoreIdentificationDialog.createAndDisplay({
+            completeNotifier: this.completeNotifier,
+            view: this.view,
+            undoBuffer: this.view.undoBuffer,
+            eventSource: this.eventSource,
+            id: 'scoreIdDialog',
+            ctor: 'SuiScoreIdentificationDialog',
+            tracker: this.view.tracker,
+            modifier: null,
+            startPromise: this.closePromise
+        });
+    }
+    execPageLayout() {
+        dialog_1.createAndDisplayDialog(pageLayout_1.SuiPageLayoutDialog, {
+            completeNotifier: this.completeNotifier,
+            view: this.view,
+            undoBuffer: this.view.undoBuffer,
+            eventSource: this.eventSource,
+            id: 'layoutDialog',
+            ctor: 'SuiPageLayoutDialog',
+            tracker: this.view.tracker,
+            modifier: null,
+            startPromise: this.closePromise
+        });
+    }
+    execFonts() {
+        fonts_1.SuiScoreFontDialog.createAndDisplay({
+            completeNotifier: this.completeNotifier,
+            view: this.view,
+            undoBuffer: this.view.undoBuffer,
+            eventSource: this.eventSource,
+            id: 'fontDialog',
+            ctor: 'SuiScoreFontDialog',
+            tracker: this.view.tracker,
+            modifier: null,
+            startPromise: this.closePromise
+        });
+    }
+    execGlobalLayout() {
+        dialog_1.createAndDisplayDialog(globalLayout_1.SuiGlobalLayoutDialog, {
+            completeNotifier: this.completeNotifier,
+            view: this.view,
+            undoBuffer: this.view.undoBuffer,
+            eventSource: this.eventSource,
+            id: 'globalLayout',
+            ctor: 'SuiGlobalLayoutDialog',
+            tracker: this.view.tracker,
+            modifier: null,
+            startPromise: this.closePromise
+        });
+    }
+    execPreferences() {
+        dialog_1.createAndDisplayDialog(preferences_1.SuiScorePreferencesDialog, {
+            completeNotifier: this.completeNotifier,
+            view: this.view,
+            undoBuffer: this.view.undoBuffer,
+            eventSource: this.eventSource,
+            id: 'preferences',
+            ctor: 'SuiScorePreferencesDialog',
+            tracker: this.view.tracker,
+            modifier: null,
+            startPromise: this.closePromise
+        });
+    }
+    selection(ev) {
+        const text = $(ev.currentTarget).attr('data-value');
+        if (text === 'pageLayout') {
+            this.execPageLayout();
+        }
+        else if (text === 'preferences') {
+            this.execPreferences();
+        }
+        else if (text === 'fonts') {
+            this.execFonts();
+        }
+        else if (text === 'globalLayout') {
+            this.execGlobalLayout();
+        }
+        else if (text === 'identification') {
+            this.execScoreId();
+        }
         this.complete();
     }
     keydown() { }
 }
-exports.SuiKeySignatureMenu = SuiKeySignatureMenu;
-class SuiStaffModifierMenu extends suiMenuBase {
+exports.SuiScoreMenu = SuiScoreMenu;
+SuiScoreMenu.defaults = {
+    label: 'Score Settings',
+    menuItems: [{
+            icon: '',
+            text: 'Smoosic Preferences',
+            value: 'preferences'
+        }, {
+            icon: '',
+            text: 'Global Layout',
+            value: 'globalLayout'
+        }, {
+            icon: '',
+            text: 'Page Layout',
+            value: 'pageLayout'
+        }, {
+            icon: '',
+            text: 'System Groups',
+            value: 'staffGroups'
+        }, {
+            icon: '',
+            text: 'Score Fonts',
+            value: 'fonts'
+        }, {
+            icon: '',
+            text: 'Score Info',
+            value: 'identification'
+        }, {
+            icon: '',
+            text: 'Cancel',
+            value: 'cancel'
+        }]
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/menus/staff.ts":
+/*!*******************************!*\
+  !*** ./src/ui/menus/staff.ts ***!
+  \*******************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiStaffMenu = void 0;
+const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
+const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
+class SuiStaffMenu extends menu_1.SuiMenuBase {
     constructor(params) {
-        params = (typeof (params) !== 'undefined' ? params : {});
-        Vex.Merge(params, SuiStaffModifierMenu.defaults);
         super(params);
     }
-    static get ctor() {
-        return 'SuiStaffModifierMenu';
+    static get instrumentMap() {
+        return {
+            'trebleInstrument': {
+                instrumentName: 'Treble Clef Staff',
+                keyOffset: 0,
+                abbreviation: 'treble',
+                midichannel: 0,
+                midiport: 0,
+                clef: 'treble',
+                startSelector: selections_1.SmoSelector.default,
+                endSelector: selections_1.SmoSelector.default
+            },
+            'bassInstrument': {
+                instrumentName: 'Bass Clef Staff',
+                keyOffset: 0,
+                abbreviation: 'treble',
+                midichannel: 0,
+                midiport: 0,
+                clef: 'bass',
+                startSelector: selections_1.SmoSelector.default,
+                endSelector: selections_1.SmoSelector.default
+            },
+            'altoInstrument': {
+                instrumentName: 'Alto Clef Staff',
+                keyOffset: 0,
+                abbreviation: 'treble',
+                midichannel: 0,
+                midiport: 0,
+                clef: 'alto',
+                startSelector: selections_1.SmoSelector.default,
+                endSelector: selections_1.SmoSelector.default
+            },
+            'tenorInstrument': {
+                instrumentName: 'Tenor Clef Staff',
+                keyOffset: 0,
+                abbreviation: 'treble',
+                midichannel: 0,
+                midiport: 0,
+                clef: 'tenor',
+                startSelector: selections_1.SmoSelector.default,
+                endSelector: selections_1.SmoSelector.default
+            },
+            'percussionInstrument': {
+                instrumentName: 'Percussion Clef Staff',
+                keyOffset: 0,
+                abbreviation: 'treble',
+                midichannel: 0,
+                midiport: 0,
+                clef: 'percussion',
+                startSelector: selections_1.SmoSelector.default,
+                endSelector: selections_1.SmoSelector.default
+            }
+        };
     }
-    get ctor() {
-        return SuiStaffModifierMenu.ctor;
+    getDefinition() {
+        return SuiStaffMenu.defaults;
     }
-    static get defaults() {
-        SuiStaffModifierMenu._defaults = typeof (SuiStaffModifierMenu._defaults) !== 'undefined' ? SuiStaffModifierMenu._defaults :
-            {
-                label: 'Lines',
-                menuItems: [{
-                        icon: 'cresc',
-                        text: 'Crescendo',
-                        value: 'crescendo'
-                    }, {
-                        icon: 'decresc',
-                        text: 'Decrescendo',
-                        value: 'decrescendo'
-                    }, {
-                        icon: 'slur',
-                        text: 'Slur',
-                        value: 'slur'
-                    }, {
-                        icon: 'slur',
-                        text: 'Tie',
-                        value: 'tie'
-                    }, {
-                        icon: 'ending',
-                        text: 'nth ending',
-                        value: 'ending'
-                    },
-                    {
-                        icon: '',
-                        text: 'Cancel',
-                        value: 'cancel'
-                    }],
-                menuContainer: '.menuContainer'
-            };
-        return SuiStaffModifierMenu._defaults;
+    selection(ev) {
+        const op = $(ev.currentTarget).attr('data-value');
+        if (op === 'remove') {
+            this.view.removeStaff();
+            this.complete();
+        }
+        else if (op === 'cancel') {
+            this.complete();
+        }
+        else {
+            const params = SuiStaffMenu.instrumentMap[op];
+            this.view.addStaffSimple(params);
+            this.complete();
+        }
+    }
+    keydown() { }
+}
+exports.SuiStaffMenu = SuiStaffMenu;
+SuiStaffMenu.defaults = {
+    label: 'Add Staff',
+    menuItems: [
+        {
+            icon: 'treble',
+            text: 'Treble Clef Staff',
+            value: 'trebleInstrument'
+        }, {
+            icon: 'bass',
+            text: 'Bass Clef Staff',
+            value: 'bassInstrument'
+        }, {
+            icon: 'alto',
+            text: 'Alto Clef Staff',
+            value: 'altoInstrument'
+        }, {
+            icon: 'tenor',
+            text: 'Tenor Clef Staff',
+            value: 'tenorInstrument'
+        }, {
+            icon: 'percussion',
+            text: 'Percussion Clef Staff',
+            value: 'percussionInstrument'
+        }, {
+            icon: 'cancel-circle',
+            text: 'Remove Staff',
+            value: 'remove'
+        }, {
+            icon: '',
+            text: 'Cancel',
+            value: 'cancel'
+        }
+    ],
+    menuContainer: '.menuContainer'
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/menus/staffModifier.ts":
+/*!***************************************!*\
+  !*** ./src/ui/menus/staffModifier.ts ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiStaffModifierMenu = void 0;
+const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
+class SuiStaffModifierMenu extends menu_1.SuiMenuBase {
+    constructor(params) {
+        super(params);
+    }
+    getDefinition() {
+        return SuiStaffModifierMenu.defaults;
     }
     selection(ev) {
         var op = $(ev.currentTarget).attr('data-value');
@@ -43432,252 +46774,124 @@ class SuiStaffModifierMenu extends suiMenuBase {
     }
 }
 exports.SuiStaffModifierMenu = SuiStaffModifierMenu;
-class SuiLanguageMenu extends suiMenuBase {
+SuiStaffModifierMenu.defaults = {
+    label: 'Lines',
+    menuItems: [{
+            icon: 'cresc',
+            text: 'Crescendo',
+            value: 'crescendo'
+        }, {
+            icon: 'decresc',
+            text: 'Decrescendo',
+            value: 'decrescendo'
+        }, {
+            icon: 'slur',
+            text: 'Slur',
+            value: 'slur'
+        }, {
+            icon: 'slur',
+            text: 'Tie',
+            value: 'tie'
+        }, {
+            icon: 'ending',
+            text: 'nth ending',
+            value: 'ending'
+        }, {
+            icon: '',
+            text: 'Cancel',
+            value: 'cancel'
+        }],
+    menuContainer: '.menuContainer'
+};
+
+
+/***/ }),
+
+/***/ "./src/ui/menus/timeSignature.ts":
+/*!***************************************!*\
+  !*** ./src/ui/menus/timeSignature.ts ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SuiTimeSignatureMenu = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
+const measure_1 = __webpack_require__(/*! ../../smo/data/measure */ "./src/smo/data/measure.ts");
+const dialog_1 = __webpack_require__(/*! ../dialogs/dialog */ "./src/ui/dialogs/dialog.ts");
+const timeSignature_1 = __webpack_require__(/*! ../dialogs/timeSignature */ "./src/ui/dialogs/timeSignature.ts");
+class SuiTimeSignatureMenu extends menu_1.SuiMenuBase {
     constructor(params) {
-        params = (typeof (params) !== 'undefined') ? params : {};
-        Vex.Merge(params, SuiLanguageMenu.defaults);
         super(params);
     }
-    static get ctor() {
-        return 'SuiLanguageMenu';
-    }
-    get ctor() {
-        return SuiLanguageMenu.ctor;
-    }
-    static get defaults() {
-        SuiLanguageMenu._defaults = SuiLanguageMenu._defaults ? SuiLanguageMenu._defaults :
-            {
-                label: 'Language',
-                menuItems: [{
-                        icon: '',
-                        text: 'English',
-                        value: 'en'
-                    }, {
-                        icon: '',
-                        text: 'Deutsch',
-                        value: 'de'
-                    }, {
-                        icon: '',
-                        text: 'اَلْعَرَبِيَّةُ',
-                        value: 'ar'
-                    }, {
-                        icon: '',
-                        text: 'Cancel',
-                        value: 'cancel'
-                    }],
-                menuContainer: '.menuContainer'
-            };
-        return SuiLanguageMenu._defaults;
+    getDefinition() {
+        return SuiTimeSignatureMenu.defaults;
     }
     selection(ev) {
-        var op = $(ev.currentTarget).attr('data-value');
-        language_1.SmoTranslator.setLanguage(op);
-        this.complete();
-    }
-    keydown() {
-    }
-}
-exports.SuiLanguageMenu = SuiLanguageMenu;
-class SuiMeasureMenu extends suiMenuBase {
-    static get defaults() {
-        SuiMeasureMenu._defaults = SuiMeasureMenu._defaults ? SuiMeasureMenu._defaults : {
-            label: 'Measure',
-            menuItems: [
-                {
-                    icon: '',
-                    text: 'Add Measures',
-                    value: 'addMenuCmd'
-                }, {
-                    icon: 'icon-cross',
-                    text: 'Delete Selected Measures',
-                    value: 'deleteSelected'
-                }, {
-                    icon: '',
-                    text: 'Format Measure',
-                    value: 'formatMeasureDialog'
-                }, {
-                    icon: '',
-                    text: 'Cancel',
-                    value: 'cancel'
-                }
-            ]
-        };
-        return SuiMeasureMenu._defaults;
-    }
-    static get ctor() {
-        return 'SuiMeasureMenu';
-    }
-    get ctor() {
-        return SuiMeasureMenu.ctor;
-    }
-    constructor(params) {
-        params = (typeof (params) !== 'undefined') ? params : {};
-        Vex.Merge(params, SuiMeasureMenu.defaults);
-        super(params);
-    }
-    selection(ev) {
-        const text = $(ev.currentTarget).attr('data-value');
-        if (text === 'formatMeasureDialog') {
-            measureDialogs_1.SuiMeasureDialog.createAndDisplay({
-                view: this.view,
+        var text = $(ev.currentTarget).attr('data-value');
+        if (text === 'TimeSigOther') {
+            dialog_1.createAndDisplayDialog(timeSignature_1.SuiTimeSignatureDialog, {
                 completeNotifier: this.completeNotifier,
-                startPromise: this.closePromise,
-                eventSource: this.eventSource
+                view: this.view,
+                undoBuffer: this.view.undoBuffer,
+                eventSource: this.eventSource,
+                id: 'staffGroups',
+                ctor: 'SuiStaffGroupDialog',
+                tracker: this.view.tracker,
+                modifier: null,
+                startPromise: this.closePromise
             });
             this.complete();
             return;
         }
-        if (text === 'addMenuCmd') {
-            measureDialogs_1.SuiInsertMeasures.createAndDisplay({
-                view: this.view,
-                completeNotifier: this.completeNotifier,
-                startPromise: this.closePromise,
-                eventSource: this.eventSource
-            });
-            this.complete();
-        }
-        if (text === 'addMenuAfterCmd') {
-            this.keyCommands.addMeasure({ shiftKey: true });
-            this.complete();
-        }
-        if (text === 'deleteSelected') {
-            this.view.deleteMeasure();
-        }
+        this.view.setTimeSignature(measure_1.SmoMeasure.convertLegacyTimeSignature(text), '');
         this.complete();
-    }
-}
-exports.SuiMeasureMenu = SuiMeasureMenu;
-class SuiAddStaffMenu extends suiMenuBase {
-    constructor(params) {
-        params = (typeof (params) !== 'undefined' ? params : {});
-        Vex.Merge(params, SuiAddStaffMenu.defaults);
-        super(params);
-    }
-    static get ctor() {
-        return 'SuiAddStaffMenu';
-    }
-    get ctor() {
-        return SuiAddStaffMenu.ctor;
-    }
-    static get defaults() {
-        SuiAddStaffMenu._defaults = SuiAddStaffMenu._defaults ? SuiAddStaffMenu._defaults : {
-            label: 'Add Staff',
-            menuItems: [
-                {
-                    icon: 'treble',
-                    text: 'Treble Clef Staff',
-                    value: 'trebleInstrument'
-                }, {
-                    icon: 'bass',
-                    text: 'Bass Clef Staff',
-                    value: 'bassInstrument'
-                }, {
-                    icon: 'alto',
-                    text: 'Alto Clef Staff',
-                    value: 'altoInstrument'
-                }, {
-                    icon: 'tenor',
-                    text: 'Tenor Clef Staff',
-                    value: 'tenorInstrument'
-                }, {
-                    icon: 'percussion',
-                    text: 'Percussion Clef Staff',
-                    value: 'percussionInstrument'
-                }, {
-                    icon: '',
-                    text: 'Staff Groups',
-                    value: 'staffGroups'
-                }, {
-                    icon: 'cancel-circle',
-                    text: 'Remove Staff',
-                    value: 'remove'
-                }, {
-                    icon: '',
-                    text: 'Cancel',
-                    value: 'cancel'
-                }
-            ],
-            menuContainer: '.menuContainer'
-        };
-        return SuiAddStaffMenu._defaults;
-    }
-    static get instrumentMap() {
-        return {
-            'trebleInstrument': {
-                instrumentInfo: {
-                    instrumentName: 'Treble Clef Staff',
-                    keyOffset: 0,
-                    clef: 'treble'
-                }
-            },
-            'bassInstrument': {
-                instrumentInfo: {
-                    instrumentName: 'Bass Clef Staff',
-                    keyOffset: 0,
-                    clef: 'bass'
-                }
-            },
-            'altoInstrument': {
-                instrumentInfo: {
-                    instrumentName: 'Alto Clef Staff',
-                    keyOffset: 0,
-                    clef: 'alto'
-                }
-            },
-            'tenorInstrument': {
-                instrumentInfo: {
-                    instrumentName: 'Tenor Clef Staff',
-                    keyOffset: 0,
-                    clef: 'tenor'
-                }
-            },
-            'percussionInstrument': {
-                instrumentInfo: {
-                    instrumentName: 'Percussion Clef Staff',
-                    keyOffset: 0,
-                    clef: 'percussion'
-                }
-            },
-            'remove': {
-                instrumentInfo: {
-                    instrumentName: 'Remove clef',
-                    keyOffset: 0,
-                    clef: 'tenor'
-                }
-            }
-        };
-    }
-    execStaffGroups() {
-        staffDialogs_1.SuiStaffGroupDialog.createAndDisplay({
-            eventSource: this.eventSource,
-            keyCommands: this.keyCommands,
-            completeNotifier: this.completeNotifier,
-            view: this.view,
-            startPromise: this.closePromise
-        });
-    }
-    selection(ev) {
-        const op = $(ev.currentTarget).attr('data-value');
-        if (op === 'remove') {
-            this.view.removeStaff();
-            this.complete();
-        }
-        else if (op === 'staffGroups') {
-            this.execStaffGroups();
-            this.complete();
-        }
-        else if (op === 'cancel') {
-            this.complete();
-        }
-        else {
-            const instrument = SuiAddStaffMenu.instrumentMap[op];
-            this.view.addStaff(instrument);
-            this.complete();
-        }
     }
     keydown() { }
 }
-exports.SuiAddStaffMenu = SuiAddStaffMenu;
+exports.SuiTimeSignatureMenu = SuiTimeSignatureMenu;
+SuiTimeSignatureMenu.defaults = {
+    label: 'Time Sig',
+    menuItems: [{
+            icon: 'sixeight',
+            text: '6/8',
+            value: '6/8',
+        }, {
+            icon: 'fourfour',
+            text: '4/4',
+            value: '4/4',
+        }, {
+            icon: 'threefour',
+            text: '3/4',
+            value: '3/4',
+        }, {
+            icon: 'twofour',
+            text: '2/4',
+            value: '2/4',
+        }, {
+            icon: 'twelveeight',
+            text: '12/8',
+            value: '12/8',
+        }, {
+            icon: 'seveneight',
+            text: '7/8',
+            value: '7/8',
+        }, {
+            icon: 'fiveeight',
+            text: '5/8',
+            value: '5/8',
+        }, {
+            icon: '',
+            text: 'Other',
+            value: 'TimeSigOther',
+        }, {
+            icon: '',
+            text: 'Cancel',
+            value: 'cancel'
+        }]
+};
 
 
 /***/ }),
@@ -43859,168 +47073,6 @@ exports.Qwerty = Qwerty;
 
 /***/ }),
 
-/***/ "./src/ui/ribbon.ts":
-/*!**************************!*\
-  !*** ./src/ui/ribbon.ts ***!
-  \**************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.RibbonButtons = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const collapsable_1 = __webpack_require__(/*! ./buttons/collapsable */ "./src/ui/buttons/collapsable.ts");
-// ## RibbonButtons
-// Render the ribbon buttons based on group, function, and underlying UI handler.
-// Also handles UI events.
-// ### RibbonButton methods
-// ---
-class RibbonButtons {
-    constructor(params) {
-        this.collapsables = [];
-        this.collapseChildren = [];
-        this.controller = params.completeNotifier;
-        this.eventSource = params.eventSource;
-        this.view = params.view;
-        this.menus = params.menus;
-        this.ribbonButtons = params.ribbonButtons;
-        this.ribbons = params.ribbons;
-        this.collapsables = [];
-        this.collapseChildren = [];
-    }
-    static get paramArray() {
-        return ['ribbonButtons', 'ribbons', 'keyCommands', 'controller', 'menus', 'eventSource', 'view'];
-    }
-    static _buttonHtml(containerClass, buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
-        const r = b('div').classes(containerClass).append(b('button').attr('id', buttonId).classes(buttonClass).append(b('span').classes('left-text').append(b('span').classes('text-span').text(buttonText)).append(b('span').classes('ribbon-button-text icon ' + buttonIcon))).append(b('span').classes('ribbon-button-hotkey').text(buttonKey)));
-        return r.dom();
-    }
-    _executeButtonModal(buttonElement, buttonData) {
-        const ctor = eval('globalThis.Smo.' + buttonData.ctor);
-        ctor.createAndDisplay({
-            undoBuffer: this.view.undoBuffer,
-            eventSource: this.eventSource,
-            completeNotifier: this.controller,
-            view: this.view
-        });
-    }
-    _executeButtonMenu(buttonElement, buttonData) {
-        this.menus.slashMenuMode(this.controller);
-        this.menus.createMenu(buttonData.ctor);
-    }
-    _executeButton(buttonElement, buttonData) {
-        if (buttonData.action === 'modal') {
-            this._executeButtonModal(buttonElement, buttonData);
-            return;
-        }
-        if (buttonData.action === 'menu' || buttonData.action === 'collapseChildMenu') {
-            this._executeButtonMenu(buttonElement, buttonData);
-        }
-    }
-    _bindButton(buttonElement, buttonData) {
-        this.eventSource.domClick(buttonElement, this, '_executeButton', buttonData);
-    }
-    _createCollapsibleButtonGroups(selector) {
-        let containerClass = '';
-        // Now all the button elements have been bound.  Join child and parent buttons
-        // For all the children of a button group, add it to the parent group
-        this.collapseChildren.forEach((b) => {
-            containerClass = 'ribbonButtonContainer';
-            if (b.action === 'collapseGrandchild') {
-                containerClass = 'ribbonButtonContainerMore';
-            }
-            const buttonHtml = RibbonButtons._buttonHtml(containerClass, b.id, b.classes, b.leftText, b.icon, b.rightText);
-            if (b.dataElements) {
-                const bkeys = Object.keys(b.dataElements);
-                bkeys.forEach((bkey) => {
-                    var de = b.dataElements[bkey];
-                    $(buttonHtml).find('button').attr('data-' + bkey, de);
-                });
-            }
-            // Bind the child button actions
-            const parent = $(selector).find('.collapseContainer[data-group="' + b.group + '"]');
-            $(parent).append(buttonHtml);
-            const el = $(selector).find('#' + b.id);
-            this._bindButton(el, b);
-        });
-        this.collapsables.forEach((cb) => {
-            // Bind the events of the parent button
-            cb.bind();
-        });
-    }
-    static isCollapsible(action) {
-        return ['collapseChild', 'collapseChildMenu', 'collapseGrandchild', 'collapseMore'].indexOf(action) >= 0;
-    }
-    // ### _createButtonHtml
-    // For each button, create the html and bind the events based on
-    // the button's configured action.
-    _createRibbonHtml(buttonAr, selector) {
-        let buttonClass = '';
-        buttonAr.forEach((buttonId) => {
-            const buttonData = this.ribbonButtons.find((e) => e.id === buttonId);
-            if (buttonData) {
-                if (buttonData.leftText) {
-                    RibbonButtons.translateButtons.push({ buttonId: buttonData.id, buttonText: buttonData.leftText });
-                }
-                // collapse child is hidden until the parent button is selected, exposing the button group
-                if (RibbonButtons.isCollapsible(buttonData.action)) {
-                    this.collapseChildren.push(buttonData);
-                }
-                if (buttonData.action !== 'collapseChild') {
-                    // else the button has a specific action, such as a menu or dialog, or a parent button
-                    // for translation, add the menu name to the button class
-                    buttonClass = buttonData.classes;
-                    if (buttonData.action === 'menu' || buttonData.action === 'modal') {
-                        buttonClass += ' ' + buttonData.ctor;
-                    }
-                    const buttonHtml = RibbonButtons._buttonHtml('ribbonButtonContainer', buttonData.id, buttonClass, buttonData.leftText, buttonData.icon, buttonData.rightText);
-                    $(buttonHtml).attr('data-group', buttonData.group);
-                    $(selector).append(buttonHtml);
-                    const buttonElement = $('#' + buttonData.id);
-                    // If this is a collabsable button, create it, otherwise bind its execute function.
-                    if (buttonData.action === 'collapseParent') {
-                        $(buttonHtml).addClass('collapseContainer');
-                        // collapseParent
-                        this.collapsables.push(new collapsable_1.CollapseRibbonControl({
-                            buttons: this.ribbonButtons,
-                            view: this.view,
-                            menus: this.menus,
-                            eventSource: this.eventSource,
-                            completeNotifier: this.controller,
-                            buttonId: buttonData.id,
-                            buttonElement,
-                            buttonData
-                        }));
-                    }
-                    else {
-                        this.eventSource.domClick(buttonElement, this, '_executeButton', buttonData);
-                    }
-                }
-            }
-        });
-    }
-    createRibbon(buttonDataArray, parentElement) {
-        this._createRibbonHtml(buttonDataArray, parentElement);
-        this._createCollapsibleButtonGroups(parentElement);
-    }
-    display() {
-        $('body .controls-left').html('');
-        $('body .controls-top').html('');
-        const lbuttons = this.ribbons.left;
-        this.createRibbon(lbuttons, 'body .controls-left');
-        const tbuttons = this.ribbons.top;
-        this.createRibbon(tbuttons, 'body .controls-top');
-    }
-}
-exports.RibbonButtons = RibbonButtons;
-RibbonButtons.translateButtons = [];
-
-
-/***/ }),
-
 /***/ "./src/ui/ribbonLayout/default/defaultRibbon.ts":
 /*!******************************************************!*\
   !*** ./src/ui/ribbonLayout/default/defaultRibbon.ts ***!
@@ -44054,8 +47106,9 @@ class defaultRibbonLayout {
     }
     static get leftRibbonIds() {
         return ['helpDialog', 'languageMenu', 'fileMenu', 'libraryMenu',
-            'addStaffMenu', 'measureModal', 'tempoModal', 'timeSignatureMenu', 'keyMenu', 'staffModifierMenu', 'staffModifierMenu2',
-            'instrumentModal', 'pianoModal', 'layoutMenu'];
+            'layoutMenu', 'instrumentMenu', 'addStaffMenu', 'measureModal',
+            'tempoModal', 'timeSignatureMenu', 'keyMenu', 'staffModifierMenu',
+            'pianoModal'];
     }
     static get noteButtonIds() {
         return ['NoteButtons',
@@ -44343,7 +47396,7 @@ class defaultRibbonLayout {
                 classes: 'icon  collapsed staves',
                 icon: 'icon-plus',
                 action: 'collapseChildMenu',
-                ctor: 'SuiAddStaffMenu',
+                ctor: 'SuiStaffMenu',
                 group: 'staves',
                 id: 'clefAddRemove'
             },
@@ -45553,6 +48606,44 @@ class defaultRibbonLayout {
                 group: 'scoreEdit',
                 id: 'libraryMenu'
             }, {
+                leftText: 'Score',
+                rightText: '',
+                icon: '',
+                classes: 'icon ',
+                action: 'menu',
+                ctor: 'SuiScoreMenu',
+                group: 'scoreEdit',
+                id: 'layoutMenu'
+            },
+            {
+                leftText: 'Parts',
+                rightText: '',
+                icon: '',
+                classes: 'icon',
+                action: 'menu',
+                ctor: 'SuiPartMenu',
+                group: 'scoreEdit',
+                id: 'instrumentMenu'
+            }, {
+                leftText: 'Staves',
+                rightText: '/s',
+                icon: '',
+                classes: 'staff-modify',
+                action: 'menu',
+                ctor: 'SuiStaffMenu',
+                group: 'scoreEdit',
+                id: 'addStaffMenu'
+            },
+            {
+                leftText: 'Measure',
+                rightText: '/a',
+                icon: '',
+                classes: 'icon menu-select',
+                action: 'menu',
+                ctor: 'SuiMeasureMenu',
+                group: 'scoreEdit',
+                id: 'measureModal'
+            }, {
                 leftText: 'Tempo',
                 rightText: 't',
                 icon: '',
@@ -45570,25 +48661,6 @@ class defaultRibbonLayout {
                 ctor: 'SuiTimeSignatureMenu',
                 group: 'scoreEdit',
                 id: 'timeSignatureMenu'
-            }, {
-                leftText: 'Staves',
-                rightText: '/s',
-                icon: '',
-                classes: 'staff-modify',
-                action: 'menu',
-                ctor: 'SuiAddStaffMenu',
-                group: 'scoreEdit',
-                id: 'addStaffMenu'
-            },
-            {
-                leftText: 'Measure',
-                rightText: '/a',
-                icon: '',
-                classes: 'icon menu-select',
-                action: 'menu',
-                ctor: 'SuiMeasureMenu',
-                group: 'scoreEdit',
-                id: 'measureModal'
             },
             {
                 leftText: 'Key',
@@ -45599,16 +48671,6 @@ class defaultRibbonLayout {
                 ctor: 'SuiKeySignatureMenu',
                 group: 'scoreEdit',
                 id: 'keyMenu'
-            },
-            {
-                leftText: 'Instrument',
-                rightText: '',
-                icon: '',
-                classes: 'icon',
-                action: 'modal',
-                ctor: 'SuiInstrumentDialog',
-                group: 'scoreEdit',
-                id: 'instrumentModal'
             },
             {
                 leftText: 'Lines',
@@ -45630,16 +48692,6 @@ class defaultRibbonLayout {
                 group: 'scoreEdit',
                 id: 'pianoModal'
             },
-            {
-                leftText: 'Score',
-                rightText: '',
-                icon: '',
-                classes: 'icon ',
-                action: 'menu',
-                ctor: 'SuiScoreMenu',
-                group: 'scoreEdit',
-                id: 'layoutMenu'
-            }
         ];
     }
 }

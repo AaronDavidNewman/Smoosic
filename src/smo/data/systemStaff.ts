@@ -1,15 +1,15 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber } from './common';
+import { SmoMusic } from './music';
 import { SmoMeasure } from './measure';
-import { smoSerialize } from '../../common/serializationHelpers';
+import { SmoMeasureFormat, SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta } from './measureModifiers';
+import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMeasure, SmoInstrumentStringParams, SmoInstrumentNumParams } from './staffModifiers';
+import { SmoPartInfo } from './partInfo';
+import { SmoTextGroup } from './scoreModifiers';
 import { SmoSelector } from '../xform/selections';
 import { smoBeamerFactory } from '../xform/beamers';
-import { SmoMeasureFormat } from './measureModifiers';
-import { SmoMusic } from './music';
-import { SmoPartInfo, SmoPartInfoParams } from './partInfo';
-import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMeasure, SmoInstrumentStringParams, SmoInstrumentNumParams } from './staffModifiers';
-import { SmoRehearsalMark, SmoRehearsalMarkParams, SmoTempoTextParams, SmoVolta } from './measureModifiers';
-import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber } from './common';
+import { smoSerialize } from '../../common/serializationHelpers';
 
 const VF = eval('Vex.Flow');
 
@@ -181,6 +181,12 @@ export class SmoSystemStaff implements SmoObjectParams {
     params.measures = [];
     params.modifiers = [];
     if (jsonObj.partInfo) {
+      // Deserialize the text groups first
+      const tgs: SmoTextGroup[] = [];
+      jsonObj.partInfo.textGroups.forEach((tgSer: any) => {
+        tgs.push(SmoTextGroup.deserialize(tgSer));
+      });
+      jsonObj.partInfo.textGroups = tgs;
       params.partInfo = new SmoPartInfo(jsonObj.partInfo);
     }
     // Up-convert legacy instrument info, which was split between different objects

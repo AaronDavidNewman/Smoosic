@@ -59,11 +59,25 @@ export class SuiScoreViewOperations extends SuiScoreView {
   updateTextGroup(oldVersion: SmoTextGroup, newVersion: SmoTextGroup) {
     this.actionBuffer.addAction('updateTextGroup', oldVersion, newVersion);
     const index = this.score.textGroups.findIndex((grp) => oldVersion.attrs.id === grp.attrs.id);
+    const isPartExposed = this.isPartExposed(this.score.staves[0]);
     SmoUndoable.changeTextGroup(this.score, this.undoBuffer, oldVersion,
       UndoBuffer.bufferSubtypes.UPDATE);
-    SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, this.storeScore.textGroups[index], UndoBuffer.bufferSubtypes.UPDATE);
-    const altNew = SmoTextGroup.deserialize(newVersion.serialize());
-    this.storeScore.textGroups[index] = altNew;
+    // If this is part text, don't store it in the score text, except for the displayed score
+    if (!isPartExposed) {
+      SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, this.storeScore.textGroups[index], UndoBuffer.bufferSubtypes.UPDATE);
+      const altNew = SmoTextGroup.deserialize(newVersion.serialize());
+      this.storeScore.textGroups[index] = altNew;
+    } else {
+      const partInfo = this.score.staves[0].partInfo;
+      if (partInfo.preserveTextGroups) {
+        partInfo.textGroups = this.score.textGroups;
+      }
+      const tgs: SmoTextGroup[] = [];
+      partInfo.textGroups.forEach((tg) => {
+        tgs.push(SmoTextGroup.deserialize(tg.serialize()));
+      })
+      this.storeScore.staves[this.staffMap[0]].partInfo.textGroups = tgs;
+    }
     // TODO: only render the one TG.
     this.renderer.renderScoreModifiers();
   }

@@ -1,4 +1,4 @@
-import { SuiMenuBase, SuiMenuParams } from './menu';
+import { SuiMenuBase, SuiMenuParams, MenuChoiceDefinition } from './menu';
 import { createAndDisplayDialog } from '../dialogs/dialog';
 import { SuiScoreViewDialog } from '../dialogs/scoreView';
 import { SuiInstrumentDialog } from '../dialogs/instrument';
@@ -11,7 +11,7 @@ export class SuiPartMenu extends SuiMenuBase {
     super(params);
   }
   static defaults = {
-    label: 'Add Staff',
+    label: 'Parts',
     menuItems: [
       {
         icon: '',
@@ -19,8 +19,12 @@ export class SuiPartMenu extends SuiMenuBase {
         value: 'editPart'
       }, {
         icon: '',
-        text: 'View Parts',
+        text: 'View Parts/Staves',
         value: 'view'
+      }, {
+        icon: '',
+        text: 'View All',
+        value: 'viewAll'
       }, {
         icon: '',
         text: 'Instrument Properties',
@@ -80,6 +84,18 @@ export class SuiPartMenu extends SuiMenuBase {
       }
     );
   }
+  preAttach() {
+    if (this.view.storeScore.staves.length !== this.view.score.staves.length) {
+      return;
+    }
+    const defs: MenuChoiceDefinition[] = [];
+    this.menuItems.forEach((item) => {
+      if (item.value !== 'viewAll') {
+        defs.push(item);
+      }
+    });
+    this.menuItems = defs;
+  }
 
   selection(ev: any) {
     const op: string = $(ev.currentTarget).attr('data-value');
@@ -93,6 +109,9 @@ export class SuiPartMenu extends SuiMenuBase {
       this.editInstrument();
       this.complete();
     } else if (op === 'cancel') {
+      this.complete();
+    } else if (op === 'viewAll') {
+      this.view.viewAll();
       this.complete();
     }
   }

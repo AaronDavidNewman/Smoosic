@@ -11,7 +11,21 @@ export type SmoPartInfoStringType = 'partName' | 'partAbbreviation';
 export const SmoPartInfoStringTypes: SmoPartInfoStringType[] = ['partName', 'partAbbreviation'];
 export type SmoPartInfoNumType = 'stavesAfter' | 'stavesBefore';
 export const SmoPartInfoNumTypes: SmoPartInfoNumType[] = ['stavesAfter', 'stavesBefore'];
+export type SmoPartInfoBooleanType = 'preserveTextGroups';
+export const SmoPartInfoBooleanTypes: SmoPartInfoBooleanType[] = ['preserveTextGroups'];
 
+/**
+ * Data contained in a part.  A part has its own text, measure formatting and page layouts,
+ * and contains the notes from the score.  It can be comprised of 1 or 2 adjacent staves
+ * @param partName Name of the part, can be used in headers
+ * @param partAbbreviation
+ * @stavesAfter for multi-stave parts (e.g. piano), indicates the relative position in the full score.
+ * @stavesBefore
+ * @layoutManager page/layout settings for the part
+ * @measureFormatting a map of measure format to measures for the part
+ * @textGroups if preserveTextGroups is true, the part has its own text.
+ * @preseverTextGroups if false, we use the full score text
+ */
 export interface SmoPartInfoParams {
   partName: string,
   partAbbreviation: string,
@@ -19,7 +33,8 @@ export interface SmoPartInfoParams {
   stavesBefore: number,
   layoutManager?: SmoLayoutManager;
   measureFormatting?: Record<number, SmoMeasureFormat>,
-  textGroups?: SmoTextGroup[]
+  textGroups: SmoTextGroup[],
+  preserveTextGroups: boolean
 }
 export class SmoPartInfo extends StaffModifierBase {
   partName: string;
@@ -29,11 +44,14 @@ export class SmoPartInfo extends StaffModifierBase {
   textGroups: SmoTextGroup[] = [];
   stavesAfter: number = 0;
   stavesBefore: number = 0;
+  preserveTextGroups: boolean = false;
   static get defaults(): SmoPartInfoParams {
     return JSON.parse(JSON.stringify({
       partName: 'Staff ',
       partAbbreviation: '',
       globalLayout: SmoLayoutManager.defaultLayout,
+      textGroups: [],
+      preserveTextGroups: false,
       pageLayoutMap: {},
       stavesAfter: 0,
       stavesBefore: 0
@@ -60,6 +78,7 @@ export class SmoPartInfo extends StaffModifierBase {
     this.stavesBefore = params.stavesBefore;
     this.partName = params.partName;
     this.partAbbreviation = params.partAbbreviation;
+    this.preserveTextGroups = params.preserveTextGroups ?? false;
   }
   serialize() {
     const rv : any = {};
@@ -67,6 +86,9 @@ export class SmoPartInfo extends StaffModifierBase {
       rv[st] = this[st];
     });
     SmoPartInfoNumTypes.forEach((st) => {
+      rv[st] = this[st];
+    });
+    SmoPartInfoBooleanTypes.forEach((st) => {
       rv[st] = this[st];
     });
     rv.layoutManager = this.layoutManager.serialize();

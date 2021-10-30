@@ -209,6 +209,19 @@ export class SuiMenuManager {
   dismiss() {
     $('body').trigger('menuDismiss');
   }
+  displayMenu(menu: SuiMenuBase | null) {
+    this.menu = menu;
+    if (!this.menu) {
+      return;
+    }
+    this.menu.preAttach();
+    this.attach();
+    this.menu!.menuItems.forEach((item) => {
+      if (typeof(item.hotkey) !== 'undefined') {
+        this.hotkeyBindings[item.hotkey] = item.value;
+      }
+    });
+  }
 
   createMenu(action: string) {
     if (!this.completeNotifier) {
@@ -231,13 +244,7 @@ export class SuiMenuManager {
       undoBuffer: this.undoBuffer,
       ctor: action
     };
-    this.menu = new ctor(params);
-    this.attach();
-    this.menu!.menuItems.forEach((item) => {
-      if (typeof(item.hotkey) !== 'undefined') {
-        this.hotkeyBindings[item.hotkey] = item.value;
-      }
-    });
+    this.displayMenu(new ctor(params));
   }
 
   // ### evKey

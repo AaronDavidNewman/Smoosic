@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SmoScore } from '../../smo/data/score';
-import { GlobalLayoutAttributes, SmoLayoutManager } from '../../smo/data/scoreModifiers';
+import { GlobalLayoutAttributes, SmoLayoutManager, SmoTextGroup } from '../../smo/data/scoreModifiers';
 import { SmoPartInfo, SmoPartInfoStringType } from '../../smo/data/partInfo';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
@@ -137,6 +137,19 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
     }
     this.update();
   }
+  get preserveTextGroups(): boolean {
+    return this.partInfo.preserveTextGroups;
+  }
+  set preserveTextGroups(value: boolean) {
+    if (value === true && this.partInfo.textGroups.length === 0) {
+      this.view.score.textGroups.forEach((tg) => {
+        const ngrp: SmoTextGroup = SmoTextGroup.deserialize(tg.serialize()) as SmoTextGroup;
+        this.partInfo.textGroups.push(ngrp);
+      });
+    }
+    this.partInfo.preserveTextGroups = value;
+    this.update();
+  }
   restoreViewMap() {
     const current = this.currentView;
     const viewObj = this.view;
@@ -175,11 +188,16 @@ export class SuiPartInfoDialog extends SuiDialogAdapterBase<SuiPartInfoAdapter> 
           defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,
           control: 'SuiTextInputComponent',
           label: 'Part Abbrev.'
+        },  {
+          smoName: 'preserveTextGroups',
+          defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,
+          control: 'SuiToggleComponent',
+          label: 'Part-specific text'
         }, {
           smoName: 'includeNext',
           defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,
           control: 'SuiToggleComponent',
-          label: 'Include Next'
+          label: 'Include Next Staff in Part'
         }, {
           smoName: 'restoreScoreView',
           defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,

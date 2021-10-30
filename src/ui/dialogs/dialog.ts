@@ -102,9 +102,13 @@ export interface DialogDom {
   trapper: any
 }
 
-// ## SuiDialogBase
-// Base class for dialogs.
-export abstract class SuiDialogBase extends SuiDialogNotifier {
+/**
+ * Note: Most dialogs will inherit from SuiDialogAdapter, not SuiDialogBase.
+ * You will only want to inherit from SuiDialogBase under 2 conditions:
+ * 1. the dialog is triviailly simple, like an alert box that makes no changes to the score, or
+ * 2. the dialog is extremely complicated in how it interacts with the user, such that a form-based approach won't work
+ */
+ export abstract class SuiDialogBase extends SuiDialogNotifier {
   static get displayOptions(): Record<string, string> {
     return {
       BINDCOMPONENTS: 'bindComponents', DRAGGABLE: 'makeDraggable',

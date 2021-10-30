@@ -3,6 +3,7 @@
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoModifierBase } from '../../smo/data/common';
 import { SmoScore } from '../../smo/data/score';
+import { SmoTextGroup } from '../../smo/data/scoreModifiers';
 import { SmoGraceNote } from '../../smo/data/noteModifiers';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
@@ -348,6 +349,22 @@ export abstract class SuiScoreView {
     return this.score.staves[0].staffId === staff.staffId && staveCount === this.score.staves.length
       && staff.partInfo.stavesBefore === 0;
   }
+  _mapPartFormatting() {
+    this.score.layoutManager = this.score.staves[0].partInfo.layoutManager;
+    let replacedText = false;
+    this.score.staves.forEach((staff) => { 
+      staff.updateMeasureFormatsForPart();
+      if (staff.partInfo.preserveTextGroups && !replacedText) {
+        const tga: SmoTextGroup[] = [];
+        replacedText = true;
+        staff.partInfo.textGroups.forEach((tg) => {
+          tga.push(tg)
+        });
+        this.score.textGroups = tga;
+      }
+    });
+
+  }
 
   // ### setView
   // Send a list of rows with a 'show' boolean in each, we display that line
@@ -380,8 +397,7 @@ export abstract class SuiScoreView {
     this.renderer.score = nscore;
     // If this current view is a part, show the part layout
     if (this.isPartExposed(this.score.staves[0])) {
-      this.score.layoutManager = this.score.staves[0].partInfo.layoutManager;
-      this.score.staves.forEach((staff) => staff.updateMeasureFormatsForPart());
+      this._mapPartFormatting();
     }
     this.renderer.setViewport(true);
     setTimeout(() => {

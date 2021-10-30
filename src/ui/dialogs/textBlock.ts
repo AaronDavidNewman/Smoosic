@@ -250,7 +250,6 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     if (this.textBlockCtrl.changeFlag) {
       const nval = this.textBlockCtrl.getValue();
       this.activeScoreText = nval.activeScoreText;
-      // this.textEditorCtrl.activeScoreText = this.activeScoreText;
     }
 
     if (this.attachToSelectorCtrl.changeFlag) {
