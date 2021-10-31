@@ -15,6 +15,17 @@ API Demo Links (codepen):
 ---
 
 ## Changes to Smoosic
+### Typescript migration complete (Halloween, 2021)
+All of the project files have been rewritten in Typescript. The UI, particularly the dialog and menus, have been redone in a more component-friendly way. I expect to create new pens that describe how to create new UI elements, and modify existing ones.
+
+Smoosic now supports parts.  Parts can consist of 1-2 adjacent staves.  They can contain their own measure formatting, text, and page/layout settings.
+
+There are a few different score-organization concepts that could get confusing:
+* Parts are assigned to 1-2 staves for the duration of the score, and can have text and formatting independent of the score.
+* Instruments are mapped to a stave for some number of measures.  Primarly right now, they control the pitch offset, i.e. the key of the instrument.  E.g. a Bb trumpet is notated a whole step up with +2 sharps from concert.  In the future, this will be open for a lot of fun things like midi patches and audio samples.
+* Staff groups control the justification between staves in the full score.
+* Any permutation of the staves can be viewed (you can't do this in Sibelius), but staves that don't map to a single part will get the score text and formatting.
+
 ### Webpack migration complete (August, 2021)
 Typescript migration underway. Most SMO files are already migrated. Pens have been updated to reflect the new build target.  This is merged to main branch.
 
