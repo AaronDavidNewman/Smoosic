@@ -4,6 +4,7 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from './music';
 import { SmoAttrs, MeasureNumber, FontInfo, SmoObjectParams, SvgBox, SmoModifierBase } from './common';
 import { SmoSelector } from '../xform/selections';
+import { SmoMeasure } from './measure';
 
 const VF = eval('Vex.Flow');
 // ## Measure modifiers are elements that are attached to the bar itself, like barlines or measure-specific text,
@@ -41,7 +42,7 @@ export interface SmoMeasureFormatParams {
   pageBreak: boolean | null,
   padLeft: number | null,
   padAllInSystem: boolean | null,
-  measureIndex: number | null
+  measureIndex: number | null,
 }
 export interface ISmoMeasureFormatMgr {
   format: SmoMeasureFormatParams,
@@ -76,7 +77,7 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
       padLeft: 0,
       padAllInSystem: true,
       autoJustify: true,
-      measureIndex: 0
+      measureIndex: 0,
     }));
   }
   customStretch: number = 0;
@@ -84,7 +85,7 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
   systemBreak: boolean = false;
   pageBreak: boolean = false;
   padLeft: number = 0;
-  padAllInSystem: boolean = false;
+  padAllInSystem: boolean = true;
   autoJustify: boolean = true;
   measureIndex: number = 0;
   eq(o: SmoMeasureFormatParams) {
@@ -95,7 +96,7 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
       }
     });
     SmoMeasureFormatNumberKeys.forEach((attr) => {
-      if (o[attr] !== this[attr]) {
+      if (o[attr] !== this[attr] && attr !== 'measureIndex') {
         rv = false;
       }
     });
@@ -104,19 +105,14 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
   get isDefault() {
     return this.eq(SmoMeasureFormat.defaults);
   }
-  constructor(parameters: SmoMeasureFormatParams | null) {
+  constructor(parameters: SmoMeasureFormatParams) {
     super('SmoMeasureFormat');
-    let pobj: any = parameters;
-    if (typeof (parameters) === 'undefined' || parameters === null) {
-      pobj = {};
-    }
-    SmoMeasureFormat.attributes.forEach((attr) => {
-      const to = typeof ((pobj as any)[attr]);
-      if (to === 'undefined') {
-        (this as any)[attr] = (SmoMeasureFormat.defaults as any)[attr];
-      } else {
-        (this as any)[attr] = (pobj as any)[attr];
-      }
+    const def = SmoMeasureFormat.defaults;
+    SmoMeasureFormatNumberKeys.forEach((param) => {
+      this[param] = parameters[param] ? parameters[param] : (def as any)[param];
+    });
+    SmoMeasureFormatBooleanKeys.forEach((param) => {
+      this[param] = parameters[param] ? parameters[param] : (def as any)[param];
     });
   }
   formatMeasure(mm: ISmoMeasureFormatMgr) {

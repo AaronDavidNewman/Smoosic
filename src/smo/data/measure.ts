@@ -60,11 +60,15 @@ export interface ColumnMappedParams {
   tempo: any
 }
 
+export type SmoMeasureNumberParam = 'padRight' | 'transposeIndex' | 'rightMargin' | 'activeVoice';
+export const SmoMeasureNumberParams: SmoMeasureNumberParam[] = ['padRight', 'transposeIndex', 'rightMargin', 'activeVoice'];
+export type SmoMeasureStringParam = 'timeSignatureString' | 'keySignature' | 'canceledKeySignature';
+export const SmoMeasureStringParams: SmoMeasureStringParam[] = ['timeSignatureString', 'keySignature', 'canceledKeySignature'];
 export interface SmoMeasureParams {
   timeSignature: TimeSignature,
   timeSignatureString: string,
   keySignature: string,
-  canceledKeySignature: string | null,
+  canceledKeySignature: string,
   padRight: number,
   tuplets: SmoTuplet[],
   transposeIndex: number,
@@ -107,7 +111,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     timeSignature: SmoMeasure.timeSignatureDefault,
     timeSignatureString: '',
     keySignature: 'C',
-    canceledKeySignature: null,
+    canceledKeySignature: '',
     padRight: 10,
     tuplets: [],
     transposeIndex: 0,
@@ -196,8 +200,16 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     };
 
     const defaults = SmoMeasure.defaults;
-    smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
-    smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, this);
+    SmoMeasureNumberParams.forEach((param) => {
+      if (typeof(params[param]) !== 'undefined') {
+        this[param] = params[param];
+      }
+    });
+    SmoMeasureStringParams.forEach((param) => {
+      this[param] = params[param] ? params[param] : defaults[param];
+    });
+    this.clef = params.clef;
+    this.measureNumber = JSON.parse(JSON.stringify(params.measureNumber));
     if (params.tempo) {
       this.tempo = new SmoTempoText(params.tempo);
     }
@@ -216,7 +228,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     this.setDefaultBarlines();
     this.keySignature = SmoMusic.vexKeySigWithOffset(this.keySignature, this.transposeIndex);
 
-    if (typeof (params.format) === 'undefined') {
+    if (!(params.format)) {
       this.format = new SmoMeasureFormat(SmoMeasureFormat.defaults);
       this.format.measureIndex = this.measureNumber.measureIndex;
     } else {
@@ -235,7 +247,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       'keySignature', 'timeSignatureString',
       'measureNumber',
       'activeVoice', 'clef', 'transposeIndex',
-      'adjX', 'format', 'rightMargin'
+      'format', 'rightMargin'
     ];
   }
 
@@ -283,6 +295,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   serialize() {
     const params: any = {};
     let ser = true;
+    const defaults = SmoMeasure.defaults;
     smoSerialize.serializedMergeNonDefault(SmoMeasure.defaults, SmoMeasure.serializableAttributes, this, params);
     // measure number can't be defaulted b/c tempos etc. can map to default measure
     params.measureNumber = JSON.parse(JSON.stringify(this.measureNumber));
@@ -506,23 +519,13 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     }
 
     for (i = 0; i < beats; ++i) {
-      const note = new SmoNote({
-        noteHead: 'n',
-        clef: params.clef,
-        pitches: [pitches],
-        ticks,
-        beamBeats,
-        noteType: SmoMeasure.emptyMeasureNoteType,
-        textModifiers: [],
-        articulations: [],
-        graceNotes: [],
-        ornaments: [],
-        tones: [],
-        endBeam: false,
-        fillStyle: '',
-        flagState: SmoNote.flagStates.auto,
-        hidden: false
-      });
+      const defs = SmoNote.defaults;
+      defs.pitches = [pitches];
+      defs.noteType = SmoMeasure.emptyMeasureNoteType;
+      defs.clef = params.clef;
+      defs.noteType = SmoMeasure.emptyMeasureNoteType;
+      defs.ticks = ticks;
+      const note = new SmoNote(defs);
       rv.push(note);
     }
     return rv;

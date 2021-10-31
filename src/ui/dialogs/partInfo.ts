@@ -137,6 +137,13 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
     }
     this.update();
   }
+  get cueInScore(): boolean {
+    return this.partInfo.cueInScore;
+  }
+  set cueInScore(value: boolean) {
+    this.partInfo.cueInScore = value;
+    this.update();
+  }
   get preserveTextGroups(): boolean {
     return this.partInfo.preserveTextGroups;
   }
@@ -188,11 +195,16 @@ export class SuiPartInfoDialog extends SuiDialogAdapterBase<SuiPartInfoAdapter> 
           defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,
           control: 'SuiTextInputComponent',
           label: 'Part Abbrev.'
-        },  {
+        }, {
           smoName: 'preserveTextGroups',
           defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,
           control: 'SuiToggleComponent',
           label: 'Part-specific text'
+        }, {
+          smoName: 'cueInScore',
+          defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,
+          control: 'SuiToggleComponent',
+          label: 'Show as Cues in score'
         }, {
           smoName: 'includeNext',
           defaultValue: SmoLayoutManager.defaults.globalLayout.noteSpacing,

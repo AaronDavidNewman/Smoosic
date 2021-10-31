@@ -9,7 +9,7 @@ import { SmoNote } from '../../smo/data/note';
 import { SmoMusic } from '../../smo/data/music';
 import { SvgHelpers } from '../sui/svgHelpers';
 import { layoutDebug } from '../sui/layoutDebug';
-import { SmoRepeatSymbol, SmoMeasureText, SmoBarline, SmoMeasureModifierBase, SmoRehearsalMark } from '../../smo/data/measureModifiers';
+import { SmoRepeatSymbol, SmoMeasureText, SmoBarline, SmoMeasureModifierBase, SmoRehearsalMark, SmoMeasureFormat } from '../../smo/data/measureModifiers';
 import { SourceSerifProFont } from '../../styles/font_metrics/ssp-serif-metrics';
 import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoLyric } from '../../smo/data/noteModifiers';
@@ -21,6 +21,8 @@ const VF = eval('Vex.Flow');
 
 export class VxMeasure {
   context: any;
+  static readonly musicFontScaleNote: number = 38;
+  static readonly musicFontScaleCue: number = 28;
   printing: boolean;
   selection: SmoSelection;
   smoMeasure: SmoMeasure;
@@ -36,6 +38,7 @@ export class VxMeasure {
   voiceNotes: any; // notes for current voice, as rendering
   voiceAr: any[] = [];
   formatter: any = null;
+  allCues: boolean = false;
 
 
   constructor(context: any, selection: SmoSelection, printing: boolean) {
@@ -44,6 +47,7 @@ export class VxMeasure {
     this.selection = selection;
     this.smoMeasure = this.selection.measure;
     this.printing = printing;
+    this.allCues = selection.staff.partInfo.cueInScore;
     this.tupletToVexMap = {};
     this.vexNotes = [];
     this.vexBeamGroups = [];
@@ -247,7 +251,8 @@ export class VxMeasure {
     const noteParams = {
       clef: smoNote.clef,
       keys,
-      duration: duration + smoNote.noteType
+      duration: duration + smoNote.noteType,
+      glyph_font_scale: VxMeasure.musicFontScaleNote
     };
 
     if (smoNote.noteType === '/') {
@@ -257,6 +262,9 @@ export class VxMeasure {
       this.applyStemDirection(noteParams, voiceIx, smoNote.flagState);
       layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATA, new Date().valueOf() - timestamp);
       timestamp = new Date().valueOf();
+      if (smoNote.isCue || this.allCues) {
+        noteParams.glyph_font_scale = VxMeasure.musicFontScaleCue;
+      }
       vexNote = new VF.StaveNote(noteParams);
       layoutDebug.setTimestamp(layoutDebug.codeRegions.PREFORMATB, new Date().valueOf() - timestamp);
       timestamp = new Date().valueOf();

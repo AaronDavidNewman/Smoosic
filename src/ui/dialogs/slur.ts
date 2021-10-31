@@ -190,5 +190,6 @@ static dialogElements: DialogDefinition = {
 constructor(parameters: SuiDialogParams) {
   const adapter = new SuiSlurAdapter(parameters.view, parameters.modifier);
   super(SuiSlurAttributesDialog.dialogElements, { adapter, ...parameters });
+  this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
 }
 }

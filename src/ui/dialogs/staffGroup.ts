@@ -58,6 +58,7 @@ export class SuiStaffGroupDialog extends SuiDialogAdapterBase<SuiStaffGroupDialo
           }, {
             smoName: 'leftConnector',
             control: 'SuiDropdownComponent',
+            dataType: 'int',
             label: 'Left Connector',
             options: [
               {

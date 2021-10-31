@@ -12227,11 +12227,13 @@ class VxMeasure {
         this.tickmapObject = null;
         this.voiceAr = [];
         this.formatter = null;
+        this.allCues = false;
         this.context = context;
         this.rendered = false;
         this.selection = selection;
         this.smoMeasure = this.selection.measure;
         this.printing = printing;
+        this.allCues = selection.staff.partInfo.cueInScore;
         this.tupletToVexMap = {};
         this.vexNotes = [];
         this.vexBeamGroups = [];
@@ -12424,7 +12426,8 @@ class VxMeasure {
         const noteParams = {
             clef: smoNote.clef,
             keys,
-            duration: duration + smoNote.noteType
+            duration: duration + smoNote.noteType,
+            glyph_font_scale: VxMeasure.musicFontScaleNote
         };
         if (smoNote.noteType === '/') {
             vexNote = new VF.GlyphNote(new VF.Glyph('repeatBarSlash', 40), { duration });
@@ -12434,6 +12437,9 @@ class VxMeasure {
             this.applyStemDirection(noteParams, voiceIx, smoNote.flagState);
             layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.PREFORMATA, new Date().valueOf() - timestamp);
             timestamp = new Date().valueOf();
+            if (smoNote.isCue || this.allCues) {
+                noteParams.glyph_font_scale = VxMeasure.musicFontScaleCue;
+            }
             vexNote = new VF.StaveNote(noteParams);
             layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.PREFORMATB, new Date().valueOf() - timestamp);
             timestamp = new Date().valueOf();
@@ -12739,6 +12745,8 @@ class VxMeasure {
     }
 }
 exports.VxMeasure = VxMeasure;
+VxMeasure.musicFontScaleNote = 38;
+VxMeasure.musicFontScaleCue = 28;
 
 
 /***/ }),
@@ -13302,7 +13310,7 @@ exports.IsClef = IsClef;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmoMeasure = void 0;
+exports.SmoMeasure = exports.SmoMeasureStringParams = exports.SmoMeasureNumberParams = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
@@ -13314,6 +13322,8 @@ const layoutDebug_1 = __webpack_require__(/*! ../../render/sui/layoutDebug */ ".
 const svgHelpers_1 = __webpack_require__(/*! ../../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const tickMap_1 = __webpack_require__(/*! ../xform/tickMap */ "./src/smo/xform/tickMap.ts");
 const VF = eval('Vex.Flow');
+exports.SmoMeasureNumberParams = ['padRight', 'transposeIndex', 'rightMargin', 'activeVoice'];
+exports.SmoMeasureStringParams = ['timeSignatureString', 'keySignature', 'canceledKeySignature'];
 // ## SmoMeasure - data for a measure of music
 // Many rules of musical engraving are enforced at a measure level, e.g. the duration of
 // notes, accidentals, etc.
@@ -13365,8 +13375,16 @@ class SmoMeasure {
             forceTempo: false
         };
         const defaults = SmoMeasure.defaults;
-        serializationHelpers_1.smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, defaults, this);
-        serializationHelpers_1.smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, params, this);
+        exports.SmoMeasureNumberParams.forEach((param) => {
+            if (typeof (params[param]) !== 'undefined') {
+                this[param] = params[param];
+            }
+        });
+        exports.SmoMeasureStringParams.forEach((param) => {
+            this[param] = params[param] ? params[param] : defaults[param];
+        });
+        this.clef = params.clef;
+        this.measureNumber = JSON.parse(JSON.stringify(params.measureNumber));
         if (params.tempo) {
             this.tempo = new measureModifiers_1.SmoTempoText(params.tempo);
         }
@@ -13385,7 +13403,7 @@ class SmoMeasure {
         this.modifiers = params.modifiers ? params.modifiers : defaults.modifiers;
         this.setDefaultBarlines();
         this.keySignature = music_1.SmoMusic.vexKeySigWithOffset(this.keySignature, this.transposeIndex);
-        if (typeof (params.format) === 'undefined') {
+        if (!(params.format)) {
             this.format = new measureModifiers_1.SmoMeasureFormat(measureModifiers_1.SmoMeasureFormat.defaults);
             this.format.measureIndex = this.measureNumber.measureIndex;
         }
@@ -13431,7 +13449,7 @@ class SmoMeasure {
             'keySignature', 'timeSignatureString',
             'measureNumber',
             'activeVoice', 'clef', 'transposeIndex',
-            'adjX', 'format', 'rightMargin'
+            'format', 'rightMargin'
         ];
     }
     static get formattingOptions() {
@@ -13476,6 +13494,7 @@ class SmoMeasure {
     serialize() {
         const params = {};
         let ser = true;
+        const defaults = SmoMeasure.defaults;
         serializationHelpers_1.smoSerialize.serializedMergeNonDefault(SmoMeasure.defaults, SmoMeasure.serializableAttributes, this, params);
         // measure number can't be defaulted b/c tempos etc. can map to default measure
         params.measureNumber = JSON.parse(JSON.stringify(this.measureNumber));
@@ -13689,23 +13708,13 @@ class SmoMeasure {
             beats = beats * 2;
         }
         for (i = 0; i < beats; ++i) {
-            const note = new note_1.SmoNote({
-                noteHead: 'n',
-                clef: params.clef,
-                pitches: [pitches],
-                ticks,
-                beamBeats,
-                noteType: SmoMeasure.emptyMeasureNoteType,
-                textModifiers: [],
-                articulations: [],
-                graceNotes: [],
-                ornaments: [],
-                tones: [],
-                endBeam: false,
-                fillStyle: '',
-                flagState: note_1.SmoNote.flagStates.auto,
-                hidden: false
-            });
+            const defs = note_1.SmoNote.defaults;
+            defs.pitches = [pitches];
+            defs.noteType = SmoMeasure.emptyMeasureNoteType;
+            defs.clef = params.clef;
+            defs.noteType = SmoMeasure.emptyMeasureNoteType;
+            defs.ticks = ticks;
+            const note = new note_1.SmoNote(defs);
             rv.push(note);
         }
         return rv;
@@ -14253,7 +14262,7 @@ SmoMeasure._defaults = {
     timeSignature: SmoMeasure.timeSignatureDefault,
     timeSignatureString: '',
     keySignature: 'C',
-    canceledKeySignature: null,
+    canceledKeySignature: '',
     padRight: 10,
     tuplets: [],
     transposeIndex: 0,
@@ -14321,21 +14330,15 @@ class SmoMeasureFormat extends SmoMeasureModifierBase {
         this.systemBreak = false;
         this.pageBreak = false;
         this.padLeft = 0;
-        this.padAllInSystem = false;
+        this.padAllInSystem = true;
         this.autoJustify = true;
         this.measureIndex = 0;
-        let pobj = parameters;
-        if (typeof (parameters) === 'undefined' || parameters === null) {
-            pobj = {};
-        }
-        SmoMeasureFormat.attributes.forEach((attr) => {
-            const to = typeof (pobj[attr]);
-            if (to === 'undefined') {
-                this[attr] = SmoMeasureFormat.defaults[attr];
-            }
-            else {
-                this[attr] = pobj[attr];
-            }
+        const def = SmoMeasureFormat.defaults;
+        exports.SmoMeasureFormatNumberKeys.forEach((param) => {
+            this[param] = parameters[param] ? parameters[param] : def[param];
+        });
+        exports.SmoMeasureFormatBooleanKeys.forEach((param) => {
+            this[param] = parameters[param] ? parameters[param] : def[param];
         });
     }
     static get attributes() {
@@ -14367,7 +14370,7 @@ class SmoMeasureFormat extends SmoMeasureModifierBase {
             padLeft: 0,
             padAllInSystem: true,
             autoJustify: true,
-            measureIndex: 0
+            measureIndex: 0,
         }));
     }
     eq(o) {
@@ -14378,7 +14381,7 @@ class SmoMeasureFormat extends SmoMeasureModifierBase {
             }
         });
         exports.SmoMeasureFormatNumberKeys.forEach((attr) => {
-            if (o[attr] !== this[attr]) {
+            if (o[attr] !== this[attr] && attr !== 'measureIndex') {
                 rv = false;
             }
         });
@@ -15910,13 +15913,16 @@ SmoMusic._ticksToDuration = {};
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmoNote = void 0;
+exports.SmoNote = exports.NoteBooleanParams = exports.NoteNumberParams = exports.NoteStringParams = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const noteModifiers_1 = __webpack_require__(/*! ./noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const music_1 = __webpack_require__(/*! ./music */ "./src/smo/data/music.ts");
 const VF = eval('Vex.Flow');
+exports.NoteStringParams = ['noteType', 'noteHead', 'clef'];
+exports.NoteNumberParams = ['beamBeats', 'flagState'];
+exports.NoteBooleanParams = ['hidden', 'endBeam', 'isCue'];
 // ## SmoNote
 // ## Description:
 // Data for a musical note.  THe most-contained-thing, except there can be note modifiers
@@ -15948,8 +15954,24 @@ class SmoNote {
         this.keySignature = 'c';
         this.logicalBox = null;
         this.renderedBox = null;
+        this.isCue = false;
         this.accidentalsRendered = []; // set by renderer if accidental is to display
-        serializationHelpers_1.smoSerialize.serializedMerge(SmoNote.parameterArray, params, this);
+        const defs = SmoNote.defaults;
+        exports.NoteStringParams.forEach((param) => {
+            this[param] = params[param] ? params[param] : defs[param];
+        });
+        exports.NoteNumberParams.forEach((param) => {
+            this[param] = params[param] ? params[param] : defs[param];
+        });
+        exports.NoteBooleanParams.forEach((param) => {
+            this[param] = params[param] ? params[param] : defs[param];
+        });
+        const ticks = params.ticks ? params.ticks : defs.ticks;
+        const pitches = params.pitches ? params.pitches : defs.pitches;
+        this.ticks = JSON.parse(JSON.stringify(ticks));
+        this.pitches = JSON.parse(JSON.stringify(pitches));
+        this.clef = params.clef ? params.clef : defs.clef;
+        this.fillStyle = params.fillStyle ? params.fillStyle : '';
         this.attrs = {
             id: VF.Element.newID(),
             type: 'SmoNote'
@@ -15976,6 +15998,7 @@ class SmoNote {
             fillStyle: '',
             hidden: false,
             beamBeats: 4096,
+            isCue: false,
             flagState: SmoNote.flagStates.auto,
             ticks: {
                 numerator: 4096,
@@ -17007,16 +17030,18 @@ const staffModifiers_1 = __webpack_require__(/*! ./staffModifiers */ "./src/smo/
 const VF = eval('Vex.Flow');
 exports.SmoPartInfoStringTypes = ['partName', 'partAbbreviation'];
 exports.SmoPartInfoNumTypes = ['stavesAfter', 'stavesBefore'];
-exports.SmoPartInfoBooleanTypes = ['preserveTextGroups'];
+exports.SmoPartInfoBooleanTypes = ['preserveTextGroups', 'cueInScore'];
 class SmoPartInfo extends staffModifiers_1.StaffModifierBase {
     constructor(params) {
-        var _a;
         super('SmoPartInfo');
+        this.partName = '';
+        this.partAbbreviation = '';
         this.measureFormatting = {};
         this.textGroups = [];
         this.stavesAfter = 0;
         this.stavesBefore = 0;
         this.preserveTextGroups = false;
+        this.cueInScore = false;
         if (!params.layoutManager) {
             this.layoutManager = new scoreModifiers_1.SmoLayoutManager(scoreModifiers_1.SmoLayoutManager.defaults);
         }
@@ -17033,11 +17058,16 @@ class SmoPartInfo extends staffModifiers_1.StaffModifierBase {
         if (params.textGroups) {
             this.textGroups = params.textGroups;
         }
-        this.stavesAfter = params.stavesAfter;
-        this.stavesBefore = params.stavesBefore;
-        this.partName = params.partName;
-        this.partAbbreviation = params.partAbbreviation;
-        this.preserveTextGroups = (_a = params.preserveTextGroups) !== null && _a !== void 0 ? _a : false;
+        exports.SmoPartInfoStringTypes.forEach((st) => {
+            this[st] = params[st];
+        });
+        exports.SmoPartInfoNumTypes.forEach((st) => {
+            this[st] = params[st];
+        });
+        exports.SmoPartInfoBooleanTypes.forEach((st) => {
+            var _a;
+            this[st] = (_a = params[st]) !== null && _a !== void 0 ? _a : false;
+        });
     }
     static get defaults() {
         return JSON.parse(JSON.stringify({
@@ -17048,7 +17078,8 @@ class SmoPartInfo extends staffModifiers_1.StaffModifierBase {
             preserveTextGroups: false,
             pageLayoutMap: {},
             stavesAfter: 0,
-            stavesBefore: 0
+            stavesBefore: 0,
+            cueInScore: false
         }));
     }
     serialize() {
@@ -37120,6 +37151,13 @@ class SuiPartInfoAdapter extends adapter_1.SuiComponentAdapter {
         }
         this.update();
     }
+    get cueInScore() {
+        return this.partInfo.cueInScore;
+    }
+    set cueInScore(value) {
+        this.partInfo.cueInScore = value;
+        this.update();
+    }
     get preserveTextGroups() {
         return this.partInfo.preserveTextGroups;
     }
@@ -37190,6 +37228,11 @@ SuiPartInfoDialog.dialogElements = {
             defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.noteSpacing,
             control: 'SuiToggleComponent',
             label: 'Part-specific text'
+        }, {
+            smoName: 'cueInScore',
+            defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.noteSpacing,
+            control: 'SuiToggleComponent',
+            label: 'Show as Cues in score'
         }, {
             smoName: 'includeNext',
             defaultValue: scoreModifiers_1.SmoLayoutManager.defaults.globalLayout.noteSpacing,
@@ -37687,6 +37730,7 @@ class SuiSlurAttributesDialog extends adapter_1.SuiDialogAdapterBase {
     constructor(parameters) {
         const adapter = new SuiSlurAdapter(parameters.view, parameters.modifier);
         super(SuiSlurAttributesDialog.dialogElements, Object.assign({ adapter }, parameters));
+        this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
     }
 }
 exports.SuiSlurAttributesDialog = SuiSlurAttributesDialog;
@@ -37837,6 +37881,7 @@ SuiStaffGroupDialog.dialogElements = {
         }, {
             smoName: 'leftConnector',
             control: 'SuiDropdownComponent',
+            dataType: 'int',
             label: 'Left Connector',
             options: [
                 {
@@ -44480,10 +44525,12 @@ class SmoTranslationEditor {
             .classes('dialog-element-container')
             .attr('data-component', 'staticText')
             .dom();
-        keys.forEach((key) => {
-            var enVal = enDb[key] ? enDb[key] : elements.staticText[key];
-            var langVal = langDb[key] ? langDb[key] : enDb[key];
-            const translateElement = SmoTranslationEditor._getHtmlTextInput(key, enVal, langVal, 'statictext', key);
+        elements.staticText.forEach((nv) => {
+            const name = Object.keys(nv);
+            const value = nv[name];
+            var enVal = enDb[name] ? enDb[name] : value;
+            var langVal = langDb[name] ? langDb[name] : enDb[name];
+            const translateElement = SmoTranslationEditor._getHtmlTextInput(name, enVal, langVal, 'statictext', name);
             $(nodeContainer).append(translateElement);
         });
         $(htmlContainer).append(nodeContainer);
@@ -44536,6 +44583,10 @@ class SmoTranslationEditor {
             .append(b('button').classes('icon-plus trans-expander'))
             .append(b('span').classes('db-translate-title').text(dialogCtor)).dom();
         var ctor = Smo.getClass(dialogCtor);
+        if (!ctor) {
+            console.warn('Bad dialog in translate: ' + dialogCtor);
+            return;
+        }
         var elements = ctor.dialogElements;
         var enDb = enStrings.dialogs.find((dbStr) => dbStr.ctor === dialogCtor);
         if (!enDb) {
@@ -46550,6 +46601,9 @@ class SuiScoreMenu extends menu_1.SuiMenuBase {
         const text = $(ev.currentTarget).attr('data-value');
         if (text === 'pageLayout') {
             this.execPageLayout();
+        }
+        else if (text === 'staffGroups') {
+            this.execStaffGroups();
         }
         else if (text === 'preferences') {
             this.execPreferences();

@@ -130,11 +130,13 @@ export class SmoTranslationEditor {
       .classes('dialog-element-container')
       .attr('data-component','staticText')
       .dom();
-      keys.forEach((key) => {
-        var enVal = enDb[key] ? enDb[key] : elements.staticText[key];
-        var langVal = langDb[key] ? langDb[key] : enDb[key];
+      elements.staticText.forEach((nv) => {
+        const name = Object.keys(nv);
+        const value = nv[name];
+        var enVal = enDb[name] ? enDb[name] : value;
+        var langVal = langDb[name] ? langDb[name] : enDb[name];
         const translateElement = SmoTranslationEditor._getHtmlTextInput(
-          key,enVal,langVal,'statictext',key);
+          name, enVal, langVal, 'statictext', name);
         $(nodeContainer).append(translateElement);
       });
       $(htmlContainer).append(nodeContainer);
@@ -192,6 +194,10 @@ export class SmoTranslationEditor {
         .append(b('button').classes('icon-plus trans-expander'))
         .append(b('span').classes('db-translate-title').text(dialogCtor)).dom();
       var ctor = Smo.getClass(dialogCtor);
+      if (!ctor) {
+        console.warn('Bad dialog in translate: ' + dialogCtor);
+        return;
+      }
       var elements = ctor.dialogElements;
       var enDb = enStrings.dialogs.find((dbStr) => dbStr.ctor === dialogCtor);
       if (!enDb) {

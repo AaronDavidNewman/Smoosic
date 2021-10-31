@@ -11,8 +11,8 @@ export type SmoPartInfoStringType = 'partName' | 'partAbbreviation';
 export const SmoPartInfoStringTypes: SmoPartInfoStringType[] = ['partName', 'partAbbreviation'];
 export type SmoPartInfoNumType = 'stavesAfter' | 'stavesBefore';
 export const SmoPartInfoNumTypes: SmoPartInfoNumType[] = ['stavesAfter', 'stavesBefore'];
-export type SmoPartInfoBooleanType = 'preserveTextGroups';
-export const SmoPartInfoBooleanTypes: SmoPartInfoBooleanType[] = ['preserveTextGroups'];
+export type SmoPartInfoBooleanType = 'preserveTextGroups' | 'cueInScore';
+export const SmoPartInfoBooleanTypes: SmoPartInfoBooleanType[] = ['preserveTextGroups', 'cueInScore'];
 
 /**
  * Data contained in a part.  A part has its own text, measure formatting and page layouts,
@@ -34,17 +34,19 @@ export interface SmoPartInfoParams {
   layoutManager?: SmoLayoutManager;
   measureFormatting?: Record<number, SmoMeasureFormat>,
   textGroups: SmoTextGroup[],
-  preserveTextGroups: boolean
+  preserveTextGroups: boolean,
+  cueInScore: boolean
 }
 export class SmoPartInfo extends StaffModifierBase {
-  partName: string;
-  partAbbreviation: string;
+  partName: string = '';
+  partAbbreviation: string = '';
   layoutManager: SmoLayoutManager;
   measureFormatting: Record<number, SmoMeasureFormat> = {};
   textGroups: SmoTextGroup[] = [];
   stavesAfter: number = 0;
   stavesBefore: number = 0;
   preserveTextGroups: boolean = false;
+  cueInScore: boolean = false;
   static get defaults(): SmoPartInfoParams {
     return JSON.parse(JSON.stringify({
       partName: 'Staff ',
@@ -54,7 +56,8 @@ export class SmoPartInfo extends StaffModifierBase {
       preserveTextGroups: false,
       pageLayoutMap: {},
       stavesAfter: 0,
-      stavesBefore: 0
+      stavesBefore: 0,
+      cueInScore: false
     }));
   }
   constructor(params: SmoPartInfoParams) {
@@ -74,11 +77,15 @@ export class SmoPartInfo extends StaffModifierBase {
     if (params.textGroups) {
       this.textGroups = params.textGroups;
     }
-    this.stavesAfter = params.stavesAfter;
-    this.stavesBefore = params.stavesBefore;
-    this.partName = params.partName;
-    this.partAbbreviation = params.partAbbreviation;
-    this.preserveTextGroups = params.preserveTextGroups ?? false;
+    SmoPartInfoStringTypes.forEach((st) => {
+      this[st] = params[st];
+    });
+    SmoPartInfoNumTypes.forEach((st) => {
+      this[st] = params[st];
+    });
+    SmoPartInfoBooleanTypes.forEach((st) => {
+      this[st] = params[st] ?? false;
+    });
   }
   serialize() {
     const rv : any = {};

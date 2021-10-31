@@ -9,6 +9,12 @@ const VF = eval('Vex.Flow');
 export interface TupletInfo {
   id: string;
 }
+export type NoteStringParam = 'noteType' | 'noteHead' | 'clef';
+export const NoteStringParams: NoteStringParam[] = ['noteType', 'noteHead', 'clef'];
+export type NoteNumberParam = 'beamBeats' | 'flagState';
+export const NoteNumberParams: NoteNumberParam[] = ['beamBeats', 'flagState'];
+export type NoteBooleanParam = 'hidden' | 'endBeam' | 'isCue';
+export const NoteBooleanParams: NoteBooleanParam[] = ['hidden', 'endBeam', 'isCue'];
 export interface SmoNoteParams {
   noteType: string,
   noteHead: string,
@@ -16,7 +22,7 @@ export interface SmoNoteParams {
   textModifiers: SmoNoteModifierBase[],
   articulations: SmoArticulation[],
   graceNotes: SmoGraceNote[],
-  ornaments: SmoGraceNote[],
+  ornaments: SmoOrnament[],
   tones: SmoMicrotone[],
   endBeam: boolean,
   fillStyle: string | null,
@@ -25,6 +31,7 @@ export interface SmoNoteParams {
   flagState: number,
   ticks: Ticks,
   pitches: Pitch[],
+  isCue: boolean
 }
 
 // ## SmoNote
@@ -37,7 +44,22 @@ export class SmoNote implements Transposable {
   // ### Description:
   // see defaults for params format.
   constructor(params: SmoNoteParams) {
-    smoSerialize.serializedMerge(SmoNote.parameterArray, params, this);
+    const defs = SmoNote.defaults;
+    NoteStringParams.forEach((param) => {
+      this[param] = params[param] ? params[param] : defs[param];
+    });
+    NoteNumberParams.forEach((param) => {
+      this[param] = params[param] ? params[param] : defs[param];
+    });
+    NoteBooleanParams.forEach((param) => {
+      this[param] = params[param] ? params[param] : defs[param];
+    });
+    const ticks = params.ticks ? params.ticks : defs.ticks;
+    const pitches = params.pitches ? params.pitches : defs.pitches;
+    this.ticks = JSON.parse(JSON.stringify(ticks));
+    this.pitches = JSON.parse(JSON.stringify(pitches));
+    this.clef = params.clef ? params.clef : defs.clef;
+    this.fillStyle = params.fillStyle ? params.fillStyle : '';
     this.attrs = {
       id: VF.Element.newID(),
       type: 'SmoNote'
@@ -68,6 +90,7 @@ export class SmoNote implements Transposable {
   keySignature: string = 'c';
   logicalBox: SvgBox | null = null;
   renderedBox: SvgBox | null = null;
+  isCue: boolean = false;
   accidentalsRendered: string[] = [];// set by renderer if accidental is to display
 
   static get parameterArray() {
@@ -88,6 +111,7 @@ export class SmoNote implements Transposable {
       fillStyle: '',
       hidden: false,
       beamBeats: 4096,
+      isCue: false,
       flagState: SmoNote.flagStates.auto,
       ticks: {
         numerator: 4096,

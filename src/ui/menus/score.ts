@@ -137,6 +137,8 @@ export class SuiScoreMenu extends SuiMenuBase {
     const text = $(ev.currentTarget).attr('data-value');
     if (text === 'pageLayout') {
       this.execPageLayout();
+    } else if (text === 'staffGroups') {
+      this.execStaffGroups();
     } else if (text === 'preferences') {
       this.execPreferences();
     } else if (text === 'fonts') {
