@@ -2,6 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { StaffModifierBase } from '../data/staffModifiers';
 import { SmoSystemStaff } from '../data/systemStaff';
+import { SmoMusic } from '../data/music';
 import { SmoOperation } from './operations';
 import { SmoScore } from '../data/score';
 import { SmoMeasure } from '../data/measure';
@@ -212,6 +213,10 @@ export class UndoBuffer {
           score.replaceMeasure(selector, measure);
         }
       } else if (buf.type === UndoBuffer.bufferTypes.MEASURE) {
+        // measure expects key signature to be in concert key.
+        const xpose = buf.json.transposeIndex ?? 0;
+        const concertKey = SmoMusic.vexKeySigWithOffset(buf.json.keySignature, -1 * xpose);
+        buf.json.keySignature = concertKey;
         const measure = SmoMeasure.deserialize(buf.json);
         score.replaceMeasure(buf.selector, measure);
       } else if (buf.type === UndoBuffer.bufferTypes.SCORE) {

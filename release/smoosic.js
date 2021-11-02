@@ -22904,19 +22904,11 @@ class PasteBuffer {
             const measure = this.measures[i];
             const nvoice = voices[i];
             const ser = measure.serialize();
-            // deserialize column-mapped attributes, these are not normally serialized
-            // since they are mapped to measures on a delta basis.
-            measure_1.SmoMeasure.columnMappedAttributes.forEach((attr) => {
-                const obj = measure[attr];
-                if (typeof (obj) === 'string') {
-                    ser[attr] = obj;
-                }
-                else if (typeof (obj) === 'object') {
-                    if (obj.ctor) {
-                        ser[attr] = obj.serialize();
-                    }
-                }
-            });
+            // Make sure the key is concert pitch, it is what measure constructor expects
+            ser.transposeIndex = measure.transposeIndex; // default values are undefined, make sure the transpose is valid
+            ser.keySignature = music_1.SmoMusic.vexKeySigWithOffset(measure.keySignature, -1 * measure.transposeIndex);
+            ser.timeSignature = measure.timeSignature.serialize();
+            ser.tempo = measure.tempo.serialize();
             const vobj = {
                 notes: []
             };
@@ -24942,6 +24934,7 @@ exports.SmoUndoable = exports.UndoBuffer = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const systemStaff_1 = __webpack_require__(/*! ../data/systemStaff */ "./src/smo/data/systemStaff.ts");
+const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const operations_1 = __webpack_require__(/*! ./operations */ "./src/smo/xform/operations.ts");
 const score_1 = __webpack_require__(/*! ../data/score */ "./src/smo/data/score.ts");
 const measure_1 = __webpack_require__(/*! ../data/measure */ "./src/smo/data/measure.ts");
@@ -25099,6 +25092,7 @@ class UndoBuffer {
     // Undo the operation at the top of the undo stack.  This is done by replacing
     // the music as it existed before the change was made.
     undo(score) {
+        var _a;
         let i = 0;
         let j = 0;
         let mix = 0;
@@ -25145,6 +25139,10 @@ class UndoBuffer {
                 }
             }
             else if (buf.type === UndoBuffer.bufferTypes.MEASURE) {
+                // measure expects key signature to be in concert key.
+                const xpose = (_a = buf.json.transposeIndex) !== null && _a !== void 0 ? _a : 0;
+                const concertKey = music_1.SmoMusic.vexKeySigWithOffset(buf.json.keySignature, -1 * xpose);
+                buf.json.keySignature = concertKey;
                 const measure = measure_1.SmoMeasure.deserialize(buf.json);
                 score.replaceMeasure(buf.selector, measure);
             }

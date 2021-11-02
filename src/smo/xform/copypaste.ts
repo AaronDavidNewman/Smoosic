@@ -400,18 +400,11 @@ export class PasteBuffer {
       const measure: SmoMeasure = this.measures[i];
       const nvoice: SmoVoice = voices[i];
       const ser: any = measure.serialize();
-      // deserialize column-mapped attributes, these are not normally serialized
-      // since they are mapped to measures on a delta basis.
-      SmoMeasure.columnMappedAttributes.forEach((attr: string | number) => {
-        const obj: any = (measure as any)[attr];
-        if (typeof(obj) === 'string') {
-          ser[attr] = obj;
-        } else if (typeof(obj) === 'object') {
-          if (obj.ctor) {
-            ser[attr] = obj.serialize();
-          }
-        }
-      });
+      // Make sure the key is concert pitch, it is what measure constructor expects
+      ser.transposeIndex = measure.transposeIndex; // default values are undefined, make sure the transpose is valid
+      ser.keySignature = SmoMusic.vexKeySigWithOffset(measure.keySignature, -1 * measure.transposeIndex);
+      ser.timeSignature = measure.timeSignature.serialize();
+      ser.tempo = measure.tempo.serialize();
       const vobj: any = {
         notes: []
       };
