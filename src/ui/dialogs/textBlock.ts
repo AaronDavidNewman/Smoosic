@@ -1,5 +1,14 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+import { SmoConfiguration } from '../../smo/data/common';
+import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
+
+import { htmlHelpers } from '../../common/htmlHelpers';
+
+import { layoutDebug } from '../../render/sui/layoutDebug';
+import { SvgHelpers, OutlineInfo } from '../../render/sui/svgHelpers';
+import { SuiTextEditor } from '../../render/sui/textEdit';
+
 import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';
 import { SuiDragText } from './components/dragText';
 import { SuiTextInPlace } from './components/textInPlace';
@@ -7,14 +16,10 @@ import { SuiDropdownComponent } from './components/dropdown';
 import { SuiToggleComponent } from './components/toggle';
 import { SuiRockerComponent } from './components/rocker';
 import { SuiHelp } from '../help';
-import { SmoConfiguration } from '../../smo/data/common';
-import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
-import { layoutDebug } from '../../render/sui/layoutDebug';
-import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { SuiFontComponent } from './components/fontComponent';
 import { SuiTextBlockComponent } from './components/textInPlace';
+
 import { EventHandler } from '../../application/eventSource';
-import { htmlHelpers } from '../../common/htmlHelpers';
 
 declare var $: any;
 declare var SmoConfig: SmoConfiguration;
@@ -198,6 +203,7 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     const ul = this.modifier.ul();
     this.xCtrl.setValue(ul.x);
     this.yCtrl.setValue(ul.y);
+    this.highlightActiveRegion();
   }
   display() {
     this.textElement = $(this.view.renderer.context.svg).find('.' + this.modifier.attrs.id)[0];
@@ -250,6 +256,10 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     if (this.textBlockCtrl.changeFlag) {
       const nval = this.textBlockCtrl.getValue();
       this.activeScoreText = nval.activeScoreText;
+      this.highlightActiveRegion();
+    }
+    if (this.textEditorCtrl.changeFlag) {
+      this.highlightActiveRegion();
     }
 
     if (this.attachToSelectorCtrl.changeFlag) {
@@ -297,7 +307,21 @@ export class SuiTextBlockDialog extends SuiDialogBase {
     this.view.updateTextGroup(this.backup, this.modifier);
     this.backup = this.modifier.serialize();
   }
-
+  highlightActiveRegion() {
+    SvgHelpers.eraseOutline(this.view.renderer.svg, 'g.vf-test-highlight, g.vf-test-suggestion, g.inactive-text');
+    if (this.activeScoreText.renderedBox) {
+      const stroke = SuiTextEditor.strokes['text-highlight'];
+      const outline: OutlineInfo = {
+        context: this.view.renderer.context,
+        clientCoordinates: false,
+        classes: 'text-highlight',
+        stroke,
+        box: this.activeScoreText.renderedBox,
+        scroll: this.scroller.scrollState.scroll
+      }
+      SvgHelpers.outlineRect(outline);
+    }
+  }
   // ### handleKeydown
   // allow a dialog to be dismissed by esc.
   evKey(evdata: any) {
@@ -355,6 +379,8 @@ export class SuiTextBlockDialog extends SuiDialogBase {
       this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
     }
     SvgHelpers.eraseOutline(this.view.renderer.context.svg, 'text-drag');
+    $('body').find('g.vf-text-highlight').remove();
+    SvgHelpers.eraseOutline(this.view.renderer.svg, 'g.vf-test-highlight, g.vf-test-suggestion, g.inactive-text');
     $('body').removeClass('showAttributeDialog');
     $('body').removeClass('textEditor');
     this.complete();

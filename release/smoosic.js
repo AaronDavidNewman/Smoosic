@@ -10786,7 +10786,7 @@ class SuiTextBlock {
         this.logicalBox = common_1.SvgBox.default;
         this.inlineBlocks = [];
         this.scroller = params.scroller;
-        this.spacing = 0;
+        this.spacing = params.spacing;
         this.context = params.context;
         this.skipRender = false; // used when editing the text
         if (params.blocks.length < 1) {
@@ -38163,14 +38163,13 @@ SuiTempoDialog.dialogElements = {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.helpModal = exports.SuiTextBlockDialog = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialogs/dialog.ts");
-const help_1 = __webpack_require__(/*! ../help */ "./src/ui/help.js");
 const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
 const layoutDebug_1 = __webpack_require__(/*! ../../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const svgHelpers_1 = __webpack_require__(/*! ../../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const textEdit_1 = __webpack_require__(/*! ../../render/sui/textEdit */ "./src/render/sui/textEdit.ts");
+const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialogs/dialog.ts");
+const help_1 = __webpack_require__(/*! ../help */ "./src/ui/help.js");
 class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
     constructor(parameters) {
         let edited = false;
@@ -38262,6 +38261,7 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
         const ul = this.modifier.ul();
         this.xCtrl.setValue(ul.x);
         this.yCtrl.setValue(ul.y);
+        this.highlightActiveRegion();
     }
     display() {
         this.textElement = $(this.view.renderer.context.svg).find('.' + this.modifier.attrs.id)[0];
@@ -38311,6 +38311,10 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
         if (this.textBlockCtrl.changeFlag) {
             const nval = this.textBlockCtrl.getValue();
             this.activeScoreText = nval.activeScoreText;
+            this.highlightActiveRegion();
+        }
+        if (this.textEditorCtrl.changeFlag) {
+            this.highlightActiveRegion();
         }
         if (this.attachToSelectorCtrl.changeFlag) {
             const toSet = this.attachToSelectorCtrl.getValue();
@@ -38353,6 +38357,21 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
         // Use layout context because render may have reset svg.
         this.view.updateTextGroup(this.backup, this.modifier);
         this.backup = this.modifier.serialize();
+    }
+    highlightActiveRegion() {
+        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.svg, 'g.vf-test-highlight, g.vf-test-suggestion, g.inactive-text');
+        if (this.activeScoreText.renderedBox) {
+            const stroke = textEdit_1.SuiTextEditor.strokes['text-highlight'];
+            const outline = {
+                context: this.view.renderer.context,
+                clientCoordinates: false,
+                classes: 'text-highlight',
+                stroke,
+                box: this.activeScoreText.renderedBox,
+                scroll: this.scroller.scrollState.scroll
+            };
+            svgHelpers_1.SvgHelpers.outlineRect(outline);
+        }
     }
     // ### handleKeydown
     // allow a dialog to be dismissed by esc.
@@ -38408,6 +38427,8 @@ class SuiTextBlockDialog extends dialog_1.SuiDialogBase {
             this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
         }
         svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.context.svg, 'text-drag');
+        $('body').find('g.vf-text-highlight').remove();
+        svgHelpers_1.SvgHelpers.eraseOutline(this.view.renderer.svg, 'g.vf-test-highlight, g.vf-test-suggestion, g.inactive-text');
         $('body').removeClass('showAttributeDialog');
         $('body').removeClass('textEditor');
         this.complete();

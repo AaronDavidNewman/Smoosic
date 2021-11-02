@@ -584,7 +584,7 @@ export class SuiTextBlock {
   constructor(params: SuiTextBlockParams) {
     this.inlineBlocks = [];
     this.scroller = params.scroller;
-    this.spacing = 0;
+    this.spacing = params.spacing;
     this.context = params.context;
     this.skipRender = false; // used when editing the text
     if (params.blocks.length < 1) {
@@ -774,7 +774,7 @@ export class SuiTextBlock {
       }
       if (inlineBlock.position === SmoTextGroup.relativePositions.ABOVE) {
         block.startY -= runningHeight;
-        if (hIx > 0) {
+        if(hIx > 0) {
           block.startY -= this.spacing;
         }
       }

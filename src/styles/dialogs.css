@@ -1,5 +1,8 @@
 
-
+#attr-modal-dialog-libraryMenu #libraryMenu-smoLibrary {
+  max-height: 350px;
+  overflow-y: auto;
+}
 .draganime.hide,.textEdit.hide {
 	display:none;
 }
