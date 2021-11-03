@@ -140,6 +140,7 @@ static dialogElements: DialogDefinition = {
       }, {
         smoName: 'position',
         defaultValue: SmoSlur.positions.HEAD,
+        dataType: 'int',
         options: [{
           value: SmoSlur.positions.HEAD,
           label: 'Head'
@@ -152,6 +153,7 @@ static dialogElements: DialogDefinition = {
       }, {
         smoName: 'position_end',
         defaultValue: SmoSlur.positions.HEAD,
+        dataType: 'int',
         options: [{
           value: SmoSlur.positions.HEAD,
           label: 'Head'

@@ -305,7 +305,8 @@ export class VxSystem {
           spacing: slur.spacing,
           cps: slur.controlPoints,
           invert: slur.invert,
-          position: slur.position
+          position: slur.position,
+          position_end: slur.position_end
         });
       curve.setContext(this.context).draw();
     } else if (modifier.ctor === 'SmoTie') {

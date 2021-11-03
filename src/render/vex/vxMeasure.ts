@@ -462,11 +462,12 @@ export class VxMeasure {
       const vm = ar[ar.length - 1];
       vm.setFont(tm.fontInfo);
     });
-
-    const rmb = this.smoMeasure.getRehearsalMark();
-    const rm = rmb as SmoRehearsalMark;
-    if (rm) {
-      this.stave.setSection(rm.symbol, 0);
+    if (this.smoMeasure.svg.rowInSystem === 0) {
+      const rmb = this.smoMeasure.getRehearsalMark();
+      const rm = rmb as SmoRehearsalMark;
+      if (rm) {
+        this.stave.setSection(rm.symbol, 0);
+      }
     }
 
     const tempo = this.smoMeasure.getTempo();
