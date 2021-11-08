@@ -1,11 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { Pitch, PitchLetter } from '../data/common';
+import { Pitch, PitchLetter, Clef } from '../data/common';
 import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
 import { SmoScore } from '../data/score';
 import { SmoMeasureParams, SmoMeasure, SmoVoice } from '../data/measure';
-import { SmoPartInfo } from '../data/partInfo';
 import { SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
 import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoNoteModifierBase, SmoOrnament } from '../data/noteModifiers';
 import {
@@ -557,6 +556,30 @@ export class SmoOperation {
       earlierAccidental(pitch);
       note.pitches.push(pitch);
     });
+  }
+  /**
+   * Convenience function to create SmoNote[] from letters, with the correct accidental
+   * for the key signature, given duration, etc
+   * @param startPitch - the pitch used to calculate the octave of the new note
+   * @param clef
+   * @param keySignature
+   * @param duration - vex duration
+   * @param letters - string of PitchLetter
+   * @returns
+   */
+  static  notesFromLetters(startPitch: Pitch, clef: Clef, keySignature: string, duration: string, letters: string): SmoNote[] {
+    const rv: SmoNote[] = [];
+    let curPitch = startPitch;
+    const ticks = SmoMusic.durationToTicks(duration);
+    letters.split('').forEach((letter) => {
+      curPitch = SmoMusic.getLetterNotePitch(curPitch, letter as PitchLetter, keySignature);
+      const defs = SmoNote.defaults;
+      defs.ticks = { numerator: ticks, denominator: 1, remainder: 0 };
+      defs.pitches = [curPitch];
+      defs.clef = clef;
+      rv.push(new SmoNote(defs));
+    });
+    return rv;
   }
   static toggleCourtesyAccidental(selection: SmoSelection) {
     let toBe: boolean = false;

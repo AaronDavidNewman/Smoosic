@@ -1,7 +1,7 @@
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
-import { BrowserEventSource } from '../../application/eventSource';
+import { BrowserEventSource } from '../eventSource';
 import { SuiMenuManager } from '../menus/manager';
-import { CompleteNotifier } from '../../application/common';
+import { CompleteNotifier } from '../common';
 
 /**
  * Button actions are one of the following.  
@@ -50,6 +50,7 @@ export interface ButtonLabel {
 // as well as all the event sources.
 // Sometimes they invoke menus which invoke modals, etc.
 export interface SuiButtonParams {
+    ctor: string,
     buttonId: string,
     buttonElement: string,
     buttonData: ButtonDefinition,

@@ -3,20 +3,18 @@
 import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { htmlHelpers } from '../../common/htmlHelpers';
 import { SmoTranslator } from '../i18n/language';
-import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoModifier } from '../../smo/data/score';
 import { SvgBox } from '../../smo/data/common';
 import { SuiTracker } from '../../render/sui/tracker';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
-import { CompleteNotifier } from '../../application/common';
-import { BrowserEventSource } from '../../application/eventSource';
+import { CompleteNotifier } from '../common';
+import { BrowserEventSource } from '../eventSource';
 import { UndoBuffer } from '../../smo/xform/undo';
 import { SuiDialogNotifier, DialogDefinitionElement, 
   SuiComponentBase, DialogDefinitionOption, SuiBaseComponentParams } from './components/baseComponent';
 import { SuiScroller } from '../../render/sui/scroller';
 import { SmoNote } from '../../smo/data/note';
-import { EventHandler } from '../../application/eventSource';
-import { TimeSignature } from '../../../release/smoosic';
+import { EventHandler } from '../eventSource';
 
 declare var $: any;
 /**
@@ -121,7 +119,7 @@ export interface DialogDom {
   // print json with string labels to use as a translation file seed.
   static printTranslate(_class: string): DialogTranslation {
     const output: DialogTranslationElement[] = [];
-    const xx: any = eval('globalThis.Smo' + _class);
+    const xx: any = eval('globalThis.Smo.' + _class);
     xx.dialogElements.elements.forEach((element: DialogDefinitionElement) => {
       const component: Partial<DialogTranslationElement> = {};
       if (element.label) {

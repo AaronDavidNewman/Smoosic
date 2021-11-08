@@ -46,7 +46,7 @@ export abstract class SuiScoreView {
   storePaste: PasteBuffer;
   actionBuffer: SmoActionRecord;
   layoutDemon: SuiRenderDemon;
-  constructor(renderer: SuiRenderState, score: SmoScore, scrollSelector: string, undoBuffer: UndoBuffer) {
+  constructor(renderer: SuiRenderState, score: SmoScore, scrollSelector: HTMLElement, undoBuffer: UndoBuffer) {
     this.score = score;
     this.renderer = renderer;
     const scoreJson = score.serialize();

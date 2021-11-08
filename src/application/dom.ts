@@ -59,9 +59,7 @@ export class SuiDom {
         .append(b('div').classes('media')
           .append(b('div').classes('controls-left'))
           .append(b('div').classes('controls-menu-message'))
-          .append(b('div').classes('musicRelief')
-            .append(b('div').classes('musicContainer').attr('id', vexId)
-              .attr('dir', 'ltr')))));
+          ));
     $('#' + smoId).append(r.dom());
     var pianoDom = $('.piano-keys')[0];
     var svg = document.createElementNS(SvgHelpers.namespace, 'svg');

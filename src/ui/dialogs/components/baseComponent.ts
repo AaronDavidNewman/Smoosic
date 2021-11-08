@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoModifier } from '../../../smo/data/score';
 import { SuiScoreViewOperations } from '../../../render/sui/scoreViewOperations';
-import { BrowserEventSource } from '../../../application/eventSource';
+import { BrowserEventSource } from '../../eventSource';
 /**
  * A component is a part of a dialog box that accepts some input.
  */

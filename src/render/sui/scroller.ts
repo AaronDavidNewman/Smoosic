@@ -13,7 +13,7 @@ export interface ScrollState {
 //
 // ---
 export class SuiScroller {
-  selector: string;
+  selector: HTMLElement;
   _scroll: SvgPoint;
   _scrollInitial: SvgPoint;
   _offsetInitial: SvgPoint;
@@ -21,7 +21,7 @@ export class SuiScroller {
   // ### constructor
   // selector is the scrollable DOM container of the music container
   // (grandparent of svg element)
-  constructor(selector: string) {
+  constructor(selector: HTMLElement) {
     this.selector = selector;
     this._scroll = { x: 0, y: 0 };
     this._scrollInitial = { x: 0, y: 0 };

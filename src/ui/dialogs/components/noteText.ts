@@ -1,16 +1,13 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiTextSession, SuiDragSession, SuiLyricSession, SuiChordSession } from '../../../render/sui/textEdit';
+import { SuiLyricSession, SuiChordSession } from '../../../render/sui/textEdit';
 import { SuiInlineText } from '../../../render/sui/textRender';
-import { smoSerialize } from '../../../common/serializationHelpers';
+import { KeyEvent } from '../../../smo/data/common';
 import { htmlHelpers } from '../../../common/htmlHelpers';
-import { SuiBaseComponentParams, SuiComponentBase, SuiDialogNotifier } from './baseComponent';
-import { SuiScroller } from '../../../render/sui/scroller';
-import { SmoTextGroup } from '../../../smo/data/scoreModifiers';
 import { SuiScoreViewOperations } from '../../../render/sui/scoreViewOperations';
-import { KeyEvent } from '../../../application/common';
 import { SmoSelection, SmoSelector } from '../../../smo/xform/selections';
-import { BrowserEventSource } from '../../../application/eventSource';
+import { BrowserEventSource } from '../../eventSource';
+import { SuiComponentBase, SuiDialogNotifier } from './baseComponent';
 import { SmoLyric } from '../../../smo/data/noteModifiers';
 
 declare var $: any;

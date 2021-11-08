@@ -1,20 +1,28 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { KeyEvent } from './common';
+import { KeyEvent } from '../smo/data/common';
 
 declare var $: any;
 // declare var SmoConfig: SmoConfiguration;
 
+/**
+ * Event handler for smoosic.  Any UI element can have any number
+ * of event handlers.  For modals, event handlers are added/removed 
+ * as the gain/relinquish control
+ * @param sink - an object that implements:
+ * @param method - the callback method on sink
+ * @param symbol - used to distinguish handler instances of the same type
+ */
 export interface EventHandler {
   sink: any,
   method: string,
   symbol: Symbol
 }
-// ##BrowserEventSource
-// Handle registration for events.  Can be used for automated testing, so all
-// the events are consolidated in one place so they can be simulated or recorded.
-// If you already have an event-handling class, you can provide your own and 
-// send events to Smoosic through this interface
+/**
+ * This is the event generating interface for Smoosic.  It is kept as 
+ * skeletal as possible so applications can call event handling methods from
+ * their own event logic.
+ */
 export class BrowserEventSource {
   keydownHandlers: EventHandler[];
   mouseMoveHandlers: EventHandler[];

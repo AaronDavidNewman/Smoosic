@@ -19,7 +19,7 @@ module.exports = function (grunt) {
   'src/render/sui/textEdit.js', 'src/render/sui/tracker.js', 'src/render/audio/oscillator.js','src/render/sui/mapper.js',
   'src/render/sui/scoreView.js','src/render/sui/scoreViewOperations.js',
   'src/ui/ribbon.js', 'src/ui/menus.js', 'src/ui/dialog.js', 'src/ui/dialogComponents.js', 'src/ui/keyCommands.js','src/ui/exceptions.js'
-  ,'src/ui/i18n/language.js',
+  ,'src/ui/i18n/language.ts',
   'src/ui/dialogs/scoreDialogs.js','src/ui/help.js',
    'src/ui/dialogs/fontComponent.js', 'src/ui/dialogs/staffComponents.js','src/ui/dialogs/textComponents.js',
    'src/ui/dialogs/textDialogs.js',

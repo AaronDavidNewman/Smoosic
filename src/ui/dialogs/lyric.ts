@@ -7,7 +7,7 @@ import { SuiRockerComponent } from './components/rocker';
 import { SmoConfiguration, SvgBox } from '../../smo/data/common';
 import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SuiFontComponent } from './components/fontComponent';
-import { EventHandler } from '../../application/eventSource';
+import { EventHandler } from '../eventSource';
 
 declare var $: any;
 declare var SmoConfig: SmoConfiguration;

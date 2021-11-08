@@ -2,9 +2,9 @@
 // Copyright (c) Aaron David Newman 2021.
 import { htmlHelpers } from '../../common/htmlHelpers';
 import { ButtonDefinition, ButtonAction } from './button';
-import { BrowserEventSource } from '../../application/eventSource';
+import { BrowserEventSource } from '../eventSource';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
-import { CompleteNotifier } from '../../application/common';
+import { CompleteNotifier } from '../common';
 import { SuiTracker } from '../../render/sui/tracker';
 import { SuiMenuManager } from '../menus/manager';
 import { SuiLibraryDialog } from '../dialogs/library';
@@ -199,6 +199,7 @@ export class RibbonButtons {
             $(buttonHtml).addClass('collapseContainer');
             // collapseParent
             this.collapsables.push(new CollapseRibbonControl({
+              ctor: buttonData.ctor,
               buttons: this.ribbonButtons,
               view: this.view,
               menus: this.menus,

@@ -1,14 +1,15 @@
 import { ButtonDefinition, SuiButton, SuiButtonParams } from './button';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
-import { BrowserEventSource } from '../../application/eventSource';
+import { BrowserEventSource } from '../eventSource';
 import { SuiMenuManager } from '../menus/manager';
-import { CompleteNotifier } from '../../application/common';
+import { CompleteNotifier } from '../common';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SuiMenuParams } from '../menus/menu';
 declare var $: any;
 
 
 export interface SuiCollapsableButtonParams {
+  ctor: string,
   buttonId: string,
   buttonElement: string,
   buttonData: ButtonDefinition,
@@ -71,6 +72,7 @@ export class CollapseRibbonControl extends SuiButton {
       if ((typeof (ctor) === 'function') && this.completeNotifier) {
         const el = $('#' + cb.id);
         const params: SuiButtonParams = {
+          ctor: cb.ctor,
           buttonId: cb.id,
           buttonData: cb,
           buttonElement: el,

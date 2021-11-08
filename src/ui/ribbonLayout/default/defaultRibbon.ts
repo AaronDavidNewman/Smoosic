@@ -2,8 +2,10 @@
 // Copyright (c) Aaron David Newman 2021.
 
 import { ButtonDefinition } from "../../buttons/button";
+import { RibbonLayout } from "../../common";
+
 export class defaultRibbonLayout {
-  static get ribbons() {
+  static get ribbons(): RibbonLayout {
     var left = defaultRibbonLayout.leftRibbonIds;
     var top = defaultRibbonLayout.displayIds.concat(defaultRibbonLayout.noteButtonIds).concat(defaultRibbonLayout.navigateButtonIds)
       .concat(defaultRibbonLayout.articulateButtonIds).concat(defaultRibbonLayout.microtoneIds)
@@ -18,7 +20,7 @@ export class defaultRibbonLayout {
     };
   }
 
-  static get ribbonButtons() {
+  static get ribbonButtons(): ButtonDefinition[] {
     return defaultRibbonLayout.leftRibbonButtons.concat(
       defaultRibbonLayout.navigationButtons).concat(
         defaultRibbonLayout.noteRibbonButtons).concat(

@@ -18,8 +18,13 @@
     <script type="text/javascript">
            document.addEventListener("DOMContentLoaded", function (event) {
                // @@@@@@
-               // A simple music program using Smoosic in library mode.  We perform async
-               // actions so the selections and music will be in sync as the music changes.
+               // A simple music program using Smoosic in library mode.
+               // 
+               // Music is rendered in the background, and during the rendering tracker/mapper maps 
+               // the location of the music for the UI.  If you don't wait for the music to be rendered, you will end up
+               // acting on the wrong notes.
+               //
+               // If you want to manipulate the music objects directly, check out the syncPen 
                var app = async (Smo) => {
                  // create the app in library mode (no UI)
                  // Create an empty score (1 measure rests)
@@ -28,12 +33,12 @@
 
                  // Create the renderer that renders the music.  SVG music will be created
                  // in the element
-                 const renderer = Smo.SuiScoreRender.createScoreRenderer(document.getElementById('container1'), score);
+                 const viewObj = Smo.SuiApplication.createView(document.getElementById('container1'), score);
+                 const view = viewObj.view;
+                 const renderer = view.renderer;
                  // Create and start the view object.
                  // The outer container DOM is for scrolling
-                 const view = new Smo.SuiScoreViewOperations(renderer, score, '#outer-container', new Smo.UndoBuffer());
                  renderer.stepMode = true;
-                 view.startRenderingEngine();
 
                  // Convienence object that sends a command to the view object, and
                  // returns a promise that is resolved when the change is rendered
@@ -218,7 +223,7 @@
 </head>
 <body>
   <!-- audio crossOrigin="anonymous" id="sample" src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_middle_C.mp3" / -->
-  <div id="outer-container">
+  <div id="outer-container" style="overflow:auto">
     <div id="container1">
 
     </div>

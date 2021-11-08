@@ -7,8 +7,8 @@ import { UndoBuffer } from '../../smo/xform/undo';
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiTracker } from '../../render/sui/tracker';
-import { CompleteNotifier, ModalComponent } from '../../application/common';
-import { BrowserEventSource, EventHandler } from '../../application/eventSource';
+import { CompleteNotifier, ModalComponent } from '../common';
+import { BrowserEventSource, EventHandler } from '../eventSource';
 import { KeyBinding } from '../../application/common';
 
 import { SuiMenuBase, SuiMenuParams } from './menu';
@@ -19,15 +19,15 @@ export interface SuiMenuManagerParams {
   eventSource: BrowserEventSource;
   completeNotifier: CompleteNotifier;
   undoBuffer: UndoBuffer;
-  menuContainer: string;
+  menuContainer: HTMLElement;
 }
 
 export class SuiMenuManager {
   view: SuiScoreViewOperations;
   eventSource: BrowserEventSource;
-  completeNotifier: CompleteNotifier | null = null;
+  completeNotifier: CompleteNotifier;
   undoBuffer: UndoBuffer;
-  menuContainer: string;
+  menuContainer: HTMLElement;
   bound: boolean = false;
   hotkeyBindings: Record<string, string> = {};
   closeMenuPromise: Promise<void> | null = null;
@@ -41,6 +41,7 @@ export class SuiMenuManager {
     this.view = params.view;
     this.bound = false;
     this.menuContainer = params.menuContainer;
+    this.completeNotifier = params.completeNotifier;
     this.undoBuffer = params.undoBuffer;
     this.tracker = params.view.tracker;
   }

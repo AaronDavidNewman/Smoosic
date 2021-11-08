@@ -3,7 +3,7 @@
 import { smoSerialize } from '../common/serializationHelpers';
 import { _MidiWriter } from '../common/midiWriter';
 
-import { SmoConfiguration } from '../smo/data/common';
+import { SmoConfiguration, ConfigurationOption, ConfigurationOptions, SmoLoadTypes } from '../smo/data/common';
 import { SmoScore } from '../smo/data/score';
 import { UndoBuffer } from '../smo/xform/undo';
 
@@ -21,97 +21,131 @@ import { MerriweatherFont } from '../styles/font_metrics/Merriweather-Regular';
 import { SourceSansProFont } from '../styles/font_metrics/ssp-sans-metrics';
 import { SourceSerifProFont } from '../styles/font_metrics/ssp-serif-metrics';
 
+import { CompleteNotifier } from '../ui/common';
+import { SuiXhrLoader } from '../ui/fileio/xhrLoader';
 import { SuiMenuManager, SuiMenuManagerParams } from '../ui/menus/manager';
+import { BrowserEventSource } from '../ui/eventSource';
 import { librarySeed } from '../ui/fileio/library';
 import { SmoTranslationEditor } from '../ui/i18n/translationEditor';
 import { SmoTranslator } from '../ui/i18n/language';
 import { RibbonButtons } from '../ui/buttons/ribbon';
+import { defaultRibbonLayout } from '../ui/ribbonLayout/default/defaultRibbon';
 
 import { SuiDom } from './dom';
 import { SuiKeyCommands } from './keyCommands';
-import { BrowserEventSource } from './eventSource';
 import { EventHandlerParams, SuiEventHandler } from './eventHandler';
-import { CompleteNotifier, KeyBinding } from './common';
+import { KeyBinding, ModalEventHandlerProxy } from './common';
 
 
 declare var SmoConfig : SmoConfiguration;
+declare var $: any;
 
 interface pairType { [key: string]: string }
 
-interface loadedScore {
-  scorePath: string | null,
-  score: SmoScore | null,
-  mode: string
+export interface SuiRendererInstance {
+  view: SuiScoreViewOperations;
+  eventSource: BrowserEventSource;
+  undoBuffer: UndoBuffer;
+  renderer: SuiScoreRender;
+  tracker: SuiTracker;
 }
-
 export interface SuiInstance {
   view: SuiScoreViewOperations;
   eventSource: BrowserEventSource;
-  completeNotifier: CompleteNotifier;
   undoBuffer: UndoBuffer;
-  menuContainer: string;
   tracker: SuiTracker;
-  keyBindingDefaults: KeyBinding[];
   keyCommands: SuiKeyCommands;
   menus: SuiMenuManager;
-  eventHandler: SuiEventHandler | null;
+  eventHandler: SuiEventHandler;
   ribbon: RibbonButtons
 }
 const VF = eval('Vex.Flow');
 const Smo = eval('globalThis.Smo');
+export type scoreMode = 'local' | 'remote' | 'translate' | 'query';
 
-/**
- * SuiScoreBuilder
- * create the initial score based on the query string/history
- */
-export class SuiScoreBuilder {
-  localScoreLoad(): loadedScore {
-    var score = null;
-    var scoreStr = localStorage.getItem(smoSerialize.localScore);
-    if (scoreStr && scoreStr.length) {
-      try {
-        score = SmoScore.deserialize(scoreStr);
-      } catch (exp) {
-        console.log('could not parse ' + scoreStr);
-      }
+export class QueryParser {
+  pairs: pairType[] = [];
+  queryPair(str: string): pairType {
+    var i = 0;
+    const ar = str.split('=');
+    const rv: pairType = {};
+    for (i = 0; i < ar.length - 1; i += 2) {
+      const name = decodeURIComponent(ar[i]);
+      rv[name] = decodeURIComponent(ar[i + 1]);
     }
-    return { score, scorePath: null, mode: 'local' };
+    return rv;
   }
-
-  queryScoreLoad(): loadedScore | null {
-    var i;
+  constructor() {
+    let i: number = 0;
     if (window.location.search) {
       const cmd = window.location.search.substring(1, window.location.search.length);
       const cmds = cmd.split('&');
       for (i = 0; i < cmds.length; ++i) {
         const cmd = cmds[i];
-        const pairs = SuiApplication._nvQueryPair(cmd);
-        if (pairs.score) {
-          try {
-            const path = SuiApplication.scoreLibrary.find((pp) => pp.alias === pairs.score);
-            if (!path) {
-              return null;
-            } else {
-              return { scorePath: path.path, score: null, mode: 'remote' };
-            }
-          } catch (exp) {
-            console.log('could not parse ' + exp);
-          }
-        } else if (pairs.lang) {
-          SuiApplication._deferLanguageSelection(pairs.lang);
-          return null;
-        } else if (pairs.translate) {
-          SuiApplication._deferCreateTranslator(pairs.translate);
-          return null;
-        }
-        return null;
+        this.pairs.push(this.queryPair(cmd));
       }
     }
-    return null;
   }
-  libraryScoreLoad(): loadedScore {
-    const score = SmoScore.deserialize(Smo.getClass(SmoConfig.scoreLoadJson));
-    return { score, scorePath: null, mode: 'local' };
+}
+/**
+ * bootstrap initial score load
+ */
+export class SuiScoreBuilder {
+  score: SmoScore | null = null;
+  scorePath: string | null = null;
+  mode: scoreMode = 'local';
+  language: string = 'en';
+  localScoreLoad(): void {
+    this.score = null;
+    this.scorePath = localStorage.getItem(smoSerialize.localScore);
+    if (this.scorePath && this.scorePath.length) {
+      try {
+        this.score = SmoScore.deserialize(this.scorePath);
+      } catch (exp) {
+        console.log('could not parse ' + this.scorePath);
+      }
+    }
+  }
+  queryScoreLoad(queryString: QueryParser): void {
+    var i;
+    for (i = 0; i < queryString.pairs.length; ++i) {
+      const pair = queryString.pairs[i];
+      if (pair.score) {
+        try {
+          const path: librarySeed | undefined = SuiApplication.scoreLibrary.find((pp) => pp.alias === pair.score);
+          if (!path) {
+            return;
+          } else {
+            this.scorePath = path.path;
+            this.score = null;
+            this.mode = 'remote';
+          }
+        } catch (exp) {
+          console.log('could not parse ' + exp);
+        }
+      }
+    }
+  }
+  libraryScoreLoad(): void {
+    this.score = SmoScore.deserialize(Smo.getClass(SmoConfig.scoreLoadJson));
+    this.scorePath = null;
+    this.mode = 'local';
+  }
+  constructor(config: SmoConfiguration, queryString: QueryParser) {
+    let i:number = 0;
+    for (i = 0; i < config.scoreLoadOrder.length; ++i) {
+      const load = config.scoreLoadOrder[i];
+      if (load === 'local') {
+        this.localScoreLoad();
+      } else if (load === 'remote') {
+        this.libraryScoreLoad();
+      } else if (load === 'query') {
+        this.queryScoreLoad(queryString);
+      }
+      if (this.score || this.scorePath) {
+        break;
+      }
+    }
   }
 }
 /** SuiApplication
@@ -125,12 +159,12 @@ export class SuiApplication {
   static get defaultConfig(): SmoConfiguration {
     return {
       smoPath: '..',
+      mode: 'application',
       language: 'en',
       scoreLoadOrder: ['query', 'local', 'library'],
       scoreLoadJson: 'Smo.basicJson',
       smoDomContainer: 'smoo',
       vexDomContainer: 'boo',
-      domSource: ' SuiDom',
       ribbon: true,
       keyCommands: true,
       menus: true,
@@ -143,15 +177,46 @@ export class SuiApplication {
   }
   static configure(params: Partial<SmoConfiguration>) {
     const config: SmoConfiguration = SuiApplication.defaultConfig;
-    Vex.Merge(config, params);
+    ConfigurationOptions.forEach((option: ConfigurationOption) => {
+      if (typeof(params[option]) !== 'undefined') {
+        (config as any)[option] = params[option];
+      }
+    });
     (window as any).SmoConfig = config;
+    const application = new SuiApplication();
+    application.startApplication();
     SuiApplication.registerFonts();
   }
+  static createView(scrollContainer: HTMLElement, score: SmoScore) {
+    const svgContainer = document.createElement('div');
+    $(svgContainer).attr('id', SmoConfig.vexDomContainer).addClass('musicContainer');
+    scrollContainer.append(svgContainer);
+    const renderer = SuiScoreRender.createScoreRenderer(svgContainer, score);
+    const eventSource = new BrowserEventSource();
+    const undoBuffer = new UndoBuffer();
+    eventSource.setRenderElement(renderer.renderElement);
+    const view = new SuiScoreViewOperations(renderer, score, scrollContainer, undoBuffer);
+    view.startRenderingEngine();
+    return {
+      view, eventSource, undoBuffer, renderer, tracker: view.tracker
+    };
+  }
   static instance: SuiInstance;
-
-  constructor(params: any) {
-    SuiApplication.configure(params);
-    this.startApplication();
+  /** 
+  // Different applications can create their own key bindings, these are the defaults.
+  // Many editor commands can be reached by a single keystroke.  For more advanced things there
+  // are menus.
+  */
+  static get keyBindingDefaults(): KeyBinding[] {
+    var editorKeys = SuiEventHandler.editorKeyBindingDefaults;
+    editorKeys.forEach((key) => {
+      key.module = 'keyCommands'
+    });
+    var trackerKeys = SuiEventHandler.trackerKeyBindingDefaults;
+    trackerKeys.forEach((key) => {
+      key.module = 'tracker'
+    });
+    return trackerKeys.concat(editorKeys);
   }
   startApplication() {
     SuiOscillator.samplePromise().then(() => {
@@ -159,42 +224,38 @@ export class SuiApplication {
     });
   }
   _startApplication() {
-    let i = 0;
-    let loaded = false;
     // Initialize the midi writer library
     _MidiWriter();
-    const config = (window as any).SmoConfig;
-    for (i = 0; i < config.scoreLoadOrder.length; ++i) {
-      const loader: string = config.scoreLoadOrder[i];
-      let method = 'localScoreLoad' as keyof SuiScoreBuilder;
-      if (loader === 'query') {
-        method = 'queryScoreLoad' as keyof SuiScoreBuilder;
-      } else if (loader === 'libraryScoreLoad') {
-        method = 'libraryScoreLoad' as keyof SuiScoreBuilder;
-      }
-      const ssb = new SuiScoreBuilder();
-      const ss: loadedScore | null = ssb[method]();
-      if (ss && ss.score) {
-        if (ss.mode === 'local') {
-          loaded = true;
-          this.createUi(ss.score);
-        } else if (ss.score !== null) {
-          const localScore = ssb.libraryScoreLoad();
-          if (localScore.score === null) {
-            return;
-          }
-          loaded = true;
-          this.createUi(localScore.score);
-          smoSerialize.loadRemoteFile(ss.scorePath);
-        }
-        break;
+    const config: SmoConfiguration = (window as any).SmoConfig;
+    const queryString = new QueryParser();
+    const languageSelect = queryString.pairs.find((x) => x['language']);
+    if (config.mode === 'translate') {
+      const transPair: pairType | undefined = queryString.pairs.find((x) => x['translate']);
+      const transLanguage = transPair ? transPair.translate : config.language;
+      SuiApplication._deferCreateTranslator(transLanguage);
+      return;
+    }
+    if (languageSelect) {
+      SuiApplication._deferLanguageSelection(languageSelect.language);
+    }
+    const scoreBuilder = new SuiScoreBuilder(config, queryString);
+    if (scoreBuilder.score) {
+      this.createUi(scoreBuilder.score);
+      return;
+    } else {
+      if (scoreBuilder.mode === 'remote' && scoreBuilder.scorePath) {
+        const loader = new SuiXhrLoader(scoreBuilder.scorePath);
+        const self = this;
+        loader.loadAsync().then(() => {
+          const score = SmoScore.deserialize(loader.value);
+          self.createUi(score);
+        });
+        return;
       }
     }
-    if (loaded === false) {
-      const scoreString = eval('globalThis.Smo.basicJson');
-      const score = SmoScore.deserialize(scoreString);
-      this.createUi(score);
-    }
+    const scoreString = eval('globalThis.Smo.basicJson');
+    const score = SmoScore.deserialize(scoreString);
+    this.createUi(score);
   }
 
   /**
@@ -204,30 +265,47 @@ export class SuiApplication {
    */
   createUi(score: SmoScore) {
     SuiDom.createDom('Smoosic');
-    const params: Partial<SuiInstance> = {};
-    params.keyBindingDefaults = SuiEventHandler.keyBindingDefaults;
-    params.eventSource = new BrowserEventSource(); // events come from the browser UI.
-    params.undoBuffer = new UndoBuffer();
-    const selector = typeof(SmoConfig.vexDomContainer) === 'undefined' ? '' : SmoConfig.vexDomContainer;
-
-    const scoreRenderer = SuiScoreRender.createScoreRenderer(document.getElementById(
-      selector)!, score);
-    params.eventSource.setRenderElement(scoreRenderer.renderElement);
-    params.view = new SuiScoreViewOperations(scoreRenderer, score, '.musicRelief', params.undoBuffer);
-    params.menuContainer = '.menuContainer';
-    if (SmoConfig.keyCommands) {
-      params.keyCommands = new SuiKeyCommands(params as KeyCommandParams);
+    const menuContainer = document.createElement('div');
+    $(menuContainer).addClass('menuContainer');
+    $('.dom-container').append(menuContainer);
+    const scrollRegion = document.createElement('div');
+    $(scrollRegion).attr('id', 'smo-scroll-region').addClass('musicRelief');
+    $('.dom-container .media').append(scrollRegion);
+    const viewObj = SuiApplication.createView(scrollRegion, score);
+    const view = viewObj.view;
+    const tracker = view.tracker;
+    const eventSource = new BrowserEventSource(); // events come from the browser UI.
+    const undoBuffer = viewObj.undoBuffer;
+    const completeNotifier = new ModalEventHandlerProxy(eventSource);
+    const menus = new SuiMenuManager({
+      view, eventSource, completeNotifier, undoBuffer, menuContainer
+    });
+    const ribbon = new RibbonButtons({
+      ribbons: defaultRibbonLayout.ribbons,
+      ribbonButtons: defaultRibbonLayout.ribbonButtons,
+      menus: menus,
+      completeNotifier,
+      view: view,
+      eventSource: eventSource,
+      tracker: view.tracker
+    });
+    const keyCommands = new SuiKeyCommands ({
+      view, slashMode: true, completeNotifier, tracker, eventSource
+    });
+    const eventHandler = new SuiEventHandler({
+      view, eventSource, tracker, keyCommands, menus, completeNotifier,
+      keyBindings: SuiApplication.keyBindingDefaults
+    });
+    this.instance = {
+      view, eventSource, eventHandler, undoBuffer,
+      tracker, ribbon, keyCommands, menus
     }
-    if (SmoConfig.menus) {
-      params.menus = new SuiMenuManager(params as SuiMenuManagerParams);
-    }
-    // Start the application event processing and render the initial score
-    // eslint-disable-next-line
-    this.instance = params as SuiInstance;
-    this.instance.eventHandler = new SuiEventHandler(params as EventHandlerParams);
-    this.instance.ribbon = this.instance.eventHandler.ribbon;
-    
     SuiApplication.instance = this.instance;
+    completeNotifier.handler = eventHandler;
+    eventSource.setRenderElement(view.renderer.renderElement);
+    // eslint-disable-next-line
+    SuiApplication.instance = this.instance;
+    ribbon.display();
     SuiDom.splash();
   }
   static registerFonts() {
@@ -358,6 +436,7 @@ export class SuiApplication {
     ];
   }
   static _deferCreateTranslator(lang: string) {
+    SuiDom.createDom(lang);
     setTimeout(() => {
       SmoTranslationEditor.startEditor(lang);
     }, 1);

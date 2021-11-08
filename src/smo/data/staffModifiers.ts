@@ -119,13 +119,6 @@ export interface SmoInstrumentMeasure {
   measureIndex: number,
   instrument: SmoInstrumentParams;
 }
-// WIP
-export class SmoPartMap {
-  static get attributes() {
-    return ['staffId', 'name', 'abbreviation', 'scoreGroup', 'partnerId', 'instrumentMap', 'layoutManager'];
-  }
-}
-
 export interface SmoStaffHairpinParams {
   xOffsetLeft: number,
   xOffsetRight: number,

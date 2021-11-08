@@ -1,13 +1,13 @@
+import { SmoScoreText, SmoTextGroup } from '../../../smo/data/scoreModifiers';
+import { KeyEvent } from '../../../smo/data/common';
 import { SuiTextSession } from '../../../render/sui/textEdit';
 import { SuiScroller } from '../../../render/sui/scroller';
-import { SmoScoreText, SmoTextGroup } from '../../../smo/data/scoreModifiers';
 import { SuiScoreViewOperations } from '../../../render/sui/scoreViewOperations';
 import { SuiDialogNotifier, SuiComponentBase, SuiComponentParent } from './baseComponent';
 import { SuiButtonComposite } from './button';
 import { SuiRockerComposite } from './rocker';
 import { SuiDropdownComposite } from './dropdown';
 import { SuiInlineText } from '../../../render/sui/textRender';
-import { KeyEvent } from '../../../application/common';
 import { htmlHelpers } from '../../../common/htmlHelpers';
 
 declare var $: any;

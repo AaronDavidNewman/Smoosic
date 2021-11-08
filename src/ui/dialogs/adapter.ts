@@ -1,9 +1,9 @@
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiTracker } from '../../render/sui/tracker';
-import { CompleteNotifier } from '../../application/common';
-import { BrowserEventSource } from '../../application/eventSource';
+import { CompleteNotifier } from '../common';
+import { BrowserEventSource } from '../eventSource';
 import { UndoBuffer } from '../../smo/xform/undo';
-import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';
+import { DialogDefinition, SuiDialogBase } from './dialog';
 declare var $: any;
 
 /**

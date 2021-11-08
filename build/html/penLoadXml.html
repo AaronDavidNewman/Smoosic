@@ -29,13 +29,7 @@
           mode: 'library',
           idleRedrawTime: 500
         });
-        // Create the renderer that renders the music.  SVG music will be created 
-        // in the element
-        const renderer = Smo.SuiScoreRender.createScoreRenderer(document.getElementById('container1'), score);
-        // Create and start the view object.  
-        // The outer container DOM is for scrolling
-        const view = new Smo.SuiScoreViewOperations(renderer, score, '#outer-container', new Smo.UndoBuffer());
-        view.startRenderingEngine();
+        Smo.SuiApplication.createView(document.getElementById('container1'), score);
       }
 
       const path = 'https://aarondavidnewman.github.io/Smoosic/release/library/Beethoven_AnDieFerneGeliebte.xml';
@@ -57,7 +51,7 @@
 
 <body>
   <!-- audio crossOrigin="anonymous" id="sample" src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_middle_C.mp3" / -->
-  <div id="outer-container">
+  <div id="outer-container" style="overflow:auto">
     <div id="container1">
 
     </div>

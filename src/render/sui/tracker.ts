@@ -10,12 +10,11 @@ import { SuiOscillator } from '../audio/oscillator';
 import { SmoActionRecord } from '../../smo/xform/actions';
 import { SmoScore } from '../../smo/data/score';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
-import { SvgBox, SvgPoint } from '../../smo/data/common';
+import { SvgBox, SvgPoint, KeyEvent } from '../../smo/data/common';
 import { SuiScroller } from './scroller';
 import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SmoNote } from '../../smo/data/note';
 import { SmoMeasure } from '../../smo/data/measure';
-import { KeyEvent } from '../../application/common';
 
 declare var $: any;
 

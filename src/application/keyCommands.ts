@@ -5,10 +5,11 @@ import { createAndDisplayDialog } from '../ui/dialogs/dialog';
 import { SuiAudioPlayer } from '../render/audio/player';
 import { SmoArticulation } from '../smo/data/noteModifiers';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
-import { BrowserEventSource } from './eventSource';
+import { BrowserEventSource } from '../ui/eventSource';
 import { SuiTracker } from '../render/sui/tracker';
-import { CompleteNotifier, KeyCommandParams, KeyEvent } from './common';
-import { PitchLetter, IsPitchLetter } from '../smo/data/common';
+import { KeyCommandParams } from './common';
+import { CompleteNotifier } from '../ui/common';
+import { PitchLetter, IsPitchLetter, KeyEvent } from '../smo/data/common';
 
 // ## suiEditor
 // KeyCommands object handles key events and converts them into commands, updating the score and

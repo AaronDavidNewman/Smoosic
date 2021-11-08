@@ -23,7 +23,7 @@ import { PlayerButtons } from '../ui/buttons/player';
 import { StaveButtons } from '../ui/buttons/stave';
 import { TextButtons } from '../ui/buttons/text';
 import { VoiceButtons } from '../ui/buttons/voice';
-
+import { SmoTranslationEditor } from '../ui/i18n/translationEditor';
 import { RibbonButtons } from '../ui/buttons/ribbon';
 // Language strings
 import { quickStartHtmlen, selectionHtmlen, enterDurationsHtmlen, enterPitchesHtmlen } from '../ui/i18n/language_en';
@@ -53,6 +53,7 @@ import { SuiTieAttributesDialog } from '../ui/dialogs/tie';
 import { SuiVoltaAttributeDialog } from '../ui/dialogs/volta';
 import { SuiHairpinAttributesDialog } from '../ui/dialogs/hairpin';
 import { SuiStaffGroupDialog } from '../ui/dialogs/staffGroup';
+import { SuiPartInfoDialog } from '../ui/dialogs/partInfo';
 import { SuiLoadMxmlDialog, SuiLoadFileDialog,
     /* SuiLoadActionsDialog,  SuiSaveActionsDialog, */
     SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
@@ -104,19 +105,20 @@ import { layoutDebug } from '../render/sui/layoutDebug';
 import { SuiMapper } from '../render/sui/mapper';
 import { SuiScroller } from '../render/sui/scroller';
 import { SuiActionPlayback } from '../render/sui/actionPlayback';
-// SMO components
+// SMO object model
 import { SmoScore } from '../smo/data/score';
 import { mxmlScore } from '../smo/mxml/xmlScore';
 import { UndoBuffer } from '../smo/xform/undo';
 import { SmoNote } from '../smo/data/note';
 import { SmoDuration } from '../smo/xform/tickDuration';
-import { SmoStaffHairpin, StaffModifierBase, SmoInstrument, SmoPartMap, SmoSlur, SmoTie } from '../smo/data/staffModifiers';
+import { SmoStaffHairpin, StaffModifierBase, SmoInstrument, SmoSlur, SmoTie } from '../smo/data/staffModifiers';
 import { SmoMeasure } from '../smo/data/measure';
 import { SmoMusic } from '../smo/data/music';
-import { SmoSelection } from '../smo/xform/selections';
+import { SmoSelection, SmoSelector } from '../smo/xform/selections';
 import { SmoOrnament, SmoArticulation, SmoDynamicText, SmoGraceNote, SmoMicrotone, SmoLyric } from '../smo/data/noteModifiers';
 import { SmoSystemStaff } from '../smo/data/systemStaff';
 import { SmoSystemGroup } from '../smo/data/scoreModifiers';
+import { SmoOperation } from '../smo/xform/operations';
 import {
     SmoRehearsalMark, SmoMeasureFormat, SmoBarline, SmoRepeatSymbol,
     SmoVolta, SmoMeasureText, SmoTempoText
@@ -130,7 +132,7 @@ export const Smo = {
     // Application-level classes
     SuiApplication,
     SuiDom,  SuiEventHandler, SuiExceptionHandler,
-    Qwerty, SuiHelp,
+    Qwerty, SuiHelp, SmoTranslationEditor,
     // Ribbon buttons
     RibbonButtons, NoteButtons, TextButtons, ChordButtons, MicrotoneButtons,
     StaveButtons, BeamButtons, MeasureButtons, DurationButtons,
@@ -148,6 +150,7 @@ export const Smo = {
     SuiSlurAttributesDialog, SuiTieAttributesDialog, SuiVoltaAttributeDialog,
     SuiHairpinAttributesDialog, SuiStaffGroupDialog, helpModal,
     SuiLoadFileDialog, SuiLoadMxmlDialog, SuiScorePreferencesDialog,
+    SuiPartInfoDialog,
     /* SuiLoadActionsDialog, SuiSaveActionsDialog, */
     SuiPrintFileDialog, SuiSaveFileDialog, SuiSaveXmlDialog,
     SuiSaveMidiDialog, SuiDialogBase,
@@ -174,7 +177,7 @@ export const Smo = {
     SmoNote,
     // staff modifier
     SmoStaffHairpin, StaffModifierBase,
-    SmoInstrument, SmoPartMap, SmoSlur, SmoTie, SmoSystemGroup,
+    SmoInstrument, SmoSlur, SmoTie, SmoSystemGroup,
     // measure modifiers
     SmoRehearsalMark, SmoMeasureFormat, SmoBarline, SmoRepeatSymbol,
     SmoVolta, SmoMeasureText, SmoTempoText,
@@ -182,7 +185,7 @@ export const Smo = {
     SmoOrnament,
     SmoArticulation, SmoDynamicText, SmoGraceNote, SmoMicrotone, SmoLyric,
     // Smo Transformers
-    SmoSelection, SmoDuration, UndoBuffer, SmoToVex,
+    SmoSelection, SmoSelector, SmoDuration, UndoBuffer, SmoToVex, SmoOperation,
     // new score bootstrap
     basicJson,
     emptyScoreJson,

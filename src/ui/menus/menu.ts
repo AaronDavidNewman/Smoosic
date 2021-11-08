@@ -1,9 +1,9 @@
 import { SvgBox } from '../../smo/data/common';
 import { SuiTracker } from '../../render/sui/tracker';
 import { SmoScore } from '../../smo/data/score';
-import { CompleteNotifier } from '../../application/common';
+import { CompleteNotifier } from '../common';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
-import { BrowserEventSource } from '../../application/eventSource';
+import { BrowserEventSource } from '../eventSource';
 import { UndoBuffer } from '../../smo/xform/undo';
 import { SmoTranslator } from '../i18n/language';
 declare var $: any;

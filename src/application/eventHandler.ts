@@ -2,20 +2,22 @@
 // Copyright (c) Aaron David Newman 2021.
 
 import { RibbonButtons } from '../ui/buttons/ribbon';
+import { KeyEvent } from '../smo/data/common';
 import { SuiExceptionHandler } from '../ui/exceptions';
 import { Qwerty } from '../ui/qwerty';
 import { SuiModifierDialogFactory } from '../ui/dialogs/factory';
 import { SuiPiano } from '../render/sui/piano'
 import { layoutDebug } from '../render/sui/layoutDebug';
 import { SuiHelp } from '../ui/help';
+import { CompleteNotifier, ModalComponent } from '../ui/common';
 import { SuiTracker } from '../render/sui/tracker';
 import { defaultEditorKeys } from '../ui/keyBindings/default/editorKeys';
 import { defaultTrackerKeys } from '../ui/keyBindings/default/trackerKeys';
 import { defaultRibbonLayout } from '../ui/ribbonLayout/default/defaultRibbon';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
-import { BrowserEventSource, EventHandler } from './eventSource';
+import { BrowserEventSource, EventHandler } from '../ui/eventSource';
 import { SuiKeyCommands } from './keyCommands';
-import { ModalComponent, KeyBinding, KeyEvent } from './common';
+import { KeyBinding, ModalEventHandler } from './common';
 import { ModifierTab } from '../smo/xform/selections';
 import { SvgHelpers } from '../render/sui/svgHelpers';
 import { SuiMenuManager } from '../ui/menus/manager';
@@ -27,75 +29,52 @@ export interface EventHandlerParams {
   eventSource: BrowserEventSource,
   tracker: SuiTracker,
   keyCommands: SuiKeyCommands,
-  menus: SuiMenuManager
+  menus: SuiMenuManager,
+  completeNotifier: CompleteNotifier,
+  keyBindings: KeyBinding[]
 }
-// ## SuiEventHandler
-// ## Description:
-// Manages DOM events and binds keyboard and mouse events
-// to editor and menu commands, tracker and layout manager.
-// ### Event model:
-// Events can come from the following sources:
-// 1. menus or dialogs can send dialogDismiss or menuDismiss event, indicating a modal has been dismissed.
-// 2. window resize events
-// 3. keyboard, when in editor mode.  When modals or dialogs are active, wait for dismiss event
-// 4. svg piano key events smo-piano-key
-// 5. tracker change events tracker-selection
-export class SuiEventHandler {
+/**
+ * this is the default keyboard/mouse handler for smoosic in application mode.
+ * It diverts key events to tracker or key commmands as appropriate, and mouse events to 
+ * tracker.  Modal elements take this control away temporarily.
+ * 
+ * It also handles some global events such as window resize and scroll of the music region.
+*/
+export class SuiEventHandler implements ModalEventHandler {
   static reentry: boolean = false;
   static keyboardUi: Qwerty;
   view: SuiScoreViewOperations;
   eventSource: BrowserEventSource;
   tracker: SuiTracker;
+  keyBind: KeyBinding[];
+  completeNotifier: CompleteNotifier;
   keyCommands: SuiKeyCommands;
   resizing: boolean = false;
   undoStatus: number = 0;
   trackScrolling: boolean = false;
   keyHandlerObj: any = null;
-  ribbon: RibbonButtons;
   menus: SuiMenuManager;
   piano: SuiPiano | null = null;
   exhandler: SuiExceptionHandler;
-  unbound: boolean = false;
-  keydownHandler: EventHandler | null = null;
-  mouseMoveHandler: EventHandler | null = null;
-  mouseClickHandler: EventHandler | null = null;
-  keyBind: KeyBinding[] = [];
   constructor(params: EventHandlerParams) {
     (globalThis as any).SuiEventHandlerInstance = this;
 
     this.view = params.view;
     this.menus = params.menus;
+    this.completeNotifier = params.completeNotifier;
     this.eventSource = params.eventSource;
-    this.tracker = this.view.tracker; // needed for key event handling
+    this.tracker = params.tracker; // needed for key event handling
+    this.keyBind = params.keyBindings;
     this.keyCommands = params.keyCommands;
-    this.keyCommands.completeNotifier = this;
     this.keyCommands.view = this.view;
     this.resizing = false;
     this.undoStatus = 0;
     this.trackScrolling = false;
     this.keyHandlerObj = null;
-    this.keyBind = SuiEventHandler.keyBindingDefaults;
-    this.ribbon = new RibbonButtons({
-      ribbons: defaultRibbonLayout.ribbons,
-      ribbonButtons: defaultRibbonLayout.ribbonButtons,
-      menus: this.menus,
-      completeNotifier: this,
-      view: this.view,
-      eventSource: this.eventSource,
-      tracker: this.tracker
-    });
-
-    this.menus.setController(this);
-
-    // create globbal exception instance
+    // create global exception instance
     this.exhandler = new SuiExceptionHandler(this);
-
     this.bindEvents();
-
-    // Only display the ribbon one time b/c it's expensive operation
-    this.ribbon.display();
     this.bindResize();
-    this.view.startRenderingEngine();
     this.createPiano();
   }
 
@@ -148,7 +127,7 @@ export class SuiEventHandler {
     var parameters = {
       modifier: modifierSelection.modifier,
       view: this.view, eventSource: this.eventSource,
-      completeNotifier: this, keyCommands: this.keyCommands, 
+      completeNotifier: this.completeNotifier, keyCommands: this.keyCommands, 
       ctor: '', // filled in by the factory
       tracker: this.tracker,
       startPromise: null,
@@ -205,23 +184,6 @@ export class SuiEventHandler {
     return this.view.renderer.renderElement;
   }
 
-  // ## keyBindingDefaults
-  // ### Description:
-  // Different applications can create their own key bindings, these are the defaults.
-  // Many editor commands can be reached by a single keystroke.  For more advanced things there
-  // are menus.
-  static get keyBindingDefaults(): KeyBinding[] {
-    var editorKeys = SuiEventHandler.editorKeyBindingDefaults;
-    editorKeys.forEach((key) => {
-      key.module = 'keyCommands'
-    });
-    var trackerKeys = SuiEventHandler.trackerKeyBindingDefaults;
-    trackerKeys.forEach((key) => {
-      key.module = 'tracker'
-    });
-    return trackerKeys.concat(editorKeys);
-  }
-
   // ## editorKeyBindingDefaults
   // ## Description:
   // execute a simple command on the editor, based on a keystroke.
@@ -246,34 +208,6 @@ export class SuiEventHandler {
     SuiHelp.displayHelp();
   }
 
-  static get defaults() {
-    return {
-      keyBind: SuiEventHandler.keyBindingDefaults
-    };
-  }
-
-  // ### unbindKeyboardForModal
-  // Global events from keyboard and pointer are handled by this object.  Modal
-  // UI elements take over the events, and then let the controller know when
-  // the modals go away.
-  unbindKeyboardForModal(dialog: ModalComponent) {
-    if (this.unbound) {
-      console.log('received duplicate bind event');
-      return;
-    }
-    this.unbound = true;
-    layoutDebug.addDialogDebug('controller: unbindKeyboardForModal')
-    const rebind = () => {
-      this.unbound = false;
-      this.bindEvents();
-      layoutDebug.addDialogDebug('controller: unbindKeyboardForModal resolve')
-    }
-    this.eventSource.unbindKeydownHandler(this.keydownHandler!);
-    this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler!);
-    this.eventSource.unbindMouseClickHandler(this.mouseClickHandler!);
-    dialog.closeModalPromise.then(rebind);
-  }
-
   evKey(evdata: any) {
     if ($('body').hasClass('translation-mode')) {
       return;
@@ -295,7 +229,7 @@ export class SuiEventHandler {
 
       if (dataCopy.key == '/') {
         // set up menu DOM.
-        this.menus.slashMenuMode(this);
+        this.menus.slashMenuMode(this.completeNotifier);
       }
 
       if (dataCopy.key == 'Enter') {
@@ -350,10 +284,6 @@ export class SuiEventHandler {
     $('body').off('forceResizeEvent').on('forceResizeEvent', function () {
       self.resizeEvent();
     });
-    this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
-    this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
-    this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
-
     this.helpControls();
     window.addEventListener('error', function (e) {
       SuiExceptionHandler.instance.exceptionHandler(e);
