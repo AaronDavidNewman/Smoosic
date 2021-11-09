@@ -20,11 +20,12 @@ return /******/ (() => { // webpackBootstrap
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiApplication = exports.SuiScoreBuilder = void 0;
+exports.SuiApplication = exports.SuiScoreBuilder = exports.QueryParser = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const midiWriter_1 = __webpack_require__(/*! ../common/midiWriter */ "./src/common/midiWriter.js");
+const configuration_1 = __webpack_require__(/*! ./configuration */ "./src/application/configuration.ts");
 const score_1 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
 const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
 const scoreRender_1 = __webpack_require__(/*! ../render/sui/scoreRender */ "./src/render/sui/scoreRender.ts");
@@ -37,71 +38,108 @@ const ConcertOne_Regular_1 = __webpack_require__(/*! ../styles/font_metrics/Conc
 const Merriweather_Regular_1 = __webpack_require__(/*! ../styles/font_metrics/Merriweather-Regular */ "./src/styles/font_metrics/Merriweather-Regular.js");
 const ssp_sans_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
 const ssp_serif_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/ssp-serif-metrics */ "./src/styles/font_metrics/ssp-serif-metrics.js");
+const xhrLoader_1 = __webpack_require__(/*! ../ui/fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.js");
 const manager_1 = __webpack_require__(/*! ../ui/menus/manager */ "./src/ui/menus/manager.ts");
-const translationEditor_1 = __webpack_require__(/*! ../ui/i18n/translationEditor */ "./src/ui/i18n/translationEditor.js");
-const language_1 = __webpack_require__(/*! ../ui/i18n/language */ "./src/ui/i18n/language.js");
+const eventSource_1 = __webpack_require__(/*! ../ui/eventSource */ "./src/ui/eventSource.ts");
+const translationEditor_1 = __webpack_require__(/*! ../ui/i18n/translationEditor */ "./src/ui/i18n/translationEditor.ts");
+const language_1 = __webpack_require__(/*! ../ui/i18n/language */ "./src/ui/i18n/language.ts");
+const ribbon_1 = __webpack_require__(/*! ../ui/buttons/ribbon */ "./src/ui/buttons/ribbon.ts");
+const defaultRibbon_1 = __webpack_require__(/*! ../ui/ribbonLayout/default/defaultRibbon */ "./src/ui/ribbonLayout/default/defaultRibbon.ts");
 const dom_1 = __webpack_require__(/*! ./dom */ "./src/application/dom.ts");
 const keyCommands_1 = __webpack_require__(/*! ./keyCommands */ "./src/application/keyCommands.ts");
-const eventSource_1 = __webpack_require__(/*! ./eventSource */ "./src/application/eventSource.ts");
 const eventHandler_1 = __webpack_require__(/*! ./eventHandler */ "./src/application/eventHandler.ts");
+const common_1 = __webpack_require__(/*! ./common */ "./src/application/common.ts");
 const VF = eval('Vex.Flow');
 const Smo = eval('globalThis.Smo');
-/**
- * SuiScoreBuilder
- * create the initial score based on the query string/history
- */
-class SuiScoreBuilder {
-    localScoreLoad() {
-        var score = null;
-        var scoreStr = localStorage.getItem(serializationHelpers_1.smoSerialize.localScore);
-        if (scoreStr && scoreStr.length) {
-            try {
-                score = score_1.SmoScore.deserialize(scoreStr);
-            }
-            catch (exp) {
-                console.log('could not parse ' + scoreStr);
-            }
-        }
-        return { score, scorePath: null, mode: 'local' };
-    }
-    queryScoreLoad() {
-        var i;
+class QueryParser {
+    constructor() {
+        this.pairs = [];
+        let i = 0;
         if (window.location.search) {
             const cmd = window.location.search.substring(1, window.location.search.length);
             const cmds = cmd.split('&');
             for (i = 0; i < cmds.length; ++i) {
                 const cmd = cmds[i];
-                const pairs = SuiApplication._nvQueryPair(cmd);
-                if (pairs.score) {
-                    try {
-                        const path = SuiApplication.scoreLibrary.find((pp) => pp.alias === pairs.score);
-                        if (!path) {
-                            return null;
-                        }
-                        else {
-                            return { scorePath: path.path, score: null, mode: 'remote' };
-                        }
-                    }
-                    catch (exp) {
-                        console.log('could not parse ' + exp);
-                    }
-                }
-                else if (pairs.lang) {
-                    SuiApplication._deferLanguageSelection(pairs.lang);
-                    return null;
-                }
-                else if (pairs.translate) {
-                    SuiApplication._deferCreateTranslator(pairs.translate);
-                    return null;
-                }
-                return null;
+                this.pairs.push(this.queryPair(cmd));
             }
         }
-        return null;
+    }
+    queryPair(str) {
+        var i = 0;
+        const ar = str.split('=');
+        const rv = {};
+        for (i = 0; i < ar.length - 1; i += 2) {
+            const name = decodeURIComponent(ar[i]);
+            rv[name] = decodeURIComponent(ar[i + 1]);
+        }
+        return rv;
+    }
+}
+exports.QueryParser = QueryParser;
+/**
+ * bootstrap initial score load
+ */
+class SuiScoreBuilder {
+    constructor(config, queryString) {
+        this.score = null;
+        this.scorePath = null;
+        this.mode = 'local';
+        this.language = 'en';
+        let i = 0;
+        for (i = 0; i < config.scoreLoadOrder.length; ++i) {
+            const load = config.scoreLoadOrder[i];
+            if (load === 'local') {
+                this.localScoreLoad();
+            }
+            else if (load === 'remote') {
+                this.libraryScoreLoad();
+            }
+            else if (load === 'query') {
+                this.queryScoreLoad(queryString);
+            }
+            if (this.score || this.scorePath) {
+                break;
+            }
+        }
+    }
+    localScoreLoad() {
+        this.score = null;
+        this.scorePath = localStorage.getItem(serializationHelpers_1.smoSerialize.localScore);
+        if (this.scorePath && this.scorePath.length) {
+            try {
+                this.score = score_1.SmoScore.deserialize(this.scorePath);
+            }
+            catch (exp) {
+                console.log('could not parse ' + this.scorePath);
+            }
+        }
+    }
+    queryScoreLoad(queryString) {
+        var i;
+        for (i = 0; i < queryString.pairs.length; ++i) {
+            const pair = queryString.pairs[i];
+            if (pair.score) {
+                try {
+                    const path = SuiApplication.scoreLibrary.find((pp) => pp.alias === pair.score);
+                    if (!path) {
+                        return;
+                    }
+                    else {
+                        this.scorePath = path.path;
+                        this.score = null;
+                        this.mode = 'remote';
+                    }
+                }
+                catch (exp) {
+                    console.log('could not parse ' + exp);
+                }
+            }
+        }
     }
     libraryScoreLoad() {
-        const score = score_1.SmoScore.deserialize(Smo.getClass(SmoConfig.scoreLoadJson));
-        return { score, scorePath: null, mode: 'local' };
+        this.score = score_1.SmoScore.deserialize(Smo.getClass(SmoConfig.scoreLoadJson));
+        this.scorePath = null;
+        this.mode = 'local';
     }
 }
 exports.SuiScoreBuilder = SuiScoreBuilder;
@@ -111,35 +149,45 @@ exports.SuiScoreBuilder = SuiScoreBuilder;
  * await further instructions.
  */
 class SuiApplication {
-    constructor(params) {
+    constructor() {
         this.instance = null;
-        SuiApplication.configure(params);
-        this.startApplication();
-    }
-    static get defaultConfig() {
-        return {
-            smoPath: '..',
-            language: 'en',
-            scoreLoadOrder: ['query', 'local', 'library'],
-            scoreLoadJson: 'Smo.basicJson',
-            smoDomContainer: 'smoo',
-            vexDomContainer: 'boo',
-            domSource: ' SuiDom',
-            ribbon: true,
-            keyCommands: true,
-            menus: true,
-            title: 'Smoosic',
-            libraryUrl: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json',
-            languageDir: 'ltr',
-            demonPollTime: 50,
-            idleRedrawTime: 1000, // maximum time between score modification and render
-        };
     }
     static configure(params) {
-        const config = SuiApplication.defaultConfig;
-        Vex.Merge(config, params);
+        const config = new configuration_1.SmoConfiguration(params);
         window.SmoConfig = config;
+        const application = new SuiApplication();
+        application.startApplication();
         SuiApplication.registerFonts();
+    }
+    static createView(scrollContainer, score) {
+        const svgContainer = document.createElement('div');
+        $(svgContainer).attr('id', SmoConfig.vexDomContainer).addClass('musicContainer');
+        scrollContainer.append(svgContainer);
+        const renderer = scoreRender_1.SuiScoreRender.createScoreRenderer(svgContainer, score);
+        const eventSource = new eventSource_1.BrowserEventSource();
+        const undoBuffer = new undo_1.UndoBuffer();
+        eventSource.setRenderElement(renderer.renderElement);
+        const view = new scoreViewOperations_1.SuiScoreViewOperations(renderer, score, scrollContainer, undoBuffer);
+        view.startRenderingEngine();
+        return {
+            view, eventSource, undoBuffer, renderer, tracker: view.tracker
+        };
+    }
+    /**
+    // Different applications can create their own key bindings, these are the defaults.
+    // Many editor commands can be reached by a single keystroke.  For more advanced things there
+    // are menus.
+    */
+    static get keyBindingDefaults() {
+        var editorKeys = eventHandler_1.SuiEventHandler.editorKeyBindingDefaults;
+        editorKeys.forEach((key) => {
+            key.module = 'keyCommands';
+        });
+        var trackerKeys = eventHandler_1.SuiEventHandler.trackerKeyBindingDefaults;
+        trackerKeys.forEach((key) => {
+            key.module = 'tracker';
+        });
+        return trackerKeys.concat(editorKeys);
     }
     startApplication() {
         oscillator_1.SuiOscillator.samplePromise().then(() => {
@@ -147,44 +195,39 @@ class SuiApplication {
         });
     }
     _startApplication() {
-        let i = 0;
-        let loaded = false;
         // Initialize the midi writer library
         midiWriter_1._MidiWriter();
         const config = window.SmoConfig;
-        for (i = 0; i < config.scoreLoadOrder.length; ++i) {
-            const loader = config.scoreLoadOrder[i];
-            let method = 'localScoreLoad';
-            if (loader === 'query') {
-                method = 'queryScoreLoad';
-            }
-            else if (loader === 'libraryScoreLoad') {
-                method = 'libraryScoreLoad';
-            }
-            const ssb = new SuiScoreBuilder();
-            const ss = ssb[method]();
-            if (ss && ss.score) {
-                if (ss.mode === 'local') {
-                    loaded = true;
-                    this.createUi(ss.score);
-                }
-                else if (ss.score !== null) {
-                    const localScore = ssb.libraryScoreLoad();
-                    if (localScore.score === null) {
-                        return;
-                    }
-                    loaded = true;
-                    this.createUi(localScore.score);
-                    serializationHelpers_1.smoSerialize.loadRemoteFile(ss.scorePath);
-                }
-                break;
+        const queryString = new QueryParser();
+        const languageSelect = queryString.pairs.find((x) => x['language']);
+        if (config.mode === 'translate') {
+            const transPair = queryString.pairs.find((x) => x['translate']);
+            const transLanguage = transPair ? transPair.translate : config.language;
+            SuiApplication._deferCreateTranslator(transLanguage);
+            return;
+        }
+        if (languageSelect) {
+            SuiApplication._deferLanguageSelection(languageSelect.language);
+        }
+        const scoreBuilder = new SuiScoreBuilder(config, queryString);
+        if (scoreBuilder.score) {
+            this.createUi(scoreBuilder.score);
+            return;
+        }
+        else {
+            if (scoreBuilder.mode === 'remote' && scoreBuilder.scorePath) {
+                const loader = new xhrLoader_1.SuiXhrLoader(scoreBuilder.scorePath);
+                const self = this;
+                loader.loadAsync().then(() => {
+                    const score = score_1.SmoScore.deserialize(loader.value);
+                    self.createUi(score);
+                });
+                return;
             }
         }
-        if (loaded === false) {
-            const scoreString = eval('globalThis.Smo.basicJson');
-            const score = score_1.SmoScore.deserialize(scoreString);
-            this.createUi(score);
-        }
+        const scoreString = eval('globalThis.Smo.basicJson');
+        const score = score_1.SmoScore.deserialize(scoreString);
+        this.createUi(score);
     }
     /**
      * Convenience constructor, take the score and render it in the
@@ -193,27 +236,47 @@ class SuiApplication {
      */
     createUi(score) {
         dom_1.SuiDom.createDom('Smoosic');
-        const params = {};
-        params.keyBindingDefaults = eventHandler_1.SuiEventHandler.keyBindingDefaults;
-        params.eventSource = new eventSource_1.BrowserEventSource(); // events come from the browser UI.
-        params.undoBuffer = new undo_1.UndoBuffer();
-        const selector = typeof (SmoConfig.vexDomContainer) === 'undefined' ? '' : SmoConfig.vexDomContainer;
-        const scoreRenderer = scoreRender_1.SuiScoreRender.createScoreRenderer(document.getElementById(selector), score);
-        params.eventSource.setRenderElement(scoreRenderer.renderElement);
-        params.view = new scoreViewOperations_1.SuiScoreViewOperations(scoreRenderer, score, '.musicRelief', params.undoBuffer);
-        params.menuContainer = '.menuContainer';
-        if (SmoConfig.keyCommands) {
-            params.keyCommands = new keyCommands_1.SuiKeyCommands(params);
-        }
-        if (SmoConfig.menus) {
-            params.menus = new manager_1.SuiMenuManager(params);
-        }
-        // Start the application event processing and render the initial score
-        // eslint-disable-next-line
-        this.instance = params;
-        this.instance.eventHandler = new eventHandler_1.SuiEventHandler(params);
-        this.instance.ribbon = this.instance.eventHandler.ribbon;
+        const menuContainer = document.createElement('div');
+        $(menuContainer).addClass('menuContainer');
+        $('.dom-container').append(menuContainer);
+        const scrollRegion = document.createElement('div');
+        $(scrollRegion).attr('id', 'smo-scroll-region').addClass('musicRelief');
+        $('.dom-container .media').append(scrollRegion);
+        const viewObj = SuiApplication.createView(scrollRegion, score);
+        const view = viewObj.view;
+        const tracker = view.tracker;
+        const eventSource = new eventSource_1.BrowserEventSource(); // events come from the browser UI.
+        const undoBuffer = viewObj.undoBuffer;
+        const completeNotifier = new common_1.ModalEventHandlerProxy(eventSource);
+        const menus = new manager_1.SuiMenuManager({
+            view, eventSource, completeNotifier, undoBuffer, menuContainer
+        });
+        const ribbon = new ribbon_1.RibbonButtons({
+            ribbons: defaultRibbon_1.defaultRibbonLayout.ribbons,
+            ribbonButtons: defaultRibbon_1.defaultRibbonLayout.ribbonButtons,
+            menus: menus,
+            completeNotifier,
+            view: view,
+            eventSource: eventSource,
+            tracker: view.tracker
+        });
+        const keyCommands = new keyCommands_1.SuiKeyCommands({
+            view, slashMode: true, completeNotifier, tracker, eventSource
+        });
+        const eventHandler = new eventHandler_1.SuiEventHandler({
+            view, eventSource, tracker, keyCommands, menus, completeNotifier,
+            keyBindings: SuiApplication.keyBindingDefaults
+        });
+        this.instance = {
+            view, eventSource, eventHandler, undoBuffer,
+            tracker, ribbon, keyCommands, menus
+        };
         SuiApplication.instance = this.instance;
+        completeNotifier.handler = eventHandler;
+        eventSource.setRenderElement(view.renderer.renderElement);
+        // eslint-disable-next-line
+        SuiApplication.instance = this.instance;
+        ribbon.display();
         dom_1.SuiDom.splash();
     }
     static registerFonts() {
@@ -342,6 +405,7 @@ class SuiApplication {
         ];
     }
     static _deferCreateTranslator(lang) {
+        dom_1.SuiDom.createDom(lang);
         setTimeout(() => {
             translationEditor_1.SmoTranslationEditor.startEditor(lang);
         }, 1);
@@ -353,6 +417,170 @@ class SuiApplication {
     }
 }
 exports.SuiApplication = SuiApplication;
+
+
+/***/ }),
+
+/***/ "./src/application/common.ts":
+/*!***********************************!*\
+  !*** ./src/application/common.ts ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ModalEventHandlerProxy = exports.ModalEventHandler = void 0;
+class ModalEventHandler {
+}
+exports.ModalEventHandler = ModalEventHandler;
+class ModalEventHandlerProxy {
+    constructor(evSource) {
+        this._handler = null;
+        this.unbound = true;
+        this.keydownHandler = null;
+        this.mouseMoveHandler = null;
+        this.mouseClickHandler = null;
+        this.eventSource = evSource;
+        this.bindEvents();
+    }
+    set handler(value) {
+        this._handler = value;
+        this.unbound = false;
+    }
+    evKey(ev) {
+        if (this._handler) {
+            this._handler.evKey(ev);
+        }
+    }
+    mouseMove(ev) {
+        if (this._handler) {
+            this._handler.mouseMove(ev);
+        }
+    }
+    mouseClick(ev) {
+        if (this._handler) {
+            this._handler.mouseClick(ev);
+        }
+    }
+    bindEvents() {
+        this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
+        this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
+        this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
+    }
+    unbindKeyboardForModal(dialog) {
+        if (this.unbound) {
+            console.log('received duplicate bind event');
+            return;
+        }
+        if (!this.keydownHandler || !this.mouseMoveHandler || !this.mouseClickHandler) {
+            console.log('received bind with no handlers');
+            return;
+        }
+        this.unbound = true;
+        const rebind = () => {
+            this.unbound = false;
+            this.bindEvents();
+        };
+        this.eventSource.unbindKeydownHandler(this.keydownHandler);
+        this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
+        this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
+        dialog.closeModalPromise.then(rebind);
+    }
+}
+exports.ModalEventHandlerProxy = ModalEventHandlerProxy;
+
+
+/***/ }),
+
+/***/ "./src/application/configuration.ts":
+/*!******************************************!*\
+  !*** ./src/application/configuration.ts ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SmoConfiguration = exports.ConfigurationNumberOptions = exports.ConfigurationStringOptions = exports.SmoLoadTypes = void 0;
+const defaultRibbon_1 = __webpack_require__(/*! ../ui/ribbonLayout/default/defaultRibbon */ "./src/ui/ribbonLayout/default/defaultRibbon.ts");
+const editorKeys_1 = __webpack_require__(/*! ../ui/keyBindings/default/editorKeys */ "./src/ui/keyBindings/default/editorKeys.ts");
+const trackerKeys_1 = __webpack_require__(/*! ../ui/keyBindings/default/trackerKeys */ "./src/ui/keyBindings/default/trackerKeys.ts");
+exports.SmoLoadTypes = ['local', 'remote', 'query'];
+exports.ConfigurationStringOptions = ['smoPath', 'language', 'scoreLoadJson', 'smoDomContainer',
+    'vexDomContainer', 'title', 'libraryUrl',
+    'languageDir'];
+exports.ConfigurationNumberOptions = ['demonPollTime', 'idleRedrawTime'];
+/**
+ * Configures smoosic library or application
+ * @param smoPath - path to smoosic.js from html
+ * @param language - startup language
+ * @param scoreLoadOrder - default is ['query', 'local', 'library'],
+ * @param scoreLoadJson - the library score JSON
+ * @param smoDomContainer - the id of the parent element of application UI
+ * @param vexDomContainer - the svg container
+ * @param ribbon - launch the UI ribbon
+ * @param keyCommands - start the key commands UI
+ * @param menus - create the menu manager
+ * @param title - the browser title
+ * @param libraryUrl - loader URL for Smo libraries
+ * @param languageDir - ltr or rtl
+ * @param demonPollTime - how often we poll the score to see if it's changed
+ * @param idleRedrawTime - how often the entire score re-renders
+ */
+class SmoConfiguration {
+    constructor(params) {
+        var _a, _b, _c, _d;
+        this.language = '';
+        this.languageDir = 'ltr';
+        this.demonPollTime = 0; // how often we poll the score to see if it changed
+        this.idleRedrawTime = 0;
+        const defs = SmoConfiguration.defaultConfig;
+        exports.ConfigurationStringOptions.forEach((param) => {
+            var _a;
+            const sp = (_a = params[param]) !== null && _a !== void 0 ? _a : defs[param];
+            this[param] = sp !== null && sp !== void 0 ? sp : '';
+        });
+        exports.ConfigurationNumberOptions.forEach((param) => {
+            var _a;
+            this[param] = (_a = params[param]) !== null && _a !== void 0 ? _a : defs[param];
+        });
+        this.mode = (_a = params.mode) !== null && _a !== void 0 ? _a : defs.mode;
+        this.scoreLoadOrder = (_b = params.scoreLoadOrder) !== null && _b !== void 0 ? _b : defs.scoreLoadOrder;
+        if (this.mode === 'application') {
+            const ribbon = (_c = params.ribbon) !== null && _c !== void 0 ? _c : { layout: defaultRibbon_1.defaultRibbonLayout.ribbons, buttons: defaultRibbon_1.defaultRibbonLayout.ribbonButtons };
+            const keys = (_d = params.keys) !== null && _d !== void 0 ? _d : SmoConfiguration.keyBindingDefaults;
+            this.ribbon = ribbon;
+            this.keys = keys;
+        }
+    }
+    static get defaultConfig() {
+        return {
+            smoPath: '..',
+            mode: 'application',
+            language: 'en',
+            scoreLoadOrder: ['query', 'local', 'library'],
+            scoreLoadJson: 'Smo.basicJson',
+            smoDomContainer: 'smoo',
+            vexDomContainer: 'boo',
+            title: 'Smoosic',
+            libraryUrl: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json',
+            languageDir: 'ltr',
+            demonPollTime: 50,
+            idleRedrawTime: 1000, // maximum time between score modification and render
+        };
+    }
+    static get keyBindingDefaults() {
+        const editorKeys = editorKeys_1.defaultEditorKeys.keys;
+        const trackerKeys = trackerKeys_1.defaultTrackerKeys.keys;
+        editorKeys.forEach((key) => {
+            key.module = 'keyCommands';
+        });
+        trackerKeys.forEach((key) => {
+            key.module = 'tracker';
+        });
+        return { editorKeys, trackerKeys };
+    }
+}
+exports.SmoConfiguration = SmoConfiguration;
 
 
 /***/ }),
@@ -418,10 +646,7 @@ class SuiDom {
             .append(b('div').classes('controls-top')))
             .append(b('div').classes('media')
             .append(b('div').classes('controls-left'))
-            .append(b('div').classes('controls-menu-message'))
-            .append(b('div').classes('musicRelief')
-            .append(b('div').classes('musicContainer').attr('id', vexId)
-            .attr('dir', 'ltr')))));
+            .append(b('div').classes('controls-menu-message'))));
         $('#' + smoId).append(r.dom());
         var pianoDom = $('.piano-keys')[0];
         var svg = document.createElementNS(svgHelpers_1.SvgHelpers.namespace, 'svg');
@@ -448,29 +673,22 @@ exports.SuiDom = SuiDom;
 // Copyright (c) Aaron David Newman 2021.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiEventHandler = void 0;
-const ribbon_1 = __webpack_require__(/*! ../ui/buttons/ribbon */ "./src/ui/buttons/ribbon.ts");
 const exceptions_1 = __webpack_require__(/*! ../ui/exceptions */ "./src/ui/exceptions.js");
 const qwerty_1 = __webpack_require__(/*! ../ui/qwerty */ "./src/ui/qwerty.js");
 const factory_1 = __webpack_require__(/*! ../ui/dialogs/factory */ "./src/ui/dialogs/factory.ts");
 const piano_1 = __webpack_require__(/*! ../render/sui/piano */ "./src/render/sui/piano.ts");
-const layoutDebug_1 = __webpack_require__(/*! ../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const help_1 = __webpack_require__(/*! ../ui/help */ "./src/ui/help.js");
 const tracker_1 = __webpack_require__(/*! ../render/sui/tracker */ "./src/render/sui/tracker.ts");
 const editorKeys_1 = __webpack_require__(/*! ../ui/keyBindings/default/editorKeys */ "./src/ui/keyBindings/default/editorKeys.ts");
 const trackerKeys_1 = __webpack_require__(/*! ../ui/keyBindings/default/trackerKeys */ "./src/ui/keyBindings/default/trackerKeys.ts");
-const defaultRibbon_1 = __webpack_require__(/*! ../ui/ribbonLayout/default/defaultRibbon */ "./src/ui/ribbonLayout/default/defaultRibbon.ts");
 const svgHelpers_1 = __webpack_require__(/*! ../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
-// ## SuiEventHandler
-// ## Description:
-// Manages DOM events and binds keyboard and mouse events
-// to editor and menu commands, tracker and layout manager.
-// ### Event model:
-// Events can come from the following sources:
-// 1. menus or dialogs can send dialogDismiss or menuDismiss event, indicating a modal has been dismissed.
-// 2. window resize events
-// 3. keyboard, when in editor mode.  When modals or dialogs are active, wait for dismiss event
-// 4. svg piano key events smo-piano-key
-// 5. tracker change events tracker-selection
+/**
+ * this is the default keyboard/mouse handler for smoosic in application mode.
+ * It diverts key events to tracker or key commmands as appropriate, and mouse events to
+ * tracker.  Modal elements take this control away temporarily.
+ *
+ * It also handles some global events such as window resize and scroll of the music region.
+*/
 class SuiEventHandler {
     constructor(params) {
         this.resizing = false;
@@ -478,41 +696,23 @@ class SuiEventHandler {
         this.trackScrolling = false;
         this.keyHandlerObj = null;
         this.piano = null;
-        this.unbound = false;
-        this.keydownHandler = null;
-        this.mouseMoveHandler = null;
-        this.mouseClickHandler = null;
-        this.keyBind = [];
         globalThis.SuiEventHandlerInstance = this;
         this.view = params.view;
         this.menus = params.menus;
+        this.completeNotifier = params.completeNotifier;
         this.eventSource = params.eventSource;
-        this.tracker = this.view.tracker; // needed for key event handling
+        this.tracker = params.tracker; // needed for key event handling
+        this.keyBind = params.keyBindings;
         this.keyCommands = params.keyCommands;
-        this.keyCommands.completeNotifier = this;
         this.keyCommands.view = this.view;
         this.resizing = false;
         this.undoStatus = 0;
         this.trackScrolling = false;
         this.keyHandlerObj = null;
-        this.keyBind = SuiEventHandler.keyBindingDefaults;
-        this.ribbon = new ribbon_1.RibbonButtons({
-            ribbons: defaultRibbon_1.defaultRibbonLayout.ribbons,
-            ribbonButtons: defaultRibbon_1.defaultRibbonLayout.ribbonButtons,
-            menus: this.menus,
-            completeNotifier: this,
-            view: this.view,
-            eventSource: this.eventSource,
-            tracker: this.tracker
-        });
-        this.menus.setController(this);
-        // create globbal exception instance
+        // create global exception instance
         this.exhandler = new exceptions_1.SuiExceptionHandler(this);
         this.bindEvents();
-        // Only display the ribbon one time b/c it's expensive operation
-        this.ribbon.display();
         this.bindResize();
-        this.view.startRenderingEngine();
         this.createPiano();
     }
     static get scrollable() {
@@ -562,7 +762,7 @@ class SuiEventHandler {
         var parameters = {
             modifier: modifierSelection.modifier,
             view: this.view, eventSource: this.eventSource,
-            completeNotifier: this, keyCommands: this.keyCommands,
+            completeNotifier: this.completeNotifier, keyCommands: this.keyCommands,
             ctor: '',
             tracker: this.tracker,
             startPromise: null,
@@ -615,22 +815,6 @@ class SuiEventHandler {
     get renderElement() {
         return this.view.renderer.renderElement;
     }
-    // ## keyBindingDefaults
-    // ### Description:
-    // Different applications can create their own key bindings, these are the defaults.
-    // Many editor commands can be reached by a single keystroke.  For more advanced things there
-    // are menus.
-    static get keyBindingDefaults() {
-        var editorKeys = SuiEventHandler.editorKeyBindingDefaults;
-        editorKeys.forEach((key) => {
-            key.module = 'keyCommands';
-        });
-        var trackerKeys = SuiEventHandler.trackerKeyBindingDefaults;
-        trackerKeys.forEach((key) => {
-            key.module = 'tracker';
-        });
-        return trackerKeys.concat(editorKeys);
-    }
     // ## editorKeyBindingDefaults
     // ## Description:
     // execute a simple command on the editor, based on a keystroke.
@@ -653,32 +837,6 @@ class SuiEventHandler {
     menuHelp() {
         help_1.SuiHelp.displayHelp();
     }
-    static get defaults() {
-        return {
-            keyBind: SuiEventHandler.keyBindingDefaults
-        };
-    }
-    // ### unbindKeyboardForModal
-    // Global events from keyboard and pointer are handled by this object.  Modal
-    // UI elements take over the events, and then let the controller know when
-    // the modals go away.
-    unbindKeyboardForModal(dialog) {
-        if (this.unbound) {
-            console.log('received duplicate bind event');
-            return;
-        }
-        this.unbound = true;
-        layoutDebug_1.layoutDebug.addDialogDebug('controller: unbindKeyboardForModal');
-        const rebind = () => {
-            this.unbound = false;
-            this.bindEvents();
-            layoutDebug_1.layoutDebug.addDialogDebug('controller: unbindKeyboardForModal resolve');
-        };
-        this.eventSource.unbindKeydownHandler(this.keydownHandler);
-        this.eventSource.unbindMouseMoveHandler(this.mouseMoveHandler);
-        this.eventSource.unbindMouseClickHandler(this.mouseClickHandler);
-        dialog.closeModalPromise.then(rebind);
-    }
     evKey(evdata) {
         if ($('body').hasClass('translation-mode')) {
             return;
@@ -697,7 +855,7 @@ class SuiEventHandler {
             }
             if (dataCopy.key == '/') {
                 // set up menu DOM.
-                this.menus.slashMenuMode(this);
+                this.menus.slashMenuMode(this.completeNotifier);
             }
             if (dataCopy.key == 'Enter') {
                 this.trackerModifierSelect(dataCopy);
@@ -748,9 +906,6 @@ class SuiEventHandler {
         $('body').off('forceResizeEvent').on('forceResizeEvent', function () {
             self.resizeEvent();
         });
-        this.mouseMoveHandler = this.eventSource.bindMouseMoveHandler(this, 'mouseMove');
-        this.mouseClickHandler = this.eventSource.bindMouseClickHandler(this, 'mouseClick');
-        this.keydownHandler = this.eventSource.bindKeydownHandler(this, 'evKey');
         this.helpControls();
         window.addEventListener('error', function (e) {
             exceptions_1.SuiExceptionHandler.instance.exceptionHandler(e);
@@ -759,143 +914,6 @@ class SuiEventHandler {
 }
 exports.SuiEventHandler = SuiEventHandler;
 SuiEventHandler.reentry = false;
-
-
-/***/ }),
-
-/***/ "./src/application/eventSource.ts":
-/*!****************************************!*\
-  !*** ./src/application/eventSource.ts ***!
-  \****************************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.BrowserEventSource = void 0;
-// ##BrowserEventSource
-// Handle registration for events.  Can be used for automated testing, so all
-// the events are consolidated in one place so they can be simulated or recorded.
-// If you already have an event-handling class, you can provide your own and 
-// send events to Smoosic through this interface
-class BrowserEventSource {
-    constructor() {
-        this.handleMouseMove = null;
-        this.handleMouseClick = null;
-        this.handleMouseUp = null;
-        this.handleMouseDown = null;
-        this.keydownHandlers = [];
-        this.mouseMoveHandlers = [];
-        this.mouseClickHandlers = [];
-        this.mouseUpHandlers = [];
-        this.mouseDownHandlers = [];
-        this.domTriggers = [];
-        this.handleKeydown = this.evKey.bind(this);
-        window.addEventListener("keydown", this.handleKeydown, true);
-    }
-    evKey(event) {
-        this.keydownHandlers.forEach((handler) => {
-            handler.sink[handler.method](event);
-        });
-    }
-    mouseMove(event) {
-        this.mouseMoveHandlers.forEach((handler) => {
-            handler.sink[handler.method](event);
-        });
-    }
-    mouseClick(event) {
-        this.mouseClickHandlers.forEach((handler) => {
-            handler.sink[handler.method](event);
-        });
-    }
-    mouseDown(event) {
-        this.mouseDownHandlers.forEach((handler) => {
-            handler.sink[handler.method](event);
-        });
-    }
-    mouseUp(event) {
-        this.mouseUpHandlers.forEach((handler) => {
-            handler.sink[handler.method](event);
-        });
-    }
-    setRenderElement(renderElement) {
-        this.renderElement = renderElement;
-        var self = this;
-        this.handleMouseMove = this.mouseMove.bind(this);
-        this.handleMouseClick = this.mouseClick.bind(this);
-        this.handleMouseUp = this.mouseUp.bind(this);
-        this.handleMouseDown = this.mouseDown.bind(this);
-        $(document)[0].addEventListener("mousemove", this.handleMouseMove);
-        $(this.renderElement)[0].addEventListener("click", this.handleMouseClick);
-        $(document)[0].addEventListener("mouseup", this.handleMouseUp);
-        $(document)[0].addEventListener("mousedown", this.handleMouseDown);
-    }
-    _unbindHandlerArray(arSrc, arDest, handler) {
-        arSrc.forEach((htest) => {
-            if (handler.symbol !== htest.symbol) {
-                arDest.push(htest);
-            }
-        });
-    }
-    unbindMouseMoveHandler(handler) {
-        const handlers = [];
-        this._unbindHandlerArray(this.mouseMoveHandlers, handlers, handler);
-        this.mouseMoveHandlers = handlers;
-    }
-    unbindMouseDownHandler(handler) {
-        const handlers = [];
-        this._unbindHandlerArray(this.mouseDownHandlers, handlers, handler);
-        this.mouseDownHandlers = handlers;
-    }
-    unbindMouseUpHandler(handler) {
-        const handlers = [];
-        this._unbindHandlerArray(this.mouseUpHandlers, handlers, handler);
-        this.mouseUpHandlers = handlers;
-    }
-    unbindMouseClickHandler(handler) {
-        const handlers = [];
-        this._unbindHandlerArray(this.mouseClickHandlers, handlers, handler);
-        this.mouseClickHandlers = handlers;
-    }
-    unbindKeydownHandler(handler) {
-        const handlers = [];
-        this._unbindHandlerArray(this.keydownHandlers, handlers, handler);
-        this.keydownHandlers = handlers;
-    }
-    bindScroller() { }
-    // ### bindKeydownHandler
-    // add a handler for the evKey event, for keyboard data.
-    bindKeydownHandler(sink, method) {
-        var handler = { symbol: Symbol(), sink, method };
-        this.keydownHandlers.push(handler);
-        return handler;
-    }
-    bindMouseMoveHandler(sink, method) {
-        var handler = { symbol: Symbol(), sink, method };
-        this.mouseMoveHandlers.push(handler);
-        return handler;
-    }
-    bindMouseUpHandler(sink, method) {
-        var handler = { symbol: Symbol(), sink, method };
-        this.mouseUpHandlers.push(handler);
-        return handler;
-    }
-    bindMouseDownHandler(sink, method) {
-        var handler = { symbol: Symbol(), sink, method };
-        this.mouseDownHandlers.push(handler);
-        return handler;
-    }
-    bindMouseClickHandler(sink, method) {
-        var handler = { symbol: Symbol(), sink, method };
-        this.mouseClickHandlers.push(handler);
-        return handler;
-    }
-    domClick(selector, sink, method, args) {
-        $(selector).off('click').on('click', function (ev) {
-            sink[method](ev, args);
-        });
-    }
-}
-exports.BrowserEventSource = BrowserEventSource;
 
 
 /***/ }),
@@ -934,6 +952,8 @@ const player_1 = __webpack_require__(/*! ../ui/buttons/player */ "./src/ui/butto
 const stave_1 = __webpack_require__(/*! ../ui/buttons/stave */ "./src/ui/buttons/stave.ts");
 const text_1 = __webpack_require__(/*! ../ui/buttons/text */ "./src/ui/buttons/text.ts");
 const voice_1 = __webpack_require__(/*! ../ui/buttons/voice */ "./src/ui/buttons/voice.ts");
+const translationEditor_1 = __webpack_require__(/*! ../ui/i18n/translationEditor */ "./src/ui/i18n/translationEditor.ts");
+const configuration_1 = __webpack_require__(/*! ./configuration */ "./src/application/configuration.ts");
 const ribbon_1 = __webpack_require__(/*! ../ui/buttons/ribbon */ "./src/ui/buttons/ribbon.ts");
 // Language strings
 const language_en_1 = __webpack_require__(/*! ../ui/i18n/language_en */ "./src/ui/i18n/language_en.js");
@@ -963,6 +983,7 @@ const tie_1 = __webpack_require__(/*! ../ui/dialogs/tie */ "./src/ui/dialogs/tie
 const volta_1 = __webpack_require__(/*! ../ui/dialogs/volta */ "./src/ui/dialogs/volta.ts");
 const hairpin_1 = __webpack_require__(/*! ../ui/dialogs/hairpin */ "./src/ui/dialogs/hairpin.ts");
 const staffGroup_1 = __webpack_require__(/*! ../ui/dialogs/staffGroup */ "./src/ui/dialogs/staffGroup.ts");
+const partInfo_1 = __webpack_require__(/*! ../ui/dialogs/partInfo */ "./src/ui/dialogs/partInfo.ts");
 const fileDialogs_1 = __webpack_require__(/*! ../ui/dialogs/fileDialogs */ "./src/ui/dialogs/fileDialogs.ts");
 // Dialog components
 const textInput_1 = __webpack_require__(/*! ../ui/dialogs/components/textInput */ "./src/ui/dialogs/components/textInput.ts");
@@ -993,7 +1014,7 @@ const keySignature_1 = __webpack_require__(/*! ../ui/menus/keySignature */ "./sr
 const staffModifier_1 = __webpack_require__(/*! ../ui/menus/staffModifier */ "./src/ui/menus/staffModifier.ts");
 const file_1 = __webpack_require__(/*! ../ui/menus/file */ "./src/ui/menus/file.ts");
 const language_1 = __webpack_require__(/*! ../ui/menus/language */ "./src/ui/menus/language.ts");
-const language_2 = __webpack_require__(/*! ../ui/i18n/language */ "./src/ui/i18n/language.js");
+const language_2 = __webpack_require__(/*! ../ui/i18n/language */ "./src/ui/i18n/language.ts");
 const measure_2 = __webpack_require__(/*! ../ui/menus/measure */ "./src/ui/menus/measure.ts");
 const staff_1 = __webpack_require__(/*! ../ui/menus/staff */ "./src/ui/menus/staff.ts");
 const xhrLoader_1 = __webpack_require__(/*! ../ui/fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.js");
@@ -1006,7 +1027,7 @@ const layoutDebug_1 = __webpack_require__(/*! ../render/sui/layoutDebug */ "./sr
 const mapper_1 = __webpack_require__(/*! ../render/sui/mapper */ "./src/render/sui/mapper.ts");
 const scroller_1 = __webpack_require__(/*! ../render/sui/scroller */ "./src/render/sui/scroller.ts");
 const actionPlayback_1 = __webpack_require__(/*! ../render/sui/actionPlayback */ "./src/render/sui/actionPlayback.ts");
-// SMO components
+// SMO object model
 const score_2 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
 const xmlScore_1 = __webpack_require__(/*! ../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
 const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
@@ -1019,6 +1040,7 @@ const selections_1 = __webpack_require__(/*! ../smo/xform/selections */ "./src/s
 const noteModifiers_1 = __webpack_require__(/*! ../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const systemStaff_1 = __webpack_require__(/*! ../smo/data/systemStaff */ "./src/smo/data/systemStaff.ts");
 const scoreModifiers_1 = __webpack_require__(/*! ../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const operations_1 = __webpack_require__(/*! ../smo/xform/operations */ "./src/smo/xform/operations.ts");
 const measureModifiers_1 = __webpack_require__(/*! ../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const toVex_1 = __webpack_require__(/*! ../smo/xform/toVex */ "./src/smo/xform/toVex.ts");
 const getClass = (jsonString) => {
@@ -1026,9 +1048,10 @@ const getClass = (jsonString) => {
 };
 exports.Smo = {
     // Application-level classes
+    SmoConfiguration: configuration_1.SmoConfiguration,
     SuiApplication: application_1.SuiApplication,
     SuiDom: dom_1.SuiDom, SuiEventHandler: eventHandler_1.SuiEventHandler, SuiExceptionHandler: exceptions_1.SuiExceptionHandler,
-    Qwerty: qwerty_1.Qwerty, SuiHelp: help_1.SuiHelp,
+    Qwerty: qwerty_1.Qwerty, SuiHelp: help_1.SuiHelp, SmoTranslationEditor: translationEditor_1.SmoTranslationEditor,
     // Ribbon buttons
     RibbonButtons: ribbon_1.RibbonButtons, NoteButtons: note_1.NoteButtons, TextButtons: text_1.TextButtons, ChordButtons: chord_1.ChordButtons, MicrotoneButtons: microtone_1.MicrotoneButtons,
     StaveButtons: stave_1.StaveButtons, BeamButtons: beam_1.BeamButtons, MeasureButtons: measure_1.MeasureButtons, DurationButtons: duration_1.DurationButtons,
@@ -1046,6 +1069,7 @@ exports.Smo = {
     SuiSlurAttributesDialog: slur_1.SuiSlurAttributesDialog, SuiTieAttributesDialog: tie_1.SuiTieAttributesDialog, SuiVoltaAttributeDialog: volta_1.SuiVoltaAttributeDialog,
     SuiHairpinAttributesDialog: hairpin_1.SuiHairpinAttributesDialog, SuiStaffGroupDialog: staffGroup_1.SuiStaffGroupDialog, helpModal: textBlock_1.helpModal,
     SuiLoadFileDialog: fileDialogs_1.SuiLoadFileDialog, SuiLoadMxmlDialog: fileDialogs_1.SuiLoadMxmlDialog, SuiScorePreferencesDialog: preferences_1.SuiScorePreferencesDialog,
+    SuiPartInfoDialog: partInfo_1.SuiPartInfoDialog,
     /* SuiLoadActionsDialog, SuiSaveActionsDialog, */
     SuiPrintFileDialog: fileDialogs_1.SuiPrintFileDialog, SuiSaveFileDialog: fileDialogs_1.SuiSaveFileDialog, SuiSaveXmlDialog: fileDialogs_1.SuiSaveXmlDialog,
     SuiSaveMidiDialog: fileDialogs_1.SuiSaveMidiDialog, SuiDialogBase: dialog_1.SuiDialogBase,
@@ -1072,7 +1096,7 @@ exports.Smo = {
     SmoNote: note_2.SmoNote,
     // staff modifier
     SmoStaffHairpin: staffModifiers_1.SmoStaffHairpin, StaffModifierBase: staffModifiers_1.StaffModifierBase,
-    SmoInstrument: staffModifiers_1.SmoInstrument, SmoPartMap: staffModifiers_1.SmoPartMap, SmoSlur: staffModifiers_1.SmoSlur, SmoTie: staffModifiers_1.SmoTie, SmoSystemGroup: scoreModifiers_1.SmoSystemGroup,
+    SmoInstrument: staffModifiers_1.SmoInstrument, SmoSlur: staffModifiers_1.SmoSlur, SmoTie: staffModifiers_1.SmoTie, SmoSystemGroup: scoreModifiers_1.SmoSystemGroup,
     // measure modifiers
     SmoRehearsalMark: measureModifiers_1.SmoRehearsalMark, SmoMeasureFormat: measureModifiers_1.SmoMeasureFormat, SmoBarline: measureModifiers_1.SmoBarline, SmoRepeatSymbol: measureModifiers_1.SmoRepeatSymbol,
     SmoVolta: measureModifiers_1.SmoVolta, SmoMeasureText: measureModifiers_1.SmoMeasureText, SmoTempoText: measureModifiers_1.SmoTempoText,
@@ -1080,7 +1104,7 @@ exports.Smo = {
     SmoOrnament: noteModifiers_1.SmoOrnament,
     SmoArticulation: noteModifiers_1.SmoArticulation, SmoDynamicText: noteModifiers_1.SmoDynamicText, SmoGraceNote: noteModifiers_1.SmoGraceNote, SmoMicrotone: noteModifiers_1.SmoMicrotone, SmoLyric: noteModifiers_1.SmoLyric,
     // Smo Transformers
-    SmoSelection: selections_1.SmoSelection, SmoDuration: tickDuration_1.SmoDuration, UndoBuffer: undo_1.UndoBuffer, SmoToVex: toVex_1.SmoToVex,
+    SmoSelection: selections_1.SmoSelection, SmoSelector: selections_1.SmoSelector, SmoDuration: tickDuration_1.SmoDuration, UndoBuffer: undo_1.UndoBuffer, SmoToVex: toVex_1.SmoToVex, SmoOperation: operations_1.SmoOperation,
     // new score bootstrap
     basicJson: basic_1.basicJson,
     emptyScoreJson: basic_1.emptyScoreJson,
@@ -1256,27 +1280,20 @@ class SuiKeyCommands {
     toggleArticulationCommand(articulation, ctor) {
         this.view.toggleArticulation(articulation, ctor);
     }
-    addRemoveArticulation(keyEvent) {
-        let atyp = noteModifiers_1.SmoArticulation.articulations.accent;
-        if (this.view.tracker.selections.length < 1) {
-            return;
-        }
-        if (keyEvent.key.toLowerCase() === 'h') {
-            atyp = noteModifiers_1.SmoArticulation.articulations.accent;
-        }
-        if (keyEvent.key.toLowerCase() === 'i') {
-            atyp = noteModifiers_1.SmoArticulation.articulations.tenuto;
-        }
-        if (keyEvent.key.toLowerCase() === 'j') {
-            atyp = noteModifiers_1.SmoArticulation.articulations.staccato;
-        }
-        if (keyEvent.key.toLowerCase() === 'k') {
-            atyp = noteModifiers_1.SmoArticulation.articulations.marcato;
-        }
-        if (keyEvent.key.toLowerCase() === 'l') {
-            atyp = noteModifiers_1.SmoArticulation.articulations.pizzicato;
-        }
-        this.toggleArticulationCommand(atyp, 'SmoArticulation');
+    addRemoveAccent() {
+        this.toggleArticulationCommand(noteModifiers_1.SmoArticulation.articulations.accent, 'SmoArticulation');
+    }
+    addRemoveTenuto() {
+        this.toggleArticulationCommand(noteModifiers_1.SmoArticulation.articulations.tenuto, 'SmoArticulation');
+    }
+    addRemoveStaccato() {
+        this.toggleArticulationCommand(noteModifiers_1.SmoArticulation.articulations.staccato, 'SmoArticulation');
+    }
+    addRemoveMarcato() {
+        this.toggleArticulationCommand(noteModifiers_1.SmoArticulation.articulations.marcato, 'SmoArticulation');
+    }
+    addRemovePizzicato() {
+        this.toggleArticulationCommand(noteModifiers_1.SmoArticulation.articulations.pizzicato, 'SmoArticulation');
     }
 }
 exports.SuiKeyCommands = SuiKeyCommands;
@@ -12622,10 +12639,12 @@ class VxMeasure {
             const vm = ar[ar.length - 1];
             vm.setFont(tm.fontInfo);
         });
-        const rmb = this.smoMeasure.getRehearsalMark();
-        const rm = rmb;
-        if (rm) {
-            this.stave.setSection(rm.symbol, 0);
+        if (this.smoMeasure.svg.rowInSystem === 0) {
+            const rmb = this.smoMeasure.getRehearsalMark();
+            const rm = rmb;
+            if (rm) {
+                this.stave.setSection(rm.symbol, 0);
+            }
         }
         const tempo = this.smoMeasure.getTempo();
         if (tempo && this.smoMeasure.svg.forceTempo) {
@@ -13036,7 +13055,8 @@ class VxSystem {
                 spacing: slur.spacing,
                 cps: slur.controlPoints,
                 invert: slur.invert,
-                position: slur.position
+                position: slur.position,
+                position_end: slur.position_end
             });
             curve.setContext(this.context).draw();
         }
@@ -18615,7 +18635,7 @@ exports.SmoTextGroup = SmoTextGroup;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmoTie = exports.SmoSlur = exports.SmoStaffHairpin = exports.SmoPartMap = exports.SmoInstrument = exports.SmoInstrumentStringParams = exports.SmoInstrumentNumParams = exports.StaffModifierBase = void 0;
+exports.SmoTie = exports.SmoSlur = exports.SmoStaffHairpin = exports.SmoInstrument = exports.SmoInstrumentStringParams = exports.SmoInstrumentNumParams = exports.StaffModifierBase = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
@@ -18711,13 +18731,6 @@ class SmoInstrument extends StaffModifierBase {
     }
 }
 exports.SmoInstrument = SmoInstrument;
-// WIP
-class SmoPartMap {
-    static get attributes() {
-        return ['staffId', 'name', 'abbreviation', 'scoreGroup', 'partnerId', 'instrumentMap', 'layoutManager'];
-    }
-}
-exports.SmoPartMap = SmoPartMap;
 // ## SmoStaffHairpin
 // ## Descpription:
 // crescendo/decrescendo
@@ -23489,6 +23502,30 @@ class SmoOperation {
             earlierAccidental(pitch);
             note.pitches.push(pitch);
         });
+    }
+    /**
+     * Convenience function to create SmoNote[] from letters, with the correct accidental
+     * for the key signature, given duration, etc
+     * @param startPitch - the pitch used to calculate the octave of the new note
+     * @param clef
+     * @param keySignature
+     * @param duration - vex duration
+     * @param letters - string of PitchLetter
+     * @returns
+     */
+    static notesFromLetters(startPitch, clef, keySignature, duration, letters) {
+        const rv = [];
+        let curPitch = startPitch;
+        const ticks = music_1.SmoMusic.durationToTicks(duration);
+        letters.split('').forEach((letter) => {
+            curPitch = music_1.SmoMusic.getLetterNotePitch(curPitch, letter, keySignature);
+            const defs = note_1.SmoNote.defaults;
+            defs.ticks = { numerator: ticks, denominator: 1, remainder: 0 };
+            defs.pitches = [curPitch];
+            defs.clef = clef;
+            rv.push(new note_1.SmoNote(defs));
+        });
+        return rv;
     }
     static toggleCourtesyAccidental(selection) {
         let toBe = false;
@@ -31619,6 +31656,7 @@ class CollapseRibbonControl extends button_1.SuiButton {
             if ((typeof (ctor) === 'function') && this.completeNotifier) {
                 const el = $('#' + cb.id);
                 const params = {
+                    ctor: cb.ctor,
                     buttonId: cb.id,
                     buttonData: cb,
                     buttonElement: el,
@@ -32154,6 +32192,7 @@ class RibbonButtons {
                         $(buttonHtml).addClass('collapseContainer');
                         // collapseParent
                         this.collapsables.push(new collapsable_1.CollapseRibbonControl({
+                            ctor: buttonData.ctor,
                             buttons: this.ribbonButtons,
                             view: this.view,
                             menus: this.menus,
@@ -34085,8 +34124,8 @@ exports.TextCheckComponent = TextCheckComponent;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiTextBlockComponent = exports.SuiTextInPlace = void 0;
-const textEdit_1 = __webpack_require__(/*! ../../../render/sui/textEdit */ "./src/render/sui/textEdit.ts");
 const scoreModifiers_1 = __webpack_require__(/*! ../../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const textEdit_1 = __webpack_require__(/*! ../../../render/sui/textEdit */ "./src/render/sui/textEdit.ts");
 const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 const button_1 = __webpack_require__(/*! ./button */ "./src/ui/dialogs/components/button.ts");
 const rocker_1 = __webpack_require__(/*! ./rocker */ "./src/ui/dialogs/components/rocker.ts");
@@ -34817,7 +34856,6 @@ exports.createAndDisplayDialog = exports.dialogConstructor = exports.SuiDialogBa
 // Copyright (c) Aaron David Newman 2021.
 const svgHelpers_1 = __webpack_require__(/*! ../../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const language_1 = __webpack_require__(/*! ../i18n/language */ "./src/ui/i18n/language.js");
 const baseComponent_1 = __webpack_require__(/*! ./components/baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 /**
  * Note: Most dialogs will inherit from SuiDialogAdapter, not SuiDialogBase.
@@ -34866,7 +34904,7 @@ class SuiDialogBase extends baseComponent_1.SuiDialogNotifier {
             left,
             label: this.label
         });
-        language_1.SmoTranslator.registerDialog(this.ctor);
+        // SmoTranslator.registerDialog(this.ctor);
     }
     static get displayOptions() {
         return {
@@ -34880,7 +34918,7 @@ class SuiDialogBase extends baseComponent_1.SuiDialogNotifier {
     // print json with string labels to use as a translation file seed.
     static printTranslate(_class) {
         const output = [];
-        const xx = eval('globalThis.Smo' + _class);
+        const xx = eval('globalThis.Smo.' + _class);
         xx.dialogElements.elements.forEach((element) => {
             var _a;
             const component = {};
@@ -36301,6 +36339,8 @@ SuiInstrumentDialog.dialogElements = {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiLibraryDialog = exports.SuiLibraryAdapter = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
 const xmlScore_1 = __webpack_require__(/*! ../../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
 const library_1 = __webpack_require__(/*! ../fileio/library */ "./src/ui/fileio/library.ts");
@@ -37756,6 +37796,7 @@ SuiSlurAttributesDialog.dialogElements = {
         }, {
             smoName: 'position',
             defaultValue: staffModifiers_1.SmoSlur.positions.HEAD,
+            dataType: 'int',
             options: [{
                     value: staffModifiers_1.SmoSlur.positions.HEAD,
                     label: 'Head'
@@ -37768,6 +37809,7 @@ SuiSlurAttributesDialog.dialogElements = {
         }, {
             smoName: 'position_end',
             defaultValue: staffModifiers_1.SmoSlur.positions.HEAD,
+            dataType: 'int',
             options: [{
                     value: staffModifiers_1.SmoSlur.positions.HEAD,
                     label: 'Head'
@@ -38161,6 +38203,8 @@ SuiTempoDialog.dialogElements = {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.helpModal = exports.SuiTextBlockDialog = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
 const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
 const layoutDebug_1 = __webpack_require__(/*! ../../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
@@ -38914,6 +38958,143 @@ SuiVoltaAttributeDialog.dialogElements = {
 
 /***/ }),
 
+/***/ "./src/ui/eventSource.ts":
+/*!*******************************!*\
+  !*** ./src/ui/eventSource.ts ***!
+  \*******************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.BrowserEventSource = void 0;
+/**
+ * This is the event generating interface for Smoosic.  It is kept as
+ * skeletal as possible so applications can call event handling methods from
+ * their own event logic.
+ */
+class BrowserEventSource {
+    constructor() {
+        this.handleMouseMove = null;
+        this.handleMouseClick = null;
+        this.handleMouseUp = null;
+        this.handleMouseDown = null;
+        this.keydownHandlers = [];
+        this.mouseMoveHandlers = [];
+        this.mouseClickHandlers = [];
+        this.mouseUpHandlers = [];
+        this.mouseDownHandlers = [];
+        this.domTriggers = [];
+        this.handleKeydown = this.evKey.bind(this);
+        window.addEventListener("keydown", this.handleKeydown, true);
+    }
+    evKey(event) {
+        this.keydownHandlers.forEach((handler) => {
+            handler.sink[handler.method](event);
+        });
+    }
+    mouseMove(event) {
+        this.mouseMoveHandlers.forEach((handler) => {
+            handler.sink[handler.method](event);
+        });
+    }
+    mouseClick(event) {
+        this.mouseClickHandlers.forEach((handler) => {
+            handler.sink[handler.method](event);
+        });
+    }
+    mouseDown(event) {
+        this.mouseDownHandlers.forEach((handler) => {
+            handler.sink[handler.method](event);
+        });
+    }
+    mouseUp(event) {
+        this.mouseUpHandlers.forEach((handler) => {
+            handler.sink[handler.method](event);
+        });
+    }
+    setRenderElement(renderElement) {
+        this.renderElement = renderElement;
+        var self = this;
+        this.handleMouseMove = this.mouseMove.bind(this);
+        this.handleMouseClick = this.mouseClick.bind(this);
+        this.handleMouseUp = this.mouseUp.bind(this);
+        this.handleMouseDown = this.mouseDown.bind(this);
+        $(document)[0].addEventListener("mousemove", this.handleMouseMove);
+        $(this.renderElement)[0].addEventListener("click", this.handleMouseClick);
+        $(document)[0].addEventListener("mouseup", this.handleMouseUp);
+        $(document)[0].addEventListener("mousedown", this.handleMouseDown);
+    }
+    _unbindHandlerArray(arSrc, arDest, handler) {
+        arSrc.forEach((htest) => {
+            if (handler.symbol !== htest.symbol) {
+                arDest.push(htest);
+            }
+        });
+    }
+    unbindMouseMoveHandler(handler) {
+        const handlers = [];
+        this._unbindHandlerArray(this.mouseMoveHandlers, handlers, handler);
+        this.mouseMoveHandlers = handlers;
+    }
+    unbindMouseDownHandler(handler) {
+        const handlers = [];
+        this._unbindHandlerArray(this.mouseDownHandlers, handlers, handler);
+        this.mouseDownHandlers = handlers;
+    }
+    unbindMouseUpHandler(handler) {
+        const handlers = [];
+        this._unbindHandlerArray(this.mouseUpHandlers, handlers, handler);
+        this.mouseUpHandlers = handlers;
+    }
+    unbindMouseClickHandler(handler) {
+        const handlers = [];
+        this._unbindHandlerArray(this.mouseClickHandlers, handlers, handler);
+        this.mouseClickHandlers = handlers;
+    }
+    unbindKeydownHandler(handler) {
+        const handlers = [];
+        this._unbindHandlerArray(this.keydownHandlers, handlers, handler);
+        this.keydownHandlers = handlers;
+    }
+    bindScroller() { }
+    // ### bindKeydownHandler
+    // add a handler for the evKey event, for keyboard data.
+    bindKeydownHandler(sink, method) {
+        var handler = { symbol: Symbol(), sink, method };
+        this.keydownHandlers.push(handler);
+        return handler;
+    }
+    bindMouseMoveHandler(sink, method) {
+        var handler = { symbol: Symbol(), sink, method };
+        this.mouseMoveHandlers.push(handler);
+        return handler;
+    }
+    bindMouseUpHandler(sink, method) {
+        var handler = { symbol: Symbol(), sink, method };
+        this.mouseUpHandlers.push(handler);
+        return handler;
+    }
+    bindMouseDownHandler(sink, method) {
+        var handler = { symbol: Symbol(), sink, method };
+        this.mouseDownHandlers.push(handler);
+        return handler;
+    }
+    bindMouseClickHandler(sink, method) {
+        var handler = { symbol: Symbol(), sink, method };
+        this.mouseClickHandlers.push(handler);
+        return handler;
+    }
+    domClick(selector, sink, method, args) {
+        $(selector).off('click').on('click', function (ev) {
+            sink[method](ev, args);
+        });
+    }
+}
+exports.BrowserEventSource = BrowserEventSource;
+
+
+/***/ }),
+
 /***/ "./src/ui/exceptions.js":
 /*!******************************!*\
   !*** ./src/ui/exceptions.js ***!
@@ -39280,7 +39461,7 @@ exports.SuiHelp = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const language_1 = __webpack_require__(/*! ./i18n/language */ "./src/ui/i18n/language.js");
+const language_1 = __webpack_require__(/*! ./i18n/language */ "./src/ui/i18n/language.ts");
 class SuiHelp {
     static displayHelp() {
         $('body').addClass('showHelpDialog');
@@ -39332,9 +39513,9 @@ exports.SuiHelp = SuiHelp;
 
 /***/ }),
 
-/***/ "./src/ui/i18n/language.js":
+/***/ "./src/ui/i18n/language.ts":
 /*!*********************************!*\
-  !*** ./src/ui/i18n/language.js ***!
+  !*** ./src/ui/i18n/language.ts ***!
   \*********************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -39343,19 +39524,11 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SmoLanguage = exports.SmoTranslator = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const ribbon_1 = __webpack_require__(/*! ../buttons/ribbon */ "./src/ui/buttons/ribbon.ts");
 const language_ar_1 = __webpack_require__(/*! ./language_ar */ "./src/ui/i18n/language_ar.js");
 const language_de_1 = __webpack_require__(/*! ./language_de */ "./src/ui/i18n/language_de.js");
 const language_en_1 = __webpack_require__(/*! ./language_en */ "./src/ui/i18n/language_en.js");
+const ribbon_1 = __webpack_require__(/*! ../buttons/ribbon */ "./src/ui/buttons/ribbon.ts");
 class SmoTranslator {
-    static get dialogs() {
-        SmoTranslator._dialogs = SmoTranslator._dialogs ? SmoTranslator._dialogs : {};
-        return SmoTranslator._dialogs;
-    }
-    static get menus() {
-        SmoTranslator._menus = SmoTranslator._menus ? SmoTranslator._menus : {};
-        return SmoTranslator._menus;
-    }
     static registerMenu(_class) {
         if (!SmoTranslator.menus[_class]) {
             SmoTranslator.menus[_class] = true;
@@ -39367,19 +39540,20 @@ class SmoTranslator {
         }
     }
     static printLanguages() {
-        var translatables = { dialogs: [], menus: [], buttonText: [] };
+        const dialogs = [];
+        const menus = [];
         SmoTranslator.allDialogs.forEach((key) => {
             SmoTranslator.registerDialog(key);
-            const translatable = Smo.getClass('SuiDialogBase');
-            translatables.dialogs.push(translatable.printTranslate(key));
+            const translatable = eval('globalThis.Smo.' + key);
+            dialogs.push(translatable.printTranslate(key));
         });
         SmoTranslator.allMenus.forEach((key) => {
             SmoTranslator.registerMenu(key);
-            const translatable = Smo.getClass('SuiMenuBase');
-            translatables.menus.push(translatable.printTranslate(key));
+            const translatable = eval('globalThis.Smo.' + key);
+            menus.push(translatable.printTranslate(key));
         });
-        translatables.buttonText = JSON.parse(JSON.stringify(ribbon_1.RibbonButtons.translateButtons));
-        console.log(JSON.stringify(translatables, null, ' '));
+        const buttonText = JSON.parse(JSON.stringify(ribbon_1.RibbonButtons.translateButtons));
+        console.log(JSON.stringify({ dialogs, menus, buttonText }, null, ' '));
     }
     static _updateDialog(dialogStrings, _dialogClass, dialogClass) {
         if (!dialogStrings) {
@@ -39421,7 +39595,8 @@ class SmoTranslator {
             console.log('no strings for Menu ' + menuClass);
             return;
         }
-        _menuClass.defaults.menuItems.forEach((menuItem) => {
+        const defaults = _menuClass.defaults;
+        defaults.menuItems.forEach((menuItem) => {
             const val = menuItem.value;
             const nvPair = menuStrings.menuItems.find((ff) => ff.value === val);
             if (!nvPair) {
@@ -39440,13 +39615,15 @@ class SmoTranslator {
         const trans = SmoLanguage[language];
         // Set the text in all the menus
         SmoTranslator.allMenus.forEach((menuClass) => {
-            const _class = Smo.getClass(menuClass);
+            const _class = eval('globalThis.Smo.' + menuClass);
             const menuStrings = trans.strings.menus.find((mm) => mm.ctor === menuClass);
-            SmoTranslator._updateMenu(menuStrings, _class, menuClass);
-            // Set text in ribbon buttons that invoke menus
-            const menuButton = $('.ribbonButtonContainer button.' + menuClass).find('.left-text .text-span');
-            if (menuButton.length && menuStrings) {
-                $(menuButton).text(menuStrings.label);
+            if (menuStrings) {
+                SmoTranslator._updateMenu(menuStrings, _class, menuClass);
+                // Set text in ribbon buttons that invoke menus
+                const menuButton = $('.ribbonButtonContainer button.' + menuClass).find('.left-text .text-span');
+                if (menuButton.length && menuStrings) {
+                    $(menuButton).text(menuStrings.label);
+                }
             }
         });
         SmoTranslator.allDialogs.forEach((dialogClass) => {
@@ -39454,6 +39631,9 @@ class SmoTranslator {
             const dialogStrings = trans.strings.dialogs.find((mm) => mm.ctor === dialogClass);
             if (typeof (_class) === 'undefined') {
                 console.log('no eval for class ' + dialogClass);
+                return;
+            }
+            if (!dialogStrings) {
                 return;
             }
             // Set text in ribbon buttons that invoke menus
@@ -39483,50 +39663,47 @@ class SmoTranslator {
         return [
             'SuiDynamicsMenu',
             'SuiFileMenu',
-            'SuiStaffMenu',
             'SuiKeySignatureMenu',
-            'SuiMeasureMenu',
-            'SuiTimeSignatureMenu',
-            'SuiStaffModifierMenu',
             'SuiLanguageMenu',
             'SuiLibraryMenu',
-            'SuiScoreMenu'
+            'SuiMeasureMenu',
+            'SuiPartMenu',
+            'SuiScoreMenu',
+            'SuiStaffMenu',
+            'SuiStaffModifierMenu',
+            'SuiTimeSignatureMenu',
         ];
     }
     static get allDialogs() {
         return [
             // file dialogs
-            'SuiLoadFileDialog',
-            'SuiSaveFileDialog',
-            'SuiSaveXmlDialog',
-            'SuiPrintFileDialog',
-            'SuiSaveMidiDialog',
-            'SuiSaveActionsDialog',
-            'SuiLoadMxmlDialog',
-            'SuiLoadActionsDialog',
-            // measure dialogs
-            'SuiMeasureDialog',
-            'SuiTempoDialog',
-            'SuiInstrumentDialog',
-            'SuiInsertMeasures',
-            'SuiTimeSignatureDialog',
-            // score dialogs
-            'SuiScoreViewDialog',
-            'SuiScoreIdentificationDialog',
-            'SuiGlobalLayoutDialog',
-            'SuiScoreFontDialog',
-            'SuiLayoutDialog',
-            // staff dialogs
-            'SuiSlurAttributesDialog',
-            'SuiTieAttributesDialog',
-            'SuiVoltaAttributeDialog',
-            'SuiHairpinAttributesDialog',
-            'SuiStaffGroupDialog',
-            // text dialogs
-            'SuiDynamicModifierDialog',
-            'SuiLyricDialog',
             'SuiChordChangeDialog',
-            'SuiTextBlockDialog'
+            'SuiDynamicModifierDialog',
+            'SuiGlobalLayoutDialog',
+            'SuiHairpinAttributesDialog',
+            'SuiInsertMeasures',
+            'SuiInstrumentDialog',
+            'SuiLoadFileDialog',
+            'SuiLoadMxmlDialog',
+            'SuiLyricDialog',
+            'SuiMeasureDialog',
+            'SuiPageLayoutDialog',
+            'SuiPartInfoDialog',
+            'SuiPrintFileDialog',
+            'SuiSaveFileDialog',
+            'SuiSaveMidiDialog',
+            'SuiSaveXmlDialog',
+            'SuiScoreFontDialog',
+            'SuiScorePreferencesDialog',
+            'SuiScoreIdentificationDialog',
+            'SuiScoreViewDialog',
+            'SuiSlurAttributesDialog',
+            'SuiStaffGroupDialog',
+            'SuiTempoDialog',
+            'SuiTextBlockDialog',
+            'SuiTieAttributesDialog',
+            'SuiTimeSignatureDialog',
+            'SuiVoltaAttributeDialog'
         ];
     }
     static get allHelpFiles() {
@@ -39539,9 +39716,11 @@ class SmoTranslator {
     }
 }
 exports.SmoTranslator = SmoTranslator;
+SmoTranslator.dialogs = [];
+SmoTranslator.menus = [];
 class SmoLanguage {
     static getHelpFile(category) {
-        return Smo.getClass(category + SmoConfig.language);
+        return eval('globalThis.Smo.' + category + SmoConfig.language);
     }
     static get en() {
         const strings = JSON.parse(language_en_1.smoLanguageStringEn);
@@ -44434,9 +44613,9 @@ exports.workingWithTexten = `
 
 /***/ }),
 
-/***/ "./src/ui/i18n/translationEditor.js":
+/***/ "./src/ui/i18n/translationEditor.ts":
 /*!******************************************!*\
-  !*** ./src/ui/i18n/translationEditor.js ***!
+  !*** ./src/ui/i18n/translationEditor.ts ***!
   \******************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -44446,7 +44625,7 @@ exports.SmoTranslationEditor = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const language_1 = __webpack_require__(/*! ./language */ "./src/ui/i18n/language.js");
+const language_1 = __webpack_require__(/*! ./language */ "./src/ui/i18n/language.ts");
 const ribbon_1 = __webpack_require__(/*! ../buttons/ribbon */ "./src/ui/buttons/ribbon.ts");
 // ## SmoTranslationEditor
 // Create a somewhat user-friendly editor DOM to translate SMO
@@ -44465,7 +44644,7 @@ class SmoTranslationEditor {
     // ### _getMenuTextDialogHtml
     // Get all the menu item labels for translation
     static _getMenuTextDialogHtml(menuCtor, enStrings, langStrings) {
-        const menuClass = Smo.getClass(menuCtor);
+        const menuClass = eval('globalThis.Smo.' + menuCtor);
         const menuItems = menuClass['defaults'].menuItems;
         var enMenu = enStrings.menus.find((mn) => mn.ctor === menuCtor);
         // Get the JSON EN menu, or copy the DB strings if it doesn't exist
@@ -44505,32 +44684,24 @@ class SmoTranslationEditor {
         });
         return container;
     }
-    static getStaticText(dialogElements, label) {
-        return dialogElements.find((x) => x.staticText).staticText.find((x) => x[label]);
-    }
     static getButtonTranslateHtml(enStrings, langStrings, transContainer) {
         var b = htmlHelpers_1.htmlHelpers.buildDom;
         var buttonDom = b('div').classes('ribbon-translate-container')
             .attr('data-ribbon-translate', 'buttons').append(b('button').classes('icon-plus trans-expander')).append(b('span').classes('ribbon-translate-title').text('Button Text')).dom();
-        var enKeys = enStrings.buttonText.find((enString) => enString.ribbonButtonText);
+        var enKeys = enStrings.buttonText;
         if (!enKeys) {
             enKeys = JSON.parse(JSON.stringify(ribbon_1.RibbonButtons.translateButtons));
         }
-        var langKeys = langStrings.buttonText.find((langString) => langString.ribbonText);
+        var langKeys = langStrings.buttonText;
         if (!langKeys) {
             langKeys = JSON.parse(JSON.stringify(ribbon_1.RibbonButtons.translateButtons));
         }
-        else {
-            langKeys = langKeys.ribbonText;
-        }
-        ribbon_1.RibbonButtons.translateButtons.forEach((button) => {
+        enKeys.forEach((button) => {
             const langObj = langKeys.find((langText) => langText.buttonId === button.buttonId);
-            const enObj = enKeys.find((enText) => enText.buttonId === button.buttonId);
-            const enString = enObj ? enObj.buttonText : button.buttonText;
             const langString = langObj ? langObj.buttonText : button.buttonText;
             var buttonContainer = b('div').classes('ribbon-button-container')
-                .attr('data-buttoncontainer', button.id).dom();
-            $(buttonContainer).append(SmoTranslationEditor._getHtmlTextInput(button.buttonId, enString, langString, 'ribbon-button', button.buttonId));
+                .attr('data-buttoncontainer', button.buttonId).dom();
+            $(buttonContainer).append(SmoTranslationEditor._getHtmlTextInput(button.buttonId, button.buttonText, langString, 'ribbon-button', button.buttonId));
             $(buttonDom).append(buttonContainer);
         });
         $(transContainer).append(buttonDom);
@@ -44545,7 +44716,7 @@ class SmoTranslationEditor {
             .attr('data-component', 'staticText')
             .dom();
         elements.staticText.forEach((nv) => {
-            const name = Object.keys(nv);
+            const name = Object.keys(nv)[0];
             const value = nv[name];
             var enVal = enDb[name] ? enDb[name] : value;
             var langVal = langDb[name] ? langDb[name] : enDb[name];
@@ -44590,18 +44761,18 @@ class SmoTranslationEditor {
                 if (!langOption || !langOption.label) {
                     langOption = JSON.parse(JSON.stringify(option));
                 }
-                const optionHtml = SmoTranslationEditor._getHtmlTextInput(option.value, enOption.label, langOption.label, 'component-option', option.value);
+                const optionHtml = SmoTranslationEditor._getHtmlTextInput(option.value.toString(), enOption.label, langOption.label, 'component-option', option.value.toString());
                 $(optionsHtml).append(optionHtml);
             });
-            $(container).append(compHtml);
         }
+        $(container).append(compHtml);
     }
     static getDialogTranslationHtml(dialogCtor, enStrings, langStrings) {
         var b = htmlHelpers_1.htmlHelpers.buildDom;
         var container = b('div').classes('db-translate-container').attr('data-dbcontainer', dialogCtor)
             .append(b('button').classes('icon-plus trans-expander'))
             .append(b('span').classes('db-translate-title').text(dialogCtor)).dom();
-        var ctor = Smo.getClass(dialogCtor);
+        var ctor = eval('globalThis.Smo.' + dialogCtor);
         if (!ctor) {
             console.warn('Bad dialog in translate: ' + dialogCtor);
             return;
@@ -44609,13 +44780,18 @@ class SmoTranslationEditor {
         var elements = ctor.dialogElements;
         var enDb = enStrings.dialogs.find((dbStr) => dbStr.ctor === dialogCtor);
         if (!enDb) {
-            enDb = JSON.parse(JSON.stringify(elements));
+            enDb = JSON.parse(JSON.stringify({
+                ctor: dialogCtor, label: elements.label, dialogElements: elements.elements, staticText: elements.staticText
+            }));
         }
         var langDb = langStrings.dialogs.find((dbStr) => dbStr.ctor === dialogCtor);
         if (!langDb) {
-            langDb = JSON.parse(JSON.stringify(elements));
+            langDb = JSON.parse(JSON.stringify({
+                ctor: dialogCtor, label: elements.label, dialogElements: elements.elements, staticText: elements.staticText
+            }));
         }
-        $(container).append(SmoTranslationEditor._getHtmlTextInput(dialogCtor, enDb.label, langDb.label, 'dialog-label', dialogCtor));
+        const htmlText = SmoTranslationEditor._getHtmlTextInput(dialogCtor, enDb.label, langDb.label, 'dialog-label', dialogCtor);
+        $(container).append(htmlText);
         if (elements.staticText) {
             SmoTranslationEditor._getStaticTextDialogHtml(elements, enDb.staticText, langDb.staticText, container);
         }
@@ -44627,13 +44803,16 @@ class SmoTranslationEditor {
         return container;
     }
     static getAllTranslationHtml(lang) {
-        var enStr = language_1.SmoLanguage.en.strings;
-        var langStr = language_1.SmoLanguage[lang].strings;
+        const enStr = language_1.SmoLanguage.en.strings;
+        const langStr = language_1.SmoLanguage[lang].strings;
         var b = htmlHelpers_1.htmlHelpers.buildDom;
         var container = b('div').classes('top-translate-container')
             .attr('dir', language_1.SmoLanguage[lang].dir).dom();
         language_1.SmoTranslator.allDialogs.forEach((dialog) => {
-            $(container).append(SmoTranslationEditor.getDialogTranslationHtml(dialog, enStr, langStr));
+            const htmlDom = SmoTranslationEditor.getDialogTranslationHtml(dialog, enStr, langStr);
+            if (htmlDom) {
+                $(container).append(htmlDom);
+            }
         });
         language_1.SmoTranslator.allMenus.forEach((menu) => {
             $(container).append(SmoTranslationEditor._getMenuTextDialogHtml(menu, enStr, langStr));
@@ -44664,7 +44843,7 @@ class SmoTranslationEditor {
                     elements.push({ staticText: stElements });
                 }
                 else {
-                    var dbComponent = { id: compType };
+                    var dbComponent = { id: compType, label: '', options: {} };
                     dbComponent.label = $(domComponent).find('input.trans-label-input').val();
                     var compOptions = [];
                     $(domComponent).find('[data-component-option]').each(function (ix, optionDom) {
@@ -44681,7 +44860,7 @@ class SmoTranslationEditor {
         });
         $('.menu-translate-container[data-menucontainer]').each((ix, menuEl) => {
             var menuId = $(menuEl).attr('data-menucontainer');
-            var obj = { ctor: menuId };
+            var obj = { ctor: menuId, label: '', options: {}, menuItems: {} };
             const menuLabel = $(menuEl)
                 .find('.dialog-element-container[data-menulabel] .trans-label-input')
                 .val();
@@ -44710,49 +44889,50 @@ class SmoTranslationEditor {
         $('.translation-editor').append(transDom);
         $('body').addClass('translation-mode');
         $('.plaintext-translate').each(function (ix, el) {
-            var txt = $(this).text();
-            var input = $(this).closest('.trans-label').find('input.trans-label-input').val(txt);
+            var txt = $(el).text();
+            $(el).closest('.trans-label').find('input.trans-label-input').val(txt);
         });
-        $('.db-translate-container button.trans-expander').off('click').on('click', function () {
-            var exp = $(this).closest('.db-translate-container');
+        $('.db-translate-container button.trans-expander').off('click').on('click', function (ev) {
+            var exp = $(ev.target).closest('.db-translate-container');
             if ($(exp).hasClass('expanded')) {
                 $(exp).removeClass('expanded');
-                $(this).removeClass('icon-minus');
-                $(this).addClass('icon-plus');
+                $(ev.target).removeClass('icon-minus');
+                $(ev.target).addClass('icon-plus');
             }
             else {
                 $(exp).addClass('expanded');
-                $(this).addClass('icon-minus');
-                $(this).removeClass('icon-plus');
+                $(ev.target).addClass('icon-minus');
+                $(ev.target).removeClass('icon-plus');
             }
         });
-        $('.menu-translate-container button.trans-expander').off('click').on('click', function () {
-            var exp = $(this).closest('.menu-translate-container');
+        $('.menu-translate-container button.trans-expander').off('click').on('click', function (ev) {
+            var exp = $(ev.target).closest('.menu-translate-container');
             if ($(exp).hasClass('expanded')) {
                 $(exp).removeClass('expanded');
-                $(this).removeClass('icon-minus');
-                $(this).addClass('icon-plus');
+                $(ev.target).removeClass('icon-minus');
+                $(ev.target).addClass('icon-plus');
             }
             else {
                 $(exp).addClass('expanded');
-                $(this).addClass('icon-minus');
-                $(this).removeClass('icon-plus');
+                $(ev.target).addClass('icon-minus');
+                $(ev.target).removeClass('icon-plus');
             }
         });
         $('.ribbon-translate-container button.trans-expander').off('click').on('click', function () {
-            var exp = $(this).closest('.ribbon-translate-container');
+            const dom = $('.ribbon-translate-container button.trans-expander');
+            var exp = $(dom).closest('.ribbon-translate-container');
             if ($(exp).hasClass('expanded')) {
                 $(exp).removeClass('expanded');
-                $(this).removeClass('icon-minus');
-                $(this).addClass('icon-plus');
+                $(dom).removeClass('icon-minus');
+                $(dom).addClass('icon-plus');
             }
             else {
                 $(exp).addClass('expanded');
-                $(this).addClass('icon-minus');
-                $(this).removeClass('icon-plus');
+                $(dom).addClass('icon-minus');
+                $(dom).removeClass('icon-plus');
             }
         });
-        $('.translate-submit-button').off('click').on('click', (ev) => {
+        $('.translate-submit-button').off('click').on('click', () => {
             var json = SmoTranslationEditor.parseDom();
             $('.translation-json-text').val(JSON.stringify(json, null, ' '));
         });
@@ -45176,70 +45356,70 @@ class defaultEditorKeys {
                 ctrlKey: false,
                 altKey: false,
                 shiftKey: false,
-                action: "addRemoveArticulation"
+                action: "addRemoveAccent"
             }, {
                 event: "keydown",
                 key: "i",
                 ctrlKey: false,
                 altKey: false,
                 shiftKey: false,
-                action: "addRemoveArticulation"
+                action: "addRemoveTenuto"
             }, {
                 event: "keydown",
                 key: "j",
                 ctrlKey: false,
                 altKey: false,
                 shiftKey: false,
-                action: "addRemoveArticulation"
+                action: "addRemoveStaccato"
             }, {
                 event: "keydown",
                 key: "k",
                 ctrlKey: false,
                 altKey: false,
                 shiftKey: false,
-                action: "addRemoveArticulation"
+                action: "addRemoveMarcato"
             }, {
                 event: "keydown",
                 key: "l",
                 ctrlKey: false,
                 altKey: false,
                 shiftKey: false,
-                action: "addRemoveArticulation"
+                action: "addRemovePizzicato"
             }, {
                 event: "keydown",
                 key: "H",
                 ctrlKey: false,
                 altKey: false,
                 shiftKey: true,
-                action: "addRemoveArticulation"
+                action: "addRemoveAccent"
             }, {
                 event: "keydown",
                 key: "I",
                 ctrlKey: false,
                 altKey: false,
                 shiftKey: true,
-                action: "addRemoveArticulation"
+                action: "addRemoveTenuto"
             }, {
                 event: "keydown",
                 key: "J",
                 ctrlKey: false,
                 altKey: false,
                 shiftKey: true,
-                action: "addRemoveArticulation"
+                action: "addRemoveStaccato"
             }, {
                 event: "keydown",
                 key: "K",
                 ctrlKey: false,
                 altKey: false,
                 shiftKey: true,
-                action: "addRemoveArticulation"
+                action: "addRemoveMarcato"
             }, {
                 event: "keydown",
                 key: "L",
                 ctrlKey: false,
                 altKey: false,
                 shiftKey: true,
-                action: "addRemoveArticulation"
+                action: "addRemovePizzicato"
             }, {
                 event: "keydown",
                 key: "E",
@@ -45779,8 +45959,7 @@ SuiKeySignatureMenu.defaults = {
             icon: '',
             text: 'Cancel',
             value: 'cancel'
-        }],
-    menuContainer: '.menuContainer'
+        }]
 };
 
 
@@ -45796,7 +45975,7 @@ SuiKeySignatureMenu.defaults = {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiLanguageMenu = void 0;
 const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
-const language_1 = __webpack_require__(/*! ../i18n/language */ "./src/ui/i18n/language.js");
+const language_1 = __webpack_require__(/*! ../i18n/language */ "./src/ui/i18n/language.ts");
 class SuiLanguageMenu extends menu_1.SuiMenuBase {
     constructor(params) {
         super(params);
@@ -45834,8 +46013,7 @@ SuiLanguageMenu.defaults = {
             icon: '',
             text: 'Cancel',
             value: 'cancel'
-        }],
-    menuContainer: '.menuContainer'
+        }]
 };
 
 
@@ -45990,7 +46168,6 @@ const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src
 const layoutDebug_1 = __webpack_require__(/*! ../../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
 class SuiMenuManager {
     constructor(params) {
-        this.completeNotifier = null;
         this.bound = false;
         this.hotkeyBindings = {};
         this.closeMenuPromise = null;
@@ -46002,6 +46179,7 @@ class SuiMenuManager {
         this.view = params.view;
         this.bound = false;
         this.menuContainer = params.menuContainer;
+        this.completeNotifier = params.completeNotifier;
         this.undoBuffer = params.undoBuffer;
         this.tracker = params.view.tracker;
     }
@@ -46344,7 +46522,7 @@ SuiMeasureMenu.defaults = {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiMenuBase = void 0;
-const language_1 = __webpack_require__(/*! ../i18n/language */ "./src/ui/i18n/language.js");
+const language_1 = __webpack_require__(/*! ../i18n/language */ "./src/ui/i18n/language.ts");
 class SuiMenuBase {
     constructor(params) {
         this.focusIndex = -1;
@@ -46507,8 +46685,7 @@ SuiPartMenu.defaults = {
             text: 'Cancel',
             value: 'cancel'
         }
-    ],
-    menuContainer: '.menuContainer'
+    ]
 };
 
 
@@ -46799,8 +46976,7 @@ SuiStaffMenu.defaults = {
             text: 'Cancel',
             value: 'cancel'
         }
-    ],
-    menuContainer: '.menuContainer'
+    ]
 };
 
 
@@ -46873,8 +47049,7 @@ SuiStaffModifierMenu.defaults = {
             icon: '',
             text: 'Cancel',
             value: 'cancel'
-        }],
-    menuContainer: '.menuContainer'
+        }]
 };
 
 

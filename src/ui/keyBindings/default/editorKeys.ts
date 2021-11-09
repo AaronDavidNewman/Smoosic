@@ -403,70 +403,70 @@ export class defaultEditorKeys {
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "addRemoveArticulation"
+        action: "addRemoveAccent"
       }, {
         event: "keydown",
         key: "i",
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "addRemoveArticulation"
+        action: "addRemoveTenuto"
       }, {
         event: "keydown",
         key: "j",
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "addRemoveArticulation"
+        action: "addRemoveStaccato"
       }, {
         event: "keydown",
         key: "k",
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "addRemoveArticulation"
+        action: "addRemoveMarcato"
       }, {
         event: "keydown",
         key: "l",
         ctrlKey: false,
         altKey: false,
         shiftKey: false,
-        action: "addRemoveArticulation"
+        action: "addRemovePizzicato"
       }, {
         event: "keydown",
         key: "H",
         ctrlKey: false,
         altKey: false,
         shiftKey: true,
-        action: "addRemoveArticulation"
+        action: "addRemoveAccent"
       }, {
         event: "keydown",
         key: "I",
         ctrlKey: false,
         altKey: false,
         shiftKey: true,
-        action: "addRemoveArticulation"
+        action: "addRemoveTenuto"
       }, {
         event: "keydown",
         key: "J",
         ctrlKey: false,
         altKey: false,
         shiftKey: true,
-        action: "addRemoveArticulation"
+        action: "addRemoveStaccato"
       }, {
         event: "keydown",
         key: "K",
         ctrlKey: false,
         altKey: false,
         shiftKey: true,
-        action: "addRemoveArticulation"
+        action: "addRemoveMarcato"
       }, {
         event: "keydown",
         key: "L",
         ctrlKey: false,
         altKey: false,
         shiftKey: true,
-        action: "addRemoveArticulation"
+        action: "addRemovePizzicato"
       },{
         event: "keydown",
         key: "E",

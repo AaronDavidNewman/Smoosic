@@ -185,27 +185,19 @@ export class SuiKeyCommands {
   toggleArticulationCommand(articulation: string, ctor: string) {
     this.view.toggleArticulation(articulation, ctor);
   }
-
-  addRemoveArticulation(keyEvent: KeyEvent) {
-    let atyp = SmoArticulation.articulations.accent;
-    if (this.view.tracker.selections.length < 1) {
-      return;
-    }
-    if (keyEvent.key.toLowerCase() === 'h') {
-      atyp = SmoArticulation.articulations.accent;
-    }
-    if (keyEvent.key.toLowerCase() === 'i') {
-      atyp = SmoArticulation.articulations.tenuto;
-    }
-    if (keyEvent.key.toLowerCase() === 'j') {
-      atyp = SmoArticulation.articulations.staccato;
-    }
-    if (keyEvent.key.toLowerCase() === 'k') {
-      atyp = SmoArticulation.articulations.marcato;
-    }
-    if (keyEvent.key.toLowerCase() === 'l') {
-      atyp = SmoArticulation.articulations.pizzicato;
-    }
-    this.toggleArticulationCommand(atyp, 'SmoArticulation');
+  addRemoveAccent() {
+    this.toggleArticulationCommand(SmoArticulation.articulations.accent, 'SmoArticulation');
+  }
+  addRemoveTenuto() {
+    this.toggleArticulationCommand(SmoArticulation.articulations.tenuto, 'SmoArticulation');
+  }
+  addRemoveStaccato() {
+    this.toggleArticulationCommand(SmoArticulation.articulations.staccato, 'SmoArticulation');
+  }
+  addRemoveMarcato() {
+    this.toggleArticulationCommand(SmoArticulation.articulations.marcato, 'SmoArticulation');
+  }
+  addRemovePizzicato() {
+    this.toggleArticulationCommand(SmoArticulation.articulations.pizzicato, 'SmoArticulation');
   }
 }
