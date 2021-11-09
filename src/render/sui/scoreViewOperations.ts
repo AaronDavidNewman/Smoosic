@@ -6,7 +6,8 @@ import { SmoSystemStaffParams, SmoSystemStaff } from '../../smo/data/systemStaff
 import { SmoPartInfo } from '../../smo/data/partInfo';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoNote } from '../../smo/data/note';
-import { KeyEvent, SvgBox, Pitch, PitchLetter, FontInfo, SmoConfiguration } from '../../smo/data/common';
+import { KeyEvent, SvgBox, Pitch, PitchLetter, FontInfo } from '../../smo/data/common';
+import { SmoRenderConfiguration } from './configuration';
 import { SmoTextGroup, SmoSystemGroup, SmoPageLayout, SmoGlobalLayout, SmoLayoutManager } from '../../smo/data/scoreModifiers';
 import { SmoDynamicText, SmoNoteModifierBase, SmoGraceNote, SmoArticulation, SmoOrnament, SmoLyric, SmoMicrotone } from '../../smo/data/noteModifiers';
 import { SmoTempoText, SmoVolta, SmoBarline, SmoRepeatSymbol, SmoRehearsalMark, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
@@ -26,7 +27,7 @@ import { htmlHelpers } from '../../common/htmlHelpers';
 import { SuiActionPlayback } from './actionPlayback';
 import { SuiPiano } from './piano';
 declare var $: any;
-declare var SmoConfig: SmoConfiguration;
+declare var SmoConfig: SmoRenderConfiguration;
 
 // ## ScoreViewOperations
 // MVVM-like operations on the displayed score.

@@ -2,7 +2,8 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoMeasure } from '../../smo/data/measure';
 import { UndoBuffer } from '../../smo/xform/undo';
-import { SmoAttrs,  SmoConfiguration, SvgBox } from '../../smo/data/common';
+import { SmoAttrs,  SvgBox } from '../../smo/data/common';
+import { SmoRenderConfiguration } from './configuration';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { SvgHelpers } from './svgHelpers';
@@ -20,7 +21,7 @@ export interface ScoreRenderParams {
   elementId: any,
   score: SmoScore
 }
-declare var SmoConfig: SmoConfiguration;
+declare var SmoConfig: SmoRenderConfiguration;
 declare var $: any;
 const VF = eval('Vex.Flow');
 

@@ -3,10 +3,10 @@
 import { UndoBuffer } from '../../smo/xform/undo';
 import { SuiExceptionHandler } from '../../ui/exceptions';
 import { SuiRenderState } from './renderState';
-import { SmoConfiguration } from '../../smo/data/common';
+import { SmoRenderConfiguration } from './configuration';
 import { SuiTracker } from './tracker';
 
-declare var SmoConfig: SmoConfiguration;
+declare var SmoConfig: SmoRenderConfiguration;
 declare var $: any;
 
 export class SuiRenderDemon {

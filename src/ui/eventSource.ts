@@ -3,7 +3,6 @@
 import { KeyEvent } from '../smo/data/common';
 
 declare var $: any;
-// declare var SmoConfig: SmoConfiguration;
 
 /**
  * Event handler for smoosic.  Any UI element can have any number

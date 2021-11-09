@@ -5,7 +5,7 @@ import { SuiChordComponent } from './components/noteText';
 import { SuiDropdownComponent } from './components/dropdown';
 import { SuiToggleComponent } from './components/toggle';
 import { SuiRockerComponent } from './components/rocker';
-import { SmoConfiguration, KeyEvent } from '../../smo/data/common';
+import {KeyEvent } from '../../smo/data/common';
 import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SmoSelector } from '../../smo/xform/selections';
 import { SuiInlineText } from '../../render/sui/textRender';
@@ -13,7 +13,6 @@ import { SuiFontComponent } from './components/fontComponent';
 import { EventHandler } from '../eventSource';
 
 declare var $: any;
-declare var SmoConfig: SmoConfiguration;
 export class SuiChordChangeDialog extends SuiDialogBase {
   static dialogElements: DialogDefinition =
       {

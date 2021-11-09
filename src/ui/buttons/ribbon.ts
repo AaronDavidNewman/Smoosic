@@ -13,7 +13,7 @@ import { SuiInstrumentDialog } from '../dialogs/instrument';
 import { ButtonLabel } from './button';
 import { SuiPiano } from '../../render/sui/piano';
 import { CollapseRibbonControl } from './collapsable';
-import { createAndDisplayDialog, SuiDialogParams } from '../dialogs/dialog';
+import { createAndDisplayDialog } from '../dialogs/dialog';
 
 declare var $: any;
 

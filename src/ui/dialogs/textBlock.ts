@@ -1,6 +1,5 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoConfiguration } from '../../smo/data/common';
 import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
 
 import { htmlHelpers } from '../../common/htmlHelpers';
@@ -22,7 +21,6 @@ import { SuiTextBlockComponent } from './components/textInPlace';
 import { EventHandler } from '../eventSource';
 
 declare var $: any;
-declare var SmoConfig: SmoConfiguration;
 
 export class SuiTextBlockDialog extends SuiDialogBase {
   get textEditorCtrl(): SuiTextInPlace {

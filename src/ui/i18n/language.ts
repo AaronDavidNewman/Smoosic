@@ -4,11 +4,12 @@ import { smoLanguageStringAr } from './language_ar';
 import { smoLanguageStringDe } from './language_de';
 import { smoLanguageStringEn } from './language_en';
 import { MenuChoiceDefinition, MenuDefinition, MenuTranslation } from '../menus/menu';
+import { SmoUiConfiguration } from '../configuration';
 import { ButtonLabel } from '../buttons/button';
 import { RibbonButtons } from '../buttons/ribbon';
 import { DialogTranslation } from '../dialogs/dialog';
 declare var $: any;
-declare var SmoConfig: any;
+declare var SmoConfig: SmoUiConfiguration;
 
 export interface TranslationStrings {
   dialogs: DialogTranslation[],

@@ -1,9 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { PromiseHelpers } from '../../common/promiseHelpers';
+import { SmoRenderConfiguration } from './configuration';
 import { SmoActionRecord } from '../../smo/xform/actions';
-import { SmoConfiguration } from '../../smo/data/common';
-declare var SmoConfig: SmoConfiguration;
+
+declare var SmoConfig: SmoRenderConfiguration;
 
 // ## SuiActionPlayback
 // play back the action records.

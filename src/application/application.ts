@@ -3,7 +3,7 @@
 import { smoSerialize } from '../common/serializationHelpers';
 import { _MidiWriter } from '../common/midiWriter';
 
-import { SmoConfiguration, ConfigurationOption, ConfigurationOptions, SmoLoadTypes } from '../smo/data/common';
+import { SmoConfiguration, SmoConfigurationParams } from './configuration';
 import { SmoScore } from '../smo/data/score';
 import { UndoBuffer } from '../smo/xform/undo';
 
@@ -21,9 +21,8 @@ import { MerriweatherFont } from '../styles/font_metrics/Merriweather-Regular';
 import { SourceSansProFont } from '../styles/font_metrics/ssp-sans-metrics';
 import { SourceSerifProFont } from '../styles/font_metrics/ssp-serif-metrics';
 
-import { CompleteNotifier } from '../ui/common';
 import { SuiXhrLoader } from '../ui/fileio/xhrLoader';
-import { SuiMenuManager, SuiMenuManagerParams } from '../ui/menus/manager';
+import { SuiMenuManager } from '../ui/menus/manager';
 import { BrowserEventSource } from '../ui/eventSource';
 import { librarySeed } from '../ui/fileio/library';
 import { SmoTranslationEditor } from '../ui/i18n/translationEditor';
@@ -156,32 +155,8 @@ export class SuiScoreBuilder {
 export class SuiApplication {
   scoreLibrary: any;
   instance: SuiInstance | null = null;
-  static get defaultConfig(): SmoConfiguration {
-    return {
-      smoPath: '..',
-      mode: 'application',
-      language: 'en',
-      scoreLoadOrder: ['query', 'local', 'library'],
-      scoreLoadJson: 'Smo.basicJson',
-      smoDomContainer: 'smoo',
-      vexDomContainer: 'boo',
-      ribbon: true,
-      keyCommands: true,
-      menus: true,
-      title: 'Smoosic',
-      libraryUrl: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json',
-      languageDir: 'ltr',
-      demonPollTime: 50, // how often we poll the score to see if it changed
-      idleRedrawTime: 1000, // maximum time between score modification and render
-    };
-  }
-  static configure(params: Partial<SmoConfiguration>) {
-    const config: SmoConfiguration = SuiApplication.defaultConfig;
-    ConfigurationOptions.forEach((option: ConfigurationOption) => {
-      if (typeof(params[option]) !== 'undefined') {
-        (config as any)[option] = params[option];
-      }
-    });
+  static configure(params: Partial<SmoConfigurationParams>) {
+    const config: SmoConfiguration = new SmoConfiguration(params);
     (window as any).SmoConfig = config;
     const application = new SuiApplication();
     application.startApplication();

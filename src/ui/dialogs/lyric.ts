@@ -4,13 +4,14 @@ import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';
 import { SuiLyricComponent } from './components/noteText';
 import { SuiDropdownComponent } from './components/dropdown';
 import { SuiRockerComponent } from './components/rocker';
-import { SmoConfiguration, SvgBox } from '../../smo/data/common';
+import { SvgBox } from '../../smo/data/common';
+import { SmoUiConfiguration } from '../configuration';
 import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SuiFontComponent } from './components/fontComponent';
 import { EventHandler } from '../eventSource';
 
 declare var $: any;
-declare var SmoConfig: SmoConfiguration;
+declare var SmoConfig: SmoUiConfiguration;
 export class SuiLyricDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiLyricDialog';

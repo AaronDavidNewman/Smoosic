@@ -2,8 +2,8 @@
 // Copyright (c) Aaron David Newman 2021.
 import { htmlHelpers } from '../common/htmlHelpers';
 import { SvgHelpers } from '../render/sui/svgHelpers';
+import { SmoConfiguration } from './configuration';
 import { SuiPiano } from '../render/sui/piano';
-import { SmoConfiguration} from '../smo/data/common';
 
 declare var SmoConfig: SmoConfiguration;
 declare var $: any;

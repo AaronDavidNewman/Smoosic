@@ -24,6 +24,7 @@ import { StaveButtons } from '../ui/buttons/stave';
 import { TextButtons } from '../ui/buttons/text';
 import { VoiceButtons } from '../ui/buttons/voice';
 import { SmoTranslationEditor } from '../ui/i18n/translationEditor';
+import { SmoConfiguration } from './configuration';
 import { RibbonButtons } from '../ui/buttons/ribbon';
 // Language strings
 import { quickStartHtmlen, selectionHtmlen, enterDurationsHtmlen, enterPitchesHtmlen } from '../ui/i18n/language_en';
@@ -130,6 +131,7 @@ const getClass = (jsonString: string) => {
 };
 export const Smo = {
     // Application-level classes
+    SmoConfiguration,
     SuiApplication,
     SuiDom,  SuiEventHandler, SuiExceptionHandler,
     Qwerty, SuiHelp, SmoTranslationEditor,

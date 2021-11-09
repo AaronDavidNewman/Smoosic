@@ -1,6 +1,5 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoConfiguration } from '../../smo/data/common';
 import { SmoScore } from '../../smo/data/score';
 import { mxmlScore } from '../../smo/mxml/xmlScore';
 
@@ -12,10 +11,11 @@ import { SuiXhrLoader } from '../fileio/xhrLoader';
 import { SuiDialogParams } from './dialog';
 import { DialogDefinitionOption } from './components/baseComponent';
 import { TreeComponentOption, SuiTreeComponent } from './components/tree';
+import { SmoUiConfiguration } from '../configuration';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
 
 declare var $: any;
-declare var SmoConfig: SmoConfiguration;
+declare var SmoConfig: SmoUiConfiguration;
 
 export interface LibraryDefinitionElement {
   smoName: string,
