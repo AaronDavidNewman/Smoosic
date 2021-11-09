@@ -29,14 +29,10 @@ export interface MenuDefinition {
   label: string,
   menuItems: MenuChoiceDefinition[]
 }
-/**
- * All menus can be translated, choosing the language will update all the static options.
- * @param ctor - the constructor name for the dialog
- */
-export interface MenuChoiceTranslation {
+export interface MenuTranslation {
+  ctor: string,
   label: string,
-  menuItems: MenuChoiceDefinition[],
-  ctor: string
+  menuItems: MenuChoiceDefinition[]
 }
 /**
  * All menus take the same options.  Menu choices can alter the score
@@ -94,7 +90,7 @@ export abstract class SuiMenuBase {
    * add or remove options from the static list
    */
   preAttach() { }
-  static printTranslate(_class: string): MenuChoiceTranslation {
+  static printTranslate(_class: string): MenuTranslation {
     const xx: any = eval('Smo.' + _class);
     const items: MenuChoiceDefinition[] = xx.defaults.menuItems as MenuChoiceDefinition[];
     const rvItems: MenuChoiceDefinition[] = [];

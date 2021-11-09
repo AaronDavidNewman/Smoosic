@@ -1,4 +1,4 @@
-import { SuiMenuBase, SuiMenuParams } from './menu';
+import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
 import { SuiXhrLoader } from '../fileio/xhrLoader';
 import { SmoScore } from '../../smo/data/score';
 import { mxmlScore } from '../../smo/mxml/xmlScore';
@@ -9,7 +9,7 @@ export class SuiLibraryMenu extends SuiMenuBase {
   constructor(params: SuiMenuParams) {
     super(params);
   }
-  static defaults = {
+  static defaults: MenuDefinition = {
     label: 'Score',
     menuItems: [{
       icon: '',

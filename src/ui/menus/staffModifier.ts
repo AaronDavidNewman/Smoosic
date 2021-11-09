@@ -1,4 +1,4 @@
-import { SuiMenuBase, SuiMenuParams } from './menu';
+import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
 
 declare var $: any;
 
@@ -6,7 +6,7 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
   constructor(params: SuiMenuParams) {
     super(params);
   }
-  static defaults = {
+  static defaults: MenuDefinition = {
     label: 'Lines',
     menuItems: [{
       icon: 'cresc',
@@ -32,8 +32,7 @@ export class SuiStaffModifierMenu extends SuiMenuBase {
       icon: '',
       text: 'Cancel',
       value: 'cancel'
-    }],
-    menuContainer: '.menuContainer'
+    }]
   };
 
   getDefinition() {

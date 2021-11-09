@@ -1,10 +1,10 @@
-import { SuiMenuBase, SuiMenuParams } from './menu';
+import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
 import { createAndDisplayDialog } from '../dialogs/dialog';
 import { SuiInsertMeasures } from '../dialogs/addMeasure';
 import { SuiMeasureDialog } from '../dialogs/measureFormat';
 declare var $: any;
 export class SuiMeasureMenu extends SuiMenuBase {
-  static defaults = {
+  static defaults: MenuDefinition = {
     label: 'Measure',
     menuItems: [
       {

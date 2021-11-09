@@ -1,10 +1,6 @@
-import { SuiMenuBase, SuiMenuParams } from './menu';
-import { SmoSystemStaffParams, SmoSystemStaff } from '../../smo/data/systemStaff';
-import { SuiStaffGroupDialog } from '../dialogs/staffGroup';
-import { createAndDisplayDialog } from '../dialogs/dialog';
+import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
 import { SmoSelector } from '../../smo/xform/selections';
 import { SmoInstrumentParams } from '../../smo/data/staffModifiers';
-import { SuiPartInfoDialog } from '../dialogs/partInfo';
 
 declare var $: any;
 
@@ -12,7 +8,7 @@ export class SuiStaffMenu extends SuiMenuBase {
   constructor(params: SuiMenuParams) {
     super(params);
   }
-  static defaults = {
+  static defaults: MenuDefinition = {
     label: 'Add Staff',
     menuItems: [
       {
@@ -44,8 +40,7 @@ export class SuiStaffMenu extends SuiMenuBase {
         text: 'Cancel',
         value: 'cancel'
       }
-    ],
-    menuContainer: '.menuContainer'
+    ]
   };
 
   static get instrumentMap(): Record<string, SmoInstrumentParams> {

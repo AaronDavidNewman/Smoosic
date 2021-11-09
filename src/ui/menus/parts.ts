@@ -1,4 +1,4 @@
-import { SuiMenuBase, SuiMenuParams, MenuChoiceDefinition } from './menu';
+import { SuiMenuBase, SuiMenuParams, MenuChoiceDefinition, MenuDefinition } from './menu';
 import { createAndDisplayDialog } from '../dialogs/dialog';
 import { SuiScoreViewDialog } from '../dialogs/scoreView';
 import { SuiInstrumentDialog } from '../dialogs/instrument';
@@ -10,7 +10,7 @@ export class SuiPartMenu extends SuiMenuBase {
   constructor(params: SuiMenuParams) {
     super(params);
   }
-  static defaults = {
+  static defaults: MenuDefinition = {
     label: 'Parts',
     menuItems: [
       {
@@ -34,8 +34,7 @@ export class SuiPartMenu extends SuiMenuBase {
         text: 'Cancel',
         value: 'cancel'
       }
-    ],
-    menuContainer: '.menuContainer'
+    ]
   };
   getDefinition() {
     return SuiPartMenu.defaults;

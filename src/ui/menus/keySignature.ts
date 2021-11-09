@@ -1,4 +1,4 @@
-import { SuiMenuBase, SuiMenuParams } from './menu';
+import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
 
 declare var $: any;
 
@@ -9,7 +9,7 @@ export class SuiKeySignatureMenu extends SuiMenuBase {
   static get ctor() {
     return 'SuiKeySignatureMenu';
   }
-  static defaults = {
+  static defaults: MenuDefinition = {
     label: 'Key',
     menuItems: [{
       icon: 'key-sig-c',
@@ -68,8 +68,7 @@ export class SuiKeySignatureMenu extends SuiMenuBase {
       icon: '',
       text: 'Cancel',
       value: 'cancel'
-    }],
-    menuContainer: '.menuContainer'
+    }]
   };
 
   getDefinition() {

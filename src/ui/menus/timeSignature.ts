@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SuiMenuBase, SuiMenuParams } from './menu';
+import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
 import { SmoMeasure } from '../../smo/data/measure';
 import { createAndDisplayDialog } from '../dialogs/dialog';
 import { SuiTimeSignatureDialog } from '../dialogs/timeSignature';
@@ -11,7 +11,7 @@ export class SuiTimeSignatureMenu extends SuiMenuBase {
   constructor(params: SuiMenuParams) {
     super(params);
   }
-  static defaults = {
+  static defaults: MenuDefinition = {
     label: 'Time Sig',
     menuItems: [{
       icon: 'sixeight',

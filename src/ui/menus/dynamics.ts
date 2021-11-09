@@ -1,11 +1,11 @@
 import { SmoDynamicText } from '../../smo/data/noteModifiers';
-import { SuiMenuBase, SuiMenuParams } from './menu';
+import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
 declare var $: any;
 export class SuiDynamicsMenu extends SuiMenuBase {
   constructor(params: SuiMenuParams) {
     super(params);
   }
-  static defaults = {
+  static defaults: MenuDefinition = {
     label: 'Dynamics',
     menuItems: [{
       icon: 'pianissimo',

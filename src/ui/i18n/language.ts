@@ -3,9 +3,22 @@
 import { smoLanguageStringAr } from './language_ar';
 import { smoLanguageStringDe } from './language_de';
 import { smoLanguageStringEn } from './language_en';
+import { MenuChoiceDefinition, MenuDefinition, MenuTranslation } from '../menus/menu';
+import { ButtonLabel } from '../buttons/button';
+import { RibbonButtons } from '../buttons/ribbon';
+import { DialogTranslation } from '../dialogs/dialog';
 declare var $: any;
 declare var SmoConfig: any;
-declare var RibbonButtons: any; // TODO: circular reference;
+
+export interface TranslationStrings {
+  dialogs: DialogTranslation[],
+  menus: MenuTranslation[],
+  buttonText: ButtonLabel[]
+}
+export type languageDirection = 'ltr' | 'rtl';
+export interface LanguageTranslation {
+  dir: languageDirection, strings: TranslationStrings, helpHtml: any
+}
 export class SmoTranslator {
   static dialogs: any[] = [];
 
@@ -40,7 +53,7 @@ export class SmoTranslator {
     console.log(JSON.stringify({ dialogs, menus, buttonText }, null, ' '));
   }
 
-  static _updateDialog(dialogStrings: any, _dialogClass: any, dialogClass: string) {
+  static _updateDialog(dialogStrings: DialogTranslation, _dialogClass: any, dialogClass: string) {
     if (!dialogStrings) {
       console.log('no strings for Dialog ' + dialogClass);
       return;
@@ -60,7 +73,7 @@ export class SmoTranslator {
         component.label = componentStrings.label;
         if (component.options) {
           component.options.forEach((option: any) => {
-            const optionString = componentStrings.options.find((cs: any) => cs.value === option.value);
+            const optionString = componentStrings!.options!.find((cs: any) => cs.value === option.value);
             if (!optionString) {
               console.log('no string for option ' + option.value + ' in component ' + component.smoName + ' in dialog ' + dialogClass);
             } else {
@@ -74,13 +87,13 @@ export class SmoTranslator {
     });
   }
 
-  static _updateMenu(menuStrings: any, _menuClass: any, menuClass: any) {
+  static _updateMenu(menuStrings: MenuTranslation, _menuClass: any, menuClass: string) {
     if (!menuStrings) {
       console.log('no strings for Menu ' + menuClass);
       return;
     }
-
-    _menuClass.defaults.menuItems.forEach((menuItem: any) => {
+    const defaults = _menuClass.defaults as MenuDefinition;
+    defaults.menuItems.forEach((menuItem: MenuChoiceDefinition) => {
       const val = menuItem.value;
       const nvPair = menuStrings.menuItems.find((ff: any) => ff.value === val);
       if (!nvPair) {
@@ -92,21 +105,23 @@ export class SmoTranslator {
     });
   }
 
-  static setLanguage(language: any) {
+  static setLanguage(language: string) {
     if (!(SmoLanguage as any)[language]) {
       return; // no xlate exists
     }
-    const trans = (SmoLanguage as any)[language];
+    const trans = (SmoLanguage as any)[language] as LanguageTranslation;
     // Set the text in all the menus
     SmoTranslator.allMenus.forEach((menuClass) => {
       const _class = eval('globalThis.Smo.' + menuClass);
-      const menuStrings = trans.strings.menus.find((mm: any) => mm.ctor === menuClass);
-      SmoTranslator._updateMenu(menuStrings, _class, menuClass);
+      const menuStrings = trans.strings.menus.find((mm: MenuTranslation) => mm.ctor === menuClass);
+      if (menuStrings) {
+        SmoTranslator._updateMenu(menuStrings, _class, menuClass);
 
-      // Set text in ribbon buttons that invoke menus
-      const menuButton = $('.ribbonButtonContainer button.' + menuClass).find('.left-text .text-span');
-      if (menuButton.length && menuStrings) {
-        $(menuButton).text(menuStrings.label);
+        // Set text in ribbon buttons that invoke menus
+        const menuButton = $('.ribbonButtonContainer button.' + menuClass).find('.left-text .text-span');
+        if (menuButton.length && menuStrings) {
+          $(menuButton).text(menuStrings.label);
+        }
       }
     });
 
@@ -115,6 +130,9 @@ export class SmoTranslator {
       const dialogStrings = trans.strings.dialogs.find((mm: any) => mm.ctor === dialogClass);
       if (typeof (_class) === 'undefined') {
         console.log('no eval for class ' + dialogClass);
+        return;
+      }
+      if (!dialogStrings) {
         return;
       }
       // Set text in ribbon buttons that invoke menus
@@ -205,21 +223,21 @@ export class SmoLanguage {
   static getHelpFile(category: any) {
     return eval('globalThis.Smo.' + category + SmoConfig.language);
   }
-  static get en() {
-    const strings = JSON.parse(smoLanguageStringEn);
-    const rv = { dir: 'ltr', strings, helpHtml: {} };
+  static get en(): LanguageTranslation {
+    const strings: TranslationStrings = JSON.parse(smoLanguageStringEn) as TranslationStrings;
+    const rv: LanguageTranslation = { dir: 'ltr', strings, helpHtml: {} };
     return rv;
   }
 
-  static get ar() {
-    const strings = JSON.parse(smoLanguageStringAr);
-    const rv = { dir: 'rtl', strings, helpHtml: {} };
+  static get ar(): LanguageTranslation {
+    const strings = JSON.parse(smoLanguageStringAr) as TranslationStrings;
+    const rv: LanguageTranslation = { dir: 'rtl', strings, helpHtml: {} };
     return rv;
   }
 
-  static get de() {
-    const strings = JSON.parse(smoLanguageStringDe);
-    const rv = { dir: 'ltr', strings, helpHtml: {} };
+  static get de(): LanguageTranslation {
+    const strings = JSON.parse(smoLanguageStringDe) as TranslationStrings;
+    const rv: LanguageTranslation = { dir: 'ltr', strings, helpHtml: {} };
     return rv;
   }
 }

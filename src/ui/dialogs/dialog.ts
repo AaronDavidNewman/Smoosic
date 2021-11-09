@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { htmlHelpers } from '../../common/htmlHelpers';
-import { SmoTranslator } from '../i18n/language';
+// import { SmoTranslator } from '../i18n/language';
 import { SmoModifier } from '../../smo/data/score';
 import { SvgBox } from '../../smo/data/common';
 import { SuiTracker } from '../../render/sui/tracker';
@@ -213,7 +213,7 @@ export interface DialogDom {
       label: this.label
     });
 
-    SmoTranslator.registerDialog(this.ctor);
+    // SmoTranslator.registerDialog(this.ctor);
   }
     // ### display
   // make3 the modal visible.  bind events and elements.

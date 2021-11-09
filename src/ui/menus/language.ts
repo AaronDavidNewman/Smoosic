@@ -1,4 +1,4 @@
-import { SuiMenuBase, SuiMenuParams } from './menu';
+import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
 import { SmoTranslator } from '../i18n/language';
 
 declare var $: any;
@@ -9,7 +9,7 @@ export class SuiLanguageMenu extends SuiMenuBase {
   static get ctor() {
     return 'SuiLanguageMenu';
   }
-  static defaults = {
+  static defaults: MenuDefinition = {
     label: 'Language',
     menuItems: [{
       icon: '',
@@ -27,8 +27,7 @@ export class SuiLanguageMenu extends SuiMenuBase {
       icon: '',
       text: 'Cancel',
       value: 'cancel'
-    }],
-    menuContainer: '.menuContainer'
+    }]
   };
   getDefinition() {
     return SuiLanguageMenu.defaults;
