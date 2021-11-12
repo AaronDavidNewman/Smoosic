@@ -66,6 +66,31 @@ export abstract class SuiScoreView {
     this.actionBuffer = new SmoActionRecord();
     this.tracker.recordBuffer = this.actionBuffer;
   }
+  /**
+   * 
+   * @param action any action, but most usefully a SuiScoreView method
+   * @param repetition number of times to repeat, waiting on render promise between
+   * if not specified, defaults to 1
+   * @returns promise, resolved action has been completed and score is updated.
+   */
+  waitableAction(action: () => void, repetition?: number): Promise<any> {
+    const rep = repetition ?? 1;
+    const self = this;
+    const promise = new Promise((resolve: any) => {
+      const fc = (count: number) => {
+        if (count > 0) {
+          action();
+          self.renderer.updatePromise().then(() =>{
+            fc(count - 1);
+          });
+        } else {
+          resolve();
+        }
+      };
+      fc(rep);
+    });
+    return promise;
+  }
 
   // ### _getEquivalentSelections
   // The plural form of _getEquivalentSelection

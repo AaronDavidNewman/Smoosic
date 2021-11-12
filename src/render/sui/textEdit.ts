@@ -272,12 +272,12 @@ export class SuiTextEditor {
   // ### startCursorPromise
   // Used by the calling logic to start the cursor.
   // returns a promise that can be pended when the editing ends.
-  startCursorPromise(): Promise<any> {
+  startCursorPromise(): Promise<void> {
     var self = this;
     this.cursorRunning = true;
     this.cursorState = true;
     self.svgText?.renderCursorAt(this.textPos, SuiInlineText.textTypes.normal);
-    return PromiseHelpers.makePromise(this, '_endCursorCondition', '_cursorPreResolve', '_cursorPoll', 333);
+    return PromiseHelpers.makePromise(() => this._endCursorCondition, () => this._cursorPreResolve(), () => this._cursorPoll(), 333);
   }
   stopCursor() {
     this.cursorRunning = false;
@@ -968,13 +968,13 @@ export class SuiTextSession {
 
   // ### _startSessionForNote
   // Stop the lyric session, return promise for done
-  stopSession(): Promise<any> {
+  stopSession(): Promise<void> {
     if (this.editor) {
       this.scoreText.text = this.editor.getText();
       this.scoreText.tryParseUnicode(); // convert unicode chars
       this.editor.stopEditor();
     }
-    return PromiseHelpers.makePromise(this, '_isRendered', '_markStopped', null, 100);
+    return PromiseHelpers.makePromise(()=> this._isRendered,() => this._markStopped(), null, 100);
   }
 
   // ### evKey
@@ -1139,12 +1139,12 @@ export class SuiLyricSession {
 
   // ### _startSessionForNote
   // Stop the lyric session, return promise for done
-  stopSession(): Promise<any> {
+  stopSession(): Promise<void> {
     if (this.editor && !this._endLyricCondition) {
       this._updateLyricFromEditor();
       this.editor.stopEditor();
     }
-    return PromiseHelpers.makePromise(this, '_isRendered', '_markStopped', null, 100);
+    return PromiseHelpers.makePromise(() => this._isRendered, () => this._markStopped(), null, 100);
   }
 
   // ### _advanceSelection
@@ -1159,8 +1159,8 @@ export class SuiLyricSession {
       this._setLyricForNote();
       const conditionArray = [];
       this.state = SuiTextEditor.States.PENDING_EDITOR;
-      conditionArray.push(PromiseHelpers.makePromiseObj(this, '_endLyricCondition', null, null, 100));
-      conditionArray.push(PromiseHelpers.makePromiseObj(this, '_isRefreshed', '_startSessionForNote', null, 100));
+      conditionArray.push(PromiseHelpers.makePromiseObj(() => this._endLyricCondition, null, null, 100));
+      conditionArray.push(PromiseHelpers.makePromiseObj(() => this._isRefreshed,() => this._startSessionForNote, null, 100));
       PromiseHelpers.promiseChainThen(conditionArray);
     }
   }

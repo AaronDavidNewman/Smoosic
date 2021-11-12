@@ -119,6 +119,6 @@ export class SuiActionPlayback {
     this.timestamp = new Date().valueOf();
     this.actions.executeIndex = 0;
     this.playNextAction();
-    return PromiseHelpers.makePromise(this, 'stopped', null, null, 50);
+    return PromiseHelpers.makePromise(() => this.stopped, null, null, 50);
   }
 }

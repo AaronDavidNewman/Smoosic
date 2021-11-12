@@ -11,7 +11,6 @@ import { SuiScoreRender } from '../render/sui/scoreRender';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { SuiOscillator } from '../render/audio/oscillator';
 import { SuiTracker } from '../render/sui/tracker';
-import { KeyCommandParams } from './common';
 
 import { ArialFont } from '../styles/font_metrics/arial_metrics';
 import { TimesFont } from '../styles/font_metrics/times_metrics';
@@ -32,8 +31,9 @@ import { defaultRibbonLayout } from '../ui/ribbonLayout/default/defaultRibbon';
 
 import { SuiDom } from './dom';
 import { SuiKeyCommands } from './keyCommands';
-import { EventHandlerParams, SuiEventHandler } from './eventHandler';
+import { SuiEventHandler } from './eventHandler';
 import { KeyBinding, ModalEventHandlerProxy } from './common';
+import { PromiseHelpers } from '../../release/smoosic';
 
 
 declare var SmoConfig : SmoConfiguration;
@@ -155,12 +155,17 @@ export class SuiScoreBuilder {
 export class SuiApplication {
   scoreLibrary: any;
   instance: SuiInstance | null = null;
-  static configure(params: Partial<SmoConfigurationParams>) {
+  config: SmoConfiguration;
+  score: SmoScore | null = null;
+  static configure(params: Partial<SmoConfigurationParams>): Promise<any> {
     const config: SmoConfiguration = new SmoConfiguration(params);
     (window as any).SmoConfig = config;
-    const application = new SuiApplication();
-    application.startApplication();
+    const application = new SuiApplication(config);
     SuiApplication.registerFonts();
+    return application.initialize();
+  }
+  constructor(config: SmoConfiguration) {
+    this.config = config;
   }
   static createView(scrollContainer: HTMLElement, score: SmoScore) {
     const svgContainer = document.createElement('div');
@@ -193,10 +198,43 @@ export class SuiApplication {
     });
     return trackerKeys.concat(editorKeys);
   }
-  startApplication() {
-    SuiOscillator.samplePromise().then(() => {
-      this._startApplication();
-    });
+  initialize(): Promise<any> {
+    const samplePromise: Promise<any> = SuiOscillator.sampleFiles.length > 0 ?
+      SuiOscillator.samplePromise() : PromiseHelpers.emptyPromise();
+
+    const self = this;
+    const createScore = (): Promise<any> => {
+      return self.createScore();
+    }
+    const startApplication = () => {
+      if (self.config.mode === 'application') {
+        self._startApplication();
+      }
+    }
+    return samplePromise.then(createScore).then(startApplication);
+  }
+  createScore(): Promise<any> {
+    const queryString = new QueryParser();
+    const scoreBuilder = new SuiScoreBuilder(this.config, queryString);
+    if (scoreBuilder.score) {
+      this.score = scoreBuilder.score;
+      return PromiseHelpers.emptyPromise();
+    } else {
+      if (scoreBuilder.mode === 'remote' && scoreBuilder.scorePath) {
+        const loader = new SuiXhrLoader(scoreBuilder.scorePath);
+        const self = this;
+        return new Promise((resolve: any) => {
+          loader.loadAsync().then(() => {
+            self.score = SmoScore.deserialize(loader.value);
+            self.createUi();
+            resolve();
+          });
+        });
+      }
+    }
+    const scoreString = eval('globalThis.Smo.basicJson');
+    this.score = SmoScore.deserialize(scoreString);
+    return PromiseHelpers.emptyPromise();
   }
   _startApplication() {
     // Initialize the midi writer library
@@ -215,22 +253,25 @@ export class SuiApplication {
     }
     const scoreBuilder = new SuiScoreBuilder(config, queryString);
     if (scoreBuilder.score) {
-      this.createUi(scoreBuilder.score);
+      this.score = scoreBuilder.score;
+      this.createUi();
       return;
     } else {
       if (scoreBuilder.mode === 'remote' && scoreBuilder.scorePath) {
         const loader = new SuiXhrLoader(scoreBuilder.scorePath);
         const self = this;
         loader.loadAsync().then(() => {
-          const score = SmoScore.deserialize(loader.value);
-          self.createUi(score);
+          self.score = SmoScore.deserialize(loader.value);
+          self.createUi();
         });
         return;
       }
     }
     const scoreString = eval('globalThis.Smo.basicJson');
-    const score = SmoScore.deserialize(scoreString);
-    this.createUi(score);
+    this.score = SmoScore.deserialize(scoreString);
+    if (this.config.mode === 'application') {
+      this.createUi();
+    }
   }
 
   /**
@@ -238,7 +279,7 @@ export class SuiApplication {
    * configured rendering space.
    * @param score(SmoScore) - the score
    */
-  createUi(score: SmoScore) {
+  createUi() {
     SuiDom.createDom('Smoosic');
     const menuContainer = document.createElement('div');
     $(menuContainer).addClass('menuContainer');
@@ -246,7 +287,7 @@ export class SuiApplication {
     const scrollRegion = document.createElement('div');
     $(scrollRegion).attr('id', 'smo-scroll-region').addClass('musicRelief');
     $('.dom-container .media').append(scrollRegion);
-    const viewObj = SuiApplication.createView(scrollRegion, score);
+    const viewObj = SuiApplication.createView(scrollRegion, this.score!);
     const view = viewObj.view;
     const tracker = view.tracker;
     const eventSource = new BrowserEventSource(); // events come from the browser UI.

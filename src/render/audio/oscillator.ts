@@ -6,6 +6,7 @@ import { SmoMicrotone } from '../../smo/data/noteModifiers';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoNote } from '../../smo/data/note';
 import { SmoSelection } from '../../smo/xform/selections';
+import { PromiseHelpers } from '../../../release/smoosic';
 
 export class SuiReverb {
   static get defaults() {
@@ -190,25 +191,19 @@ static sampleFiles: string[] = ['bb4', 'cn4'];
       'releaseEnv', 'sustainLevel', 'releaseLevel', 'waveform', 'wavetable', 'gain'];
   }
 
-  static samplePromise() {
-    const rv = new Promise<void>((resolve) => {
-      const checkSample = () => {
-        setTimeout(() => {
-          if (SuiOscillator.samples.length < SuiOscillator.sampleFiles.length) {
-            checkSample();
-          } else {
-            resolve();
-          }
-        }, 100);
-      };
-      checkSample();
-    });
+  /**
+   * Load samples so we can play the music
+   * @returns - promise, resolved when loaded
+   */
+  static samplePromise(): Promise<any> {
+    const mediaElements: HTMLMediaElement[] = [];
     if (SuiOscillator.samples.length < SuiOscillator.sampleFiles.length) {
       SuiOscillator.sampleFiles.forEach((file) => {
         const audio = SuiOscillator.audio;
         const audioElement: HTMLMediaElement | null = document.getElementById('sample' + file) as HTMLMediaElement;
         if (audioElement) {
           const media = audio.createMediaElementSource(audioElement);
+          mediaElements.push(audioElement);
           const req = new XMLHttpRequest();
           req.open('GET', media.mediaElement.src, true);
           req.responseType = 'arraybuffer';
@@ -222,6 +217,21 @@ static sampleFiles: string[] = ['bb4', 'cn4'];
         }
       });
     }
+    if (mediaElements.length < 1) {
+      return PromiseHelpers.emptyPromise();
+    }
+    const rv = new Promise<any>((resolve: any) => {
+      const checkSample = () => {
+        setTimeout(() => {
+          if (SuiOscillator.samples.length < SuiOscillator.sampleFiles.length) {
+            checkSample();
+          } else {
+            resolve();
+          }
+        }, 100);
+      };
+      checkSample();
+    });
     return rv;
   }
   static sampleForFrequency(f: number): AudioSample | null {

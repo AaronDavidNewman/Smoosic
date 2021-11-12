@@ -40,15 +40,6 @@ export class StaveButtons extends SuiButton {
   clefMoveDown() {
     this._clefMove(1);
   }
-  _addStaffGroup(type: number) {
-    this.view.addStaffGroupDown(type);
-  }
-  staffBraceLower() {
-    this._addStaffGroup(SmoSystemGroup.connectorTypes.brace);
-  }
-  staffBracketLower() {
-    this._addStaffGroup(SmoSystemGroup.connectorTypes.bracket);
-  }
   bind() {
     const self = this;
     $(this.buttonElement).off('click').on('click', () => {

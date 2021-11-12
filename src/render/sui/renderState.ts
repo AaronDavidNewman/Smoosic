@@ -150,26 +150,26 @@ export abstract class SuiRenderState {
     });
   }
 
-  _renderStatePromise(condition: string): Promise<void> {
+  _renderStatePromise(condition: () => boolean): Promise<void> {
     const oldSuspend = this.suspendRendering;
     this.suspendRendering = false;
     const self = this;
     const endAction = () => {
       self.suspendRendering = oldSuspend;
     };
-    return PromiseHelpers.makePromise(this, condition, endAction, null, SmoConfig.demonPollTime);
+    return PromiseHelpers.makePromise(condition, endAction, null, SmoConfig.demonPollTime);
   }
   // ### renderPromise
   // return a promise that resolves when the score is in a fully rendered state.
   renderPromise(): Promise<void> {
-    return this._renderStatePromise('renderStateClean');
+    return this._renderStatePromise(() => this.renderStateClean);
   }
 
   // ### renderPromise
   // return a promise that resolves when the score is in a fully rendered state.
   updatePromise() {
     this._replaceMeasures();
-    return this._renderStatePromise('renderStateRendered');
+    return this._renderStatePromise(() => this.renderStateRendered);
   }
   // Number the measures at the first measure in each system.
   numberMeasures() {
@@ -249,7 +249,7 @@ export abstract class SuiRenderState {
       });
     });
   }
-  renderForPrintPromise(): Promise<void> {
+  renderForPrintPromise(): Promise<any> {
     $('body').addClass('print-render');
     const self = this;
     if (!this.score) {

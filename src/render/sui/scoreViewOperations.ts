@@ -21,21 +21,33 @@ import { SmoMusic } from '../../smo/data/music';
 import { SuiOscillator } from '../audio/oscillator';
 import { SuiAudioPlayer } from '../audio/player';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
-import { StaffModifierBase, SmoInstrument } from '../../smo/data/staffModifiers';
+import { StaffModifierBase, SmoInstrument, SmoInstrumentParams } from '../../smo/data/staffModifiers';
 import { SuiRenderState } from './renderState';
 import { htmlHelpers } from '../../common/htmlHelpers';
 import { SuiActionPlayback } from './actionPlayback';
 import { SuiPiano } from './piano';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 declare var $: any;
 declare var SmoConfig: SmoRenderConfiguration;
 
-// ## ScoreViewOperations
-// MVVM-like operations on the displayed score.
-// All operations that can be performed on a 'live' score go through this
-// module.  It maps the score view to the actual score and makes sure the
-// model and view stay in sync.
+/**
+ * MVVM-like operations on the displayed score.
+ * 
+ * All operations that can be performed on a 'live' score go through this
+ * module.  It maps the score view to the actual score and makes sure the
+ * model and view stay in sync.  
+ * 
+ * Because this object operates on the current selections, 
+ * all operations return promise so applications can wait for the 
+ * operation to complete and update the selection list.
+ */
 export class SuiScoreViewOperations extends SuiScoreView {
-  addTextGroup(textGroup: SmoTextGroup) {
+  /**
+   * Add a new text group to the score 
+   * @param textGroup a new text group
+   * @returns 
+   */
+  addTextGroup(textGroup: SmoTextGroup): Promise<void> {
     this.actionBuffer.addAction('addTextGroup', textGroup);
     const altNew = SmoTextGroup.deserialize(textGroup.serialize());
     SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup,
@@ -43,9 +55,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altNew,
       UndoBuffer.bufferSubtypes.ADD);
     this.renderer.renderScoreModifiers();
+    return this.renderer.updatePromise()
   }
 
-  removeTextGroup(textGroup: SmoTextGroup) {
+  /**
+   * Remove the text group from the score
+   * @param textGroup 
+   * @returns 
+   */
+  removeTextGroup(textGroup: SmoTextGroup): Promise<void> {
     this.actionBuffer.addAction('removeTextGroup', textGroup);
     const index = this.score.textGroups.findIndex((grp) => textGroup.attrs.id === grp.attrs.id);
     const altGroup = this.storeScore.textGroups[index];
@@ -54,9 +72,17 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altGroup,
       UndoBuffer.bufferSubtypes.REMOVE);
     this.renderer.renderScoreModifiers();
+    return this.renderer.updatePromise()
   }
 
-  updateTextGroup(oldVersion: SmoTextGroup, newVersion: SmoTextGroup) {
+  /**
+   * UPdate an existing text group.  The original is passed in, because since TG not tied to a musical
+   * element, we need to find the one we're updating.
+   * @param oldVersion 
+   * @param newVersion 
+   * @returns 
+   */
+  updateTextGroup(oldVersion: SmoTextGroup, newVersion: SmoTextGroup): Promise<void> {
     this.actionBuffer.addAction('updateTextGroup', oldVersion, newVersion);
     const index = this.score.textGroups.findIndex((grp) => oldVersion.attrs.id === grp.attrs.id);
     const isPartExposed = this.isPartExposed(this.score.staves[0]);
@@ -80,27 +106,42 @@ export class SuiScoreViewOperations extends SuiScoreView {
     }
     // TODO: only render the one TG.
     this.renderer.renderScoreModifiers();
+    return this.renderer.updatePromise()
   }
-  // ### updateScorePreferences
-  // The score preferences for view score have changed, sync them
-  updateScorePreferences(pref: SmoScorePreferences) {
+
+  /**
+   * Global settings that control how the score editor  behaves
+   * @param pref 
+   * @returns 
+   */
+  updateScorePreferences(pref: SmoScorePreferences): Promise<void> {
     this._undoScorePreferences('Update preferences');
     // TODO: add action buffer here?
     this.score.updateScorePreferences(JSON.parse(JSON.stringify(pref)));
     this.storeScore.updateScorePreferences(JSON.parse(JSON.stringify(pref)));
     this.renderer.setDirty();
+    return this.renderer.updatePromise()
   }
-  // ### updateScorePreferences
-  // The score preferences for view score have changed, sync them
-  updateScoreInfo(scoreInfo: SmoScoreInfo) {
+  /**
+   * Update information about the score, composer etc.
+   * @param scoreInfo 
+   * @returns 
+   */
+  updateScoreInfo(scoreInfo: SmoScoreInfo): Promise<void> {
     this._undoScorePreferences('Update preferences');
     // TODO: add action buffer here?
     this.score.scoreInfo = scoreInfo;
     this.storeScore.scoreInfo = JSON.parse(JSON.stringify(scoreInfo));
     this.renderer.setDirty();
+    return this.renderer.updatePromise()
   }
 
-  addRemoveMicrotone(tone: SmoMicrotone) {
+  /**
+   * Add a specific microtone modifier to the selected notes
+   * @param tone 
+   * @returns 
+   */
+  addRemoveMicrotone(tone: SmoMicrotone): Promise<void> {
     this.actionBuffer.addAction('addRemoveMicrotone', tone);
     const selections = this.tracker.selections;
     const altSelections = this._getEquivalentSelections(selections);
@@ -109,8 +150,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.addRemoveMicrotone(null, selections, tone);
     SmoOperation.addRemoveMicrotone(null, altSelections, tone);
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise()
   }
-  addDynamic(selection: SmoSelection, dynamic: SmoDynamicText) {
+  /**
+   * Modify the dynamics assoicated with the specific selection
+   * @param selection 
+   * @param dynamic 
+   * @returns 
+   */
+  addDynamic(selection: SmoSelection, dynamic: SmoDynamicText): Promise<void> {
     this.actionBuffer.addAction('addDynamic', dynamic);
     this._undoFirstMeasureSelection('add dynamic');
     this._removeDynamic(selection, dynamic);
@@ -118,8 +166,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.addDynamic(selection, dynamic);
     SmoOperation.addDynamic(equiv!, SmoNoteModifierBase.deserialize(dynamic.serialize() as any));
     this.renderer.addToReplaceQueue(selection);
+    return this.renderer.updatePromise()
   }
-  _removeDynamic(selection: SmoSelection, dynamic: SmoDynamicText) {
+  /**
+   * Remove dynamics from the selection 
+   * @param selection 
+   * @param dynamic 
+   * @returns 
+   */
+  _removeDynamic(selection: SmoSelection, dynamic: SmoDynamicText): Promise<void> {
     const equiv = this._getEquivalentSelection(selection);
     if (equiv !== null && equiv.note !== null) {
       const altModifiers = equiv.note.getModifiers('SmoDynamicText');
@@ -128,22 +183,31 @@ export class SuiScoreViewOperations extends SuiScoreView {
         SmoOperation.removeDynamic(equiv, altModifiers[0]);
       }
     }
+    return this.renderer.updatePromise()
   }
-  removeDynamic(dynamic: SmoDynamicText) {
+  /**
+   * Remove dynamics from the current selection
+   * @param dynamic
+   * @returns 
+   */
+  removeDynamic(dynamic: SmoDynamicText): Promise<void> {
     const sel = this.tracker.modifierSelections[0];
     if (!sel.selection) {
-      return;
+      return PromiseHelpers.emptyPromise();
     }
     this.tracker.selections = [sel.selection];
     this.actionBuffer.addAction('removeDynamic', dynamic);
     this._undoFirstMeasureSelection('remove dynamic');
     this._removeDynamic(sel.selection, dynamic);
     this.renderer.addToReplaceQueue(sel.selection);
+    return this.renderer.updatePromise()
   }
-  // ### deleteNote
-  // we never really delete a note, but we will convert it into a rest and if it's
-  // already a rest we will try to hide it.
-  deleteNote() {
+  /**
+   * we never really delete a note, but we will convert it into a rest and if it's
+   * already a rest we will try to hide it.
+   * Operates on current selections
+   * */
+  deleteNote(): Promise<void> {
     this.actionBuffer.addAction('deleteNote');
     const measureSelections = this._undoTrackerMeasureSelections('delete note');
     this.tracker.selections.forEach((sel) => {
@@ -173,15 +237,17 @@ export class SuiScoreViewOperations extends SuiScoreView {
       }
     });
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise()
   }
-  // ### removeLyric
-  // The lyric editor moves around, so we can't depend on the tracker for the
-  // correct selection.  We get it directly from the editor.
-  removeLyric(selector: SmoSelector, lyric: SmoLyric) {
+  /**
+   * The lyric editor moves around, so we can't depend on the tracker for the
+   * correct selection.  We get it directly from the editor.
+  */
+  removeLyric(selector: SmoSelector, lyric: SmoLyric): Promise<void> {
     this.actionBuffer.addAction('removeLyric', selector, lyric);
     const selection = SmoSelection.noteFromSelector(this.score, selector);
     if (selection === null) {
-      return;
+      return PromiseHelpers.emptyPromise();
     }
     this._undoSelection('remove lyric', selection);
     selection.note!.removeLyric(lyric);
@@ -191,13 +257,19 @@ export class SuiScoreViewOperations extends SuiScoreView {
       equiv!.note!.removeLyric(lyric);
     }
     this.renderer.addToReplaceQueue(selection);
+    return this.renderer.updatePromise();
   }
 
-  addOrUpdateLyric(selector: SmoSelector, lyric: SmoLyric) {
+  /**
+   * @param selector where to add or update the lyric
+   * @param lyric 
+   * @returns 
+   */
+  addOrUpdateLyric(selector: SmoSelector, lyric: SmoLyric): Promise<void> {
     this.actionBuffer.addAction('addOrUpdateLyric', selector, lyric);
     const selection = SmoSelection.noteFromSelector(this.score, selector);
     if (selection === null) {
-      return;
+      return PromiseHelpers.emptyPromise();
     }
     this._undoSelection('update lyric', selection);
     selection.note!.addLyric(lyric);
@@ -205,9 +277,14 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const altLyric = SmoNoteModifierBase.deserialize(lyric.serialize() as any) as SmoLyric;
     equiv!.note!.addLyric(altLyric);
     this.renderer.addToReplaceQueue(selection);
+    return this.renderer.updatePromise();
   }
 
-  depopulateVoice() {
+  /**
+   * Delete all the notes for the selected voice
+   * @returns 
+   */
+  depopulateVoice(): Promise<void> {
     this.actionBuffer.addAction('depopulateVoice');
     const measureSelections = this._undoTrackerMeasureSelections('depopulate voice');
     measureSelections.forEach((selection) => {
@@ -220,7 +297,13 @@ export class SuiScoreViewOperations extends SuiScoreView {
     });
     SmoOperation.setActiveVoice(this.score, 0);
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
+  /**
+   * Change the active voice in a multi-voice measure.
+   * @param index 
+   * @returns 
+   */
   _changeActiveVoice(index: number): SmoSelection[] {
     const measuresToAdd: SmoSelection[] = [];
     const measureSelections = SmoSelection.getMeasureList(this.tracker.selections);
@@ -231,12 +314,17 @@ export class SuiScoreViewOperations extends SuiScoreView {
     });
     return measuresToAdd;
   }
-  populateVoice(index: number) {
+  /**
+   * Populate a new voice with default notes
+   * @param index the voice to populate
+   * @returns 
+   */
+  populateVoice(index: number): Promise<void> {
     const measuresToAdd = this._changeActiveVoice(index);
     if (measuresToAdd.length === 0) {
       SmoOperation.setActiveVoice(this.score, index);
       this.tracker.selectActiveVoice();
-      return;
+      return this.renderer.updatePromise();
     }
     this.actionBuffer.addAction('populateVoice', index);
     measuresToAdd.forEach((selection) => {
@@ -247,8 +335,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
     });
     SmoOperation.setActiveVoice(this.score, index);
     this._renderChangedMeasures(measuresToAdd);
+    return this.renderer.updatePromise();
   }
-  changeInstrument(instrument: SmoInstrument, selections: SmoSelection[]) {
+  /**
+   * Assign an instrument to a set of measures
+   * @param instrument the instrument to assign to the selections
+   * @param selections 
+   * @returns 
+   */
+  changeInstrument(instrument: SmoInstrument, selections: SmoSelection[]): Promise<void> {
     if (typeof (selections) === 'undefined') {
       selections = this.tracker.selections;
     }
@@ -258,8 +353,14 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.changeInstrument(instrument, selections);
     SmoOperation.changeInstrument(instrument, altSelections);
     this._renderChangedMeasures(selections);
+    return this.renderer.updatePromise();
   }
-  setTimeSignature(timeSignature: TimeSignature, timeSignatureString: string) {
+  /**
+   * Set the time signature for a selection
+   * @param timeSignature actual time signature
+   * @param timeSignatureString display time signature if different, as in for pickup notes
+   */
+  setTimeSignature(timeSignature: TimeSignature, timeSignatureString: string): Promise<void> {
     this.actionBuffer.addAction('setTimeSignature', timeSignature);
     this._undoScore('Set time signature');
     const selections = this.tracker.selections;
@@ -267,8 +368,14 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.setTimeSignature(this.score, selections, timeSignature, timeSignatureString);
     SmoOperation.setTimeSignature(this.storeScore, altSelections, timeSignature, timeSignatureString);
     this._renderChangedMeasures(SmoSelection.getMeasureList(this.tracker.selections));
+    return this.renderer.updatePromise();
   }
-  moveStaffUpDown(index: number) {
+  /**
+   * Move selected staff up or down in the score.
+   * @param index direction to move
+   * @returns 
+   */
+  moveStaffUpDown(index: number): Promise<void> {
     this.actionBuffer.addAction('moveStaffUpDown', index);
     this._undoScore('re-order staves');
     // Get staff to move
@@ -277,34 +384,30 @@ export class SuiScoreViewOperations extends SuiScoreView {
     // arrangement
     SmoOperation.moveStaffUpDown(this.storeScore, selection!, index);
     this.viewAll();
+    return this.renderer.updatePromise();
   }
-  addOrUpdateStaffGroup(staffGroup: SmoSystemGroup) {
+  /**
+   * Update the staff group for a score, which determines how the staves
+   * are justified and bracketed
+   * @param staffGroup 
+   */
+  addOrUpdateStaffGroup(staffGroup: SmoSystemGroup): Promise<void> {
     this.actionBuffer.addAction('addOrUpdateStaffGroup', staffGroup);
     this._undoScore('group staves');
     // Assume that the view is now set to full score
     this.score.addOrReplaceSystemGroup(staffGroup);
     this.storeScore.addOrReplaceSystemGroup(staffGroup);
     this.renderer.setDirty();
+    return this.renderer.updatePromise();
   }
-  addStaffGroupDown(braceType: number) {
-    this.actionBuffer.addAction('addStaffGroupDown', braceType);
-    this._undoScore('group staves');
-    const ft = this._getEquivalentSelection(this.tracker.getExtremeSelection(-1));
-    const tt = this._getEquivalentSelection(this.tracker.getExtremeSelection(1));
-    const selections = this._getEquivalentSelections(this.tracker.selections);
-    const params = SmoSystemGroup.defaults;
-    params.startSelector = ft!.selector;
-    params.endSelector = tt!.selector;
-    params.mapType = SmoSystemGroup.mapTypes.allMeasures;
-    params.leftConnector = braceType;
-    params.rightConnector = SmoSystemGroup.connectorTypes.single;
 
-    SmoOperation.addConnectorDown(this.storeScore, selections, new SmoSystemGroup(params));
-    this.viewAll();
-  }
-  // ### updateTempoScore
-  // Update the tempo for the entire score
-  updateTempoScore(tempo: SmoTempoText, scoreMode: boolean) {
+  /**
+   * UPdate tempo for all or part of the score
+   * @param tempo tempo
+   * @param scoreMode if true, update whole score.  Else selections
+   * @returns 
+   */
+  updateTempoScore(tempo: SmoTempoText, scoreMode: boolean): Promise<void> {
     let measureIndex = 0;
     let startSelection = this.tracker.getExtremeSelection(-1);
     this._undoScore('update score tempo');
@@ -342,8 +445,14 @@ export class SuiScoreViewOperations extends SuiScoreView {
       }
     }
     this.renderer.setRefresh();
+    return this.renderer.updatePromise();
   }
-  removeTempo(scoreMode: boolean) {
+  /**
+   * 'remove' tempo, which means either setting the bars to the 
+   * default tempo, or the previously-set tempo.
+   * @param scoreMode whether to reset entire score
+   */
+  removeTempo(scoreMode: boolean): Promise<void> {
     this.actionBuffer.addAction('removeTempo', scoreMode);
     const startSelection = this.tracker.selections[0];
     if (startSelection.selector.measure > 0) {
@@ -356,8 +465,12 @@ export class SuiScoreViewOperations extends SuiScoreView {
     } else {
       this.updateTempoScore(new SmoTempoText(SmoTempoText.defaults), scoreMode);
     }
+    return this.renderer.updatePromise();
   }
-  addGraceNote() {
+  /**
+   * Add a grace note to the selected real notes.
+   */
+  addGraceNote(): Promise<void> {
     this.actionBuffer.addAction('addGraceNote');
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('add grace note');
@@ -380,9 +493,14 @@ export class SuiScoreViewOperations extends SuiScoreView {
       SmoOperation.addGraceNote(altSelection!, altGrace, index);
     });
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
 
-  removeGraceNote() {
+  /**
+   * remove selected grace note
+   * @returns
+   */
+  removeGraceNote(): Promise<void> {
     this.actionBuffer.addAction('removeGraceNote');
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('remove grace note');
@@ -393,9 +511,12 @@ export class SuiScoreViewOperations extends SuiScoreView {
       SmoOperation.removeGraceNote(altSel!, 0);
     });
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
-
-  slashGraceNotes() {
+  /**
+   * Toggle slash in stem of grace note
+   */
+  slashGraceNotes(): Promise<void> {
     this.actionBuffer.addAction('slashGraceNotes');
     const grace = this.tracker.getSelectedGraceNotes();
     const measureSelections = this._undoTrackerMeasureSelections('slash grace note toggle');
@@ -411,11 +532,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
       }
     });
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
 
-  // ### transposeSelections
-  // tranpose whatever is selected in tracker the given offset.
-  transposeSelections(offset: number) {
+  /**
+   * transpose selected notes
+   * @param offset 1/2 steps
+   * @returns 
+   */
+  transposeSelections(offset: number): Promise<void> {
     this.actionBuffer.addAction('transposeSelections', offset);
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('transpose');
@@ -443,8 +568,13 @@ export class SuiScoreViewOperations extends SuiScoreView {
       }
     }
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
-  toggleEnharmonic() {
+  /**
+   * toggle the accidental spelling of the selected notes
+   * @returns
+   */
+  toggleEnharmonic(): Promise<void> {
     this.actionBuffer.addAction('toggleEnharmonic');
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('toggle enharmonic');
@@ -468,9 +598,13 @@ export class SuiScoreViewOperations extends SuiScoreView {
       });
     }
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
 
-  toggleCourtesyAccidentals() {
+  /**
+   * Toggle cautionary/courtesy accidentals
+   */
+  toggleCourtesyAccidentals(): Promise<void> {
     this.actionBuffer.addAction('toggleCourtesyAccidentals');
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('toggle courtesy accidental');
@@ -491,9 +625,18 @@ export class SuiScoreViewOperations extends SuiScoreView {
       });
     }
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
 
-  batchDurationOperation(operation: BatchSelectionOperation) {
+  /**
+   * change the duration of notes for selected, creating more 
+   * or fewer notes. 
+   * After the change, reset the selection so it's as close as possible 
+   * to the original length
+   * @param operation 
+   * @returns 
+   */
+  batchDurationOperation(operation: BatchSelectionOperation): Promise<void> {
     this.actionBuffer.addAction('batchDurationOperation', operation);
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('change duration');
@@ -516,8 +659,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
       SmoOperation.batchSelectionOperation(this.storeScore, altAr, operation);
     }
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
-  toggleArticulation(modifier: string, ctor: string) {
+  /**
+   * Toggle selected modifier on selected notes
+   * @param modifier 
+   * @param ctor parent class constructor (e.g. SmoOrnament)
+   * @returns 
+   */
+  toggleArticulation(modifier: string, ctor: string): Promise<void> {
     this.actionBuffer.addAction('toggleArticulation', modifier, ctor);
     const measureSelections = this._undoTrackerMeasureSelections('toggle articulation');
     this.tracker.selections.forEach((sel) => {
@@ -538,9 +688,14 @@ export class SuiScoreViewOperations extends SuiScoreView {
       }
     });
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
 
-  makeTuplet(numNotes: number) {
+  /**
+   * convert non-tuplet not to a tuplet
+   * @param numNotes 3 means triplet, etc.
+   */
+  makeTuplet(numNotes: number): Promise<void> {
     this.actionBuffer.addAction('makeTuplet', numNotes);
     const selection = this.tracker.selections[0];
     const measureSelections = this._undoTrackerMeasureSelections('make tuplet');
@@ -548,8 +703,12 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const altSelection = this._getEquivalentSelection(selection!);
     SmoOperation.makeTuplet(altSelection!, numNotes);
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
-  unmakeTuplet() {
+  /**
+   * Convert selected tuplet to a single (if possible) non-tuplet
+   */
+  unmakeTuplet(): Promise<void> {
     this.actionBuffer.addAction('unmakeTuplet');
     const selection = this.tracker.selections[0];
     const measureSelections = this._undoTrackerMeasureSelections('unmake tuplet');
@@ -557,9 +716,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const altSelection = this._getEquivalentSelection(selection);
     SmoOperation.unmakeTuplet(altSelection!);
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
 
-  setInterval(interval: number) {
+  /**
+   * Create a chord by adding an interval to selected note
+   * @param interval 1/2 steps
+   * @returns 
+   */
+  setInterval(interval: number): Promise<void> {
     this.actionBuffer.addAction('setInterval', interval);
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('set interval');
@@ -569,9 +734,14 @@ export class SuiScoreViewOperations extends SuiScoreView {
       SmoOperation.interval(altSelection!, interval);
     });
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
 
-  collapseChord() {
+  /**
+   * change the selected chord into a single note
+   * @returns
+   */
+  collapseChord(): Promise<void> {
     this.actionBuffer.addAction('collapseChord');
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('collapse chord');
@@ -587,8 +757,12 @@ export class SuiScoreViewOperations extends SuiScoreView {
       }
     });
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
-  toggleSlash() {
+  /**
+   * Toggle chicken-scratches, for jazz improv, comping etc.
+   */
+  toggleSlash(): Promise<void> {
     this.actionBuffer.addAction('toggleSlash');
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('make slash');
@@ -598,8 +772,13 @@ export class SuiScoreViewOperations extends SuiScoreView {
       SmoOperation.toggleSlash(altSel!);
     });
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
-  makeRest() {
+  /**
+   * make selected notes into a rest, or visa-versa
+   * @returns
+   */
+  makeRest(): Promise<void> {
     this.actionBuffer.addAction('makeRest');
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('make rest');
@@ -609,8 +788,13 @@ export class SuiScoreViewOperations extends SuiScoreView {
       SmoOperation.toggleRest(altSel!);
     });
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
-  toggleBeamGroup() {
+  /**
+   * toggle the 'end beam' flag for selected notes
+   * @returns 
+   */
+  toggleBeamGroup(): Promise<void> {
     this.actionBuffer.addAction('toggleBeamGroup');
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('toggle beam group');
@@ -620,27 +804,41 @@ export class SuiScoreViewOperations extends SuiScoreView {
       SmoOperation.toggleBeamGroup(altSel!);
     });
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
-  toggleBeamDirection() {
+  /**
+  * up or down
+  * @returns 
+  */
+  toggleBeamDirection(): Promise<void> {
     this.actionBuffer.addAction('toggleBeamDirection');
     const selections = this.tracker.selections;
     if (selections.length < 1) {
-      return;
+      return PromiseHelpers.emptyPromise();
     }
     const measureSelections = this._undoTrackerMeasureSelections('toggle beam direction');
     SmoOperation.toggleBeamDirection(selections);
     SmoOperation.toggleBeamDirection(this._getEquivalentSelections(selections));
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
-  beamSelections() {
+  /**
+   * Add the selected notes to a beam group
+   */
+  beamSelections(): Promise<void> {
     this.actionBuffer.addAction('beamSelections');
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('beam selections');
     SmoOperation.beamSelections(this.score, selections);
     SmoOperation.beamSelections(this.storeScore, this._getEquivalentSelections(selections));
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
-  addKeySignature(keySignature: string) {
+  /**
+   * change key signature for selected measures
+   * @param keySignature vex key signature
+   */
+  addKeySignature(keySignature: string): Promise<void> {
     this.actionBuffer.addAction('addKeySignature', keySignature);
     const measureSelections = this._undoTrackerMeasureSelections('set key signature ' + keySignature);
     measureSelections.forEach((sel) => {
@@ -649,13 +847,14 @@ export class SuiScoreViewOperations extends SuiScoreView {
       SmoOperation.addKeySignature(this.storeScore, altSel!, keySignature);
     });
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
   /**
    * Sets a pitch from the piano widget.
    * @param pitch {Pitch}
    * @param chordPedal {boolean} - indicates we are adding to a chord
    */
-  setPitchPiano(pitch: Pitch, chordPedal: boolean) {
+  setPitchPiano(pitch: Pitch, chordPedal: boolean): Promise<void> {
     this.actionBuffer.addAction('setAbsolutePitch', pitch);
     const measureSelections = this._undoTrackerMeasureSelections(
       'setAbsolutePitch ' + pitch.letter + '/' + pitch.accidental);
@@ -676,8 +875,13 @@ export class SuiScoreViewOperations extends SuiScoreView {
       }
     });
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
-  showPiano(value: boolean) {
+  /**
+   * show or hide the piano widget
+   * @param value to show it
+   */
+  showPiano(value: boolean): Promise<void> {
     this.score.preferences.showPiano = value;
     this.storeScore.preferences.showPiano = value;
     if (value) {
@@ -685,13 +889,37 @@ export class SuiScoreViewOperations extends SuiScoreView {
     } else {
       SuiPiano.hidePiano();
     }
+    return this.renderer.updatePromise();
   }
+  /**
+   * Render a pitch for each letter name-pitch in the string,
+   * @param pitches letter names for pitches
+   * @returns promise, resolved when all pitches rendered
+   * @see setPitch
+   */
+  setPitchesPromise(pitches: PitchLetter[]): Promise<any> {
+    const self = this;
+    const promise = new Promise((resolve: any) => {
+      const fc = (index: number) => {
+        if (index >= pitches.length) {
+          resolve();
+        } else {
+          self.setPitch(pitches[index]).then(() => {
+            fc(index + 1);
+          });
+        }
+      };
+      fc(0);
+    });
+    return promise;
+  }
+
   /**
    * Add a pitch to the score at the cursor.  This tries to find the best pitch
    * to match the letter key (F vs F# for instance) based on key and surrounding notes
    * @param letter string
    */
-  setPitch(letter: PitchLetter) {
+  setPitch(letter: PitchLetter): Promise<void> {
     this.actionBuffer.addAction('setPitch', letter);
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('set pitch ' + letter);
@@ -705,7 +933,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
       }
       // The selection no longer exists, possibly deleted
       if (hintSel === null || hintSel.note === null) {
-        return;
+        return PromiseHelpers.emptyPromise();
       }
       const pitch = SmoMusic.getLetterNotePitch(hintSel.note.pitches[0],
         letter, hintSel.measure.keySignature);
@@ -720,8 +948,12 @@ export class SuiScoreViewOperations extends SuiScoreView {
       SuiOscillator.playSelectionNow(selections[0], 1);
     }
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
-  copy() {
+  /**
+   * Generic clipboard copy action
+   */
+  copy(): Promise<void> {
     this.actionBuffer.addAction('copy');
     this.pasteBuffer.setSelections(this.score, this.tracker.selections);
     const altAr: SmoSelection[] = [];
@@ -732,8 +964,13 @@ export class SuiScoreViewOperations extends SuiScoreView {
       }
     });
     this.storePaste.setSelections(this.storeScore, altAr);
+    return this.renderer.updatePromise();
   }
-  paste() {
+  /**
+   * clipboard paste action
+   * @returns 
+   */
+  paste(): Promise<void> {
     // We undo the whole score on a paste, since we don't yet know the
     // extent of the overlap
     this.actionBuffer.addAction('paste');
@@ -746,17 +983,26 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this.pasteBuffer.pasteSelections(this.score, pasteTarget);
     this.storePaste.pasteSelections(this.storeScore, altTarget);
     this._renderChangedMeasures(this.pasteBuffer.replacementMeasures);
+    return this.renderer.updatePromise();
   }
-  setNoteHead(head: string) {
+  /**
+   * specify a note head other than the default for the duration
+   * @param head 
+   */
+  setNoteHead(head: string): Promise<void> {
     this.actionBuffer.addAction('setNoteHead', head);
     const selections = this.tracker.selections;
     const measureSelections = this._undoTrackerMeasureSelections('set note head');
     SmoOperation.setNoteHead(selections, head);
     SmoOperation.setNoteHead(this._getEquivalentSelections(selections), head);
     this._renderChangedMeasures(measureSelections);
+    return this.renderer.updatePromise();
   }
 
-  addEnding() {
+  /**
+   * Add a volta for selected measures
+   */
+  addEnding(): Promise<void> {
     // TODO: we should have undo for columns
     this._undoScore('Add Volta');
     this.actionBuffer.addAction('addEnding');
@@ -771,8 +1017,13 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.addEnding(this.storeScore, altVolta);
     SmoOperation.addEnding(this.score, volta);
     this.renderer.setRefresh();
+    return this.renderer.updatePromise();
   }
-  updateEnding(ending: SmoVolta) {
+  /**
+   * @param ending volta settings
+   * @returns 
+   */
+  updateEnding(ending: SmoVolta): Promise<void> {
     this.actionBuffer.addAction('updateEnding', ending);
     this._undoScore('Change Volta');
     $(this.renderer.context.svg).find('g.' + ending.attrs.id).remove();
@@ -782,16 +1033,29 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.addEnding(this.storeScore, altVolta);
     SmoOperation.addEnding(this.score, ending);
     this.renderer.setRefresh();
+    return this.renderer.updatePromise();
   }
-  removeEnding(ending: SmoVolta) {
+  /**
+   * 
+   * @param ending volta to remove
+   * @returns 
+   */
+  removeEnding(ending: SmoVolta): Promise<void> {
     this.actionBuffer.addAction('removeEnding', ending);
     this._undoScore('Remove Volta');
     $(this.renderer.context.svg).find('g.' + ending.attrs.id).remove();
     SmoOperation.removeEnding(this.storeScore, ending);
     SmoOperation.removeEnding(this.score, ending);
     this.renderer.setRefresh();
+    return this.renderer.updatePromise();
   }
-  setBarline(position: number, barline: number) {
+  /**
+   * 
+   * @param position begin or end
+   * @param barline barline type
+   * @returns 
+   */
+  setBarline(position: number, barline: number): Promise<void> {
     this.actionBuffer.addAction('setBarline', position, barline);
     const obj = new SmoBarline({ position, barline });
     const altObj = new SmoBarline({ position, barline });
@@ -801,8 +1065,14 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const altSel = this._getEquivalentSelection(selection);
     SmoOperation.setMeasureBarline(this.storeScore, altSel!, altObj);
     this._renderChangedMeasures([selection]);
+    return this.renderer.updatePromise();
   }
-  setRepeatSymbol(position: number, symbol: number) {
+  /**
+   * 
+   * @param position start or end
+   * @param symbol coda, etc.
+   */
+  setRepeatSymbol(position: number, symbol: number): Promise<void> {
     this.actionBuffer.addAction('setRepeatSymbol', position, symbol);
     const params = SmoRepeatSymbol.defaults;
     params.position = position;
@@ -815,8 +1085,13 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const altSel = this._getEquivalentSelection(selection);
     SmoOperation.setRepeatSymbol(this.storeScore, altSel!, altObj);
     this._renderChangedMeasures([selection]);
+    return this.renderer.updatePromise();
   }
-  toggleRehearsalMark() {
+  /**
+   *  toggle rehearsal mark on first selected measure
+   * @returns
+   */
+  toggleRehearsalMark(): Promise<void> {
     this.actionBuffer.addAction('toggleRehearsalMark');
     const selection = this.tracker.getExtremeSelection(-1);
     const altSelection = this._getEquivalentSelection(selection);
@@ -824,6 +1099,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation[cmd](this.score, selection, new SmoRehearsalMark(SmoRehearsalMark.defaults));
     SmoOperation[cmd](this.storeScore, altSelection!, new SmoRehearsalMark(SmoRehearsalMark.defaults));
     this._renderChangedMeasures([selection]);
+    return this.renderer.updatePromise();
   }
   _removeStaffModifier(modifier: StaffModifierBase) {
     this.score.staves[modifier.startSelector.staff].removeStaffModifier(modifier);
@@ -832,22 +1108,34 @@ export class SuiScoreViewOperations extends SuiScoreView {
     altModifier.endSelector = this._getEquivalentSelector(altModifier.endSelector);
     this.storeScore.staves[altModifier.startSelector.staff].removeStaffModifier(altModifier);
   }
-  removeStaffModifier(modifier: StaffModifierBase) {
+  /**
+   * Remove selected modifier
+   * @param modifier slur, hairpin, etc.
+   * @returns 
+   */
+  removeStaffModifier(modifier: StaffModifierBase): Promise<void> {
     this.actionBuffer.addAction('removeStaffModifier', modifier);
     this._undoStaffModifier('Set measure proportion', modifier,
       UndoBuffer.bufferSubtypes.REMOVE);
     this._removeStaffModifier(modifier);
     this._removeStandardModifier(modifier);
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
+    return this.renderer.updatePromise();
   }
-  addOrUpdateStaffModifier(original: StaffModifierBase, modifier: StaffModifierBase) {
+  /**
+   * Change a staff modifier
+   * @param original original version
+   * @param modifier modified version
+   * @returns 
+   */
+  addOrUpdateStaffModifier(original: StaffModifierBase, modifier: StaffModifierBase): Promise<void> {
     if (!modifier) {
       if (original) {
         // Handle legacy API changed
         modifier = StaffModifierBase.deserialize(original);
       } else {
         console.warn('update modifier: bad modifier');
-        return;
+        return PromiseHelpers.emptyPromise();
       }
     }
     this.actionBuffer.addAction('addOrUpdateStaffModifier', modifier);
@@ -868,6 +1156,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
       SmoOperation.addStaffModifier(altSel!, copy);
     }
     this._renderRectangle(modifier.startSelector, modifier.endSelector);
+    return this.renderer.updatePromise();
   }
   _lineOperation(op: string) {
     // if (this.tracker.selections.length < 2) {
@@ -883,23 +1172,47 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this._undoStaffModifier('add ' + op, modifier, UndoBuffer.bufferSubtypes.ADD);
     this._renderChangedMeasures(measureSelections);
   }
-  crescendo() {
+  /**
+   * Add crescendo to selection
+   */
+  crescendo(): Promise<void> {
     this.actionBuffer.addAction('crescendo');
     this._lineOperation('crescendo');
+    return this.renderer.updatePromise();
   }
-  decrescendo() {
+  /**
+   * diminuendo selections
+   * @returns 
+   */
+  decrescendo(): Promise<void> {
     this.actionBuffer.addAction('decrescendo');
     this._lineOperation('decrescendo');
+    return this.renderer.updatePromise();
   }
-  slur() {
+  /**
+   * Slur selected notes
+   * @returns
+   */
+  slur(): Promise<void> {
     this.actionBuffer.addAction('slur');
     this._lineOperation('slur');
+    return this.renderer.updatePromise();
   }
-  tie() {
+  /**
+   * tie selected notes
+   * @returns 
+   */
+  tie(): Promise<void> {
     this.actionBuffer.addAction('tie');
     this._lineOperation('tie');
+    return this.renderer.updatePromise();
   }
-  setGlobalLayout(layout: SmoGlobalLayout) {
+  /**
+   * set global page for score, zoom etc.
+   * @param layout global SVG settings
+   * @returns 
+   */
+  setGlobalLayout(layout: SmoGlobalLayout): Promise<void> {
     this.actionBuffer.addAction('setGlobalLayout', layout);
     this._undoScore('Set Global Layout');
     const original = this.score.layoutManager!.getGlobalLayout().svgScale;
@@ -907,16 +1220,29 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this.score.scaleTextGroups(original / layout.svgScale);
     this.storeScore.layoutManager!.updateGlobalLayout(layout);
     this.renderer.rerenderAll();
+    return this.renderer.updatePromise();
   }
-  setPageLayout(layout: SmoPageLayout, pageIndex: number) {
+  /**
+   * 
+   * @param layout page layout
+   * @param pageIndex which page to change
+   * @returns 
+   */
+  setPageLayout(layout: SmoPageLayout, pageIndex: number): Promise<void> {
     this.actionBuffer.addAction('setPageLayout', layout);
     this._undoScore('Set Page Layout');
     this.actionBuffer.addAction('setScoreLayout', layout);
     this.score.layoutManager!.updatePage(layout, pageIndex);
     this.storeScore.layoutManager!.updatePage(layout, pageIndex);
     this.renderer.rerenderAll();
+    return this.renderer.updatePromise();
   }
-  setEngravingFontFamily(family: string) {
+  /**
+   * Update the music font
+   * @param family 
+   * @returns 
+   */
+  setEngravingFontFamily(family: string): Promise<void> {
     this.actionBuffer.addAction('setEngravingFontFamily', family);
     const engrave = this.score.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
     const altEngrave = this.storeScore.fonts.find((fn) => fn.purpose === SmoScore.fontPurposes.ENGRAVING);
@@ -926,33 +1252,55 @@ export class SuiScoreViewOperations extends SuiScoreView {
       SuiRenderState.setFont(engrave.family);
     }
     this.renderer.setRefresh();
+    return this.renderer.updatePromise();
   }
-  setChordFont(fontInfo: FontInfo) {
+  /**
+   * Upate global font used for chord changes
+   * @param fontInfo
+   * @returns 
+   */
+  setChordFont(fontInfo: FontInfo): Promise<void> {
     this.actionBuffer.addAction('setChordFont', fontInfo);
     this._undoScore('Set Chord Font');
     this.score.setChordFont(fontInfo);
     this.storeScore.setChordFont(fontInfo);
     this.renderer.setRefresh();
+    return this.renderer.updatePromise();
   }
-  setLyricFont(fontInfo: FontInfo) {
+  /**
+   * Update font used for lyrics
+   * @param fontInfo 
+   * @returns 
+   */
+  setLyricFont(fontInfo: FontInfo): Promise<void> {
     this.actionBuffer.addAction('setLyricFont', fontInfo);
     this._undoScore('Set Lyric Font');
     this.score.setLyricFont(fontInfo);
     this.storeScore.setLyricFont(fontInfo);
     this.renderer.setRefresh();
+    return this.renderer.updatePromise();
   }
-  setLyricAdjustWidth(value: boolean) {
+  /**
+   * @param value if false, lyric widths don't affect measure width
+   * @returns 
+   */
+  setLyricAdjustWidth(value: boolean): Promise<void> {
     this.actionBuffer.addAction('setLyricAdjustWidth', value);
     this._undoScore('Set Lyric Adj Width');
     this.score.setLyricAdjustWidth(value);
     this.storeScore.setLyricAdjustWidth(value);
     this.renderer.setRefresh();
+    return this.renderer.updatePromise();
   }
+  /**
+   * delete selected measures
+   * @returns 
+   */
   deleteMeasure() {
     this.actionBuffer.addAction('deleteMeasure');
     this._undoScore('Delete Measure');
     if (this.storeScore.staves[0].measures.length < 2) {
-      return;
+      return PromiseHelpers.emptyPromise();
     }
     const selections = SmoSelection.getMeasureList(this.tracker.selections);
     // THe measures get renumbered, so keep the index at 0
@@ -977,8 +1325,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
     });
     this.tracker.loadScore();
     this.renderer.setRefresh();
+    return this.renderer.updatePromise();
   }
-  addMeasures(append: boolean, numberToAdd: number) {
+  /**
+   * add number of measures, with default notes selections
+   * @param append 
+   * @param numberToAdd 
+   * @returns 
+   */
+  addMeasures(append: boolean, numberToAdd: number): Promise<void> {
     let pos = 0;
     let ix = 0;
     this.actionBuffer.addAction('addMeasures', append, numberToAdd);
@@ -998,14 +1353,20 @@ export class SuiScoreViewOperations extends SuiScoreView {
       }
     }
     this.renderer.setRefresh();
+    return this.renderer.updatePromise();
   }
-  addMeasure(append: boolean) {
+  /**
+   * add a single measure before or after selection
+   * @param append 
+   * @returns 
+   */
+  addMeasure(append: boolean): Promise<void> {
     this.actionBuffer.addAction('addMeasure', append);
     this._undoScore('Add Measure');
     let pos = 0;
     const measure = this.tracker.getFirstMeasureOfSelection();
     if (!measure) {
-      return;
+      return PromiseHelpers.emptyPromise();
     }
     const nmeasure = SmoMeasure.getDefaultMeasureWithNotes(measure);
     pos = measure.measureNumber.measureIndex;
@@ -1018,12 +1379,17 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this.storeScore.addMeasure(pos);
     this.renderer.clearLine(measure);
     this.renderer.setRefresh();
+    return this.renderer.updatePromise();
   }
-  removeStaff() {
+  /**
+   * remove an entire line of music
+   * @returns
+   */
+  removeStaff(): Promise<void> {
     this.actionBuffer.addAction('removeStaff');
     this._undoScore('Remove Instrument');
     if (this.storeScore.staves.length < 2 || this.score.staves.length < 2) {
-      return;
+      return PromiseHelpers.emptyPromise();
     }
     // if we are looking at a subset of the score,
     // revert to the full score view before removing the staff.
@@ -1033,14 +1399,16 @@ export class SuiScoreViewOperations extends SuiScoreView {
     SmoOperation.removeStaff(this.storeScore, staffIndex);
     this.viewAll();
     this.renderer.setRefresh();
+    return this.renderer.updatePromise();
   }
-  addStaff(instrument: SmoSystemStaffParams) {
+  addStaff(instrument: SmoSystemStaffParams): Promise<void> {
     this.actionBuffer.addAction('addStaff', instrument);
     this._undoScore('Add Instrument');
     // if we are looking at a subset of the score, we won't see the new staff.  So
     // revert to the full view
     SmoOperation.addStaff(this.storeScore, instrument);
     this.viewAll();
+    return this.renderer.updatePromise();
   }
   /**
    * Update part info assumes that the part is currently exposed - that
@@ -1069,15 +1437,17 @@ export class SuiScoreViewOperations extends SuiScoreView {
     if (resetView) {
       this.renderer.rerenderAll()
     }
+    return this.renderer.updatePromise();
   }
-  addStaffSimple(params: any) {
+  addStaffSimple(params: Partial<SmoInstrumentParams>) {
     const instrumentParams = SmoInstrument.defaults;
     instrumentParams.startSelector.staff = instrumentParams.endSelector.staff = this.score.staves.length;
-    instrumentParams.clef = params.clef;
+    instrumentParams.clef = params.clef ?? instrumentParams.clef;
 
     const staffParams = SmoSystemStaff.defaults;
     staffParams.measureInstrumentMap[0] = new SmoInstrument(instrumentParams);
     this.addStaff(staffParams);
+    return this.renderer.updatePromise();
   }
   saveScore(filename: string) {
     const json = this.storeScore.serialize();
@@ -1127,6 +1497,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
       }
     });
     this._renderRectangle(fromSelector, toSelector);
+    return this.renderer.updatePromise();
   }
 
   playFromSelection() {
@@ -1168,33 +1539,43 @@ export class SuiScoreViewOperations extends SuiScoreView {
   // Tracker operations, used for macro replay
   moveHome(ev: KeyEvent) {
     this.tracker.moveHome(ev);
+    return this.renderer.updatePromise();
   }
   moveEnd(ev: KeyEvent) {
     this.tracker.moveEnd(ev);
+    return this.renderer.updatePromise();
   }
   growSelectionLeft() {
     this.tracker.growSelectionLeft();
+    return this.renderer.updatePromise();
   }
   growSelectionRight() {
     this.tracker.growSelectionRight();
+    return this.renderer.updatePromise();
   }
   advanceModifierSelection(keyEv: KeyEvent) {
     this.tracker.advanceModifierSelection(keyEv);
+    return this.renderer.updatePromise();
   }
   growSelectionRightMeasure() {
     this.tracker.growSelectionRightMeasure();
+    return this.renderer.updatePromise();
   }
   moveSelectionRight(ev: KeyEvent) {
     this.tracker.moveSelectionRight(ev, true);
+    return this.renderer.updatePromise();
   }
   moveSelectionLeft() {
     this.tracker.moveSelectionLeft();
+    return this.renderer.updatePromise();
   }
   moveSelectionLeftMeasure() {
     this.tracker.moveSelectionLeftMeasure();
+    return this.renderer.updatePromise();
   }
   moveSelectionRightMeasure() {
     this.tracker.moveSelectionRightMeasure();
+    return this.renderer.updatePromise();
   }
   moveSelectionPitchUp() {
     this.tracker.moveSelectionPitchUp();
@@ -1250,5 +1631,6 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this.renderer.preserveScroll();
     this.renderer.setViewport(true);
     this.renderer.setRefresh();
+    return this.renderer.updatePromise();
   }
 }

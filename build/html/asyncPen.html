@@ -44,158 +44,152 @@
                  // returns a promise that is resolved when the change is rendered
                  const action = Smo.SuiActionPlayback.actionPromises;
                  const setPitches = Smo.SuiActionPlayback.setPitches;
+                 const t = ((action, repetition) => {
+                   return view.waitableAction(action, repetition);
+                 });
 
                  // render the initial score (1 empty measure)
                  await renderer.renderPromise();
+                 await view.growSelectionRight();
 
                  // Select 1st 2 quarters and make them into 16ths by 1/2 their duration twice
-                 await action(view, 'growSelectionRight', [], 1);
-                 await action(view, 'batchDurationOperation', ['halveDuration'], 2);
-                 await action(view, 'moveSelectionLeft', [], 1);
-                 await action(view, 'moveSelectionRight', [], 1);
+                 await view.batchDurationOperation('halveDuration');
+                 await view.batchDurationOperation('halveDuration');
+                 await view.moveSelectionLeft();
+                 await view.moveSelectionRight();
 
                  // Set some pitches.  Auto-advance moves the cursor to the left
                  // SmoScore.preferences can toggle auto-advance and auto-play
                  // setPitch sets the key-appropriate note for the given letter.
-                 await setPitches(view, 'cdefdec');
+                 await view.setPitchesPromise('cdefdec');
 
                  // Set the notes we just made down the octave by selecting them
                  // Transpose works relative to the pitch and does not auto-advance
-                 await action(view, 'moveSelectionLeft', [], 1);
-                 await action(view, 'growSelectionLeft', [], 6);
-                 await action(view, 'transposeSelections', [-12], 1);
+                 await view.moveSelectionLeft();
+                 await t(() => view.growSelectionLeft(), 6);
+                 await view.transposeSelections(-12);
 
                  // Create 4 1/8 note at end
-                 await action(view, 'moveSelectionRight', [], 1);
-                 await action(view, 'growSelectionRight', [], 1);
-                 await action(view, 'batchDurationOperation', ['halveDuration'], 1);
-                 await action(view, 'moveSelectionLeft', [], 1);
-                 await action(view, 'moveSelectionRight', [], 1);
-                 await setPitches(view, 'gcbc');
+                 await view.moveSelectionRight();
+                 await view.growSelectionRight();
+                 await view.batchDurationOperation('halveDuration');
+                 await view.moveSelectionLeft();
+                 await view.moveSelectionRight();
+                 await view.setPitchesPromise('gcbc');
 
-                 await action(view, 'moveSelectionLeft', [], 1);
+                 await view.moveSelectionLeft();
                  // Add a turn on the next tick
-                 await action(view, 'toggleArticulation',
-                   [
-                     "mordent_inverted",
-                     "SmoOrnament"
-                   ], 1);
-                 await action(view, 'moveSelectionRight', [], 1);
+                 await view.toggleArticulation('mordent_inverted', 'SmoOrnament');
+                 await view.moveSelectionRight();
 
                  // Beam the 8th notes and the 16th notes
-                 await action(view, 'growSelectionLeft', [], 3);
-                 await action(view, 'transposeSelections', [12], 1);
-                 await action(view, 'beamSelections', [], 1);
-                 await action(view, 'moveSelectionLeft', [], 1);
-                 await action(view, 'growSelectionLeft', [], 3);
-                 await action(view, 'beamSelections', [], 1);
+                 await t(() => view.growSelectionLeft(), 3);
+                 await view.transposeSelections(12);
+                 await view.beamSelections();
+                 await view.moveSelectionLeft();
+                 await t(() => view.growSelectionLeft(), 3);
+                 await view.beamSelections();
 
                  // Add measure after this one
-                 await action(view, 'addMeasure', [true], 1);
-                 await action(view, 'moveSelectionRight', [], 5);
-                 await action(view, 'growSelectionRight', [], 1);
-                 await action(view, 'batchDurationOperation', ['halveDuration'], 2);
-                 await action(view, 'moveSelectionLeft', [], 1);
-                 await action(view, 'moveSelectionRight', [], 1);
-                 await action(view, 'moveSelectionLeft', [], 1);
-                 await action(view, 'moveSelectionRight', [], 1);
-                 await setPitches(view, 'dgabcabg');
-                 await action(view, 'growSelectionRight', [], 1);
-                 await action(view, 'batchDurationOperation', ['halveDuration'], 1);
-                 await action(view, 'moveSelectionLeft', [], 1);
-                 await action(view, 'moveSelectionRight', [], 1);
-                 await setPitches(view, 'dgfg');
-                 await action(view, 'moveSelectionLeft', [], 1);
+                 await view.addMeasure(true);
+                 await t(() => view.moveSelectionRight(), 5);
+                 await view.growSelectionRight();
+                 await t(() => view.batchDurationOperation('halveDuration'),  2);
+                 await view.moveSelectionLeft();
+                 await view.moveSelectionRight();
+                 await view.moveSelectionLeft();
+                 await view.moveSelectionRight();
+                 await view.setPitchesPromise('dgabcabg');
+                 await view.growSelectionRight();
+                 await view.batchDurationOperation('halveDuration');
+                 await view.moveSelectionLeft();
+                 await view.moveSelectionRight();
+                 await view.setPitchesPromise('dgfg');
+
+                 await view.moveSelectionLeft();
                  // Add a turn on the next tick
-                 await action(view, 'toggleArticulation',
-                   [
-                     "mordent_inverted",
-                     "SmoOrnament"
-                   ], 1);
-                 await action(view, 'moveSelectionRight', [], 1);
-                 await action(view, 'growSelectionLeft', [], 3);
-                 await action(view, 'beamSelections', [], 1);
-                 await action(view, 'moveSelectionLeft', [], 1);
-                 await action(view, 'growSelectionLeft', [], 6);
-                 await action(view, 'transposeSelections', [-12], 1);
-                 await action(view, 'moveSelectionLeftMeasure', [], 1);
+                 await view.toggleArticulation('mordent_inverted', 'SmoOrnament');
+                 await view.moveSelectionRight();
+                 await t(() => view.growSelectionLeft(), 3);
+                 await t(() => view.beamSelections());
+                 await view.moveSelectionLeft();
+                 await t(() => view.growSelectionLeft(), 6);
+                 await view.transposeSelections(-12);
+                 await view.moveSelectionLeftMeasure();
 
                  // Add the bass cleff staff.  It automatically adds
                  // all the measures
-                 await action(view, 'addStaffSimple', [{
-                   instrumentInfo: {
+                 await view.addStaffSimple({
                      "instrumentName": "Bass Clef Staff",
                      "keyOffset": 0,
                      "clef": "bass"
-                   }
-                 }], 1);
-                 await action(view, 'moveSelectionDown', [], 1);
-                 await action(view, 'batchDurationOperation', ['doubleDuration'], 1);
-                 await action(view, 'moveSelectionRight', [], 1);
-                 await action(view, 'growSelectionRight', [], 1);
-                 await action(view, 'batchDurationOperation', ['halveDuration'], 2);
-                 await action(view, 'moveSelectionLeft', [], 1);
-                 await action(view, 'moveSelectionRight', [], 2)
-                 await setPitches(view, 'cdefdec');
-                 await action(view, 'moveSelectionLeft', [], 1);
-                 await action(view, 'growSelectionLeft', [], 3);
-                 await action(view, 'beamSelections', [], 1);
-                 await action(view, 'moveSelectionRight', [], 1);
-                 await action(view, 'batchDurationOperation', ['halveDuration'], 1);
-                 await setPitches(view, 'g');
-                 await action(view, 'moveSelectionLeft', [], 3);
-                 await action(view, 'transposeSelections', [12], 1);
-                 await action(view, 'moveSelectionRight', [], 1);
-                 await action(view, 'toggleArticulation',
-                   [
-                     "staccato",
-                     "SmoArticulation"
-                   ], 1);
-                 await action(view, 'growSelectionLeft', [], 1);
-                 await action(view, 'slur', [], 1);
-                 await action(view, 'moveSelectionRight', [], 2);
-                 await action(view, 'growSelectionRight', [], 2);
-                 await action(view, 'batchDurationOperation', ['halveDuration'], 2);
-                 await action(view, 'moveSelectionLeft', [], 1);
-                 await action(view, 'moveSelectionRight', [], 2);
-                 await setPitches(view, 'gabcabg');
-                 await action(view, 'growSelectionLeft', [], 3);
-                 await action(view, 'beamSelections', [], 1);
+                   
+                 });
+                 await view.moveSelectionDown();
+                 await view.batchDurationOperation('doubleDuration');
+                 await view.moveSelectionRight();
+                 await view.growSelectionRight();
+                 await t(() => view.batchDurationOperation('halveDuration'), 2);
+                 await view.moveSelectionLeft();
+                 await t(() => view.moveSelectionRight(), 2);
+                 await view.setPitchesPromise('cdefdec');
+                 await view.moveSelectionLeft();
+                 await t(() => view.growSelectionLeft(), 3);
+                 await view.beamSelections();
+                 await view.moveSelectionRight();
+                 await view.batchDurationOperation('halveDuration');
+                 await view.setPitchesPromise('g');
+                 await t(() => view.moveSelectionLeft(), 3);
+                 await view.transposeSelections(12);
+                 await view.moveSelectionRight();
+                 await view.toggleArticulation('staccato','SmoArticulation');
+                 // select notes to slur
+                 await view.growSelectionLeft();
+                 // slur applies to selection
+                 await view.slur();
+
+                 await t(() => view.moveSelectionRight(), 2);
+                 await t(() => view.growSelectionRight(), 2);
+                 await t(() => view.batchDurationOperation('halveDuration'), 2);
+                 await view.moveSelectionLeft();
+                 await t(() => view.moveSelectionRight(), 2);
+                 await view.setPitchesPromise('gabcabg');
+                 await t(() => view.growSelectionLeft(), 3);
+                 await view.beamSelections();
 
                  // Add measure after this one.  Both staffs get the new measure
                  // and it is populated with rests
-                 await action(view, 'addMeasure', [true], 1);
-                 await action(view, 'moveSelectionUp', [], 1);
-                 await action(view, 'moveSelectionRightMeasure', [], 1);
-                 await action(view, 'growSelectionRight', [], 3);
-                 await action(view, 'batchDurationOperation', ['halveDuration'], 2);
-                 await action(view, 'moveSelectionLeft', [], 1);
-                 await action(view, 'moveSelectionRight', [], 1);
-                 await setPitches(view, 'eagfegfagfedcedf');
-                 await action(view, 'moveSelectionDown', [], 1);
-                 await action(view, 'growSelectionRight', [], 3);
-                 await action(view, 'batchDurationOperation', ['halveDuration'], 1);
-                 await action(view, 'moveSelectionLeft', [], 1);
-                 await action(view, 'moveSelectionRight', [], 1);
-                 await setPitches(view, 'cbcdegab');
-                 await action(view, 'growSelectionLeft', [], 3);
-                 await action(view, 'beamSelections', [], 1);
+                 await view.addMeasure(true);
+                 await view.moveSelectionUp();
+                 await view.moveSelectionRightMeasure();
+                 await t(() => view.growSelectionRight(), 3);
+                 await t(() => view.batchDurationOperation('halveDuration'), 2);
+                 await view.moveSelectionLeft();
+                 await view.moveSelectionRight();
+                 await view.setPitchesPromise('eagfegfagfedcedf');
+                 await view.moveSelectionDown();
+                 await t(() => view.growSelectionRight(), 3);
+                 await view.batchDurationOperation('halveDuration');
+                 await view.moveSelectionLeft();
+                 await view.moveSelectionRight();
+                 await view.setPitchesPromise('cbcdegab');
+                 await t(() => view.growSelectionLeft(), 3);
+                 await view.beamSelections();
 
-                 await action(view, 'moveSelectionLeft', [], 1);
-                 await action(view, 'growSelectionLeft', [], 3);
-                 await action(view, 'beamSelections', [], 1);
-                 await action(view, 'moveSelectionRight', [], 1);
-                 await action(view, 'growSelectionLeft', [], 3);
-                 await action(view, 'slur', [], 1);
-                 await action(view, 'moveSelectionRight', [], 1);
-                 await action(view, 'growSelectionRight', [], 2);
-                 await action(view, 'slur', [], 1);
-                 await action(view, 'transposeSelections', [-12], 1);
+                 await view.moveSelectionLeft();
+                 await t(() => view.growSelectionLeft(), 3);
+                 await view.beamSelections();
+                 await view.moveSelectionRight();
+                 await t(() => view.growSelectionLeft(), 3);
+                 await view.slur();
+                 await view.moveSelectionRight();
+                 await t(() => view.growSelectionRight(), 2);
+                 await view.slur();
+                 await view.transposeSelections(-12);
 
                  // It's starting to get kind of crowded.  Set the svgScale to 60%
                  // to make the notes smaller.
-                 await action(view, 'setScoreLayout',
-                   [{
+                 await view.setGlobalLayout({
                      "leftMargin": 30,
                      "rightMargin": 30,
                      "topMargin": 40,
@@ -210,14 +204,16 @@
                      "zoomMode": 0,
                      "noteSpacing": 1,
                      "pages": 1
-                   }], 1);
+                   });
 
                };
                  Smo.SuiApplication.configure({
                    mode: 'library',
-                   idleRedrawTime: 5
+                   idleRedrawTime: 5,
+                   scoreLoadJson: Smo.basicJson
+                 }).then(() => {
+                  app(Smo);
                  });
-               app(Smo);
            });
        </script>
 </head>
