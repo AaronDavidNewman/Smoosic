@@ -18,7 +18,9 @@
 		<script type="text/javascript" src="../smoosic.js" ></script>
     <script type="text/javascript">
            document.addEventListener("DOMContentLoaded", function (event) {
-               var config = { smoPath: '..', mode: 'application' };
+             Smo.SuiDom.createUiDom(document.getElementById('smoo'));
+               var config = { smoPath: '..', mode: 'application', uiDomContainer: 'smoo'
+                , scoreDomContainer: 'smo-scroll-region' };
                Smo.SuiApplication.configure(config);
            });
        </script>

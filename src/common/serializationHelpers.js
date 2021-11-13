@@ -257,7 +257,11 @@ export class smoSerialize {
       "tg": "partAbbreviation",
       "ug": "stavesAfter",
       "vg": "stavesBefore",
-      "wg": "measureFormatting"
+      "wg": "measureFormatting",
+      "xg": "preserveTextGroups",
+      "yg": "cueInScore",
+      "zg": "tie_spacing",
+      "ah": "position_end"      
       }`;
     return JSON.parse(_tm);
   }

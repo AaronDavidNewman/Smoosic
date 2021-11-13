@@ -21,27 +21,16 @@
   <script type="text/javascript" src="../smoosic.js"></script>
   <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function (event) {
-      // renderer: SuiRenderState, score: SmoScore, scrollSelector: string, undoBuffer: UndoBuffer
       // A simple music program using Smoosic in library mode.  
       // Load a Smoosic JSON file and render the score
-      const renderScore = (score) => {
-        Smo.SuiApplication.configure({
-          mode: 'library',
-          idleRedrawTime: 500
-        });
-        Smo.SuiApplication.createView(document.getElementById('container1'), score);
-        // Create the renderer that renders the music.  SVG music will be created 
-        // in the element
-      }
-
       const path = 'https://aarondavidnewman.github.io/Smoosic/release/library/hymns/Precious Lord.json';
-      const req = new XMLHttpRequest();
-      req.addEventListener('load', () => {
-        const score = Smo.SmoScore.deserialize(req.responseText);
-        renderScore(score);
+      Smo.SuiApplication.configure({
+                   mode: 'library',
+                   idleRedrawTime: 5,
+                   scoreDomContainer: 'outer-container'
+      }).then((application) => {
+        application.view.loadRemoteScore(path);
       });
-      req.open('GET', path);
-      req.send();
     });
   </script>
 </head>

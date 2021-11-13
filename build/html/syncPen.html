@@ -1,138 +1,140 @@
 <!DOCTYPE HTML>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
-		<meta charset="utf-8">
-		<title>Smoosic Editor</title>
-		<link href="https://aarondavidnewman.github.io/Smoosic/build/styles/fonts.css" rel="stylesheet">
-        <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/media.css" rel="stylesheet">
-        <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/ribbon.css" rel="stylesheet">
-        <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/dialogs.css" rel="stylesheet">
-        <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/menus.css" rel="stylesheet">
-        <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/piano.css" rel="stylesheet">
-        <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/tree.css" rel="stylesheet">
-        <script type="text/javascript" src="https://aarondavidnewman.github.io/vexflow_smoosic/releases/vexflow-debug.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js" integrity="sha512-uVSVjE7zYsGz4ag0HEzfugJ78oHCI1KhdkivjQro8ABL/PRiEO4ROwvrolYAcZnky0Fl/baWKYilQfWvESliRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-        <!-- script type="text/javascript" src="../../../vex_smoosic/vexflow_smoosic/build/vexflow-debug.js"></script  -->
-        <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.slim.js" ></script>
-		<script type="text/javascript" src="../smoosic.js" ></script>
-    <script type="text/javascript">
-           document.addEventListener("DOMContentLoaded", function (event) {
-               // @@@@@@
-               // A simple music program using Smoosic in library mode.  We add the music 
-               // to the score by creating SMO objects directly.  Since we are not using async mode,
-               // we need to create our own selections, since tracker will not be aware of music changes
-               // made before the item renders.
+  <meta charset="utf-8">
+  <title>Smoosic Editor</title>
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/fonts.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/media.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/ribbon.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/dialogs.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/menus.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/piano.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/tree.css" rel="stylesheet">
+  <script type="text/javascript"
+    src="https://aarondavidnewman.github.io/vexflow_smoosic/releases/vexflow-debug.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"
+    integrity="sha512-uVSVjE7zYsGz4ag0HEzfugJ78oHCI1KhdkivjQro8ABL/PRiEO4ROwvrolYAcZnky0Fl/baWKYilQfWvESliRA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <!-- script type="text/javascript" src="../../../vex_smoosic/vexflow_smoosic/build/vexflow-debug.js"></script  -->
+  <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.slim.js"></script>
+  <script type="text/javascript" src="../smoosic.js"></script>
+  <script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function (event) {
+      // @@@@@@
+      // A simple music program using Smoosic in library mode.  We add the music 
+      // to the score by creating SMO objects directly.  Since we are not using async mode,
+      // we need to create our own selections, since tracker will not be aware of music changes
+      // made before the item renders.
 
-               // convienience function to create a SmoNote from letter name (smoosic pitches are json triples, letter, accidental octave).
-               const notesFromLetters = Smo.SmoOperation.notesFromLetters;
+      // convienience function to create a SmoNote from letter name (smoosic pitches are json triples, letter, accidental octave).
+      const notesFromLetters = Smo.SmoOperation.notesFromLetters;
 
-               // Set up smoosic in library mode
-               Smo.SuiApplication.configure({
-                mode: 'library',
-                idleRedrawTime: 5
-              });
+      // Create an empty score.  'Empty' score actually has a single treble-clef measure of rests.
+      const score = Smo.SmoScore.deserialize(Smo.emptyScoreJson);
 
-              // Create an empty score.  'Empty' score actually has a single treble-clef measure of rests.
-              const score = Smo.SmoScore.deserialize(Smo.emptyScoreJson);
+      // create a new measure - we are going to replace the default measure with it.
+      // Most SMO objects have defaults that you can use to construct a generic version
+      let measure = new Smo.SmoMeasure(Smo.SmoMeasure.defaults);
+      let voice = { notes: [] };
+      // create the first 8 16th notes
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', '16', 'ccdefdec').forEach((note) => {
+        note.pitches[0].octave -= 1; // adjust octave
+        voice.notes.push(note);
+      });
+      // first note is a rest
+      voice.notes[0].noteType = 'r';
 
-              // create a new measure - we are going to replace the default measure with it.
-              // Most SMO objects have defaults that you can use to construct a generic version
-              let measure = new Smo.SmoMeasure(Smo.SmoMeasure.defaults);
-              let voice = { notes: []};
-              // create the first 8 16th notes
-              notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', '16', 'ccdefdec').forEach((note) => {
-                note.pitches[0].octave -= 1; // adjust octave
-                voice.notes.push(note);
-              });
-              // first note is a rest
-              voice.notes[0].noteType = 'r';
+      // create next 4 1/8 notes
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', '8', 'gcbc').forEach((note) => {
+        note.beamBeats = 4096 * 2; // beam 4 1/8 notes, default is 2
+        voice.notes.push(note);
+      });
+      // adjust the beams the way we want it.
+      voice.notes[3].endBeam = true;
 
-              // create next 4 1/8 notes
-              notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', '8', 'gcbc').forEach((note) => {
-                note.beamBeats = 4096 * 2; // beam 4 1/8 notes, default is 2
-                voice.notes.push(note);
-              });
-              // adjust the beams the way we want it.
-              voice.notes[3].endBeam = true;
+      // You would not want to do this in an interactive app, because the tracker and UI don't won't know about the new voice 
+      // until it's been rendered.  But since we're doing this all without rendering the score, it's OK.
+      measure.voices[0] = voice;
 
-              // You would not want to do this in an interactive app, because the tracker and UI don't won't know about the new voice 
-              // until it's been rendered.  But since we're doing this all without rendering the score, it's OK.
-              measure.voices[0] = voice;
+      // Add ornament to the note.  A common pattern is to create the defaults object and make changes to it
+      // for your object
+      const orn1 = Smo.SmoOrnament.defaults;
+      orn1.ornament = Smo.SmoOrnament.downmordent;
+      voice.notes[10].toggleOrnament(new Smo.SmoOrnament(orn1));
+      score.staves[0].measures = [measure];
 
-              // Add ornament to the note.  A common pattern is to create the defaults object and make changes to it
-              // for your object
-              const orn1 = Smo.SmoOrnament.defaults;
-              orn1.ornament = Smo.SmoOrnament.downmordent;
-              voice.notes[10].toggleOrnament(new Smo.SmoOrnament(orn1));
-              score.staves[0].measures = [measure];
+      // Now create the second line.  We want bass clef so create a bass clef instrument
+      const instDefs = Smo.SmoInstrument.defaults;
+      instDefs.clef = 'bass';
+      const instMap = {};
+      // map measure '0' to this instrument, which is currently the only measure we have
+      instMap[0] = instDefs;
+      // Use the defaults, but add the bass clef instrument to the constructor parameters
+      const staveDefs = Smo.SmoSystemStaff.defaults;
+      staveDefs.measureInstrumentMap = instMap;
+      score.addStaff(staveDefs);
 
-              // Now create the second line.  We want bass clef so create a bass clef instrument
-              const instDefs = Smo.SmoInstrument.defaults;
-              instDefs.clef = 'bass';
-              const instMap = { };
-              // map measure '0' to this instrument, which is currently the only measure we have
-              instMap[0] = instDefs;
-              // Use the defaults, but add the bass clef instrument to the constructor parameters
-              const staveDefs = Smo.SmoSystemStaff.defaults;
-              staveDefs.measureInstrumentMap = instMap;
-              score.addStaff(staveDefs);
+      // now fill in those notes
+      voice = { notes: [] };
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['bass'], 'bass', 'c', 'h', 'd').forEach((note) => voice.notes.push(note));
+      voice.notes[0].noteType = 'r';
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['bass'], 'bass', 'c', '16', 'ccdefdec').forEach((note) => voice.notes.push(note));
+      voice.notes[1].noteType = 'r';
+      voice.notes[4].endBeam = true;
 
-              // now fill in those notes
-              voice = { notes: [] };
-              notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['bass'], 'bass', 'c', 'h', 'd').forEach((note) => voice.notes.push(note));
-              voice.notes[0].noteType = 'r';
-              notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['bass'], 'bass','c', '16', 'ccdefdec').forEach((note) => voice.notes.push(note));
-              voice.notes[1].noteType = 'r';
-              voice.notes[4].endBeam = true;
-              
-              // Add the notes to the measure we just created.
-              score.staves[1].measures[0].voices = [voice];
+      // Add the notes to the measure we just created.
+      score.staves[1].measures[0].voices = [voice];
 
-              // create a staff group, so the notes are justified
-              const systemParams = Smo.SmoSystemGroup.defaults;
-              
-              // A selector is a single point in the music (a 'tickable')
-              const endSelector = Smo.SmoSelector.default;
-              endSelector.staff = 1;
-              systemParams.leftConnector = Smo.SmoSystemGroup.connectorTypes.brace;
-              systemParams.rightConnector = Smo.SmoSystemGroup.connectorTypes.single;
-              systemParams.endSelector = endSelector;
-              score.addOrReplaceSystemGroup(new Smo.SmoSystemGroup(systemParams));
+      // create a staff group, so the notes are justified
+      const systemParams = Smo.SmoSystemGroup.defaults;
 
-              // measure 2:
-              score.addMeasure(1);
-              voice = { notes: [] };
-              notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', '16', 'dgabcabg').forEach((note) => voice.notes.push(note));
-              for (var i = 1; i <= 7; ++i) {
-                voice.notes[i].pitches[0].octave -= 1;
-              }
-              notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', '8', 'dgfg')
-                .forEach((note) => {
-                  note.beamBeats = 4096 * 2;
-                  voice.notes.push(note);
-                });
-              voice.notes[10].toggleOrnament(new Smo.SmoOrnament(orn1));
-              score.staves[0].measures[1].voices = [voice];
+      // A selector is a single point in the music (a 'tickable')
+      const endSelector = Smo.SmoSelector.default;
+      endSelector.staff = 1;
+      systemParams.leftConnector = Smo.SmoSystemGroup.connectorTypes.brace;
+      systemParams.rightConnector = Smo.SmoSystemGroup.connectorTypes.single;
+      systemParams.endSelector = endSelector;
+      score.addOrReplaceSystemGroup(new Smo.SmoSystemGroup(systemParams));
 
-              voice = { notes: [] };
-              notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', '8', 'gg').forEach((note) => voice.notes.push(note));
-              notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['bass'], 'bass', 'c', '4', 'd').forEach((note) => voice.notes.push(note));
-              notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['bass'], 'bass', 'c', '16', 'ggabcabg').forEach((note) => voice.notes.push(note));
-              voice.notes[0].pitches[0].octave += 1;
-              voice.notes[2].noteType = 'r';
-              voice.notes[3].noteType = 'r';
-              voice.notes[6].endBeam = true;
-              score.staves[1].measures[1].voices = [voice];
+      // measure 2:
+      score.addMeasure(1);
+      voice = { notes: [] };
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', '16', 'dgabcabg').forEach((note) => voice.notes.push(note));
+      for (var i = 1; i <= 7; ++i) {
+        voice.notes[i].pitches[0].octave -= 1;
+      }
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', '8', 'dgfg')
+        .forEach((note) => {
+          note.beamBeats = 4096 * 2;
+          voice.notes.push(note);
+        });
+      voice.notes[10].toggleOrnament(new Smo.SmoOrnament(orn1));
+      score.staves[0].measures[1].voices = [voice];
 
-              // scale so it fits within a pen
-              score.layoutManager.globalLayout.svgScale = 0.55;
-              const scrollRegion = document.getElementById('container1');
-              Smo.SuiApplication.createView(scrollRegion, score);
+      voice = { notes: [] };
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['treble'], 'treble', 'c', '8', 'gg').forEach((note) => voice.notes.push(note));
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['bass'], 'bass', 'c', '4', 'd').forEach((note) => voice.notes.push(note));
+      notesFromLetters(Smo.SmoMeasure.defaultPitchForClef['bass'], 'bass', 'c', '16', 'ggabcabg').forEach((note) => voice.notes.push(note));
+      voice.notes[0].pitches[0].octave += 1;
+      voice.notes[2].noteType = 'r';
+      voice.notes[3].noteType = 'r';
+      voice.notes[6].endBeam = true;
+      score.staves[1].measures[1].voices = [voice];
 
-              // Create the renderer that renderer, view, and start the engine which renders the score.
-           });
-       </script>
+      // scale so it fits within a pen
+      score.layoutManager.globalLayout.svgScale = 0.55;
+      Smo.SuiApplication.configure({
+        mode: 'library',
+        initialScore: score,
+        scoreDomContainer: document.getElementById('outer-container')
+      });
+
+      // Create the renderer that renderer, view, and start the engine which renders the score.
+    });
+  </script>
 </head>
+
 <body>
   <!-- audio crossOrigin="anonymous" id="sample" src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_middle_C.mp3" / -->
   <div id="outer-container">
@@ -141,4 +143,5 @@
     </div>
   </div>
 </body>
+
 </html>

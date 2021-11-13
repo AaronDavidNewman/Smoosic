@@ -351,7 +351,7 @@ export class SuiSampler extends SuiOscillator {
       self._play();
     });
   }
-  _play() {
+  _play(): Promise<any> {
     const audio = SuiOscillator.audio;
     const attack = this.attack / 1000;
     const decay = this.decay / 1000;
@@ -369,6 +369,9 @@ export class SuiSampler extends SuiOscillator {
     // gain2.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + attack + decay + sustain + release);
     const osc = audio.createBufferSource();
     const sample = SuiOscillator.sampleForFrequency(this.frequency);
+    if (!sample) {
+      return PromiseHelpers.emptyPromise();
+    }
     osc.buffer = sample!.sample;
     const cents = 1200 * (Math.log(this.frequency / sample!.frequency))
       / Math.log(2);

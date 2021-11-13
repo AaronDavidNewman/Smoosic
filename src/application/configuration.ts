@@ -1,4 +1,5 @@
 import { SmoRenderConfiguration } from "../render/sui/configuration";
+import { SmoScore } from "../smo/data/score";
 import { RibbonConfiguration } from "../ui/configuration";
 import { defaultRibbonLayout } from "../ui/ribbonLayout/default/defaultRibbon";
 import { KeyBindingConfiguration } from "../ui/configuration";
@@ -9,13 +10,11 @@ import { SmoUiConfiguration } from "../ui/configuration";
 export type SmoMode = 'library' | 'application' | 'translate';
 export type SmoLoadType = 'local' | 'remote' | 'query';
 export var SmoLoadTypes: SmoLoadType[] = ['local', 'remote', 'query'];
-export type ConfigurationStringOption = 'smoPath' | 'language' | 'scoreLoadJson' | 'smoDomContainer' |
-  'vexDomContainer' | 'title' | 'libraryUrl' | 'languageDir';
+export type ConfigurationStringOption = 'smoPath' | 'language' | 'title' | 'libraryUrl' | 'languageDir';
 
 export type ConfigurationNumberOption = 'demonPollTime' | 'idleRedrawTime';
 
-export var ConfigurationStringOptions: ConfigurationStringOption[] = ['smoPath', 'language', 'scoreLoadJson', 'smoDomContainer',
-  'vexDomContainer', 'title', 'libraryUrl', 
+export var ConfigurationStringOptions: ConfigurationStringOption[] = ['smoPath', 'language', 'title', 'libraryUrl', 
   'languageDir'];
 
 export var ConfigurationNumberOptions: ConfigurationNumberOption[] = ['demonPollTime', 'idleRedrawTime'];
@@ -25,9 +24,9 @@ export interface SmoConfigurationParams {
   smoPath?: string;
   language: string;
   scoreLoadOrder: string[];
-  scoreLoadJson?: string;
-  smoDomContainer?: string;
-  vexDomContainer?: string;
+  initialScore?: string | SmoScore;
+  uiDomContainer?: string | HTMLElement;
+  scoreDomContainer: string | HTMLElement;
   title?: string;
   libraryUrl?: string;
   languageDir: string;
@@ -39,12 +38,15 @@ export interface SmoConfigurationParams {
 
 /**
  * Configures smoosic library or application
+ * @param mode - score mode
  * @param smoPath - path to smoosic.js from html
+ * @param scoreUrl - path (URL) to remote score
  * @param language - startup language
- * @param scoreLoadOrder - default is ['query', 'local', 'library'],
- * @param scoreLoadJson - the library score JSON
- * @param smoDomContainer - the id of the parent element of application UI
- * @param vexDomContainer - the svg container
+ * @param scoreLoadOrder - default is ['query', 'local', 'library']
+ *   if you're going to load your own score, you can just leave the default.
+ * @param scoreLoadJson - the library score JSON, if you are loading from a JSON string
+ * @param uiDomContainer - the id of the parent element of application UI
+ * @param scoreDomContainer - the svg container
  * @param ribbon - launch the UI ribbon
  * @param keyCommands - start the key commands UI
  * @param menus - create the menu manager
@@ -59,9 +61,9 @@ export interface SmoConfigurationParams {
   smoPath?: string;
   language: string = '';
   scoreLoadOrder: string[];
-  scoreLoadJson?: string;
-  smoDomContainer?: string;
-  vexDomContainer?: string;
+  initialScore?: string | SmoScore;
+  uiDomContainer?: string | HTMLElement;
+  scoreDomContainer: string | HTMLElement = 'smoo';
   title?: string;
   libraryUrl?: string;
   languageDir: string = 'ltr';
@@ -70,15 +72,15 @@ export interface SmoConfigurationParams {
   ribbon?: RibbonConfiguration;
   keys?: KeyBindingConfiguration
 
-  static get defaultConfig(): SmoConfiguration {
+  static get defaults(): SmoConfiguration {
     return {
       smoPath: '..',
       mode: 'application',
       language: 'en',
       scoreLoadOrder: ['query', 'local', 'library'],
-      scoreLoadJson: 'Smo.basicJson',
-      smoDomContainer: 'smoo',
-      vexDomContainer: 'boo',
+      initialScore: 'Smo.basicJson',
+      uiDomContainer: 'smoo',
+      scoreDomContainer: 'boo',
       title: 'Smoosic',
       libraryUrl: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json',
       languageDir: 'ltr',
@@ -98,11 +100,20 @@ export interface SmoConfigurationParams {
     return { editorKeys, trackerKeys };
   }
   constructor(params: Partial<SmoConfigurationParams>) {
-    const defs = SmoConfiguration.defaultConfig;
+    const defs = SmoConfiguration.defaults;
     ConfigurationStringOptions.forEach((param) => {
       const sp: string | undefined = params[param] ?? defs[param];
       this[param] = sp ?? '';
     });
+    this.scoreDomContainer = params.scoreDomContainer ?? defs.scoreDomContainer;
+    this.uiDomContainer = params.uiDomContainer ?? defs.uiDomContainer; 
+    if (params.initialScore) {
+      if (typeof(params.initialScore) === 'string') {
+        this.initialScore = SmoScore.deserialize(params.initialScore);
+      } else {
+        this.initialScore = params.initialScore;
+      }
+    }
     ConfigurationNumberOptions.forEach((param) => {
       this[param] = params[param] ?? defs[param];
     });

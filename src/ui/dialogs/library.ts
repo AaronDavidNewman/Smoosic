@@ -111,21 +111,8 @@ export class SuiLibraryAdapter extends SuiComponentAdapter {
       }
     });
   }
-  _loadJsonAndComplete() {
-    const req = new SuiXhrLoader(this.selectedScore!.url);
-    req.loadAsync().then(() => {
-      const score = SmoScore.deserialize(req.value);
-      this.view.changeScore(score);
-    });
-  }
-  _loadXmlAndComplete() {
-    const req = new SuiXhrLoader(this.selectedScore!.url);
-    req.loadAsync().then(() => {
-      const parser = new DOMParser();
-      const xml = parser.parseFromString(req.value, 'text/xml');
-      const score = mxmlScore.smoScoreFromXml(xml);
-      this.view.changeScore(score);
-    });
+  _loadScore() {
+    this.view.loadRemoteScore(this.selectedScore!.url!);
   }
   get selectedLibrary(): SmoLibrary | null {
     return this.selectedLib;
@@ -179,11 +166,7 @@ export class SuiLibraryDialog extends SuiDialogAdapterBase<SuiLibraryAdapter> {
   }
   commit() {
     if (this.adapter.selectedScore !== null) {
-      if (this.adapter.selectedScore.format === 'mxml') {
-        this.adapter._loadXmlAndComplete();
-      } else {
-        this.adapter._loadJsonAndComplete();
-      }
+      this.adapter._loadScore();
     } else {
       this.complete();
     }

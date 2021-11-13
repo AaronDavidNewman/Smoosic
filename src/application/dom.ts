@@ -5,13 +5,12 @@ import { SvgHelpers } from '../render/sui/svgHelpers';
 import { SmoConfiguration } from './configuration';
 import { SuiPiano } from '../render/sui/piano';
 
-declare var SmoConfig: SmoConfiguration;
 declare var $: any;
 
 export class SuiDom {
-  static splash() {
+  static splash(config: SmoConfiguration) {
     var b: any = htmlHelpers.buildDom;
-    var logoPath = SmoConfig.smoPath + '/styles/images/logo.png'
+    var logoPath = config.smoPath + '/styles/images/logo.png'
     var r = b('div').classes('bug-modal').append(
       b('img').attr('src', logoPath).classes('splash-logo'))
       .append(b('button').classes('icon icon-cross bug-dismiss-button'))
@@ -25,14 +24,17 @@ export class SuiDom {
     }, 1000);
   }
 
-  static createDom(title: string) {
-    if (title) {
-      $('h1.testTitle').text(title);
+  static createUiDom(uiDomContainer: HTMLElement | string | undefined) {
+    if (!uiDomContainer) {
+      return;
     }
-
+    if (typeof(uiDomContainer) === 'string') {
+      uiDomContainer = document.getElementById(uiDomContainer) ?? undefined;
+    }
+    if (!uiDomContainer) {
+      return;
+    }
     var b = htmlHelpers.buildDom;
-    var smoId = SmoConfig.smoDomContainer;
-    var vexId = SmoConfig.vexDomContainer;
     var r = b('div').classes('dom-container')
       .append(b('div').classes('modes'))
       .append(b('div').classes('overlay'))
@@ -47,7 +49,7 @@ export class SuiDom {
       .append(b('div').classes('bugDialog'))
       .append(b('div').classes('printFrame'))
       .append(b('div').classes('menuContainer'))
-      .append(b('div').classes('workspace language-dir').attr('dir', SmoConfig.languageDir)
+      .append(b('div').classes('workspace language-dir').attr('dir', 'ltr')
         .append(b('div').classes('helpDialog'))
         .append(b('div').classes('control-bar')
           .append(b('div').classes('titleText').text('Smoosic'))
@@ -60,7 +62,8 @@ export class SuiDom {
           .append(b('div').classes('controls-left'))
           .append(b('div').classes('controls-menu-message'))
           ));
-    $('#' + smoId).append(r.dom());
+    
+    uiDomContainer.append(r.dom()[0]);
     var pianoDom = $('.piano-keys')[0];
     var svg = document.createElementNS(SvgHelpers.namespace, 'svg');
     svg.id = 'piano-svg';

@@ -137,11 +137,11 @@ export abstract class SuiRenderState {
     this.setRefresh();
   }
   get renderStateClean() {
-    return this.passState === SuiRenderState.passStates.clean;
+    return this.passState === SuiRenderState.passStates.clean && this.backgroundRender === false;
   }
   get renderStateRendered() {
     return this.passState === SuiRenderState.passStates.clean ||
-      (this.passState === SuiRenderState.passStates.replace && this.replaceQ.length === 0);
+      (this.passState === SuiRenderState.passStates.replace && this.replaceQ.length === 0 && this.backgroundRender === false);
   }
   preserveScroll() {
     const scrollState = this.measureMapper!.scroller.scrollState;

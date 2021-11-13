@@ -25,16 +25,12 @@
                // acting on the wrong notes.
                //
                // If you want to manipulate the music objects directly, check out the syncPen 
-               var app = async (Smo) => {
+               var app = async (Smo, application) => {
                  // create the app in library mode (no UI)
                  // Create an empty score (1 measure rests)
-                 const score = Smo.SmoScore.deserialize(Smo.emptyScoreJson);
+                 const view = application.view;
+                 const score = view.score;
                  score.preferences.autoPlay = false; // kind of annoying for this demo
-
-                 // Create the renderer that renders the music.  SVG music will be created
-                 // in the element
-                 const viewObj = Smo.SuiApplication.createView(document.getElementById('container1'), score);
-                 const view = viewObj.view;
                  const renderer = view.renderer;
                  // Create and start the view object.
                  // The outer container DOM is for scrolling
@@ -66,6 +62,7 @@
                  // Set the notes we just made down the octave by selecting them
                  // Transpose works relative to the pitch and does not auto-advance
                  await view.moveSelectionLeft();
+                 // same as await view.growSelectionLeft() 6 times...
                  await t(() => view.growSelectionLeft(), 6);
                  await view.transposeSelections(-12);
 
@@ -209,10 +206,12 @@
                };
                  Smo.SuiApplication.configure({
                    mode: 'library',
-                   idleRedrawTime: 5,
-                   scoreLoadJson: Smo.basicJson
-                 }).then(() => {
-                  app(Smo);
+                   idleRedrawTime: 1,
+                   demonPollTime: 1,
+                   initialScore: Smo.emptyScoreJson,
+                   scoreDomContainer: 'outer-container',
+                 }).then((application) => {
+                  app(Smo, application);
                  });
            });
        </script>

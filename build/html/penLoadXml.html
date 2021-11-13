@@ -24,27 +24,13 @@
 
       // A simple music program using Smoosic in library mode.  
       // Load a Music XML file (Finale) and render it
-      const renderScore = (score) => {
-        Smo.SuiApplication.configure({
-          mode: 'library',
-          idleRedrawTime: 500
-        });
-        Smo.SuiApplication.createView(document.getElementById('container1'), score);
-      }
-
       const path = 'https://aarondavidnewman.github.io/Smoosic/release/library/Beethoven_AnDieFerneGeliebte.xml';
-      const req = new XMLHttpRequest();
-      req.addEventListener('load', () => {
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(req.responseText, 'text/xml');
-        const score = Smo.mxmlScore.smoScoreFromXml(xml);
-        // For this demo, zoom it out so it doesn't try to squish the score in that little space
-        score.layoutManager.globalLayout.zoomScale = 1.5;
-        score.layoutManager.globalLayout.noteSpacing = 0.8;
-        renderScore(score);
+      Smo.SuiApplication.configure({
+                   mode: 'library',
+                   scoreDomContainer: 'outer-container'
+      }).then((application) => {
+        application.view.loadRemoteScore(path);
       });
-      req.open('GET', path);
-      req.send();
     });
   </script>
 </head>

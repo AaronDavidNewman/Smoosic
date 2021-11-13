@@ -19,7 +19,9 @@ import { SmoToXml } from '../../smo/mxml/smo2Xml';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from '../../smo/data/music';
 import { SuiOscillator } from '../audio/oscillator';
+import { mxmlScore } from '../../smo/mxml/xmlScore';
 import { SuiAudioPlayer } from '../audio/player';
+import { SuiXhrLoader } from '../../ui/fileio/xhrLoader';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { StaffModifierBase, SmoInstrument, SmoInstrumentParams } from '../../smo/data/staffModifiers';
 import { SuiRenderState } from './renderState';
@@ -108,7 +110,49 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this.renderer.renderScoreModifiers();
     return this.renderer.updatePromise()
   }
+  /**
+   * load an mxml score remotely, return a promise that 
+   * completes when the file is loaded
+   * @param url where to find the xml file
+   * @returns 
+   */
+  loadRemoteXml(url: string): Promise<any> {
+    const req = new SuiXhrLoader(url);
+    const self = this;
 
+    return req.loadAsync().then(() => {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(req.value, 'text/xml');
+      const score = mxmlScore.smoScoreFromXml(xml);
+      self.changeScore(score);
+    });
+  }
+  /**
+   * load a remote score in SMO format
+   * @param url url to find the score
+   * @returns 
+   */
+  loadRemoteJson(url: string) : Promise<any> {
+    const req = new SuiXhrLoader(url);
+    const self = this;
+    return req.loadAsync().then(() => {
+      const score = SmoScore.deserialize(req.value);
+      self.changeScore(score);
+    });
+  }
+  /**
+   * Load a remote score, return promise when it's been loaded
+   * from afar.
+   * @param pref 
+   * @returns 
+   */
+  loadRemoteScore(url: string): Promise<any> {
+    if (url.endsWith('xml')) {
+      return this.loadRemoteXml(url);
+    } else {
+      return this.loadRemoteJson(url);
+    }
+  }
   /**
    * Global settings that control how the score editor  behaves
    * @param pref 
@@ -1353,7 +1397,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
       }
     }
     this.renderer.setRefresh();
-    return this.renderer.updatePromise();
+    return this.renderer.renderPromise();
   }
   /**
    * add a single measure before or after selection
@@ -1379,7 +1423,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this.storeScore.addMeasure(pos);
     this.renderer.clearLine(measure);
     this.renderer.setRefresh();
-    return this.renderer.updatePromise();
+    return this.renderer.renderPromise();
   }
   /**
    * remove an entire line of music
@@ -1408,7 +1452,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     // revert to the full view
     SmoOperation.addStaff(this.storeScore, instrument);
     this.viewAll();
-    return this.renderer.updatePromise();
+    return this.renderer.renderPromise();
   }
   /**
    * Update part info assumes that the part is currently exposed - that
@@ -1447,7 +1491,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const staffParams = SmoSystemStaff.defaults;
     staffParams.measureInstrumentMap[0] = new SmoInstrument(instrumentParams);
     this.addStaff(staffParams);
-    return this.renderer.updatePromise();
+    return this.renderer.renderPromise();
   }
   saveScore(filename: string) {
     const json = this.storeScore.serialize();
@@ -1476,7 +1520,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const scoreStr = JSON.stringify(this.storeScore.serialize());
     localStorage.setItem(smoSerialize.localScore, scoreStr);
   }
-  setMeasureFormat(format: SmoMeasureFormat) {
+  setMeasureFormat(format: SmoMeasureFormat): Promise<any> {
     const label = 'set measure format';
     this.actionBuffer.addAction(label, format);
     const fromSelector = this.tracker.getExtremeSelection(-1).selector;
@@ -1608,7 +1652,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
       this.tracker.selectSuggestion(evData);
     }
   }
-  selectSuggestionModifier(selector: SmoSelector, evData: KeyEvent, modifierObj: any) {
+  selectSuggestionModifier(selector: SmoSelector, evData: KeyEvent, modifierObj: any): void {
     let modIndex = -1;
     // TODO: this looks fishy...
     if (typeof (modifierObj.startSelector) !== 'undefined' && typeof (modifierObj.endSelector) !== 'undefined') {
@@ -1627,10 +1671,10 @@ export class SuiScoreViewOperations extends SuiScoreView {
       this.tracker.selectSuggestion(evData);
     }
   }
-  refreshViewport() {
+  refreshViewport(): Promise<any> {
     this.renderer.preserveScroll();
     this.renderer.setViewport(true);
     this.renderer.setRefresh();
-    return this.renderer.updatePromise();
+    return this.renderer.renderPromise();
   }
 }

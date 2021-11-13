@@ -6,7 +6,7 @@ import { _MidiWriter } from '../common/midiWriter';
 import { SmoConfiguration, SmoConfigurationParams } from './configuration';
 import { SmoScore } from '../smo/data/score';
 import { UndoBuffer } from '../smo/xform/undo';
-
+import { emptyScoreJson } from '../music/basic';
 import { SuiScoreRender } from '../render/sui/scoreRender';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { SuiOscillator } from '../render/audio/oscillator';
@@ -46,7 +46,6 @@ export interface SuiRendererInstance {
   eventSource: BrowserEventSource;
   undoBuffer: UndoBuffer;
   renderer: SuiScoreRender;
-  tracker: SuiTracker;
 }
 export interface SuiInstance {
   view: SuiScoreViewOperations;
@@ -126,12 +125,25 @@ export class SuiScoreBuilder {
     }
   }
   libraryScoreLoad(): void {
-    this.score = SmoScore.deserialize(Smo.getClass(SmoConfig.scoreLoadJson));
-    this.scorePath = null;
-    this.mode = 'local';
+    if (SmoConfig.initialScore) {
+      if (typeof(SmoConfig.initialScore === 'string')) {
+        SmoConfig.initialScore = SmoScore.deserialize(SmoConfig.initialScore);
+        this.score = SmoConfig.initialScore;
+        this.scorePath = null;
+        this.mode = 'local';
+      }
+    }
   }
   constructor(config: SmoConfiguration, queryString: QueryParser) {
     let i:number = 0;
+    if (config.initialScore) {
+      if (typeof(config.initialScore) === 'string') {
+        this.score = SmoScore.deserialize(config.initialScore);
+      } else {
+        this.score = config.initialScore as SmoScore;
+      }
+      return;
+    }
     for (i = 0; i < config.scoreLoadOrder.length; ++i) {
       const load = config.scoreLoadOrder[i];
       if (load === 'local') {
@@ -157,7 +169,8 @@ export class SuiApplication {
   instance: SuiInstance | null = null;
   config: SmoConfiguration;
   score: SmoScore | null = null;
-  static configure(params: Partial<SmoConfigurationParams>): Promise<any> {
+  view: SuiScoreViewOperations | null = null;
+  static configure(params: Partial<SmoConfigurationParams>): Promise<SuiApplication> {
     const config: SmoConfiguration = new SmoConfiguration(params);
     (window as any).SmoConfig = config;
     const application = new SuiApplication(config);
@@ -166,20 +179,6 @@ export class SuiApplication {
   }
   constructor(config: SmoConfiguration) {
     this.config = config;
-  }
-  static createView(scrollContainer: HTMLElement, score: SmoScore) {
-    const svgContainer = document.createElement('div');
-    $(svgContainer).attr('id', SmoConfig.vexDomContainer).addClass('musicContainer');
-    scrollContainer.append(svgContainer);
-    const renderer = SuiScoreRender.createScoreRenderer(svgContainer, score);
-    const eventSource = new BrowserEventSource();
-    const undoBuffer = new UndoBuffer();
-    eventSource.setRenderElement(renderer.renderElement);
-    const view = new SuiScoreViewOperations(renderer, score, scrollContainer, undoBuffer);
-    view.startRenderingEngine();
-    return {
-      view, eventSource, undoBuffer, renderer, tracker: view.tracker
-    };
   }
   static instance: SuiInstance;
   /** 
@@ -198,22 +197,48 @@ export class SuiApplication {
     });
     return trackerKeys.concat(editorKeys);
   }
-  initialize(): Promise<any> {
+  initialize(): Promise<SuiApplication> {
     const samplePromise: Promise<any> = SuiOscillator.sampleFiles.length > 0 ?
       SuiOscillator.samplePromise() : PromiseHelpers.emptyPromise();
 
     const self = this;
-    const createScore = (): Promise<any> => {
+    const createScore = (): Promise<SuiApplication> => {
       return self.createScore();
     }
     const startApplication = () => {
       if (self.config.mode === 'application') {
         self._startApplication();
+      } else {
+        if (!self.score) {
+          self.score = SmoScore.deserialize(emptyScoreJson);
+        }
+        if (typeof(this.config.scoreDomContainer) === 'string') {
+          if (this.config.scoreDomContainer[0] === '#') {
+            this.config.scoreDomContainer = $(this.config.scoreDomContainer)[0];
+          } else {
+            const el = document.getElementById(this.config.scoreDomContainer);
+            if (!el) {
+              return;
+            }
+            this.config.scoreDomContainer = el;
+          }
+        }
+        self.createView(self.score);
       }
     }
-    return samplePromise.then(createScore).then(startApplication);
+    const render = () => {
+      return self.view?.renderer.renderPromise();
+    }
+    const rv = new Promise<SuiApplication>((resolve: any) => {
+      samplePromise.then(createScore).then(startApplication).then(render)
+        .then(
+          () => {
+            resolve(self);
+          });
+    });
+    return rv;
   }
-  createScore(): Promise<any> {
+  createScore(): Promise<SuiApplication> {
     const queryString = new QueryParser();
     const scoreBuilder = new SuiScoreBuilder(this.config, queryString);
     if (scoreBuilder.score) {
@@ -227,7 +252,7 @@ export class SuiApplication {
           loader.loadAsync().then(() => {
             self.score = SmoScore.deserialize(loader.value);
             self.createUi();
-            resolve();
+            resolve(self);
           });
         });
       }
@@ -273,6 +298,35 @@ export class SuiApplication {
       this.createUi();
     }
   }
+  createView(score: SmoScore): SuiRendererInstance | null {
+    let sdc: string | HTMLElement | null = this.config.scoreDomContainer;
+    if (!sdc) {
+      return null;
+    }
+    if (typeof(sdc) === 'string') {
+      if (sdc[0] === '#') {
+        sdc = $(sdc)[0];
+      } else {
+        sdc = document.getElementById(sdc);
+      }
+    }
+    if (!sdc) {
+      return null;
+    }
+    const svgContainer = document.createElement('div');
+    $(svgContainer).attr('id', 'boo').addClass('musicContainer');
+    $(sdc).append(svgContainer);
+    const renderer = SuiScoreRender.createScoreRenderer(svgContainer, score);
+    const eventSource = new BrowserEventSource();
+    const undoBuffer = new UndoBuffer();
+    eventSource.setRenderElement(renderer.renderElement);
+    const view = new SuiScoreViewOperations(renderer, score, sdc as HTMLElement, undoBuffer);
+    this.view = view;
+    view.startRenderingEngine();
+    return {
+      view, eventSource, undoBuffer, renderer
+    };
+  }
 
   /**
    * Convenience constructor, take the score and render it in the
@@ -280,15 +334,17 @@ export class SuiApplication {
    * @param score(SmoScore) - the score
    */
   createUi() {
-    SuiDom.createDom('Smoosic');
     const menuContainer = document.createElement('div');
     $(menuContainer).addClass('menuContainer');
     $('.dom-container').append(menuContainer);
     const scrollRegion = document.createElement('div');
     $(scrollRegion).attr('id', 'smo-scroll-region').addClass('musicRelief');
     $('.dom-container .media').append(scrollRegion);
-    const viewObj = SuiApplication.createView(scrollRegion, this.score!);
-    const view = viewObj.view;
+    const viewObj: SuiRendererInstance | null = this.createView(this.score!);
+    if (!viewObj) {
+      return;
+    }
+    const view = this.view!;
     const tracker = view.tracker;
     const eventSource = new BrowserEventSource(); // events come from the browser UI.
     const undoBuffer = viewObj.undoBuffer;
@@ -322,7 +378,7 @@ export class SuiApplication {
     // eslint-disable-next-line
     SuiApplication.instance = this.instance;
     ribbon.display();
-    SuiDom.splash();
+    SuiDom.splash(this.config);
   }
   static registerFonts() {
     VF.TextFont.registerFont({
@@ -452,7 +508,7 @@ export class SuiApplication {
     ];
   }
   static _deferCreateTranslator(lang: string) {
-    SuiDom.createDom(lang);
+    SuiDom.createUiDom(lang);
     setTimeout(() => {
       SmoTranslationEditor.startEditor(lang);
     }, 1);
