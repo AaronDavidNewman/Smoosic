@@ -140,7 +140,7 @@ export abstract class SuiRenderState {
     return this.passState === SuiRenderState.passStates.clean && this.backgroundRender === false;
   }
   get renderStateRendered() {
-    return this.passState === SuiRenderState.passStates.clean ||
+    return (this.passState === SuiRenderState.passStates.clean && this.backgroundRender === false) ||
       (this.passState === SuiRenderState.passStates.replace && this.replaceQ.length === 0 && this.backgroundRender === false);
   }
   preserveScroll() {

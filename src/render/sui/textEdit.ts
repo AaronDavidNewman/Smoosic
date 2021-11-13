@@ -1066,13 +1066,13 @@ export class SuiLyricSession {
   // ### _endLyricCondition
   // renderer has partially rendered text(promise condition)
   get _isRefreshed(): boolean {
-    return this.renderer.dirty === false;
+    return this.renderer.renderStateRendered;
   }
 
   // ### _isRendered
   // renderer has rendered text(promise condition)
   get _isRendered(): boolean {
-    return this.renderer.passState === SuiRenderState.passStates.clean;
+    return this.renderer.renderStateClean;
   }
 
   get _pendingEditor(): boolean {
@@ -1160,7 +1160,7 @@ export class SuiLyricSession {
       const conditionArray = [];
       this.state = SuiTextEditor.States.PENDING_EDITOR;
       conditionArray.push(PromiseHelpers.makePromiseObj(() => this._endLyricCondition, null, null, 100));
-      conditionArray.push(PromiseHelpers.makePromiseObj(() => this._isRefreshed,() => this._startSessionForNote, null, 100));
+      conditionArray.push(PromiseHelpers.makePromiseObj(() => this._isRefreshed,() => this._startSessionForNote(), null, 100));
       PromiseHelpers.promiseChainThen(conditionArray);
     }
   }

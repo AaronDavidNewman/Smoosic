@@ -1397,7 +1397,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
       }
     }
     this.renderer.setRefresh();
-    return this.renderer.renderPromise();
+    return this.renderer.updatePromise();
   }
   /**
    * add a single measure before or after selection
@@ -1423,7 +1423,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this.storeScore.addMeasure(pos);
     this.renderer.clearLine(measure);
     this.renderer.setRefresh();
-    return this.renderer.renderPromise();
+    return this.renderer.updatePromise();
   }
   /**
    * remove an entire line of music
@@ -1452,7 +1452,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     // revert to the full view
     SmoOperation.addStaff(this.storeScore, instrument);
     this.viewAll();
-    return this.renderer.renderPromise();
+    return this.renderer.updatePromise();
   }
   /**
    * Update part info assumes that the part is currently exposed - that
@@ -1491,7 +1491,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const staffParams = SmoSystemStaff.defaults;
     staffParams.measureInstrumentMap[0] = new SmoInstrument(instrumentParams);
     this.addStaff(staffParams);
-    return this.renderer.renderPromise();
+    return this.renderer.updatePromise();
   }
   saveScore(filename: string) {
     const json = this.storeScore.serialize();

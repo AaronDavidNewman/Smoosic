@@ -206,9 +206,13 @@ export class SuiApplication {
       return self.createScore();
     }
     const startApplication = () => {
-      if (self.config.mode === 'application') {
+      if (self.config.mode === 'translate') {
         self._startApplication();
-      } else {
+      }
+      else if (self.config.mode === 'application') {
+        self._startApplication();
+      } else {  // library mode.
+        // Find a score to start with
         if (!self.score) {
           self.score = SmoScore.deserialize(emptyScoreJson);
         }
@@ -239,6 +243,9 @@ export class SuiApplication {
     return rv;
   }
   createScore(): Promise<SuiApplication> {
+    if (this.config.mode === 'translate') {
+      return PromiseHelpers.emptyPromise();
+    }
     const queryString = new QueryParser();
     const scoreBuilder = new SuiScoreBuilder(this.config, queryString);
     if (scoreBuilder.score) {
@@ -270,7 +277,7 @@ export class SuiApplication {
     if (config.mode === 'translate') {
       const transPair: pairType | undefined = queryString.pairs.find((x) => x['translate']);
       const transLanguage = transPair ? transPair.translate : config.language;
-      SuiApplication._deferCreateTranslator(transLanguage);
+      this._deferCreateTranslator();
       return;
     }
     if (languageSelect) {
@@ -507,10 +514,10 @@ export class SuiApplication {
       { alias: 'joplin', format: 'xml', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/ScottJoplin_The_Entertainer.xml' }
     ];
   }
-  static _deferCreateTranslator(lang: string) {
-    SuiDom.createUiDom(lang);
+  _deferCreateTranslator() {
+    SuiDom.createUiDom(this.config.uiDomContainer);
     setTimeout(() => {
-      SmoTranslationEditor.startEditor(lang);
+      SmoTranslationEditor.startEditor(this.config.language);
     }, 1);
   }
 
