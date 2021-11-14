@@ -28,12 +28,11 @@ import { SmoTranslationEditor } from '../ui/i18n/translationEditor';
 import { SmoTranslator } from '../ui/i18n/language';
 import { RibbonButtons } from '../ui/buttons/ribbon';
 import { defaultRibbonLayout } from '../ui/ribbonLayout/default/defaultRibbon';
-
+import { PromiseHelpers } from '../common/promiseHelpers';
 import { SuiDom } from './dom';
 import { SuiKeyCommands } from './keyCommands';
 import { SuiEventHandler } from './eventHandler';
 import { KeyBinding, ModalEventHandlerProxy } from './common';
-import { PromiseHelpers } from '../../release/smoosic';
 
 
 declare var SmoConfig : SmoConfiguration;

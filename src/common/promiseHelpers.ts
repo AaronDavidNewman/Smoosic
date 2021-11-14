@@ -67,7 +67,7 @@ export class PromiseHelpers {
 
 		return result!;
   }
-  static emptyPromise(): Promise<void> {
+  static emptyPromise(): Promise<any> {
     return new Promise((resolve: any) => {
       setTimeout(() => {
         resolve();

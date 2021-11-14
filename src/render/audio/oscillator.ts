@@ -5,8 +5,9 @@ import { SmoAudioPitch } from '../../smo/data/music';
 import { SmoMicrotone } from '../../smo/data/noteModifiers';
 import { SmoMeasure } from '../../smo/data/measure';
 import { SmoNote } from '../../smo/data/note';
+import { PromiseHelpers } from '../../common/promiseHelpers';
 import { SmoSelection } from '../../smo/xform/selections';
-import { PromiseHelpers } from '../../../release/smoosic';
+
 
 export class SuiReverb {
   static get defaults() {
