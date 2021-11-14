@@ -1,6 +1,7 @@
 import { SmoRenderConfiguration } from "../render/sui/configuration";
 import { SmoScore } from "../smo/data/score";
 import { RibbonConfiguration } from "../ui/configuration";
+import { ModalEventHandler } from "./common";
 import { defaultRibbonLayout } from "../ui/ribbonLayout/default/defaultRibbon";
 import { KeyBindingConfiguration } from "../ui/configuration";
 import { defaultEditorKeys } from "../ui/keyBindings/default/editorKeys";
@@ -33,7 +34,8 @@ export interface SmoConfigurationParams {
   demonPollTime: number; // how often we poll the score to see if it changed
   idleRedrawTime: number;
   ribbon?: RibbonConfiguration,
-  keys?: KeyBindingConfiguration
+  keys?: KeyBindingConfiguration,
+  eventHandler?: ModalEventHandler
 }
 
 /**
@@ -71,6 +73,7 @@ export interface SmoConfigurationParams {
   idleRedrawTime: number = 0;
   ribbon?: RibbonConfiguration;
   keys?: KeyBindingConfiguration
+  eventHandler?: ModalEventHandler
 
   static get defaults(): SmoConfiguration {
     return {
@@ -105,6 +108,9 @@ export interface SmoConfigurationParams {
       const sp: string | undefined = params[param] ?? defs[param];
       this[param] = sp ?? '';
     });
+    if (params.eventHandler) {
+      this.eventHandler = params.eventHandler;
+    }
     this.scoreDomContainer = params.scoreDomContainer ?? defs.scoreDomContainer;
     this.uiDomContainer = params.uiDomContainer ?? defs.uiDomContainer; 
     if (params.initialScore) {

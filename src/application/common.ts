@@ -27,7 +27,32 @@ export abstract class ModalEventHandler {
   abstract mouseClick(ev: any): void;
   abstract evKey(evdata: any): void;
 }
+export type handler = (ev: any) => void;
+export class SimpleEventHandler extends ModalEventHandler {
+  mouseMoveHandler: handler;;
+  mouseClickHandler: handler;
+  evKeyHandler: handler;
+  constructor(mouseMove: handler, mouseClick: handler, keyHandler: handler) {
+    super();
+    this.mouseMoveHandler = mouseMove;
+    this.mouseClickHandler = mouseClick;
+    this.evKeyHandler = keyHandler;
+  }
+  mouseMove(ev: any) {
+    this.mouseMove(ev);
+  }
+  mouseClick(ev: any) {
+    this.mouseClick(ev);
+  }
+  evKey(ev: any) {
+    this.evKeyHandler(ev);
+  }
+}
 
+/**
+ * Dependency injection, sends events to a proxy object, gets around some 
+ * cyclic dependencies when bootstrapping the application.
+ */
 export class ModalEventHandlerProxy {
   _handler: ModalEventHandler | null = null;
   eventSource: BrowserEventSource;

@@ -13,7 +13,6 @@ import { CompleteNotifier, ModalComponent } from '../ui/common';
 import { SuiTracker } from '../render/sui/tracker';
 import { defaultEditorKeys } from '../ui/keyBindings/default/editorKeys';
 import { defaultTrackerKeys } from '../ui/keyBindings/default/trackerKeys';
-import { defaultRibbonLayout } from '../ui/ribbonLayout/default/defaultRibbon';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { BrowserEventSource, EventHandler } from '../ui/eventSource';
 import { SuiKeyCommands } from './keyCommands';

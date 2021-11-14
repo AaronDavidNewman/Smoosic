@@ -26,6 +26,7 @@ import { VoiceButtons } from '../ui/buttons/voice';
 import { SmoTranslationEditor } from '../ui/i18n/translationEditor';
 import { SmoConfiguration } from './configuration';
 import { RibbonButtons } from '../ui/buttons/ribbon';
+import { SimpleEventHandler, ModalEventHandler } from './common';
 // Language strings
 import { quickStartHtmlen, selectionHtmlen, enterDurationsHtmlen, enterPitchesHtmlen } from '../ui/i18n/language_en';
 import { quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHtmlar } from '../ui/i18n/language_ar';
@@ -134,7 +135,7 @@ export const Smo = {
     SmoConfiguration,
     SuiApplication,
     SuiDom,  SuiEventHandler, SuiExceptionHandler,
-    Qwerty, SuiHelp, SmoTranslationEditor,
+    Qwerty, SuiHelp, SmoTranslationEditor, SimpleEventHandler, ModalEventHandler,
     // Ribbon buttons
     RibbonButtons, NoteButtons, TextButtons, ChordButtons, MicrotoneButtons,
     StaveButtons, BeamButtons, MeasureButtons, DurationButtons,
