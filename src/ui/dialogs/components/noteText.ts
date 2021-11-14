@@ -46,7 +46,7 @@ export interface SuiNoteTextParams {
   label: string,
   smoName: string,
   control: string,
-  verse: number
+  verse?: number
 }
 /**
  * Base class for text editor components that navigate to
@@ -154,7 +154,7 @@ export class SuiLyricComponent extends SuiNoteTextComponent {
     super(dialog, parameter);
     this.altLabel = this.staticText.doneEditing;
     this.started = false;
-    this.verse = parameter.verse;
+    this.verse = parameter.verse ?? 0;
   }
   get html() {
     var b = htmlHelpers.buildDom;

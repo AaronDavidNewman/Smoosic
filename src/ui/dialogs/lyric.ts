@@ -12,6 +12,7 @@ import { EventHandler } from '../eventSource';
 
 declare var $: any;
 declare var SmoConfig: SmoUiConfiguration;
+
 export class SuiLyricDialog extends SuiDialogBase {
   static get ctor() {
     return 'SuiLyricDialog';
