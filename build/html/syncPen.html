@@ -27,8 +27,8 @@
       // we need to create our own selections, since tracker will not be aware of music changes
       // made before the item renders.
 
-      // convienience function to create a SmoNote from letter name (smoosic pitches are json triples, letter, accidental octave).
-      const notesFromLetters = Smo.SmoOperation.notesFromLetters;
+      // convienience function to create a SmoNote from letter name (smoosic pitches are json triples: letter, accidental, octave).
+      const notesFromLetters = Smo.SmoMusic.notesFromLetters;
 
       // Create an empty score.  'Empty' score actually has a single treble-clef measure of rests.
       const score = Smo.SmoScore.deserialize(Smo.emptyScoreJson);
@@ -129,7 +129,7 @@
         initialScore: score,
         scoreDomContainer: document.getElementById('outer-container')
       });
-
+    
       // Create the renderer that renderer, view, and start the engine which renders the score.
     });
   </script>

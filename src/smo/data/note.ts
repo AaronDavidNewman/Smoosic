@@ -34,15 +34,12 @@ export interface SmoNoteParams {
   isCue: boolean
 }
 
-// ## SmoNote
-// ## Description:
-// Data for a musical note.  THe most-contained-thing, except there can be note modifiers
-// Basic note information.  Leaf node of the SMO dependency tree (so far)
-// ## SmoNote Methods
-// ---
+/**
+ * SmoNote contains the pitch and duration of a note or chord.
+ * It can also contain arrays of modifiers like lyrics, articulations etc.
+ * Also information about the beaming, flag etc.
+ * */
 export class SmoNote implements Transposable {
-  // ### Description:
-  // see defaults for params format.
   constructor(params: SmoNoteParams) {
     const defs = SmoNote.defaults;
     NoteStringParams.forEach((param) => {

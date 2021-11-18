@@ -557,30 +557,7 @@ export class SmoOperation {
       note.pitches.push(pitch);
     });
   }
-  /**
-   * Convenience function to create SmoNote[] from letters, with the correct accidental
-   * for the key signature, given duration, etc
-   * @param startPitch - the pitch used to calculate the octave of the new note
-   * @param clef
-   * @param keySignature
-   * @param duration - vex duration
-   * @param letters - string of PitchLetter
-   * @returns
-   */
-  static  notesFromLetters(startPitch: Pitch, clef: Clef, keySignature: string, duration: string, letters: string): SmoNote[] {
-    const rv: SmoNote[] = [];
-    let curPitch = startPitch;
-    const ticks = SmoMusic.durationToTicks(duration);
-    letters.split('').forEach((letter) => {
-      curPitch = SmoMusic.getLetterNotePitch(curPitch, letter as PitchLetter, keySignature);
-      const defs = SmoNote.defaults;
-      defs.ticks = { numerator: ticks, denominator: 1, remainder: 0 };
-      defs.pitches = [curPitch];
-      defs.clef = clef;
-      rv.push(new SmoNote(defs));
-    });
-    return rv;
-  }
+
   static toggleCourtesyAccidental(selection: SmoSelection) {
     let toBe: boolean = false;
     const note = selection.note as SmoNote;

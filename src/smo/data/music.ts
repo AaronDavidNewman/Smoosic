@@ -1,11 +1,16 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+/**
+ * shared music theory and audio frequency routines, helper functions etc.
+ * @module
+ */
 import { SmoNote } from './note';
 import { Pitch, PitchKey, Clef, PitchLetter } from './common';
 import { SmoMicrotone } from './noteModifiers';
 
-// ## SmoAudioPitch
-// helper class to compute the frequencies of the notes.
+/**
+ * calculate the pitch frequency, just temperment a=440, etc.
+ */
 export class SmoAudioPitch {
   // ### _frequencies
   // Compute the equal-temperment frequencies of the notes.
@@ -51,8 +56,13 @@ export class SmoAudioPitch {
     const vx = npitch.letter.toLowerCase() + npitch.accidental + npitch.octave.toString();
     return SmoAudioPitch.pitchFrequencyMap[vx];
   }
-  // ### smoPitchToFrequency
-  // Convert a pitch to a frequency in Hz.
+  /**
+   * 
+   * @param smoPitch - pitch from the SMO object
+   * @param offset - transpose 1/2 steps, 0 means no transpose
+   * @param tone - optional transpose microtone
+   * @returns 
+   */
   static smoPitchToFrequency(smoPitch: Pitch, offset: number, tone: SmoMicrotone | null) {
     let pitchInt = 0;
     let rv = SmoAudioPitch._rawPitchToFrequency(smoPitch, offset);    
@@ -68,35 +78,43 @@ export class SmoAudioPitch {
   }
 }
 
-/**
-// Helper functions that build on the VX music theory routines, and other
-// utilities I wish were in VF.Music but aren't
-// ### Note on pitch and duration format
-// We use some VEX music theory routines and frequently need to convert
-// formats from SMO format.
-//
-// `Smo` uses pitch JSON:
-// ``javascript``
-//  {note:'c',accidental:'#',octave:4}
-// `Vex` usually uses a canonical string:
-//  'c#/4'
-//  Depending on the operation, the octave might be omitted
-//
-// `Smo` uses a JSON for duration always:
-// ``javascript``
-// {numerator:4096,denominator:1,remainder:0}
-//
-// `VexFlow` uses a letter duration ('4' for 1/4 note) and 'd' for dot.
-// I try to indicate whether I am using vex or smo notation
-// Duration methods start around line 600
-// ---
- */
 const VF = eval('Vex.Flow');
 export interface VexNoteValue {
   root_index: number,
   int_val: number
 }
-export class SmoMusic {
+/**
+ * Helper functions that build on the VX music theory routines, and other
+ * utilities I wish were in VF.Music but aren't
+ * ## Note on pitch and duration format
+ * We use some VEX music theory routines and frequently need to convert
+ * formats from SMO format.  We also use the same 'ticks' abstraction for
+ * durations.
+ * 
+ * `Smo` uses pitch JSON:
+ * ```javascript
+ *     {note:'c',accidental:'#',octave:4}
+ * ```
+ * 
+ * `Vex` usually uses a canonical string:
+ * 
+ *     `'c#/4'`
+ * 
+ * Depending on the operation, the octave might be omitted
+ * 
+ * `Smo` uses a JSON for duration always:
+ * ```javascript
+ *     {numerator:4096,denominator:1,remainder:0}
+ * ```
+ * `Vex` uses a letter duration (`'4'` or `'q'`for 1/4 note) and `'d'` for dot.
+ * 
+ * I try to indicate whether I am using vex or smo notation in the function name.
+ * Duration methods start around line 600
+ */
+ export class SmoMusic {
+  /**
+   * Ported from vex, used to convert pitches to numerical values
+   * */
   static get noteValues(): Record<string, VexNoteValue> {
     return {
       c: { root_index: 0, int_val: 0 },
@@ -143,17 +161,16 @@ export class SmoMusic {
       bbb: { root_index: 6, int_val: 9 },
     };
   }
-  /** /
-  // return Vex canonical note enharmonic - e.g. Bb to A#
-  // Get the canonical form
-  */
+  /**
+   * return Vex canonical note enharmonic - e.g. Bb to A#
+   * */
   static vexToCannonical(vexKey: string): string {
     vexKey = SmoMusic.stripVexOctave(vexKey);
     return VF.Music.canonical_notes[SmoMusic.noteValues[vexKey].int_val];
   }
 
-  /** circleOfFifths
-  * A note array in key-signature order
+  /**
+  * A note array (sans octave) in key-signature order
   */
   static get circleOfFifths(): PitchKey[] {
     return [{
@@ -289,7 +306,9 @@ export class SmoMusic {
   }
 
   /**
-   *  return true if the pitches match, but maybe not in same octave
+   * return true if the pitches match, except for octave.
+   * `{ letter: 'a', accidental: '#'}, { letter: 'a', accidental: '#'}` returns true
+   * `{ letter: 'a', accidental: '#'}, { letter: 'b', accidental: 'b'}` returns false
    * */
   static smoScalePitchMatch(p1: Pitch, p2: Pitch): boolean {
     const pp1 = JSON.parse(JSON.stringify(p1));
@@ -304,7 +323,7 @@ export class SmoMusic {
    * Return the number of ledger lines based on the pitch and clef
    * @param clef
    * @param pitch
-   * @returns
+   * @returns number where 0 is the top staff line
    */
   static pitchToLedgerLine(clef: Clef, pitch: Pitch): number {
     // return the distance from the top ledger line, as 0.5 per line/space
@@ -312,7 +331,7 @@ export class SmoMusic {
       - VF.clefProperties(clef).line_shift;
   }
   /**
-   *   return hard-coded flag state, or flag state as based on pitch and clef
+   * return flag state (up or down) based on pitch and clef if auto
    * */
   static flagStateFromNote(clef: Clef, note: SmoNote) {
     let fs = note.flagState;
@@ -343,15 +362,21 @@ export class SmoMusic {
   }
 
   /**
-   * convert smo pitch to easy score (vex) format
+   * convert smo pitch to easy score (vex) format.  Mostly used
+   * for debugging and generating Vex test cases
    * @param smoPitch
-   * @returns
+   * @returns - a string that can be converted to a VEX routine, with some difficulty
    */
   static pitchToEasyScore(smoPitch: Pitch): string {
     let vexKey = smoPitch.letter.toLowerCase();
     vexKey = vexKey + smoPitch.accidental;
     return vexKey + smoPitch.octave;
   }
+  /**
+   * convert a pitch to a format expected by the MIDI writer
+   * @param smoPitch pitch to convert
+   * @returns pitch in MIDI string format.
+   */
   static smoPitchToMidiString(smoPitch: Pitch): string {
     const midiPitch = SmoMusic.smoIntToPitch(SmoMusic.smoPitchToInt(smoPitch));
     let rv = midiPitch.letter.toUpperCase();
@@ -369,6 +394,12 @@ export class SmoMusic {
     return rv;
   }
 
+  /**
+   * filled in from the midi routines borrowed from 
+   * // https://github.com/grimmdude/MidiWriterJS
+   * @param midiPitch pitch from MIDIwrite
+   * @returns SMO pitch
+   */
   static midiPitchToSmoPitch(midiPitch: string): Pitch {
     const smoPitch: Pitch = {} as Pitch;
     smoPitch.letter = midiPitch[0].toLowerCase() as PitchLetter;
@@ -395,6 +426,8 @@ export class SmoMusic {
   /**
    *  Turns vex pitch string into smo pitch, e.g.
    * `cn/4 => {'c','n',4}`
+   * @param vexPitch
+   * @returns SmoPitch
    * */
   static vexToSmoPitch(vexPitch: string): Pitch {
     let octave = 0;
@@ -432,6 +465,10 @@ export class SmoMusic {
     return rv;
   }
 
+  /**
+   * @param vexKey - pitch in vex format
+   * @returns pitch in vex format, sans octave
+   */
   static stripVexOctave(vexKey: string): string {
     if (vexKey.indexOf('/') > 0) {
       vexKey = vexKey.substring(0, vexKey.indexOf('/'));
@@ -455,6 +492,12 @@ export class SmoMusic {
     });
     return matches === ir1.length;
   }
+  /**
+   * convert pitches to integer pitch representations
+   * by calling smoPitchToInt
+   * @param pitches Smo pitches
+   * @returns 
+   */
   static smoPitchesToIntArray(pitches: Pitch[]): number[] {
     const rv: number[] = [];
     pitches.forEach((pitch) => {
@@ -463,6 +506,11 @@ export class SmoMusic {
     return rv.sort();
   }
 
+  /**
+   * convert a pitch to an integer value, used for transpositions, intervals, etc.
+   * @param pitch 
+   * @returns 
+   */
   static smoPitchToInt(pitch: Pitch): number {
     if (typeof (pitch.octave) === 'undefined') {
       pitch.octave = 0;
@@ -474,6 +522,11 @@ export class SmoMusic {
     return octave * 12 + intVal;
   }
 
+  /**
+   * Convert a number to a SMO pitch
+   * @param intValue - number of 1/2 steps from `c0`
+   * @returns 
+   */
   static smoIntToPitch(intValue: number): Pitch {
     let octave = 0;
     let accidental = '';
@@ -767,6 +820,30 @@ export class SmoMusic {
       pitch.octave -= 1;
     }
     return pitch;
+  }
+    /**
+   * Convenience function to create SmoNote[] from letters, with the correct accidental
+   * for the key signature, given duration, etc
+   * @param startPitch - the pitch used to calculate the octave of the new note
+   * @param clef
+   * @param keySignature
+   * @param duration - vex duration
+   * @param letters - string of PitchLetter
+   * @returns
+   */
+  static  notesFromLetters(startPitch: Pitch, clef: Clef, keySignature: string, duration: string, letters: string): SmoNote[] {
+    const rv: SmoNote[] = [];
+    let curPitch = startPitch;
+    const ticks = SmoMusic.durationToTicks(duration);
+    letters.split('').forEach((letter) => {
+      curPitch = SmoMusic.getLetterNotePitch(curPitch, letter as PitchLetter, keySignature);
+      const defs = SmoNote.defaults;
+      defs.ticks = { numerator: ticks, denominator: 1, remainder: 0 };
+      defs.pitches = [curPitch];
+      defs.clef = clef;
+      rv.push(new SmoNote(defs));
+    });
+    return rv;
   }
   /**
    *

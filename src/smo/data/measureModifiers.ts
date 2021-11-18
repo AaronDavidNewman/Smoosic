@@ -7,8 +7,10 @@ import { SmoSelector } from '../xform/selections';
 import { SmoMeasure } from './measure';
 
 const VF = eval('Vex.Flow');
-// ## Measure modifiers are elements that are attached to the bar itself, like barlines or measure-specific text,
-// repeats - lots of stuff
+/**
+ * Measure modifiers are attached to the measure itself.  Each instance has a
+ * serialize method and a ctor attribute for deserialization.
+ */
 export abstract class SmoMeasureModifierBase implements SmoModifierBase {
   attrs: SmoAttrs;
   ctor: string;
@@ -44,10 +46,20 @@ export interface SmoMeasureFormatParams {
   padAllInSystem: boolean | null,
   measureIndex: number | null,
 }
+/**
+ * ISmoMeasureFormatMgr is the DI interface to the
+ * format manager.  Measure formats are often the same to multiple measures
+ * so we don't serialize each one - instead we map them with this interface
+ */
 export interface ISmoMeasureFormatMgr {
   format: SmoMeasureFormatParams,
   measureNumber: MeasureNumber
 }
+/**
+ * Measure format holds parameters about the automatic formatting of the measure itself, such as the witch and
+ * how the durations are proportioned.  Note that measure formatting is also controlled by the justification
+ * between voices and staves.  For instance, 2 measures in different staves will have to have the same width
+ */
 export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasureFormatParams {
   static get attributes() {
     return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak', 'pageBreak', 'padLeft', 'measureIndex', 'padAllInSystem'];
@@ -130,6 +142,9 @@ export interface SmoBarlineParams {
   barline: number | null
 }
 
+/**
+ * Barline is just that, there is a start and end in each measure, which defaults to 'single'.
+ */
 export class SmoBarline extends SmoMeasureModifierBase {
   static readonly positions: Record<string, number> = {
     start: 0,
@@ -203,6 +218,10 @@ export interface SmoRepeatSymbolParams {
   yOffset: number,
   position: number
 }
+/**
+ * Repeat symbols like DC, Fine etc.  Note: voltas are their own thing,
+ * and repeats are types of barlines.
+ */
 export class SmoRepeatSymbol extends SmoMeasureModifierBase {
   static readonly symbols: Record<string, number> = {
     None: 0,
@@ -269,6 +288,10 @@ export interface SmoVoltaParams {
   yOffset: number,
   number: number
 }
+/**
+ * Voltas (2nd endings) behave more like staff modifiers, but they are associated with the measure
+ * since each meausure has it's own rules for displaying part of the volta.
+ */
 export class SmoVolta extends SmoMeasureModifierBase {
   startBar: number = 1;
   endBar: number = 1;
@@ -340,6 +363,10 @@ export interface SmoMeasureTextParams {
   adjustY: number,
   justification: number
 }
+/**
+ * Measure text is just that.  Now that score text can be associated with musical elements, this
+ * class has falled into disrepair.  It may be used for part notations in the score later.
+ */
 export class SmoMeasureText extends SmoMeasureModifierBase {
   static readonly positions: Record<string, number> = {
     above: 0, below: 1, left: 2, right: 3, none: 4
@@ -423,6 +450,9 @@ export interface SmoRehearsalMarkParams {
   symbol: string,
   increment: boolean
 }
+/**
+ * Rehearsal marks are some type of auto-incrementing markers on a measure index.
+ */
 export class SmoRehearsalMark extends SmoMeasureModifierBase {
   static readonly cardinalities: Record<string, string> = {
     capitals: 'capitals', lowerCase: 'lowerCase', numbers: 'numbers'
@@ -499,8 +529,9 @@ export interface SmoTempoTextParams {
   display: boolean,
   customText: string
 }
-// ### SmoTempoText
-// Tempo marking and also the information about the tempo.
+/**
+ * Information about both playback tempo and how the tempo is notated.
+ */
 export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoTextParams {
   static get tempoModes(): Record<string, string> {
     return {
@@ -645,6 +676,12 @@ export interface TimeSignatureParameters  {
   useSymbol: boolean,
   display: boolean
 }
+/**
+ * Time signatures contain duration information for a measure, and information
+ * about the display of the time signature.  Note: measures also have a time signature
+ * string that can be displayed in cases like pickup measure, where the actual time doesn't
+ * match the time signature.
+ */
 export class TimeSignature extends SmoMeasureModifierBase {
   static get defaults(): TimeSignatureParameters {
     return {

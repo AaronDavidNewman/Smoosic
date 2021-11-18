@@ -8,9 +8,11 @@ import { SmoMusic } from './music';
 const VF = eval('Vex.Flow');
 // const Smo = eval('globalThis.Smo');
 
-// ## SmoNoteModifierBase
-// A note modifier is anything that is mapped to the note, but not part of the
-// pitch itself.  This includes grace notes, and note-text like lyrics
+/**
+ * A note modifier is anything that is mapped to the note, but not part of the
+ * pitch itself.  This includes grace notes, and note-text like lyrics.
+ * All note modifiers have a serialize method and a 'ctor' parameter or deserialization
+ */
 export abstract class SmoNoteModifierBase implements SmoModifierBase {
   attrs: SmoAttrs;
   ctor: string;
@@ -38,6 +40,13 @@ export abstract class SmoNoteModifierBase implements SmoModifierBase {
   abstract serialize(): any;
 }
 
+/**
+ * @param ctor - constructor 'GraceNote'
+ * @param flagState - up, down, or auto
+ * @param noteType - note, rest, slash
+ * @param beamBeats - indicates how many beats form a
+ *   beam group.
+ */
 export interface GraceNoteParams extends SmoModifierBase {
   ctor: string,
   flagState: number,
@@ -49,7 +58,10 @@ export interface GraceNoteParams extends SmoModifierBase {
   ticks: Ticks,
   pitches: Pitch[],
 }
-
+/**
+ * A grace notes has many of the things an 'actual' note can have, but it doesn't take up
+ * time against the time signature
+ */
 export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
   static get flagStates() {
     return { auto: 0, up: 1, down: 2 };
@@ -119,9 +131,10 @@ export interface SmoMicrotoneParams extends SmoObjectParams {
   tone: string,
   pitch: number
 }
-// ## SmoMicrotone
-// Microtones are treated similarly to ornaments at this time.  There are not
-// rules for persisting throughout a measure.
+/**
+ * Microtones are treated similarly to ornaments.  There are not
+ * rules for persisting throughout a measure, cancel etc.
+*/
 export class SmoMicrotone extends SmoNoteModifierBase {
   tone: string;
   pitchIndex: number = 0;
@@ -190,8 +203,10 @@ export interface SmoOrnamentParams {
   offset?: string,
   ornament: string,
 }
-// ## SmoOrnament
-// Maps to a vexflow ornament like trill etc.
+/**
+ * Ornaments map to vex ornaments.  articulations vs. ornaments
+ * is kind of arbitrary
+ */
 export class SmoOrnament extends SmoNoteModifierBase {
   static readonly ornaments: Record<string, string> = {
     mordent: 'mordent',
@@ -277,6 +292,9 @@ export interface SmoArticulationParameters {
   articulation: string,
   selector?: SmoSelector
 }
+/**
+ * Articulations map to notes, can be placed above/below
+ */
 export class SmoArticulation extends SmoNoteModifierBase {
   static get articulations() {
     return {
@@ -405,10 +423,10 @@ export interface SmoLyricParams extends SmoLyricPersist {
   selector?: SmoSelector
 }
 
-// ## SmoLyric
-// Lyrics and Chords are both notated represented by
-// instances of this class.  The parser enum says
-// which is which
+/**
+ * SmoLyric covers both chords and lyrics.  The parser tells you which
+ * one you get.
+ */
 export class SmoLyric extends SmoNoteModifierBase {
   static readonly parsers: Record<string, number> = {
     lyric: 0, anaylysis: 1, chord: 2
@@ -654,9 +672,9 @@ export interface SmoDynamicTextParams extends SmoDynamicTextPersist {
   selector: SmoSelector
 }
 
-// ## SmoDynamicText
-// ## Description:
-// standard dynamics text
+/**
+ * Dynamic text tells you how loud not to play.
+ */
 export class SmoDynamicText extends SmoNoteModifierBase {
   static get dynamics(): Record<string, string> {
     // matches VF.modifier

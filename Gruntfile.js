@@ -84,6 +84,17 @@ module.exports = function (grunt) {
           }
         ]
       }
+    },
+    typedoc: {
+      build: {
+        options: {
+          out: 'build/docs',
+          name: 'smoosic',
+          excludeProtected: true,
+          excludePrivate: true,
+        },
+        src: ['./typedoc.ts'],
+      },
     }
   });
 
@@ -92,7 +103,8 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-webpack');
+  grunt.loadNpmTasks('grunt-typedoc');
 
   // Default task(s).
-  grunt.registerTask('default', ['eslint', 'webpack:build']);
+  grunt.registerTask('default', ['eslint', 'webpack:build', 'typedoc']);
 };

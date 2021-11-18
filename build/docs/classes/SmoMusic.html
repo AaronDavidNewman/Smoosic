@@ -1,0 +1,2181 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>SmoMusic | smoosic</title>
+	<meta name="description" content="Documentation for smoosic">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="../assets/css/main.css">
+	<script async src="../assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json" data-base="..">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="../index.html" class="title">smoosic</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="../modules.html">smoosic</a>
+				</li>
+				<li>
+					<a href="SmoMusic.html">SmoMusic</a>
+				</li>
+			</ul>
+			<h1>Class SmoMusic</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Helper functions that build on the VX music theory routines, and other
+						utilities I wish were in VF.Music but aren&#39;t</p>
+						<a href="#note-on-pitch-and-duration-format" id="note-on-pitch-and-duration-format" style="color: inherit; text-decoration: none;">
+							<h2>Note on pitch and duration format</h2>
+						</a>
+						<p>We use some VEX music theory routines and frequently need to convert
+							formats from SMO format.  We also use the same &#39;ticks&#39; abstraction for
+						durations.</p>
+					</div>
+					<p><code>Smo</code> uses pitch JSON:</p>
+					<pre><code class="language-javascript"><span style="color: #000000">    {note:</span><span style="color: #A31515">&#039;c&#039;</span><span style="color: #000000">,accidental:</span><span style="color: #A31515">&#039;#&#039;</span><span style="color: #000000">,octave:</span><span style="color: #098658">4</span><span style="color: #000000">}</span>
+</code></pre>
+					<p><code>Vex</code> usually uses a canonical string:</p>
+					<pre><code><span style="color: #A31515">`&#039;c#/4&#039;`</span>
+</code></pre>
+					<p>Depending on the operation, the octave might be omitted</p>
+					<p><code>Smo</code> uses a JSON for duration always:</p>
+					<pre><code class="language-javascript"><span style="color: #000000">    {numerator:</span><span style="color: #098658">4096</span><span style="color: #000000">,denominator:</span><span style="color: #098658">1</span><span style="color: #000000">,remainder:</span><span style="color: #098658">0</span><span style="color: #000000">}</span>
+</code></pre>
+					<p><code>Vex</code> uses a letter duration (<code>&#39;4&#39;</code> or <code>&#39;q&#39;</code>for 1/4 note) and <code>&#39;d&#39;</code> for dot.</p>
+					<p>I try to indicate whether I am using vex or smo notation in the function name.
+					Duration methods start around line 600</p>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">SmoMusic</span>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section ">
+							<h3>Constructors</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="SmoMusic.html#constructor" class="tsd-kind-icon">constructor</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Properties</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#_ticksToDuration" class="tsd-kind-icon">_ticks<wbr>ToDuration</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Accessors</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#circleOfFifths" class="tsd-kind-icon">circle<wbr>OfFifths</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#enharmonics" class="tsd-kind-icon">enharmonics</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#frequencyMap" class="tsd-kind-icon">frequency<wbr>Map</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#keySignatureLength" class="tsd-kind-icon">key<wbr>Signature<wbr>Length</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#letterPitchIndex" class="tsd-kind-icon">letter<wbr>Pitch<wbr>Index</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#noteValues" class="tsd-kind-icon">note<wbr>Values</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#scaleIntervals" class="tsd-kind-icon">scale<wbr>Intervals</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#ticksToDuration" class="tsd-kind-icon">ticks<wbr>ToDuration</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Methods</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#_pitchToVexKey" class="tsd-kind-icon">_pitch<wbr>ToVex<wbr>Key</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#addFlat" class="tsd-kind-icon">add<wbr>Flat</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#addFlats" class="tsd-kind-icon">add<wbr>Flats</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#addSharp" class="tsd-kind-icon">add<wbr>Sharp</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#addSharps" class="tsd-kind-icon">add<wbr>Sharps</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#circleOfFifthsIndex" class="tsd-kind-icon">circle<wbr>OfFifths<wbr>Index</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#closestDurationTickLtEq" class="tsd-kind-icon">closest<wbr>Duration<wbr>Tick<wbr>LtEq</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#closestTonic" class="tsd-kind-icon">closest<wbr>Tonic</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#closestVexDuration" class="tsd-kind-icon">closest<wbr>Vex<wbr>Duration</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#durationToTicks" class="tsd-kind-icon">duration<wbr>ToTicks</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#flagStateFromNote" class="tsd-kind-icon">flag<wbr>State<wbr>From<wbr>Note</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#gcdMap" class="tsd-kind-icon">gcd<wbr>Map</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#getAccidentalForKeySignature" class="tsd-kind-icon">get<wbr>Accidental<wbr>For<wbr>Key<wbr>Signature</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#getEnharmonic" class="tsd-kind-icon">get<wbr>Enharmonic</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#getEnharmonicInKey" class="tsd-kind-icon">get<wbr>Enharmonic<wbr>InKey</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#getEnharmonics" class="tsd-kind-icon">get<wbr>Enharmonics</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#getFlatsInKeySignature" class="tsd-kind-icon">get<wbr>Flats<wbr>InKey<wbr>Signature</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#getIntervalInKey" class="tsd-kind-icon">get<wbr>Interval<wbr>InKey</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#getKeyFriendlyEnharmonic" class="tsd-kind-icon">get<wbr>Key<wbr>Friendly<wbr>Enharmonic</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#getKeyOffset" class="tsd-kind-icon">get<wbr>Key<wbr>Offset</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#getKeySignatureKey" class="tsd-kind-icon">get<wbr>Key<wbr>Signature<wbr>Key</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#getLetterNotePitch" class="tsd-kind-icon">get<wbr>Letter<wbr>Note<wbr>Pitch</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#getNextDottedLevel" class="tsd-kind-icon">get<wbr>Next<wbr>Dotted<wbr>Level</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#getPreviousDottedLevel" class="tsd-kind-icon">get<wbr>Previous<wbr>Dotted<wbr>Level</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#getSharpsInKeySignature" class="tsd-kind-icon">get<wbr>Sharps<wbr>InKey<wbr>Signature</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#isPitchInKeySignature" class="tsd-kind-icon">is<wbr>Pitch<wbr>InKey<wbr>Signature</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#letterChangedOctave" class="tsd-kind-icon">letter<wbr>Changed<wbr>Octave</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#midiPitchToMidiNumber" class="tsd-kind-icon">midi<wbr>Pitch<wbr>ToMidi<wbr>Number</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#midiPitchToSmoPitch" class="tsd-kind-icon">midi<wbr>Pitch<wbr>ToSmo<wbr>Pitch</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#notesFromLetters" class="tsd-kind-icon">notes<wbr>From<wbr>Letters</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#pitchArraysMatch" class="tsd-kind-icon">pitch<wbr>Arrays<wbr>Match</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#pitchKeyToPitch" class="tsd-kind-icon">pitch<wbr>Key<wbr>ToPitch</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#pitchToEasyScore" class="tsd-kind-icon">pitch<wbr>ToEasy<wbr>Score</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#pitchToLedgerLine" class="tsd-kind-icon">pitch<wbr>ToLedger<wbr>Line</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#pitchToVexKey" class="tsd-kind-icon">pitch<wbr>ToVex<wbr>Key</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#smoIntToPitch" class="tsd-kind-icon">smo<wbr>Int<wbr>ToPitch</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#smoPitchToInt" class="tsd-kind-icon">smo<wbr>Pitch<wbr>ToInt</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#smoPitchToMidiString" class="tsd-kind-icon">smo<wbr>Pitch<wbr>ToMidi<wbr>String</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#smoPitchesToIntArray" class="tsd-kind-icon">smo<wbr>Pitches<wbr>ToInt<wbr>Array</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#smoPitchesToMidiStrings" class="tsd-kind-icon">smo<wbr>Pitches<wbr>ToMidi<wbr>Strings</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#smoPitchesToVex" class="tsd-kind-icon">smo<wbr>Pitches<wbr>ToVex</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#smoPitchesToVexKeys" class="tsd-kind-icon">smo<wbr>Pitches<wbr>ToVex<wbr>Keys</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#smoScalePitchMatch" class="tsd-kind-icon">smo<wbr>Scale<wbr>Pitch<wbr>Match</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#smoTicksToVexDots" class="tsd-kind-icon">smo<wbr>Ticks<wbr>ToVex<wbr>Dots</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#splitIntoValidDurations" class="tsd-kind-icon">split<wbr>Into<wbr>Valid<wbr>Durations</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#stripVexOctave" class="tsd-kind-icon">strip<wbr>Vex<wbr>Octave</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#timeSignatureToTicks" class="tsd-kind-icon">time<wbr>Signature<wbr>ToTicks</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#toValidKeySignature" class="tsd-kind-icon">to<wbr>Valid<wbr>Key<wbr>Signature</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#vexKeySigWithOffset" class="tsd-kind-icon">vex<wbr>Key<wbr>Sig<wbr>With<wbr>Offset</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#vexKeySignatureTranspose" class="tsd-kind-icon">vex<wbr>Key<wbr>Signature<wbr>Transpose</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#vexStemType" class="tsd-kind-icon">vex<wbr>Stem<wbr>Type</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#vexToCannonical" class="tsd-kind-icon">vex<wbr>ToCannonical</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#vexToSmoKey" class="tsd-kind-icon">vex<wbr>ToSmo<wbr>Key</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="SmoMusic.html#vexToSmoPitch" class="tsd-kind-icon">vex<wbr>ToSmo<wbr>Pitch</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Constructors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
+					<a name="constructor" class="tsd-anchor"></a>
+					<h3>constructor</h3>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Smo<wbr>Music<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="SmoMusic.html" class="tsd-signature-type" data-tsd-kind="Class">SmoMusic</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+							</aside>
+							<h4 class="tsd-returns-title">Returns <a href="SmoMusic.html" class="tsd-signature-type" data-tsd-kind="Class">SmoMusic</a></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-static">
+					<a name="_ticksToDuration" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> _ticks<wbr>ToDuration</h3>
+					<div class="tsd-signature tsd-kind-icon">_ticks<wbr>ToDuration<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = {}</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L1069">src/smo/data/music.ts:1069</a></li>
+						</ul>
+					</aside>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Accessors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+					<a name="circleOfFifths" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> circle<wbr>OfFifths</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> circleOfFifths<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/PitchKey.html" class="tsd-signature-type" data-tsd-kind="Interface">PitchKey</a><span class="tsd-signature-symbol">[]</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L175">src/smo/data/music.ts:175</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>A note array (sans octave) in key-signature order</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/PitchKey.html" class="tsd-signature-type" data-tsd-kind="Interface">PitchKey</a><span class="tsd-signature-symbol">[]</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+					<a name="enharmonics" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> enharmonics</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> enharmonics<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L577">src/smo/data/music.ts:577</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>return a map of enharmonics for choosing or cycling.  notes are in vexKey form.</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+					<a name="frequencyMap" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> frequency<wbr>Map</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> frequencyMap<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L864">src/smo/data/music.ts:864</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+					<a name="keySignatureLength" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> key<wbr>Signature<wbr>Length</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> keySignatureLength<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L940">src/smo/data/music.ts:940</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+					<a name="letterPitchIndex" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> letter<wbr>Pitch<wbr>Index</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> letterPitchIndex<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><a href="../modules.html#PitchLetter" class="tsd-signature-type" data-tsd-kind="Type alias">PitchLetter</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L871">src/smo/data/music.ts:871</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><a href="../modules.html#PitchLetter" class="tsd-signature-type" data-tsd-kind="Type alias">PitchLetter</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+					<a name="noteValues" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> note<wbr>Values</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> noteValues<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/VexNoteValue.html" class="tsd-signature-type" data-tsd-kind="Interface">VexNoteValue</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L118">src/smo/data/music.ts:118</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Ported from vex, used to convert pitches to numerical values</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/VexNoteValue.html" class="tsd-signature-type" data-tsd-kind="Interface">VexNoteValue</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+					<a name="scaleIntervals" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> scale<wbr>Intervals</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> scaleIntervals<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L301">src/smo/data/music.ts:301</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+					<a name="ticksToDuration" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> ticks<wbr>ToDuration</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> ticksToDuration<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L1073">src/smo/data/music.ts:1073</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="_pitchToVexKey" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> _pitch<wbr>ToVex<wbr>Key</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">_pitch<wbr>ToVex<wbr>Key<span class="tsd-signature-symbol">(</span>smoPitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L350">src/smo/data/music.ts:350</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>convert from SMO to VEX format so we can use the VexFlow tables and methods
+										example:
+									<code>{letter,octave,accidental}</code> object to vexKey string <code>&#39;f#&#39;</code></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>smoPitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="addFlat" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> add<wbr>Flat</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">add<wbr>Flat<span class="tsd-signature-symbol">(</span>smoPitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L242">src/smo/data/music.ts:242</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get pitch to the left in circle of fifths</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>smoPitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="addFlats" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> add<wbr>Flats</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">add<wbr>Flats<span class="tsd-signature-symbol">(</span>smoPitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a>, distance<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L269">src/smo/data/music.ts:269</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Add <em>distance</em> sharps/flats to given key</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>smoPitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+								<li>
+									<h5>distance: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="addSharp" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> add<wbr>Sharp</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">add<wbr>Sharp<span class="tsd-signature-symbol">(</span>smoPitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L233">src/smo/data/music.ts:233</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get pitch to the right in circle of fifths</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>smoPitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="addSharps" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> add<wbr>Sharps</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">add<wbr>Sharps<span class="tsd-signature-symbol">(</span>smoPitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a>, distance<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L251">src/smo/data/music.ts:251</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Add @param {number} - sharps</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>smoPitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+								<li>
+									<h5>distance: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="circleOfFifthsIndex" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> circle<wbr>OfFifths<wbr>Index</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">circle<wbr>OfFifths<wbr>Index<span class="tsd-signature-symbol">(</span>smoPitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L219">src/smo/data/music.ts:219</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>gives the index into circle-of-fifths array for a pitch, considering enharmonics.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>smoPitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="closestDurationTickLtEq" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> closest<wbr>Duration<wbr>Tick<wbr>LtEq</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">closest<wbr>Duration<wbr>Tick<wbr>LtEq<span class="tsd-signature-symbol">(</span>ticks<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L1011">src/smo/data/music.ts:1011</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>ticks: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="closestTonic" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> closest<wbr>Tonic</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">closest<wbr>Tonic<span class="tsd-signature-symbol">(</span>smoPitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a>, vexKey<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, direction<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L633">src/smo/data/music.ts:633</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Return a pitch a diatonic step away from SmoPitch in vexKey</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>smoPitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+								<li>
+									<h5>vexKey: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5>direction: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="closestVexDuration" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> closest<wbr>Vex<wbr>Duration</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">closest<wbr>Vex<wbr>Duration<span class="tsd-signature-symbol">(</span>ticks<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L996">src/smo/data/music.ts:996</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>ticks: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="durationToTicks" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> duration<wbr>ToTicks</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">duration<wbr>ToTicks<span class="tsd-signature-symbol">(</span>duration<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L1099">src/smo/data/music.ts:1099</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>duration: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="flagStateFromNote" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> flag<wbr>State<wbr>From<wbr>Note</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">flag<wbr>State<wbr>From<wbr>Note<span class="tsd-signature-symbol">(</span>clef<span class="tsd-signature-symbol">: </span><a href="../modules.html#Clef" class="tsd-signature-type" data-tsd-kind="Type alias">Clef</a>, note<span class="tsd-signature-symbol">: </span><a href="SmoNote.html" class="tsd-signature-type" data-tsd-kind="Class">SmoNote</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L336">src/smo/data/music.ts:336</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>return flag state (up or down) based on pitch and clef if auto</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>clef: <a href="../modules.html#Clef" class="tsd-signature-type" data-tsd-kind="Type alias">Clef</a></h5>
+								</li>
+								<li>
+									<h5>note: <a href="SmoNote.html" class="tsd-signature-type" data-tsd-kind="Class">SmoNote</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="gcdMap" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> gcd<wbr>Map</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">gcd<wbr>Map<span class="tsd-signature-symbol">(</span>duration<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L1124">src/smo/data/music.ts:1124</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>break the duration up into an array of durations, to split a long
+									note up between bars when pasting.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>duration: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="getAccidentalForKeySignature" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Accidental<wbr>For<wbr>Key<wbr>Signature</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Accidental<wbr>For<wbr>Key<wbr>Signature<span class="tsd-signature-symbol">(</span>smoPitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a>, keySignature<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L756">src/smo/data/music.ts:756</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>smoPitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+								<li>
+									<h5>keySignature: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="getEnharmonic" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Enharmonic</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Enharmonic<span class="tsd-signature-symbol">(</span>vexKey<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L614">src/smo/data/music.ts:614</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>return the next note from the cycle in <code>getEnharmonics</code></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vexKey: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="getEnharmonicInKey" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Enharmonic<wbr>InKey</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Enharmonic<wbr>InKey<span class="tsd-signature-symbol">(</span>smoPitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a>, keySignature<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L672">src/smo/data/music.ts:672</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>When transposing, get the enharmonic that most closely fits the key
+										<code>getEnharmonicInKey</code> returns an alternate to the given pitch, or the same pitch.
+									<code>getKeyFriendlyEnharmonic</code> return a pitch for a given key, given the letter name only</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>smoPitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+								<li>
+									<h5>keySignature: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="getEnharmonics" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Enharmonics</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Enharmonics<span class="tsd-signature-symbol">(</span>vexKey<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L599">src/smo/data/music.ts:599</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get enharmonic equivalent of given notes for cycle/choose</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vexKey: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="getFlatsInKeySignature" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Flats<wbr>InKey<wbr>Signature</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Flats<wbr>InKey<wbr>Signature<span class="tsd-signature-symbol">(</span>key<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L968">src/smo/data/music.ts:968</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>key: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="getIntervalInKey" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Interval<wbr>InKey</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Interval<wbr>InKey<span class="tsd-signature-symbol">(</span>pitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a>, keySignature<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, interval<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L773">src/smo/data/music.ts:773</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>pitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+								<li>
+									<h5>keySignature: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5>interval: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="getKeyFriendlyEnharmonic" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Key<wbr>Friendly<wbr>Enharmonic</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Key<wbr>Friendly<wbr>Enharmonic<span class="tsd-signature-symbol">(</span>letter<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, keySignature<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L723">src/smo/data/music.ts:723</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>fix the enharmonic to match the key, if possible</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>example</dt>
+									<dd><p><code>getKeyFriendlyEnharmonic(&#39;b&#39;,&#39;eb&#39;);  =&gt; returns &#39;bb&#39; return vex string </code>getEnharmonicInKey<code>returns an alternate to the given pitch, or the same pitch.</code>getKeyFriendlyEnharmonic` return a pitch for a given key, given the letter name only</p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>letter: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5>keySignature: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="getKeyOffset" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Key<wbr>Offset</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Key<wbr>Offset<span class="tsd-signature-symbol">(</span>pitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a>, offset<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L906">src/smo/data/music.ts:906</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>// Given a vex noteProp and an offset, offset that number
+									// of 1/2 steps.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>pitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+								<li>
+									<h5>offset: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="getKeySignatureKey" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Key<wbr>Signature<wbr>Key</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Key<wbr>Signature<wbr>Key<span class="tsd-signature-symbol">(</span>letter<span class="tsd-signature-symbol">: </span><a href="../modules.html#PitchLetter" class="tsd-signature-type" data-tsd-kind="Type alias">PitchLetter</a>, keySignature<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L751">src/smo/data/music.ts:751</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>// given a letter pitch (a,b,c etc.), and a key signature, return the actual note
+										// that you get without accidentals
+									//   <code>SmoMusic.getKeySignatureKey(&#39;F&#39;,&#39;G&#39;); // returns f#</code></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>letter: <a href="../modules.html#PitchLetter" class="tsd-signature-type" data-tsd-kind="Type alias">PitchLetter</a></h5>
+								</li>
+								<li>
+									<h5>keySignature: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="getLetterNotePitch" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Letter<wbr>Note<wbr>Pitch</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Letter<wbr>Note<wbr>Pitch<span class="tsd-signature-symbol">(</span>prevPitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a>, letter<span class="tsd-signature-symbol">: </span><a href="../modules.html#PitchLetter" class="tsd-signature-type" data-tsd-kind="Type alias">PitchLetter</a>, key<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L800">src/smo/data/music.ts:800</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>prevPitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+								<li>
+									<h5>letter: <a href="../modules.html#PitchLetter" class="tsd-signature-type" data-tsd-kind="Type alias">PitchLetter</a></h5>
+								</li>
+								<li>
+									<h5>key: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="getNextDottedLevel" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Next<wbr>Dotted<wbr>Level</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Next<wbr>Dotted<wbr>Level<span class="tsd-signature-symbol">(</span>ticks<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L1047">src/smo/data/music.ts:1047</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>ticks: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="getPreviousDottedLevel" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Previous<wbr>Dotted<wbr>Level</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Previous<wbr>Dotted<wbr>Level<span class="tsd-signature-symbol">(</span>ticks<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L1060">src/smo/data/music.ts:1060</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>ticks: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="getSharpsInKeySignature" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> get<wbr>Sharps<wbr>InKey<wbr>Signature</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Sharps<wbr>InKey<wbr>Signature<span class="tsd-signature-symbol">(</span>key<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L960">src/smo/data/music.ts:960</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>key: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="isPitchInKeySignature" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> is<wbr>Pitch<wbr>InKey<wbr>Signature</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">is<wbr>Pitch<wbr>InKey<wbr>Signature<span class="tsd-signature-symbol">(</span>smoPitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a>, keySignature<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L764">src/smo/data/music.ts:764</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>smoPitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+								<li>
+									<h5>keySignature: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="letterChangedOctave" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> letter<wbr>Changed<wbr>Octave</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">letter<wbr>Changed<wbr>Octave<span class="tsd-signature-symbol">(</span>one<span class="tsd-signature-symbol">: </span><a href="../modules.html#PitchLetter" class="tsd-signature-type" data-tsd-kind="Type alias">PitchLetter</a>, two<span class="tsd-signature-symbol">: </span><a href="../modules.html#PitchLetter" class="tsd-signature-type" data-tsd-kind="Type alias">PitchLetter</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L887">src/smo/data/music.ts:887</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Indicate if a change from letter note &#39;one&#39; to &#39;two&#39; needs us to adjust the
+									octave due to the <code>SmoMusic.letterPitchIndex</code> (b0 is higher than c0)</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>one: <a href="../modules.html#PitchLetter" class="tsd-signature-type" data-tsd-kind="Type alias">PitchLetter</a></h5>
+								</li>
+								<li>
+									<h5>two: <a href="../modules.html#PitchLetter" class="tsd-signature-type" data-tsd-kind="Type alias">PitchLetter</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="midiPitchToMidiNumber" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> midi<wbr>Pitch<wbr>ToMidi<wbr>Number</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">midi<wbr>Pitch<wbr>ToMidi<wbr>Number<span class="tsd-signature-symbol">(</span>midiPitch<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L415">src/smo/data/music.ts:415</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>midiPitch: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="midiPitchToSmoPitch" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> midi<wbr>Pitch<wbr>ToSmo<wbr>Pitch</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">midi<wbr>Pitch<wbr>ToSmo<wbr>Pitch<span class="tsd-signature-symbol">(</span>midiPitch<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L403">src/smo/data/music.ts:403</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>filled in from the midi routines borrowed from
+									// <a href="https://github.com/grimmdude/MidiWriterJS">https://github.com/grimmdude/MidiWriterJS</a></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>midiPitch: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>pitch from MIDIwrite</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h4>
+							<p>SMO pitch</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="notesFromLetters" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> notes<wbr>From<wbr>Letters</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">notes<wbr>From<wbr>Letters<span class="tsd-signature-symbol">(</span>startPitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a>, clef<span class="tsd-signature-symbol">: </span><a href="../modules.html#Clef" class="tsd-signature-type" data-tsd-kind="Type alias">Clef</a>, keySignature<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, duration<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, letters<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="SmoNote.html" class="tsd-signature-type" data-tsd-kind="Class">SmoNote</a><span class="tsd-signature-symbol">[]</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L834">src/smo/data/music.ts:834</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Convenience function to create SmoNote[] from letters, with the correct accidental
+									for the key signature, given duration, etc</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>startPitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>the pitch used to calculate the octave of the new note</p>
+									</div>
+								</li>
+								<li>
+									<h5>clef: <a href="../modules.html#Clef" class="tsd-signature-type" data-tsd-kind="Type alias">Clef</a></h5>
+								</li>
+								<li>
+									<h5>keySignature: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5>duration: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>vex duration</p>
+									</div>
+								</li>
+								<li>
+									<h5>letters: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>string of PitchLetter</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="SmoNote.html" class="tsd-signature-type" data-tsd-kind="Class">SmoNote</a><span class="tsd-signature-symbol">[]</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="pitchArraysMatch" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> pitch<wbr>Arrays<wbr>Match</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">pitch<wbr>Arrays<wbr>Match<span class="tsd-signature-symbol">(</span>ar1<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">[]</span>, ar2<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L481">src/smo/data/music.ts:481</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>compare pitches for frequency match</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>ar1: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+								<li>
+									<h5>ar2: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="pitchKeyToPitch" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> pitch<wbr>Key<wbr>ToPitch</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">pitch<wbr>Key<wbr>ToPitch<span class="tsd-signature-symbol">(</span>pk<span class="tsd-signature-symbol">: </span><a href="../interfaces/PitchKey.html" class="tsd-signature-type" data-tsd-kind="Interface">PitchKey</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L555">src/smo/data/music.ts:555</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>pk: <a href="../interfaces/PitchKey.html" class="tsd-signature-type" data-tsd-kind="Interface">PitchKey</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="pitchToEasyScore" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> pitch<wbr>ToEasy<wbr>Score</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">pitch<wbr>ToEasy<wbr>Score<span class="tsd-signature-symbol">(</span>smoPitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L370">src/smo/data/music.ts:370</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>convert smo pitch to easy score (vex) format.  Mostly used
+									for debugging and generating Vex test cases</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>smoPitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+							<ul>
+								<li>a string that can be converted to a VEX routine, with some difficulty</li>
+							</ul>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="pitchToLedgerLine" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> pitch<wbr>ToLedger<wbr>Line</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">pitch<wbr>ToLedger<wbr>Line<span class="tsd-signature-symbol">(</span>clef<span class="tsd-signature-symbol">: </span><a href="../modules.html#Clef" class="tsd-signature-type" data-tsd-kind="Type alias">Clef</a>, pitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L328">src/smo/data/music.ts:328</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Return the number of ledger lines based on the pitch and clef</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>clef: <a href="../modules.html#Clef" class="tsd-signature-type" data-tsd-kind="Type alias">Clef</a></h5>
+								</li>
+								<li>
+									<h5>pitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+							<p>number where 0 is the top staff line</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="pitchToVexKey" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> pitch<wbr>ToVex<wbr>Key</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">pitch<wbr>ToVex<wbr>Key<span class="tsd-signature-symbol">(</span>smoPitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a>, head<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L419">src/smo/data/music.ts:419</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>smoPitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+								<li>
+									<h5>head: <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = null</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="smoIntToPitch" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> smo<wbr>Int<wbr>ToPitch</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">smo<wbr>Int<wbr>ToPitch<span class="tsd-signature-symbol">(</span>intValue<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L530">src/smo/data/music.ts:530</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Convert a number to a SMO pitch</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>intValue: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>number of 1/2 steps from <code>c0</code></p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="smoPitchToInt" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> smo<wbr>Pitch<wbr>ToInt</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">smo<wbr>Pitch<wbr>ToInt<span class="tsd-signature-symbol">(</span>pitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L514">src/smo/data/music.ts:514</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>convert a pitch to an integer value, used for transpositions, intervals, etc.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>pitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="smoPitchToMidiString" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> smo<wbr>Pitch<wbr>ToMidi<wbr>String</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">smo<wbr>Pitch<wbr>ToMidi<wbr>String<span class="tsd-signature-symbol">(</span>smoPitch<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L380">src/smo/data/music.ts:380</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>convert a pitch to a format expected by the MIDI writer</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>smoPitch: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>pitch to convert</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+							<p>pitch in MIDI string format.</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="smoPitchesToIntArray" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> smo<wbr>Pitches<wbr>ToInt<wbr>Array</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">smo<wbr>Pitches<wbr>ToInt<wbr>Array<span class="tsd-signature-symbol">(</span>pitches<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L501">src/smo/data/music.ts:501</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>convert pitches to integer pitch representations
+									by calling smoPitchToInt</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>pitches: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">[]</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Smo pitches</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="smoPitchesToMidiStrings" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> smo<wbr>Pitches<wbr>ToMidi<wbr>Strings</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">smo<wbr>Pitches<wbr>ToMidi<wbr>Strings<span class="tsd-signature-symbol">(</span>smoPitches<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L389">src/smo/data/music.ts:389</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>smoPitches: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="smoPitchesToVex" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> smo<wbr>Pitches<wbr>ToVex</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">smo<wbr>Pitches<wbr>ToVex<span class="tsd-signature-symbol">(</span>pitchAr<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L460">src/smo/data/music.ts:460</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>pitchAr: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="smoPitchesToVexKeys" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> smo<wbr>Pitches<wbr>ToVex<wbr>Keys</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">smo<wbr>Pitches<wbr>ToVex<wbr>Keys<span class="tsd-signature-symbol">(</span>pitchAr<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">[]</span>, keyOffset<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, noteHead<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L291">src/smo/data/music.ts:291</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Convert array of smo pitches to vex keys, with adjustment for transpose and notehead</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>pitchAr: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+								<li>
+									<h5>keyOffset: <span class="tsd-signature-type">number</span></h5>
+								</li>
+								<li>
+									<h5>noteHead: <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4>
+							<ul>
+								<li>array of vex keyx</li>
+							</ul>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="smoScalePitchMatch" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> smo<wbr>Scale<wbr>Pitch<wbr>Match</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">smo<wbr>Scale<wbr>Pitch<wbr>Match<span class="tsd-signature-symbol">(</span>p1<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a>, p2<span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L313">src/smo/data/music.ts:313</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>return true if the pitches match, except for octave.
+										<code>{ letter: &#39;a&#39;, accidental: &#39;#&#39;}, { letter: &#39;a&#39;, accidental: &#39;#&#39;}</code> returns true
+									<code>{ letter: &#39;a&#39;, accidental: &#39;#&#39;}, { letter: &#39;b&#39;, accidental: &#39;b&#39;}</code> returns false</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>p1: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+								<li>
+									<h5>p2: <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="smoTicksToVexDots" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> smo<wbr>Ticks<wbr>ToVex<wbr>Dots</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">smo<wbr>Ticks<wbr>ToVex<wbr>Dots<span class="tsd-signature-symbol">(</span>ticks<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L987">src/smo/data/music.ts:987</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>ticks: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="splitIntoValidDurations" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> split<wbr>Into<wbr>Valid<wbr>Durations</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">split<wbr>Into<wbr>Valid<wbr>Durations<span class="tsd-signature-symbol">(</span>ticks<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L1024">src/smo/data/music.ts:1024</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Return array of valid note-lengths from an odd number of ticks,
+									so we can come as close as possible to representing the ticks with notes</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>ticks: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="stripVexOctave" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> strip<wbr>Vex<wbr>Octave</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">strip<wbr>Vex<wbr>Octave<span class="tsd-signature-symbol">(</span>vexKey<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L472">src/smo/data/music.ts:472</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vexKey: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>pitch in vex format</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+							<p>pitch in vex format, sans octave</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="timeSignatureToTicks" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> time<wbr>Signature<wbr>ToTicks</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">time<wbr>Signature<wbr>ToTicks<span class="tsd-signature-symbol">(</span>timeSignature<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L980">src/smo/data/music.ts:980</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>timeSignature: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="toValidKeySignature" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> to<wbr>Valid<wbr>Key<wbr>Signature</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">to<wbr>Valid<wbr>Key<wbr>Signature<span class="tsd-signature-symbol">(</span>vexKey<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L649">src/smo/data/music.ts:649</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vexKey: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="vexKeySigWithOffset" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> vex<wbr>Key<wbr>Sig<wbr>With<wbr>Offset</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">vex<wbr>Key<wbr>Sig<wbr>With<wbr>Offset<span class="tsd-signature-symbol">(</span>vexKey<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, offset<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L563">src/smo/data/music.ts:563</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Consider instrument transpose when setting key -
+									e.g. Eb for Bb instruments is F.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vexKey: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5>offset: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="vexKeySignatureTranspose" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> vex<wbr>Key<wbr>Signature<wbr>Transpose</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">vex<wbr>Key<wbr>Signature<wbr>Transpose<span class="tsd-signature-symbol">(</span>key<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, transposeIndex<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L854">src/smo/data/music.ts:854</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>key: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>start key</p>
+									</div>
+								</li>
+								<li>
+									<h5>transposeIndex: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>number of 1/2 steps</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+							<ul>
+								<li>vex key</li>
+							</ul>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="vexStemType" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> vex<wbr>Stem<wbr>Type</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">vex<wbr>Stem<wbr>Type<span class="tsd-signature-symbol">(</span>ticks<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L1036">src/smo/data/music.ts:1036</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>ticks: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="vexToCannonical" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> vex<wbr>ToCannonical</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">vex<wbr>ToCannonical<span class="tsd-signature-symbol">(</span>vexKey<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L167">src/smo/data/music.ts:167</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>return Vex canonical note enharmonic - e.g. Bb to A#</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vexKey: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="vexToSmoKey" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> vex<wbr>ToSmo<wbr>Key</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">vex<wbr>ToSmo<wbr>Key<span class="tsd-signature-symbol">(</span>vexPitch<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/PitchKey.html" class="tsd-signature-type" data-tsd-kind="Interface">PitchKey</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L450">src/smo/data/music.ts:450</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Convert to smo pitch, without octave
+									<code>[&#39;f#&#39;] =&gt; [{letter:&#39;f&#39;,accidental:&#39;#&#39;}]</code></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vexPitch: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/PitchKey.html" class="tsd-signature-type" data-tsd-kind="Interface">PitchKey</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
+					<a name="vexToSmoPitch" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> vex<wbr>ToSmo<wbr>Pitch</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">vex<wbr>ToSmo<wbr>Pitch<span class="tsd-signature-symbol">(</span>vexPitch<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/AaronDavidNewman/VexflowEditor/blob/2b223a3/src/smo/data/music.ts#L432">src/smo/data/music.ts:432</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p> Turns vex pitch string into smo pitch, e.g.
+									<code>cn/4 =&gt; {&#39;c&#39;,&#39;n&#39;,4}</code></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vexPitch: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/Pitch.html" class="tsd-signature-type" data-tsd-kind="Interface">Pitch</a></h4>
+							<p>SmoPitch</p>
+						</li>
+					</ul>
+				</section>
+			</section>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="../modules.html">Exports</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-class">
+						<a href="SmoMusic.html" class="tsd-kind-icon">Smo<wbr>Music</a>
+						<ul>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class">
+								<a href="SmoMusic.html#constructor" class="tsd-kind-icon">constructor</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#_ticksToDuration" class="tsd-kind-icon">_ticks<wbr>ToDuration</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#circleOfFifths" class="tsd-kind-icon">circle<wbr>OfFifths</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#enharmonics" class="tsd-kind-icon">enharmonics</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#frequencyMap" class="tsd-kind-icon">frequency<wbr>Map</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#keySignatureLength" class="tsd-kind-icon">key<wbr>Signature<wbr>Length</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#letterPitchIndex" class="tsd-kind-icon">letter<wbr>Pitch<wbr>Index</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#noteValues" class="tsd-kind-icon">note<wbr>Values</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#scaleIntervals" class="tsd-kind-icon">scale<wbr>Intervals</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#ticksToDuration" class="tsd-kind-icon">ticks<wbr>ToDuration</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#_pitchToVexKey" class="tsd-kind-icon">_pitch<wbr>ToVex<wbr>Key</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#addFlat" class="tsd-kind-icon">add<wbr>Flat</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#addFlats" class="tsd-kind-icon">add<wbr>Flats</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#addSharp" class="tsd-kind-icon">add<wbr>Sharp</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#addSharps" class="tsd-kind-icon">add<wbr>Sharps</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#circleOfFifthsIndex" class="tsd-kind-icon">circle<wbr>OfFifths<wbr>Index</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#closestDurationTickLtEq" class="tsd-kind-icon">closest<wbr>Duration<wbr>Tick<wbr>LtEq</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#closestTonic" class="tsd-kind-icon">closest<wbr>Tonic</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#closestVexDuration" class="tsd-kind-icon">closest<wbr>Vex<wbr>Duration</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#durationToTicks" class="tsd-kind-icon">duration<wbr>ToTicks</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#flagStateFromNote" class="tsd-kind-icon">flag<wbr>State<wbr>From<wbr>Note</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#gcdMap" class="tsd-kind-icon">gcd<wbr>Map</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#getAccidentalForKeySignature" class="tsd-kind-icon">get<wbr>Accidental<wbr>For<wbr>Key<wbr>Signature</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#getEnharmonic" class="tsd-kind-icon">get<wbr>Enharmonic</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#getEnharmonicInKey" class="tsd-kind-icon">get<wbr>Enharmonic<wbr>InKey</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#getEnharmonics" class="tsd-kind-icon">get<wbr>Enharmonics</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#getFlatsInKeySignature" class="tsd-kind-icon">get<wbr>Flats<wbr>InKey<wbr>Signature</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#getIntervalInKey" class="tsd-kind-icon">get<wbr>Interval<wbr>InKey</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#getKeyFriendlyEnharmonic" class="tsd-kind-icon">get<wbr>Key<wbr>Friendly<wbr>Enharmonic</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#getKeyOffset" class="tsd-kind-icon">get<wbr>Key<wbr>Offset</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#getKeySignatureKey" class="tsd-kind-icon">get<wbr>Key<wbr>Signature<wbr>Key</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#getLetterNotePitch" class="tsd-kind-icon">get<wbr>Letter<wbr>Note<wbr>Pitch</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#getNextDottedLevel" class="tsd-kind-icon">get<wbr>Next<wbr>Dotted<wbr>Level</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#getPreviousDottedLevel" class="tsd-kind-icon">get<wbr>Previous<wbr>Dotted<wbr>Level</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#getSharpsInKeySignature" class="tsd-kind-icon">get<wbr>Sharps<wbr>InKey<wbr>Signature</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#isPitchInKeySignature" class="tsd-kind-icon">is<wbr>Pitch<wbr>InKey<wbr>Signature</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#letterChangedOctave" class="tsd-kind-icon">letter<wbr>Changed<wbr>Octave</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#midiPitchToMidiNumber" class="tsd-kind-icon">midi<wbr>Pitch<wbr>ToMidi<wbr>Number</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#midiPitchToSmoPitch" class="tsd-kind-icon">midi<wbr>Pitch<wbr>ToSmo<wbr>Pitch</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#notesFromLetters" class="tsd-kind-icon">notes<wbr>From<wbr>Letters</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#pitchArraysMatch" class="tsd-kind-icon">pitch<wbr>Arrays<wbr>Match</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#pitchKeyToPitch" class="tsd-kind-icon">pitch<wbr>Key<wbr>ToPitch</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#pitchToEasyScore" class="tsd-kind-icon">pitch<wbr>ToEasy<wbr>Score</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#pitchToLedgerLine" class="tsd-kind-icon">pitch<wbr>ToLedger<wbr>Line</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#pitchToVexKey" class="tsd-kind-icon">pitch<wbr>ToVex<wbr>Key</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#smoIntToPitch" class="tsd-kind-icon">smo<wbr>Int<wbr>ToPitch</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#smoPitchToInt" class="tsd-kind-icon">smo<wbr>Pitch<wbr>ToInt</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#smoPitchToMidiString" class="tsd-kind-icon">smo<wbr>Pitch<wbr>ToMidi<wbr>String</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#smoPitchesToIntArray" class="tsd-kind-icon">smo<wbr>Pitches<wbr>ToInt<wbr>Array</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#smoPitchesToMidiStrings" class="tsd-kind-icon">smo<wbr>Pitches<wbr>ToMidi<wbr>Strings</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#smoPitchesToVex" class="tsd-kind-icon">smo<wbr>Pitches<wbr>ToVex</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#smoPitchesToVexKeys" class="tsd-kind-icon">smo<wbr>Pitches<wbr>ToVex<wbr>Keys</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#smoScalePitchMatch" class="tsd-kind-icon">smo<wbr>Scale<wbr>Pitch<wbr>Match</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#smoTicksToVexDots" class="tsd-kind-icon">smo<wbr>Ticks<wbr>ToVex<wbr>Dots</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#splitIntoValidDurations" class="tsd-kind-icon">split<wbr>Into<wbr>Valid<wbr>Durations</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#stripVexOctave" class="tsd-kind-icon">strip<wbr>Vex<wbr>Octave</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#timeSignatureToTicks" class="tsd-kind-icon">time<wbr>Signature<wbr>ToTicks</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#toValidKeySignature" class="tsd-kind-icon">to<wbr>Valid<wbr>Key<wbr>Signature</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#vexKeySigWithOffset" class="tsd-kind-icon">vex<wbr>Key<wbr>Sig<wbr>With<wbr>Offset</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#vexKeySignatureTranspose" class="tsd-kind-icon">vex<wbr>Key<wbr>Signature<wbr>Transpose</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#vexStemType" class="tsd-kind-icon">vex<wbr>Stem<wbr>Type</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#vexToCannonical" class="tsd-kind-icon">vex<wbr>ToCannonical</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#vexToSmoKey" class="tsd-kind-icon">vex<wbr>ToSmo<wbr>Key</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
+								<a href="SmoMusic.html#vexToSmoPitch" class="tsd-kind-icon">vex<wbr>ToSmo<wbr>Pitch</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>
