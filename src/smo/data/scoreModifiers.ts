@@ -8,9 +8,11 @@ import { SmoSelector } from '../xform/selections';
 
 const VF = eval('Vex.Flow');
 
-// ## SmoScoreModifierBase
-// A score modifier is something that appears in the score, but not
-// associated with a measure of music.
+/**
+ * Score modifiers aren't specifically associated with a musical elements,
+ * but with part or all of the score.  Score text, layout information is an example
+ * @category SmoModifier
+ */
 export abstract class SmoScoreModifierBase implements SmoModifierBase {
   ctor: string;
   renderedBox: SvgBox | null = null;

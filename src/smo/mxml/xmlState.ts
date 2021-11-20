@@ -261,7 +261,7 @@ export class XmlState {
         const modParams = SmoDynamicText.defaults;
         modParams.text = dynamic.dynamic;
         // TODO: change the smonote name of this interface
-        smoNote.addModifier(new SmoDynamicText(modParams));
+        smoNote.addDynamic(new SmoDynamicText(modParams));
       } else {
         newArray.push(dynamic);
       }

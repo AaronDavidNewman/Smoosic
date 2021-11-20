@@ -224,7 +224,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
       const altModifiers = equiv.note.getModifiers('SmoDynamicText');
       SmoOperation.removeDynamic(selection, dynamic);
       if (altModifiers.length) {
-        SmoOperation.removeDynamic(equiv, altModifiers[0]);
+        SmoOperation.removeDynamic(equiv, altModifiers[0] as SmoDynamicText);
       }
     }
     return this.renderer.updatePromise()

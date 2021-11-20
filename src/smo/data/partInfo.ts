@@ -1,7 +1,11 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+/**
+ * Classes to support partsInfo class, for part extraction.  
+ * Parts is parts.
+ * @module /smo/data/partInfo
+ */
 import { SmoMeasureFormat } from './measureModifiers';
-import { SmoSystemStaff } from './systemStaff';
 import { SmoLayoutManager, SmoTextGroup } from './scoreModifiers';
 import { StaffModifierBase } from './staffModifiers';
 
@@ -16,7 +20,9 @@ export const SmoPartInfoBooleanTypes: SmoPartInfoBooleanType[] = ['preserveTextG
 
 /**
  * Data contained in a part.  A part has its own text, measure formatting and page layouts,
- * and contains the notes from the score.  It can be comprised of 1 or 2 adjacent staves
+ * and contains the notes from the score.  It can be comprised of 1 or 2 adjacent staves.
+ * Usually you will call
+ * {@link PartInfo.defaults}, and modify the parameters you need to change.
  * @param partName Name of the part, can be used in headers
  * @param partAbbreviation
  * @stavesAfter for multi-stave parts (e.g. piano), indicates the relative position in the full score.
@@ -25,6 +31,7 @@ export const SmoPartInfoBooleanTypes: SmoPartInfoBooleanType[] = ['preserveTextG
  * @measureFormatting a map of measure format to measures for the part
  * @textGroups if preserveTextGroups is true, the part has its own text.
  * @preseverTextGroups if false, we use the full score text
+ * @cueInScore indicates tiny notes, like for piano accompaniment
  */
 export interface SmoPartInfoParams {
   partName: string,
@@ -37,6 +44,10 @@ export interface SmoPartInfoParams {
   preserveTextGroups: boolean,
   cueInScore: boolean
 }
+/**
+ * Part info contains information that group 1 or 2 adjacent staves.
+ * Parts can have formatting that is indepenedent of the score
+ */
 export class SmoPartInfo extends StaffModifierBase {
   partName: string = '';
   partAbbreviation: string = '';

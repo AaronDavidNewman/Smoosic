@@ -1,6 +1,6 @@
 /**
  * definitions shared by all SMO types
- * @module
+ * @module /smo/data/common
  */
 /**
  * Same as attrs object in Vex objects.

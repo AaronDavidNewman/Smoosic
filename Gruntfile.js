@@ -89,11 +89,12 @@ module.exports = function (grunt) {
       build: {
         options: {
           out: 'build/docs',
-          name: 'smoosic',
+          name: 'Smoosic',
+          tsconfig: 'tsconfig.json',
           excludeProtected: true,
-          excludePrivate: true,
+          excludePrivate: true
         },
-        src: ['./typedoc.ts'],
+        src: ['./src/smo/data/*.ts','./src/smo/xform/*.ts'],
       },
     }
   });

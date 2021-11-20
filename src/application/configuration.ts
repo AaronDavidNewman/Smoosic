@@ -1,3 +1,8 @@
+// application/configuration.ts
+/**
+ * Superset of configuration required to initialize Smoosic, either the appliation or library.
+ * @module configuration
+ */
 import { SmoRenderConfiguration } from "../render/sui/configuration";
 import { SmoScore } from "../smo/data/score";
 import { RibbonConfiguration } from "../ui/configuration";

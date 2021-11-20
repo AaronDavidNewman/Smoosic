@@ -1,5 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+/**
+ * Classes to support {@link SmoScore}
+ * @module /smo/data/score
+ */
 import { SmoMusic } from './music';
 import { Clef, FontInfo, SvgDimensions } from './common';
 import { SmoMeasure, SmoMeasureParams, ColumnMappedParams } from './measure';
@@ -12,6 +16,13 @@ import { SmoTempoText } from './measureModifiers';
 import { SmoSelector, SmoSelection } from '../xform/selections';
 import { smoSerialize } from '../../common/serializationHelpers';
 
+/**
+ * For global/default font settings.
+ * @param name to distinguish: chord, lyric etc.
+ * @param family font family
+ * @param size in points
+ * @param custom used to distinguish a specific text is not the default
+ */
 export interface FontPurpose {
   name: string,
   purpose: number,
@@ -19,7 +30,11 @@ export interface FontPurpose {
   size: number,
   custom: boolean
 }
+// @internal
 export type SmoScoreInfoKeys = 'name' | 'title' | 'subTitle' | 'composer' | 'copyright';
+/**
+ * Information about the score itself, like composer etc.
+ */
 export class SmoScoreInfo {
   name: string = 'Smoosical'; // deprecated
   title: string = 'Smoosical';
@@ -28,6 +43,15 @@ export class SmoScoreInfo {
   copyright: string = '';
   version: number = 1;
 }
+/**
+ * Some default SMO behavior
+ * @param autoPlay play a new note or chord
+ * @param autoAdvance Sibelius-like behavior of advancing cursor when a letter note is placed
+ * @param defaultDupleDuration in ticks, even metered measures
+ * @param defaultTripleDuration in ticks, 6/8 etc.
+ * @param customProportion a Vex measure format setting
+ * @param showPiano show the piano widget in the score
+ */
 export class SmoScorePreferences {
   autoPlay: boolean = true;
   autoAdvance: boolean = true;
@@ -36,10 +60,15 @@ export class SmoScorePreferences {
   customProportion: number = 100;
   showPiano: boolean = true;
 }
+/**
+ * Constructor parameters.  Usually you will call
+ * {@link SmoScore.defaults}, and modify the parameters you need to change.
+ * A new score with the defaults will create a single, empty measure.
+ * @param fonts global font defaults for this score
+ * @param staffWidth
+ */
 export interface SmoScoreParams {
-  instrumentMap: any[],
   fonts: FontPurpose[],
-  staffWidth: number,
   scoreInfo: SmoScoreInfo,
   preferences: SmoScorePreferences,
   startIndex: number,
@@ -53,11 +82,10 @@ export interface SmoScoreParams {
 
 export type SmoModifier = SmoNoteModifierBase | SmoMeasureModifierBase | StaffModifierBase | SmoScoreModifierBase;
 
-// ## SmoScore
-// ## Description:
-// The whole score.
-// ## Score methods:
-// ---
+/**
+ * SmoScore is the container for the entire score: staves, measures notes
+ * @category SmoObject
+ */
 export class SmoScore {
   instrumentMap: any[] = []
   fonts: FontPurpose[] = []
@@ -98,14 +126,12 @@ export class SmoScore {
   static get defaults(): SmoScoreParams {
     return {
       // legacy layout structure.  Now we use pages.
-      instrumentMap: [],
       fonts: [
         { name: 'engraving', purpose: SmoScore.fontPurposes.ENGRAVING, family: 'Bravura', size: 1, custom: false },
         { name: 'score', purpose: SmoScore.fontPurposes.SCORE, family: 'Merriweather', size: 14, custom: false },
         { name: 'chords', purpose: SmoScore.fontPurposes.CHORDS, family: 'Roboto Slab', size: 14, custom: false },
         { name: 'lyrics', purpose: SmoScore.fontPurposes.LYRICS, family: 'Merriweather', size: 12, custom: false }
       ],
-      staffWidth: 1600,
       scoreInfo: {
         name: 'Smoosical', // deprecated
         title: 'Smoosical',

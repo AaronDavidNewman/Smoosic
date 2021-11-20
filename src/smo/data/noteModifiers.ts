@@ -1,5 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+/**
+ * A note modifier is anything that is mapped to the note, but not part of the
+ * pitch itself.  This includes grace notes, and note-text like lyrics.
+ * @module /smo/data/noteModifiers
+ */
 import { SmoAttrs, Ticks, Pitch, FontInfo, SmoObjectParams, Transposable, SvgBox, SmoModifierBase } from './common';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
@@ -12,6 +17,7 @@ const VF = eval('Vex.Flow');
  * A note modifier is anything that is mapped to the note, but not part of the
  * pitch itself.  This includes grace notes, and note-text like lyrics.
  * All note modifiers have a serialize method and a 'ctor' parameter or deserialization
+ * @category SmoModifier
  */
 export abstract class SmoNoteModifierBase implements SmoModifierBase {
   attrs: SmoAttrs;
@@ -61,6 +67,7 @@ export interface GraceNoteParams extends SmoModifierBase {
 /**
  * A grace notes has many of the things an 'actual' note can have, but it doesn't take up
  * time against the time signature
+ * @category SmoModifier
  */
 export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
   static get flagStates() {
@@ -134,6 +141,7 @@ export interface SmoMicrotoneParams extends SmoObjectParams {
 /**
  * Microtones are treated similarly to ornaments.  There are not
  * rules for persisting throughout a measure, cancel etc.
+ * @category SmoModifier
 */
 export class SmoMicrotone extends SmoNoteModifierBase {
   tone: string;
@@ -206,6 +214,7 @@ export interface SmoOrnamentParams {
 /**
  * Ornaments map to vex ornaments.  articulations vs. ornaments
  * is kind of arbitrary
+ * @category SmoModifier
  */
 export class SmoOrnament extends SmoNoteModifierBase {
   static readonly ornaments: Record<string, string> = {
@@ -294,6 +303,7 @@ export interface SmoArticulationParameters {
 }
 /**
  * Articulations map to notes, can be placed above/below
+ * @category SmoModifier
  */
 export class SmoArticulation extends SmoNoteModifierBase {
   static get articulations() {
@@ -426,6 +436,7 @@ export interface SmoLyricParams extends SmoLyricPersist {
 /**
  * SmoLyric covers both chords and lyrics.  The parser tells you which
  * one you get.
+ * @category SmoModifier
  */
 export class SmoLyric extends SmoNoteModifierBase {
   static readonly parsers: Record<string, number> = {
@@ -674,6 +685,7 @@ export interface SmoDynamicTextParams extends SmoDynamicTextPersist {
 
 /**
  * Dynamic text tells you how loud not to play.
+ * @category SmoModifier
  */
 export class SmoDynamicText extends SmoNoteModifierBase {
   static get dynamics(): Record<string, string> {

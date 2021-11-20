@@ -1,7 +1,12 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+/**
+ * Classes to support {@link SmoNote}.  Notes have pitches and a duration, and other
+ * modifiers that can affect display or playback.
+ * @module /smo/data/note
+ */
 import { smoSerialize } from '../../common/serializationHelpers';
-import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament } from './noteModifiers';
+import { SmoNoteModifierBase, SmoArticulation, SmoLyric, SmoGraceNote, SmoMicrotone, SmoOrnament, SmoDynamicText } from './noteModifiers';
 import { SmoMusic } from './music';
 import { Ticks, Pitch, SmoAttrs, FontInfo, Transposable, PitchLetter, SvgBox } from './common';
 const VF = eval('Vex.Flow');
@@ -9,14 +14,42 @@ const VF = eval('Vex.Flow');
 export interface TupletInfo {
   id: string;
 }
-export type NoteStringParam = 'noteType' | 'noteHead' | 'clef';
-export const NoteStringParams: NoteStringParam[] = ['noteType', 'noteHead', 'clef'];
+// @internal
+export type NoteType = 'n' | 'r' | '/';
+// @internal
+export type NoteStringParam = 'noteHead' | 'clef';
+// @internal
+export const NoteStringParams: NoteStringParam[] = ['noteHead', 'clef'];
+// @internal
 export type NoteNumberParam = 'beamBeats' | 'flagState';
+// @internal
 export const NoteNumberParams: NoteNumberParam[] = ['beamBeats', 'flagState'];
+// @internal
 export type NoteBooleanParam = 'hidden' | 'endBeam' | 'isCue';
+// @internal
 export const NoteBooleanParams: NoteBooleanParam[] = ['hidden', 'endBeam', 'isCue'];
+/**
+ * Constructor parameters for a note.  Usually you will call
+ * {@link SmoNote.defaults}, and modify the parameters you need to change.
+ * @param noteType
+ * @param noteHead is non-empty, a Vex notehead code TODO make a record<>
+ * @param clef determines how the pitch is placed on the staff
+ * @param textModifiers are lyrics, chords, dynamics
+ * @param articulations
+ * @param graceNotes
+ * @param ornaments
+ * @param tones
+ * @param endBeam true if this is the last note in a beam
+ * @param fillStyle for special effects, for instance to highlight active voice
+ * @param hidden indicates the note (usually a rest) is invisible (transparent)
+ * @param beamBeats how many ticks to use before beaming a group
+ * @param flagState up down auto
+ * @ticks duration
+ * @pitches SmoPitch array
+ * @isCue tiny notes
+ */
 export interface SmoNoteParams {
-  noteType: string,
+  noteType: NoteType,
   noteHead: string,
   clef: string,
   textModifiers: SmoNoteModifierBase[],
@@ -38,6 +71,7 @@ export interface SmoNoteParams {
  * SmoNote contains the pitch and duration of a note or chord.
  * It can also contain arrays of modifiers like lyrics, articulations etc.
  * Also information about the beaming, flag etc.
+ * @category SmoObject
  * */
 export class SmoNote implements Transposable {
   constructor(params: SmoNoteParams) {
@@ -45,6 +79,7 @@ export class SmoNote implements Transposable {
     NoteStringParams.forEach((param) => {
       this[param] = params[param] ? params[param] : defs[param];
     });
+    this.noteType = params.noteType ? params.noteType : defs.noteType;
     NoteNumberParams.forEach((param) => {
       this[param] = params[param] ? params[param] : defs[param];
     });
@@ -65,6 +100,7 @@ export class SmoNote implements Transposable {
   static get flagStates() {
     return { auto: 0, up: 1, down: 2 };
   }
+  // Note type and ID
   attrs: SmoAttrs;
   flagState: number = SmoNote.flagStates.auto;
   textModifiers: SmoNoteModifierBase[] = [];
@@ -74,7 +110,7 @@ export class SmoNote implements Transposable {
   noteHead: string = '';
   clef: string = 'treble';
   graceNotes: SmoGraceNote[] = [];
-  noteType: string = 'n';
+  noteType: NoteType = 'n';
   fillStyle: string = '';
   hidden: boolean = false;
   tuplet: TupletInfo | null = null;
@@ -89,11 +125,17 @@ export class SmoNote implements Transposable {
   renderedBox: SvgBox | null = null;
   isCue: boolean = false;
   accidentalsRendered: string[] = [];// set by renderer if accidental is to display
-
+  /**
+   * used in serialization
+   * @internal
+   */
   static get parameterArray() {
     return ['ticks', 'pitches', 'noteType', 'tuplet', 'clef',
       'endBeam', 'beamBeats', 'flagState', 'noteHead', 'fillStyle', 'hidden'];
   }
+  /**
+   * Default constructor parameters.  We always return a copy so the caller can modify it
+   */
   static get defaults(): SmoNoteParams {
     return JSON.parse(JSON.stringify({
       noteType: 'n',
@@ -122,15 +164,16 @@ export class SmoNote implements Transposable {
       }],
     }));
   }
+  /**
+   * Up, down auto (tri-state)
+   */
   toggleFlagState() {
     this.flagState = (this.flagState + 1) % 3;
   }
 
+  // @internal
   toVexStemDirection() {
     return (this.flagState === SmoNote.flagStates.up ? VF.Stem.UP : VF.Stem.DOWN);
-  }
-  get id() {
-    return this.attrs.id;
   }
 
   get dots() {
@@ -144,10 +187,7 @@ export class SmoNote implements Transposable {
     return vexDuration.split('d').length - 1;
   }
 
-  // ### _addModifier
-  // ### Description
-  // add or remove sFz, mp, etc.
-  _addModifier(dynamic: SmoNoteModifierBase, toAdd: boolean) {
+  private _addModifier(dynamic: SmoDynamicText, toAdd: boolean) {
     var tms = [];
     this.textModifiers.forEach((tm) => {
       if (tm.attrs.type !== dynamic.attrs.type) {
@@ -160,7 +200,7 @@ export class SmoNote implements Transposable {
     this.textModifiers = tms;
   }
 
-  _addArticulation(articulation: SmoArticulation, toAdd: boolean) {
+  private _addArticulation(articulation: SmoArticulation, toAdd: boolean) {
     var tms = [];
     this.articulations.forEach((tm) => {
       if (tm.articulation !== articulation.articulation) {
@@ -173,12 +213,25 @@ export class SmoNote implements Transposable {
     this.articulations = tms;
   }
 
-  addModifier(dynamic: SmoNoteModifierBase) {
+  /**
+   * Add a new dynamic to thisnote
+   * @param dynamic
+   */
+  addDynamic(dynamic: SmoDynamicText) {
     this._addModifier(dynamic, true);
   }
-  removeModifier(dynamic: SmoNoteModifierBase) {
+  /**
+   * Remove the dynamic from this note.
+   * @param dynamic 
+   */
+  removeDynamic(dynamic: SmoDynamicText) {
     this._addModifier(dynamic, false);
   }
+  /**
+   * Get all note modifiers of a type, either a lyric or a dynamic
+   * @param type ctor
+   * @returns 
+   */
   getModifiers(type: string) {
     var ms = this.textModifiers.filter((mod) =>
       mod.attrs.type === type
@@ -186,7 +239,11 @@ export class SmoNote implements Transposable {
     return ms;
   }
 
-  longestLyric() {
+  /**
+   * 
+   * @returns the longest lyric, used for formatting
+   */
+  longestLyric(): SmoLyric | null {
     const tms: SmoNoteModifierBase[] = this.textModifiers.filter((mod: SmoNoteModifierBase) =>
       mod.attrs.type === 'SmoLyric' && (mod as SmoLyric).parser === SmoLyric.parsers.lyric
     );
@@ -195,9 +252,9 @@ export class SmoNote implements Transposable {
     }
     return tms.reduce((m1, m2) =>
       (m1 as SmoLyric).getText().length > (m2 as SmoLyric).getText().length ? m1 : m2
-    );
+    ) as SmoLyric;
   }
-
+  /** Add a lyric to this note, replacing another in the same verse */
   addLyric(lyric: SmoLyric) {
     const tms = this.textModifiers.filter((mod: SmoNoteModifierBase) =>
       mod.attrs.type !== 'SmoLyric' || (mod as SmoLyric).parser !== lyric.parser ||
@@ -207,35 +264,51 @@ export class SmoNote implements Transposable {
     this.textModifiers = tms;
   }
 
+  /**
+   * @returns array of lyrics that are lyrics
+   */
   getTrueLyrics(): SmoLyric[] {
     const ms = this.textModifiers.filter((mod) =>
       mod.attrs.type === 'SmoLyric' && (mod as SmoLyric).parser === SmoLyric.parsers.lyric);
     ms.sort((a, b) => (a as SmoLyric).verse - (b as SmoLyric).verse);
     return (ms as SmoLyric[]);
   }
-
+  /**
+   * 
+   * @returns array of SmoLyric whose parsers are chord
+   */
   getChords(): SmoLyric[] {
     const ms = this.textModifiers.filter((mod) =>
       mod.attrs.type === 'SmoLyric' && (mod as SmoLyric).parser === SmoLyric.parsers.chord
     );
     return ms as SmoLyric[];
   }
-
+  /**
+   * 
+   * @param lyric lyric to remove, find the best match if there are multiples
+   */
   removeLyric(lyric: SmoLyric) {
     const tms = this.textModifiers.filter((mod: SmoNoteModifierBase) =>
       mod.attrs.type !== 'SmoLyric' || (mod as SmoLyric).verse !== lyric.verse || (mod as SmoLyric).parser !== lyric.parser
     );
     this.textModifiers = tms;
   }
-
+  /**
+   * 
+   * @param verse 
+   * @param parser 
+   * @returns 
+   */
   getLyricForVerse(verse: number, parser: number) {
     return this.textModifiers.filter((mod) =>
       mod.attrs.type === 'SmoLyric' && (mod as SmoLyric).parser === parser && (mod as SmoLyric).verse === verse
     );
   }
 
-  // ### setLyricFont
-  // Lyric font is score-wide, so we set all lyrics to the same thing.
+  /**
+   * 
+   * @param fontInfo
+   */
   setLyricFont(fontInfo: FontInfo) {
     const lyrics = this.getTrueLyrics();
 
@@ -244,8 +317,9 @@ export class SmoNote implements Transposable {
     });
   }
 
-  // ### setLyricFont
-  // Set whether we ajust note width for lyrics, a scope-wide setting.
+  /**
+   * @param adjustNoteWidth if true, vex will consider the lyric width when formatting the measure
+   */
   setLyricAdjustWidth(adjustNoteWidth: boolean) {
     const lyrics = this.getTrueLyrics();
     lyrics.forEach((lyric) => {
@@ -275,6 +349,10 @@ export class SmoNote implements Transposable {
     return this.ornaments.filter((oo) => oo.isJazz());
   }
 
+  /**
+   * Toggle the ornament up/down/off
+   * @param ornament
+   */
   toggleOrnament(ornament: SmoOrnament) {
     const aix = this.ornaments.filter((a) =>
       a.attrs.type === 'SmoOrnament' && a.ornament === ornament.ornament
@@ -286,7 +364,10 @@ export class SmoNote implements Transposable {
     }
   }
 
-  // Toggle between articulation above, below, or remove
+  /**
+   * Toggle the ornament up/down/off
+   * @param articulation
+   */
   toggleArticulation(articulation: SmoArticulation) {
     var aix = this.articulations.findIndex((a) =>
       a.articulation === articulation.articulation
@@ -304,6 +385,10 @@ export class SmoNote implements Transposable {
     this._addArticulation(articulation, true);
   }
 
+  /**
+   * Sort pitches in pitch order, Vex likes to receive pitches in order
+   * @param note 
+   */
   static _sortPitches(note: Transposable) {
     const canon = VF.Music.canonical_notes;
     const keyIndex = ((pitch: Pitch) =>
@@ -318,6 +403,11 @@ export class SmoNote implements Transposable {
       this.noteHead = noteHead;
     }
   }
+  /**
+   * 
+   * @param graceNote
+   * @param offset the index from the first grace note
+   */
   addGraceNote(graceNote: SmoGraceNote, offset: number) {
     if (typeof(offset) === 'undefined') {
       offset = 0;
@@ -334,7 +424,12 @@ export class SmoNote implements Transposable {
   getGraceNotes() {
     return this.graceNotes;
   }
-  static addPitchOffset(note: Transposable, offset: number) {
+  /**
+   * Add another pitch to this note at `offset` 1/2 steps
+   * @param note
+   * @param offset
+   */
+  static addPitchOffset(note: Transposable, offset: number): void {
     if (note.pitches.length === 0) {
       return;
     }
@@ -343,6 +438,11 @@ export class SmoNote implements Transposable {
     note.pitches.push(SmoMusic.getKeyOffset(pitch, offset));
     SmoNote._sortPitches(note);
   }
+  /**
+   * Add another pitch to this note at `offset` 1/2 steps
+   * @param offset
+   * @returns 
+   */
   addPitchOffset(offset: number) {
     if (this.pitches.length === 0) {
       return;
@@ -377,11 +477,18 @@ export class SmoNote implements Transposable {
     this.fillStyle = '';
     this.hidden = false;
   }
+  /**
+   * set note opacity on/off
+   * @param val
+   */
   makeHidden(val: boolean) {
     this.hidden = val;
     this.fillStyle = val ? '#aaaaaa7f' : '';
   }
 
+  /**
+   * Return true if this note is part of a tuplet
+   */
   get isTuplet(): boolean {
     return this.tuplet !== null && this.tuplet.id !== null;
   }
@@ -404,6 +511,11 @@ export class SmoNote implements Transposable {
   getMicrotones() {
     return this.tones;
   }
+  /**
+   * cycle through the list of enharmonics for this note.
+   * @param pitch
+   * @returns 
+   */
   static toggleEnharmonic(pitch: Pitch) {
     const lastLetter = pitch.letter;
     let vexPitch = SmoMusic.stripVexOctave(SmoMusic.pitchToVexKey(pitch));
@@ -415,12 +527,20 @@ export class SmoNote implements Transposable {
     pitch.octave += SmoMusic.letterChangedOctave(lastLetter, pitch.letter);
     return pitch;
   }
-
+  /**
+   * transpose a note or grace note to a key-friendly enharmonic
+   * @param pitchArray
+   * @param offset
+   * @param keySignature
+   * @returns 
+   */
   transpose(pitchArray: number[], offset: number, keySignature: string) {
-    return SmoNote._transpose(this, pitchArray, offset, keySignature);
+    return SmoNote.transpose(this, pitchArray, offset, keySignature);
   }
-  // ### addPitch
-  // used to add chord and pitch by piano widget
+  /**
+   * used to add chord and pitch by piano widget
+   * @param pitch
+   */
   toggleAddPitch(pitch: Pitch) {
     const pitches: Pitch[] = [];
     let exists = false;
@@ -440,7 +560,14 @@ export class SmoNote implements Transposable {
     }
     SmoNote._sortPitches(this);
   }
-  static _transpose(note: Transposable, pitchArray:number[], offset: number, keySignature: string) {
+  /**
+   * @param note note to transpose
+   * @param pitchArray an array of indices (not pitches) that indicate which pitches get altered if a chord
+   * @param offset in 1/2 step
+   * @param keySignature for finding key-friendly enharmonic
+   * @returns 
+   */
+  static transpose(note: Transposable, pitchArray: number[], offset: number, keySignature: string) {
     let index: number = 0;
     let j: number = 0;
     let letterKey: string = 'a';
@@ -476,6 +603,11 @@ export class SmoNote implements Transposable {
     return this.ticks.numerator / this.ticks.denominator + this.ticks.remainder;
   }
 
+  /**
+   * Copy the note, give it unique id
+   * @param note
+   * @returns 
+   */
   static clone(note: SmoNote) {
     var rv = SmoNote.deserialize(note.serialize());
 
@@ -487,9 +619,11 @@ export class SmoNote implements Transposable {
     return rv;
   }
 
-  // ## Description:
-  // Clone the note, but use the different duration.  Changes the length
-  // of the note but nothing else.
+  /**
+   * @param note
+   * @param ticks
+   * @returns A note identical to `note` but with different duration
+   */
   static cloneWithDuration(note: SmoNote, ticks: Ticks | number) {
     if (typeof(ticks) === 'number') {
       ticks = { numerator: ticks, denominator: 1, remainder: 0 };
@@ -506,13 +640,16 @@ export class SmoNote implements Transposable {
     return rv;
   }
 
-  _serializeModifiers(params: any) {
+  private _serializeModifiers(params: any) {
     params.textModifiers = SmoNote.serializeModifier(this.textModifiers);
     params.graceNotes = SmoNote.serializeModifier(this.graceNotes);
     params.articulations = SmoNote.serializeModifier(this.articulations);
     params.ornaments = SmoNote.serializeModifier(this.ornaments);
     params.tones = SmoNote.serializeModifier(this.tones);
   }
+  /**
+   * @returns a JSON object that can be used to create this note
+   */
   serialize() {
     var params: any = {};
     smoSerialize.serializedMergeNonDefault(SmoNote.defaults, SmoNote.parameterArray, this, params);
@@ -522,7 +659,11 @@ export class SmoNote implements Transposable {
     this._serializeModifiers(params);
     return params;
   }
-
+  /**
+   * restore note modifiers and create a SmoNote object
+   * @param jsonObj
+   * @returns 
+   */
   static deserialize(jsonObj: any) {
     var note = new SmoNote(jsonObj);
     if (jsonObj.textModifiers) {

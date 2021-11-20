@@ -6,7 +6,8 @@ import { SmoNote } from '../data/note';
 import { SmoScore } from '../data/score';
 import { SmoMeasureParams, SmoMeasure, SmoVoice } from '../data/measure';
 import { SmoSystemStaff, SmoSystemStaffParams } from '../data/systemStaff';
-import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoNoteModifierBase, SmoOrnament } from '../data/noteModifiers';
+import { SmoArticulation, SmoGraceNote, SmoLyric, SmoMicrotone, SmoNoteModifierBase, SmoOrnament,
+  SmoDynamicText } from '../data/noteModifiers';
 import {
   SmoRehearsalMark, SmoMeasureText, SmoVolta, SmoMeasureFormat, SmoTempoText, SmoBarline,
   TimeSignature, SmoRepeatSymbol
@@ -357,7 +358,7 @@ export class SmoOperation {
       mm.pitches.forEach(() => {
         par.push(par.length);
       });
-      SmoNote._transpose(mm, par, offset, selection.measure.keySignature);
+      SmoNote.transpose(mm, par, offset, selection.measure.keySignature);
     });
   }
 
@@ -589,12 +590,12 @@ export class SmoOperation {
     SmoNote.toggleEnharmonic(pitch);
   }
 
-  static addDynamic(selection: SmoSelection, dynamic: SmoNoteModifierBase) {
-    (selection.note as SmoNote).addModifier(dynamic);
+  static addDynamic(selection: SmoSelection, dynamic: SmoDynamicText) {
+    (selection.note as SmoNote).addDynamic(dynamic);
   }
 
-  static removeDynamic(selection: SmoSelection, dynamic: SmoNoteModifierBase) {
-    (selection.note as SmoNote).removeModifier(dynamic);
+  static removeDynamic(selection: SmoSelection, dynamic: SmoDynamicText) {
+    (selection.note as SmoNote).removeDynamic(dynamic);
   }
 
   static beamSelections(score: SmoScore, selections: SmoSelection[]) {

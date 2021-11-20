@@ -1,5 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+/**
+ * @module /smo/data/measureModifiers
+ * **/
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from './music';
 import { SmoAttrs, MeasureNumber, FontInfo, SmoObjectParams, SvgBox, SmoModifierBase } from './common';
@@ -9,7 +12,8 @@ import { SmoMeasure } from './measure';
 const VF = eval('Vex.Flow');
 /**
  * Measure modifiers are attached to the measure itself.  Each instance has a
- * serialize method and a ctor attribute for deserialization.
+ * `serialize()` method and a `ctor` attribute for deserialization.
+ * @category SmoModifier
  */
 export abstract class SmoMeasureModifierBase implements SmoModifierBase {
   attrs: SmoAttrs;

@@ -1,9 +1,10 @@
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
 /**
  * shared music theory and audio frequency routines, helper functions etc.
- * @module
+ * @module /smo/data/music
  */
+
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 import { SmoNote } from './note';
 import { Pitch, PitchKey, Clef, PitchLetter } from './common';
 import { SmoMicrotone } from './noteModifiers';
