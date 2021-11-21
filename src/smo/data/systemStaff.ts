@@ -1,5 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+/**
+ * Classes to support a {@link SmoSystemStaff}, which is a container for measures and
+ * staff modifiers.
+ * @module /smo/data/systemStaff
+ * **/
 import { SmoObjectParams, SmoAttrs, FontInfo, MeasureNumber } from './common';
 import { SmoMusic } from './music';
 import { SmoMeasure } from './measure';
@@ -12,13 +17,11 @@ import { smoBeamerFactory } from '../xform/beamers';
 import { smoSerialize } from '../../common/serializationHelpers';
 
 const VF = eval('Vex.Flow');
-
+/**
+ * Constructor parameters for {@link SmoSystemStaff}.
+ * @param staffX
+ */
 export interface SmoSystemStaffParams {
-  staffX: number,
-  staffY: number,
-  adjY: number,
-  staffWidth: number,
-  staffHeight: number,
   staffId: number,
   renumberingMap: Record<number, number>,
   keySignatureMap: Record<number, string>,
@@ -27,11 +30,6 @@ export interface SmoSystemStaffParams {
   modifiers: StaffModifierBase[],
   partInfo?: SmoPartInfo;
 }
-export type SmoStaffNumberParamType = 'staffId' | 'staffX' | 'staffY' | 'adjY' | 'staffWidth' | 'staffHeight';
-export const SmoStaffNumberParams: SmoStaffNumberParamType[] = [
-  'staffId', 'staffX', 'staffY', 'adjY', 'staffWidth', 'staffHeight'
-];
-
 // ## SmoSystemStaff
 // A staff is a line of music that can span multiple measures.
 // A system is a line of music for each staff in the score.  So a staff
@@ -59,11 +57,6 @@ export class SmoSystemStaff implements SmoObjectParams {
     return rv;
   }
 
-  staffX: number = 10;
-  staffY: number = 40;
-  adjY: number = 0;
-  staffWidth: number = 1600;
-  staffHeight: number = 90;
   staffId: number = 0;
   renumberingMap: Record<number, number> = {};
   keySignatureMap: Record<number, string> = {};
@@ -82,11 +75,6 @@ export class SmoSystemStaff implements SmoObjectParams {
   // default values for all instances
   static get defaults(): SmoSystemStaffParams {
     return JSON.parse(JSON.stringify({
-      staffX: 10,
-      staffY: 40,
-      adjY: 0,
-      staffWidth: 1600,
-      staffHeight: 90,
       staffId: 0,
       renumberingMap: {},
       keySignatureMap: {},
@@ -103,9 +91,7 @@ export class SmoSystemStaff implements SmoObjectParams {
   }
 
   constructor(params: SmoSystemStaffParams) {
-    SmoStaffNumberParams.forEach((numParam) => {
-      this[numParam] = params[numParam];
-    });
+    this.staffId = params.staffId;
     this.measures = params.measures;
     this.modifiers = params.modifiers;
     if (Object.keys(params.measureInstrumentMap).length === 0) {
@@ -140,7 +126,6 @@ export class SmoSystemStaff implements SmoObjectParams {
   // the parameters that get saved with the score.
   static get defaultParameters() {
     return [
-      'staffId', 'staffX', 'staffY', 'adjY', 'staffWidth', 'staffHeight',
       'renumberingMap', 'keySignatureMap', 'instrumentInfo'];
   }
 
@@ -171,13 +156,7 @@ export class SmoSystemStaff implements SmoObjectParams {
   static deserialize(jsonObj: any): SmoSystemStaff {
     const defaults = SmoSystemStaff.defaults;
     const params: SmoSystemStaffParams = SmoSystemStaff.defaults;
-    SmoStaffNumberParams.forEach((numParam) => {
-      if (typeof (jsonObj[numParam]) === 'number') {
-        params[numParam] = jsonObj[numParam];
-      } else {
-        params[numParam] = defaults[numParam];
-      }
-    });
+    params.staffId = jsonObj.staffId ?? 0;
     params.measures = [];
     params.modifiers = [];
     if (jsonObj.partInfo) {
@@ -429,11 +408,11 @@ export class SmoSystemStaff implements SmoObjectParams {
   }
 
   removeTempo(index: number) {
-    this.measures[index].removeTempo();
+    this.measures[index].resetTempo();
   }
 
   addTempo(tempo: SmoTempoTextParams, index: number) {
-    this.measures[index].addTempo(tempo);
+    this.measures[index].setTempo(tempo);
   }
 
   // ### removeRehearsalMark

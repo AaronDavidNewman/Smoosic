@@ -47,6 +47,7 @@ export interface SmoPartInfoParams {
 /**
  * Part info contains information that group 1 or 2 adjacent staves.
  * Parts can have formatting that is indepenedent of the score
+ * @category SmoModifier
  */
 export class SmoPartInfo extends StaffModifierBase {
   partName: string = '';

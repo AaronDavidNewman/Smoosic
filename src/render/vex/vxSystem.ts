@@ -436,10 +436,10 @@ export class VxSystem {
 
     // If this is the last staff in the column, render the column with justification
     if (lastStaff) {
-      this.vxMeasures.forEach((vv: any) => {
+      this.vxMeasures.forEach((vv: VxMeasure) => {
         if (!vv.rendered) {
           const systemGroup = this.score.getSystemGroupForStaff(vv.selection);
-          const justifyGroup: string = (systemGroup && vv.smoMeasure.getAutoJustify()) ? systemGroup.attrs.id : vv.selection.staff.attrs.id;
+          const justifyGroup: string = (systemGroup && vv.smoMeasure.format.autoJustify) ? systemGroup.attrs.id : vv.selection.staff.attrs.id;
           if (!smoGroupMap[justifyGroup]) {
             smoGroupMap[justifyGroup] = { firstMeasure: vv, voices: [] };
           }

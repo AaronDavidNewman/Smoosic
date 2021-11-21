@@ -147,7 +147,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    * @returns 
    */
   loadRemoteScore(url: string): Promise<any> {
-    if (url.endsWith('xml')) {
+    if (url.endsWith('xml') || url.endsWith('mxl')) {
       return this.loadRemoteXml(url);
     } else {
       return this.loadRemoteJson(url);

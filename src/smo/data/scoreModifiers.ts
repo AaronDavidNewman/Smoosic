@@ -1,5 +1,10 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+/**
+ * A score modifier is anything that isn't mapped specifically to a musical object.
+ * This includes score text, layout information
+ * @module /smo/data/scoreModifier
+ */
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMeasureFormat } from './measureModifiers';
 import { SmoAttrs, FontInfo, SmoModifierBase, SvgBox } from './common';
@@ -9,8 +14,12 @@ import { SmoSelector } from '../xform/selections';
 const VF = eval('Vex.Flow');
 
 /**
- * Score modifiers aren't specifically associated with a musical elements,
- * but with part or all of the score.  Score text, layout information is an example
+ * Base class for all {@link SmoScore} modifiers. 
+ * It is used to de/serialize the objects.
+ * @param ctor constructor for derived class
+ * @param renderedBox bounding box in client coordinates, if rendered
+ * @param logicalBox bounding box in SVG coordinates, if rendered
+ * @param attrs object identification
  * @category SmoModifier
  */
 export abstract class SmoScoreModifierBase implements SmoModifierBase {
@@ -32,11 +41,23 @@ export abstract class SmoScoreModifierBase implements SmoModifierBase {
     return rv;
   }
 }
-
+/**
+ * Map of measure formatting to measure IDs.  We only save non-default formats
+ * @param measureFormats map of index to {@link SmoMeasureFormat} objects
+ * @param partIndex the associated part, or -1 for the score
+ */
 export interface SmoFormattingManagerParams {
   measureFormats?: SmoMeasureFormat[],
   partIndex?: number
 }
+/**
+ * A score can have different views - one for the score itself and one for each
+ * part, and each part can have its own formatting and text.
+ * *Note*: I may move this to part info module.
+ * @param measureFormats map of index to {@link SmoMeasureFormat} objects
+ * @param partIndex the associated part, or -1 for the score
+ * @category SmoModifier
+ */
 export class SmoFormattingManager extends SmoScoreModifierBase {
   measureFormats: Record<number, SmoMeasureFormat>;
   partIndex: number = -1;
@@ -66,9 +87,17 @@ export class SmoFormattingManager extends SmoScoreModifierBase {
       });
     }
   }
+  /**
+   * Update the measure format for the measure at the given index
+   * @param format 
+   */
   updateMeasureFormat(format: SmoMeasureFormat) {
     this.measureFormats[format.measureIndex] = format;
   }
+  /**
+   * Update the measure format based on the format of a given measure
+   * @param measure 
+   */
   updateFormat(measure: SmoMeasure) {
     if (this.measureFormats[measure.measureNumber.measureIndex]) {
       measure.format = this.measureFormats[measure.measureNumber.measureIndex];
@@ -96,6 +125,11 @@ export interface SmoPageLayoutParams {
   interGap: number,
   intraGap: number
 }
+/**
+ * Define margins and other layout information associated with a specific page, and may
+ * be different on different pages.
+ * @category SmoModifier
+ */
 export class SmoPageLayout extends SmoScoreModifierBase {
   static get defaults(): SmoPageLayoutParams {
     return JSON.parse(JSON.stringify({
@@ -135,6 +169,9 @@ export class SmoPageLayout extends SmoScoreModifierBase {
 export type ScaledGlobalAttributes = 'pageWidth' | 'pageHeight';
 export type GlobalLayoutAttributes = 'pageWidth' | 'pageHeight' | 'noteSpacing' | 'svgScale' | 'zoomScale';
 export const GlobalLayoutAttributesArray: GlobalLayoutAttributes[]  = ['pageWidth', 'pageHeight', 'noteSpacing', 'svgScale', 'zoomScale'];
+/**
+ * Global layout are parameters that determine the layout of the whole score, because they affect the containing svg element
+ */
 export interface SmoGlobalLayout {
   svgScale: number;
   zoomScale: number;
@@ -162,11 +199,13 @@ export interface SmoLayoutManagerParams {
   globalLayout: SmoGlobalLayout,
   pageLayouts: SmoPageLayout[]
 }
-// ## SmoLayoutManager
-// Storage and utilities for layout information in the score.  Each
-// manager has one set of page height/width, since svg element
-// must have single length/width and viewbox.
-// Each page can have different margins.
+/**
+ * Storage and utilities for layout information in the score.  Each
+ * manager has one set of page height/width, since svg element
+ * must have single length/width and viewbox.
+ * Each page can have different margins.
+ * @category SmoModifier
+ */
 export class SmoLayoutManager extends SmoScoreModifierBase {
   static get defaultLayout(): SmoGlobalLayout {
     return {
@@ -299,8 +338,10 @@ export interface SmoSystemGroupParams {
   startSelector: SmoSelector,
   endSelector: SmoSelector
 }
-// ## SmoSystemGroup
-// System group is the grouping of staves into a system.
+/**
+ * System group is the grouping of staves into a system.
+ * @category SmoModifier
+ *  */
 export class SmoSystemGroup extends SmoScoreModifierBase {
   static get connectorTypes(): Record<string, number> {
     return { brace: 0, bracket: 1, single: 2, double: 3 };
@@ -408,11 +449,13 @@ export interface SmoScoreTextParams {
   position?: string,
   autoLayout?: boolean // set to true if one of the pre-canned positions are used.
 }
-// ## SmoScoreText
-// Identify some text in the score, not associated with any musical element, like page
-// decorations, titles etc.
-// Note: score text is always contained in a text group.  So this isn't directly accessed
-// by score, but we keep the collection in score for backwards-compatibility
+/**
+ * Identify some text in the score, not associated with any musical element, like page
+ * decorations, titles etc.
+ * Note: score text is always contained in a text group.  So this isn't directly accessed
+ * by score, but we keep the collection in score for backwards-compatibility
+ * @category SmoModifier
+ */
 export class SmoScoreText extends SmoScoreModifierBase {
   // convert EM to a number, or leave as a number etc.
   static fontPointSize(size: string) {
@@ -607,9 +650,11 @@ export interface SmoTextGroupParams {
 }
 
 export type SmoTextGroupPurpose = 'NONE' |'TITLE' | 'SUBTITLE' | 'COMPOSER' | 'COPYRIGHT';
-// ## SmoTextGroup
-// A grouping of text that can be used as a block for
-// justification, alignment etc.
+/**
+ * A grouping of text that can be used as a block for
+ * justification, alignment etc.
+ * @category SmoModifier
+ */
 export class SmoTextGroup extends SmoScoreModifierBase {
   static get justifications() {
     return {

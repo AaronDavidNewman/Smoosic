@@ -232,7 +232,7 @@ export class SmoOperation {
     let divisor = 2;
     const measure = selection.measure;
     const tuplet = measure.getTupletForNote(note);
-    if (measure.numBeats % 3 === 0 && note.tickCount === 6144) {
+    if (measure.timeSignature.actualBeats % 3 === 0 && note.tickCount === 6144) {
       // special behavior, if this is dotted 1/4 in 6/8, split to 3
       divisor = 3;
     }

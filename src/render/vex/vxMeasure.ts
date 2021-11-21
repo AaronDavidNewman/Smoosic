@@ -551,8 +551,8 @@ export class VxMeasure {
 
       // Create a voice in 4/4 and add above notes
       const voice = new VF.Voice({
-        num_beats: this.smoMeasure.numBeats,
-        beat_value: this.smoMeasure.beatValue
+        num_beats: this.smoMeasure.timeSignature.actualBeats,
+        beat_value: this.smoMeasure.timeSignature.beatDuration
       }).setMode(VF.Voice.Mode.SOFT);
       voice.addTickables(this.voiceNotes);
       this.voiceAr.push(voice);

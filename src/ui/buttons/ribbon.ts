@@ -4,7 +4,8 @@ import { htmlHelpers } from '../../common/htmlHelpers';
 import { ButtonDefinition, ButtonAction } from './button';
 import { BrowserEventSource } from '../eventSource';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
-import { CompleteNotifier } from '../common';
+import { CompleteNotifier, RibbonLayout } from '../common';
+export { RibbonLayout } from '../common';
 import { SuiTracker } from '../../render/sui/tracker';
 import { SuiMenuManager } from '../menus/manager';
 import { SuiLibraryDialog } from '../dialogs/library';
@@ -23,10 +24,6 @@ export function isModalButtonType(but: string | SuiModalButtonTypes): but is Sui
   return SuiModalButtonStrings.indexOf(but) >= 0;
 }
 
-export interface RibbonLayout {
-  left: string[],
-  top: string[]
-}
 /**
  * Parameters for creating the global button ribbon object.  The button ribbon supports a 
  * button panel in 'top' and 'left' areas, with support for R-to-L languages.  Button groups 

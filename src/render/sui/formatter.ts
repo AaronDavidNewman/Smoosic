@@ -1,5 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+/**
+ * Utilities for formatting the music by estimating the geometry of the music.
+ * @module /render/sui/formatter
+ */
 import { SvgHelpers } from './svgHelpers';
 import { SmoMusic } from '../../smo/data/music';
 import { vexGlyph } from '../vex/glyphDimensions';
@@ -9,8 +13,9 @@ import { SmoMeasure, ISmoBeamGroup } from '../../smo/data/measure';
 import { FontInfo } from '../../smo/data/common';
 const VF = eval('Vex.Flow');
 
-// ## suiFormatter (changed from suiAdjuster)
-// Perform adjustments on the score based on the rendered components so we can re-render it more legibly.
+/**
+ * Utilities for estimating measure/system/page width and height
+ */
 export class suiLayoutFormatter {
   static estimateMusicWidth(smoMeasure: SmoMeasure, noteSpacing: number, accidentMap: Record<string, number>): number {
     const widths: number[] = [];

@@ -1,5 +1,11 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+/**
+ * Classes to support the recording and playback of actions.  This 
+ * is a fairly incomplete module.  All actions are recorded but the
+ * playback facility was glitchy so I removed it.
+ * @module /render/sui/actionPlayback
+ */
 import { PromiseHelpers } from '../../common/promiseHelpers';
 import { SmoRenderConfiguration } from './configuration';
 import { SmoActionRecord } from '../../smo/xform/actions';

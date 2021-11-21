@@ -1,5 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+/**
+ * Classes to support {@link SmoTuplet}
+ * @module /smo/data/tuplet
+ */
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoNote } from './note';
 import { SmoMusic } from './music';

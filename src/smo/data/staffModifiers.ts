@@ -1,5 +1,11 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+/**
+ * Classes to modify a staff or system.  Some staff modifiers can span multiple
+ * staves, so it can be a little arbitrary what is a score vs. staff modifier.  But
+ * generally, a staff modifier is anything that has a beginning and end {@link SmoSelector}
+ * @module /smo/data/staffModifiers
+ */
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoSelector } from '../xform/selections';
 import { SmoNote } from './note';
@@ -7,15 +13,16 @@ import { SmoAttrs, SvgPoint, SmoObjectParams, Clef, SvgBox, SmoModifierBase } fr
 
 const VF = eval('Vex.Flow');
 
-// ## StaffModifiers
-// ## Description:
-// This file contains modifiers that might take up multiple measures, and are thus associated
-// with the staff.
-// ## Staff Modifier Classes:
-// ---
-// ## StaffModifierBase
-// ## Description:
-// Base class that mostly standardizes the interface and deals with serialization.
+/**
+ * Base class that mostly standardizes the interface and deals with serialization.
+ * @param ctor constructor for derived class
+ * @param renderedBox bounding box in client coordinates, if rendered
+ * @param logicalBox bounding box in SVG coordinates, if rendered
+ * @param attrs object identification
+ * @param startSelector where the modifier starts
+ * @param endSelector where it ends
+ * @category SmoModifier
+ * */
 export abstract class StaffModifierBase implements SmoModifierBase {
   attrs: SmoAttrs;
   ctor: string;
@@ -37,6 +44,12 @@ export abstract class StaffModifierBase implements SmoModifierBase {
   }
   abstract serialize(): any;
 }
+/**
+ * Define an instrument.  An instrument is associated with a part, but a part can have instrument changes
+ * and thus contain multiple instruments at different points in the score.
+ * Not all of these parameters are fully utilized yet, and there are plans to greatly expand what
+ * an SmoInstrument is.  Note I may move this to PartInfo module.
+ */
 export interface SmoInstrumentParams {
   startSelector: SmoSelector,
   endSelector: SmoSelector,
@@ -52,7 +65,13 @@ export type SmoInstrumentNumParamType = 'keyOffset' | 'midichannel' | 'midiport'
 export const SmoInstrumentNumParams: SmoInstrumentNumParamType[] = ['keyOffset', 'midichannel', 'midiport'];
 export type SmoInstrumentStringParamType = 'instrumentName' | 'abbreviation';
 export const SmoInstrumentStringParams: SmoInstrumentStringParamType[] = ['instrumentName', 'abbreviation'];
-// WIP
+/**
+ * Define an instrument.  An instrument is associated with a part, but a part can have instrument changes
+ * and thus contain multiple instruments at different points in the score.
+ * Not all of these parameters are fully utilized yet, and there are plans to greatly expand what
+ * an SmoInstrument is.  Note I may move this to PartInfo module.
+ * @category SmoModifier
+ */
 export class SmoInstrument extends StaffModifierBase {
   static get attributes() {
     return ['startSelector', 'endSelector', 'keyOffset', 'midichannel', 'midiport', 'instrumentName', 'abbreviation'];
@@ -130,9 +149,10 @@ export interface SmoStaffHairpinParams {
   endSelector: SmoSelector
 }
 
-// ## SmoStaffHairpin
-// ## Descpription:
-// crescendo/decrescendo
+/**
+ * Also called crescendo etc.
+ * @SmoModifier
+ */
 export class SmoStaffHairpin extends StaffModifierBase {
   static get editableAttributes() {
     return ['xOffsetLeft', 'xOffsetRight', 'yOffset', 'height'];
@@ -219,11 +239,10 @@ export interface SmoSlurParams {
   startSelector: SmoSelector,
   endSelector: SmoSelector
 }
-// ## SmoSlur
-// ## Description:
-// slur staff modifier
-// ## SmoSlur Methods:
-// ---
+/**
+ * Defines a slur
+ * @category SmoModifier
+ */
 export class SmoSlur extends StaffModifierBase {
   static get defaults(): SmoSlurParams {
     return JSON.parse(JSON.stringify({

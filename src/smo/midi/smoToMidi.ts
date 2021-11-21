@@ -1,5 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+/**
+ * Support for converting Smo object model to MIDI
+ * @module /smo/midi/smoToMidi
+ */
 import { SmoMusic } from '../data/music';
 import { SmoSelector } from '../xform/selections';
 import { SmoAudioScore } from '../xform/audioTrack';

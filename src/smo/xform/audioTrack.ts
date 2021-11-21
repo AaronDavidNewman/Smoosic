@@ -492,8 +492,8 @@ export class SmoAudioScore {
             const selectorKey = SmoSelector.getMeasureKey(measureSelector);
             track.tempoMap[selectorKey] = Math.round(tempo);
             track.timeSignatureMap[selectorKey] = {
-              numerator: measure.numBeats,
-              denominator: measure.beatValue
+              numerator: measure.timeSignature.actualBeats,
+              denominator: measure.timeSignature.beatDuration
             };
           }
           // If this voice is not in every measure, fill in the space

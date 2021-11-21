@@ -115,7 +115,7 @@ export const SmoMeasureStringParams: SmoMeasureStringParam[] = ['timeSignatureSt
  * @param activeVoice the active voice in the editor
  * @param tempo
  * @param format measure format, is managed by the score
- * @param modifiers barlines, etc.
+ * @param modifiers All measure modifiers that5 aren't format, timeSignature or tempo
  */
 export interface SmoMeasureParams {
   timeSignature: TimeSignature,
@@ -134,19 +134,20 @@ export interface SmoMeasureParams {
   format: SmoMeasureFormat | null,
   modifiers: SmoMeasureModifierBase[]
 }
-
+/**
+ * Used to create {@link MeasureTickmaps}
+ */
 export interface AccidentalArray {
   duration: string | number,
   pitches: Record<PitchLetter, TickAccidental>
 }
 
 /**
- * data for a measure of music
- * Many rules of musical engraving are enforced at a measure level, e.g. the duration of
- * notes, accidentals, etc.
- * ### See Also:
- * Measures contain *notes*, *tuplets*, and *beam groups*.  So see `SmoNote`, etc.
- * Measures are contained in staves, see also `SystemStaff.js`
+ * Data for a measure of music.  Many rules of musical engraving are
+ * enforced at a measure level: the duration of notes, accidentals, etc.
+ * 
+ * Measures contain {@link SmoNote}, {@link SmoTuplet}, and {@link SmoBeamGroup}
+ * Measures are contained in {@link SmoSystemStaff}
  * @category SmoObject
  */
 export class SmoMeasure implements SmoMeasureParams, TickMappable {
@@ -160,6 +161,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   }
   static defaultDupleDuration: number = 4096;
   static defaultTripleDuration: number = 2048 * 3;
+  // @internal
   static readonly _defaults: SmoMeasureParams = {
     timeSignature: SmoMeasure.timeSignatureDefault,
     timeSignatureString: '',
@@ -184,7 +186,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   }
 
   /**
-   * Default constructor parameters.  defaults are always copies so the
+   * Default constructor parameters.  Defaults are always copied so the
    * caller can modify them to create a new measure.
    * @returns constructor params for a new measure
    */
@@ -209,14 +211,23 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     return rv;
   }
   timeSignature: TimeSignature = SmoMeasure.timeSignatureDefault;
+  /**
+   * Overrides display of actual time signature, in the case of
+   * pick-up notes where the actual and displayed durations are different
+   */
   timeSignatureString: string = '';
   keySignature: string = '';
   canceledKeySignature: string = '';
   padRight: number = 10;
   tuplets: SmoTuplet[] = [];
+  /**
+   * Adjust for non-concert pitch intstruments
+   */
   transposeIndex: number = 0;
   modifiers: SmoMeasureModifierBase[] = [];
-  // bars: [1, 1], // follows enumeration in VF.Barline
+  /**
+   * Row, column, and custom numbering information about this measure.
+   */
   measureNumber: MeasureNumber = {
     localIndex: 0,
     systemIndex: 0,
@@ -225,13 +236,30 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   };
   clef: Clef = 'treble';
   voices: SmoVoice[] = [];
+  /**
+   * the active voice in the editor, if there are multiple voices
+   *  */
   activeVoice: number = 0;
   tempo: SmoTempoText;
   beamGroups: ISmoBeamGroup[] = [];
+  /**
+   * Runtime information about rendering
+   */
   svg: MeasureSvg;
+  /**
+   * Measure-specific formatting parameters.
+   */
   format: SmoMeasureFormat;
+  /**
+   * Information for identifying this object
+   */
   attrs: SmoAttrs;
 
+  /**
+   * Fill in components.  We assume the modifiers are already constructed,
+   * e.g. by deserialize or the calling function.
+   * @param params
+   */
   constructor(params: SmoMeasureParams) {
     this.tempo = new SmoTempoText(SmoTempoText.defaults);
     this.svg = {
@@ -257,7 +285,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
 
     const defaults = SmoMeasure.defaults;
     SmoMeasureNumberParams.forEach((param) => {
-      if (typeof(params[param]) !== 'undefined') {
+      if (typeof (params[param]) !== 'undefined') {
         this[param] = params[param];
       }
     });
@@ -296,8 +324,8 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     };
   }
 
-  // ### defaultAttributes
-  // attributes that are to be serialized for a measure.
+  // @internal
+  // used for serialization
   static get defaultAttributes() {
     return [
       'keySignature', 'timeSignatureString',
@@ -308,11 +336,13 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   }
 
   // @internal
+  // used for serialization
   static get formattingOptions() {
     return ['customStretch', 'customProportion', 'autoJustify', 'systemBreak',
       'pageBreak', 'padLeft'];
   }
   // @internal
+  // used for serialization
   static get columnMappedAttributes() {
     return ['timeSignature', 'keySignature', 'tempo'];
   }
@@ -334,6 +364,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   }
 
   /**
+   * @internal
    * @returns column mapped parameters, serialized.  caller will
    * decide if the parameters need to be persisted
    */
@@ -470,7 +501,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   /**
    * When creating a new measure, the 'default' settings can vary depending on
    * what comes before/after the measure.  This determines the default pitch
-   * for pre-made notes in the new measure.
+   * for a clef (appears on 3rd line)
    */
   static get defaultPitchForClef(): Record<Clef, Pitch> {
     return {
@@ -538,9 +569,12 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   static get emptyMeasureNoteType(): NoteType {
     return SmoMeasure._emptyMeasureNoteType;
   }
-  // ### getDefaultNotes
-  // Get a measure full of default notes for a given timeSignature/clef.
-  // returns 8th notes for triple-time meters, etc.
+  /**
+   * Get a measure full of default notes for a given timeSignature/clef.
+   * returns 8th notes for triple-time meters, etc.
+   * @param params 
+   * @returns 
+   */
   static getDefaultNotes(params: SmoMeasureParams): SmoNote[] {
     let beamBeats = 0;
     let beats = 0;
@@ -595,8 +629,16 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     return rv;
   }
 
-  // ### getDefaultMeasure
-  // For create the initial or new measure, get a measure with notes.
+  /**
+   * When creating a new measure, the 'default' settings can vary depending on
+   * what comes before/after the measure.  This determines the defaults from the
+   * parameters that are passed in, which could be another measure in the score.
+   * This version returns params with no notes, for callers that want to use their own notes.
+   * If you want the default notes, see {@link getDefaultMeasureWithNotes}
+   * 
+   * @param params
+   * @returns 
+   */
   static getDefaultMeasure(params: SmoMeasureParams): SmoMeasure {
     const obj: any = {};
     smoSerialize.serializedMerge(SmoMeasure.defaultAttributes, SmoMeasure.defaults, obj);
@@ -615,9 +657,15 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     return rv;
   }
 
-  // ### SmoMeasure.getDefaultMeasureWithNotes
-  // Get a new measure with the appropriate notes for the supplied clef, instrument
-  static getDefaultMeasureWithNotes(params: SmoMeasureParams) {
+  /**
+   * When creating a new measure, the 'default' settings can vary depending on
+   * what comes before/after the measure.  This determines the defaults from the
+   * parameters that are passed in, which could be another measure in the score.
+   * 
+   * @param params 
+   * @returns 
+   */
+  static getDefaultMeasureWithNotes(params: SmoMeasureParams): SmoMeasure {
     var measure = SmoMeasure.getDefaultMeasure(params);
     measure.voices.push({
       notes: SmoMeasure.getDefaultNotes(params)
@@ -628,6 +676,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     return measure;
   }
 
+  // @internal
   setDefaultBarlines() {
     if (!this.getStartBarline()) {
       this.modifiers.push(new SmoBarline({
@@ -643,34 +692,16 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     }
   }
 
-  setForcePageBreak(val: boolean) {
-    this.format.pageBreak = val;
-  }
-
-  setForceSystemBreak(val: boolean) {
-    this.format.systemBreak = val;
-  }
-
-  setAutoJustify(val: boolean) {
-    this.format.autoJustify = val;
-  }
-  getAutoJustify() {
-    return this.format.autoJustify;
-  }
-  getForceSystemBreak() {
-    return this.format.systemBreak;
-  }
-
-  getForcePageBreak() {
-    return this.format.pageBreak;
-  }
-
-  // ###   SVG mixins
-  // We store some rendering data in the instance for UI mapping.
+  /**
+   * The rendered width of the measure, or estimate of same
+   */
   get staffWidth() {
     return this.svg.staffWidth;
   }
 
+  /**
+   * set the rendered width of the measure, or estimate of same
+   */
   setWidth(width: number, description: string) {
     if (layoutDebug.flagSet(layoutDebug.values.measureHistory)) {
       this.svg.history.push('setWidth ' + this.staffWidth + '=> ' + width + ' ' + description);
@@ -681,10 +712,16 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     this.svg.staffWidth = width;
   }
 
+  /**
+   * Get rendered or estimated start x
+   */
   get staffX(): number {
     return this.svg.staffX;
   }
 
+  /**
+   * Set rendered or estimated start x
+   */
   setX(x: number, description: string) {
     if (isNaN(x)) {
       throw ('NAN in setX');
@@ -693,10 +730,16 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     this.svg.staffX = Math.round(x);
   }
 
+  /**
+   * Get rendered or estimated start y
+   */
   get staffY(): number {
     return this.svg.staffY;
   }
 
+  /**
+   * Set rendered or estimated start y
+   */
   setY(y: number, description: string) {
     if (isNaN(y)) {
       throw ('NAN in setY');
@@ -705,33 +748,39 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     this.svg.staffY = Math.round(y);
   }
 
+  /**
+   * Return actual or estimated highest point in score
+   */
   get yTop(): number {
     return this.svg.yTop;
   }
 
+  /**
+   * Return actual or estimated highest point in score
+   */
   setYTop(y: number, description: string) {
     layoutDebug.measureHistory(this, 'yTop', y, description);
     this.svg.yTop = y;
   }
 
+  /**
+   * Return actual or estimated bounding box
+   */
   setBox(box: SvgBox, description: string) {
     layoutDebug.measureHistory(this, 'logicalBox', box, description);
     this.svg.logicalBox = SvgHelpers.smoBox(box);
   }
-
-  saveUnjustifiedWidth() {
-    this.svg.unjustifiedWidth = this.svg.staffWidth;
-  }
-
-  // ### getClassId
-  // create a identifier unique to this measure index so it can be easily removed.
+  /**
+   * @returns the DOM identifier for this measure when rendered
+   */
   getClassId() {
     return 'mm-' + this.measureNumber.staffId + '-' + this.measureNumber.measureIndex;
   }
-  // ### getRenderedNote
-  // The renderer puts a mapping between rendered svg groups and
-  // the logical notes in SMO.  The UI needs this mapping to be interactive,
-  // figure out where a note is rendered, what its bounding box is, etc.
+  /**
+   * 
+   * @param id 
+   * @returns 
+   */
   getRenderedNote(id: string) {
     let j = 0;
     let i = 0;
@@ -975,13 +1024,9 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     this.voices.push({ notes: SmoMeasure.getDefaultNotes(this) });
     this.activeVoice = index;
   }
-  _removeSingletonModifier(name: string) {
+  private _removeSingletonModifier(name: string) {
     const ar = this.modifiers.filter(obj => obj.attrs.type !== name);
     this.modifiers = ar;
-  }
-
-  _getSingletonModifier(name: string): SmoMeasureModifierBase | undefined {
-    return this.modifiers.find(obj => obj.attrs.type === name);
   }
 
   addRehearsalMark(parameters: SmoRehearsalMarkParams) {
@@ -992,16 +1037,19 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     this._removeSingletonModifier('SmoRehearsalMark');
   }
   getRehearsalMark(): SmoMeasureModifierBase | undefined {
-    return this._getSingletonModifier('SmoRehearsalMark');
+    return this.modifiers.find(obj => obj.attrs.type === 'SmoRehearsalMark');
   }
   getModifiersByType(type: string) {
     return this.modifiers.filter((mm) => type === mm.attrs.type);
   }
 
-  addTempo(params: SmoTempoTextParams) {
+  setTempo(params: SmoTempoTextParams) {
     this.tempo = new SmoTempoText(params);
   }
-  removeTempo() {
+  /**
+   * Set measure tempo to the default {@link SmoTempoText}
+   */
+  resetTempo() {
     this.tempo = new SmoTempoText(SmoTempoText.defaults);
   }
   getTempo() {
@@ -1010,6 +1058,12 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     }
     return this.tempo;
   }
+  /**
+   * Measure text is deprecated, and may not be supported in the future.
+   * Better to use SmoTextGroup and attach to the measure.
+   * @param mod 
+   * @returns 
+   */
   addMeasureText(mod: SmoMeasureModifierBase) {
     var exist = this.modifiers.filter((mm) =>
       mm.attrs.id === mod.attrs.id
@@ -1079,7 +1133,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     ar.push(barline);
   }
 
-  _getBarline(pos: number): SmoBarline {
+  private _getBarline(pos: number): SmoBarline {
     let rv = null;
     this.modifiers.forEach((modifier) => {
       if (modifier.ctor === 'SmoBarline' && (modifier as SmoBarline).position === pos) {
@@ -1150,10 +1204,6 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     });
     return rv;
   }
-
-  get numBeats() {
-    return this.timeSignature!.actualBeats;
-  }
   setKeySignature(sig: string) {
     this.keySignature = sig;
     this.voices.forEach((voice) => {
@@ -1162,14 +1212,9 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
       });
     });
   }
-  get beatValue(): number {
-    return this.timeSignature.beatDuration;
-  }
-
   setMeasureNumber(num: MeasureNumber) {
     this.measureNumber = num;
   }
-
   getBeamGroupForNote(note: SmoNote) {
     let i = 0;
     let j = 0;

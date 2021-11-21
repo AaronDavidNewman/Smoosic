@@ -2,14 +2,14 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoMusic } from '../../smo/data/music';
 import { SvgBox } from '../../smo/data/common';
-import { SmoMeasure, MeasureSvg } from '../../smo/data/measure';
+import { SmoMeasure } from '../../smo/data/measure';
 import { SmoScore } from '../../smo/data/score';
 import { SmoTempoText, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
 import { ScaledPageLayout, SmoTextGroup, SmoPageLayout, SmoLayoutManager } from '../../smo/data/scoreModifiers';
 import { SmoSelection } from '../../smo/xform/selections';
 import { smoBeamerFactory } from '../../smo/xform/beamers';
 
-import { SuiRenderState } from './renderState';
+import { SuiRenderState, ScoreRenderParams } from './renderState';
 import { VxSystem } from '../vex/vxSystem';
 import { SvgHelpers } from './svgHelpers';
 import { SuiPiano } from './piano';
@@ -24,9 +24,7 @@ const VF = eval('Vex.Flow');
 export interface MeasureEstimate {
   measures: SmoMeasure[], x: number, y: number
 }
-export interface ScoreRenderParams {
-  elementId: Element, score: SmoScore
-}
+
 // ## SuiScoreRender
 // This module renders the entire score.  It calculates the layout first based on the
 // computed dimensions.
@@ -407,7 +405,7 @@ export class SuiScoreRender extends SuiRenderState {
       x = measureEstimate.x;
 
       if (systemIndex > 0 &&
-        (measureEstimate.measures[0].getForceSystemBreak() || measureEstimate.x > (scoreLayout.pageWidth - scoreLayout.leftMargin))) {
+        (measureEstimate.measures[0].format.systemBreak || measureEstimate.x > (scoreLayout.pageWidth - scoreLayout.leftMargin))) {
         this._justifyY(svg, scoreLayout, measureEstimate, currentLine, false);
         // find the measure with the lowest y extend (greatest y value), not necessarily one with lowest
         // start of staff.

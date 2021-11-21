@@ -7,7 +7,6 @@ import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from './music';
 import { SmoAttrs, MeasureNumber, FontInfo, SmoObjectParams, SvgBox, SmoModifierBase } from './common';
 import { SmoSelector } from '../xform/selections';
-import { SmoMeasure } from './measure';
 
 const VF = eval('Vex.Flow');
 /**
@@ -63,6 +62,7 @@ export interface ISmoMeasureFormatMgr {
  * Measure format holds parameters about the automatic formatting of the measure itself, such as the witch and
  * how the durations are proportioned.  Note that measure formatting is also controlled by the justification
  * between voices and staves.  For instance, 2 measures in different staves will have to have the same width
+ * @category SmoModifier
  */
 export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasureFormatParams {
   static get attributes() {
@@ -148,6 +148,7 @@ export interface SmoBarlineParams {
 
 /**
  * Barline is just that, there is a start and end in each measure, which defaults to 'single'.
+ * @category SmoModifier
  */
 export class SmoBarline extends SmoMeasureModifierBase {
   static readonly positions: Record<string, number> = {
@@ -225,6 +226,7 @@ export interface SmoRepeatSymbolParams {
 /**
  * Repeat symbols like DC, Fine etc.  Note: voltas are their own thing,
  * and repeats are types of barlines.
+ * @category SmoModifier
  */
 export class SmoRepeatSymbol extends SmoMeasureModifierBase {
   static readonly symbols: Record<string, number> = {
@@ -295,6 +297,7 @@ export interface SmoVoltaParams {
 /**
  * Voltas (2nd endings) behave more like staff modifiers, but they are associated with the measure
  * since each meausure has it's own rules for displaying part of the volta.
+ * @category SmoModifier
  */
 export class SmoVolta extends SmoMeasureModifierBase {
   startBar: number = 1;
@@ -370,6 +373,7 @@ export interface SmoMeasureTextParams {
 /**
  * Measure text is just that.  Now that score text can be associated with musical elements, this
  * class has falled into disrepair.  It may be used for part notations in the score later.
+ * @category SmoModifier
  */
 export class SmoMeasureText extends SmoMeasureModifierBase {
   static readonly positions: Record<string, number> = {
@@ -456,6 +460,7 @@ export interface SmoRehearsalMarkParams {
 }
 /**
  * Rehearsal marks are some type of auto-incrementing markers on a measure index.
+ * @category SmoModifier
  */
 export class SmoRehearsalMark extends SmoMeasureModifierBase {
   static readonly cardinalities: Record<string, string> = {
@@ -535,6 +540,7 @@ export interface SmoTempoTextParams {
 }
 /**
  * Information about both playback tempo and how the tempo is notated.
+ * @category SmoModifier
  */
 export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoTextParams {
   static get tempoModes(): Record<string, string> {
