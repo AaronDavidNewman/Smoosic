@@ -86,6 +86,7 @@ export class QueryParser {
 }
 /**
  * bootstrap initial score load
+ * @category AppUtil
  */
 export class SuiScoreBuilder {
   score: SmoScore | null = null;
@@ -162,6 +163,7 @@ export class SuiScoreBuilder {
  * main entry point of application.  Based on the configuration,
  * either start the default UI, or initialize library mode and
  * await further instructions.
+ * @category SuiApplication
  */
 export class SuiApplication {
   scoreLibrary: any;

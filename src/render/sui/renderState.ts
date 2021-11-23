@@ -10,7 +10,7 @@ import { SvgHelpers } from './svgHelpers';
 import { VxSystem } from '../vex/vxSystem';
 import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
 import { SmoScore } from '../../smo/data/score';
-import { smoBeamerFactory } from '../../smo/xform/beamers';
+import { SmoBeamer } from '../../smo/xform/beamers';
 import { SuiMapper } from './mapper';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
@@ -534,7 +534,7 @@ export abstract class SuiRenderState {
       return;
     }
     this.replaceQ.forEach((change) => {
-      smoBeamerFactory.applyBeams(change.measure);
+      SmoBeamer.applyBeams(change.measure);
       // Defer modifier update until all selected measures are drawn.
       if (!staffMap[change.staff.staffId]) {
         system = new VxSystem(this.context, change.measure.staffY, change.measure.svg.lineIndex, this.score!);

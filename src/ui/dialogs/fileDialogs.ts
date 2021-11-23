@@ -6,7 +6,9 @@ import { mxmlScore } from '../../smo/mxml/xmlScore';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiFileDownloadComponent } from './components/fileDownload';
 import { SuiDialogAdapterBase, SuiComponentAdapter } from './adapter';
+import { MidiToSmo } from '../../smo/midi/midiToSmo';
 declare var $: any;
+declare var MidiParser: any;
 
 /**
  * internal state of FileLoadDialog is just the string for the filename.
@@ -122,6 +124,59 @@ export class SuiLoadMxmlDialog extends SuiDialogAdapterBase<SuiXmlLoadAdapter> {
     $(this.dgDom.element).find('.ok-button').prop('disabled', enable);
   }
 }
+/**
+ * internal state of FileLoadDialog is just the string for the filename.
+ */
+ export class SuiMidiLoadAdapter extends SuiComponentAdapter {
+  midiFile: any = null;
+  changeScore: boolean = false;
+  constructor(view: SuiScoreViewOperations) {
+    super(view);
+  }
+  get loadFile() {
+    return this.midiFile;
+  }
+  set loadFile(value: any) {
+    this.midiFile = value;
+  }
+  commit() {
+    try {
+        // midi parser expects data in UintArray form
+        const ar = new Uint8Array(this.midiFile);
+        const midi: any = MidiParser.parse(ar);
+        this.view.changeScore(MidiToSmo.getScore(midi));
+        console.log(JSON.stringify(midi, null, ' '));
+      } catch (e) {
+      console.warn('unable to score ' + e);
+    }
+  }
+  cancel() {}
+}
+export class SuiLoadMidiDialog extends SuiDialogAdapterBase<SuiMidiLoadAdapter> {
+  static dialogElements: DialogDefinition =
+    {
+      label: 'Load File',
+      elements: [{
+        smoName: 'loadFile',
+        defaultValue: '',
+        control: 'SuiFileDownloadComponent',
+        label: ''
+      },
+      ],
+      staticText: []
+    };
+  constructor(parameters: SuiDialogParams) {
+    parameters.ctor = 'SuiLoadMidiDialog';
+    const adapter = new SuiMidiLoadAdapter(parameters.view);
+    super(SuiLoadMidiDialog.dialogElements, { adapter, ...parameters });
+  }
+  changed() {
+    super.changed();
+    const enable = this.adapter.loadFile.length < 1;
+    $(this.dgDom.element).find('.ok-button').prop('disabled', enable);
+  }
+}
+
 /*
 export class SuiLoadActionsDialog extends SuiDialogBase {
   static dialogElements: DialogDefinition = {

@@ -19,18 +19,21 @@ export interface UndoEntry {
   firstInGroup: boolean,
   json?: any
 }
-// ## UndoBuffer
-// manage a set of undo or redo operations on a score.  The objects passed into
-// undo must implement serialize()/deserialize()
-// ### Buffer format:
-// A buffer is one of 7 things:
-// * A single measure,
-// * A single staff
-// * the whole score
-// * a score modifier (text)
-// * score attributes (layout, etc)
-// * column - all the measures at one index
-// * rectangle - a rectangle of measures
+/**
+ * manage a set of undo or redo operations on a score.  The objects passed into
+ * undo must implement serialize()/deserialize()
+ * 
+ * ## Buffer format:
+ * A buffer is one of 7 things:
+ * * A single measure,
+ * * A single staff
+ *  * the whole score
+ *  * a score modifier (text)
+ *  * score attributes (layout, etc)
+ *  * column - all the measures at one index
+ *  * rectangle - a rectangle of measures
+ * @category SmoTransform
+ * */
 export class UndoBuffer {
   static get bufferMax() {
     return 100;

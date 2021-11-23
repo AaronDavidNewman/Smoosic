@@ -21,6 +21,7 @@ export interface EventHandler {
  * This is the event generating interface for Smoosic.  It is kept as 
  * skeletal as possible so applications can call event handling methods from
  * their own event logic.
+ * @category SuiUiBase
  */
 export class BrowserEventSource {
   keydownHandlers: EventHandler[];

@@ -15,12 +15,21 @@ export interface MidiTrackHash {
   lastMeasure: number
 }
 
+/**
+ * Convert a {@link SmoScore} object to MIDI
+ * @category SmoToMidi
+ */
 export class SmoToMidi {
+  /**
+   * @param score 
+   * @returns Midi byte array that can be sent to a file upload widget
+   */
   static convert(score: SmoScore) {
     const beatTime = 128;  // midi ticks per beat
     const converter = new SmoAudioScore(score, beatTime);
     const audioScore = converter.convert();
     const smoTracks = audioScore.tracks;
+    let currentKey: string = 'C';
     const trackHash: Record<number | string, MidiTrackHash> = {};
     smoTracks.forEach((smoTrack, trackIx) => {
       let j = 0;
@@ -44,6 +53,11 @@ export class SmoToMidi {
             if (smoTrack.timeSignatureMap[selectorKey]) {
               const ts = smoTrack.timeSignatureMap[selectorKey];
               track.setTimeSignature(ts.numerator, ts.denominator);
+            }
+            if (smoTrack.keyMap[j]) {
+              const ksString = smoTrack.keyMap[j];
+              const ks = -1 * SmoMusic.getFlatsInKeySignature(ksString) + SmoMusic.getSharpsInKeySignature(ksString);
+              track.setKeySignature(ks, 0);
             }
             if (noteData.noteType === 'r') {
               if (!noteData.padding) {

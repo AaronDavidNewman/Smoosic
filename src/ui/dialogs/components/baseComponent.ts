@@ -9,6 +9,7 @@ import { BrowserEventSource } from '../../eventSource';
 declare var $: any;
 /**
  * Dialogs controls options, like dropdowns
+ * @category SuiDialogParams
  */
 export interface DialogDefinitionOption {
   label: string,
@@ -25,6 +26,7 @@ export interface DialogDefinitionOption {
  * @param {defaultValue} - thinking of removing this
  * @param {dataType} - used to narrow the type by some components
  * @param {classes} - can be used in rendering
+ * @category SuiDialogParams
  */
 export interface DialogDefinitionElement {
   smoName: string,
@@ -43,6 +45,10 @@ export interface DialogDefinitionElement {
  * @param {id} - unique ID for the control DOM
  * @param {classes} - additional classes for styling added to DOM
  * @param {label} - default label for the component
+ * @param {smoName} - the variable in the dialog that the componenet maps to
+ * @param {control} - the constructor of the UI control
+ * @param {parentComponent} - for composite components, the top-level
+ * @category SuiDialogParams
  */
 export interface SuiBaseComponentParams {
   id: string,
@@ -56,6 +62,7 @@ export interface SuiBaseComponentParams {
  * components know about their parent dialog via the 
  * DialogNotifier interface.  It allows a component to 
  * notify parent of changing contents.
+ * @category SuiDialog
  */
 export abstract class SuiDialogNotifier {
   /**
@@ -94,6 +101,7 @@ export abstract class SuiDialogNotifier {
 /**
  * base class for Dialog components.  Notifies parent 
  * dialog of state change via `change()`
+ * @category SuiDialog
  */
 export abstract class SuiComponentBase {
   changeFlag: boolean = false;
@@ -158,6 +166,7 @@ export abstract class SuiComponentBase {
  * Parent components are really containers for other components
  * For instance, FontComponent has size, family, weight, etc.
  * 
+ * @category SuiDialog
  */
 export abstract class SuiComponentParent extends SuiComponentBase {
   /**

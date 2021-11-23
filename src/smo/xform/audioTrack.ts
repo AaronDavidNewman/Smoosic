@@ -54,6 +54,7 @@ export interface SmoAudioTrack {
   notes: SmoAudioNote[],
   tempoMap: Record<string, number>,
   measureNoteMap: Record<number, SmoAudioNote[]>,
+  keyMap: Record<number, string>,
   timeSignatureMap: Record<string, SmoAudioTimeSignature>,
   hairpins: SmoAudioHairpin[],
   volume: number,
@@ -67,18 +68,19 @@ export interface AudioTracks {
   measureBeats: number[],
   tempoMap: number[]
 }
-/** SmoAudioScore
-// Convert a score into a JSON structure that can be rendered to audio.
-// the return value looks like this:
-// `` { tracks, repeats, repeatMap} ``
-// repeatMap is just an array of tuples with start/end measures.
-//  each track contains:
-// `` { lastMeasure, notes, tempoMap, timeSignatureMap, hairpins, volume, tiedNotes }
-// where each note might contain:
-//  ``{ pitches, noteType, duration, selector, volume }``
-// Note:  pitches are smo pitches, durations are adjusted for beatTime
-// (beatTime === 4096 uses Smo/Vex ticks, 128 is midi tick default)
-// volume is normalized 0-1
+/** 
+ * Convert a score into a JSON structure that can be rendered to audio.
+ * the return value looks like this:
+ * ` { tracks, repeats, repeatMap} `
+ * repeatMap is just an array of tuples with start/end measures.
+ *  each track contains:
+ *  ` { lastMeasure, notes, tempoMap, timeSignatureMap, hairpins, volume, tiedNotes } `
+ * where each note might contain:
+ * `{ pitches, noteType, duration, selector, volume }`
+ * _Note_:  pitches are smo pitches, durations are adjusted for beatTime
+ * (beatTime === 4096 uses Smo/Vex ticks, 128 is midi tick default)
+ * volume is normalized 0-1
+ * @category SmoTransform
  */
 export class SmoAudioScore {
   // ### dynamicVolumeMap
@@ -102,6 +104,7 @@ export class SmoAudioScore {
       timeSignatureMap: {},
       hairpins: [],
       measureNoteMap: {},
+      keyMap: {},
       volume: 0,
       tiedNotes: [],
       repeats: []
@@ -265,13 +268,6 @@ export class SmoAudioScore {
       }
     });
     track.tiedNotes = tn;
-    const slurStart = selection.staff.getSlursStartingAt(selection.selector);
-    slurStart.forEach((slur) => {
-      tn.push({
-        startSelector: cp(slur.startSelector),
-        endSelector: cp(slur.endSelector)
-      });
-    });
     const tieStart = selection.staff.getTiesStartingAt(selection.selector);
     tieStart.forEach((tie) => {
       tn.push({
@@ -456,6 +452,7 @@ export class SmoAudioScore {
     let startRepeat = 0;
     const tempoMap: number[] = [];
     this.score.staves.forEach((staff, staffIx) => {
+      let runningKey = staff.measures[0].keySignature;
       this.volume = 0;
       staff.measures.forEach((measure, measureIx) => {
         measure.voices.forEach((voice, voiceIx) => {
@@ -475,6 +472,7 @@ export class SmoAudioScore {
           // staff 0/voice 0, set track values for the measure
           if (voiceIx === 0) {
             if (staffIx === 0) {
+              track.keyMap[0] = runningKey;
               measureBeats.push(measure.getMaxTicksVoice() / this.timeDiv);
               const startBar = measure.getStartBarline();
               const endBar = measure.getEndBarline();
@@ -491,6 +489,10 @@ export class SmoAudioScore {
 
             const selectorKey = SmoSelector.getMeasureKey(measureSelector);
             track.tempoMap[selectorKey] = Math.round(tempo);
+            if (measure.keySignature !== runningKey) {
+              runningKey = measure.keySignature;
+              track.keyMap[measureIx] = runningKey;
+            }
             track.timeSignatureMap[selectorKey] = {
               numerator: measure.timeSignature.actualBeats,
               denominator: measure.timeSignature.beatDuration

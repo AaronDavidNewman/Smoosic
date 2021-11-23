@@ -7,7 +7,7 @@ import { SmoScore } from '../../smo/data/score';
 import { SmoTempoText, SmoMeasureFormat, TimeSignature } from '../../smo/data/measureModifiers';
 import { ScaledPageLayout, SmoTextGroup, SmoPageLayout, SmoLayoutManager } from '../../smo/data/scoreModifiers';
 import { SmoSelection } from '../../smo/xform/selections';
-import { smoBeamerFactory } from '../../smo/xform/beamers';
+import { SmoBeamer } from '../../smo/xform/beamers';
 
 import { SuiRenderState, ScoreRenderParams } from './renderState';
 import { VxSystem } from '../vex/vxSystem';
@@ -473,7 +473,7 @@ export class SuiScoreRender extends SuiRenderState {
     // Keep running tab of accidental widths for justification
     const accidentalMap = {};
     measures.forEach((measure) => {
-      smoBeamerFactory.applyBeams(measure);
+      SmoBeamer.applyBeams(measure);
       measure.measureNumber.systemIndex = systemIndex;
       measure.svg.rowInSystem = rowInSystem;
       measure.svg.lineIndex = lineIndex;

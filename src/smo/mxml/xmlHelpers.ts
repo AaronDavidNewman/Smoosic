@@ -34,8 +34,10 @@ export interface XmlTupletData {
 export interface XmlLyricData {
   _text: string, verse: number | string
 }
-// ## mxmlHelpers
-// Utilities for parsing and serialzing musicXML.
+/**
+ * Utilities for parsing and serialzing musicXML.
+ * @category SmoToXml
+ * */
 export class mxmlHelpers {
   // ### noteTypesToSmoMap
   // mxml note 'types', really s/b stem types.

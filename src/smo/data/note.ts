@@ -44,9 +44,10 @@ export const NoteBooleanParams: NoteBooleanParam[] = ['hidden', 'endBeam', 'isCu
  * @param hidden indicates the note (usually a rest) is invisible (transparent)
  * @param beamBeats how many ticks to use before beaming a group
  * @param flagState up down auto
- * @ticks duration
- * @pitches SmoPitch array
- * @isCue tiny notes
+ * @param ticks duration
+ * @param pitches SmoPitch array
+ * @param isCue tiny notes
+ * @category SmoParameters
  */
 export interface SmoNoteParams {
   noteType: NoteType,
@@ -160,7 +161,7 @@ export class SmoNote implements Transposable {
       pitches: [{
         letter: 'b',
         octave: 4,
-        accidental: ''
+        accidental: 'n'
       }],
     }));
   }

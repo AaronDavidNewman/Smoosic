@@ -11,6 +11,7 @@ import { SmoMicrotone } from './noteModifiers';
 
 /**
  * calculate the pitch frequency, just temperment a=440, etc.
+ * @category SmoUtilities
  */
 export class SmoAudioPitch {
   // ### _frequencies
@@ -111,6 +112,7 @@ export interface VexNoteValue {
  * 
  * I try to indicate whether I am using vex or smo notation in the function name.
  * Duration methods start around line 600
+ * @category SmoUtilities
  */
  export class SmoMusic {
   /**
@@ -959,7 +961,7 @@ export interface VexNoteValue {
   }
 
   static getSharpsInKeySignature(key: string): number {
-    const sharpKeys = ['B', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
+    const sharpKeys = ['G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
     if (sharpKeys.indexOf(key.toUpperCase()) < 0) {
       return 0;
     }
@@ -976,6 +978,23 @@ export interface VexNoteValue {
       return 0;
     }
     return SmoMusic.keySignatureLength[caseKey];
+  }
+  static midiKeyToVexKey(midiKey: number): string {
+    const sharpKeys = ['G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
+    const flatKeys = ['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb'];
+    if (midiKey === 0) {
+      return 'C';
+    }
+    const flat = midiKey < 0;
+    let ix = Math.abs(midiKey) - 1;
+    if (ix > 6) {
+      return 'C';
+    }
+    if (flat) {
+      return flatKeys[ix];
+    } else {
+      return sharpKeys[ix];
+    }
   }
 
   static timeSignatureToTicks(timeSignature: string): number {

@@ -62,6 +62,7 @@ export interface SmoConfigurationParams {
  * @param languageDir - ltr or rtl
  * @param demonPollTime - how often we poll the score to see if it's changed
  * @param idleRedrawTime - how often the entire score re-renders
+ * @category SuiApplication
  */
  export class SmoConfiguration implements SmoRenderConfiguration, SmoUiConfiguration {
   mode: SmoMode;

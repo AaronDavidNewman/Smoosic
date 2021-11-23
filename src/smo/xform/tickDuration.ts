@@ -17,6 +17,7 @@ export abstract class TickIteratorBase {
 /**
  * SmoDuration: change the duration of a note, maybe at the expense of some
  * other note.
+ * @category SmoTransform
  */
 export class SmoDuration {
   /**
@@ -127,6 +128,7 @@ export class SmoDuration {
  * - An array of notes, if the notes split
  * - null if the note stays the same
  * - empty array, remove the note from the group
+ * @category SmoTransform
  */
 export class SmoTickIterator {
   notes: SmoNote[] = [];
@@ -201,17 +203,17 @@ export class SmoTickIterator {
     return this.newNotes;
   }
 }
-
 export interface SmoContractNoteParams {
   startIndex: number,
   measure: SmoMeasure,
   voice: number,
   newTicks: number
 }
-// ## VxContractActor
-// Contract the duration of a note, filling in the space with another note
-// or rest.
-//
+/**
+ * Contract the duration of a note, filling in the space with another note
+ * or rest.
+ * @category SmoTransform
+ * */
 export class SmoContractNoteActor extends TickIteratorBase {
   startIndex: number;
   tickmap: TickMap;
@@ -285,10 +287,10 @@ export interface SmoContractTupletParams {
   measure: SmoMeasure,
   voice: number
 }
-// ## VxContractActor
-// Contract the duration of a note in a tuplet by duplicate
-// notes of fractional length
-//
+/**
+ * Shrink the duration of a note in a tuplet by creating additional notes
+ * @category SmoTransform
+ */
 export class SmoContractTupletActor extends TickIteratorBase {
   changeIndex: number;
   measure: SmoMeasure;
@@ -338,12 +340,10 @@ export interface SmoUnmakeTupletParams {
   measure: SmoMeasure,
   voice: number
 }
-// ## VxUnmakeTupletActor
-// Turn a tuplet into a non-tuplet of the same length
-// ## Parameters:
-// startIndex: start index of tuplet
-// endIndex: end index of tuplet
-// measure: Smo measure that the tuplet is contained in.
+/**
+ * Convert a tuplet into a single note that takes up the whole duration
+ * @category SmoTransform
+ */
 export class SmoUnmakeTupletActor extends TickIteratorBase {
   startIndex: number = 0;
   endIndex: number = 0;
@@ -386,10 +386,11 @@ export interface SmoMakeTupletParams {
   measure: SmoMeasure,
   voice: number
 }
-// ## VxUnmakeTupletActor
-// Turn a tuplet into a non-tuplet of the same length
-// parameters:
-//  {tickmap:tickmap,ticks:ticks,
+/**
+ * Turn a tuplet into a non-tuplet of the same length
+ * @category SmoTransform
+ * 
+ * */
 export class SmoMakeTupletActor extends TickIteratorBase {
   measure: SmoMeasure;
   durationMap: number[];
@@ -480,6 +481,10 @@ export interface SmoStretchNoteParams {
   voice: number,
   newTicks: number
 }
+/**
+ * increase the length of a note, removing future notes in the measure as required
+ * @category SmoTransform
+ */
 export class SmoStretchNoteActor extends TickIteratorBase {
   startIndex: number;
   tickmap: TickMap;

@@ -1,10 +1,7 @@
 import { htmlHelpers } from '../../../common/htmlHelpers';
 import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent } from './baseComponent';
 import { SuiFileInput } from '../../fileio/fileInput';
-
 declare var $: any;
-
-
 export interface SuiFileDownloadComponentParams {
   id: string,
   classes: string,
@@ -19,7 +16,7 @@ export interface SuiFileDownloadComponentParams {
 // Download a test file using the file input.
 export class SuiFileDownloadComponent extends SuiComponentBase {
   defaultValue: string;
-  value: string = '';
+  value: any = null;
   constructor(dialog: SuiDialogNotifier, parameter: SuiFileDownloadComponentParams) {
     super(dialog, parameter);
     this.defaultValue = parameter.defaultValue ?? '';
@@ -44,7 +41,7 @@ export class SuiFileDownloadComponent extends SuiComponentBase {
   getValue() {
     return this.value;
   }
-  setValue(value: string) {
+  setValue(value: any) {
     this.value = value;
   }
   bind() {

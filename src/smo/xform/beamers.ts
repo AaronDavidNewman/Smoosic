@@ -12,7 +12,11 @@ export interface SmoBeamGroupParams {
   voice: number
 }
 
-export class SmoBeamGroup implements ISmoBeamGroup {
+/**
+ * Contain a group of {@link SmoNote} used for beaming.
+ * @internal
+ */
+class SmoBeamGroup implements ISmoBeamGroup {
   notes: SmoNote[];
   attrs: SmoAttrs;
   voice: number = 0;
@@ -35,21 +39,22 @@ export class SmoBeamGroup implements ISmoBeamGroup {
   }
 }
 
-export class smoBeamerFactory {
+/**
+ * Apply the beam policy set up in node and measure to group the notes into beam groups
+ * @category SmoTransform
+ */
+export class SmoBeamer {
   static applyBeams(measure: SmoMeasure) {
     let i = 0;
     let j = 0;
     for (i = 0; i < measure.voices.length; ++i) {
-      const beamer = new smoBeamModifier(measure, i);
+      const beamer = new SmoBeamer(measure, i);
       const tickmap = measure.tickmapForVoice(i);
       for (j = 0; j < tickmap.durationMap.length; ++j) {
         beamer.beamNote(tickmap, j, measure.voices[i].notes[j]);
       }
     }
   }
-}
-
-export class smoBeamModifier {
   measure: SmoMeasure;
   duration: number;
   meterNumbers: number[];

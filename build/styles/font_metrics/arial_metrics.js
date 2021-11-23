@@ -1,4 +1,4 @@
-const ArialFont = {
+export const ArialFont = {
   smufl: false,
   name: "Arial",
   spacing: 50,

@@ -49,6 +49,7 @@ export abstract class StaffModifierBase implements SmoModifierBase {
  * and thus contain multiple instruments at different points in the score.
  * Not all of these parameters are fully utilized yet, and there are plans to greatly expand what
  * an SmoInstrument is.  Note I may move this to PartInfo module.
+ * @category SmoParameters
  */
 export interface SmoInstrumentParams {
   startSelector: SmoSelector,
@@ -138,6 +139,9 @@ export interface SmoInstrumentMeasure {
   measureIndex: number,
   instrument: SmoInstrumentParams;
 }
+/**
+ * @category SmoParameters
+ */
 export interface SmoStaffHairpinParams {
   xOffsetLeft: number,
   xOffsetRight: number,
@@ -151,7 +155,7 @@ export interface SmoStaffHairpinParams {
 
 /**
  * Also called crescendo etc.
- * @SmoModifier
+ * @category SmoModifier
  */
 export class SmoStaffHairpin extends StaffModifierBase {
   static get editableAttributes() {
@@ -224,6 +228,9 @@ export class SmoStaffHairpin extends StaffModifierBase {
   }
 }
 
+/**
+ * @category SmoParameters
+ */
 export interface SmoSlurParams {
   spacing: number,
   thickness: number,
@@ -325,6 +332,9 @@ export interface TieLine {
   from: number,
   to: number
 }
+/**
+ * @category SmoParameters
+ */
 export interface SmoTieParams {
   tie_spacing: number,
   cp1: number,
@@ -336,9 +346,10 @@ export interface SmoTieParams {
   startSelector: SmoSelector | null,
   endSelector: SmoSelector | null
 }
-// ## SmoTie
-// like slur but multiple pitches
-// ---
+/**
+ * Like slur, but multiple pitches.
+ * @category SmoModifier
+ */
 export class SmoTie extends StaffModifierBase {
   invert: boolean = false;
   cp1: number = 8;

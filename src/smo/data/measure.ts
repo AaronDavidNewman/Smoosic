@@ -116,6 +116,7 @@ export const SmoMeasureStringParams: SmoMeasureStringParam[] = ['timeSignatureSt
  * @param tempo
  * @param format measure format, is managed by the score
  * @param modifiers All measure modifiers that5 aren't format, timeSignature or tempo
+ * @category SmoParameters
  */
 export interface SmoMeasureParams {
   timeSignature: TimeSignature,

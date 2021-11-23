@@ -13,6 +13,10 @@ import { SmoSelector } from '../xform/selections';
 
 import { mxmlHelpers } from './xmlHelpers';
 import { mxmlScore } from './xmlScore';
+/**
+ * Convert {@link SmoScore} object into a music XML serialization
+ * @category SmoToXml
+ */
 export class SmoToXml {
   static get beamStates() {
     return {

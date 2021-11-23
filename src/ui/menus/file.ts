@@ -3,7 +3,7 @@ import { createAndDisplayDialog } from '../dialogs/dialog';
 import {
   SuiSaveFileDialog, SuiPrintFileDialog, 
   // SuiSaveActionsDialog, SuiLoadActionsDialog, 
-  SuiLoadFileDialog,
+  SuiLoadFileDialog, SuiLoadMidiDialog,
   SuiSaveXmlDialog, SuiSaveMidiDialog, SuiLoadMxmlDialog
 } from '../dialogs/fileDialogs';
 import { SmoScore } from '../../smo/data/score';
@@ -48,6 +48,10 @@ export class SuiFileMenu extends SuiMenuBase {
       icon: '',
       text: 'Export Midi',
       value: 'exportMidi'
+    }, {
+      icon: '',
+      text: 'Import Midi',
+      value: 'importMidi'
     }, {
       icon: 'folder-save',
       text: 'Save Actions',
@@ -168,6 +172,18 @@ export class SuiFileMenu extends SuiMenuBase {
     } else if (text === 'importMxml') {
       createAndDisplayDialog(SuiLoadMxmlDialog, {
         ctor: 'SuiLoadMxmlDialog',
+        id: 'save',
+        modifier: null,
+        completeNotifier: this.completeNotifier,
+        tracker: this.tracker,
+        undoBuffer: this.undoBuffer,
+        eventSource: this.eventSource,
+        view: this.view,
+        startPromise: this.closePromise
+      }); 
+    } else if (text === 'importMidi') {
+      createAndDisplayDialog(SuiLoadMidiDialog, {
+        ctor: 'SuiLoadMidiDialog',
         id: 'save',
         modifier: null,
         completeNotifier: this.completeNotifier,

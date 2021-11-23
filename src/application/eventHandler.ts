@@ -38,6 +38,7 @@ export interface EventHandlerParams {
  * tracker.  Modal elements take this control away temporarily.
  * 
  * It also handles some global events such as window resize and scroll of the music region.
+ * @category SuiApplication
 */
 export class SuiEventHandler implements ModalEventHandler {
   static reentry: boolean = false;

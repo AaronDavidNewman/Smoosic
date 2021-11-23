@@ -1,5 +1,11 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+/**
+ * Editing operations are performed on selections.  A selection can be different things, from a single pitch
+ * to many notes.  These classes standardize some standard selection operations.
+ * SmoSelector
+ * @module /smo/xform/selections
+ */
 import { SmoScore, SmoModifier } from '../data/score';
 import { SmoMeasure } from '../data/measure';
 import { SmoNote } from '../data/note';
@@ -15,17 +21,12 @@ export interface ModifierTab {
   box: SvgBox,
   index: number
 }
-/////////////////
-// # selections.js
-// Editing operations are performed on selections.  A selection can be different things, from a single pitch
-// to many notes.  These classes standardize some standard selection operations.
-//
-//
-// ## SmoSelector
-// ## Description:
-// There are 2 parts to a selection: the actual musical bits that are selected, and the
-// indices that define what was selected.  This is the latter.  The actual object does not
-// have any methods so there is no constructor.
+/**
+ * There are 2 parts to a selection: the actual musical bits that are selected, and the
+ * indices that define what was selected.  This is the latter.  The actual object does not
+ * have any methods so there is no constructor.
+ * @category SmoTransform
+ * */
 export class SmoSelector {
   static get default(): SmoSelector {
     return {
@@ -133,12 +134,14 @@ export interface SmoSelectionParams {
   type?: string,
   box?: SvgBox
 }
-// ## SmoSelection
-// ## Description:
-// A selection is a selector and a set of references to musical elements, like measure etc.
-// The staff and measure are always a part of the selection, and possible a voice and note,
-// and one or more pitches.  Selections can also be made from the UI by clicking on an element
-// or navigating to an element with the keyboard.
+
+/**
+ * A selection is a selector and a set of references to musical elements, like measure etc.
+ * The staff and measure are always a part of the selection, and possible a voice and note,
+ * and one or more pitches.  Selections can also be made from the UI by clicking on an element
+ * or navigating to an element with the keyboard.
+ * @category SmoTransform
+ * */
 export class SmoSelection {
   selector: SmoSelector = {
     staff: 0,

@@ -57,9 +57,6 @@ body.refresh-1 #refresh  {
 .collapseContainer button.collapseParent {
   border: 3px inset blue;
 }
-body.layout-debug .ribbonButtonContainer[data-group="debug"] {
-    display:block;
-}
 
 div.ribbonButtonContainer.expanded {
 	margin-right:5px;
@@ -288,8 +285,6 @@ button#MicrotoneButtons  {
     font-size:1.2em;
 }
 
-.controls-top button.textButton span.left-text {
-}
 .controls-top button.duration.expanded.tuplet span.ribbon-button-hotkey  {
 	font-size:1em;
   padding-left: 7px;

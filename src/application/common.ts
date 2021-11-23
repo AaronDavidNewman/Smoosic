@@ -52,6 +52,7 @@ export class SimpleEventHandler extends ModalEventHandler {
 /**
  * Dependency injection, sends events to a proxy object, gets around some 
  * cyclic dependencies when bootstrapping the application.
+ * @category AppUtil
  */
 export class ModalEventHandlerProxy {
   _handler: ModalEventHandler | null = null;

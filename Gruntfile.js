@@ -76,13 +76,7 @@ module.exports = function (grunt) {
           cwd: 'src/styles/',
           src: ['*.*', '**/*'],
           dest: 'build/styles/'
-        }, {
-          expand: true,
-          cwd: 'docs/',
-          src: ['*.*', '**/*'],
-          dest: 'build/docs/'
-        }
-        ]
+        }]
       }
     },
     typedoc: {
@@ -94,7 +88,9 @@ module.exports = function (grunt) {
           excludeProtected: true,
           excludePrivate: true,
           categorizeByGroup: true,
-          categoryOrder: ['SmoObject', 'SmoModifier']
+          defaultCategory: ['Other'],
+          categoryOrder: ['SmoObject', 'SmoModifier', 'SmoParameter', '*'],
+          excludeNotDocumented: true
         },
         src: ['./typedoc.ts']
         /* src: ['./src/smo/data/*.ts', './src/smo/xform/*.ts', './src/smo/midi/*.ts',
@@ -113,10 +109,10 @@ module.exports = function (grunt) {
   // grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-eslint');
   // grunt.loadNpmTasks('grunt-contrib-concat');
-  // grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-webpack');
   grunt.loadNpmTasks('grunt-typedoc');
 
   // Default task(s).
-  grunt.registerTask('default', ['eslint', 'webpack:build', 'typedoc']);
+  grunt.registerTask('default', ['eslint', 'webpack:build', 'copy', 'typedoc']);
 };

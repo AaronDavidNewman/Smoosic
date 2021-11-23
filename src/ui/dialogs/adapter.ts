@@ -1,3 +1,9 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+/**
+ * Support for converting Smo object model to MIDI
+ * @module /ui/dialog/adapter
+ */
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiTracker } from '../../render/sui/tracker';
 import { CompleteNotifier } from '../common';
@@ -7,7 +13,7 @@ import { DialogDefinition, SuiDialogBase } from './dialog';
 declare var $: any;
 
 /**
- * An adapter is the glue logic between UI components and the score view
+ * An adapter is the glue logic between UI components and the score view.
  * An adapter consists mostly of accessors (get/set) for the component data.  The 
  * components have their initial values set from the adapter get, and changes to components
  * result in sets to the adapter.  The adapter can then update the score.
@@ -17,6 +23,7 @@ declare var $: any;
  * @method commit - called when OK button of dialog is clicked
  * @method cancel - called when cancel button of dialog is clicked
  * @method remove - optional.  Called when 'remove' button is clicked, for artifacts like dynamics that can be removed.
+ * @categroy SuiDialog
  */
 export abstract class SuiComponentAdapter {
   view: SuiScoreViewOperations;
@@ -33,6 +40,16 @@ export abstract class SuiComponentAdapter {
  * Other than that it's the same as normal dialog parameters
  * The adapter type is a generic, so that the specific dialog can reference the 
  * specific adapter class
+ * @param ctor constructor for reflection
+ * @param id ID for dom placement
+ * @param tracker
+ * @param completeNotifier UI component to notify when dialog is complete
+ * @param startProise UI component that notifies us when to display
+ * @param view
+ * @param eventSource where to register for KB and mouse events
+ * @param undoBuffer where to undo things we change
+ * @param adapter
+ * @categroy SuiDialogParams
  */
 export interface SuiDialogAdapterParams<T extends SuiComponentAdapter> {
   ctor: string,

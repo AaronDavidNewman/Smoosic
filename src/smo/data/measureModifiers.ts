@@ -691,6 +691,7 @@ export interface TimeSignatureParameters  {
  * about the display of the time signature.  Note: measures also have a time signature
  * string that can be displayed in cases like pickup measure, where the actual time doesn't
  * match the time signature.
+ * @category SmoModifier
  */
 export class TimeSignature extends SmoMeasureModifierBase {
   static get defaults(): TimeSignatureParameters {

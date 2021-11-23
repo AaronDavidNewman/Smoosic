@@ -59,8 +59,10 @@ export interface XmlTupletState {
   start: SmoSelector,
   end: SmoSelector
 }
-// ## XmlState
-// Keep state of musical objects while parsing music xml
+/**
+ * Keep state of musical objects while parsing music xml
+ * @category SmoToXml
+ * */
 export class XmlState {
   static get defaults() {
     return {

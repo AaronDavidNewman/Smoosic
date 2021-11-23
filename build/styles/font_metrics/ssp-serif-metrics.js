@@ -1,4 +1,4 @@
-const SourceSerifProFont = {
+export const SourceSerifProFont = {
   smufl: false,
   name: "Serif",
   spacing: 50,

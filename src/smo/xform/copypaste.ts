@@ -16,9 +16,12 @@ interface PasteNote {
   note: SmoNote,
   selector: SmoSelector
 }
-// ## PasteBuffer
-// ### Description:
-// Hold some music that can be pasted back to the score
+/**
+ * PasteBuffer holds copied music, and handles the action of pasting the music to
+ * a different point in the score.  It does this by serializing the measure(s) from the source
+ * and then creating handling the overlap with existing music when deserializaing it.
+ * @category SmoTransform
+ */
 export class PasteBuffer {
   notes: PasteNote[];
   noteIndex: number;

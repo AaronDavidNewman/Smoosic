@@ -11,9 +11,11 @@ import { KeyCommandParams } from './common';
 import { CompleteNotifier } from '../ui/common';
 import { PitchLetter, IsPitchLetter, KeyEvent } from '../smo/data/common';
 
-// ## suiEditor
-// KeyCommands object handles key events and converts them into commands, updating the score and
-// display
+/**
+ * KeyCommands object handles key events and converts them into commands, updating the score and
+ * display
+ * @category SuiApplication
+ * */
 export class SuiKeyCommands {
   view: SuiScoreViewOperations;
   slashMode: boolean = false;

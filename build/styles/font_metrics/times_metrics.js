@@ -1,4 +1,4 @@
-const TimesFont = {
+export const TimesFont = {
   smufl: false,
   name: "Times New Roman",
   spacing: 50,

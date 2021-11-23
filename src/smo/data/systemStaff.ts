@@ -13,13 +13,23 @@ import { SmoInstrumentParams, StaffModifierBase, SmoInstrument, SmoInstrumentMea
 import { SmoPartInfo } from './partInfo';
 import { SmoTextGroup } from './scoreModifiers';
 import { SmoSelector } from '../xform/selections';
-import { smoBeamerFactory } from '../xform/beamers';
+import { SmoBeamer } from '../xform/beamers';
 import { smoSerialize } from '../../common/serializationHelpers';
 
 const VF = eval('Vex.Flow');
 /**
  * Constructor parameters for {@link SmoSystemStaff}.
- * @param staffX
+ * Usually you will call
+ * {@link SmoSystemStaff.defaults}, and modify the parameters you need to change,
+ * or get the defaults from an existing staff
+ * @param staffId the index of the staff in the score
+ * @param renumberingMap For alternate number, pickups, etc.
+ * @param keySignatureMap map of keys to measures
+ * @param measureInstrumentMap map of instruments to staves
+ * @param measures array of {@link SmoMeasure}
+ * @param modifiers slurs and such
+ * @param partInfo information about the part
+ * @category SmoParameters
  */
 export interface SmoSystemStaffParams {
   staffId: number,
@@ -30,11 +40,13 @@ export interface SmoSystemStaffParams {
   modifiers: StaffModifierBase[],
   partInfo?: SmoPartInfo;
 }
-// ## SmoSystemStaff
-// A staff is a line of music that can span multiple measures.
-// A system is a line of music for each staff in the score.  So a staff
-// spans multiple systems.
-// A staff modifier connects 2 points in the staff.
+/**
+ * A staff is a line of music that can span multiple measures.
+ * A system is a line of music for each staff in the score.  So a staff
+ * spans multiple systems.
+ * A staff modifier connects 2 points in the staff.
+ * @category SmoObject
+ * */
 export class SmoSystemStaff implements SmoObjectParams {
   static getStaffInstrument(measureInstrumentMap: Record<number, SmoInstrument>, measureIndex: number) {
     const keyar: string[] = Object.keys(measureInstrumentMap);
@@ -367,7 +379,7 @@ export class SmoSystemStaff implements SmoObjectParams {
   applyBeams() {
     for (let i = 0; i < this.measures.length; ++i) {
       const measure = this.measures[i];
-      smoBeamerFactory.applyBeams(measure);
+      SmoBeamer.applyBeams(measure);
     }
   }
 

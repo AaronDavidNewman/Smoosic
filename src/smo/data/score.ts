@@ -34,6 +34,7 @@ export interface FontPurpose {
 export type SmoScoreInfoKeys = 'name' | 'title' | 'subTitle' | 'composer' | 'copyright';
 /**
  * Information about the score itself, like composer etc.
+ * @category SmoModifier
  */
 export class SmoScoreInfo {
   name: string = 'Smoosical'; // deprecated
@@ -51,6 +52,7 @@ export class SmoScoreInfo {
  * @param defaultTripleDuration in ticks, 6/8 etc.
  * @param customProportion a Vex measure format setting
  * @param showPiano show the piano widget in the score
+ * @category SmoModifier
  */
 export class SmoScorePreferences {
   autoPlay: boolean = true;
@@ -65,13 +67,20 @@ export class SmoScorePreferences {
  * {@link SmoScore.defaults}, and modify the parameters you need to change.
  * A new score with the defaults will create a single, empty measure.
  * @param fonts global font defaults for this score
- * @param staffWidth
+ * @param scoreInfo - identifying information about the score
+ * @param preferences - customized score behavior
+ * @param staves - contained {@link SmoSystemStaff} objects
+ * @param activeStaff - running count of the active (selected) staff
+ * @param textGroups - score text, such as page headers etc.
+ * @param systemGroups - groupings of staves within the score, for justification
+ * @param layoutManager - layout information for the score and parts
+ * @param formattingManager - measure formatting information for the score.
+ * @category SmoParameters
  */
 export interface SmoScoreParams {
   fonts: FontPurpose[],
   scoreInfo: SmoScoreInfo,
   preferences: SmoScorePreferences,
-  startIndex: number,
   staves: SmoSystemStaff[],
   activeStaff: number,
   textGroups: SmoTextGroup[],
@@ -83,7 +92,7 @@ export interface SmoScoreParams {
 export type SmoModifier = SmoNoteModifierBase | SmoMeasureModifierBase | StaffModifierBase | SmoScoreModifierBase;
 
 /**
- * SmoScore is the container for the entire score: staves, measures notes
+ * SmoScore is the container for the entire score: staves, measures, notes
  * @category SmoObject
  */
 export class SmoScore {
@@ -148,7 +157,6 @@ export class SmoScore {
         customProportion: 100,
         showPiano: true
       },
-      startIndex: 0,
       staves: [],
       activeStaff: 0,
       textGroups: [],

@@ -13,8 +13,10 @@ import { SmoSystemStaff } from '../data/systemStaff';
 import { SmoNote, SmoNoteParams } from '../data/note';
 import { Pitch, PitchKey, Clef } from '../data/common';
 
-// ## mxmlScore
-// Parse music xml into a smoosic score object
+/**
+ * A class that takes a music XML file and outputs a {@link SmoScore}
+ * @category SmoToXml
+ */
 export class mxmlScore {
   static get mmPerPixel() {
     return 0.264583;

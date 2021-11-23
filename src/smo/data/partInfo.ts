@@ -25,13 +25,14 @@ export const SmoPartInfoBooleanTypes: SmoPartInfoBooleanType[] = ['preserveTextG
  * {@link PartInfo.defaults}, and modify the parameters you need to change.
  * @param partName Name of the part, can be used in headers
  * @param partAbbreviation
- * @stavesAfter for multi-stave parts (e.g. piano), indicates the relative position in the full score.
- * @stavesBefore
- * @layoutManager page/layout settings for the part
- * @measureFormatting a map of measure format to measures for the part
- * @textGroups if preserveTextGroups is true, the part has its own text.
- * @preseverTextGroups if false, we use the full score text
- * @cueInScore indicates tiny notes, like for piano accompaniment
+ * @param stavesAfter for multi-stave parts (e.g. piano), indicates the relative position in the full score.
+ * @param stavesBefore
+ * @param layoutManager page/layout settings for the part
+ * @param measureFormatting a map of measure format to measures for the part
+ * @param textGroups if preserveTextGroups is true, the part has its own text.
+ * @param preseverTextGroups if false, we use the full score text
+ * @param cueInScore indicates tiny notes, like for piano accompaniment
+ * @category SmoModifier
  */
 export interface SmoPartInfoParams {
   partName: string,

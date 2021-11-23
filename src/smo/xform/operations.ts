@@ -21,7 +21,7 @@ import {
   SmoDuration, SmoContractNoteActor, SmoStretchNoteActor, SmoMakeTupletActor,
   SmoUnmakeTupletActor, SmoContractTupletActor
 } from './tickDuration';
-import { smoBeamerFactory } from './beamers';
+import { SmoBeamer } from './beamers';
 import { smoSerialize } from '../../common/serializationHelpers';
 const VF = eval('Vex.Flow');
 
@@ -31,6 +31,7 @@ export type BatchSelectionOperation = 'dotDuration' | 'undotDuration' | 'doubleD
 /**
  * SmoOperation is a collection of static methods that operate on/change/transform the music.  Most methods
  * take the score, a selection or selection array, and the parameters of the operation.
+ * @category SmoUtilities
  */
 export class SmoOperation {
   static setMeasureFormat(score: SmoScore, selection: SmoSelection, value: SmoMeasureFormat) {
@@ -247,7 +248,7 @@ export class SmoOperation {
         voice: selection.selector.voice,
         newTicks: nticks
       });
-      smoBeamerFactory.applyBeams(measure);
+      SmoBeamer.applyBeams(measure);
     } else {
       const startIndex = measure.tupletIndex(tuplet) + tuplet.getIndexOfNote(note);
       SmoContractTupletActor.apply({

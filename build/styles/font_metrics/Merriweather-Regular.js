@@ -1,4 +1,4 @@
-MerriweatherFont = {
+export const MerriweatherFont = {
   name: "Merriweather-Regular",
   smufl: false,
   spacing: 50,
