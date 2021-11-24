@@ -274,8 +274,10 @@ export class SmoScore {
     });
   }
 
-  // ### serialize
-  // ### Serialize the score.  The resulting JSON string will contain all the staves, measures, etc.
+  /**
+   * Serialize the entire score.
+   * @returns JSON object
+   */
   serialize(): any {
     const params = {};
     let obj: any = {
@@ -352,9 +354,12 @@ export class SmoScore {
     SmoScore.upConvertGlobalLayout(jsonObj);
   }
 
-  // ### deserialize
-  // Restore an earlier JSON string.  Unlike other deserialize methods, this one expects the string.
-  static deserialize(jsonString: any) {
+  /**
+   * Deserialize an entire score
+   * @param jsonString 
+   * @returns 
+   */
+  static deserialize(jsonString: any): SmoScore {
     let jsonObj = JSON.parse(jsonString);
     let upconvertFormat = false;
     let formattingManager = null;
@@ -440,8 +445,12 @@ export class SmoScore {
     return new SmoFormattingManager({ measureFormats });
   }
 
-  // ### getDefaultScore
-  // Gets a score consisting of a single measure with all the defaults.
+  /**
+   * Return a default score with no notes or staves
+   * @param scoreDefaults 
+   * @param measureDefaults 
+   * @returns 
+   */
   static getDefaultScore(scoreDefaults: SmoScoreParams, measureDefaults: SmoMeasureParams | null) {
     measureDefaults = measureDefaults !== null ? measureDefaults : SmoMeasure.defaults;
     const score = new SmoScore(scoreDefaults);
@@ -455,16 +464,20 @@ export class SmoScore {
     return score;
   }
 
-  // ### getEmptyScore
-  // Create a score object, but don't populate it with anything.
+  /**
+   * Return an 'empty' score, with one measure of rests
+   * @param scoreDefaults 
+   * @returns 
+   */
   static getEmptyScore(scoreDefaults: SmoScoreParams) {
     const score = new SmoScore(scoreDefaults);
     score.addStaff(SmoSystemStaff.defaults);
     return score;
   }
 
-  // ### numberStaves
-  // recursively renumber staffs and measures.
+  /**
+   * Iteratively number the staves, like when adding a measure
+   */
   numberStaves() {
     let i = 0;
     for (i = 0; i < this.staves.length; ++i) {
@@ -481,10 +494,10 @@ export class SmoScore {
       });
     });
   }
-  // ### addDefaultMeasureWithNotes
-  // ### Description:
-  // Add a measure to the score with the supplied parameters at the supplied index.
-  // The defaults per staff may be different depending on the clef, key of the staff.
+  /**
+   * Add a measure to the score with the supplied parameters at the supplied index.
+   * The defaults per staff may be different depending on the clef, key of the staff.
+  */
   addDefaultMeasureWithNotes(measureIndex: number, parameters: SmoMeasureParams) {
     this.staves.forEach((staff) => {
       const defaultMeasure =
@@ -493,8 +506,9 @@ export class SmoScore {
     });
   }
 
-  // ### deleteMeasure
-  // Delete the measure at the supplied index in all the staves.
+  /**
+   * delete the measure at the supplied index in all the staves
+  */
   deleteMeasure(measureIndex: number) {
     this.staves.forEach((staff) => {
       staff.deleteMeasure(measureIndex);

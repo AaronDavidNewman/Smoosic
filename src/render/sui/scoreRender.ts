@@ -25,9 +25,11 @@ export interface MeasureEstimate {
   measures: SmoMeasure[], x: number, y: number
 }
 
-// ## SuiScoreRender
-// This module renders the entire score.  It calculates the layout first based on the
-// computed dimensions.
+/**
+ * This module renders the entire score.  It calculates the layout first based on the
+ * computed dimensions.
+  * @category SuiRender
+**/
 export class SuiScoreRender extends SuiRenderState {  
   constructor(params: ScoreRenderParams) {
     super('SuiScoreRender');

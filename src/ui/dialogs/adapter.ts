@@ -23,7 +23,7 @@ declare var $: any;
  * @method commit - called when OK button of dialog is clicked
  * @method cancel - called when cancel button of dialog is clicked
  * @method remove - optional.  Called when 'remove' button is clicked, for artifacts like dynamics that can be removed.
- * @categroy SuiDialog
+ * @category SuiDialog
  */
 export abstract class SuiComponentAdapter {
   view: SuiScoreViewOperations;
@@ -48,8 +48,9 @@ export abstract class SuiComponentAdapter {
  * @param view
  * @param eventSource where to register for KB and mouse events
  * @param undoBuffer where to undo things we change
- * @param adapter
- * @categroy SuiDialogParams
+ * @param adapter an adapter which has getters and setters for all of the dialog components.  The adapter should
+ *   read the values from the actual score, and update the score with the component values.
+ * @category SuiDialogParams
  */
 export interface SuiDialogAdapterParams<T extends SuiComponentAdapter> {
   ctor: string,
@@ -61,13 +62,15 @@ export interface SuiDialogAdapterParams<T extends SuiComponentAdapter> {
   eventSource: BrowserEventSource,
   undoBuffer: UndoBuffer,
   // definition: DialogDefinition,
-  adapter: T,
-  autobind?: boolean
+  adapter: T
 }
 
 /**
  * SuiDialogAdapterBase is the base class for dialogs that use the adapter pattern
  * (almost all of them).  
+ * @typeParam T a class that implements the Adapter interface and fulfills the 
+ *  adapter data contract, with getters and setters from the components
+ * @category SuiDialog
  */
 export class SuiDialogAdapterBase<T extends SuiComponentAdapter> extends SuiDialogBase {
   adapter: T;

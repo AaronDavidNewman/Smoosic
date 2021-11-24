@@ -9,6 +9,7 @@ import { SmoTempoText, TimeSignature } from "../data/measureModifiers";
 import { SmoMusic } from "../data/music";
 import { SmoNote } from "../data/note";
 import { SmoScore } from "../data/score";
+import { SmoLayoutManager } from "../data/scoreModifiers";
 import { SmoSystemStaff } from "../data/systemStaff";
 import { SmoSelector } from "../xform/selections";
 
@@ -21,7 +22,9 @@ export interface MidiTrackEvent {
 }
 interface MidiNoteOn {
   channel: number,
-  note: number
+  note: number,
+  selector: SmoSelector,
+  trackTicks: number
 }
 /**
  * MIDI is event driven.  We keep information about the events when
@@ -35,23 +38,26 @@ interface MidiNoteOn {
  * @param overflowNotes notes that extend beyond the current measure
  * @param trackMeasures completed measures
  * @param selector current selector in the score
+ * @param lastNoteOnTick the last tick that had a note, used to create rests
+ * @param trackTicks ticks so far in track, used to calculate duration for notes
  * @param measureTicks ticks in the measure used so far
  * @param deltaTime the last recieved non-0 delta time in an event
  * @param ticksInMeasure the total ticks, so we know when to stop the measure
+ * @param timeDivision time division data from midi header
  */
 interface MidiState {
   timeSignature: TimeSignature,
   tempo: SmoTempoText,
   keySignature: string,
-  startedNotes: Record<string, SmoNote>,
-  midiOnNotes: Record<string, MidiNoteOn>,
+  midiOnNotes: MidiNoteOn[],
   trackNotes: SmoNote[],
-  overflowNotes: SmoNote[],
   trackMeasures: SmoMeasure[],
   selector: SmoSelector,
+  trackTicks: number,
   measureTicks: number,
   deltaTime: number,
-  ticksInMeasure: number
+  ticksInMeasure: number,
+  timeDivision: number
 }
 export var MidiEvent: Record<string, number> = {
   noteOff: 8,
@@ -126,65 +132,35 @@ export class MidiToSmo {
         state.tempo = new SmoTempoText(tempoDef);
       } else if (mtype === MidiMetaEvent.keySignature) {
         const mdata = trackEvent.data as number;
-        let signed = mdata / 256;
-        if (signed > 7) {
-          signed = -1 * (256 - signed);
+        if (mdata === 0) {
+          state.keySignature = 'C';
+        } else {
+        // there seem to be different ways to encode this...
+          let signed = mdata / 256;
+          if (signed > 7) {
+            signed = -1 * (256 - signed);
+          }
+          if (Math.abs(mdata) < 256) {
+            signed = mdata;
+          }
+          state.keySignature = SmoMusic.midiKeyToVexKey(signed);
         }
-        state.keySignature = SmoMusic.midiKeyToVexKey(signed);
       }
     }
   }
   static midiNoteKey(channel: number, note: number): string {
     return channel.toString() + '-' + note.toString();
   }
-  /**
-   * Midi is event based, so we create the note when we get note off event.  If there is
-   * a saved note on event, we base the note from that.  A note off with no note on means a rest.
-   * @param midiState
-   * @param curTicks the ticks to take up for this note
-   * @param channel midi channel
-   * @param midiNote midi note number
-   */
-  static handleNoteOff(midiState: MidiState, curTicks: number, channel: number, midiNote: number) {
-    // Create a key to lookup the start of the note
-    const noteKey = MidiToSmo.midiNoteKey(channel, midiNote);
-    const selectorKey = SmoSelector.getNoteKey(midiState.selector);
-    const noteDefaults = SmoNote.defaults;
-    noteDefaults.ticks.numerator = curTicks;
-    const sn = new SmoNote(SmoNote.defaults);
-    if (midiState.midiOnNotes[noteKey]) {
-      const noteInfo = midiState.midiOnNotes[noteKey];
-      const pitchAr: Pitch[] = [];
-        // If there is already a note at this location, just add this pitch to the chord.  Otherwise make a new note
-        const npitch = SmoMusic.getEnharmonicInKey(SmoMusic.smoIntToPitch(noteInfo.note - 12), midiState.keySignature);
-        if (midiState.startedNotes[selectorKey]) {
-          midiState.startedNotes[selectorKey].pitches.push(npitch);
-        } else {
-          pitchAr.push(npitch);
-        }
-      if (pitchAr.length) {
-        midiState.startedNotes[selectorKey] = sn;
-        sn.pitches = pitchAr;
-        sn.keySignature = midiState.keySignature;
-      }
-    } else {      
-      sn.noteType = 'r';
-    }
-    // If this note doesn't fit in the current measure, store it for later
-    if (midiState.measureTicks > midiState.ticksInMeasure) {
-      midiState.overflowNotes.push(sn);
-    } else {
-      midiState.trackNotes.push(sn);
-    }
+
+  static getSmoTicks(midiState: MidiState, midiTicks: number) {
+    return 4096 * midiTicks / midiState.timeDivision;
   }
   static getScore(midi: any): SmoScore {
-    // the ratio of SMO ticks to MIDI ticks
-    let tickMultiplier: number = 4096 / midi.timeDivision;
-
     const midiState: MidiState = {
       keySignature: 'C', tempo: new SmoTempoText(SmoTempoText.defaults), timeSignature: new TimeSignature(TimeSignature.defaults),
-      startedNotes: {}, midiOnNotes: {}, trackNotes: [], overflowNotes: [], trackMeasures: [], selector: SmoSelector.default,
-      measureTicks: 0, deltaTime: 0, ticksInMeasure: 0
+      midiOnNotes: [], trackNotes: [], trackMeasures: [], selector: SmoSelector.default,
+      trackTicks: 0,
+      measureTicks: 0, deltaTime: 0, ticksInMeasure: 0, timeDivision: midi.timeDivision
     };
     midiState.ticksInMeasure = SmoMusic.timeSignatureToTicks(midiState.timeSignature.timeSignature);
     let staves: SmoSystemStaff[] = [];
@@ -195,63 +171,53 @@ export class MidiToSmo {
       midiState.selector.staff = trackIx;
       midiState.selector.measure = 0;
       midiState.selector.tick = 0;
+      midiState.trackMeasures = [];
+      midiState.measureTicks = 0;
+      midiState.trackTicks = 0;
       // go through each track event.
       trackEvents.forEach((trackEvent) => {
         const eot = trackEvent.type === MidiEvent.meta && trackEvent.metaType! === MidiMetaEvent.eot;
         // The delta is the time of this event from the previous one.  If there was measure overflow
         // from the last measure, account for that.
         if (trackEvent.deltaTime > 0) {
-          // Next note, advance the midi cursor and add the notes we've collected to a new measure
-          midiState.deltaTime = trackEvent.deltaTime * tickMultiplier;
-          midiState.measureTicks += trackEvent.deltaTime * tickMultiplier;
-          midiState.selector.tick += 1;
+          const smoTicks = SmoMusic.closestDurationTickLtEq(MidiToSmo.getSmoTicks(midiState, trackEvent.deltaTime));
+          if (smoTicks) {
+
+            // Next note, advance the midi cursor and add the notes we've collected to a new measure
+            const smoNote = new SmoNote(SmoNote.defaults);
+            smoNote.ticks.numerator = smoTicks;
+            if (midiState.midiOnNotes.length) {
+              smoNote.pitches = [];
+              midiState.midiOnNotes.forEach((mm: MidiNoteOn) => {
+                const npitch = SmoMusic.getEnharmonicInKey(SmoMusic.smoIntToPitch(mm.note - 12), midiState.keySignature);
+                smoNote.pitches.push(npitch);
+              });
+              SmoNote.sortPitches(smoNote);
+            } else {
+              smoNote.noteType = 'r';
+            }
+            midiState.trackNotes.push(smoNote);
+            midiState.midiOnNotes = [];
+            midiState.deltaTime = MidiToSmo.getSmoTicks(midiState, trackEvent.deltaTime);
+            midiState.trackTicks += midiState.deltaTime;
+            midiState.measureTicks += midiState.deltaTime;
+            midiState.selector.tick += 1;
+          }
         }
         // update changes to tempo, etc.
         MidiToSmo.handleMetadata(trackEvent, midiState);
-        if (trackEvent.type === MidiEvent.noteOff) {
-          const channel = trackEvent.channel!;
-          const mnote = trackEvent.data as number[];
-          const midiNote = mnote[0];
-          const noteKey = MidiToSmo.midiNoteKey(channel, midiNote);
-          let duration = midiState.deltaTime;
-          let ovf = 0;
-          if (midiState.measureTicks > midiState.ticksInMeasure) {
-            ovf = midiState.measureTicks - midiState.ticksInMeasure;
-            midiState.measureTicks -= ovf; // make the measure come out in the right place
-            duration = duration - ovf;
-            midiState.deltaTime = duration;
-          }
-          const currentDurations = SmoMusic.splitIntoValidDurations(duration);
-          // If the duration overflows the measure, put the overflow part in the next measure
-          currentDurations.forEach((curTicks: number) => {
-            MidiToSmo.handleNoteOff(midiState, curTicks, channel, midiNote);
-          });
-          if (ovf > 0) {
-            midiState.measureTicks += ovf; // make the measure come out in the right place
-            midiState.deltaTime = ovf;
-            // Pre-increment the selector, since this note will go in the next measure
-            midiState.selector.measure += 1;
-            midiState.selector.tick = 0;
-            const ovfDurations = SmoMusic.splitIntoValidDurations(ovf);
-            ovfDurations.forEach((curTicks: number) => {
-              MidiToSmo.handleNoteOff(midiState, curTicks, channel, midiNote);
-            });            
-          }
-          delete midiState.midiOnNotes[noteKey];
-        } else if (trackEvent.type === MidiEvent.noteOn) {
+        if (trackEvent.type === MidiEvent.noteOn) {
           const channel = trackEvent.channel!;
           const mnote = trackEvent.data as number[];
           const note = mnote[0];
-          const noteKey = MidiToSmo.midiNoteKey(channel, note);
-          midiState.midiOnNotes[noteKey] = {
-            channel, note
-          };
+          midiState.midiOnNotes.push({
+            channel, note, selector: JSON.parse(JSON.stringify(midiState.selector)), trackTicks: midiState.trackTicks
+          });
         }
         // Is this the end of a measure?
-        if (midiState.trackNotes.length > 0 && 
+        if (midiState.trackNotes.length > 0 &&
           (midiState.measureTicks >= midiState.ticksInMeasure || eot)) {
           const defs = SmoMeasure.defaults;
-          const overflow = midiState.overflowNotes.length > 0;
           defs.clef = MidiToSmo.guessClefForNotes(midiState.trackNotes);
           midiState.trackNotes.forEach((snote) => {
             snote.clef = defs.clef;
@@ -265,29 +231,25 @@ export class MidiToSmo {
           midiState.measureTicks = 0;
           midiState.selector.tick = 0;
           midiState.deltaTime = 0;
-          // If there was overflow, we already did this.
-          if (!overflow) {
-            midiState.selector.measure += 1;
-          }
-          // If a note in the last measure was tied, update the
-          // ticks and selection count.
-          midiState.overflowNotes.forEach((sn: SmoNote) => {
-            midiState.measureTicks += sn.tickCount;
-            midiState.selector.tick += 1;
-            midiState.trackNotes.push(sn);
-          });
-          midiState.overflowNotes = [];
         }
       });
-      const staffDef = SmoSystemStaff.defaults;
-      staffDef.measures = midiState.trackMeasures;
-      staves.push(new SmoSystemStaff(staffDef));
+      if (midiState.trackMeasures.length > 0) {
+        const staffDef = SmoSystemStaff.defaults;
+        staffDef.measures = midiState.trackMeasures;
+        staves.push(new SmoSystemStaff(staffDef));
+      }
     });
     if (staves.length === 0) {
       return SmoScore.getEmptyScore(SmoScore.defaults);
     }
     const scoreDefs = SmoScore.defaults;
     scoreDefs.staves = staves;
-    return new SmoScore(scoreDefs);
+
+    const rv = new SmoScore(scoreDefs);
+    const layoutDefaults = rv.layoutManager as SmoLayoutManager;
+    // if no scale given in score, default to something small.
+    layoutDefaults.globalLayout.svgScale = 0.65;
+    layoutDefaults.globalLayout.zoomScale = 1.5;
+    return rv;
   }
 }

@@ -13,6 +13,10 @@ import { SuiFontComponent } from './components/fontComponent';
 import { EventHandler } from '../eventSource';
 
 declare var $: any;
+/**
+ * Dialog for running a chord change editing session.
+ * @category SuiDialog
+ */
 export class SuiChordChangeDialog extends SuiDialogBase {
   static dialogElements: DialogDefinition =
       {

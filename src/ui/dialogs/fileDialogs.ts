@@ -145,7 +145,6 @@ export class SuiLoadMxmlDialog extends SuiDialogAdapterBase<SuiXmlLoadAdapter> {
         const ar = new Uint8Array(this.midiFile);
         const midi: any = MidiParser.parse(ar);
         this.view.changeScore(MidiToSmo.getScore(midi));
-        console.log(JSON.stringify(midi, null, ' '));
       } catch (e) {
       console.warn('unable to score ' + e);
     }

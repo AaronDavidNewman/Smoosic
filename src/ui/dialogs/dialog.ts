@@ -23,6 +23,7 @@ declare var $: any;
  * @param label for the dialog itself
  * @param elements a series of elements that define the component
  * @param staticText a hash of text for the dialog and components to use
+ * @category SuiDialog
  */
 export interface DialogDefinition {
   label: string,
@@ -34,6 +35,7 @@ export interface DialogDefinition {
  * @param label the component label
  * @param id used as a key in translation tool
  * @param options options for dropdown and other array components
+ * @category SuiDialog
  */
 export interface DialogTranslationElement {
   label: string,
@@ -47,6 +49,7 @@ export interface DialogTranslationElement {
  * @param label the translated label
  * @param dialogElements the translated component json
  * @param staticText translated misc text 
+ * @category SuiDialog
  */
 export interface DialogTranslation {
   ctor: string,
@@ -66,6 +69,7 @@ export interface DialogTranslation {
  * @param view the MVVM object to change the score
  * @param eventSource event source to register for additional events like mouseup
  * @param undoBuffer used to create undo
+ * @category SuiDialogParams
  */
 export interface SuiDialogParams {
   ctor: string,
@@ -77,12 +81,12 @@ export interface SuiDialogParams {
   eventSource: BrowserEventSource,
   undoBuffer: UndoBuffer,
   // definition: DialogDefinition,
-  modifier?: any,
-  autobind?: boolean
+  modifier?: any
 }
 
 /**
  * internal interface used to create the DOM
+ * @internal
  */
 export interface SuiDomParams {
   id: string,
@@ -105,6 +109,7 @@ export interface DialogDom {
  * You will only want to inherit from SuiDialogBase under 2 conditions:
  * 1. the dialog is triviailly simple, like an alert box that makes no changes to the score, or
  * 2. the dialog is extremely complicated in how it interacts with the user, such that a form-based approach won't work
+ * @category SuiDialog
  */
  export abstract class SuiDialogBase extends SuiDialogNotifier {
   static get displayOptions(): Record<string, string> {
@@ -173,7 +178,6 @@ export interface DialogDom {
   dgDom: DialogDom;
   displayOptions: string[] = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'GLOBALPOS', 'HIDEREMOVE'];
   keydownHandler: EventHandler | null = null;
-  autobind: boolean;
   // ### SuiDialogBase ctor
   // Creates the DOM element for the dialog and gets some initial elements
   constructor(dialogElements: DialogDefinition, parameters: SuiDialogParams) {
@@ -187,7 +191,6 @@ export interface DialogDom {
     this.completeNotifier = parameters.completeNotifier;
     this.modifier = parameters.modifier;
     this.ctor = parameters.ctor;
-    this.autobind = parameters.autobind ?? true;
 
     this.closeDialogPromise = new Promise<void>((resolve) => {
       $('body').off('dialogDismiss').on('dialogDismiss', () => {
@@ -250,7 +253,7 @@ export interface DialogDom {
     });
   }
   initialValue(){
-    if (this.modifier === null || this.autobind === false) {
+    if (this.modifier === null) {
       return;
     }
     this.boundComponents.forEach((comp) => {
@@ -258,7 +261,7 @@ export interface DialogDom {
     });
   }
   changed() {
-    if (this.modifier === null || this.autobind === false) {
+    if (this.modifier === null) {
       return;
     }
     this.boundComponents.forEach((comp) => {

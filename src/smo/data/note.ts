@@ -390,7 +390,7 @@ export class SmoNote implements Transposable {
    * Sort pitches in pitch order, Vex likes to receive pitches in order
    * @param note 
    */
-  static _sortPitches(note: Transposable) {
+  static sortPitches(note: Transposable) {
     const canon = VF.Music.canonical_notes;
     const keyIndex = ((pitch: Pitch) =>
       canon.indexOf(pitch.letter) + pitch.octave * 12
@@ -437,7 +437,7 @@ export class SmoNote implements Transposable {
     note.noteType = 'n';
     const pitch = note.pitches[0];
     note.pitches.push(SmoMusic.getKeyOffset(pitch, offset));
-    SmoNote._sortPitches(note);
+    SmoNote.sortPitches(note);
   }
   /**
    * Add another pitch to this note at `offset` 1/2 steps
@@ -451,7 +451,7 @@ export class SmoNote implements Transposable {
     this.noteType = 'n';
     const pitch = this.pitches[0];
     this.pitches.push(SmoMusic.getKeyOffset(pitch, offset));
-    SmoNote._sortPitches(this);
+    SmoNote.sortPitches(this);
   }
   toggleRest() {
     this.noteType = (this.noteType === 'r' ? 'n' : 'r');
@@ -559,7 +559,7 @@ export class SmoNote implements Transposable {
       this.pitches.push(JSON.parse(JSON.stringify(pitch)));
       this.noteType = 'n';
     }
-    SmoNote._sortPitches(this);
+    SmoNote.sortPitches(this);
   }
   /**
    * @param note note to transpose
@@ -597,7 +597,7 @@ export class SmoNote implements Transposable {
         note.pitches[index] = pitch;
       }
     }
-    SmoNote._sortPitches(note);
+    SmoNote.sortPitches(note);
     return note;
   }
   get tickCount() {

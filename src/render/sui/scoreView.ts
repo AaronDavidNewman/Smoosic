@@ -30,6 +30,7 @@ export interface ViewMapEntry {
  * 1. Undo and recording actions for the operation
  * 2. Maintain/change which staves in the score are displayed (staff map)
  * 3. Mapping between the displayed score and the data representation
+ * @category SuiRender
  */
 export abstract class SuiScoreView {
   static Instance: SuiScoreView | null = null;

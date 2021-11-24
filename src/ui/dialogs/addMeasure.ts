@@ -9,6 +9,10 @@ import { DialogDefinition, SuiDialogBase, SuiDialogParams } from './dialog';
 
 declare var $: any;
 
+/**
+ * Insert some number of measures
+ * @category SuiDialog
+ */
 export class SuiInsertMeasures extends SuiDialogBase {
   static dialogElements: DialogDefinition =
       {

@@ -80,6 +80,7 @@ class QueryParser {
 exports.QueryParser = QueryParser;
 /**
  * bootstrap initial score load
+ * @category AppUtil
  */
 class SuiScoreBuilder {
     constructor(config, queryString) {
@@ -163,6 +164,7 @@ exports.SuiScoreBuilder = SuiScoreBuilder;
  * main entry point of application.  Based on the configuration,
  * either start the default UI, or initialize library mode and
  * await further instructions.
+ * @category SuiApplication
  */
 class SuiApplication {
     constructor(config) {
@@ -563,6 +565,7 @@ exports.SimpleEventHandler = SimpleEventHandler;
 /**
  * Dependency injection, sends events to a proxy object, gets around some
  * cyclic dependencies when bootstrapping the application.
+ * @category AppUtil
  */
 class ModalEventHandlerProxy {
     constructor(evSource) {
@@ -659,6 +662,7 @@ exports.ConfigurationNumberOptions = ['demonPollTime', 'idleRedrawTime'];
  * @param languageDir - ltr or rtl
  * @param demonPollTime - how often we poll the score to see if it's changed
  * @param idleRedrawTime - how often the entire score re-renders
+ * @category SuiApplication
  */
 class SmoConfiguration {
     constructor(params) {
@@ -841,6 +845,7 @@ const svgHelpers_1 = __webpack_require__(/*! ../render/sui/svgHelpers */ "./src/
  * tracker.  Modal elements take this control away temporarily.
  *
  * It also handles some global events such as window resize and scroll of the music region.
+ * @category SuiApplication
 */
 class SuiEventHandler {
     constructor(params) {
@@ -1288,9 +1293,11 @@ const dialog_1 = __webpack_require__(/*! ../ui/dialogs/dialog */ "./src/ui/dialo
 const player_1 = __webpack_require__(/*! ../render/audio/player */ "./src/render/audio/player.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const common_1 = __webpack_require__(/*! ../smo/data/common */ "./src/smo/data/common.ts");
-// ## suiEditor
-// KeyCommands object handles key events and converts them into commands, updating the score and
-// display
+/**
+ * KeyCommands object handles key events and converts them into commands, updating the score and
+ * display
+ * @category SuiApplication
+ * */
 class SuiKeyCommands {
     constructor(params) {
         this.slashMode = false;
@@ -6385,7 +6392,7 @@ class SuiRenderState {
             return;
         }
         this.replaceQ.forEach((change) => {
-            beamers_1.smoBeamerFactory.applyBeams(change.measure);
+            beamers_1.SmoBeamer.applyBeams(change.measure);
             // Defer modifier update until all selected measures are drawn.
             if (!staffMap[change.staff.staffId]) {
                 system = new vxSystem_1.VxSystem(this.context, change.measure.staffY, change.measure.svg.lineIndex, this.score);
@@ -6892,7 +6899,7 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
         // Keep running tab of accidental widths for justification
         const accidentalMap = {};
         measures.forEach((measure) => {
-            beamers_1.smoBeamerFactory.applyBeams(measure);
+            beamers_1.SmoBeamer.applyBeams(measure);
             measure.measureNumber.systemIndex = systemIndex;
             measure.svg.rowInSystem = rowInSystem;
             measure.svg.lineIndex = lineIndex;
@@ -15592,6 +15599,7 @@ exports.SmoTempoText = SmoTempoText;
  * about the display of the time signature.  Note: measures also have a time signature
  * string that can be displayed in cases like pickup measure, where the actual time doesn't
  * match the time signature.
+ * @category SmoModifier
  */
 class TimeSignature extends SmoMeasureModifierBase {
     constructor(params) {
@@ -15652,6 +15660,7 @@ exports.SmoMusic = exports.SmoAudioPitch = void 0;
 const note_1 = __webpack_require__(/*! ./note */ "./src/smo/data/note.ts");
 /**
  * calculate the pitch frequency, just temperment a=440, etc.
+ * @category SmoUtilities
  */
 class SmoAudioPitch {
     // ### _frequencies
@@ -15742,6 +15751,7 @@ const VF = eval('Vex.Flow');
  *
  * I try to indicate whether I am using vex or smo notation in the function name.
  * Duration methods start around line 600
+ * @category SmoUtilities
  */
 class SmoMusic {
     /**
@@ -16551,7 +16561,7 @@ class SmoMusic {
         };
     }
     static getSharpsInKeySignature(key) {
-        const sharpKeys = ['B', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
+        const sharpKeys = ['G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
         if (sharpKeys.indexOf(key.toUpperCase()) < 0) {
             return 0;
         }
@@ -16567,6 +16577,24 @@ class SmoMusic {
             return 0;
         }
         return SmoMusic.keySignatureLength[caseKey];
+    }
+    static midiKeyToVexKey(midiKey) {
+        const sharpKeys = ['G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
+        const flatKeys = ['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb'];
+        if (midiKey === 0) {
+            return 'C';
+        }
+        const flat = midiKey < 0;
+        let ix = Math.abs(midiKey) - 1;
+        if (ix > 6) {
+            return 'C';
+        }
+        if (flat) {
+            return flatKeys[ix];
+        }
+        else {
+            return sharpKeys[ix];
+        }
     }
     static timeSignatureToTicks(timeSignature) {
         const nd = timeSignature.split('/');
@@ -16849,7 +16877,7 @@ class SmoNote {
             pitches: [{
                     letter: 'b',
                     octave: 4,
-                    accidental: ''
+                    accidental: 'n'
                 }],
         }));
     }
@@ -17044,7 +17072,7 @@ class SmoNote {
      * Sort pitches in pitch order, Vex likes to receive pitches in order
      * @param note
      */
-    static _sortPitches(note) {
+    static sortPitches(note) {
         const canon = VF.Music.canonical_notes;
         const keyIndex = ((pitch) => canon.indexOf(pitch.letter) + pitch.octave * 12);
         note.pitches.sort((a, b) => keyIndex(a) - keyIndex(b));
@@ -17090,7 +17118,7 @@ class SmoNote {
         note.noteType = 'n';
         const pitch = note.pitches[0];
         note.pitches.push(music_1.SmoMusic.getKeyOffset(pitch, offset));
-        SmoNote._sortPitches(note);
+        SmoNote.sortPitches(note);
     }
     /**
      * Add another pitch to this note at `offset` 1/2 steps
@@ -17104,7 +17132,7 @@ class SmoNote {
         this.noteType = 'n';
         const pitch = this.pitches[0];
         this.pitches.push(music_1.SmoMusic.getKeyOffset(pitch, offset));
-        SmoNote._sortPitches(this);
+        SmoNote.sortPitches(this);
     }
     toggleRest() {
         this.noteType = (this.noteType === 'r' ? 'n' : 'r');
@@ -17208,7 +17236,7 @@ class SmoNote {
             this.pitches.push(JSON.parse(JSON.stringify(pitch)));
             this.noteType = 'n';
         }
-        SmoNote._sortPitches(this);
+        SmoNote.sortPitches(this);
     }
     /**
      * @param note note to transpose
@@ -17248,7 +17276,7 @@ class SmoNote {
                 note.pitches[index] = pitch;
             }
         }
-        SmoNote._sortPitches(note);
+        SmoNote.sortPitches(note);
         return note;
     }
     get tickCount() {
@@ -18110,6 +18138,7 @@ const measureModifiers_2 = __webpack_require__(/*! ./measureModifiers */ "./src/
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 /**
  * Information about the score itself, like composer etc.
+ * @category SmoModifier
  */
 class SmoScoreInfo {
     constructor() {
@@ -18130,6 +18159,7 @@ exports.SmoScoreInfo = SmoScoreInfo;
  * @param defaultTripleDuration in ticks, 6/8 etc.
  * @param customProportion a Vex measure format setting
  * @param showPiano show the piano widget in the score
+ * @category SmoModifier
  */
 class SmoScorePreferences {
     constructor() {
@@ -18143,7 +18173,7 @@ class SmoScorePreferences {
 }
 exports.SmoScorePreferences = SmoScorePreferences;
 /**
- * SmoScore is the container for the entire score: staves, measures notes
+ * SmoScore is the container for the entire score: staves, measures, notes
  * @category SmoObject
  */
 class SmoScore {
@@ -18205,7 +18235,6 @@ class SmoScore {
                 customProportion: 100,
                 showPiano: true
             },
-            startIndex: 0,
             staves: [],
             activeStaff: 0,
             textGroups: [],
@@ -19754,7 +19783,7 @@ class SmoInstrument extends StaffModifierBase {
 exports.SmoInstrument = SmoInstrument;
 /**
  * Also called crescendo etc.
- * @SmoModifier
+ * @category SmoModifier
  */
 class SmoStaffHairpin extends StaffModifierBase {
     constructor(params) {
@@ -19904,9 +19933,10 @@ class SmoSlur extends StaffModifierBase {
     }
 }
 exports.SmoSlur = SmoSlur;
-// ## SmoTie
-// like slur but multiple pitches
-// ---
+/**
+ * Like slur, but multiple pitches.
+ * @category SmoModifier
+ */
 class SmoTie extends StaffModifierBase {
     constructor(params) {
         super('SmoTie');
@@ -20012,11 +20042,13 @@ const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/x
 const beamers_1 = __webpack_require__(/*! ../xform/beamers */ "./src/smo/xform/beamers.ts");
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const VF = eval('Vex.Flow');
-// ## SmoSystemStaff
-// A staff is a line of music that can span multiple measures.
-// A system is a line of music for each staff in the score.  So a staff
-// spans multiple systems.
-// A staff modifier connects 2 points in the staff.
+/**
+ * A staff is a line of music that can span multiple measures.
+ * A system is a line of music for each staff in the score.  So a staff
+ * spans multiple systems.
+ * A staff modifier connects 2 points in the staff.
+ * @category SmoObject
+ * */
 class SmoSystemStaff {
     constructor(params) {
         this.staffId = 0;
@@ -20333,7 +20365,7 @@ class SmoSystemStaff {
     applyBeams() {
         for (let i = 0; i < this.measures.length; ++i) {
             const measure = this.measures[i];
-            beamers_1.smoBeamerFactory.applyBeams(measure);
+            beamers_1.SmoBeamer.applyBeams(measure);
         }
     }
     // ### addRehearsalMark
@@ -20777,6 +20809,222 @@ exports.SmoTuplet = SmoTuplet;
 
 /***/ }),
 
+/***/ "./src/smo/midi/midiToSmo.ts":
+/*!***********************************!*\
+  !*** ./src/smo/midi/midiToSmo.ts ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MidiToSmo = exports.MidiMetaEvent = exports.MidiEvent = void 0;
+const measure_1 = __webpack_require__(/*! ../data/measure */ "./src/smo/data/measure.ts");
+const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
+const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
+const score_1 = __webpack_require__(/*! ../data/score */ "./src/smo/data/score.ts");
+const systemStaff_1 = __webpack_require__(/*! ../data/systemStaff */ "./src/smo/data/systemStaff.ts");
+const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
+exports.MidiEvent = {
+    noteOff: 8,
+    noteOn: 9,
+    aftertouch: 10,
+    controller: 11,
+    programChange: 12,
+    channelAftertouch: 13,
+    pitchBend: 14,
+    meta: 255
+};
+exports.MidiMetaEvent = {
+    trackName: 3,
+    lyrics: 5,
+    channelPrefix: 32,
+    eot: 47,
+    tempo: 81,
+    timeSignature: 88,
+    keySignature: 89
+};
+/**
+ * Converts a JSON midi file to a {@link SmoScore}
+ * @category SmoToMidi
+ */
+class MidiToSmo {
+    /**
+     * Since midi has very little metadata, we don't know the original clef.
+     * so just use the one (treble or bass) that uses the fewest ledger lines
+     * @param notes notes in measure
+     * @returns
+     */
+    static guessClefForNotes(notes) {
+        let trebleMax = 0;
+        let bassMax = 0;
+        notes.forEach((note) => {
+            note.pitches.forEach((pitch) => {
+                const tl = Math.abs(music_1.SmoMusic.pitchToLedgerLine('treble', pitch));
+                const bl = Math.abs(music_1.SmoMusic.pitchToLedgerLine('bass', pitch));
+                trebleMax = Math.max(trebleMax, tl);
+                bassMax = Math.max(bassMax, bl);
+            });
+        });
+        const clef = trebleMax <= bassMax ? 'treble' : 'bass';
+        // For rests, make sure the rest is centered in the clef
+        notes.forEach((note) => {
+            if (note.noteType === 'r') {
+                note.pitches = [measure_1.SmoMeasure.defaultPitchForClef[clef]];
+            }
+        });
+        return clef;
+    }
+    static handleMetadata(trackEvent, state) {
+        if (trackEvent.type === exports.MidiEvent.meta) {
+            const mtype = trackEvent.metaType;
+            if (mtype === exports.MidiMetaEvent.timeSignature) {
+                /**
+                 * whenever we get a time signature event, recompute ticks per measure
+                 */
+                const mdata = trackEvent.data;
+                const numerator = mdata[0];
+                const denominator = Math.pow(2, mdata[1]);
+                const tsDef = measureModifiers_1.TimeSignature.defaults;
+                tsDef.actualBeats = numerator;
+                tsDef.beatDuration = denominator;
+                state.timeSignature = new measureModifiers_1.TimeSignature(tsDef);
+                state.ticksInMeasure = music_1.SmoMusic.timeSignatureToTicks(state.timeSignature.timeSignature);
+            }
+            else if (mtype === exports.MidiMetaEvent.tempo) {
+                const mpq = trackEvent.data;
+                const bpm = (1000000 * 60) / mpq;
+                const tempoDef = measureModifiers_1.SmoTempoText.defaults;
+                tempoDef.bpm = bpm;
+                state.tempo = new measureModifiers_1.SmoTempoText(tempoDef);
+            }
+            else if (mtype === exports.MidiMetaEvent.keySignature) {
+                const mdata = trackEvent.data;
+                if (mdata === 0) {
+                    state.keySignature = 'C';
+                }
+                else {
+                    // there seem to be different ways to encode this...
+                    let signed = mdata / 256;
+                    if (signed > 7) {
+                        signed = -1 * (256 - signed);
+                    }
+                    if (Math.abs(mdata) < 256) {
+                        signed = mdata;
+                    }
+                    state.keySignature = music_1.SmoMusic.midiKeyToVexKey(signed);
+                }
+            }
+        }
+    }
+    static midiNoteKey(channel, note) {
+        return channel.toString() + '-' + note.toString();
+    }
+    static getSmoTicks(midiState, midiTicks) {
+        return 4096 * midiTicks / midiState.timeDivision;
+    }
+    static getScore(midi) {
+        const midiState = {
+            keySignature: 'C', tempo: new measureModifiers_1.SmoTempoText(measureModifiers_1.SmoTempoText.defaults), timeSignature: new measureModifiers_1.TimeSignature(measureModifiers_1.TimeSignature.defaults),
+            midiOnNotes: [], trackNotes: [], trackMeasures: [], selector: selections_1.SmoSelector.default,
+            trackTicks: 0,
+            measureTicks: 0, deltaTime: 0, ticksInMeasure: 0, timeDivision: midi.timeDivision
+        };
+        midiState.ticksInMeasure = music_1.SmoMusic.timeSignatureToTicks(midiState.timeSignature.timeSignature);
+        let staves = [];
+        // go through the tracks
+        midi.track.forEach((track, trackIx) => {
+            const trackEvents = track.event;
+            // The number of ticks in the measure so far, including current event
+            midiState.selector.staff = trackIx;
+            midiState.selector.measure = 0;
+            midiState.selector.tick = 0;
+            midiState.trackMeasures = [];
+            midiState.measureTicks = 0;
+            midiState.trackTicks = 0;
+            // go through each track event.
+            trackEvents.forEach((trackEvent) => {
+                const eot = trackEvent.type === exports.MidiEvent.meta && trackEvent.metaType === exports.MidiMetaEvent.eot;
+                // The delta is the time of this event from the previous one.  If there was measure overflow
+                // from the last measure, account for that.
+                if (trackEvent.deltaTime > 0) {
+                    const smoTicks = music_1.SmoMusic.closestDurationTickLtEq(MidiToSmo.getSmoTicks(midiState, trackEvent.deltaTime));
+                    if (smoTicks) {
+                        // Next note, advance the midi cursor and add the notes we've collected to a new measure
+                        const smoNote = new note_1.SmoNote(note_1.SmoNote.defaults);
+                        smoNote.ticks.numerator = smoTicks;
+                        if (midiState.midiOnNotes.length) {
+                            smoNote.pitches = [];
+                            midiState.midiOnNotes.forEach((mm) => {
+                                const npitch = music_1.SmoMusic.getEnharmonicInKey(music_1.SmoMusic.smoIntToPitch(mm.note - 12), midiState.keySignature);
+                                smoNote.pitches.push(npitch);
+                            });
+                            note_1.SmoNote.sortPitches(smoNote);
+                        }
+                        else {
+                            smoNote.noteType = 'r';
+                        }
+                        midiState.trackNotes.push(smoNote);
+                        midiState.midiOnNotes = [];
+                        midiState.deltaTime = MidiToSmo.getSmoTicks(midiState, trackEvent.deltaTime);
+                        midiState.trackTicks += midiState.deltaTime;
+                        midiState.measureTicks += midiState.deltaTime;
+                        midiState.selector.tick += 1;
+                    }
+                }
+                // update changes to tempo, etc.
+                MidiToSmo.handleMetadata(trackEvent, midiState);
+                if (trackEvent.type === exports.MidiEvent.noteOn) {
+                    const channel = trackEvent.channel;
+                    const mnote = trackEvent.data;
+                    const note = mnote[0];
+                    midiState.midiOnNotes.push({
+                        channel, note, selector: JSON.parse(JSON.stringify(midiState.selector)), trackTicks: midiState.trackTicks
+                    });
+                }
+                // Is this the end of a measure?
+                if (midiState.trackNotes.length > 0 &&
+                    (midiState.measureTicks >= midiState.ticksInMeasure || eot)) {
+                    const defs = measure_1.SmoMeasure.defaults;
+                    defs.clef = MidiToSmo.guessClefForNotes(midiState.trackNotes);
+                    midiState.trackNotes.forEach((snote) => {
+                        snote.clef = defs.clef;
+                    });
+                    defs.voices[0] = { notes: midiState.trackNotes };
+                    defs.timeSignature = midiState.timeSignature;
+                    defs.tempo = midiState.tempo;
+                    defs.keySignature = midiState.keySignature;
+                    midiState.trackMeasures.push(new measure_1.SmoMeasure(defs));
+                    midiState.trackNotes = [];
+                    midiState.measureTicks = 0;
+                    midiState.selector.tick = 0;
+                    midiState.deltaTime = 0;
+                }
+            });
+            if (midiState.trackMeasures.length > 0) {
+                const staffDef = systemStaff_1.SmoSystemStaff.defaults;
+                staffDef.measures = midiState.trackMeasures;
+                staves.push(new systemStaff_1.SmoSystemStaff(staffDef));
+            }
+        });
+        if (staves.length === 0) {
+            return score_1.SmoScore.getEmptyScore(score_1.SmoScore.defaults);
+        }
+        const scoreDefs = score_1.SmoScore.defaults;
+        scoreDefs.staves = staves;
+        const rv = new score_1.SmoScore(scoreDefs);
+        const layoutDefaults = rv.layoutManager;
+        // if no scale given in score, default to something small.
+        layoutDefaults.globalLayout.svgScale = 0.65;
+        layoutDefaults.globalLayout.zoomScale = 1.5;
+        return rv;
+    }
+}
+exports.MidiToSmo = MidiToSmo;
+
+
+/***/ }),
+
 /***/ "./src/smo/midi/smoToMidi.ts":
 /*!***********************************!*\
   !*** ./src/smo/midi/smoToMidi.ts ***!
@@ -20795,12 +21043,21 @@ exports.SmoToMidi = void 0;
 const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
 const audioTrack_1 = __webpack_require__(/*! ../xform/audioTrack */ "./src/smo/xform/audioTrack.ts");
+/**
+ * Convert a {@link SmoScore} object to MIDI
+ * @category SmoToMidi
+ */
 class SmoToMidi {
+    /**
+     * @param score
+     * @returns Midi byte array that can be sent to a file upload widget
+     */
     static convert(score) {
         const beatTime = 128; // midi ticks per beat
         const converter = new audioTrack_1.SmoAudioScore(score, beatTime);
         const audioScore = converter.convert();
         const smoTracks = audioScore.tracks;
+        let currentKey = 'C';
         const trackHash = {};
         smoTracks.forEach((smoTrack, trackIx) => {
             let j = 0;
@@ -20824,6 +21081,11 @@ class SmoToMidi {
                         if (smoTrack.timeSignatureMap[selectorKey]) {
                             const ts = smoTrack.timeSignatureMap[selectorKey];
                             track.setTimeSignature(ts.numerator, ts.denominator);
+                        }
+                        if (smoTrack.keyMap[j]) {
+                            const ksString = smoTrack.keyMap[j];
+                            const ks = -1 * music_1.SmoMusic.getFlatsInKeySignature(ksString) + music_1.SmoMusic.getSharpsInKeySignature(ksString);
+                            track.setKeySignature(ks, 0);
                         }
                         if (noteData.noteType === 'r') {
                             if (!noteData.padding) {
@@ -20876,6 +21138,10 @@ const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./sr
 const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
 const xmlHelpers_1 = __webpack_require__(/*! ./xmlHelpers */ "./src/smo/mxml/xmlHelpers.ts");
 const xmlScore_1 = __webpack_require__(/*! ./xmlScore */ "./src/smo/mxml/xmlScore.ts");
+/**
+ * Convert {@link SmoScore} object into a music XML serialization
+ * @category SmoToXml
+ */
 class SmoToXml {
     static get beamStates() {
         return {
@@ -21322,8 +21588,10 @@ const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/
 const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
 const VF = eval('Vex.Flow');
-// ## mxmlHelpers
-// Utilities for parsing and serialzing musicXML.
+/**
+ * Utilities for parsing and serialzing musicXML.
+ * @category SmoToXml
+ * */
 class mxmlHelpers {
     // ### noteTypesToSmoMap
     // mxml note 'types', really s/b stem types.
@@ -21741,8 +22009,10 @@ const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.t
 const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const systemStaff_1 = __webpack_require__(/*! ../data/systemStaff */ "./src/smo/data/systemStaff.ts");
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
-// ## mxmlScore
-// Parse music xml into a smoosic score object
+/**
+ * A class that takes a music XML file and outputs a {@link SmoScore}
+ * @category SmoToXml
+ */
 class mxmlScore {
     static get mmPerPixel() {
         return 0.264583;
@@ -22323,8 +22593,10 @@ const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/
 const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const tuplet_1 = __webpack_require__(/*! ../data/tuplet */ "./src/smo/data/tuplet.ts");
 const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
-// ## XmlState
-// Keep state of musical objects while parsing music xml
+/**
+ * Keep state of musical objects while parsing music xml
+ * @category SmoToXml
+ * */
 class XmlState {
     constructor() {
         this.clefInfo = [];
@@ -22871,18 +23143,19 @@ const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./sr
 const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const music_2 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
-/** SmoAudioScore
-// Convert a score into a JSON structure that can be rendered to audio.
-// the return value looks like this:
-// `` { tracks, repeats, repeatMap} ``
-// repeatMap is just an array of tuples with start/end measures.
-//  each track contains:
-// `` { lastMeasure, notes, tempoMap, timeSignatureMap, hairpins, volume, tiedNotes }
-// where each note might contain:
-//  ``{ pitches, noteType, duration, selector, volume }``
-// Note:  pitches are smo pitches, durations are adjusted for beatTime
-// (beatTime === 4096 uses Smo/Vex ticks, 128 is midi tick default)
-// volume is normalized 0-1
+/**
+ * Convert a score into a JSON structure that can be rendered to audio.
+ * the return value looks like this:
+ * ` { tracks, repeats, repeatMap} `
+ * repeatMap is just an array of tuples with start/end measures.
+ *  each track contains:
+ *  ` { lastMeasure, notes, tempoMap, timeSignatureMap, hairpins, volume, tiedNotes } `
+ * where each note might contain:
+ * `{ pitches, noteType, duration, selector, volume }`
+ * _Note_:  pitches are smo pitches, durations are adjusted for beatTime
+ * (beatTime === 4096 uses Smo/Vex ticks, 128 is midi tick default)
+ * volume is normalized 0-1
+ * @category SmoTransform
  */
 class SmoAudioScore {
     constructor(score, beatTime) {
@@ -22912,6 +23185,7 @@ class SmoAudioScore {
             timeSignatureMap: {},
             hairpins: [],
             measureNoteMap: {},
+            keyMap: {},
             volume: 0,
             tiedNotes: [],
             repeats: []
@@ -23065,13 +23339,6 @@ class SmoAudioScore {
             }
         });
         track.tiedNotes = tn;
-        const slurStart = selection.staff.getSlursStartingAt(selection.selector);
-        slurStart.forEach((slur) => {
-            tn.push({
-                startSelector: cp(slur.startSelector),
-                endSelector: cp(slur.endSelector)
-            });
-        });
         const tieStart = selection.staff.getTiesStartingAt(selection.selector);
         tieStart.forEach((tie) => {
             tn.push({
@@ -23256,6 +23523,7 @@ class SmoAudioScore {
         let startRepeat = 0;
         const tempoMap = [];
         this.score.staves.forEach((staff, staffIx) => {
+            let runningKey = staff.measures[0].keySignature;
             this.volume = 0;
             staff.measures.forEach((measure, measureIx) => {
                 measure.voices.forEach((voice, voiceIx) => {
@@ -23275,6 +23543,7 @@ class SmoAudioScore {
                     // staff 0/voice 0, set track values for the measure
                     if (voiceIx === 0) {
                         if (staffIx === 0) {
+                            track.keyMap[0] = runningKey;
                             measureBeats.push(measure.getMaxTicksVoice() / this.timeDiv);
                             const startBar = measure.getStartBarline();
                             const endBar = measure.getEndBarline();
@@ -23290,6 +23559,10 @@ class SmoAudioScore {
                         }
                         const selectorKey = selections_1.SmoSelector.getMeasureKey(measureSelector);
                         track.tempoMap[selectorKey] = Math.round(tempo);
+                        if (measure.keySignature !== runningKey) {
+                            runningKey = measure.keySignature;
+                            track.keyMap[measureIx] = runningKey;
+                        }
                         track.timeSignatureMap[selectorKey] = {
                             numerator: measure.timeSignature.actualBeats,
                             denominator: measure.timeSignature.beatDuration
@@ -23373,11 +23646,15 @@ exports.SmoAudioScore = SmoAudioScore;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.smoBeamModifier = exports.smoBeamerFactory = exports.SmoBeamGroup = void 0;
+exports.SmoBeamer = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const VF = eval('Vex.Flow');
+/**
+ * Contain a group of {@link SmoNote} used for beaming.
+ * @internal
+ */
 class SmoBeamGroup {
     constructor(params) {
         this.voice = 0;
@@ -23397,22 +23674,11 @@ class SmoBeamGroup {
         }
     }
 }
-exports.SmoBeamGroup = SmoBeamGroup;
-class smoBeamerFactory {
-    static applyBeams(measure) {
-        let i = 0;
-        let j = 0;
-        for (i = 0; i < measure.voices.length; ++i) {
-            const beamer = new smoBeamModifier(measure, i);
-            const tickmap = measure.tickmapForVoice(i);
-            for (j = 0; j < tickmap.durationMap.length; ++j) {
-                beamer.beamNote(tickmap, j, measure.voices[i].notes[j]);
-            }
-        }
-    }
-}
-exports.smoBeamerFactory = smoBeamerFactory;
-class smoBeamModifier {
+/**
+ * Apply the beam policy set up in node and measure to group the notes into beam groups
+ * @category SmoTransform
+ */
+class SmoBeamer {
     constructor(measure, voice) {
         this.measure = measure;
         this._removeVoiceBeam(measure, voice);
@@ -23425,6 +23691,17 @@ class smoBeamModifier {
         }
         this.skipNext = 0;
         this.currentGroup = [];
+    }
+    static applyBeams(measure) {
+        let i = 0;
+        let j = 0;
+        for (i = 0; i < measure.voices.length; ++i) {
+            const beamer = new SmoBeamer(measure, i);
+            const tickmap = measure.tickmapForVoice(i);
+            for (j = 0; j < tickmap.durationMap.length; ++j) {
+                beamer.beamNote(tickmap, j, measure.voices[i].notes[j]);
+            }
+        }
     }
     get beamGroups() {
         return this.measure.beamGroups;
@@ -23529,7 +23806,7 @@ class smoBeamModifier {
         }
     }
 }
-exports.smoBeamModifier = smoBeamModifier;
+exports.SmoBeamer = SmoBeamer;
 
 
 /***/ }),
@@ -23553,9 +23830,12 @@ const tuplet_1 = __webpack_require__(/*! ../data/tuplet */ "./src/smo/data/tuple
 const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const svgHelpers_1 = __webpack_require__(/*! ../../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const VF = eval('Vex.Flow');
-// ## PasteBuffer
-// ### Description:
-// Hold some music that can be pasted back to the score
+/**
+ * PasteBuffer holds copied music, and handles the action of pasting the music to
+ * a different point in the score.  It does this by serializing the measure(s) from the source
+ * and then creating handling the overlap with existing music when deserializaing it.
+ * @category SmoTransform
+ */
 class PasteBuffer {
     constructor() {
         this.score = null;
@@ -23993,6 +24273,7 @@ const VF = eval('Vex.Flow');
 /**
  * SmoOperation is a collection of static methods that operate on/change/transform the music.  Most methods
  * take the score, a selection or selection array, and the parameters of the operation.
+ * @category SmoUtilities
  */
 class SmoOperation {
     static setMeasureFormat(score, selection, value) {
@@ -24206,7 +24487,7 @@ class SmoOperation {
                 voice: selection.selector.voice,
                 newTicks: nticks
             });
-            beamers_1.smoBeamerFactory.applyBeams(measure);
+            beamers_1.SmoBeamer.applyBeams(measure);
         }
         else {
             const startIndex = measure.tupletIndex(tuplet) + tuplet.getIndexOfNote(note);
@@ -24828,17 +25109,12 @@ exports.SmoOperation = SmoOperation;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SmoSelection = exports.SmoSelector = void 0;
-/////////////////
-// # selections.js
-// Editing operations are performed on selections.  A selection can be different things, from a single pitch
-// to many notes.  These classes standardize some standard selection operations.
-//
-//
-// ## SmoSelector
-// ## Description:
-// There are 2 parts to a selection: the actual musical bits that are selected, and the
-// indices that define what was selected.  This is the latter.  The actual object does not
-// have any methods so there is no constructor.
+/**
+ * There are 2 parts to a selection: the actual musical bits that are selected, and the
+ * indices that define what was selected.  This is the latter.  The actual object does not
+ * have any methods so there is no constructor.
+ * @category SmoTransform
+ * */
 class SmoSelector {
     constructor() {
         this.staff = 0;
@@ -24925,12 +25201,13 @@ class SmoSelector {
     }
 }
 exports.SmoSelector = SmoSelector;
-// ## SmoSelection
-// ## Description:
-// A selection is a selector and a set of references to musical elements, like measure etc.
-// The staff and measure are always a part of the selection, and possible a voice and note,
-// and one or more pitches.  Selections can also be made from the UI by clicking on an element
-// or navigating to an element with the keyboard.
+/**
+ * A selection is a selector and a set of references to musical elements, like measure etc.
+ * The staff and measure are always a part of the selection, and possible a voice and note,
+ * and one or more pitches.  Selections can also be made from the UI by clicking on an element
+ * or navigating to an element with the keyboard.
+ * @category SmoTransform
+ * */
 class SmoSelection {
     constructor(params) {
         this.selector = {
@@ -25233,6 +25510,7 @@ exports.TickIteratorBase = TickIteratorBase;
 /**
  * SmoDuration: change the duration of a note, maybe at the expense of some
  * other note.
+ * @category SmoTransform
  */
 class SmoDuration {
     /**
@@ -25340,6 +25618,7 @@ exports.SmoDuration = SmoDuration;
  * - An array of notes, if the notes split
  * - null if the note stays the same
  * - empty array, remove the note from the group
+ * @category SmoTransform
  */
 class SmoTickIterator {
     constructor(measure, actor, voiceIndex) {
@@ -25411,10 +25690,11 @@ class SmoTickIterator {
     }
 }
 exports.SmoTickIterator = SmoTickIterator;
-// ## VxContractActor
-// Contract the duration of a note, filling in the space with another note
-// or rest.
-//
+/**
+ * Contract the duration of a note, filling in the space with another note
+ * or rest.
+ * @category SmoTransform
+ * */
 class SmoContractNoteActor extends TickIteratorBase {
     constructor(params) {
         super();
@@ -25477,10 +25757,10 @@ class SmoContractNoteActor extends TickIteratorBase {
     }
 }
 exports.SmoContractNoteActor = SmoContractNoteActor;
-// ## VxContractActor
-// Contract the duration of a note in a tuplet by duplicate
-// notes of fractional length
-//
+/**
+ * Shrink the duration of a note in a tuplet by creating additional notes
+ * @category SmoTransform
+ */
 class SmoContractTupletActor extends TickIteratorBase {
     constructor(params) {
         super();
@@ -25520,12 +25800,10 @@ class SmoContractTupletActor extends TickIteratorBase {
     }
 }
 exports.SmoContractTupletActor = SmoContractTupletActor;
-// ## VxUnmakeTupletActor
-// Turn a tuplet into a non-tuplet of the same length
-// ## Parameters:
-// startIndex: start index of tuplet
-// endIndex: end index of tuplet
-// measure: Smo measure that the tuplet is contained in.
+/**
+ * Convert a tuplet into a single note that takes up the whole duration
+ * @category SmoTransform
+ */
 class SmoUnmakeTupletActor extends TickIteratorBase {
     constructor(parameters) {
         super();
@@ -25559,10 +25837,11 @@ class SmoUnmakeTupletActor extends TickIteratorBase {
     }
 }
 exports.SmoUnmakeTupletActor = SmoUnmakeTupletActor;
-// ## VxUnmakeTupletActor
-// Turn a tuplet into a non-tuplet of the same length
-// parameters:
-//  {tickmap:tickmap,ticks:ticks,
+/**
+ * Turn a tuplet into a non-tuplet of the same length
+ * @category SmoTransform
+ *
+ * */
 class SmoMakeTupletActor extends TickIteratorBase {
     constructor(params) {
         let i = 0;
@@ -25638,6 +25917,10 @@ class SmoMakeTupletActor extends TickIteratorBase {
     }
 }
 exports.SmoMakeTupletActor = SmoMakeTupletActor;
+/**
+ * increase the length of a note, removing future notes in the measure as required
+ * @category SmoTransform
+ */
 class SmoStretchNoteActor extends TickIteratorBase {
     constructor(params) {
         let mapIx = 0;
@@ -25731,13 +26014,17 @@ exports.TickMap = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const VF = eval('Vex.Flow');
-// ## TickMap
-// create a map note durations at each index into the voice, including the accidentals at each duration.
-// return format:
-//     tickmap = {
-//        totalDuration: 16384,
-//        durationMap:[2048,4096,..],  // A running total per tick
-//        deltaMap:[2048,2048...], a map of deltas
+/**
+ * create a map note durations at each index into the voice, including the accidentals at each duration.
+ * return format:
+ * ```
+   tickmap = {
+          totalDuration: 16384,
+          durationMap:[2048,4096,..],  // A running total per tick
+            deltaMap:[2048,2048...], a map of deltas
+ ```
+ * @category SmoTransform
+ */
 class TickMap {
     constructor(measure, voiceIndex) {
         this.notes = [];
@@ -25960,18 +26247,21 @@ const measure_1 = __webpack_require__(/*! ../data/measure */ "./src/smo/data/mea
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const scoreModifiers_1 = __webpack_require__(/*! ../data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
 const selections_1 = __webpack_require__(/*! ./selections */ "./src/smo/xform/selections.ts");
-// ## UndoBuffer
-// manage a set of undo or redo operations on a score.  The objects passed into
-// undo must implement serialize()/deserialize()
-// ### Buffer format:
-// A buffer is one of 7 things:
-// * A single measure,
-// * A single staff
-// * the whole score
-// * a score modifier (text)
-// * score attributes (layout, etc)
-// * column - all the measures at one index
-// * rectangle - a rectangle of measures
+/**
+ * manage a set of undo or redo operations on a score.  The objects passed into
+ * undo must implement serialize()/deserialize()
+ *
+ * ## Buffer format:
+ * A buffer is one of 7 things:
+ * * A single measure,
+ * * A single staff
+ *  * the whole score
+ *  * a score modifier (text)
+ *  * score attributes (layout, etc)
+ *  * column - all the measures at one index
+ *  * rectangle - a rectangle of measures
+ * @category SmoTransform
+ * */
 class UndoBuffer {
     constructor() {
         this.score = null;
@@ -33423,7 +33713,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiDialogAdapterBase = exports.SuiComponentAdapter = void 0;
 const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialogs/dialog.ts");
 /**
- * An adapter is the glue logic between UI components and the score view
+ * An adapter is the glue logic between UI components and the score view.
  * An adapter consists mostly of accessors (get/set) for the component data.  The
  * components have their initial values set from the adapter get, and changes to components
  * result in sets to the adapter.  The adapter can then update the score.
@@ -33433,6 +33723,7 @@ const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialogs/dialog.ts
  * @method commit - called when OK button of dialog is clicked
  * @method cancel - called when cancel button of dialog is clicked
  * @method remove - optional.  Called when 'remove' button is clicked, for artifacts like dynamics that can be removed.
+ * @category SuiDialog
  */
 class SuiComponentAdapter {
     constructor(view) {
@@ -33445,6 +33736,9 @@ exports.SuiComponentAdapter = SuiComponentAdapter;
 /**
  * SuiDialogAdapterBase is the base class for dialogs that use the adapter pattern
  * (almost all of them).
+ * @typeParam T a class that implements the Adapter interface and fulfills the
+ *  adapter data contract, with getters and setters from the components
+ * @category SuiDialog
  */
 class SuiDialogAdapterBase extends dialog_1.SuiDialogBase {
     constructor(def, params) {
@@ -33546,6 +33840,10 @@ exports.SuiDialogAdapterBase = SuiDialogAdapterBase;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiInsertMeasures = void 0;
 const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialogs/dialog.ts");
+/**
+ * Insert some number of measures
+ * @category SuiDialog
+ */
 class SuiInsertMeasures extends dialog_1.SuiDialogBase {
     constructor(parameters) {
         super(SuiInsertMeasures.dialogElements, parameters);
@@ -33604,6 +33902,10 @@ exports.SuiChordChangeDialog = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialogs/dialog.ts");
 const textRender_1 = __webpack_require__(/*! ../../render/sui/textRender */ "./src/render/sui/textRender.ts");
+/**
+ * Dialog for running a chord change editing session.
+ * @category SuiDialog
+ */
 class SuiChordChangeDialog extends dialog_1.SuiDialogBase {
     constructor(parameters) {
         super(SuiChordChangeDialog.dialogElements, parameters);
@@ -33851,6 +34153,7 @@ exports.SuiComponentParent = exports.SuiComponentBase = exports.SuiDialogNotifie
  * components know about their parent dialog via the
  * DialogNotifier interface.  It allows a component to
  * notify parent of changing contents.
+ * @category SuiDialog
  */
 class SuiDialogNotifier {
 }
@@ -33858,6 +34161,7 @@ exports.SuiDialogNotifier = SuiDialogNotifier;
 /**
  * base class for Dialog components.  Notifies parent
  * dialog of state change via `change()`
+ * @category SuiDialog
  */
 class SuiComponentBase {
     constructor(dialog, parameters) {
@@ -33905,6 +34209,7 @@ exports.SuiComponentBase = SuiComponentBase;
  * Parent components are really containers for other components
  * For instance, FontComponent has size, family, weight, etc.
  *
+ * @category SuiDialog
  */
 class SuiComponentParent extends SuiComponentBase {
 }
@@ -34244,14 +34549,14 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiFileDownloadComponent = void 0;
 const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
 const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
-const fileInput_1 = __webpack_require__(/*! ../../fileio/fileInput */ "./src/ui/fileio/fileInput.js");
+const fileInput_1 = __webpack_require__(/*! ../../fileio/fileInput */ "./src/ui/fileio/fileInput.ts");
 // ## SuiFileDownloadComponent
 // Download a test file using the file input.
 class SuiFileDownloadComponent extends baseComponent_1.SuiComponentBase {
     constructor(dialog, parameter) {
         var _a;
         super(dialog, parameter);
-        this.value = '';
+        this.value = null;
         this.defaultValue = (_a = parameter.defaultValue) !== null && _a !== void 0 ? _a : '';
         this.dialog = dialog;
     }
@@ -35835,12 +36140,12 @@ const baseComponent_1 = __webpack_require__(/*! ./components/baseComponent */ ".
  * You will only want to inherit from SuiDialogBase under 2 conditions:
  * 1. the dialog is triviailly simple, like an alert box that makes no changes to the score, or
  * 2. the dialog is extremely complicated in how it interacts with the user, such that a form-based approach won't work
+ * @category SuiDialog
  */
 class SuiDialogBase extends baseComponent_1.SuiDialogNotifier {
     // ### SuiDialogBase ctor
     // Creates the DOM element for the dialog and gets some initial elements
     constructor(dialogElements, parameters) {
-        var _a;
         super();
         this.components = [];
         this.boundComponents = [];
@@ -35857,7 +36162,6 @@ class SuiDialogBase extends baseComponent_1.SuiDialogNotifier {
         this.completeNotifier = parameters.completeNotifier;
         this.modifier = parameters.modifier;
         this.ctor = parameters.ctor;
-        this.autobind = (_a = parameters.autobind) !== null && _a !== void 0 ? _a : true;
         this.closeDialogPromise = new Promise((resolve) => {
             $('body').off('dialogDismiss').on('dialogDismiss', () => {
                 resolve();
@@ -35960,7 +36264,7 @@ class SuiDialogBase extends baseComponent_1.SuiDialogNotifier {
         });
     }
     initialValue() {
-        if (this.modifier === null || this.autobind === false) {
+        if (this.modifier === null) {
             return;
         }
         this.boundComponents.forEach((comp) => {
@@ -35968,7 +36272,7 @@ class SuiDialogBase extends baseComponent_1.SuiDialogNotifier {
         });
     }
     changed() {
-        if (this.modifier === null || this.autobind === false) {
+        if (this.modifier === null) {
             return;
         }
         this.boundComponents.forEach((comp) => {
@@ -36356,13 +36660,14 @@ exports.SuiModifierDialogFactory = SuiModifierDialogFactory;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiSaveMidiDialog = exports.SuiMidiSaveAdapter = exports.SuiSaveXmlDialog = exports.SuiXmlSaveAdapter = exports.SuiSaveFileDialog = exports.SuiSmoSaveAdapter = exports.SuiPrintFileDialog = exports.SuiLoadMxmlDialog = exports.SuiXmlLoadAdapter = exports.SuiLoadFileDialog = exports.SuiSmoLoadAdapter = void 0;
+exports.SuiSaveMidiDialog = exports.SuiMidiSaveAdapter = exports.SuiSaveXmlDialog = exports.SuiXmlSaveAdapter = exports.SuiSaveFileDialog = exports.SuiSmoSaveAdapter = exports.SuiPrintFileDialog = exports.SuiLoadMidiDialog = exports.SuiMidiLoadAdapter = exports.SuiLoadMxmlDialog = exports.SuiXmlLoadAdapter = exports.SuiLoadFileDialog = exports.SuiSmoLoadAdapter = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialogs/dialog.ts");
 const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
 const xmlScore_1 = __webpack_require__(/*! ../../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
 const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
+const midiToSmo_1 = __webpack_require__(/*! ../../smo/midi/midiToSmo */ "./src/smo/midi/midiToSmo.ts");
 /**
  * internal state of FileLoadDialog is just the string for the filename.
  */
@@ -36468,6 +36773,59 @@ class SuiLoadMxmlDialog extends adapter_1.SuiDialogAdapterBase {
 }
 exports.SuiLoadMxmlDialog = SuiLoadMxmlDialog;
 SuiLoadMxmlDialog.dialogElements = {
+    label: 'Load File',
+    elements: [{
+            smoName: 'loadFile',
+            defaultValue: '',
+            control: 'SuiFileDownloadComponent',
+            label: ''
+        },
+    ],
+    staticText: []
+};
+/**
+ * internal state of FileLoadDialog is just the string for the filename.
+ */
+class SuiMidiLoadAdapter extends adapter_1.SuiComponentAdapter {
+    constructor(view) {
+        super(view);
+        this.midiFile = null;
+        this.changeScore = false;
+    }
+    get loadFile() {
+        return this.midiFile;
+    }
+    set loadFile(value) {
+        this.midiFile = value;
+    }
+    commit() {
+        try {
+            // midi parser expects data in UintArray form
+            const ar = new Uint8Array(this.midiFile);
+            const midi = MidiParser.parse(ar);
+            this.view.changeScore(midiToSmo_1.MidiToSmo.getScore(midi));
+        }
+        catch (e) {
+            console.warn('unable to score ' + e);
+        }
+    }
+    cancel() { }
+}
+exports.SuiMidiLoadAdapter = SuiMidiLoadAdapter;
+class SuiLoadMidiDialog extends adapter_1.SuiDialogAdapterBase {
+    constructor(parameters) {
+        parameters.ctor = 'SuiLoadMidiDialog';
+        const adapter = new SuiMidiLoadAdapter(parameters.view);
+        super(SuiLoadMidiDialog.dialogElements, Object.assign({ adapter }, parameters));
+    }
+    changed() {
+        super.changed();
+        const enable = this.adapter.loadFile.length < 1;
+        $(this.dgDom.element).find('.ok-button').prop('disabled', enable);
+    }
+}
+exports.SuiLoadMidiDialog = SuiLoadMidiDialog;
+SuiLoadMidiDialog.dialogElements = {
     label: 'Load File',
     elements: [{
             smoName: 'loadFile',
@@ -39921,6 +40279,7 @@ exports.BrowserEventSource = void 0;
  * This is the event generating interface for Smoosic.  It is kept as
  * skeletal as possible so applications can call event handling methods from
  * their own event logic.
+ * @category SuiUiBase
  */
 class BrowserEventSource {
     constructor() {
@@ -40148,17 +40507,15 @@ exports.SuiExceptionHandler = SuiExceptionHandler;
 
 /***/ }),
 
-/***/ "./src/ui/fileio/fileInput.js":
+/***/ "./src/ui/fileio/fileInput.ts":
 /*!************************************!*\
-  !*** ./src/ui/fileio/fileInput.js ***!
+  !*** ./src/ui/fileio/fileInput.ts ***!
   \************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiFileInput = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
 // ## SuiFileInput
 // Get a string or binary file  from a file input control and transparently
 // decompress it if it's mxml file (compressed).  This will read any text  or
@@ -40166,6 +40523,8 @@ exports.SuiFileInput = void 0;
 // but it will only unzip .mxml files first and has a consistent async interface
 class SuiFileInput {
     constructor(evt) {
+        this.compressed = false;
+        this.binary = false;
         this.compressed = false;
         this.binary = false;
         this.value = null;
@@ -40193,9 +40552,13 @@ class SuiFileInput {
     }
     loadAsync() {
         const self = this;
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = (file) => {
+                if (file === null || file.target === null || file.target.result === null) {
+                    reject();
+                    return;
+                }
                 self.value = file.target.result;
                 if (!self.compressed) {
                     resolve();
@@ -40207,7 +40570,7 @@ class SuiFileInput {
                 }
             };
             if (self.binary) {
-                reader.readAsBinaryString(self.event.target.files[0]);
+                reader.readAsArrayBuffer(self.event.target.files[0]);
             }
             else {
                 reader.readAsText(self.event.target.files[0]);
@@ -46761,6 +47124,19 @@ class SuiFileMenu extends menu_1.SuiMenuBase {
                 startPromise: this.closePromise
             });
         }
+        else if (text === 'importMidi') {
+            (0, dialog_1.createAndDisplayDialog)(fileDialogs_1.SuiLoadMidiDialog, {
+                ctor: 'SuiLoadMidiDialog',
+                id: 'save',
+                modifier: null,
+                completeNotifier: this.completeNotifier,
+                tracker: this.tracker,
+                undoBuffer: this.undoBuffer,
+                eventSource: this.eventSource,
+                view: this.view,
+                startPromise: this.closePromise
+            });
+        }
         this.complete();
     }
     keydown() { }
@@ -46800,6 +47176,10 @@ SuiFileMenu.defaults = {
             icon: '',
             text: 'Export Midi',
             value: 'exportMidi'
+        }, {
+            icon: '',
+            text: 'Import Midi',
+            value: 'importMidi'
         }, {
             icon: 'folder-save',
             text: 'Save Actions',

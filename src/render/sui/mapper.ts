@@ -38,6 +38,7 @@ export interface HighlightQueue {
 /**
  * Map the notes in the svg so they can respond to events and interact
  * with the mouse/keyboard
+ * @category SuiRender
  */
 export abstract class SuiMapper {
   renderer: SuiRendererBase;

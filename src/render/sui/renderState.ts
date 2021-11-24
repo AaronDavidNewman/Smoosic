@@ -25,11 +25,13 @@ declare var SmoConfig: SmoRenderConfiguration;
 declare var $: any;
 const VF = eval('Vex.Flow');
 
-// ## SuiRenderState
-// Manage the state of the score rendering.  The score can be rendered either completely,
-// or partially for editing.  This class works with the RenderDemon to decide when to
-// render the score after it has been modified, and keeps track of what the current
-// render state is (dirty, etc.)
+/**
+ * Manage the state of the score rendering.  The score can be rendered either completely,
+ * or partially for editing.  This class works with the RenderDemon to decide when to
+ * render the score after it has been modified, and keeps track of what the current
+ * render state is (dirty, etc.)
+ * @category SuiRender
+ * */
 export abstract class SuiRenderState {
   attrs: SmoAttrs;
   dirty: boolean;

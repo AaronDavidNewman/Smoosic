@@ -42,6 +42,7 @@ declare var SmoConfig: SmoRenderConfiguration;
  * Because this object operates on the current selections, 
  * all operations return promise so applications can wait for the 
  * operation to complete and update the selection list.
+ * @category SuiRender
  */
 export class SuiScoreViewOperations extends SuiScoreView {
   /**

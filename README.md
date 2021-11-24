@@ -15,6 +15,10 @@ API Demo Links (codepen):
 ---
 
 ## Changes to Smoosic
+### MIDI import (sort of) November, 2021
+I had hoped to finish MIDI import this week, but as usual I misunderestimated how hard it would be.  The files exported from Smoosic import OK, except for tuplets.  But any
+MIDI file from a performance or exported by another program is a crapshoot.  I will need some logic dedicated to inferring the correct rhythms from the midi ticks.
+
 ### Typescript migration complete (Halloween, 2021)
 All of the project files have been rewritten in Typescript. The UI, particularly the dialog and menus, have been redone in a more component-friendly way. I expect to create new pens that describe how to create new UI elements, and modify existing ones.
 
