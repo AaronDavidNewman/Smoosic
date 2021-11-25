@@ -88,7 +88,7 @@ module.exports = function (grunt) {
           excludeProtected: true,
           excludePrivate: true,
           categorizeByGroup: true,
-          readme: 'readme-dev.md',
+          readme: 'readme.md',
           defaultCategory: ['Other'],
           categoryOrder: ['SmoObject', 'SmoModifier', 'SmoParameter', '*'],
           excludeNotDocumented: true

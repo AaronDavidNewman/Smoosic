@@ -44,13 +44,18 @@ export interface SmoConfigurationParams {
 }
 
 /**
- * Configures smoosic library or application
- * @param mode - score mode
+ * Configures smoosic library or application.  There are 3 different ways to determine what the initial score is:
+ * 1. scoreUrl loads a remote score from an URL
+ * 2. scoreLoadOrder checks the local storage or the 
+ * @param mode - score mode `'library' | 'application' | 'translate'`
+ *   Library mode starts the view but not the UI.  application mode starts the UI and expects UI parameters.
+ *   translation mode is the translation editor, for creating translations for dialog/menu components
  * @param smoPath - path to smoosic.js from html
- * @param scoreUrl - path (URL) to remote score
+ * @param scoreUrl - path (URL) to remote score, if you are starting with a pre-loaded score.  See `scoreLoadOrder`
  * @param language - startup language
  * @param scoreLoadOrder - default is ['query', 'local', 'library']
- *   if you're going to load your own score, you can just leave the default.
+ *  query gets a pre-created score from the query string.  Local loads the local storage score (quick save).
+ *  library loads a file from `SuiApplication.scoreLibrary`.  If you are using `scoreUrl` you can ignore this.
  * @param scoreLoadJson - the library score JSON, if you are loading from a JSON string
  * @param uiDomContainer - the id of the parent element of application UI
  * @param scoreDomContainer - the svg container
@@ -62,6 +67,8 @@ export interface SmoConfigurationParams {
  * @param languageDir - ltr or rtl
  * @param demonPollTime - how often we poll the score to see if it's changed
  * @param idleRedrawTime - how often the entire score re-renders
+ * @param ribbon - 
+ * @param ModalEventHandler - if starting in application mode, the starting mouse/keyboard event handler
  * @category SuiApplication
  */
  export class SmoConfiguration implements SmoRenderConfiguration, SmoUiConfiguration {
