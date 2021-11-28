@@ -144,7 +144,8 @@ export class SuiLoadMxmlDialog extends SuiDialogAdapterBase<SuiXmlLoadAdapter> {
         // midi parser expects data in UintArray form
         const ar = new Uint8Array(this.midiFile);
         const midi: any = MidiParser.parse(ar);
-        this.view.changeScore(MidiToSmo.getScore(midi));
+        const midiParser = new MidiToSmo(midi);
+        this.view.changeScore(midiParser.getScore());
       } catch (e) {
       console.warn('unable to score ' + e);
     }

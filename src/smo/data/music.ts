@@ -8,6 +8,7 @@
 import { SmoNote } from './note';
 import { Pitch, PitchKey, Clef, PitchLetter } from './common';
 import { SmoMicrotone } from './noteModifiers';
+import { ConcatenationScope } from 'webpack';
 
 /**
  * calculate the pitch frequency, just temperment a=440, etc.
@@ -1009,6 +1010,58 @@ export interface VexNoteValue {
     const dots = (vd.match(/d/g) || []).length;
     return dots;
   }
+  static get midiTicksForQuantize() {
+    // return Object.keys(SmoMusic.ticksToDuration).filter((key) => SmoMusic.ticksToDuration[key].indexOf('ddd') < 0 && SmoMusic.ticksToDuration[key].indexOf('dddd') < 0)
+    //  .map((key) => parseInt(key, 10));    
+    return Object.keys(SmoMusic.ticksToDuration).map((key) => parseInt(key, 10));    
+  }
+  static binarySearch(target: number, ix: number, partition: number, input: number[]) {
+    const test = input[ix];
+    const cost = Math.abs(target - test);
+    if (cost < 1) {
+      return ({ cost, result: test, newIx: ix, oldIx: ix, partition: 0, input })
+    }
+    partition = Math.round(partition / 2) + 1;
+    const step = Math.round(partition / 2);
+    if (input[ix] > target) {
+      return ({ cost, result: input[ix], newIx: ix - step, partition, input });
+    } else {
+      return ({ cost, result: input[ix], newIx: ix + step, partition, input });
+    }
+  }
+  static midiTickSearch(target: number) {
+    const tickSet = SmoMusic.midiTicksForQuantize;
+    let partition = Math.round(tickSet.length / 2);
+    let ix = partition;
+    let best = { cost: Math.abs(tickSet[ix] - target), result: tickSet[ix], ix };
+    let result = SmoMusic.binarySearch(target, ix, partition, tickSet);    
+    while (best.cost > 1) {
+      if (best.cost > result.cost) {
+        best.cost = result.cost;
+        best.result = result.result;
+        best.ix = ix;
+      }
+      ix = result.newIx;
+      if (result.partition <= 3) {
+        break;
+      }
+      result = SmoMusic.binarySearch(target, result.newIx, result.partition, tickSet);
+    }
+    if (result.cost > 1 && result.partition > 0) {
+      let i = 0;
+      const ix = best.ix;
+      const step = best.result > target ? -1 : 1;
+      for (i = 0; i < result.partition && (i * step) + ix < tickSet.length && (i * step) + ix > 0; ++i) {
+        const cost = Math.abs(target - tickSet[(i * step) + ix]);
+        if (best.cost > cost) {
+          best.cost = cost;
+          best.ix = (i * step) + ix;
+          best.result = tickSet[(i * step) + ix];
+        }
+      }
+    }
+    return { cost: best.cost, result: best.result };
+  }
   // ## closestVexDuration
   // ## Description:
   // return the closest vex duration >= to the actual number of ticks. Used in beaming
@@ -1034,7 +1087,6 @@ export interface VexNoteValue {
       .filter((key) => key <= ticks);
     return sorted[sorted.length - 1];
   }
-
   /**
    * Return array of valid note-lengths from an odd number of ticks,
    * so we can come as close as possible to representing the ticks with notes

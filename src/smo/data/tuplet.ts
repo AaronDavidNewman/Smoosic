@@ -11,6 +11,9 @@ import { SmoNoteModifierBase } from './noteModifiers';
 import { SmoAttrs, Clef } from './common';
 const VF = eval('Vex.Flow');
 
+/**
+ * @category SmoParams
+ */
 export interface SmoTupletParams {
   notes: SmoNote[],
   numNotes: number,
