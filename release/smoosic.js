@@ -644,13 +644,18 @@ exports.ConfigurationStringOptions = ['smoPath', 'language', 'title', 'libraryUr
     'languageDir'];
 exports.ConfigurationNumberOptions = ['demonPollTime', 'idleRedrawTime'];
 /**
- * Configures smoosic library or application
- * @param mode - score mode
+ * Configures smoosic library or application.  There are 3 different ways to determine what the initial score is:
+ * 1. scoreUrl loads a remote score from an URL
+ * 2. scoreLoadOrder checks the local storage or the
+ * @param mode - score mode `'library' | 'application' | 'translate'`
+ *   Library mode starts the view but not the UI.  application mode starts the UI and expects UI parameters.
+ *   translation mode is the translation editor, for creating translations for dialog/menu components
  * @param smoPath - path to smoosic.js from html
- * @param scoreUrl - path (URL) to remote score
+ * @param scoreUrl - path (URL) to remote score, if you are starting with a pre-loaded score.  See `scoreLoadOrder`
  * @param language - startup language
  * @param scoreLoadOrder - default is ['query', 'local', 'library']
- *   if you're going to load your own score, you can just leave the default.
+ *  query gets a pre-created score from the query string.  Local loads the local storage score (quick save).
+ *  library loads a file from `SuiApplication.scoreLibrary`.  If you are using `scoreUrl` you can ignore this.
  * @param scoreLoadJson - the library score JSON, if you are loading from a JSON string
  * @param uiDomContainer - the id of the parent element of application UI
  * @param scoreDomContainer - the svg container
@@ -662,6 +667,8 @@ exports.ConfigurationNumberOptions = ['demonPollTime', 'idleRedrawTime'];
  * @param languageDir - ltr or rtl
  * @param demonPollTime - how often we poll the score to see if it's changed
  * @param idleRedrawTime - how often the entire score re-renders
+ * @param ribbon -
+ * @param ModalEventHandler - if starting in application mode, the starting mouse/keyboard event handler
  * @category SuiApplication
  */
 class SmoConfiguration {
@@ -5079,6 +5086,7 @@ const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/dat
 /**
  * Map the notes in the svg so they can respond to events and interact
  * with the mouse/keyboard
+ * @category SuiRender
  */
 class SuiMapper {
     constructor(renderer, scroller, pasteBuffer) {
@@ -5927,11 +5935,13 @@ const ssp_sans_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp
 const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
 const beamers_1 = __webpack_require__(/*! ../../smo/xform/beamers */ "./src/smo/xform/beamers.ts");
 const VF = eval('Vex.Flow');
-// ## SuiRenderState
-// Manage the state of the score rendering.  The score can be rendered either completely,
-// or partially for editing.  This class works with the RenderDemon to decide when to
-// render the score after it has been modified, and keeps track of what the current
-// render state is (dirty, etc.)
+/**
+ * Manage the state of the score rendering.  The score can be rendered either completely,
+ * or partially for editing.  This class works with the RenderDemon to decide when to
+ * render the score after it has been modified, and keeps track of what the current
+ * render state is (dirty, etc.)
+ * @category SuiRender
+ * */
 class SuiRenderState {
     constructor(ctor) {
         this.passState = SuiRenderState.passStates.initial;
@@ -6478,9 +6488,11 @@ const textRender_1 = __webpack_require__(/*! ./textRender */ "./src/render/sui/t
 const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const ssp_sans_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
 const VF = eval('Vex.Flow');
-// ## SuiScoreRender
-// This module renders the entire score.  It calculates the layout first based on the
-// computed dimensions.
+/**
+ * This module renders the entire score.  It calculates the layout first based on the
+ * computed dimensions.
+  * @category SuiRender
+**/
 class SuiScoreRender extends renderState_1.SuiRenderState {
     constructor(params) {
         super('SuiScoreRender');
@@ -6972,6 +6984,7 @@ const utActions_1 = __webpack_require__(/*! ../../music/utActions */ "./src/musi
  * 1. Undo and recording actions for the operation
  * 2. Maintain/change which staves in the score are displayed (staff map)
  * 3. Mapping between the displayed score and the data representation
+ * @category SuiRender
  */
 class SuiScoreView {
     constructor(renderer, score, scrollSelector, undoBuffer) {
@@ -7422,6 +7435,7 @@ const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ 
  * Because this object operates on the current selections,
  * all operations return promise so applications can wait for the
  * operation to complete and update the selection list.
+ * @category SuiRender
  */
 class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     /**
@@ -16608,6 +16622,61 @@ class SmoMusic {
         const dots = (vd.match(/d/g) || []).length;
         return dots;
     }
+    static get midiTicksForQuantize() {
+        return Object.keys(SmoMusic.ticksToDuration).filter((key) => SmoMusic.ticksToDuration[key].indexOf('dd') < 0 &&
+            SmoMusic.ticksToDuration[key].indexOf('ddd') < 0 &&
+            SmoMusic.ticksToDuration[key].indexOf('dddd') < 0 && parseInt(key, 10) >= 1024)
+            .map((key) => parseInt(key, 10));
+        // return Object.keys(SmoMusic.ticksToDuration).map((key) => parseInt(key, 10));    
+    }
+    static binarySearch(target, ix, partition, input) {
+        const test = input[ix];
+        const cost = Math.abs(target - test);
+        if (cost < 1) {
+            return ({ cost, result: test, newIx: ix, oldIx: ix, partition: 0, input });
+        }
+        partition = Math.round(partition / 2) + 1;
+        const step = Math.round(partition / 2);
+        if (input[ix] > target) {
+            return ({ cost, result: input[ix], newIx: ix - step, partition, input });
+        }
+        else {
+            return ({ cost, result: input[ix], newIx: ix + step, partition, input });
+        }
+    }
+    static midiTickSearch(target) {
+        const tickSet = SmoMusic.midiTicksForQuantize;
+        let partition = Math.round(tickSet.length / 2);
+        let ix = partition;
+        let best = { cost: Math.abs(tickSet[ix] - target), result: tickSet[ix], ix };
+        let result = SmoMusic.binarySearch(target, ix, partition, tickSet);
+        while (best.cost > 1) {
+            if (best.cost > result.cost) {
+                best.cost = result.cost;
+                best.result = result.result;
+                best.ix = ix;
+            }
+            ix = result.newIx;
+            if (result.partition <= 3) {
+                break;
+            }
+            result = SmoMusic.binarySearch(target, result.newIx, result.partition, tickSet);
+        }
+        if (result.cost > 1 && result.partition > 0) {
+            let i = 0;
+            const ix = best.ix;
+            const step = best.result > target ? -1 : 1;
+            for (i = 0; i < result.partition && (i * step) + ix < tickSet.length && (i * step) + ix > 0; ++i) {
+                const cost = Math.abs(target - tickSet[(i * step) + ix]);
+                if (best.cost > cost) {
+                    best.cost = cost;
+                    best.ix = (i * step) + ix;
+                    best.result = tickSet[(i * step) + ix];
+                }
+            }
+        }
+        return { cost: best.cost, result: best.result };
+    }
     // ## closestVexDuration
     // ## Description:
     // return the closest vex duration >= to the actual number of ticks. Used in beaming
@@ -16834,6 +16903,9 @@ class SmoNote {
         this.pitches = JSON.parse(JSON.stringify(pitches));
         this.clef = params.clef ? params.clef : defs.clef;
         this.fillStyle = params.fillStyle ? params.fillStyle : '';
+        if (params.tuplet) {
+            this.tuplet = params.tuplet;
+        }
         this.attrs = {
             id: VF.Element.newID(),
             type: 'SmoNote'
@@ -18350,8 +18422,10 @@ class SmoScore {
             });
         });
     }
-    // ### serialize
-    // ### Serialize the score.  The resulting JSON string will contain all the staves, measures, etc.
+    /**
+     * Serialize the entire score.
+     * @returns JSON object
+     */
     serialize() {
         const params = {};
         let obj = {
@@ -18427,8 +18501,11 @@ class SmoScore {
         }
         SmoScore.upConvertGlobalLayout(jsonObj);
     }
-    // ### deserialize
-    // Restore an earlier JSON string.  Unlike other deserialize methods, this one expects the string.
+    /**
+     * Deserialize an entire score
+     * @param jsonString
+     * @returns
+     */
     static deserialize(jsonString) {
         let jsonObj = JSON.parse(jsonString);
         let upconvertFormat = false;
@@ -18508,8 +18585,12 @@ class SmoScore {
         });
         return new scoreModifiers_1.SmoFormattingManager({ measureFormats });
     }
-    // ### getDefaultScore
-    // Gets a score consisting of a single measure with all the defaults.
+    /**
+     * Return a default score with no notes or staves
+     * @param scoreDefaults
+     * @param measureDefaults
+     * @returns
+     */
     static getDefaultScore(scoreDefaults, measureDefaults) {
         measureDefaults = measureDefaults !== null ? measureDefaults : measure_1.SmoMeasure.defaults;
         const score = new SmoScore(scoreDefaults);
@@ -18522,15 +18603,19 @@ class SmoScore {
         });
         return score;
     }
-    // ### getEmptyScore
-    // Create a score object, but don't populate it with anything.
+    /**
+     * Return an 'empty' score, with one measure of rests
+     * @param scoreDefaults
+     * @returns
+     */
     static getEmptyScore(scoreDefaults) {
         const score = new SmoScore(scoreDefaults);
         score.addStaff(systemStaff_1.SmoSystemStaff.defaults);
         return score;
     }
-    // ### numberStaves
-    // recursively renumber staffs and measures.
+    /**
+     * Iteratively number the staves, like when adding a measure
+     */
     numberStaves() {
         let i = 0;
         for (i = 0; i < this.staves.length; ++i) {
@@ -18546,18 +18631,19 @@ class SmoScore {
             });
         });
     }
-    // ### addDefaultMeasureWithNotes
-    // ### Description:
-    // Add a measure to the score with the supplied parameters at the supplied index.
-    // The defaults per staff may be different depending on the clef, key of the staff.
+    /**
+     * Add a measure to the score with the supplied parameters at the supplied index.
+     * The defaults per staff may be different depending on the clef, key of the staff.
+    */
     addDefaultMeasureWithNotes(measureIndex, parameters) {
         this.staves.forEach((staff) => {
             const defaultMeasure = measure_1.SmoMeasure.getDefaultMeasureWithNotes(parameters);
             staff.addMeasure(measureIndex, defaultMeasure);
         });
     }
-    // ### deleteMeasure
-    // Delete the measure at the supplied index in all the staves.
+    /**
+     * delete the measure at the supplied index in all the staves
+    */
     deleteMeasure(measureIndex) {
         this.staves.forEach((staff) => {
             staff.deleteMeasure(measureIndex);
@@ -20824,7 +20910,6 @@ const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.t
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
 const score_1 = __webpack_require__(/*! ../data/score */ "./src/smo/data/score.ts");
 const systemStaff_1 = __webpack_require__(/*! ../data/systemStaff */ "./src/smo/data/systemStaff.ts");
-const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
 exports.MidiEvent = {
     noteOff: 8,
     noteOn: 9,
@@ -20849,16 +20934,33 @@ exports.MidiMetaEvent = {
  * @category SmoToMidi
  */
 class MidiToSmo {
+    constructor(midi) {
+        this.timeSignature = new measureModifiers_1.TimeSignature(measureModifiers_1.TimeSignature.defaults);
+        this.tempo = new measureModifiers_1.SmoTempoText(measureModifiers_1.SmoTempoText.defaults);
+        this.keySignature = 'C';
+        this.midiOnNotes = {};
+        this.trackNotes = [];
+        this.trackMeasures = [];
+        this.deltaTime = 0;
+        this.ticksPerMeasure = 4096 * 4;
+        this.timeDivision = 480;
+        this.trackIndex = 0; // index into current track
+        this.maxMeasure = 0;
+        this.eot = false;
+        this.midi = midi;
+        console.log(JSON.stringify(midi, null, ''));
+        this.timeDivision = midi.timeDivision;
+    }
     /**
      * Since midi has very little metadata, we don't know the original clef.
      * so just use the one (treble or bass) that uses the fewest ledger lines
      * @param notes notes in measure
      * @returns
      */
-    static guessClefForNotes(notes) {
+    static guessClefForNotes(measure) {
         let trebleMax = 0;
         let bassMax = 0;
-        notes.forEach((note) => {
+        measure.voices[0].notes.forEach((note) => {
             note.pitches.forEach((pitch) => {
                 const tl = Math.abs(music_1.SmoMusic.pitchToLedgerLine('treble', pitch));
                 const bl = Math.abs(music_1.SmoMusic.pitchToLedgerLine('bass', pitch));
@@ -20867,15 +20969,17 @@ class MidiToSmo {
             });
         });
         const clef = trebleMax <= bassMax ? 'treble' : 'bass';
+        measure.clef = clef;
         // For rests, make sure the rest is centered in the clef
-        notes.forEach((note) => {
+        measure.voices[0].notes.forEach((note) => {
             if (note.noteType === 'r') {
                 note.pitches = [measure_1.SmoMeasure.defaultPitchForClef[clef]];
             }
+            note.clef = clef;
         });
         return clef;
     }
-    static handleMetadata(trackEvent, state) {
+    handleMetadata(trackEvent) {
         if (trackEvent.type === exports.MidiEvent.meta) {
             const mtype = trackEvent.metaType;
             if (mtype === exports.MidiMetaEvent.timeSignature) {
@@ -20888,20 +20992,20 @@ class MidiToSmo {
                 const tsDef = measureModifiers_1.TimeSignature.defaults;
                 tsDef.actualBeats = numerator;
                 tsDef.beatDuration = denominator;
-                state.timeSignature = new measureModifiers_1.TimeSignature(tsDef);
-                state.ticksInMeasure = music_1.SmoMusic.timeSignatureToTicks(state.timeSignature.timeSignature);
+                this.timeSignature = new measureModifiers_1.TimeSignature(tsDef);
+                this.ticksPerMeasure = music_1.SmoMusic.timeSignatureToTicks(this.timeSignature.timeSignature);
             }
             else if (mtype === exports.MidiMetaEvent.tempo) {
                 const mpq = trackEvent.data;
                 const bpm = (1000000 * 60) / mpq;
                 const tempoDef = measureModifiers_1.SmoTempoText.defaults;
                 tempoDef.bpm = bpm;
-                state.tempo = new measureModifiers_1.SmoTempoText(tempoDef);
+                this.tempo = new measureModifiers_1.SmoTempoText(tempoDef);
             }
             else if (mtype === exports.MidiMetaEvent.keySignature) {
                 const mdata = trackEvent.data;
                 if (mdata === 0) {
-                    state.keySignature = 'C';
+                    this.keySignature = 'C';
                 }
                 else {
                     // there seem to be different ways to encode this...
@@ -20912,104 +21016,225 @@ class MidiToSmo {
                     if (Math.abs(mdata) < 256) {
                         signed = mdata;
                     }
-                    state.keySignature = music_1.SmoMusic.midiKeyToVexKey(signed);
+                    this.keySignature = music_1.SmoMusic.midiKeyToVexKey(signed);
                 }
             }
         }
     }
-    static midiNoteKey(channel, note) {
-        return channel.toString() + '-' + note.toString();
+    getSmoTicks(midiTicks) {
+        return 4096 * midiTicks / this.timeDivision;
     }
-    static getSmoTicks(midiState, midiTicks) {
-        return 4096 * midiTicks / midiState.timeDivision;
-    }
-    static getScore(midi) {
-        const midiState = {
-            keySignature: 'C', tempo: new measureModifiers_1.SmoTempoText(measureModifiers_1.SmoTempoText.defaults), timeSignature: new measureModifiers_1.TimeSignature(measureModifiers_1.TimeSignature.defaults),
-            midiOnNotes: [], trackNotes: [], trackMeasures: [], selector: selections_1.SmoSelector.default,
-            trackTicks: 0,
-            measureTicks: 0, deltaTime: 0, ticksInMeasure: 0, timeDivision: midi.timeDivision
+    createNewEvent() {
+        return {
+            pitches: [], durationTicks: 0, isTuplet: false, isRest: false, timeSignature: new measureModifiers_1.TimeSignature(this.timeSignature),
+            tempo: new measureModifiers_1.SmoTempoText(this.tempo), keySignature: this.keySignature, measure: 0, tick: 0
         };
-        midiState.ticksInMeasure = music_1.SmoMusic.timeSignatureToTicks(midiState.timeSignature.timeSignature);
-        let staves = [];
-        // go through the tracks
-        midi.track.forEach((track, trackIx) => {
-            const trackEvents = track.event;
-            // The number of ticks in the measure so far, including current event
-            midiState.selector.staff = trackIx;
-            midiState.selector.measure = 0;
-            midiState.selector.tick = 0;
-            midiState.trackMeasures = [];
-            midiState.measureTicks = 0;
-            midiState.trackTicks = 0;
-            // go through each track event.
-            trackEvents.forEach((trackEvent) => {
-                const eot = trackEvent.type === exports.MidiEvent.meta && trackEvent.metaType === exports.MidiMetaEvent.eot;
-                // The delta is the time of this event from the previous one.  If there was measure overflow
-                // from the last measure, account for that.
-                if (trackEvent.deltaTime > 0) {
-                    const smoTicks = music_1.SmoMusic.closestDurationTickLtEq(MidiToSmo.getSmoTicks(midiState, trackEvent.deltaTime));
-                    if (smoTicks) {
-                        // Next note, advance the midi cursor and add the notes we've collected to a new measure
-                        const smoNote = new note_1.SmoNote(note_1.SmoNote.defaults);
-                        smoNote.ticks.numerator = smoTicks;
-                        if (midiState.midiOnNotes.length) {
-                            smoNote.pitches = [];
-                            midiState.midiOnNotes.forEach((mm) => {
-                                const npitch = music_1.SmoMusic.getEnharmonicInKey(music_1.SmoMusic.smoIntToPitch(mm.note - 12), midiState.keySignature);
-                                smoNote.pitches.push(npitch);
-                            });
-                            note_1.SmoNote.sortPitches(smoNote);
-                        }
-                        else {
-                            smoNote.noteType = 'r';
-                        }
-                        midiState.trackNotes.push(smoNote);
-                        midiState.midiOnNotes = [];
-                        midiState.deltaTime = MidiToSmo.getSmoTicks(midiState, trackEvent.deltaTime);
-                        midiState.trackTicks += midiState.deltaTime;
-                        midiState.measureTicks += midiState.deltaTime;
-                        midiState.selector.tick += 1;
+    }
+    static copyEvent(o) {
+        const pitches = JSON.parse(JSON.stringify(o.pitches));
+        const timeSignature = new measureModifiers_1.TimeSignature(o.timeSignature);
+        const tempo = new measureModifiers_1.SmoTempoText(o.tempo);
+        return ({
+            pitches, durationTicks: o.durationTicks, isTuplet: o.isTuplet, isRest: o.isRest, timeSignature, tempo, keySignature: o.keySignature,
+            measure: o.measure, tick: o.tick
+        });
+    }
+    createNotesFromEvents(events) {
+        let measureIndex = 0;
+        const measures = [];
+        let measure = null;
+        let deficit = 0;
+        events.forEach((ev) => {
+            if (measure === null || ev.measure > measureIndex) {
+                const measureDefs = measure_1.SmoMeasure.defaults;
+                measureDefs.keySignature = ev.keySignature;
+                measureDefs.timeSignature = new measureModifiers_1.TimeSignature(ev.timeSignature);
+                measureDefs.tempo = new measureModifiers_1.SmoTempoText(ev.tempo);
+                measure = new measure_1.SmoMeasure(measureDefs);
+                measure.voices.push({ notes: [] });
+                measureIndex = ev.measure;
+                measures.push(measure);
+            }
+            // If the midi event is smaller than the smallest note..
+            if (Math.abs(ev.durationTicks - deficit) < 1024) {
+                deficit = ev.durationTicks - deficit;
+            }
+            else {
+                const best = music_1.SmoMusic.midiTickSearch(ev.durationTicks - deficit);
+                deficit += best.result - ev.durationTicks;
+                ev.durationTicks = best.result;
+                const defs = note_1.SmoNote.defaults;
+                defs.ticks.numerator = ev.durationTicks;
+                defs.pitches = JSON.parse(JSON.stringify(ev.pitches));
+                defs.noteType = ev.isRest ? 'r' : 'n';
+                const note = new note_1.SmoNote(defs);
+                note_1.SmoNote.sortPitches(note);
+                measure.voices[0].notes.push(note);
+            }
+        });
+        measures.forEach((measure) => {
+            measure.clef = MidiToSmo.guessClefForNotes(measure);
+        });
+        return measures;
+    }
+    expandMidiEvents(events) {
+        const rv = [];
+        if (events.length === 0) {
+            return rv;
+        }
+        let i = 0;
+        let ticksSoFar = 0;
+        let measure = 0;
+        let tick = 0;
+        for (i = 0; i < events.length; ++i) {
+            const ev = events[i];
+            // If it's too small, continue
+            if (ev.durationTicks < 128) {
+                continue;
+            }
+            const ticksPerMeasure = music_1.SmoMusic.timeSignatureToTicks(ev.timeSignature.timeSignature);
+            const nevent = MidiToSmo.copyEvent(ev);
+            if (ticksSoFar + ev.durationTicks > ticksPerMeasure) {
+                nevent.durationTicks = ticksPerMeasure - ticksSoFar;
+                if (nevent.durationTicks > 0) {
+                    rv.push(nevent);
+                    nevent.tick = tick;
+                }
+                tick = 0;
+                measure += 1;
+                ticksSoFar = 0;
+                this.maxMeasure = Math.max(this.maxMeasure, measure);
+                let overflow = ev.durationTicks - nevent.durationTicks;
+                while (overflow > ticksPerMeasure) {
+                    const ovfEvent = MidiToSmo.copyEvent(nevent);
+                    ovfEvent.tick = tick;
+                    ovfEvent.measure = measure;
+                    tick += 1;
+                    measure += 1;
+                    ovfEvent.durationTicks = ticksPerMeasure;
+                    rv.push(ovfEvent);
+                    overflow -= ticksPerMeasure;
+                }
+                if (overflow > 0) {
+                    const ovfEvent = MidiToSmo.copyEvent(nevent);
+                    ovfEvent.durationTicks = overflow;
+                    ovfEvent.measure = measure;
+                    ovfEvent.tick = tick;
+                    ticksSoFar += ovfEvent.durationTicks;
+                    tick += 1;
+                    rv.push(ovfEvent);
+                    overflow = 0;
+                }
+            }
+            else {
+                ticksSoFar += ev.durationTicks;
+                rv.push(nevent);
+            }
+        }
+        return rv;
+    }
+    collapseMidiEvents(trackEvents) {
+        const isEot = (ev) => {
+            if (typeof (ev.type) === 'undefined') {
+                return true;
+            }
+            return ev.type === exports.MidiEvent.meta && ev.metaType === exports.MidiMetaEvent.eot;
+        };
+        if (this.trackIndex >= trackEvents.length) {
+            this.eot = true;
+            return [];
+        }
+        const rv = [];
+        let cur = trackEvents[0];
+        let curSmo = this.createNewEvent();
+        while (this.trackIndex < trackEvents.length && !(this.eot)) {
+            if (isEot(cur)) {
+                this.eot = true;
+                break;
+            }
+            if (cur.deltaTime > 0) {
+                curSmo.durationTicks = this.getSmoTicks(cur.deltaTime);
+                if (curSmo.pitches.length === 0) {
+                    curSmo.isRest = true;
+                }
+                rv.push(curSmo);
+                curSmo = this.createNewEvent();
+            }
+            curSmo.timeSignature = this.timeSignature;
+            curSmo.tempo = this.tempo;
+            curSmo.keySignature = this.keySignature;
+            const channel = cur.channel;
+            if (cur.type === exports.MidiEvent.noteOn || cur.type === exports.MidiEvent.noteOff) {
+                const mnote = cur.data;
+                const note = mnote[0];
+                const velocity = mnote[1];
+                if (this.midiOnNotes[note]) {
+                    const mm = this.midiOnNotes[note];
+                    const npitch = music_1.SmoMusic.getEnharmonicInKey(music_1.SmoMusic.smoIntToPitch(mm.note - 12), this.keySignature);
+                    if (mm.smoIndex < rv.length) {
+                        rv[mm.smoIndex].pitches.push(npitch);
+                        rv[mm.smoIndex].isRest = false;
+                        delete this.midiOnNotes[note];
+                    }
+                    else {
+                        console.warn('bad index in event mm.smoIndex');
                     }
                 }
-                // update changes to tempo, etc.
-                MidiToSmo.handleMetadata(trackEvent, midiState);
-                if (trackEvent.type === exports.MidiEvent.noteOn) {
-                    const channel = trackEvent.channel;
-                    const mnote = trackEvent.data;
-                    const note = mnote[0];
-                    midiState.midiOnNotes.push({
-                        channel, note, selector: JSON.parse(JSON.stringify(midiState.selector)), trackTicks: midiState.trackTicks
-                    });
+                if (cur.type === exports.MidiEvent.noteOn && velocity > 0) {
+                    this.midiOnNotes[note] = { channel, note, smoIndex: rv.length };
                 }
-                // Is this the end of a measure?
-                if (midiState.trackNotes.length > 0 &&
-                    (midiState.measureTicks >= midiState.ticksInMeasure || eot)) {
-                    const defs = measure_1.SmoMeasure.defaults;
-                    defs.clef = MidiToSmo.guessClefForNotes(midiState.trackNotes);
-                    midiState.trackNotes.forEach((snote) => {
-                        snote.clef = defs.clef;
-                    });
-                    defs.voices[0] = { notes: midiState.trackNotes };
-                    defs.timeSignature = midiState.timeSignature;
-                    defs.tempo = midiState.tempo;
-                    defs.keySignature = midiState.keySignature;
-                    midiState.trackMeasures.push(new measure_1.SmoMeasure(defs));
-                    midiState.trackNotes = [];
-                    midiState.measureTicks = 0;
-                    midiState.selector.tick = 0;
-                    midiState.deltaTime = 0;
-                }
-            });
-            if (midiState.trackMeasures.length > 0) {
+            }
+            else if (cur.type === exports.MidiEvent.meta) {
+                this.handleMetadata(cur);
+            }
+            this.trackIndex += 1;
+            cur = trackEvents[this.trackIndex];
+            if (isEot(cur)) {
+                this.eot = true;
+                break;
+            }
+        }
+        return rv;
+    }
+    resetForTrack() {
+        this.midiOnNotes = [];
+        this.trackNotes = [];
+        this.trackMeasures = [];
+        this.deltaTime = 0;
+        this.trackIndex = 0; // index into current track
+        this.eot = false;
+    }
+    getScore() {
+        let staves = [];
+        // go through the tracks
+        this.midi.track.forEach((track, trackIx) => {
+            this.resetForTrack();
+            const trackEvents = track.event;
+            const collapsed = this.collapseMidiEvents(trackEvents);
+            const expanded = this.expandMidiEvents(collapsed);
+            if (expanded.length > 0) {
                 const staffDef = systemStaff_1.SmoSystemStaff.defaults;
-                staffDef.measures = midiState.trackMeasures;
+                staffDef.measures = this.createNotesFromEvents(expanded);
                 staves.push(new systemStaff_1.SmoSystemStaff(staffDef));
             }
         });
         if (staves.length === 0) {
             return score_1.SmoScore.getEmptyScore(score_1.SmoScore.defaults);
         }
+        let longestStave = staves[0];
+        staves.forEach((staff) => {
+            if (staff.measures.length > longestStave.measures.length) {
+                longestStave = staff;
+            }
+        });
+        staves.forEach((staff) => {
+            let i = 0;
+            for (i = staff.measures.length; i < longestStave.measures.length; ++i) {
+                const measure = measure_1.SmoMeasure.getDefaultMeasure(longestStave.measures[i]);
+                measure.voices.push({ notes: measure_1.SmoMeasure.getDefaultNotes(longestStave.measures[i]) });
+                staff.measures.push(measure);
+            }
+        });
         const scoreDefs = score_1.SmoScore.defaults;
         scoreDefs.staves = staves;
         const rv = new score_1.SmoScore(scoreDefs);
@@ -36803,7 +37028,8 @@ class SuiMidiLoadAdapter extends adapter_1.SuiComponentAdapter {
             // midi parser expects data in UintArray form
             const ar = new Uint8Array(this.midiFile);
             const midi = MidiParser.parse(ar);
-            this.view.changeScore(midiToSmo_1.MidiToSmo.getScore(midi));
+            const midiParser = new midiToSmo_1.MidiToSmo(midi);
+            this.view.changeScore(midiParser.getScore());
         }
         catch (e) {
             console.warn('unable to score ' + e);

@@ -1011,9 +1011,12 @@ export interface VexNoteValue {
     return dots;
   }
   static get midiTicksForQuantize() {
-    // return Object.keys(SmoMusic.ticksToDuration).filter((key) => SmoMusic.ticksToDuration[key].indexOf('ddd') < 0 && SmoMusic.ticksToDuration[key].indexOf('dddd') < 0)
-    //  .map((key) => parseInt(key, 10));    
-    return Object.keys(SmoMusic.ticksToDuration).map((key) => parseInt(key, 10));    
+    return Object.keys(SmoMusic.ticksToDuration).filter((key) => 
+      SmoMusic.ticksToDuration[key].indexOf('dd') < 0 &&
+      SmoMusic.ticksToDuration[key].indexOf('ddd') < 0 &&
+      SmoMusic.ticksToDuration[key].indexOf('dddd') < 0 && parseInt(key, 10) >= 1024)
+       .map((key) => parseInt(key, 10));    
+    // return Object.keys(SmoMusic.ticksToDuration).map((key) => parseInt(key, 10));    
   }
   static binarySearch(target: number, ix: number, partition: number, input: number[]) {
     const test = input[ix];

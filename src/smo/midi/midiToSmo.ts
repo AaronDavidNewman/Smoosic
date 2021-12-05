@@ -23,7 +23,8 @@ export interface MidiTrackEvent {
 }
 interface MidiNoteOn {
   channel: number,
-  note: number
+  note: number,
+  smoIndex: number
 }
 interface EventSmoData {
   pitches: Pitch[],
@@ -64,7 +65,7 @@ export class MidiToSmo {
   timeSignature: TimeSignature = new TimeSignature(TimeSignature.defaults);
   tempo: SmoTempoText = new SmoTempoText(SmoTempoText.defaults);
   keySignature: string = 'C';
-  midiOnNotes: MidiNoteOn[] = [];
+  midiOnNotes: Record<number,MidiNoteOn> = {};
   trackNotes: SmoNote[] = [];
   trackMeasures: SmoMeasure[] = [];
   deltaTime: number = 0;
@@ -164,6 +165,7 @@ export class MidiToSmo {
     let measureIndex = 0;
     const measures: SmoMeasure[] = [];
     let measure: SmoMeasure | null = null;
+    let deficit = 0;
     events.forEach((ev) => {
       if (measure === null || ev.measure > measureIndex) {
         const measureDefs = SmoMeasure.defaults;
@@ -175,14 +177,21 @@ export class MidiToSmo {
         measureIndex = ev.measure;
         measures.push(measure);
       }
-      const best = SmoMusic.midiTickSearch(ev.durationTicks);
-      ev.durationTicks = best.result;
-      const defs = SmoNote.defaults;
-      defs.ticks.numerator = ev.durationTicks;
-      defs.pitches = JSON.parse(JSON.stringify(ev.pitches));
-      defs.noteType = ev.isRest ? 'r' : 'n';
-      const note = new SmoNote(defs);
-      measure.voices[0].notes.push(note);
+      // If the midi event is smaller than the smallest note..
+      if (Math.abs(ev.durationTicks - deficit) < 1024) {
+        deficit = ev.durationTicks - deficit;
+      } else {
+        const best = SmoMusic.midiTickSearch(ev.durationTicks - deficit);
+        deficit += best.result - ev.durationTicks;
+        ev.durationTicks = best.result;
+        const defs = SmoNote.defaults;
+        defs.ticks.numerator = ev.durationTicks;
+        defs.pitches = JSON.parse(JSON.stringify(ev.pitches));
+        defs.noteType = ev.isRest ? 'r' : 'n';
+        const note = new SmoNote(defs);
+        SmoNote.sortPitches(note);
+        measure.voices[0].notes.push(note);
+      }
     });
     measures.forEach((measure) => {
       measure.clef = MidiToSmo.guessClefForNotes(measure);
@@ -222,6 +231,7 @@ export class MidiToSmo {
           ovfEvent.tick = tick;
           ovfEvent.measure  = measure;
           tick += 1;
+          measure += 1;
           ovfEvent.durationTicks = ticksPerMeasure;
           rv.push(ovfEvent);
           overflow -= ticksPerMeasure;
@@ -231,6 +241,7 @@ export class MidiToSmo {
           ovfEvent.durationTicks = overflow;
           ovfEvent.measure = measure;
           ovfEvent.tick = tick;
+          ticksSoFar += ovfEvent.durationTicks;
           tick += 1;
           rv.push(ovfEvent);
           overflow = 0;
@@ -273,18 +284,23 @@ export class MidiToSmo {
       curSmo.tempo = this.tempo;
       curSmo.keySignature = this.keySignature;
       const channel = cur.channel!;
-      if (cur.type === MidiEvent.noteOn) {
+      if (cur.type === MidiEvent.noteOn || cur.type === MidiEvent.noteOff) {
         const mnote = cur.data as number[];
         const note = mnote[0];
-        this.midiOnNotes.push({ channel, note });
-      } else if (cur.type === MidiEvent.noteOff) {
-        if (rv.length > 0) {
-          this.midiOnNotes.forEach((mm) => {
-            const npitch = SmoMusic.getEnharmonicInKey(SmoMusic.smoIntToPitch(mm.note - 12), this.keySignature);
-            rv[rv.length - 1].pitches.push(npitch);
-            rv[rv.length - 1].isRest = false;
-          });
-          this.midiOnNotes = [];
+        const velocity = mnote[1];
+        if (this.midiOnNotes[note]) {
+          const mm = this.midiOnNotes[note];
+          const npitch = SmoMusic.getEnharmonicInKey(SmoMusic.smoIntToPitch(mm.note - 12), this.keySignature);
+          if (mm.smoIndex < rv.length) {
+            rv[mm.smoIndex].pitches.push(npitch);
+            rv[mm.smoIndex].isRest = false;
+            delete this.midiOnNotes[note];
+          } else {
+            console.warn('bad index in event mm.smoIndex');
+          }
+        }
+        if (cur.type === MidiEvent.noteOn && velocity > 0) {
+          this.midiOnNotes[note] = { channel, note, smoIndex: rv.length };
         }
       } else if (cur.type === MidiEvent.meta) {
         this.handleMetadata(cur);
@@ -300,6 +316,7 @@ export class MidiToSmo {
   }
   constructor(midi: any) {
     this.midi = midi;
+    console.log(JSON.stringify(midi, null, ''));
     this.timeDivision = midi.timeDivision;
   }
   resetForTrack() {

@@ -39,6 +39,7 @@ export const NoteBooleanParams: NoteBooleanParam[] = ['hidden', 'endBeam', 'isCu
  * @param graceNotes
  * @param ornaments
  * @param tones
+ * @param tuplet tuplet info, if the note is part of a tuplet
  * @param endBeam true if this is the last note in a beam
  * @param fillStyle for special effects, for instance to highlight active voice
  * @param hidden indicates the note (usually a rest) is invisible (transparent)
@@ -58,6 +59,7 @@ export interface SmoNoteParams {
   graceNotes: SmoGraceNote[],
   ornaments: SmoOrnament[],
   tones: SmoMicrotone[],
+  tuplet: TupletInfo | undefined,
   endBeam: boolean,
   fillStyle: string | null,
   hidden: boolean,
@@ -93,6 +95,9 @@ export class SmoNote implements Transposable {
     this.pitches = JSON.parse(JSON.stringify(pitches));
     this.clef = params.clef ? params.clef : defs.clef;
     this.fillStyle = params.fillStyle ? params.fillStyle : '';
+    if (params.tuplet) {
+      this.tuplet = params.tuplet;
+    }
     this.attrs = {
       id: VF.Element.newID(),
       type: 'SmoNote'
