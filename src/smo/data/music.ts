@@ -68,7 +68,7 @@ export class SmoAudioPitch {
    */
   static smoPitchToFrequency(smoPitch: Pitch, offset: number, tone: SmoMicrotone | null) {
     let pitchInt = 0;
-    let rv = SmoAudioPitch._rawPitchToFrequency(smoPitch, offset);    
+    let rv = SmoAudioPitch._rawPitchToFrequency(smoPitch, offset);
     if (tone) {
       const coeff = tone.toPitchCoeff;
       pitchInt = SmoMusic.smoPitchToInt(smoPitch);
@@ -115,7 +115,7 @@ export interface VexNoteValue {
  * Duration methods start around line 600
  * @category SmoUtilities
  */
- export class SmoMusic {
+export class SmoMusic {
   /**
    * Ported from vex, used to convert pitches to numerical values
    * */
@@ -825,17 +825,17 @@ export interface VexNoteValue {
     }
     return pitch;
   }
-    /**
-   * Convenience function to create SmoNote[] from letters, with the correct accidental
-   * for the key signature, given duration, etc
-   * @param startPitch - the pitch used to calculate the octave of the new note
-   * @param clef
-   * @param keySignature
-   * @param duration - vex duration
-   * @param letters - string of PitchLetter
-   * @returns
-   */
-  static  notesFromLetters(startPitch: Pitch, clef: Clef, keySignature: string, duration: string, letters: string): SmoNote[] {
+  /**
+ * Convenience function to create SmoNote[] from letters, with the correct accidental
+ * for the key signature, given duration, etc
+ * @param startPitch - the pitch used to calculate the octave of the new note
+ * @param clef
+ * @param keySignature
+ * @param duration - vex duration
+ * @param letters - string of PitchLetter
+ * @returns
+ */
+  static notesFromLetters(startPitch: Pitch, clef: Clef, keySignature: string, duration: string, letters: string): SmoNote[] {
     const rv: SmoNote[] = [];
     let curPitch = startPitch;
     const ticks = SmoMusic.durationToTicks(duration);
@@ -1010,12 +1010,44 @@ export interface VexNoteValue {
     const dots = (vd.match(/d/g) || []).length;
     return dots;
   }
+  static midiTicksForQuantizeTo(ticks: number) {
+    const oneDot = ticks * 2;
+    const twoDots = ticks * 4;
+    const threeDots = ticks * 8;
+    const dCount = (str: string) => {
+      const re = /d/g
+      return ((str || '').match(re) || []).length
+    }
+    return Object.keys(SmoMusic.ticksToDuration).filter((key) => {
+      const keyInt = parseInt(key, 10);
+      if (keyInt < ticks) {
+        return false;
+      }
+      const dots = dCount(SmoMusic.ticksToDuration[key]);
+      if (dots > 0 && keyInt < oneDot) {
+        return false;
+      }
+      if (dots > 1 && keyInt < twoDots) {
+        return false;
+      }
+      if (dots > 2 && keyInt < threeDots) {
+        return false;
+      }
+      if (dots > 3) {
+        return false;
+      }
+      return true;
+    })
+      .map((key) => parseInt(key, 10));
+    // return Object.keys(SmoMusic.ticksToDuration).map((key) => parseInt(key, 10));    
+  }
   static get midiTicksForQuantize() {
-    return Object.keys(SmoMusic.ticksToDuration).filter((key) => 
+    return SmoMusic.midiTicksForQuantizeTo(1024);
+    /* return Object.keys(SmoMusic.ticksToDuration).filter((key) =>
       SmoMusic.ticksToDuration[key].indexOf('dd') < 0 &&
       SmoMusic.ticksToDuration[key].indexOf('ddd') < 0 &&
       SmoMusic.ticksToDuration[key].indexOf('dddd') < 0 && parseInt(key, 10) >= 1024)
-       .map((key) => parseInt(key, 10));    
+      .map((key) => parseInt(key, 10));  */
     // return Object.keys(SmoMusic.ticksToDuration).map((key) => parseInt(key, 10));    
   }
   static binarySearch(target: number, ix: number, partition: number, input: number[]) {
@@ -1037,7 +1069,7 @@ export interface VexNoteValue {
     let partition = Math.round(tickSet.length / 2);
     let ix = partition;
     let best = { cost: Math.abs(tickSet[ix] - target), result: tickSet[ix], ix };
-    let result = SmoMusic.binarySearch(target, ix, partition, tickSet);    
+    let result = SmoMusic.binarySearch(target, ix, partition, tickSet);
     while (best.cost > 1) {
       if (best.cost > result.cost) {
         best.cost = result.cost;
@@ -1054,8 +1086,9 @@ export interface VexNoteValue {
       let i = 0;
       const ix = best.ix;
       const step = best.result > target ? -1 : 1;
-      for (i = 0; i < result.partition && (i * step) + ix < tickSet.length && (i * step) + ix > 0; ++i) {
-        const cost = Math.abs(target - tickSet[(i * step) + ix]);
+      for (i = 0; i < (result.partition + 2) && (i * step) + ix < tickSet.length && (i * step) + ix >= 0; ++i) {
+        const newIx = (i * step) + ix;
+        const cost = Math.abs(target - tickSet[newIx]);
         if (best.cost > cost) {
           best.cost = cost;
           best.ix = (i * step) + ix;

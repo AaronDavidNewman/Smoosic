@@ -8,7 +8,8 @@ import { SuiFileDownloadComponent } from './components/fileDownload';
 import { SuiDialogAdapterBase, SuiComponentAdapter } from './adapter';
 import { MidiToSmo } from '../../smo/midi/midiToSmo';
 declare var $: any;
-declare var MidiParser: any;
+// declare var MidiParser: any;
+declare var parseMidi: any;
 
 /**
  * internal state of FileLoadDialog is just the string for the filename.
@@ -143,7 +144,7 @@ export class SuiLoadMxmlDialog extends SuiDialogAdapterBase<SuiXmlLoadAdapter> {
     try {
         // midi parser expects data in UintArray form
         const ar = new Uint8Array(this.midiFile);
-        const midi: any = MidiParser.parse(ar);
+        const midi: any = parseMidi(ar);
         const midiParser = new MidiToSmo(midi);
         this.view.changeScore(midiParser.getScore());
       } catch (e) {

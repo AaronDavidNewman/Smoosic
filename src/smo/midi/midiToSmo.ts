@@ -14,12 +14,29 @@ import { SmoLayoutManager } from "../data/scoreModifiers";
 import { SmoSystemStaff } from "../data/systemStaff";
 import { SmoSelector } from "../xform/selections";
 
+export type MidiEventType =  'text' | 'copyrightNotice' | 'trackName' | 'instrumentName' | 'lyrics' | 'marker' |
+  'cuePoint' | 'channelPrefix' | 'portPrefix' | 'endOfTrack' | 'setTempo' | 'smpteOffset' | 'timeSignature' | 'keySignature' |
+  'sequencerSpecific' | 'unknownMeta' | 
+  'noteOff' | 'noteOn' | 'noteAftertouch' | 'controller' | 'programChange' | 'channelAftertouch' |'pitchBend';
+
 export interface MidiTrackEvent {
   deltaTime: number,
-  type: number,
-  metaType?: number,
+  meta?: boolean,
+  numerator?: number,
+  denominator?: number,
+  microsecondsPerBeat?: number,
+  scale?: number,
+  metronome?: number,
+  thirtyseconds?: number,
+  type: MidiEventType,
   channel?: number,
-  data: number | number[]
+  noteNumber?: number,
+  velocity?: number
+}
+interface RunningMetadata {
+  keySignature: string,
+  timeSignature: TimeSignature,
+  tempo: SmoTempoText
 }
 interface MidiNoteOn {
   channel: number,
@@ -57,15 +74,27 @@ export var MidiMetaEvent: Record<string, number> = {
   timeSignature: 88,
   keySignature: 89
 }
+function getValueForTick<T>(arg: Record<number, T>, tick: number) {
+  const keys = Object.keys(arg);
+  let maxKey = 0;
+  let rv = arg[0];
+  keys.forEach((key) => {
+    const keyInt = parseInt(key, 10);
+    if (keyInt <= tick && keyInt > maxKey && arg[keyInt]) {
+      rv = arg[maxKey];
+      maxKey = keyInt;
+    }
+  });
+  return rv;
+}
 /**
  * Converts a JSON midi file to a {@link SmoScore}
  * @category SmoToMidi
  */
 export class MidiToSmo {
-  timeSignature: TimeSignature = new TimeSignature(TimeSignature.defaults);
-  tempo: SmoTempoText = new SmoTempoText(SmoTempoText.defaults);
-  keySignature: string = 'C';
-  midiOnNotes: Record<number,MidiNoteOn> = {};
+  timeSignatureMap: Record<number, TimeSignature> = {};
+  tempoMap: Record<number, SmoTempoText> = {};
+  keySignatureMap: Record<number, string> = {};
   trackNotes: SmoNote[] = [];
   trackMeasures: SmoMeasure[] = [];
   deltaTime: number = 0;
@@ -104,31 +133,50 @@ export class MidiToSmo {
     });
     return clef;
   }
-  handleMetadata(trackEvent: MidiTrackEvent) {
-    if (trackEvent.type === MidiEvent.meta) {
-      const mtype = trackEvent.metaType!;
-      if (mtype === MidiMetaEvent.timeSignature) {
+  getTempo(ticks: number) {
+    if (this.tempoMap[ticks]) {
+      return this.tempoMap[ticks];
+    }
+    return getValueForTick(this.tempoMap, ticks);
+  }
+  getTimeSignature(ticks: number): TimeSignature {
+    if (this.timeSignatureMap[ticks]) {
+      return this.timeSignatureMap[ticks];
+    }
+    return getValueForTick(this.timeSignatureMap, ticks);
+  }
+  getKeySignature(ticks: number) {
+    if (this.keySignatureMap[ticks]) {
+      return this.keySignatureMap[ticks];
+    }
+    return getValueForTick(this.keySignatureMap, ticks);
+  }
+  getRunningStatus(ticks: number) {
+    return { tempo: this.getTempo(ticks), timeSignature: this.getTimeSignature(ticks), keySignature: this.getKeySignature(ticks) };
+  }
+  handleMetadata(trackEvent: MidiTrackEvent, ticks: number) {
+    if (trackEvent.meta) {
+      const mtype = trackEvent.type;
+      if (mtype === 'timeSignature') {
         /**
          * whenever we get a time signature event, recompute ticks per measure
          */
-        const mdata = trackEvent.data as number[];
-        const numerator = mdata[0];
-        const denominator = Math.pow(2, mdata[1]);
+        const numerator = trackEvent.numerator!;
+        const denominator = trackEvent.denominator!;
         const tsDef = TimeSignature.defaults;
         tsDef.actualBeats = numerator;
         tsDef.beatDuration = denominator;
-        this.timeSignature = new TimeSignature(tsDef);
-        this.ticksPerMeasure = SmoMusic.timeSignatureToTicks(this.timeSignature.timeSignature);
-      } else if (mtype === MidiMetaEvent.tempo) {
-        const mpq = trackEvent.data as number;
-        const bpm = (1000000 * 60) / mpq;
+        const ts = new TimeSignature(tsDef);
+        this.timeSignatureMap[ticks] = ts;
+      } else if (mtype === 'setTempo') {
+        const bpm = 60 / (trackEvent.microsecondsPerBeat! / 1000000);
         const tempoDef = SmoTempoText.defaults;
         tempoDef.bpm = bpm;
-        this.tempo = new SmoTempoText(tempoDef);
-      } else if (mtype === MidiMetaEvent.keySignature) {
-        const mdata = trackEvent.data as number;
+        this.tempoMap[ticks] = new SmoTempoText(tempoDef);
+      } else if (mtype === 'keySignature') {
+        const mdata = trackEvent.scale!;
         if (mdata === 0) {
-          this.keySignature = 'C';
+          this.keySignatureMap[ticks] = 'C';
         } else {
           // there seem to be different ways to encode this...
           let signed = mdata / 256;
@@ -138,18 +186,18 @@ export class MidiToSmo {
           if (Math.abs(mdata) < 256) {
             signed = mdata;
           }
-          this.keySignature = SmoMusic.midiKeyToVexKey(signed);
+          this.keySignatureMap[ticks] = SmoMusic.midiKeyToVexKey(signed);
         }
       }
     }
-  }
+  }  
   getSmoTicks(midiTicks: number) {
     return 4096 * midiTicks / this.timeDivision;
   }
-  createNewEvent(): EventSmoData {
+  createNewEvent(metadata: RunningMetadata): EventSmoData {
     return {
-      pitches: [], durationTicks: 0, isTuplet: false, isRest: false, timeSignature: new TimeSignature(this.timeSignature),
-      tempo: new SmoTempoText(this.tempo), keySignature: this.keySignature, measure: 0, tick: 0
+      pitches: [], durationTicks: 0, isTuplet: false, isRest: false, timeSignature: new TimeSignature(metadata.timeSignature),
+      tempo: new SmoTempoText(metadata.tempo), keySignature: metadata.keySignature, measure: 0, tick: 0
     };
   }
   static copyEvent(o: EventSmoData): EventSmoData {
@@ -179,7 +227,7 @@ export class MidiToSmo {
       }
       // If the midi event is smaller than the smallest note..
       if (Math.abs(ev.durationTicks - deficit) < 1024) {
-        deficit = ev.durationTicks - deficit;
+        deficit = deficit - ev.durationTicks;
       } else {
         const best = SmoMusic.midiTickSearch(ev.durationTicks - deficit);
         deficit += best.result - ev.durationTicks;
@@ -258,7 +306,7 @@ export class MidiToSmo {
       if (typeof (ev.type) === 'undefined') {
         return true;
       }
-      return ev.type === MidiEvent.meta && ev.metaType! === MidiMetaEvent.eot;
+      return ev.type === 'endOfTrack';
     }
     if (this.trackIndex >= trackEvents.length) {
       this.eot = true;
@@ -266,7 +314,10 @@ export class MidiToSmo {
     }
     const rv: EventSmoData[] = [];
     let cur = trackEvents[0];
-    let curSmo = this.createNewEvent();
+    let metadata: RunningMetadata = this.getRunningStatus(0);
+    const midiOnNotes: Record<number,MidiNoteOn> = {};
+    let curSmo = this.createNewEvent(metadata);
+    let ticks = 0;
     while (this.trackIndex < trackEvents.length && !(this.eot)) {
       if (isEot(cur)) {
         this.eot = true;
@@ -274,37 +325,38 @@ export class MidiToSmo {
       }
       if (cur.deltaTime > 0) {
         curSmo.durationTicks = this.getSmoTicks(cur.deltaTime);
+        ticks += cur.deltaTime;
         if (curSmo.pitches.length === 0) {
           curSmo.isRest = true;
         }
         rv.push(curSmo);
-        curSmo = this.createNewEvent();
+        curSmo = this.createNewEvent(metadata);
       }
-      curSmo.timeSignature = this.timeSignature;
-      curSmo.tempo = this.tempo;
-      curSmo.keySignature = this.keySignature;
+      curSmo.timeSignature = metadata.timeSignature;
+      curSmo.tempo = metadata.tempo;
+      curSmo.keySignature = metadata.keySignature;
       const channel = cur.channel!;
-      if (cur.type === MidiEvent.noteOn || cur.type === MidiEvent.noteOff) {
-        const mnote = cur.data as number[];
-        const note = mnote[0];
-        const velocity = mnote[1];
-        if (this.midiOnNotes[note]) {
-          const mm = this.midiOnNotes[note];
-          const npitch = SmoMusic.getEnharmonicInKey(SmoMusic.smoIntToPitch(mm.note - 12), this.keySignature);
+      if (cur.type === 'noteOn' || cur.type === 'noteOff') {
+        const note = cur.noteNumber!;
+        const velocity = cur.velocity!;
+        if (midiOnNotes[note]) {
+          const mm = midiOnNotes[note];
+          const npitch = SmoMusic.getEnharmonicInKey(SmoMusic.smoIntToPitch(mm.note - 12), metadata.keySignature);
           if (mm.smoIndex < rv.length) {
             rv[mm.smoIndex].pitches.push(npitch);
             rv[mm.smoIndex].isRest = false;
-            delete this.midiOnNotes[note];
+            delete midiOnNotes[note];
           } else {
             console.warn('bad index in event mm.smoIndex');
           }
         }
-        if (cur.type === MidiEvent.noteOn && velocity > 0) {
-          this.midiOnNotes[note] = { channel, note, smoIndex: rv.length };
+        if (cur.type === 'noteOn' && velocity > 0) {
+          midiOnNotes[note] = { channel, note, smoIndex: rv.length };
         }
-      } else if (cur.type === MidiEvent.meta) {
-        this.handleMetadata(cur);
+      } else if (cur.meta) {
+        this.handleMetadata(cur, ticks);
       }
+      metadata = this.getRunningStatus(ticks);
       this.trackIndex += 1;
       cur = trackEvents[this.trackIndex];
       if (isEot(cur)) {
@@ -317,10 +369,12 @@ export class MidiToSmo {
   constructor(midi: any) {
     this.midi = midi;
     console.log(JSON.stringify(midi, null, ''));
-    this.timeDivision = midi.timeDivision;
+    this.timeSignatureMap[0] = new TimeSignature(TimeSignature.defaults);
+    this.tempoMap[0] = new SmoTempoText(SmoTempoText.defaults);
+    this.keySignatureMap[0] = 'c';
+    this.timeDivision = midi.header.ticksPerBeat;
   }
   resetForTrack() {
-    this.midiOnNotes = [];
     this.trackNotes = [];
     this.trackMeasures = [];
     this.deltaTime = 0;
@@ -331,9 +385,8 @@ export class MidiToSmo {
   getScore(): SmoScore {
     let staves: SmoSystemStaff[] = [];
     // go through the tracks
-    this.midi.track.forEach((track: any, trackIx: number) => {
+    this.midi.tracks.forEach((trackEvents: MidiTrackEvent[], trackIx: number) => {
       this.resetForTrack();
-      const trackEvents = track.event as MidiTrackEvent[];
       const collapsed: EventSmoData[] = this.collapseMidiEvents(trackEvents);
       const expanded: EventSmoData[] = this.expandMidiEvents(collapsed);
       if (expanded.length > 0) {
