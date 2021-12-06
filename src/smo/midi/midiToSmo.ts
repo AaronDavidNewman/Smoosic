@@ -1,9 +1,10 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 /**
  * Convert midi to Smo object model.  Midi parsing code from:
- * (https://github.com/colxi/midi-parser-js)
  * @module /smo/midi/midiToSmo
  */
-import { defaultEditorKeys } from "../../../release/smoosic";
+import { SmoToMidi } from "../../../release/smoosic";
 import { Clef, Pitch } from "../data/common";
 import { SmoMeasure } from "../data/measure";
 import { SmoTempoText, TimeSignature } from "../data/measureModifiers";
@@ -11,14 +12,19 @@ import { SmoMusic } from "../data/music";
 import { SmoNote } from "../data/note";
 import { SmoScore } from "../data/score";
 import { SmoLayoutManager } from "../data/scoreModifiers";
+import { SmoTie } from "../data/staffModifiers";
 import { SmoSystemStaff } from "../data/systemStaff";
+import { SmoTuplet } from "../data/tuplet";
 import { SmoSelector } from "../xform/selections";
 
-export type MidiEventType =  'text' | 'copyrightNotice' | 'trackName' | 'instrumentName' | 'lyrics' | 'marker' |
+export type MidiEventType = 'text' | 'copyrightNotice' | 'trackName' | 'instrumentName' | 'lyrics' | 'marker' |
   'cuePoint' | 'channelPrefix' | 'portPrefix' | 'endOfTrack' | 'setTempo' | 'smpteOffset' | 'timeSignature' | 'keySignature' |
-  'sequencerSpecific' | 'unknownMeta' | 
-  'noteOff' | 'noteOn' | 'noteAftertouch' | 'controller' | 'programChange' | 'channelAftertouch' |'pitchBend';
+  'sequencerSpecific' | 'unknownMeta' |
+  'noteOff' | 'noteOn' | 'noteAftertouch' | 'controller' | 'programChange' | 'channelAftertouch' | 'pitchBend';
 
+/**
+ * These are the midi events as defined by the parser.
+ */
 export interface MidiTrackEvent {
   deltaTime: number,
   meta?: boolean,
@@ -26,6 +32,7 @@ export interface MidiTrackEvent {
   denominator?: number,
   microsecondsPerBeat?: number,
   scale?: number,
+  key?: number,
   metronome?: number,
   thirtyseconds?: number,
   type: MidiEventType,
@@ -43,11 +50,18 @@ interface MidiNoteOn {
   note: number,
   smoIndex: number
 }
+interface MidiTupletInfo {
+  numNotes: number,
+  stemTicks: number,
+  totalTicks: number,
+  isLast: boolean
+}
 interface EventSmoData {
   pitches: Pitch[],
   durationTicks: number,
-  isTuplet: boolean,
+  tupletInfo: MidiTupletInfo | null,
   isRest: boolean,
+  isTied: boolean,
   timeSignature: TimeSignature,
   tempo: SmoTempoText,
   keySignature: string,
@@ -55,25 +69,6 @@ interface EventSmoData {
   tick: number
 }
 
-export var MidiEvent: Record<string, number> = {
-  noteOff: 8,
-  noteOn: 9,
-  aftertouch: 10,
-  controller: 11,
-  programChange: 12,
-  channelAftertouch: 13,
-  pitchBend: 14,
-  meta: 255
-}
-export var MidiMetaEvent: Record<string, number> = {
-  trackName: 3,
-  lyrics: 5,
-  channelPrefix: 32,
-  eot: 47,
-  tempo: 81,
-  timeSignature: 88,
-  keySignature: 89
-}
 function getValueForTick<T>(arg: Record<number, T>, tick: number) {
   const keys = Object.keys(arg);
   let maxKey = 0;
@@ -95,16 +90,16 @@ export class MidiToSmo {
   timeSignatureMap: Record<number, TimeSignature> = {};
   tempoMap: Record<number, SmoTempoText> = {};
   keySignatureMap: Record<number, string> = {};
-  trackNotes: SmoNote[] = [];
-  trackMeasures: SmoMeasure[] = [];
-  deltaTime: number = 0;
-  ticksPerMeasure: number = 4096 * 4;
+  tieMap: Record<number, number[]> = {};
   timeDivision: number = 480;
-  trackIndex: number = 0; // index into current track
+  trackIndex: number = 0;
+  eventIndex: number = 0; // index into current track
   maxMeasure: number = 0;
   eot: boolean = false;
   midi: any; // MIDI JSON from MIDI parser
-
+  static get quantizeTicks() {
+     return 1024;
+  }
   /**
    * Since midi has very little metadata, we don't know the original clef.
    * so just use the one (treble or bass) that uses the fewest ledger lines
@@ -174,7 +169,7 @@ export class MidiToSmo {
         tempoDef.bpm = bpm;
         this.tempoMap[ticks] = new SmoTempoText(tempoDef);
       } else if (mtype === 'keySignature') {
-        const mdata = trackEvent.scale!;
+        const mdata = trackEvent.key!;
         if (mdata === 0) {
           this.keySignatureMap[ticks] = 'C';
         } else {
@@ -190,14 +185,14 @@ export class MidiToSmo {
         }
       }
     }
-  }  
+  }
   getSmoTicks(midiTicks: number) {
     return 4096 * midiTicks / this.timeDivision;
   }
   createNewEvent(metadata: RunningMetadata): EventSmoData {
     return {
-      pitches: [], durationTicks: 0, isTuplet: false, isRest: false, timeSignature: new TimeSignature(metadata.timeSignature),
-      tempo: new SmoTempoText(metadata.tempo), keySignature: metadata.keySignature, measure: 0, tick: 0
+      pitches: [], durationTicks: 0, tupletInfo: null, isRest: false, timeSignature: new TimeSignature(metadata.timeSignature),
+      tempo: new SmoTempoText(metadata.tempo), keySignature: metadata.keySignature, measure: 0, tick: 0, isTied: false
     };
   }
   static copyEvent(o: EventSmoData): EventSmoData {
@@ -205,15 +200,30 @@ export class MidiToSmo {
     const timeSignature = new TimeSignature(o.timeSignature);
     const tempo = new SmoTempoText(o.tempo);
     return ({
-      pitches, durationTicks: o.durationTicks, isTuplet: o.isTuplet, isRest: o.isRest, timeSignature, tempo, keySignature: o.keySignature,
-        measure: o.measure, tick: o.tick
+      pitches, durationTicks: o.durationTicks, tupletInfo: o.tupletInfo, isRest: o.isRest, timeSignature, tempo, keySignature: o.keySignature,
+      measure: o.measure, tick: o.tick, isTied: o.isTied
     });
   }
+  addToTieMap(measureIndex: number) {
+    const staffIx = this.trackIndex;
+    if (typeof (this.tieMap[staffIx]) === 'undefined') {
+      this.tieMap[staffIx] = [];
+    }
+    this.tieMap[staffIx].push(measureIndex);
+  }
+  /**
+   * Step 3 in the 3-step process.  Quantize the note durations and convert the midi
+   * event into SmoNotes.
+   * @param events 
+   * @returns 
+   */
   createNotesFromEvents(events: EventSmoData[]): SmoMeasure[] {
     let measureIndex = 0;
     const measures: SmoMeasure[] = [];
     let measure: SmoMeasure | null = null;
     let deficit = 0;
+    // If the midi event is smaller than the smallest note..
+    const smallest = 1 * (MidiToSmo.quantizeTicks / 4);
     events.forEach((ev) => {
       if (measure === null || ev.measure > measureIndex) {
         const measureDefs = SmoMeasure.defaults;
@@ -225,8 +235,7 @@ export class MidiToSmo {
         measureIndex = ev.measure;
         measures.push(measure);
       }
-      // If the midi event is smaller than the smallest note..
-      if (Math.abs(ev.durationTicks - deficit) < 1024) {
+      if (Math.abs(ev.durationTicks - deficit) < smallest && !(ev.tupletInfo !== null)) {
         deficit = deficit - ev.durationTicks;
       } else {
         const best = SmoMusic.midiTickSearch(ev.durationTicks - deficit);
@@ -239,6 +248,20 @@ export class MidiToSmo {
         const note = new SmoNote(defs);
         SmoNote.sortPitches(note);
         measure.voices[0].notes.push(note);
+        if (ev.tupletInfo !== null && ev.tupletInfo.isLast === true) {
+          const voiceLen = measure.voices[0].notes.length;
+          const tupletNotes = [note, measure.voices[0].notes[voiceLen - 2], measure.voices[0].notes[voiceLen - 3]];
+          const defs = SmoTuplet.defaults;
+          defs.notes = tupletNotes;
+          defs.stemTicks = ev.tupletInfo.stemTicks;
+          defs.numNotes = ev.tupletInfo.numNotes;
+          defs.totalTicks = ev.tupletInfo.totalTicks;
+          defs.startIndex = voiceLen - 3;
+          measure.tuplets.push(new SmoTuplet(defs));
+        }
+        if (ev.isTied) {
+          this.addToTieMap(measureIndex);
+        }
       }
     });
     measures.forEach((measure) => {
@@ -246,6 +269,31 @@ export class MidiToSmo {
     });
     return measures;
   }
+  tripletType(ticks: number): number {
+    const tripletBeat = Math.round(4096 / 3);
+    const tripletHalf = Math.round((4096 * 2) / 3);
+    const tripletEighth = Math.round((4096 / 2) / 3);
+    const beatTrip = tripletBeat / ticks;
+    const eigthTrip = tripletEighth / ticks;
+    const halfTrip = tripletHalf / ticks;
+    if (Math.abs(1 - beatTrip) < 0.05) {
+      return 4096;
+    }
+    if (Math.abs(1 - eigthTrip) < 0.05) {
+      return 2048;
+    }
+    if (Math.abs(1 - halfTrip) < 0.05) {
+      return 4096 * 2;
+    }
+    return 0;
+  }
+  /**
+   * step 2 in the 3 step process.  Divide the music up into measures based on
+   * tick duration.  If there are events overlapping measures, create extra events in the
+   * new measure (hence the expand) and shorten the original event
+   * @param events
+   * @returns 
+   */
   expandMidiEvents(events: EventSmoData[]): EventSmoData[] {
     const rv: EventSmoData[] = [];
     if (events.length === 0) {
@@ -255,14 +303,17 @@ export class MidiToSmo {
     let ticksSoFar = 0;
     let measure = 0;
     let tick = 0;
+    let tripletCount = 0;
+    let tripletValue = 0;
     for (i = 0; i < events.length; ++i) {
       const ev = events[i];
-      // If it's too small, continue
+      // If it's too small, continue.  Don't record the event but do count the ticks
       if (ev.durationTicks < 128) {
+        ticksSoFar += ev.durationTicks;
         continue;
       }
       const ticksPerMeasure = SmoMusic.timeSignatureToTicks(ev.timeSignature.timeSignature);
-      const nevent = MidiToSmo.copyEvent(ev);      
+      const nevent = MidiToSmo.copyEvent(ev);
       if (ticksSoFar + ev.durationTicks > ticksPerMeasure) {
         nevent.durationTicks = ticksPerMeasure - ticksSoFar;
         if (nevent.durationTicks > 0) {
@@ -270,6 +321,8 @@ export class MidiToSmo {
           nevent.tick = tick;
         }
         tick = 0;
+        tripletCount = 0;
+        tripletValue = 0;
         measure += 1;
         ticksSoFar = 0;
         this.maxMeasure = Math.max(this.maxMeasure, measure);
@@ -277,7 +330,7 @@ export class MidiToSmo {
         while (overflow > ticksPerMeasure) {
           const ovfEvent = MidiToSmo.copyEvent(nevent);
           ovfEvent.tick = tick;
-          ovfEvent.measure  = measure;
+          ovfEvent.measure = measure;
           tick += 1;
           measure += 1;
           ovfEvent.durationTicks = ticksPerMeasure;
@@ -286,6 +339,7 @@ export class MidiToSmo {
         }
         if (overflow > 0) {
           const ovfEvent = MidiToSmo.copyEvent(nevent);
+          ovfEvent.isTied = true;
           ovfEvent.durationTicks = overflow;
           ovfEvent.measure = measure;
           ovfEvent.tick = tick;
@@ -296,11 +350,48 @@ export class MidiToSmo {
         }
       } else {
         ticksSoFar += ev.durationTicks;
+        const possibleTriplet = this.tripletType(nevent.durationTicks);
+        if (possibleTriplet > 0 && (tripletValue === 0 || possibleTriplet === tripletValue)) {
+          tripletCount += 1;
+          tripletValue = possibleTriplet;
+          if (tripletCount === 3) {
+            nevent.tupletInfo = {
+              numNotes: 3,
+              stemTicks: possibleTriplet / 2,
+              totalTicks: possibleTriplet,
+              isLast: true
+            };
+            rv[rv.length - 1].tupletInfo = {
+              numNotes: 3,
+              stemTicks: possibleTriplet / 2,
+              totalTicks: possibleTriplet,
+              isLast: false
+            };
+            rv[rv.length - 2].tupletInfo = {
+              numNotes: 3,
+              stemTicks: possibleTriplet / 2,
+              totalTicks: possibleTriplet,
+              isLast: false
+            };
+            tripletCount = 0;
+            tripletValue = 0;
+          }
+        } else {
+          tripletCount = 0;
+          tripletValue = 0;
+        }
         rv.push(nevent);
       }
     }
     return rv;
   }
+  /**
+   * Step 1 in the 3-step process.  Collapse midi events into 
+   * a single EventSmoData for each distinct tick that contains
+   * the metadata state, a duration, and note information.
+   * @param trackEvents 
+   * @returns 
+   */
   collapseMidiEvents(trackEvents: MidiTrackEvent[]): EventSmoData[] {
     const isEot = (ev: MidiTrackEvent) => {
       if (typeof (ev.type) === 'undefined') {
@@ -308,17 +399,17 @@ export class MidiToSmo {
       }
       return ev.type === 'endOfTrack';
     }
-    if (this.trackIndex >= trackEvents.length) {
+    if (this.eventIndex >= trackEvents.length) {
       this.eot = true;
       return [];
     }
     const rv: EventSmoData[] = [];
     let cur = trackEvents[0];
     let metadata: RunningMetadata = this.getRunningStatus(0);
-    const midiOnNotes: Record<number,MidiNoteOn> = {};
+    const midiOnNotes: Record<number, MidiNoteOn> = {};
     let curSmo = this.createNewEvent(metadata);
     let ticks = 0;
-    while (this.trackIndex < trackEvents.length && !(this.eot)) {
+    while (this.eventIndex < trackEvents.length && !(this.eot)) {
       if (isEot(cur)) {
         this.eot = true;
         break;
@@ -357,8 +448,8 @@ export class MidiToSmo {
         this.handleMetadata(cur, ticks);
       }
       metadata = this.getRunningStatus(ticks);
-      this.trackIndex += 1;
-      cur = trackEvents[this.trackIndex];
+      this.eventIndex += 1;
+      cur = trackEvents[this.eventIndex];
       if (isEot(cur)) {
         this.eot = true;
         break;
@@ -374,25 +465,44 @@ export class MidiToSmo {
     this.keySignatureMap[0] = 'c';
     this.timeDivision = midi.header.ticksPerBeat;
   }
-  resetForTrack() {
-    this.trackNotes = [];
-    this.trackMeasures = [];
-    this.deltaTime = 0;
-    this.trackIndex = 0; // index into current track
-    this.eot = false;
-  }
 
   getScore(): SmoScore {
     let staves: SmoSystemStaff[] = [];
     // go through the tracks
     this.midi.tracks.forEach((trackEvents: MidiTrackEvent[], trackIx: number) => {
-      this.resetForTrack();
+      this.eventIndex = 0; // index into current track
+      this.trackIndex = trackIx;
+      this.eot = false;
+      this.tieMap[trackIx] = [];
       const collapsed: EventSmoData[] = this.collapseMidiEvents(trackEvents);
       const expanded: EventSmoData[] = this.expandMidiEvents(collapsed);
       if (expanded.length > 0) {
         const staffDef = SmoSystemStaff.defaults;
+        staffDef.staffId = trackIx;
         staffDef.measures = this.createNotesFromEvents(expanded);
-        staves.push(new SmoSystemStaff(staffDef));
+
+        const staff = new SmoSystemStaff(staffDef);
+        this.tieMap[trackIx].forEach((mm) => {
+          const startMeasure = staffDef.measures[mm - 1];
+          const endMeasure = staffDef.measures[mm];
+          const endIx = startMeasure.voices[0].notes.length - 1;
+          if (startMeasure.voices[0].notes[endIx].noteType === 'n' &&
+            endMeasure.voices[0].notes[0].noteType === 'n') {
+            const tieDefs = SmoTie.defaults;
+            tieDefs.startSelector = {
+              staff: trackIx, measure: mm - 1, voice: 0, tick: endIx,
+              pitches: []
+            }
+            tieDefs.endSelector = {
+              staff: trackIx, measure: mm, voice: 0, tick: 0,
+              pitches: []
+            }
+            tieDefs.lines.push({ from: 0, to: 0 });
+            const tie = new SmoTie(tieDefs);
+            staff.modifiers.push(tie);
+          }
+        });
+        staves.push(staff);
       }
     });
     if (staves.length === 0) {

@@ -112,7 +112,7 @@ export interface VexNoteValue {
  * `Vex` uses a letter duration (`'4'` or `'q'`for 1/4 note) and `'d'` for dot.
  * 
  * I try to indicate whether I am using vex or smo notation in the function name.
- * Duration methods start around line 600
+ * Duration methods start around line 1100
  * @category SmoUtilities
  */
 export class SmoMusic {
