@@ -39,7 +39,7 @@ If you just want to [use the application](https://aarondavidnewman.github.io/Smo
 
 ## What's new in Smoosic?
 
-see [the change notes](https://aarondavidnewman.github.io/Smoosic/changes.md)
+Midi input!  Also, see [the change notes](https://aarondavidnewman.github.io/Smoosic/changes.md)
 
 ## SMO library details
 The [music library](https://aarondavidnewman.github.io/Smoosic/release/docs/modules.html) is divided into parts:
