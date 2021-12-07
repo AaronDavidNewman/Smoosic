@@ -19,7 +19,7 @@ import { SmoToXml } from '../../smo/mxml/smo2Xml';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from '../../smo/data/music';
 import { SuiOscillator } from '../audio/oscillator';
-import { mxmlScore } from '../../smo/mxml/xmlScore';
+import { xmlToSmo } from '../../smo/mxml/xmlToSmo';
 import { SuiAudioPlayer } from '../audio/player';
 import { SuiXhrLoader } from '../../ui/fileio/xhrLoader';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
@@ -124,7 +124,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     return req.loadAsync().then(() => {
       const parser = new DOMParser();
       const xml = parser.parseFromString(req.value, 'text/xml');
-      const score = mxmlScore.smoScoreFromXml(xml);
+      const score = xmlToSmo.convert(xml);
       self.changeScore(score);
     });
   }

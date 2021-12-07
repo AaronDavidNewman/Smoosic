@@ -104,6 +104,7 @@ export class MidiToSmo {
   /**
    * Since midi has very little metadata, we don't know the original clef.
    * so just use the one (treble or bass) that uses the fewest ledger lines
+   * @internal
    * @param notes notes in measure
    * @returns 
    */
@@ -129,19 +130,35 @@ export class MidiToSmo {
     });
     return clef;
   }
+
+  /**
+   * @internal
+   * @param ticks 
+   * @returns 
+   */
   getTempo(ticks: number) {
     if (this.tempoMap[ticks]) {
       return this.tempoMap[ticks];
     }
     return getValueForTick(this.tempoMap, ticks);
   }
-  getTimeSignature(ticks: number): TimeSignature {
+  /**
+   * @internal
+   * @param ticks 
+   * @returns 
+   */
+   getTimeSignature(ticks: number): TimeSignature {
     if (this.timeSignatureMap[ticks]) {
       return this.timeSignatureMap[ticks];
     }
     return getValueForTick(this.timeSignatureMap, ticks);
   }
-  getKeySignature(ticks: number) {
+  /**
+   * @internal
+   * @param ticks 
+   * @returns 
+   */
+   getKeySignature(ticks: number) {
     if (this.keySignatureMap[ticks]) {
       return this.keySignatureMap[ticks];
     }
@@ -149,12 +166,17 @@ export class MidiToSmo {
   }
   /**
    * Get metadata from the map for this point in the score
-   * @param ticks
+   * @param ticks current point in track
    * @returns 
    */
-   getRunningStatus(ticks: number) {
+   getMetadata(ticks: number) {
     return { tempo: this.getTempo(ticks), timeSignature: this.getTimeSignature(ticks), keySignature: this.getKeySignature(ticks) };
   }
+  /**
+   * We process 3 types of metadata at present:  time signature, tempo and keysignature.
+   * @param trackEvent 
+   * @param ticks 
+   */
   handleMetadata(trackEvent: MidiTrackEvent, ticks: number) {
     if (trackEvent.meta) {
       const mtype = trackEvent.type;
@@ -192,16 +214,26 @@ export class MidiToSmo {
       }
     }
   }
-  getSmoTicks(midiTicks: number) {
+  /**
+   * Convert from Midi PPQ to Smoosic (and vex) ticks
+   * @internal
+   */
+   getSmoTicks(midiTicks: number) {
     return 4096 * midiTicks / this.timeDivision;
   }
-  createNewEvent(metadata: RunningMetadata): EventSmoData {
+  /**
+   * @internal
+   */
+   createNewEvent(metadata: RunningMetadata): EventSmoData {
     return {
       pitches: [], durationTicks: 0, tupletInfo: null, isRest: false, timeSignature: new TimeSignature(metadata.timeSignature),
       tempo: new SmoTempoText(metadata.tempo), keySignature: metadata.keySignature, measure: 0, tick: 0, isTied: false
     };
   }
-  static copyEvent(o: EventSmoData): EventSmoData {
+  /**
+   * @internal
+   */
+   static copyEvent(o: EventSmoData): EventSmoData {
     const pitches = JSON.parse(JSON.stringify(o.pitches));
     const timeSignature = new TimeSignature(o.timeSignature);
     const tempo = new SmoTempoText(o.tempo);
@@ -210,6 +242,9 @@ export class MidiToSmo {
       measure: o.measure, tick: o.tick, isTied: o.isTied
     });
   }
+  /**
+   * @internal
+   */
   addToTieMap(measureIndex: number) {
     const staffIx = this.trackIndex;
     if (typeof (this.tieMap[staffIx]) === 'undefined') {
@@ -275,6 +310,10 @@ export class MidiToSmo {
     });
     return measures;
   }
+  /**
+   * @param ticks 
+   * @returns the length in ticks of a triplet, if this looks like a triplet.  Otherwise 0
+   */
   tripletType(ticks: number): number {
     const tripletBeat = Math.round(4096 / 3);
     const tripletHalf = Math.round((4096 * 2) / 3);
@@ -356,6 +395,8 @@ export class MidiToSmo {
         }
       } else {
         ticksSoFar += ev.durationTicks;
+        // Try to infer the presence of triplets.  If it looks like a triplet, mark it and we will
+        // create the tuplet when we create the measure.
         const possibleTriplet = this.tripletType(nevent.durationTicks);
         if (possibleTriplet > 0 && (tripletValue === 0 || possibleTriplet === tripletValue)) {
           tripletCount += 1;
@@ -411,7 +452,7 @@ export class MidiToSmo {
     }
     const rv: EventSmoData[] = [];
     let cur = trackEvents[0];
-    let metadata: RunningMetadata = this.getRunningStatus(0);
+    let metadata: RunningMetadata = this.getMetadata(0);
     const midiOnNotes: Record<number, MidiNoteOn> = {};
     let curSmo = this.createNewEvent(metadata);
     let untrackedTicks = 0;
@@ -463,7 +504,7 @@ export class MidiToSmo {
       } else if (cur.meta) {
         this.handleMetadata(cur, ticks);
       }
-      metadata = this.getRunningStatus(ticks);
+      metadata = this.getMetadata(ticks);
       this.eventIndex += 1;
       cur = trackEvents[this.eventIndex];
       if (isEot(cur)) {
@@ -473,6 +514,11 @@ export class MidiToSmo {
     }
     return rv;
   }
+  /**
+   * Create an object to convert MIDI to a {@link SmoScore}
+   * @param midi the output of midi parser
+   * @param quantizeDuration ticks to quantize (1024 == 16th note)
+   */
   constructor(midi: any, quantizeDuration: number) {
     this.midi = midi;
     console.log(JSON.stringify(midi, null, ''));
@@ -483,7 +529,15 @@ export class MidiToSmo {
     this.quantizeTicks = quantizeDuration;
   }
 
-  getScore(): SmoScore {
+  /**
+   * Convert the midi to a score as best we can.  The conversion is made via a 3-step
+   * process.  
+   * 1. consolidate all the MIDI events into individual note on/off events with a duration
+   * 2. adjust the durations so the fit in with Smoosic measure lengths.
+   * 3. Create the {@link SmoNote} objects from the events.
+   * @returns 
+   */
+  convert(): SmoScore {
     let staves: SmoSystemStaff[] = [];
     // go through the tracks
     this.midi.tracks.forEach((trackEvents: MidiTrackEvent[], trackIx: number) => {
@@ -499,12 +553,15 @@ export class MidiToSmo {
         staffDef.measures = this.createNotesFromEvents(expanded);
 
         const staff = new SmoSystemStaff(staffDef);
+        // For notes that are tied across measures, add the tie
         this.tieMap[trackIx].forEach((mm) => {
           const startMeasure = staffDef.measures[mm - 1];
           const endMeasure = staffDef.measures[mm];
           const endIx = startMeasure.voices[0].notes.length - 1;
-          if (startMeasure.voices[0].notes[endIx].noteType === 'n' &&
-            endMeasure.voices[0].notes[0].noteType === 'n') {
+          const startNote = startMeasure.voices[0].notes[endIx];
+          const endNote = endMeasure.voices[0].notes[0];
+          if (startNote.noteType === 'n' &&
+            endNote.noteType === 'n' && SmoMusic.pitchArraysMatch(startNote.pitches, endNote.pitches)) {
             const tieDefs = SmoTie.defaults;
             tieDefs.startSelector = {
               staff: trackIx, measure: mm - 1, voice: 0, tick: endIx,

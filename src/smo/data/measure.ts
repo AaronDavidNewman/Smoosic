@@ -676,7 +676,14 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     measure.activeVoice = 0;
     return measure;
   }
-
+  /**
+   * used by xml export 
+   * @internal
+   * @param val 
+   */
+  getForceSystemBreak() {
+    return this.format.systemBreak;
+  }
   // @internal
   setDefaultBarlines() {
     if (!this.getStartBarline()) {

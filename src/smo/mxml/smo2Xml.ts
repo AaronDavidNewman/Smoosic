@@ -12,7 +12,7 @@ import { SmoLyric } from '../data/noteModifiers';
 import { SmoSelector } from '../xform/selections';
 
 import { mxmlHelpers } from './xmlHelpers';
-import { mxmlScore } from './xmlScore';
+import { xmlToSmo } from './xmlToSmo';
 /**
  * Convert {@link SmoScore} object into a music XML serialization
  * @category SmoToXml
@@ -38,16 +38,16 @@ export class SmoToXml {
     const defaults = nn(root, 'defaults', null, '');
     const scaling = nn(root, 'scaling', null, '');
     // reverse this:
-    // scoreDefaults.layout.svgScale =  (scale * 42 / 40) / mxmlScore.mmPerPixel;
-    const mm = mxmlScore.mmPerPixel * 42 * score.layoutManager!.getGlobalLayout().svgScale;
+    // scoreDefaults.layout.svgScale =  (scale * 42 / 40) / xmlToSmo.mmPerPixel;
+    const mm = xmlToSmo.mmPerPixel * 42 * score.layoutManager!.getGlobalLayout().svgScale;
     nn(scaling, 'millimeters', { mm }, 'mm');
     nn(scaling, 'tenths', { tenths: 40 }, 'tenths');
     const pageLayout = nn(defaults, 'page-layout', null, '');
-    mxmlScore.pageLayoutMap.forEach((map) => {
+    xmlToSmo.pageLayoutMap.forEach((map) => {
       nn(pageLayout, map.xml, score.layoutManager, map.smo);
     });
     const pageMargins = nn(pageLayout, 'page-margins', null, '');
-    mxmlScore.pageMarginMap.forEach((map) => {
+    xmlToSmo.pageMarginMap.forEach((map) => {
       nn(pageMargins, map.xml, score.layoutManager!.pageLayouts[0], map.smo);
     });
     const partList =  nn(root, 'part-list', null, '');

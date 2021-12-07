@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SuiDialogBase, SuiDialogParams, DialogDefinition } from './dialog';
 import { SmoScore } from '../../smo/data/score';
-import { mxmlScore } from '../../smo/mxml/xmlScore';
+import { xmlToSmo } from '../../smo/mxml/xmlToSmo';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiFileDownloadComponent } from './components/fileDownload';
 import { SuiDialogAdapterBase, SuiComponentAdapter } from './adapter';
@@ -92,7 +92,7 @@ export class SuiLoadFileDialog extends SuiDialogAdapterBase<SuiSmoLoadAdapter> {
     try {
       const parser = new DOMParser();
       const xml = parser.parseFromString(this.xmlFile, 'text/xml');
-      const score = mxmlScore.smoScoreFromXml(xml);
+      const score = xmlToSmo.convert(xml);
       this.changeScore = true;
       this.view.changeScore(score);
     } catch (e) {
@@ -154,7 +154,7 @@ export class SuiLoadMxmlDialog extends SuiDialogAdapterBase<SuiXmlLoadAdapter> {
         const ar = new Uint8Array(this.midiFile);
         const midi: any = parseMidi(ar);
         const midiParser = new MidiToSmo(midi, this.quantize);
-        this.view.changeScore(midiParser.getScore());
+        this.view.changeScore(midiParser.convert());
       } catch (e) {
       console.warn('unable to score ' + e);
     }

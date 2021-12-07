@@ -43,7 +43,7 @@ export * from './src/smo/data/tuplet';
 export * from './src/smo/midi/smoToMidi';
 export * from './src/smo/mxml/smo2Xml';
 export * from './src/smo/mxml/xmlHelpers';
-export * from './src/smo/mxml/xmlScore';
+export * from './src/smo/mxml/xmlToSmo';
 export * from './src/smo/mxml/xmlState';
 export * from './src/smo/xform/actions';
 export * from './src/smo/xform/audioTrack';

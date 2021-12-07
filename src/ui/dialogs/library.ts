@@ -1,13 +1,8 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoScore } from '../../smo/data/score';
-import { mxmlScore } from '../../smo/mxml/xmlScore';
-
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 
 import { SmoLibrary } from '../fileio/library';
-import { SuiXhrLoader } from '../fileio/xhrLoader';
-
 import { SuiDialogParams } from './dialog';
 import { DialogDefinitionOption } from './components/baseComponent';
 import { TreeComponentOption, SuiTreeComponent } from './components/tree';

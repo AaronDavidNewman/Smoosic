@@ -1,5 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+/**
+ * Logic to convert music XML (finale) to Smo internal format
+ * @module xmlToSmo
+ */
 import { mxmlHelpers } from './xmlHelpers';
 import { XmlVoiceInfo, XmlState, XmlWedgeInfo } from './xmlState';
 import { SmoLayoutManager, SmoTextGroup } from '../data/scoreModifiers';
@@ -17,7 +21,7 @@ import { Pitch, PitchKey, Clef } from '../data/common';
  * A class that takes a music XML file and outputs a {@link SmoScore}
  * @category SmoToXml
  */
-export class mxmlScore {
+export class xmlToSmo {
   static get mmPerPixel() {
     return 0.264583;
   }
@@ -41,9 +45,12 @@ export class mxmlScore {
   static get scoreInfoFields() {
     return ['title', 'subTitle', 'composer', 'copyright'];
   }
-  // ### smoScoreFromXml
-  // Main entry point for Smoosic mxml parser
-  static smoScoreFromXml(xmlDoc: Document) {
+  /**
+   * Convert music XML file from parse xml to a {@link SmoScore}
+   * @param xmlDoc 
+   * @returns
+   */
+  static convert(xmlDoc: Document): SmoScore {
     try {
       const scoreRoots = [...xmlDoc.getElementsByTagName('score-partwise')];
       if (!scoreRoots.length) {
@@ -61,7 +68,7 @@ export class mxmlScore {
       const xmlState = new XmlState();
       xmlState.newTitle = false;
       rv.scoreInfo.name = 'Imported Smoosic';
-      mxmlScore.scoreInfoFields.forEach((field) => {
+      xmlToSmo.scoreInfoFields.forEach((field) => {
         (rv.scoreInfo as any)[field] = '';
       });
       const childNodes = [...scoreRoot.children];
@@ -89,10 +96,10 @@ export class mxmlScore {
             xmlState.newTitle = true;
           }
         } else if (scoreElement.tagName === 'defaults') {
-          mxmlScore.defaults(scoreElement, rv, layoutDefaults);
+          xmlToSmo.defaults(scoreElement, rv, layoutDefaults);
         } else if (scoreElement.tagName === 'part') {
           xmlState.initializeForPart();
-          mxmlScore.part(scoreElement, xmlState);
+          xmlToSmo.part(scoreElement, xmlState);
         }
       });
       // The entire score is parsed and xmlState now contains the staves.
@@ -143,12 +150,12 @@ export class mxmlScore {
     const currentScale = layoutDefaults.getGlobalLayout().svgScale;
     const pageLayoutNode = defaultsElement.getElementsByTagName('page-layout');
     if (pageLayoutNode.length) {
-      mxmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults.globalLayout, mxmlScore.pageLayoutMap);
+      mxmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults.globalLayout, xmlToSmo.pageLayoutMap);
     }
     const pageMarginNode = mxmlHelpers.getChildrenFromPath(defaultsElement,
       ['page-layout', 'page-margins']);
     if (pageMarginNode.length) {
-      mxmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], mxmlScore.pageMarginMap);
+      mxmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], xmlToSmo.pageMarginMap);
     }
 
     const scaleNode = defaultsElement.getElementsByTagName('scaling');
@@ -161,7 +168,7 @@ export class mxmlScore {
     }
     // Convert from mm to pixels, this is our default svg scale
     // mm per tenth * pixels / mm gives us pixels per tenth
-    layoutDefaults.globalLayout.svgScale = (scale * 45 / 40) / mxmlScore.mmPerPixel;
+    layoutDefaults.globalLayout.svgScale = (scale * 45 / 40) / xmlToSmo.mmPerPixel;
     score.scaleTextGroups(currentScale / layoutDefaults.globalLayout.svgScale);
   }
 
@@ -176,7 +183,7 @@ export class mxmlScore {
     measureElements.forEach((measureElement) => {
       // Parse the measure element, populate staffArray of xmlState with the
       // measure data
-      mxmlScore.measure(measureElement, xmlState);
+      xmlToSmo.measure(measureElement, xmlState);
       const newStaves = xmlState.staffArray;
       if (newStaves.length > 1 && stavesForPart.length <= newStaves[0].clefInfo.staffId) {
         xmlState.staffGroups.push({ start: staffId, length: newStaves.length });
@@ -346,7 +353,7 @@ export class mxmlScore {
   // ### direction
   // /score-partwise/part/measure/direction
   static direction(directionElement: Element, xmlState: XmlState) {
-    const tempo = mxmlScore.tempo(directionElement);
+    const tempo = xmlToSmo.tempo(directionElement);
     // Only display tempo if changes.
     if (tempo.length) {
       // TODO: staff ID is with tempo, but tempo is per column in SMO
@@ -356,10 +363,10 @@ export class mxmlScore {
       }
     }
     // parse dynamic node and add to xmlState
-    mxmlScore.dynamics(directionElement, xmlState);
+    xmlToSmo.dynamics(directionElement, xmlState);
 
     // parse wedge (hairpin)
-    mxmlScore.wedge(directionElement, xmlState);
+    xmlToSmo.wedge(directionElement, xmlState);
   }
   // ### note
   // /score-partwise/part/measure/note
@@ -515,11 +522,11 @@ export class mxmlScore {
       if (element.tagName === 'attributes') {
         // update the running state of the XML with new information from this measure
         // if an XML attributes element is present
-        mxmlScore.attributes(measureElement, xmlState);
+        xmlToSmo.attributes(measureElement, xmlState);
       } else if (element.tagName === 'direction') {
-        mxmlScore.direction(element, xmlState);
+        xmlToSmo.direction(element, xmlState);
       } else if (element.tagName === 'note') {
-        mxmlScore.note(element, xmlState);
+        xmlToSmo.note(element, xmlState);
         hasNotes = true;
       }
     });
@@ -538,7 +545,7 @@ export class mxmlScore {
       smoMeasure.format.measureIndex = xmlState.measureNumber;
       smoMeasure.format.systemBreak = mxmlHelpers.isSystemBreak(measureElement);
       smoMeasure.tempo = xmlState.tempo;
-      smoMeasure.format.customProportion = mxmlScore.customProportionDefault;
+      smoMeasure.format.customProportion = xmlToSmo.customProportionDefault;
       xmlState.formattingManager.updateMeasureFormat(smoMeasure.format);
       smoMeasure.keySignature = xmlState.keySignature;
       smoMeasure.timeSignature = SmoMeasure.convertLegacyTimeSignature(xmlState.timeSignature);

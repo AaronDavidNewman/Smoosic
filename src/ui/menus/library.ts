@@ -1,7 +1,7 @@
 import { SuiMenuBase, SuiMenuParams, MenuDefinition } from './menu';
 import { SuiXhrLoader } from '../fileio/xhrLoader';
 import { SmoScore } from '../../smo/data/score';
-import { mxmlScore } from '../../smo/mxml/xmlScore';
+import { xmlToSmo } from '../../smo/mxml/xmlToSmo';
 
 declare var $: any;
 
@@ -77,7 +77,7 @@ export class SuiLibraryMenu extends SuiMenuBase {
     req.loadAsync().then(() => {
       const parser = new DOMParser();
       const xml = parser.parseFromString(req.value, 'text/xml');
-      const score = mxmlScore.smoScoreFromXml(xml);
+      const score = xmlToSmo.convert(xml);
       this.view.changeScore(score);
       this.complete();
     });

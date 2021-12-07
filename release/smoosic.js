@@ -1195,7 +1195,7 @@ const scroller_1 = __webpack_require__(/*! ../render/sui/scroller */ "./src/rend
 const actionPlayback_1 = __webpack_require__(/*! ../render/sui/actionPlayback */ "./src/render/sui/actionPlayback.ts");
 // SMO object model
 const score_2 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
-const xmlScore_1 = __webpack_require__(/*! ../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
+const xmlToSmo_1 = __webpack_require__(/*! ../smo/mxml/xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
 const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
 const note_2 = __webpack_require__(/*! ../smo/data/note */ "./src/smo/data/note.ts");
 const tickDuration_1 = __webpack_require__(/*! ../smo/xform/tickDuration */ "./src/smo/xform/tickDuration.ts");
@@ -1255,7 +1255,7 @@ exports.Smo = {
     SuiScoreViewOperations: scoreViewOperations_1.SuiScoreViewOperations, SuiActionPlayback: actionPlayback_1.SuiActionPlayback,
     // Smo Music Objects
     SmoScore: score_2.SmoScore,
-    mxmlScore: xmlScore_1.mxmlScore,
+    xmlToSmo: xmlToSmo_1.xmlToSmo,
     SmoMusic: music_1.SmoMusic,
     SmoMeasure: measure_3.SmoMeasure,
     SmoSystemStaff: systemStaff_1.SmoSystemStaff,
@@ -7415,7 +7415,7 @@ const smo2Xml_1 = __webpack_require__(/*! ../../smo/mxml/smo2Xml */ "./src/smo/m
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
 const oscillator_1 = __webpack_require__(/*! ../audio/oscillator */ "./src/render/audio/oscillator.ts");
-const xmlScore_1 = __webpack_require__(/*! ../../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
+const xmlToSmo_1 = __webpack_require__(/*! ../../smo/mxml/xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
 const player_1 = __webpack_require__(/*! ../audio/player */ "./src/render/audio/player.ts");
 const xhrLoader_1 = __webpack_require__(/*! ../../ui/fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.js");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
@@ -7510,7 +7510,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         return req.loadAsync().then(() => {
             const parser = new DOMParser();
             const xml = parser.parseFromString(req.value, 'text/xml');
-            const score = xmlScore_1.mxmlScore.smoScoreFromXml(xml);
+            const score = xmlToSmo_1.xmlToSmo.convert(xml);
             self.changeScore(score);
         });
     }
@@ -14472,6 +14472,14 @@ class SmoMeasure {
         measure.activeVoice = 0;
         return measure;
     }
+    /**
+     * used by xml export
+     * @internal
+     * @param val
+     */
+    getForceSystemBreak() {
+        return this.format.systemBreak;
+    }
     // @internal
     setDefaultBarlines() {
         if (!this.getStartBarline()) {
@@ -20965,6 +20973,11 @@ function getValueForTick(arg, tick) {
  * @category SmoToMidi
  */
 class MidiToSmo {
+    /**
+     * Create an object to convert MIDI to a {@link SmoScore}
+     * @param midi the output of midi parser
+     * @param quantizeDuration ticks to quantize (1024 == 16th note)
+     */
     constructor(midi, quantizeDuration) {
         this.timeSignatureMap = {};
         this.tempoMap = {};
@@ -20990,6 +21003,7 @@ class MidiToSmo {
     /**
      * Since midi has very little metadata, we don't know the original clef.
      * so just use the one (treble or bass) that uses the fewest ledger lines
+     * @internal
      * @param notes notes in measure
      * @returns
      */
@@ -21015,18 +21029,33 @@ class MidiToSmo {
         });
         return clef;
     }
+    /**
+     * @internal
+     * @param ticks
+     * @returns
+     */
     getTempo(ticks) {
         if (this.tempoMap[ticks]) {
             return this.tempoMap[ticks];
         }
         return getValueForTick(this.tempoMap, ticks);
     }
+    /**
+     * @internal
+     * @param ticks
+     * @returns
+     */
     getTimeSignature(ticks) {
         if (this.timeSignatureMap[ticks]) {
             return this.timeSignatureMap[ticks];
         }
         return getValueForTick(this.timeSignatureMap, ticks);
     }
+    /**
+     * @internal
+     * @param ticks
+     * @returns
+     */
     getKeySignature(ticks) {
         if (this.keySignatureMap[ticks]) {
             return this.keySignatureMap[ticks];
@@ -21035,12 +21064,17 @@ class MidiToSmo {
     }
     /**
      * Get metadata from the map for this point in the score
-     * @param ticks
+     * @param ticks current point in track
      * @returns
      */
-    getRunningStatus(ticks) {
+    getMetadata(ticks) {
         return { tempo: this.getTempo(ticks), timeSignature: this.getTimeSignature(ticks), keySignature: this.getKeySignature(ticks) };
     }
+    /**
+     * We process 3 types of metadata at present:  time signature, tempo and keysignature.
+     * @param trackEvent
+     * @param ticks
+     */
     handleMetadata(trackEvent, ticks) {
         if (trackEvent.meta) {
             const mtype = trackEvent.type;
@@ -21081,15 +21115,25 @@ class MidiToSmo {
             }
         }
     }
+    /**
+     * Convert from Midi PPQ to Smoosic (and vex) ticks
+     * @internal
+     */
     getSmoTicks(midiTicks) {
         return 4096 * midiTicks / this.timeDivision;
     }
+    /**
+     * @internal
+     */
     createNewEvent(metadata) {
         return {
             pitches: [], durationTicks: 0, tupletInfo: null, isRest: false, timeSignature: new measureModifiers_1.TimeSignature(metadata.timeSignature),
             tempo: new measureModifiers_1.SmoTempoText(metadata.tempo), keySignature: metadata.keySignature, measure: 0, tick: 0, isTied: false
         };
     }
+    /**
+     * @internal
+     */
     static copyEvent(o) {
         const pitches = JSON.parse(JSON.stringify(o.pitches));
         const timeSignature = new measureModifiers_1.TimeSignature(o.timeSignature);
@@ -21099,6 +21143,9 @@ class MidiToSmo {
             measure: o.measure, tick: o.tick, isTied: o.isTied
         });
     }
+    /**
+     * @internal
+     */
     addToTieMap(measureIndex) {
         const staffIx = this.trackIndex;
         if (typeof (this.tieMap[staffIx]) === 'undefined') {
@@ -21165,6 +21212,10 @@ class MidiToSmo {
         });
         return measures;
     }
+    /**
+     * @param ticks
+     * @returns the length in ticks of a triplet, if this looks like a triplet.  Otherwise 0
+     */
     tripletType(ticks) {
         const tripletBeat = Math.round(4096 / 3);
         const tripletHalf = Math.round((4096 * 2) / 3);
@@ -21247,6 +21298,8 @@ class MidiToSmo {
             }
             else {
                 ticksSoFar += ev.durationTicks;
+                // Try to infer the presence of triplets.  If it looks like a triplet, mark it and we will
+                // create the tuplet when we create the measure.
                 const possibleTriplet = this.tripletType(nevent.durationTicks);
                 if (possibleTriplet > 0 && (tripletValue === 0 || possibleTriplet === tripletValue)) {
                     tripletCount += 1;
@@ -21303,7 +21356,7 @@ class MidiToSmo {
         }
         const rv = [];
         let cur = trackEvents[0];
-        let metadata = this.getRunningStatus(0);
+        let metadata = this.getMetadata(0);
         const midiOnNotes = {};
         let curSmo = this.createNewEvent(metadata);
         let untrackedTicks = 0;
@@ -21357,7 +21410,7 @@ class MidiToSmo {
             else if (cur.meta) {
                 this.handleMetadata(cur, ticks);
             }
-            metadata = this.getRunningStatus(ticks);
+            metadata = this.getMetadata(ticks);
             this.eventIndex += 1;
             cur = trackEvents[this.eventIndex];
             if (isEot(cur)) {
@@ -21367,7 +21420,15 @@ class MidiToSmo {
         }
         return rv;
     }
-    getScore() {
+    /**
+     * Convert the midi to a score as best we can.  The conversion is made via a 3-step
+     * process.
+     * 1. consolidate all the MIDI events into individual note on/off events with a duration
+     * 2. adjust the durations so the fit in with Smoosic measure lengths.
+     * 3. Create the {@link SmoNote} objects from the events.
+     * @returns
+     */
+    convert() {
         let staves = [];
         // go through the tracks
         this.midi.tracks.forEach((trackEvents, trackIx) => {
@@ -21382,12 +21443,15 @@ class MidiToSmo {
                 staffDef.staffId = trackIx;
                 staffDef.measures = this.createNotesFromEvents(expanded);
                 const staff = new systemStaff_1.SmoSystemStaff(staffDef);
+                // For notes that are tied across measures, add the tie
                 this.tieMap[trackIx].forEach((mm) => {
                     const startMeasure = staffDef.measures[mm - 1];
                     const endMeasure = staffDef.measures[mm];
                     const endIx = startMeasure.voices[0].notes.length - 1;
-                    if (startMeasure.voices[0].notes[endIx].noteType === 'n' &&
-                        endMeasure.voices[0].notes[0].noteType === 'n') {
+                    const startNote = startMeasure.voices[0].notes[endIx];
+                    const endNote = endMeasure.voices[0].notes[0];
+                    if (startNote.noteType === 'n' &&
+                        endNote.noteType === 'n' && music_1.SmoMusic.pitchArraysMatch(startNote.pitches, endNote.pitches)) {
                         const tieDefs = staffModifiers_1.SmoTie.defaults;
                         tieDefs.startSelector = {
                             staff: trackIx, measure: mm - 1, voice: 0, tick: endIx,
@@ -21549,7 +21613,7 @@ const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "
 const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
 const xmlHelpers_1 = __webpack_require__(/*! ./xmlHelpers */ "./src/smo/mxml/xmlHelpers.ts");
-const xmlScore_1 = __webpack_require__(/*! ./xmlScore */ "./src/smo/mxml/xmlScore.ts");
+const xmlToSmo_1 = __webpack_require__(/*! ./xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
 /**
  * Convert {@link SmoScore} object into a music XML serialization
  * @category SmoToXml
@@ -21575,16 +21639,16 @@ class SmoToXml {
         const defaults = nn(root, 'defaults', null, '');
         const scaling = nn(root, 'scaling', null, '');
         // reverse this:
-        // scoreDefaults.layout.svgScale =  (scale * 42 / 40) / mxmlScore.mmPerPixel;
-        const mm = xmlScore_1.mxmlScore.mmPerPixel * 42 * score.layoutManager.getGlobalLayout().svgScale;
+        // scoreDefaults.layout.svgScale =  (scale * 42 / 40) / xmlToSmo.mmPerPixel;
+        const mm = xmlToSmo_1.xmlToSmo.mmPerPixel * 42 * score.layoutManager.getGlobalLayout().svgScale;
         nn(scaling, 'millimeters', { mm }, 'mm');
         nn(scaling, 'tenths', { tenths: 40 }, 'tenths');
         const pageLayout = nn(defaults, 'page-layout', null, '');
-        xmlScore_1.mxmlScore.pageLayoutMap.forEach((map) => {
+        xmlToSmo_1.xmlToSmo.pageLayoutMap.forEach((map) => {
             nn(pageLayout, map.xml, score.layoutManager, map.smo);
         });
         const pageMargins = nn(pageLayout, 'page-margins', null, '');
-        xmlScore_1.mxmlScore.pageMarginMap.forEach((map) => {
+        xmlToSmo_1.xmlToSmo.pageMarginMap.forEach((map) => {
             nn(pageMargins, map.xml, score.layoutManager.pageLayouts[0], map.smo);
         });
         const partList = nn(root, 'part-list', null, '');
@@ -22399,592 +22463,6 @@ mxmlHelpers._ticksToNoteTypeMap = serializationHelpers_1.smoSerialize.reverseMap
 
 /***/ }),
 
-/***/ "./src/smo/mxml/xmlScore.ts":
-/*!**********************************!*\
-  !*** ./src/smo/mxml/xmlScore.ts ***!
-  \**********************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.mxmlScore = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const xmlHelpers_1 = __webpack_require__(/*! ./xmlHelpers */ "./src/smo/mxml/xmlHelpers.ts");
-const xmlState_1 = __webpack_require__(/*! ./xmlState */ "./src/smo/mxml/xmlState.ts");
-const scoreModifiers_1 = __webpack_require__(/*! ../data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
-const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
-const score_1 = __webpack_require__(/*! ../data/score */ "./src/smo/data/score.ts");
-const measure_1 = __webpack_require__(/*! ../data/measure */ "./src/smo/data/measure.ts");
-const basic_1 = __webpack_require__(/*! ../../music/basic */ "./src/music/basic.js");
-const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
-const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
-const systemStaff_1 = __webpack_require__(/*! ../data/systemStaff */ "./src/smo/data/systemStaff.ts");
-const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
-/**
- * A class that takes a music XML file and outputs a {@link SmoScore}
- * @category SmoToXml
- */
-class mxmlScore {
-    static get mmPerPixel() {
-        return 0.264583;
-    }
-    static get customProportionDefault() {
-        return score_1.SmoScore.defaults.preferences.customProportion;
-    }
-    static get pageLayoutMap() {
-        return [
-            { xml: 'page-height', smo: 'pageHeight' },
-            { xml: 'page-width', smo: 'pageWidth' }
-        ];
-    }
-    static get pageMarginMap() {
-        return [
-            { xml: 'left-margin', smo: 'leftMargin' },
-            { xml: 'right-margin', smo: 'rightMargin' },
-            { xml: 'top-margin', smo: 'topMargin' },
-            { xml: 'bottom-margin', smo: 'bottomMargin' }
-        ];
-    }
-    static get scoreInfoFields() {
-        return ['title', 'subTitle', 'composer', 'copyright'];
-    }
-    // ### smoScoreFromXml
-    // Main entry point for Smoosic mxml parser
-    static smoScoreFromXml(xmlDoc) {
-        try {
-            const scoreRoots = [...xmlDoc.getElementsByTagName('score-partwise')];
-            if (!scoreRoots.length) {
-                // no score node
-                return score_1.SmoScore.deserialize(basic_1.emptyScoreJson);
-            }
-            const scoreRoot = scoreRoots[0];
-            const rv = new score_1.SmoScore(score_1.SmoScore.defaults);
-            rv.staves = [];
-            const layoutDefaults = rv.layoutManager;
-            // if no scale given in score, default to something small.
-            layoutDefaults.globalLayout.svgScale = 0.5;
-            layoutDefaults.globalLayout.zoomScale = 1.0;
-            const xmlState = new xmlState_1.XmlState();
-            xmlState.newTitle = false;
-            rv.scoreInfo.name = 'Imported Smoosic';
-            mxmlScore.scoreInfoFields.forEach((field) => {
-                rv.scoreInfo[field] = '';
-            });
-            const childNodes = [...scoreRoot.children];
-            childNodes.forEach((scoreElement) => {
-                if (scoreElement.tagName === 'work') {
-                    const scoreNameNode = [...scoreElement.getElementsByTagName('work-title')];
-                    if (scoreNameNode.length && scoreNameNode[0].textContent) {
-                        rv.scoreInfo.title = scoreNameNode[0].textContent;
-                        rv.scoreInfo.name = rv.scoreInfo.title;
-                        xmlState.newTitle = true;
-                    }
-                }
-                else if (scoreElement.tagName === 'identification') {
-                    const creators = [...scoreElement.getElementsByTagName('creator')];
-                    creators.forEach((creator) => {
-                        if (creator.getAttribute('type') === 'composer' && creator.textContent) {
-                            rv.scoreInfo.composer = creator.textContent;
-                        }
-                    });
-                }
-                else if (scoreElement.tagName === 'movement-title') {
-                    if (xmlState.newTitle && scoreElement.textContent) {
-                        rv.scoreInfo.subTitle = scoreElement.textContent;
-                    }
-                    else if (scoreElement.textContent) {
-                        rv.scoreInfo.title = scoreElement.textContent;
-                        rv.scoreInfo.name = rv.scoreInfo.title;
-                        xmlState.newTitle = true;
-                    }
-                }
-                else if (scoreElement.tagName === 'defaults') {
-                    mxmlScore.defaults(scoreElement, rv, layoutDefaults);
-                }
-                else if (scoreElement.tagName === 'part') {
-                    xmlState.initializeForPart();
-                    mxmlScore.part(scoreElement, xmlState);
-                }
-            });
-            // The entire score is parsed and xmlState now contains the staves.
-            rv.formattingManager = xmlState.formattingManager;
-            rv.staves = xmlState.smoStaves;
-            xmlState.updateStaffGroups();
-            rv.systemGroups = xmlState.getSystems();
-            // Fix tempo to be column mapped
-            rv.staves[0].measures.forEach((measure) => {
-                const tempoStaff = rv.staves.find((ss) => ss.measures[measure.measureNumber.measureIndex].tempo.display === true);
-                if (tempoStaff) {
-                    const tempo = tempoStaff.measures[measure.measureNumber.measureIndex].tempo;
-                    rv.staves.forEach((ss) => {
-                        ss.measures[measure.measureNumber.measureIndex].tempo =
-                            measureModifiers_1.SmoMeasureModifierBase.deserialize(tempo);
-                    });
-                }
-            });
-            const lm = rv.layoutManager;
-            if (rv.scoreInfo.title) {
-                rv.addTextGroup(scoreModifiers_1.SmoTextGroup.createTextForLayout(scoreModifiers_1.SmoTextGroup.purposes.TITLE, rv.scoreInfo.title, lm.getScaledPageLayout(0)));
-            }
-            if (rv.scoreInfo.subTitle) {
-                rv.addTextGroup(scoreModifiers_1.SmoTextGroup.createTextForLayout(scoreModifiers_1.SmoTextGroup.purposes.SUBTITLE, rv.scoreInfo.subTitle, lm.getScaledPageLayout(0)));
-            }
-            if (rv.scoreInfo.composer) {
-                rv.addTextGroup(scoreModifiers_1.SmoTextGroup.createTextForLayout(scoreModifiers_1.SmoTextGroup.purposes.COMPOSER, rv.scoreInfo.composer, lm.getScaledPageLayout(0)));
-            }
-            return rv;
-        }
-        catch (exc) {
-            console.warn(exc);
-            return score_1.SmoScore.deserialize(basic_1.emptyScoreJson);
-        }
-    }
-    // ### defaults
-    // /score-partwise/defaults
-    static defaults(defaultsElement, score, layoutDefaults) {
-        // Default scale for mxml
-        let scale = 1 / 7;
-        const currentScale = layoutDefaults.getGlobalLayout().svgScale;
-        const pageLayoutNode = defaultsElement.getElementsByTagName('page-layout');
-        if (pageLayoutNode.length) {
-            xmlHelpers_1.mxmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults.globalLayout, mxmlScore.pageLayoutMap);
-        }
-        const pageMarginNode = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(defaultsElement, ['page-layout', 'page-margins']);
-        if (pageMarginNode.length) {
-            xmlHelpers_1.mxmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], mxmlScore.pageMarginMap);
-        }
-        const scaleNode = defaultsElement.getElementsByTagName('scaling');
-        if (scaleNode.length) {
-            const mm = xmlHelpers_1.mxmlHelpers.getNumberFromElement(scaleNode[0], 'millimeters', 1);
-            const tn = xmlHelpers_1.mxmlHelpers.getNumberFromElement(scaleNode[0], 'tenths', 7);
-            if (tn > 0 && mm > 0) {
-                scale = mm / tn;
-            }
-        }
-        // Convert from mm to pixels, this is our default svg scale
-        // mm per tenth * pixels / mm gives us pixels per tenth
-        layoutDefaults.globalLayout.svgScale = (scale * 45 / 40) / mxmlScore.mmPerPixel;
-        score.scaleTextGroups(currentScale / layoutDefaults.globalLayout.svgScale);
-    }
-    // ### part
-    // /score-partwise/part
-    static part(partElement, xmlState) {
-        let staffId = xmlState.smoStaves.length;
-        console.log('part ' + partElement.getAttribute('id'));
-        xmlState.initializeForPart();
-        const stavesForPart = [];
-        const measureElements = [...partElement.getElementsByTagName('measure')];
-        measureElements.forEach((measureElement) => {
-            // Parse the measure element, populate staffArray of xmlState with the
-            // measure data
-            mxmlScore.measure(measureElement, xmlState);
-            const newStaves = xmlState.staffArray;
-            if (newStaves.length > 1 && stavesForPart.length <= newStaves[0].clefInfo.staffId) {
-                xmlState.staffGroups.push({ start: staffId, length: newStaves.length });
-            }
-            xmlState.globalCursor += newStaves[0].measure.getMaxTicksVoice();
-            newStaves.forEach((staffMeasure) => {
-                if (stavesForPart.length <= staffMeasure.clefInfo.staffId) {
-                    const params = systemStaff_1.SmoSystemStaff.defaults;
-                    params.staffId = staffId;
-                    stavesForPart.push(new systemStaff_1.SmoSystemStaff(params));
-                    staffId += 1;
-                }
-                const smoStaff = stavesForPart[staffMeasure.clefInfo.staffId];
-                smoStaff.measures.push(staffMeasure.measure);
-            });
-            const oldStaffId = staffId - stavesForPart.length;
-            xmlState.backtrackHairpins(stavesForPart[0], oldStaffId + 1);
-        });
-        xmlState.smoStaves = xmlState.smoStaves.concat(stavesForPart);
-        xmlState.completeSlurs();
-        xmlState.completeTies();
-    }
-    // ### tempo
-    // /score-partwise/measure/direction/sound:tempo
-    static tempo(element) {
-        let tempoText = '';
-        let customText = tempoText;
-        const rv = [];
-        const soundNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(element, ['sound']);
-        soundNodes.forEach((sound) => {
-            let tempoMode = measureModifiers_1.SmoTempoText.tempoModes.durationMode;
-            tempoText = sound.getAttribute('tempo');
-            if (tempoText) {
-                const bpm = parseInt(tempoText, 10);
-                const wordNode = [...element.getElementsByTagName('words')];
-                tempoText = wordNode.length ? wordNode[0].textContent :
-                    tempoText.toString();
-                if (isNaN(parseInt(tempoText, 10))) {
-                    if (measureModifiers_1.SmoTempoText.tempoTexts[tempoText.toLowerCase()]) {
-                        tempoMode = measureModifiers_1.SmoTempoText.tempoModes.textMode;
-                    }
-                    else {
-                        tempoMode = measureModifiers_1.SmoTempoText.tempoModes.customMode;
-                        customText = tempoText;
-                    }
-                }
-                const params = measureModifiers_1.SmoTempoText.defaults;
-                params.tempoMode = tempoMode;
-                params.bpm = bpm;
-                params.tempoText = tempoText;
-                params.customText = customText;
-                params.display = true;
-                const tempo = new measureModifiers_1.SmoTempoText(params);
-                const staffId = xmlHelpers_1.mxmlHelpers.getStaffId(element);
-                rv.push({ staffId, tempo });
-            }
-        });
-        return rv;
-    }
-    // ### dynamics
-    // /score-partwise/part/measure/direction/dynamics
-    static dynamics(directionElement, xmlState) {
-        let offset = 1;
-        const dynamicNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(directionElement, ['direction-type', 'dynamics']);
-        const offsetNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(directionElement, ['offset']);
-        if (offsetNodes.length) {
-            offset = parseInt(offsetNodes[0].textContent, 10);
-        }
-        dynamicNodes.forEach((dynamic) => {
-            xmlState.dynamics.push({
-                dynamic: dynamic.children[0].tagName,
-                offset: (offset / xmlState.divisions) * 4096
-            });
-        });
-    }
-    // ### attributes
-    // /score-partwise/part/measure/attributes
-    static attributes(measureElement, xmlState) {
-        let smoKey = {};
-        const attributesNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(measureElement, ['attributes']);
-        if (!attributesNodes.length) {
-            return;
-        }
-        const attributesNode = attributesNodes[0];
-        xmlState.divisions =
-            xmlHelpers_1.mxmlHelpers.getNumberFromElement(attributesNode, 'divisions', xmlState.divisions);
-        const keyNode = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(attributesNode, ['key']);
-        // MusicXML expresses keys in 'fifths' from C.
-        if (keyNode.length) {
-            const fifths = xmlHelpers_1.mxmlHelpers.getNumberFromElement(keyNode[0], 'fifths', 0);
-            if (fifths < 0) {
-                smoKey = music_1.SmoMusic.circleOfFifths[music_1.SmoMusic.circleOfFifths.length + fifths];
-            }
-            else {
-                smoKey = music_1.SmoMusic.circleOfFifths[fifths];
-            }
-            xmlState.keySignature = smoKey.letter.toUpperCase();
-            if (smoKey.accidental !== 'n') {
-                xmlState.keySignature += smoKey.accidental;
-            }
-        }
-        const currentTime = xmlState.timeSignature.split('/');
-        const timeNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(attributesNode, ['time']);
-        if (timeNodes.length) {
-            const timeNode = timeNodes[0];
-            const num = xmlHelpers_1.mxmlHelpers.getNumberFromElement(timeNode, 'beats', parseInt(currentTime[0], 10));
-            const den = xmlHelpers_1.mxmlHelpers.getNumberFromElement(timeNode, 'beat-type', parseInt(currentTime[1], 10));
-            xmlState.timeSignature = '' + num + '/' + den;
-        }
-        const clefNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(attributesNode, ['clef']);
-        if (clefNodes.length) {
-            // We expect the number of clefs to equal the number of staves in each measure
-            clefNodes.forEach((clefNode) => {
-                let clefNum = 0;
-                let clef = 'treble';
-                const clefAttrs = xmlHelpers_1.mxmlHelpers.nodeAttributes(clefNode);
-                if (typeof (clefAttrs.number) !== 'undefined') {
-                    // staff numbers index from 1 in mxml
-                    clefNum = parseInt(clefAttrs.number, 10) - 1;
-                }
-                const clefType = xmlHelpers_1.mxmlHelpers.getTextFromElement(clefNode, 'sign', 'G');
-                const clefLine = xmlHelpers_1.mxmlHelpers.getNumberFromElement(clefNode, 'line', 2);
-                // mxml supports a zillion clefs, just implement the basics.
-                if (clefType === 'F') {
-                    clef = 'bass';
-                }
-                else if (clefType === 'C') {
-                    if (clefLine === 4) {
-                        clef = 'alto';
-                    }
-                    else if (clefLine === 3) {
-                        clef = 'tenor';
-                    }
-                    else if (clefLine === 1) {
-                        clef = 'soprano';
-                    }
-                }
-                else if (clefType === 'percussion') {
-                    clef = 'percussion';
-                }
-                if (xmlState.clefInfo.length <= clefNum) {
-                    xmlState.clefInfo.push({ clef, staffId: clefNum });
-                }
-                else {
-                    xmlState.clefInfo[clefNum].clef = clef;
-                }
-            });
-        }
-    }
-    // ### wedge (hairpin)
-    // /score-partwise/part/measure/direction/direction-type/wedge
-    static wedge(directionElement, xmlState) {
-        let crescInfo = null;
-        const wedgeNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(directionElement, ['direction-type', 'wedge']);
-        wedgeNodes.forEach((wedgeNode) => {
-            crescInfo = { type: wedgeNode.getAttribute('type') };
-        });
-        // If this is a start hairpin, start it.  If an end hairpin, add it to the
-        // hairpin array with the type and start/stop ticks
-        if (crescInfo !== null) {
-            xmlState.processWedge(crescInfo);
-        }
-    }
-    // ### direction
-    // /score-partwise/part/measure/direction
-    static direction(directionElement, xmlState) {
-        const tempo = mxmlScore.tempo(directionElement);
-        // Only display tempo if changes.
-        if (tempo.length) {
-            // TODO: staff ID is with tempo, but tempo is per column in SMO
-            if (!measureModifiers_1.SmoTempoText.eq(xmlState.tempo, tempo[0].tempo)) {
-                xmlState.tempo = tempo[0].tempo;
-                xmlState.tempo.display = true;
-            }
-        }
-        // parse dynamic node and add to xmlState
-        mxmlScore.dynamics(directionElement, xmlState);
-        // parse wedge (hairpin)
-        mxmlScore.wedge(directionElement, xmlState);
-    }
-    // ### note
-    // /score-partwise/part/measure/note
-    static note(noteElement, xmlState) {
-        let grIx = 0;
-        const staffIndex = xmlHelpers_1.mxmlHelpers.getStaffId(noteElement);
-        xmlState.staffIndex = staffIndex;
-        // We assume the clef information from attributes comes before the notes
-        // xmlState.staffArray[staffIndex] = { clefInfo: { clef }, voices[voiceIndex]: notes[] }
-        if (xmlState.staffArray.length <= staffIndex) {
-            // mxml has measures for all staves in a part interleaved.  In SMO they are
-            // each in a separate stave object.  Base the staves we expect based on
-            // the number of clefs in the xml state object
-            xmlState.clefInfo.forEach((clefInfo) => {
-                xmlState.staffArray.push({ clefInfo, measure: null, voices: {} });
-            });
-        }
-        const chordNode = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(noteElement, ['chord']);
-        if (chordNode.length === 0) {
-            xmlState.currentDuration += xmlHelpers_1.mxmlHelpers.durationFromNode(noteElement, 0);
-        }
-        // voices are not sequential, seem to have artitrary numbers and
-        // persist per part (same with staff IDs).  Update XML state if these are new
-        // staves
-        const voiceIndex = xmlHelpers_1.mxmlHelpers.getVoiceId(noteElement);
-        xmlState.voiceIndex = voiceIndex;
-        xmlState.initializeStaff(staffIndex, voiceIndex);
-        const voice = xmlState.staffArray[staffIndex].voices[voiceIndex];
-        // Calculate the tick and staff index for selectors
-        const tickIndex = chordNode.length < 1 ? voice.notes.length : voice.notes.length - 1;
-        const smoVoiceIndex = xmlState.staffVoiceHash[staffIndex].indexOf(voiceIndex);
-        const pitchIndex = chordNode.length ? xmlState.previousNote.pitches.length : 0;
-        const smoStaffIndex = xmlState.smoStaves.length + staffIndex;
-        const selector = {
-            staff: smoStaffIndex, measure: xmlState.measureIndex, voice: smoVoiceIndex,
-            tick: tickIndex, pitches: []
-        };
-        const divisions = xmlState.divisions;
-        const printText = noteElement.getAttribute('print-object');
-        const hideNote = typeof (printText) === 'string' && printText === 'no';
-        const isGrace = xmlHelpers_1.mxmlHelpers.isGrace(noteElement);
-        const restNode = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(noteElement, ['rest']);
-        const noteType = restNode.length ? 'r' : 'n';
-        const durationData = xmlHelpers_1.mxmlHelpers.ticksFromDuration(noteElement, divisions, 4096);
-        const tickCount = durationData.tickCount;
-        if (chordNode.length === 0) {
-            xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed += tickCount;
-        }
-        xmlState.tickCursor = (xmlState.currentDuration / divisions) * 4096;
-        const beamState = xmlHelpers_1.mxmlHelpers.noteBeamState(noteElement);
-        const slurInfos = xmlHelpers_1.mxmlHelpers.getSlurData(noteElement, selector);
-        const tieInfos = xmlHelpers_1.mxmlHelpers.getTieData(noteElement, selector, pitchIndex);
-        const tupletInfos = xmlHelpers_1.mxmlHelpers.getTupletData(noteElement);
-        const ornaments = xmlHelpers_1.mxmlHelpers.articulationsAndOrnaments(noteElement);
-        const lyrics = xmlHelpers_1.mxmlHelpers.lyrics(noteElement);
-        const flagState = xmlHelpers_1.mxmlHelpers.getStemType(noteElement);
-        const clefString = xmlState.staffArray[staffIndex].clefInfo.clef;
-        const pitch = xmlHelpers_1.mxmlHelpers.smoPitchFromNote(noteElement, measure_1.SmoMeasure.defaultPitchForClef[clefString]);
-        if (isGrace === false) {
-            if (chordNode.length) {
-                // If this is a note in a chord, just add the pitch to previous note.
-                xmlState.previousNote.pitches.push(pitch);
-                xmlState.updateTieStates(tieInfos);
-            }
-            else {
-                // Create a new note
-                const noteData = note_1.SmoNote.defaults;
-                noteData.noteType = noteType;
-                noteData.pitches = [pitch];
-                // If this is a non-grace note, add any grace notes to the note since SMO
-                // treats them as note modifiers
-                noteData.ticks = { numerator: tickCount, denominator: 1, remainder: 0 };
-                noteData.flagState = flagState;
-                xmlState.previousNote = new note_1.SmoNote(noteData);
-                if (hideNote) {
-                    xmlState.previousNote.makeHidden(true);
-                }
-                xmlState.updateDynamics();
-                ornaments.forEach((ornament) => {
-                    if (ornament.ctor === 'SmoOrnament') {
-                        xmlState.previousNote.toggleOrnament(ornament);
-                    }
-                    else if (ornament.ctor === 'SmoArticulation') {
-                        xmlState.previousNote.toggleArticulation(ornament);
-                    }
-                });
-                lyrics.forEach((lyric) => {
-                    xmlState.addLyric(xmlState.previousNote, lyric);
-                });
-                for (grIx = 0; grIx < xmlState.graceNotes.length; ++grIx) {
-                    xmlState.previousNote.addGraceNote(xmlState.graceNotes[grIx], grIx);
-                }
-                xmlState.graceNotes = []; // clear the grace note array
-                // If this note starts later than the cursor due to forward, pad with rests
-                if (xmlState.tickCursor > xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed) {
-                    const pads = music_1.SmoMusic.splitIntoValidDurations(xmlState.tickCursor - xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed);
-                    pads.forEach((pad) => {
-                        const clefString = xmlState.staffArray[staffIndex].clefInfo.clef;
-                        const padNote = measure_1.SmoMeasure.createRestNoteWithDuration(pad, clefString);
-                        padNote.makeHidden(true);
-                        voice.notes.push(padNote);
-                    });
-                    // Offset any partially-completed ties or slurs with the padding
-                    slurInfos.forEach((slurInfo) => {
-                        slurInfo.selector.tick += pads.length;
-                    });
-                    tieInfos.forEach((tieInfo) => {
-                        tieInfo.selector.tick += pads.length;
-                    });
-                    selector.tick += pads.length;
-                    console.log('Added ' + pads.length + ' ticks to ' + JSON.stringify(selector, null, ' '));
-                    // then reset the cursor since we are now in sync
-                    xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed = xmlState.tickCursor;
-                }
-                xmlState.updateSlurStates(slurInfos);
-                xmlState.updateTieStates(tieInfos);
-                voice.notes.push(xmlState.previousNote);
-                xmlState.updateBeamState(beamState, durationData.alteration, voice, voiceIndex);
-                xmlState.updateTupletStates(tupletInfos, voice, staffIndex, voiceIndex);
-            }
-        }
-        else {
-            if (chordNode.length) {
-                xmlState.graceNotes[xmlState.graceNotes.length - 1].pitches.push(pitch);
-            }
-            else {
-                // grace note durations don't seem to have explicit duration, so
-                // get it from note type
-                xmlState.updateSlurStates(slurInfos);
-                xmlState.updateTieStates(tieInfos);
-                xmlState.graceNotes.push(new noteModifiers_1.SmoGraceNote({
-                    pitches: [pitch],
-                    ticks: { numerator: tickCount, denominator: 1, remainder: 0 }
-                }));
-            }
-        }
-    }
-    // ### parseMeasureElement
-    // /score-partwise/part/measure
-    // A measure in music xml might represent several measures in SMO at the same
-    // column in the score
-    static measure(measureElement, xmlState) {
-        xmlState.initializeForMeasure(measureElement);
-        const elements = [...measureElement.children];
-        let hasNotes = false;
-        elements.forEach((element) => {
-            if (element.tagName === 'backup') {
-                xmlState.currentDuration -= xmlHelpers_1.mxmlHelpers.durationFromNode(element, 0);
-            }
-            if (element.tagName === 'forward') {
-                xmlState.currentDuration += xmlHelpers_1.mxmlHelpers.durationFromNode(element, 0);
-            }
-            if (element.tagName === 'attributes') {
-                // update the running state of the XML with new information from this measure
-                // if an XML attributes element is present
-                mxmlScore.attributes(measureElement, xmlState);
-            }
-            else if (element.tagName === 'direction') {
-                mxmlScore.direction(element, xmlState);
-            }
-            else if (element.tagName === 'note') {
-                mxmlScore.note(element, xmlState);
-                hasNotes = true;
-            }
-        });
-        // If a measure has no notes, just make one with the defaults
-        if (hasNotes === false && xmlState.staffArray.length < 1 && xmlState.clefInfo.length >= 1) {
-            xmlState.clefInfo.forEach((clefInfo) => {
-                xmlState.staffArray.push({ clefInfo, measure: null, voices: {} });
-            });
-        }
-        xmlState.staffArray.forEach((staffData) => {
-            const clef = staffData.clefInfo.clef;
-            const params = measure_1.SmoMeasure.defaults;
-            params.clef = clef;
-            const smoMeasure = measure_1.SmoMeasure.getDefaultMeasure(params);
-            smoMeasure.format = new measureModifiers_1.SmoMeasureFormat(measureModifiers_1.SmoMeasureFormat.defaults);
-            smoMeasure.format.measureIndex = xmlState.measureNumber;
-            smoMeasure.format.systemBreak = xmlHelpers_1.mxmlHelpers.isSystemBreak(measureElement);
-            smoMeasure.tempo = xmlState.tempo;
-            smoMeasure.format.customProportion = mxmlScore.customProportionDefault;
-            xmlState.formattingManager.updateMeasureFormat(smoMeasure.format);
-            smoMeasure.keySignature = xmlState.keySignature;
-            smoMeasure.timeSignature = measure_1.SmoMeasure.convertLegacyTimeSignature(xmlState.timeSignature);
-            smoMeasure.measureNumber.localIndex = xmlState.measureNumber;
-            smoMeasure.measureNumber.measureIndex = xmlState.measureIndex;
-            smoMeasure.measureNumber.staffId = staffData.clefInfo.staffId + xmlState.smoStaves.length;
-            // voices not in array, put them in an array
-            Object.keys(staffData.voices).forEach((voiceKey) => {
-                const voice = staffData.voices[voiceKey];
-                xmlState.addTupletsToMeasure(smoMeasure, staffData.clefInfo.staffId, parseInt(voiceKey, 10));
-                voice.notes.forEach((note) => {
-                    if (!note.clef) {
-                        note.clef = smoMeasure.clef;
-                    }
-                });
-                smoMeasure.voices.push(voice);
-            });
-            if (smoMeasure.voices.length === 0) {
-                smoMeasure.voices.push({ notes: measure_1.SmoMeasure.getDefaultNotes(smoMeasure) });
-            }
-            staffData.measure = smoMeasure;
-        });
-        // Pad incomplete measures/voices with rests
-        const maxTicks = xmlState.staffArray.map((staffData) => staffData.measure.getMaxTicksVoice())
-            .reduce((a, b) => a > b ? a : b);
-        xmlState.staffArray.forEach((staffData) => {
-            let i = 0;
-            let j = 0;
-            const measure = staffData.measure;
-            for (i = 0; i < measure.voices.length; ++i) {
-                const curTicks = measure.getTicksFromVoice(i);
-                if (curTicks < maxTicks) {
-                    const tickAr = music_1.SmoMusic.splitIntoValidDurations(maxTicks - curTicks);
-                    for (j = 0; j < tickAr.length; ++j) {
-                        measure.voices[i].notes.push(measure_1.SmoMeasure.createRestNoteWithDuration(tickAr[j], measure.clef));
-                    }
-                }
-            }
-        });
-    }
-}
-exports.mxmlScore = mxmlScore;
-
-
-/***/ }),
-
 /***/ "./src/smo/mxml/xmlState.ts":
 /*!**********************************!*\
   !*** ./src/smo/mxml/xmlState.ts ***!
@@ -23429,6 +22907,599 @@ class XmlState {
     }
 }
 exports.XmlState = XmlState;
+
+
+/***/ }),
+
+/***/ "./src/smo/mxml/xmlToSmo.ts":
+/*!**********************************!*\
+  !*** ./src/smo/mxml/xmlToSmo.ts ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.xmlToSmo = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+/**
+ * Logic to convert music XML (finale) to Smo internal format
+ * @module xmlToSmo
+ */
+const xmlHelpers_1 = __webpack_require__(/*! ./xmlHelpers */ "./src/smo/mxml/xmlHelpers.ts");
+const xmlState_1 = __webpack_require__(/*! ./xmlState */ "./src/smo/mxml/xmlState.ts");
+const scoreModifiers_1 = __webpack_require__(/*! ../data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
+const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const score_1 = __webpack_require__(/*! ../data/score */ "./src/smo/data/score.ts");
+const measure_1 = __webpack_require__(/*! ../data/measure */ "./src/smo/data/measure.ts");
+const basic_1 = __webpack_require__(/*! ../../music/basic */ "./src/music/basic.js");
+const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
+const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
+const systemStaff_1 = __webpack_require__(/*! ../data/systemStaff */ "./src/smo/data/systemStaff.ts");
+const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
+/**
+ * A class that takes a music XML file and outputs a {@link SmoScore}
+ * @category SmoToXml
+ */
+class xmlToSmo {
+    static get mmPerPixel() {
+        return 0.264583;
+    }
+    static get customProportionDefault() {
+        return score_1.SmoScore.defaults.preferences.customProportion;
+    }
+    static get pageLayoutMap() {
+        return [
+            { xml: 'page-height', smo: 'pageHeight' },
+            { xml: 'page-width', smo: 'pageWidth' }
+        ];
+    }
+    static get pageMarginMap() {
+        return [
+            { xml: 'left-margin', smo: 'leftMargin' },
+            { xml: 'right-margin', smo: 'rightMargin' },
+            { xml: 'top-margin', smo: 'topMargin' },
+            { xml: 'bottom-margin', smo: 'bottomMargin' }
+        ];
+    }
+    static get scoreInfoFields() {
+        return ['title', 'subTitle', 'composer', 'copyright'];
+    }
+    /**
+     * Convert music XML file from parse xml to a {@link SmoScore}
+     * @param xmlDoc
+     * @returns
+     */
+    static convert(xmlDoc) {
+        try {
+            const scoreRoots = [...xmlDoc.getElementsByTagName('score-partwise')];
+            if (!scoreRoots.length) {
+                // no score node
+                return score_1.SmoScore.deserialize(basic_1.emptyScoreJson);
+            }
+            const scoreRoot = scoreRoots[0];
+            const rv = new score_1.SmoScore(score_1.SmoScore.defaults);
+            rv.staves = [];
+            const layoutDefaults = rv.layoutManager;
+            // if no scale given in score, default to something small.
+            layoutDefaults.globalLayout.svgScale = 0.5;
+            layoutDefaults.globalLayout.zoomScale = 1.0;
+            const xmlState = new xmlState_1.XmlState();
+            xmlState.newTitle = false;
+            rv.scoreInfo.name = 'Imported Smoosic';
+            xmlToSmo.scoreInfoFields.forEach((field) => {
+                rv.scoreInfo[field] = '';
+            });
+            const childNodes = [...scoreRoot.children];
+            childNodes.forEach((scoreElement) => {
+                if (scoreElement.tagName === 'work') {
+                    const scoreNameNode = [...scoreElement.getElementsByTagName('work-title')];
+                    if (scoreNameNode.length && scoreNameNode[0].textContent) {
+                        rv.scoreInfo.title = scoreNameNode[0].textContent;
+                        rv.scoreInfo.name = rv.scoreInfo.title;
+                        xmlState.newTitle = true;
+                    }
+                }
+                else if (scoreElement.tagName === 'identification') {
+                    const creators = [...scoreElement.getElementsByTagName('creator')];
+                    creators.forEach((creator) => {
+                        if (creator.getAttribute('type') === 'composer' && creator.textContent) {
+                            rv.scoreInfo.composer = creator.textContent;
+                        }
+                    });
+                }
+                else if (scoreElement.tagName === 'movement-title') {
+                    if (xmlState.newTitle && scoreElement.textContent) {
+                        rv.scoreInfo.subTitle = scoreElement.textContent;
+                    }
+                    else if (scoreElement.textContent) {
+                        rv.scoreInfo.title = scoreElement.textContent;
+                        rv.scoreInfo.name = rv.scoreInfo.title;
+                        xmlState.newTitle = true;
+                    }
+                }
+                else if (scoreElement.tagName === 'defaults') {
+                    xmlToSmo.defaults(scoreElement, rv, layoutDefaults);
+                }
+                else if (scoreElement.tagName === 'part') {
+                    xmlState.initializeForPart();
+                    xmlToSmo.part(scoreElement, xmlState);
+                }
+            });
+            // The entire score is parsed and xmlState now contains the staves.
+            rv.formattingManager = xmlState.formattingManager;
+            rv.staves = xmlState.smoStaves;
+            xmlState.updateStaffGroups();
+            rv.systemGroups = xmlState.getSystems();
+            // Fix tempo to be column mapped
+            rv.staves[0].measures.forEach((measure) => {
+                const tempoStaff = rv.staves.find((ss) => ss.measures[measure.measureNumber.measureIndex].tempo.display === true);
+                if (tempoStaff) {
+                    const tempo = tempoStaff.measures[measure.measureNumber.measureIndex].tempo;
+                    rv.staves.forEach((ss) => {
+                        ss.measures[measure.measureNumber.measureIndex].tempo =
+                            measureModifiers_1.SmoMeasureModifierBase.deserialize(tempo);
+                    });
+                }
+            });
+            const lm = rv.layoutManager;
+            if (rv.scoreInfo.title) {
+                rv.addTextGroup(scoreModifiers_1.SmoTextGroup.createTextForLayout(scoreModifiers_1.SmoTextGroup.purposes.TITLE, rv.scoreInfo.title, lm.getScaledPageLayout(0)));
+            }
+            if (rv.scoreInfo.subTitle) {
+                rv.addTextGroup(scoreModifiers_1.SmoTextGroup.createTextForLayout(scoreModifiers_1.SmoTextGroup.purposes.SUBTITLE, rv.scoreInfo.subTitle, lm.getScaledPageLayout(0)));
+            }
+            if (rv.scoreInfo.composer) {
+                rv.addTextGroup(scoreModifiers_1.SmoTextGroup.createTextForLayout(scoreModifiers_1.SmoTextGroup.purposes.COMPOSER, rv.scoreInfo.composer, lm.getScaledPageLayout(0)));
+            }
+            return rv;
+        }
+        catch (exc) {
+            console.warn(exc);
+            return score_1.SmoScore.deserialize(basic_1.emptyScoreJson);
+        }
+    }
+    // ### defaults
+    // /score-partwise/defaults
+    static defaults(defaultsElement, score, layoutDefaults) {
+        // Default scale for mxml
+        let scale = 1 / 7;
+        const currentScale = layoutDefaults.getGlobalLayout().svgScale;
+        const pageLayoutNode = defaultsElement.getElementsByTagName('page-layout');
+        if (pageLayoutNode.length) {
+            xmlHelpers_1.mxmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults.globalLayout, xmlToSmo.pageLayoutMap);
+        }
+        const pageMarginNode = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(defaultsElement, ['page-layout', 'page-margins']);
+        if (pageMarginNode.length) {
+            xmlHelpers_1.mxmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], xmlToSmo.pageMarginMap);
+        }
+        const scaleNode = defaultsElement.getElementsByTagName('scaling');
+        if (scaleNode.length) {
+            const mm = xmlHelpers_1.mxmlHelpers.getNumberFromElement(scaleNode[0], 'millimeters', 1);
+            const tn = xmlHelpers_1.mxmlHelpers.getNumberFromElement(scaleNode[0], 'tenths', 7);
+            if (tn > 0 && mm > 0) {
+                scale = mm / tn;
+            }
+        }
+        // Convert from mm to pixels, this is our default svg scale
+        // mm per tenth * pixels / mm gives us pixels per tenth
+        layoutDefaults.globalLayout.svgScale = (scale * 45 / 40) / xmlToSmo.mmPerPixel;
+        score.scaleTextGroups(currentScale / layoutDefaults.globalLayout.svgScale);
+    }
+    // ### part
+    // /score-partwise/part
+    static part(partElement, xmlState) {
+        let staffId = xmlState.smoStaves.length;
+        console.log('part ' + partElement.getAttribute('id'));
+        xmlState.initializeForPart();
+        const stavesForPart = [];
+        const measureElements = [...partElement.getElementsByTagName('measure')];
+        measureElements.forEach((measureElement) => {
+            // Parse the measure element, populate staffArray of xmlState with the
+            // measure data
+            xmlToSmo.measure(measureElement, xmlState);
+            const newStaves = xmlState.staffArray;
+            if (newStaves.length > 1 && stavesForPart.length <= newStaves[0].clefInfo.staffId) {
+                xmlState.staffGroups.push({ start: staffId, length: newStaves.length });
+            }
+            xmlState.globalCursor += newStaves[0].measure.getMaxTicksVoice();
+            newStaves.forEach((staffMeasure) => {
+                if (stavesForPart.length <= staffMeasure.clefInfo.staffId) {
+                    const params = systemStaff_1.SmoSystemStaff.defaults;
+                    params.staffId = staffId;
+                    stavesForPart.push(new systemStaff_1.SmoSystemStaff(params));
+                    staffId += 1;
+                }
+                const smoStaff = stavesForPart[staffMeasure.clefInfo.staffId];
+                smoStaff.measures.push(staffMeasure.measure);
+            });
+            const oldStaffId = staffId - stavesForPart.length;
+            xmlState.backtrackHairpins(stavesForPart[0], oldStaffId + 1);
+        });
+        xmlState.smoStaves = xmlState.smoStaves.concat(stavesForPart);
+        xmlState.completeSlurs();
+        xmlState.completeTies();
+    }
+    // ### tempo
+    // /score-partwise/measure/direction/sound:tempo
+    static tempo(element) {
+        let tempoText = '';
+        let customText = tempoText;
+        const rv = [];
+        const soundNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(element, ['sound']);
+        soundNodes.forEach((sound) => {
+            let tempoMode = measureModifiers_1.SmoTempoText.tempoModes.durationMode;
+            tempoText = sound.getAttribute('tempo');
+            if (tempoText) {
+                const bpm = parseInt(tempoText, 10);
+                const wordNode = [...element.getElementsByTagName('words')];
+                tempoText = wordNode.length ? wordNode[0].textContent :
+                    tempoText.toString();
+                if (isNaN(parseInt(tempoText, 10))) {
+                    if (measureModifiers_1.SmoTempoText.tempoTexts[tempoText.toLowerCase()]) {
+                        tempoMode = measureModifiers_1.SmoTempoText.tempoModes.textMode;
+                    }
+                    else {
+                        tempoMode = measureModifiers_1.SmoTempoText.tempoModes.customMode;
+                        customText = tempoText;
+                    }
+                }
+                const params = measureModifiers_1.SmoTempoText.defaults;
+                params.tempoMode = tempoMode;
+                params.bpm = bpm;
+                params.tempoText = tempoText;
+                params.customText = customText;
+                params.display = true;
+                const tempo = new measureModifiers_1.SmoTempoText(params);
+                const staffId = xmlHelpers_1.mxmlHelpers.getStaffId(element);
+                rv.push({ staffId, tempo });
+            }
+        });
+        return rv;
+    }
+    // ### dynamics
+    // /score-partwise/part/measure/direction/dynamics
+    static dynamics(directionElement, xmlState) {
+        let offset = 1;
+        const dynamicNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(directionElement, ['direction-type', 'dynamics']);
+        const offsetNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(directionElement, ['offset']);
+        if (offsetNodes.length) {
+            offset = parseInt(offsetNodes[0].textContent, 10);
+        }
+        dynamicNodes.forEach((dynamic) => {
+            xmlState.dynamics.push({
+                dynamic: dynamic.children[0].tagName,
+                offset: (offset / xmlState.divisions) * 4096
+            });
+        });
+    }
+    // ### attributes
+    // /score-partwise/part/measure/attributes
+    static attributes(measureElement, xmlState) {
+        let smoKey = {};
+        const attributesNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(measureElement, ['attributes']);
+        if (!attributesNodes.length) {
+            return;
+        }
+        const attributesNode = attributesNodes[0];
+        xmlState.divisions =
+            xmlHelpers_1.mxmlHelpers.getNumberFromElement(attributesNode, 'divisions', xmlState.divisions);
+        const keyNode = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(attributesNode, ['key']);
+        // MusicXML expresses keys in 'fifths' from C.
+        if (keyNode.length) {
+            const fifths = xmlHelpers_1.mxmlHelpers.getNumberFromElement(keyNode[0], 'fifths', 0);
+            if (fifths < 0) {
+                smoKey = music_1.SmoMusic.circleOfFifths[music_1.SmoMusic.circleOfFifths.length + fifths];
+            }
+            else {
+                smoKey = music_1.SmoMusic.circleOfFifths[fifths];
+            }
+            xmlState.keySignature = smoKey.letter.toUpperCase();
+            if (smoKey.accidental !== 'n') {
+                xmlState.keySignature += smoKey.accidental;
+            }
+        }
+        const currentTime = xmlState.timeSignature.split('/');
+        const timeNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(attributesNode, ['time']);
+        if (timeNodes.length) {
+            const timeNode = timeNodes[0];
+            const num = xmlHelpers_1.mxmlHelpers.getNumberFromElement(timeNode, 'beats', parseInt(currentTime[0], 10));
+            const den = xmlHelpers_1.mxmlHelpers.getNumberFromElement(timeNode, 'beat-type', parseInt(currentTime[1], 10));
+            xmlState.timeSignature = '' + num + '/' + den;
+        }
+        const clefNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(attributesNode, ['clef']);
+        if (clefNodes.length) {
+            // We expect the number of clefs to equal the number of staves in each measure
+            clefNodes.forEach((clefNode) => {
+                let clefNum = 0;
+                let clef = 'treble';
+                const clefAttrs = xmlHelpers_1.mxmlHelpers.nodeAttributes(clefNode);
+                if (typeof (clefAttrs.number) !== 'undefined') {
+                    // staff numbers index from 1 in mxml
+                    clefNum = parseInt(clefAttrs.number, 10) - 1;
+                }
+                const clefType = xmlHelpers_1.mxmlHelpers.getTextFromElement(clefNode, 'sign', 'G');
+                const clefLine = xmlHelpers_1.mxmlHelpers.getNumberFromElement(clefNode, 'line', 2);
+                // mxml supports a zillion clefs, just implement the basics.
+                if (clefType === 'F') {
+                    clef = 'bass';
+                }
+                else if (clefType === 'C') {
+                    if (clefLine === 4) {
+                        clef = 'alto';
+                    }
+                    else if (clefLine === 3) {
+                        clef = 'tenor';
+                    }
+                    else if (clefLine === 1) {
+                        clef = 'soprano';
+                    }
+                }
+                else if (clefType === 'percussion') {
+                    clef = 'percussion';
+                }
+                if (xmlState.clefInfo.length <= clefNum) {
+                    xmlState.clefInfo.push({ clef, staffId: clefNum });
+                }
+                else {
+                    xmlState.clefInfo[clefNum].clef = clef;
+                }
+            });
+        }
+    }
+    // ### wedge (hairpin)
+    // /score-partwise/part/measure/direction/direction-type/wedge
+    static wedge(directionElement, xmlState) {
+        let crescInfo = null;
+        const wedgeNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(directionElement, ['direction-type', 'wedge']);
+        wedgeNodes.forEach((wedgeNode) => {
+            crescInfo = { type: wedgeNode.getAttribute('type') };
+        });
+        // If this is a start hairpin, start it.  If an end hairpin, add it to the
+        // hairpin array with the type and start/stop ticks
+        if (crescInfo !== null) {
+            xmlState.processWedge(crescInfo);
+        }
+    }
+    // ### direction
+    // /score-partwise/part/measure/direction
+    static direction(directionElement, xmlState) {
+        const tempo = xmlToSmo.tempo(directionElement);
+        // Only display tempo if changes.
+        if (tempo.length) {
+            // TODO: staff ID is with tempo, but tempo is per column in SMO
+            if (!measureModifiers_1.SmoTempoText.eq(xmlState.tempo, tempo[0].tempo)) {
+                xmlState.tempo = tempo[0].tempo;
+                xmlState.tempo.display = true;
+            }
+        }
+        // parse dynamic node and add to xmlState
+        xmlToSmo.dynamics(directionElement, xmlState);
+        // parse wedge (hairpin)
+        xmlToSmo.wedge(directionElement, xmlState);
+    }
+    // ### note
+    // /score-partwise/part/measure/note
+    static note(noteElement, xmlState) {
+        let grIx = 0;
+        const staffIndex = xmlHelpers_1.mxmlHelpers.getStaffId(noteElement);
+        xmlState.staffIndex = staffIndex;
+        // We assume the clef information from attributes comes before the notes
+        // xmlState.staffArray[staffIndex] = { clefInfo: { clef }, voices[voiceIndex]: notes[] }
+        if (xmlState.staffArray.length <= staffIndex) {
+            // mxml has measures for all staves in a part interleaved.  In SMO they are
+            // each in a separate stave object.  Base the staves we expect based on
+            // the number of clefs in the xml state object
+            xmlState.clefInfo.forEach((clefInfo) => {
+                xmlState.staffArray.push({ clefInfo, measure: null, voices: {} });
+            });
+        }
+        const chordNode = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(noteElement, ['chord']);
+        if (chordNode.length === 0) {
+            xmlState.currentDuration += xmlHelpers_1.mxmlHelpers.durationFromNode(noteElement, 0);
+        }
+        // voices are not sequential, seem to have artitrary numbers and
+        // persist per part (same with staff IDs).  Update XML state if these are new
+        // staves
+        const voiceIndex = xmlHelpers_1.mxmlHelpers.getVoiceId(noteElement);
+        xmlState.voiceIndex = voiceIndex;
+        xmlState.initializeStaff(staffIndex, voiceIndex);
+        const voice = xmlState.staffArray[staffIndex].voices[voiceIndex];
+        // Calculate the tick and staff index for selectors
+        const tickIndex = chordNode.length < 1 ? voice.notes.length : voice.notes.length - 1;
+        const smoVoiceIndex = xmlState.staffVoiceHash[staffIndex].indexOf(voiceIndex);
+        const pitchIndex = chordNode.length ? xmlState.previousNote.pitches.length : 0;
+        const smoStaffIndex = xmlState.smoStaves.length + staffIndex;
+        const selector = {
+            staff: smoStaffIndex, measure: xmlState.measureIndex, voice: smoVoiceIndex,
+            tick: tickIndex, pitches: []
+        };
+        const divisions = xmlState.divisions;
+        const printText = noteElement.getAttribute('print-object');
+        const hideNote = typeof (printText) === 'string' && printText === 'no';
+        const isGrace = xmlHelpers_1.mxmlHelpers.isGrace(noteElement);
+        const restNode = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(noteElement, ['rest']);
+        const noteType = restNode.length ? 'r' : 'n';
+        const durationData = xmlHelpers_1.mxmlHelpers.ticksFromDuration(noteElement, divisions, 4096);
+        const tickCount = durationData.tickCount;
+        if (chordNode.length === 0) {
+            xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed += tickCount;
+        }
+        xmlState.tickCursor = (xmlState.currentDuration / divisions) * 4096;
+        const beamState = xmlHelpers_1.mxmlHelpers.noteBeamState(noteElement);
+        const slurInfos = xmlHelpers_1.mxmlHelpers.getSlurData(noteElement, selector);
+        const tieInfos = xmlHelpers_1.mxmlHelpers.getTieData(noteElement, selector, pitchIndex);
+        const tupletInfos = xmlHelpers_1.mxmlHelpers.getTupletData(noteElement);
+        const ornaments = xmlHelpers_1.mxmlHelpers.articulationsAndOrnaments(noteElement);
+        const lyrics = xmlHelpers_1.mxmlHelpers.lyrics(noteElement);
+        const flagState = xmlHelpers_1.mxmlHelpers.getStemType(noteElement);
+        const clefString = xmlState.staffArray[staffIndex].clefInfo.clef;
+        const pitch = xmlHelpers_1.mxmlHelpers.smoPitchFromNote(noteElement, measure_1.SmoMeasure.defaultPitchForClef[clefString]);
+        if (isGrace === false) {
+            if (chordNode.length) {
+                // If this is a note in a chord, just add the pitch to previous note.
+                xmlState.previousNote.pitches.push(pitch);
+                xmlState.updateTieStates(tieInfos);
+            }
+            else {
+                // Create a new note
+                const noteData = note_1.SmoNote.defaults;
+                noteData.noteType = noteType;
+                noteData.pitches = [pitch];
+                // If this is a non-grace note, add any grace notes to the note since SMO
+                // treats them as note modifiers
+                noteData.ticks = { numerator: tickCount, denominator: 1, remainder: 0 };
+                noteData.flagState = flagState;
+                xmlState.previousNote = new note_1.SmoNote(noteData);
+                if (hideNote) {
+                    xmlState.previousNote.makeHidden(true);
+                }
+                xmlState.updateDynamics();
+                ornaments.forEach((ornament) => {
+                    if (ornament.ctor === 'SmoOrnament') {
+                        xmlState.previousNote.toggleOrnament(ornament);
+                    }
+                    else if (ornament.ctor === 'SmoArticulation') {
+                        xmlState.previousNote.toggleArticulation(ornament);
+                    }
+                });
+                lyrics.forEach((lyric) => {
+                    xmlState.addLyric(xmlState.previousNote, lyric);
+                });
+                for (grIx = 0; grIx < xmlState.graceNotes.length; ++grIx) {
+                    xmlState.previousNote.addGraceNote(xmlState.graceNotes[grIx], grIx);
+                }
+                xmlState.graceNotes = []; // clear the grace note array
+                // If this note starts later than the cursor due to forward, pad with rests
+                if (xmlState.tickCursor > xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed) {
+                    const pads = music_1.SmoMusic.splitIntoValidDurations(xmlState.tickCursor - xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed);
+                    pads.forEach((pad) => {
+                        const clefString = xmlState.staffArray[staffIndex].clefInfo.clef;
+                        const padNote = measure_1.SmoMeasure.createRestNoteWithDuration(pad, clefString);
+                        padNote.makeHidden(true);
+                        voice.notes.push(padNote);
+                    });
+                    // Offset any partially-completed ties or slurs with the padding
+                    slurInfos.forEach((slurInfo) => {
+                        slurInfo.selector.tick += pads.length;
+                    });
+                    tieInfos.forEach((tieInfo) => {
+                        tieInfo.selector.tick += pads.length;
+                    });
+                    selector.tick += pads.length;
+                    console.log('Added ' + pads.length + ' ticks to ' + JSON.stringify(selector, null, ' '));
+                    // then reset the cursor since we are now in sync
+                    xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed = xmlState.tickCursor;
+                }
+                xmlState.updateSlurStates(slurInfos);
+                xmlState.updateTieStates(tieInfos);
+                voice.notes.push(xmlState.previousNote);
+                xmlState.updateBeamState(beamState, durationData.alteration, voice, voiceIndex);
+                xmlState.updateTupletStates(tupletInfos, voice, staffIndex, voiceIndex);
+            }
+        }
+        else {
+            if (chordNode.length) {
+                xmlState.graceNotes[xmlState.graceNotes.length - 1].pitches.push(pitch);
+            }
+            else {
+                // grace note durations don't seem to have explicit duration, so
+                // get it from note type
+                xmlState.updateSlurStates(slurInfos);
+                xmlState.updateTieStates(tieInfos);
+                xmlState.graceNotes.push(new noteModifiers_1.SmoGraceNote({
+                    pitches: [pitch],
+                    ticks: { numerator: tickCount, denominator: 1, remainder: 0 }
+                }));
+            }
+        }
+    }
+    // ### parseMeasureElement
+    // /score-partwise/part/measure
+    // A measure in music xml might represent several measures in SMO at the same
+    // column in the score
+    static measure(measureElement, xmlState) {
+        xmlState.initializeForMeasure(measureElement);
+        const elements = [...measureElement.children];
+        let hasNotes = false;
+        elements.forEach((element) => {
+            if (element.tagName === 'backup') {
+                xmlState.currentDuration -= xmlHelpers_1.mxmlHelpers.durationFromNode(element, 0);
+            }
+            if (element.tagName === 'forward') {
+                xmlState.currentDuration += xmlHelpers_1.mxmlHelpers.durationFromNode(element, 0);
+            }
+            if (element.tagName === 'attributes') {
+                // update the running state of the XML with new information from this measure
+                // if an XML attributes element is present
+                xmlToSmo.attributes(measureElement, xmlState);
+            }
+            else if (element.tagName === 'direction') {
+                xmlToSmo.direction(element, xmlState);
+            }
+            else if (element.tagName === 'note') {
+                xmlToSmo.note(element, xmlState);
+                hasNotes = true;
+            }
+        });
+        // If a measure has no notes, just make one with the defaults
+        if (hasNotes === false && xmlState.staffArray.length < 1 && xmlState.clefInfo.length >= 1) {
+            xmlState.clefInfo.forEach((clefInfo) => {
+                xmlState.staffArray.push({ clefInfo, measure: null, voices: {} });
+            });
+        }
+        xmlState.staffArray.forEach((staffData) => {
+            const clef = staffData.clefInfo.clef;
+            const params = measure_1.SmoMeasure.defaults;
+            params.clef = clef;
+            const smoMeasure = measure_1.SmoMeasure.getDefaultMeasure(params);
+            smoMeasure.format = new measureModifiers_1.SmoMeasureFormat(measureModifiers_1.SmoMeasureFormat.defaults);
+            smoMeasure.format.measureIndex = xmlState.measureNumber;
+            smoMeasure.format.systemBreak = xmlHelpers_1.mxmlHelpers.isSystemBreak(measureElement);
+            smoMeasure.tempo = xmlState.tempo;
+            smoMeasure.format.customProportion = xmlToSmo.customProportionDefault;
+            xmlState.formattingManager.updateMeasureFormat(smoMeasure.format);
+            smoMeasure.keySignature = xmlState.keySignature;
+            smoMeasure.timeSignature = measure_1.SmoMeasure.convertLegacyTimeSignature(xmlState.timeSignature);
+            smoMeasure.measureNumber.localIndex = xmlState.measureNumber;
+            smoMeasure.measureNumber.measureIndex = xmlState.measureIndex;
+            smoMeasure.measureNumber.staffId = staffData.clefInfo.staffId + xmlState.smoStaves.length;
+            // voices not in array, put them in an array
+            Object.keys(staffData.voices).forEach((voiceKey) => {
+                const voice = staffData.voices[voiceKey];
+                xmlState.addTupletsToMeasure(smoMeasure, staffData.clefInfo.staffId, parseInt(voiceKey, 10));
+                voice.notes.forEach((note) => {
+                    if (!note.clef) {
+                        note.clef = smoMeasure.clef;
+                    }
+                });
+                smoMeasure.voices.push(voice);
+            });
+            if (smoMeasure.voices.length === 0) {
+                smoMeasure.voices.push({ notes: measure_1.SmoMeasure.getDefaultNotes(smoMeasure) });
+            }
+            staffData.measure = smoMeasure;
+        });
+        // Pad incomplete measures/voices with rests
+        const maxTicks = xmlState.staffArray.map((staffData) => staffData.measure.getMaxTicksVoice())
+            .reduce((a, b) => a > b ? a : b);
+        xmlState.staffArray.forEach((staffData) => {
+            let i = 0;
+            let j = 0;
+            const measure = staffData.measure;
+            for (i = 0; i < measure.voices.length; ++i) {
+                const curTicks = measure.getTicksFromVoice(i);
+                if (curTicks < maxTicks) {
+                    const tickAr = music_1.SmoMusic.splitIntoValidDurations(maxTicks - curTicks);
+                    for (j = 0; j < tickAr.length; ++j) {
+                        measure.voices[i].notes.push(measure_1.SmoMeasure.createRestNoteWithDuration(tickAr[j], measure.clef));
+                    }
+                }
+            }
+        });
+    }
+}
+exports.xmlToSmo = xmlToSmo;
 
 
 /***/ }),
@@ -37077,7 +37148,7 @@ exports.SuiSaveMidiDialog = exports.SuiMidiSaveAdapter = exports.SuiSaveXmlDialo
 // Copyright (c) Aaron David Newman 2021.
 const dialog_1 = __webpack_require__(/*! ./dialog */ "./src/ui/dialogs/dialog.ts");
 const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
-const xmlScore_1 = __webpack_require__(/*! ../../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
+const xmlToSmo_1 = __webpack_require__(/*! ../../smo/mxml/xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
 const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
 const midiToSmo_1 = __webpack_require__(/*! ../../smo/midi/midiToSmo */ "./src/smo/midi/midiToSmo.ts");
 /**
@@ -37160,7 +37231,7 @@ class SuiXmlLoadAdapter extends adapter_1.SuiComponentAdapter {
         try {
             const parser = new DOMParser();
             const xml = parser.parseFromString(this.xmlFile, 'text/xml');
-            const score = xmlScore_1.mxmlScore.smoScoreFromXml(xml);
+            const score = xmlToSmo_1.xmlToSmo.convert(xml);
             this.changeScore = true;
             this.view.changeScore(score);
         }
@@ -37223,7 +37294,7 @@ class SuiMidiLoadAdapter extends adapter_1.SuiComponentAdapter {
             const ar = new Uint8Array(this.midiFile);
             const midi = parseMidi(ar);
             const midiParser = new midiToSmo_1.MidiToSmo(midi, this.quantize);
-            this.view.changeScore(midiParser.getScore());
+            this.view.changeScore(midiParser.convert());
         }
         catch (e) {
             console.warn('unable to score ' + e);
@@ -47798,7 +47869,7 @@ exports.SuiLibraryMenu = void 0;
 const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
 const xhrLoader_1 = __webpack_require__(/*! ../fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.js");
 const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
-const xmlScore_1 = __webpack_require__(/*! ../../smo/mxml/xmlScore */ "./src/smo/mxml/xmlScore.ts");
+const xmlToSmo_1 = __webpack_require__(/*! ../../smo/mxml/xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
 class SuiLibraryMenu extends menu_1.SuiMenuBase {
     constructor(params) {
         super(params);
@@ -47819,7 +47890,7 @@ class SuiLibraryMenu extends menu_1.SuiMenuBase {
         req.loadAsync().then(() => {
             const parser = new DOMParser();
             const xml = parser.parseFromString(req.value, 'text/xml');
-            const score = xmlScore_1.mxmlScore.smoScoreFromXml(xml);
+            const score = xmlToSmo_1.xmlToSmo.convert(xml);
             this.view.changeScore(score);
             this.complete();
         });
