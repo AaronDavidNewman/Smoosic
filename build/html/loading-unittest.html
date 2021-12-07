@@ -1,0 +1,69 @@
+<!DOCTYPE HTML>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta charset="utf-8">
+  <title>Smoosic Unit Tests</title>
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/fonts.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/media.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/ribbon.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/dialogs.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/menus.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/piano.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/tree.css" rel="stylesheet">
+  <link href="../qunit.css" rel="stylesheet">
+  <script type="text/javascript"
+    src="https://aarondavidnewman.github.io/vexflow_smoosic/releases/vexflow-debug.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"
+    integrity="sha512-uVSVjE7zYsGz4ag0HEzfugJ78oHCI1KhdkivjQro8ABL/PRiEO4ROwvrolYAcZnky0Fl/baWKYilQfWvESliRA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <!-- script type="text/javascript" src="../../../vex_smoosic/vexflow_smoosic/build/vexflow-debug.js"></script  -->
+  <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.slim.js"></script>
+  <script type="text/javascript" src="../qunit.js"></script>
+  <script type="text/javascript" src="../smoosic.js"></script>
+  <script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function (event) {
+      // A simple music program using Smoosic in library mode.  
+      // Load a Smoosic JSON file and render the score
+      const path = 'https://aarondavidnewman.github.io/Smoosic/release/library/hymns/Precious Lord.json';
+      var app = async (Smo, application) => {
+        const view = application.view
+        await view.loadRemoteScore(path);
+        await view.renderPromise();
+        QUnit.test('loaded', assert => {
+          assert.equal(view.score.staves[0].measures.length, 17);
+          assert.equal($('#boo .vf-lyric').length, 82);
+        });
+        const xml = Smo.SmoToXml.convert(view.score);
+        const newScore = Smo.XmlToSmo.convert(xml);
+        await view.changeScore(newScore);
+        QUnit.test('loadXml', assert => {
+          assert.equal(view.score.staves[0].measures.length, 17);
+          assert.equal($('#boo .vf-lyric').length, 82);
+        });
+
+        // console.log('measures ' + view.score.staves[0].measures.length);
+      };
+
+      Smo.SuiApplication.configure({
+                   mode: 'library',
+                   idleRedrawTime: 5,
+                   scoreDomContainer: 'outer-container'
+      }).then((application) => {
+        app(Smo, application)
+      });
+    })
+  </script>
+</head>
+
+<body>
+  <div id="qunit"></div>
+  <!-- audio crossOrigin="anonymous" id="sample" src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_middle_C.mp3" / -->
+  <div id="outer-container" style="overflow:auto">
+    <div id="container1">
+
+    </div>
+  </div>
+</body>
+
+</html>

@@ -31,8 +31,9 @@ export interface XmlTieType {
 export interface XmlTupletData {
   number: number, type: string
 }
+export type LyricSyllabic = 'begin' | 'end' | 'middle' | 'single';
 export interface XmlLyricData {
-  _text: string, verse: number | string
+  _text: string, verse: number | string, syllabic: LyricSyllabic
 }
 /**
  * Utilities for parsing and serialzing musicXML.
@@ -376,11 +377,13 @@ export class mxmlHelpers {
       let verse = nNode.getAttribute('number');
       const text = mxmlHelpers.getTextFromElement(nNode, 'text', '_');
       const name = nNode.getAttribute('name') as string;
+      const syllabic = mxmlHelpers.getTextFromElement(nNode, 'syllabic', 'end') as LyricSyllabic;
       // Per xml spec, verse can be specified by a string (name), as in 'chorus'
       if (!verse) {
         verse = name;
       }
-      rv.push({ _text: text, verse });
+      const obj: XmlLyricData = { _text: text, verse, syllabic };
+      rv.push(obj);
     });
     return rv;
   }

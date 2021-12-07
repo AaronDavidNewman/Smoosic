@@ -680,6 +680,10 @@ export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoText
   }
 }
 
+/**
+ * Constructor parameters for a time signature
+ * @category SmoParameters
+ */
 export interface TimeSignatureParameters  {
   actualBeats: number,
   beatDuration: number,

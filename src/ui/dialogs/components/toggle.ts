@@ -2,6 +2,10 @@ import { htmlHelpers } from '../../../common/htmlHelpers';
 import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent } from './baseComponent';
 declare var $: any;
 
+/**
+ * parameters for simple on-off toggle
+ * @category SuiDialogParams
+ */
 export interface SuiToggleComponentParams {
   id: string,
   classes: string,

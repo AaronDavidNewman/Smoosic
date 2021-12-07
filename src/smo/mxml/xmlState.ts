@@ -188,6 +188,9 @@ export class XmlState {
     const params = SmoLyric.defaults;
     params._text = lyricData._text;
     params.verse = lyricData.verse;
+    if (lyricData.syllabic === 'begin' || lyricData.syllabic === 'middle') {
+      params._text += '-';
+    }
     const lyric = new SmoLyric(params);
     note.addLyric(lyric);
   }

@@ -25,6 +25,9 @@ import { SmoBeamer } from './beamers';
 import { smoSerialize } from '../../common/serializationHelpers';
 const VF = eval('Vex.Flow');
 
+/**
+ * supported operations for  {@link SmoOperation.batchSelectionOperation} to change a note's duration
+ */
 export type BatchSelectionOperation = 'dotDuration' | 'undotDuration' | 'doubleDuration' | 'halveDuration' |
   'doubleGraceNoteDuration' | 'halveGraceNoteDuration';
 

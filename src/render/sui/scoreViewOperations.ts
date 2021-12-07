@@ -15,11 +15,11 @@ import { UndoBuffer, SmoUndoable } from '../../smo/xform/undo';
 import { SmoOperation } from '../../smo/xform/operations';
 import { BatchSelectionOperation } from '../../smo/xform/operations';
 import { SmoToMidi } from '../../smo/midi/smoToMidi';
-import { SmoToXml } from '../../smo/mxml/smo2Xml';
+import { SmoToXml } from '../../smo/mxml/smoToXml';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SmoMusic } from '../../smo/data/music';
 import { SuiOscillator } from '../audio/oscillator';
-import { xmlToSmo } from '../../smo/mxml/xmlToSmo';
+import { XmlToSmo } from '../../smo/mxml/xmlToSmo';
 import { SuiAudioPlayer } from '../audio/player';
 import { SuiXhrLoader } from '../../ui/fileio/xhrLoader';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
@@ -124,7 +124,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     return req.loadAsync().then(() => {
       const parser = new DOMParser();
       const xml = parser.parseFromString(req.value, 'text/xml');
-      const score = xmlToSmo.convert(xml);
+      const score = XmlToSmo.convert(xml);
       self.changeScore(score);
     });
   }
@@ -1671,11 +1671,5 @@ export class SuiScoreViewOperations extends SuiScoreView {
       this.tracker.modifierSuggestion = modIndex;
       this.tracker.selectSuggestion(evData);
     }
-  }
-  refreshViewport(): Promise<any> {
-    this.renderer.preserveScroll();
-    this.renderer.setViewport(true);
-    this.renderer.setRefresh();
-    return this.renderer.renderPromise();
   }
 }

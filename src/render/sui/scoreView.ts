@@ -68,6 +68,31 @@ export abstract class SuiScoreView {
     this.tracker.recordBuffer = this.actionBuffer;
   }
   /**
+   * Await on the full update of the score
+   * @returns 
+   */
+  renderPromise(): Promise<any> {
+    return this.renderer.renderPromise();
+  }
+  /**
+   * Await on the partial update of the score in the view
+   * @returns 
+   */
+   updatePromise(): Promise<any> {
+    return this.renderer.updatePromise();
+  }
+  /**
+   * await on the full update of the score, also resetting the viewport (to reflect layout changes)
+   * @returns 
+   */
+  refreshViewport(): Promise<any> {
+    this.renderer.preserveScroll();
+    this.renderer.setViewport(true);
+    this.renderer.setRefresh();
+    return this.renderer.renderPromise();
+  }
+
+  /**
    * 
    * @param action any action, but most usefully a SuiScoreView method
    * @param repetition number of times to repeat, waiting on render promise between
@@ -450,6 +475,7 @@ export abstract class SuiScoreView {
     this.staffMap = this.defaultStaffMap;
     this.setMappedStaffIds();
     this.actionBuffer.clearActions();
+    return this.renderPromise();
   }
 
   // ### undo

@@ -1,5 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
+/**
+ * Classes to support the state machine associated with background music rendering.
+ * @module renderState
+ */
 import { SmoMeasure } from '../../smo/data/measure';
 import { UndoBuffer } from '../../smo/xform/undo';
 import { SmoAttrs,  SvgBox } from '../../smo/data/common';
@@ -17,6 +21,11 @@ import { StaffModifierBase } from '../../smo/data/staffModifiers';
 import { VxMeasure } from '../vex/vxMeasure';
 import { SmoTextGroup } from '../../smo/data/scoreModifiers';
 
+/**
+ * a renderer creates the SVG render context for vexflow from the given element. Then it
+ * renders the initial score.
+ * @category SuiRenderParams
+ */
 export interface ScoreRenderParams {
   elementId: any,
   score: SmoScore

@@ -2,7 +2,10 @@ import { htmlHelpers } from '../../../common/htmlHelpers';
 import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent } from './baseComponent';
 declare var $: any;
 
-
+/**
+ * parameters for text input component (simple text entry, not SVG text)
+ * @category SuiDialogParams
+ */
 export interface SuiTextInputComponentParams {
   id: string,
   classes: string,

@@ -41,7 +41,7 @@ export * from './src/smo/data/staffModifiers';
 export * from './src/smo/data/systemStaff';
 export * from './src/smo/data/tuplet';
 export * from './src/smo/midi/smoToMidi';
-export * from './src/smo/mxml/smo2Xml';
+export * from './src/smo/mxml/smoToXml';
 export * from './src/smo/mxml/xmlHelpers';
 export * from './src/smo/mxml/xmlToSmo';
 export * from './src/smo/mxml/xmlState';

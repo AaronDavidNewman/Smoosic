@@ -109,7 +109,6 @@ import { SuiScroller } from '../render/sui/scroller';
 import { SuiActionPlayback } from '../render/sui/actionPlayback';
 // SMO object model
 import { SmoScore } from '../smo/data/score';
-import { xmlToSmo } from '../smo/mxml/xmlToSmo';
 import { UndoBuffer } from '../smo/xform/undo';
 import { SmoNote } from '../smo/data/note';
 import { SmoDuration } from '../smo/xform/tickDuration';
@@ -125,6 +124,10 @@ import {
     SmoRehearsalMark, SmoMeasureFormat, SmoBarline, SmoRepeatSymbol,
     SmoVolta, SmoMeasureText, SmoTempoText
 } from '../smo/data/measureModifiers';
+import { SmoToXml } from '../smo/mxml/smoToXml';
+import { MidiToSmo } from '../smo/midi/midiToSmo';
+import { SmoToMidi } from '../smo/midi/smoToMidi';
+import { XmlToSmo } from '../smo/mxml/xmlToSmo';
 
 import { SmoToVex } from '../smo/xform/toVex';
 const getClass = (jsonString: string) => {
@@ -173,7 +176,10 @@ export const Smo = {
     SuiScoreViewOperations,SuiActionPlayback,
     // Smo Music Objects
     SmoScore,
-    xmlToSmo,
+    XmlToSmo,
+    SmoToXml,
+    MidiToSmo,
+    SmoToMidi,
     SmoMusic,
     SmoMeasure,
     SmoSystemStaff,
