@@ -15,6 +15,9 @@ API Demo Links (codepen):
 ---
 
 ## Changes to Smoosic
+### MIDI import, for realsies, December, 2021
+I replaced the midi parsing function with the one from https://github.com/NHQ/midi-file-parser/.  This code seems to handle running status correctly.  I did some comparisons to MuseScore input and it is...comparable.  I added variable quantization to different note lengths, and basic triplet support.  It doesn't support instruments so much, but instrument support in Smoosic in general is pretty raw.
+
 ### MIDI import (sort of) November, 2021
 I had hoped to finish MIDI import this week, but as usual I misunderestimated how hard it would be.  The files exported from Smoosic import OK, except for tuplets.  But any
 MIDI file from a performance or exported by another program is a crapshoot.  I will need some logic dedicated to inferring the correct rhythms from the midi ticks.
