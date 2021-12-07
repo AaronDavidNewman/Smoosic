@@ -1,4 +1,4 @@
-<sub>[Github site](https://github.com/AaronDavidNewman/smoosic) | [source documentation](https://aarondavidnewman.github.io/Smoosic/release/docs/modules.html) | [change notes](https://aarondavidnewman.github.io/Smoosic/release/changes.html) | [application](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)<sub> 
+<sub>[Github site](https://github.com/AaronDavidNewman/smoosic) | [source documentation](https://aarondavidnewman.github.io/Smoosic/release/docs/modules.html) | [change notes](https://aarondavidnewman.github.io/Smoosic/changes.html) | [application](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)<sub> 
 
 # What is Smoosic?
 Smoosic is an open-source javascript/typescript music composition and rendering library that uses the [VexFlow engraving library](https://github.com/0xfe/vexflow) for the rendering component.  There is also a [demo application](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html) using Smoosic.
