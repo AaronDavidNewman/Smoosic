@@ -15764,7 +15764,7 @@ const VF = eval('Vex.Flow');
  * `Vex` uses a letter duration (`'4'` or `'q'`for 1/4 note) and `'d'` for dot.
  *
  * I try to indicate whether I am using vex or smo notation in the function name.
- * Duration methods start around line 600
+ * Duration methods start around line 1100
  * @category SmoUtilities
  */
 class SmoMusic {
@@ -16653,14 +16653,15 @@ class SmoMusic {
             .map((key) => parseInt(key, 10));
         // return Object.keys(SmoMusic.ticksToDuration).map((key) => parseInt(key, 10));    
     }
-    static get midiTicksForQuantize() {
-        return SmoMusic.midiTicksForQuantizeTo(1024);
-        /* return Object.keys(SmoMusic.ticksToDuration).filter((key) =>
-          SmoMusic.ticksToDuration[key].indexOf('dd') < 0 &&
-          SmoMusic.ticksToDuration[key].indexOf('ddd') < 0 &&
-          SmoMusic.ticksToDuration[key].indexOf('dddd') < 0 && parseInt(key, 10) >= 1024)
-          .map((key) => parseInt(key, 10));  */
-        // return Object.keys(SmoMusic.ticksToDuration).map((key) => parseInt(key, 10));    
+    static get midiTicksForQuantizeMap() {
+        return {
+            512: SmoMusic.midiTicksForQuantizeTo(1024),
+            1024: SmoMusic.midiTicksForQuantizeTo(1024),
+            2048: SmoMusic.midiTicksForQuantizeTo(2048)
+        };
+    }
+    static midiTicksForQuantize(ticks) {
+        return SmoMusic.midiTicksForQuantizeMap[ticks];
     }
     static binarySearch(target, ix, partition, input) {
         const test = input[ix];
@@ -16677,8 +16678,8 @@ class SmoMusic {
             return ({ cost, result: input[ix], newIx: ix + step, partition, input });
         }
     }
-    static midiTickSearch(target) {
-        const tickSet = SmoMusic.midiTicksForQuantize;
+    static midiTickSearch(target, quantize) {
+        const tickSet = SmoMusic.midiTicksForQuantize(quantize);
         let partition = Math.round(tickSet.length / 2);
         let ix = partition;
         let best = { cost: Math.abs(tickSet[ix] - target), result: tickSet[ix], ix };
@@ -20937,32 +20938,15 @@ exports.SmoTuplet = SmoTuplet;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.MidiToSmo = exports.MidiMetaEvent = exports.MidiEvent = void 0;
+exports.MidiToSmo = void 0;
 const measure_1 = __webpack_require__(/*! ../data/measure */ "./src/smo/data/measure.ts");
 const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
 const score_1 = __webpack_require__(/*! ../data/score */ "./src/smo/data/score.ts");
+const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const systemStaff_1 = __webpack_require__(/*! ../data/systemStaff */ "./src/smo/data/systemStaff.ts");
-exports.MidiEvent = {
-    noteOff: 8,
-    noteOn: 9,
-    aftertouch: 10,
-    controller: 11,
-    programChange: 12,
-    channelAftertouch: 13,
-    pitchBend: 14,
-    meta: 255
-};
-exports.MidiMetaEvent = {
-    trackName: 3,
-    lyrics: 5,
-    channelPrefix: 32,
-    eot: 47,
-    tempo: 81,
-    timeSignature: 88,
-    keySignature: 89
-};
+const tuplet_1 = __webpack_require__(/*! ../data/tuplet */ "./src/smo/data/tuplet.ts");
 function getValueForTick(arg, tick) {
     const keys = Object.keys(arg);
     let maxKey = 0;
@@ -20981,17 +20965,16 @@ function getValueForTick(arg, tick) {
  * @category SmoToMidi
  */
 class MidiToSmo {
-    constructor(midi) {
+    constructor(midi, quantizeDuration) {
         this.timeSignatureMap = {};
         this.tempoMap = {};
         this.keySignatureMap = {};
-        this.trackNotes = [];
-        this.trackMeasures = [];
-        this.deltaTime = 0;
-        this.ticksPerMeasure = 4096 * 4;
+        this.tieMap = {};
         this.timeDivision = 480;
-        this.trackIndex = 0; // index into current track
+        this.trackIndex = 0;
+        this.eventIndex = 0; // index into current track
         this.maxMeasure = 0;
+        this.quantizeTicks = MidiToSmo.quantizeTicksDefault;
         this.eot = false;
         this.midi = midi;
         console.log(JSON.stringify(midi, null, ''));
@@ -20999,6 +20982,10 @@ class MidiToSmo {
         this.tempoMap[0] = new measureModifiers_1.SmoTempoText(measureModifiers_1.SmoTempoText.defaults);
         this.keySignatureMap[0] = 'c';
         this.timeDivision = midi.header.ticksPerBeat;
+        this.quantizeTicks = quantizeDuration;
+    }
+    static get quantizeTicksDefault() {
+        return 1024;
     }
     /**
      * Since midi has very little metadata, we don't know the original clef.
@@ -21046,6 +21033,11 @@ class MidiToSmo {
         }
         return getValueForTick(this.keySignatureMap, ticks);
     }
+    /**
+     * Get metadata from the map for this point in the score
+     * @param ticks
+     * @returns
+     */
     getRunningStatus(ticks) {
         return { tempo: this.getTempo(ticks), timeSignature: this.getTimeSignature(ticks), keySignature: this.getKeySignature(ticks) };
     }
@@ -21071,7 +21063,7 @@ class MidiToSmo {
                 this.tempoMap[ticks] = new measureModifiers_1.SmoTempoText(tempoDef);
             }
             else if (mtype === 'keySignature') {
-                const mdata = trackEvent.scale;
+                const mdata = trackEvent.key;
                 if (mdata === 0) {
                     this.keySignatureMap[ticks] = 'C';
                 }
@@ -21094,8 +21086,8 @@ class MidiToSmo {
     }
     createNewEvent(metadata) {
         return {
-            pitches: [], durationTicks: 0, isTuplet: false, isRest: false, timeSignature: new measureModifiers_1.TimeSignature(metadata.timeSignature),
-            tempo: new measureModifiers_1.SmoTempoText(metadata.tempo), keySignature: metadata.keySignature, measure: 0, tick: 0
+            pitches: [], durationTicks: 0, tupletInfo: null, isRest: false, timeSignature: new measureModifiers_1.TimeSignature(metadata.timeSignature),
+            tempo: new measureModifiers_1.SmoTempoText(metadata.tempo), keySignature: metadata.keySignature, measure: 0, tick: 0, isTied: false
         };
     }
     static copyEvent(o) {
@@ -21103,15 +21095,30 @@ class MidiToSmo {
         const timeSignature = new measureModifiers_1.TimeSignature(o.timeSignature);
         const tempo = new measureModifiers_1.SmoTempoText(o.tempo);
         return ({
-            pitches, durationTicks: o.durationTicks, isTuplet: o.isTuplet, isRest: o.isRest, timeSignature, tempo, keySignature: o.keySignature,
-            measure: o.measure, tick: o.tick
+            pitches, durationTicks: o.durationTicks, tupletInfo: o.tupletInfo, isRest: o.isRest, timeSignature, tempo, keySignature: o.keySignature,
+            measure: o.measure, tick: o.tick, isTied: o.isTied
         });
     }
+    addToTieMap(measureIndex) {
+        const staffIx = this.trackIndex;
+        if (typeof (this.tieMap[staffIx]) === 'undefined') {
+            this.tieMap[staffIx] = [];
+        }
+        this.tieMap[staffIx].push(measureIndex);
+    }
+    /**
+     * Step 3 in the 3-step process.  Quantize the note durations and convert the midi
+     * event into SmoNotes.
+     * @param events
+     * @returns
+     */
     createNotesFromEvents(events) {
         let measureIndex = 0;
         const measures = [];
         let measure = null;
         let deficit = 0;
+        // If the midi event is smaller than the smallest note..
+        const smallest = 1 * (this.quantizeTicks / 4);
         events.forEach((ev) => {
             if (measure === null || ev.measure > measureIndex) {
                 const measureDefs = measure_1.SmoMeasure.defaults;
@@ -21123,12 +21130,11 @@ class MidiToSmo {
                 measureIndex = ev.measure;
                 measures.push(measure);
             }
-            // If the midi event is smaller than the smallest note..
-            if (Math.abs(ev.durationTicks - deficit) < 1024) {
+            if (Math.abs(ev.durationTicks - deficit) < smallest && !(ev.tupletInfo !== null)) {
                 deficit = deficit - ev.durationTicks;
             }
             else {
-                const best = music_1.SmoMusic.midiTickSearch(ev.durationTicks - deficit);
+                const best = music_1.SmoMusic.midiTickSearch(ev.durationTicks - deficit, this.quantizeTicks);
                 deficit += best.result - ev.durationTicks;
                 ev.durationTicks = best.result;
                 const defs = note_1.SmoNote.defaults;
@@ -21138,6 +21144,20 @@ class MidiToSmo {
                 const note = new note_1.SmoNote(defs);
                 note_1.SmoNote.sortPitches(note);
                 measure.voices[0].notes.push(note);
+                if (ev.tupletInfo !== null && ev.tupletInfo.isLast === true) {
+                    const voiceLen = measure.voices[0].notes.length;
+                    const tupletNotes = [note, measure.voices[0].notes[voiceLen - 2], measure.voices[0].notes[voiceLen - 3]];
+                    const defs = tuplet_1.SmoTuplet.defaults;
+                    defs.notes = tupletNotes;
+                    defs.stemTicks = ev.tupletInfo.stemTicks;
+                    defs.numNotes = ev.tupletInfo.numNotes;
+                    defs.totalTicks = ev.tupletInfo.totalTicks;
+                    defs.startIndex = voiceLen - 3;
+                    measure.tuplets.push(new tuplet_1.SmoTuplet(defs));
+                }
+                if (ev.isTied) {
+                    this.addToTieMap(measureIndex);
+                }
             }
         });
         measures.forEach((measure) => {
@@ -21145,6 +21165,31 @@ class MidiToSmo {
         });
         return measures;
     }
+    tripletType(ticks) {
+        const tripletBeat = Math.round(4096 / 3);
+        const tripletHalf = Math.round((4096 * 2) / 3);
+        const tripletEighth = Math.round((4096 / 2) / 3);
+        const beatTrip = tripletBeat / ticks;
+        const eigthTrip = tripletEighth / ticks;
+        const halfTrip = tripletHalf / ticks;
+        if (Math.abs(1 - beatTrip) < 0.05) {
+            return 4096;
+        }
+        if (Math.abs(1 - eigthTrip) < 0.05) {
+            return 2048;
+        }
+        if (Math.abs(1 - halfTrip) < 0.05) {
+            return 4096 * 2;
+        }
+        return 0;
+    }
+    /**
+     * step 2 in the 3 step process.  Divide the music up into measures based on
+     * tick duration.  If there are events overlapping measures, create extra events in the
+     * new measure (hence the expand) and shorten the original event
+     * @param events
+     * @returns
+     */
     expandMidiEvents(events) {
         const rv = [];
         if (events.length === 0) {
@@ -21154,10 +21199,13 @@ class MidiToSmo {
         let ticksSoFar = 0;
         let measure = 0;
         let tick = 0;
+        let tripletCount = 0;
+        let tripletValue = 0;
         for (i = 0; i < events.length; ++i) {
             const ev = events[i];
-            // If it's too small, continue
+            // If it's too small, continue.  Don't record the event but do count the ticks
             if (ev.durationTicks < 128) {
+                ticksSoFar += ev.durationTicks;
                 continue;
             }
             const ticksPerMeasure = music_1.SmoMusic.timeSignatureToTicks(ev.timeSignature.timeSignature);
@@ -21169,6 +21217,8 @@ class MidiToSmo {
                     nevent.tick = tick;
                 }
                 tick = 0;
+                tripletCount = 0;
+                tripletValue = 0;
                 measure += 1;
                 ticksSoFar = 0;
                 this.maxMeasure = Math.max(this.maxMeasure, measure);
@@ -21185,6 +21235,7 @@ class MidiToSmo {
                 }
                 if (overflow > 0) {
                     const ovfEvent = MidiToSmo.copyEvent(nevent);
+                    ovfEvent.isTied = true;
                     ovfEvent.durationTicks = overflow;
                     ovfEvent.measure = measure;
                     ovfEvent.tick = tick;
@@ -21196,11 +21247,49 @@ class MidiToSmo {
             }
             else {
                 ticksSoFar += ev.durationTicks;
+                const possibleTriplet = this.tripletType(nevent.durationTicks);
+                if (possibleTriplet > 0 && (tripletValue === 0 || possibleTriplet === tripletValue)) {
+                    tripletCount += 1;
+                    tripletValue = possibleTriplet;
+                    if (tripletCount === 3) {
+                        nevent.tupletInfo = {
+                            numNotes: 3,
+                            stemTicks: possibleTriplet / 2,
+                            totalTicks: possibleTriplet,
+                            isLast: true
+                        };
+                        rv[rv.length - 1].tupletInfo = {
+                            numNotes: 3,
+                            stemTicks: possibleTriplet / 2,
+                            totalTicks: possibleTriplet,
+                            isLast: false
+                        };
+                        rv[rv.length - 2].tupletInfo = {
+                            numNotes: 3,
+                            stemTicks: possibleTriplet / 2,
+                            totalTicks: possibleTriplet,
+                            isLast: false
+                        };
+                        tripletCount = 0;
+                        tripletValue = 0;
+                    }
+                }
+                else {
+                    tripletCount = 0;
+                    tripletValue = 0;
+                }
                 rv.push(nevent);
             }
         }
         return rv;
     }
+    /**
+     * Step 1 in the 3-step process.  Collapse midi events into
+     * a single EventSmoData for each distinct tick that contains
+     * the metadata state, a duration, and note information.
+     * @param trackEvents
+     * @returns
+     */
     collapseMidiEvents(trackEvents) {
         const isEot = (ev) => {
             if (typeof (ev.type) === 'undefined') {
@@ -21208,7 +21297,7 @@ class MidiToSmo {
             }
             return ev.type === 'endOfTrack';
         };
-        if (this.trackIndex >= trackEvents.length) {
+        if (this.eventIndex >= trackEvents.length) {
             this.eot = true;
             return [];
         }
@@ -21217,26 +21306,36 @@ class MidiToSmo {
         let metadata = this.getRunningStatus(0);
         const midiOnNotes = {};
         let curSmo = this.createNewEvent(metadata);
+        let untrackedTicks = 0;
         let ticks = 0;
-        while (this.trackIndex < trackEvents.length && !(this.eot)) {
+        while (this.eventIndex < trackEvents.length && !(this.eot)) {
             if (isEot(cur)) {
                 this.eot = true;
                 break;
             }
             if (cur.deltaTime > 0) {
                 curSmo.durationTicks = this.getSmoTicks(cur.deltaTime);
-                ticks += cur.deltaTime;
-                if (curSmo.pitches.length === 0) {
-                    curSmo.isRest = true;
+                ticks += curSmo.durationTicks;
+                // We only need to track note on/off events.  Other events update the global
+                // map, we need to keep track of the duration changes though.
+                if (cur.type === 'noteOn' || cur.type === 'noteOff') {
+                    if (curSmo.pitches.length === 0) {
+                        curSmo.isRest = true;
+                    }
+                    curSmo.durationTicks += untrackedTicks;
+                    untrackedTicks = 0;
+                    rv.push(curSmo);
                 }
-                rv.push(curSmo);
+                else {
+                    untrackedTicks += curSmo.durationTicks;
+                }
                 curSmo = this.createNewEvent(metadata);
             }
             curSmo.timeSignature = metadata.timeSignature;
             curSmo.tempo = metadata.tempo;
             curSmo.keySignature = metadata.keySignature;
-            const channel = cur.channel;
             if (cur.type === 'noteOn' || cur.type === 'noteOff') {
+                const channel = cur.channel;
                 const note = cur.noteNumber;
                 const velocity = cur.velocity;
                 if (midiOnNotes[note]) {
@@ -21259,8 +21358,8 @@ class MidiToSmo {
                 this.handleMetadata(cur, ticks);
             }
             metadata = this.getRunningStatus(ticks);
-            this.trackIndex += 1;
-            cur = trackEvents[this.trackIndex];
+            this.eventIndex += 1;
+            cur = trackEvents[this.eventIndex];
             if (isEot(cur)) {
                 this.eot = true;
                 break;
@@ -21268,24 +21367,42 @@ class MidiToSmo {
         }
         return rv;
     }
-    resetForTrack() {
-        this.trackNotes = [];
-        this.trackMeasures = [];
-        this.deltaTime = 0;
-        this.trackIndex = 0; // index into current track
-        this.eot = false;
-    }
     getScore() {
         let staves = [];
         // go through the tracks
         this.midi.tracks.forEach((trackEvents, trackIx) => {
-            this.resetForTrack();
+            this.eventIndex = 0; // index into current track
+            this.trackIndex = trackIx;
+            this.eot = false;
+            this.tieMap[trackIx] = [];
             const collapsed = this.collapseMidiEvents(trackEvents);
             const expanded = this.expandMidiEvents(collapsed);
             if (expanded.length > 0) {
                 const staffDef = systemStaff_1.SmoSystemStaff.defaults;
+                staffDef.staffId = trackIx;
                 staffDef.measures = this.createNotesFromEvents(expanded);
-                staves.push(new systemStaff_1.SmoSystemStaff(staffDef));
+                const staff = new systemStaff_1.SmoSystemStaff(staffDef);
+                this.tieMap[trackIx].forEach((mm) => {
+                    const startMeasure = staffDef.measures[mm - 1];
+                    const endMeasure = staffDef.measures[mm];
+                    const endIx = startMeasure.voices[0].notes.length - 1;
+                    if (startMeasure.voices[0].notes[endIx].noteType === 'n' &&
+                        endMeasure.voices[0].notes[0].noteType === 'n') {
+                        const tieDefs = staffModifiers_1.SmoTie.defaults;
+                        tieDefs.startSelector = {
+                            staff: trackIx, measure: mm - 1, voice: 0, tick: endIx,
+                            pitches: []
+                        };
+                        tieDefs.endSelector = {
+                            staff: trackIx, measure: mm, voice: 0, tick: 0,
+                            pitches: []
+                        };
+                        tieDefs.lines.push({ from: 0, to: 0 });
+                        const tie = new staffModifiers_1.SmoTie(tieDefs);
+                        staff.modifiers.push(tie);
+                    }
+                });
+                staves.push(staff);
             }
         });
         if (staves.length === 0) {
@@ -37086,6 +37203,7 @@ class SuiMidiLoadAdapter extends adapter_1.SuiComponentAdapter {
         super(view);
         this.midiFile = null;
         this.changeScore = false;
+        this.quantize = midiToSmo_1.MidiToSmo.quantizeTicksDefault;
     }
     get loadFile() {
         return this.midiFile;
@@ -37093,12 +37211,18 @@ class SuiMidiLoadAdapter extends adapter_1.SuiComponentAdapter {
     set loadFile(value) {
         this.midiFile = value;
     }
+    get quantizeDuration() {
+        return this.quantize;
+    }
+    set quantizeDuration(value) {
+        this.quantize = value;
+    }
     commit() {
         try {
             // midi parser expects data in UintArray form
             const ar = new Uint8Array(this.midiFile);
             const midi = parseMidi(ar);
-            const midiParser = new midiToSmo_1.MidiToSmo(midi);
+            const midiParser = new midiToSmo_1.MidiToSmo(midi, this.quantize);
             this.view.changeScore(midiParser.getScore());
         }
         catch (e) {
@@ -37115,8 +37239,9 @@ class SuiLoadMidiDialog extends adapter_1.SuiDialogAdapterBase {
         super(SuiLoadMidiDialog.dialogElements, Object.assign({ adapter }, parameters));
     }
     changed() {
+        var _a, _b;
         super.changed();
-        const enable = this.adapter.loadFile.length < 1;
+        const enable = ((_b = (_a = this.adapter) === null || _a === void 0 ? void 0 : _a.loadFile) === null || _b === void 0 ? void 0 : _b.length) < 1;
         $(this.dgDom.element).find('.ok-button').prop('disabled', enable);
     }
 }
@@ -37128,6 +37253,22 @@ SuiLoadMidiDialog.dialogElements = {
             defaultValue: '',
             control: 'SuiFileDownloadComponent',
             label: ''
+        }, {
+            smoName: 'quantizeDuration',
+            defaultValue: score_1.SmoScore.engravingFonts.Bravura,
+            control: 'SuiDropdownComponent',
+            dataType: 'int',
+            label: 'Quantize to:',
+            options: [{
+                    value: 1024,
+                    label: '1/16th note'
+                }, {
+                    value: 512,
+                    label: '1/32nd note'
+                }, {
+                    value: 2048,
+                    label: '1/8th note'
+                }]
         },
     ],
     staticText: []

@@ -7,6 +7,7 @@ import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiFileDownloadComponent } from './components/fileDownload';
 import { SuiDialogAdapterBase, SuiComponentAdapter } from './adapter';
 import { MidiToSmo } from '../../smo/midi/midiToSmo';
+import { SmoToMidi } from '../../../typedoc';
 declare var $: any;
 // declare var MidiParser: any;
 declare var parseMidi: any;
@@ -131,6 +132,7 @@ export class SuiLoadMxmlDialog extends SuiDialogAdapterBase<SuiXmlLoadAdapter> {
  export class SuiMidiLoadAdapter extends SuiComponentAdapter {
   midiFile: any = null;
   changeScore: boolean = false;
+  quantize: number = MidiToSmo.quantizeTicksDefault;
   constructor(view: SuiScoreViewOperations) {
     super(view);
   }
@@ -140,12 +142,18 @@ export class SuiLoadMxmlDialog extends SuiDialogAdapterBase<SuiXmlLoadAdapter> {
   set loadFile(value: any) {
     this.midiFile = value;
   }
+  get quantizeDuration() {
+    return this.quantize;
+  }
+  set quantizeDuration(value: number) {
+    this.quantize = value;
+  }
   commit() {
     try {
         // midi parser expects data in UintArray form
         const ar = new Uint8Array(this.midiFile);
         const midi: any = parseMidi(ar);
-        const midiParser = new MidiToSmo(midi);
+        const midiParser = new MidiToSmo(midi, this.quantize);
         this.view.changeScore(midiParser.getScore());
       } catch (e) {
       console.warn('unable to score ' + e);
@@ -162,7 +170,23 @@ export class SuiLoadMidiDialog extends SuiDialogAdapterBase<SuiMidiLoadAdapter> 
         defaultValue: '',
         control: 'SuiFileDownloadComponent',
         label: ''
-      },
+      }, {
+        smoName: 'quantizeDuration',
+        defaultValue: SmoScore.engravingFonts.Bravura,
+        control: 'SuiDropdownComponent',
+        dataType: 'int',
+        label: 'Quantize to:',
+        options: [{
+          value: 1024,
+          label: '1/16th note'
+        }, {
+          value: 512,
+          label: '1/32nd note'
+        }, {
+          value: 2048,
+          label: '1/8th note'
+        }]
+      }, 
       ],
       staticText: []
     };
@@ -173,7 +197,7 @@ export class SuiLoadMidiDialog extends SuiDialogAdapterBase<SuiMidiLoadAdapter> 
   }
   changed() {
     super.changed();
-    const enable = this.adapter.loadFile.length < 1;
+    const enable = this.adapter?.loadFile?.length < 1;
     $(this.dgDom.element).find('.ok-button').prop('disabled', enable);
   }
 }

@@ -95,9 +95,10 @@ export class MidiToSmo {
   trackIndex: number = 0;
   eventIndex: number = 0; // index into current track
   maxMeasure: number = 0;
+  quantizeTicks: number = MidiToSmo.quantizeTicksDefault;
   eot: boolean = false;
   midi: any; // MIDI JSON from MIDI parser
-  static get quantizeTicks() {
+  static get quantizeTicksDefault() {
      return 1024;
   }
   /**
@@ -146,7 +147,12 @@ export class MidiToSmo {
     }
     return getValueForTick(this.keySignatureMap, ticks);
   }
-  getRunningStatus(ticks: number) {
+  /**
+   * Get metadata from the map for this point in the score
+   * @param ticks
+   * @returns 
+   */
+   getRunningStatus(ticks: number) {
     return { tempo: this.getTempo(ticks), timeSignature: this.getTimeSignature(ticks), keySignature: this.getKeySignature(ticks) };
   }
   handleMetadata(trackEvent: MidiTrackEvent, ticks: number) {
@@ -223,7 +229,7 @@ export class MidiToSmo {
     let measure: SmoMeasure | null = null;
     let deficit = 0;
     // If the midi event is smaller than the smallest note..
-    const smallest = 1 * (MidiToSmo.quantizeTicks / 4);
+    const smallest = 1 * (this.quantizeTicks / 4);
     events.forEach((ev) => {
       if (measure === null || ev.measure > measureIndex) {
         const measureDefs = SmoMeasure.defaults;
@@ -238,7 +244,7 @@ export class MidiToSmo {
       if (Math.abs(ev.durationTicks - deficit) < smallest && !(ev.tupletInfo !== null)) {
         deficit = deficit - ev.durationTicks;
       } else {
-        const best = SmoMusic.midiTickSearch(ev.durationTicks - deficit);
+        const best = SmoMusic.midiTickSearch(ev.durationTicks - deficit, this.quantizeTicks);
         deficit += best.result - ev.durationTicks;
         ev.durationTicks = best.result;
         const defs = SmoNote.defaults;
@@ -408,6 +414,7 @@ export class MidiToSmo {
     let metadata: RunningMetadata = this.getRunningStatus(0);
     const midiOnNotes: Record<number, MidiNoteOn> = {};
     let curSmo = this.createNewEvent(metadata);
+    let untrackedTicks = 0;
     let ticks = 0;
     while (this.eventIndex < trackEvents.length && !(this.eot)) {
       if (isEot(cur)) {
@@ -416,18 +423,27 @@ export class MidiToSmo {
       }
       if (cur.deltaTime > 0) {
         curSmo.durationTicks = this.getSmoTicks(cur.deltaTime);
-        ticks += cur.deltaTime;
-        if (curSmo.pitches.length === 0) {
-          curSmo.isRest = true;
+        ticks += curSmo.durationTicks;
+        // We only need to track note on/off events.  Other events update the global
+        // map, we need to keep track of the duration changes though.
+        if (cur.type === 'noteOn' || cur.type === 'noteOff') {
+          if (curSmo.pitches.length === 0) {
+            curSmo.isRest = true;
+          }
+          curSmo.durationTicks += untrackedTicks;
+          untrackedTicks = 0;
+          rv.push(curSmo);
+        } else {
+          untrackedTicks += curSmo.durationTicks
         }
-        rv.push(curSmo);
         curSmo = this.createNewEvent(metadata);
       }
       curSmo.timeSignature = metadata.timeSignature;
       curSmo.tempo = metadata.tempo;
       curSmo.keySignature = metadata.keySignature;
-      const channel = cur.channel!;
+      
       if (cur.type === 'noteOn' || cur.type === 'noteOff') {
+        const channel = cur.channel!;
         const note = cur.noteNumber!;
         const velocity = cur.velocity!;
         if (midiOnNotes[note]) {
@@ -457,13 +473,14 @@ export class MidiToSmo {
     }
     return rv;
   }
-  constructor(midi: any) {
+  constructor(midi: any, quantizeDuration: number) {
     this.midi = midi;
     console.log(JSON.stringify(midi, null, ''));
     this.timeSignatureMap[0] = new TimeSignature(TimeSignature.defaults);
     this.tempoMap[0] = new SmoTempoText(SmoTempoText.defaults);
     this.keySignatureMap[0] = 'c';
     this.timeDivision = midi.header.ticksPerBeat;
+    this.quantizeTicks = quantizeDuration;
   }
 
   getScore(): SmoScore {

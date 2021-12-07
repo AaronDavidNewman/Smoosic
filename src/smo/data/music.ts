@@ -1041,14 +1041,15 @@ export class SmoMusic {
       .map((key) => parseInt(key, 10));
     // return Object.keys(SmoMusic.ticksToDuration).map((key) => parseInt(key, 10));    
   }
-  static get midiTicksForQuantize() {
-    return SmoMusic.midiTicksForQuantizeTo(1024);
-    /* return Object.keys(SmoMusic.ticksToDuration).filter((key) =>
-      SmoMusic.ticksToDuration[key].indexOf('dd') < 0 &&
-      SmoMusic.ticksToDuration[key].indexOf('ddd') < 0 &&
-      SmoMusic.ticksToDuration[key].indexOf('dddd') < 0 && parseInt(key, 10) >= 1024)
-      .map((key) => parseInt(key, 10));  */
-    // return Object.keys(SmoMusic.ticksToDuration).map((key) => parseInt(key, 10));    
+  static get midiTicksForQuantizeMap(): Record<number, number[]> {
+    return {
+      512:  SmoMusic.midiTicksForQuantizeTo(1024),
+      1024: SmoMusic.midiTicksForQuantizeTo(1024),
+      2048: SmoMusic.midiTicksForQuantizeTo(2048)
+    };
+  }
+  static midiTicksForQuantize(ticks: number) {
+    return SmoMusic.midiTicksForQuantizeMap[ticks];
   }
   static binarySearch(target: number, ix: number, partition: number, input: number[]) {
     const test = input[ix];
@@ -1064,8 +1065,8 @@ export class SmoMusic {
       return ({ cost, result: input[ix], newIx: ix + step, partition, input });
     }
   }
-  static midiTickSearch(target: number) {
-    const tickSet = SmoMusic.midiTicksForQuantize;
+  static midiTickSearch(target: number, quantize: number) {
+    const tickSet = SmoMusic.midiTicksForQuantize(quantize);
     let partition = Math.round(tickSet.length / 2);
     let ix = partition;
     let best = { cost: Math.abs(tickSet[ix] - target), result: tickSet[ix], ix };
