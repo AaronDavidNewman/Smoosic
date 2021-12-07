@@ -9,7 +9,7 @@ Smoosic does the following things:
 * Online, searchable music libraries
 * XML and MIDI import and export
 * parts, instruments, staff groups, transposition, voices
-* performant background rendering and asyncronous layout, pagination, line wrapping
+* performant background rendering and asynchronous layout, pagination, line wrapping
 * SVG text editing for score text, chord symbols and lyrics
 * interactive user interface, mapping musical elements to UI components, mouse event binding, etc.
 * fully customizable UI elements (buttons, key bindings, menus, dialogs)
