@@ -14,6 +14,20 @@ import { SmoScore, SmoModifier } from '../../smo/data/score';
 import { ModifierTab } from '../../smo/xform/selections';
 declare var $: any;
 
+/**
+ * DI information about renderer, so we can notify renderer and it can contain
+ * a tracker object
+ * @param svg svg element where the music goes
+ * @param score {@link SmoScore}
+ * @param dirty lets the caller know the display needs update
+ * @param passState state machine in rendering part/all of the score
+ * @param remapAll tell renderer to re-render everything
+ * @param renderPromise awaits on render all
+ * @param addToReplaceQueue adds a measure to the quick update queue
+ * @param renderElement a little redundant with svg
+ * @param context a little redundant with svg
+ * @category SuiRender
+ */
 export interface SuiRendererBase {
   svg: SVGSVGElement,
   score: SmoScore | null,

@@ -39,7 +39,7 @@ const ConcertOne_Regular_1 = __webpack_require__(/*! ../styles/font_metrics/Conc
 const Merriweather_Regular_1 = __webpack_require__(/*! ../styles/font_metrics/Merriweather-Regular */ "./src/styles/font_metrics/Merriweather-Regular.js");
 const ssp_sans_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
 const ssp_serif_metrics_1 = __webpack_require__(/*! ../styles/font_metrics/ssp-serif-metrics */ "./src/styles/font_metrics/ssp-serif-metrics.js");
-const xhrLoader_1 = __webpack_require__(/*! ../ui/fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.js");
+const xhrLoader_1 = __webpack_require__(/*! ../ui/fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.ts");
 const manager_1 = __webpack_require__(/*! ../ui/menus/manager */ "./src/ui/menus/manager.ts");
 const eventSource_1 = __webpack_require__(/*! ../ui/eventSource */ "./src/ui/eventSource.ts");
 const translationEditor_1 = __webpack_require__(/*! ../ui/i18n/translationEditor */ "./src/ui/i18n/translationEditor.ts");
@@ -53,6 +53,10 @@ const eventHandler_1 = __webpack_require__(/*! ./eventHandler */ "./src/applicat
 const common_1 = __webpack_require__(/*! ./common */ "./src/application/common.ts");
 const VF = eval('Vex.Flow');
 const Smo = eval('globalThis.Smo');
+/**
+ * Parse query string for application
+ * @category AppUtil
+ */
 class QueryParser {
     constructor() {
         this.pairs = [];
@@ -1183,7 +1187,7 @@ const language_1 = __webpack_require__(/*! ../ui/menus/language */ "./src/ui/men
 const language_2 = __webpack_require__(/*! ../ui/i18n/language */ "./src/ui/i18n/language.ts");
 const measure_2 = __webpack_require__(/*! ../ui/menus/measure */ "./src/ui/menus/measure.ts");
 const staff_1 = __webpack_require__(/*! ../ui/menus/staff */ "./src/ui/menus/staff.ts");
-const xhrLoader_1 = __webpack_require__(/*! ../ui/fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.js");
+const xhrLoader_1 = __webpack_require__(/*! ../ui/fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
 // render library
 const scoreView_2 = __webpack_require__(/*! ../render/sui/scoreView */ "./src/render/sui/scoreView.ts");
@@ -1195,7 +1199,6 @@ const scroller_1 = __webpack_require__(/*! ../render/sui/scroller */ "./src/rend
 const actionPlayback_1 = __webpack_require__(/*! ../render/sui/actionPlayback */ "./src/render/sui/actionPlayback.ts");
 // SMO object model
 const score_2 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
-const xmlToSmo_1 = __webpack_require__(/*! ../smo/mxml/xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
 const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
 const note_2 = __webpack_require__(/*! ../smo/data/note */ "./src/smo/data/note.ts");
 const tickDuration_1 = __webpack_require__(/*! ../smo/xform/tickDuration */ "./src/smo/xform/tickDuration.ts");
@@ -1208,6 +1211,10 @@ const systemStaff_1 = __webpack_require__(/*! ../smo/data/systemStaff */ "./src/
 const scoreModifiers_1 = __webpack_require__(/*! ../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
 const operations_1 = __webpack_require__(/*! ../smo/xform/operations */ "./src/smo/xform/operations.ts");
 const measureModifiers_1 = __webpack_require__(/*! ../smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
+const smoToXml_1 = __webpack_require__(/*! ../smo/mxml/smoToXml */ "./src/smo/mxml/smoToXml.ts");
+const midiToSmo_1 = __webpack_require__(/*! ../smo/midi/midiToSmo */ "./src/smo/midi/midiToSmo.ts");
+const smoToMidi_1 = __webpack_require__(/*! ../smo/midi/smoToMidi */ "./src/smo/midi/smoToMidi.ts");
+const xmlToSmo_1 = __webpack_require__(/*! ../smo/mxml/xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
 const toVex_1 = __webpack_require__(/*! ../smo/xform/toVex */ "./src/smo/xform/toVex.ts");
 const getClass = (jsonString) => {
     return eval('Smo.' + jsonString);
@@ -1255,7 +1262,10 @@ exports.Smo = {
     SuiScoreViewOperations: scoreViewOperations_1.SuiScoreViewOperations, SuiActionPlayback: actionPlayback_1.SuiActionPlayback,
     // Smo Music Objects
     SmoScore: score_2.SmoScore,
-    xmlToSmo: xmlToSmo_1.xmlToSmo,
+    XmlToSmo: xmlToSmo_1.XmlToSmo,
+    SmoToXml: smoToXml_1.SmoToXml,
+    MidiToSmo: midiToSmo_1.MidiToSmo,
+    SmoToMidi: smoToMidi_1.SmoToMidi,
     SmoMusic: music_1.SmoMusic,
     SmoMeasure: measure_3.SmoMeasure,
     SmoSystemStaff: systemStaff_1.SmoSystemStaff,
@@ -7007,6 +7017,30 @@ class SuiScoreView {
         this.tracker.recordBuffer = this.actionBuffer;
     }
     /**
+     * Await on the full update of the score
+     * @returns
+     */
+    renderPromise() {
+        return this.renderer.renderPromise();
+    }
+    /**
+     * Await on the partial update of the score in the view
+     * @returns
+     */
+    updatePromise() {
+        return this.renderer.updatePromise();
+    }
+    /**
+     * await on the full update of the score, also resetting the viewport (to reflect layout changes)
+     * @returns
+     */
+    refreshViewport() {
+        this.renderer.preserveScroll();
+        this.renderer.setViewport(true);
+        this.renderer.setRefresh();
+        return this.renderer.renderPromise();
+    }
+    /**
      *
      * @param action any action, but most usefully a SuiScoreView method
      * @param repetition number of times to repeat, waiting on render promise between
@@ -7368,6 +7402,7 @@ class SuiScoreView {
         this.staffMap = this.defaultStaffMap;
         this.setMappedStaffIds();
         this.actionBuffer.clearActions();
+        return this.renderPromise();
     }
     // ### undo
     // for the view score, we the renderer decides what to render
@@ -7411,13 +7446,13 @@ const measureModifiers_1 = __webpack_require__(/*! ../../smo/data/measureModifie
 const undo_1 = __webpack_require__(/*! ../../smo/xform/undo */ "./src/smo/xform/undo.ts");
 const operations_1 = __webpack_require__(/*! ../../smo/xform/operations */ "./src/smo/xform/operations.ts");
 const smoToMidi_1 = __webpack_require__(/*! ../../smo/midi/smoToMidi */ "./src/smo/midi/smoToMidi.ts");
-const smo2Xml_1 = __webpack_require__(/*! ../../smo/mxml/smo2Xml */ "./src/smo/mxml/smo2Xml.ts");
+const smoToXml_1 = __webpack_require__(/*! ../../smo/mxml/smoToXml */ "./src/smo/mxml/smoToXml.ts");
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const music_1 = __webpack_require__(/*! ../../smo/data/music */ "./src/smo/data/music.ts");
 const oscillator_1 = __webpack_require__(/*! ../audio/oscillator */ "./src/render/audio/oscillator.ts");
 const xmlToSmo_1 = __webpack_require__(/*! ../../smo/mxml/xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
 const player_1 = __webpack_require__(/*! ../audio/player */ "./src/render/audio/player.ts");
-const xhrLoader_1 = __webpack_require__(/*! ../../ui/fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.js");
+const xhrLoader_1 = __webpack_require__(/*! ../../ui/fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
@@ -7510,7 +7545,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         return req.loadAsync().then(() => {
             const parser = new DOMParser();
             const xml = parser.parseFromString(req.value, 'text/xml');
-            const score = xmlToSmo_1.xmlToSmo.convert(xml);
+            const score = xmlToSmo_1.XmlToSmo.convert(xml);
             self.changeScore(score);
         });
     }
@@ -8871,7 +8906,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         $('.saveLink a')[0].click();
     }
     saveXml(filename) {
-        const dom = smo2Xml_1.SmoToXml.convert(this.storeScore);
+        const dom = smoToXml_1.SmoToXml.convert(this.storeScore);
         const ser = new XMLSerializer();
         const xmlText = ser.serializeToString(dom);
         htmlHelpers_1.htmlHelpers.addFileLink(filename, xmlText, $('.saveLink'));
@@ -9034,12 +9069,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
             this.tracker.selectSuggestion(evData);
         }
     }
-    refreshViewport() {
-        this.renderer.preserveScroll();
-        this.renderer.setViewport(true);
-        this.renderer.setRefresh();
-        return this.renderer.renderPromise();
-    }
 }
 exports.SuiScoreViewOperations = SuiScoreViewOperations;
 
@@ -9059,11 +9088,10 @@ exports.SuiScroller = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
-// ## suiScroller
-// Respond to scroll events, and handle the scroll of the viewport
-//
-//
-// ---
+/**
+ * Respond to scroll events in music DOM, and handle the scroll of the viewport
+ * @category SuiRender
+ */
 class SuiScroller {
     // ### constructor
     // selector is the scrollable DOM container of the music container
@@ -21598,10 +21626,10 @@ exports.SmoToMidi = SmoToMidi;
 
 /***/ }),
 
-/***/ "./src/smo/mxml/smo2Xml.ts":
-/*!*********************************!*\
-  !*** ./src/smo/mxml/smo2Xml.ts ***!
-  \*********************************/
+/***/ "./src/smo/mxml/smoToXml.ts":
+/*!**********************************!*\
+  !*** ./src/smo/mxml/smoToXml.ts ***!
+  \**********************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
@@ -21635,20 +21663,23 @@ class SmoToXml {
         xmlHelpers_1.mxmlHelpers.createAttributes(creator, { type: 'composer' });
         const encoding = nn(identification, 'encoding', null, '');
         nn(encoding, 'software', { software: 'Some pre-release version of Smoosic' }, 'software');
-        nn(encoding, 'encoding-date', { date: new Date().toDateString() }, 'date');
+        const today = new Date();
+        const dd = (n) => n < 10 ? '0' + n.toString() : n.toString();
+        const dateString = today.getFullYear() + '-' + dd(today.getDay()) + '-' + dd(today.getMonth());
+        nn(encoding, 'encoding-date', dateString, 'date');
         const defaults = nn(root, 'defaults', null, '');
-        const scaling = nn(root, 'scaling', null, '');
+        const scaling = nn(defaults, 'scaling', null, '');
         // reverse this:
         // scoreDefaults.layout.svgScale =  (scale * 42 / 40) / xmlToSmo.mmPerPixel;
-        const mm = xmlToSmo_1.xmlToSmo.mmPerPixel * 42 * score.layoutManager.getGlobalLayout().svgScale;
+        const mm = xmlToSmo_1.XmlToSmo.mmPerPixel * 42 * score.layoutManager.getGlobalLayout().svgScale;
         nn(scaling, 'millimeters', { mm }, 'mm');
         nn(scaling, 'tenths', { tenths: 40 }, 'tenths');
         const pageLayout = nn(defaults, 'page-layout', null, '');
-        xmlToSmo_1.xmlToSmo.pageLayoutMap.forEach((map) => {
-            nn(pageLayout, map.xml, score.layoutManager, map.smo);
+        xmlToSmo_1.XmlToSmo.pageLayoutMap.forEach((map) => {
+            nn(pageLayout, map.xml, score.layoutManager.globalLayout, map.smo);
         });
         const pageMargins = nn(pageLayout, 'page-margins', null, '');
-        xmlToSmo_1.xmlToSmo.pageMarginMap.forEach((map) => {
+        xmlToSmo_1.XmlToSmo.pageMarginMap.forEach((map) => {
             nn(pageMargins, map.xml, score.layoutManager.pageLayouts[0], map.smo);
         });
         const partList = nn(root, 'part-list', null, '');
@@ -21797,11 +21828,11 @@ class SmoToXml {
     static pitch(pitch, noteElement) {
         const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
         const accidentalOffset = ['bb', 'b', 'n', '#', '##'];
-        const adjust = accidentalOffset.indexOf(pitch.accidental) - 2;
+        const alter = accidentalOffset.indexOf(pitch.accidental) - 2;
         const pitchElement = nn(noteElement, 'pitch', null, '');
         nn(pitchElement, 'step', { letter: pitch.letter.toUpperCase() }, 'letter');
+        nn(pitchElement, 'alter', { alter }, 'alter');
         nn(pitchElement, 'octave', pitch, 'octave');
-        nn(pitchElement, 'adjust', { adjust }, 'adjust');
     }
     // ### /score-partwise/measure/beam
     static beamNote(noteElement, smoState) {
@@ -21934,7 +21965,6 @@ class SmoToXml {
             else {
                 SmoToXml.beamNote(noteElement, smoState);
                 SmoToXml.lyric(noteElement, smoState);
-                nn(noteElement, 'type', { type: xmlHelpers_1.mxmlHelpers.closestStemType(note.tickCount) }, 'type');
                 if (note.flagState === note_1.SmoNote.flagStates.up) {
                     nn(noteElement, 'stem', { direction: 'up' }, 'direction');
                 }
@@ -21945,11 +21975,12 @@ class SmoToXml {
             if (note.isRest()) {
                 nn(noteElement, 'rest', null, '');
             }
-            nn(noteElement, 'voice', { voice: smoState.voiceIndex }, 'voice');
             SmoToXml.pitch(note.pitches[i], noteElement);
             const duration = note.tickCount;
             smoState.measureTicks += duration;
             nn(noteElement, 'duration', { duration }, 'duration');
+            nn(noteElement, 'voice', { voice: smoState.voiceIndex }, 'voice');
+            nn(noteElement, 'type', { type: xmlHelpers_1.mxmlHelpers.closestStemType(note.tickCount) }, 'type');
             const notationsElement = noteElement.ownerDocument.createElement('notations');
             SmoToXml.tuplet(noteElement, notationsElement, smoState);
             SmoToXml.slur(notationsElement, smoState);
@@ -22408,11 +22439,13 @@ class mxmlHelpers {
             let verse = nNode.getAttribute('number');
             const text = mxmlHelpers.getTextFromElement(nNode, 'text', '_');
             const name = nNode.getAttribute('name');
+            const syllabic = mxmlHelpers.getTextFromElement(nNode, 'syllabic', 'end');
             // Per xml spec, verse can be specified by a string (name), as in 'chorus'
             if (!verse) {
                 verse = name;
             }
-            rv.push({ _text: text, verse });
+            const obj = { _text: text, verse, syllabic };
+            rv.push(obj);
         });
         return rv;
     }
@@ -22612,6 +22645,9 @@ class XmlState {
         const params = noteModifiers_1.SmoLyric.defaults;
         params._text = lyricData._text;
         params.verse = lyricData.verse;
+        if (lyricData.syllabic === 'begin' || lyricData.syllabic === 'middle') {
+            params._text += '-';
+        }
         const lyric = new noteModifiers_1.SmoLyric(params);
         note.addLyric(lyric);
     }
@@ -22919,12 +22955,12 @@ exports.XmlState = XmlState;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.xmlToSmo = void 0;
+exports.XmlToSmo = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 /**
  * Logic to convert music XML (finale) to Smo internal format
- * @module xmlToSmo
+ * @module XmlToSmo
  */
 const xmlHelpers_1 = __webpack_require__(/*! ./xmlHelpers */ "./src/smo/mxml/xmlHelpers.ts");
 const xmlState_1 = __webpack_require__(/*! ./xmlState */ "./src/smo/mxml/xmlState.ts");
@@ -22941,7 +22977,7 @@ const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts")
  * A class that takes a music XML file and outputs a {@link SmoScore}
  * @category SmoToXml
  */
-class xmlToSmo {
+class XmlToSmo {
     static get mmPerPixel() {
         return 0.264583;
     }
@@ -22987,7 +23023,7 @@ class xmlToSmo {
             const xmlState = new xmlState_1.XmlState();
             xmlState.newTitle = false;
             rv.scoreInfo.name = 'Imported Smoosic';
-            xmlToSmo.scoreInfoFields.forEach((field) => {
+            XmlToSmo.scoreInfoFields.forEach((field) => {
                 rv.scoreInfo[field] = '';
             });
             const childNodes = [...scoreRoot.children];
@@ -23019,11 +23055,11 @@ class xmlToSmo {
                     }
                 }
                 else if (scoreElement.tagName === 'defaults') {
-                    xmlToSmo.defaults(scoreElement, rv, layoutDefaults);
+                    XmlToSmo.defaults(scoreElement, rv, layoutDefaults);
                 }
                 else if (scoreElement.tagName === 'part') {
                     xmlState.initializeForPart();
-                    xmlToSmo.part(scoreElement, xmlState);
+                    XmlToSmo.part(scoreElement, xmlState);
                 }
             });
             // The entire score is parsed and xmlState now contains the staves.
@@ -23067,11 +23103,11 @@ class xmlToSmo {
         const currentScale = layoutDefaults.getGlobalLayout().svgScale;
         const pageLayoutNode = defaultsElement.getElementsByTagName('page-layout');
         if (pageLayoutNode.length) {
-            xmlHelpers_1.mxmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults.globalLayout, xmlToSmo.pageLayoutMap);
+            xmlHelpers_1.mxmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults.globalLayout, XmlToSmo.pageLayoutMap);
         }
         const pageMarginNode = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(defaultsElement, ['page-layout', 'page-margins']);
         if (pageMarginNode.length) {
-            xmlHelpers_1.mxmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], xmlToSmo.pageMarginMap);
+            xmlHelpers_1.mxmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], XmlToSmo.pageMarginMap);
         }
         const scaleNode = defaultsElement.getElementsByTagName('scaling');
         if (scaleNode.length) {
@@ -23083,7 +23119,7 @@ class xmlToSmo {
         }
         // Convert from mm to pixels, this is our default svg scale
         // mm per tenth * pixels / mm gives us pixels per tenth
-        layoutDefaults.globalLayout.svgScale = (scale * 45 / 40) / xmlToSmo.mmPerPixel;
+        layoutDefaults.globalLayout.svgScale = (scale * 45 / 40) / XmlToSmo.mmPerPixel;
         score.scaleTextGroups(currentScale / layoutDefaults.globalLayout.svgScale);
     }
     // ### part
@@ -23097,7 +23133,7 @@ class xmlToSmo {
         measureElements.forEach((measureElement) => {
             // Parse the measure element, populate staffArray of xmlState with the
             // measure data
-            xmlToSmo.measure(measureElement, xmlState);
+            XmlToSmo.measure(measureElement, xmlState);
             const newStaves = xmlState.staffArray;
             if (newStaves.length > 1 && stavesForPart.length <= newStaves[0].clefInfo.staffId) {
                 xmlState.staffGroups.push({ start: staffId, length: newStaves.length });
@@ -23264,7 +23300,7 @@ class xmlToSmo {
     // ### direction
     // /score-partwise/part/measure/direction
     static direction(directionElement, xmlState) {
-        const tempo = xmlToSmo.tempo(directionElement);
+        const tempo = XmlToSmo.tempo(directionElement);
         // Only display tempo if changes.
         if (tempo.length) {
             // TODO: staff ID is with tempo, but tempo is per column in SMO
@@ -23274,9 +23310,9 @@ class xmlToSmo {
             }
         }
         // parse dynamic node and add to xmlState
-        xmlToSmo.dynamics(directionElement, xmlState);
+        XmlToSmo.dynamics(directionElement, xmlState);
         // parse wedge (hairpin)
-        xmlToSmo.wedge(directionElement, xmlState);
+        XmlToSmo.wedge(directionElement, xmlState);
     }
     // ### note
     // /score-partwise/part/measure/note
@@ -23432,13 +23468,13 @@ class xmlToSmo {
             if (element.tagName === 'attributes') {
                 // update the running state of the XML with new information from this measure
                 // if an XML attributes element is present
-                xmlToSmo.attributes(measureElement, xmlState);
+                XmlToSmo.attributes(measureElement, xmlState);
             }
             else if (element.tagName === 'direction') {
-                xmlToSmo.direction(element, xmlState);
+                XmlToSmo.direction(element, xmlState);
             }
             else if (element.tagName === 'note') {
-                xmlToSmo.note(element, xmlState);
+                XmlToSmo.note(element, xmlState);
                 hasNotes = true;
             }
         });
@@ -23457,7 +23493,7 @@ class xmlToSmo {
             smoMeasure.format.measureIndex = xmlState.measureNumber;
             smoMeasure.format.systemBreak = xmlHelpers_1.mxmlHelpers.isSystemBreak(measureElement);
             smoMeasure.tempo = xmlState.tempo;
-            smoMeasure.format.customProportion = xmlToSmo.customProportionDefault;
+            smoMeasure.format.customProportion = XmlToSmo.customProportionDefault;
             xmlState.formattingManager.updateMeasureFormat(smoMeasure.format);
             smoMeasure.keySignature = xmlState.keySignature;
             smoMeasure.timeSignature = measure_1.SmoMeasure.convertLegacyTimeSignature(xmlState.timeSignature);
@@ -23499,7 +23535,7 @@ class xmlToSmo {
         });
     }
 }
-exports.xmlToSmo = xmlToSmo;
+exports.XmlToSmo = XmlToSmo;
 
 
 /***/ }),
@@ -35459,6 +35495,11 @@ exports.SuiChordComponent = SuiChordComponent;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiRockerComposite = exports.SuiRockerComponent = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+/**
+ * @module /ui/dialog/components/rocker
+ * **/
 const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
 const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 /**
@@ -37231,7 +37272,7 @@ class SuiXmlLoadAdapter extends adapter_1.SuiComponentAdapter {
         try {
             const parser = new DOMParser();
             const xml = parser.parseFromString(this.xmlFile, 'text/xml');
-            const score = xmlToSmo_1.xmlToSmo.convert(xml);
+            const score = xmlToSmo_1.XmlToSmo.convert(xml);
             this.changeScore = true;
             this.view.changeScore(score);
         }
@@ -41102,7 +41143,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SmoLibrary = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const xhrLoader_1 = __webpack_require__(/*! ./xhrLoader */ "./src/ui/fileio/xhrLoader.js");
+const xhrLoader_1 = __webpack_require__(/*! ./xhrLoader */ "./src/ui/fileio/xhrLoader.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 // ## SmoLibrary
@@ -41194,9 +41235,9 @@ exports.SmoLibrary = SmoLibrary;
 
 /***/ }),
 
-/***/ "./src/ui/fileio/xhrLoader.js":
+/***/ "./src/ui/fileio/xhrLoader.ts":
 /*!************************************!*\
-  !*** ./src/ui/fileio/xhrLoader.js ***!
+  !*** ./src/ui/fileio/xhrLoader.ts ***!
   \************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -41205,21 +41246,22 @@ exports.SmoLibrary = SmoLibrary;
 // Copyright (c) Aaron David Newman 2021.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiXhrLoader = void 0;
-// ## SuiXhrLoader
-// Load music xml files from remote, transparently
-// unzip mxml files.  Other files (smo, xml, midi) are handled
-// transparently with consistent async interface
+/**
+ * Load a file.  Guess based on the extension whether the file is string or binary
+ */
 class SuiXhrLoader {
     constructor(path) {
         this.compressed = false;
         this.value = null;
-        this.path = path;
         this.binary = false;
+        this.isMidi = false;
+        this.path = path;
         if (path.endsWith('mxl')) {
             this.compressed = true;
             this.binary = true;
         }
         else if (path.endsWith('mid')) {
+            this.isMidi = true;
             this.binary = true;
         }
     }
@@ -41236,6 +41278,10 @@ class SuiXhrLoader {
             });
         });
     }
+    /**
+     *
+     * @returns promise resolved when the target file is loaded
+     */
     loadAsync() {
         const req = new XMLHttpRequest();
         const self = this;
@@ -41243,7 +41289,11 @@ class SuiXhrLoader {
             req.addEventListener('load', () => {
                 const reader = new FileReader();
                 reader.addEventListener('loadend', () => {
-                    if (!self.compressed) {
+                    if (self.isMidi) {
+                        self.value = new Uint8Array(reader.result);
+                        resolve();
+                    }
+                    else if (!self.compressed) {
                         self.value = reader.result;
                         resolve();
                     }
@@ -41251,7 +41301,10 @@ class SuiXhrLoader {
                         self._uncompress(reader.result).then(() => { resolve(); });
                     }
                 });
-                if (this.binary) {
+                if (this.isMidi) {
+                    reader.readAsArrayBuffer(req.response);
+                }
+                else if (this.binary) {
                     reader.readAsBinaryString(req.response);
                 }
                 else {
@@ -47867,7 +47920,7 @@ SuiLanguageMenu.defaults = {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiLibraryMenu = void 0;
 const menu_1 = __webpack_require__(/*! ./menu */ "./src/ui/menus/menu.ts");
-const xhrLoader_1 = __webpack_require__(/*! ../fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.js");
+const xhrLoader_1 = __webpack_require__(/*! ../fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.ts");
 const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
 const xmlToSmo_1 = __webpack_require__(/*! ../../smo/mxml/xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
 class SuiLibraryMenu extends menu_1.SuiMenuBase {
@@ -47890,7 +47943,7 @@ class SuiLibraryMenu extends menu_1.SuiMenuBase {
         req.loadAsync().then(() => {
             const parser = new DOMParser();
             const xml = parser.parseFromString(req.value, 'text/xml');
-            const score = xmlToSmo_1.xmlToSmo.convert(xml);
+            const score = xmlToSmo_1.XmlToSmo.convert(xml);
             this.view.changeScore(score);
             this.complete();
         });

@@ -23,6 +23,9 @@ import { SuiMenuManager } from '../ui/menus/manager';
 
 declare var $: any;
 
+/**
+ * Handle keyboard/mouse events, and pass them to the renderer and other UI elements.
+ */
 export interface EventHandlerParams {
   view: SuiScoreViewOperations,
   eventSource: BrowserEventSource,

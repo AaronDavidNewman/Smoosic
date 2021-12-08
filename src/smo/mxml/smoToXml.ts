@@ -35,10 +35,11 @@ export class SmoToXml {
     const encoding = nn(identification, 'encoding', null, '');
     nn(encoding, 'software', { software: 'Some pre-release version of Smoosic' }, 'software');
     const today = new Date();
-    const dateString: string = today.getFullYear().toString() + today.getMonth() + today.getDate();
+    const dd = (n: number) => n < 10 ? '0' + n.toString() : n.toString()
+    const dateString: string = today.getFullYear() + '-' + dd(today.getDay()) + '-' + dd(today.getMonth());
     nn(encoding, 'encoding-date', dateString, 'date');
     const defaults = nn(root, 'defaults', null, '');
-    const scaling = nn(root, 'scaling', null, '');
+    const scaling = nn(defaults, 'scaling', null, '');
     // reverse this:
     // scoreDefaults.layout.svgScale =  (scale * 42 / 40) / xmlToSmo.mmPerPixel;
     const mm = XmlToSmo.mmPerPixel * 42 * score.layoutManager!.getGlobalLayout().svgScale;
@@ -46,7 +47,7 @@ export class SmoToXml {
     nn(scaling, 'tenths', { tenths: 40 }, 'tenths');
     const pageLayout = nn(defaults, 'page-layout', null, '');
     XmlToSmo.pageLayoutMap.forEach((map) => {
-      nn(pageLayout, map.xml, score.layoutManager, map.smo);
+      nn(pageLayout, map.xml, score.layoutManager!.globalLayout, map.smo);
     });
     const pageMargins = nn(pageLayout, 'page-margins', null, '');
     XmlToSmo.pageMarginMap.forEach((map) => {
@@ -197,11 +198,11 @@ export class SmoToXml {
   static pitch(pitch: Pitch, noteElement: Element) {
     const nn = mxmlHelpers.createTextElementChild;
     const accidentalOffset = ['bb', 'b', 'n', '#', '##'];
-    const adjust = accidentalOffset.indexOf(pitch.accidental) - 2;
+    const alter = accidentalOffset.indexOf(pitch.accidental) - 2;
     const pitchElement = nn(noteElement, 'pitch', null, '');
     nn(pitchElement, 'step', { letter: pitch.letter.toUpperCase() }, 'letter');
+    nn(pitchElement, 'alter', { alter }, 'alter');
     nn(pitchElement, 'octave', pitch, 'octave');
-    nn(pitchElement, 'adjust', { adjust }, 'adjust');
   }
   // ### /score-partwise/measure/beam
   static beamNote(noteElement: Element, smoState: any) {
@@ -330,8 +331,6 @@ export class SmoToXml {
       } else {
         SmoToXml.beamNote(noteElement, smoState);
         SmoToXml.lyric(noteElement, smoState);
-        nn(noteElement, 'type', { type: mxmlHelpers.closestStemType(note.tickCount) },
-          'type');
         if (note.flagState === SmoNote.flagStates.up) {
           nn(noteElement, 'stem', { direction: 'up' }, 'direction');
         }
@@ -342,12 +341,14 @@ export class SmoToXml {
       if (note.isRest()) {
         nn(noteElement, 'rest', null, '');
       }
-      nn(noteElement, 'voice', { voice: smoState.voiceIndex }, 'voice');
       SmoToXml.pitch(note.pitches[i], noteElement);
       const duration = note.tickCount;
       smoState.measureTicks += duration;
       nn(noteElement, 'duration', { duration }, 'duration');
-      const notationsElement = noteElement.ownerDocument.createElement('notations');
+      nn(noteElement, 'voice', { voice: smoState.voiceIndex }, 'voice');
+      nn(noteElement, 'type', { type: mxmlHelpers.closestStemType(note.tickCount) },
+      'type');
+  const notationsElement = noteElement.ownerDocument.createElement('notations');
       SmoToXml.tuplet(noteElement, notationsElement, smoState);
       SmoToXml.slur(notationsElement, smoState);
       if (notationsElement.children.length) {
