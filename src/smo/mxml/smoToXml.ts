@@ -34,7 +34,9 @@ export class SmoToXml {
     mxmlHelpers.createAttributes(creator, { type: 'composer' });
     const encoding = nn(identification, 'encoding', null, '');
     nn(encoding, 'software', { software: 'Some pre-release version of Smoosic' }, 'software');
-    nn(encoding, 'encoding-date', { date: new Date().toDateString() }, 'date');
+    const today = new Date();
+    const dateString: string = today.getFullYear().toString() + today.getMonth() + today.getDate();
+    nn(encoding, 'encoding-date', dateString, 'date');
     const defaults = nn(root, 'defaults', null, '');
     const scaling = nn(root, 'scaling', null, '');
     // reverse this:

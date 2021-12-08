@@ -19,16 +19,20 @@
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <!-- script type="text/javascript" src="../../../vex_smoosic/vexflow_smoosic/build/vexflow-debug.js"></script  -->
   <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.slim.js"></script>
+  <script type="text/javascript" src="../midi-parser.js"></script>
   <script type="text/javascript" src="../qunit.js"></script>
   <script type="text/javascript" src="../smoosic.js"></script>
   <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function (event) {
       // A simple music program using Smoosic in library mode.  
       // Load a Smoosic JSON file and render the score
-      const path = 'https://aarondavidnewman.github.io/Smoosic/release/library/hymns/Precious Lord.json';
+      const jsonPath = 'https://aarondavidnewman.github.io/Smoosic/release/library/hymns/Precious Lord.json';
+      const midiTiesPath = 'https://aarondavidnewman.github.io/Smoosic/release/library/miditest/ties.mid';
+      const midiTripletPath = 'https://aarondavidnewman.github.io/Smoosic/release/library/miditest/triplet.mid';
+      const midiKeyPath = 'https://aarondavidnewman.github.io/Smoosic/release/library/miditest/keytime.mid';
       var app = async (Smo, application) => {
         const view = application.view
-        await view.loadRemoteScore(path);
+        await view.loadRemoteScore(jsonPath);
         await view.renderPromise();
         QUnit.test('loaded', assert => {
           assert.equal(view.score.staves[0].measures.length, 17);
@@ -40,6 +44,20 @@
         QUnit.test('loadXml', assert => {
           assert.equal(view.score.staves[0].measures.length, 17);
           assert.equal($('#boo .vf-lyric').length, 82);
+        });
+        let midiData = new Smo.SuiXhrLoader(midiTiesPath);
+        await midiData.loadAsync();
+        let midiScore = (new Smo.MidiToSmo(parseMidi(midiData.value), 1024)).convert();
+        await view.changeScore(midiScore);
+        QUnit.test('loadMidi1', assert => {
+          assert.equal(midiScore.staves[0].getTiesEndingAt({staff: 0, measure: 1, voice: 0, tick: 0 }).length, 1);
+        });
+        midiData = new Smo.SuiXhrLoader(midiTripletPath);
+        await midiData.loadAsync();
+        midiScore = (new Smo.MidiToSmo(parseMidi(midiData.value), 1024)).convert();
+        await view.changeScore(midiScore);
+        QUnit.test('loadMidi2', assert => {
+          assert.equal(midiScore.staves[0].measures[0].tuplets.length, 1);
         });
 
         // console.log('measures ' + view.score.staves[0].measures.length);

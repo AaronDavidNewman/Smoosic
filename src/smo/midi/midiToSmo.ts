@@ -130,7 +130,20 @@ export class MidiToSmo {
     });
     return clef;
   }
-
+  /**
+   * Create an object to convert MIDI to a {@link SmoScore}
+   * @param midi the output of midi parser
+   * @param quantizeDuration ticks to quantize (1024 == 16th note)
+   */
+   constructor(midi: any, quantizeDuration: number) {
+    this.midi = midi;
+    console.log(JSON.stringify(midi, null, ''));
+    this.timeSignatureMap[0] = new TimeSignature(TimeSignature.defaults);
+    this.tempoMap[0] = new SmoTempoText(SmoTempoText.defaults);
+    this.keySignatureMap[0] = 'c';
+    this.timeDivision = midi.header.ticksPerBeat;
+    this.quantizeTicks = quantizeDuration;
+  }
   /**
    * @internal
    * @param ticks 
@@ -513,20 +526,6 @@ export class MidiToSmo {
       }
     }
     return rv;
-  }
-  /**
-   * Create an object to convert MIDI to a {@link SmoScore}
-   * @param midi the output of midi parser
-   * @param quantizeDuration ticks to quantize (1024 == 16th note)
-   */
-  constructor(midi: any, quantizeDuration: number) {
-    this.midi = midi;
-    console.log(JSON.stringify(midi, null, ''));
-    this.timeSignatureMap[0] = new TimeSignature(TimeSignature.defaults);
-    this.tempoMap[0] = new SmoTempoText(SmoTempoText.defaults);
-    this.keySignatureMap[0] = 'c';
-    this.timeDivision = midi.header.ticksPerBeat;
-    this.quantizeTicks = quantizeDuration;
   }
 
   /**

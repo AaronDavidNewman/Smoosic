@@ -79,7 +79,7 @@ export class SmoLibrary {
     if (this.loaded) {
       return PromiseHelpers.emptyPromise();
     }
-    const loader = new SuiXhrLoader(this.url);
+    const loader = new SuiXhrLoader(this.url!);
     return new Promise<void>((resolve) => {
       loader.loadAsync().then(() => {
         const jsonObj = JSON.parse(loader.value);

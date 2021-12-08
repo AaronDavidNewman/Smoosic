@@ -7,11 +7,10 @@ export interface ScrollState {
   initial: SvgPoint,
   scroll: SvgPoint
 }
-// ## suiScroller
-// Respond to scroll events, and handle the scroll of the viewport
-//
-//
-// ---
+/**
+ * Respond to scroll events in music DOM, and handle the scroll of the viewport
+ * @category SuiRender
+ */
 export class SuiScroller {
   selector: HTMLElement;
   _scroll: SvgPoint;

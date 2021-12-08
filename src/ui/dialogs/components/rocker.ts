@@ -1,8 +1,17 @@
-import { htmlHelpers } from '../../../common/htmlHelpers';
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+/**
+ * @module /ui/dialog/components/rocker
+ * **/
+ import { htmlHelpers } from '../../../common/htmlHelpers';
 import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent } from './baseComponent';
 
 declare var $: any;
 
+/**
+ * Basic dialog component info.
+ * @category SuiDialogParams
+ */
 export interface SuiRockerComponentParams {
   id: string,
   classes: string,

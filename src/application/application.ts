@@ -60,6 +60,10 @@ const VF = eval('Vex.Flow');
 const Smo = eval('globalThis.Smo');
 export type scoreMode = 'local' | 'remote' | 'translate' | 'query';
 
+/**
+ * Parse query string for application
+ * @category AppUtil
+ */
 export class QueryParser {
   pairs: pairType[] = [];
   queryPair(str: string): pairType {
