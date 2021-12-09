@@ -53,7 +53,7 @@ export class SmoToXml {
     XmlToSmo.pageMarginMap.forEach((map) => {
       nn(pageMargins, map.xml, score.layoutManager!.pageLayouts[0], map.smo);
     });
-    const partList =  nn(root, 'part-list', null, '');
+    const partList = nn(root, 'part-list', null, '');
     score.staves.forEach((staff) => {
       const id = 'P' + staff.staffId;
       const scorePart = nn(partList, 'score-part', null, '');
@@ -142,6 +142,7 @@ export class SmoToXml {
         SmoSelector.eq(ss.endSelector, slur.endSelector));
       if (match) {
         remove.push(match);
+        smoState.slurNumber -= 1;
         const slurElement = nn(notationsElement, 'slur', null, '');
         mxmlHelpers.createAttributes(slurElement, { number: match.number, type: 'stop' });
       }
@@ -152,15 +153,12 @@ export class SmoToXml {
       }
     });
     smoState.slurs = newSlurs;
-    smoState.slurNumber = 1;
-    if (smoState.slurs.length > 0) {
-      // set next slur number to 1+ highest slur number in the 'waiting to resolve' list
-      smoState.slurNumber = smoState.slurs.map((slur: any) => slur.number).reduce((a: number, b: number) => a > b ? a : b) + 1;
-    }
     starts.forEach((slur) => {
-      smoState.slurs.push({ startSelector: slur.startSelector,
+      smoState.slurs.push({
+        startSelector: slur.startSelector,
         endSelector: slur.endSelector,
-        number: smoState.slurNumber });
+        number: smoState.slurNumber
+      });
       const slurElement = nn(notationsElement, 'slur', null, '');
       mxmlHelpers.createAttributes(slurElement, { number: smoState.slurNumber, type: 'start' });
       smoState.slurNumber += 1;
@@ -255,7 +253,7 @@ export class SmoToXml {
     let addDirection = false;
     const nn = mxmlHelpers.createTextElementChild;
     const directionElement = measureElement.ownerDocument.createElement('direction');
-    const dtype  = nn(directionElement, 'direction-type', null, '');
+    const dtype = nn(directionElement, 'direction-type', null, '');
     const staff = smoState.staff as SmoSystemStaff;
     const measure = smoState.measure;
     const selector: SmoSelector = {
@@ -271,7 +269,7 @@ export class SmoToXml {
     const startWedge = staff.modifiers.find((mod) =>
       SmoSelector.sameNote(mod.startSelector, selector) &&
       (mod.attrs.type === 'SmoStaffHairpin')) as SmoStaffHairpin;
-    const endWedge =  staff.modifiers.find((mod) =>
+    const endWedge = staff.modifiers.find((mod) =>
       SmoSelector.sameNote(mod.endSelector, selector) &&
       (mod.attrs.type === 'SmoStaffHairpin')) as SmoStaffHairpin;
     if (endWedge && !beforeNote) {
@@ -321,7 +319,7 @@ export class SmoToXml {
   }
   // ### /score-partwise/measure/note
   static note(measureElement: Element, smoState: any) {
-    const note = smoState.note;
+    const note: SmoNote = smoState.note;
     const nn = mxmlHelpers.createTextElementChild;
     let i = 0;
     for (i = 0; i < note.pitches.length; ++i) {
@@ -329,30 +327,40 @@ export class SmoToXml {
       if (i > 0) {
         nn(noteElement, 'chord', null, '');
       } else {
-        SmoToXml.beamNote(noteElement, smoState);
-        SmoToXml.lyric(noteElement, smoState);
-        if (note.flagState === SmoNote.flagStates.up) {
-          nn(noteElement, 'stem', { direction: 'up' }, 'direction');
-        }
-        if (note.flagState === SmoNote.flagStates.down) {
-          nn(noteElement, 'stem', { direction: 'down' }, 'direction');
-        }
       }
       if (note.isRest()) {
-        nn(noteElement, 'rest', null, '');
+        const restElement = nn(noteElement, 'rest', null, '');
+        const step = { letter: note.pitches[i].letter.toUpperCase() };
+        nn(restElement, 'display-step', step, 'letter');
+        nn(restElement, 'display-octave', { ...note.pitches[i] }, 'octave');
+      } else {
+        SmoToXml.pitch(note.pitches[i], noteElement);
       }
-      SmoToXml.pitch(note.pitches[i], noteElement);
       const duration = note.tickCount;
       smoState.measureTicks += duration;
       nn(noteElement, 'duration', { duration }, 'duration');
       nn(noteElement, 'voice', { voice: smoState.voiceIndex }, 'voice');
       nn(noteElement, 'type', { type: mxmlHelpers.closestStemType(note.tickCount) },
-      'type');
-  const notationsElement = noteElement.ownerDocument.createElement('notations');
+        'type');
+      if (note.flagState === SmoNote.flagStates.up) {
+        nn(noteElement, 'stem', { direction: 'up' }, 'direction');
+      }
+      if (note.flagState === SmoNote.flagStates.down) {
+        nn(noteElement, 'stem', { direction: 'down' }, 'direction');
+      }
+      // stupid musicxml requires beam to be last.
+      if (i === 0) {
+        SmoToXml.beamNote(noteElement, smoState);
+      }
+      const notationsElement = noteElement.ownerDocument.createElement('notations');
       SmoToXml.tuplet(noteElement, notationsElement, smoState);
       SmoToXml.slur(notationsElement, smoState);
       if (notationsElement.children.length) {
         noteElement.appendChild(notationsElement);
+      }
+      // stupid musicxml requires beam to be laster.
+      if (i === 0) {
+        SmoToXml.lyric(noteElement, smoState);
       }
     }
     smoState.voiceTickIndex += 1;

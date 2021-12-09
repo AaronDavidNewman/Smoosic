@@ -328,11 +328,15 @@ export class SmoSlur extends StaffModifierBase {
   }
 }
 
+/**
+ * Map pitch indices of the tie line
+ */
 export interface TieLine {
   from: number,
   to: number
 }
 /**
+ * Constructor parameters for a tie.
  * @category SmoParameters
  */
 export interface SmoTieParams {

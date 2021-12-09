@@ -37,7 +37,6 @@ export class SuiFontComponent extends SuiComponentBase {
         id: familyId,
         smoName: 'fontFamily',
         classes: 'hide-when-editing hide-when-moving',
-        defaultValue: SmoScoreText.fontFamilies.times,
         control: 'SuiDropdownComponent',
         label: 'Font Family',
         parentControl: this,

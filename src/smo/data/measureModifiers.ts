@@ -286,6 +286,16 @@ export class SmoRepeatSymbol extends SmoMeasureModifierBase {
   }
 }
 
+/**
+ * Constructor parameters for volta (2nd ending)
+ * @param startBar
+ * @param endBar
+ * @param xOffsetStart in pixels
+ * @param xOffsetEnd in pixels
+ * @param yOffset in pixels
+ * @param number the number of the ending
+ * @category SmoParams
+ */
 export interface SmoVoltaParams {
   startBar: number,
   endBar: number,

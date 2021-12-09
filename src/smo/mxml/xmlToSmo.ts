@@ -440,6 +440,7 @@ export class XmlToSmo {
         // treats them as note modifiers
         noteData.ticks = { numerator: tickCount, denominator: 1, remainder: 0 };
         noteData.flagState = flagState;
+        noteData.clef = clefString;
         xmlState.previousNote = new SmoNote(noteData);
         if (hideNote) {
           xmlState.previousNote.makeHidden(true);

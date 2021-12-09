@@ -57,7 +57,6 @@ export class TieMappingComponent extends SuiComponentParent {
         id: this.id + smoName + '-left',
         smoName: smoName + '-left',
         classes: 'leftControl',
-        defaultValue,
         control: 'SuiDropdownComposite',
         label: dialog.getStaticText()['fromNote'],
         options: this._generateOptions(this.startSelection.note),
@@ -70,7 +69,6 @@ export class TieMappingComponent extends SuiComponentParent {
         classes: 'rightControl',
         control: 'SuiDropdownComposite',
         label: dialog.getStaticText()['toNote'],
-        defaultValue,
         options: this._generateOptions(this.endSelection.note),
         parentControl: this
 

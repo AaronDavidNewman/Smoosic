@@ -19629,7 +19629,7 @@ class SmoTextGroup extends SmoScoreModifierBase {
             blocks: [{ text: st, position: SmoTextGroup.relativePositions.RIGHT, activeText: false }],
             purpose, pagination: SmoTextGroup.paginations.EVERY,
             attachToSelector: false, justification: SmoTextGroup.justifications.CENTER, spacing: 0, relativePosition: SmoTextGroup.relativePositions.LEFT,
-            selector: selections_1.SmoSelector.default, musicXOffset: 0, musicYOffset: 0
+            selector: selections_1.SmoSelector.default
         });
         return tg;
     }
@@ -21771,6 +21771,7 @@ class SmoToXml {
                 selections_1.SmoSelector.eq(ss.endSelector, slur.endSelector));
             if (match) {
                 remove.push(match);
+                smoState.slurNumber -= 1;
                 const slurElement = nn(notationsElement, 'slur', null, '');
                 xmlHelpers_1.mxmlHelpers.createAttributes(slurElement, { number: match.number, type: 'stop' });
             }
@@ -21781,15 +21782,12 @@ class SmoToXml {
             }
         });
         smoState.slurs = newSlurs;
-        smoState.slurNumber = 1;
-        if (smoState.slurs.length > 0) {
-            // set next slur number to 1+ highest slur number in the 'waiting to resolve' list
-            smoState.slurNumber = smoState.slurs.map((slur) => slur.number).reduce((a, b) => a > b ? a : b) + 1;
-        }
         starts.forEach((slur) => {
-            smoState.slurs.push({ startSelector: slur.startSelector,
+            smoState.slurs.push({
+                startSelector: slur.startSelector,
                 endSelector: slur.endSelector,
-                number: smoState.slurNumber });
+                number: smoState.slurNumber
+            });
             const slurElement = nn(notationsElement, 'slur', null, '');
             xmlHelpers_1.mxmlHelpers.createAttributes(slurElement, { number: smoState.slurNumber, type: 'start' });
             smoState.slurNumber += 1;
@@ -21963,29 +21961,40 @@ class SmoToXml {
                 nn(noteElement, 'chord', null, '');
             }
             else {
-                SmoToXml.beamNote(noteElement, smoState);
-                SmoToXml.lyric(noteElement, smoState);
-                if (note.flagState === note_1.SmoNote.flagStates.up) {
-                    nn(noteElement, 'stem', { direction: 'up' }, 'direction');
-                }
-                if (note.flagState === note_1.SmoNote.flagStates.down) {
-                    nn(noteElement, 'stem', { direction: 'down' }, 'direction');
-                }
             }
             if (note.isRest()) {
-                nn(noteElement, 'rest', null, '');
+                const restElement = nn(noteElement, 'rest', null, '');
+                const step = { letter: note.pitches[i].letter.toUpperCase() };
+                nn(restElement, 'display-step', step, 'letter');
+                nn(restElement, 'display-octave', Object.assign({}, note.pitches[i]), 'octave');
             }
-            SmoToXml.pitch(note.pitches[i], noteElement);
+            else {
+                SmoToXml.pitch(note.pitches[i], noteElement);
+            }
             const duration = note.tickCount;
             smoState.measureTicks += duration;
             nn(noteElement, 'duration', { duration }, 'duration');
             nn(noteElement, 'voice', { voice: smoState.voiceIndex }, 'voice');
             nn(noteElement, 'type', { type: xmlHelpers_1.mxmlHelpers.closestStemType(note.tickCount) }, 'type');
+            if (note.flagState === note_1.SmoNote.flagStates.up) {
+                nn(noteElement, 'stem', { direction: 'up' }, 'direction');
+            }
+            if (note.flagState === note_1.SmoNote.flagStates.down) {
+                nn(noteElement, 'stem', { direction: 'down' }, 'direction');
+            }
+            // stupid musicxml requires beam to be last.
+            if (i === 0) {
+                SmoToXml.beamNote(noteElement, smoState);
+            }
             const notationsElement = noteElement.ownerDocument.createElement('notations');
             SmoToXml.tuplet(noteElement, notationsElement, smoState);
             SmoToXml.slur(notationsElement, smoState);
             if (notationsElement.children.length) {
                 noteElement.appendChild(notationsElement);
+            }
+            // stupid musicxml requires beam to be laster.
+            if (i === 0) {
+                SmoToXml.lyric(noteElement, smoState);
             }
         }
         smoState.voiceTickIndex += 1;
@@ -23386,6 +23395,7 @@ class XmlToSmo {
                 // treats them as note modifiers
                 noteData.ticks = { numerator: tickCount, denominator: 1, remainder: 0 };
                 noteData.flagState = flagState;
+                noteData.clef = clefString;
                 xmlState.previousNote = new note_1.SmoNote(noteData);
                 if (hideNote) {
                     xmlState.previousNote.makeHidden(true);
@@ -26019,6 +26029,13 @@ exports.SmoStretchNoteActor = exports.SmoMakeTupletActor = exports.SmoUnmakeTupl
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
 const tuplet_1 = __webpack_require__(/*! ../data/tuplet */ "./src/smo/data/tuplet.ts");
 const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
+/**
+ * Abstract class for classes that modifiy duration.
+ * @param note the note we're iterating over
+ * @param tickmap the tickmap for the measure
+ * @param index the index into the tickmap
+ * @returns the note or notes that replace this one.  Null if this note is no longer in the measure
+ */
 class TickIteratorBase {
     // es
     iterateOverTick(note, tickmap, index) {
@@ -34958,6 +34975,12 @@ exports.SuiDragText = SuiDragText;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiDropdownComposite = exports.SuiDropdownComponent = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+/**
+ * Classes to support dropdown compontents
+ * @module /ui/dialogs/components/dropdown
+ */
 const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
 const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 /**
@@ -34971,7 +34994,6 @@ class SuiDropdownComponent extends baseComponent_1.SuiComponentBase {
         this.options = parameter.options;
         this.disabledOption = (_a = parameter.disabledOption) !== null && _a !== void 0 ? _a : '';
         this.dataType = (_b = parameter.dataType) !== null && _b !== void 0 ? _b : 'string';
-        this.defaultValue = parameter.defaultValue;
     }
     checkDefault(s, b) {
         if (this.disabledOption.length) {
@@ -35029,9 +35051,6 @@ class SuiDropdownComponent extends baseComponent_1.SuiComponentBase {
     }
     bind() {
         const input = this._getInputElement();
-        if (!this.disabledOption) {
-            this.setValue(this.defaultValue);
-        }
         const self = this;
         $(input).off('change').on('change', () => {
             self.handleChanged();
@@ -35143,7 +35162,6 @@ class SuiFontComponent extends baseComponent_1.SuiComponentBase {
             id: familyId,
             smoName: 'fontFamily',
             classes: 'hide-when-editing hide-when-moving',
-            defaultValue: scoreModifiers_1.SmoScoreText.fontFamilies.times,
             control: 'SuiDropdownComponent',
             label: 'Font Family',
             parentControl: this,
@@ -36094,7 +36112,6 @@ class SuiTextBlockComponent extends baseComponent_1.SuiComponentParent {
             id: this.id + 'relativePosition',
             smoName: 'relativePosition',
             parentControl: this,
-            defaultValue: scoreModifiers_1.SmoScoreText.justifications.left,
             classes: 'hide-when-editing hide-when-moving',
             control: 'SuiDropdownComponent',
             label: 'Block Positions',
@@ -36116,7 +36133,6 @@ class SuiTextBlockComponent extends baseComponent_1.SuiComponentParent {
             id: this.id + 'justification',
             smoName: 'justification',
             parentControl: this,
-            defaultValue: scoreModifiers_1.SmoScoreText.justifications.left,
             classes: 'hide-when-editing hide-when-moving',
             control: 'SuiDropdownComponent',
             label: 'Justification',
@@ -36349,7 +36365,6 @@ class TieMappingComponent extends baseComponent_1.SuiComponentParent {
                 id: this.id + smoName + '-left',
                 smoName: smoName + '-left',
                 classes: 'leftControl',
-                defaultValue,
                 control: 'SuiDropdownComposite',
                 label: dialog.getStaticText()['fromNote'],
                 options: this._generateOptions(this.startSelection.note),
@@ -36362,7 +36377,6 @@ class TieMappingComponent extends baseComponent_1.SuiComponentParent {
                 classes: 'rightControl',
                 control: 'SuiDropdownComposite',
                 label: dialog.getStaticText()['toNote'],
-                defaultValue,
                 options: this._generateOptions(this.endSelection.note),
                 parentControl: this
             };

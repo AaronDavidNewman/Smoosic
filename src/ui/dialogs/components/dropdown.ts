@@ -1,18 +1,32 @@
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+/**
+ * Classes to support dropdown compontents
+ * @module /ui/dialogs/components/dropdown
+ */
 import { htmlHelpers } from '../../../common/htmlHelpers';
 import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent, DialogDefinitionOption } from './baseComponent';
 declare var $: any;
 
-
+/**
+ * constructor params for dropdown components
+ * @param id id in DOM
+ * @param classes
+ * @param type indicates the data type of the value
+ * @param increment not used
+ * @param label
+ * @param smoName variable name in dialog/adapter
+ * @param control name of constructor
+ * @param disabledOption
+ */
 export interface SuiDropdownComponentParams {
   id: string,
   classes: string,
-  type?: string,
   increment?: number,
   label: string,
   smoName: string,
   control: string,
   disabledOption?: string,
-  defaultValue: string | number,
   dataType?: string,
   options?: DialogDefinitionOption[]
 }
@@ -23,14 +37,12 @@ export class SuiDropdownComponent extends SuiComponentBase {
   options: DialogDefinitionOption[];
   disabledOption: string;
   dataType: string;
-  defaultValue: string | number;
   value: string = '';
   constructor(dialog: SuiDialogNotifier, parameter: SuiDropdownComponentParams) {
     super(dialog, parameter);
     this.options = parameter.options!;
     this.disabledOption = parameter.disabledOption ?? '';
     this.dataType = parameter.dataType ?? 'string';
-    this.defaultValue = parameter.defaultValue;
   }
   checkDefault(s: any, b: any) {
     if (this.disabledOption.length) {
@@ -94,9 +106,6 @@ export class SuiDropdownComponent extends SuiComponentBase {
 
   bind() {
     const input = this._getInputElement();
-    if (!this.disabledOption) {
-      this.setValue(this.defaultValue);
-    }
     const self = this;
     $(input).off('change').on('change',
       () => {
@@ -113,7 +122,6 @@ export interface SuiDropdownCompositeParams {
   smoName: string,
   control: string,
   disabledOption?: string,
-  defaultValue: string | number,
   dataType?: string,
   options?: DialogDefinitionOption[],
   parentControl: SuiComponentParent

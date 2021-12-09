@@ -328,6 +328,17 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
     }
   }
 }
+/**
+ * constructor parameters for system groups (groupings of staves in the score)
+ * @param leftConnector
+ * @param rightConnector
+ * @param mapType
+ * @param text
+ * @param shortText
+ * @param justify
+ * @param startSelector not used
+ * @param endSelector not used
+ */
 export interface SmoSystemGroupParams {
   leftConnector: number,
   rightConnector: number,
@@ -636,6 +647,18 @@ export interface SmoTextPlacement {
   xPlacement: number,
   yOffset: number,
 }
+/**
+ * Constructor parameters for a text group, a block of text in Smoosic
+ * @param justification one of {@link SmoScoreText.justifications}
+ * @param relativePosition relative position to other text groups
+ * @param pagination indicates if this text is paginated (goes on each page)
+ * @param spacing distance between blocks
+ * @param attachToSelector acts like 'note text' if attached to a note, otherwise
+ *   the position is based on score position, or page position if paginated
+ * @param selector if attached, the selector in question
+ * @param blocks the actual blocks of text
+ * @category SmoParams
+ */
 export interface SmoTextGroupParams {
   justification: number,
   relativePosition: number,
@@ -644,8 +667,6 @@ export interface SmoTextGroupParams {
   spacing: number,
   attachToSelector: boolean,
   selector: SmoSelector,
-  musicXOffset: 0,
-  musicYOffset: 0,
   blocks: SmoTextBlock[]
 }
 
@@ -742,7 +763,7 @@ export class SmoTextGroup extends SmoScoreModifierBase {
       blocks: [{ text: st, position: SmoTextGroup.relativePositions.RIGHT, activeText: false }],
       purpose, pagination: SmoTextGroup.paginations.EVERY,
       attachToSelector: false, justification: SmoTextGroup.justifications.CENTER, spacing: 0, relativePosition: SmoTextGroup.relativePositions.LEFT,
-      selector: SmoSelector.default, musicXOffset: 0, musicYOffset: 0
+      selector: SmoSelector.default
     });
     return tg;
   }

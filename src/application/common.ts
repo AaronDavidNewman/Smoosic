@@ -14,6 +14,15 @@ export interface KeyBinding {
     module?: string
 }
 
+/**
+ * parameters for the key handlers
+ * @param view
+ * @param slashMode indicates that the dreaded 'slash' menus are up
+ * @param completeNotifier notified  when modals close
+ * @param tracker
+ * @param eventSource register for event handlers
+ * @category SuiApplication
+ */
 export interface KeyCommandParams {
   view: SuiScoreViewOperations;
   slashMode: boolean;

@@ -8,6 +8,13 @@ import { SmoMeasure, SmoVoice } from '../data/measure';
 import { Ticks } from '../data/common';
 import { TickMap } from './tickMap';
 
+/**
+ * Abstract class for classes that modifiy duration.
+ * @param note the note we're iterating over
+ * @param tickmap the tickmap for the measure
+ * @param index the index into the tickmap
+ * @returns the note or notes that replace this one.  Null if this note is no longer in the measure
+ */
 export abstract class TickIteratorBase {
   // es
   iterateOverTick(note: SmoNote, tickmap: TickMap, index: number): SmoNote | SmoNote[] | null {
@@ -334,6 +341,10 @@ export class SmoContractTupletActor extends TickIteratorBase {
   }
 }
 
+/**
+ * Constructor params for {@link SmoUnmakeTupletActor}
+ * @category SmoTransform
+ */
 export interface SmoUnmakeTupletParams {
   startIndex: number,
   endIndex: number,
@@ -379,6 +390,10 @@ export class SmoUnmakeTupletActor extends TickIteratorBase {
   }
 }
 
+/**
+ * constructor parameters for {@link SmoMakeTupletActor}
+ * @category SmoTransform
+ */
 export interface SmoMakeTupletParams {
   index: number,
   totalTicks: number,
