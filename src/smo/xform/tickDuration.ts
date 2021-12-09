@@ -490,6 +490,15 @@ export class SmoMakeTupletActor extends TickIteratorBase {
   }
 }
 
+/**
+ * Constructor when we want to double or dot the duration of a note (stretch)
+ * for {@link SmoStretchNoteActor}
+ * @param startIndex tick index into the measure
+ * @param measure the container measure
+ * @param voice the voice index
+ * @param newTicks the ticks the new note will take up
+ * @category SmoTransform
+ */
 export interface SmoStretchNoteParams {
   startIndex: number,
   measure: SmoMeasure,

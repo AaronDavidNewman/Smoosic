@@ -140,6 +140,7 @@ export interface SmoInstrumentMeasure {
   instrument: SmoInstrumentParams;
 }
 /**
+ * constructor params for {@link SmoStaffHairpin}
  * @category SmoParameters
  */
 export interface SmoStaffHairpinParams {
@@ -229,6 +230,20 @@ export class SmoStaffHairpin extends StaffModifierBase {
 }
 
 /**
+ * parameters for a slur
+ * @param spacing between note and curve
+ * @param thickness thickness of the line
+ * @param xOffset in pixels
+ * @param yOffset in pixels
+ * @param position top or bottom of the chord we are attached to
+ * @param position_end top or bottom of the chord we are attached to
+ * @param invert turns that frown upside down
+ * @param cp1x bz control point
+ * @param cp1y bz control point
+ * @param cp2x bz control point
+ * @param cp2y bz control point
+ * @param startSelector the start note we are attached to
+ * @param endSelector the end note we are attached to
  * @category SmoParameters
  */
 export interface SmoSlurParams {

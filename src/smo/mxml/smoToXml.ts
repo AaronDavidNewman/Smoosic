@@ -1,9 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { Pitch } from '../data/common';
+import { Clef, Pitch } from '../data/common';
 import { SmoNote } from '../data/note';
 import { SmoMusic } from '../data/music';
-import { SmoMeasure } from '../data/measure';
+import { SmoMeasure, SmoVoice } from '../data/measure';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { SmoScore } from '../data/score';
 import { TimeSignature } from '../data/measureModifiers';
@@ -13,15 +13,59 @@ import { SmoSelector } from '../xform/selections';
 
 import { mxmlHelpers } from './xmlHelpers';
 import { XmlToSmo } from './xmlToSmo';
+
+interface SlurXml {
+  startSelector: SmoSelector,
+  endSelector: SmoSelector,
+  number: number
+}
+interface SmoState {
+  divisions: number,
+  measureNumber: number,
+  tickCount: number,
+  voiceIndex: number,
+  keySignature: string,
+  voiceTickIndex: number,
+  voice?: SmoVoice,
+  staff?: SmoSystemStaff,
+  slurs: SlurXml[],
+  lyricState: Record<number, string>,
+  slurNumber: number,
+  measureTicks: number,
+  measure?: SmoMeasure,
+  note?: SmoNote,
+  beamState: number,
+  beamTicks: number,
+  timeSignature?: TimeSignature,
+  clef: Clef
+}
+
 /**
  * Convert {@link SmoScore} object into a music XML serialization
  * @category SmoToXml
  */
 export class SmoToXml {
-  static get beamStates() {
+  static get beamStates(): Record<string, number> {
     return {
       none: 1, start: 2, continue: 3, stop: 4
     };
+  }
+  static get defaultState(): SmoState {
+    return JSON.parse(JSON.stringify({
+      divisions: 4096,
+      measureNumber: 0,
+      tickCount: 0,
+      voiceIndex: 0,
+      keySignature: 'C',
+      voiceTickIndex: 0,
+      slurs: [],
+      lyricState: {},
+      slurNumber: 1,
+      measureTicks: 0,
+      beamState: 0,
+      beamTicks: 4096,
+      clef: 'treble'
+    }));
   }
   static convert(score: SmoScore): XMLDocument {
     const nn = mxmlHelpers.createTextElementChild;
@@ -60,7 +104,7 @@ export class SmoToXml {
       mxmlHelpers.createAttributes(scorePart, { id });
       nn(scorePart, 'part-name', { name: staff.measureInstrumentMap[0].instrumentName }, 'name');
     });
-    const smoState: any = {};
+    const smoState: SmoState = SmoToXml.defaultState;
     score.staves.forEach((staff) => {
       const part = nn(root, 'part', null, '');
       const id = 'P' + staff.staffId;
@@ -83,8 +127,11 @@ export class SmoToXml {
   }
   // ### measure
   // .../part/measure
-  static measure(measureElement: Element, smoState: any) {
+  static measure(measureElement: Element, smoState: SmoState) {
     const nn = mxmlHelpers.createTextElementChild;
+    if (!smoState.measure) {
+      return;
+    }
     const measure = smoState.measure;
     if (smoState.measureNumber === 1 && measure.isPickup()) {
       smoState.measureNumber = 0;
@@ -122,7 +169,7 @@ export class SmoToXml {
 
   // ### slur
   // /score-partwise/part/measure/note/notations/slur
-  static slur(notationsElement: Element, smoState: any) {
+  static slur(notationsElement: Element, smoState: SmoState) {
     const nn = mxmlHelpers.createTextElementChild;
     const staff: SmoSystemStaff = smoState.staff as SmoSystemStaff;
     const measure = smoState.measure as SmoMeasure;
@@ -166,7 +213,13 @@ export class SmoToXml {
   }
   // ### /score-partwise/measure/note/time-modification
   // ### /score-partwise/measure/note/tuplet
-  static tuplet(noteElement: Element, notationsElement: Element, smoState: any) {
+  static tuplet(noteElement: Element, notationsElement: Element, smoState: SmoState) {
+    if (!smoState.measure) {
+      return;
+    }
+    if (!smoState.note) {
+      return;
+    }
     const nn = mxmlHelpers.createTextElementChild;
     const measure = smoState.measure;
     const note = smoState.note;
@@ -203,7 +256,13 @@ export class SmoToXml {
     nn(pitchElement, 'octave', pitch, 'octave');
   }
   // ### /score-partwise/measure/beam
-  static beamNote(noteElement: Element, smoState: any) {
+  static beamNote(noteElement: Element, smoState: SmoState) {
+    if (!smoState.note) {
+      return;
+    }
+    if (!smoState.voice) {
+      return;
+    }
     const nn = mxmlHelpers.createTextElementChild;
     const note = smoState.note;
     const nextNote = (smoState.voiceTickIndex + 1) >= smoState.voice.notes.length ?
@@ -249,13 +308,18 @@ export class SmoToXml {
     }
   }
   // ### /score-partwise/measure/direction/direction-type
-  static direction(measureElement: Element, smoState: any, beforeNote: boolean) {
+  static direction(measureElement: Element, smoState: SmoState, beforeNote: boolean) {
     let addDirection = false;
     const nn = mxmlHelpers.createTextElementChild;
     const directionElement = measureElement.ownerDocument.createElement('direction');
     const dtype = nn(directionElement, 'direction-type', null, '');
     const staff = smoState.staff as SmoSystemStaff;
-    const measure = smoState.measure;
+    const measure = smoState.measure!;
+    const tempo = measure.getTempo();
+    if (tempo.display) {
+      const tempoElement = nn(directionElement, 'direction-type', null, '');
+      
+    }
     const selector: SmoSelector = {
       staff: staff.staffId,
       measure: measure.measureNumber.measureIndex,
@@ -289,8 +353,8 @@ export class SmoToXml {
     }
   }
   // ### /score-partwise/measure/note/lyric
-  static lyric(noteElement: Element, smoState: any) {
-    const smoNote = smoState.note;
+  static lyric(noteElement: Element, smoState: SmoState) {
+    const smoNote = smoState.note!;
     const nn = mxmlHelpers.createTextElementChild;
     const lyrics = smoNote.getTrueLyrics() as SmoLyric[];
     lyrics.forEach((lyric) => {
@@ -318,8 +382,8 @@ export class SmoToXml {
     });
   }
   // ### /score-partwise/measure/note
-  static note(measureElement: Element, smoState: any) {
-    const note: SmoNote = smoState.note;
+  static note(measureElement: Element, smoState: SmoState) {
+    const note: SmoNote = smoState.note!;
     const nn = mxmlHelpers.createTextElementChild;
     let i = 0;
     for (i = 0; i < note.pitches.length; ++i) {
@@ -366,8 +430,11 @@ export class SmoToXml {
     smoState.voiceTickIndex += 1;
   }
   // ### /score-partwise/measure/attributes/key
-  static key(attributesElement: Element, smoState: any) {
+  static key(attributesElement: Element, smoState: SmoState) {
     let fifths = 0;
+    if (!smoState.measure) {
+      return;
+    }
     const measure = smoState.measure;
     if (smoState.keySignature && measure.keySignature === smoState.keySignature) {
       return; // no key change
@@ -386,7 +453,7 @@ export class SmoToXml {
   }
   // ### time
   // score-partwise/part/measure/attributes/time
-  static time(attributesElement: Element, smoState: any) {
+  static time(attributesElement: Element, smoState: SmoState) {
     const nn = mxmlHelpers.createTextElementChild;
     const measure = smoState.measure as SmoMeasure;
     const currentTs = (smoState.timeSignature as TimeSignature) ?? null;
@@ -402,8 +469,11 @@ export class SmoToXml {
   }
   // ### clef
   // /score-partwise/part/measure/attributes/clef
-  static clef(attributesElement: Element, smoState: any) {
+  static clef(attributesElement: Element, smoState: SmoState) {
     const measure = smoState.measure;
+    if (!measure) {
+      return;
+    }
     if (smoState.clef && smoState.clef === measure.clef) {
       return; // no change
     }
@@ -428,7 +498,7 @@ export class SmoToXml {
     nn(clefElement, 'line', clef, 'line');
     smoState.clef = measure.clef;
   }
-  static attributes(measureElement: Element, smoState: any) {
+  static attributes(measureElement: Element, smoState: SmoState) {
     const nn = mxmlHelpers.createTextElementChild;
     const attributesElement = measureElement.ownerDocument.createElement('attributes');
     if (!smoState.divisions) {
