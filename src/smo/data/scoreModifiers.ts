@@ -440,6 +440,11 @@ export class SmoSystemGroup extends SmoScoreModifierBase {
   }
 }
 
+/**
+ * Parameters for a single text block, which makes up a text group.
+ * @internal
+ * @category SmoParams
+ */
 export interface SmoScoreTextParams {
   x: number,
   y: number,
@@ -466,6 +471,7 @@ export interface SmoScoreTextParams {
  * Note: score text is always contained in a text group.  So this isn't directly accessed
  * by score, but we keep the collection in score for backwards-compatibility
  * @category SmoModifier
+ * @internal
  */
 export class SmoScoreText extends SmoScoreModifierBase {
   // convert EM to a number, or leave as a number etc.

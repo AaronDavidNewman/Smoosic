@@ -66,7 +66,7 @@ export interface XmlTupletState {
 export class XmlState {
   static get defaults() {
     return {
-      divisions: 1, tempo: new SmoTempoText(SmoTempoText.defaults), timeSignature: '4/4', keySignature: 'C',
+      divisions: 4096, tempo: new SmoTempoText(SmoTempoText.defaults), timeSignature: '4/4', keySignature: 'C',
       clefInfo: [], staffGroups: [], smoStaves: []
     };
   }
@@ -98,7 +98,7 @@ export class XmlState {
   previousNote: SmoNote = new SmoNote(SmoNote.defaults);
   completedTuplets: XmlCompletedTuplet[] = [];
   newTitle: boolean = false;
-  divisions: number = 1;
+  divisions: number = 4096;
   keySignature: string = 'c';
   timeSignature: string = '4/4';
   voiceIndex: number = 0;
@@ -145,6 +145,10 @@ export class XmlState {
   // persist per part, so we treat them as a hash.
   // staff IDs persist per part but are sequential.
   initializeStaff(staffIndex: number, voiceIndex: number) {
+    // If no clef is specified, default to treble
+    if (typeof(this.staffArray[staffIndex]) === 'undefined') {
+      this.staffArray.push({ clefInfo: { clef: 'treble', staffId: this.staffIndex }, measure: null, voices: {} });
+    }
     if (typeof (this.staffArray[staffIndex].voices[voiceIndex]) === 'undefined') {
       this.staffArray[staffIndex].voices[voiceIndex] = { notes: [], ticksUsed: 0 };
       // keep track of 0-indexed voice for slurs and other modifiers

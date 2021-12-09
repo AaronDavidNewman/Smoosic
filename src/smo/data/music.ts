@@ -8,8 +8,15 @@
 import { SmoNote } from './note';
 import { Pitch, PitchKey, Clef, PitchLetter } from './common';
 import { SmoMicrotone } from './noteModifiers';
-import { ConcatenationScope } from 'webpack';
 
+/**
+ * Used for xml clef conversion
+ */
+export interface ClefSign {
+  sign: string,
+  line?: number,
+  octave?: number
+}
 /**
  * calculate the pitch frequency, just temperment a=440, etc.
  * @category SmoUtilities
@@ -346,6 +353,24 @@ export class SmoMusic {
     return fs;
   }
 
+  /**
+   * an array of clefs and the xml information they map to
+   */
+  static clefSigns: Record<string, ClefSign> = {
+    'treble': { sign: 'G', line: 2 },
+    'bass': { sign: 'F', line: 4 },
+    'tenor': { sign: 'C', line: 4 },
+    'alto':  { sign: 'C', line: 3 },
+    'soprano':  { sign: 'C', line: 1 },
+    'percussion':  { sign: 'percussion' },
+    'mezzo-soprano':  { sign: 'C', line: 2 },
+    'baritone-c':  { sign: 'C', line: 5 },
+    'baritone-f':  { sign: 'F', line: 3 },
+    'subbass':  { sign: 'F', line: 3, octave: -1 },
+    'french': { sign: 'G', line: 1 },
+    'vocal-tenor': { sign: 'G', line: 2, octave: -1 }
+  }
+  
   /**
    * convert from SMO to VEX format so we can use the VexFlow tables and methods
    * example:

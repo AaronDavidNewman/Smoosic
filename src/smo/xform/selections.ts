@@ -12,9 +12,9 @@ import { SmoNote } from '../data/note';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { SvgBox, SvgPoint } from '../data/common';
 
-// import { selectionHtmlar } from '../../ui/i18n/language_ar';
-// const VF = eval('Vex.Flow');
-
+/**
+ * Modifier tab is a modifier and its bounding box, that can be tabbed to with the keyboard
+ */
 export interface ModifierTab {
   modifier: SmoModifier,
   selection: SmoSelection | null,
@@ -125,6 +125,10 @@ export class SmoSelector {
     return 'staff-' + selector.staff + '-measure-' + selector.measure + '-voice-' + selector.voice + '-tick-' + selector.tick;
   }
 }
+/**
+ * The fields in a selection.  We have the 5 musical cardinal directions of staff, measure, note, pitches, 
+ * and a selector.  The pitches are indices
+ *  */
 export interface SmoSelectionParams {
   selector: SmoSelector,
   _staff: SmoSystemStaff,
@@ -136,7 +140,7 @@ export interface SmoSelectionParams {
 }
 
 /**
- * A selection is a selector and a set of references to musical elements, like measure etc.
+ * A selection is a {@link SmoSelector} and a set of references to musical elements, like measure etc.
  * The staff and measure are always a part of the selection, and possible a voice and note,
  * and one or more pitches.  Selections can also be made from the UI by clicking on an element
  * or navigating to an element with the keyboard.

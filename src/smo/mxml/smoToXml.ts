@@ -52,7 +52,7 @@ export class SmoToXml {
   }
   static get defaultState(): SmoState {
     return JSON.parse(JSON.stringify({
-      divisions: 4096,
+      divisions: 0,
       measureNumber: 0,
       tickCount: 0,
       voiceIndex: 0,
@@ -315,11 +315,11 @@ export class SmoToXml {
     const dtype = nn(directionElement, 'direction-type', null, '');
     const staff = smoState.staff as SmoSystemStaff;
     const measure = smoState.measure!;
-    const tempo = measure.getTempo();
+    /* const tempo = measure.getTempo();
     if (tempo.display) {
       const tempoElement = nn(directionElement, 'direction-type', null, '');
-      
-    }
+
+    } */
     const selector: SmoSelector = {
       staff: staff.staffId,
       measure: measure.measureNumber.measureIndex,
@@ -474,34 +474,25 @@ export class SmoToXml {
     if (!measure) {
       return;
     }
-    if (smoState.clef && smoState.clef === measure.clef) {
+    if (smoState.clef && (smoState.clef === measure.clef && measure.measureNumber.measureIndex > 0)) {
       return; // no change
     }
     const nn = mxmlHelpers.createTextElementChild;
-    const clef: any = {};
-    if (measure.clef === 'treble') {
-      clef.sign = 'G';
-      clef.line = 2;
-    } else if (measure.clef === 'bass') {
-      clef.sign = 'F';
-      clef.line = 4;
-    } else {
-      clef.sign = 'C';
-      if (measure.clef === 'tenor') {
-        clef.sign = 3;
-      } else {
-        clef.sign = 4; // todo: other clefs
-      }
-    }
+    const xmlClef = SmoMusic.clefSigns[measure.clef];
     const clefElement = nn(attributesElement, 'clef', null, '');
-    nn(clefElement, 'sign', clef, 'sign');
-    nn(clefElement, 'line', clef, 'line');
+    nn(clefElement, 'sign', xmlClef.sign, 'sign');
+    if (typeof(xmlClef.line) !== 'undefined') {
+      nn(clefElement, 'line', xmlClef, 'line');
+    }
+    if (typeof(xmlClef.octave) !== 'undefined') {
+      nn(clefElement, 'clef-octave-change', xmlClef, 'octave');
+    }
     smoState.clef = measure.clef;
   }
   static attributes(measureElement: Element, smoState: SmoState) {
     const nn = mxmlHelpers.createTextElementChild;
     const attributesElement = measureElement.ownerDocument.createElement('attributes');
-    if (!smoState.divisions) {
+    if (smoState.divisions < 1) {
       nn(attributesElement, 'divisions', { divisions: 4096 }, 'divisions');
       smoState.divisions = 4096;
     }

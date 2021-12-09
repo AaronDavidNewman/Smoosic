@@ -16895,6 +16895,23 @@ class SmoMusic {
     }
 }
 exports.SmoMusic = SmoMusic;
+/**
+ * an array of clefs and the xml information they map to
+ */
+SmoMusic.clefSigns = {
+    'treble': { sign: 'G', line: 2 },
+    'bass': { sign: 'F', line: 4 },
+    'tenor': { sign: 'C', line: 4 },
+    'alto': { sign: 'C', line: 3 },
+    'soprano': { sign: 'C', line: 1 },
+    'percussion': { sign: 'percussion' },
+    'mezzo-soprano': { sign: 'C', line: 2 },
+    'baritone-c': { sign: 'C', line: 5 },
+    'baritone-f': { sign: 'F', line: 3 },
+    'subbass': { sign: 'F', line: 3, octave: -1 },
+    'french': { sign: 'G', line: 1 },
+    'vocal-tenor': { sign: 'G', line: 2, octave: -1 }
+};
 SmoMusic._ticksToDuration = {};
 
 
@@ -19346,6 +19363,7 @@ exports.SmoSystemGroup = SmoSystemGroup;
  * Note: score text is always contained in a text group.  So this isn't directly accessed
  * by score, but we keep the collection in score for backwards-compatibility
  * @category SmoModifier
+ * @internal
  */
 class SmoScoreText extends SmoScoreModifierBase {
     constructor(parameters) {
@@ -21652,6 +21670,23 @@ class SmoToXml {
             none: 1, start: 2, continue: 3, stop: 4
         };
     }
+    static get defaultState() {
+        return JSON.parse(JSON.stringify({
+            divisions: 0,
+            measureNumber: 0,
+            tickCount: 0,
+            voiceIndex: 0,
+            keySignature: 'C',
+            voiceTickIndex: 0,
+            slurs: [],
+            lyricState: {},
+            slurNumber: 1,
+            measureTicks: 0,
+            beamState: 0,
+            beamTicks: 4096,
+            clef: 'treble'
+        }));
+    }
     static convert(score) {
         const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
         const dom = xmlHelpers_1.mxmlHelpers.createRootElement();
@@ -21689,7 +21724,7 @@ class SmoToXml {
             xmlHelpers_1.mxmlHelpers.createAttributes(scorePart, { id });
             nn(scorePart, 'part-name', { name: staff.measureInstrumentMap[0].instrumentName }, 'name');
         });
-        const smoState = {};
+        const smoState = SmoToXml.defaultState;
         score.staves.forEach((staff) => {
             const part = nn(root, 'part', null, '');
             const id = 'P' + staff.staffId;
@@ -21714,6 +21749,9 @@ class SmoToXml {
     // .../part/measure
     static measure(measureElement, smoState) {
         const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
+        if (!smoState.measure) {
+            return;
+        }
         const measure = smoState.measure;
         if (smoState.measureNumber === 1 && measure.isPickup()) {
             smoState.measureNumber = 0;
@@ -21796,6 +21834,12 @@ class SmoToXml {
     // ### /score-partwise/measure/note/time-modification
     // ### /score-partwise/measure/note/tuplet
     static tuplet(noteElement, notationsElement, smoState) {
+        if (!smoState.measure) {
+            return;
+        }
+        if (!smoState.note) {
+            return;
+        }
         const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
         const measure = smoState.measure;
         const note = smoState.note;
@@ -21834,6 +21878,12 @@ class SmoToXml {
     }
     // ### /score-partwise/measure/beam
     static beamNote(noteElement, smoState) {
+        if (!smoState.note) {
+            return;
+        }
+        if (!smoState.voice) {
+            return;
+        }
         const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
         const note = smoState.note;
         const nextNote = (smoState.voiceTickIndex + 1) >= smoState.voice.notes.length ?
@@ -21890,6 +21940,11 @@ class SmoToXml {
         const dtype = nn(directionElement, 'direction-type', null, '');
         const staff = smoState.staff;
         const measure = smoState.measure;
+        /* const tempo = measure.getTempo();
+        if (tempo.display) {
+          const tempoElement = nn(directionElement, 'direction-type', null, '');
+    
+        } */
         const selector = {
             staff: staff.staffId,
             measure: measure.measureNumber.measureIndex,
@@ -22002,6 +22057,9 @@ class SmoToXml {
     // ### /score-partwise/measure/attributes/key
     static key(attributesElement, smoState) {
         let fifths = 0;
+        if (!smoState.measure) {
+            return;
+        }
         const measure = smoState.measure;
         if (smoState.keySignature && measure.keySignature === smoState.keySignature) {
             return; // no key change
@@ -22040,37 +22098,28 @@ class SmoToXml {
     // /score-partwise/part/measure/attributes/clef
     static clef(attributesElement, smoState) {
         const measure = smoState.measure;
-        if (smoState.clef && smoState.clef === measure.clef) {
+        if (!measure) {
+            return;
+        }
+        if (smoState.clef && (smoState.clef === measure.clef && measure.measureNumber.measureIndex > 0)) {
             return; // no change
         }
         const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
-        const clef = {};
-        if (measure.clef === 'treble') {
-            clef.sign = 'G';
-            clef.line = 2;
-        }
-        else if (measure.clef === 'bass') {
-            clef.sign = 'F';
-            clef.line = 4;
-        }
-        else {
-            clef.sign = 'C';
-            if (measure.clef === 'tenor') {
-                clef.sign = 3;
-            }
-            else {
-                clef.sign = 4; // todo: other clefs
-            }
-        }
+        const xmlClef = music_1.SmoMusic.clefSigns[measure.clef];
         const clefElement = nn(attributesElement, 'clef', null, '');
-        nn(clefElement, 'sign', clef, 'sign');
-        nn(clefElement, 'line', clef, 'line');
+        nn(clefElement, 'sign', xmlClef.sign, 'sign');
+        if (typeof (xmlClef.line) !== 'undefined') {
+            nn(clefElement, 'line', xmlClef, 'line');
+        }
+        if (typeof (xmlClef.octave) !== 'undefined') {
+            nn(clefElement, 'clef-octave-change', xmlClef, 'octave');
+        }
         smoState.clef = measure.clef;
     }
     static attributes(measureElement, smoState) {
         const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
         const attributesElement = measureElement.ownerDocument.createElement('attributes');
-        if (!smoState.divisions) {
+        if (smoState.divisions < 1) {
             nn(attributesElement, 'divisions', { divisions: 4096 }, 'divisions');
             smoState.divisions = 4096;
         }
@@ -22559,14 +22608,14 @@ class XmlState {
         this.previousNote = new note_1.SmoNote(note_1.SmoNote.defaults);
         this.completedTuplets = [];
         this.newTitle = false;
-        this.divisions = 1;
+        this.divisions = 4096;
         this.keySignature = 'c';
         this.timeSignature = '4/4';
         this.voiceIndex = 0;
     }
     static get defaults() {
         return {
-            divisions: 1, tempo: new measureModifiers_1.SmoTempoText(measureModifiers_1.SmoTempoText.defaults), timeSignature: '4/4', keySignature: 'C',
+            divisions: 4096, tempo: new measureModifiers_1.SmoTempoText(measureModifiers_1.SmoTempoText.defaults), timeSignature: '4/4', keySignature: 'C',
             clefInfo: [], staffGroups: [], smoStaves: []
         };
     }
@@ -22613,6 +22662,10 @@ class XmlState {
     // persist per part, so we treat them as a hash.
     // staff IDs persist per part but are sequential.
     initializeStaff(staffIndex, voiceIndex) {
+        // If no clef is specified, default to treble
+        if (typeof (this.staffArray[staffIndex]) === 'undefined') {
+            this.staffArray.push({ clefInfo: { clef: 'treble', staffId: this.staffIndex }, measure: null, voices: {} });
+        }
         if (typeof (this.staffArray[staffIndex].voices[voiceIndex]) === 'undefined') {
             this.staffArray[staffIndex].voices[voiceIndex] = { notes: [], ticksUsed: 0 };
             // keep track of 0-indexed voice for slurs and other modifiers
@@ -25731,7 +25784,7 @@ class SmoSelector {
 }
 exports.SmoSelector = SmoSelector;
 /**
- * A selection is a selector and a set of references to musical elements, like measure etc.
+ * A selection is a {@link SmoSelector} and a set of references to musical elements, like measure etc.
  * The staff and measure are always a part of the selection, and possible a voice and note,
  * and one or more pitches.  Selections can also be made from the UI by clicking on an element
  * or navigating to an element with the keyboard.
