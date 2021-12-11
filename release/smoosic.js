@@ -5132,6 +5132,11 @@ class SuiMapper {
     }
     updateHighlight() {
         const self = this;
+        if (this.selections.length === 0) {
+            this.highlightQueue.deferred = false;
+            this.highlightQueue.selectionCount = 0;
+            return;
+        }
         if (this.highlightQueue.selectionCount === this.selections.length) {
             this.highlightSelection();
             this.highlightQueue.deferred = false;
@@ -5200,6 +5205,7 @@ class SuiMapper {
         this.measureNoteMap = {};
         this.clearModifierSelections();
         this.selections = [];
+        this.highlightQueue = { selectionCount: 0, deferred: false };
     }
     // ### _clearMeasureArtifacts
     // clear the measure from the measure and note maps so we can rebuild it.

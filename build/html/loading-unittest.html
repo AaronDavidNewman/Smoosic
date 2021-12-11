@@ -59,6 +59,14 @@
         QUnit.test('loadMidi2', assert => {
           assert.equal(midiScore.staves[0].measures[0].tuplets.length, 1);
         });
+        midiData = new Smo.SuiXhrLoader(midiKeyPath);
+        await midiData.loadAsync();
+        midiScore = (new Smo.MidiToSmo(parseMidi(midiData.value), 1024)).convert();
+        await view.changeScore(midiScore);
+        QUnit.test('loadMidi2', assert => {
+          assert.equal(midiScore.staves.length, 2);
+          assert.equal(midiScore.staves[0].measures[0].keySignature, 'eb');
+        });
 
         // console.log('measures ' + view.score.staves[0].measures.length);
       };

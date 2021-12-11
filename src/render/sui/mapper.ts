@@ -97,6 +97,11 @@ export abstract class SuiMapper {
   abstract _setArtifactAsSuggestion(sel: SmoSelection): void;
   updateHighlight() {
     const self = this;
+    if (this.selections.length === 0) {
+      this.highlightQueue.deferred = false;
+      this.highlightQueue.selectionCount = 0;
+      return;
+    }
     if (this.highlightQueue.selectionCount === this.selections.length) {
       this.highlightSelection();
       this.highlightQueue.deferred = false;
@@ -159,6 +164,7 @@ export abstract class SuiMapper {
     this.measureNoteMap = {};
     this.clearModifierSelections();
     this.selections = [];
+    this.highlightQueue = { selectionCount: 0, deferred: false };
   }
 
   // ### _clearMeasureArtifacts
