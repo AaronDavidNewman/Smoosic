@@ -39,6 +39,18 @@ export const SmoMeasureFormatNumberKeys: SmoMeasureFormatNumberAttributes[] =
   ['customStretch', 'customProportion', 'padLeft', 'measureIndex'];
 export type SmoMeasueFormatBooleanAttributes = 'autoJustify' | 'systemBreak' | 'pageBreak' | 'padAllInSystem';
 export const SmoMeasureFormatBooleanKeys: SmoMeasueFormatBooleanAttributes[] = ['autoJustify', 'systemBreak', 'pageBreak', 'padAllInSystem'];
+
+/**
+ * Constructor parameter for measure formatting object
+ * @param customStretch additional pixels to a measure (plus or minus)
+ * @param customProportion override the default Softmax formatting param
+ * @param autoJustify justify notes in a staff group or part
+ * @param pageBreak force page break (not used yet)
+ * @param systemBreak force system break before measure
+ * @param padLeft pad the measure left
+ * @param padAllInSystem  if padLeft is >0, pad all the measures in the system
+ * @param measureIndex numbered measure index, for re-numbering
+ */
 export interface SmoMeasureFormatParams {
   customStretch: number | null,
   customProportion: number | null,
@@ -141,6 +153,9 @@ export class SmoMeasureFormat extends SmoMeasureModifierBase implements SmoMeasu
     return params;
   }
 }
+/**
+ * Used to create a {@link SmoBarline}
+ */
 export interface SmoBarlineParams {
   position: number | null,
   barline: number | null
@@ -217,6 +232,9 @@ export class SmoBarline extends SmoMeasureModifierBase {
   }
 }
 
+/**
+ * Constructor for SmoRepeatSymbol
+ */
 export interface SmoRepeatSymbolParams {
   symbol: number,
   xOffset: number,
@@ -371,7 +389,10 @@ export class SmoVolta extends SmoMeasureModifierBase {
     return VF.Volta.type.NONE;
   }
 }
-
+/**
+ * Constructor parameters for {@link SmoMeasureText}
+ * @category SmoParams
+ */
 export interface SmoMeasureTextParams {
   position: number,
   fontInfo: FontInfo,
@@ -462,6 +483,10 @@ export class SmoMeasureText extends SmoMeasureModifierBase {
   }
 }
 
+/**
+ * Used to construct {@link SmoRehearsalMark}
+ * @category SmoParams
+ * */
 export interface SmoRehearsalMarkParams {
   position: number,
   cardinality: string,
@@ -539,6 +564,16 @@ export type SmoTempoNumberAttribute = 'bpm' | 'beatDuration' | 'yOffset';
 export type SmoTempoStringAttribute = 'tempoMode' | 'tempoText' | 'customText';
 export type SmoTempoBooleanAttribute = 'display';
 
+export type SmoTempoMode = 'duration' | 'text' | 'custom';
+/**
+ * constructor parameters for {@link SmoTempoText}
+ * @param tempoMode text (e.g. Allegro) or bpm
+ * @param bpm playback bpm
+ * @param beatDuration note type for a metronome beat
+ * @param tempoText if text mode, the text
+ * @param yOffset move the text to keep it from colliding with other things
+ * @param customText if custom mode, the custom text
+ */
 export interface SmoTempoTextParams {
   tempoMode: string,
   bpm: number,
@@ -553,7 +588,7 @@ export interface SmoTempoTextParams {
  * @category SmoModifier
  */
 export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoTextParams {
-  static get tempoModes(): Record<string, string> {
+  static get tempoModes(): Record<string, SmoTempoMode> {
     return {
       durationMode: 'duration',
       textMode: 'text',
@@ -595,7 +630,7 @@ export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoText
   static get attributes() {
     return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText', 'yOffset', 'customText'];
   }
-  tempoMode: string = SmoTempoText.tempoModes.durationMode
+  tempoMode: SmoTempoMode = SmoTempoText.tempoModes.durationMode
   bpm: number = 120;
   beatDuration: number = 4096;
   tempoText: string = 'Allegro';
@@ -603,22 +638,17 @@ export class SmoTempoText extends SmoMeasureModifierBase implements SmoTempoText
   display: boolean = false;
   customText: string = '';
 
-  compare(instance: SmoTempoText) {
-    var rv = true;
-    SmoTempoText.attributes.forEach((attr) => {
-      if ((this as any)[attr] !== (instance as any)[attr]) {
-        rv = false;
-      }
-    });
-    return rv;
-  }
   _toVexTextTempo() {
     return { name: this.tempoText };
   }
 
-  // ### eq
-  // Return equality wrt the tempo marking, e.g. 2 allegro in textMode will be equal but
-  // an allegro and duration 120bpm will not.
+  /**
+   * Return equality wrt the tempo marking, e.g. 2 allegro in textMode will be equal but
+   * an allegro and duration 120bpm will not.
+   * @param t1 
+   * @param t2 
+   * @returns 
+   */
   static eq(t1: SmoTempoText, t2: SmoTempoText) {
     if (t1.tempoMode !== t2.tempoMode) {
       return false;

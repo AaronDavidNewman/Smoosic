@@ -78,6 +78,7 @@ export class SuiLibraryMenu extends SuiMenuBase {
       const parser = new DOMParser();
       const xml = parser.parseFromString(req.value, 'text/xml');
       const score = XmlToSmo.convert(xml);
+      score.layoutManager!.zoomToWidth($('body').width());
       this.view.changeScore(score);
       this.complete();
     });

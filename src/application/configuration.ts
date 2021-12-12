@@ -25,6 +25,10 @@ export var ConfigurationStringOptions: ConfigurationStringOption[] = ['smoPath',
 
 export var ConfigurationNumberOptions: ConfigurationNumberOption[] = ['demonPollTime', 'idleRedrawTime'];
 
+/**
+ * Application configuration parameters, can be referenced by the running application or changed
+ * @category SuiApplication
+ */
 export interface SmoConfigurationParams {
   mode: SmoMode;
   smoPath?: string;

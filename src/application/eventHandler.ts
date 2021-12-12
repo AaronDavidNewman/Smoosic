@@ -154,7 +154,7 @@ export class SuiEventHandler implements ModalEventHandler {
         this.view.tracker.advanceModifierSelection(ev);
       }
     } else {
-      this.view.tracker.selectSuggestion(ev);
+      this.view.tracker.selectSuggestion(this.view.score, ev);
     }
     return;
   }
@@ -271,7 +271,7 @@ export class SuiEventHandler implements ModalEventHandler {
   mouseClick(ev: any) {
     const dataCopy = SuiTracker.serializeEvent(ev);
     this.view.renderer.updatePromise().then(() => {
-      this.view.tracker.selectSuggestion(dataCopy);
+      this.view.tracker.selectSuggestion(this.view.score, dataCopy);
       var modifier = this.view.tracker.getSelectedModifier();
       if (modifier) {
         this.createModifierDialog(modifier);

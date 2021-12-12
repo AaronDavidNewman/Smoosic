@@ -117,6 +117,9 @@ export class SmoFormattingManager extends SmoScoreModifierBase {
   }
 }
 export type ScaledPageAttributes = 'leftMargin' | 'rightMargin' | 'topMargin' | 'bottomMargin' | 'interGap' | 'intraGap';
+/**
+ * Constructor parameters for {@link SmoPageLayout}, part of {@link SmoLayoutManager}
+ */
 export interface SmoPageLayoutParams {
   leftMargin: number,
   rightMargin: number,
@@ -171,6 +174,7 @@ export type GlobalLayoutAttributes = 'pageWidth' | 'pageHeight' | 'noteSpacing' 
 export const GlobalLayoutAttributesArray: GlobalLayoutAttributes[]  = ['pageWidth', 'pageHeight', 'noteSpacing', 'svgScale', 'zoomScale'];
 /**
  * Global layout are parameters that determine the layout of the whole score, because they affect the containing svg element
+ * @category {SmoParams}
  */
 export interface SmoGlobalLayout {
   svgScale: number;
@@ -179,8 +183,11 @@ export interface SmoGlobalLayout {
   pageWidth: number;
   pageHeight: number;
 }
-// A scaled page layout is a union of global layout settings and
-// page layout settings, including number of pages and page number
+
+/**
+ * Used to create {@link SmoLayoutManagerParams}
+ * @category {SmoParams}
+ */
 export interface ScaledPageLayout {
   svgScale: number;
   zoomScale: number;
@@ -195,6 +202,10 @@ export interface ScaledPageLayout {
   intraGap: number;
   pages: number;
 }
+/**
+ * Constructor parameters for {@link SmoLayoutManager}
+ * @category {SmoParams}
+ */
 export interface SmoLayoutManagerParams {
   globalLayout: SmoGlobalLayout,
   pageLayouts: SmoPageLayout[]
@@ -243,6 +254,13 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
       }
     });
     return rv;
+  }
+  /**
+   * Adjust zoom width so the score takes up the whole score area
+   */
+  zoomToWidth(screenWidth: number) {
+    const curWidth = this.globalLayout.pageWidth * this.globalLayout.svgScale;
+    this.globalLayout.zoomScale = ((screenWidth  - 350) / curWidth) * this.globalLayout.svgScale; // magic 350 for left controls....TODO standardize this
   }
   static getScaledPageLayout(globalLayout: SmoGlobalLayout, pageLayout: SmoPageLayout, pages: number): ScaledPageLayout {
     const rv: Partial<ScaledPageLayout> = {};

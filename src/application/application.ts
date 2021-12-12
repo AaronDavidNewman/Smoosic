@@ -40,12 +40,19 @@ declare var $: any;
 
 interface pairType { [key: string]: string }
 
+/**
+ * Score renderer instance
+ * @internal
+ */
 export interface SuiRendererInstance {
   view: SuiScoreViewOperations;
   eventSource: BrowserEventSource;
   undoBuffer: UndoBuffer;
   renderer: SuiScoreRender;
 }
+/**
+ * Global instance for debugging
+ */
 export interface SuiInstance {
   view: SuiScoreViewOperations;
   eventSource: BrowserEventSource;

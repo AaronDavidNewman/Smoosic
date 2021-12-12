@@ -4,6 +4,9 @@ import { CompleteNotifier } from "../ui/common";
 import { ModalComponent } from "../ui/common";
 import { BrowserEventSource, EventHandler } from "../ui/eventSource";
 
+/**
+ * A binding of a key to some action performed by a module
+ */
 export interface KeyBinding {
     event: string,
     key: string,
@@ -31,6 +34,10 @@ export interface KeyCommandParams {
   eventSource: BrowserEventSource;
 }
 
+/**
+ * Shared interface for menus, dialogs, etc that can 
+ * accept UI events
+ */
 export abstract class ModalEventHandler {
   abstract mouseMove(ev: any): void;
   abstract mouseClick(ev: any): void;

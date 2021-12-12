@@ -272,8 +272,8 @@ export class SmoSlur extends StaffModifierBase {
       thickness: 2,
       xOffset: -5,
       yOffset: 10,
-      position: SmoSlur.positions.HEAD,
-      position_end: SmoSlur.positions.HEAD,
+      position: SmoSlur.positions.TOP,
+      position_end: SmoSlur.positions.TOP,
       invert: false,
       cp1x: 0,
       cp1y: 15,
@@ -299,8 +299,8 @@ export class SmoSlur extends StaffModifierBase {
   thickness: number = 2;
   xOffset: number = -5;
   yOffset: number = 10;
-  position: number = SmoSlur.positions.HEAD;
-  position_end: number = SmoSlur.positions.HEAD;
+  position: number = SmoSlur.positions.TOP;
+  position_end: number = SmoSlur.positions.TOP;
   invert: boolean = false;
   cp1x: number = 0;
   cp1y: number = 15;

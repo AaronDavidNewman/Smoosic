@@ -120,11 +120,12 @@ export class SuiScoreViewOperations extends SuiScoreView {
   loadRemoteXml(url: string): Promise<any> {
     const req = new SuiXhrLoader(url);
     const self = this;
-
+    // Shouldn't we return promise of actually displaying the score?
     return req.loadAsync().then(() => {
       const parser = new DOMParser();
       const xml = parser.parseFromString(req.value, 'text/xml');
       const score = XmlToSmo.convert(xml);
+      score.layoutManager!.zoomToWidth($('body').width());
       self.changeScore(score);
     });
   }
@@ -1240,7 +1241,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   slur(): Promise<void> {
     this.actionBuffer.addAction('slur');
-    this._lineOperation('slur');
+    const measureSelections = this._undoTrackerMeasureSelections('slur');
+    const ft = this.tracker.getExtremeSelection(-1);
+    const tt = this.tracker.getExtremeSelection(1);
+    const ftAlt = this._getEquivalentSelection(ft);
+    const ttAlt = this._getEquivalentSelection(tt);
+    const modifier = SmoOperation.slur(this.score, ft, tt);
+    const altModifier = SmoOperation.slur(this.storeScore, ftAlt!, ttAlt!);
+    this._undoStaffModifier('add ' + 'op', modifier, UndoBuffer.bufferSubtypes.ADD);
+    this._renderChangedMeasures(measureSelections);
     return this.renderer.updatePromise();
   }
   /**
@@ -1583,11 +1592,11 @@ export class SuiScoreViewOperations extends SuiScoreView {
 
   // Tracker operations, used for macro replay
   moveHome(ev: KeyEvent) {
-    this.tracker.moveHome(ev);
+    this.tracker.moveHome(this.score, ev);
     return this.renderer.updatePromise();
   }
   moveEnd(ev: KeyEvent) {
-    this.tracker.moveEnd(ev);
+    this.tracker.moveEnd(this.score, ev);
     return this.renderer.updatePromise();
   }
   growSelectionLeft() {
@@ -1635,7 +1644,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this.tracker.moveSelectionDown();
   }
   selectSuggestion(evData: KeyEvent) {
-    this.tracker.selectSuggestion(evData);
+    this.tracker.selectSuggestion(this.score, evData);
   }
   intersectingArtifact(evData: SvgBox) {
     this.tracker.intersectingArtifact(evData);
@@ -1650,7 +1659,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const key = SmoSelector.getNoteKey(selector);
     if (typeof (this.tracker.measureNoteMap[key]) !== 'undefined') {
       this.tracker.suggestion = this.tracker.measureNoteMap[SmoSelector.getNoteKey(selector)];
-      this.tracker.selectSuggestion(evData);
+      this.tracker.selectSuggestion(this.score, evData);
     }
   }
   selectSuggestionModifier(selector: SmoSelector, evData: KeyEvent, modifierObj: any): void {
@@ -1669,7 +1678,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     }
     if (modIndex >= 0) {
       this.tracker.modifierSuggestion = modIndex;
-      this.tracker.selectSuggestion(evData);
+      this.tracker.selectSuggestion(this.score, evData);
     }
   }
 }

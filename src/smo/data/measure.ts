@@ -49,9 +49,9 @@ export interface ISmoBeamGroup {
   attrs: SmoAttrs
 }
 /**
- * @internal
  * geometry information about the current measure for rendering and
  * score layout.
+ * @internal
  */
 export interface MeasureSvg {
   staffWidth: number,

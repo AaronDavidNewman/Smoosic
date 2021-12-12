@@ -210,6 +210,10 @@ export class SmoTickIterator {
     return this.newNotes;
   }
 }
+/**
+ * used to create a contract/dilate operation on a note via {@link SmoContractNoteActor}
+ * @category SmoTransform
+ */
 export interface SmoContractNoteParams {
   startIndex: number,
   measure: SmoMeasure,
@@ -289,6 +293,10 @@ export class SmoContractNoteActor extends TickIteratorBase {
   }
 }
 
+/**
+ * used to create a contract/dilate operation on a note via {@link SmoContractTupletActor}
+ * @category SmoTransform
+ */
 export interface SmoContractTupletParams {
   changeIndex: number,
   measure: SmoMeasure,

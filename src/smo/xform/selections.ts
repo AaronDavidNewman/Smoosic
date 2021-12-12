@@ -63,13 +63,15 @@ export class SmoSelector {
   // ## return true if sel1 > sel2.
   static gt(sel1: SmoSelector, sel2: SmoSelector): boolean {
     // Note: voice is not considered b/c it's more of a vertical component
+    // Note further: sometimes we need to consider voice
     return sel1.staff > sel2.staff ||
       (sel1.staff === sel2.staff && sel1.measure > sel2.measure) ||
-      (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.tick > sel2.tick);
+      (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.voice > sel2.voice) ||
+      (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.voice === sel2.voice && sel1.tick > sel2.tick);
   }
 
   static eq(sel1: SmoSelector, sel2: SmoSelector): boolean {
-    return (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.tick === sel2.tick);
+    return (sel1.staff === sel2.staff && sel1.voice === sel2.voice && sel1.measure === sel2.measure && sel1.tick === sel2.tick);
   }
   static neq(sel1: SmoSelector, sel2: SmoSelector): boolean {
     return !(SmoSelector.eq(sel1, sel2));
@@ -84,6 +86,13 @@ export class SmoSelector {
   }
   static lteq(sel1: SmoSelector, sel2: SmoSelector): boolean {
     return SmoSelector.lt(sel1, sel2) || SmoSelector.eq(sel1, sel2);
+  }
+  // Return 2 selectors in score order
+  static order(a: SmoSelector, b: SmoSelector): SmoSelector[] {
+    if (SmoSelector.lteq(a, b)) {
+      return [a, b];
+    }
+    return [b, a];
   }
 
   // ### getNoteKey
@@ -317,6 +326,29 @@ export class SmoSelection {
       return SmoSelection.noteSelection(score, staffIndex, nextMeasure, voiceIndex, 0);
     }
     return null;
+  }
+  /**
+   * 
+   * @param score 
+   * @param selector 
+   * @returns 
+   */
+  static innerSelections(score: SmoScore, startSelector: SmoSelector, endSelector: SmoSelector) {
+    const sels = SmoSelector.order(startSelector, endSelector);
+    let start = JSON.parse(JSON.stringify(sels[0]));
+    const rv: SmoSelection[] = [];
+    let cur = SmoSelection.selectionFromSelector(score, start);
+    if (cur) {
+      rv.push(cur);
+    }
+    while (cur && SmoSelector.lt(start, sels[1])) {
+      cur = SmoSelection.nextNoteSelection(score, start.staff, start.measure, start.voice, start.tick);
+      if (cur) {
+        start = JSON.parse(JSON.stringify(cur.selector));
+        rv.push(cur);
+      }
+    }
+    return rv;
   }
 
   static nextNoteSelectionFromSelector(score: SmoScore, selector: SmoSelector): SmoSelection | null {

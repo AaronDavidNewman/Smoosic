@@ -89,6 +89,9 @@ export interface SmoScoreParams {
   formattingManager?: SmoFormattingManager
 }
 
+/**
+ * Union of modifier types Smo modifier types
+ */
 export type SmoModifier = SmoNoteModifierBase | SmoMeasureModifierBase | StaffModifierBase | SmoScoreModifierBase;
 
 /**

@@ -544,6 +544,10 @@ exports.SuiApplication = SuiApplication;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ModalEventHandlerProxy = exports.SimpleEventHandler = exports.ModalEventHandler = void 0;
+/**
+ * Shared interface for menus, dialogs, etc that can
+ * accept UI events
+ */
 class ModalEventHandler {
 }
 exports.ModalEventHandler = ModalEventHandler;
@@ -956,7 +960,7 @@ class SuiEventHandler {
             }
         }
         else {
-            this.view.tracker.selectSuggestion(ev);
+            this.view.tracker.selectSuggestion(this.view.score, ev);
         }
         return;
     }
@@ -1059,7 +1063,7 @@ class SuiEventHandler {
     mouseClick(ev) {
         const dataCopy = tracker_1.SuiTracker.serializeEvent(ev);
         this.view.renderer.updatePromise().then(() => {
-            this.view.tracker.selectSuggestion(dataCopy);
+            this.view.tracker.selectSuggestion(this.view.score, dataCopy);
             var modifier = this.view.tracker.getSelectedModifier();
             if (modifier) {
                 this.createModifierDialog(modifier);
@@ -1202,6 +1206,7 @@ const score_2 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/sco
 const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
 const note_2 = __webpack_require__(/*! ../smo/data/note */ "./src/smo/data/note.ts");
 const tickDuration_1 = __webpack_require__(/*! ../smo/xform/tickDuration */ "./src/smo/xform/tickDuration.ts");
+const file_load_1 = __webpack_require__(/*! ../../tests/file-load */ "./tests/file-load.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const measure_3 = __webpack_require__(/*! ../smo/data/measure */ "./src/smo/data/measure.ts");
 const music_1 = __webpack_require__(/*! ../smo/data/music */ "./src/smo/data/music.ts");
@@ -1287,7 +1292,8 @@ exports.Smo = {
     // strings
     quickStartHtmlen: language_en_1.quickStartHtmlen, selectionHtmlen: language_en_1.selectionHtmlen, enterDurationsHtmlen: language_en_1.enterDurationsHtmlen, enterPitchesHtmlen: language_en_1.enterPitchesHtmlen,
     quickStartHtmlar: language_ar_1.quickStartHtmlar, selectionHtmlar: language_ar_1.selectionHtmlar, enterDurationsHtmlar: language_ar_1.enterDurationsHtmlar, enterPitchesHtmlar: language_ar_1.enterPitchesHtmlar,
-    getClass
+    getClass,
+    createLoadTests: file_load_1.createLoadTests
 };
 exports["default"] = exports.Smo;
 
@@ -7548,10 +7554,12 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     loadRemoteXml(url) {
         const req = new xhrLoader_1.SuiXhrLoader(url);
         const self = this;
+        // Shouldn't we return promise of actually displaying the score?
         return req.loadAsync().then(() => {
             const parser = new DOMParser();
             const xml = parser.parseFromString(req.value, 'text/xml');
             const score = xmlToSmo_1.XmlToSmo.convert(xml);
+            score.layoutManager.zoomToWidth($('body').width());
             self.changeScore(score);
         });
     }
@@ -8646,7 +8654,15 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      */
     slur() {
         this.actionBuffer.addAction('slur');
-        this._lineOperation('slur');
+        const measureSelections = this._undoTrackerMeasureSelections('slur');
+        const ft = this.tracker.getExtremeSelection(-1);
+        const tt = this.tracker.getExtremeSelection(1);
+        const ftAlt = this._getEquivalentSelection(ft);
+        const ttAlt = this._getEquivalentSelection(tt);
+        const modifier = operations_1.SmoOperation.slur(this.score, ft, tt);
+        const altModifier = operations_1.SmoOperation.slur(this.storeScore, ftAlt, ttAlt);
+        this._undoStaffModifier('add ' + 'op', modifier, undo_1.UndoBuffer.bufferSubtypes.ADD);
+        this._renderChangedMeasures(measureSelections);
         return this.renderer.updatePromise();
     }
     /**
@@ -8987,11 +9003,11 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     }
     // Tracker operations, used for macro replay
     moveHome(ev) {
-        this.tracker.moveHome(ev);
+        this.tracker.moveHome(this.score, ev);
         return this.renderer.updatePromise();
     }
     moveEnd(ev) {
-        this.tracker.moveEnd(ev);
+        this.tracker.moveEnd(this.score, ev);
         return this.renderer.updatePromise();
     }
     growSelectionLeft() {
@@ -9039,7 +9055,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         this.tracker.moveSelectionDown();
     }
     selectSuggestion(evData) {
-        this.tracker.selectSuggestion(evData);
+        this.tracker.selectSuggestion(this.score, evData);
     }
     intersectingArtifact(evData) {
         this.tracker.intersectingArtifact(evData);
@@ -9054,7 +9070,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         const key = selections_1.SmoSelector.getNoteKey(selector);
         if (typeof (this.tracker.measureNoteMap[key]) !== 'undefined') {
             this.tracker.suggestion = this.tracker.measureNoteMap[selections_1.SmoSelector.getNoteKey(selector)];
-            this.tracker.selectSuggestion(evData);
+            this.tracker.selectSuggestion(this.score, evData);
         }
     }
     selectSuggestionModifier(selector, evData, modifierObj) {
@@ -9072,7 +9088,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         }
         if (modIndex >= 0) {
             this.tracker.modifierSuggestion = modIndex;
-            this.tracker.selectSuggestion(evData);
+            this.tracker.selectSuggestion(this.score, evData);
         }
     }
 }
@@ -11962,7 +11978,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         this._createLocalModifiersList();
         return artifact.note.tickCount;
     }
-    moveHome(evKey) {
+    moveHome(score, evKey) {
         var _a, _b;
         if (this.recordBuffer) {
             this.recordBuffer.addAction('moveHome', SuiTracker.serializeEvent(evKey));
@@ -11974,7 +11990,7 @@ class SuiTracker extends mapper_1.SuiMapper {
             const homeSel = this._getClosestTick({ staff: ls.staffId,
                 measure: 0, voice: mm.getActiveVoice(), tick: 0, pitches: [] });
             if (evKey.shiftKey) {
-                this._selectBetweenSelections(this.selections[0], homeSel);
+                this._selectBetweenSelections(score, this.selections[0], homeSel);
             }
             else {
                 this.selections = [homeSel];
@@ -11993,7 +12009,7 @@ class SuiTracker extends mapper_1.SuiMapper {
                 measure: mm.measureNumber.measureIndex, voice: mm.getActiveVoice(),
                 tick: 0, pitches: [] });
             if (evKey.shiftKey) {
-                this._selectBetweenSelections(this.selections[0], homeSel);
+                this._selectBetweenSelections(score, this.selections[0], homeSel);
             }
             else if ((_b = (_a = homeSel === null || homeSel === void 0 ? void 0 : homeSel.measure) === null || _a === void 0 ? void 0 : _a.svg) === null || _b === void 0 ? void 0 : _b.renderedBox) {
                 this.selections = [homeSel];
@@ -12003,7 +12019,7 @@ class SuiTracker extends mapper_1.SuiMapper {
             }
         }
     }
-    moveEnd(evKey) {
+    moveEnd(score, evKey) {
         if (this.recordBuffer) {
             this.recordBuffer.addAction('moveEnd', SuiTracker.serializeEvent(evKey));
         }
@@ -12016,7 +12032,7 @@ class SuiTracker extends mapper_1.SuiMapper {
             const endSel = this._getClosestTick({ staff: ls.staffId,
                 measure: ls.measures.length - 1, voice: voiceIx, tick: voice.notes.length - 1, pitches: [] });
             if (evKey.shiftKey) {
-                this._selectBetweenSelections(this.selections[0], endSel);
+                this._selectBetweenSelections(score, this.selections[0], endSel);
             }
             else {
                 this.selections = [endSel];
@@ -12036,7 +12052,7 @@ class SuiTracker extends mapper_1.SuiMapper {
             const endSel = this._getClosestTick({ staff: ls.staffId,
                 measure: lm.measureNumber.measureIndex, voice: lm.getActiveVoice(), tick: ticks - 1, pitches: [] });
             if (evKey.shiftKey) {
-                this._selectBetweenSelections(this.selections[0], endSel);
+                this._selectBetweenSelections(score, this.selections[0], endSel);
             }
             else {
                 this.selections = [endSel];
@@ -12281,18 +12297,6 @@ class SuiTracker extends mapper_1.SuiMapper {
         });
         return rv;
     }
-    _selectFromToInStaff(sel1, sel2) {
-        this.selections = [];
-        this.idleTimer = Date.now();
-        const order = [sel1, sel2].sort((a, b) => selections_1.SmoSelector.lteq(a.selector, b.selector) ? -1 : 1);
-        // TODO: we could iterate directly over the selectors, that would be faster
-        Object.keys(this.measureNoteMap).forEach((k) => {
-            const obj = this.measureNoteMap[k];
-            if (selections_1.SmoSelector.gteq(obj.selector, order[0].selector) && selections_1.SmoSelector.lteq(obj.selector, order[1].selector)) {
-                this.selections.push(obj);
-            }
-        });
-    }
     _addSelection(selection) {
         const ar = this.selections.filter((sel) => selections_1.SmoSelector.neq(sel.selector, selection.selector));
         if (this.autoPlay) {
@@ -12321,27 +12325,21 @@ class SuiTracker extends mapper_1.SuiMapper {
             this.recordBuffer.addAction('selectSuggestionModifier', selector, SuiTracker.serializeEvent(ev), modKey);
         }
     }
-    _selectBetweenSelections(s1, s2) {
+    _selectFromToInStaff(score, sel1, sel2) {
+        this.selections = selections_1.SmoSelection.innerSelections(score, sel1.selector, sel2.selector).filter((ff) => ff.selector.voice === sel1.measure.activeVoice);
+        if (this.selections.length === 0) {
+            this.selections = [sel1];
+        }
+        this.idleTimer = Date.now();
+    }
+    _selectBetweenSelections(score, s1, s2) {
         const min = selections_1.SmoSelector.gt(s1.selector, s2.selector) ? s2 : s1;
         const max = selections_1.SmoSelector.lt(min.selector, s2.selector) ? s2 : s1;
-        this._selectFromToInStaff(min, max);
+        this._selectFromToInStaff(score, min, max);
         this._createLocalModifiersList();
         this.deferHighlight();
     }
-    // ### _matchSelectionToModifier
-    // assumes a modifier is selected
-    _matchSelectionToModifier() {
-        const mod = this.modifierSelections[0].modifier;
-        if (mod.startSelector && mod.endSelector && this.score) {
-            const sm = mod;
-            const s1 = selections_1.SmoSelection.noteFromSelector(this.score, sm.startSelector);
-            const s2 = selections_1.SmoSelection.noteFromSelector(this.score, sm.endSelector);
-            if (s1 && s2) {
-                this._selectBetweenSelections(s1, s2);
-            }
-        }
-    }
-    selectSuggestion(ev) {
+    selectSuggestion(score, ev) {
         if (!this.suggestion || !this.suggestion.measure || this.score === null) {
             return;
         }
@@ -12356,7 +12354,6 @@ class SuiTracker extends mapper_1.SuiMapper {
             this.modifierSuggestion = -1;
             // If we selected due to a mouse click, move the selection to the
             // selected modifier
-            // this._matchSelectionToModifier();
             this._highlightModifier();
             return;
         }
@@ -12368,7 +12365,7 @@ class SuiTracker extends mapper_1.SuiMapper {
             const sel1 = this.getExtremeSelection(-1);
             if (sel1.selector.staff === this.suggestion.selector.staff) {
                 this.recordSelectSuggestion(ev, this.suggestion.selector);
-                this._selectBetweenSelections(sel1, this.suggestion);
+                this._selectBetweenSelections(score, sel1, this.suggestion);
                 return;
             }
         }
@@ -15575,21 +15572,16 @@ class SmoTempoText extends SmoMeasureModifierBase {
     static get attributes() {
         return ['tempoMode', 'bpm', 'display', 'beatDuration', 'tempoText', 'yOffset', 'customText'];
     }
-    compare(instance) {
-        var rv = true;
-        SmoTempoText.attributes.forEach((attr) => {
-            if (this[attr] !== instance[attr]) {
-                rv = false;
-            }
-        });
-        return rv;
-    }
     _toVexTextTempo() {
         return { name: this.tempoText };
     }
-    // ### eq
-    // Return equality wrt the tempo marking, e.g. 2 allegro in textMode will be equal but
-    // an allegro and duration 120bpm will not.
+    /**
+     * Return equality wrt the tempo marking, e.g. 2 allegro in textMode will be equal but
+     * an allegro and duration 120bpm will not.
+     * @param t1
+     * @param t2
+     * @returns
+     */
     static eq(t1, t2) {
         if (t1.tempoMode !== t2.tempoMode) {
             return false;
@@ -16013,13 +16005,23 @@ class SmoMusic {
             - VF.clefProperties(clef).line_shift;
     }
     /**
+     * Return the number of ledger lines based on the pitch and clef
+     * @param clef
+     * @param pitch
+     * @returns number where 0 is the top staff line
+     */
+    static pitchToStaffLine(clef, pitch) {
+        // return the distance from the top ledger line, as 0.5 per line/space
+        return VF.keyProperties(SmoMusic.pitchToVexKey(pitch, clef)).line;
+    }
+    /**
      * return flag state (up or down) based on pitch and clef if auto
      * */
     static flagStateFromNote(clef, note) {
         let fs = note.flagState;
         if (fs === note_1.SmoNote.flagStates.auto) {
-            fs = SmoMusic.pitchToLedgerLine(clef, note.pitches[0])
-                >= 2 ? note_1.SmoNote.flagStates.up : note_1.SmoNote.flagStates.down;
+            fs = SmoMusic.pitchToStaffLine(clef, note.pitches[0])
+                >= 3 ? note_1.SmoNote.flagStates.down : note_1.SmoNote.flagStates.up;
         }
         return fs;
     }
@@ -19207,6 +19209,13 @@ class SmoLayoutManager extends SmoScoreModifierBase {
         });
         return rv;
     }
+    /**
+     * Adjust zoom width so the score takes up the whole score area
+     */
+    zoomToWidth(screenWidth) {
+        const curWidth = this.globalLayout.pageWidth * this.globalLayout.svgScale;
+        this.globalLayout.zoomScale = ((screenWidth - 350) / curWidth) * this.globalLayout.svgScale; // magic 350 for left controls....TODO standardize this
+    }
     static getScaledPageLayout(globalLayout, pageLayout, pages) {
         const rv = {};
         SmoLayoutManager.scaledPageAttributes.forEach((attr) => {
@@ -20047,8 +20056,8 @@ class SmoSlur extends StaffModifierBase {
         this.thickness = 2;
         this.xOffset = -5;
         this.yOffset = 10;
-        this.position = SmoSlur.positions.HEAD;
-        this.position_end = SmoSlur.positions.HEAD;
+        this.position = SmoSlur.positions.TOP;
+        this.position_end = SmoSlur.positions.TOP;
         this.invert = false;
         this.cp1x = 0;
         this.cp1y = 15;
@@ -20074,8 +20083,8 @@ class SmoSlur extends StaffModifierBase {
             thickness: 2,
             xOffset: -5,
             yOffset: 10,
-            position: SmoSlur.positions.HEAD,
-            position_end: SmoSlur.positions.HEAD,
+            position: SmoSlur.positions.TOP,
+            position_end: SmoSlur.positions.TOP,
             invert: false,
             cp1x: 0,
             cp1y: 15,
@@ -21665,6 +21674,7 @@ const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "
 const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
 const xmlHelpers_1 = __webpack_require__(/*! ./xmlHelpers */ "./src/smo/mxml/xmlHelpers.ts");
+const measureModifiers_2 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const xmlToSmo_1 = __webpack_require__(/*! ./xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
 /**
  * Convert {@link SmoScore} object into a music XML serialization
@@ -21686,7 +21696,6 @@ class SmoToXml {
             voiceTickIndex: 0,
             slurs: [],
             lyricState: {},
-            slurNumber: 1,
             measureTicks: 0,
             beamState: 0,
             beamTicks: 4096,
@@ -21706,7 +21715,7 @@ class SmoToXml {
         nn(encoding, 'software', { software: 'Some pre-release version of Smoosic' }, 'software');
         const today = new Date();
         const dd = (n) => n < 10 ? '0' + n.toString() : n.toString();
-        const dateString = today.getFullYear() + '-' + dd(today.getDay()) + '-' + dd(today.getMonth());
+        const dateString = today.getFullYear() + '-' + dd(today.getDate()) + '-' + dd(today.getMonth());
         nn(encoding, 'encoding-date', dateString, 'date');
         const defaults = nn(root, 'defaults', null, '');
         const scaling = nn(defaults, 'scaling', null, '');
@@ -21740,7 +21749,6 @@ class SmoToXml {
             smoState.staff = staff;
             smoState.slurs = [];
             smoState.lyricState = {};
-            smoState.slurNumber = 1;
             staff.measures.forEach((measure) => {
                 smoState.measureTicks = 0;
                 smoState.measure = measure;
@@ -21799,6 +21807,20 @@ class SmoToXml {
         const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
         const staff = smoState.staff;
         const measure = smoState.measure;
+        const getNumberForSlur = ((slurs) => {
+            let rv = 1;
+            const hash = {};
+            slurs.forEach((ss) => {
+                hash[ss.number] = true;
+            });
+            while (rv < 100) {
+                if (typeof (hash[rv]) === 'undefined') {
+                    break;
+                }
+                rv += 1;
+            }
+            return rv;
+        });
         const selector = {
             staff: staff.staffId,
             measure: measure.measureNumber.measureIndex,
@@ -21815,26 +21837,25 @@ class SmoToXml {
                 selections_1.SmoSelector.eq(ss.endSelector, slur.endSelector));
             if (match) {
                 remove.push(match);
-                smoState.slurNumber -= 1;
                 const slurElement = nn(notationsElement, 'slur', null, '');
                 xmlHelpers_1.mxmlHelpers.createAttributes(slurElement, { number: match.number, type: 'stop' });
             }
         });
         smoState.slurs.forEach((slur) => {
-            if (remove.findIndex((rr) => rr.number === slur.number) <= 0) {
+            if (remove.findIndex((rr) => rr.number === slur.number) < 0) {
                 newSlurs.push(slur);
             }
         });
         smoState.slurs = newSlurs;
         starts.forEach((slur) => {
+            const number = getNumberForSlur(smoState.slurs);
             smoState.slurs.push({
                 startSelector: slur.startSelector,
                 endSelector: slur.endSelector,
-                number: smoState.slurNumber
+                number
             });
             const slurElement = nn(notationsElement, 'slur', null, '');
-            xmlHelpers_1.mxmlHelpers.createAttributes(slurElement, { number: smoState.slurNumber, type: 'start' });
-            smoState.slurNumber += 1;
+            xmlHelpers_1.mxmlHelpers.createAttributes(slurElement, { number: number, type: 'start' });
         });
     }
     // ### /score-partwise/measure/note/time-modification
@@ -21946,11 +21967,40 @@ class SmoToXml {
         const dtype = nn(directionElement, 'direction-type', null, '');
         const staff = smoState.staff;
         const measure = smoState.measure;
-        /* const tempo = measure.getTempo();
-        if (tempo.display) {
-          const tempoElement = nn(directionElement, 'direction-type', null, '');
-    
-        } */
+        const tempo = measure.getTempo();
+        if (beforeNote === true && (tempo.display || measure.measureNumber.measureIndex === 0)) {
+            const tempoBpm = Math.round(tempo.bpm * tempo.beatDuration / 4096);
+            const tempoElement = nn(directionElement, 'direction-type', null, '');
+            let tempoText = tempo.tempoText;
+            if (tempo.tempoMode === measureModifiers_2.SmoTempoText.tempoModes.customMode) {
+                tempoText = tempo.customText;
+            }
+            if (tempo.tempoMode === measureModifiers_2.SmoTempoText.tempoModes.textMode) {
+                nn(tempoElement, 'words', { words: tempoText }, 'words');
+            }
+            else if (tempo.tempoMode === measureModifiers_2.SmoTempoText.tempoModes.customMode || tempo.tempoMode === measureModifiers_2.SmoTempoText.tempoModes.durationMode) {
+                const metronomeElement = nn(tempoElement, 'metronome', null, '');
+                let durationType = 'quarter';
+                let dotType = false;
+                if (tempo.bpm >= 8192) {
+                    durationType = 'half';
+                }
+                else if (tempo.bpm < 4096) {
+                    durationType = 'eighth';
+                }
+                if (tempo.bpm === 6144 || tempo.bpm === 12288 || tempo.bpm === 3072) {
+                    dotType = true;
+                }
+                nn(metronomeElement, 'beat-unit', { beatUnit: durationType }, 'beatUnit');
+                if (dotType) {
+                    nn(metronomeElement, 'beat-unit-dot', null, '');
+                }
+                nn(metronomeElement, 'per-minute', { tempo }, 'bpm');
+            }
+            // Sound is supposed to come last under 'direction' element
+            const soundElement = nn(directionElement, 'sound', null, '');
+            soundElement.setAttribute('tempo', tempoBpm.toString());
+        }
         const selector = {
             staff: staff.staffId,
             measure: measure.measureNumber.measureIndex,
@@ -22018,7 +22068,8 @@ class SmoToXml {
         let i = 0;
         for (i = 0; i < note.pitches.length; ++i) {
             const noteElement = nn(measureElement, 'note', null, '');
-            if (i > 0) {
+            const isChord = i > 0;
+            if (isChord) {
                 nn(noteElement, 'chord', null, '');
             }
             else {
@@ -22044,17 +22095,19 @@ class SmoToXml {
                 nn(noteElement, 'stem', { direction: 'down' }, 'direction');
             }
             // stupid musicxml requires beam to be last.
-            if (i === 0) {
+            if (!isChord) {
                 SmoToXml.beamNote(noteElement, smoState);
             }
             const notationsElement = noteElement.ownerDocument.createElement('notations');
             SmoToXml.tuplet(noteElement, notationsElement, smoState);
-            SmoToXml.slur(notationsElement, smoState);
+            if (!isChord) {
+                SmoToXml.slur(notationsElement, smoState);
+            }
             if (notationsElement.children.length) {
                 noteElement.appendChild(notationsElement);
             }
             // stupid musicxml requires beam to be laster.
-            if (i === 0) {
+            if (!isChord) {
                 SmoToXml.lyric(noteElement, smoState);
             }
         }
@@ -22577,7 +22630,6 @@ const scoreModifiers_1 = __webpack_require__(/*! ../data/scoreModifiers */ "./sr
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
-const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const tuplet_1 = __webpack_require__(/*! ../data/tuplet */ "./src/smo/data/tuplet.ts");
 const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
 /**
@@ -22850,23 +22902,12 @@ class XmlState {
             }
         });
     }
-    static slurDirectionFromNote(clef, note, orientation) {
-        const rv = { invert: false, yOffset: staffModifiers_1.SmoSlur.defaults.yOffset };
-        const flagState = music_1.SmoMusic.flagStateFromNote(clef, note);
-        if (flagState === note_1.SmoNote.flagStates.up && orientation === 'over') {
-            rv.invert = true;
-            rv.yOffset += 50;
-        }
-        if (flagState === note_1.SmoNote.flagStates.down && orientation === 'under') {
-            rv.invert = true;
-            rv.yOffset -= 50;
-        }
-        return rv;
-    }
-    // ### updateSlurStates
-    // While parsing a measure,
-    // on a slur element, either complete a started
-    // slur or start a new one.
+    /**
+     * While parsing a measure,
+     * on a slur element, either complete a started
+     * slur or start a new one.
+     * @param slurInfos
+     */
     updateSlurStates(slurInfos) {
         const clef = this.staffArray[this.staffIndex].clefInfo.clef;
         const note = this.previousNote;
@@ -22878,17 +22919,12 @@ class XmlState {
                     const slurParams = staffModifiers_1.SmoSlur.defaults;
                     slurParams.endSelector = JSON.parse(JSON.stringify(this.slurs[slurInfo.number].selector));
                     slurParams.startSelector = slurInfo.selector;
-                    const alter = XmlState.slurDirectionFromNote(clef, note, slurInfo.orientation);
-                    slurParams.yOffset = alter.yOffset;
-                    slurParams.invert = alter.invert;
                     this.completedSlurs.push(slurParams);
                     this.slurs[slurInfo.number] = null;
                 }
                 else {
-                    const alter = XmlState.slurDirectionFromNote(clef, note, slurInfo.orientation);
+                    // We no longer try to pick the slur direction until the score is complete.
                     this.slurs[slurInfo.number] = JSON.parse(JSON.stringify(slurInfo));
-                    this.slurs[slurInfo.number].yOffset = alter.yOffset;
-                    this.slurs[slurInfo.number].invert = alter.invert;
                 }
             }
             else if (slurInfo.type === 'stop') {
@@ -22922,11 +22958,12 @@ class XmlState {
             this.smoStaves[tie.startSelector.staff].addStaffModifier(smoTie);
         });
     }
-    // ### completeSlurs
-    // After reading in a measure, update any completed slurs and make them
-    // into SmoSlur and add them to the SmoSystemGroup objects.
-    // staffIndexOffset is the offset from the xml staffId and the score staff Id
-    // (i.e. the staves that have already been parsed in other parts)
+    /**
+     * After reading in a measure, update any completed slurs and make them
+     * into SmoSlur and add them to the SmoSystemGroup objects.
+     * staffIndexOffset is the offset from the xml staffId and the score staff Id
+     * (i.e. the staves that have already been parsed in other parts)
+     */
     completeSlurs() {
         this.completedSlurs.forEach((slur) => {
             const params = staffModifiers_1.SmoSlur.defaults;
@@ -23041,6 +23078,8 @@ const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.t
 const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const systemStaff_1 = __webpack_require__(/*! ../data/systemStaff */ "./src/smo/data/systemStaff.ts");
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
+const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
+const operations_1 = __webpack_require__(/*! ../xform/operations */ "./src/smo/xform/operations.ts");
 /**
  * A class that takes a music XML file and outputs a {@link SmoScore}
  * @category SmoToXml
@@ -23156,12 +23195,34 @@ class XmlToSmo {
             if (rv.scoreInfo.composer) {
                 rv.addTextGroup(scoreModifiers_1.SmoTextGroup.createTextForLayout(scoreModifiers_1.SmoTextGroup.purposes.COMPOSER, rv.scoreInfo.composer, lm.getScaledPageLayout(0)));
             }
+            XmlToSmo.setSlurDefaults(rv);
             return rv;
         }
         catch (exc) {
             console.warn(exc);
             return score_1.SmoScore.deserialize(basic_1.emptyScoreJson);
         }
+    }
+    /**
+     * when building the slurs, we don't always know which direction the beams will go or what other
+     * voices there will be.
+     * @param score
+     */
+    static setSlurDefaults(score) {
+        score.staves.forEach((staff) => {
+            const slurs = staff.modifiers.filter((mm) => mm.ctor === 'SmoSlur');
+            slurs.forEach((ss) => {
+                const slur = ss;
+                const sel1 = selections_1.SmoSelection.noteFromSelector(score, ss.startSelector);
+                const sel2 = selections_1.SmoSelection.noteFromSelector(score, ss.endSelector);
+                if (sel1 && sel2) {
+                    const slurParams = operations_1.SmoOperation.getDefaultSlurDirection(score, sel1, sel2);
+                    slur.position = slurParams.position;
+                    slur.position_end = slurParams.position_end;
+                    slur.invert = slurParams.invert;
+                }
+            });
+        });
     }
     // ### defaults
     // /score-partwise/defaults
@@ -25594,10 +25655,43 @@ class SmoOperation {
         fromSelection.staff.addStaffModifier(modifier);
         return modifier;
     }
-    static slur(fromSelection, toSelection) {
+    static getDefaultSlurDirection(score, fromSelection, toSelection) {
         const params = staffModifiers_1.SmoSlur.defaults;
-        params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
-        params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
+        const sels = selections_1.SmoSelector.order(fromSelection.selector, toSelection.selector);
+        params.startSelector = JSON.parse(JSON.stringify(sels[0]));
+        params.endSelector = JSON.parse(JSON.stringify(sels[1]));
+        const selections = selections_1.SmoSelection.innerSelections(score, sels[0], sels[1]).filter((ff) => ff.selector.voice === fromSelection.selector.voice);
+        const dirs = {};
+        let startDir = note_1.SmoNote.flagStates.up;
+        let endDir = note_1.SmoNote.flagStates.up;
+        if (selections.length < 1) {
+            return new staffModifiers_1.SmoSlur(params);
+        }
+        selections.forEach((selection, selectionIx) => {
+            const fstate = music_1.SmoMusic.flagStateFromNote(selection.note.clef, selection.note);
+            dirs[fstate] = true;
+            if (selectionIx === 0) {
+                startDir = fstate;
+            }
+            if (selectionIx === selections.length - 1) {
+                endDir = fstate;
+            }
+        });
+        params.invert = false;
+        const mixed = Object.keys(dirs).length > 1;
+        if (mixed) {
+            params.position = startDir === note_1.SmoNote.flagStates.up ? staffModifiers_1.SmoSlur.positions.TOP : staffModifiers_1.SmoSlur.positions.HEAD;
+            params.position_end = endDir === note_1.SmoNote.flagStates.up ? staffModifiers_1.SmoSlur.positions.TOP : staffModifiers_1.SmoSlur.positions.HEAD;
+            params.invert = endDir === note_1.SmoNote.flagStates.up;
+        }
+        if (!mixed) {
+            params.position = staffModifiers_1.SmoSlur.positions.HEAD;
+            params.position_end = staffModifiers_1.SmoSlur.positions.HEAD;
+        }
+        return params;
+    }
+    static slur(score, fromSelection, toSelection) {
+        const params = SmoOperation.getDefaultSlurDirection(score, fromSelection, toSelection);
         const modifier = new staffModifiers_1.SmoSlur(params);
         fromSelection.staff.addStaffModifier(modifier);
         return modifier;
@@ -25737,12 +25831,14 @@ class SmoSelector {
     // ## return true if sel1 > sel2.
     static gt(sel1, sel2) {
         // Note: voice is not considered b/c it's more of a vertical component
+        // Note further: sometimes we need to consider voice
         return sel1.staff > sel2.staff ||
             (sel1.staff === sel2.staff && sel1.measure > sel2.measure) ||
-            (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.tick > sel2.tick);
+            (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.voice > sel2.voice) ||
+            (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.voice === sel2.voice && sel1.tick > sel2.tick);
     }
     static eq(sel1, sel2) {
-        return (sel1.staff === sel2.staff && sel1.measure === sel2.measure && sel1.tick === sel2.tick);
+        return (sel1.staff === sel2.staff && sel1.voice === sel2.voice && sel1.measure === sel2.measure && sel1.tick === sel2.tick);
     }
     static neq(sel1, sel2) {
         return !(SmoSelector.eq(sel1, sel2));
@@ -25755,6 +25851,13 @@ class SmoSelector {
     }
     static lteq(sel1, sel2) {
         return SmoSelector.lt(sel1, sel2) || SmoSelector.eq(sel1, sel2);
+    }
+    // Return 2 selectors in score order
+    static order(a, b) {
+        if (SmoSelector.lteq(a, b)) {
+            return [a, b];
+        }
+        return [b, a];
     }
     // ### getNoteKey
     // Get a key useful for a hash map of notes.
@@ -25968,6 +26071,29 @@ class SmoSelection {
             return SmoSelection.noteSelection(score, staffIndex, nextMeasure, voiceIndex, 0);
         }
         return null;
+    }
+    /**
+     *
+     * @param score
+     * @param selector
+     * @returns
+     */
+    static innerSelections(score, startSelector, endSelector) {
+        const sels = SmoSelector.order(startSelector, endSelector);
+        let start = JSON.parse(JSON.stringify(sels[0]));
+        const rv = [];
+        let cur = SmoSelection.selectionFromSelector(score, start);
+        if (cur) {
+            rv.push(cur);
+        }
+        while (cur && SmoSelector.lt(start, sels[1])) {
+            cur = SmoSelection.nextNoteSelection(score, start.staff, start.measure, start.voice, start.tick);
+            if (cur) {
+                start = JSON.parse(JSON.stringify(cur.selector));
+                rv.push(cur);
+            }
+        }
+        return rv;
     }
     static nextNoteSelectionFromSelector(score, selector) {
         return SmoSelection.nextNoteSelection(score, selector.staff, selector.measure, selector.voice, selector.tick);
@@ -37343,9 +37469,14 @@ class SuiXmlLoadAdapter extends adapter_1.SuiComponentAdapter {
     }
     commit() {
         try {
+            const self = this;
             const parser = new DOMParser();
             const xml = parser.parseFromString(this.xmlFile, 'text/xml');
             const score = xmlToSmo_1.XmlToSmo.convert(xml);
+            const mediaSelect = typeof (SmoConfig.scoreDomContainer) === 'string' ? '#' + SmoConfig.scoreDomContainer : SmoConfig.scoreDomContainer;
+            const scoreSelect = $(mediaSelect).find('svg');
+            const ratio = $(mediaSelect).width() / $(scoreSelect).width();
+            score.layoutManager.zoomToWidth($('body').width());
             this.changeScore = true;
             this.view.changeScore(score);
         }
@@ -39599,6 +39730,8 @@ class SuiSlurAdapter extends adapter_1.SuiComponentAdapter {
         this.slur = slur;
         this.view = view;
         this.backup = new staffModifiers_1.SmoSlur(this.slur);
+        // Set the same id so the erase works
+        this.backup.attrs.id = slur.attrs.id;
     }
     writeSlurNumber(view, slur, key, value) {
         const current = new staffModifiers_1.SmoSlur(slur);
@@ -48017,6 +48150,7 @@ class SuiLibraryMenu extends menu_1.SuiMenuBase {
             const parser = new DOMParser();
             const xml = parser.parseFromString(req.value, 'text/xml');
             const score = xmlToSmo_1.XmlToSmo.convert(xml);
+            score.layoutManager.zoomToWidth($('body').width());
             this.view.changeScore(score);
             this.complete();
         });
@@ -50908,6 +51042,86 @@ class defaultRibbonLayout {
     }
 }
 exports.defaultRibbonLayout = defaultRibbonLayout;
+
+
+/***/ }),
+
+/***/ "./tests/file-load.ts":
+/*!****************************!*\
+  !*** ./tests/file-load.ts ***!
+  \****************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.createLoadTests = void 0;
+const application_1 = __webpack_require__(/*! ../src/application/application */ "./src/application/application.ts");
+const smoToXml_1 = __webpack_require__(/*! ../src/smo/mxml/smoToXml */ "./src/smo/mxml/smoToXml.ts");
+const xmlToSmo_1 = __webpack_require__(/*! ../src/smo/mxml/xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
+const xhrLoader_1 = __webpack_require__(/*! ../src/ui/fileio/xhrLoader */ "./src/ui/fileio/xhrLoader.ts");
+const midiToSmo_1 = __webpack_require__(/*! ../src/smo/midi/midiToSmo */ "./src/smo/midi/midiToSmo.ts");
+function createLoadTests() {
+    const jsonPath = 'https://aarondavidnewman.github.io/Smoosic/release/library/hymns/Precious Lord.json';
+    const midiTiesPath = 'https://aarondavidnewman.github.io/Smoosic/release/library/miditest/ties.mid';
+    const midiTripletPath = 'https://aarondavidnewman.github.io/Smoosic/release/library/miditest/triplet.mid';
+    const midiKeyPath = 'https://aarondavidnewman.github.io/Smoosic/release/library/miditest/keytime.mid';
+    var app = (application) => __awaiter(this, void 0, void 0, function* () {
+        const view = application.view;
+        yield view.loadRemoteScore(jsonPath);
+        yield view.renderPromise();
+        QUnit.test('loaded', assert => {
+            assert.equal(view.score.staves[0].measures.length, 17);
+            assert.equal($('#boo .vf-lyric').length, 82);
+        });
+        const xml = smoToXml_1.SmoToXml.convert(view.score);
+        const newScore = xmlToSmo_1.XmlToSmo.convert(xml);
+        yield view.changeScore(newScore);
+        QUnit.test('loadXml', assert => {
+            assert.equal(view.score.staves[0].measures.length, 17);
+            assert.equal($('#boo .vf-lyric').length, 82);
+        });
+        let midiData = new xhrLoader_1.SuiXhrLoader(midiTiesPath);
+        yield midiData.loadAsync();
+        let midiScore = (new midiToSmo_1.MidiToSmo(parseMidi(midiData.value), 1024)).convert();
+        yield view.changeScore(midiScore);
+        QUnit.test('loadMidi1', assert => {
+            assert.equal(midiScore.staves[0].getTiesEndingAt({ staff: 0, measure: 1, voice: 0, tick: 0, pitches: [] }).length, 1);
+        });
+        midiData = new xhrLoader_1.SuiXhrLoader(midiTripletPath);
+        yield midiData.loadAsync();
+        midiScore = (new midiToSmo_1.MidiToSmo(parseMidi(midiData.value), 1024)).convert();
+        yield view.changeScore(midiScore);
+        QUnit.test('loadMidi2', assert => {
+            assert.equal(midiScore.staves[0].measures[0].tuplets.length, 1);
+        });
+        midiData = new xhrLoader_1.SuiXhrLoader(midiKeyPath);
+        yield midiData.loadAsync();
+        midiScore = (new midiToSmo_1.MidiToSmo(parseMidi(midiData.value), 1024)).convert();
+        yield view.changeScore(midiScore);
+        QUnit.test('loadMidi2', assert => {
+            assert.equal(midiScore.staves.length, 2);
+            assert.equal(midiScore.staves[0].measures[0].keySignature, 'eb');
+        });
+        // console.log('measures ' + view.score.staves[0].measures.length);
+    });
+    application_1.SuiApplication.configure({
+        mode: 'library',
+        idleRedrawTime: 5,
+        scoreDomContainer: 'outer-container'
+    }).then((application) => {
+        app(application);
+    });
+}
+exports.createLoadTests = createLoadTests;
 
 
 /***/ })

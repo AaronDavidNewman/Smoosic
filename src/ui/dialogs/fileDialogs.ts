@@ -7,7 +7,9 @@ import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
 import { SuiFileDownloadComponent } from './components/fileDownload';
 import { SuiDialogAdapterBase, SuiComponentAdapter } from './adapter';
 import { MidiToSmo } from '../../smo/midi/midiToSmo';
+import { SmoUiConfiguration } from '../configuration';
 declare var $: any;
+declare var SmoConfig: SmoUiConfiguration;
 // declare var MidiParser: any;
 declare var parseMidi: any;
 
@@ -89,9 +91,14 @@ export class SuiLoadFileDialog extends SuiDialogAdapterBase<SuiSmoLoadAdapter> {
   }
   commit() {
     try {
+      const self = this;
       const parser = new DOMParser();
       const xml = parser.parseFromString(this.xmlFile, 'text/xml');
       const score = XmlToSmo.convert(xml);
+      const mediaSelect: any = typeof(SmoConfig.scoreDomContainer) === 'string' ? '#' + SmoConfig.scoreDomContainer : SmoConfig.scoreDomContainer;
+      const scoreSelect = $(mediaSelect).find('svg');
+      const ratio = $(mediaSelect).width() / $(scoreSelect).width();
+      score.layoutManager!.zoomToWidth($('body').width());
       this.changeScore = true;
       this.view.changeScore(score);
     } catch (e) {

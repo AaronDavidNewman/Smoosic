@@ -112,6 +112,7 @@ import { SmoScore } from '../smo/data/score';
 import { UndoBuffer } from '../smo/xform/undo';
 import { SmoNote } from '../smo/data/note';
 import { SmoDuration } from '../smo/xform/tickDuration';
+import { createLoadTests } from '../../tests/file-load';
 import { SmoStaffHairpin, StaffModifierBase, SmoInstrument, SmoSlur, SmoTie } from '../smo/data/staffModifiers';
 import { SmoMeasure } from '../smo/data/measure';
 import { SmoMusic } from '../smo/data/music';
@@ -201,6 +202,7 @@ export const Smo = {
     // strings
     quickStartHtmlen, selectionHtmlen, enterDurationsHtmlen, enterPitchesHtmlen,
     quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHtmlar
-    ,getClass
+    ,getClass,
+    createLoadTests
 }
 export default Smo;

@@ -804,10 +804,44 @@ export class SmoOperation {
     fromSelection.staff.addStaffModifier(modifier);
     return modifier;
   }
-  static slur(fromSelection: SmoSelection, toSelection: SmoSelection) {
+  static getDefaultSlurDirection(score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection):SmoSlurParams {
     const params: SmoSlurParams = SmoSlur.defaults;
-    params.startSelector = JSON.parse(JSON.stringify(fromSelection.selector));
-    params.endSelector = JSON.parse(JSON.stringify(toSelection.selector));
+    const sels = SmoSelector.order(fromSelection.selector, toSelection.selector);
+    params.startSelector = JSON.parse(JSON.stringify(sels[0]));
+    params.endSelector = JSON.parse(JSON.stringify(sels[1]));
+    const selections = SmoSelection.innerSelections(score, sels[0], sels[1]).filter((ff) => ff.selector.voice === fromSelection.selector.voice);
+    const dirs: Record<number, boolean> = {};
+    let startDir = SmoNote.flagStates.up;
+    let endDir = SmoNote.flagStates.up;
+    if (selections.length < 1) {
+      return new SmoSlur(params);
+    }
+    
+    selections.forEach((selection, selectionIx) => {
+      const fstate = SmoMusic.flagStateFromNote(selection.note!.clef as Clef, selection.note!);
+      dirs[fstate] = true;
+      if (selectionIx === 0) {
+        startDir = fstate;
+      }
+      if (selectionIx === selections.length - 1) {
+        endDir = fstate;
+      }
+    });
+    params.invert = false;
+    const mixed = Object.keys(dirs).length > 1;
+    if (mixed) {
+      params.position = startDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
+      params.position_end = endDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
+      params.invert = endDir === SmoNote.flagStates.up;
+    }
+    if (!mixed) {
+      params.position = SmoSlur.positions.HEAD;
+      params.position_end = SmoSlur.positions.HEAD;
+    }
+    return params;
+  }
+  static slur(score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection) {
+    const params = SmoOperation.getDefaultSlurDirection(score, fromSelection, toSelection);
     const modifier: SmoSlur = new SmoSlur(params);
     fromSelection.staff.addStaffModifier(modifier);
     return modifier;

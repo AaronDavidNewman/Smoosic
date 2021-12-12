@@ -12,13 +12,18 @@ import { SmoLyric } from '../data/noteModifiers';
 import { SmoSelector } from '../xform/selections';
 
 import { mxmlHelpers } from './xmlHelpers';
+import { SmoTempoText } from '../data/measureModifiers';
 import { XmlToSmo } from './xmlToSmo';
+
 
 interface SlurXml {
   startSelector: SmoSelector,
   endSelector: SmoSelector,
   number: number
 }
+/**
+ * Keep state of the xml document as we are generating it
+ */
 interface SmoState {
   divisions: number,
   measureNumber: number,
@@ -30,13 +35,13 @@ interface SmoState {
   staff?: SmoSystemStaff,
   slurs: SlurXml[],
   lyricState: Record<number, string>,
-  slurNumber: number,
   measureTicks: number,
   measure?: SmoMeasure,
   note?: SmoNote,
   beamState: number,
   beamTicks: number,
   timeSignature?: TimeSignature,
+  tempo?: SmoTempoText,
   clef: Clef
 }
 
@@ -60,7 +65,6 @@ export class SmoToXml {
       voiceTickIndex: 0,
       slurs: [],
       lyricState: {},
-      slurNumber: 1,
       measureTicks: 0,
       beamState: 0,
       beamTicks: 4096,
@@ -80,7 +84,7 @@ export class SmoToXml {
     nn(encoding, 'software', { software: 'Some pre-release version of Smoosic' }, 'software');
     const today = new Date();
     const dd = (n: number) => n < 10 ? '0' + n.toString() : n.toString()
-    const dateString: string = today.getFullYear() + '-' + dd(today.getDay()) + '-' + dd(today.getMonth());
+    const dateString: string = today.getFullYear() + '-' + dd(today.getDate()) + '-' + dd(today.getMonth());
     nn(encoding, 'encoding-date', dateString, 'date');
     const defaults = nn(root, 'defaults', null, '');
     const scaling = nn(defaults, 'scaling', null, '');
@@ -114,7 +118,6 @@ export class SmoToXml {
       smoState.staff = staff;
       smoState.slurs = [];
       smoState.lyricState = {};
-      smoState.slurNumber = 1;
       staff.measures.forEach((measure) => {
         smoState.measureTicks = 0;
         smoState.measure = measure;
@@ -145,7 +148,7 @@ export class SmoToXml {
     smoState.voiceIndex = 1;
     smoState.beamState = SmoToXml.beamStates.none;
     smoState.beamTicks = 0;
-    (measure as SmoMeasure).voices.forEach((voice) => {
+    measure.voices.forEach((voice) => {
       smoState.voiceTickIndex = 0;
       smoState.voice = voice;
       voice.notes.forEach((note) => {
@@ -173,6 +176,20 @@ export class SmoToXml {
     const nn = mxmlHelpers.createTextElementChild;
     const staff: SmoSystemStaff = smoState.staff as SmoSystemStaff;
     const measure = smoState.measure as SmoMeasure;
+    const getNumberForSlur = ((slurs: SlurXml[]) => {
+      let rv = 1;
+      const hash: Record<number, boolean> = {};
+      slurs.forEach((ss) => {
+        hash[ss.number] = true;
+      });
+      while (rv < 100) {
+        if (typeof(hash[rv]) === 'undefined') {
+          break;
+        }
+        rv += 1;
+      }
+      return rv;
+    });
     const selector: SmoSelector = {
       staff: staff.staffId,
       measure: measure.measureNumber.measureIndex,
@@ -182,33 +199,32 @@ export class SmoToXml {
     };
     const starts = staff.getSlursStartingAt(selector) as SmoSlur[];
     const ends = staff.getSlursEndingAt(selector) as SmoSlur[];
-    const remove: any[] = [];
-    const newSlurs: any[] = [];
+    const remove: SlurXml[] = [];
+    const newSlurs: SlurXml[] = [];
     ends.forEach((slur) => {
       const match = smoState.slurs.find((ss: any) => SmoSelector.eq(ss.startSelector, slur.startSelector) &&
         SmoSelector.eq(ss.endSelector, slur.endSelector));
       if (match) {
         remove.push(match);
-        smoState.slurNumber -= 1;
         const slurElement = nn(notationsElement, 'slur', null, '');
         mxmlHelpers.createAttributes(slurElement, { number: match.number, type: 'stop' });
       }
     });
     smoState.slurs.forEach((slur: any) => {
-      if (remove.findIndex((rr) => rr.number === slur.number) <= 0) {
+      if (remove.findIndex((rr) => rr.number === slur.number) < 0) {
         newSlurs.push(slur);
       }
     });
     smoState.slurs = newSlurs;
     starts.forEach((slur) => {
+      const number = getNumberForSlur(smoState.slurs);
       smoState.slurs.push({
         startSelector: slur.startSelector,
         endSelector: slur.endSelector,
-        number: smoState.slurNumber
+        number
       });
       const slurElement = nn(notationsElement, 'slur', null, '');
-      mxmlHelpers.createAttributes(slurElement, { number: smoState.slurNumber, type: 'start' });
-      smoState.slurNumber += 1;
+      mxmlHelpers.createAttributes(slurElement, { number: number, type: 'start' });
     });
   }
   // ### /score-partwise/measure/note/time-modification
@@ -315,11 +331,38 @@ export class SmoToXml {
     const dtype = nn(directionElement, 'direction-type', null, '');
     const staff = smoState.staff as SmoSystemStaff;
     const measure = smoState.measure!;
-    /* const tempo = measure.getTempo();
-    if (tempo.display) {
-      const tempoElement = nn(directionElement, 'direction-type', null, '');
-
-    } */
+    const tempo = measure.getTempo();
+    if (beforeNote === true && (tempo.display || measure.measureNumber.measureIndex === 0)) {
+      const tempoBpm = Math.round(tempo.bpm * tempo.beatDuration / 4096);
+      const tempoElement = nn(directionElement, 'direction-type', null, '');      
+      let tempoText = tempo.tempoText;
+      if (tempo.tempoMode === SmoTempoText.tempoModes.customMode) {
+        tempoText = tempo.customText;
+      }
+      if (tempo.tempoMode === SmoTempoText.tempoModes.textMode) {
+        nn(tempoElement, 'words', { words: tempoText }, 'words');
+      } else if (tempo.tempoMode === SmoTempoText.tempoModes.customMode || tempo.tempoMode === SmoTempoText.tempoModes.durationMode) {
+        const metronomeElement = nn(tempoElement, 'metronome', null, '');
+        let durationType = 'quarter';
+        let dotType = false;
+        if (tempo.bpm >= 8192) {
+          durationType = 'half';
+        } else if (tempo.bpm < 4096) {
+          durationType = 'eighth';
+        }
+        if (tempo.bpm === 6144 || tempo.bpm === 12288 || tempo.bpm === 3072) {
+          dotType = true;
+        }
+        nn(metronomeElement, 'beat-unit', { beatUnit: durationType}, 'beatUnit');
+        if (dotType) {
+          nn(metronomeElement, 'beat-unit-dot', null, '');
+        }
+        nn(metronomeElement, 'per-minute', { tempo }, 'bpm');
+      }
+      // Sound is supposed to come last under 'direction' element
+      const soundElement = nn(directionElement, 'sound', null, '');
+      soundElement.setAttribute('tempo', tempoBpm.toString());
+    }
     const selector: SmoSelector = {
       staff: staff.staffId,
       measure: measure.measureNumber.measureIndex,
@@ -388,7 +431,8 @@ export class SmoToXml {
     let i = 0;
     for (i = 0; i < note.pitches.length; ++i) {
       const noteElement = nn(measureElement, 'note', null, '');
-      if (i > 0) {
+      const isChord = i > 0;
+      if (isChord) {
         nn(noteElement, 'chord', null, '');
       } else {
       }
@@ -413,17 +457,19 @@ export class SmoToXml {
         nn(noteElement, 'stem', { direction: 'down' }, 'direction');
       }
       // stupid musicxml requires beam to be last.
-      if (i === 0) {
+      if (!isChord) {
         SmoToXml.beamNote(noteElement, smoState);
       }
       const notationsElement = noteElement.ownerDocument.createElement('notations');
       SmoToXml.tuplet(noteElement, notationsElement, smoState);
-      SmoToXml.slur(notationsElement, smoState);
+      if (!isChord) {
+        SmoToXml.slur(notationsElement, smoState);
+      }
       if (notationsElement.children.length) {
         noteElement.appendChild(notationsElement);
       }
       // stupid musicxml requires beam to be laster.
-      if (i === 0) {
+      if (!isChord) {
         SmoToXml.lyric(noteElement, smoState);
       }
     }

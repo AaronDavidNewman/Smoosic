@@ -16,6 +16,9 @@ import { SmoGraceNote, SmoOrnament, SmoArticulation } from '../data/noteModifier
 import { SmoSystemStaff } from '../data/systemStaff';
 import { SmoNote, SmoNoteParams } from '../data/note';
 import { Pitch, PitchKey, Clef } from '../data/common';
+import { SmoSlur } from '../../../release/smoosic';
+import { SmoSelection } from '../xform/selections';
+import { SmoOperation } from '../xform/operations';
 
 /**
  * A class that takes a music XML file and outputs a {@link SmoScore}
@@ -135,11 +138,33 @@ export class XmlToSmo {
           SmoTextGroup.purposes.COMPOSER, rv.scoreInfo.composer, lm.getScaledPageLayout(0)
         ));
       }
+      XmlToSmo.setSlurDefaults(rv);
       return rv;
     } catch (exc) {
       console.warn(exc);
       return SmoScore.deserialize(emptyScoreJson);
     }
+  }
+  /**
+   * when building the slurs, we don't always know which direction the beams will go or what other
+   * voices there will be.
+   * @param score
+   */
+  static setSlurDefaults(score: SmoScore) {
+    score.staves.forEach((staff) => {
+      const slurs = staff.modifiers.filter((mm) =>mm.ctor === 'SmoSlur');
+      slurs.forEach((ss) => {
+        const slur = ss as SmoSlur;
+        const sel1 = SmoSelection.noteFromSelector(score, ss.startSelector);
+        const sel2 = SmoSelection.noteFromSelector(score, ss.endSelector);
+        if (sel1 && sel2) {
+          const slurParams = SmoOperation.getDefaultSlurDirection(score, sel1, sel2);
+          slur.position = slurParams.position;
+          slur.position_end = slurParams.position_end;
+          slur.invert = slurParams.invert;
+        }
+      });
+    });
   }
 
   // ### defaults

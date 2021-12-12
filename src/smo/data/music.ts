@@ -89,6 +89,9 @@ export class SmoAudioPitch {
 }
 
 const VF = eval('Vex.Flow');
+/**
+ * description of a scale entry, from vex theory routines
+ */
 export interface VexNoteValue {
   root_index: number,
   int_val: number
@@ -342,13 +345,23 @@ export class SmoMusic {
       - VF.clefProperties(clef).line_shift;
   }
   /**
+   * Return the number of ledger lines based on the pitch and clef
+   * @param clef
+   * @param pitch
+   * @returns number where 0 is the top staff line
+   */
+   static pitchToStaffLine(clef: Clef, pitch: Pitch): number {
+    // return the distance from the top ledger line, as 0.5 per line/space
+    return VF.keyProperties(SmoMusic.pitchToVexKey(pitch, clef)).line;
+  }
+  /**
    * return flag state (up or down) based on pitch and clef if auto
    * */
   static flagStateFromNote(clef: Clef, note: SmoNote) {
     let fs = note.flagState;
     if (fs === SmoNote.flagStates.auto) {
-      fs = SmoMusic.pitchToLedgerLine(clef, note.pitches[0])
-        >= 2 ? SmoNote.flagStates.up : SmoNote.flagStates.down;
+      fs = SmoMusic.pitchToStaffLine(clef, note.pitches[0])
+        >= 3 ? SmoNote.flagStates.down : SmoNote.flagStates.up;
     }
     return fs;
   }

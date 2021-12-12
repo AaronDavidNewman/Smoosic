@@ -279,7 +279,7 @@ export class SuiTracker extends SuiMapper {
     this._createLocalModifiersList();
     return (artifact.note as SmoNote).tickCount;
   }
-  moveHome(evKey: KeyEvent) {
+  moveHome(score: SmoScore, evKey: KeyEvent) {
     if (this.recordBuffer) {
       this.recordBuffer.addAction('moveHome', SuiTracker.serializeEvent(evKey));
     }
@@ -290,7 +290,7 @@ export class SuiTracker extends SuiMapper {
       const homeSel = this._getClosestTick({ staff: ls.staffId,
         measure: 0, voice: mm.getActiveVoice(), tick: 0, pitches: [] });
       if (evKey.shiftKey) {
-        this._selectBetweenSelections(this.selections[0], homeSel);
+        this._selectBetweenSelections(score, this.selections[0], homeSel);
       } else {
         this.selections = [homeSel];
         this.deferHighlight();
@@ -308,7 +308,7 @@ export class SuiTracker extends SuiMapper {
         measure: mm.measureNumber.measureIndex, voice: mm.getActiveVoice(),
         tick: 0, pitches: [] });
       if (evKey.shiftKey) {
-        this._selectBetweenSelections(this.selections[0], homeSel);
+        this._selectBetweenSelections(score, this.selections[0], homeSel);
       } else if (homeSel?.measure?.svg?.renderedBox) {
         this.selections = [homeSel];
         this.scroller.scrollVisibleBox(homeSel.measure.svg.renderedBox);
@@ -317,7 +317,7 @@ export class SuiTracker extends SuiMapper {
       }
     }
   }
-  moveEnd(evKey: KeyEvent) {
+  moveEnd(score: SmoScore, evKey: KeyEvent) {
     if (this.recordBuffer) {
       this.recordBuffer.addAction('moveEnd', SuiTracker.serializeEvent(evKey));
     }
@@ -330,7 +330,7 @@ export class SuiTracker extends SuiMapper {
       const endSel = this._getClosestTick({ staff: ls.staffId,
         measure: ls.measures.length - 1, voice: voiceIx, tick: voice.notes.length - 1, pitches: [] });
       if (evKey.shiftKey) {
-        this._selectBetweenSelections(this.selections[0], endSel);
+        this._selectBetweenSelections(score, this.selections[0], endSel);
       } else {
         this.selections = [endSel];
         this.deferHighlight();
@@ -350,7 +350,7 @@ export class SuiTracker extends SuiMapper {
       const endSel = this._getClosestTick({ staff: ls.staffId,
         measure: lm.measureNumber.measureIndex, voice: lm.getActiveVoice(), tick: ticks - 1, pitches: [] });
       if (evKey.shiftKey) {
-        this._selectBetweenSelections(this.selections[0], endSel);
+        this._selectBetweenSelections(score, this.selections[0], endSel);
       } else {
         this.selections = [endSel];
         this.deferHighlight();
@@ -609,20 +609,6 @@ export class SuiTracker extends SuiMapper {
     return rv;
   }
 
-  _selectFromToInStaff(sel1: SmoSelection, sel2: SmoSelection) {
-    this.selections = [];
-    this.idleTimer = Date.now();
-    const order = [sel1, sel2].sort((a, b) => SmoSelector.lteq(a.selector, b.selector) ? -1 : 1);
-
-    // TODO: we could iterate directly over the selectors, that would be faster
-    Object.keys(this.measureNoteMap).forEach((k) => {
-      const obj = this.measureNoteMap[k];
-      if (SmoSelector.gteq(obj.selector, order[0].selector) && SmoSelector.lteq(obj.selector, order[1].selector)) {
-        this.selections.push(obj);
-      }
-    });
-  }
-
   _addSelection(selection: SmoSelection) {
     const ar: SmoSelection[] = this.selections.filter((sel) =>
       SmoSelector.neq(sel.selector, selection.selector)
@@ -655,27 +641,23 @@ export class SuiTracker extends SuiMapper {
         SuiTracker.serializeEvent(ev), modKey);
     }
   }
-  _selectBetweenSelections(s1: SmoSelection, s2: SmoSelection) {
+  _selectFromToInStaff(score: SmoScore, sel1: SmoSelection, sel2: SmoSelection) {
+    this.selections = SmoSelection.innerSelections(score, sel1.selector, sel2.selector).filter((ff) => 
+      ff.selector.voice === sel1.measure.activeVoice
+    );
+    if (this.selections.length === 0) {
+      this.selections = [sel1];
+    }
+    this.idleTimer = Date.now();
+  }
+  _selectBetweenSelections(score: SmoScore, s1: SmoSelection, s2: SmoSelection) {
     const min = SmoSelector.gt(s1.selector, s2.selector) ? s2 : s1;
     const max = SmoSelector.lt(min.selector, s2.selector) ? s2 : s1;
-    this._selectFromToInStaff(min, max);
+    this._selectFromToInStaff(score, min, max);
     this._createLocalModifiersList();
     this.deferHighlight();
   }
-  // ### _matchSelectionToModifier
-  // assumes a modifier is selected
-  _matchSelectionToModifier() {
-    const mod = this.modifierSelections[0].modifier;
-    if ((mod as StaffModifierBase).startSelector && (mod as StaffModifierBase).endSelector && this.score) {
-      const sm = mod as StaffModifierBase;
-      const s1: SmoSelection | null = SmoSelection.noteFromSelector(this.score, sm.startSelector);
-      const s2: SmoSelection | null = SmoSelection.noteFromSelector(this.score, sm.endSelector);
-      if (s1 && s2) {
-        this._selectBetweenSelections(s1, s2);
-      }
-    }
-  }
-  selectSuggestion(ev: KeyEvent) {
+  selectSuggestion(score: SmoScore,ev: KeyEvent) {
     if (!this.suggestion || !this.suggestion.measure || this.score === null) {
       return;
     }
@@ -691,7 +673,6 @@ export class SuiTracker extends SuiMapper {
       this.modifierSuggestion = -1;
       // If we selected due to a mouse click, move the selection to the
       // selected modifier
-      // this._matchSelectionToModifier();
       this._highlightModifier();
       return;
     } else if (ev.type === 'click') {
@@ -703,7 +684,7 @@ export class SuiTracker extends SuiMapper {
       const sel1 = this.getExtremeSelection(-1);
       if (sel1.selector.staff === this.suggestion.selector.staff) {
         this.recordSelectSuggestion(ev, this.suggestion.selector);
-        this._selectBetweenSelections(sel1, this.suggestion);
+        this._selectBetweenSelections(score, sel1, this.suggestion);
         return;
       }
     }

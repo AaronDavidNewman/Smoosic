@@ -33,6 +33,9 @@ export interface Ticks {
     remainder: number
 }
 
+/**
+ * constraint for SmoPitch.letter value, in lower case
+ */
 export type PitchLetter = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g';
 
 export function IsPitchLetter(letter: PitchLetter | string): letter is PitchLetter {
@@ -159,6 +162,9 @@ export interface SmoModifierBase {
     attrs: SmoAttrs
 }
 
+/**
+ * Restriction from string to supported clefs
+ */
 export type Clef = 'treble' | 'bass' | 'tenor' | 'alto' | 'soprano' | 'percussion'
     | 'mezzo-soprano' | 'baritone-c' | 'baritone-f' | 'subbass' | 'french';
 

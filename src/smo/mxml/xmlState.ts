@@ -327,23 +327,13 @@ export class XmlState {
       }
     });
   }
-  static slurDirectionFromNote(clef: Clef, note: SmoNote, orientation: string) {
-    const rv = { invert: false, yOffset: SmoSlur.defaults.yOffset };
-    const flagState = SmoMusic.flagStateFromNote(clef, note);
-    if (flagState === SmoNote.flagStates.up && orientation === 'over') {
-      rv.invert = true;
-      rv.yOffset += 50;
-    }
-    if (flagState === SmoNote.flagStates.down && orientation === 'under') {
-      rv.invert = true;
-      rv.yOffset -= 50;
-    }
-    return rv;
-  }
-  // ### updateSlurStates
-  // While parsing a measure,
-  // on a slur element, either complete a started
-  // slur or start a new one.
+
+  /**
+   * While parsing a measure,
+   * on a slur element, either complete a started
+   * slur or start a new one.
+   * @param slurInfos 
+   */
   updateSlurStates(slurInfos: XmlSlurType[]) {
     const clef: Clef = this.staffArray[this.staffIndex].clefInfo.clef as Clef;
     const note = this.previousNote;
@@ -355,16 +345,11 @@ export class XmlState {
           const slurParams = SmoSlur.defaults;
           slurParams.endSelector = JSON.parse(JSON.stringify((this.slurs[slurInfo.number] as XmlSlurType).selector));
           slurParams.startSelector = slurInfo.selector;
-          const alter = XmlState.slurDirectionFromNote(clef, note, slurInfo.orientation);
-          slurParams.yOffset = alter.yOffset;
-          slurParams.invert = alter.invert;
           this.completedSlurs.push(slurParams);
           this.slurs[slurInfo.number] = null;
         } else {
-          const alter = XmlState.slurDirectionFromNote(clef, note, slurInfo.orientation);
+          // We no longer try to pick the slur direction until the score is complete.
           this.slurs[slurInfo.number] = JSON.parse(JSON.stringify(slurInfo));
-          (this.slurs[slurInfo.number] as XmlSlurType).yOffset = alter.yOffset;
-          (this.slurs[slurInfo.number] as XmlSlurType).invert = alter.invert;
         }
       } else if (slurInfo.type === 'stop') {
         if (this.slurs[slurInfo.number] && (this.slurs[slurInfo.number] as XmlSlurType).type === 'start') {
@@ -396,11 +381,12 @@ export class XmlState {
       this.smoStaves[tie.startSelector.staff].addStaffModifier(smoTie);
     });
   }
-  // ### completeSlurs
-  // After reading in a measure, update any completed slurs and make them
-  // into SmoSlur and add them to the SmoSystemGroup objects.
-  // staffIndexOffset is the offset from the xml staffId and the score staff Id
-  // (i.e. the staves that have already been parsed in other parts)
+  /**
+   * After reading in a measure, update any completed slurs and make them
+   * into SmoSlur and add them to the SmoSystemGroup objects.
+   * staffIndexOffset is the offset from the xml staffId and the score staff Id
+   * (i.e. the staves that have already been parsed in other parts)
+   */
   completeSlurs() {
     this.completedSlurs.forEach((slur) => {
       const params = SmoSlur.defaults;

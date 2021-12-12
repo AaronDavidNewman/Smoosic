@@ -47,6 +47,7 @@ export abstract class SmoNoteModifierBase implements SmoModifierBase {
 }
 
 /**
+ * used to construct {@link SmoGraceNote}
  * @param ctor - constructor 'GraceNote'
  * @param flagState - up, down, or auto
  * @param noteType - note, rest, slash
@@ -133,7 +134,10 @@ export class SmoGraceNote extends SmoNoteModifierBase implements Transposable {
     smoSerialize.serializedMerge(SmoGraceNote.parameterArray, parameters, this);
   }
 }
-
+/**
+ * Constructor parameters for {@link SmoMicrotone}
+ * @category SmoParams
+ */
 export interface SmoMicrotoneParams extends SmoObjectParams {
   tone: string,
   pitch: number
@@ -206,6 +210,10 @@ export class SmoMicrotone extends SmoNoteModifierBase {
   }
 }
 
+/**
+ * Constructor for {@link SmoOrnament}
+ * @category SmoParams
+ */
 export interface SmoOrnamentParams {
   position?: string,
   offset?: string,
@@ -295,6 +303,10 @@ export class SmoOrnament extends SmoNoteModifierBase {
   }
 }
 
+/**
+ * Constructor parameters for {@link SmoArticulation}
+ * @category SmoParams
+ */
 export interface SmoArticulationParameters {
   position?: string,
   offset?: number,
@@ -397,6 +409,10 @@ export interface VexAnnotationParams {
   text?: string
 }
 
+/**
+ * The persist-y parts of {@link SmoLyricParams}. We don't persist the selector
+ * since that can change based on the position of the parent note
+ */
 export interface SmoLyricPersist extends SmoObjectParams {
   ctor: string,
   endChar: string,
@@ -414,6 +430,9 @@ export interface SmoLyricPersist extends SmoObjectParams {
   _text: string | null
 }
 
+/**
+ * Used to construct a {@link SmoLyric} for both chords and lyrics
+ */
 export interface SmoLyricParams extends SmoLyricPersist {
   ctor: string,
   endChar: string,
@@ -665,6 +684,10 @@ export class SmoLyric extends SmoNoteModifierBase {
   }
 }
 
+/**
+ * The persisted bits of {@link SmoDynamicTextParams}
+ * @category SmoParams
+ */
 export interface SmoDynamicTextPersist extends SmoObjectParams {
   ctor: string,
   xOffset: number,
@@ -673,6 +696,10 @@ export interface SmoDynamicTextPersist extends SmoObjectParams {
   yOffsetPixels: number,
   text: string
 }
+/**
+ * Constructor parameters for {@link SmoDynamicText}
+ * @category SmoParams
+ */
 export interface SmoDynamicTextParams extends SmoDynamicTextPersist {
   ctor: string,
   xOffset: number,

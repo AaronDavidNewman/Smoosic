@@ -31,7 +31,7 @@ export class SuiTempoAdapter extends SuiComponentAdapter {
     this.edited = true;
   }
   writeString(param: SmoTempoStringAttribute, value: string) {
-    this.smoTempoText[param] = value;
+    (this.smoTempoText as any)[param] = value;
     this.view.updateTempoScore(this.smoTempoText, this.applyToAll);
     this.edited = true;
   }
