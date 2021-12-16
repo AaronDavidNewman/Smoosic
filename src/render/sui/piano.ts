@@ -83,9 +83,6 @@ export class SuiPiano {
       const isVisible = $('body').hasClass('show-piano');
       $('body').toggleClass('show-piano');
       this._mapKeys();
-      if (isVisible) {
-        $('body').trigger('forceResizeEvent');
-      }
     });
     $('#piano-8va-button').off('click').on('click', (ev: any) => {
       $('#piano-8vb-button').removeClass('activated');
@@ -120,7 +117,7 @@ export class SuiPiano {
       this.view.tracker.moveSelectionLeft();
     });
     $('button.jsRight').off('click').on('click', () => {
-      this.view.tracker.moveSelectionRight(null, false);
+      this.view.tracker.moveSelectionRight(this.view.score, null, false);
     });
     $('button.jsGrowDuration').off('click').on('click', () => {
       this.view.batchDurationOperation('doubleDuration');
@@ -172,16 +169,17 @@ export class SuiPiano {
   static hidePiano() {
     if ($('body').hasClass('show-piano')) {
       $('body').removeClass('show-piano');
-      // resize the work area.
-      $('body').trigger('forceResizeEvent');
     }
   }
   static showPiano() {
     if ($('body').hasClass('show-piano') === false) {
       $('body').addClass('show-piano');
       // resize the work area.
-      $('body').trigger('forceResizeEvent');
+      // $('body').trigger('forceResizeEvent');
     }
+  }
+  static get isShowing() {
+    return $('body').hasClass('show-piano');
   }
   _updateSelections(ev: any) {
     // fake a scroller (piano scroller w/b cool tho...)

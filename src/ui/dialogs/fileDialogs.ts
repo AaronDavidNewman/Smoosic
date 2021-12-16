@@ -15,6 +15,7 @@ declare var parseMidi: any;
 
 /**
  * internal state of FileLoadDialog is just the string for the filename.
+ * @category SuiDialog
  */
 export class SuiSmoLoadAdapter extends SuiComponentAdapter {
   jsonFile: string = '';
@@ -41,7 +42,10 @@ export class SuiSmoLoadAdapter extends SuiComponentAdapter {
   }
   cancel() {}
 }
-
+/**
+ * Load a SMO JSON file
+ * @category SuiDialog
+ */
 export class SuiLoadFileDialog extends SuiDialogAdapterBase<SuiSmoLoadAdapter> {
   static dialogElements: DialogDefinition =
     {
@@ -76,6 +80,7 @@ export class SuiLoadFileDialog extends SuiDialogAdapterBase<SuiSmoLoadAdapter> {
 }
 /**
  * internal state of FileLoadDialog is just the string for the filename.
+ * @category SuiDialog
  */
  export class SuiXmlLoadAdapter extends SuiComponentAdapter {
   xmlFile: string = '';
@@ -108,6 +113,10 @@ export class SuiLoadFileDialog extends SuiDialogAdapterBase<SuiSmoLoadAdapter> {
   cancel() {}
 }
 
+/**
+ * Load a music XML file
+ * @category SuiDialog
+ */
 export class SuiLoadMxmlDialog extends SuiDialogAdapterBase<SuiXmlLoadAdapter> {
   static dialogElements: DialogDefinition =
     {
@@ -134,6 +143,7 @@ export class SuiLoadMxmlDialog extends SuiDialogAdapterBase<SuiXmlLoadAdapter> {
 }
 /**
  * internal state of FileLoadDialog is just the string for the filename.
+ * @category SuiDialog
  */
  export class SuiMidiLoadAdapter extends SuiComponentAdapter {
   midiFile: any = null;

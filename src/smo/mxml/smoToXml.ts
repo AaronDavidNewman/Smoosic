@@ -6,12 +6,12 @@ import { SmoMusic } from '../data/music';
 import { SmoMeasure, SmoVoice } from '../data/measure';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { SmoScore } from '../data/score';
-import { TimeSignature } from '../data/measureModifiers';
+import { SmoBarline, TimeSignature } from '../data/measureModifiers';
 import { SmoStaffHairpin, SmoSlur } from '../data/staffModifiers';
 import { SmoLyric } from '../data/noteModifiers';
 import { SmoSelector } from '../xform/selections';
 
-import { mxmlHelpers } from './xmlHelpers';
+import { XmlHelpers } from './xmlHelpers';
 import { SmoTempoText } from '../data/measureModifiers';
 import { XmlToSmo } from './xmlToSmo';
 
@@ -72,19 +72,19 @@ export class SmoToXml {
     }));
   }
   static convert(score: SmoScore): XMLDocument {
-    const nn = mxmlHelpers.createTextElementChild;
-    const dom = mxmlHelpers.createRootElement();
+    const nn = XmlHelpers.createTextElementChild;
+    const dom = XmlHelpers.createRootElement();
     const root = dom.children[0];
     const work = nn(root, 'work', null, '');
     nn(work, 'work-title', score.scoreInfo, 'title');
     const identification = nn(root, 'identification', null, '');
     const creator = nn(identification, 'creator', score.scoreInfo, 'composer');
-    mxmlHelpers.createAttributes(creator, { type: 'composer' });
+    XmlHelpers.createAttributes(creator, { type: 'composer' });
     const encoding = nn(identification, 'encoding', null, '');
     nn(encoding, 'software', { software: 'Some pre-release version of Smoosic' }, 'software');
     const today = new Date();
     const dd = (n: number) => n < 10 ? '0' + n.toString() : n.toString()
-    const dateString: string = today.getFullYear() + '-' + dd(today.getDate()) + '-' + dd(today.getMonth());
+    const dateString: string = today.getFullYear() + '-' + dd(today.getMonth() + 1) + '-' + dd(today.getDate());
     nn(encoding, 'encoding-date', dateString, 'date');
     const defaults = nn(root, 'defaults', null, '');
     const scaling = nn(defaults, 'scaling', null, '');
@@ -105,14 +105,14 @@ export class SmoToXml {
     score.staves.forEach((staff) => {
       const id = 'P' + staff.staffId;
       const scorePart = nn(partList, 'score-part', null, '');
-      mxmlHelpers.createAttributes(scorePart, { id });
+      XmlHelpers.createAttributes(scorePart, { id });
       nn(scorePart, 'part-name', { name: staff.measureInstrumentMap[0].instrumentName }, 'name');
     });
     const smoState: SmoState = SmoToXml.defaultState;
     score.staves.forEach((staff) => {
       const part = nn(root, 'part', null, '');
       const id = 'P' + staff.staffId;
-      mxmlHelpers.createAttributes(part, { id });
+      XmlHelpers.createAttributes(part, { id });
       smoState.measureNumber = 1;
       smoState.tickCount = 0;
       smoState.staff = staff;
@@ -131,7 +131,7 @@ export class SmoToXml {
   // ### measure
   // .../part/measure
   static measure(measureElement: Element, smoState: SmoState) {
-    const nn = mxmlHelpers.createTextElementChild;
+    const nn = XmlHelpers.createTextElementChild;
     if (!smoState.measure) {
       return;
     }
@@ -141,13 +141,14 @@ export class SmoToXml {
     }
     if (smoState.measure.getForceSystemBreak()) {
       const printElement = nn(measureElement, 'print', null, '');
-      mxmlHelpers.createAttributes(printElement, { 'new-system': 'yes' });
+      XmlHelpers.createAttributes(printElement, { 'new-system': 'yes' });
     }
-    mxmlHelpers.createAttributes(measureElement, { number: smoState.measureNumber });
+    XmlHelpers.createAttributes(measureElement, { number: smoState.measureNumber });
     SmoToXml.attributes(measureElement, smoState);
     smoState.voiceIndex = 1;
     smoState.beamState = SmoToXml.beamStates.none;
     smoState.beamTicks = 0;
+    SmoToXml.barline(measureElement, smoState, true);
     measure.voices.forEach((voice) => {
       smoState.voiceTickIndex = 0;
       smoState.voice = voice;
@@ -168,12 +169,52 @@ export class SmoToXml {
       }
       smoState.measureTicks = 0;
     });
+    SmoToXml.barline(measureElement, smoState, false);
+  }
+  // /score-partwise/part/measure/barline
+  static barline(measureElement: Element, smoState: SmoState, start: boolean) {
+    const nn = XmlHelpers.createTextElementChild;
+    let barlineElement = null;
+    if (start) {
+      if (smoState.measure!.getStartBarline().barline === SmoBarline.barlines.startRepeat) {
+        barlineElement = nn(measureElement, 'barline', null, '');
+        const repeatElement = nn(barlineElement, 'repeat', null, '');
+        XmlHelpers.createAttributes(repeatElement, { direction: 'forward' });
+      }
+    }
+    const voltas = smoState.staff!.getVoltasForMeasure(smoState.measure!.measureNumber.measureIndex);
+    const numArray: number[] = [];
+    voltas.forEach((volta) => {
+      if ((start && volta?.startSelector?.measure === smoState.measure!.measureNumber.measureIndex) || 
+          (!start && volta?.endSelector?.measure === smoState.measure!.measureNumber.measureIndex)) {
+        numArray.push(volta.number);
+      }
+    });
+    if (!start && smoState.measure!.getEndBarline().barline === SmoBarline.barlines.endBar) {
+      barlineElement = barlineElement ?? nn(measureElement, 'barline', null, '');
+      nn(barlineElement, 'bar-style', { style: 'light-heavy'} , 'style');
+    } else if (!start && smoState.measure!.getEndBarline().barline === SmoBarline.barlines.doubleBar) {
+      barlineElement = barlineElement ?? nn(measureElement, 'barline', null, '');
+      nn(barlineElement, 'bar-style', { style: 'light-light'} , 'style');
+    }
+    if (numArray.length) {
+      barlineElement = barlineElement ?? nn(measureElement, 'barline', null, '');
+      const numstr = numArray.join(',');
+      const endElement = nn(barlineElement, 'ending', null, '');
+      const endString = start ? 'start' : 'stop';
+      XmlHelpers.createAttributes(endElement, { type: endString, number: numstr });
+    }
+    if (!start && smoState.measure!.getEndBarline().barline === SmoBarline.barlines.endRepeat) {
+      barlineElement = barlineElement ?? nn(measureElement, 'barline', null, '');
+      const repeatElement = nn(barlineElement, 'repeat', null, '');
+      XmlHelpers.createAttributes(repeatElement, { direction: 'backward' });
+    }
   }
 
   // ### slur
   // /score-partwise/part/measure/note/notations/slur
   static slur(notationsElement: Element, smoState: SmoState) {
-    const nn = mxmlHelpers.createTextElementChild;
+    const nn = XmlHelpers.createTextElementChild;
     const staff: SmoSystemStaff = smoState.staff as SmoSystemStaff;
     const measure = smoState.measure as SmoMeasure;
     const getNumberForSlur = ((slurs: SlurXml[]) => {
@@ -207,7 +248,7 @@ export class SmoToXml {
       if (match) {
         remove.push(match);
         const slurElement = nn(notationsElement, 'slur', null, '');
-        mxmlHelpers.createAttributes(slurElement, { number: match.number, type: 'stop' });
+        XmlHelpers.createAttributes(slurElement, { number: match.number, type: 'stop' });
       }
     });
     smoState.slurs.forEach((slur: any) => {
@@ -224,7 +265,7 @@ export class SmoToXml {
         number
       });
       const slurElement = nn(notationsElement, 'slur', null, '');
-      mxmlHelpers.createAttributes(slurElement, { number: number, type: 'start' });
+      XmlHelpers.createAttributes(slurElement, { number: number, type: 'start' });
     });
   }
   // ### /score-partwise/measure/note/time-modification
@@ -236,7 +277,7 @@ export class SmoToXml {
     if (!smoState.note) {
       return;
     }
-    const nn = mxmlHelpers.createTextElementChild;
+    const nn = XmlHelpers.createTextElementChild;
     const measure = smoState.measure;
     const note = smoState.note;
     const tuplet = measure.getTupletForNote(note);
@@ -251,19 +292,19 @@ export class SmoToXml {
     nn(timeModification, 'normal-notes', obj, 'normalNotes');
     if (tuplet.getIndexOfNote(note) === 0) {
       const tupletElement = nn(notationsElement, 'tuplet', null, '');
-      mxmlHelpers.createAttributes(tupletElement, {
+      XmlHelpers.createAttributes(tupletElement, {
         number: 1, type: 'start'
       });
     } else if (tuplet.getIndexOfNote(note) === tuplet.notes.length - 1) {
       const tupletElement = nn(notationsElement, 'tuplet', null, '');
-      mxmlHelpers.createAttributes(tupletElement, {
+      XmlHelpers.createAttributes(tupletElement, {
         number: 1, type: 'stop'
       });
     }
   }
   // ### /score-partwise/measure/note/pitch
   static pitch(pitch: Pitch, noteElement: Element) {
-    const nn = mxmlHelpers.createTextElementChild;
+    const nn = XmlHelpers.createTextElementChild;
     const accidentalOffset = ['bb', 'b', 'n', '#', '##'];
     const alter = accidentalOffset.indexOf(pitch.accidental) - 2;
     const pitchElement = nn(noteElement, 'pitch', null, '');
@@ -279,7 +320,7 @@ export class SmoToXml {
     if (!smoState.voice) {
       return;
     }
-    const nn = mxmlHelpers.createTextElementChild;
+    const nn = XmlHelpers.createTextElementChild;
     const note = smoState.note;
     const nextNote = (smoState.voiceTickIndex + 1) >= smoState.voice.notes.length ?
       null : smoState.voice.notes[smoState.voiceTickIndex + 1];
@@ -311,22 +352,22 @@ export class SmoToXml {
     // slur is start/stop, beam is begin, end, gf
     if (toBeam === SmoToXml.beamStates.start) {
       const beamElement = nn(noteElement, 'beam', { type: 'begin' }, 'type');
-      mxmlHelpers.createAttributes(beamElement, { number: 1 });
+      XmlHelpers.createAttributes(beamElement, { number: 1 });
       smoState.beamState = SmoToXml.beamStates.continue;
     } else if (toBeam === SmoToXml.beamStates.continue) {
       const beamElement = nn(noteElement, 'beam', { type: 'continue' }, 'type');
-      mxmlHelpers.createAttributes(beamElement, { number: 1 });
+      XmlHelpers.createAttributes(beamElement, { number: 1 });
     } else if ((toBeam === SmoToXml.beamStates.stop) ||
       (toBeam === SmoToXml.beamStates.none && smoState.beamState !== SmoToXml.beamStates.none)) {
       const beamElement = nn(noteElement, 'beam', { type: 'end' }, 'type');
-      mxmlHelpers.createAttributes(beamElement, { number: 1 });
+      XmlHelpers.createAttributes(beamElement, { number: 1 });
       smoState.beamState = SmoToXml.beamStates.none;
     }
   }
   // ### /score-partwise/measure/direction/direction-type
   static direction(measureElement: Element, smoState: SmoState, beforeNote: boolean) {
     let addDirection = false;
-    const nn = mxmlHelpers.createTextElementChild;
+    const nn = XmlHelpers.createTextElementChild;
     const directionElement = measureElement.ownerDocument.createElement('direction');
     const dtype = nn(directionElement, 'direction-type', null, '');
     const staff = smoState.staff as SmoSystemStaff;
@@ -381,14 +422,14 @@ export class SmoToXml {
       (mod.attrs.type === 'SmoStaffHairpin')) as SmoStaffHairpin;
     if (endWedge && !beforeNote) {
       const wedgeElement = nn(dtype, 'wedge', null, '');
-      mxmlHelpers.createAttributes(wedgeElement, { type: 'stop', spread: '20' });
+      XmlHelpers.createAttributes(wedgeElement, { type: 'stop', spread: '20' });
       addDirection = true;
     }
     if (startWedge && beforeNote) {
       const wedgeElement = nn(dtype, 'wedge', null, '');
       const wedgeType = startWedge.hairpinType === SmoStaffHairpin.types.CRESCENDO ?
         'crescendo' : 'diminuendo';
-      mxmlHelpers.createAttributes(wedgeElement, { type: wedgeType });
+      XmlHelpers.createAttributes(wedgeElement, { type: wedgeType });
       addDirection = true;
     }
     if (addDirection) {
@@ -398,7 +439,7 @@ export class SmoToXml {
   // ### /score-partwise/measure/note/lyric
   static lyric(noteElement: Element, smoState: SmoState) {
     const smoNote = smoState.note!;
-    const nn = mxmlHelpers.createTextElementChild;
+    const nn = XmlHelpers.createTextElementChild;
     const lyrics = smoNote.getTrueLyrics() as SmoLyric[];
     lyrics.forEach((lyric) => {
       let syllabic = 'single';
@@ -416,9 +457,9 @@ export class SmoToXml {
       }
       smoState.lyricState[lyric.verse] = syllabic;
       const lyricElement = nn(noteElement, 'lyric', null, '');
-      mxmlHelpers.createAttribute(lyricElement, 'number', lyric.verse + 1);
-      mxmlHelpers.createAttribute(lyricElement, 'placement', 'below');
-      mxmlHelpers.createAttribute(lyricElement, 'default-y',
+      XmlHelpers.createAttribute(lyricElement, 'number', lyric.verse + 1);
+      XmlHelpers.createAttribute(lyricElement, 'placement', 'below');
+      XmlHelpers.createAttribute(lyricElement, 'default-y',
         -80 - 10 * lyric.verse);
       nn(lyricElement, 'syllabic', syllabic, '');
       nn(lyricElement, 'text', lyric.getText(), '');
@@ -427,9 +468,10 @@ export class SmoToXml {
   // ### /score-partwise/measure/note
   static note(measureElement: Element, smoState: SmoState) {
     const note: SmoNote = smoState.note!;
-    const nn = mxmlHelpers.createTextElementChild;
+    const nn = XmlHelpers.createTextElementChild;
     let i = 0;
     for (i = 0; i < note.pitches.length; ++i) {
+      let j = 0;
       const noteElement = nn(measureElement, 'note', null, '');
       const isChord = i > 0;
       if (isChord) {
@@ -448,8 +490,12 @@ export class SmoToXml {
       smoState.measureTicks += duration;
       nn(noteElement, 'duration', { duration }, 'duration');
       nn(noteElement, 'voice', { voice: smoState.voiceIndex }, 'voice');
-      nn(noteElement, 'type', { type: mxmlHelpers.closestStemType(note.tickCount) },
+      nn(noteElement, 'type', { type: XmlHelpers.closestStemType(note.tickCount) },
         'type');
+      const dots = SmoMusic.smoTicksToVexDots(note.tickCount);
+      for (j = 0; j < dots; ++j) {
+        nn(noteElement, 'dot', null, '');
+      }
       if (note.flagState === SmoNote.flagStates.up) {
         nn(noteElement, 'stem', { direction: 'up' }, 'direction');
       }
@@ -486,7 +532,7 @@ export class SmoToXml {
       return; // no key change
     }
     const flats = SmoMusic.getFlatsInKeySignature(measure.keySignature);
-    const nn = mxmlHelpers.createTextElementChild;
+    const nn = XmlHelpers.createTextElementChild;
     if (flats > 0) {
       fifths = -1 * flats;
     } else {
@@ -500,10 +546,10 @@ export class SmoToXml {
   // ### time
   // score-partwise/part/measure/attributes/time
   static time(attributesElement: Element, smoState: SmoState) {
-    const nn = mxmlHelpers.createTextElementChild;
+    const nn = XmlHelpers.createTextElementChild;
     const measure = smoState.measure as SmoMeasure;
     const currentTs = (smoState.timeSignature as TimeSignature) ?? null;
-    if (currentTs !== null && TimeSignature.equal(currentTs, measure.timeSignature) === false) {
+    if (currentTs !== null && TimeSignature.equal(currentTs, measure.timeSignature)) {
       return;
     }
     smoState.timeSignature = measure.timeSignature;
@@ -523,7 +569,7 @@ export class SmoToXml {
     if (smoState.clef && (smoState.clef === measure.clef && measure.measureNumber.measureIndex > 0)) {
       return; // no change
     }
-    const nn = mxmlHelpers.createTextElementChild;
+    const nn = XmlHelpers.createTextElementChild;
     const xmlClef = SmoMusic.clefSigns[measure.clef];
     const clefElement = nn(attributesElement, 'clef', null, '');
     nn(clefElement, 'sign', xmlClef.sign, 'sign');
@@ -536,7 +582,7 @@ export class SmoToXml {
     smoState.clef = measure.clef;
   }
   static attributes(measureElement: Element, smoState: SmoState) {
-    const nn = mxmlHelpers.createTextElementChild;
+    const nn = XmlHelpers.createTextElementChild;
     const attributesElement = measureElement.ownerDocument.createElement('attributes');
     if (smoState.divisions < 1) {
       nn(attributesElement, 'divisions', { divisions: 4096 }, 'divisions');

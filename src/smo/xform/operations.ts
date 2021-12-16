@@ -804,21 +804,58 @@ export class SmoOperation {
     fromSelection.staff.addStaffModifier(modifier);
     return modifier;
   }
+  /**
+   * Heuristically determine how a slur should be formatted based on the notes.  Determine control points,
+   * offset, and alignment
+   * 
+   * ## Note: Vexflow slurs consider `top` to mean the furthest point from the note head, which could be the top
+   * or the bottom of the note.  It also considers yoffset to be negative if inverted is set.  Head means close to the
+   * note head.
+   * @param score 
+   * @param fromSelection 
+   * @param toSelection 
+   * @returns 
+   */
   static getDefaultSlurDirection(score: SmoScore, fromSelection: SmoSelection, toSelection: SmoSelection):SmoSlurParams {
     const params: SmoSlurParams = SmoSlur.defaults;
     const sels = SmoSelector.order(fromSelection.selector, toSelection.selector);
     params.startSelector = JSON.parse(JSON.stringify(sels[0]));
     params.endSelector = JSON.parse(JSON.stringify(sels[1]));
+    // Get all selections within the slur
     const selections = SmoSelection.innerSelections(score, sels[0], sels[1]).filter((ff) => ff.selector.voice === fromSelection.selector.voice);
     const dirs: Record<number, boolean> = {};
+    const beamGroups: Record<string, boolean> = {};
     let startDir = SmoNote.flagStates.up;
+    let mixed = false;
     let endDir = SmoNote.flagStates.up;
+    let firstGap = 0;
+    let lastGap = 0;
     if (selections.length < 1) {
       return new SmoSlur(params);
     }
     
     selections.forEach((selection, selectionIx) => {
-      const fstate = SmoMusic.flagStateFromNote(selection.note!.clef as Clef, selection.note!);
+      const note = selection.note!;
+      if (note.beam_group) {
+        beamGroups[note.beam_group.id] = true;
+      } else {
+        beamGroups[note.attrs.id] = true;
+      }
+      // Find the gap between the first and second note, and also between last 2.  If they are far apart,
+      // increase the control points so the slurs don't run into the notes
+      if (selectionIx === 1) {
+        const lastNote = selections[0].note!;
+        firstGap = Math.abs(SmoMusic.pitchToStaffLine(note.clef as Clef, note.pitches[0]) - 
+          SmoMusic.pitchToStaffLine(lastNote.clef as Clef, lastNote.pitches[0]));
+      }
+      if (selectionIx === selections.length - 2 && selections.length > 2) {
+        const nextNote = selections[selectionIx + 1].note!;
+        lastGap = Math.abs(SmoMusic.pitchToStaffLine(note.clef as Clef, note.pitches[0]) - 
+          SmoMusic.pitchToStaffLine(nextNote.clef as Clef, nextNote.pitches[0]));
+      }
+      const fstate = SmoMusic.flagStateFromNote(note.clef as Clef, selection.note!);
+      // Keep track of the number of stem directions, so we can determine if the flags are mixed direction
+      // the rules are a little different for mixed - we always try to put the slur on (the real) top of the staff.
       dirs[fstate] = true;
       if (selectionIx === 0) {
         startDir = fstate;
@@ -828,15 +865,41 @@ export class SmoOperation {
       }
     });
     params.invert = false;
-    const mixed = Object.keys(dirs).length > 1;
+    mixed = Object.keys(dirs).length > 1;
+    // If the notes are beamed together, the beams must point in the same direction    
+    if (Object.keys(beamGroups).length < 2) {
+      mixed = false;
+    }
     if (mixed) {
-      params.position = startDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
-      params.position_end = endDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
+      // special case: slur 2 notes, note heads close, connect the note heads
+      // to keep a flat arc
+      if (selections.length === 2 && firstGap < 3) {
+        params.position = SmoSlur.positions.HEAD;
+        params.position_end = SmoSlur.positions.HEAD;
+        params.xOffset = 5;
+      } else {
+        params.position = startDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
+        params.position_end = endDir === SmoNote.flagStates.up ? SmoSlur.positions.TOP : SmoSlur.positions.HEAD;
+        if (firstGap >= 3 || lastGap >= 3) {
+          params.cp1y = 45;
+          params.cp2y = 45;
+        }
+      }
       params.invert = endDir === SmoNote.flagStates.up;
     }
     if (!mixed) {
       params.position = SmoSlur.positions.HEAD;
       params.position_end = SmoSlur.positions.HEAD;
+      if (firstGap >= 2 || lastGap >= 2) {
+        params.cp1y = 45;
+        params.cp2y = 45;
+        params.yOffset += 10;
+      } else {
+        params.yOffset += 10;
+      }
+    }
+    if (selections.length === 2) {
+      params.xOffset = 0;
     }
     return params;
   }

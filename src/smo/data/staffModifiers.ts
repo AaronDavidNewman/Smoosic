@@ -270,8 +270,8 @@ export class SmoSlur extends StaffModifierBase {
     return JSON.parse(JSON.stringify({
       spacing: 2,
       thickness: 2,
-      xOffset: -5,
-      yOffset: 10,
+      xOffset: 5,
+      yOffset: 0,
       position: SmoSlur.positions.TOP,
       position_end: SmoSlur.positions.TOP,
       invert: false,
@@ -333,7 +333,13 @@ export class SmoSlur extends StaffModifierBase {
     smoSerialize.serializedMerge(SmoSlur.parameterArray, params, this);
     this.startSelector = params.startSelector;
     this.endSelector = params.endSelector;
-    // TODO: allow user to customize these
+
+    // Fix some earlier serialization error.
+    if ((this.position !== SmoSlur.positions.TOP && this.position !== SmoSlur.positions.HEAD) ||
+    (this.position_end !== SmoSlur.positions.TOP && this.position_end !== SmoSlur.positions.HEAD)) {
+      this.position = SmoSlur.positions.HEAD;
+      this.position_end = SmoSlur.positions.HEAD;
+    }
     if (!this.attrs) {
       this.attrs = {
         id: VF.Element.newID(),

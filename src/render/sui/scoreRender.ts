@@ -289,10 +289,13 @@ export class SuiScoreRender extends SuiRenderState {
     const keys = Object.keys(mscore);
     if (!printing) {
       $('body').addClass('show-render-progress');
-      if (this.score.preferences.showPiano) {
+      const isShowing = SuiPiano.isShowing;
+      if (this.score.preferences.showPiano && !isShowing) {
         SuiPiano.showPiano();
-      } else {
+        this.measureMapper!.scroller.updateViewport();
+      } else if (isShowing) {
         SuiPiano.hidePiano();
+        this.measureMapper!.scroller.updateViewport();
       }
     }
     this.backgroundRender = true;
@@ -456,8 +459,13 @@ export class SuiScoreRender extends SuiRenderState {
       }
     }
     const pl: SmoPageLayout[] | undefined = this.score?.layoutManager?.pageLayouts;
-    if (pl && pl.length !== startPageCount) {
-      this.setViewport(true);
+    if (pl) {
+      if (this.currentPage < pl.length - 1) {
+        this.score!.layoutManager!.trimPages(this.currentPage);
+      }
+      if (pl.length !== startPageCount) {
+        this.setViewport(true);
+      }  
     }
     layoutDebug.setTimestamp(layoutDebug.codeRegions.COMPUTE, new Date().valueOf() - timestamp);
     this.renderAllMeasures();

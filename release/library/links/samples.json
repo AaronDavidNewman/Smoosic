@@ -21,7 +21,7 @@
 				]
 			},
 			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/BachInvention.json"
-		},{
+		}, {
 			"format": "smoosic",
 			"metadata": {
 				"name": "Bach Well-Tempered Clavier",
@@ -42,6 +42,16 @@
 				]
 			},
 			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/Gnossienne3-3.json"
+		}, {
+			"format": "smoosic",
+			"metadata": {
+				"name": "Bach Cantata BMV 68 for Trumpet and Piano",
+				"composer": "JS Bach",
+				"tags": [
+					"Trumpet organ"
+				]
+			},
+			"url": "https://aarondavidnewman.github.io/Smoosic/release/library/BachCantataBMV68.json"
 		},  {
 			"format": "smoosic",
 			"metadata": {

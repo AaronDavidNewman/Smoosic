@@ -7,18 +7,21 @@ var smoDomBuilder = function (el) {}
 // # Description:
 //  Helper functions for buildling UI elements
 export class htmlHelpers {
-  // ## buildDom
-  // ## Description:
-  // returns an object that  lets you build a DOM in a somewhat readable way.
-  // ## Usage:
-  // var b = htmlHelpers.buildDom;
-  //  var r =
-  // b('tr').classes('jsSharingMember').data('entitykey', key).data('name', name).data('entitytype', entityType).append(
-  // b('td').classes('noSideBorderRight').append(
-  // ...
-  // $(parent).append(r.dom());
-  //
-  // Don't forget the '.dom()' !  That is the actual jquery element object
+  /**
+  * returns an object that  lets you build a DOM in a somewhat readable way.
+  * 
+  * ## Usage
+  * ``` javascript
+  * var b = htmlHelpers.buildDom;
+  * var r =
+  *   b('tr').classes('jsSharingMember').data('entitykey', key).data('name', name).data('entitytype', entityType).append(
+  *     b('td').classes('noSideBorderRight').append(
+  *    ...
+  * $(parent).append(r.dom());
+  * ```  
+  * Don't forget the '.dom()' !  That is the actual jquery element object
+  * @returns 
+  */
   static buildDom(el) {
     var smoDomBuilder = function (el) {
       this.e = $('<' + el + '/>');

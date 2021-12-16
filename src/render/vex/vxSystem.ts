@@ -22,7 +22,9 @@ export interface VoltaInfo {
   ending: SmoVolta
 }
 /**
- *  Create a system of staves and draw music on it.
+ * Create a system of staves and draw music on it.  This calls the Vex measure
+ * rendering methods, and also draws all the score and system level stuff like slurs, 
+ * text, aligns the lyrics.
  * */
 export class VxSystem {
   context: any;
@@ -290,6 +292,8 @@ export class VxSystem {
     } else if (modifier.ctor === 'SmoSlur') {
       const startNote: SmoNote = smoStart!.note as SmoNote;
       const slur = modifier as SmoSlur;
+      let slurX = slur.xOffset;
+      const svgPoint: SVGPoint[] = JSON.parse(JSON.stringify(slur.controlPoints));
       const lyric = startNote.longestLyric() as SmoLyric;
       if (lyric && lyric.getText()) {
         // If there is a lyric, the bounding box of the start note is stretched to the right.
@@ -297,13 +301,18 @@ export class VxSystem {
         const xtranslate = (-1 * lyric.getText().length * 6);
         xoffset += (xtranslate / 2) - SmoSlur.defaults.xOffset;
       }
+      if (vxStart === null || vxEnd === null) {
+        slurX = -5;
+        svgPoint[0].y = 10;
+        svgPoint[1].y = 10;
+      }
       const curve = new VF.Curve(vxStart, vxEnd,
         {
           thickness: slur.thickness,
-          x_shift: slur.xOffset,
+          x_shift: slurX,
           y_shift: slur.yOffset,
           spacing: slur.spacing,
-          cps: slur.controlPoints,
+          cps: svgPoint,
           invert: slur.invert,
           position: slur.position,
           position_end: slur.position_end

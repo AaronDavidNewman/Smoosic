@@ -4,10 +4,10 @@
  * Logic to convert music XML (finale) to Smo internal format
  * @module XmlToSmo
  */
-import { mxmlHelpers } from './xmlHelpers';
+import { XmlHelpers } from './xmlHelpers';
 import { XmlVoiceInfo, XmlState, XmlWedgeInfo } from './xmlState';
 import { SmoLayoutManager, SmoTextGroup } from '../data/scoreModifiers';
-import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase } from '../data/measureModifiers';
+import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase, SmoVolta, SmoBarline } from '../data/measureModifiers';
 import { SmoScore } from '../data/score';
 import { SmoMeasure, SmoMeasureParams } from '../data/measure';
 import { emptyScoreJson } from '../../music/basic';
@@ -49,7 +49,7 @@ export class XmlToSmo {
     return ['title', 'subTitle', 'composer', 'copyright'];
   }
   /**
-   * Convert music XML file from parse xml to a {@link SmoScore}
+   * Convert music XML file from parsed xml to a {@link SmoScore}
    * @param xmlDoc 
    * @returns
    */
@@ -139,6 +139,8 @@ export class XmlToSmo {
         ));
       }
       XmlToSmo.setSlurDefaults(rv);
+      rv.preferences.showPiano = false;
+      XmlToSmo.setVoltas(rv, xmlState);
       return rv;
     } catch (exc) {
       console.warn(exc);
@@ -162,7 +164,25 @@ export class XmlToSmo {
           slur.position = slurParams.position;
           slur.position_end = slurParams.position_end;
           slur.invert = slurParams.invert;
+          slur.yOffset = slurParams.yOffset;
+          slur.cp1y = slurParams.cp1y;
+          slur.cp2y = slurParams.cp2y;
+          slur.xOffset = slurParams.xOffset;
         }
+      });
+    });
+  }
+  static setVoltas(score: SmoScore, state: XmlState) {
+    const endingMeasures = Object.keys(state.endingMap).map((k) => parseInt(k, 10));
+    endingMeasures.forEach((em) => {
+      const endings = state.endingMap[em];
+      endings.forEach((ending) => {
+        const defs = SmoVolta.defaults;
+        defs.number = ending.number;
+        defs.startBar = ending.start;
+        defs.endBar = ending.end >= 0 ? ending.end : ending.start;
+        const volta = new SmoVolta(defs);
+        SmoOperation.addEnding(score, volta);
       });
     });
   }
@@ -175,18 +195,18 @@ export class XmlToSmo {
     const currentScale = layoutDefaults.getGlobalLayout().svgScale;
     const pageLayoutNode = defaultsElement.getElementsByTagName('page-layout');
     if (pageLayoutNode.length) {
-      mxmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults.globalLayout, XmlToSmo.pageLayoutMap);
+      XmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults.globalLayout, XmlToSmo.pageLayoutMap);
     }
-    const pageMarginNode = mxmlHelpers.getChildrenFromPath(defaultsElement,
+    const pageMarginNode = XmlHelpers.getChildrenFromPath(defaultsElement,
       ['page-layout', 'page-margins']);
     if (pageMarginNode.length) {
-      mxmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], XmlToSmo.pageMarginMap);
+      XmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], XmlToSmo.pageMarginMap);
     }
 
     const scaleNode = defaultsElement.getElementsByTagName('scaling');
     if (scaleNode.length) {
-      const mm = mxmlHelpers.getNumberFromElement(scaleNode[0], 'millimeters', 1);
-      const tn = mxmlHelpers.getNumberFromElement(scaleNode[0], 'tenths', 7);
+      const mm = XmlHelpers.getNumberFromElement(scaleNode[0], 'millimeters', 1);
+      const tn = XmlHelpers.getNumberFromElement(scaleNode[0], 'tenths', 7);
       if (tn > 0 && mm > 0) {
         scale = mm / tn;
       }
@@ -237,7 +257,7 @@ export class XmlToSmo {
     let tempoText = '';
     let customText = tempoText;
     const rv: { staffId: number, tempo: SmoTempoText }[] = [];
-    const soundNodes = mxmlHelpers.getChildrenFromPath(element,
+    const soundNodes = XmlHelpers.getChildrenFromPath(element,
       ['sound']);
     soundNodes.forEach((sound) => {
       let tempoMode = SmoTempoText.tempoModes.durationMode;
@@ -263,7 +283,7 @@ export class XmlToSmo {
         params.customText = customText;
         params.display = true;
         const tempo = new SmoTempoText(params);
-        const staffId = mxmlHelpers.getStaffId(element);
+        const staffId = XmlHelpers.getStaffId(element);
         rv.push({ staffId, tempo });
       }
     });
@@ -273,9 +293,9 @@ export class XmlToSmo {
   // /score-partwise/part/measure/direction/dynamics
   static dynamics(directionElement: Element, xmlState: XmlState) {
     let offset = 1;
-    const dynamicNodes = mxmlHelpers.getChildrenFromPath(directionElement,
+    const dynamicNodes = XmlHelpers.getChildrenFromPath(directionElement,
       ['direction-type', 'dynamics']);
-    const offsetNodes = mxmlHelpers.getChildrenFromPath(directionElement,
+    const offsetNodes = XmlHelpers.getChildrenFromPath(directionElement,
       ['offset']);
     if (offsetNodes.length) {
       offset = parseInt(offsetNodes[0].textContent as string, 10);
@@ -292,18 +312,18 @@ export class XmlToSmo {
   // /score-partwise/part/measure/attributes
   static attributes(measureElement: Element, xmlState: XmlState) {
     let smoKey: PitchKey = {} as PitchKey;
-    const attributesNodes = mxmlHelpers.getChildrenFromPath(measureElement, ['attributes']);
+    const attributesNodes = XmlHelpers.getChildrenFromPath(measureElement, ['attributes']);
     if (!attributesNodes.length) {
       return;
     }
     const attributesNode = attributesNodes[0];
     xmlState.divisions =
-      mxmlHelpers.getNumberFromElement(attributesNode, 'divisions', xmlState.divisions);
+      XmlHelpers.getNumberFromElement(attributesNode, 'divisions', xmlState.divisions);
 
-    const keyNode = mxmlHelpers.getChildrenFromPath(attributesNode, ['key']);
+    const keyNode = XmlHelpers.getChildrenFromPath(attributesNode, ['key']);
     // MusicXML expresses keys in 'fifths' from C.
     if (keyNode.length) {
-      const fifths = mxmlHelpers.getNumberFromElement(keyNode[0], 'fifths', 0);
+      const fifths = XmlHelpers.getNumberFromElement(keyNode[0], 'fifths', 0);
       if (fifths < 0) {
         smoKey = SmoMusic.circleOfFifths[SmoMusic.circleOfFifths.length + fifths];
       } else {
@@ -316,27 +336,27 @@ export class XmlToSmo {
     }
 
     const currentTime = xmlState.timeSignature.split('/');
-    const timeNodes = mxmlHelpers.getChildrenFromPath(attributesNode, ['time']);
+    const timeNodes = XmlHelpers.getChildrenFromPath(attributesNode, ['time']);
     if (timeNodes.length) {
       const timeNode = timeNodes[0];
-      const num = mxmlHelpers.getNumberFromElement(timeNode, 'beats', parseInt(currentTime[0], 10));
-      const den = mxmlHelpers.getNumberFromElement(timeNode, 'beat-type', parseInt(currentTime[1], 10));
+      const num = XmlHelpers.getNumberFromElement(timeNode, 'beats', parseInt(currentTime[0], 10));
+      const den = XmlHelpers.getNumberFromElement(timeNode, 'beat-type', parseInt(currentTime[1], 10));
       xmlState.timeSignature = '' + num + '/' + den;
     }
 
-    const clefNodes = mxmlHelpers.getChildrenFromPath(attributesNode, ['clef']);
+    const clefNodes = XmlHelpers.getChildrenFromPath(attributesNode, ['clef']);
     if (clefNodes.length) {
       // We expect the number of clefs to equal the number of staves in each measure
       clefNodes.forEach((clefNode) => {
         let clefNum = 0;
         let clef = 'treble';
-        const clefAttrs = mxmlHelpers.nodeAttributes(clefNode);
+        const clefAttrs = XmlHelpers.nodeAttributes(clefNode);
         if (typeof (clefAttrs.number) !== 'undefined') {
           // staff numbers index from 1 in mxml
           clefNum = parseInt(clefAttrs.number, 10) - 1;
         }
-        const clefType = mxmlHelpers.getTextFromElement(clefNode, 'sign', 'G');
-        const clefLine = mxmlHelpers.getNumberFromElement(clefNode, 'line', 2);
+        const clefType = XmlHelpers.getTextFromElement(clefNode, 'sign', 'G');
+        const clefLine = XmlHelpers.getNumberFromElement(clefNode, 'line', 2);
         // mxml supports a zillion clefs, just implement the basics.
         if (clefType === 'F') {
           clef = 'bass';
@@ -364,7 +384,7 @@ export class XmlToSmo {
   // /score-partwise/part/measure/direction/direction-type/wedge
   static wedge(directionElement: Element, xmlState: XmlState) {
     let crescInfo: XmlWedgeInfo | null = null;
-    const wedgeNodes = mxmlHelpers.getChildrenFromPath(directionElement,
+    const wedgeNodes = XmlHelpers.getChildrenFromPath(directionElement,
       ['direction-type', 'wedge']);
     wedgeNodes.forEach((wedgeNode) => {
       crescInfo = { type: wedgeNode.getAttribute('type') as string };
@@ -397,7 +417,7 @@ export class XmlToSmo {
   // /score-partwise/part/measure/note
   static note(noteElement: Element, xmlState: XmlState) {
     let grIx = 0;
-    const staffIndex: number = mxmlHelpers.getStaffId(noteElement);
+    const staffIndex: number = XmlHelpers.getStaffId(noteElement);
     xmlState.staffIndex = staffIndex;
     // We assume the clef information from attributes comes before the notes
     // xmlState.staffArray[staffIndex] = { clefInfo: { clef }, voices[voiceIndex]: notes[] }
@@ -409,14 +429,14 @@ export class XmlToSmo {
         xmlState.staffArray.push({ clefInfo, measure: null, voices: {} as Record<number | string, XmlVoiceInfo> });
       });
     }
-    const chordNode = mxmlHelpers.getChildrenFromPath(noteElement, ['chord']);
+    const chordNode = XmlHelpers.getChildrenFromPath(noteElement, ['chord']);
     if (chordNode.length === 0) {
-      xmlState.currentDuration += mxmlHelpers.durationFromNode(noteElement, 0);
+      xmlState.currentDuration += XmlHelpers.durationFromNode(noteElement, 0);
     }
     // voices are not sequential, seem to have artitrary numbers and
     // persist per part (same with staff IDs).  Update XML state if these are new
     // staves
-    const voiceIndex = mxmlHelpers.getVoiceId(noteElement);
+    const voiceIndex = XmlHelpers.getVoiceId(noteElement);
     xmlState.voiceIndex = voiceIndex;
     xmlState.initializeStaff(staffIndex, voiceIndex);
     const voice = xmlState.staffArray[staffIndex].voices[voiceIndex];
@@ -432,24 +452,24 @@ export class XmlToSmo {
     const divisions = xmlState.divisions;
     const printText = noteElement.getAttribute('print-object');
     const hideNote = typeof (printText) === 'string' && printText === 'no';
-    const isGrace = mxmlHelpers.isGrace(noteElement);
-    const restNode = mxmlHelpers.getChildrenFromPath(noteElement, ['rest']);
+    const isGrace = XmlHelpers.isGrace(noteElement);
+    const restNode = XmlHelpers.getChildrenFromPath(noteElement, ['rest']);
     const noteType = restNode.length ? 'r' : 'n';
-    const durationData = mxmlHelpers.ticksFromDuration(noteElement, divisions, 4096);
+    const durationData = XmlHelpers.ticksFromDuration(noteElement, divisions, 4096);
     const tickCount = durationData.tickCount;
     if (chordNode.length === 0) {
       xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed += tickCount;
     }
     xmlState.tickCursor = (xmlState.currentDuration / divisions) * 4096;
-    const beamState = mxmlHelpers.noteBeamState(noteElement);
-    const slurInfos = mxmlHelpers.getSlurData(noteElement, selector);
-    const tieInfos = mxmlHelpers.getTieData(noteElement, selector, pitchIndex);
-    const tupletInfos = mxmlHelpers.getTupletData(noteElement);
-    const ornaments = mxmlHelpers.articulationsAndOrnaments(noteElement);
-    const lyrics = mxmlHelpers.lyrics(noteElement);
-    const flagState = mxmlHelpers.getStemType(noteElement);
+    const beamState = XmlHelpers.noteBeamState(noteElement);
+    const slurInfos = XmlHelpers.getSlurData(noteElement, selector);
+    const tieInfos = XmlHelpers.getTieData(noteElement, selector, pitchIndex);
+    const tupletInfos = XmlHelpers.getTupletData(noteElement);
+    const ornaments = XmlHelpers.articulationsAndOrnaments(noteElement);
+    const lyrics = XmlHelpers.lyrics(noteElement);
+    const flagState = XmlHelpers.getStemType(noteElement);
     const clefString: Clef = xmlState.staffArray[staffIndex].clefInfo.clef as Clef;
-    const pitch: Pitch = mxmlHelpers.smoPitchFromNote(noteElement,
+    const pitch: Pitch = XmlHelpers.smoPitchFromNote(noteElement,
       SmoMeasure.defaultPitchForClef[clefString]);
     if (isGrace === false) {
       if (chordNode.length) {
@@ -540,10 +560,10 @@ export class XmlToSmo {
     let hasNotes = false;
     elements.forEach((element) => {
       if (element.tagName === 'backup') {
-        xmlState.currentDuration -= mxmlHelpers.durationFromNode(element, 0);
+        xmlState.currentDuration -= XmlHelpers.durationFromNode(element, 0);
       }
       if (element.tagName === 'forward') {
-        xmlState.currentDuration += mxmlHelpers.durationFromNode(element, 0);
+        xmlState.currentDuration += XmlHelpers.durationFromNode(element, 0);
       }
       if (element.tagName === 'attributes') {
         // update the running state of the XML with new information from this measure
@@ -554,6 +574,8 @@ export class XmlToSmo {
       } else if (element.tagName === 'note') {
         XmlToSmo.note(element, xmlState);
         hasNotes = true;
+      } else if (element.tagName === 'barline') {
+        xmlState.updateEndings(element);
       }
     });
     // If a measure has no notes, just make one with the defaults
@@ -569,7 +591,7 @@ export class XmlToSmo {
       const smoMeasure = SmoMeasure.getDefaultMeasure(params);
       smoMeasure.format = new SmoMeasureFormat(SmoMeasureFormat.defaults);
       smoMeasure.format.measureIndex = xmlState.measureNumber;
-      smoMeasure.format.systemBreak = mxmlHelpers.isSystemBreak(measureElement);
+      smoMeasure.format.systemBreak = XmlHelpers.isSystemBreak(measureElement);
       smoMeasure.tempo = xmlState.tempo;
       smoMeasure.format.customProportion = XmlToSmo.customProportionDefault;
       xmlState.formattingManager.updateMeasureFormat(smoMeasure.format);
@@ -578,6 +600,14 @@ export class XmlToSmo {
       smoMeasure.measureNumber.localIndex = xmlState.measureNumber;
       smoMeasure.measureNumber.measureIndex = xmlState.measureIndex;
       smoMeasure.measureNumber.staffId = staffData.clefInfo.staffId + xmlState.smoStaves.length;
+      const startBarDefs = SmoBarline.defaults;
+      startBarDefs.position = SmoBarline.positions.start;
+      startBarDefs.barline = xmlState.startBarline;
+      const endBarDefs = SmoBarline.defaults;
+      endBarDefs.position = SmoBarline.positions.end;
+      endBarDefs.barline = xmlState.endBarline;
+      smoMeasure.setBarline(new SmoBarline(startBarDefs));
+      smoMeasure.setBarline(new SmoBarline(endBarDefs));
       // voices not in array, put them in an array
       Object.keys(staffData.voices).forEach((voiceKey) => {
         const voice = staffData.voices[voiceKey];

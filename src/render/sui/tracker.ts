@@ -142,7 +142,7 @@ export class SuiTracker extends SuiMapper {
     return rv;
   }
 
-  advanceModifierSelection(keyEv: KeyEvent | null) {
+  advanceModifierSelection(score: SmoScore,keyEv: KeyEvent | null) {
     if (!keyEv) {
       return;
     }
@@ -412,7 +412,7 @@ export class SuiTracker extends SuiMapper {
   }
 
   // if we are being moved right programmatically, avoid playing the selected note.
-  moveSelectionRight(evKey: KeyEvent | null, skipPlay: boolean) {
+  moveSelectionRight(score: SmoScore, evKey: KeyEvent | null, skipPlay: boolean) {
     if (this.selections.length === 0) {
       return;
     }
@@ -445,15 +445,6 @@ export class SuiTracker extends SuiMapper {
     }
     this._moveSelectionMeasure(1);
   }
-  moveSelectionOffset(offset: number) {
-    let i = 0;
-    const fcn = (offset >= 0 ? 'moveSelectionRight' : 'moveSelectionLeft');
-    offset = (offset < 0) ? -1 * offset : offset;
-    for (i = 0; i < offset; ++i) {
-      this[fcn](null, false);
-    }
-  }
-
   _moveSelectionMeasure(offset: number) {
     const selection = this.getExtremeSelection(Math.sign(offset));
     this.idleTimer = Date.now();
@@ -642,9 +633,18 @@ export class SuiTracker extends SuiMapper {
     }
   }
   _selectFromToInStaff(score: SmoScore, sel1: SmoSelection, sel2: SmoSelection) {
-    this.selections = SmoSelection.innerSelections(score, sel1.selector, sel2.selector).filter((ff) => 
+    const selections = SmoSelection.innerSelections(score, sel1.selector, sel2.selector).filter((ff) => 
       ff.selector.voice === sel1.measure.activeVoice
     );
+    this.selections = [];
+    // Get the actual selections from our map, since the client bounding boxes are already computed
+    selections.forEach((sel) => {
+      const key = SmoSelector.getNoteKey(sel.selector);
+      if (this.measureNoteMap) {
+        this.selections.push(this.measureNoteMap[key]);
+      }
+    });
+
     if (this.selections.length === 0) {
       this.selections = [sel1];
     }
@@ -655,6 +655,7 @@ export class SuiTracker extends SuiMapper {
     const max = SmoSelector.lt(min.selector, s2.selector) ? s2 : s1;
     this._selectFromToInStaff(score, min, max);
     this._createLocalModifiersList();
+    this.highlightQueue.selectionCount = this.selections.length;
     this.deferHighlight();
   }
   selectSuggestion(score: SmoScore,ev: KeyEvent) {

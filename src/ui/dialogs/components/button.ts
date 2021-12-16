@@ -2,6 +2,9 @@ import { htmlHelpers } from '../../../common/htmlHelpers';
 import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent } from './baseComponent';
 declare var $: any;
 
+/**
+ * 
+ */
 export interface SuiButtonComponentParams {
   id: string,
   classes: string,

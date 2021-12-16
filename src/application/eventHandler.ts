@@ -151,7 +151,7 @@ export class SuiEventHandler implements ModalEventHandler {
         return;
         // this.unbindKeyboardForModal(dialog);
       } else {
-        this.view.tracker.advanceModifierSelection(ev);
+        this.view.tracker.advanceModifierSelection(this.view.score, ev);
       }
     } else {
       this.view.tracker.selectSuggestion(this.view.score, ev);
@@ -247,7 +247,7 @@ export class SuiEventHandler implements ModalEventHandler {
       if (binding) {
         try {
           if (binding.module === 'tracker') {
-            (this.tracker as any)[binding.action](dataCopy);
+            (this.tracker as any)[binding.action](this.view.score, dataCopy);
           } else {
             (this.keyCommands as any)[binding.action](dataCopy);
           }

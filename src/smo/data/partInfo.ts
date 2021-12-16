@@ -60,6 +60,7 @@ export class SmoPartInfo extends StaffModifierBase {
   stavesBefore: number = 0;
   preserveTextGroups: boolean = false;
   cueInScore: boolean = false;
+  displayCues: boolean = false;
   static get defaults(): SmoPartInfoParams {
     return JSON.parse(JSON.stringify({
       partName: 'Staff ',

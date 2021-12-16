@@ -47,7 +47,7 @@ export class VxMeasure {
     this.selection = selection;
     this.smoMeasure = this.selection.measure;
     this.printing = printing;
-    this.allCues = selection.staff.partInfo.cueInScore;
+    this.allCues = selection.staff.partInfo.displayCues;
     this.tupletToVexMap = {};
     this.vexNotes = [];
     this.vexBeamGroups = [];

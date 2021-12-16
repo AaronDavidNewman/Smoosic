@@ -294,12 +294,22 @@ export class SmoSystemStaff implements SmoObjectParams {
     this.modifiers = mods;
   }
   // ### getVoltaMap
-
   getVoltaMap(startIndex: number, endIndex: number) {
     const rv: SmoVolta[] = [];
     this.measures.forEach((measure) => {
       measure.getNthEndings().forEach((ending) => {
         if (ending.startBar >= startIndex && ending.endBar <= endIndex) {
+          rv.push(ending);
+        }
+      });
+    });
+    return rv;
+  }
+  getVoltasForMeasure(ix: number) {
+    const rv: SmoVolta[] = [];
+    this.measures.forEach((measure) => {
+      measure.getNthEndings().forEach((ending) => {
+        if (ending.startSelector?.measure === ix ||  ending.endSelector?.measure === ix) {
           rv.push(ending);
         }
       });

@@ -9,7 +9,7 @@ import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent, DialogDefiniti
 declare var $: any;
 
 /**
- * constructor params for dropdown components
+ * constructor params for {@link SuiDropdownComponent}
  * @param id id in DOM
  * @param classes
  * @param type indicates the data type of the value
@@ -18,6 +18,7 @@ declare var $: any;
  * @param smoName variable name in dialog/adapter
  * @param control name of constructor
  * @param disabledOption
+ * @category SuiDialogParams
  */
 export interface SuiDropdownComponentParams {
   id: string,
@@ -32,6 +33,7 @@ export interface SuiDropdownComponentParams {
 }
 /**
  * single-select dropdown list
+ * @category SuiDialog
  */
 export class SuiDropdownComponent extends SuiComponentBase {
   options: DialogDefinitionOption[];
@@ -113,6 +115,17 @@ export class SuiDropdownComponent extends SuiComponentBase {
       });
   }
 }
+/**
+ * constructor params for {@link SuiDropdownComposite}
+ * element, often a checkbox
+ * @param {id} - unique ID for the control DOM
+ * @param {classes} - additional classes for styling added to DOM
+ * @param {label} - default label for the component
+ * @param {smoName} - the variable in the dialog that the componenet maps to
+ * @param {control} - the constructor of the UI control
+ * @param {parentComponent} - for composite components, the top-level
+ * @category SuiDialogParams
+ * */
 export interface SuiDropdownCompositeParams {
   id: string,
   classes: string,
@@ -126,8 +139,10 @@ export interface SuiDropdownCompositeParams {
   options?: DialogDefinitionOption[],
   parentControl: SuiComponentParent
 }
-// ### SuiDropdownComposite
-// Dropdown component that can be part of a composite control.
+/**
+ * A dropdown composite mixes a dropdown with some other 
+ * @category SuiDialog
+ */
 export class SuiDropdownComposite extends SuiDropdownComponent {
   parentControl: SuiComponentParent;
   constructor(dialog: SuiDialogNotifier, parameters: SuiDropdownCompositeParams) {

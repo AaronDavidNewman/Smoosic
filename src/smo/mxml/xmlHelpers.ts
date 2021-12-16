@@ -6,6 +6,7 @@ import { SmoMusic } from '../data/music';
 import { SmoNote } from '../data/note';
 import { Pitch, PitchLetter } from '../data/common';
 import { SmoSelector } from '../xform/selections';
+import { SmoBarline } from '../data/measureModifiers';
 
 const VF = eval('Vex.Flow');
 
@@ -22,16 +23,31 @@ export interface XmlDurationAlteration {
 export interface XmlDuration {
   tickCount: number, duration: number, alteration: XmlDurationAlteration
 }
+/**
+ * Store slur information when parsing xml
+ */
 export interface XmlSlurType {
   number: number, type: string, orientation: string, selector: SmoSelector, invert: boolean, yOffset: number
 }
+/**
+ * Store tie  information when parsing xml
+ */
 export interface XmlTieType {
   number: number, type: string, orientation: string, selector: SmoSelector, pitchIndex: number
 }
+/**
+ * Store tuplet information when parsing xml
+ */
 export interface XmlTupletData {
   number: number, type: string
 }
+export interface XmlEndingData {
+  numbers: number[], type: string
+}
 export type LyricSyllabic = 'begin' | 'end' | 'middle' | 'single';
+/**
+ * Store lyric information when parsing xml
+ */
 export interface XmlLyricData {
   _text: string, verse: number | string, syllabic: LyricSyllabic
 }
@@ -39,7 +55,7 @@ export interface XmlLyricData {
  * Utilities for parsing and serialzing musicXML.
  * @category SmoToXml
  * */
-export class mxmlHelpers {
+export class XmlHelpers {
   // ### noteTypesToSmoMap
   // mxml note 'types', really s/b stem types.
   // For grace notes, we use the note type and not duration
@@ -57,16 +73,16 @@ export class mxmlHelpers {
       '128th': 128
     };
   }
-  static readonly _ticksToNoteTypeMap: Record<number, string> = smoSerialize.reverseMap(mxmlHelpers.noteTypesToSmoMap) as Record<number, string>;
+  static readonly _ticksToNoteTypeMap: Record<number, string> = smoSerialize.reverseMap(XmlHelpers.noteTypesToSmoMap) as Record<number, string>;
 
   static get ticksToNoteTypeMap(): Record<number, string> {
-    return mxmlHelpers._ticksToNoteTypeMap;
+    return XmlHelpers._ticksToNoteTypeMap;
   }
   // ### closestStemType
   // smo infers the stem type from the duration, but other applications don't
   static closestStemType(ticks: number) {
     const nticks = VF.durationToTicks(SmoMusic.vexStemType(ticks));
-    return mxmlHelpers.ticksToNoteTypeMap[nticks];
+    return XmlHelpers.ticksToNoteTypeMap[nticks];
   }
   static get beamStates(): Record<string, number> {
     return {
@@ -109,7 +125,7 @@ export class mxmlHelpers {
   static getNumberFromElement(parent: Element, path: string, defaults: number): number {
     let rv = (typeof (defaults) === 'undefined' || defaults === null)
       ? 0 : defaults;
-    const tval = mxmlHelpers.getTextFromElement(parent, path, defaults);
+    const tval = XmlHelpers.getTextFromElement(parent, path, defaults);
     if (!tval) {
       return rv;
     }
@@ -159,7 +175,7 @@ export class mxmlHelpers {
     return rv;
   }
   static getStemType(noteElement: Element) {
-    const tt = mxmlHelpers.getTextFromElement(noteElement, 'stem', '');
+    const tt = XmlHelpers.getTextFromElement(noteElement, 'stem', '');
     if (tt === 'up') {
       return SmoNote.flagStates.up;
     } else if (tt === 'down') {
@@ -167,6 +183,41 @@ export class mxmlHelpers {
     }
     return SmoNote.flagStates.auto;
   }
+  static getEnding(barlineNode: Element): XmlEndingData | null {
+    const endingNodes = [...barlineNode.getElementsByTagName('ending')];
+    if (!endingNodes.length) {
+      return null;
+    }
+    const attrs = XmlHelpers.nodeAttributes(endingNodes[0]);
+    if (attrs.number && attrs.type) {
+      return {
+        numbers: attrs.number.split(',').map((x) => parseInt(x, 10)),
+        type: attrs.type
+      };
+    }
+    return null;
+  }
+  static getBarline(barlineNode: Element): number {
+    const rptNode = [...barlineNode.getElementsByTagName('repeat')];
+    if (rptNode.length) {
+      const repeatattr = XmlHelpers.nodeAttributes(rptNode[0]);
+      return repeatattr.direction === 'forward' ? SmoBarline.barlines.startRepeat : SmoBarline.barlines.endRepeat;
+    }
+    const styleText = XmlHelpers.getTextFromElement(barlineNode, 'bar-style', '');
+    if (styleText.length) {
+      const double = styleText.indexOf('-') >= 0;
+      const heavy = styleText.indexOf('heavy') >= 0;
+      const light = styleText.indexOf('light') >= 0;
+      if (double && heavy && light) {
+        return SmoBarline.barlines.endBar;
+      }
+      if (double) {
+        return SmoBarline.barlines.doubleBar;
+      }
+    }
+    return SmoBarline.barlines.singleBar;
+  }
+  
   // ### assignDefaults
   // Map SMO layout data from xml layout data (default node)
   static assignDefaults(node: Element, defObj: any, parameters: XmlSmoMap[]) {
@@ -174,16 +225,19 @@ export class mxmlHelpers {
       if (!isNaN(parseInt(defObj[param.smo], 10))) {
         const smoParam = param.smo;
         const xmlParam = param.xml;
-        defObj[smoParam] = mxmlHelpers.getNumberFromElement(node, xmlParam, defObj[smoParam]);
+        defObj[smoParam] = XmlHelpers.getNumberFromElement(node, xmlParam, defObj[smoParam]);
       }
     });
   }
   // ### nodeAttributes
   // turn the attributes of an element into a JS hash
-  static nodeAttributes(node: Element): any {
-    const rv: any = {};
+  static nodeAttributes(node: Element):  Record<string, string> {
+    const rv: Record<string, string> = {};
     node.getAttributeNames().forEach((attr) => {
-      rv[attr] = node.getAttribute(attr);
+      const aval: string | null = node.getAttribute(attr);
+      if (aval) {
+        rv[attr] = aval;
+      }
     });
     return rv;
   }
@@ -199,15 +253,15 @@ export class mxmlHelpers {
   static noteBeamState(noteNode: Element) {
     const beamNodes = [...noteNode.getElementsByTagName('beam')];
     if (!beamNodes.length) {
-      return mxmlHelpers.beamStates.AUTO;
+      return XmlHelpers.beamStates.AUTO;
     }
     const beamText = beamNodes[0].textContent;
     if (beamText === 'begin') {
-      return mxmlHelpers.beamStates.BEGIN;
+      return XmlHelpers.beamStates.BEGIN;
     } else if (beamText === 'end') {
-      return mxmlHelpers.beamStates.END;
+      return XmlHelpers.beamStates.END;
     }
-    return mxmlHelpers.beamStates.AUTO;
+    return XmlHelpers.beamStates.AUTO;
   }
   // same with notes and voices.  same convert
   static getVoiceId(node: Element) {
@@ -219,19 +273,19 @@ export class mxmlHelpers {
   }
   static smoPitchFromNote(noteNode: Element, defaultPitch: Pitch): Pitch {
     const accidentals = ['bb', 'b', 'n', '#', '##'];
-    const letter: PitchLetter = mxmlHelpers.getTextFromElement(noteNode, 'step', defaultPitch.letter).toLowerCase() as PitchLetter;
-    const octave = mxmlHelpers.getNumberFromElement(noteNode, 'octave', defaultPitch.octave);
-    const xaccidental = mxmlHelpers.getNumberFromElement(noteNode, 'alter', 0);
+    const letter: PitchLetter = XmlHelpers.getTextFromElement(noteNode, 'step', defaultPitch.letter).toLowerCase() as PitchLetter;
+    const octave = XmlHelpers.getNumberFromElement(noteNode, 'octave', defaultPitch.octave);
+    const xaccidental = XmlHelpers.getNumberFromElement(noteNode, 'alter', 0);
     return { letter, accidental: accidentals[xaccidental + 2], octave };
   }
   static isGrace(noteNode: Element) {
-    const path = mxmlHelpers.getChildrenFromPath(noteNode, ['grace']);
+    const path = XmlHelpers.getChildrenFromPath(noteNode, ['grace']);
     return path?.length > 0;
   }
   static isSystemBreak(measureNode: Element) {
     const printNodes = measureNode.getElementsByTagName('print');
     if (printNodes.length) {
-      const attrs = mxmlHelpers.nodeAttributes(printNodes[0]);
+      const attrs = XmlHelpers.nodeAttributes(printNodes[0]);
       if (typeof (attrs['new-system']) !== 'undefined') {
         return attrs['new-system'] === 'yes';
       }
@@ -244,8 +298,8 @@ export class mxmlHelpers {
     const typeNodes = [...noteNode.getElementsByTagName('type')];
     if (typeNodes.length) {
       const txt = typeNodes[0].textContent;
-      if (txt && mxmlHelpers.noteTypesToSmoMap[txt]) {
-        return mxmlHelpers.noteTypesToSmoMap[txt];
+      if (txt && XmlHelpers.noteTypesToSmoMap[txt]) {
+        return XmlHelpers.noteTypesToSmoMap[txt];
       }
     }
     return def;
@@ -263,14 +317,14 @@ export class mxmlHelpers {
   static ticksFromDuration(noteNode: Element, divisions: number, def: number): XmlDuration {
     const rv: XmlDuration = { tickCount: def, duration: def / divisions, alteration: { noteCount: 1, noteDuration: 1 } };
     const durationNodes = [...noteNode.getElementsByTagName('duration')];
-    const timeAlteration = mxmlHelpers.getTimeAlteration(noteNode);
+    const timeAlteration = XmlHelpers.getTimeAlteration(noteNode);
     // different ways to declare note duration - from type is the graphical
     // type, SMO uses ticks for everything
     if (durationNodes.length && durationNodes[0].textContent) {
       rv.duration = parseInt(durationNodes[0].textContent, 10);
       rv.tickCount = 4096 * (rv.duration / divisions);
     } else {
-      rv.tickCount = mxmlHelpers.durationFromType(noteNode, def);
+      rv.tickCount = XmlHelpers.durationFromType(noteNode, def);
       rv.duration = (divisions / 4096) * rv.tickCount;
     }
     // If this is a tuplet, we adjust the note duration back to the graphical type
@@ -304,7 +358,7 @@ export class mxmlHelpers {
     nNodes.forEach((nNode) => {
       const slurNodes = [...nNode.getElementsByTagName('tied')];
       slurNodes.forEach((slurNode) => {
-        const orientation = mxmlHelpers.getCurveDirection(slurNode);
+        const orientation = XmlHelpers.getCurveDirection(slurNode);
         const type = slurNode.getAttribute('type') as string;
         number = parseInt(slurNode.getAttribute('number') as string, 10);
         if (isNaN(number)) {
@@ -323,7 +377,7 @@ export class mxmlHelpers {
       slurNodes.forEach((slurNode) => {
         const number = parseInt(slurNode.getAttribute('number') as string, 10);
         const type = slurNode.getAttribute('type') as string;
-        const orientation = mxmlHelpers.getCurveDirection(slurNode);
+        const orientation = XmlHelpers.getCurveDirection(slurNode);
         const slurInfo = { number, type, orientation, selector, invert: false, yOffset: 0 };
         rv.push(slurInfo);
       });
@@ -332,7 +386,7 @@ export class mxmlHelpers {
   }
   static getCrescendoData(directionElement: Element) {
     let rv = {};
-    const nNodes = mxmlHelpers.getChildrenFromPath(directionElement,
+    const nNodes = XmlHelpers.getChildrenFromPath(directionElement,
       ['direction-type', 'wedge']);
     nNodes.forEach((nNode) => {
       rv = { type: nNode.getAttribute('type') };
@@ -359,10 +413,10 @@ export class mxmlHelpers {
       ['articulations', 'ornaments'].forEach((typ) => {
         const articulations = [...nNode.getElementsByTagName(typ)];
         articulations.forEach((articulation) => {
-          Object.keys(mxmlHelpers.ornamentXmlToSmoMap).forEach((key) => {
+          Object.keys(XmlHelpers.ornamentXmlToSmoMap).forEach((key) => {
             if ([...articulation.getElementsByTagName(key)].length) {
-              const ctor = eval('globalThis.Smo.' + mxmlHelpers.ornamentXmlToSmoMap[key].ctor);
-              rv.push(new ctor(mxmlHelpers.ornamentXmlToSmoMap[key].params));
+              const ctor = eval('globalThis.Smo.' + XmlHelpers.ornamentXmlToSmoMap[key].ctor);
+              rv.push(new ctor(XmlHelpers.ornamentXmlToSmoMap[key].params));
             }
           });
         });
@@ -375,9 +429,9 @@ export class mxmlHelpers {
     const nNodes = [...noteNode.getElementsByTagName('lyric')];
     nNodes.forEach((nNode) => {
       let verse = nNode.getAttribute('number');
-      const text = mxmlHelpers.getTextFromElement(nNode, 'text', '_');
+      const text = XmlHelpers.getTextFromElement(nNode, 'text', '_');
       const name = nNode.getAttribute('name') as string;
-      const syllabic = mxmlHelpers.getTextFromElement(nNode, 'syllabic', 'end') as LyricSyllabic;
+      const syllabic = XmlHelpers.getTextFromElement(nNode, 'syllabic', 'end') as LyricSyllabic;
       // Per xml spec, verse can be specified by a string (name), as in 'chorus'
       if (!verse) {
         verse = name;
@@ -389,11 +443,11 @@ export class mxmlHelpers {
   }
 
   static getTimeAlteration(noteNode: Element): XmlDurationAlteration | null {
-    const timeNodes = mxmlHelpers.getChildrenFromPath(noteNode, ['time-modification']);
+    const timeNodes = XmlHelpers.getChildrenFromPath(noteNode, ['time-modification']);
     if (timeNodes.length) {
       return {
-        noteCount: mxmlHelpers.getNumberFromElement(timeNodes[0], 'actual-notes', 1),
-        noteDuration: mxmlHelpers.getNumberFromElement(timeNodes[0], 'normal-notes', 1)
+        noteCount: XmlHelpers.getNumberFromElement(timeNodes[0], 'actual-notes', 1),
+        noteDuration: XmlHelpers.getNumberFromElement(timeNodes[0], 'normal-notes', 1)
       };
     }
     return null;
@@ -425,6 +479,6 @@ export class mxmlHelpers {
   static createAttribute(element: Element, name: string, value: any) {
     const obj: any = {};
     obj[name] = value;
-    mxmlHelpers.createAttributes(element, obj);
+    XmlHelpers.createAttributes(element, obj);
   }
 }

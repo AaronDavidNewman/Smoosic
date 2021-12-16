@@ -1,16 +1,16 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { mxmlHelpers, XmlLyricData, XmlDurationAlteration, XmlTieType, XmlSlurType, XmlTupletData } from './xmlHelpers';
+import { XmlHelpers, XmlLyricData, XmlDurationAlteration, XmlTieType, XmlSlurType, XmlTupletData, XmlEndingData } from './xmlHelpers';
 import { SmoMeasureModifierBase, SmoTempoText } from '../data/measureModifiers';
 import { SmoSystemGroup, SmoFormattingManager } from '../data/scoreModifiers';
 import { SmoNote } from '../data/note';
 import { SmoTie, SmoStaffHairpin, SmoSlur, SmoSlurParams } from '../data/staffModifiers';
 import { SmoLyric, SmoDynamicText, SmoGraceNote } from '../data/noteModifiers';
-import { SmoMusic } from '../data/music';
 import { SmoTuplet } from '../data/tuplet';
 import { SmoSystemStaff } from '../data/systemStaff';
 import { Clef } from '../data/common';
 import { SmoSelector } from '../xform/selections';
+import { SmoBarline } from '../data/measureModifiers';
 import { SmoMeasure } from '../data/measure';
 
 export interface XmlClefInfo {
@@ -59,6 +59,11 @@ export interface XmlTupletState {
   start: SmoSelector,
   end: SmoSelector
 }
+export interface XmlEnding {
+  start: number,
+  end: number,
+  number: number
+}
 /**
  * Keep state of musical objects while parsing music xml
  * @category SmoToXml
@@ -80,6 +85,11 @@ export class XmlState {
   hairpins: XmlHairpinInfo[] = [];
   globalCursor = 0;
   staffVoiceHash: Record<string | number, number[]> = {};
+  endingMap: Record<number, XmlEnding[]> = {};
+  startRepeatMap: Record<number, number> = {};
+  endRepeatMap: Record<number, number> = {};
+  startBarline: number = SmoBarline.barlines.singleBar;
+  endBarline: number = SmoBarline.barlines.singleBar;
   measureIndex = -1;
   completedSlurs: SmoSlurParams[] = [];
   completedTies: XmlCompletedTies[] = [];
@@ -137,6 +147,8 @@ export class XmlState {
     this.beamGroups = {};
     this.completedTuplets = [];
     this.dynamics = [];
+    this.startBarline = SmoBarline.barlines.singleBar;
+    this.endBarline = SmoBarline.barlines.singleBar;
     this.previousNote = new SmoNote(SmoNote.defaults);
     this.measureIndex += 1;
   }
@@ -146,7 +158,7 @@ export class XmlState {
   // staff IDs persist per part but are sequential.
   initializeStaff(staffIndex: number, voiceIndex: number) {
     // If no clef is specified, default to treble
-    if (typeof(this.staffArray[staffIndex]) === 'undefined') {
+    if (typeof (this.staffArray[staffIndex]) === 'undefined') {
       this.staffArray.push({ clefInfo: { clef: 'treble', staffId: this.staffIndex }, measure: null, voices: {} });
     }
     if (typeof (this.staffArray[staffIndex].voices[voiceIndex]) === 'undefined') {
@@ -296,7 +308,7 @@ export class XmlState {
   // includes time alteration from tuplets
   updateBeamState(beamState: number, alteration: XmlDurationAlteration, voice: XmlVoiceInfo, voiceIndex: number) {
     const note = voice.notes[voice.notes.length - 1];
-    if (beamState === mxmlHelpers.beamStates.BEGIN) {
+    if (beamState === XmlHelpers.beamStates.BEGIN) {
       this.beamGroups[voiceIndex] = {
         ticks: (note.tickCount * alteration.noteCount) / alteration.noteDuration,
         notes: 1
@@ -304,7 +316,7 @@ export class XmlState {
     } else if (this.beamGroups[voiceIndex]) {
       (this.beamGroups[voiceIndex] as XmlBeamGroupInfo).ticks += note.tickCount;
       (this.beamGroups[voiceIndex] as XmlBeamGroupInfo).notes += 1;
-      if (beamState === mxmlHelpers.beamStates.END) {
+      if (beamState === XmlHelpers.beamStates.END) {
         this.backtrackBeamGroup(voice, this.beamGroups[voiceIndex] as XmlBeamGroupInfo);
         this.beamGroups[voiceIndex] = null;
       }
@@ -326,6 +338,66 @@ export class XmlState {
         }
       }
     });
+  }
+  updateEndings(barlineNode: Element) {
+    const findStartEnding = (endingNumber: number, ix: number): XmlEnding | null | undefined => {
+      const endingIx = Object.keys(this.endingMap).map((xx) => parseInt(xx, 10));
+      let gt = -1;
+      let rv: XmlEnding | null = null;
+      endingIx.forEach((ee) => {
+        if (ee > gt && ee <= ix) {
+          const endings = this.endingMap[ee];
+          const txt = endings.find((xx: XmlEnding) => xx.number === endingNumber);
+          if (txt) {
+            gt = ee;
+            rv = txt;
+          }
+          if (endings.findIndex((xx: XmlEnding) => xx.number === endingNumber) >= 0) {
+            gt = ee;
+          }
+        }
+      });
+      if (gt >= 0) {
+        return rv;
+      } else {
+        return null;
+      }
+    };
+    const ending = XmlHelpers.getEnding(barlineNode);
+    if (ending) {
+      if (ending.type === 'start') {
+        const numbers = ending.numbers;
+        numbers.forEach((nn) => {
+          const endings: XmlEnding[] | undefined = this.endingMap[this.measureIndex];
+          if (!endings) {
+            this.endingMap[this.measureIndex] = [];
+          }
+          const inst = this.endingMap[this.measureIndex].find((ee) => ee.number === nn);
+          if (!inst) {
+            this.endingMap[this.measureIndex].push({
+              start: this.measureIndex,
+              end: -1,
+              number: nn
+            });
+          }
+        });
+      } else {
+        ending.numbers.forEach((nn) => {
+          const inst = findStartEnding(nn, this.measureIndex);
+          if (!inst) {
+            console.warn('bad ending ' + nn + ' at ' + this.measureIndex);
+          } else {
+            inst.end = this.measureIndex;
+          }
+        });
+      }
+    }
+    const barline = XmlHelpers.getBarline(barlineNode);
+    if (barline === SmoBarline.barlines.startRepeat) {
+      this.startBarline = barline;
+    } else {
+      this.endBarline = barline;
+    }
   }
 
   /**

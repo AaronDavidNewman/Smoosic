@@ -146,6 +146,7 @@ export abstract class SuiNoteTextComponent extends SuiComponentBase {
 
 /** 
  * manage a lyric session that moves from note to note and adds lyrics.
+ * @category SuiDialog
 **/
 export class SuiLyricComponent extends SuiNoteTextComponent {
   altLabel: string;

@@ -507,6 +507,7 @@ class SuiApplication {
         return [
             { alias: 'bach', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/BachInvention.json' },
             { alias: 'yama', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Yama2.json' },
+            { alias: 'bachcantata', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/BachCantataBMV68.json' },
             { alias: 'handel', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Messiah Pt 1-1.json' },
             { alias: 'bambino', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Gesu Bambino.json' },
             { alias: 'shade', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/Shade.json' },
@@ -547,6 +548,7 @@ exports.ModalEventHandlerProxy = exports.SimpleEventHandler = exports.ModalEvent
 /**
  * Shared interface for menus, dialogs, etc that can
  * accept UI events
+ * @category SuiUiBase
  */
 class ModalEventHandler {
 }
@@ -956,7 +958,7 @@ class SuiEventHandler {
                 // this.unbindKeyboardForModal(dialog);
             }
             else {
-                this.view.tracker.advanceModifierSelection(ev);
+                this.view.tracker.advanceModifierSelection(this.view.score, ev);
             }
         }
         else {
@@ -1039,7 +1041,7 @@ class SuiEventHandler {
             if (binding) {
                 try {
                     if (binding.module === 'tracker') {
-                        this.tracker[binding.action](dataCopy);
+                        this.tracker[binding.action](this.view.score, dataCopy);
                     }
                     else {
                         this.keyCommands[binding.action](dataCopy);
@@ -1501,18 +1503,21 @@ var smoDomBuilder = function (el) { };
 // # Description:
 //  Helper functions for buildling UI elements
 class htmlHelpers {
-    // ## buildDom
-    // ## Description:
-    // returns an object that  lets you build a DOM in a somewhat readable way.
-    // ## Usage:
-    // var b = htmlHelpers.buildDom;
-    //  var r =
-    // b('tr').classes('jsSharingMember').data('entitykey', key).data('name', name).data('entitytype', entityType).append(
-    // b('td').classes('noSideBorderRight').append(
-    // ...
-    // $(parent).append(r.dom());
-    //
-    // Don't forget the '.dom()' !  That is the actual jquery element object
+    /**
+    * returns an object that  lets you build a DOM in a somewhat readable way.
+    *
+    * ## Usage
+    * ``` javascript
+    * var b = htmlHelpers.buildDom;
+    * var r =
+    *   b('tr').classes('jsSharingMember').data('entitykey', key).data('name', name).data('entitytype', entityType).append(
+    *     b('td').classes('noSideBorderRight').append(
+    *    ...
+    * $(parent).append(r.dom());
+    * ```
+    * Don't forget the '.dom()' !  That is the actual jquery element object
+    * @returns
+    */
     static buildDom(el) {
         var smoDomBuilder = function (el) {
             this.e = $('<' + el + '/>');
@@ -5688,9 +5693,6 @@ class SuiPiano {
             const isVisible = $('body').hasClass('show-piano');
             $('body').toggleClass('show-piano');
             this._mapKeys();
-            if (isVisible) {
-                $('body').trigger('forceResizeEvent');
-            }
         });
         $('#piano-8va-button').off('click').on('click', (ev) => {
             $('#piano-8vb-button').removeClass('activated');
@@ -5727,7 +5729,7 @@ class SuiPiano {
             this.view.tracker.moveSelectionLeft();
         });
         $('button.jsRight').off('click').on('click', () => {
-            this.view.tracker.moveSelectionRight(null, false);
+            this.view.tracker.moveSelectionRight(this.view.score, null, false);
         });
         $('button.jsGrowDuration').off('click').on('click', () => {
             this.view.batchDurationOperation('doubleDuration');
@@ -5778,16 +5780,17 @@ class SuiPiano {
     static hidePiano() {
         if ($('body').hasClass('show-piano')) {
             $('body').removeClass('show-piano');
-            // resize the work area.
-            $('body').trigger('forceResizeEvent');
         }
     }
     static showPiano() {
         if ($('body').hasClass('show-piano') === false) {
             $('body').addClass('show-piano');
             // resize the work area.
-            $('body').trigger('forceResizeEvent');
+            // $('body').trigger('forceResizeEvent');
         }
+    }
+    static get isShowing() {
+        return $('body').hasClass('show-piano');
     }
     _updateSelections(ev) {
         // fake a scroller (piano scroller w/b cool tho...)
@@ -6769,11 +6772,14 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
         const keys = Object.keys(mscore);
         if (!printing) {
             $('body').addClass('show-render-progress');
-            if (this.score.preferences.showPiano) {
+            const isShowing = piano_1.SuiPiano.isShowing;
+            if (this.score.preferences.showPiano && !isShowing) {
                 piano_1.SuiPiano.showPiano();
+                this.measureMapper.scroller.updateViewport();
             }
-            else {
+            else if (isShowing) {
                 piano_1.SuiPiano.hidePiano();
+                this.measureMapper.scroller.updateViewport();
             }
         }
         this.backgroundRender = true;
@@ -6915,8 +6921,13 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
             }
         }
         const pl = (_b = (_a = this.score) === null || _a === void 0 ? void 0 : _a.layoutManager) === null || _b === void 0 ? void 0 : _b.pageLayouts;
-        if (pl && pl.length !== startPageCount) {
-            this.setViewport(true);
+        if (pl) {
+            if (this.currentPage < pl.length - 1) {
+                this.score.layoutManager.trimPages(this.currentPage);
+            }
+            if (pl.length !== startPageCount) {
+                this.setViewport(true);
+            }
         }
         layoutDebug_1.layoutDebug.setTimestamp(layoutDebug_1.layoutDebug.codeRegions.COMPUTE, new Date().valueOf() - timestamp);
         this.renderAllMeasures();
@@ -7312,6 +7323,12 @@ class SuiScoreView {
     }
     setMappedStaffIds() {
         this.score.staves.forEach((staff) => {
+            if (!this.isPartExposed(staff)) {
+                staff.partInfo.displayCues = staff.partInfo.cueInScore;
+            }
+            else {
+                staff.partInfo.displayCues = false;
+            }
             staff.setMappedStaffId(this.staffMap[staff.staffId]);
         });
     }
@@ -7388,11 +7405,16 @@ class SuiScoreView {
         // If this current view is a part, show the part layout
         if (this.isPartExposed(this.score.staves[0])) {
             this._mapPartFormatting();
+            this.score.staves.forEach((staff) => {
+                staff.partInfo.displayCues = false;
+            });
+        }
+        else {
+            this.score.staves.forEach((staff) => {
+                staff.partInfo.displayCues = staff.partInfo.cueInScore;
+            });
         }
         this.renderer.setViewport(true);
-        setTimeout(() => {
-            $('body').trigger('forceResizeEvent');
-        }, 1);
     }
     // ### viewAll
     // view all the staffs in score mode.
@@ -8402,7 +8424,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
             const altSel = this._getEquivalentSelection(selected);
             operations_1.SmoOperation.setPitch(altSel, [pitch]);
             if (this.score.preferences.autoAdvance) {
-                this.tracker.moveSelectionRight(null, true);
+                this.tracker.moveSelectionRight(this.score, null, true);
             }
         });
         if (selections.length === 1 && this.score.preferences.autoPlay) {
@@ -9019,7 +9041,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         return this.renderer.updatePromise();
     }
     advanceModifierSelection(keyEv) {
-        this.tracker.advanceModifierSelection(keyEv);
+        this.tracker.advanceModifierSelection(this.score, keyEv);
         return this.renderer.updatePromise();
     }
     growSelectionRightMeasure() {
@@ -9027,7 +9049,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         return this.renderer.updatePromise();
     }
     moveSelectionRight(ev) {
-        this.tracker.moveSelectionRight(ev, true);
+        this.tracker.moveSelectionRight(this.score, ev, true);
         return this.renderer.updatePromise();
     }
     moveSelectionLeft() {
@@ -11851,7 +11873,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         serializationHelpers_1.smoSerialize.serializedMerge(['type', 'shiftKey', 'ctrlKey', 'altKey', 'key', 'keyCode'], evKey, rv);
         return rv;
     }
-    advanceModifierSelection(keyEv) {
+    advanceModifierSelection(score, keyEv) {
         if (!keyEv) {
             return;
         }
@@ -12114,7 +12136,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         return artifact.note.tickCount;
     }
     // if we are being moved right programmatically, avoid playing the selected note.
-    moveSelectionRight(evKey, skipPlay) {
+    moveSelectionRight(score, evKey, skipPlay) {
         if (this.selections.length === 0) {
             return;
         }
@@ -12145,14 +12167,6 @@ class SuiTracker extends mapper_1.SuiMapper {
             this.recordBuffer.addAction('moveSelectionRightMeasure');
         }
         this._moveSelectionMeasure(1);
-    }
-    moveSelectionOffset(offset) {
-        let i = 0;
-        const fcn = (offset >= 0 ? 'moveSelectionRight' : 'moveSelectionLeft');
-        offset = (offset < 0) ? -1 * offset : offset;
-        for (i = 0; i < offset; ++i) {
-            this[fcn](null, false);
-        }
     }
     _moveSelectionMeasure(offset) {
         const selection = this.getExtremeSelection(Math.sign(offset));
@@ -12326,7 +12340,15 @@ class SuiTracker extends mapper_1.SuiMapper {
         }
     }
     _selectFromToInStaff(score, sel1, sel2) {
-        this.selections = selections_1.SmoSelection.innerSelections(score, sel1.selector, sel2.selector).filter((ff) => ff.selector.voice === sel1.measure.activeVoice);
+        const selections = selections_1.SmoSelection.innerSelections(score, sel1.selector, sel2.selector).filter((ff) => ff.selector.voice === sel1.measure.activeVoice);
+        this.selections = [];
+        // Get the actual selections from our map, since the client bounding boxes are already computed
+        selections.forEach((sel) => {
+            const key = selections_1.SmoSelector.getNoteKey(sel.selector);
+            if (this.measureNoteMap) {
+                this.selections.push(this.measureNoteMap[key]);
+            }
+        });
         if (this.selections.length === 0) {
             this.selections = [sel1];
         }
@@ -12337,6 +12359,7 @@ class SuiTracker extends mapper_1.SuiMapper {
         const max = selections_1.SmoSelector.lt(min.selector, s2.selector) ? s2 : s1;
         this._selectFromToInStaff(score, min, max);
         this._createLocalModifiersList();
+        this.highlightQueue.selectionCount = this.selections.length;
         this.deferHighlight();
     }
     selectSuggestion(score, ev) {
@@ -12905,7 +12928,7 @@ class VxMeasure {
         this.selection = selection;
         this.smoMeasure = this.selection.measure;
         this.printing = printing;
-        this.allCues = selection.staff.partInfo.cueInScore;
+        this.allCues = selection.staff.partInfo.displayCues;
         this.tupletToVexMap = {};
         this.vexNotes = [];
         this.vexBeamGroups = [];
@@ -13451,7 +13474,9 @@ const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers *
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
 const VF = eval('Vex.Flow');
 /**
- *  Create a system of staves and draw music on it.
+ * Create a system of staves and draw music on it.  This calls the Vex measure
+ * rendering methods, and also draws all the score and system level stuff like slurs,
+ * text, aligns the lyrics.
  * */
 class VxSystem {
     constructor(context, topY, lineIndex, score) {
@@ -13703,6 +13728,8 @@ class VxSystem {
         else if (modifier.ctor === 'SmoSlur') {
             const startNote = smoStart.note;
             const slur = modifier;
+            let slurX = slur.xOffset;
+            const svgPoint = JSON.parse(JSON.stringify(slur.controlPoints));
             const lyric = startNote.longestLyric();
             if (lyric && lyric.getText()) {
                 // If there is a lyric, the bounding box of the start note is stretched to the right.
@@ -13710,12 +13737,17 @@ class VxSystem {
                 const xtranslate = (-1 * lyric.getText().length * 6);
                 xoffset += (xtranslate / 2) - staffModifiers_1.SmoSlur.defaults.xOffset;
             }
+            if (vxStart === null || vxEnd === null) {
+                slurX = -5;
+                svgPoint[0].y = 10;
+                svgPoint[1].y = 10;
+            }
             const curve = new VF.Curve(vxStart, vxEnd, {
                 thickness: slur.thickness,
-                x_shift: slur.xOffset,
+                x_shift: slurX,
                 y_shift: slur.yOffset,
                 spacing: slur.spacing,
-                cps: slur.controlPoints,
+                cps: svgPoint,
                 invert: slur.invert,
                 position: slur.position,
                 position_end: slur.position_end
@@ -15307,7 +15339,7 @@ SmoRepeatSymbol.positions = {
 };
 /**
  * Voltas (2nd endings) behave more like staff modifiers, but they are associated with the measure
- * since each meausure has it's own rules for displaying part of the volta.
+ * since each measure has it's own rules for displaying part of the volta.
  * @category SmoModifier
  */
 class SmoVolta extends SmoMeasureModifierBase {
@@ -18213,6 +18245,7 @@ class SmoPartInfo extends staffModifiers_1.StaffModifierBase {
         this.stavesBefore = 0;
         this.preserveTextGroups = false;
         this.cueInScore = false;
+        this.displayCues = false;
         if (!params.layoutManager) {
             this.layoutManager = new scoreModifiers_1.SmoLayoutManager(scoreModifiers_1.SmoLayoutManager.defaults);
         }
@@ -19230,6 +19263,11 @@ class SmoLayoutManager extends SmoScoreModifierBase {
         rv.zoomScale = globalLayout.zoomScale;
         return rv;
     }
+    trimPages(pageCount) {
+        if (pageCount < this.pageLayouts.length - 1) {
+            this.pageLayouts = this.pageLayouts.slice(0, pageCount + 1);
+        }
+    }
     getZoomScale() {
         return this.globalLayout.zoomScale;
     }
@@ -20069,7 +20107,12 @@ class SmoSlur extends StaffModifierBase {
         serializationHelpers_1.smoSerialize.serializedMerge(SmoSlur.parameterArray, params, this);
         this.startSelector = params.startSelector;
         this.endSelector = params.endSelector;
-        // TODO: allow user to customize these
+        // Fix some earlier serialization error.
+        if ((this.position !== SmoSlur.positions.TOP && this.position !== SmoSlur.positions.HEAD) ||
+            (this.position_end !== SmoSlur.positions.TOP && this.position_end !== SmoSlur.positions.HEAD)) {
+            this.position = SmoSlur.positions.HEAD;
+            this.position_end = SmoSlur.positions.HEAD;
+        }
         if (!this.attrs) {
             this.attrs = {
                 id: VF.Element.newID(),
@@ -20081,8 +20124,8 @@ class SmoSlur extends StaffModifierBase {
         return JSON.parse(JSON.stringify({
             spacing: 2,
             thickness: 2,
-            xOffset: -5,
-            yOffset: 10,
+            xOffset: 5,
+            yOffset: 0,
             position: SmoSlur.positions.TOP,
             position_end: SmoSlur.positions.TOP,
             invert: false,
@@ -20490,6 +20533,18 @@ class SmoSystemStaff {
         this.measures.forEach((measure) => {
             measure.getNthEndings().forEach((ending) => {
                 if (ending.startBar >= startIndex && ending.endBar <= endIndex) {
+                    rv.push(ending);
+                }
+            });
+        });
+        return rv;
+    }
+    getVoltasForMeasure(ix) {
+        const rv = [];
+        this.measures.forEach((measure) => {
+            measure.getNthEndings().forEach((ending) => {
+                var _a, _b;
+                if (((_a = ending.startSelector) === null || _a === void 0 ? void 0 : _a.measure) === ix || ((_b = ending.endSelector) === null || _b === void 0 ? void 0 : _b.measure) === ix) {
                     rv.push(ending);
                 }
             });
@@ -21703,19 +21758,19 @@ class SmoToXml {
         }));
     }
     static convert(score) {
-        const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
-        const dom = xmlHelpers_1.mxmlHelpers.createRootElement();
+        const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
+        const dom = xmlHelpers_1.XmlHelpers.createRootElement();
         const root = dom.children[0];
         const work = nn(root, 'work', null, '');
         nn(work, 'work-title', score.scoreInfo, 'title');
         const identification = nn(root, 'identification', null, '');
         const creator = nn(identification, 'creator', score.scoreInfo, 'composer');
-        xmlHelpers_1.mxmlHelpers.createAttributes(creator, { type: 'composer' });
+        xmlHelpers_1.XmlHelpers.createAttributes(creator, { type: 'composer' });
         const encoding = nn(identification, 'encoding', null, '');
         nn(encoding, 'software', { software: 'Some pre-release version of Smoosic' }, 'software');
         const today = new Date();
         const dd = (n) => n < 10 ? '0' + n.toString() : n.toString();
-        const dateString = today.getFullYear() + '-' + dd(today.getDate()) + '-' + dd(today.getMonth());
+        const dateString = today.getFullYear() + '-' + dd(today.getMonth() + 1) + '-' + dd(today.getDate());
         nn(encoding, 'encoding-date', dateString, 'date');
         const defaults = nn(root, 'defaults', null, '');
         const scaling = nn(defaults, 'scaling', null, '');
@@ -21736,14 +21791,14 @@ class SmoToXml {
         score.staves.forEach((staff) => {
             const id = 'P' + staff.staffId;
             const scorePart = nn(partList, 'score-part', null, '');
-            xmlHelpers_1.mxmlHelpers.createAttributes(scorePart, { id });
+            xmlHelpers_1.XmlHelpers.createAttributes(scorePart, { id });
             nn(scorePart, 'part-name', { name: staff.measureInstrumentMap[0].instrumentName }, 'name');
         });
         const smoState = SmoToXml.defaultState;
         score.staves.forEach((staff) => {
             const part = nn(root, 'part', null, '');
             const id = 'P' + staff.staffId;
-            xmlHelpers_1.mxmlHelpers.createAttributes(part, { id });
+            xmlHelpers_1.XmlHelpers.createAttributes(part, { id });
             smoState.measureNumber = 1;
             smoState.tickCount = 0;
             smoState.staff = staff;
@@ -21762,7 +21817,7 @@ class SmoToXml {
     // ### measure
     // .../part/measure
     static measure(measureElement, smoState) {
-        const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
+        const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         if (!smoState.measure) {
             return;
         }
@@ -21772,13 +21827,14 @@ class SmoToXml {
         }
         if (smoState.measure.getForceSystemBreak()) {
             const printElement = nn(measureElement, 'print', null, '');
-            xmlHelpers_1.mxmlHelpers.createAttributes(printElement, { 'new-system': 'yes' });
+            xmlHelpers_1.XmlHelpers.createAttributes(printElement, { 'new-system': 'yes' });
         }
-        xmlHelpers_1.mxmlHelpers.createAttributes(measureElement, { number: smoState.measureNumber });
+        xmlHelpers_1.XmlHelpers.createAttributes(measureElement, { number: smoState.measureNumber });
         SmoToXml.attributes(measureElement, smoState);
         smoState.voiceIndex = 1;
         smoState.beamState = SmoToXml.beamStates.none;
         smoState.beamTicks = 0;
+        SmoToXml.barline(measureElement, smoState, true);
         measure.voices.forEach((voice) => {
             smoState.voiceTickIndex = 0;
             smoState.voice = voice;
@@ -21800,11 +21856,53 @@ class SmoToXml {
             }
             smoState.measureTicks = 0;
         });
+        SmoToXml.barline(measureElement, smoState, false);
+    }
+    // /score-partwise/part/measure/barline
+    static barline(measureElement, smoState, start) {
+        const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
+        let barlineElement = null;
+        if (start) {
+            if (smoState.measure.getStartBarline().barline === measureModifiers_1.SmoBarline.barlines.startRepeat) {
+                barlineElement = nn(measureElement, 'barline', null, '');
+                const repeatElement = nn(barlineElement, 'repeat', null, '');
+                xmlHelpers_1.XmlHelpers.createAttributes(repeatElement, { direction: 'forward' });
+            }
+        }
+        const voltas = smoState.staff.getVoltasForMeasure(smoState.measure.measureNumber.measureIndex);
+        const numArray = [];
+        voltas.forEach((volta) => {
+            var _a, _b;
+            if ((start && ((_a = volta === null || volta === void 0 ? void 0 : volta.startSelector) === null || _a === void 0 ? void 0 : _a.measure) === smoState.measure.measureNumber.measureIndex) ||
+                (!start && ((_b = volta === null || volta === void 0 ? void 0 : volta.endSelector) === null || _b === void 0 ? void 0 : _b.measure) === smoState.measure.measureNumber.measureIndex)) {
+                numArray.push(volta.number);
+            }
+        });
+        if (!start && smoState.measure.getEndBarline().barline === measureModifiers_1.SmoBarline.barlines.endBar) {
+            barlineElement = barlineElement !== null && barlineElement !== void 0 ? barlineElement : nn(measureElement, 'barline', null, '');
+            nn(barlineElement, 'bar-style', { style: 'light-heavy' }, 'style');
+        }
+        else if (!start && smoState.measure.getEndBarline().barline === measureModifiers_1.SmoBarline.barlines.doubleBar) {
+            barlineElement = barlineElement !== null && barlineElement !== void 0 ? barlineElement : nn(measureElement, 'barline', null, '');
+            nn(barlineElement, 'bar-style', { style: 'light-light' }, 'style');
+        }
+        if (numArray.length) {
+            barlineElement = barlineElement !== null && barlineElement !== void 0 ? barlineElement : nn(measureElement, 'barline', null, '');
+            const numstr = numArray.join(',');
+            const endElement = nn(barlineElement, 'ending', null, '');
+            const endString = start ? 'start' : 'stop';
+            xmlHelpers_1.XmlHelpers.createAttributes(endElement, { type: endString, number: numstr });
+        }
+        if (!start && smoState.measure.getEndBarline().barline === measureModifiers_1.SmoBarline.barlines.endRepeat) {
+            barlineElement = barlineElement !== null && barlineElement !== void 0 ? barlineElement : nn(measureElement, 'barline', null, '');
+            const repeatElement = nn(barlineElement, 'repeat', null, '');
+            xmlHelpers_1.XmlHelpers.createAttributes(repeatElement, { direction: 'backward' });
+        }
     }
     // ### slur
     // /score-partwise/part/measure/note/notations/slur
     static slur(notationsElement, smoState) {
-        const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
+        const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         const staff = smoState.staff;
         const measure = smoState.measure;
         const getNumberForSlur = ((slurs) => {
@@ -21838,7 +21936,7 @@ class SmoToXml {
             if (match) {
                 remove.push(match);
                 const slurElement = nn(notationsElement, 'slur', null, '');
-                xmlHelpers_1.mxmlHelpers.createAttributes(slurElement, { number: match.number, type: 'stop' });
+                xmlHelpers_1.XmlHelpers.createAttributes(slurElement, { number: match.number, type: 'stop' });
             }
         });
         smoState.slurs.forEach((slur) => {
@@ -21855,7 +21953,7 @@ class SmoToXml {
                 number
             });
             const slurElement = nn(notationsElement, 'slur', null, '');
-            xmlHelpers_1.mxmlHelpers.createAttributes(slurElement, { number: number, type: 'start' });
+            xmlHelpers_1.XmlHelpers.createAttributes(slurElement, { number: number, type: 'start' });
         });
     }
     // ### /score-partwise/measure/note/time-modification
@@ -21867,7 +21965,7 @@ class SmoToXml {
         if (!smoState.note) {
             return;
         }
-        const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
+        const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         const measure = smoState.measure;
         const note = smoState.note;
         const tuplet = measure.getTupletForNote(note);
@@ -21882,20 +21980,20 @@ class SmoToXml {
         nn(timeModification, 'normal-notes', obj, 'normalNotes');
         if (tuplet.getIndexOfNote(note) === 0) {
             const tupletElement = nn(notationsElement, 'tuplet', null, '');
-            xmlHelpers_1.mxmlHelpers.createAttributes(tupletElement, {
+            xmlHelpers_1.XmlHelpers.createAttributes(tupletElement, {
                 number: 1, type: 'start'
             });
         }
         else if (tuplet.getIndexOfNote(note) === tuplet.notes.length - 1) {
             const tupletElement = nn(notationsElement, 'tuplet', null, '');
-            xmlHelpers_1.mxmlHelpers.createAttributes(tupletElement, {
+            xmlHelpers_1.XmlHelpers.createAttributes(tupletElement, {
                 number: 1, type: 'stop'
             });
         }
     }
     // ### /score-partwise/measure/note/pitch
     static pitch(pitch, noteElement) {
-        const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
+        const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         const accidentalOffset = ['bb', 'b', 'n', '#', '##'];
         const alter = accidentalOffset.indexOf(pitch.accidental) - 2;
         const pitchElement = nn(noteElement, 'pitch', null, '');
@@ -21911,7 +22009,7 @@ class SmoToXml {
         if (!smoState.voice) {
             return;
         }
-        const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
+        const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         const note = smoState.note;
         const nextNote = (smoState.voiceTickIndex + 1) >= smoState.voice.notes.length ?
             null : smoState.voice.notes[smoState.voiceTickIndex + 1];
@@ -21945,24 +22043,24 @@ class SmoToXml {
         // slur is start/stop, beam is begin, end, gf
         if (toBeam === SmoToXml.beamStates.start) {
             const beamElement = nn(noteElement, 'beam', { type: 'begin' }, 'type');
-            xmlHelpers_1.mxmlHelpers.createAttributes(beamElement, { number: 1 });
+            xmlHelpers_1.XmlHelpers.createAttributes(beamElement, { number: 1 });
             smoState.beamState = SmoToXml.beamStates.continue;
         }
         else if (toBeam === SmoToXml.beamStates.continue) {
             const beamElement = nn(noteElement, 'beam', { type: 'continue' }, 'type');
-            xmlHelpers_1.mxmlHelpers.createAttributes(beamElement, { number: 1 });
+            xmlHelpers_1.XmlHelpers.createAttributes(beamElement, { number: 1 });
         }
         else if ((toBeam === SmoToXml.beamStates.stop) ||
             (toBeam === SmoToXml.beamStates.none && smoState.beamState !== SmoToXml.beamStates.none)) {
             const beamElement = nn(noteElement, 'beam', { type: 'end' }, 'type');
-            xmlHelpers_1.mxmlHelpers.createAttributes(beamElement, { number: 1 });
+            xmlHelpers_1.XmlHelpers.createAttributes(beamElement, { number: 1 });
             smoState.beamState = SmoToXml.beamStates.none;
         }
     }
     // ### /score-partwise/measure/direction/direction-type
     static direction(measureElement, smoState, beforeNote) {
         let addDirection = false;
-        const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
+        const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         const directionElement = measureElement.ownerDocument.createElement('direction');
         const dtype = nn(directionElement, 'direction-type', null, '');
         const staff = smoState.staff;
@@ -22017,14 +22115,14 @@ class SmoToXml {
             (mod.attrs.type === 'SmoStaffHairpin'));
         if (endWedge && !beforeNote) {
             const wedgeElement = nn(dtype, 'wedge', null, '');
-            xmlHelpers_1.mxmlHelpers.createAttributes(wedgeElement, { type: 'stop', spread: '20' });
+            xmlHelpers_1.XmlHelpers.createAttributes(wedgeElement, { type: 'stop', spread: '20' });
             addDirection = true;
         }
         if (startWedge && beforeNote) {
             const wedgeElement = nn(dtype, 'wedge', null, '');
             const wedgeType = startWedge.hairpinType === staffModifiers_1.SmoStaffHairpin.types.CRESCENDO ?
                 'crescendo' : 'diminuendo';
-            xmlHelpers_1.mxmlHelpers.createAttributes(wedgeElement, { type: wedgeType });
+            xmlHelpers_1.XmlHelpers.createAttributes(wedgeElement, { type: wedgeType });
             addDirection = true;
         }
         if (addDirection) {
@@ -22034,7 +22132,7 @@ class SmoToXml {
     // ### /score-partwise/measure/note/lyric
     static lyric(noteElement, smoState) {
         const smoNote = smoState.note;
-        const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
+        const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         const lyrics = smoNote.getTrueLyrics();
         lyrics.forEach((lyric) => {
             let syllabic = 'single';
@@ -22054,9 +22152,9 @@ class SmoToXml {
             }
             smoState.lyricState[lyric.verse] = syllabic;
             const lyricElement = nn(noteElement, 'lyric', null, '');
-            xmlHelpers_1.mxmlHelpers.createAttribute(lyricElement, 'number', lyric.verse + 1);
-            xmlHelpers_1.mxmlHelpers.createAttribute(lyricElement, 'placement', 'below');
-            xmlHelpers_1.mxmlHelpers.createAttribute(lyricElement, 'default-y', -80 - 10 * lyric.verse);
+            xmlHelpers_1.XmlHelpers.createAttribute(lyricElement, 'number', lyric.verse + 1);
+            xmlHelpers_1.XmlHelpers.createAttribute(lyricElement, 'placement', 'below');
+            xmlHelpers_1.XmlHelpers.createAttribute(lyricElement, 'default-y', -80 - 10 * lyric.verse);
             nn(lyricElement, 'syllabic', syllabic, '');
             nn(lyricElement, 'text', lyric.getText(), '');
         });
@@ -22064,9 +22162,10 @@ class SmoToXml {
     // ### /score-partwise/measure/note
     static note(measureElement, smoState) {
         const note = smoState.note;
-        const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
+        const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         let i = 0;
         for (i = 0; i < note.pitches.length; ++i) {
+            let j = 0;
             const noteElement = nn(measureElement, 'note', null, '');
             const isChord = i > 0;
             if (isChord) {
@@ -22087,7 +22186,11 @@ class SmoToXml {
             smoState.measureTicks += duration;
             nn(noteElement, 'duration', { duration }, 'duration');
             nn(noteElement, 'voice', { voice: smoState.voiceIndex }, 'voice');
-            nn(noteElement, 'type', { type: xmlHelpers_1.mxmlHelpers.closestStemType(note.tickCount) }, 'type');
+            nn(noteElement, 'type', { type: xmlHelpers_1.XmlHelpers.closestStemType(note.tickCount) }, 'type');
+            const dots = music_1.SmoMusic.smoTicksToVexDots(note.tickCount);
+            for (j = 0; j < dots; ++j) {
+                nn(noteElement, 'dot', null, '');
+            }
             if (note.flagState === note_1.SmoNote.flagStates.up) {
                 nn(noteElement, 'stem', { direction: 'up' }, 'direction');
             }
@@ -22124,7 +22227,7 @@ class SmoToXml {
             return; // no key change
         }
         const flats = music_1.SmoMusic.getFlatsInKeySignature(measure.keySignature);
-        const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
+        const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         if (flats > 0) {
             fifths = -1 * flats;
         }
@@ -22140,10 +22243,10 @@ class SmoToXml {
     // score-partwise/part/measure/attributes/time
     static time(attributesElement, smoState) {
         var _a;
-        const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
+        const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         const measure = smoState.measure;
         const currentTs = (_a = smoState.timeSignature) !== null && _a !== void 0 ? _a : null;
-        if (currentTs !== null && measureModifiers_1.TimeSignature.equal(currentTs, measure.timeSignature) === false) {
+        if (currentTs !== null && measureModifiers_1.TimeSignature.equal(currentTs, measure.timeSignature)) {
             return;
         }
         smoState.timeSignature = measure.timeSignature;
@@ -22163,7 +22266,7 @@ class SmoToXml {
         if (smoState.clef && (smoState.clef === measure.clef && measure.measureNumber.measureIndex > 0)) {
             return; // no change
         }
-        const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
+        const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         const xmlClef = music_1.SmoMusic.clefSigns[measure.clef];
         const clefElement = nn(attributesElement, 'clef', null, '');
         nn(clefElement, 'sign', xmlClef.sign, 'sign');
@@ -22176,7 +22279,7 @@ class SmoToXml {
         smoState.clef = measure.clef;
     }
     static attributes(measureElement, smoState) {
-        const nn = xmlHelpers_1.mxmlHelpers.createTextElementChild;
+        const nn = xmlHelpers_1.XmlHelpers.createTextElementChild;
         const attributesElement = measureElement.ownerDocument.createElement('attributes');
         if (smoState.divisions < 1) {
             nn(attributesElement, 'divisions', { divisions: 4096 }, 'divisions');
@@ -22204,19 +22307,20 @@ exports.SmoToXml = SmoToXml;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.mxmlHelpers = void 0;
+exports.XmlHelpers = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const music_1 = __webpack_require__(/*! ../data/music */ "./src/smo/data/music.ts");
 const note_1 = __webpack_require__(/*! ../data/note */ "./src/smo/data/note.ts");
+const measureModifiers_1 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const VF = eval('Vex.Flow');
 /**
  * Utilities for parsing and serialzing musicXML.
  * @category SmoToXml
  * */
-class mxmlHelpers {
+class XmlHelpers {
     // ### noteTypesToSmoMap
     // mxml note 'types', really s/b stem types.
     // For grace notes, we use the note type and not duration
@@ -22235,13 +22339,13 @@ class mxmlHelpers {
         };
     }
     static get ticksToNoteTypeMap() {
-        return mxmlHelpers._ticksToNoteTypeMap;
+        return XmlHelpers._ticksToNoteTypeMap;
     }
     // ### closestStemType
     // smo infers the stem type from the duration, but other applications don't
     static closestStemType(ticks) {
         const nticks = VF.durationToTicks(music_1.SmoMusic.vexStemType(ticks));
-        return mxmlHelpers.ticksToNoteTypeMap[nticks];
+        return XmlHelpers.ticksToNoteTypeMap[nticks];
     }
     static get beamStates() {
         return {
@@ -22284,7 +22388,7 @@ class mxmlHelpers {
     static getNumberFromElement(parent, path, defaults) {
         let rv = (typeof (defaults) === 'undefined' || defaults === null)
             ? 0 : defaults;
-        const tval = mxmlHelpers.getTextFromElement(parent, path, defaults);
+        const tval = XmlHelpers.getTextFromElement(parent, path, defaults);
         if (!tval) {
             return rv;
         }
@@ -22336,7 +22440,7 @@ class mxmlHelpers {
         return rv;
     }
     static getStemType(noteElement) {
-        const tt = mxmlHelpers.getTextFromElement(noteElement, 'stem', '');
+        const tt = XmlHelpers.getTextFromElement(noteElement, 'stem', '');
         if (tt === 'up') {
             return note_1.SmoNote.flagStates.up;
         }
@@ -22345,6 +22449,40 @@ class mxmlHelpers {
         }
         return note_1.SmoNote.flagStates.auto;
     }
+    static getEnding(barlineNode) {
+        const endingNodes = [...barlineNode.getElementsByTagName('ending')];
+        if (!endingNodes.length) {
+            return null;
+        }
+        const attrs = XmlHelpers.nodeAttributes(endingNodes[0]);
+        if (attrs.number && attrs.type) {
+            return {
+                numbers: attrs.number.split(',').map((x) => parseInt(x, 10)),
+                type: attrs.type
+            };
+        }
+        return null;
+    }
+    static getBarline(barlineNode) {
+        const rptNode = [...barlineNode.getElementsByTagName('repeat')];
+        if (rptNode.length) {
+            const repeatattr = XmlHelpers.nodeAttributes(rptNode[0]);
+            return repeatattr.direction === 'forward' ? measureModifiers_1.SmoBarline.barlines.startRepeat : measureModifiers_1.SmoBarline.barlines.endRepeat;
+        }
+        const styleText = XmlHelpers.getTextFromElement(barlineNode, 'bar-style', '');
+        if (styleText.length) {
+            const double = styleText.indexOf('-') >= 0;
+            const heavy = styleText.indexOf('heavy') >= 0;
+            const light = styleText.indexOf('light') >= 0;
+            if (double && heavy && light) {
+                return measureModifiers_1.SmoBarline.barlines.endBar;
+            }
+            if (double) {
+                return measureModifiers_1.SmoBarline.barlines.doubleBar;
+            }
+        }
+        return measureModifiers_1.SmoBarline.barlines.singleBar;
+    }
     // ### assignDefaults
     // Map SMO layout data from xml layout data (default node)
     static assignDefaults(node, defObj, parameters) {
@@ -22352,7 +22490,7 @@ class mxmlHelpers {
             if (!isNaN(parseInt(defObj[param.smo], 10))) {
                 const smoParam = param.smo;
                 const xmlParam = param.xml;
-                defObj[smoParam] = mxmlHelpers.getNumberFromElement(node, xmlParam, defObj[smoParam]);
+                defObj[smoParam] = XmlHelpers.getNumberFromElement(node, xmlParam, defObj[smoParam]);
             }
         });
     }
@@ -22361,7 +22499,10 @@ class mxmlHelpers {
     static nodeAttributes(node) {
         const rv = {};
         node.getAttributeNames().forEach((attr) => {
-            rv[attr] = node.getAttribute(attr);
+            const aval = node.getAttribute(attr);
+            if (aval) {
+                rv[attr] = aval;
+            }
         });
         return rv;
     }
@@ -22377,16 +22518,16 @@ class mxmlHelpers {
     static noteBeamState(noteNode) {
         const beamNodes = [...noteNode.getElementsByTagName('beam')];
         if (!beamNodes.length) {
-            return mxmlHelpers.beamStates.AUTO;
+            return XmlHelpers.beamStates.AUTO;
         }
         const beamText = beamNodes[0].textContent;
         if (beamText === 'begin') {
-            return mxmlHelpers.beamStates.BEGIN;
+            return XmlHelpers.beamStates.BEGIN;
         }
         else if (beamText === 'end') {
-            return mxmlHelpers.beamStates.END;
+            return XmlHelpers.beamStates.END;
         }
-        return mxmlHelpers.beamStates.AUTO;
+        return XmlHelpers.beamStates.AUTO;
     }
     // same with notes and voices.  same convert
     static getVoiceId(node) {
@@ -22398,19 +22539,19 @@ class mxmlHelpers {
     }
     static smoPitchFromNote(noteNode, defaultPitch) {
         const accidentals = ['bb', 'b', 'n', '#', '##'];
-        const letter = mxmlHelpers.getTextFromElement(noteNode, 'step', defaultPitch.letter).toLowerCase();
-        const octave = mxmlHelpers.getNumberFromElement(noteNode, 'octave', defaultPitch.octave);
-        const xaccidental = mxmlHelpers.getNumberFromElement(noteNode, 'alter', 0);
+        const letter = XmlHelpers.getTextFromElement(noteNode, 'step', defaultPitch.letter).toLowerCase();
+        const octave = XmlHelpers.getNumberFromElement(noteNode, 'octave', defaultPitch.octave);
+        const xaccidental = XmlHelpers.getNumberFromElement(noteNode, 'alter', 0);
         return { letter, accidental: accidentals[xaccidental + 2], octave };
     }
     static isGrace(noteNode) {
-        const path = mxmlHelpers.getChildrenFromPath(noteNode, ['grace']);
+        const path = XmlHelpers.getChildrenFromPath(noteNode, ['grace']);
         return (path === null || path === void 0 ? void 0 : path.length) > 0;
     }
     static isSystemBreak(measureNode) {
         const printNodes = measureNode.getElementsByTagName('print');
         if (printNodes.length) {
-            const attrs = mxmlHelpers.nodeAttributes(printNodes[0]);
+            const attrs = XmlHelpers.nodeAttributes(printNodes[0]);
             if (typeof (attrs['new-system']) !== 'undefined') {
                 return attrs['new-system'] === 'yes';
             }
@@ -22423,8 +22564,8 @@ class mxmlHelpers {
         const typeNodes = [...noteNode.getElementsByTagName('type')];
         if (typeNodes.length) {
             const txt = typeNodes[0].textContent;
-            if (txt && mxmlHelpers.noteTypesToSmoMap[txt]) {
-                return mxmlHelpers.noteTypesToSmoMap[txt];
+            if (txt && XmlHelpers.noteTypesToSmoMap[txt]) {
+                return XmlHelpers.noteTypesToSmoMap[txt];
             }
         }
         return def;
@@ -22442,7 +22583,7 @@ class mxmlHelpers {
     static ticksFromDuration(noteNode, divisions, def) {
         const rv = { tickCount: def, duration: def / divisions, alteration: { noteCount: 1, noteDuration: 1 } };
         const durationNodes = [...noteNode.getElementsByTagName('duration')];
-        const timeAlteration = mxmlHelpers.getTimeAlteration(noteNode);
+        const timeAlteration = XmlHelpers.getTimeAlteration(noteNode);
         // different ways to declare note duration - from type is the graphical
         // type, SMO uses ticks for everything
         if (durationNodes.length && durationNodes[0].textContent) {
@@ -22450,7 +22591,7 @@ class mxmlHelpers {
             rv.tickCount = 4096 * (rv.duration / divisions);
         }
         else {
-            rv.tickCount = mxmlHelpers.durationFromType(noteNode, def);
+            rv.tickCount = XmlHelpers.durationFromType(noteNode, def);
             rv.duration = (divisions / 4096) * rv.tickCount;
         }
         // If this is a tuplet, we adjust the note duration back to the graphical type
@@ -22484,7 +22625,7 @@ class mxmlHelpers {
         nNodes.forEach((nNode) => {
             const slurNodes = [...nNode.getElementsByTagName('tied')];
             slurNodes.forEach((slurNode) => {
-                const orientation = mxmlHelpers.getCurveDirection(slurNode);
+                const orientation = XmlHelpers.getCurveDirection(slurNode);
                 const type = slurNode.getAttribute('type');
                 number = parseInt(slurNode.getAttribute('number'), 10);
                 if (isNaN(number)) {
@@ -22503,7 +22644,7 @@ class mxmlHelpers {
             slurNodes.forEach((slurNode) => {
                 const number = parseInt(slurNode.getAttribute('number'), 10);
                 const type = slurNode.getAttribute('type');
-                const orientation = mxmlHelpers.getCurveDirection(slurNode);
+                const orientation = XmlHelpers.getCurveDirection(slurNode);
                 const slurInfo = { number, type, orientation, selector, invert: false, yOffset: 0 };
                 rv.push(slurInfo);
             });
@@ -22512,7 +22653,7 @@ class mxmlHelpers {
     }
     static getCrescendoData(directionElement) {
         let rv = {};
-        const nNodes = mxmlHelpers.getChildrenFromPath(directionElement, ['direction-type', 'wedge']);
+        const nNodes = XmlHelpers.getChildrenFromPath(directionElement, ['direction-type', 'wedge']);
         nNodes.forEach((nNode) => {
             rv = { type: nNode.getAttribute('type') };
         });
@@ -22538,10 +22679,10 @@ class mxmlHelpers {
             ['articulations', 'ornaments'].forEach((typ) => {
                 const articulations = [...nNode.getElementsByTagName(typ)];
                 articulations.forEach((articulation) => {
-                    Object.keys(mxmlHelpers.ornamentXmlToSmoMap).forEach((key) => {
+                    Object.keys(XmlHelpers.ornamentXmlToSmoMap).forEach((key) => {
                         if ([...articulation.getElementsByTagName(key)].length) {
-                            const ctor = eval('globalThis.Smo.' + mxmlHelpers.ornamentXmlToSmoMap[key].ctor);
-                            rv.push(new ctor(mxmlHelpers.ornamentXmlToSmoMap[key].params));
+                            const ctor = eval('globalThis.Smo.' + XmlHelpers.ornamentXmlToSmoMap[key].ctor);
+                            rv.push(new ctor(XmlHelpers.ornamentXmlToSmoMap[key].params));
                         }
                     });
                 });
@@ -22554,9 +22695,9 @@ class mxmlHelpers {
         const nNodes = [...noteNode.getElementsByTagName('lyric')];
         nNodes.forEach((nNode) => {
             let verse = nNode.getAttribute('number');
-            const text = mxmlHelpers.getTextFromElement(nNode, 'text', '_');
+            const text = XmlHelpers.getTextFromElement(nNode, 'text', '_');
             const name = nNode.getAttribute('name');
-            const syllabic = mxmlHelpers.getTextFromElement(nNode, 'syllabic', 'end');
+            const syllabic = XmlHelpers.getTextFromElement(nNode, 'syllabic', 'end');
             // Per xml spec, verse can be specified by a string (name), as in 'chorus'
             if (!verse) {
                 verse = name;
@@ -22567,11 +22708,11 @@ class mxmlHelpers {
         return rv;
     }
     static getTimeAlteration(noteNode) {
-        const timeNodes = mxmlHelpers.getChildrenFromPath(noteNode, ['time-modification']);
+        const timeNodes = XmlHelpers.getChildrenFromPath(noteNode, ['time-modification']);
         if (timeNodes.length) {
             return {
-                noteCount: mxmlHelpers.getNumberFromElement(timeNodes[0], 'actual-notes', 1),
-                noteDuration: mxmlHelpers.getNumberFromElement(timeNodes[0], 'normal-notes', 1)
+                noteCount: XmlHelpers.getNumberFromElement(timeNodes[0], 'actual-notes', 1),
+                noteDuration: XmlHelpers.getNumberFromElement(timeNodes[0], 'normal-notes', 1)
             };
         }
         return null;
@@ -22604,11 +22745,11 @@ class mxmlHelpers {
     static createAttribute(element, name, value) {
         const obj = {};
         obj[name] = value;
-        mxmlHelpers.createAttributes(element, obj);
+        XmlHelpers.createAttributes(element, obj);
     }
 }
-exports.mxmlHelpers = mxmlHelpers;
-mxmlHelpers._ticksToNoteTypeMap = serializationHelpers_1.smoSerialize.reverseMap(mxmlHelpers.noteTypesToSmoMap);
+exports.XmlHelpers = XmlHelpers;
+XmlHelpers._ticksToNoteTypeMap = serializationHelpers_1.smoSerialize.reverseMap(XmlHelpers.noteTypesToSmoMap);
 
 
 /***/ }),
@@ -22632,6 +22773,7 @@ const staffModifiers_1 = __webpack_require__(/*! ../data/staffModifiers */ "./sr
 const noteModifiers_1 = __webpack_require__(/*! ../data/noteModifiers */ "./src/smo/data/noteModifiers.ts");
 const tuplet_1 = __webpack_require__(/*! ../data/tuplet */ "./src/smo/data/tuplet.ts");
 const selections_1 = __webpack_require__(/*! ../xform/selections */ "./src/smo/xform/selections.ts");
+const measureModifiers_2 = __webpack_require__(/*! ../data/measureModifiers */ "./src/smo/data/measureModifiers.ts");
 /**
  * Keep state of musical objects while parsing music xml
  * @category SmoToXml
@@ -22648,6 +22790,11 @@ class XmlState {
         this.hairpins = [];
         this.globalCursor = 0;
         this.staffVoiceHash = {};
+        this.endingMap = {};
+        this.startRepeatMap = {};
+        this.endRepeatMap = {};
+        this.startBarline = measureModifiers_2.SmoBarline.barlines.singleBar;
+        this.endBarline = measureModifiers_2.SmoBarline.barlines.singleBar;
         this.measureIndex = -1;
         this.completedSlurs = [];
         this.completedTies = [];
@@ -22712,6 +22859,8 @@ class XmlState {
         this.beamGroups = {};
         this.completedTuplets = [];
         this.dynamics = [];
+        this.startBarline = measureModifiers_2.SmoBarline.barlines.singleBar;
+        this.endBarline = measureModifiers_2.SmoBarline.barlines.singleBar;
         this.previousNote = new note_1.SmoNote(note_1.SmoNote.defaults);
         this.measureIndex += 1;
     }
@@ -22869,7 +23018,7 @@ class XmlState {
     // includes time alteration from tuplets
     updateBeamState(beamState, alteration, voice, voiceIndex) {
         const note = voice.notes[voice.notes.length - 1];
-        if (beamState === xmlHelpers_1.mxmlHelpers.beamStates.BEGIN) {
+        if (beamState === xmlHelpers_1.XmlHelpers.beamStates.BEGIN) {
             this.beamGroups[voiceIndex] = {
                 ticks: (note.tickCount * alteration.noteCount) / alteration.noteDuration,
                 notes: 1
@@ -22878,7 +23027,7 @@ class XmlState {
         else if (this.beamGroups[voiceIndex]) {
             this.beamGroups[voiceIndex].ticks += note.tickCount;
             this.beamGroups[voiceIndex].notes += 1;
-            if (beamState === xmlHelpers_1.mxmlHelpers.beamStates.END) {
+            if (beamState === xmlHelpers_1.XmlHelpers.beamStates.END) {
                 this.backtrackBeamGroup(voice, this.beamGroups[voiceIndex]);
                 this.beamGroups[voiceIndex] = null;
             }
@@ -22901,6 +23050,70 @@ class XmlState {
                 }
             }
         });
+    }
+    updateEndings(barlineNode) {
+        const findStartEnding = (endingNumber, ix) => {
+            const endingIx = Object.keys(this.endingMap).map((xx) => parseInt(xx, 10));
+            let gt = -1;
+            let rv = null;
+            endingIx.forEach((ee) => {
+                if (ee > gt && ee <= ix) {
+                    const endings = this.endingMap[ee];
+                    const txt = endings.find((xx) => xx.number === endingNumber);
+                    if (txt) {
+                        gt = ee;
+                        rv = txt;
+                    }
+                    if (endings.findIndex((xx) => xx.number === endingNumber) >= 0) {
+                        gt = ee;
+                    }
+                }
+            });
+            if (gt >= 0) {
+                return rv;
+            }
+            else {
+                return null;
+            }
+        };
+        const ending = xmlHelpers_1.XmlHelpers.getEnding(barlineNode);
+        if (ending) {
+            if (ending.type === 'start') {
+                const numbers = ending.numbers;
+                numbers.forEach((nn) => {
+                    const endings = this.endingMap[this.measureIndex];
+                    if (!endings) {
+                        this.endingMap[this.measureIndex] = [];
+                    }
+                    const inst = this.endingMap[this.measureIndex].find((ee) => ee.number === nn);
+                    if (!inst) {
+                        this.endingMap[this.measureIndex].push({
+                            start: this.measureIndex,
+                            end: -1,
+                            number: nn
+                        });
+                    }
+                });
+            }
+            else {
+                ending.numbers.forEach((nn) => {
+                    const inst = findStartEnding(nn, this.measureIndex);
+                    if (!inst) {
+                        console.warn('bad ending ' + nn + ' at ' + this.measureIndex);
+                    }
+                    else {
+                        inst.end = this.measureIndex;
+                    }
+                });
+            }
+        }
+        const barline = xmlHelpers_1.XmlHelpers.getBarline(barlineNode);
+        if (barline === measureModifiers_2.SmoBarline.barlines.startRepeat) {
+            this.startBarline = barline;
+        }
+        else {
+            this.endBarline = barline;
+        }
     }
     /**
      * While parsing a measure,
@@ -23109,7 +23322,7 @@ class XmlToSmo {
         return ['title', 'subTitle', 'composer', 'copyright'];
     }
     /**
-     * Convert music XML file from parse xml to a {@link SmoScore}
+     * Convert music XML file from parsed xml to a {@link SmoScore}
      * @param xmlDoc
      * @returns
      */
@@ -23196,6 +23409,8 @@ class XmlToSmo {
                 rv.addTextGroup(scoreModifiers_1.SmoTextGroup.createTextForLayout(scoreModifiers_1.SmoTextGroup.purposes.COMPOSER, rv.scoreInfo.composer, lm.getScaledPageLayout(0)));
             }
             XmlToSmo.setSlurDefaults(rv);
+            rv.preferences.showPiano = false;
+            XmlToSmo.setVoltas(rv, xmlState);
             return rv;
         }
         catch (exc) {
@@ -23220,7 +23435,25 @@ class XmlToSmo {
                     slur.position = slurParams.position;
                     slur.position_end = slurParams.position_end;
                     slur.invert = slurParams.invert;
+                    slur.yOffset = slurParams.yOffset;
+                    slur.cp1y = slurParams.cp1y;
+                    slur.cp2y = slurParams.cp2y;
+                    slur.xOffset = slurParams.xOffset;
                 }
+            });
+        });
+    }
+    static setVoltas(score, state) {
+        const endingMeasures = Object.keys(state.endingMap).map((k) => parseInt(k, 10));
+        endingMeasures.forEach((em) => {
+            const endings = state.endingMap[em];
+            endings.forEach((ending) => {
+                const defs = measureModifiers_1.SmoVolta.defaults;
+                defs.number = ending.number;
+                defs.startBar = ending.start;
+                defs.endBar = ending.end >= 0 ? ending.end : ending.start;
+                const volta = new measureModifiers_1.SmoVolta(defs);
+                operations_1.SmoOperation.addEnding(score, volta);
             });
         });
     }
@@ -23232,16 +23465,16 @@ class XmlToSmo {
         const currentScale = layoutDefaults.getGlobalLayout().svgScale;
         const pageLayoutNode = defaultsElement.getElementsByTagName('page-layout');
         if (pageLayoutNode.length) {
-            xmlHelpers_1.mxmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults.globalLayout, XmlToSmo.pageLayoutMap);
+            xmlHelpers_1.XmlHelpers.assignDefaults(pageLayoutNode[0], layoutDefaults.globalLayout, XmlToSmo.pageLayoutMap);
         }
-        const pageMarginNode = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(defaultsElement, ['page-layout', 'page-margins']);
+        const pageMarginNode = xmlHelpers_1.XmlHelpers.getChildrenFromPath(defaultsElement, ['page-layout', 'page-margins']);
         if (pageMarginNode.length) {
-            xmlHelpers_1.mxmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], XmlToSmo.pageMarginMap);
+            xmlHelpers_1.XmlHelpers.assignDefaults(pageMarginNode[0], layoutDefaults.pageLayouts[0], XmlToSmo.pageMarginMap);
         }
         const scaleNode = defaultsElement.getElementsByTagName('scaling');
         if (scaleNode.length) {
-            const mm = xmlHelpers_1.mxmlHelpers.getNumberFromElement(scaleNode[0], 'millimeters', 1);
-            const tn = xmlHelpers_1.mxmlHelpers.getNumberFromElement(scaleNode[0], 'tenths', 7);
+            const mm = xmlHelpers_1.XmlHelpers.getNumberFromElement(scaleNode[0], 'millimeters', 1);
+            const tn = xmlHelpers_1.XmlHelpers.getNumberFromElement(scaleNode[0], 'tenths', 7);
             if (tn > 0 && mm > 0) {
                 scale = mm / tn;
             }
@@ -23291,7 +23524,7 @@ class XmlToSmo {
         let tempoText = '';
         let customText = tempoText;
         const rv = [];
-        const soundNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(element, ['sound']);
+        const soundNodes = xmlHelpers_1.XmlHelpers.getChildrenFromPath(element, ['sound']);
         soundNodes.forEach((sound) => {
             let tempoMode = measureModifiers_1.SmoTempoText.tempoModes.durationMode;
             tempoText = sound.getAttribute('tempo');
@@ -23316,7 +23549,7 @@ class XmlToSmo {
                 params.customText = customText;
                 params.display = true;
                 const tempo = new measureModifiers_1.SmoTempoText(params);
-                const staffId = xmlHelpers_1.mxmlHelpers.getStaffId(element);
+                const staffId = xmlHelpers_1.XmlHelpers.getStaffId(element);
                 rv.push({ staffId, tempo });
             }
         });
@@ -23326,8 +23559,8 @@ class XmlToSmo {
     // /score-partwise/part/measure/direction/dynamics
     static dynamics(directionElement, xmlState) {
         let offset = 1;
-        const dynamicNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(directionElement, ['direction-type', 'dynamics']);
-        const offsetNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(directionElement, ['offset']);
+        const dynamicNodes = xmlHelpers_1.XmlHelpers.getChildrenFromPath(directionElement, ['direction-type', 'dynamics']);
+        const offsetNodes = xmlHelpers_1.XmlHelpers.getChildrenFromPath(directionElement, ['offset']);
         if (offsetNodes.length) {
             offset = parseInt(offsetNodes[0].textContent, 10);
         }
@@ -23342,17 +23575,17 @@ class XmlToSmo {
     // /score-partwise/part/measure/attributes
     static attributes(measureElement, xmlState) {
         let smoKey = {};
-        const attributesNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(measureElement, ['attributes']);
+        const attributesNodes = xmlHelpers_1.XmlHelpers.getChildrenFromPath(measureElement, ['attributes']);
         if (!attributesNodes.length) {
             return;
         }
         const attributesNode = attributesNodes[0];
         xmlState.divisions =
-            xmlHelpers_1.mxmlHelpers.getNumberFromElement(attributesNode, 'divisions', xmlState.divisions);
-        const keyNode = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(attributesNode, ['key']);
+            xmlHelpers_1.XmlHelpers.getNumberFromElement(attributesNode, 'divisions', xmlState.divisions);
+        const keyNode = xmlHelpers_1.XmlHelpers.getChildrenFromPath(attributesNode, ['key']);
         // MusicXML expresses keys in 'fifths' from C.
         if (keyNode.length) {
-            const fifths = xmlHelpers_1.mxmlHelpers.getNumberFromElement(keyNode[0], 'fifths', 0);
+            const fifths = xmlHelpers_1.XmlHelpers.getNumberFromElement(keyNode[0], 'fifths', 0);
             if (fifths < 0) {
                 smoKey = music_1.SmoMusic.circleOfFifths[music_1.SmoMusic.circleOfFifths.length + fifths];
             }
@@ -23365,26 +23598,26 @@ class XmlToSmo {
             }
         }
         const currentTime = xmlState.timeSignature.split('/');
-        const timeNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(attributesNode, ['time']);
+        const timeNodes = xmlHelpers_1.XmlHelpers.getChildrenFromPath(attributesNode, ['time']);
         if (timeNodes.length) {
             const timeNode = timeNodes[0];
-            const num = xmlHelpers_1.mxmlHelpers.getNumberFromElement(timeNode, 'beats', parseInt(currentTime[0], 10));
-            const den = xmlHelpers_1.mxmlHelpers.getNumberFromElement(timeNode, 'beat-type', parseInt(currentTime[1], 10));
+            const num = xmlHelpers_1.XmlHelpers.getNumberFromElement(timeNode, 'beats', parseInt(currentTime[0], 10));
+            const den = xmlHelpers_1.XmlHelpers.getNumberFromElement(timeNode, 'beat-type', parseInt(currentTime[1], 10));
             xmlState.timeSignature = '' + num + '/' + den;
         }
-        const clefNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(attributesNode, ['clef']);
+        const clefNodes = xmlHelpers_1.XmlHelpers.getChildrenFromPath(attributesNode, ['clef']);
         if (clefNodes.length) {
             // We expect the number of clefs to equal the number of staves in each measure
             clefNodes.forEach((clefNode) => {
                 let clefNum = 0;
                 let clef = 'treble';
-                const clefAttrs = xmlHelpers_1.mxmlHelpers.nodeAttributes(clefNode);
+                const clefAttrs = xmlHelpers_1.XmlHelpers.nodeAttributes(clefNode);
                 if (typeof (clefAttrs.number) !== 'undefined') {
                     // staff numbers index from 1 in mxml
                     clefNum = parseInt(clefAttrs.number, 10) - 1;
                 }
-                const clefType = xmlHelpers_1.mxmlHelpers.getTextFromElement(clefNode, 'sign', 'G');
-                const clefLine = xmlHelpers_1.mxmlHelpers.getNumberFromElement(clefNode, 'line', 2);
+                const clefType = xmlHelpers_1.XmlHelpers.getTextFromElement(clefNode, 'sign', 'G');
+                const clefLine = xmlHelpers_1.XmlHelpers.getNumberFromElement(clefNode, 'line', 2);
                 // mxml supports a zillion clefs, just implement the basics.
                 if (clefType === 'F') {
                     clef = 'bass';
@@ -23416,7 +23649,7 @@ class XmlToSmo {
     // /score-partwise/part/measure/direction/direction-type/wedge
     static wedge(directionElement, xmlState) {
         let crescInfo = null;
-        const wedgeNodes = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(directionElement, ['direction-type', 'wedge']);
+        const wedgeNodes = xmlHelpers_1.XmlHelpers.getChildrenFromPath(directionElement, ['direction-type', 'wedge']);
         wedgeNodes.forEach((wedgeNode) => {
             crescInfo = { type: wedgeNode.getAttribute('type') };
         });
@@ -23447,7 +23680,7 @@ class XmlToSmo {
     // /score-partwise/part/measure/note
     static note(noteElement, xmlState) {
         let grIx = 0;
-        const staffIndex = xmlHelpers_1.mxmlHelpers.getStaffId(noteElement);
+        const staffIndex = xmlHelpers_1.XmlHelpers.getStaffId(noteElement);
         xmlState.staffIndex = staffIndex;
         // We assume the clef information from attributes comes before the notes
         // xmlState.staffArray[staffIndex] = { clefInfo: { clef }, voices[voiceIndex]: notes[] }
@@ -23459,14 +23692,14 @@ class XmlToSmo {
                 xmlState.staffArray.push({ clefInfo, measure: null, voices: {} });
             });
         }
-        const chordNode = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(noteElement, ['chord']);
+        const chordNode = xmlHelpers_1.XmlHelpers.getChildrenFromPath(noteElement, ['chord']);
         if (chordNode.length === 0) {
-            xmlState.currentDuration += xmlHelpers_1.mxmlHelpers.durationFromNode(noteElement, 0);
+            xmlState.currentDuration += xmlHelpers_1.XmlHelpers.durationFromNode(noteElement, 0);
         }
         // voices are not sequential, seem to have artitrary numbers and
         // persist per part (same with staff IDs).  Update XML state if these are new
         // staves
-        const voiceIndex = xmlHelpers_1.mxmlHelpers.getVoiceId(noteElement);
+        const voiceIndex = xmlHelpers_1.XmlHelpers.getVoiceId(noteElement);
         xmlState.voiceIndex = voiceIndex;
         xmlState.initializeStaff(staffIndex, voiceIndex);
         const voice = xmlState.staffArray[staffIndex].voices[voiceIndex];
@@ -23482,24 +23715,24 @@ class XmlToSmo {
         const divisions = xmlState.divisions;
         const printText = noteElement.getAttribute('print-object');
         const hideNote = typeof (printText) === 'string' && printText === 'no';
-        const isGrace = xmlHelpers_1.mxmlHelpers.isGrace(noteElement);
-        const restNode = xmlHelpers_1.mxmlHelpers.getChildrenFromPath(noteElement, ['rest']);
+        const isGrace = xmlHelpers_1.XmlHelpers.isGrace(noteElement);
+        const restNode = xmlHelpers_1.XmlHelpers.getChildrenFromPath(noteElement, ['rest']);
         const noteType = restNode.length ? 'r' : 'n';
-        const durationData = xmlHelpers_1.mxmlHelpers.ticksFromDuration(noteElement, divisions, 4096);
+        const durationData = xmlHelpers_1.XmlHelpers.ticksFromDuration(noteElement, divisions, 4096);
         const tickCount = durationData.tickCount;
         if (chordNode.length === 0) {
             xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed += tickCount;
         }
         xmlState.tickCursor = (xmlState.currentDuration / divisions) * 4096;
-        const beamState = xmlHelpers_1.mxmlHelpers.noteBeamState(noteElement);
-        const slurInfos = xmlHelpers_1.mxmlHelpers.getSlurData(noteElement, selector);
-        const tieInfos = xmlHelpers_1.mxmlHelpers.getTieData(noteElement, selector, pitchIndex);
-        const tupletInfos = xmlHelpers_1.mxmlHelpers.getTupletData(noteElement);
-        const ornaments = xmlHelpers_1.mxmlHelpers.articulationsAndOrnaments(noteElement);
-        const lyrics = xmlHelpers_1.mxmlHelpers.lyrics(noteElement);
-        const flagState = xmlHelpers_1.mxmlHelpers.getStemType(noteElement);
+        const beamState = xmlHelpers_1.XmlHelpers.noteBeamState(noteElement);
+        const slurInfos = xmlHelpers_1.XmlHelpers.getSlurData(noteElement, selector);
+        const tieInfos = xmlHelpers_1.XmlHelpers.getTieData(noteElement, selector, pitchIndex);
+        const tupletInfos = xmlHelpers_1.XmlHelpers.getTupletData(noteElement);
+        const ornaments = xmlHelpers_1.XmlHelpers.articulationsAndOrnaments(noteElement);
+        const lyrics = xmlHelpers_1.XmlHelpers.lyrics(noteElement);
+        const flagState = xmlHelpers_1.XmlHelpers.getStemType(noteElement);
         const clefString = xmlState.staffArray[staffIndex].clefInfo.clef;
-        const pitch = xmlHelpers_1.mxmlHelpers.smoPitchFromNote(noteElement, measure_1.SmoMeasure.defaultPitchForClef[clefString]);
+        const pitch = xmlHelpers_1.XmlHelpers.smoPitchFromNote(noteElement, measure_1.SmoMeasure.defaultPitchForClef[clefString]);
         if (isGrace === false) {
             if (chordNode.length) {
                 // If this is a note in a chord, just add the pitch to previous note.
@@ -23590,10 +23823,10 @@ class XmlToSmo {
         let hasNotes = false;
         elements.forEach((element) => {
             if (element.tagName === 'backup') {
-                xmlState.currentDuration -= xmlHelpers_1.mxmlHelpers.durationFromNode(element, 0);
+                xmlState.currentDuration -= xmlHelpers_1.XmlHelpers.durationFromNode(element, 0);
             }
             if (element.tagName === 'forward') {
-                xmlState.currentDuration += xmlHelpers_1.mxmlHelpers.durationFromNode(element, 0);
+                xmlState.currentDuration += xmlHelpers_1.XmlHelpers.durationFromNode(element, 0);
             }
             if (element.tagName === 'attributes') {
                 // update the running state of the XML with new information from this measure
@@ -23606,6 +23839,9 @@ class XmlToSmo {
             else if (element.tagName === 'note') {
                 XmlToSmo.note(element, xmlState);
                 hasNotes = true;
+            }
+            else if (element.tagName === 'barline') {
+                xmlState.updateEndings(element);
             }
         });
         // If a measure has no notes, just make one with the defaults
@@ -23621,7 +23857,7 @@ class XmlToSmo {
             const smoMeasure = measure_1.SmoMeasure.getDefaultMeasure(params);
             smoMeasure.format = new measureModifiers_1.SmoMeasureFormat(measureModifiers_1.SmoMeasureFormat.defaults);
             smoMeasure.format.measureIndex = xmlState.measureNumber;
-            smoMeasure.format.systemBreak = xmlHelpers_1.mxmlHelpers.isSystemBreak(measureElement);
+            smoMeasure.format.systemBreak = xmlHelpers_1.XmlHelpers.isSystemBreak(measureElement);
             smoMeasure.tempo = xmlState.tempo;
             smoMeasure.format.customProportion = XmlToSmo.customProportionDefault;
             xmlState.formattingManager.updateMeasureFormat(smoMeasure.format);
@@ -23630,6 +23866,14 @@ class XmlToSmo {
             smoMeasure.measureNumber.localIndex = xmlState.measureNumber;
             smoMeasure.measureNumber.measureIndex = xmlState.measureIndex;
             smoMeasure.measureNumber.staffId = staffData.clefInfo.staffId + xmlState.smoStaves.length;
+            const startBarDefs = measureModifiers_1.SmoBarline.defaults;
+            startBarDefs.position = measureModifiers_1.SmoBarline.positions.start;
+            startBarDefs.barline = xmlState.startBarline;
+            const endBarDefs = measureModifiers_1.SmoBarline.defaults;
+            endBarDefs.position = measureModifiers_1.SmoBarline.positions.end;
+            endBarDefs.barline = xmlState.endBarline;
+            smoMeasure.setBarline(new measureModifiers_1.SmoBarline(startBarDefs));
+            smoMeasure.setBarline(new measureModifiers_1.SmoBarline(endBarDefs));
             // voices not in array, put them in an array
             Object.keys(staffData.voices).forEach((voiceKey) => {
                 const voice = staffData.voices[voiceKey];
@@ -25655,20 +25899,58 @@ class SmoOperation {
         fromSelection.staff.addStaffModifier(modifier);
         return modifier;
     }
+    /**
+     * Heuristically determine how a slur should be formatted based on the notes.  Determine control points,
+     * offset, and alignment
+     *
+     * ## Note: Vexflow slurs consider `top` to mean the furthest point from the note head, which could be the top
+     * or the bottom of the note.  It also considers yoffset to be negative if inverted is set.  Head means close to the
+     * note head.
+     * @param score
+     * @param fromSelection
+     * @param toSelection
+     * @returns
+     */
     static getDefaultSlurDirection(score, fromSelection, toSelection) {
         const params = staffModifiers_1.SmoSlur.defaults;
         const sels = selections_1.SmoSelector.order(fromSelection.selector, toSelection.selector);
         params.startSelector = JSON.parse(JSON.stringify(sels[0]));
         params.endSelector = JSON.parse(JSON.stringify(sels[1]));
+        // Get all selections within the slur
         const selections = selections_1.SmoSelection.innerSelections(score, sels[0], sels[1]).filter((ff) => ff.selector.voice === fromSelection.selector.voice);
         const dirs = {};
+        const beamGroups = {};
         let startDir = note_1.SmoNote.flagStates.up;
+        let mixed = false;
         let endDir = note_1.SmoNote.flagStates.up;
+        let firstGap = 0;
+        let lastGap = 0;
         if (selections.length < 1) {
             return new staffModifiers_1.SmoSlur(params);
         }
         selections.forEach((selection, selectionIx) => {
-            const fstate = music_1.SmoMusic.flagStateFromNote(selection.note.clef, selection.note);
+            const note = selection.note;
+            if (note.beam_group) {
+                beamGroups[note.beam_group.id] = true;
+            }
+            else {
+                beamGroups[note.attrs.id] = true;
+            }
+            // Find the gap between the first and second note, and also between last 2.  If they are far apart,
+            // increase the control points so the slurs don't run into the notes
+            if (selectionIx === 1) {
+                const lastNote = selections[0].note;
+                firstGap = Math.abs(music_1.SmoMusic.pitchToStaffLine(note.clef, note.pitches[0]) -
+                    music_1.SmoMusic.pitchToStaffLine(lastNote.clef, lastNote.pitches[0]));
+            }
+            if (selectionIx === selections.length - 2 && selections.length > 2) {
+                const nextNote = selections[selectionIx + 1].note;
+                lastGap = Math.abs(music_1.SmoMusic.pitchToStaffLine(note.clef, note.pitches[0]) -
+                    music_1.SmoMusic.pitchToStaffLine(nextNote.clef, nextNote.pitches[0]));
+            }
+            const fstate = music_1.SmoMusic.flagStateFromNote(note.clef, selection.note);
+            // Keep track of the number of stem directions, so we can determine if the flags are mixed direction
+            // the rules are a little different for mixed - we always try to put the slur on (the real) top of the staff.
             dirs[fstate] = true;
             if (selectionIx === 0) {
                 startDir = fstate;
@@ -25678,15 +25960,43 @@ class SmoOperation {
             }
         });
         params.invert = false;
-        const mixed = Object.keys(dirs).length > 1;
+        mixed = Object.keys(dirs).length > 1;
+        // If the notes are beamed together, the beams must point in the same direction    
+        if (Object.keys(beamGroups).length < 2) {
+            mixed = false;
+        }
         if (mixed) {
-            params.position = startDir === note_1.SmoNote.flagStates.up ? staffModifiers_1.SmoSlur.positions.TOP : staffModifiers_1.SmoSlur.positions.HEAD;
-            params.position_end = endDir === note_1.SmoNote.flagStates.up ? staffModifiers_1.SmoSlur.positions.TOP : staffModifiers_1.SmoSlur.positions.HEAD;
+            // special case: slur 2 notes, note heads close, connect the note heads
+            // to keep a flat arc
+            if (selections.length === 2 && firstGap < 3) {
+                params.position = staffModifiers_1.SmoSlur.positions.HEAD;
+                params.position_end = staffModifiers_1.SmoSlur.positions.HEAD;
+                params.xOffset = 5;
+            }
+            else {
+                params.position = startDir === note_1.SmoNote.flagStates.up ? staffModifiers_1.SmoSlur.positions.TOP : staffModifiers_1.SmoSlur.positions.HEAD;
+                params.position_end = endDir === note_1.SmoNote.flagStates.up ? staffModifiers_1.SmoSlur.positions.TOP : staffModifiers_1.SmoSlur.positions.HEAD;
+                if (firstGap >= 3 || lastGap >= 3) {
+                    params.cp1y = 45;
+                    params.cp2y = 45;
+                }
+            }
             params.invert = endDir === note_1.SmoNote.flagStates.up;
         }
         if (!mixed) {
             params.position = staffModifiers_1.SmoSlur.positions.HEAD;
             params.position_end = staffModifiers_1.SmoSlur.positions.HEAD;
+            if (firstGap >= 2 || lastGap >= 2) {
+                params.cp1y = 45;
+                params.cp2y = 45;
+                params.yOffset += 10;
+            }
+            else {
+                params.yOffset += 10;
+            }
+        }
+        if (selections.length === 2) {
+            params.xOffset = 0;
         }
         return params;
     }
@@ -35170,6 +35480,7 @@ const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./
 const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 /**
  * single-select dropdown list
+ * @category SuiDialog
  */
 class SuiDropdownComponent extends baseComponent_1.SuiComponentBase {
     constructor(dialog, parameter) {
@@ -35243,8 +35554,10 @@ class SuiDropdownComponent extends baseComponent_1.SuiComponentBase {
     }
 }
 exports.SuiDropdownComponent = SuiDropdownComponent;
-// ### SuiDropdownComposite
-// Dropdown component that can be part of a composite control.
+/**
+ * A dropdown composite mixes a dropdown with some other
+ * @category SuiDialog
+ */
 class SuiDropdownComposite extends SuiDropdownComponent {
     constructor(dialog, parameters) {
         super(dialog, parameters);
@@ -35549,6 +35862,7 @@ class SuiNoteTextComponent extends baseComponent_1.SuiComponentBase {
 exports.SuiNoteTextComponent = SuiNoteTextComponent;
 /**
  * manage a lyric session that moves from note to note and adds lyrics.
+ * @category SuiDialog
 **/
 class SuiLyricComponent extends SuiNoteTextComponent {
     constructor(dialog, parameter) {
@@ -37339,6 +37653,7 @@ exports.isModifierWithDialog = isModifierWithDialog;
 /**
  * Dialogs bound to selectable elements like slurs, dynamics, are created
  * directly from a button/menu option
+ * @category SuiDialog
  */
 class SuiModifierDialogFactory {
     static createModifierDialog(modifier, parameters) {
@@ -37393,6 +37708,7 @@ const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter
 const midiToSmo_1 = __webpack_require__(/*! ../../smo/midi/midiToSmo */ "./src/smo/midi/midiToSmo.ts");
 /**
  * internal state of FileLoadDialog is just the string for the filename.
+ * @category SuiDialog
  */
 class SuiSmoLoadAdapter extends adapter_1.SuiComponentAdapter {
     constructor(view) {
@@ -37421,6 +37737,10 @@ class SuiSmoLoadAdapter extends adapter_1.SuiComponentAdapter {
     cancel() { }
 }
 exports.SuiSmoLoadAdapter = SuiSmoLoadAdapter;
+/**
+ * Load a SMO JSON file
+ * @category SuiDialog
+ */
 class SuiLoadFileDialog extends adapter_1.SuiDialogAdapterBase {
     constructor(parameters) {
         const adapter = new SuiSmoLoadAdapter(parameters.view);
@@ -37454,6 +37774,7 @@ SuiLoadFileDialog.dialogElements = {
 };
 /**
  * internal state of FileLoadDialog is just the string for the filename.
+ * @category SuiDialog
  */
 class SuiXmlLoadAdapter extends adapter_1.SuiComponentAdapter {
     constructor(view) {
@@ -37487,6 +37808,10 @@ class SuiXmlLoadAdapter extends adapter_1.SuiComponentAdapter {
     cancel() { }
 }
 exports.SuiXmlLoadAdapter = SuiXmlLoadAdapter;
+/**
+ * Load a music XML file
+ * @category SuiDialog
+ */
 class SuiLoadMxmlDialog extends adapter_1.SuiDialogAdapterBase {
     constructor(parameters) {
         parameters.ctor = 'SuiLoadMxmlDialog';
@@ -37513,6 +37838,7 @@ SuiLoadMxmlDialog.dialogElements = {
 };
 /**
  * internal state of FileLoadDialog is just the string for the filename.
+ * @category SuiDialog
  */
 class SuiMidiLoadAdapter extends adapter_1.SuiComponentAdapter {
     constructor(view) {

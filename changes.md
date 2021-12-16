@@ -1,3 +1,5 @@
+<sub>[Github site](https://github.com/AaronDavidNewman/smoosic) | [source documentation](https://aarondavidnewman.github.io/Smoosic/release/docs/modules.html) | [change notes](https://aarondavidnewman.github.io/Smoosic/changes.html) | [application](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)<sub> 
+
 # Smoosic
 
 Smoosic is a simple (?) but fully-functional-aspirant editor for music written in javascript.  It is also an interactive API for music notation/engraving.
@@ -15,6 +17,12 @@ API Demo Links (codepen):
 ---
 
 ## Changes to Smoosic
+### MusicXML improvements, December 2021
+I've been going through the MusicXML samples and testing for round trip, features missing etc.  Also comparing against MuseScore.  There
+was some XML we were emitting that wasn't correct according to the spec, and some which was just wrong or missing.  Tempo, repeats, slurs,
+time signatures.
+
+Round trip XML will always be a little bit 'lossy' since Smoosic does things a little bit differently than 
 ### MIDI import, for realsies, December, 2021
 I replaced the midi parsing function with the one from https://github.com/NHQ/midi-file-parser/.  This code seems to handle running status correctly.  I did some comparisons to MuseScore input and it is...comparable.  I added variable quantization to different note lengths, and basic triplet support.  It doesn't support instruments so much, but instrument support in Smoosic in general is pretty raw.
 

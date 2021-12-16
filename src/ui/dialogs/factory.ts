@@ -19,6 +19,7 @@ export function isModifierWithDialog(modifier: SmoModifier) {
 /**
  * Dialogs bound to selectable elements like slurs, dynamics, are created 
  * directly from a button/menu option
+ * @category SuiDialog
  */
  export class SuiModifierDialogFactory {
   static createModifierDialog(modifier: SmoModifier, parameters: SuiDialogParams): SuiDialogBase | null {

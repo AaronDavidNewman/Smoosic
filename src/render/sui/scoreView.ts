@@ -371,6 +371,11 @@ export abstract class SuiScoreView {
   }
   setMappedStaffIds() {
     this.score.staves.forEach((staff) => {
+      if (!this.isPartExposed(staff)) {
+        staff.partInfo.displayCues = staff.partInfo.cueInScore;
+      } else {
+        staff.partInfo.displayCues = false;
+      }
       staff.setMappedStaffId(this.staffMap[staff.staffId]);
     });
   }
@@ -449,11 +454,15 @@ export abstract class SuiScoreView {
     // If this current view is a part, show the part layout
     if (this.isPartExposed(this.score.staves[0])) {
       this._mapPartFormatting();
+      this.score.staves.forEach((staff) => {
+        staff.partInfo.displayCues = false;
+      });
+    } else {
+      this.score.staves.forEach((staff) => {
+        staff.partInfo.displayCues = staff.partInfo.cueInScore;
+      });
     }
     this.renderer.setViewport(true);
-    setTimeout(() => {
-      $('body').trigger('forceResizeEvent');
-    }, 1);
   }
   // ### viewAll
   // view all the staffs in score mode.

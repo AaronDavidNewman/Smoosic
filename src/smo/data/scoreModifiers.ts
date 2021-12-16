@@ -295,6 +295,11 @@ export class SmoLayoutManager extends SmoScoreModifierBase {
       this.pageLayouts.push(new SmoPageLayout(SmoPageLayout.defaults));
     }
   }
+  trimPages(pageCount: number) {
+    if (pageCount < this.pageLayouts.length - 1) {
+      this.pageLayouts = this.pageLayouts.slice(0, pageCount + 1);
+    }
+  }
   getZoomScale() {
     return this.globalLayout.zoomScale;
   }

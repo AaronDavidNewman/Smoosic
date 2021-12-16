@@ -118,7 +118,7 @@ remove() {
 }
 }
 export class SuiSlurAttributesDialog extends SuiDialogAdapterBase<SuiSlurAdapter> {
-static dialogElements: DialogDefinition = {      
+  static dialogElements: DialogDefinition = {      
       label: 'Slur Properties', elements: [{
         smoName: 'spacing',
         defaultValue: 2,
@@ -191,9 +191,9 @@ static dialogElements: DialogDefinition = {
         label: 'Control Point 2 Y'
       }], staticText: []
     };
-constructor(parameters: SuiDialogParams) {
-  const adapter = new SuiSlurAdapter(parameters.view, parameters.modifier);
-  super(SuiSlurAttributesDialog.dialogElements, { adapter, ...parameters });
-  this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
-}
+  constructor(parameters: SuiDialogParams) {
+    const adapter = new SuiSlurAdapter(parameters.view, parameters.modifier);
+    super(SuiSlurAttributesDialog.dialogElements, { adapter, ...parameters });
+    this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'MODIFIERPOS'];
+  }
 }

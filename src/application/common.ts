@@ -37,6 +37,7 @@ export interface KeyCommandParams {
 /**
  * Shared interface for menus, dialogs, etc that can 
  * accept UI events
+ * @category SuiUiBase
  */
 export abstract class ModalEventHandler {
   abstract mouseMove(ev: any): void;

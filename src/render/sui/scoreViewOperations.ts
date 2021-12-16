@@ -987,7 +987,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
       const altSel = this._getEquivalentSelection(selected);
       SmoOperation.setPitch(altSel!, [pitch]);
       if (this.score.preferences.autoAdvance) {
-        this.tracker.moveSelectionRight(null, true);
+        this.tracker.moveSelectionRight(this.score, null, true);
       }
     });
     if (selections.length === 1 && this.score.preferences.autoPlay) {
@@ -1608,7 +1608,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     return this.renderer.updatePromise();
   }
   advanceModifierSelection(keyEv: KeyEvent) {
-    this.tracker.advanceModifierSelection(keyEv);
+    this.tracker.advanceModifierSelection(this.score, keyEv);
     return this.renderer.updatePromise();
   }
   growSelectionRightMeasure() {
@@ -1616,7 +1616,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     return this.renderer.updatePromise();
   }
   moveSelectionRight(ev: KeyEvent) {
-    this.tracker.moveSelectionRight(ev, true);
+    this.tracker.moveSelectionRight(this.score, ev, true);
     return this.renderer.updatePromise();
   }
   moveSelectionLeft() {

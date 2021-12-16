@@ -305,7 +305,7 @@ export class SmoRepeatSymbol extends SmoMeasureModifierBase {
 }
 
 /**
- * Constructor parameters for volta (2nd ending)
+ * Constructor parameters for {@link SmoVolta} (2nd ending)
  * @param startBar
  * @param endBar
  * @param xOffsetStart in pixels
@@ -324,7 +324,7 @@ export interface SmoVoltaParams {
 }
 /**
  * Voltas (2nd endings) behave more like staff modifiers, but they are associated with the measure
- * since each meausure has it's own rules for displaying part of the volta.
+ * since each measure has it's own rules for displaying part of the volta.
  * @category SmoModifier
  */
 export class SmoVolta extends SmoMeasureModifierBase {
