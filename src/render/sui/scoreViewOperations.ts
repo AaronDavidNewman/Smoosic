@@ -1148,11 +1148,11 @@ export class SuiScoreViewOperations extends SuiScoreView {
     return this.renderer.updatePromise();
   }
   _removeStaffModifier(modifier: StaffModifierBase) {
-    this.score.staves[modifier.startSelector.staff].removeStaffModifier(modifier);
+    this.score.staves[modifier.associatedStaff].removeStaffModifier(modifier);
     const altModifier = StaffModifierBase.deserialize(modifier.serialize());
     altModifier.startSelector = this._getEquivalentSelector(altModifier.startSelector);
     altModifier.endSelector = this._getEquivalentSelector(altModifier.endSelector);
-    this.storeScore.staves[altModifier.startSelector.staff].removeStaffModifier(altModifier);
+    this.storeScore.staves[this._getEquivalentStaff(modifier.associatedStaff)].removeStaffModifier(altModifier);
   }
   /**
    * Remove selected modifier

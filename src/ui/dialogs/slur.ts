@@ -22,6 +22,7 @@ constructor(view: SuiScoreViewOperations, slur: SmoSlur) {
   this.backup = new SmoSlur(this.slur);
   // Set the same id so the erase works
   this.backup.attrs.id = slur.attrs.id;
+  this.backup.associatedStaff = this.slur.associatedStaff;
 }
 writeSlurNumber(view: SuiScoreViewOperations, slur: SmoSlur, key: SlurNumber, value: number) {
   const current = new SmoSlur(slur);

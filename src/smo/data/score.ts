@@ -396,7 +396,8 @@ export class SmoScore {
       SmoScore.defaultAttributes,
       jsonObj.score, params);
 
-    jsonObj.staves.forEach((staffObj: any) => {
+    jsonObj.staves.forEach((staffObj: any, staffIx: number) => {
+      staffObj.staffId = staffIx;
       const staff = SmoSystemStaff.deserialize(staffObj);
       staves.push(staff);
     });
@@ -693,6 +694,10 @@ export class SmoScore {
     const tmpStaff = this.staves[index1];
     this.staves[index1] = this.staves[index2];
     this.staves[index2] = tmpStaff;
+    this.staves.forEach((staff) => {
+      staff.mapStaffFromTo(index1, index2);
+      staff.mapStaffFromTo(index2, index1);
+    });
     this.numberStaves();
   }
 

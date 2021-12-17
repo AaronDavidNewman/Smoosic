@@ -156,7 +156,7 @@ export class XmlToSmo {
     score.staves.forEach((staff) => {
       const slurs = staff.modifiers.filter((mm) =>mm.ctor === 'SmoSlur');
       slurs.forEach((ss) => {
-        const slur = ss as SmoSlur;
+        const slur = (ss as any) as SmoSlur;
         const sel1 = SmoSelection.noteFromSelector(score, ss.startSelector);
         const sel2 = SmoSelection.noteFromSelector(score, ss.endSelector);
         if (sel1 && sel2) {

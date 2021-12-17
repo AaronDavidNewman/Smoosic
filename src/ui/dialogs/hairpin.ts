@@ -18,6 +18,8 @@ export class SuiHairpinAdapter extends SuiComponentAdapter {
     this.hairpin = hairpin;
     this.view = view;
     this.backup = new SmoStaffHairpin(this.hairpin);
+    this.backup.attrs.id = hairpin.attrs.id;
+    this.backup.associatedStaff = hairpin.associatedStaff;
   }
   cancel() {
     if (this.changed) {

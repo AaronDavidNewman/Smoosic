@@ -236,11 +236,30 @@ export class SmoSystemStaff implements SmoObjectParams {
     if (jsonObj.modifiers) {
       jsonObj.modifiers.forEach((modParams: any) => {
         const mod = StaffModifierBase.deserialize(modParams);
+        mod.associatedStaff = jsonObj.staffId;
         params.modifiers.push(mod);
       });
     }
     const rv = new SmoSystemStaff(params);
     return rv;
+  }
+  /**
+   * We have created a score with staff mappings.  Update the selectors in staff modifiers so that
+   * 'from' in the staff slot is 'to'
+   */
+  mapStaffFromTo(from: number, to: number) {
+    if (from === to) {
+      return;
+    }
+    this.modifiers.forEach((mod) => {
+      if (mod.startSelector.staff === from) {
+        mod.startSelector.staff = to;
+      }
+      if (mod.endSelector.staff === from) {
+        mod.endSelector.staff = to;
+      }
+      mod.associatedStaff = this.staffId;
+    });
   }
   updateMeasureFormatsForPart() {
     this.measures.forEach((measure, mix) => {
@@ -278,6 +297,7 @@ export class SmoSystemStaff implements SmoObjectParams {
   addStaffModifier(modifier: StaffModifierBase) {
     this.removeStaffModifier(modifier);
     this.modifiers.push(modifier);
+    modifier.associatedStaff = this.staffId;
   }
 
   // ### removeStaffModifier

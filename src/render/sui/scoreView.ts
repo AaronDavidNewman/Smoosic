@@ -276,6 +276,9 @@ export abstract class SuiScoreView {
     rv.staff = this.staffMap[selector.staff];
     return rv;
   }
+  _getEquivalentStaff(staffId: number) {
+    return this.staffMap[staffId];
+  }
   _getEquivalentSelection(selection: SmoSelection): SmoSelection | null {
     try {
       if (typeof(selection.selector.tick) === 'undefined') {
@@ -439,6 +442,7 @@ export abstract class SuiScoreView {
     for (i = 0; i < rows.length; ++i) {
       const row = rows[i];
       if (row.show) {
+        staveScore.staves[i].mapStaffFromTo(i, nscore.staves.length);
         nscore.staves.push(staveScore.staves[i]);
         staffMap.push(i);
       }

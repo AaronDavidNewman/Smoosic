@@ -7232,6 +7232,9 @@ class SuiScoreView {
         rv.staff = this.staffMap[selector.staff];
         return rv;
     }
+    _getEquivalentStaff(staffId) {
+        return this.staffMap[staffId];
+    }
     _getEquivalentSelection(selection) {
         try {
             if (typeof (selection.selector.tick) === 'undefined') {
@@ -7390,6 +7393,7 @@ class SuiScoreView {
         for (i = 0; i < rows.length; ++i) {
             const row = rows[i];
             if (row.show) {
+                staveScore.staves[i].mapStaffFromTo(i, nscore.staves.length);
                 nscore.staves.push(staveScore.staves[i]);
                 staffMap.push(i);
             }
@@ -8584,11 +8588,11 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         return this.renderer.updatePromise();
     }
     _removeStaffModifier(modifier) {
-        this.score.staves[modifier.startSelector.staff].removeStaffModifier(modifier);
+        this.score.staves[modifier.associatedStaff].removeStaffModifier(modifier);
         const altModifier = staffModifiers_1.StaffModifierBase.deserialize(modifier.serialize());
         altModifier.startSelector = this._getEquivalentSelector(altModifier.startSelector);
         altModifier.endSelector = this._getEquivalentSelector(altModifier.endSelector);
-        this.storeScore.staves[altModifier.startSelector.staff].removeStaffModifier(altModifier);
+        this.storeScore.staves[this._getEquivalentStaff(modifier.associatedStaff)].removeStaffModifier(altModifier);
     }
     /**
      * Remove selected modifier
@@ -18664,7 +18668,8 @@ class SmoScore {
         }
         // params.layout = JSON.parse(JSON.stringify(SmoScore.defaults.layout));
         serializationHelpers_1.smoSerialize.serializedMerge(SmoScore.defaultAttributes, jsonObj.score, params);
-        jsonObj.staves.forEach((staffObj) => {
+        jsonObj.staves.forEach((staffObj, staffIx) => {
+            staffObj.staffId = staffIx;
             const staff = systemStaff_1.SmoSystemStaff.deserialize(staffObj);
             staves.push(staff);
         });
@@ -18944,6 +18949,10 @@ class SmoScore {
         const tmpStaff = this.staves[index1];
         this.staves[index1] = this.staves[index2];
         this.staves[index2] = tmpStaff;
+        this.staves.forEach((staff) => {
+            staff.mapStaffFromTo(index1, index2);
+            staff.mapStaffFromTo(index2, index1);
+        });
         this.numberStaves();
     }
     _updateTextGroup(textGroup, toAdd) {
@@ -19924,6 +19933,7 @@ const VF = eval('Vex.Flow');
  * */
 class StaffModifierBase {
     constructor(ctor) {
+        this.associatedStaff = 0;
         this.startSelector = selections_1.SmoSelector.default;
         this.endSelector = selections_1.SmoSelector.default;
         this.renderedBox = null;
@@ -20470,11 +20480,30 @@ class SmoSystemStaff {
         if (jsonObj.modifiers) {
             jsonObj.modifiers.forEach((modParams) => {
                 const mod = staffModifiers_1.StaffModifierBase.deserialize(modParams);
+                mod.associatedStaff = jsonObj.staffId;
                 params.modifiers.push(mod);
             });
         }
         const rv = new SmoSystemStaff(params);
         return rv;
+    }
+    /**
+     * We have created a score with staff mappings.  Update the selectors in staff modifiers so that
+     * 'from' in the staff slot is 'to'
+     */
+    mapStaffFromTo(from, to) {
+        if (from === to) {
+            return;
+        }
+        this.modifiers.forEach((mod) => {
+            if (mod.startSelector.staff === from) {
+                mod.startSelector.staff = to;
+            }
+            if (mod.endSelector.staff === from) {
+                mod.endSelector.staff = to;
+            }
+            mod.associatedStaff = this.staffId;
+        });
     }
     updateMeasureFormatsForPart() {
         this.measures.forEach((measure, mix) => {
@@ -20513,6 +20542,7 @@ class SmoSystemStaff {
     addStaffModifier(modifier) {
         this.removeStaffModifier(modifier);
         this.modifiers.push(modifier);
+        modifier.associatedStaff = this.staffId;
     }
     // ### removeStaffModifier
     // Remove a modifier of given type and location
@@ -38510,6 +38540,8 @@ class SuiHairpinAdapter extends adapter_1.SuiComponentAdapter {
         this.hairpin = hairpin;
         this.view = view;
         this.backup = new staffModifiers_1.SmoStaffHairpin(this.hairpin);
+        this.backup.attrs.id = hairpin.attrs.id;
+        this.backup.associatedStaff = hairpin.associatedStaff;
     }
     cancel() {
         if (this.changed) {
@@ -40058,6 +40090,7 @@ class SuiSlurAdapter extends adapter_1.SuiComponentAdapter {
         this.backup = new staffModifiers_1.SmoSlur(this.slur);
         // Set the same id so the erase works
         this.backup.attrs.id = slur.attrs.id;
+        this.backup.associatedStaff = this.slur.associatedStaff;
     }
     writeSlurNumber(view, slur, key, value) {
         const current = new staffModifiers_1.SmoSlur(slur);
@@ -40990,6 +41023,9 @@ class SuiTieAdapter extends adapter_1.SuiComponentAdapter {
         this.changed = false;
         this.tie = tie;
         this.backup = new staffModifiers_1.SmoTie(tie);
+        // Make it have same ID so remove works.
+        this.backup.attrs.id = tie.attrs.id;
+        this.backup.associatedStaff = tie.associatedStaff;
     }
     writeTieNumber(value, param) {
         this.tie[param] = value;

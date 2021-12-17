@@ -17,6 +17,9 @@ export class SuiTieAdapter extends SuiComponentAdapter {
     super(view);
     this.tie = tie;
     this.backup = new SmoTie(tie);
+    // Make it have same ID so remove works.
+    this.backup.attrs.id = tie.attrs.id;
+    this.backup.associatedStaff = tie.associatedStaff;
   }
   writeTieNumber(value: number, param: TieNumber) {
     this.tie[param] = value;

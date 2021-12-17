@@ -26,6 +26,7 @@ const VF = eval('Vex.Flow');
 export abstract class StaffModifierBase implements SmoModifierBase {
   attrs: SmoAttrs;
   ctor: string;
+  associatedStaff: number = 0;
   startSelector: SmoSelector = SmoSelector.default;
   endSelector: SmoSelector = SmoSelector.default;
   renderedBox: SvgBox | null = null;
