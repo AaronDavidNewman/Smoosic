@@ -38,8 +38,6 @@
 
                  // Convienence object that sends a command to the view object, and
                  // returns a promise that is resolved when the change is rendered
-                 const action = Smo.SuiActionPlayback.actionPromises;
-                 const setPitches = Smo.SuiActionPlayback.setPitches;
                  const t = ((action, repetition) => {
                    return view.waitableAction(action, repetition);
                  });
