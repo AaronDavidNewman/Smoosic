@@ -1,40 +1,49 @@
 <!DOCTYPE HTML>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
-		<meta charset="utf-8">
-		<title>Smoosic Editor</title>
-		<link href="https://aarondavidnewman.github.io/Smoosic/build/styles/fonts.css" rel="stylesheet">
-        <link href="../styles/media.css" rel="stylesheet">
-        <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/ribbon.css" rel="stylesheet">
-        <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/dialogs.css" rel="stylesheet">
-        <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/menus.css" rel="stylesheet">
-        <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/piano.css" rel="stylesheet">
-        <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/tree.css" rel="stylesheet">
-        <script type="text/javascript" src="https://aarondavidnewman.github.io/vexflow_smoosic/releases/vexflow-debug.js"></script>
-        <!-- script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js" integrity="sha512-uVSVjE7zYsGz4ag0HEzfugJ78oHCI1KhdkivjQro8ABL/PRiEO4ROwvrolYAcZnky0Fl/baWKYilQfWvESliRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script -->
-        <!-- script type="text/javascript" src="../../../vex_smoosic/vexflow_smoosic/build/vexflow-debug.js"></script -->
-        <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.slim.js" ></script>
-        <script type="text/javascript" src="../midi-parser.js"></script>
-        <script type="text/javascript" src="../jszip.js"></script>
-		<script type="text/javascript" src="../smoosic.js" ></script>
-    <script type="text/javascript">
-           document.addEventListener("DOMContentLoaded", function (event) {
-             Smo.SuiDom.createUiDom(document.getElementById('smoo'));
-               var config = { smoPath: '..', mode: 'application', uiDomContainer: 'smoo'
-                , scoreDomContainer: 'smo-scroll-region' };
-               Smo.SuiApplication.configure(config);
-           });
-       </script>
+  <meta charset="utf-8">
+  <title>Smoosic Editor</title>
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/fonts.css" rel="stylesheet">
+  <link href="../styles/media.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/ribbon.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/dialogs.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/menus.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/piano.css" rel="stylesheet">
+  <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/tree.css" rel="stylesheet">
+  <script type="text/javascript"
+    src="https://aarondavidnewman.github.io/vexflow_smoosic/releases/vexflow-debug.js"></script>
+  <!-- script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js" integrity="sha512-uVSVjE7zYsGz4ag0HEzfugJ78oHCI1KhdkivjQro8ABL/PRiEO4ROwvrolYAcZnky0Fl/baWKYilQfWvESliRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script -->
+  <!-- script type="text/javascript" src="../../../vex_smoosic/vexflow_smoosic/build/vexflow-debug.js"></script -->
+  <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.slim.js"></script>
+  <script type="text/javascript" src="../midi-parser.js"></script>
+  <script type="text/javascript" src="../jszip.js"></script>
+  <script type="text/javascript" src="../smoosic.js"></script>
+  <script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function (event) {
+      Smo.SuiDom.createUiDom(document.getElementById('smoo'));
+      var config = {
+        mode: 'application', leftControls: 'controls-left', topControls: 'controls-top'
+        , scoreDomContainer: 'smo-scroll-region',
+      };
+      Smo.SuiApplication.configure(config);
+    });
+
+  </script>
 </head>
+
 <body>
   <!-- audio crossOrigin="anonymous" id="sample" src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_middle_C.mp3" / -->
-<div id="smoo">
-  <div>
-   <audio crossOrigin="anonymous" id="samplecn4" src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_middle_C.mp3" >
-   </div>
-   <div>
-   <audio crossOrigin="anonymous" id="samplebb4" src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_A_sharp.mp3" > </audio>
-</div>
-</div>
+  <div id="smoo">
+    <div>
+      <audio crossOrigin="anonymous" id="samplecn4"
+        src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_middle_C.mp3">
+    </div>
+    <div>
+      <audio crossOrigin="anonymous" id="samplebb4"
+        src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_A_sharp.mp3"> </audio>
+    </div>
+  </div>
 </body>
+
 </html>
