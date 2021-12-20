@@ -6795,6 +6795,7 @@ class SuiScoreView {
     constructor(config, renderer, score, scrollSelector, undoBuffer) {
         this.score = score;
         this.renderer = renderer;
+        this.config = config;
         const scoreJson = score.serialize();
         this.scroller = new scroller_1.SuiScroller(scrollSelector);
         this.pasteBuffer = new copypaste_1.PasteBuffer();
@@ -38510,10 +38511,7 @@ class SuiLyricDialog extends dialog_1.SuiDialogBase {
         this.mouseMoveHandler = null;
         this.mouseClickHandler = null;
         this.lyric = null;
-        if (!parameters.config) {
-            throw ('must send UI config to Lyric Dialog Parameters');
-        }
-        this.config = parameters.config;
+        this.config = this.view.config;
         this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
         this.originalRefreshTimer = this.config.idleRedrawTime;
         this.config.idleRedrawTime = SuiLyricDialog.idleLyricTime;

@@ -7,8 +7,8 @@ import { SuiRockerComponent } from './components/rocker';
 import { SvgBox } from '../../smo/data/common';
 import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SuiFontComponent } from './components/fontComponent';
+import { SmoRenderConfiguration } from '../../render/sui/configuration';
 import { EventHandler } from '../eventSource';
-import { SmoUiConfiguration } from '../configuration';
 
 declare var $: any;
 
@@ -72,17 +72,14 @@ export class SuiLyricDialog extends SuiDialogBase {
     };
   originalRefreshTimer: number;
   modifier: SmoLyric | null = null;
-  config: SmoUiConfiguration;
+  config: SmoRenderConfiguration;
   verse: number = 0;
   mouseMoveHandler: EventHandler | null = null;
   mouseClickHandler: EventHandler | null = null;
   lyric: SmoLyric | null = null;
   constructor(parameters: SuiDialogParams) {
     super(SuiLyricDialog.dialogElements, parameters);
-    if (!parameters.config) {
-      throw ('must send UI config to Lyric Dialog Parameters');
-    }
-    this.config = parameters.config;
+    this.config = this.view.config;
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
     this.originalRefreshTimer = this.config.idleRedrawTime;
     this.config.idleRedrawTime = SuiLyricDialog.idleLyricTime;

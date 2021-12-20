@@ -43,9 +43,11 @@ export abstract class SuiScoreView {
   pasteBuffer: PasteBuffer;
   storePaste: PasteBuffer;
   layoutDemon: SuiRenderDemon;
+  config: SmoRenderConfiguration;
   constructor(config: SmoRenderConfiguration, renderer: SuiRenderState, score: SmoScore, scrollSelector: HTMLElement, undoBuffer: UndoBuffer) {
     this.score = score;
     this.renderer = renderer;
+    this.config = config;
     const scoreJson = score.serialize();
     this.scroller = new SuiScroller(scrollSelector);
     this.pasteBuffer = new PasteBuffer();
