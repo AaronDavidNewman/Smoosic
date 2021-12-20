@@ -33876,7 +33876,6 @@ const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src
 const library_1 = __webpack_require__(/*! ../dialogs/library */ "./src/ui/dialogs/library.ts");
 const tempo_1 = __webpack_require__(/*! ../dialogs/tempo */ "./src/ui/dialogs/tempo.ts");
 const instrument_1 = __webpack_require__(/*! ../dialogs/instrument */ "./src/ui/dialogs/instrument.ts");
-const piano_1 = __webpack_require__(/*! ../../render/sui/piano */ "./src/render/sui/piano.ts");
 const collapsable_1 = __webpack_require__(/*! ./collapsable */ "./src/ui/buttons/collapsable.ts");
 const dialog_1 = __webpack_require__(/*! ../dialogs/dialog */ "./src/ui/dialogs/dialog.ts");
 const help_1 = __webpack_require__(/*! ../help */ "./src/ui/help.js");
@@ -33913,10 +33912,7 @@ class RibbonButtons {
         return r.dom();
     }
     _executeButtonModal(buttonElement, buttonData) {
-        if (buttonData.ctor === 'SuiPiano') {
-            piano_1.SuiPiano.createAndDisplay();
-        }
-        else if (isModalButtonType(buttonData.ctor)) {
+        if (isModalButtonType(buttonData.ctor)) {
             const params = {
                 undoBuffer: this.view.undoBuffer,
                 eventSource: this.eventSource,
@@ -50939,16 +50935,6 @@ class defaultRibbonLayout {
                 ctor: 'SuiStaffModifierMenu',
                 group: 'scoreEdit',
                 id: 'staffModifierMenu'
-            },
-            {
-                leftText: 'Piano',
-                rightText: '',
-                icon: '',
-                classes: 'icon keyboard',
-                action: 'modal',
-                ctor: 'SuiPiano',
-                group: 'scoreEdit',
-                id: 'pianoModal'
             },
         ];
     }

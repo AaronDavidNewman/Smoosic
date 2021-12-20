@@ -1630,16 +1630,6 @@ export class defaultRibbonLayout {
       group: 'scoreEdit',
       id: 'staffModifierMenu'
     },
-    {
-      leftText: 'Piano',
-      rightText: '',
-      icon: '',
-      classes: 'icon keyboard',
-      action: 'modal',
-      ctor: 'SuiPiano',
-      group: 'scoreEdit',
-      id: 'pianoModal'
-    },
     ];
   }
 }

@@ -92,9 +92,7 @@ export class RibbonButtons {
     this.collapseChildren = [];
   }
   _executeButtonModal(buttonElement: string, buttonData: ButtonDefinition) {
-    if (buttonData.ctor === 'SuiPiano') {
-      SuiPiano.createAndDisplay();
-    } else if (isModalButtonType(buttonData.ctor)) {
+   if (isModalButtonType(buttonData.ctor)) {
       const params = {
         undoBuffer: this.view.undoBuffer,
         eventSource: this.eventSource,
