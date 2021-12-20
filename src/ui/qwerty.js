@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { htmlHelpers } from "../common/htmlHelpers";
+import { buildDom, createTopDomContainer } from "../common/htmlHelpers";
 export class Qwerty {
   static get navigationElements() {
 
@@ -119,7 +119,7 @@ export class Qwerty {
   }
 
   static _kbButton(buttons) {
-    var b = htmlHelpers.buildDom;
+    var b = buildDom;
     var r = b('span').classes('keyContainer');
     buttons.rows.forEach((button) => {
       var text = button.text;
@@ -133,14 +133,14 @@ export class Qwerty {
     return r;
   }
   static _buttonBlock(buttons,id) {
-    var b = htmlHelpers.buildDom;
+    var b = buildDom;
     var r = b('div').classes('keyBlock').attr('id', id);
     r.append(Qwerty._kbButton(buttons));
     return r;
   }
 
   static _buildElements(rows) {
-    var b = htmlHelpers.buildDom;
+    var b = buildDom;
     var r = b('div').classes('buttonLine')
       .append(b('span').classes('icon icon-move'));
     var keys = Object.keys(rows);
@@ -153,15 +153,17 @@ export class Qwerty {
     return r;
   }
   static displayKb() {
+    createTopDomContainer('.qwertyKb');
     $('body').addClass('showQwerty');
     $('.qwertyKb').html('');
-    var b = htmlHelpers.buildDom;
+    var b = buildDom;
     var r = b('div').classes('kb-float');
     r.append(Qwerty._buildElements(Qwerty.navigationElements));
     $('.qwertyKb').append(r.dom());
 
     var cb = function (x, y) {}
-    htmlHelpers.draggable({
+    createTopDomContainer('.draganime');
+    draggable({
       parent: $('.qwertyKb'),
       handle: $('.qwertyKb').find('.icon-move'),
       animateDiv:'.draganime',

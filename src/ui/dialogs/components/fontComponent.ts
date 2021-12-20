@@ -4,9 +4,8 @@ import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent } from './baseC
 import { SuiDropdownComposite } from './dropdown';
 import { SuiRockerComposite } from './rocker';
 import { SuiToggleComposite } from './toggle';
-import { SuiButtonComposite } from './button';
-import { SmoTextGroup, SmoScoreText } from '../../../smo/data/scoreModifiers';
-import { htmlHelpers } from '../../../common/htmlHelpers';
+import { SmoScoreText } from '../../../smo/data/scoreModifiers';
+import { buildDom } from '../../../common/htmlHelpers';
 import { SourceSerifProFont } from '../../../styles/font_metrics/ssp-serif-metrics';
 import { SourceSansProFont } from '../../../styles/font_metrics/ssp-sans-metrics';
 import { FontInfo } from '../../../smo/data/common';
@@ -94,7 +93,7 @@ export class SuiFontComponent extends SuiComponentBase {
   }
 
   get html() {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const q = b('div').classes(this.makeClasses('multiControl smoControl')).attr('id', this.parameterId);
     if (this.label) {
       q.append(b('h3').classes('font-purpose').text(this.label));

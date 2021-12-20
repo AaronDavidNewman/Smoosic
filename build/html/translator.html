@@ -18,20 +18,14 @@
 		<script type="text/javascript" src="../smoosic.js" ></script>
     <script type="text/javascript">
            document.addEventListener("DOMContentLoaded", function (event) {
-               var config = { smoPath: '..', mode: 'translate', language: 'de', uiDomContainer: 'smoo' };
+               var config = { smoPath: '..', mode: 'translate', language: 'de', scoreDomContainer: 'smoo' };
                Smo.SuiApplication.configure(config);
            });
        </script>
 </head>
 <body>
   <!-- audio crossOrigin="anonymous" id="sample" src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_middle_C.mp3" / -->
-<div id="smoo">
-  <div>
-   <audio crossOrigin="anonymous" id="samplecn4" src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_middle_C.mp3" >
-   </div>
-   <div>
-   <audio crossOrigin="anonymous" id="samplebb4" src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_A_sharp.mp3" > </audio>
-</div>
+<div id="smoo"> 
 </div>
 </body>
 </html>

@@ -144,15 +144,15 @@ button#MicrotoneButtons  {
     display:none;
 }
 
-.ribbonButtonContainer[data-group="displaySettings"] {
+.ribbonButtonContainer[data-group="quickButtons"] {
     margin-left:10px;
 }
-.ribbonButtonContainer[data-group="displaySettings"] button {
+.ribbonButtonContainer[data-group="quickButtons"] button {
     width:35px;
     height:40px;
 }
 
-.controls-top .ribbonButtonContainer[data-group="displaySettings"] button .icon {
+.controls-top .ribbonButtonContainer[data-group="quickButtons"] button .icon {
     top:25%;
     left:25%;
 }

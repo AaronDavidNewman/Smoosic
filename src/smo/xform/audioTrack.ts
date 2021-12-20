@@ -263,7 +263,7 @@ export class SmoAudioScore {
     const tn: SmoAudioTie[] = [];
     const cp = (x: any) => JSON.parse(JSON.stringify(x));
     track.tiedNotes.forEach((tie) => {
-      if (SmoSelector.gteq(selection.selector, tie.startSelector) && SmoSelector.lteq(selection.selector, tie.endSelector)) {
+      if (SmoSelector.gteq(selection.selector, tie.startSelector) && SmoSelector.lteq(selection.selector, tie.endSelector)) {        
         tn.push(tie);
       }
     });
@@ -293,6 +293,10 @@ export class SmoAudioScore {
       if (endings.length) {
         return false;
       }
+    }
+    // the first note should be played, not tied
+    if (SmoSelector.eq(track.tiedNotes[0].startSelector, selection.selector)) {
+      return false;
     }
     return SmoMusic.pitchArraysMatch(track.notes[noteIx - 1].pitches, (selection.note as SmoNote).pitches);
   }

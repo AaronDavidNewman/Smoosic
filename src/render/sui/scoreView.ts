@@ -1,22 +1,20 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { SmoMeasure } from '../../smo/data/measure';
 import { SmoModifierBase } from '../../smo/data/common';
 import { SmoScore } from '../../smo/data/score';
 import { SmoTextGroup } from '../../smo/data/scoreModifiers';
 import { SmoGraceNote } from '../../smo/data/noteModifiers';
 import { SmoSystemStaff } from '../../smo/data/systemStaff';
 import { StaffModifierBase } from '../../smo/data/staffModifiers';
-import { Action } from '../../smo/xform/actions';
 import { SmoSelection, SmoSelector } from '../../smo/xform/selections';
 import { UndoBuffer } from '../../smo/xform/undo';
 import { PasteBuffer } from '../../smo/xform/copypaste';
-import { SmoActionRecord } from '../../smo/xform/actions';
 import { SuiScroller } from './scroller';
 import { SvgHelpers } from './svgHelpers';
 import { SuiTracker } from './tracker';
 import { SuiRenderDemon } from './layoutDemon';
-import { testCase1 } from '../../music/utActions';
+import { createTopDomContainer } from '../../common/htmlHelpers';
+import { SmoRenderConfiguration } from './configuration';
 import { SuiRenderState } from './renderState';
 
 declare var $: any;
@@ -34,7 +32,6 @@ export interface ViewMapEntry {
  */
 export abstract class SuiScoreView {
   static Instance: SuiScoreView | null = null;
-  abstract replayActions(): void;
   score: SmoScore; // The score that is displayed
   storeScore: SmoScore;  // the full score, including invisible staves
   staffMap: number[]; // mapping the 2 things above
@@ -45,9 +42,8 @@ export abstract class SuiScoreView {
   scroller: SuiScroller;
   pasteBuffer: PasteBuffer;
   storePaste: PasteBuffer;
-  actionBuffer: SmoActionRecord;
   layoutDemon: SuiRenderDemon;
-  constructor(renderer: SuiRenderState, score: SmoScore, scrollSelector: HTMLElement, undoBuffer: UndoBuffer) {
+  constructor(config: SmoRenderConfiguration, renderer: SuiRenderState, score: SmoScore, scrollSelector: HTMLElement, undoBuffer: UndoBuffer) {
     this.score = score;
     this.renderer = renderer;
     const scoreJson = score.serialize();
@@ -59,13 +55,12 @@ export abstract class SuiScoreView {
 
     this.storeScore = SmoScore.deserialize(JSON.stringify(scoreJson));
     this.undoBuffer = undoBuffer;
-    this.layoutDemon = new SuiRenderDemon(this.renderer, this.undoBuffer, this.tracker);
+    this.layoutDemon = new SuiRenderDemon(config, this.renderer, this.undoBuffer, this.tracker);
     this.storeUndo = new UndoBuffer();
     this.staffMap = this.defaultStaffMap;
     SuiScoreView.Instance = this; // for debugging
     this.setMappedStaffIds();
-    this.actionBuffer = new SmoActionRecord();
-    this.tracker.recordBuffer = this.actionBuffer;
+    createTopDomContainer('.saveLink'); // for file upload
   }
   /**
    * Await on the full update of the score
@@ -342,19 +337,6 @@ export abstract class SuiScoreView {
   startRenderingEngine() {
     this.layoutDemon.startDemon();
   }
-  static debugUnitTest() {
-    const dbg = SuiScoreView.Instance;
-    if (dbg === null) {
-      return;
-    }
-    dbg.changeScore(SmoScore.getDefaultScore(SmoScore.defaults, SmoMeasure.defaults));
-    dbg.actionBuffer.actions = JSON.parse(testCase1);
-    if (SuiScoreView.Instance !== null) {
-      dbg.actionBuffer.executeIndex = SuiScoreView.Instance.actionBuffer.actions.length;
-    }
-    dbg.replayActions();
-  }
-
   getView(): ViewMapEntry[] {
     const rv = [];
     let i = 0;
@@ -363,14 +345,6 @@ export abstract class SuiScoreView {
       rv.push({ show });
     }
     return rv;
-  }
-  playActions(actionJson: Action[]) {
-    if (!this.actionBuffer.endCondition) {
-      return;
-    }
-    this.actionBuffer.actions = actionJson;
-    this.actionBuffer.resetRunner();
-    this.replayActions();
   }
   setMappedStaffIds() {
     this.score.staves.forEach((staff) => {
@@ -487,7 +461,6 @@ export abstract class SuiScoreView {
     this.score = score;
     this.staffMap = this.defaultStaffMap;
     this.setMappedStaffIds();
-    this.actionBuffer.clearActions();
     return this.renderPromise();
   }
 

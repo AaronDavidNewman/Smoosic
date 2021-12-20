@@ -27,9 +27,10 @@
       const path = 'https://aarondavidnewman.github.io/Smoosic/release/library/Beethoven_AnDieFerneGeliebte.xml';
       Smo.SuiApplication.configure({
                    mode: 'library',
-                   scoreDomContainer: 'outer-container'
+                   scoreDomContainer: 'outer-container',
+                   remoteScore: path
       }).then((application) => {
-        application.view.loadRemoteScore(path);
+        console.log('done!');
       });
     });
   </script>

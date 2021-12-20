@@ -3,7 +3,7 @@
 import { SuiLyricSession, SuiChordSession } from '../../../render/sui/textEdit';
 import { SuiInlineText } from '../../../render/sui/textRender';
 import { KeyEvent } from '../../../smo/data/common';
-import { htmlHelpers } from '../../../common/htmlHelpers';
+import { buildDom } from '../../../common/htmlHelpers';
 import { SuiScoreViewOperations } from '../../../render/sui/scoreViewOperations';
 import { SmoSelection, SmoSelector } from '../../../smo/xform/selections';
 import { BrowserEventSource } from '../../eventSource';
@@ -158,7 +158,7 @@ export class SuiLyricComponent extends SuiNoteTextComponent {
     this.verse = parameter.verse ?? 0;
   }
   get html() {
-    var b = htmlHelpers.buildDom;
+    var b = buildDom;
     var id = this.parameterId;
     var r = b('div').classes(this.makeClasses('cbLyricEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
       .append(b('div').classes('toggleEdit')
@@ -237,7 +237,7 @@ export class SuiChordComponent extends SuiNoteTextComponent {
   }
 
   get html() {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const id = this.parameterId;
     const r = b('div').classes(this.makeClasses('cbChordEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
       .append(b('div').classes('toggleEdit')

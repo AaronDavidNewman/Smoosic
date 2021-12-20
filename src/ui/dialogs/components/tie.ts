@@ -3,7 +3,7 @@
 import { SuiDialogNotifier, DialogDefinitionElement, SuiComponentParent } from '../components/baseComponent';
 import { SuiDropdownCompositeParams, SuiDropdownComposite } from '../components/dropdown';
 
-import { htmlHelpers } from '../../../common/htmlHelpers';
+import { buildDom } from '../../../common/htmlHelpers';
 import { SmoSelection } from '../../../smo/xform/selections';
 import { SmoTie, TieLine } from '../../../smo/data/staffModifiers';
 import { SmoNote } from '../../../smo/data/note';
@@ -126,7 +126,7 @@ export class TieMappingComponent extends SuiComponentParent {
     this.handleChanged();
   }
   get html() {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const q = b('div').classes(this.makeClasses('multiControl smoControl dropdownPair'))
       .attr('id', this.parameterId);
     this.controlRows.forEach((row) => {

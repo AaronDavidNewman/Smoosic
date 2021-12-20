@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { htmlHelpers } from '../common/htmlHelpers';
+import { buildDom } from '../common/htmlHelpers';
 import { SvgHelpers } from '../render/sui/svgHelpers';
 import { SmoConfiguration } from './configuration';
 import { SuiPiano } from '../render/sui/piano';
@@ -9,8 +9,8 @@ declare var $: any;
 
 export class SuiDom {
   static splash(config: SmoConfiguration) {
-    var b: any = htmlHelpers.buildDom;
-    var logoPath = config.smoPath + '/styles/images/logo.png'
+    var b: any = buildDom;
+    var logoPath = 'https://aarondavidnewman.github.io/Smoosic/release/styles/images/logo.png';
     var r = b('div').classes('bug-modal').append(
       b('img').attr('src', logoPath).classes('splash-logo'))
       .append(b('button').classes('icon icon-cross bug-dismiss-button'))
@@ -34,21 +34,8 @@ export class SuiDom {
     if (!uiDomContainer) {
       return;
     }
-    var b = htmlHelpers.buildDom;
+    var b = buildDom;
     var r = b('div').classes('dom-container')
-      .append(b('div').classes('modes'))
-      .append(b('div').classes('overlay'))
-      .append(b('div').classes('draganime hide'))
-      .append(b('div').classes('textEdit hide'))
-      .append(b('div').classes('glyphRender hide').attr('id', 'glyphRender'))
-      .append(b('div').classes('translation-editor'))
-      .append(b('div').classes('attributeDialog'))
-      .append(b('progress').attr('id', 'renderProgress').attr('value', '0').attr('max', '100'))
-      .append(b('div').classes('qwertyKb'))
-      .append(b('div').classes('saveLink'))
-      .append(b('div').classes('bugDialog'))
-      .append(b('div').classes('printFrame'))
-      .append(b('div').classes('menuContainer'))
       .append(b('div').classes('workspace language-dir').attr('dir', 'ltr')
         .append(b('div').classes('helpDialog'))
         .append(b('div').classes('control-bar')
@@ -57,13 +44,15 @@ export class SuiDom {
             .append(b('div').classes('key-left-ctrl'))
             .append(b('div').classes('piano-keys'))
             .append(b('div').classes('key-right-ctrl')))
-          .append(b('div').classes('controls-top')))
+          .append(b('div').classes('controls-top').attr('id','controls-top')))
         .append(b('div').classes('media')
-          .append(b('div').classes('controls-left'))
-          .append(b('div').classes('controls-menu-message'))
+          .append(b('div').classes('controls-left').attr('id','controls-left'))
           ));
     
     uiDomContainer.append(r.dom()[0]);
+    const scrollRegion = document.createElement('div');
+    $(scrollRegion).attr('id', 'smo-scroll-region').addClass('musicRelief');
+    $('.dom-container .media').append(scrollRegion);
     var pianoDom = $('.piano-keys')[0];
     var svg = document.createElementNS(SvgHelpers.namespace, 'svg');
     svg.id = 'piano-svg';

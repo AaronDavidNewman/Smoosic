@@ -3,7 +3,7 @@
 /**
  * @module /ui/dialog/components/rocker
  * **/
- import { htmlHelpers } from '../../../common/htmlHelpers';
+ import { buildDom } from '../../../common/htmlHelpers';
 import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent } from './baseComponent';
 
 declare var $: any;
@@ -59,7 +59,7 @@ export class SuiRockerComponent extends SuiComponentBase {
   }
 
   get html() {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const id = this.parameterId;
     const r = b('div').classes(this.makeClasses('rockerControl smoControl')).attr('id', id).attr('data-param', this.smoName)
       .append(

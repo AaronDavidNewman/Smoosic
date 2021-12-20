@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SvgHelpers } from '../../render/sui/svgHelpers';
-import { htmlHelpers } from '../../common/htmlHelpers';
+import { buildDom, InputTrapper, draggable, createTopDomContainer } from '../../common/htmlHelpers';
 // import { SmoTranslator } from '../i18n/language';
 import { SmoModifier } from '../../smo/data/score';
 import { SvgBox } from '../../smo/data/common';
@@ -15,6 +15,7 @@ import { SuiDialogNotifier, DialogDefinitionElement,
 import { SuiScroller } from '../../render/sui/scroller';
 import { SmoNote } from '../../smo/data/note';
 import { EventHandler } from '../eventSource';
+import { SmoUiConfiguration } from '../configuration';
 
 declare var $: any;
 /**
@@ -81,7 +82,8 @@ export interface SuiDialogParams {
   eventSource: BrowserEventSource,
   undoBuffer: UndoBuffer,
   // definition: DialogDefinition,
-  modifier?: any
+  modifier?: any,
+  config?: SmoUiConfiguration
 }
 
 /**
@@ -360,8 +362,9 @@ export interface DialogDom {
   }
   // ### build the html for the dialog, based on the instance-specific components.
   _constructDialog(dialogElements: DialogDefinition, parameters: SuiDomParams) {
+    createTopDomContainer('.attributeDialog');
     const id = parameters.id;
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const r = b('div').classes('attributeModal').attr('id', 'attr-modal-' + id)
       .css('top', parameters.top + 'px').css('left', parameters.left + 'px')
       .append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
@@ -395,7 +398,8 @@ export interface DialogDom {
 
     $('.attributeDialog').append(r.dom());
 
-    const trapper = htmlHelpers.inputTrapper('.attributeDialog');
+    const trapper = new InputTrapper('.attributeDialog');
+    trapper.trap();
     $('.attributeDialog').find('.cancel-button').focus();
     return {
       element: $('.attributeDialog'),
@@ -417,8 +421,9 @@ export interface DialogDom {
   // generic code to make the dialog box draggable so it doesn't
   // get in front of stuff.
   makeDraggable() {
+    createTopDomContainer('.draganime');
     const cb = () => { };
-    htmlHelpers.draggable({
+    draggable({
       parent: $(this.dgDom.element).find('.attributeModal'),
       handle: $(this.dgDom.element).find('.jsDbMove'),
       animateDiv: '.draganime',

@@ -28,9 +28,9 @@ import { SmoTextGroup } from '../../smo/data/scoreModifiers';
  */
 export interface ScoreRenderParams {
   elementId: any,
-  score: SmoScore
+  score: SmoScore,
+  config: SmoRenderConfiguration
 }
-declare var SmoConfig: SmoRenderConfiguration;
 declare var $: any;
 const VF = eval('Vex.Flow');
 
@@ -42,7 +42,7 @@ const VF = eval('Vex.Flow');
  * @category SuiRender
  * */
 export abstract class SuiRenderState {
-  attrs: SmoAttrs;
+  config: SmoRenderConfiguration;
   dirty: boolean;
   replaceQ: SmoSelection[];
   renderTime: number;
@@ -61,12 +61,9 @@ export abstract class SuiRenderState {
   suspendRendering: boolean = false;
   autoAdjustRenderTime: boolean = true;
 
-  constructor(ctor: string) {
-    this.attrs = {
-      id: VF.Element.newID(),
-      type: ctor
-    };
+  constructor(config: SmoRenderConfiguration) {
     this.dirty = true;
+    this.config = config;
     this.replaceQ = [];
     this.renderTime = 0;  // ms to render before time slicing
     this.stateRepCount = 0;
@@ -168,7 +165,7 @@ export abstract class SuiRenderState {
     const endAction = () => {
       self.suspendRendering = oldSuspend;
     };
-    return PromiseHelpers.makePromise(condition, endAction, null, SmoConfig.demonPollTime);
+    return PromiseHelpers.makePromise(condition, endAction, null, this.config.demonPollTime);
   }
   // ### renderPromise
   // return a promise that resolves when the score is in a fully rendered state.

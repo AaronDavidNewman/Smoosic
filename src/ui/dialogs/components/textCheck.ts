@@ -4,7 +4,7 @@ import { SuiComponentBase, SuiDialogNotifier } from '../components/baseComponent
 import { SuiToggleComposite } from '../components/toggle';
 import { SuiTextInputComposite } from '../components/textInput';
 
-import { htmlHelpers } from '../../../common/htmlHelpers';
+import { buildDom } from '../../../common/htmlHelpers';
 import { SuiScoreViewOperations } from '../../../render/sui/scoreViewOperations';
 declare var $: any;
 export interface TextCheckComponentParams {
@@ -53,7 +53,7 @@ export class TextCheckComponent extends SuiComponentBase {
     });
   }
   get html() {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const q = b('div').classes(this.makeClasses('multiControl smoControl textCheckContainer'))
       .attr('id', this.parameterId);
     q.append(this.textCtrl.html);

@@ -1,13 +1,11 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 
-import { RibbonButtons } from '../ui/buttons/ribbon';
 import { KeyEvent } from '../smo/data/common';
 import { SuiExceptionHandler } from '../ui/exceptions';
 import { Qwerty } from '../ui/qwerty';
 import { SuiModifierDialogFactory } from '../ui/dialogs/factory';
 import { SuiPiano } from '../render/sui/piano'
-import { layoutDebug } from '../render/sui/layoutDebug';
 import { SuiHelp } from '../ui/help';
 import { CompleteNotifier, ModalComponent } from '../ui/common';
 import { SuiTracker } from '../render/sui/tracker';
@@ -20,6 +18,7 @@ import { KeyBinding, ModalEventHandler } from './common';
 import { ModifierTab } from '../smo/xform/selections';
 import { SvgHelpers } from '../render/sui/svgHelpers';
 import { SuiMenuManager } from '../ui/menus/manager';
+import { SmoConfiguration } from './configuration';
 
 declare var $: any;
 
@@ -33,7 +32,8 @@ export interface EventHandlerParams {
   keyCommands: SuiKeyCommands,
   menus: SuiMenuManager,
   completeNotifier: CompleteNotifier,
-  keyBindings: KeyBinding[]
+  keyBindings: KeyBinding[],
+  config: SmoConfiguration
 }
 /**
  * this is the default keyboard/mouse handler for smoosic in application mode.
@@ -55,6 +55,7 @@ export class SuiEventHandler implements ModalEventHandler {
   resizing: boolean = false;
   undoStatus: number = 0;
   trackScrolling: boolean = false;
+  config: SmoConfiguration;
   keyHandlerObj: any = null;
   menus: SuiMenuManager;
   piano: SuiPiano | null = null;
@@ -63,6 +64,7 @@ export class SuiEventHandler implements ModalEventHandler {
     (globalThis as any).SuiEventHandlerInstance = this;
 
     this.view = params.view;
+    this.config = params.config;
     this.menus = params.menus;
     this.completeNotifier = params.completeNotifier;
     this.eventSource = params.eventSource;
@@ -135,7 +137,8 @@ export class SuiEventHandler implements ModalEventHandler {
       tracker: this.tracker,
       startPromise: null,
       id: 'modifier-dialog',
-      undoBuffer: this.view.undoBuffer
+      undoBuffer: this.view.undoBuffer,
+      config: this.config
     }
     return SuiModifierDialogFactory.createModifierDialog(modifierSelection.modifier, parameters);
   }

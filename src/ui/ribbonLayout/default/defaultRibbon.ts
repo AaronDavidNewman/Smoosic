@@ -95,7 +95,7 @@ export class defaultRibbonLayout {
   }
 
   static get displayIds() {
-    return ['displaySettings', 'refresh', 'zoomout', 'zoomin', 'playButton2', 'stopButton2'];
+    return ['quickButtons', 'refresh', 'zoomout', 'zoomin', 'playButton2', 'stopButton2'];
   }
 
 
@@ -166,8 +166,8 @@ export class defaultRibbonLayout {
       icon: 'icon-zoomplus',
       action: 'collapseParent',
       ctor: 'CollapseRibbonControl',
-      group: 'displaySettings',
-      id: 'displaySettings'
+      group: 'quickButtons',
+      id: 'quickButtons'
     }, {
       leftText: '',
       rightText: '',
@@ -175,7 +175,7 @@ export class defaultRibbonLayout {
       icon: 'icon-refresh',
       action: 'collapseChild',
       ctor: 'DisplaySettings',
-      group: 'displaySettings',
+      group: 'quickButtons',
       id: 'refresh'
     }, {
       leftText: '',
@@ -184,7 +184,7 @@ export class defaultRibbonLayout {
       icon: 'icon-zoomplus',
       action: 'collapseChild',
       ctor: 'DisplaySettings',
-      group: 'displaySettings',
+      group: 'quickButtons',
       id: 'zoomout'
     }, {
       leftText: '',
@@ -193,7 +193,7 @@ export class defaultRibbonLayout {
       icon: 'icon-zoomminus',
       action: 'collapseChild',
       ctor: 'DisplaySettings',
-      group: 'displaySettings',
+      group: 'quickButtons',
       id: 'zoomin'
     }, {
       leftText: '',
@@ -202,7 +202,7 @@ export class defaultRibbonLayout {
       icon: 'icon-play3',
       action: 'collapseChild',
       ctor: 'DisplaySettings',
-      group: 'displaySettings',
+      group: 'quickButtons',
       id: 'playButton2'
     }, {
       leftText: '',
@@ -211,7 +211,7 @@ export class defaultRibbonLayout {
       icon: 'icon-stop2',
       action: 'collapseChild',
       ctor: 'DisplaySettings',
-      group: 'displaySettings',
+      group: 'quickButtons',
       id: 'stopButton2'
     }
     ];

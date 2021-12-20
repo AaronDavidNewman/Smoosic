@@ -6,11 +6,10 @@ import { SmoLibrary } from '../fileio/library';
 import { SuiDialogParams } from './dialog';
 import { DialogDefinitionOption } from './components/baseComponent';
 import { TreeComponentOption, SuiTreeComponent } from './components/tree';
-import { SmoUiConfiguration } from '../configuration';
 import { SuiComponentAdapter, SuiDialogAdapterBase } from './adapter';
+import { SmoUiConfiguration } from '../configuration';
 
 declare var $: any;
-declare var SmoConfig: SmoUiConfiguration;
 
 export interface LibraryDefinitionElement {
   smoName: string,
@@ -29,13 +28,15 @@ export class SuiLibraryAdapter extends SuiComponentAdapter {
   elements: LibraryDefinition | null = null;
   selectedUrl: string = '';
   libHash: Record<string, SmoLibrary> = {};
+  config: SmoUiConfiguration;
   selectedLib: SmoLibrary | null;
   tree: Record<string, SmoLibrary> = {};
   // If the selected lib is a leaf node (a score), this is the same as that
   selectedScore: SmoLibrary | null = null;
-  constructor(view: SuiScoreViewOperations) {
+  constructor(view: SuiScoreViewOperations, config: SmoUiConfiguration) {
     super(view);
-    this.topLib = new SmoLibrary({ url: SmoConfig.libraryUrl });
+    this.config = config;
+    this.topLib = new SmoLibrary({ url: this.config.libraryUrl });
     this.libHash = {};
     this.selectedLib = null;
   }
@@ -152,8 +153,8 @@ export class SuiLibraryDialog extends SuiDialogAdapterBase<SuiLibraryAdapter> {
     dg.display();
   }
   /** Library requires a load first, so createAndDisplayDialog won't work on it */
-  static createAndDisplay(parameters: SuiDialogParams) {
-    const adapter = new SuiLibraryAdapter(parameters.view);
+  static createAndDisplay(parameters: SuiDialogParams, config: SmoUiConfiguration) {
+    const adapter = new SuiLibraryAdapter(parameters.view, config);
     adapter.initialize().then(() => SuiLibraryDialog._createAndDisplay(parameters, adapter));
   }
   constructor(parameters: SuiDialogParams, dialogElements: LibraryDefinition, adapter: SuiLibraryAdapter) {

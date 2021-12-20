@@ -1,4 +1,4 @@
-import { htmlHelpers } from '../../../common/htmlHelpers';
+import { buildDom } from '../../../common/htmlHelpers';
 import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent } from './baseComponent';
 declare var $: any;
 
@@ -25,7 +25,7 @@ export class SuiButtonComponent extends SuiComponentBase {
     this.icon = parameter.icon;
   }
   get html() {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const id = this.parameterId;
     this.icon = typeof(this.icon) === 'undefined' ? '' : this.icon;
     const r = b('div').classes(this.makeClasses('buttonControl smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)

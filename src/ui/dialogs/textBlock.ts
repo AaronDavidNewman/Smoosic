@@ -2,7 +2,7 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SmoScoreText, SmoTextGroup } from '../../smo/data/scoreModifiers';
 
-import { htmlHelpers } from '../../common/htmlHelpers';
+import { closeDialogPromise } from '../../common/htmlHelpers';
 
 import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SvgHelpers, OutlineInfo } from '../../render/sui/svgHelpers';
@@ -411,6 +411,6 @@ export class SuiTextBlockDialog extends SuiDialogBase {
 export class helpModal {
   static createAndDisplay() {
     SuiHelp.displayHelp();
-    return htmlHelpers.closeDialogPromise();
+    return closeDialogPromise();
   }
 }

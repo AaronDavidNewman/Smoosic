@@ -17,12 +17,37 @@ API Demo Links (codepen):
 ---
 
 ## Changes to Smoosic
+### (Potentially breaking) Config/application changes, December 2021
+I am trying to simplify and canonize the rules for what the configuration file needs to contain, in the process  reducing hard-coded magic that happens when the library or application is bootstrapped.
+
+These configuration parameters apply to both application and library mode:
+
+* The parameter `scoreDomContainer` _must_ specify the DOM element where the music is to be rendered, either string ID or HTMLElement.
+* The only parameter that is specified now on the query string is the language (?lang=xx).  Everything else is specified in the configuration file.  The language is, too, but the query string can override it.
+* if initialScore contains either a JSON score or a SmoScore object, it will start with that score
+* if the remoteScore contains a string, we will try to load the initial score from either XML or JSON file from that URL
+* If neither of these is specified and the local storage contains a score, it will load that.
+* If none of the above, the default (one measure of rests) score is produced.
+
+The changes to remote loader basically mean you no longer need to do any promise/waiting to render a score.
+
+These apply in application mode:
+* leftControls and topControls contain specifiers or HTMLElements for the button controls.  If these elements are not present the UI will not launch.
+* menu and dialog DOM containers are created automatically, no need to specify those.
+
+The configuration file is no longer a global.  It is passed as a parameter where needed - I thought this would help with support of multiple editing regions in the DOM - think CKEditor.
+
+I removed the concept of 'actions' to record editing macros.  I burrowed this from a DAW called Reaper.  Reaper lists the actions you have performed so you can copy them and apply them to other tracks/channels etc.  But this didn't really work in Smoosic - the action is so dependent on the current selection that it wasn't deterministic.  It's also probably not required - since this is a javascript application, you can do what you want to the score whenever you want.
+
+I also removed all the instance details from the configuration object.  Only DOM and configurable parameters are in the config object.  The global `Smo.SuiApplication.instance` object contains hooks to the global instance.
+
 ### MusicXML improvements, December 2021
 I've been going through the MusicXML samples and testing for round trip, features missing etc.  Also comparing against MuseScore.  There
 was some XML we were emitting that wasn't correct according to the spec, and some which was just wrong or missing.  Tempo, repeats, slurs,
 time signatures.
 
-Round trip XML will always be a little bit 'lossy' since Smoosic does things a little bit differently than 
+Round trip XML will always be a little bit 'lossy' since Smoosic does things a little bit differently than Finale.
+
 ### MIDI import, for realsies, December, 2021
 I replaced the midi parsing function with the one from https://github.com/NHQ/midi-file-parser/.  This code seems to handle running status correctly.  I did some comparisons to MuseScore input and it is...comparable.  I added variable quantization to different note lengths, and basic triplet support.  It doesn't support instruments so much, but instrument support in Smoosic in general is pretty raw.
 

@@ -1,4 +1,4 @@
-import { htmlHelpers } from '../../../common/htmlHelpers';
+import { buildDom } from '../../../common/htmlHelpers';
 import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent } from './baseComponent';
 declare var $: any;
 
@@ -29,7 +29,7 @@ export class SuiTextInputComponent extends SuiComponentBase {
     this.value = '';
   }
   get html() {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const id = this.parameterId;
     const r = b('div').classes(this.makeClasses('text-input smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
       .append(b('input').attr('type', 'text').classes('file-name')

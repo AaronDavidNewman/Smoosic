@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { htmlHelpers } from '../common/htmlHelpers';
+import { buildDom } from '../common/htmlHelpers';
 import { SmoLanguage } from './i18n/language';
 export class SuiHelp {
   static displayHelp() {
@@ -25,14 +25,14 @@ export class SuiHelp {
   }
 
   static get closeButton() {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const r = b('div').classes('help-closer').append(
       b('button').classes('icon-cross close'));
     return r;
   }
 
   static _buildElements(helps) {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const r = b('div').classes('helpLine')
       .append(b('div').classes('help-category-button')
         .append(b('button')

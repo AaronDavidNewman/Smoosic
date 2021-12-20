@@ -15,12 +15,12 @@ export interface RibbonConfiguration {
  * @category SuiUiBase
  */
 export interface SmoUiConfiguration {
-  ribbon?: RibbonConfiguration,
   keys?: KeyBindingConfiguration,
   libraryUrl?: string,
   language: string,
   demonPollTime: number,
   idleRedrawTime: number,
-  uiDomContainer?: string | HTMLElement;
+  leftControls?: HTMLElement | string;
+  topControls?: HTMLElement | string;
   scoreDomContainer: string | HTMLElement;
 }

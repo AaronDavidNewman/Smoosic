@@ -20,7 +20,7 @@ return /******/ (() => { // webpackBootstrap
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiApplication = exports.SuiScoreBuilder = exports.QueryParser = void 0;
+exports.SuiApplication = exports.QueryParser = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const serializationHelpers_1 = __webpack_require__(/*! ../common/serializationHelpers */ "./src/common/serializationHelpers.js");
@@ -28,7 +28,7 @@ const midiWriter_1 = __webpack_require__(/*! ../common/midiWriter */ "./src/comm
 const configuration_1 = __webpack_require__(/*! ./configuration */ "./src/application/configuration.ts");
 const score_1 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
 const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
-const basic_1 = __webpack_require__(/*! ../music/basic */ "./src/music/basic.js");
+const xmlToSmo_1 = __webpack_require__(/*! ../smo/mxml/xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
 const scoreRender_1 = __webpack_require__(/*! ../render/sui/scoreRender */ "./src/render/sui/scoreRender.ts");
 const scoreViewOperations_1 = __webpack_require__(/*! ../render/sui/scoreViewOperations */ "./src/render/sui/scoreViewOperations.ts");
 const oscillator_1 = __webpack_require__(/*! ../render/audio/oscillator */ "./src/render/audio/oscillator.ts");
@@ -51,8 +51,9 @@ const dom_1 = __webpack_require__(/*! ./dom */ "./src/application/dom.ts");
 const keyCommands_1 = __webpack_require__(/*! ./keyCommands */ "./src/application/keyCommands.ts");
 const eventHandler_1 = __webpack_require__(/*! ./eventHandler */ "./src/application/eventHandler.ts");
 const common_1 = __webpack_require__(/*! ./common */ "./src/application/common.ts");
+const typedoc_1 = __webpack_require__(/*! ../../typedoc */ "./typedoc.ts");
+const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const VF = eval('Vex.Flow');
-const Smo = eval('globalThis.Smo');
 /**
  * Parse query string for application
  * @category AppUtil
@@ -82,88 +83,6 @@ class QueryParser {
     }
 }
 exports.QueryParser = QueryParser;
-/**
- * bootstrap initial score load
- * @category AppUtil
- */
-class SuiScoreBuilder {
-    constructor(config, queryString) {
-        this.score = null;
-        this.scorePath = null;
-        this.mode = 'local';
-        this.language = 'en';
-        let i = 0;
-        if (config.initialScore) {
-            if (typeof (config.initialScore) === 'string') {
-                this.score = score_1.SmoScore.deserialize(config.initialScore);
-            }
-            else {
-                this.score = config.initialScore;
-            }
-            return;
-        }
-        for (i = 0; i < config.scoreLoadOrder.length; ++i) {
-            const load = config.scoreLoadOrder[i];
-            if (load === 'local') {
-                this.localScoreLoad();
-            }
-            else if (load === 'remote') {
-                this.libraryScoreLoad();
-            }
-            else if (load === 'query') {
-                this.queryScoreLoad(queryString);
-            }
-            if (this.score || this.scorePath) {
-                break;
-            }
-        }
-    }
-    localScoreLoad() {
-        this.score = null;
-        this.scorePath = localStorage.getItem(serializationHelpers_1.smoSerialize.localScore);
-        if (this.scorePath && this.scorePath.length) {
-            try {
-                this.score = score_1.SmoScore.deserialize(this.scorePath);
-            }
-            catch (exp) {
-                console.log('could not parse ' + this.scorePath);
-            }
-        }
-    }
-    queryScoreLoad(queryString) {
-        var i;
-        for (i = 0; i < queryString.pairs.length; ++i) {
-            const pair = queryString.pairs[i];
-            if (pair.score) {
-                try {
-                    const path = SuiApplication.scoreLibrary.find((pp) => pp.alias === pair.score);
-                    if (!path) {
-                        return;
-                    }
-                    else {
-                        this.scorePath = path.path;
-                        this.score = null;
-                        this.mode = 'remote';
-                    }
-                }
-                catch (exp) {
-                    console.log('could not parse ' + exp);
-                }
-            }
-        }
-    }
-    libraryScoreLoad() {
-        if (SmoConfig.initialScore) {
-            if (typeof (SmoConfig.initialScore === 'string')) {
-                SmoConfig.initialScore = score_1.SmoScore.deserialize(SmoConfig.initialScore);
-                this.score = SmoConfig.initialScore;
-                this.scorePath = null;
-                this.mode = 'local';
-            }
-        }
-    }
-}
-exports.SuiScoreBuilder = SuiScoreBuilder;
 /** SuiApplication
  * main entry point of application.  Based on the configuration,
  * either start the default UI, or initialize library mode and
@@ -176,6 +95,7 @@ class SuiApplication {
         this.score = null;
         this.view = null;
         this.config = config;
+        this.domElement = this._getDomContainer();
     }
     static configure(params) {
         const config = new configuration_1.SmoConfiguration(params);
@@ -183,6 +103,13 @@ class SuiApplication {
         const application = new SuiApplication(config);
         SuiApplication.registerFonts();
         return application.initialize();
+    }
+    _getDomContainer() {
+        const el = (0, htmlHelpers_1.getDomContainer)(this.config.scoreDomContainer);
+        if (typeof (el) === 'undefined') {
+            throw 'scoreDomContainer is a required config parameter';
+        }
+        return el;
     }
     /**
     // Different applications can create their own key bindings, these are the defaults.
@@ -200,6 +127,12 @@ class SuiApplication {
         });
         return trackerKeys.concat(editorKeys);
     }
+    /**
+     * Initialize the library according to instruction in config object:
+     * 1.  Try to load a new score
+     * 2.  If in application mode, start the UI.  If in translation mode, start translation
+     * @returns
+     */
     initialize() {
         const samplePromise = oscillator_1.SuiOscillator.sampleFiles.length > 0 ?
             oscillator_1.SuiOscillator.samplePromise() : promiseHelpers_1.PromiseHelpers.emptyPromise();
@@ -215,22 +148,6 @@ class SuiApplication {
                 self._startApplication();
             }
             else { // library mode.
-                // Find a score to start with
-                if (!self.score) {
-                    self.score = score_1.SmoScore.deserialize(basic_1.emptyScoreJson);
-                }
-                if (typeof (this.config.scoreDomContainer) === 'string') {
-                    if (this.config.scoreDomContainer[0] === '#') {
-                        this.config.scoreDomContainer = $(this.config.scoreDomContainer)[0];
-                    }
-                    else {
-                        const el = document.getElementById(this.config.scoreDomContainer);
-                        if (!el) {
-                            return;
-                        }
-                        this.config.scoreDomContainer = el;
-                    }
-                }
                 self.createView(self.score);
             }
         };
@@ -246,95 +163,89 @@ class SuiApplication {
         });
         return rv;
     }
+    /**
+     * Create the initial score we use to populate the UI etc:
+     * 0. if translation mode, return empty promise, it won't be used anyway
+     * 1. if remoteScore is set in config, try to load from remote
+     * 2. if initialScore is set, use that
+     * 3. if a score is saved locally with quick save (browser local cache), use that
+     * 4. if all else fails, return an 'empty' score.
+     * @returns promise for a remote load.  If a local load, will resolve immediately
+     */
     createScore() {
         if (this.config.mode === 'translate') {
             return promiseHelpers_1.PromiseHelpers.emptyPromise();
         }
-        const queryString = new QueryParser();
-        const scoreBuilder = new SuiScoreBuilder(this.config, queryString);
-        if (scoreBuilder.score) {
-            this.score = scoreBuilder.score;
-            return promiseHelpers_1.PromiseHelpers.emptyPromise();
-        }
-        else {
-            if (scoreBuilder.mode === 'remote' && scoreBuilder.scorePath) {
-                const loader = new xhrLoader_1.SuiXhrLoader(scoreBuilder.scorePath);
-                const self = this;
-                return new Promise((resolve) => {
-                    loader.loadAsync().then(() => {
-                        self.score = score_1.SmoScore.deserialize(loader.value);
-                        self.createUi();
-                        resolve(self);
-                    });
+        if (this.config.remoteScore) {
+            const loader = new xhrLoader_1.SuiXhrLoader(this.config.remoteScore);
+            const self = this;
+            return new Promise((resolve) => {
+                loader.loadAsync().then(() => {
+                    self.score = this._tryParse(loader.value);
+                    resolve(self);
                 });
+            });
+        }
+        else if (this.config.initialScore) {
+            if (typeof (this.config.initialScore) === 'string') {
+                this.score = this._tryParse(this.config.initialScore);
+                return promiseHelpers_1.PromiseHelpers.emptyPromise();
+            }
+            else {
+                this.score = this.config.initialScore;
+                return promiseHelpers_1.PromiseHelpers.emptyPromise();
             }
         }
-        const scoreString = eval('globalThis.Smo.basicJson');
-        this.score = score_1.SmoScore.deserialize(scoreString);
+        else {
+            const localScore = localStorage.getItem(serializationHelpers_1.smoSerialize.localScore);
+            if (localScore) {
+                this.score = this._tryParse(localScore);
+            }
+            else {
+                this.score = score_1.SmoScore.getDefaultScore(score_1.SmoScore.defaults, null);
+            }
+        }
         return promiseHelpers_1.PromiseHelpers.emptyPromise();
     }
+    _tryParse(scoreJson) {
+        try {
+            if (scoreJson[0] === '<') {
+                const parser = new DOMParser();
+                const xml = parser.parseFromString(scoreJson, 'text/xml');
+                return xmlToSmo_1.XmlToSmo.convert(xml);
+            }
+            return score_1.SmoScore.deserialize(scoreJson);
+        }
+        catch (exp) {
+            console.warn('could not parse score');
+            return score_1.SmoScore.getDefaultScore(score_1.SmoScore.defaults, typedoc_1.SmoMeasure.defaults);
+        }
+    }
     _startApplication() {
+        var _a;
         // Initialize the midi writer library
         (0, midiWriter_1._MidiWriter)();
-        const config = window.SmoConfig;
         const queryString = new QueryParser();
-        const languageSelect = queryString.pairs.find((x) => x['language']);
-        if (config.mode === 'translate') {
-            const transPair = queryString.pairs.find((x) => x['translate']);
-            const transLanguage = transPair ? transPair.translate : config.language;
+        const languageSelect = (_a = queryString.pairs.find((x) => x['language'])) !== null && _a !== void 0 ? _a : { 'language': 'en' };
+        if (this.config.mode === 'translate') {
             this._deferCreateTranslator();
             return;
         }
         if (languageSelect) {
             SuiApplication._deferLanguageSelection(languageSelect.language);
         }
-        const scoreBuilder = new SuiScoreBuilder(config, queryString);
-        if (scoreBuilder.score) {
-            this.score = scoreBuilder.score;
-            this.createUi();
-            return;
-        }
-        else {
-            if (scoreBuilder.mode === 'remote' && scoreBuilder.scorePath) {
-                const loader = new xhrLoader_1.SuiXhrLoader(scoreBuilder.scorePath);
-                const self = this;
-                loader.loadAsync().then(() => {
-                    self.score = score_1.SmoScore.deserialize(loader.value);
-                    self.createUi();
-                });
-                return;
-            }
-        }
-        const scoreString = eval('globalThis.Smo.basicJson');
-        this.score = score_1.SmoScore.deserialize(scoreString);
-        if (this.config.mode === 'application') {
-            this.createUi();
-        }
+        this.createUi();
     }
     createView(score) {
-        let sdc = this.config.scoreDomContainer;
-        if (!sdc) {
-            return null;
-        }
-        if (typeof (sdc) === 'string') {
-            if (sdc[0] === '#') {
-                sdc = $(sdc)[0];
-            }
-            else {
-                sdc = document.getElementById(sdc);
-            }
-        }
-        if (!sdc) {
-            return null;
-        }
+        let sdc = this.domElement;
         const svgContainer = document.createElement('div');
         $(svgContainer).attr('id', 'boo').addClass('musicContainer');
         $(sdc).append(svgContainer);
-        const renderer = scoreRender_1.SuiScoreRender.createScoreRenderer(svgContainer, score);
+        const renderer = scoreRender_1.SuiScoreRender.createScoreRenderer(this.config, svgContainer, score);
         const eventSource = new eventSource_1.BrowserEventSource();
         const undoBuffer = new undo_1.UndoBuffer();
         eventSource.setRenderElement(renderer.renderElement);
-        const view = new scoreViewOperations_1.SuiScoreViewOperations(renderer, score, sdc, undoBuffer);
+        const view = new scoreViewOperations_1.SuiScoreViewOperations(this.config, renderer, score, sdc, undoBuffer);
         this.view = view;
         view.startRenderingEngine();
         return {
@@ -344,15 +255,8 @@ class SuiApplication {
     /**
      * Convenience constructor, take the score and render it in the
      * configured rendering space.
-     * @param score(SmoScore) - the score
      */
     createUi() {
-        const menuContainer = document.createElement('div');
-        $(menuContainer).addClass('menuContainer');
-        $('.dom-container').append(menuContainer);
-        const scrollRegion = document.createElement('div');
-        $(scrollRegion).attr('id', 'smo-scroll-region').addClass('musicRelief');
-        $('.dom-container .media').append(scrollRegion);
         const viewObj = this.createView(this.score);
         if (!viewObj) {
             return;
@@ -362,10 +266,13 @@ class SuiApplication {
         const eventSource = new eventSource_1.BrowserEventSource(); // events come from the browser UI.
         const undoBuffer = viewObj.undoBuffer;
         const completeNotifier = new common_1.ModalEventHandlerProxy(eventSource);
+        // hack...this is set up in UiDom.  Should menu manager just make it?
+        // const menuContainer = $('.menuContainer')[0] as HTMLElement;
         const menus = new manager_1.SuiMenuManager({
-            view, eventSource, completeNotifier, undoBuffer, menuContainer
+            view, eventSource, completeNotifier, undoBuffer
         });
         const ribbon = new ribbon_1.RibbonButtons({
+            config: this.config,
             ribbons: defaultRibbon_1.defaultRibbonLayout.ribbons,
             ribbonButtons: defaultRibbon_1.defaultRibbonLayout.ribbonButtons,
             menus: menus,
@@ -379,7 +286,7 @@ class SuiApplication {
         });
         const eventHandler = new eventHandler_1.SuiEventHandler({
             view, eventSource, tracker, keyCommands, menus, completeNotifier,
-            keyBindings: SuiApplication.keyBindingDefaults
+            keyBindings: SuiApplication.keyBindingDefaults, config: this.config
         });
         this.instance = {
             view, eventSource, eventHandler, undoBuffer,
@@ -493,16 +400,6 @@ class SuiApplication {
             description: 'Open source Serif screen font from Adobe',
         });
     }
-    static _nvQueryPair(str) {
-        var i = 0;
-        const ar = str.split('=');
-        const rv = {};
-        for (i = 0; i < ar.length - 1; i += 2) {
-            const name = decodeURIComponent(ar[i]);
-            rv[name] = decodeURIComponent(ar[i + 1]);
-        }
-        return rv;
-    }
     static get scoreLibrary() {
         return [
             { alias: 'bach', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/BachInvention.json' },
@@ -520,7 +417,7 @@ class SuiApplication {
         ];
     }
     _deferCreateTranslator() {
-        dom_1.SuiDom.createUiDom(this.config.uiDomContainer);
+        dom_1.SuiDom.createUiDom(this.config.scoreDomContainer);
         setTimeout(() => {
             translationEditor_1.SmoTranslationEditor.startEditor(this.config.language);
         }, 1);
@@ -644,49 +541,31 @@ exports.ModalEventHandlerProxy = ModalEventHandlerProxy;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmoConfiguration = exports.ConfigurationNumberOptions = exports.ConfigurationStringOptions = exports.SmoLoadTypes = void 0;
-const score_1 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
-const defaultRibbon_1 = __webpack_require__(/*! ../ui/ribbonLayout/default/defaultRibbon */ "./src/ui/ribbonLayout/default/defaultRibbon.ts");
+exports.SmoConfiguration = exports.ConfigurationNumberOptions = exports.ConfigurationStringOptions = void 0;
 const editorKeys_1 = __webpack_require__(/*! ../ui/keyBindings/default/editorKeys */ "./src/ui/keyBindings/default/editorKeys.ts");
 const trackerKeys_1 = __webpack_require__(/*! ../ui/keyBindings/default/trackerKeys */ "./src/ui/keyBindings/default/trackerKeys.ts");
-exports.SmoLoadTypes = ['local', 'remote', 'query'];
-exports.ConfigurationStringOptions = ['smoPath', 'language', 'title', 'libraryUrl',
-    'languageDir'];
+exports.ConfigurationStringOptions = ['language', 'libraryUrl', 'remoteScore'];
 exports.ConfigurationNumberOptions = ['demonPollTime', 'idleRedrawTime'];
 /**
- * Configures smoosic library or application.  There are 3 different ways to determine what the initial score is:
- * 1. scoreUrl loads a remote score from an URL
- * 2. scoreLoadOrder checks the local storage or the
+ * Configures smoosic library or application. It is a union of UI, rendering and application configuration parameters
  * @param mode - score mode `'library' | 'application' | 'translate'`
  *   Library mode starts the view but not the UI.  application mode starts the UI and expects UI parameters.
  *   translation mode is the translation editor, for creating translations for dialog/menu components
- * @param smoPath - path to smoosic.js from html
- * @param scoreUrl - path (URL) to remote score, if you are starting with a pre-loaded score.  See `scoreLoadOrder`
  * @param language - startup language
- * @param scoreLoadOrder - default is ['query', 'local', 'library']
- *  query gets a pre-created score from the query string.  Local loads the local storage score (quick save).
- *  library loads a file from `SuiApplication.scoreLibrary`.  If you are using `scoreUrl` you can ignore this.
- * @param scoreLoadJson - the library score JSON, if you are loading from a JSON string
- * @param uiDomContainer - the id of the parent element of application UI
- * @param scoreDomContainer - the svg container
- * @param ribbon - launch the UI ribbon
- * @param keyCommands - start the key commands UI
- * @param menus - create the menu manager
- * @param title - the browser title
- * @param libraryUrl - loader URL for Smo libraries
- * @param languageDir - ltr or rtl
+ * @param initialScore? - the library score JSON, if you are loading from a JSON string, or a SmoScore object
+ * @param remoteScore? - path to a remote score, if loading from an URL
+ * @param scoreDomContainer - the parent of the svg container (required)
+ * @param leftControls - the location of the vertical button control, applies if mode is 'application'
+ * @param topControls - the location of the horizontal button control, applies if mode is 'application'
+ * @param libraryUrl - loader URL for Smo libraries, applies if application mode
  * @param demonPollTime - how often we poll the score to see if it's changed
  * @param idleRedrawTime - how often the entire score re-renders
- * @param ribbon -
- * @param ModalEventHandler - if starting in application mode, the starting mouse/keyboard event handler
  * @category SuiApplication
  */
 class SmoConfiguration {
     constructor(params) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c;
         this.language = '';
-        this.scoreDomContainer = 'smoo';
-        this.languageDir = 'ltr';
         this.demonPollTime = 0; // how often we poll the score to see if it changed
         this.idleRedrawTime = 0;
         const defs = SmoConfiguration.defaults;
@@ -695,44 +574,24 @@ class SmoConfiguration {
             const sp = (_a = params[param]) !== null && _a !== void 0 ? _a : defs[param];
             this[param] = sp !== null && sp !== void 0 ? sp : '';
         });
-        if (params.eventHandler) {
-            this.eventHandler = params.eventHandler;
-        }
         this.scoreDomContainer = (_a = params.scoreDomContainer) !== null && _a !== void 0 ? _a : defs.scoreDomContainer;
-        this.uiDomContainer = (_b = params.uiDomContainer) !== null && _b !== void 0 ? _b : defs.uiDomContainer;
-        if (params.initialScore) {
-            if (typeof (params.initialScore) === 'string') {
-                this.initialScore = score_1.SmoScore.deserialize(params.initialScore);
-            }
-            else {
-                this.initialScore = params.initialScore;
-            }
-        }
+        this.initialScore = (_b = params.initialScore) !== null && _b !== void 0 ? _b : undefined;
         exports.ConfigurationNumberOptions.forEach((param) => {
             var _a;
             this[param] = (_a = params[param]) !== null && _a !== void 0 ? _a : defs[param];
         });
         this.mode = (_c = params.mode) !== null && _c !== void 0 ? _c : defs.mode;
-        this.scoreLoadOrder = (_d = params.scoreLoadOrder) !== null && _d !== void 0 ? _d : defs.scoreLoadOrder;
         if (this.mode === 'application') {
-            const ribbon = (_e = params.ribbon) !== null && _e !== void 0 ? _e : { layout: defaultRibbon_1.defaultRibbonLayout.ribbons, buttons: defaultRibbon_1.defaultRibbonLayout.ribbonButtons };
-            const keys = (_f = params.keys) !== null && _f !== void 0 ? _f : SmoConfiguration.keyBindingDefaults;
-            this.ribbon = ribbon;
-            this.keys = keys;
+            this.leftControls = params.leftControls;
+            this.topControls = params.topControls;
         }
     }
     static get defaults() {
         return {
-            smoPath: '..',
             mode: 'application',
             language: 'en',
-            scoreLoadOrder: ['query', 'local', 'library'],
-            initialScore: 'Smo.basicJson',
-            uiDomContainer: 'smoo',
             scoreDomContainer: 'boo',
-            title: 'Smoosic',
             libraryUrl: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json',
-            languageDir: 'ltr',
             demonPollTime: 50,
             idleRedrawTime: 1000, // maximum time between score modification and render
         };
@@ -765,13 +624,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiDom = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const svgHelpers_1 = __webpack_require__(/*! ../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const piano_1 = __webpack_require__(/*! ../render/sui/piano */ "./src/render/sui/piano.ts");
 class SuiDom {
     static splash(config) {
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
-        var logoPath = config.smoPath + '/styles/images/logo.png';
+        var b = htmlHelpers_1.buildDom;
+        var logoPath = 'https://aarondavidnewman.github.io/Smoosic/release/styles/images/logo.png';
         var r = b('div').classes('bug-modal').append(b('img').attr('src', logoPath).classes('splash-logo'))
             .append(b('button').classes('icon icon-cross bug-dismiss-button'))
             .append(b('span').classes('splash-title').text('Sm'))
@@ -794,21 +653,8 @@ class SuiDom {
         if (!uiDomContainer) {
             return;
         }
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var b = htmlHelpers_1.buildDom;
         var r = b('div').classes('dom-container')
-            .append(b('div').classes('modes'))
-            .append(b('div').classes('overlay'))
-            .append(b('div').classes('draganime hide'))
-            .append(b('div').classes('textEdit hide'))
-            .append(b('div').classes('glyphRender hide').attr('id', 'glyphRender'))
-            .append(b('div').classes('translation-editor'))
-            .append(b('div').classes('attributeDialog'))
-            .append(b('progress').attr('id', 'renderProgress').attr('value', '0').attr('max', '100'))
-            .append(b('div').classes('qwertyKb'))
-            .append(b('div').classes('saveLink'))
-            .append(b('div').classes('bugDialog'))
-            .append(b('div').classes('printFrame'))
-            .append(b('div').classes('menuContainer'))
             .append(b('div').classes('workspace language-dir').attr('dir', 'ltr')
             .append(b('div').classes('helpDialog'))
             .append(b('div').classes('control-bar')
@@ -817,11 +663,13 @@ class SuiDom {
             .append(b('div').classes('key-left-ctrl'))
             .append(b('div').classes('piano-keys'))
             .append(b('div').classes('key-right-ctrl')))
-            .append(b('div').classes('controls-top')))
+            .append(b('div').classes('controls-top').attr('id', 'controls-top')))
             .append(b('div').classes('media')
-            .append(b('div').classes('controls-left'))
-            .append(b('div').classes('controls-menu-message'))));
+            .append(b('div').classes('controls-left').attr('id', 'controls-left'))));
         uiDomContainer.append(r.dom()[0]);
+        const scrollRegion = document.createElement('div');
+        $(scrollRegion).attr('id', 'smo-scroll-region').addClass('musicRelief');
+        $('.dom-container .media').append(scrollRegion);
         var pianoDom = $('.piano-keys')[0];
         var svg = document.createElementNS(svgHelpers_1.SvgHelpers.namespace, 'svg');
         svg.id = 'piano-svg';
@@ -873,6 +721,7 @@ class SuiEventHandler {
         this.piano = null;
         globalThis.SuiEventHandlerInstance = this;
         this.view = params.view;
+        this.config = params.config;
         this.menus = params.menus;
         this.completeNotifier = params.completeNotifier;
         this.eventSource = params.eventSource;
@@ -942,7 +791,8 @@ class SuiEventHandler {
             tracker: this.tracker,
             startPromise: null,
             id: 'modifier-dialog',
-            undoBuffer: this.view.undoBuffer
+            undoBuffer: this.view.undoBuffer,
+            config: this.config
         };
         return factory_1.SuiModifierDialogFactory.createModifierDialog(modifierSelection.modifier, parameters);
     }
@@ -1202,7 +1052,6 @@ const scoreRender_1 = __webpack_require__(/*! ../render/sui/scoreRender */ "./sr
 const layoutDebug_1 = __webpack_require__(/*! ../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const mapper_1 = __webpack_require__(/*! ../render/sui/mapper */ "./src/render/sui/mapper.ts");
 const scroller_1 = __webpack_require__(/*! ../render/sui/scroller */ "./src/render/sui/scroller.ts");
-const actionPlayback_1 = __webpack_require__(/*! ../render/sui/actionPlayback */ "./src/render/sui/actionPlayback.ts");
 // SMO object model
 const score_2 = __webpack_require__(/*! ../smo/data/score */ "./src/smo/data/score.ts");
 const undo_1 = __webpack_require__(/*! ../smo/xform/undo */ "./src/smo/xform/undo.ts");
@@ -1223,6 +1072,8 @@ const midiToSmo_1 = __webpack_require__(/*! ../smo/midi/midiToSmo */ "./src/smo/
 const smoToMidi_1 = __webpack_require__(/*! ../smo/midi/smoToMidi */ "./src/smo/midi/smoToMidi.ts");
 const xmlToSmo_1 = __webpack_require__(/*! ../smo/mxml/xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts");
 const toVex_1 = __webpack_require__(/*! ../smo/xform/toVex */ "./src/smo/xform/toVex.ts");
+// utilities
+const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const getClass = (jsonString) => {
     return eval('Smo.' + jsonString);
 };
@@ -1266,7 +1117,7 @@ exports.Smo = {
     SuiXhrLoader: xhrLoader_1.SuiXhrLoader, PromiseHelpers: promiseHelpers_1.PromiseHelpers,
     // Rendering components
     SuiPiano: piano_1.SuiPiano, layoutDebug: layoutDebug_1.layoutDebug, SuiScoreView: scoreView_2.SuiScoreView, SuiScroller: scroller_1.SuiScroller, SuiMapper: mapper_1.SuiMapper, SuiScoreRender: scoreRender_1.SuiScoreRender,
-    SuiScoreViewOperations: scoreViewOperations_1.SuiScoreViewOperations, SuiActionPlayback: actionPlayback_1.SuiActionPlayback,
+    SuiScoreViewOperations: scoreViewOperations_1.SuiScoreViewOperations,
     // Smo Music Objects
     SmoScore: score_2.SmoScore,
     XmlToSmo: xmlToSmo_1.XmlToSmo,
@@ -1295,7 +1146,9 @@ exports.Smo = {
     quickStartHtmlen: language_en_1.quickStartHtmlen, selectionHtmlen: language_en_1.selectionHtmlen, enterDurationsHtmlen: language_en_1.enterDurationsHtmlen, enterPitchesHtmlen: language_en_1.enterPitchesHtmlen,
     quickStartHtmlar: language_ar_1.quickStartHtmlar, selectionHtmlar: language_ar_1.selectionHtmlar, enterDurationsHtmlar: language_ar_1.enterDurationsHtmlar, enterPitchesHtmlar: language_ar_1.enterPitchesHtmlar,
     getClass,
-    createLoadTests: file_load_1.createLoadTests
+    createLoadTests: file_load_1.createLoadTests,
+    // utilities
+    buildDom: htmlHelpers_1.buildDom, addFileLink: htmlHelpers_1.addFileLink, InputTrapper: htmlHelpers_1.InputTrapper, draggable: htmlHelpers_1.draggable, closeDialogPromise: htmlHelpers_1.closeDialogPromise, getDomContainer: htmlHelpers_1.getDomContainer, createTopDomContainer: htmlHelpers_1.createTopDomContainer
 };
 exports["default"] = exports.Smo;
 
@@ -1487,193 +1340,257 @@ exports.SuiKeyCommands = SuiKeyCommands;
 
 /***/ }),
 
-/***/ "./src/common/htmlHelpers.js":
+/***/ "./src/common/htmlHelpers.ts":
 /*!***********************************!*\
-  !*** ./src/common/htmlHelpers.js ***!
+  !*** ./src/common/htmlHelpers.ts ***!
   \***********************************/
 /***/ ((__unused_webpack_module, exports) => {
 
 
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.draggable = exports.htmlHelpers = void 0;
-var smoDomBuilder = function (el) { };
+exports.Draggable = exports.draggable = exports.createTopDomContainer = exports.getDomContainer = exports.closeDialogPromise = exports.InputTrapper = exports.addFileLink = exports.focusableElements = exports.buildDom = exports.DomBuilder = void 0;
+// var smoDomBuilder = function (el) {}
 // # htmlHelpers
 // # Description:
 //  Helper functions for buildling UI elements
-class htmlHelpers {
-    /**
-    * returns an object that  lets you build a DOM in a somewhat readable way.
-    *
-    * ## Usage
-    * ``` javascript
-    * var b = htmlHelpers.buildDom;
-    * var r =
-    *   b('tr').classes('jsSharingMember').data('entitykey', key).data('name', name).data('entitytype', entityType).append(
-    *     b('td').classes('noSideBorderRight').append(
-    *    ...
-    * $(parent).append(r.dom());
-    * ```
-    * Don't forget the '.dom()' !  That is the actual jquery element object
-    * @returns
-    */
-    static buildDom(el) {
-        var smoDomBuilder = function (el) {
-            this.e = $('<' + el + '/>');
-            var self = this;
-            this.classes = function (cl) {
-                $(self.e).addClass(cl);
-                return self;
-            };
-            this.html = function (value) {
-                $(self.e).html(value);
-                return self;
-            };
-            this.data = function (name, value) {
-                $(self.e).attr('data-' + name, value);
-                return self;
-            };
-            this.attr = function (name, value) {
-                $(self.e).attr(name, value);
-                return self;
-            };
-            this.prop = function (name, value) {
-                $(self.e).prop(name, value);
-                return self;
-            };
-            this.css = function (name, value) {
-                $(self.e).css(name, value);
-                return self;
-            };
-            this.append = function (el) {
-                $(self.e).append(el.e);
-                return self;
-            };
-            this.text = function (tx) {
-                $(self.e).append(document.createTextNode(tx));
-                return self;
-            };
-            this.dom = function () {
-                return self.e;
-            };
-            return this;
-        };
-        return new smoDomBuilder(el);
+/**
+* returns an object that  lets you build a DOM in a somewhat readable way.
+*
+* ## Usage
+* ``` javascript
+* var b = buildDom;
+* var r =
+*   b('tr').classes('jsSharingMember').data('entitykey', key).data('name', name).data('entitytype', entityType).append(
+*     b('td').classes('noSideBorderRight').append(
+*    ...
+* $(parent).append(r.dom());
+* ```
+* Don't forget the '.dom()' !  That is the actual jquery element object
+* @returns
+*/
+class DomBuilder {
+    constructor(el) {
+        this.e = $('<' + el + '/>');
     }
-    static draggable(parameters) {
-        return new draggable(parameters);
+    classes(cl) {
+        $(this.e).addClass(cl);
+        return this;
     }
-    static get focusableElements() {
-        return ['a', 'input', 'select', 'textarea', 'button', 'li[tabindex]', 'div[tabindex]'];
+    html(value) {
+        $(this.e).html(value);
+        return this;
     }
-    static addFileLink(filename, txt, parent, mimeType) {
-        if (!mimeType) {
-            mimeType = 'application/octet-stream';
-        }
-        var anchor = $('<a></a>');
-        var url = URL.createObjectURL(new Blob([txt], { type: mimeType }));
-        $(anchor).attr('href', url);
-        $(anchor).attr('download', filename);
-        $(anchor).text('save');
-        $(parent).html('');
-        $(parent).append(anchor);
+    data(name, value) {
+        $(this.e).attr('data-' + name, value);
+        return this;
     }
-    static inputTrapper(selector) {
-        var trapper = function () {
-            this.parent = $(selector);
+    attr(name, value) {
+        $(this.e).attr(name, value);
+        return this;
+    }
+    prop(name, value) {
+        $(this.e).prop(name, value);
+        return this;
+    }
+    css(name, value) {
+        $(this.e).css(name, value);
+        return this;
+    }
+    append(el) {
+        $(this.e).append(el.e);
+        return this;
+    }
+    text(tx) {
+        $(this.e).append(document.createTextNode(tx));
+        return this;
+    }
+    dom() {
+        return this.e;
+    }
+}
+exports.DomBuilder = DomBuilder;
+function buildDom(e) {
+    return new DomBuilder(e);
+}
+exports.buildDom = buildDom;
+function focusableElements() {
+    return ['a', 'input', 'select', 'textarea', 'button', 'li[tabindex]', 'div[tabindex]'];
+}
+exports.focusableElements = focusableElements;
+function addFileLink(filename, txt, parent, mimeType = 'application/octet-stream') {
+    var anchor = $('<a></a>');
+    var url = URL.createObjectURL(new Blob([txt], { type: mimeType }));
+    $(anchor).attr('href', url);
+    $(anchor).attr('download', filename);
+    $(anchor).text('save');
+    $(parent).html('');
+    $(parent).append(anchor);
+}
+exports.addFileLink = addFileLink;
+class InputTrapper {
+    constructor(selector) {
+        this.selector = selector;
+        this.modalInputs = [];
+        this.disabledInputs = [];
+        this.siblingInputs = [];
+        this.parent = $(this.selector);
+        this.id = $(this.parent).attr('id');
+        this.parentId = $(this.parent).parent().attr('id');
+        var idstr = Math.round(Math.random() * (999999 - 1) + 1);
+        if (!this.id) {
+            $(this.parent).attr('id', idstr + '-element');
             this.id = $(this.parent).attr('id');
+        }
+        if (!this.parentId) {
+            $(this.parent).parent().attr('id', idstr + '-parent');
             this.parentId = $(this.parent).parent().attr('id');
-            var idstr = Math.round(Math.random() * (999999 - 1) + 1);
-            if (!this.id) {
-                $(this.parent).attr('id', idstr + '-element');
-                this.id = $(this.parent).attr('id');
+        }
+    }
+    trap() {
+        // aria-hide peers of dialog and peers of parent that are not the parent.
+        var peers = $(this.parent).parent().children().toArray();
+        peers.forEach((node) => {
+            var ptag = $(node)[0].tagName;
+            if (ptag === 'SCRIPT' || ptag === 'LINK' || ptag === 'STYLE') {
+                ;
             }
-            if (!this.parentId) {
-                $(this.parent).parent().attr('id', idstr + '-parent');
-                this.parentId = $(this.parent).parent().attr('id');
+            else if ($(node).attr('id') === this.parentId ||
+                $(node).attr('id') === this.id) {
+                ;
             }
-            this.modalInputs = [];
-            this.disabledInputs = [];
-            this.siblingInputs = [];
-            // aria-hide peers of dialog and peers of parent that are not the parent.
-            var peers = $(this.parent).parent().children().toArray();
-            peers.forEach((node) => {
-                var ptag = $(node)[0].tagName;
-                if (ptag === 'SCRIPT' || ptag === 'LINK' || ptag === 'STYLE') {
+            else {
+                var hidden = $(node).attr('aria-hidden');
+                if (!hidden || hidden != 'true') {
+                    $(node).attr('aria-hidden', 'true');
+                    this.siblingInputs.push(node);
+                }
+            }
+        });
+        focusableElements().forEach((etype) => {
+            var elements = $(etype).toArray();
+            elements.forEach((element) => {
+                var tagName = $(element)[0].tagName;
+                if ($(element).attr('id') === this.id) {
                     ;
                 }
-                else if ($(node).attr('id') === this.parentId ||
-                    $(node).attr('id') === this.id) {
+                else if ($(element).prop('disabled')) {
+                    ;
+                }
+                else if ($(element).hasClass('hide')) {
+                    ;
+                }
+                else if ($(element).closest(this.selector).length) {
+                    // inside
+                    this.modalInputs.push(element);
+                }
+                else if ((tagName === 'A' || tagName === 'DIV' || tagName === 'LI') && $(element).attr('tabIndex') === '-1') {
                     ;
                 }
                 else {
-                    var hidden = $(node).attr('aria-hidden');
-                    if (!hidden || hidden != 'true') {
-                        $(node).attr('aria-hidden', 'true');
-                        this.siblingInputs.push(node);
+                    this.disabledInputs.push(element);
+                    if (tagName === 'A' || tagName === 'DIV' || tagName === 'LI') {
+                        $(element).attr('tabIndex', '-1');
+                    }
+                    else {
+                        $(element).prop('disabled', true);
                     }
                 }
             });
-            htmlHelpers.focusableElements.forEach((etype) => {
-                var elements = $(etype).toArray();
-                elements.forEach((element) => {
-                    var tagName = $(element)[0].tagName;
-                    if ($(element).attr('id') === this.id) {
-                        ;
-                    }
-                    else if ($(element).prop('disabled')) {
-                        ;
-                    }
-                    else if ($(element).hasClass('hide')) {
-                        ;
-                    }
-                    else if ($(element).closest(selector).length) {
-                        // inside
-                        this.modalInputs.push(element);
-                    }
-                    else if ((tagName === 'A' || tagName === 'DIV' || tagName === 'LI') && $(element).attr('tabIndex') === '-1') {
-                        ;
-                    }
-                    else {
-                        this.disabledInputs.push(element);
-                        if (tagName === 'A' || tagName === 'DIV' || tagName === 'LI') {
-                            $(element).attr('tabIndex', '-1');
-                        }
-                        else {
-                            $(element).prop('disabled', true);
-                        }
-                    }
-                });
-            });
-            this.close = function () {
-                this.disabledInputs.forEach(function (element) {
-                    var tagName = $(element)[0].tagName;
-                    if (tagName === 'A' || tagName === 'DIV' || tagName === 'LI') {
-                        $(element).attr('tabIndex', '0');
-                    }
-                    else {
-                        $(element).prop('disabled', false);
-                    }
-                });
-                this.siblingInputs.forEach((el) => {
-                    $(el).removeAttr('aria-hidden');
-                });
-            };
-        };
-        return new trapper(selector);
+        });
     }
-    static closeDialogPromise() {
-        return new Promise((resolve, reject) => {
-            $('body').off('dialogDismiss').on('dialogDismiss', function () {
-                resolve();
-            });
+    close() {
+        this.disabledInputs.forEach(function (element) {
+            var tagName = $(element)[0].tagName;
+            if (tagName === 'A' || tagName === 'DIV' || tagName === 'LI') {
+                $(element).attr('tabIndex', '0');
+            }
+            else {
+                $(element).prop('disabled', false);
+            }
+        });
+        this.siblingInputs.forEach((el) => {
+            $(el).removeAttr('aria-hidden');
         });
     }
 }
-exports.htmlHelpers = htmlHelpers;
-class draggable {
+exports.InputTrapper = InputTrapper;
+function closeDialogPromise() {
+    return new Promise((resolve) => {
+        $('body').off('dialogDismiss').on('dialogDismiss', function () {
+            resolve();
+        });
+    });
+}
+exports.closeDialogPromise = closeDialogPromise;
+/**
+ * Extract an HTMLElement from a Jquery id, DOM element ID, or HTMLELement.  If
+ * an HTMLElement can't be created, return null
+ * @param selector
+ * @returns HTMLElement
+ */
+function getDomContainer(selector) {
+    if (typeof (selector) === 'string') {
+        if (selector[0] === '#') {
+            const el = $(selector)[0];
+            if (!(el instanceof HTMLElement)) {
+                return undefined;
+            }
+            return el;
+        }
+        else {
+            const el = document.getElementById(selector);
+            if (!el) {
+                return undefined;
+            }
+            return el;
+        }
+    }
+    else if (selector instanceof HTMLElement) {
+        return selector;
+    }
+    else {
+        return undefined;
+    }
+}
+exports.getDomContainer = getDomContainer;
+/**
+ * Create a top-level HTML element for modal containers - dialogs etc.
+ * from a jquery selector, or just return same if it exists
+ * @param selector
+ * @returns
+ */
+function createTopDomContainer(selector) {
+    const container = $(selector);
+    if (container.length > 0) {
+        return container[0];
+    }
+    else {
+        const ndiv = document.createElement('div');
+        if (typeof (selector) === 'string') {
+            const cl = (selector[0] === '.' || selector[0] === '#') ? selector.substring(1) : selector;
+            $(ndiv).addClass(cl);
+            if (selector[0] === '#') {
+                $(ndiv).attr('id', selector.substring(1));
+            }
+        }
+        $('body').append(ndiv);
+        return $(ndiv)[0];
+    }
+}
+exports.createTopDomContainer = createTopDomContainer;
+/**
+ *
+ * @param parameters
+ * @returns
+ */
+function draggable(parameters) {
+    return new Draggable(parameters);
+}
+exports.draggable = draggable;
+class Draggable {
     constructor(parameters) {
+        this.dragging = false;
         this.parent = parameters.parent;
         this.handle = parameters.handle;
         this.animeClass = parameters.animateDiv;
@@ -1701,11 +1618,6 @@ class draggable {
             self.mouseup(e);
         });
     }
-    disconnect() {
-        $(this.handle).off('mousedown');
-        $(this.document).off('mousemove');
-        $(this.handle).off('mouseup');
-    }
     _animate(e) {
         this.lastX = e.clientX;
         this.lastY = e.clientY;
@@ -1725,7 +1637,7 @@ class draggable {
         this.dragging = true;
         this._animate(e);
     }
-    enddrag(e) {
+    enddrag() {
         this.lastX = this.lastX - this.domOffset.left;
         this.lastY = this.lastY - this.domOffset.top;
         if (this.moveParent) {
@@ -1751,7 +1663,7 @@ class draggable {
         this._animate(e);
     }
 }
-exports.draggable = draggable;
+exports.Draggable = Draggable;
 
 
 /***/ }),
@@ -3263,7 +3175,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PromiseHelpers = void 0;
+exports.PromiseHelpers = exports.TEmptyPromise = void 0;
+function TEmptyPromise(obj) {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve(obj);
+        }, 1);
+    });
+}
+exports.TEmptyPromise = TEmptyPromise;
 class PromiseHelpers {
     // ### makePromise
     // poll on endCondition at a rate of pollTime.  Resolve the promise
@@ -3862,20 +3782,6 @@ exports.sixTestJson = `{"a":{"b":{"c":30,"d":30,"e":40,"f":40,"g":816,"h":1056,"
 
 /***/ }),
 
-/***/ "./src/music/utActions.js":
-/*!********************************!*\
-  !*** ./src/music/utActions.js ***!
-  \********************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.testCase1 = void 0;
-exports.testCase1 = `[{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[12]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"crescendo","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"addStaff","parameters":[{"instrumentInfo":{"instrumentName":"Bass Clef Staff","keyOffset":0,"clef":"bass"}}]},{"method":"moveSelectionDown","parameters":[]},{"method":"batchDurationOperation","parameters":["doubleDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"addMeasure","parameters":[true]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionUp","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"transposeSelections","parameters":[12]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"toggleArticulation","parameters":["mordent_inverted","SmoOrnament"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeftMeasure","parameters":[]},{"method":"moveSelectionDown","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"batchDurationOperation","parameters":["undotDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[12]},{"method":"growSelectionRight","parameters":[]},{"method":"slur","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"toggleArticulation","parameters":["staccato","SmoArticulation"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"deleteNote","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"batchDurationOperation","parameters":["doubleDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"setScoreLayout","parameters":[{"leftMargin":30,"rightMargin":30,"topMargin":40,"bottomMargin":40,"pageWidth":816,"pageHeight":1056,"orientation":0,"interGap":30,"intraGap":10,"svgScale":0.55,"zoomScale":2.107843137254902,"zoomMode":0,"pages":1}]},{"method":"setScoreLayout","parameters":[{"leftMargin":30,"rightMargin":30,"topMargin":40,"bottomMargin":40,"pageWidth":816,"pageHeight":1056,"orientation":0,"interGap":30,"intraGap":10,"svgScale":0.55,"zoomScale":2.107843137254902,"zoomMode":0,"pages":1}]},{"method":"selectSuggestionNote","parameters":[{"staff":1,"measure":2,"voice":0,"tick":1,"pitches":[]},{"type":"click","shiftKey":false,"ctrlKey":false}]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionUp","parameters":[]},{"method":"forceSystemBreak","parameters":[true]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionDown","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["doubleDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["doubleDuration"]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"crescendo","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"slur","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"slur","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"selectSuggestionNote","parameters":[{"staff":1,"measure":1,"voice":0,"tick":9,"pitches":[]},{"type":"click","shiftKey":false,"ctrlKey":false}]},{"method":"selectSuggestionNote","parameters":[{"staff":1,"measure":1,"voice":0,"tick":9,"pitches":[]},{"type":"click","shiftKey":false,"ctrlKey":false}]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"advanceModifierSelection","parameters":[{"type":"keydown","shiftKey":false,"ctrlKey":false}]},{"method":"advanceModifierSelection","parameters":[{"type":"keydown","shiftKey":false,"ctrlKey":false}]},{"method":"advanceModifierSelection","parameters":[{"type":"keydown","shiftKey":false,"ctrlKey":false}]},{"method":"moveSelectionRight","parameters":[]},{"method":"advanceModifierSelection","parameters":[{"type":"keydown","shiftKey":false,"ctrlKey":false}]},{"method":"removeStaffModifier","parameters":[{"startSelector":{"staff":1,"measure":2,"voice":0,"tick":7,"pitches":[]},"endSelector":{"staff":1,"measure":3,"voice":0,"tick":0,"pitches":[]},"position":4,"ctor":"SmoSlur"}]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"slur","parameters":[]},{"method":"addTextGroup","parameters":[{"textBlocks":[{"text":{"ctor":"SmoScoreText","attrs":{"id":"auto277566","type":"SmoScoreText"},"backup":{},"edited":false,"x":893,"y":180.95,"text":"Smoosic","pagination":"once","position":"custom","fontInfo":{"size":"1em","family":"Merriweather","style":"normal","weight":"normal"},"classes":"score-text auto277566","boxModel":"none","justification":"left","fill":"black","width":0,"height":0,"scaleX":1,"scaleY":1,"translateX":0,"translateY":0,"autoLayout":false,"renderedBox":{"x":1209.73,"y":-229.95,"width":89.9,"height":27.02},"logicalBox":{"x":893,"y":162.83,"width":77.56,"height":23.31}},"position":4,"activeText":true}],"ctor":"SmoTextGroup","attrs":{"id":"auto277567","type":"SmoTextGroup"}}]},{"method":"updateTextGroup","parameters":[{"textBlocks":[{"text":{"ctor":"SmoScoreText","attrs":{"id":"auto277566","type":"SmoScoreText"},"backup":{},"edited":false,"x":893,"y":180.95,"text":"Smoosic","pagination":"once","position":"custom","fontInfo":{"size":"1em","family":"Merriweather","style":"normal","weight":"normal"},"classes":"score-text auto277566","boxModel":"none","justification":"left","fill":"black","width":0,"height":0,"scaleX":1,"scaleY":1,"translateX":0,"translateY":0,"autoLayout":false,"renderedBox":{"x":1209.73,"y":371.05,"width":89.9,"height":27.02},"logicalBox":{"x":893,"y":162.83,"width":77.56,"height":23.31}},"position":4,"activeText":true}],"ctor":"SmoTextGroup","attrs":{"id":"auto277567","type":"SmoTextGroup"}},{"textBlocks":[{"text":{"ctor":"SmoScoreText","attrs":{"id":"auto277566","type":"SmoScoreText"},"backup":{},"edited":false,"x":893,"y":180.95,"text":"15 Inventions a 2 voix.","pagination":"once","position":"custom","fontInfo":{"size":"1em","family":"Merriweather","style":"normal","weight":"normal"},"classes":"score-text auto277566","boxModel":"none","justification":"left","fill":"black","width":0,"height":0,"scaleX":1,"scaleY":1,"translateX":0,"translateY":0,"autoLayout":false,"renderedBox":{"x":1209.73,"y":371.05,"width":89.9,"height":27.02},"logicalBox":{"x":893,"y":162.83,"width":77.56,"height":23.31}},"position":4,"activeText":true}],"ctor":"SmoTextGroup","attrs":{"id":"auto277567","type":"SmoTextGroup"}}]},{"method":"updateTextGroup","parameters":[{"textBlocks":[{"text":{"ctor":"SmoScoreText","attrs":{"id":"auto277566","type":"SmoScoreText"},"backup":{},"edited":false,"x":893,"y":180.95,"text":"15 Inventions a 2 voix.","pagination":"once","position":"custom","fontInfo":{"size":"1em","family":"Merriweather","style":"normal","weight":"normal"},"classes":"score-text auto277566","boxModel":"none","justification":"left","fill":"black","width":0,"height":0,"scaleX":1,"scaleY":1,"translateX":0,"translateY":0,"autoLayout":false,"renderedBox":{"x":1209.73,"y":371.05,"width":235.12,"height":27.02},"logicalBox":{"x":893,"y":162.83,"width":202.86,"height":23.31}},"position":4,"activeText":true}],"ctor":"SmoTextGroup","attrs":{"id":"auto277567","type":"SmoTextGroup"}},{"textBlocks":[{"text":{"ctor":"SmoScoreText","attrs":{"id":"auto277566","type":"SmoScoreText"},"backup":{},"edited":false,"x":591.4853515625,"y":50.08321900431312,"text":"15 Inventions a 2 voix.","pagination":"once","position":"custom","fontInfo":{"size":"1em","family":"Merriweather","style":"normal","weight":"normal"},"classes":"score-text auto277566","boxModel":"none","justification":"left","fill":"black","width":0,"height":0,"scaleX":1,"scaleY":1,"translateX":0,"translateY":0,"autoLayout":false,"renderedBox":{"x":1209.73,"y":371.05,"width":235.12,"height":27.02},"logicalBox":{"x":893,"y":162.83,"width":202.86,"height":23.31}},"position":4,"activeText":true}],"ctor":"SmoTextGroup","attrs":{"id":"auto277567","type":"SmoTextGroup"}}]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionUp","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"batchDurationOperation","parameters":["dotDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[12]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionDown","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionUp","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"slur","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"toggleArticulation","parameters":["mordent","SmoOrnament"]},{"method":"toggleArticulation","parameters":["mordent","SmoOrnament"]},{"method":"toggleArticulation","parameters":["mordent","SmoOrnament"]},{"method":"toggleArticulation","parameters":["mordent","SmoOrnament"]},{"method":"moveSelectionRight","parameters":[]},{"method":"toggleArticulation","parameters":["mordent","SmoOrnament"]},{"method":"moveSelectionDown","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["dotDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveHome","parameters":[]},{"method":"updateTempoScore","parameters":[{"tempoMode":"text","ctor":"SmoTempoText"},false]},{"method":"updateTempoScore","parameters":[{"tempoMode":"text","bpm":96,"tempoText":"Moderato","ctor":"SmoTempoText"},false]},{"method":"updateTempoScore","parameters":[{"tempoMode":"text","bpm":96,"tempoText":"Moderato","ctor":"SmoTempoText"},true]},{"method":"updateTempoScore","parameters":[{"tempoMode":"text","bpm":96,"display":true,"tempoText":"Moderato","ctor":"SmoTempoText"},true]},{"method":"moveEnd","parameters":[]},{"method":"addMeasure","parameters":[true]},{"method":"selectSuggestionNote","parameters":[{"staff":0,"measure":6,"voice":0,"tick":0,"pitches":[]},{"type":"click","shiftKey":false,"ctrlKey":false}]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"deleteNote","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionDown","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"advanceModifierSelection","parameters":[{"type":"keydown","shiftKey":false,"ctrlKey":false}]},{"method":"moveSelectionLeftMeasure","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"forceSystemBreak","parameters":[true]},{"method":"selectSuggestionNote","parameters":[{"staff":0,"measure":6,"voice":0,"tick":1,"pitches":[]},{"type":"click","shiftKey":false,"ctrlKey":false}]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveEnd","parameters":[]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionUp","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionRight","parameters":[]},{"method":"deleteNote","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionDown","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[12]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"toggleArticulation","parameters":["staccato","SmoArticulation"]},{"method":"moveSelectionUp","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"crescendo","parameters":[]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"deleteNote","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionDown","parameters":[]},{"method":"changeInstrument","parameters":[{"instrumentName":"Treble Instrument","keyOffset":0,"clef":"treble"}]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionUp","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"deleteNote","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"toggleEnharmonic","parameters":[]},{"method":"toggleEnharmonic","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionDown","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"forceSystemBreak","parameters":[true]},{"method":"selectSuggestionNote","parameters":[{"staff":0,"measure":9,"voice":0,"tick":10,"pitches":[]},{"type":"click","shiftKey":false,"ctrlKey":false}]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"toggleEnharmonic","parameters":[]},{"method":"toggleEnharmonic","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionDown","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-1]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[-1]},{"method":"addMeasure","parameters":[true]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionUp","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[-12]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"moveSelectionRight","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"toggleEnharmonic","parameters":[]},{"method":"toggleEnharmonic","parameters":[]},{"method":"toggleEnharmonic","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"growSelectionLeft","parameters":[]},{"method":"slur","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"toggleBeamDirection","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"toggleBeamDirection","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"slur","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"slur","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"toggleBeamDirection","parameters":[]},{"method":"beamSelections","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"advanceModifierSelection","parameters":[{"type":"keydown","shiftKey":false,"ctrlKey":false}]},{"method":"addOrUpdateStaffModifier","parameters":[{"startSelector":{"staff":0,"measure":10,"voice":0,"tick":1,"pitches":[]},"endSelector":{"staff":0,"measure":10,"voice":0,"tick":4,"pitches":[]},"invert":true,"ctor":"SmoSlur"}]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionDown","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"growSelectionRight","parameters":[]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"batchDurationOperation","parameters":["halveDuration"]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["f"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["e"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["d"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["g"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["b"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["a"]},{"method":"moveSelectionRight","parameters":[]},{"method":"setPitch","parameters":["c"]},{"method":"moveSelectionRight","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"moveSelectionLeft","parameters":[]},{"method":"transposeSelections","parameters":[1]},{"method":"toggleEnharmonic","parameters":[]},{"method":"toggleEnharmonic","parameters":[]},{"method":"toggleEnharmonic","parameters":[]}]`;
-
-
-/***/ }),
-
 /***/ "./src/render/audio/oscillator.ts":
 /*!****************************************!*\
   !*** ./src/render/audio/oscillator.ts ***!
@@ -4438,141 +4344,14 @@ SuiAudioPlayer._playingInstance = null;
 
 /***/ }),
 
-/***/ "./src/render/sui/actionPlayback.ts":
-/*!******************************************!*\
-  !*** ./src/render/sui/actionPlayback.ts ***!
-  \******************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ "./src/render/sui/configuration.ts":
+/*!*****************************************!*\
+  !*** ./src/render/sui/configuration.ts ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, exports) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SuiActionPlayback = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-/**
- * Classes to support the recording and playback of actions.  This
- * is a fairly incomplete module.  All actions are recorded but the
- * playback facility was glitchy so I removed it.
- * @module /render/sui/actionPlayback
- */
-const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
-// ## SuiActionPlayback
-// play back the action records.
-class SuiActionPlayback {
-    // In the application, the object plays the actions back.
-    constructor(actionRecord, view) {
-        this.timestamp = 0;
-        this.view = view;
-        this.actions = actionRecord;
-        this.running = false;
-        this.currentAction = null;
-    }
-    // ### actionPromise
-    // Render a single action, and return a promise that resolves when rendered
-    static actionPromise(view, method, args) {
-        if (method === 'setScoreLayout') {
-            method = 'setPageLayout';
-        }
-        if (typeof (view[method]) !== 'function') {
-            throw (method);
-        }
-        view[method](...args);
-        return view.renderer.updatePromise();
-    }
-    // ### actionPromises
-    // Library convenience function that performs the same action `'`count`'` times
-    // Good for navigation (left 3 etc)
-    static actionPromises(view, method, args, count) {
-        const promise = new Promise((resolve) => {
-            const fc = (count) => {
-                if (count > 0) {
-                    SuiActionPlayback.actionPromise(view, method, args).then(() => {
-                        fc(count - 1);
-                    });
-                }
-                else {
-                    resolve();
-                }
-            };
-            fc(count);
-        });
-        return promise;
-    }
-    // promise resolve condition
-    get stopped() {
-        return !this.running;
-    }
-    // ### setPitches
-    // Convenience function to set a bunch of pitches on consecutive notes
-    static setPitches(view, pitches) {
-        const pitchAr = pitches.split('');
-        const promise = new Promise((resolve) => {
-            const fcn = (ix) => {
-                if (ix < pitchAr.length) {
-                    SuiActionPlayback.actionPromises(view, 'setPitch', [pitchAr[ix]], 1).then(() => {
-                        fcn(ix + 1);
-                    });
-                }
-                else {
-                    resolve();
-                }
-            };
-            fcn(0);
-        });
-        return promise;
-    }
-    // ### playNextAction
-    // Get the next action, and execute it.  Periodically refresh the entire score
-    // if there are a  lot of actions.
-    playNextAction() {
-        let promise = null;
-        if (this.currentAction === null || this.currentAction.count < 1) {
-            this.currentAction = this.actions.callNextAction();
-        }
-        // No actions left, stop running
-        if (!this.currentAction) {
-            this.running = false;
-        }
-        else {
-            this.currentAction.count -= 1;
-            const ts = new Date().valueOf();
-            const refresh = ts - this.timestamp > SmoConfig.idleRedrawTime;
-            promise = SuiActionPlayback.actionPromise(this.view, this.currentAction.method, this.currentAction.args);
-            if (refresh) {
-                // Periodically refresh the whole screen and scroll
-                promise = this.view.renderer.renderPromise();
-                this.view.renderer.rerenderAll();
-                this.timestamp = ts;
-                promise.then(() => {
-                    const ls = this.view.score.staves[this.view.score.staves.length - 1];
-                    const lm = ls.measures[ls.measures.length - 1];
-                    if (lm.renderedBox) {
-                        this.view.tracker.scroller.scrollVisibleBox(lm.renderedBox);
-                    }
-                    this.playNextAction();
-                });
-            }
-            else {
-                // Usually, just perform the action and play the next action when any
-                // redrawing has completed.
-                promise.then(() => {
-                    this.playNextAction();
-                });
-            }
-        }
-    }
-    // ### start
-    // Start playing all the actions in the buffer.  Stop when stopped or we run out
-    // of things to do.
-    start() {
-        this.running = true;
-        this.timestamp = new Date().valueOf();
-        this.actions.executeIndex = 0;
-        this.playNextAction();
-        return promiseHelpers_1.PromiseHelpers.makePromise(() => this.stopped, null, null, 50);
-    }
-}
-exports.SuiActionPlayback = SuiActionPlayback;
 
 
 /***/ }),
@@ -5004,11 +4783,12 @@ exports.SuiRenderDemon = void 0;
 const exceptions_1 = __webpack_require__(/*! ../../ui/exceptions */ "./src/ui/exceptions.js");
 const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
 class SuiRenderDemon {
-    constructor(renderer, undoBuffer, tracker) {
+    constructor(config, renderer, undoBuffer, tracker) {
         this.idleLayoutTimer = 0; // how long the score has been idle
         this.undoStatus = 0;
         this.handling = false;
         this.idleLayoutTimer = 0;
+        this.config = config;
         this.undoStatus = 0;
         this.renderer = renderer;
         this.undoBuffer = undoBuffer;
@@ -5025,7 +4805,7 @@ class SuiRenderDemon {
             return;
         }
         this.handling = true;
-        const redrawTime = Math.max(this.renderer.renderTime, SmoConfig.idleRedrawTime);
+        const redrawTime = Math.max(this.renderer.renderTime, this.config.idleRedrawTime);
         // If there has been a change, redraw the score
         if (this.renderer.passState === renderState_1.SuiRenderState.passStates.initial) {
             this.renderer.dirty = true;
@@ -5075,7 +4855,7 @@ class SuiRenderDemon {
         setTimeout(() => {
             this.handleRedrawTimer();
             this.pollRedraw();
-        }, SmoConfig.demonPollTime);
+        }, this.config.demonPollTime);
     }
     startDemon() {
         this.pollRedraw();
@@ -5623,7 +5403,7 @@ exports.SuiPiano = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 class SuiPiano {
     constructor(view) {
         this.octaveOffset = 0;
@@ -5814,7 +5594,7 @@ class SuiPiano {
         this.view.setPitchPiano(pitch, this.chordPedal);
     }
     _renderControls() {
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var b = htmlHelpers_1.buildDom;
         var r = b('button').classes('icon icon-cross close close-piano');
         $('.piano-container .key-right-ctrl').append(r.dom());
         r = b('button').classes('piano-ctrl jsGrowDuration').append(b('span').classes('icon icon-duration_grow'));
@@ -5968,7 +5748,7 @@ const VF = eval('Vex.Flow');
  * @category SuiRender
  * */
 class SuiRenderState {
-    constructor(ctor) {
+    constructor(config) {
         this.passState = SuiRenderState.passStates.initial;
         this._score = null;
         this._backupZoomScale = 0;
@@ -5976,11 +5756,8 @@ class SuiRenderState {
         // rendering because we are recording or playing actions.
         this.suspendRendering = false;
         this.autoAdjustRenderTime = true;
-        this.attrs = {
-            id: VF.Element.newID(),
-            type: ctor
-        };
         this.dirty = true;
+        this.config = config;
         this.replaceQ = [];
         this.renderTime = 0; // ms to render before time slicing
         this.stateRepCount = 0;
@@ -6072,7 +5849,7 @@ class SuiRenderState {
         const endAction = () => {
             self.suspendRendering = oldSuspend;
         };
-        return promiseHelpers_1.PromiseHelpers.makePromise(condition, endAction, null, SmoConfig.demonPollTime);
+        return promiseHelpers_1.PromiseHelpers.makePromise(condition, endAction, null, this.config.demonPollTime);
     }
     // ### renderPromise
     // return a promise that resolves when the score is in a fully rendered state.
@@ -6512,6 +6289,7 @@ const formatter_1 = __webpack_require__(/*! ./formatter */ "./src/render/sui/for
 const textRender_1 = __webpack_require__(/*! ./textRender */ "./src/render/sui/textRender.ts");
 const layoutDebug_1 = __webpack_require__(/*! ./layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const ssp_sans_metrics_1 = __webpack_require__(/*! ../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const VF = eval('Vex.Flow');
 /**
  * This module renders the entire score.  It calculates the layout first based on the
@@ -6520,23 +6298,20 @@ const VF = eval('Vex.Flow');
 **/
 class SuiScoreRender extends renderState_1.SuiRenderState {
     constructor(params) {
-        super('SuiScoreRender');
+        super(params.config);
         this.startRenderTime = 0;
         this.currentPage = 0;
         this.elementId = params.elementId;
         this.score = params.score;
-        this.attrs = {
-            id: VF.Element.newID(),
-            type: 'testLayout'
-        };
         this.setViewport(true);
     }
     // ### createScoreRenderer
     // ### Description;
     // to get the score to appear, a div and a score object are required.  The layout takes care of creating the
     // svg element in the dom and interacting with the vex library.
-    static createScoreRenderer(renderElement, score) {
+    static createScoreRenderer(config, renderElement, score) {
         const ctorObj = {
+            config,
             elementId: renderElement,
             score
         };
@@ -6728,6 +6503,7 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
         });
     }
     _renderNextSystem(systemIx, mscore, keys, printing) {
+        (0, htmlHelpers_1.createTopDomContainer)('#renderProgress');
         if (systemIx < keys.length) {
             const progress = Math.round((100 * systemIx) / keys.length);
             $('#renderProgress').val(progress);
@@ -6998,20 +6774,16 @@ exports.SuiScoreRender = SuiScoreRender;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiScoreView = void 0;
-// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
-// Copyright (c) Aaron David Newman 2021.
-const measure_1 = __webpack_require__(/*! ../../smo/data/measure */ "./src/smo/data/measure.ts");
 const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const undo_1 = __webpack_require__(/*! ../../smo/xform/undo */ "./src/smo/xform/undo.ts");
 const copypaste_1 = __webpack_require__(/*! ../../smo/xform/copypaste */ "./src/smo/xform/copypaste.ts");
-const actions_1 = __webpack_require__(/*! ../../smo/xform/actions */ "./src/smo/xform/actions.ts");
 const scroller_1 = __webpack_require__(/*! ./scroller */ "./src/render/sui/scroller.ts");
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const tracker_1 = __webpack_require__(/*! ./tracker */ "./src/render/sui/tracker.ts");
 const layoutDemon_1 = __webpack_require__(/*! ./layoutDemon */ "./src/render/sui/layoutDemon.ts");
-const utActions_1 = __webpack_require__(/*! ../../music/utActions */ "./src/music/utActions.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 /**
  * Base class for all operations on the rendered score.  The base class handles the following:
  * 1. Undo and recording actions for the operation
@@ -7020,7 +6792,7 @@ const utActions_1 = __webpack_require__(/*! ../../music/utActions */ "./src/musi
  * @category SuiRender
  */
 class SuiScoreView {
-    constructor(renderer, score, scrollSelector, undoBuffer) {
+    constructor(config, renderer, score, scrollSelector, undoBuffer) {
         this.score = score;
         this.renderer = renderer;
         const scoreJson = score.serialize();
@@ -7031,13 +6803,12 @@ class SuiScoreView {
         this.renderer.setMeasureMapper(this.tracker);
         this.storeScore = score_1.SmoScore.deserialize(JSON.stringify(scoreJson));
         this.undoBuffer = undoBuffer;
-        this.layoutDemon = new layoutDemon_1.SuiRenderDemon(this.renderer, this.undoBuffer, this.tracker);
+        this.layoutDemon = new layoutDemon_1.SuiRenderDemon(config, this.renderer, this.undoBuffer, this.tracker);
         this.storeUndo = new undo_1.UndoBuffer();
         this.staffMap = this.defaultStaffMap;
         SuiScoreView.Instance = this; // for debugging
         this.setMappedStaffIds();
-        this.actionBuffer = new actions_1.SmoActionRecord();
-        this.tracker.recordBuffer = this.actionBuffer;
+        (0, htmlHelpers_1.createTopDomContainer)('.saveLink'); // for file upload
     }
     /**
      * Await on the full update of the score
@@ -7295,18 +7066,6 @@ class SuiScoreView {
     startRenderingEngine() {
         this.layoutDemon.startDemon();
     }
-    static debugUnitTest() {
-        const dbg = SuiScoreView.Instance;
-        if (dbg === null) {
-            return;
-        }
-        dbg.changeScore(score_1.SmoScore.getDefaultScore(score_1.SmoScore.defaults, measure_1.SmoMeasure.defaults));
-        dbg.actionBuffer.actions = JSON.parse(utActions_1.testCase1);
-        if (SuiScoreView.Instance !== null) {
-            dbg.actionBuffer.executeIndex = SuiScoreView.Instance.actionBuffer.actions.length;
-        }
-        dbg.replayActions();
-    }
     getView() {
         const rv = [];
         let i = 0;
@@ -7315,14 +7074,6 @@ class SuiScoreView {
             rv.push({ show });
         }
         return rv;
-    }
-    playActions(actionJson) {
-        if (!this.actionBuffer.endCondition) {
-            return;
-        }
-        this.actionBuffer.actions = actionJson;
-        this.actionBuffer.resetRunner();
-        this.replayActions();
     }
     setMappedStaffIds() {
         this.score.staves.forEach((staff) => {
@@ -7439,7 +7190,6 @@ class SuiScoreView {
         this.score = score;
         this.staffMap = this.defaultStaffMap;
         this.setMappedStaffIds();
-        this.actionBuffer.clearActions();
         return this.renderPromise();
     }
     // ### undo
@@ -7494,8 +7244,7 @@ const xhrLoader_1 = __webpack_require__(/*! ../../ui/fileio/xhrLoader */ "./src/
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
-const actionPlayback_1 = __webpack_require__(/*! ./actionPlayback */ "./src/render/sui/actionPlayback.ts");
+const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const piano_1 = __webpack_require__(/*! ./piano */ "./src/render/sui/piano.ts");
 const promiseHelpers_1 = __webpack_require__(/*! ../../common/promiseHelpers */ "./src/common/promiseHelpers.ts");
 /**
@@ -7517,7 +7266,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     addTextGroup(textGroup) {
-        this.actionBuffer.addAction('addTextGroup', textGroup);
         const altNew = scoreModifiers_1.SmoTextGroup.deserialize(textGroup.serialize());
         undo_1.SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup, undo_1.UndoBuffer.bufferSubtypes.ADD);
         undo_1.SmoUndoable.changeTextGroup(this.storeScore, this.storeUndo, altNew, undo_1.UndoBuffer.bufferSubtypes.ADD);
@@ -7530,7 +7278,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     removeTextGroup(textGroup) {
-        this.actionBuffer.addAction('removeTextGroup', textGroup);
         const index = this.score.textGroups.findIndex((grp) => textGroup.attrs.id === grp.attrs.id);
         const altGroup = this.storeScore.textGroups[index];
         undo_1.SmoUndoable.changeTextGroup(this.score, this.undoBuffer, textGroup, undo_1.UndoBuffer.bufferSubtypes.REMOVE);
@@ -7546,7 +7293,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     updateTextGroup(oldVersion, newVersion) {
-        this.actionBuffer.addAction('updateTextGroup', oldVersion, newVersion);
         const index = this.score.textGroups.findIndex((grp) => oldVersion.attrs.id === grp.attrs.id);
         const isPartExposed = this.isPartExposed(this.score.staves[0]);
         undo_1.SmoUndoable.changeTextGroup(this.score, this.undoBuffer, oldVersion, undo_1.UndoBuffer.bufferSubtypes.UPDATE);
@@ -7648,7 +7394,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     addRemoveMicrotone(tone) {
-        this.actionBuffer.addAction('addRemoveMicrotone', tone);
         const selections = this.tracker.selections;
         const altSelections = this._getEquivalentSelections(selections);
         const measureSelections = this._undoTrackerMeasureSelections('add/remove microtone');
@@ -7664,7 +7409,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     addDynamic(selection, dynamic) {
-        this.actionBuffer.addAction('addDynamic', dynamic);
         this._undoFirstMeasureSelection('add dynamic');
         this._removeDynamic(selection, dynamic);
         const equiv = this._getEquivalentSelection(selection);
@@ -7701,7 +7445,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
             return promiseHelpers_1.PromiseHelpers.emptyPromise();
         }
         this.tracker.selections = [sel.selection];
-        this.actionBuffer.addAction('removeDynamic', dynamic);
         this._undoFirstMeasureSelection('remove dynamic');
         this._removeDynamic(sel.selection, dynamic);
         this.renderer.addToReplaceQueue(sel.selection);
@@ -7713,7 +7456,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * Operates on current selections
      * */
     deleteNote() {
-        this.actionBuffer.addAction('deleteNote');
         const measureSelections = this._undoTrackerMeasureSelections('delete note');
         this.tracker.selections.forEach((sel) => {
             if (sel.note) {
@@ -7745,7 +7487,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * correct selection.  We get it directly from the editor.
     */
     removeLyric(selector, lyric) {
-        this.actionBuffer.addAction('removeLyric', selector, lyric);
         const selection = selections_1.SmoSelection.noteFromSelector(this.score, selector);
         if (selection === null) {
             return promiseHelpers_1.PromiseHelpers.emptyPromise();
@@ -7766,7 +7507,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     addOrUpdateLyric(selector, lyric) {
-        this.actionBuffer.addAction('addOrUpdateLyric', selector, lyric);
         const selection = selections_1.SmoSelection.noteFromSelector(this.score, selector);
         if (selection === null) {
             return promiseHelpers_1.PromiseHelpers.emptyPromise();
@@ -7784,7 +7524,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     depopulateVoice() {
-        this.actionBuffer.addAction('depopulateVoice');
         const measureSelections = this._undoTrackerMeasureSelections('depopulate voice');
         measureSelections.forEach((selection) => {
             const ix = selection.measure.getActiveVoice();
@@ -7825,7 +7564,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
             this.tracker.selectActiveVoice();
             return this.renderer.updatePromise();
         }
-        this.actionBuffer.addAction('populateVoice', index);
         measuresToAdd.forEach((selection) => {
             this._undoSelection('popualteVoice', selection);
             operations_1.SmoOperation.populateVoice(selection, index);
@@ -7846,7 +7584,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         if (typeof (selections) === 'undefined') {
             selections = this.tracker.selections;
         }
-        this.actionBuffer.addAction('changeInstrument', instrument, selections);
         this._undoSelections('change instrument', selections);
         const altSelections = this._getEquivalentSelections(selections);
         operations_1.SmoOperation.changeInstrument(instrument, selections);
@@ -7860,7 +7597,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @param timeSignatureString display time signature if different, as in for pickup notes
      */
     setTimeSignature(timeSignature, timeSignatureString) {
-        this.actionBuffer.addAction('setTimeSignature', timeSignature);
         this._undoScore('Set time signature');
         const selections = this.tracker.selections;
         const altSelections = this._getEquivalentSelections(selections);
@@ -7875,7 +7611,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     moveStaffUpDown(index) {
-        this.actionBuffer.addAction('moveStaffUpDown', index);
         this._undoScore('re-order staves');
         // Get staff to move
         const selection = this._getEquivalentSelection(this.tracker.selections[0]);
@@ -7891,7 +7626,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @param staffGroup
      */
     addOrUpdateStaffGroup(staffGroup) {
-        this.actionBuffer.addAction('addOrUpdateStaffGroup', staffGroup);
         this._undoScore('group staves');
         // Assume that the view is now set to full score
         this.score.addOrReplaceSystemGroup(staffGroup);
@@ -7909,7 +7643,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         let measureIndex = 0;
         let startSelection = this.tracker.getExtremeSelection(-1);
         this._undoScore('update score tempo');
-        this.actionBuffer.addAction('updateTempoScore', tempo, scoreMode);
         const measureCount = this.score.staves[0].measures.length;
         let endSelection = selections_1.SmoSelection.measureSelection(this.score, startSelection.selector.staff, measureCount - 1);
         if (!scoreMode) {
@@ -7948,7 +7681,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @param scoreMode whether to reset entire score
      */
     removeTempo(scoreMode) {
-        this.actionBuffer.addAction('removeTempo', scoreMode);
         const startSelection = this.tracker.selections[0];
         if (startSelection.selector.measure > 0) {
             const measureIx = startSelection.selector.measure - 1;
@@ -7967,7 +7699,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * Add a grace note to the selected real notes.
      */
     addGraceNote() {
-        this.actionBuffer.addAction('addGraceNote');
         const selections = this.tracker.selections;
         const measureSelections = this._undoTrackerMeasureSelections('add grace note');
         selections.forEach((selection) => {
@@ -7993,7 +7724,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     removeGraceNote() {
-        this.actionBuffer.addAction('removeGraceNote');
         const selections = this.tracker.selections;
         const measureSelections = this._undoTrackerMeasureSelections('remove grace note');
         selections.forEach((selection) => {
@@ -8009,7 +7739,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * Toggle slash in stem of grace note
      */
     slashGraceNotes() {
-        this.actionBuffer.addAction('slashGraceNotes');
         const grace = this.tracker.getSelectedGraceNotes();
         const measureSelections = this._undoTrackerMeasureSelections('slash grace note toggle');
         grace.forEach((gn) => {
@@ -8032,7 +7761,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     transposeSelections(offset) {
-        this.actionBuffer.addAction('transposeSelections', offset);
         const selections = this.tracker.selections;
         const measureSelections = this._undoTrackerMeasureSelections('transpose');
         const grace = this.tracker.getSelectedGraceNotes();
@@ -8066,7 +7794,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     toggleEnharmonic() {
-        this.actionBuffer.addAction('toggleEnharmonic');
         const selections = this.tracker.selections;
         const measureSelections = this._undoTrackerMeasureSelections('toggle enharmonic');
         const grace = this.tracker.getSelectedGraceNotes();
@@ -8095,7 +7822,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * Toggle cautionary/courtesy accidentals
      */
     toggleCourtesyAccidentals() {
-        this.actionBuffer.addAction('toggleCourtesyAccidentals');
         const selections = this.tracker.selections;
         const measureSelections = this._undoTrackerMeasureSelections('toggle courtesy accidental');
         const grace = this.tracker.getSelectedGraceNotes();
@@ -8127,7 +7853,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     batchDurationOperation(operation) {
-        this.actionBuffer.addAction('batchDurationOperation', operation);
         const selections = this.tracker.selections;
         const measureSelections = this._undoTrackerMeasureSelections('change duration');
         const grace = this.tracker.getSelectedGraceNotes();
@@ -8159,7 +7884,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     toggleArticulation(modifier, ctor) {
-        this.actionBuffer.addAction('toggleArticulation', modifier, ctor);
         const measureSelections = this._undoTrackerMeasureSelections('toggle articulation');
         this.tracker.selections.forEach((sel) => {
             if (ctor === 'SmoArticulation') {
@@ -8187,7 +7911,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @param numNotes 3 means triplet, etc.
      */
     makeTuplet(numNotes) {
-        this.actionBuffer.addAction('makeTuplet', numNotes);
         const selection = this.tracker.selections[0];
         const measureSelections = this._undoTrackerMeasureSelections('make tuplet');
         operations_1.SmoOperation.makeTuplet(selection, numNotes);
@@ -8200,7 +7923,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * Convert selected tuplet to a single (if possible) non-tuplet
      */
     unmakeTuplet() {
-        this.actionBuffer.addAction('unmakeTuplet');
         const selection = this.tracker.selections[0];
         const measureSelections = this._undoTrackerMeasureSelections('unmake tuplet');
         operations_1.SmoOperation.unmakeTuplet(selection);
@@ -8215,7 +7937,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     setInterval(interval) {
-        this.actionBuffer.addAction('setInterval', interval);
         const selections = this.tracker.selections;
         const measureSelections = this._undoTrackerMeasureSelections('set interval');
         selections.forEach((selected) => {
@@ -8231,7 +7952,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     collapseChord() {
-        this.actionBuffer.addAction('collapseChord');
         const selections = this.tracker.selections;
         const measureSelections = this._undoTrackerMeasureSelections('collapse chord');
         selections.forEach((selected) => {
@@ -8252,7 +7972,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * Toggle chicken-scratches, for jazz improv, comping etc.
      */
     toggleSlash() {
-        this.actionBuffer.addAction('toggleSlash');
         const selections = this.tracker.selections;
         const measureSelections = this._undoTrackerMeasureSelections('make slash');
         selections.forEach((selection) => {
@@ -8268,7 +7987,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     makeRest() {
-        this.actionBuffer.addAction('makeRest');
         const selections = this.tracker.selections;
         const measureSelections = this._undoTrackerMeasureSelections('make rest');
         selections.forEach((selection) => {
@@ -8284,7 +8002,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     toggleBeamGroup() {
-        this.actionBuffer.addAction('toggleBeamGroup');
         const selections = this.tracker.selections;
         const measureSelections = this._undoTrackerMeasureSelections('toggle beam group');
         selections.forEach((selection) => {
@@ -8300,7 +8017,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     * @returns
     */
     toggleBeamDirection() {
-        this.actionBuffer.addAction('toggleBeamDirection');
         const selections = this.tracker.selections;
         if (selections.length < 1) {
             return promiseHelpers_1.PromiseHelpers.emptyPromise();
@@ -8315,7 +8031,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * Add the selected notes to a beam group
      */
     beamSelections() {
-        this.actionBuffer.addAction('beamSelections');
         const selections = this.tracker.selections;
         const measureSelections = this._undoTrackerMeasureSelections('beam selections');
         operations_1.SmoOperation.beamSelections(this.score, selections);
@@ -8328,7 +8043,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @param keySignature vex key signature
      */
     addKeySignature(keySignature) {
-        this.actionBuffer.addAction('addKeySignature', keySignature);
         const measureSelections = this._undoTrackerMeasureSelections('set key signature ' + keySignature);
         measureSelections.forEach((sel) => {
             operations_1.SmoOperation.addKeySignature(this.score, sel, keySignature);
@@ -8344,7 +8058,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @param chordPedal {boolean} - indicates we are adding to a chord
      */
     setPitchPiano(pitch, chordPedal) {
-        this.actionBuffer.addAction('setAbsolutePitch', pitch);
         const measureSelections = this._undoTrackerMeasureSelections('setAbsolutePitch ' + pitch.letter + '/' + pitch.accidental);
         this.tracker.selections.forEach((selected) => {
             const npitch = {
@@ -8410,7 +8123,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @param letter string
      */
     setPitch(letter) {
-        this.actionBuffer.addAction('setPitch', letter);
         const selections = this.tracker.selections;
         const measureSelections = this._undoTrackerMeasureSelections('set pitch ' + letter);
         selections.forEach((selected) => {
@@ -8441,7 +8153,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * Generic clipboard copy action
      */
     copy() {
-        this.actionBuffer.addAction('copy');
         this.pasteBuffer.setSelections(this.score, this.tracker.selections);
         const altAr = [];
         this.tracker.selections.forEach((sel) => {
@@ -8460,7 +8171,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     paste() {
         // We undo the whole score on a paste, since we don't yet know the
         // extent of the overlap
-        this.actionBuffer.addAction('paste');
         this._undoScore('paste');
         this.renderer.preserveScroll();
         const firstSelection = this.tracker.selections[0];
@@ -8477,7 +8187,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @param head
      */
     setNoteHead(head) {
-        this.actionBuffer.addAction('setNoteHead', head);
         const selections = this.tracker.selections;
         const measureSelections = this._undoTrackerMeasureSelections('set note head');
         operations_1.SmoOperation.setNoteHead(selections, head);
@@ -8491,7 +8200,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     addEnding() {
         // TODO: we should have undo for columns
         this._undoScore('Add Volta');
-        this.actionBuffer.addAction('addEnding');
         const ft = this.tracker.getExtremeSelection(-1);
         const tt = this.tracker.getExtremeSelection(1);
         const params = measureModifiers_1.SmoVolta.defaults;
@@ -8510,7 +8218,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     updateEnding(ending) {
-        this.actionBuffer.addAction('updateEnding', ending);
         this._undoScore('Change Volta');
         $(this.renderer.context.svg).find('g.' + ending.attrs.id).remove();
         operations_1.SmoOperation.removeEnding(this.storeScore, ending);
@@ -8527,7 +8234,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     removeEnding(ending) {
-        this.actionBuffer.addAction('removeEnding', ending);
         this._undoScore('Remove Volta');
         $(this.renderer.context.svg).find('g.' + ending.attrs.id).remove();
         operations_1.SmoOperation.removeEnding(this.storeScore, ending);
@@ -8542,7 +8248,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     setBarline(position, barline) {
-        this.actionBuffer.addAction('setBarline', position, barline);
         const obj = new measureModifiers_1.SmoBarline({ position, barline });
         const altObj = new measureModifiers_1.SmoBarline({ position, barline });
         const selection = this.tracker.selections[0];
@@ -8559,7 +8264,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @param symbol coda, etc.
      */
     setRepeatSymbol(position, symbol) {
-        this.actionBuffer.addAction('setRepeatSymbol', position, symbol);
         const params = measureModifiers_1.SmoRepeatSymbol.defaults;
         params.position = position;
         params.symbol = symbol;
@@ -8578,7 +8282,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     toggleRehearsalMark() {
-        this.actionBuffer.addAction('toggleRehearsalMark');
         const selection = this.tracker.getExtremeSelection(-1);
         const altSelection = this._getEquivalentSelection(selection);
         const cmd = selection.measure.getRehearsalMark() ? 'removeRehearsalMark' : 'addRehearsalMark';
@@ -8600,7 +8303,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     removeStaffModifier(modifier) {
-        this.actionBuffer.addAction('removeStaffModifier', modifier);
         this._undoStaffModifier('Set measure proportion', modifier, undo_1.UndoBuffer.bufferSubtypes.REMOVE);
         this._removeStaffModifier(modifier);
         this._removeStandardModifier(modifier);
@@ -8624,7 +8326,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
                 return promiseHelpers_1.PromiseHelpers.emptyPromise();
             }
         }
-        this.actionBuffer.addAction('addOrUpdateStaffModifier', modifier);
         const existing = this.score.staves[modifier.startSelector.staff]
             .getModifier(modifier);
         const subtype = existing === null ? undo_1.UndoBuffer.bufferSubtypes.ADD :
@@ -8661,7 +8362,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * Add crescendo to selection
      */
     crescendo() {
-        this.actionBuffer.addAction('crescendo');
         this._lineOperation('crescendo');
         return this.renderer.updatePromise();
     }
@@ -8670,7 +8370,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     decrescendo() {
-        this.actionBuffer.addAction('decrescendo');
         this._lineOperation('decrescendo');
         return this.renderer.updatePromise();
     }
@@ -8679,7 +8378,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     slur() {
-        this.actionBuffer.addAction('slur');
         const measureSelections = this._undoTrackerMeasureSelections('slur');
         const ft = this.tracker.getExtremeSelection(-1);
         const tt = this.tracker.getExtremeSelection(1);
@@ -8696,7 +8394,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     tie() {
-        this.actionBuffer.addAction('tie');
         this._lineOperation('tie');
         return this.renderer.updatePromise();
     }
@@ -8706,7 +8403,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     setGlobalLayout(layout) {
-        this.actionBuffer.addAction('setGlobalLayout', layout);
         this._undoScore('Set Global Layout');
         const original = this.score.layoutManager.getGlobalLayout().svgScale;
         this.score.layoutManager.updateGlobalLayout(layout);
@@ -8722,9 +8418,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     setPageLayout(layout, pageIndex) {
-        this.actionBuffer.addAction('setPageLayout', layout);
         this._undoScore('Set Page Layout');
-        this.actionBuffer.addAction('setScoreLayout', layout);
         this.score.layoutManager.updatePage(layout, pageIndex);
         this.storeScore.layoutManager.updatePage(layout, pageIndex);
         this.renderer.rerenderAll();
@@ -8736,7 +8430,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     setEngravingFontFamily(family) {
-        this.actionBuffer.addAction('setEngravingFontFamily', family);
         const engrave = this.score.fonts.find((fn) => fn.purpose === score_1.SmoScore.fontPurposes.ENGRAVING);
         const altEngrave = this.storeScore.fonts.find((fn) => fn.purpose === score_1.SmoScore.fontPurposes.ENGRAVING);
         if (engrave && altEngrave) {
@@ -8753,7 +8446,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     setChordFont(fontInfo) {
-        this.actionBuffer.addAction('setChordFont', fontInfo);
         this._undoScore('Set Chord Font');
         this.score.setChordFont(fontInfo);
         this.storeScore.setChordFont(fontInfo);
@@ -8766,7 +8458,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     setLyricFont(fontInfo) {
-        this.actionBuffer.addAction('setLyricFont', fontInfo);
         this._undoScore('Set Lyric Font');
         this.score.setLyricFont(fontInfo);
         this.storeScore.setLyricFont(fontInfo);
@@ -8778,7 +8469,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     setLyricAdjustWidth(value) {
-        this.actionBuffer.addAction('setLyricAdjustWidth', value);
         this._undoScore('Set Lyric Adj Width');
         this.score.setLyricAdjustWidth(value);
         this.storeScore.setLyricAdjustWidth(value);
@@ -8790,7 +8480,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     deleteMeasure() {
-        this.actionBuffer.addAction('deleteMeasure');
         this._undoScore('Delete Measure');
         if (this.storeScore.staves[0].measures.length < 2) {
             return promiseHelpers_1.PromiseHelpers.emptyPromise();
@@ -8829,7 +8518,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     addMeasures(append, numberToAdd) {
         let pos = 0;
         let ix = 0;
-        this.actionBuffer.addAction('addMeasures', append, numberToAdd);
         this._undoScore('Add Measure');
         for (ix = 0; ix < numberToAdd; ++ix) {
             const measure = this.tracker.getFirstMeasureOfSelection();
@@ -8854,7 +8542,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     addMeasure(append) {
-        this.actionBuffer.addAction('addMeasure', append);
         this._undoScore('Add Measure');
         let pos = 0;
         const measure = this.tracker.getFirstMeasureOfSelection();
@@ -8879,7 +8566,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      * @returns
      */
     removeStaff() {
-        this.actionBuffer.addAction('removeStaff');
         this._undoScore('Remove Instrument');
         if (this.storeScore.staves.length < 2 || this.score.staves.length < 2) {
             return promiseHelpers_1.PromiseHelpers.emptyPromise();
@@ -8895,7 +8581,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         return this.renderer.updatePromise();
     }
     addStaff(instrument) {
-        this.actionBuffer.addAction('addStaff', instrument);
         this._undoScore('Add Instrument');
         // if we are looking at a subset of the score, we won't see the new staff.  So
         // revert to the full view
@@ -8945,24 +8630,19 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     saveScore(filename) {
         const json = this.storeScore.serialize();
         const jsonText = JSON.stringify(json);
-        htmlHelpers_1.htmlHelpers.addFileLink(filename, jsonText, $('.saveLink'));
+        (0, htmlHelpers_1.addFileLink)(filename, jsonText, $('.saveLink'));
         $('.saveLink a')[0].click();
     }
     saveMidi(filename) {
         const bytes = smoToMidi_1.SmoToMidi.convert(this.storeScore);
-        htmlHelpers_1.htmlHelpers.addFileLink(filename, bytes, $('.saveLink'), 'audio/midi');
+        (0, htmlHelpers_1.addFileLink)(filename, bytes, $('.saveLink'), 'audio/midi');
         $('.saveLink a')[0].click();
     }
     saveXml(filename) {
         const dom = smoToXml_1.SmoToXml.convert(this.storeScore);
         const ser = new XMLSerializer();
         const xmlText = ser.serializeToString(dom);
-        htmlHelpers_1.htmlHelpers.addFileLink(filename, xmlText, $('.saveLink'));
-        $('.saveLink a')[0].click();
-    }
-    saveActions(filename) {
-        const jsonText = JSON.stringify(this.actionBuffer.actions);
-        htmlHelpers_1.htmlHelpers.addFileLink(filename, jsonText, $('.saveLink'));
+        (0, htmlHelpers_1.addFileLink)(filename, xmlText, $('.saveLink'));
         $('.saveLink a')[0].click();
     }
     quickSave() {
@@ -8971,7 +8651,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     }
     setMeasureFormat(format) {
         const label = 'set measure format';
-        this.actionBuffer.addAction(label, format);
         const fromSelector = this.tracker.getExtremeSelection(-1).selector;
         const toSelector = this.tracker.getExtremeSelection(1).selector;
         const measureSelections = this.tracker.getSelectedMeasures();
@@ -9005,27 +8684,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
     }
     pausePlayer() {
         player_1.SuiAudioPlayer.pausePlayer();
-    }
-    replayActions() {
-        if (!this.actionBuffer.endCondition) {
-            return;
-        }
-        const prefs = JSON.parse(JSON.stringify(this.score.preferences));
-        this.storeScore.preferences.autoPlay = false;
-        this.storeScore.preferences.autoAdvance = false;
-        this.score.preferences = JSON.parse(JSON.stringify(this.storeScore.preferences));
-        const oldPollTime = SmoConfig.demonPollTime;
-        const oldRedrawTime = SmoConfig.idleRedrawTime;
-        const recover = () => {
-            this.score.preferences = prefs;
-            this.storeScore.preferences = JSON.parse(JSON.stringify(prefs));
-            SmoConfig.demonPollTime = oldPollTime;
-            SmoConfig.idleRedrawTime = oldRedrawTime;
-        };
-        SmoConfig.demonPollTime = 50;
-        SmoConfig.idleRedrawTime = 3000;
-        const playback = new actionPlayback_1.SuiActionPlayback(this.actionBuffer, this);
-        playback.start().then(recover);
     }
     // Tracker operations, used for macro replay
     moveHome(ev) {
@@ -11763,7 +11421,7 @@ const mapper_1 = __webpack_require__(/*! ./mapper */ "./src/render/sui/mapper.ts
 const svgHelpers_1 = __webpack_require__(/*! ./svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const selections_1 = __webpack_require__(/*! ../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const renderState_1 = __webpack_require__(/*! ./renderState */ "./src/render/sui/renderState.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 const oscillator_1 = __webpack_require__(/*! ../audio/oscillator */ "./src/render/audio/oscillator.ts");
 const common_1 = __webpack_require__(/*! ../../smo/data/common */ "./src/smo/data/common.ts");
@@ -11776,7 +11434,6 @@ class SuiTracker extends mapper_1.SuiMapper {
     constructor(renderer, scroller, pasteBuffer) {
         super(renderer, scroller, pasteBuffer);
         this.idleTimer = Date.now();
-        this.recordBuffer = null;
         // timer: NodeJS.Timer | null = null;
         this.suggestFadeTimer = null;
     }
@@ -11842,7 +11499,7 @@ class SuiTracker extends mapper_1.SuiMapper {
             const mbox = (_k = (_j = measure === null || measure === void 0 ? void 0 : measure.svg) === null || _j === void 0 ? void 0 : _j.renderedBox) !== null && _k !== void 0 ? _k : common_1.SvgBox.default;
             const noteSel = this.measureNoteMap[key];
             const pos = (_l = noteSel.scrollBox) !== null && _l !== void 0 ? _l : common_1.SvgPoint.default;
-            const b = htmlHelpers_1.htmlHelpers.buildDom;
+            const b = htmlHelpers_1.buildDom;
             const r = b('span').classes('birdy icon icon-arrow-down').attr('id', 'birdy');
             $('.workspace #birdy').remove();
             const rd = r.dom();
@@ -11880,9 +11537,6 @@ class SuiTracker extends mapper_1.SuiMapper {
     advanceModifierSelection(score, keyEv) {
         if (!keyEv) {
             return;
-        }
-        if (this.recordBuffer) {
-            this.recordBuffer.addAction('advanceModifierSelection', SuiTracker.serializeEvent(keyEv));
         }
         this.idleTimer = Date.now();
         this.eraseRect('staffModifier');
@@ -11976,9 +11630,6 @@ class SuiTracker extends mapper_1.SuiMapper {
         return this.renderer.score ? this.renderer.score.preferences.autoPlay : false;
     }
     growSelectionRight() {
-        if (this.recordBuffer) {
-            this.recordBuffer.addAction('growSelectionRight');
-        }
         this._growSelectionRight(false);
     }
     _growSelectionRight(skipPlay) {
@@ -12006,9 +11657,6 @@ class SuiTracker extends mapper_1.SuiMapper {
     }
     moveHome(score, evKey) {
         var _a, _b;
-        if (this.recordBuffer) {
-            this.recordBuffer.addAction('moveHome', SuiTracker.serializeEvent(evKey));
-        }
         this.idleTimer = Date.now();
         const ls = this.selections[0].staff;
         if (evKey.ctrlKey) {
@@ -12046,9 +11694,6 @@ class SuiTracker extends mapper_1.SuiMapper {
         }
     }
     moveEnd(score, evKey) {
-        if (this.recordBuffer) {
-            this.recordBuffer.addAction('moveEnd', SuiTracker.serializeEvent(evKey));
-        }
         this.idleTimer = Date.now();
         const ls = this.selections[0].staff;
         if (evKey.ctrlKey) {
@@ -12095,9 +11740,6 @@ class SuiTracker extends mapper_1.SuiMapper {
         const rightmost = this.getExtremeSelection(1);
         const ticksLeft = rightmost.measure.voices[rightmost.measure.activeVoice]
             .notes.length - rightmost.selector.tick;
-        if (this.recordBuffer) {
-            this.recordBuffer.addAction('growSelectionRightMeasure');
-        }
         if (ticksLeft === 0) {
             if (rightmost.selector.measure < rightmost.staff.measures.length) {
                 const mix = rightmost.selector.measure + 1;
@@ -12117,9 +11759,6 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (this.isGraceNoteSelected()) {
             this._growGraceNoteSelections(-1);
             return 0;
-        }
-        if (this.recordBuffer) {
-            this.recordBuffer.addAction('growSelectionLeft');
         }
         this.idleTimer = Date.now();
         const nselect = this._getOffsetSelection(-1);
@@ -12144,9 +11783,6 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (this.selections.length === 0) {
             return;
         }
-        if (this.recordBuffer) {
-            this.recordBuffer.addAction('moveSelectionRight', SuiTracker.serializeEvent(evKey));
-        }
         const nselect = this._getOffsetSelection(1);
         this._replaceSelection(nselect, skipPlay);
     }
@@ -12154,22 +11790,13 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (this.selections.length === 0) {
             return;
         }
-        if (this.recordBuffer) {
-            this.recordBuffer.addAction('moveSelectionLeft');
-        }
         const nselect = this._getOffsetSelection(-1);
         this._replaceSelection(nselect, false);
     }
     moveSelectionLeftMeasure() {
-        if (this.recordBuffer) {
-            this.recordBuffer.addAction('moveSelectionLeftMeasure');
-        }
         this._moveSelectionMeasure(-1);
     }
     moveSelectionRightMeasure() {
-        if (this.recordBuffer) {
-            this.recordBuffer.addAction('moveSelectionRightMeasure');
-        }
         this._moveSelectionMeasure(1);
     }
     _moveSelectionMeasure(offset) {
@@ -12223,30 +11850,18 @@ class SuiTracker extends mapper_1.SuiMapper {
         this._highlightPitchSelection(note, this.pitchIndex);
     }
     moveSelectionPitchUp() {
-        if (this.recordBuffer) {
-            this.recordBuffer.addAction('moveSelectionPitchUp');
-        }
         this._moveSelectionPitch(1);
     }
     moveSelectionPitchDown() {
         if (!this.selections.length) {
             return;
         }
-        if (this.recordBuffer) {
-            this.recordBuffer.addAction('moveSelectionPitchDown');
-        }
         this._moveSelectionPitch(this.selections[0].note.pitches.length - 1);
     }
     moveSelectionUp() {
-        if (this.recordBuffer) {
-            this.recordBuffer.addAction('moveSelectionUp');
-        }
         this._moveStaffOffset(-1);
     }
     moveSelectionDown() {
-        if (this.recordBuffer) {
-            this.recordBuffer.addAction('moveSelectionDown');
-        }
         this._moveStaffOffset(1);
     }
     containsArtifact() {
@@ -12323,26 +11938,6 @@ class SuiTracker extends mapper_1.SuiMapper {
         ar.push(selection);
         this.selections = ar;
     }
-    recordSelectSuggestion(ev, selector) {
-        if (this.recordBuffer) {
-            this.recordBuffer.addAction('selectSuggestionNote', selector, SuiTracker.serializeEvent(ev));
-        }
-    }
-    recordModifierSelectSuggestion(ev) {
-        if (this.recordBuffer) {
-            const artifact = this.modifierTabs[this.modifierSuggestion];
-            if (!artifact) {
-                this.clearModifierSelections();
-                return; // in SVG but not in model, ignore.
-            }
-            const modKey = artifact.modifier.serialize();
-            if (artifact === null || artifact.selection === null) {
-                return;
-            }
-            const selector = artifact.selection.selector;
-            this.recordBuffer.addAction('selectSuggestionModifier', selector, SuiTracker.serializeEvent(ev), modKey);
-        }
-    }
     _selectFromToInStaff(score, sel1, sel2) {
         const selections = selections_1.SmoSelection.innerSelections(score, sel1.selector, sel2.selector).filter((ff) => ff.selector.voice === sel1.measure.activeVoice);
         this.selections = [];
@@ -12375,7 +11970,6 @@ class SuiTracker extends mapper_1.SuiMapper {
             if (this.suggestFadeTimer) {
                 clearTimeout(this.suggestFadeTimer);
             }
-            this.recordModifierSelectSuggestion(ev);
             this.modifierIndex = -1;
             this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
             this.modifierSuggestion = -1;
@@ -12391,13 +11985,11 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (ev.shiftKey) {
             const sel1 = this.getExtremeSelection(-1);
             if (sel1.selector.staff === this.suggestion.selector.staff) {
-                this.recordSelectSuggestion(ev, this.suggestion.selector);
                 this._selectBetweenSelections(score, sel1, this.suggestion);
                 return;
             }
         }
         if (ev.ctrlKey) {
-            this.recordSelectSuggestion(ev, this.suggestion.selector);
             this._addSelection(this.suggestion);
             this._createLocalModifiersList();
             this.deferHighlight();
@@ -12412,10 +12004,8 @@ class SuiTracker extends mapper_1.SuiMapper {
         if (preselected && note.pitches.length > 1) {
             this.pitchIndex = (this.pitchIndex + 1) % note.pitches.length;
             this.selections[0].selector.pitches = [this.pitchIndex];
-            this.recordSelectSuggestion(ev, this.selections[0].selector);
         }
         else {
-            this.recordSelectSuggestion(ev, this.suggestion.selector);
             this.selections = [this.suggestion];
         }
         if (preselected && this.modifierTabs.length) {
@@ -14954,7 +14544,7 @@ class SmoMeasure {
     setBarline(barline) {
         var ar = [];
         this.modifiers.forEach((modifier) => {
-            if (modifier.ctor !== 'SmoBarline') {
+            if (modifier.ctor === 'SmoBarline') {
                 const o = modifier;
                 if (o.position !== barline.position) {
                     ar.push(o);
@@ -23816,7 +23406,6 @@ class XmlToSmo {
                         tieInfo.selector.tick += pads.length;
                     });
                     selector.tick += pads.length;
-                    console.log('Added ' + pads.length + ' ticks to ' + JSON.stringify(selector, null, ' '));
                     // then reset the cursor since we are now in sync
                     xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed = xmlState.tickCursor;
                 }
@@ -23940,111 +23529,6 @@ class XmlToSmo {
     }
 }
 exports.XmlToSmo = XmlToSmo;
-
-
-/***/ }),
-
-/***/ "./src/smo/xform/actions.ts":
-/*!**********************************!*\
-  !*** ./src/smo/xform/actions.ts ***!
-  \**********************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmoActionRecord = void 0;
-class SmoActionRecord {
-    constructor() {
-        this.actions = [];
-        this.executeIndex = 0;
-        this.refreshTime = 0;
-        this._refreshing = false;
-    }
-    static get refreshTimer() {
-        return 10000;
-    }
-    static get actionInterval() {
-        return 50;
-    }
-    addAction(method, ...args) {
-        // Don't add actions while running
-        if (this.actions.length && !this.endCondition) {
-            return;
-        }
-        const obj = { method, parameters: [], count: 0 };
-        args.forEach((arg) => {
-            if (typeof (arg) === 'object' && arg !== null) {
-                if (typeof (arg.serialize) === 'function') {
-                    obj.parameters.push(arg.serialize());
-                }
-                else {
-                    obj.parameters.push(JSON.parse(JSON.stringify(arg)));
-                }
-            }
-            else {
-                if (typeof (arg) !== 'undefined') {
-                    obj.parameters.push(arg);
-                }
-            }
-        });
-        if (this.actions.length > 0) {
-            const lastAction = this.actions[this.actions.length - 1];
-            if (lastAction.method === obj.method) {
-                const lastStr = JSON.stringify(lastAction.parameters);
-                const thisStr = JSON.stringify(obj.parameters);
-                if (lastStr === thisStr) {
-                    this._refreshing = false;
-                    lastAction.count += 1;
-                    return;
-                }
-            }
-        }
-        obj.count = 1;
-        this.actions.push(obj);
-        this.executeIndex = this.actions.length;
-        this._refreshing = false;
-    }
-    resetRunner() {
-        this.executeIndex = this.actions.length;
-    }
-    clearActions() {
-        this.actions = [];
-        this.executeIndex = 0;
-    }
-    cancelRun() {
-        this.executeIndex = this.actions.length;
-    }
-    get endCondition() {
-        return this.actions.length < 1 || this.executeIndex >= this.actions.length;
-    }
-    callNextAction() {
-        if (this.endCondition) {
-            return null;
-        }
-        const action = this.actions[this.executeIndex];
-        const args = [];
-        action.parameters.forEach((param) => {
-            if (typeof (param) === 'object') {
-                if (typeof (param.ctor) === 'string') {
-                    const ctor = eval('globalThis.Smo.' + param.ctor);
-                    args.push(new ctor(param));
-                }
-                else {
-                    args.push(JSON.parse(JSON.stringify(param)));
-                }
-            }
-            else {
-                args.push(param);
-            }
-        });
-        if (typeof (action.count) === 'undefined' || isNaN(action.count)) {
-            action.count = 1;
-        }
-        this.executeIndex += 1;
-        return { method: action.method, parameters: args, count: action.count };
-    }
-}
-exports.SmoActionRecord = SmoActionRecord;
 
 
 /***/ }),
@@ -24287,6 +23771,10 @@ class SmoAudioScore {
             if (endings.length) {
                 return false;
             }
+        }
+        // the first note should be played, not tied
+        if (selections_1.SmoSelector.eq(track.tiedNotes[0].startSelector, selection.selector)) {
+            return false;
         }
         return music_1.SmoMusic.pitchArraysMatch(track.notes[noteIx - 1].pitches, selection.note.pitches);
     }
@@ -34383,13 +33871,14 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.RibbonButtons = exports.isModalButtonType = exports.SuiModalButtonStrings = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const library_1 = __webpack_require__(/*! ../dialogs/library */ "./src/ui/dialogs/library.ts");
 const tempo_1 = __webpack_require__(/*! ../dialogs/tempo */ "./src/ui/dialogs/tempo.ts");
 const instrument_1 = __webpack_require__(/*! ../dialogs/instrument */ "./src/ui/dialogs/instrument.ts");
 const piano_1 = __webpack_require__(/*! ../../render/sui/piano */ "./src/render/sui/piano.ts");
 const collapsable_1 = __webpack_require__(/*! ./collapsable */ "./src/ui/buttons/collapsable.ts");
 const dialog_1 = __webpack_require__(/*! ../dialogs/dialog */ "./src/ui/dialogs/dialog.ts");
+const help_1 = __webpack_require__(/*! ../help */ "./src/ui/help.js");
 exports.SuiModalButtonStrings = ['SuiLibraryDialog', 'SuiTempoDialog', 'SuiInstrumentDialog'];
 function isModalButtonType(but) {
     return exports.SuiModalButtonStrings.indexOf(but) >= 0;
@@ -34405,6 +33894,7 @@ class RibbonButtons {
         this.collapsables = [];
         this.collapseChildren = [];
         this.controller = params.completeNotifier;
+        this.config = params.config;
         this.eventSource = params.eventSource;
         this.view = params.view;
         this.menus = params.menus;
@@ -34417,7 +33907,7 @@ class RibbonButtons {
         return ['ribbonButtons', 'ribbons', 'keyCommands', 'controller', 'menus', 'eventSource', 'view'];
     }
     static _buttonHtml(containerClass, buttonId, buttonClass, buttonText, buttonIcon, buttonKey) {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const r = b('div').classes(containerClass).append(b('button').attr('id', buttonId).classes(buttonClass).append(b('span').classes('left-text').append(b('span').classes('text-span').text(buttonText)).append(b('span').classes('ribbon-button-text icon ' + buttonIcon))).append(b('span').classes('ribbon-button-hotkey').text(buttonKey)));
         return r.dom();
     }
@@ -34440,11 +33930,14 @@ class RibbonButtons {
                 (0, dialog_1.createAndDisplayDialog)(instrument_1.SuiInstrumentDialog, params);
             }
             else if (buttonData.ctor === 'SuiLibraryDialog') {
-                library_1.SuiLibraryDialog.createAndDisplay(params);
+                library_1.SuiLibraryDialog.createAndDisplay(params, this.config);
             }
             else {
                 (0, dialog_1.createAndDisplayDialog)(tempo_1.SuiTempoDialog, params);
             }
+        }
+        else if (buttonData.ctor === 'helpModal') {
+            help_1.SuiHelp.displayHelp();
         }
     }
     _executeButtonMenu(buttonElement, buttonData) {
@@ -34552,12 +34045,21 @@ class RibbonButtons {
         this._createCollapsibleButtonGroups(parentElement);
     }
     display() {
-        $('body .controls-left').html('');
-        $('body .controls-top').html('');
-        const lbuttons = this.ribbons.left;
-        this.createRibbon(lbuttons, 'body .controls-left');
-        const tbuttons = this.ribbons.top;
-        this.createRibbon(tbuttons, 'body .controls-top');
+        if (this.config.leftControls) {
+            const leftControl = (0, htmlHelpers_1.getDomContainer)(this.config.leftControls);
+            if (leftControl) {
+                $(leftControl).html('');
+                const lbuttons = this.ribbons.left;
+                this.createRibbon(lbuttons, leftControl);
+            }
+        }
+        if (this.config.topControls) {
+            const topControl = (0, htmlHelpers_1.getDomContainer)(this.config.topControls);
+            if (topControl) {
+                const tbuttons = this.ribbons.top;
+                this.createRibbon(tbuttons, topControl);
+            }
+        }
     }
 }
 exports.RibbonButtons = RibbonButtons;
@@ -34759,6 +34261,45 @@ class VoiceButtons extends button_1.SuiButton {
     }
 }
 exports.VoiceButtons = VoiceButtons;
+
+
+/***/ }),
+
+/***/ "./src/ui/common.ts":
+/*!**************************!*\
+  !*** ./src/ui/common.ts ***!
+  \**************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CompleteNotifier = exports.ModalComponent = void 0;
+/**
+ * Define the base class for a modal component that resolves a promise when it is dismissed
+ * @category SuiUiBase
+ */
+class ModalComponent {
+}
+exports.ModalComponent = ModalComponent;
+/**
+ * Define an interface that gives up event handling when a modal is active
+ * @category SuiUiBase
+ */
+class CompleteNotifier {
+}
+exports.CompleteNotifier = CompleteNotifier;
+
+
+/***/ }),
+
+/***/ "./src/ui/configuration.ts":
+/*!*********************************!*\
+  !*** ./src/ui/configuration.ts ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 /***/ }),
@@ -35288,7 +34829,7 @@ exports.SuiComponentParent = SuiComponentParent;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiButtonComposite = exports.SuiButtonComponent = void 0;
-const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 // ## SuiToggleComponent
 // Simple on/off behavior.  No value just used to notifiy parent dialog
@@ -35299,7 +34840,7 @@ class SuiButtonComponent extends baseComponent_1.SuiComponentBase {
         this.icon = parameter.icon;
     }
     get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const id = this.parameterId;
         this.icon = typeof (this.icon) === 'undefined' ? '' : this.icon;
         const r = b('div').classes(this.makeClasses('buttonControl smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
@@ -35354,7 +34895,7 @@ exports.CheckboxDropdownComponent = void 0;
 const baseComponent_1 = __webpack_require__(/*! ../components/baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 const toggle_1 = __webpack_require__(/*! ../components/toggle */ "./src/ui/dialogs/components/toggle.ts");
 const dropdown_1 = __webpack_require__(/*! ../components/dropdown */ "./src/ui/dialogs/components/dropdown.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 // ## CheckboxDropdownComponent
 // A checkbox that enables a dropdown component, for optional or dependent parameter
 class CheckboxDropdownComponent extends baseComponent_1.SuiComponentParent {
@@ -35366,7 +34907,7 @@ class CheckboxDropdownComponent extends baseComponent_1.SuiComponentParent {
         this.dropdownCtrl = new dropdown_1.SuiDropdownComposite(this.dialog, dropdownParams);
     }
     get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const q = b('div').classes(this.makeClasses('multiControl smoControl checkboxDropdown'))
             .attr('id', this.parameterId);
         q.append(this.toggleCtrl.html);
@@ -35403,7 +34944,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiDragText = void 0;
 const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 const textEdit_1 = __webpack_require__(/*! ../../../render/sui/textEdit */ "./src/render/sui/textEdit.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 // ## SuiDragText
 // A component that lets you drag the text you are editing to anywhere on the score.
 // The text is not really part of the dialog but the location of the text appears
@@ -35423,7 +34964,7 @@ class SuiDragText extends baseComponent_1.SuiComponentBase {
         this.view = this.dialog.getView();
     }
     get html() {
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var b = htmlHelpers_1.buildDom;
         var id = this.parameterId;
         var r = b('div').classes(this.makeClasses('cbDragTextDialog smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
             .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
@@ -35506,7 +35047,7 @@ exports.SuiDropdownComposite = exports.SuiDropdownComponent = void 0;
  * Classes to support dropdown compontents
  * @module /ui/dialogs/components/dropdown
  */
-const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 /**
  * single-select dropdown list
@@ -35527,26 +35068,26 @@ class SuiDropdownComponent extends baseComponent_1.SuiComponentBase {
         }
     }
     get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const id = this.parameterId;
         const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.smoName);
         const s = b('select');
         this.checkDefault(s, b);
         this.options.forEach((option) => {
-            s.append(b('option').attr('value', option.value).text(option.label));
+            s.append(b('option').attr('value', option.value.toString()).text(option.label));
         });
         r.append(s).append(b('label').attr('for', id + '-input').text(this.label));
         return r;
     }
     replaceOptions(options) {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const s = b('select');
         const sel = this._getInputElement();
         const parent = $(sel).parent();
         $(sel).remove();
         this.checkDefault(s, b);
         options.forEach((option) => {
-            s.append(b('option').attr('value', option.value).text(option.label));
+            s.append(b('option').attr('value', option.value.toString()).text(option.label));
         });
         $(parent).append(s.dom());
         this.bind();
@@ -35613,7 +35154,7 @@ exports.SuiDropdownComposite = SuiDropdownComposite;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiFileDownloadComponent = void 0;
-const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 const fileInput_1 = __webpack_require__(/*! ../../fileio/fileInput */ "./src/ui/fileio/fileInput.ts");
 // ## SuiFileDownloadComponent
@@ -35627,7 +35168,7 @@ class SuiFileDownloadComponent extends baseComponent_1.SuiComponentBase {
         this.dialog = dialog;
     }
     get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const id = this.parameterId;
         var r = b('div').classes(this.makeClasses('select-file')).attr('id', this.parameterId).attr('data-param', this.smoName)
             .append(b('input').attr('type', 'file').classes('file-button')
@@ -35675,7 +35216,7 @@ const dropdown_1 = __webpack_require__(/*! ./dropdown */ "./src/ui/dialogs/compo
 const rocker_1 = __webpack_require__(/*! ./rocker */ "./src/ui/dialogs/components/rocker.ts");
 const toggle_1 = __webpack_require__(/*! ./toggle */ "./src/ui/dialogs/components/toggle.ts");
 const scoreModifiers_1 = __webpack_require__(/*! ../../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const ssp_serif_metrics_1 = __webpack_require__(/*! ../../../styles/font_metrics/ssp-serif-metrics */ "./src/styles/font_metrics/ssp-serif-metrics.js");
 const ssp_sans_metrics_1 = __webpack_require__(/*! ../../../styles/font_metrics/ssp-sans-metrics */ "./src/styles/font_metrics/ssp-sans-metrics.js");
 // ## SuiFontComponent
@@ -35737,7 +35278,7 @@ class SuiFontComponent extends baseComponent_1.SuiComponentBase {
         this.handleChanged();
     }
     get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const q = b('div').classes(this.makeClasses('multiControl smoControl')).attr('id', this.parameterId);
         if (this.label) {
             q.append(b('h3').classes('font-purpose').text(this.label));
@@ -35801,7 +35342,7 @@ exports.SuiChordComponent = exports.SuiLyricComponent = exports.SuiNoteTextCompo
 // Copyright (c) Aaron David Newman 2021.
 const textEdit_1 = __webpack_require__(/*! ../../../render/sui/textEdit */ "./src/render/sui/textEdit.ts");
 const textRender_1 = __webpack_require__(/*! ../../../render/sui/textRender */ "./src/render/sui/textRender.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 /**
  * Base class for text editor components that navigate to
@@ -35903,7 +35444,7 @@ class SuiLyricComponent extends SuiNoteTextComponent {
         this.verse = (_a = parameter.verse) !== null && _a !== void 0 ? _a : 0;
     }
     get html() {
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var b = htmlHelpers_1.buildDom;
         var id = this.parameterId;
         var r = b('div').classes(this.makeClasses('cbLyricEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
             .append(b('div').classes('toggleEdit')
@@ -35969,7 +35510,7 @@ class SuiChordComponent extends SuiNoteTextComponent {
         this.verse = 0;
     }
     get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const id = this.parameterId;
         const r = b('div').classes(this.makeClasses('cbChordEdit smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
             .append(b('div').classes('toggleEdit')
@@ -36047,7 +35588,7 @@ exports.SuiRockerComposite = exports.SuiRockerComponent = void 0;
 /**
  * @module /ui/dialog/components/rocker
  * **/
-const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 /**
  * A numeric input box with +- buttons.   Adjustable type and scale
@@ -36083,7 +35624,7 @@ class SuiRockerComponent extends baseComponent_1.SuiComponentBase {
         return { 'int': '_getIntValue', 'float': '_getFloatValue', 'percent': '_getPercentValue' };
     }
     get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const id = this.parameterId;
         const r = b('div').classes(this.makeClasses('rockerControl smoControl')).attr('id', id).attr('data-param', this.smoName)
             .append(b('button').classes('increment').append(b('span').classes('icon icon-circle-up'))).append(b('button').classes('decrement').append(b('span').classes('icon icon-circle-down'))).append(b('input').attr('type', 'text').classes('rockerInput')
@@ -36186,7 +35727,7 @@ exports.StaffCheckComponent = exports.StaffAddRemoveComponent = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 const toggle_1 = __webpack_require__(/*! ./toggle */ "./src/ui/dialogs/components/toggle.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 class StaffAddRemoveComponent extends baseComponent_1.SuiComponentBase {
     constructor(dialog, parameter) {
         super(dialog, parameter);
@@ -36242,7 +35783,7 @@ class StaffAddRemoveComponent extends baseComponent_1.SuiComponentBase {
         });
     }
     get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         // a little hacky.  The first time we create an empty html shell for the control
         // subsequent times, we fill the html with the row information
         if (!this.createdShell) {
@@ -36340,7 +35881,7 @@ class StaffCheckComponent extends baseComponent_1.SuiComponentBase {
         });
     }
     get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const q = b('div').classes(this.makeClasses('multiControl smoControl staffContainer'));
         this.staffRows.forEach((row) => {
             q.append(row.showCtrl.html);
@@ -36399,7 +35940,7 @@ exports.TextCheckComponent = void 0;
 const baseComponent_1 = __webpack_require__(/*! ../components/baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 const toggle_1 = __webpack_require__(/*! ../components/toggle */ "./src/ui/dialogs/components/toggle.ts");
 const textInput_1 = __webpack_require__(/*! ../components/textInput */ "./src/ui/dialogs/components/textInput.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 class TextCheckComponent extends baseComponent_1.SuiComponentBase {
     constructor(dialog, parameter) {
         super(dialog, parameter);
@@ -36430,7 +35971,7 @@ class TextCheckComponent extends baseComponent_1.SuiComponentBase {
         });
     }
     get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const q = b('div').classes(this.makeClasses('multiControl smoControl textCheckContainer'))
             .attr('id', this.parameterId);
         q.append(this.textCtrl.html);
@@ -36480,7 +36021,7 @@ const button_1 = __webpack_require__(/*! ./button */ "./src/ui/dialogs/component
 const rocker_1 = __webpack_require__(/*! ./rocker */ "./src/ui/dialogs/components/rocker.ts");
 const dropdown_1 = __webpack_require__(/*! ./dropdown */ "./src/ui/dialogs/components/dropdown.ts");
 const textRender_1 = __webpack_require__(/*! ../../../render/sui/textRender */ "./src/render/sui/textRender.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 class SuiTextInPlace extends baseComponent_1.SuiComponentBase {
     constructor(dialog, parameter) {
         super(dialog, parameter);
@@ -36499,7 +36040,7 @@ class SuiTextInPlace extends baseComponent_1.SuiComponentBase {
     show() { }
     hide() { }
     get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const id = this.parameterId;
         const r = b('div').classes(this.makeClasses('cbTextInPlace smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
             .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
@@ -36730,7 +36271,7 @@ class SuiTextBlockComponent extends baseComponent_1.SuiComponentParent {
         this.handleChanged();
     }
     get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const q = b('div').classes(this.makeClasses('multiControl smoControl'));
         q.append(this.addBlockCtrl.html);
         q.append(this.removeBlockCtrl.html);
@@ -36792,7 +36333,7 @@ exports.SuiTextBlockComponent = SuiTextBlockComponent;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiTextInputComposite = exports.SuiTextInputComponent = void 0;
-const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 /**
  * Simple text input, like for a filename.  Not the text editing component.
@@ -36806,7 +36347,7 @@ class SuiTextInputComponent extends baseComponent_1.SuiComponentBase {
         this.value = '';
     }
     get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const id = this.parameterId;
         const r = b('div').classes(this.makeClasses('text-input smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
             .append(b('input').attr('type', 'text').classes('file-name')
@@ -36862,7 +36403,7 @@ exports.TieMappingComponent = void 0;
 // Copyright (c) Aaron David Newman 2021.
 const baseComponent_1 = __webpack_require__(/*! ../components/baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 const dropdown_1 = __webpack_require__(/*! ../components/dropdown */ "./src/ui/dialogs/components/dropdown.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const selections_1 = __webpack_require__(/*! ../../../smo/xform/selections */ "./src/smo/xform/selections.ts");
 const staffModifiers_1 = __webpack_require__(/*! ../../../smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts");
 // ## TieMappingComponent
@@ -36961,7 +36502,7 @@ class TieMappingComponent extends baseComponent_1.SuiComponentParent {
         this.handleChanged();
     }
     get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const q = b('div').classes(this.makeClasses('multiControl smoControl dropdownPair'))
             .attr('id', this.parameterId);
         this.controlRows.forEach((row) => {
@@ -36984,7 +36525,7 @@ exports.TieMappingComponent = TieMappingComponent;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiToggleComposite = exports.SuiToggleComponent = void 0;
-const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 /**
  * Simple boolean checkbox component
@@ -36997,7 +36538,7 @@ class SuiToggleComponent extends baseComponent_1.SuiComponentBase {
         this.dialog = dialog;
     }
     get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const id = this.parameterId;
         const r = b('div').classes(this.makeClasses('toggleControl smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
             .append(b('input').attr('type', 'checkbox').classes('toggleInput')
@@ -37052,7 +36593,7 @@ exports.SuiTreeComponent = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const baseComponent_1 = __webpack_require__(/*! ./baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 // ### SuiDropdownComponent
 // simple dropdown select list.
 class SuiTreeComponent extends baseComponent_1.SuiComponentBase {
@@ -37115,7 +36656,7 @@ class SuiTreeComponent extends baseComponent_1.SuiComponentBase {
         });
     }
     get html() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const id = this.parameterId;
         const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.smoName);
         const ul = b('ul').classes('tree tree-root');
@@ -37130,7 +36671,7 @@ class SuiTreeComponent extends baseComponent_1.SuiComponentBase {
         const parentEl = $(this._getInputElement());
         const oldUl = $(parentEl).find('ul.tree-root');
         $(oldUl).remove();
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const ul = b('ul').classes('tree tree-root');
         this._createTree(b, ul);
         $(parentEl).append(ul.dom());
@@ -37200,7 +36741,7 @@ exports.createAndDisplayDialog = exports.dialogConstructor = exports.SuiDialogBa
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const svgHelpers_1 = __webpack_require__(/*! ../../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const baseComponent_1 = __webpack_require__(/*! ./components/baseComponent */ "./src/ui/dialogs/components/baseComponent.ts");
 /**
  * Note: Most dialogs will inherit from SuiDialogAdapter, not SuiDialogBase.
@@ -37432,8 +36973,9 @@ class SuiDialogBase extends baseComponent_1.SuiDialogNotifier {
     }
     // ### build the html for the dialog, based on the instance-specific components.
     _constructDialog(dialogElements, parameters) {
+        (0, htmlHelpers_1.createTopDomContainer)('.attributeDialog');
         const id = parameters.id;
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const r = b('div').classes('attributeModal').attr('id', 'attr-modal-' + id)
             .css('top', parameters.top + 'px').css('left', parameters.left + 'px')
             .append(b('spanb').classes('draggable button').append(b('span').classes('icon icon-move jsDbMove')))
@@ -37458,7 +37000,8 @@ class SuiDialogBase extends baseComponent_1.SuiDialogNotifier {
         r.append(b('div').classes('buttonContainer').append(b('button').classes('ok-button button-left').text('OK')).append(b('button').classes('cancel-button button-center').text('Cancel')).append(b('button').classes('remove-button button-right').text('Remove').append(b('span').classes('icon icon-cancel-circle'))));
         $('.attributeDialog').html('');
         $('.attributeDialog').append(r.dom());
-        const trapper = htmlHelpers_1.htmlHelpers.inputTrapper('.attributeDialog');
+        const trapper = new htmlHelpers_1.InputTrapper('.attributeDialog');
+        trapper.trap();
         $('.attributeDialog').find('.cancel-button').focus();
         return {
             element: $('.attributeDialog'),
@@ -37480,8 +37023,9 @@ class SuiDialogBase extends baseComponent_1.SuiDialogNotifier {
     // generic code to make the dialog box draggable so it doesn't
     // get in front of stuff.
     makeDraggable() {
+        (0, htmlHelpers_1.createTopDomContainer)('.draganime');
         const cb = () => { };
-        htmlHelpers_1.htmlHelpers.draggable({
+        (0, htmlHelpers_1.draggable)({
             parent: $(this.dgDom.element).find('.attributeModal'),
             handle: $(this.dgDom.element).find('.jsDbMove'),
             animateDiv: '.draganime',
@@ -37824,9 +37368,6 @@ class SuiXmlLoadAdapter extends adapter_1.SuiComponentAdapter {
             const parser = new DOMParser();
             const xml = parser.parseFromString(this.xmlFile, 'text/xml');
             const score = xmlToSmo_1.XmlToSmo.convert(xml);
-            const mediaSelect = typeof (SmoConfig.scoreDomContainer) === 'string' ? '#' + SmoConfig.scoreDomContainer : SmoConfig.scoreDomContainer;
-            const scoreSelect = $(mediaSelect).find('svg');
-            const ratio = $(mediaSelect).width() / $(scoreSelect).width();
             score.layoutManager.zoomToWidth($('body').width());
             this.changeScore = true;
             this.view.changeScore(score);
@@ -38784,7 +38325,7 @@ exports.SuiLibraryDialog = exports.SuiLibraryAdapter = void 0;
 const library_1 = __webpack_require__(/*! ../fileio/library */ "./src/ui/fileio/library.ts");
 const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
 class SuiLibraryAdapter extends adapter_1.SuiComponentAdapter {
-    constructor(view) {
+    constructor(view, config) {
         super(view);
         this.elements = null;
         this.selectedUrl = '';
@@ -38792,7 +38333,8 @@ class SuiLibraryAdapter extends adapter_1.SuiComponentAdapter {
         this.tree = {};
         // If the selected lib is a leaf node (a score), this is the same as that
         this.selectedScore = null;
-        this.topLib = new library_1.SmoLibrary({ url: SmoConfig.libraryUrl });
+        this.config = config;
+        this.topLib = new library_1.SmoLibrary({ url: this.config.libraryUrl });
         this.libHash = {};
         this.selectedLib = null;
     }
@@ -38902,8 +38444,8 @@ class SuiLibraryDialog extends adapter_1.SuiDialogAdapterBase {
         dg.display();
     }
     /** Library requires a load first, so createAndDisplayDialog won't work on it */
-    static createAndDisplay(parameters) {
-        const adapter = new SuiLibraryAdapter(parameters.view);
+    static createAndDisplay(parameters, config) {
+        const adapter = new SuiLibraryAdapter(parameters.view, config);
         adapter.initialize().then(() => SuiLibraryDialog._createAndDisplay(parameters, adapter));
     }
     commit() {
@@ -38968,9 +38510,13 @@ class SuiLyricDialog extends dialog_1.SuiDialogBase {
         this.mouseMoveHandler = null;
         this.mouseClickHandler = null;
         this.lyric = null;
+        if (!parameters.config) {
+            throw ('must send UI config to Lyric Dialog Parameters');
+        }
+        this.config = parameters.config;
         this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
-        this.originalRefreshTimer = SmoConfig.idleRedrawTime;
-        SmoConfig.idleRedrawTime = SuiLyricDialog.idleLyricTime;
+        this.originalRefreshTimer = this.config.idleRedrawTime;
+        this.config.idleRedrawTime = SuiLyricDialog.idleLyricTime;
         if (this.modifier) {
             this.verse = this.modifier.verse;
         }
@@ -39075,7 +38621,7 @@ class SuiLyricDialog extends dialog_1.SuiDialogBase {
         }
         $('body').removeClass('showAttributeDialog');
         $('body').removeClass('textEditor');
-        SmoConfig.idleRedrawTime = this.originalRefreshTimer;
+        this.config.idleRedrawTime = this.originalRefreshTimer;
         this.complete();
     }
     mouseMove(ev) {
@@ -40628,7 +40174,7 @@ exports.helpModal = exports.SuiTextBlockDialog = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 const scoreModifiers_1 = __webpack_require__(/*! ../../smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
-const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const layoutDebug_1 = __webpack_require__(/*! ../../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
 const svgHelpers_1 = __webpack_require__(/*! ../../render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts");
 const textEdit_1 = __webpack_require__(/*! ../../render/sui/textEdit */ "./src/render/sui/textEdit.ts");
@@ -40998,7 +40544,7 @@ SuiTextBlockDialog.dialogElements = {
 class helpModal {
     static createAndDisplay() {
         help_1.SuiHelp.displayHelp();
-        return htmlHelpers_1.htmlHelpers.closeDialogPromise();
+        return (0, htmlHelpers_1.closeDialogPromise)();
     }
 }
 exports.helpModal = helpModal;
@@ -41532,7 +41078,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiExceptionHandler = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const eventHandler_1 = __webpack_require__(/*! ../application/eventHandler */ "./src/application/eventHandler.ts");
 class SuiExceptionHandler {
     constructor(params) {
@@ -41589,7 +41135,8 @@ class SuiExceptionHandler {
             lastOperation: doing,
             scoreString
         }, null, ' ');
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        (0, htmlHelpers_1.createTopDomContainer)('.bugDialog');
+        const b = htmlHelpers_1.buildDom;
         const r = b('div').classes('bug-modal').append(b('img').attr('src', '../styles/images/logo.png').classes('bug-logo'))
             .append(b('button').classes('icon icon-cross bug-dismiss-button'))
             .append(b('span').classes('bug-title').text('oh nooooo!  You\'ve found a bug'))
@@ -41902,7 +41449,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiHelp = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const language_1 = __webpack_require__(/*! ./i18n/language */ "./src/ui/i18n/language.ts");
 class SuiHelp {
     static displayHelp() {
@@ -41926,12 +41473,12 @@ class SuiHelp {
         $('.workspace').css('height', '' + wsh + 'px');
     }
     static get closeButton() {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const r = b('div').classes('help-closer').append(b('button').classes('icon-cross close'));
         return r;
     }
     static _buildElements(helps) {
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
+        const b = htmlHelpers_1.buildDom;
         const r = b('div').classes('helpLine')
             .append(b('div').classes('help-category-button')
             .append(b('button')
@@ -42162,7 +41709,8 @@ SmoTranslator.dialogs = [];
 SmoTranslator.menus = [];
 class SmoLanguage {
     static getHelpFile(category) {
-        return eval('globalThis.Smo.' + category + SmoConfig.language);
+        // TODO: how to express language if it is not part of the config?
+        return eval('globalThis.Smo.' + category + 'en');
     }
     static get en() {
         const strings = JSON.parse(language_en_1.smoLanguageStringEn);
@@ -47066,7 +46614,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SmoTranslationEditor = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const language_1 = __webpack_require__(/*! ./language */ "./src/ui/i18n/language.ts");
 const ribbon_1 = __webpack_require__(/*! ../buttons/ribbon */ "./src/ui/buttons/ribbon.ts");
 // ## SmoTranslationEditor
@@ -47078,7 +46626,7 @@ class SmoTranslationEditor {
     // UI element, the En string, and  the translated string, or a copy of the
     // EN string if the string has not been translated.
     static _getHtmlTextInput(dbLabel, enLabel, langLabel, labelType, labelId) {
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var b = htmlHelpers_1.buildDom;
         const compHtml = b('div').classes('dialog-element-container')
             .attr('data-' + labelType, labelId).append(b('div').classes('dialog-component-label').append(b('span').classes('trans-label').append(b('span').classes('trans-db-text').text(dbLabel)).append(b('span').classes('trans-en-text').text(enLabel)).append(b('input').classes('trans-label-input')).append(b('span').classes('plaintext-translate hide').text(langLabel)))).dom();
         return compHtml;
@@ -47101,7 +46649,7 @@ class SmoTranslationEditor {
             langMenu.ctor = menuCtor;
         }
         // create the DOM menu container
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var b = htmlHelpers_1.buildDom;
         const container = b('div').classes('menu-translate-container')
             .attr('data-menucontainer', menuCtor).append(b('button').classes('icon-plus trans-expander')).append(b('span').classes('menu-translate-title').text(menuCtor)).dom();
         const menuItemsDom = b('div').classes('menu-element-container').dom();
@@ -47127,7 +46675,7 @@ class SmoTranslationEditor {
         return container;
     }
     static getButtonTranslateHtml(enStrings, langStrings, transContainer) {
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var b = htmlHelpers_1.buildDom;
         var buttonDom = b('div').classes('ribbon-translate-container')
             .attr('data-ribbon-translate', 'buttons').append(b('button').classes('icon-plus trans-expander')).append(b('span').classes('ribbon-translate-title').text('Button Text')).dom();
         var enKeys = enStrings.buttonText;
@@ -47151,7 +46699,7 @@ class SmoTranslationEditor {
     // ### _getStaticTextDialogHtml
     // create DOM for the static text section of the dialogs.
     static _getStaticTextDialogHtml(elements, enDb, langDb, htmlContainer) {
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var b = htmlHelpers_1.buildDom;
         const keys = Object.keys(elements.staticText);
         const nodeContainer = b('div')
             .classes('dialog-element-container')
@@ -47168,7 +46716,7 @@ class SmoTranslationEditor {
         $(htmlContainer).append(nodeContainer);
     }
     static _getDialogComponentHtml(element, enDb, langDb, container) {
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var b = htmlHelpers_1.buildDom;
         var label = element.label;
         var smoName = element.smoName;
         if (typeof (enDb.dialogElements.find) !== 'function') {
@@ -47210,7 +46758,7 @@ class SmoTranslationEditor {
         $(container).append(compHtml);
     }
     static getDialogTranslationHtml(dialogCtor, enStrings, langStrings) {
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var b = htmlHelpers_1.buildDom;
         var container = b('div').classes('db-translate-container').attr('data-dbcontainer', dialogCtor)
             .append(b('button').classes('icon-plus trans-expander'))
             .append(b('span').classes('db-translate-title').text(dialogCtor)).dom();
@@ -47247,7 +46795,7 @@ class SmoTranslationEditor {
     static getAllTranslationHtml(lang) {
         const enStr = language_1.SmoLanguage.en.strings;
         const langStr = language_1.SmoLanguage[lang].strings;
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var b = htmlHelpers_1.buildDom;
         var container = b('div').classes('top-translate-container')
             .attr('dir', language_1.SmoLanguage[lang].dir).dom();
         language_1.SmoTranslator.allDialogs.forEach((dialog) => {
@@ -47327,6 +46875,7 @@ class SmoTranslationEditor {
         return json;
     }
     static startEditor(lang) {
+        (0, htmlHelpers_1.createTopDomContainer)('.translation-editor');
         var transDom = SmoTranslationEditor.getAllTranslationHtml(lang);
         $('.translation-editor').append(transDom);
         $('body').addClass('translation-mode');
@@ -48624,10 +48173,11 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiMenuManager = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 const layoutDebug_1 = __webpack_require__(/*! ../../render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts");
 class SuiMenuManager {
     constructor(params) {
+        var _a;
         this.bound = false;
         this.hotkeyBindings = {};
         this.closeMenuPromise = null;
@@ -48638,7 +48188,7 @@ class SuiMenuManager {
         this.eventSource = params.eventSource;
         this.view = params.view;
         this.bound = false;
-        this.menuContainer = params.menuContainer;
+        this.menuContainer = (_a = params.menuContainer) !== null && _a !== void 0 ? _a : (0, htmlHelpers_1.createTopDomContainer)('.menuContainer');
         this.completeNotifier = params.completeNotifier;
         this.undoBuffer = params.undoBuffer;
         this.tracker = params.view.tracker;
@@ -48756,8 +48306,8 @@ class SuiMenuManager {
         let hotkey = 0;
         $(this.menuContainer).html('');
         $(this.menuContainer).attr('z-index', '12');
-        const b = htmlHelpers_1.htmlHelpers.buildDom;
-        const r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
+        const b = htmlHelpers_1.buildDom;
+        const r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length.toString())
             .css('left', '' + this.menuPosition.x + 'px')
             .css('top', '' + this.menuPosition.y + 'px');
         this.menu.menuItems.forEach((item) => {
@@ -49615,7 +49165,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Qwerty = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.js");
+const htmlHelpers_1 = __webpack_require__(/*! ../common/htmlHelpers */ "./src/common/htmlHelpers.ts");
 class Qwerty {
     static get navigationElements() {
         var kbRows = [
@@ -49728,7 +49278,7 @@ class Qwerty {
         }
     }
     static _kbButton(buttons) {
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var b = htmlHelpers_1.buildDom;
         var r = b('span').classes('keyContainer');
         buttons.rows.forEach((button) => {
             var text = button.text;
@@ -49741,13 +49291,13 @@ class Qwerty {
         return r;
     }
     static _buttonBlock(buttons, id) {
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var b = htmlHelpers_1.buildDom;
         var r = b('div').classes('keyBlock').attr('id', id);
         r.append(Qwerty._kbButton(buttons));
         return r;
     }
     static _buildElements(rows) {
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var b = htmlHelpers_1.buildDom;
         var r = b('div').classes('buttonLine')
             .append(b('span').classes('icon icon-move'));
         var keys = Object.keys(rows);
@@ -49760,14 +49310,16 @@ class Qwerty {
         return r;
     }
     static displayKb() {
+        (0, htmlHelpers_1.createTopDomContainer)('.qwertyKb');
         $('body').addClass('showQwerty');
         $('.qwertyKb').html('');
-        var b = htmlHelpers_1.htmlHelpers.buildDom;
+        var b = htmlHelpers_1.buildDom;
         var r = b('div').classes('kb-float');
         r.append(Qwerty._buildElements(Qwerty.navigationElements));
         $('.qwertyKb').append(r.dom());
         var cb = function (x, y) { };
-        htmlHelpers_1.htmlHelpers.draggable({
+        (0, htmlHelpers_1.createTopDomContainer)('.draganime');
+        draggable({
             parent: $('.qwertyKb'),
             handle: $('.qwertyKb').find('.icon-move'),
             animateDiv: '.draganime',
@@ -49867,7 +49419,7 @@ class defaultRibbonLayout {
         return ['MicrotoneButtons', 'flat75sz', 'flat25sz', 'flat25ar', 'flat125ar', 'sharp75', 'sharp125', 'sharp25', 'sori', 'koron'];
     }
     static get displayIds() {
-        return ['displaySettings', 'refresh', 'zoomout', 'zoomin', 'playButton2', 'stopButton2'];
+        return ['quickButtons', 'refresh', 'zoomout', 'zoomin', 'playButton2', 'stopButton2'];
     }
     static get textRibbonButtons() {
         return [
@@ -49936,8 +49488,8 @@ class defaultRibbonLayout {
                 icon: 'icon-zoomplus',
                 action: 'collapseParent',
                 ctor: 'CollapseRibbonControl',
-                group: 'displaySettings',
-                id: 'displaySettings'
+                group: 'quickButtons',
+                id: 'quickButtons'
             }, {
                 leftText: '',
                 rightText: '',
@@ -49945,7 +49497,7 @@ class defaultRibbonLayout {
                 icon: 'icon-refresh',
                 action: 'collapseChild',
                 ctor: 'DisplaySettings',
-                group: 'displaySettings',
+                group: 'quickButtons',
                 id: 'refresh'
             }, {
                 leftText: '',
@@ -49954,7 +49506,7 @@ class defaultRibbonLayout {
                 icon: 'icon-zoomplus',
                 action: 'collapseChild',
                 ctor: 'DisplaySettings',
-                group: 'displaySettings',
+                group: 'quickButtons',
                 id: 'zoomout'
             }, {
                 leftText: '',
@@ -49963,7 +49515,7 @@ class defaultRibbonLayout {
                 icon: 'icon-zoomminus',
                 action: 'collapseChild',
                 ctor: 'DisplaySettings',
-                group: 'displaySettings',
+                group: 'quickButtons',
                 id: 'zoomin'
             }, {
                 leftText: '',
@@ -49972,7 +49524,7 @@ class defaultRibbonLayout {
                 icon: 'icon-play3',
                 action: 'collapseChild',
                 ctor: 'DisplaySettings',
-                group: 'displaySettings',
+                group: 'quickButtons',
                 id: 'playButton2'
             }, {
                 leftText: '',
@@ -49981,7 +49533,7 @@ class defaultRibbonLayout {
                 icon: 'icon-stop2',
                 action: 'collapseChild',
                 ctor: 'DisplaySettings',
-                group: 'displaySettings',
+                group: 'quickButtons',
                 id: 'stopButton2'
             }
         ];
@@ -51484,6 +51036,162 @@ function createLoadTests() {
     });
 }
 exports.createLoadTests = createLoadTests;
+
+
+/***/ }),
+
+/***/ "./typedoc.ts":
+/*!********************!*\
+  !*** ./typedoc.ts ***!
+  \********************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__webpack_require__(/*! ./src/application/application */ "./src/application/application.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/application/common */ "./src/application/common.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/application/configuration */ "./src/application/configuration.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/application/dom */ "./src/application/dom.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/application/eventHandler */ "./src/application/eventHandler.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/application/exports */ "./src/application/exports.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/application/keyCommands */ "./src/application/keyCommands.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/common/promiseHelpers */ "./src/common/promiseHelpers.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/audio/oscillator */ "./src/render/audio/oscillator.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/audio/player */ "./src/render/audio/player.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/sui/configuration */ "./src/render/sui/configuration.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/sui/formatter */ "./src/render/sui/formatter.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/sui/layoutDebug */ "./src/render/sui/layoutDebug.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/sui/layoutDemon */ "./src/render/sui/layoutDemon.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/sui/mapper */ "./src/render/sui/mapper.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/sui/piano */ "./src/render/sui/piano.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/sui/renderState */ "./src/render/sui/renderState.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/sui/scoreRender */ "./src/render/sui/scoreRender.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/sui/scoreView */ "./src/render/sui/scoreView.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/sui/scoreViewOperations */ "./src/render/sui/scoreViewOperations.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/sui/scroller */ "./src/render/sui/scroller.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/sui/svgHelpers */ "./src/render/sui/svgHelpers.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/sui/textEdit */ "./src/render/sui/textEdit.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/sui/textRender */ "./src/render/sui/textRender.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/sui/tracker */ "./src/render/sui/tracker.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/vex/glyphDimensions */ "./src/render/vex/glyphDimensions.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/vex/vxMeasure */ "./src/render/vex/vxMeasure.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/render/vex/vxSystem */ "./src/render/vex/vxSystem.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/data/common */ "./src/smo/data/common.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/data/measure */ "./src/smo/data/measure.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/data/measureModifiers */ "./src/smo/data/measureModifiers.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/data/music */ "./src/smo/data/music.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/data/note */ "./src/smo/data/note.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/data/noteModifiers */ "./src/smo/data/noteModifiers.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/data/partInfo */ "./src/smo/data/partInfo.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/data/score */ "./src/smo/data/score.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/data/scoreModifiers */ "./src/smo/data/scoreModifiers.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/data/staffModifiers */ "./src/smo/data/staffModifiers.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/data/systemStaff */ "./src/smo/data/systemStaff.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/data/tuplet */ "./src/smo/data/tuplet.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/midi/smoToMidi */ "./src/smo/midi/smoToMidi.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/mxml/smoToXml */ "./src/smo/mxml/smoToXml.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/mxml/xmlHelpers */ "./src/smo/mxml/xmlHelpers.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/mxml/xmlToSmo */ "./src/smo/mxml/xmlToSmo.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/mxml/xmlState */ "./src/smo/mxml/xmlState.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/xform/audioTrack */ "./src/smo/xform/audioTrack.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/xform/beamers */ "./src/smo/xform/beamers.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/xform/copypaste */ "./src/smo/xform/copypaste.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/xform/operations */ "./src/smo/xform/operations.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/xform/selections */ "./src/smo/xform/selections.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/xform/tickDuration */ "./src/smo/xform/tickDuration.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/xform/tickMap */ "./src/smo/xform/tickMap.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/xform/toVex */ "./src/smo/xform/toVex.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/smo/xform/undo */ "./src/smo/xform/undo.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/buttons/articulation */ "./src/ui/buttons/articulation.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/buttons/beam */ "./src/ui/buttons/beam.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/buttons/button */ "./src/ui/buttons/button.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/buttons/chord */ "./src/ui/buttons/chord.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/buttons/collapsable */ "./src/ui/buttons/collapsable.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/buttons/display */ "./src/ui/buttons/display.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/buttons/duration */ "./src/ui/buttons/duration.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/buttons/measure */ "./src/ui/buttons/measure.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/buttons/microtone */ "./src/ui/buttons/microtone.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/buttons/navigation */ "./src/ui/buttons/navigation.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/buttons/note */ "./src/ui/buttons/note.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/buttons/player */ "./src/ui/buttons/player.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/buttons/ribbon */ "./src/ui/buttons/ribbon.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/buttons/stave */ "./src/ui/buttons/stave.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/buttons/text */ "./src/ui/buttons/text.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/buttons/voice */ "./src/ui/buttons/voice.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/common */ "./src/ui/common.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/configuration */ "./src/ui/configuration.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/adapter */ "./src/ui/dialogs/adapter.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/addMeasure */ "./src/ui/dialogs/addMeasure.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/chordChange */ "./src/ui/dialogs/chordChange.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/components/baseComponent */ "./src/ui/dialogs/components/baseComponent.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/components/button */ "./src/ui/dialogs/components/button.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/components/checkdrop */ "./src/ui/dialogs/components/checkdrop.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/components/dragText */ "./src/ui/dialogs/components/dragText.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/components/dropdown */ "./src/ui/dialogs/components/dropdown.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/components/fileDownload */ "./src/ui/dialogs/components/fileDownload.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/components/fontComponent */ "./src/ui/dialogs/components/fontComponent.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/components/noteText */ "./src/ui/dialogs/components/noteText.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/components/rocker */ "./src/ui/dialogs/components/rocker.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/components/staffComponents */ "./src/ui/dialogs/components/staffComponents.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/components/textCheck */ "./src/ui/dialogs/components/textCheck.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/components/textInPlace */ "./src/ui/dialogs/components/textInPlace.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/components/textInput */ "./src/ui/dialogs/components/textInput.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/components/tie */ "./src/ui/dialogs/components/tie.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/components/toggle */ "./src/ui/dialogs/components/toggle.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/components/tree */ "./src/ui/dialogs/components/tree.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/dialog */ "./src/ui/dialogs/dialog.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/dynamics */ "./src/ui/dialogs/dynamics.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/factory */ "./src/ui/dialogs/factory.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/fileDialogs */ "./src/ui/dialogs/fileDialogs.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/fonts */ "./src/ui/dialogs/fonts.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/globalLayout */ "./src/ui/dialogs/globalLayout.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/hairpin */ "./src/ui/dialogs/hairpin.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/instrument */ "./src/ui/dialogs/instrument.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/library */ "./src/ui/dialogs/library.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/lyric */ "./src/ui/dialogs/lyric.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/measureFormat */ "./src/ui/dialogs/measureFormat.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/pageLayout */ "./src/ui/dialogs/pageLayout.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/partInfo */ "./src/ui/dialogs/partInfo.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/preferences */ "./src/ui/dialogs/preferences.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/scoreId */ "./src/ui/dialogs/scoreId.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/scoreView */ "./src/ui/dialogs/scoreView.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/slur */ "./src/ui/dialogs/slur.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/staffGroup */ "./src/ui/dialogs/staffGroup.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/tempo */ "./src/ui/dialogs/tempo.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/textBlock */ "./src/ui/dialogs/textBlock.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/tie */ "./src/ui/dialogs/tie.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/timeSignature */ "./src/ui/dialogs/timeSignature.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/dialogs/volta */ "./src/ui/dialogs/volta.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/eventSource */ "./src/ui/eventSource.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/fileio/library */ "./src/ui/fileio/library.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/i18n/language */ "./src/ui/i18n/language.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/i18n/translationEditor */ "./src/ui/i18n/translationEditor.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/keyBindings/default/editorKeys */ "./src/ui/keyBindings/default/editorKeys.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/keyBindings/default/trackerKeys */ "./src/ui/keyBindings/default/trackerKeys.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/menus/dynamics */ "./src/ui/menus/dynamics.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/menus/file */ "./src/ui/menus/file.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/menus/keySignature */ "./src/ui/menus/keySignature.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/menus/language */ "./src/ui/menus/language.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/menus/library */ "./src/ui/menus/library.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/menus/manager */ "./src/ui/menus/manager.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/menus/measure */ "./src/ui/menus/measure.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/menus/menu */ "./src/ui/menus/menu.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/menus/parts */ "./src/ui/menus/parts.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/menus/score */ "./src/ui/menus/score.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/menus/staff */ "./src/ui/menus/staff.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/menus/staffModifier */ "./src/ui/menus/staffModifier.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/menus/timeSignature */ "./src/ui/menus/timeSignature.ts"), exports);
+__exportStar(__webpack_require__(/*! ./src/ui/ribbonLayout/default/defaultRibbon */ "./src/ui/ribbonLayout/default/defaultRibbon.ts"), exports);
 
 
 /***/ })

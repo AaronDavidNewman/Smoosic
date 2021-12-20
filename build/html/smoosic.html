@@ -6,7 +6,7 @@
 		<link href="https://aarondavidnewman.github.io/Smoosic/build/styles/fonts.css" rel="stylesheet">
         <link href="../styles/media.css" rel="stylesheet">
         <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/ribbon.css" rel="stylesheet">
-        <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/dialogs.css" rel="stylesheet">
+        <link href="../styles/dialogs.css" rel="stylesheet">
         <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/menus.css" rel="stylesheet">
         <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/piano.css" rel="stylesheet">
         <link href="https://aarondavidnewman.github.io/Smoosic/build/styles/tree.css" rel="stylesheet">
@@ -20,9 +20,9 @@
     <script type="text/javascript">
            document.addEventListener("DOMContentLoaded", function (event) {
              Smo.SuiDom.createUiDom(document.getElementById('smoo'));
-               var config = { smoPath: '..', mode: 'application', uiDomContainer: 'smoo'
-                , scoreDomContainer: 'smo-scroll-region' };
-               Smo.SuiApplication.configure(config);
+               var config = { smoPath: '..', mode: 'application', leftControls: 'controls-left', topControls: 'controls-top'
+                , scoreDomContainer: 'smo-scroll-region',  };
+             Smo.SuiApplication.configure(config);
            });
        </script>
 </head>

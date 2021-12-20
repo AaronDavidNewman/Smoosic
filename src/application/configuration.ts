@@ -5,23 +5,18 @@
  */
 import { SmoRenderConfiguration } from "../render/sui/configuration";
 import { SmoScore } from "../smo/data/score";
-import { RibbonConfiguration } from "../ui/configuration";
 import { ModalEventHandler } from "./common";
-import { defaultRibbonLayout } from "../ui/ribbonLayout/default/defaultRibbon";
 import { KeyBindingConfiguration } from "../ui/configuration";
 import { defaultEditorKeys } from "../ui/keyBindings/default/editorKeys";
 import { defaultTrackerKeys } from "../ui/keyBindings/default/trackerKeys";
 import { SmoUiConfiguration } from "../ui/configuration";
 
 export type SmoMode = 'library' | 'application' | 'translate';
-export type SmoLoadType = 'local' | 'remote' | 'query';
-export var SmoLoadTypes: SmoLoadType[] = ['local', 'remote', 'query'];
-export type ConfigurationStringOption = 'smoPath' | 'language' | 'title' | 'libraryUrl' | 'languageDir';
+export type ConfigurationStringOption = 'language' | 'libraryUrl' | 'remoteScore';
 
 export type ConfigurationNumberOption = 'demonPollTime' | 'idleRedrawTime';
 
-export var ConfigurationStringOptions: ConfigurationStringOption[] = ['smoPath', 'language', 'title', 'libraryUrl', 
-  'languageDir'];
+export var ConfigurationStringOptions: ConfigurationStringOption[] = ['language', 'libraryUrl', 'remoteScore'];
 
 export var ConfigurationNumberOptions: ConfigurationNumberOption[] = ['demonPollTime', 'idleRedrawTime'];
 
@@ -33,77 +28,52 @@ export interface SmoConfigurationParams {
   mode: SmoMode;
   smoPath?: string;
   language: string;
-  scoreLoadOrder: string[];
   initialScore?: string | SmoScore;
-  uiDomContainer?: string | HTMLElement;
+  remoteScore?: string;
   scoreDomContainer: string | HTMLElement;
-  title?: string;
+  leftControls?: string | HTMLElement;
+  topControls?: string | HTMLElement;
   libraryUrl?: string;
-  languageDir: string;
   demonPollTime: number; // how often we poll the score to see if it changed
   idleRedrawTime: number;
-  ribbon?: RibbonConfiguration,
-  keys?: KeyBindingConfiguration,
-  eventHandler?: ModalEventHandler
 }
 
 /**
- * Configures smoosic library or application.  There are 3 different ways to determine what the initial score is:
- * 1. scoreUrl loads a remote score from an URL
- * 2. scoreLoadOrder checks the local storage or the 
+ * Configures smoosic library or application. It is a union of UI, rendering and application configuration parameters
  * @param mode - score mode `'library' | 'application' | 'translate'`
  *   Library mode starts the view but not the UI.  application mode starts the UI and expects UI parameters.
  *   translation mode is the translation editor, for creating translations for dialog/menu components
- * @param smoPath - path to smoosic.js from html
- * @param scoreUrl - path (URL) to remote score, if you are starting with a pre-loaded score.  See `scoreLoadOrder`
  * @param language - startup language
- * @param scoreLoadOrder - default is ['query', 'local', 'library']
- *  query gets a pre-created score from the query string.  Local loads the local storage score (quick save).
- *  library loads a file from `SuiApplication.scoreLibrary`.  If you are using `scoreUrl` you can ignore this.
- * @param scoreLoadJson - the library score JSON, if you are loading from a JSON string
- * @param uiDomContainer - the id of the parent element of application UI
- * @param scoreDomContainer - the svg container
- * @param ribbon - launch the UI ribbon
- * @param keyCommands - start the key commands UI
- * @param menus - create the menu manager
- * @param title - the browser title
- * @param libraryUrl - loader URL for Smo libraries
- * @param languageDir - ltr or rtl
+ * @param initialScore? - the library score JSON, if you are loading from a JSON string, or a SmoScore object
+ * @param remoteScore? - path to a remote score, if loading from an URL
+ * @param scoreDomContainer - the parent of the svg container (required)
+ * @param leftControls - the location of the vertical button control, applies if mode is 'application'
+ * @param topControls - the location of the horizontal button control, applies if mode is 'application'
+ * @param libraryUrl - loader URL for Smo libraries, applies if application mode
  * @param demonPollTime - how often we poll the score to see if it's changed
  * @param idleRedrawTime - how often the entire score re-renders
- * @param ribbon - 
- * @param ModalEventHandler - if starting in application mode, the starting mouse/keyboard event handler
  * @category SuiApplication
  */
  export class SmoConfiguration implements SmoRenderConfiguration, SmoUiConfiguration {
   mode: SmoMode;
-  smoPath?: string;
   language: string = '';
-  scoreLoadOrder: string[];
   initialScore?: string | SmoScore;
-  uiDomContainer?: string | HTMLElement;
-  scoreDomContainer: string | HTMLElement = 'smoo';
-  title?: string;
+  remoteScore?: string;
+  leftControls?: string | HTMLElement;
+  topControls?: string | HTMLElement;
+  scoreDomContainer: string | HTMLElement;
   libraryUrl?: string;
-  languageDir: string = 'ltr';
   demonPollTime: number = 0; // how often we poll the score to see if it changed
   idleRedrawTime: number = 0;
-  ribbon?: RibbonConfiguration;
-  keys?: KeyBindingConfiguration
-  eventHandler?: ModalEventHandler
+  keys?: KeyBindingConfiguration;
+  eventHandler?: ModalEventHandler;
 
   static get defaults(): SmoConfiguration {
     return {
-      smoPath: '..',
       mode: 'application',
       language: 'en',
-      scoreLoadOrder: ['query', 'local', 'library'],
-      initialScore: 'Smo.basicJson',
-      uiDomContainer: 'smoo',
       scoreDomContainer: 'boo',
-      title: 'Smoosic',
       libraryUrl: 'https://aarondavidnewman.github.io/Smoosic/release/library/links/smoLibrary.json',
-      languageDir: 'ltr',
       demonPollTime: 50, // how often we poll the score to see if it changed
       idleRedrawTime: 1000, // maximum time between score modification and render
     };
@@ -125,28 +95,15 @@ export interface SmoConfigurationParams {
       const sp: string | undefined = params[param] ?? defs[param];
       this[param] = sp ?? '';
     });
-    if (params.eventHandler) {
-      this.eventHandler = params.eventHandler;
-    }
     this.scoreDomContainer = params.scoreDomContainer ?? defs.scoreDomContainer;
-    this.uiDomContainer = params.uiDomContainer ?? defs.uiDomContainer; 
-    if (params.initialScore) {
-      if (typeof(params.initialScore) === 'string') {
-        this.initialScore = SmoScore.deserialize(params.initialScore);
-      } else {
-        this.initialScore = params.initialScore;
-      }
-    }
+    this.initialScore = params.initialScore ?? undefined;
     ConfigurationNumberOptions.forEach((param) => {
       this[param] = params[param] ?? defs[param];
     });
     this.mode = params.mode ?? defs.mode;
-    this.scoreLoadOrder = params.scoreLoadOrder ?? defs.scoreLoadOrder;
     if (this.mode === 'application') {
-      const ribbon = params.ribbon ?? { layout: defaultRibbonLayout.ribbons, buttons: defaultRibbonLayout.ribbonButtons };
-      const keys = params.keys ?? SmoConfiguration.keyBindingDefaults;
-      this.ribbon = ribbon;
-      this.keys = keys;
+      this.leftControls = params.leftControls;
+      this.topControls = params.topControls;
     }
   }
 }

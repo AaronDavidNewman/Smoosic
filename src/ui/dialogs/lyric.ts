@@ -5,13 +5,12 @@ import { SuiLyricComponent } from './components/noteText';
 import { SuiDropdownComponent } from './components/dropdown';
 import { SuiRockerComponent } from './components/rocker';
 import { SvgBox } from '../../smo/data/common';
-import { SmoUiConfiguration } from '../configuration';
 import { SmoLyric } from '../../smo/data/noteModifiers';
 import { SuiFontComponent } from './components/fontComponent';
 import { EventHandler } from '../eventSource';
+import { SmoUiConfiguration } from '../configuration';
 
 declare var $: any;
-declare var SmoConfig: SmoUiConfiguration;
 
 export class SuiLyricDialog extends SuiDialogBase {
   static get ctor() {
@@ -73,15 +72,20 @@ export class SuiLyricDialog extends SuiDialogBase {
     };
   originalRefreshTimer: number;
   modifier: SmoLyric | null = null;
+  config: SmoUiConfiguration;
   verse: number = 0;
   mouseMoveHandler: EventHandler | null = null;
   mouseClickHandler: EventHandler | null = null;
   lyric: SmoLyric | null = null;
   constructor(parameters: SuiDialogParams) {
     super(SuiLyricDialog.dialogElements, parameters);
+    if (!parameters.config) {
+      throw ('must send UI config to Lyric Dialog Parameters');
+    }
+    this.config = parameters.config;
     this.displayOptions = ['BINDCOMPONENTS', 'DRAGGABLE', 'KEYBOARD_CAPTURE', 'SELECTIONPOS'];
-    this.originalRefreshTimer = SmoConfig.idleRedrawTime;
-    SmoConfig.idleRedrawTime = SuiLyricDialog.idleLyricTime;
+    this.originalRefreshTimer = this.config.idleRedrawTime;
+    this.config.idleRedrawTime = SuiLyricDialog.idleLyricTime;
     if (this.modifier) {
       this.verse = this.modifier.verse;
     }
@@ -181,7 +185,7 @@ export class SuiLyricDialog extends SuiDialogBase {
     }
     $('body').removeClass('showAttributeDialog');
     $('body').removeClass('textEditor');
-    SmoConfig.idleRedrawTime = this.originalRefreshTimer;
+    this.config.idleRedrawTime = this.originalRefreshTimer;
     this.complete();
   }
 

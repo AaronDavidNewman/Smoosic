@@ -4,5 +4,6 @@
  */
 export interface SmoRenderConfiguration {
   demonPollTime: number,
-  idleRedrawTime: number
+  idleRedrawTime: number,
+  scoreDomContainer: string | HTMLElement
 }

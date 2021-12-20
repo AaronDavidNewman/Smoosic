@@ -4,7 +4,7 @@
  * Classes to support dropdown compontents
  * @module /ui/dialogs/components/dropdown
  */
-import { htmlHelpers } from '../../../common/htmlHelpers';
+import { buildDom } from '../../../common/htmlHelpers';
 import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent, DialogDefinitionOption } from './baseComponent';
 declare var $: any;
 
@@ -53,28 +53,28 @@ export class SuiDropdownComponent extends SuiComponentBase {
   }
 
   get html() {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const id = this.parameterId;
     const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.smoName);
     const s = b('select');
     this.checkDefault(s, b);
     this.options.forEach((option) => {
       s.append(
-        b('option').attr('value', option.value).text(option.label));
+        b('option').attr('value', option.value.toString()).text(option.label));
     });
     r.append(s).append(
       b('label').attr('for', id + '-input').text(this.label));
     return r;
   }
   replaceOptions(options: DialogDefinitionOption[]) {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const s = b('select');
     const sel = this._getInputElement();
     const parent = $(sel).parent();
     $(sel).remove();
     this.checkDefault(s, b);
     options.forEach((option) => {
-      s.append(b('option').attr('value', option.value).text(option.label));
+      s.append(b('option').attr('value', option.value.toString()).text(option.label));
     });
     $(parent).append(s.dom());
     this.bind();

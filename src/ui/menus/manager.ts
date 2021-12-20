@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { htmlHelpers } from '../../common/htmlHelpers';
+import { buildDom, createTopDomContainer } from '../../common/htmlHelpers';
 import { SvgBox } from '../../smo/data/common';
 import { UndoBuffer } from '../../smo/xform/undo';
 
@@ -12,6 +12,7 @@ import { BrowserEventSource, EventHandler } from '../eventSource';
 import { KeyBinding } from '../../application/common';
 
 import { SuiMenuBase, SuiMenuParams } from './menu';
+import { TimeSignature } from '../../../release/smoosic';
 declare var $: any;
 
 export interface SuiMenuManagerParams {
@@ -19,7 +20,7 @@ export interface SuiMenuManagerParams {
   eventSource: BrowserEventSource;
   completeNotifier: CompleteNotifier;
   undoBuffer: UndoBuffer;
-  menuContainer: HTMLElement;
+  menuContainer?: HTMLElement;
 }
 
 export class SuiMenuManager {
@@ -39,8 +40,8 @@ export class SuiMenuManager {
   constructor(params: SuiMenuManagerParams) {
     this.eventSource = params.eventSource;
     this.view = params.view;
-    this.bound = false;
-    this.menuContainer = params.menuContainer;
+    this.bound = false;    
+    this.menuContainer = params.menuContainer ?? createTopDomContainer('.menuContainer');
     this.completeNotifier = params.completeNotifier;
     this.undoBuffer = params.undoBuffer;
     this.tracker = params.view.tracker;
@@ -166,8 +167,8 @@ export class SuiMenuManager {
 
     $(this.menuContainer).html('');
     $(this.menuContainer).attr('z-index', '12');
-    const b = htmlHelpers.buildDom;
-    const r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length)
+    const b = buildDom;
+    const r = b('ul').classes('menuElement').attr('size', this.menu.menuItems.length.toString())
       .css('left', '' + this.menuPosition.x + 'px')
       .css('top', '' + this.menuPosition.y + 'px');
     this.menu.menuItems.forEach((item) => {

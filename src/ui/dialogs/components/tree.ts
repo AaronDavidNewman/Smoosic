@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SuiComponentBase, SuiDialogNotifier } from './baseComponent';
-import { htmlHelpers } from '../../../common/htmlHelpers';
+import { buildDom } from '../../../common/htmlHelpers';
 declare var $: any;
 
 export interface TreeComponentOption {
@@ -85,7 +85,7 @@ export class SuiTreeComponent extends SuiComponentBase {
   }
 
   get html() {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const id = this.parameterId;
     const r = b('div').classes(this.makeClasses('dropdownControl smoControl')).attr('id', id).attr('data-param', this.smoName);
     const ul = b('ul').classes('tree tree-root');
@@ -100,7 +100,7 @@ export class SuiTreeComponent extends SuiComponentBase {
     const parentEl = $(this._getInputElement());
     const oldUl = $(parentEl).find('ul.tree-root');
     $(oldUl).remove();
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const ul = b('ul').classes('tree tree-root');
     this._createTree(b, ul);
     $(parentEl).append(ul.dom());

@@ -4,12 +4,10 @@ import { smoLanguageStringAr } from './language_ar';
 import { smoLanguageStringDe } from './language_de';
 import { smoLanguageStringEn } from './language_en';
 import { MenuChoiceDefinition, MenuDefinition, MenuTranslation } from '../menus/menu';
-import { SmoUiConfiguration } from '../configuration';
 import { ButtonLabel } from '../buttons/button';
 import { RibbonButtons } from '../buttons/ribbon';
 import { DialogTranslation } from '../dialogs/dialog';
 declare var $: any;
-declare var SmoConfig: SmoUiConfiguration;
 
 export interface TranslationStrings {
   dialogs: DialogTranslation[],
@@ -222,7 +220,8 @@ export class SmoTranslator {
 
 export class SmoLanguage {
   static getHelpFile(category: any) {
-    return eval('globalThis.Smo.' + category + SmoConfig.language);
+    // TODO: how to express language if it is not part of the config?
+    return eval('globalThis.Smo.' + category + 'en');
   }
   static get en(): LanguageTranslation {
     const strings: TranslationStrings = JSON.parse(smoLanguageStringEn) as TranslationStrings;

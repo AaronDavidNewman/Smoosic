@@ -8,6 +8,7 @@ import { SuiLyricDialog } from './lyric';
 import { SuiTieAttributesDialog } from './tie';
 import { SuiDynamicModifierDialog } from './dynamics';
 import { SuiTextBlockDialog } from './textBlock';
+import { SmoUiConfiguration } from '../configuration';
 
 export type ModifiersWithDialogs = 'SmoStaffHairpin' | 'SmoTie' | 'SmoSlur' | 'SmoDynamicText' | 'SmoVolta' | 'SmoScoreText' | 'SmoLoadScore' | 'SmoLyric';
 export var ModifiersWithDialogNames = ['SmoStaffHairpin', 'SmoTie', 'SmoSlur', 'SmoDynamicText', 'SmoVolta',

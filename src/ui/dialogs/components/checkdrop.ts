@@ -2,7 +2,7 @@ import { SuiDialogNotifier, DialogDefinitionElement, SuiComponentParent } from '
 import { SuiToggleCompositeParams, SuiToggleComposite } from '../components/toggle';
 import { SuiDropdownCompositeParams, SuiDropdownComposite } from '../components/dropdown';
 
-import { htmlHelpers } from '../../../common/htmlHelpers';
+import { buildDom } from '../../../common/htmlHelpers';
 declare var $: any;
   
 export interface CheckboxDropdownComponentParams {
@@ -40,7 +40,7 @@ export class CheckboxDropdownComponent extends SuiComponentParent {
     this.dropdownCtrl = new SuiDropdownComposite(this.dialog, dropdownParams);
   }
   get html() {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const q = b('div').classes(this.makeClasses('multiControl smoControl checkboxDropdown'))
       .attr('id', this.parameterId);
     q.append(this.toggleCtrl.html);

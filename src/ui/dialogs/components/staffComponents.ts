@@ -2,9 +2,8 @@
 // Copyright (c) Aaron David Newman 2021.
 import { SuiComponentBase, SuiDialogNotifier } from './baseComponent';
 import { SuiToggleCompositeParams, SuiToggleComposite } from './toggle';
-import { SuiTextInputComposite } from './textInput';
 
-  import { htmlHelpers } from '../../../common/htmlHelpers';
+import { buildDom } from '../../../common/htmlHelpers';
 import { SuiScoreViewOperations } from '../../../render/sui/scoreViewOperations';
 import { SmoSystemGroup } from '../../../smo/data/scoreModifiers';
 declare var $: any;
@@ -74,7 +73,7 @@ export class StaffAddRemoveComponent extends SuiComponentBase {
     });
   }
   get html() {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     // a little hacky.  The first time we create an empty html shell for the control
     // subsequent times, we fill the html with the row information
     if (!this.createdShell) {
@@ -185,7 +184,7 @@ export class StaffCheckComponent extends SuiComponentBase {
     });
   }
   get html() {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const q = b('div').classes(this.makeClasses('multiControl smoControl staffContainer'));
     this.staffRows.forEach((row) => {
       q.append(row.showCtrl.html);

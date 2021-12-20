@@ -1,7 +1,7 @@
 import { SuiDialogNotifier, SuiComponentBase, SuiBaseComponentParams } from './baseComponent';
 import { SuiDragSession } from '../../../render/sui/textEdit';
 import { SuiScoreViewOperations } from '../../../render/sui/scoreViewOperations';
-import { htmlHelpers } from '../../../common/htmlHelpers';
+import { buildDom } from '../../../common/htmlHelpers';
 declare var $: any;
 // ## SuiDragText
 // A component that lets you drag the text you are editing to anywhere on the score.
@@ -26,7 +26,7 @@ export class SuiDragText extends SuiComponentBase {
   }
 
   get html() {
-    var b = htmlHelpers.buildDom;
+    var b = buildDom;
     var id = this.parameterId;
     var r = b('div').classes(this.makeClasses('cbDragTextDialog smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
       .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')

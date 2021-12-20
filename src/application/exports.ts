@@ -106,7 +106,6 @@ import { SuiScoreRender } from '../render/sui/scoreRender';
 import { layoutDebug } from '../render/sui/layoutDebug';
 import { SuiMapper } from '../render/sui/mapper';
 import { SuiScroller } from '../render/sui/scroller';
-import { SuiActionPlayback } from '../render/sui/actionPlayback';
 // SMO object model
 import { SmoScore } from '../smo/data/score';
 import { UndoBuffer } from '../smo/xform/undo';
@@ -129,8 +128,10 @@ import { SmoToXml } from '../smo/mxml/smoToXml';
 import { MidiToSmo } from '../smo/midi/midiToSmo';
 import { SmoToMidi } from '../smo/midi/smoToMidi';
 import { XmlToSmo } from '../smo/mxml/xmlToSmo';
-
 import { SmoToVex } from '../smo/xform/toVex';
+// utilities
+import { buildDom, addFileLink, InputTrapper, draggable, closeDialogPromise, getDomContainer, createTopDomContainer } from '../common/htmlHelpers';
+
 const getClass = (jsonString: string) => {
     return eval('Smo.' + jsonString);
 };
@@ -174,7 +175,7 @@ export const Smo = {
     SuiXhrLoader,PromiseHelpers,
     // Rendering components
     SuiPiano, layoutDebug, SuiScoreView,SuiScroller, SuiMapper, SuiScoreRender,
-    SuiScoreViewOperations,SuiActionPlayback,
+    SuiScoreViewOperations,
     // Smo Music Objects
     SmoScore,
     XmlToSmo,
@@ -203,6 +204,8 @@ export const Smo = {
     quickStartHtmlen, selectionHtmlen, enterDurationsHtmlen, enterPitchesHtmlen,
     quickStartHtmlar, selectionHtmlar, enterDurationsHtmlar, enterPitchesHtmlar
     ,getClass,
-    createLoadTests
+    createLoadTests,
+    // utilities
+    buildDom, addFileLink, InputTrapper, draggable, closeDialogPromise, getDomContainer, createTopDomContainer
 }
 export default Smo;

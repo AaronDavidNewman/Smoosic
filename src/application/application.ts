@@ -6,7 +6,7 @@ import { _MidiWriter } from '../common/midiWriter';
 import { SmoConfiguration, SmoConfigurationParams } from './configuration';
 import { SmoScore } from '../smo/data/score';
 import { UndoBuffer } from '../smo/xform/undo';
-import { emptyScoreJson } from '../music/basic';
+import { XmlToSmo } from '../smo/mxml/xmlToSmo';
 import { SuiScoreRender } from '../render/sui/scoreRender';
 import { SuiScoreViewOperations } from '../render/sui/scoreViewOperations';
 import { SuiOscillator } from '../render/audio/oscillator';
@@ -33,9 +33,9 @@ import { SuiDom } from './dom';
 import { SuiKeyCommands } from './keyCommands';
 import { SuiEventHandler } from './eventHandler';
 import { KeyBinding, ModalEventHandlerProxy } from './common';
+import { SmoMeasure } from '../../typedoc';
+import { getDomContainer } from '../common/htmlHelpers';
 
-
-declare var SmoConfig : SmoConfiguration;
 declare var $: any;
 
 interface pairType { [key: string]: string }
@@ -64,8 +64,6 @@ export interface SuiInstance {
   ribbon: RibbonButtons
 }
 const VF = eval('Vex.Flow');
-const Smo = eval('globalThis.Smo');
-export type scoreMode = 'local' | 'remote' | 'translate' | 'query';
 
 /**
  * Parse query string for application
@@ -95,81 +93,7 @@ export class QueryParser {
     }
   }
 }
-/**
- * bootstrap initial score load
- * @category AppUtil
- */
-export class SuiScoreBuilder {
-  score: SmoScore | null = null;
-  scorePath: string | null = null;
-  mode: scoreMode = 'local';
-  language: string = 'en';
-  localScoreLoad(): void {
-    this.score = null;
-    this.scorePath = localStorage.getItem(smoSerialize.localScore);
-    if (this.scorePath && this.scorePath.length) {
-      try {
-        this.score = SmoScore.deserialize(this.scorePath);
-      } catch (exp) {
-        console.log('could not parse ' + this.scorePath);
-      }
-    }
-  }
-  queryScoreLoad(queryString: QueryParser): void {
-    var i;
-    for (i = 0; i < queryString.pairs.length; ++i) {
-      const pair = queryString.pairs[i];
-      if (pair.score) {
-        try {
-          const path: librarySeed | undefined = SuiApplication.scoreLibrary.find((pp) => pp.alias === pair.score);
-          if (!path) {
-            return;
-          } else {
-            this.scorePath = path.path;
-            this.score = null;
-            this.mode = 'remote';
-          }
-        } catch (exp) {
-          console.log('could not parse ' + exp);
-        }
-      }
-    }
-  }
-  libraryScoreLoad(): void {
-    if (SmoConfig.initialScore) {
-      if (typeof(SmoConfig.initialScore === 'string')) {
-        SmoConfig.initialScore = SmoScore.deserialize(SmoConfig.initialScore);
-        this.score = SmoConfig.initialScore;
-        this.scorePath = null;
-        this.mode = 'local';
-      }
-    }
-  }
-  constructor(config: SmoConfiguration, queryString: QueryParser) {
-    let i:number = 0;
-    if (config.initialScore) {
-      if (typeof(config.initialScore) === 'string') {
-        this.score = SmoScore.deserialize(config.initialScore);
-      } else {
-        this.score = config.initialScore as SmoScore;
-      }
-      return;
-    }
-    for (i = 0; i < config.scoreLoadOrder.length; ++i) {
-      const load = config.scoreLoadOrder[i];
-      if (load === 'local') {
-        this.localScoreLoad();
-      } else if (load === 'remote') {
-        this.libraryScoreLoad();
-      } else if (load === 'query') {
-        this.queryScoreLoad(queryString);
-      }
-      if (this.score || this.scorePath) {
-        break;
-      }
-    }
-  }
-}
+
 /** SuiApplication
  * main entry point of application.  Based on the configuration,
  * either start the default UI, or initialize library mode and
@@ -182,6 +106,7 @@ export class SuiApplication {
   config: SmoConfiguration;
   score: SmoScore | null = null;
   view: SuiScoreViewOperations | null = null;
+  domElement: HTMLElement;
   static configure(params: Partial<SmoConfigurationParams>): Promise<SuiApplication> {
     const config: SmoConfiguration = new SmoConfiguration(params);
     (window as any).SmoConfig = config;
@@ -191,6 +116,14 @@ export class SuiApplication {
   }
   constructor(config: SmoConfiguration) {
     this.config = config;
+    this.domElement = this._getDomContainer();
+  }
+  _getDomContainer(): HTMLElement {
+    const el = getDomContainer(this.config.scoreDomContainer);
+    if (typeof(el) === 'undefined') {
+      throw 'scoreDomContainer is a required config parameter';
+    }
+    return el;
   }
   static instance: SuiInstance;
   /** 
@@ -209,12 +142,18 @@ export class SuiApplication {
     });
     return trackerKeys.concat(editorKeys);
   }
+  /**
+   * Initialize the library according to instruction in config object:
+   * 1.  Try to load a new score
+   * 2.  If in application mode, start the UI.  If in translation mode, start translation
+   * @returns 
+   */
   initialize(): Promise<SuiApplication> {
     const samplePromise: Promise<any> = SuiOscillator.sampleFiles.length > 0 ?
       SuiOscillator.samplePromise() : PromiseHelpers.emptyPromise();
 
     const self = this;
-    const createScore = (): Promise<SuiApplication> => {
+    const createScore = (): Promise<any> => {
       return self.createScore();
     }
     const startApplication = () => {
@@ -224,22 +163,7 @@ export class SuiApplication {
       else if (self.config.mode === 'application') {
         self._startApplication();
       } else {  // library mode.
-        // Find a score to start with
-        if (!self.score) {
-          self.score = SmoScore.deserialize(emptyScoreJson);
-        }
-        if (typeof(this.config.scoreDomContainer) === 'string') {
-          if (this.config.scoreDomContainer[0] === '#') {
-            this.config.scoreDomContainer = $(this.config.scoreDomContainer)[0];
-          } else {
-            const el = document.getElementById(this.config.scoreDomContainer);
-            if (!el) {
-              return;
-            }
-            this.config.scoreDomContainer = el;
-          }
-        }
-        self.createView(self.score);
+        self.createView(self.score!);
       }
     }
     const render = () => {
@@ -254,111 +178,94 @@ export class SuiApplication {
     });
     return rv;
   }
-  createScore(): Promise<SuiApplication> {
+  /**
+   * Create the initial score we use to populate the UI etc:
+   * 0. if translation mode, return empty promise, it won't be used anyway
+   * 1. if remoteScore is set in config, try to load from remote
+   * 2. if initialScore is set, use that
+   * 3. if a score is saved locally with quick save (browser local cache), use that
+   * 4. if all else fails, return an 'empty' score.
+   * @returns promise for a remote load.  If a local load, will resolve immediately
+   */
+  createScore(): Promise<any> {
     if (this.config.mode === 'translate') {
       return PromiseHelpers.emptyPromise();
     }
-    const queryString = new QueryParser();
-    const scoreBuilder = new SuiScoreBuilder(this.config, queryString);
-    if (scoreBuilder.score) {
-      this.score = scoreBuilder.score;
-      return PromiseHelpers.emptyPromise();
-    } else {
-      if (scoreBuilder.mode === 'remote' && scoreBuilder.scorePath) {
-        const loader = new SuiXhrLoader(scoreBuilder.scorePath);
-        const self = this;
-        return new Promise((resolve: any) => {
-          loader.loadAsync().then(() => {
-            self.score = SmoScore.deserialize(loader.value);
-            self.createUi();
-            resolve(self);
-          });
+    if (this.config.remoteScore) {
+      const loader = new SuiXhrLoader(this.config.remoteScore);
+      const self = this;
+      return new Promise((resolve: any) => {
+        loader.loadAsync().then(() => {
+          self.score = this._tryParse(loader.value);
+          resolve(self);
         });
+      });
+    } else if (this.config.initialScore) {
+      if (typeof(this.config.initialScore) === 'string') {
+        this.score = this._tryParse(this.config.initialScore);
+        return PromiseHelpers.emptyPromise();
+      } else {
+        this.score = this.config.initialScore;
+        return PromiseHelpers.emptyPromise();
+      }
+    } else {
+      const localScore = localStorage.getItem(smoSerialize.localScore);
+      if (localScore) {
+        this.score = this._tryParse(localScore);
+      } else {
+        this.score = SmoScore.getDefaultScore(SmoScore.defaults, null);
       }
     }
-    const scoreString = eval('globalThis.Smo.basicJson');
-    this.score = SmoScore.deserialize(scoreString);
     return PromiseHelpers.emptyPromise();
+  }
+  _tryParse(scoreJson: string) {
+    try {
+      if (scoreJson[0] === '<') {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(scoreJson, 'text/xml');
+        return XmlToSmo.convert(xml);
+      }
+      return SmoScore.deserialize(scoreJson);
+    } catch (exp) {
+      console.warn('could not parse score');
+      return SmoScore.getDefaultScore(SmoScore.defaults, SmoMeasure.defaults);
+    }
   }
   _startApplication() {
     // Initialize the midi writer library
     _MidiWriter();
-    const config: SmoConfiguration = (window as any).SmoConfig;
     const queryString = new QueryParser();
-    const languageSelect = queryString.pairs.find((x) => x['language']);
-    if (config.mode === 'translate') {
-      const transPair: pairType | undefined = queryString.pairs.find((x) => x['translate']);
-      const transLanguage = transPair ? transPair.translate : config.language;
+    const languageSelect = queryString.pairs.find((x) => x['language']) ?? {'language': 'en'}
+    if (this.config.mode === 'translate') {
       this._deferCreateTranslator();
       return;
     }
     if (languageSelect) {
       SuiApplication._deferLanguageSelection(languageSelect.language);
     }
-    const scoreBuilder = new SuiScoreBuilder(config, queryString);
-    if (scoreBuilder.score) {
-      this.score = scoreBuilder.score;
-      this.createUi();
-      return;
-    } else {
-      if (scoreBuilder.mode === 'remote' && scoreBuilder.scorePath) {
-        const loader = new SuiXhrLoader(scoreBuilder.scorePath);
-        const self = this;
-        loader.loadAsync().then(() => {
-          self.score = SmoScore.deserialize(loader.value);
-          self.createUi();
-        });
-        return;
-      }
-    }
-    const scoreString = eval('globalThis.Smo.basicJson');
-    this.score = SmoScore.deserialize(scoreString);
-    if (this.config.mode === 'application') {
-      this.createUi();
-    }
+    this.createUi();
   }
   createView(score: SmoScore): SuiRendererInstance | null {
-    let sdc: string | HTMLElement | null = this.config.scoreDomContainer;
-    if (!sdc) {
-      return null;
-    }
-    if (typeof(sdc) === 'string') {
-      if (sdc[0] === '#') {
-        sdc = $(sdc)[0];
-      } else {
-        sdc = document.getElementById(sdc);
-      }
-    }
-    if (!sdc) {
-      return null;
-    }
+    let sdc: HTMLElement = this.domElement;
     const svgContainer = document.createElement('div');
     $(svgContainer).attr('id', 'boo').addClass('musicContainer');
     $(sdc).append(svgContainer);
-    const renderer = SuiScoreRender.createScoreRenderer(svgContainer, score);
+    const renderer = SuiScoreRender.createScoreRenderer(this.config, svgContainer, score);
     const eventSource = new BrowserEventSource();
     const undoBuffer = new UndoBuffer();
     eventSource.setRenderElement(renderer.renderElement);
-    const view = new SuiScoreViewOperations(renderer, score, sdc as HTMLElement, undoBuffer);
+    const view = new SuiScoreViewOperations(this.config, renderer, score, sdc as HTMLElement, undoBuffer);
     this.view = view;
     view.startRenderingEngine();
     return {
       view, eventSource, undoBuffer, renderer
     };
   }
-
   /**
    * Convenience constructor, take the score and render it in the
    * configured rendering space.
-   * @param score(SmoScore) - the score
    */
   createUi() {
-    const menuContainer = document.createElement('div');
-    $(menuContainer).addClass('menuContainer');
-    $('.dom-container').append(menuContainer);
-    const scrollRegion = document.createElement('div');
-    $(scrollRegion).attr('id', 'smo-scroll-region').addClass('musicRelief');
-    $('.dom-container .media').append(scrollRegion);
     const viewObj: SuiRendererInstance | null = this.createView(this.score!);
     if (!viewObj) {
       return;
@@ -368,10 +275,13 @@ export class SuiApplication {
     const eventSource = new BrowserEventSource(); // events come from the browser UI.
     const undoBuffer = viewObj.undoBuffer;
     const completeNotifier = new ModalEventHandlerProxy(eventSource);
+    // hack...this is set up in UiDom.  Should menu manager just make it?
+    // const menuContainer = $('.menuContainer')[0] as HTMLElement;
     const menus = new SuiMenuManager({
-      view, eventSource, completeNotifier, undoBuffer, menuContainer
+      view, eventSource, completeNotifier, undoBuffer
     });
     const ribbon = new RibbonButtons({
+      config: this.config,
       ribbons: defaultRibbonLayout.ribbons,
       ribbonButtons: defaultRibbonLayout.ribbonButtons,
       menus: menus,
@@ -385,7 +295,7 @@ export class SuiApplication {
     });
     const eventHandler = new SuiEventHandler({
       view, eventSource, tracker, keyCommands, menus, completeNotifier,
-      keyBindings: SuiApplication.keyBindingDefaults
+      keyBindings: SuiApplication.keyBindingDefaults, config: this.config
     });
     this.instance = {
       view, eventSource, eventHandler, undoBuffer,
@@ -500,17 +410,6 @@ export class SuiApplication {
     });
   }
 
-  static _nvQueryPair(str: string): pairType {
-    var i = 0;
-    const ar = str.split('=');
-    const rv: pairType = {};
-    for (i = 0; i < ar.length - 1; i += 2) {
-      const name = decodeURIComponent(ar[i]);
-      rv[name] = decodeURIComponent(ar[i + 1]);
-    }
-    return rv;
-  }
-
   static get scoreLibrary(): librarySeed[] {
     return [
       { alias: 'bach', format: 'json', path: 'https://aarondavidnewman.github.io/Smoosic/release/library/BachInvention.json' },
@@ -528,7 +427,7 @@ export class SuiApplication {
     ];
   }
   _deferCreateTranslator() {
-    SuiDom.createUiDom(this.config.uiDomContainer);
+    SuiDom.createUiDom(this.config.scoreDomContainer);
     setTimeout(() => {
       SmoTranslationEditor.startEditor(this.config.language);
     }, 1);

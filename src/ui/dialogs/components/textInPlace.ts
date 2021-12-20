@@ -8,7 +8,7 @@ import { SuiButtonComposite } from './button';
 import { SuiRockerComposite } from './rocker';
 import { SuiDropdownComposite } from './dropdown';
 import { SuiInlineText } from '../../../render/sui/textRender';
-import { htmlHelpers } from '../../../common/htmlHelpers';
+import { buildDom } from '../../../common/htmlHelpers';
 
 declare var $: any;
 
@@ -46,7 +46,7 @@ export class SuiTextInPlace extends SuiComponentBase {
   hide() {}
 
   get html() {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const id = this.parameterId;
     const r = b('div').classes(this.makeClasses('cbTextInPlace smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
       .append(b('button').attr('type', 'checkbox').classes('toggleTextEdit')
@@ -314,7 +314,7 @@ export class SuiTextBlockComponent extends SuiComponentParent {
     this.handleChanged();
   }
   get html() {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const q = b('div').classes(this.makeClasses('multiControl smoControl'));
     q.append(this.addBlockCtrl.html);
     q.append(this.removeBlockCtrl.html);

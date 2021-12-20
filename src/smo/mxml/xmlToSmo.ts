@@ -524,7 +524,6 @@ export class XmlToSmo {
             tieInfo.selector.tick += pads.length;
           });
           selector.tick += pads.length;
-          console.log('Added ' + pads.length + ' ticks to ' + JSON.stringify(selector, null, ' '));
           // then reset the cursor since we are now in sync
           xmlState.staffArray[staffIndex].voices[voiceIndex].ticksUsed = xmlState.tickCursor;
         }

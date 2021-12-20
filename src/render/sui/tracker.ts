@@ -4,20 +4,16 @@ import { SuiMapper, LocalModifier, SuiRendererBase } from './mapper';
 import { SvgHelpers, StrokeInfo, OutlineInfo } from './svgHelpers';
 import { SmoSelection, SmoSelector, ModifierTab } from '../../smo/xform/selections';
 import { SuiRenderState } from './renderState';
-import { htmlHelpers } from '../../common/htmlHelpers';
+import { buildDom } from '../../common/htmlHelpers';
 import { smoSerialize } from '../../common/serializationHelpers';
 import { SuiOscillator } from '../audio/oscillator';
-import { SmoActionRecord } from '../../smo/xform/actions';
 import { SmoScore } from '../../smo/data/score';
-import { StaffModifierBase } from '../../smo/data/staffModifiers';
 import { SvgBox, SvgPoint, KeyEvent } from '../../smo/data/common';
 import { SuiScroller } from './scroller';
 import { PasteBuffer } from '../../smo/xform/copypaste';
 import { SmoNote } from '../../smo/data/note';
 import { SmoMeasure } from '../../smo/data/measure';
-
 declare var $: any;
-
 /**
  * SuiTracker
  A tracker maps the UI elements to the logical elements ,and allows the user to
@@ -25,7 +21,6 @@ declare var $: any;
  */
 export class SuiTracker extends SuiMapper {
   idleTimer: number = Date.now();
-  recordBuffer: SmoActionRecord | null = null;
   // timer: NodeJS.Timer | null = null;
   suggestFadeTimer: NodeJS.Timer | null = null;
   constructor(renderer: SuiRendererBase, scroller: SuiScroller, pasteBuffer: PasteBuffer) {
@@ -101,7 +96,7 @@ export class SuiTracker extends SuiMapper {
       const mbox = measure?.svg?.renderedBox ?? SvgBox.default;
       const noteSel = this.measureNoteMap[key] as SmoSelection;
       const pos: SvgPoint = noteSel.scrollBox ?? SvgPoint.default;
-      const b = htmlHelpers.buildDom;
+      const b = buildDom;
       const r = b('span').classes('birdy icon icon-arrow-down').attr('id', 'birdy');
       $('.workspace #birdy').remove();
       const rd = r.dom();
@@ -146,10 +141,6 @@ export class SuiTracker extends SuiMapper {
     if (!keyEv) {
       return;
     }
-    if (this.recordBuffer) {
-      this.recordBuffer.addAction('advanceModifierSelection', SuiTracker.serializeEvent(keyEv));
-    }
-
     this.idleTimer = Date.now();
     this.eraseRect('staffModifier');
     const offset = keyEv.key === 'ArrowLeft' ? -1 : 1;
@@ -251,9 +242,6 @@ export class SuiTracker extends SuiMapper {
   }
 
   growSelectionRight() {
-    if (this.recordBuffer) {
-      this.recordBuffer.addAction('growSelectionRight');
-    }
     this._growSelectionRight(false);
   }
   _growSelectionRight(skipPlay: boolean): number {
@@ -280,9 +268,6 @@ export class SuiTracker extends SuiMapper {
     return (artifact.note as SmoNote).tickCount;
   }
   moveHome(score: SmoScore, evKey: KeyEvent) {
-    if (this.recordBuffer) {
-      this.recordBuffer.addAction('moveHome', SuiTracker.serializeEvent(evKey));
-    }
     this.idleTimer = Date.now();
     const ls = this.selections[0].staff;
     if (evKey.ctrlKey) {
@@ -318,9 +303,6 @@ export class SuiTracker extends SuiMapper {
     }
   }
   moveEnd(score: SmoScore, evKey: KeyEvent) {
-    if (this.recordBuffer) {
-      this.recordBuffer.addAction('moveEnd', SuiTracker.serializeEvent(evKey));
-    }
     this.idleTimer = Date.now();
     const ls = this.selections[0].staff;
     if (evKey.ctrlKey) {
@@ -366,9 +348,6 @@ export class SuiTracker extends SuiMapper {
     const rightmost = this.getExtremeSelection(1);
     const ticksLeft = rightmost.measure.voices[rightmost.measure.activeVoice]
       .notes.length - rightmost.selector.tick;
-    if (this.recordBuffer) {
-      this.recordBuffer.addAction('growSelectionRightMeasure');
-    }
     if (ticksLeft === 0) {
       if (rightmost.selector.measure < rightmost.staff.measures.length) {
         const mix = rightmost.selector.measure + 1;
@@ -388,9 +367,6 @@ export class SuiTracker extends SuiMapper {
     if (this.isGraceNoteSelected()) {
       this._growGraceNoteSelections(-1);
       return 0;
-    }
-    if (this.recordBuffer) {
-      this.recordBuffer.addAction('growSelectionLeft');
     }
     this.idleTimer = Date.now();
     const nselect = this._getOffsetSelection(-1);
@@ -416,9 +392,6 @@ export class SuiTracker extends SuiMapper {
     if (this.selections.length === 0) {
       return;
     }
-    if (this.recordBuffer) {
-      this.recordBuffer.addAction('moveSelectionRight', SuiTracker.serializeEvent(evKey));
-    }
     const nselect = this._getOffsetSelection(1);
     this._replaceSelection(nselect, skipPlay);
   }
@@ -427,22 +400,13 @@ export class SuiTracker extends SuiMapper {
     if (this.selections.length === 0) {
       return;
     }
-    if (this.recordBuffer) {
-      this.recordBuffer.addAction('moveSelectionLeft');
-    }
     const nselect = this._getOffsetSelection(-1);
     this._replaceSelection(nselect, false);
   }
   moveSelectionLeftMeasure() {
-    if (this.recordBuffer) {
-      this.recordBuffer.addAction('moveSelectionLeftMeasure');
-    }
     this._moveSelectionMeasure(-1);
   }
   moveSelectionRightMeasure() {
-    if (this.recordBuffer) {
-      this.recordBuffer.addAction('moveSelectionRightMeasure');
-    }
     this._moveSelectionMeasure(1);
   }
   _moveSelectionMeasure(offset: number) {
@@ -499,31 +463,19 @@ export class SuiTracker extends SuiMapper {
     this._highlightPitchSelection(note, this.pitchIndex);
   }
   moveSelectionPitchUp() {
-    if (this.recordBuffer) {
-      this.recordBuffer.addAction('moveSelectionPitchUp');
-    }
     this._moveSelectionPitch(1);
   }
   moveSelectionPitchDown() {
     if (!this.selections.length) {
       return;
     }
-    if (this.recordBuffer) {
-      this.recordBuffer.addAction('moveSelectionPitchDown');
-    }
     this._moveSelectionPitch((this.selections[0].note as SmoNote).pitches.length - 1);
   }
 
   moveSelectionUp() {
-    if (this.recordBuffer) {
-      this.recordBuffer.addAction('moveSelectionUp');
-    }
     this._moveStaffOffset(-1);
   }
   moveSelectionDown() {
-    if (this.recordBuffer) {
-      this.recordBuffer.addAction('moveSelectionDown');
-    }
     this._moveStaffOffset(1);
   }
 
@@ -611,27 +563,6 @@ export class SuiTracker extends SuiMapper {
     this.selections = ar;
   }
 
-  recordSelectSuggestion(ev: KeyEvent, selector: SmoSelector) {
-    if (this.recordBuffer) {
-      this.recordBuffer.addAction('selectSuggestionNote', selector, SuiTracker.serializeEvent(ev));
-    }
-  }
-  recordModifierSelectSuggestion(ev: KeyEvent) {
-    if (this.recordBuffer) {
-      const artifact = this.modifierTabs[this.modifierSuggestion];
-      if (!artifact) {
-        this.clearModifierSelections();
-        return; // in SVG but not in model, ignore.
-      }
-      const modKey = artifact.modifier.serialize();
-      if (artifact === null || artifact.selection === null) {
-        return;
-      }
-      const selector = artifact.selection.selector;
-      this.recordBuffer.addAction('selectSuggestionModifier', selector,
-        SuiTracker.serializeEvent(ev), modKey);
-    }
-  }
   _selectFromToInStaff(score: SmoScore, sel1: SmoSelection, sel2: SmoSelection) {
     const selections = SmoSelection.innerSelections(score, sel1.selector, sel2.selector).filter((ff) => 
       ff.selector.voice === sel1.measure.activeVoice
@@ -668,7 +599,6 @@ export class SuiTracker extends SuiMapper {
       if (this.suggestFadeTimer) {
         clearTimeout(this.suggestFadeTimer);
       }
-      this.recordModifierSelectSuggestion(ev);
       this.modifierIndex = -1;
       this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
       this.modifierSuggestion = -1;
@@ -684,14 +614,12 @@ export class SuiTracker extends SuiMapper {
     if (ev.shiftKey) {
       const sel1 = this.getExtremeSelection(-1);
       if (sel1.selector.staff === this.suggestion.selector.staff) {
-        this.recordSelectSuggestion(ev, this.suggestion.selector);
         this._selectBetweenSelections(score, sel1, this.suggestion);
         return;
       }
     }
 
     if (ev.ctrlKey) {
-      this.recordSelectSuggestion(ev, this.suggestion.selector);
       this._addSelection(this.suggestion);
       this._createLocalModifiersList();
       this.deferHighlight();
@@ -708,9 +636,7 @@ export class SuiTracker extends SuiMapper {
     if (preselected && note.pitches.length > 1) {
       this.pitchIndex =  (this.pitchIndex + 1) % note.pitches.length;
       this.selections[0].selector.pitches = [this.pitchIndex];
-      this.recordSelectSuggestion(ev, this.selections[0].selector);
     } else {
-      this.recordSelectSuggestion(ev, this.suggestion.selector);
       this.selections = [this.suggestion];
     }
     if (preselected && this.modifierTabs.length) {

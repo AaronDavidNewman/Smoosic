@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { htmlHelpers } from '../common/htmlHelpers';
+import { buildDom, createTopDomContainer } from '../common/htmlHelpers';
 import { SuiEventHandler } from '../application/eventHandler';
 export class SuiExceptionHandler {
   constructor(params) {
@@ -57,8 +57,8 @@ export class SuiExceptionHandler {
       lastOperation: doing,
       scoreString
     }, null, ' ');
-
-    const b = htmlHelpers.buildDom;
+    createTopDomContainer('.bugDialog');
+    const b = buildDom;
     const r = b('div').classes('bug-modal').append(
       b('img').attr('src', '../styles/images/logo.png').classes('bug-logo'))
       .append(b('button').classes('icon icon-cross bug-dismiss-button'))

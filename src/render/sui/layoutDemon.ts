@@ -6,7 +6,6 @@ import { SuiRenderState } from './renderState';
 import { SmoRenderConfiguration } from './configuration';
 import { SuiTracker } from './tracker';
 
-declare var SmoConfig: SmoRenderConfiguration;
 declare var $: any;
 
 export class SuiRenderDemon {
@@ -15,9 +14,11 @@ export class SuiRenderDemon {
   idleLayoutTimer: number = 0; // how long the score has been idle
   undoStatus: number = 0;
   handling: boolean = false;
+  config: SmoRenderConfiguration;
   tracker: SuiTracker;
-  constructor(renderer: SuiRenderState, undoBuffer: UndoBuffer, tracker: SuiTracker) {
+  constructor(config: SmoRenderConfiguration, renderer: SuiRenderState, undoBuffer: UndoBuffer, tracker: SuiTracker) {
     this.idleLayoutTimer = 0; 
+    this.config = config;
     this.undoStatus = 0;
     this.renderer = renderer;
     this.undoBuffer = undoBuffer;
@@ -35,7 +36,7 @@ export class SuiRenderDemon {
       return;
     }
     this.handling = true;
-    const redrawTime = Math.max(this.renderer.renderTime, SmoConfig.idleRedrawTime);
+    const redrawTime = Math.max(this.renderer.renderTime, this.config.idleRedrawTime);
     // If there has been a change, redraw the score
     if (this.renderer.passState === SuiRenderState.passStates.initial) {
       this.renderer.dirty = true;
@@ -84,7 +85,7 @@ export class SuiRenderDemon {
     setTimeout(() => {
       this.handleRedrawTimer();
       this.pollRedraw();
-    }, SmoConfig.demonPollTime);
+    }, this.config.demonPollTime);
   }
 
   startDemon() {

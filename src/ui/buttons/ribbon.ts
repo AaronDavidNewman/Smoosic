@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { htmlHelpers } from '../../common/htmlHelpers';
+import { buildDom, getDomContainer } from '../../common/htmlHelpers';
 import { ButtonDefinition, ButtonAction } from './button';
 import { BrowserEventSource } from '../eventSource';
 import { SuiScoreViewOperations } from '../../render/sui/scoreViewOperations';
@@ -15,6 +15,8 @@ import { ButtonLabel } from './button';
 import { SuiPiano } from '../../render/sui/piano';
 import { CollapseRibbonControl } from './collapsable';
 import { createAndDisplayDialog } from '../dialogs/dialog';
+import { SuiHelp } from '../help';
+import { SmoUiConfiguration } from '../configuration';
 
 declare var $: any;
 
@@ -39,6 +41,7 @@ export function isModalButtonType(but: string | SuiModalButtonTypes): but is Sui
  * @see {defaultRibbonLayout} for buttons supported from the demo application
  */
 export interface SuiRibbonParams {
+  config: SmoUiConfiguration
   eventSource: BrowserEventSource,
   view: SuiScoreViewOperations,
   completeNotifier: CompleteNotifier,
@@ -57,7 +60,7 @@ export class RibbonButtons {
     return ['ribbonButtons', 'ribbons', 'keyCommands', 'controller', 'menus', 'eventSource', 'view'];
   }
   static _buttonHtml(containerClass: string, buttonId: string, buttonClass: string, buttonText: string, buttonIcon: string, buttonKey: string) {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const r = b('div').classes(containerClass).append(b('button').attr('id', buttonId).classes(buttonClass).append(
       b('span').classes('left-text').append(
         b('span').classes('text-span').text(buttonText)).append(
@@ -68,6 +71,7 @@ export class RibbonButtons {
 
   static translateButtons: ButtonLabel[] = [];
   controller: CompleteNotifier;
+  config: SmoUiConfiguration;
   eventSource: BrowserEventSource;
   view: SuiScoreViewOperations;
   menus: SuiMenuManager;
@@ -78,6 +82,7 @@ export class RibbonButtons {
 
   constructor(params: SuiRibbonParams) {
     this.controller = params.completeNotifier;
+    this.config = params.config;
     this.eventSource = params.eventSource;
     this.view = params.view;
     this.menus = params.menus;
@@ -103,10 +108,12 @@ export class RibbonButtons {
       if (buttonData.ctor === 'SuiInstrumentDialog') {
         createAndDisplayDialog(SuiInstrumentDialog, params);
       } else if (buttonData.ctor === 'SuiLibraryDialog') {
-        SuiLibraryDialog.createAndDisplay(params);
+        SuiLibraryDialog.createAndDisplay(params, this.config);
       } else {
         createAndDisplayDialog(SuiTempoDialog, params);
       }
+    } else if (buttonData.ctor === 'helpModal') {
+      SuiHelp.displayHelp();
     }
   }
   _executeButtonMenu(buttonElement: string, buttonData: ButtonDefinition) {
@@ -127,7 +134,7 @@ export class RibbonButtons {
   _bindButton(buttonElement: string, buttonData: ButtonDefinition) {
     this.eventSource.domClick(buttonElement, this, '_executeButton', buttonData);
   }
-  _createCollapsibleButtonGroups(selector: string) {
+  _createCollapsibleButtonGroups(selector: string | HTMLElement) {
     let containerClass: string = '';
     // Now all the button elements have been bound.  Join child and parent buttons
     // For all the children of a button group, add it to the parent group
@@ -165,7 +172,7 @@ export class RibbonButtons {
   // ### _createButtonHtml
   // For each button, create the html and bind the events based on
   // the button's configured action.
-  _createRibbonHtml(buttonAr: string[], selector: string) {
+  _createRibbonHtml(buttonAr: string[], selector: string | HTMLElement) {
     let buttonClass = '';
     buttonAr.forEach((buttonId) => {
       const buttonData = this.ribbonButtons.find((e) =>
@@ -213,25 +220,32 @@ export class RibbonButtons {
       }
     });
   }
-  addButton(button: ButtonDefinition, parentElement: string) {
+  addButton(button: ButtonDefinition, parentElement: string | HTMLElement) {
     this.ribbonButtons.push(button);
     this.createRibbon([button.id], parentElement);
   }
 
-  createRibbon(buttonDataArray: string[], parentElement: string) {
+  createRibbon(buttonDataArray: string[], parentElement: string | HTMLElement) {
     this._createRibbonHtml(buttonDataArray, parentElement);
     this._createCollapsibleButtonGroups(parentElement);
   }
 
   display() {
-    $('body .controls-left').html('');
-    $('body .controls-top').html('');
-
-    const lbuttons = this.ribbons.left;
-    this.createRibbon(lbuttons, 'body .controls-left');
-
-    const tbuttons = this.ribbons.top;
-    this.createRibbon(tbuttons, 'body .controls-top');
+    if (this.config.leftControls) {
+      const leftControl = getDomContainer(this.config.leftControls);
+      if (leftControl) {
+        $(leftControl).html('');
+        const lbuttons = this.ribbons.left;
+        this.createRibbon(lbuttons, leftControl);
+      }
+    }
+    if (this.config.topControls) {
+      const topControl = getDomContainer(this.config.topControls);
+      if (topControl) {
+        const tbuttons = this.ribbons.top;
+        this.createRibbon(tbuttons, topControl);    
+      }
+    }
   }
 }
 

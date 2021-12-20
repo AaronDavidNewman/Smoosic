@@ -1128,7 +1128,7 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
   setBarline(barline: SmoBarline) {
     var ar: SmoMeasureModifierBase[] = [];
     this.modifiers.forEach((modifier) => {
-      if (modifier.ctor !== 'SmoBarline') {
+      if (modifier.ctor === 'SmoBarline') {
         const o = modifier as SmoBarline;
         if (o.position !== barline.position) {
           ar.push(o);

@@ -57,9 +57,6 @@ body.refresh-1 #refresh  {
 .collapseContainer button.collapseParent {
   border: 3px inset blue;
 }
-body.layout-debug .ribbonButtonContainer[data-group="debug"] {
-    display:block;
-}
 
 div.ribbonButtonContainer.expanded {
 	margin-right:5px;
@@ -147,15 +144,15 @@ button#MicrotoneButtons  {
     display:none;
 }
 
-.ribbonButtonContainer[data-group="displaySettings"] {
+.ribbonButtonContainer[data-group="quickButtons"] {
     margin-left:10px;
 }
-.ribbonButtonContainer[data-group="displaySettings"] button {
+.ribbonButtonContainer[data-group="quickButtons"] button {
     width:35px;
     height:40px;
 }
 
-.controls-top .ribbonButtonContainer[data-group="displaySettings"] button .icon {
+.controls-top .ribbonButtonContainer[data-group="quickButtons"] button .icon {
     top:25%;
     left:25%;
 }
@@ -288,8 +285,6 @@ button#MicrotoneButtons  {
     font-size:1.2em;
 }
 
-.controls-top button.textButton span.left-text {
-}
 .controls-top button.duration.expanded.tuplet span.ribbon-button-hotkey  {
 	font-size:1em;
   padding-left: 7px;

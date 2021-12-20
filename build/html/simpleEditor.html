@@ -72,7 +72,7 @@
 
         // Get mouse move event to highlight mouseover.  We pass the client coordinates
         // into tracker (via view).  The tracker maps client space to SVG space
-        document.getElementById('container1').addEventListener('mousemove', (ev) => {
+        document.getElementById('outer-container').addEventListener('mousemove', (ev) => {
           view.intersectingArtifact({
             x: ev.clientX,
             y: ev.clientY
@@ -87,9 +87,6 @@
 <body>
   <!-- audio crossOrigin="anonymous" id="sample" src="https://aarondavidnewman.github.io/Smoosic/build/sound/piano_middle_C.mp3" / -->
   <div id="outer-container">
-    <div id="container1">
-
-    </div>
   </div>
 </body>
 

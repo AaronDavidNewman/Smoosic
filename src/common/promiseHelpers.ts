@@ -9,6 +9,13 @@ export interface PromiseParameters {
   endCondition: promiseCondition, preResolveMethod: promiseFunction | null, pollMethod: promiseFunction | null, pollTime: number
 }
 
+export function TEmptyPromise<T>(obj: T):  Promise<T> {
+  return new Promise<T>((resolve) => {
+    setTimeout(() => {
+      resolve(obj);
+    }, 1);
+  });
+}
 export class PromiseHelpers {
   // ### makePromise
   // poll on endCondition at a rate of pollTime.  Resolve the promise

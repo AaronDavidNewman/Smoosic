@@ -17,6 +17,8 @@ import { suiLayoutFormatter } from './formatter';
 import { SuiTextBlock } from './textRender';
 import { layoutDebug } from './layoutDebug';
 import { SourceSansProFont } from '../../styles/font_metrics/ssp-sans-metrics';
+import { SmoRenderConfiguration } from './configuration';
+import { createTopDomContainer } from '../../common/htmlHelpers';
 
 declare var $: any;
 const VF = eval('Vex.Flow');
@@ -30,15 +32,11 @@ export interface MeasureEstimate {
  * computed dimensions.
   * @category SuiRender
 **/
-export class SuiScoreRender extends SuiRenderState {  
+export class SuiScoreRender extends SuiRenderState {
   constructor(params: ScoreRenderParams) {
-    super('SuiScoreRender');
+    super(params.config);
     this.elementId = params.elementId;
     this.score = params.score;
-    this.attrs = {
-      id: VF.Element.newID(),
-      type: 'testLayout'
-    };
     this.setViewport(true);
   }
   startRenderTime: number = 0;
@@ -48,8 +46,9 @@ export class SuiScoreRender extends SuiRenderState {
   // ### Description;
   // to get the score to appear, a div and a score object are required.  The layout takes care of creating the
   // svg element in the dom and interacting with the vex library.
-  static createScoreRenderer(renderElement: Element, score: SmoScore): SuiScoreRender {
+  static createScoreRenderer(config: SmoRenderConfiguration, renderElement: Element, score: SmoScore): SuiScoreRender {
     const ctorObj: ScoreRenderParams = {
+      config,
       elementId: renderElement,
       score
     };
@@ -244,6 +243,7 @@ export class SuiScoreRender extends SuiRenderState {
     });
   }
   _renderNextSystem(systemIx: number, mscore: Record<string | number, SmoMeasure[]>, keys: string[], printing: boolean) {
+    createTopDomContainer('#renderProgress');
     if (systemIx < keys.length) {
       const progress = Math.round((100 * systemIx) / keys.length);
       $('#renderProgress').val(progress);

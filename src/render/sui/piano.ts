@@ -1,7 +1,7 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 import { SvgHelpers, SvgBuilder } from "./svgHelpers";
-import { htmlHelpers } from "../../common/htmlHelpers";
+import { buildDom } from "../../common/htmlHelpers";
 import { SuiScoreViewOperations } from "./scoreViewOperations";
 import { SvgBox, Pitch, PitchLetter } from '../../smo/data/common';
 declare var $: any;
@@ -204,7 +204,7 @@ export class SuiPiano {
     this.view.setPitchPiano(pitch, this.chordPedal);
   }
   _renderControls() {
-    var b = htmlHelpers.buildDom;
+    var b = buildDom;
     var r = b('button').classes('icon icon-cross close close-piano');
     $('.piano-container .key-right-ctrl').append(r.dom());
     r = b('button').classes('piano-ctrl jsGrowDuration').append(b('span').classes('icon icon-duration_grow'));

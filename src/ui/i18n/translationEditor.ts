@@ -1,6 +1,6 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
-import { htmlHelpers } from "../../common/htmlHelpers";
+import { buildDom, createTopDomContainer } from "../../common/htmlHelpers";
 import { SmoLanguage, SmoTranslator, TranslationStrings } from "./language";
 import { RibbonButtons } from "../buttons/ribbon";
 import { ButtonLabel } from "../buttons/button";
@@ -18,7 +18,7 @@ export class SmoTranslationEditor {
   // UI element, the En string, and  the translated string, or a copy of the
   // EN string if the string has not been translated.
   static _getHtmlTextInput(dbLabel: string, enLabel: string, langLabel: string, labelType: string, labelId: string) {
-    var b = htmlHelpers.buildDom;
+    var b = buildDom;
 
     const compHtml = b('div').classes('dialog-element-container')
       .attr('data-' + labelType, labelId).append(
@@ -57,7 +57,7 @@ export class SmoTranslationEditor {
     }
 
     // create the DOM menu container
-    var b = htmlHelpers.buildDom;
+    var b = buildDom;
     const container = b('div').classes('menu-translate-container')
       .attr('data-menucontainer', menuCtor).append(
         b('button').classes('icon-plus trans-expander')).append(
@@ -91,7 +91,7 @@ export class SmoTranslationEditor {
     return container;
   }
   static getButtonTranslateHtml(enStrings: TranslationStrings, langStrings: TranslationStrings, transContainer: HTMLElement) {
-    var b = htmlHelpers.buildDom;
+    var b = buildDom;
     var buttonDom: HTMLElement = b('div').classes('ribbon-translate-container')
       .attr('data-ribbon-translate', 'buttons').append(
         b('button').classes('icon-plus trans-expander')).append(
@@ -122,7 +122,7 @@ export class SmoTranslationEditor {
   // ### _getStaticTextDialogHtml
   // create DOM for the static text section of the dialogs.
   static _getStaticTextDialogHtml(elements: DialogDefinition, enDb: Record<string, string>, langDb: Record<string, string>, htmlContainer: HTMLElement) {
-    var b = htmlHelpers.buildDom;
+    var b = buildDom;
     const keys = Object.keys(elements.staticText);
     const nodeContainer = b('div')
       .classes('dialog-element-container')
@@ -140,7 +140,7 @@ export class SmoTranslationEditor {
     $(htmlContainer).append(nodeContainer);
   }
   static _getDialogComponentHtml(element: DialogDefinitionElement, enDb: DialogTranslation, langDb: DialogTranslation, container: HTMLElement) {
-    var b = htmlHelpers.buildDom;
+    var b = buildDom;
     var label = element.label;
     var smoName = element.smoName;
     if (typeof (enDb.dialogElements.find) !== 'function') {
@@ -187,7 +187,7 @@ export class SmoTranslationEditor {
   }
 
   static getDialogTranslationHtml(dialogCtor: string, enStrings: TranslationStrings, langStrings: TranslationStrings) {
-    var b = htmlHelpers.buildDom;
+    var b = buildDom;
     var container: HTMLElement = b('div').classes('db-translate-container').attr('data-dbcontainer', dialogCtor)
       .append(b('button').classes('icon-plus trans-expander'))
       .append(b('span').classes('db-translate-title').text(dialogCtor)).dom() as HTMLElement;
@@ -225,7 +225,7 @@ export class SmoTranslationEditor {
   static getAllTranslationHtml(lang: string) {
     const enStr: TranslationStrings = SmoLanguage.en.strings;
     const langStr: TranslationStrings = (SmoLanguage as any)[lang].strings;
-    var b = htmlHelpers.buildDom;
+    var b = buildDom;
     var container: HTMLElement = b('div').classes('top-translate-container')
       .attr('dir', (SmoLanguage as any)[lang].dir).dom() as HTMLElement;
     SmoTranslator.allDialogs.forEach((dialog) => {
@@ -309,6 +309,7 @@ export class SmoTranslationEditor {
     return json;
   }
   static startEditor(lang: string) {
+    createTopDomContainer('.translation-editor');
     var transDom = SmoTranslationEditor.getAllTranslationHtml(lang);
     $('.translation-editor').append(transDom);
     $('body').addClass('translation-mode');

@@ -1,4 +1,4 @@
-import { htmlHelpers } from '../../../common/htmlHelpers';
+import { buildDom } from '../../../common/htmlHelpers';
 import { SuiComponentBase, SuiDialogNotifier, SuiComponentParent } from './baseComponent';
 declare var $: any;
 
@@ -26,7 +26,7 @@ export class SuiToggleComponent extends SuiComponentBase {
     this.dialog = dialog;
   }
   get html() {
-    const b = htmlHelpers.buildDom;
+    const b = buildDom;
     const id = this.parameterId;
     const r = b('div').classes(this.makeClasses('toggleControl smoControl')).attr('id', this.parameterId).attr('data-param', this.smoName)
       .append(b('input').attr('type', 'checkbox').classes('toggleInput')
