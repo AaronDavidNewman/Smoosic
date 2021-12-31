@@ -148,7 +148,9 @@ export class SuiScoreRender extends SuiRenderState {
   // ### calculateBeginningSymbols
   // calculate which symbols like clef, key signature that we have to render in this measure.
   calculateBeginningSymbols(systemIndex: number, measure: SmoMeasure, clefLast: string, keySigLast: string, timeSigLast: TimeSignature, tempoLast: SmoTempoText) {
-    const measureKeySig = SmoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
+    // The key signature is set based on the transpose index already, i.e. an Eb part in concert C already has 3 sharps.
+    const xposeOffset = this.score?.preferences?.transposingScore ? measure.transposeIndex : 0;
+    const measureKeySig = SmoMusic.vexKeySignatureTranspose(measure.keySignature, xposeOffset);
     measure.svg.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
     measure.svg.forceTimeSignature = (measure.measureNumber.measureIndex === 0 || 
       (!SmoMeasure.timeSigEqual(timeSigLast, measure.timeSignature)) || measure.timeSignatureString.length > 0);
@@ -166,8 +168,8 @@ export class SuiScoreRender extends SuiRenderState {
     } else if (tempo) {
       measure.svg.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
     }
-    if (measureKeySig !== keySigLast) {
-      measure.canceledKeySignature = SmoMusic.vexKeySigWithOffset(keySigLast, -1 * measure.transposeIndex);
+    if (measureKeySig !== keySigLast && measure.measureNumber.measureIndex > 0) {
+      measure.canceledKeySignature = SmoMusic.vexKeySigWithOffset(keySigLast, xposeOffset);
       measure.svg.forceKeySignature = true;
     } else if (systemIndex === 0 && measureKeySig !== 'C') {
       measure.svg.forceKeySignature = true;
@@ -494,8 +496,8 @@ export class SuiScoreRender extends SuiRenderState {
       if (!measureToLeft) {
         measureToLeft = measure;
       }
-      s.measureKeySig = SmoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
-      s.keySigLast = SmoMusic.vexKeySignatureTranspose(measureToLeft.keySignature, measure.transposeIndex);
+      s.measureKeySig = SmoMusic.vexKeySignatureTranspose(measure.keySignature, 0);
+      s.keySigLast = SmoMusic.vexKeySignatureTranspose(measureToLeft.keySignature, 0);
       s.tempoLast = measureToLeft.getTempo();
       s.timeSigLast = measureToLeft.timeSignature;
       s.clefLast = measureToLeft.clef;

@@ -52,6 +52,13 @@ export class SuiScorePreferencesAdapter extends SuiComponentAdapter {
     this.preferences.defaultTripleDuration = value;
     this.view.updateScorePreferences(this.preferences);
   }
+  get transposingScore() {
+    return this.preferences.transposingScore;
+  }
+  set transposingScore(value: boolean) {
+    this.preferences.transposingScore = value;
+    this.view.updateScorePreferences(this.preferences);
+  }
   cancel() {
     const p1 = JSON.stringify(this.preferences);
     const p2 = JSON.stringify(this.backup);
@@ -78,6 +85,10 @@ export class SuiScorePreferencesDialog extends SuiDialogAdapterBase<SuiScorePref
         smoName: 'showPiano',
         control: 'SuiToggleComponent',
         label: 'Show Piano widget'
+      },  {
+        smoName: 'transposingScore',
+        control: 'SuiToggleComponent',
+        label: 'Tranpose Score'
       }, {
         smoName: 'defaultDupleDuration',
         control: 'SuiDropdownComponent',

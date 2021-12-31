@@ -52,6 +52,7 @@ export class SmoScoreInfo {
  * @param defaultTripleDuration in ticks, 6/8 etc.
  * @param customProportion a Vex measure format setting
  * @param showPiano show the piano widget in the score
+ * @param transposingScore Whether to show the score parts in concert key
  * @category SmoModifier
  */
 export class SmoScorePreferences {
@@ -61,6 +62,7 @@ export class SmoScorePreferences {
   defaultTripleDuration: number = 6144;
   customProportion: number = 100;
   showPiano: boolean = true;
+  transposingScore: boolean = false;
 }
 /**
  * Constructor parameters.  Usually you will call
@@ -158,7 +160,8 @@ export class SmoScore {
         defaultDupleDuration: 4096,
         defaultTripleDuration: 6144,
         customProportion: 100,
-        showPiano: true
+        showPiano: true,
+        transposingScore: false
       },
       staves: [],
       activeStaff: 0,
@@ -395,6 +398,7 @@ export class SmoScore {
     smoSerialize.serializedMerge(
       SmoScore.defaultAttributes,
       jsonObj.score, params);
+    params.preferences.transposingScore = params.preferences.transposingScore ?? false;
 
     jsonObj.staves.forEach((staffObj: any, staffIx: number) => {
       staffObj.staffId = staffIx;
@@ -597,6 +601,16 @@ export class SmoScore {
     // Replace this group for any groups that overlap it.
     this.systemGroups = this.systemGroups.filter((sg) => !sg.overlaps(newGroup));
     this.systemGroups.push(newGroup);
+  }
+
+  isPartExposed(): boolean {
+    if (this.staves.length > 2) {
+      return false;
+    }
+    const staff = this.staves[0];
+    const staveCount = staff.partInfo.stavesAfter + staff.partInfo.stavesBefore + 1;
+    return staveCount === this.staves.length
+      && staff.partInfo.stavesBefore === 0;
   }
 
   // ### replace staff

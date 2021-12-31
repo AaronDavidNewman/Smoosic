@@ -92,14 +92,13 @@ export class VxMeasure {
     smoNote.accidentalsRendered = [];
     for (i = 0; i < smoNote.pitches.length && this.tickmapObject !== null; ++i) {
       const pitch = smoNote.pitches[i];
-      const duration = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex];
       const keyAccidental = SmoMusic.getAccidentalForKeySignature(pitch, this.smoMeasure.keySignature);
+      const duration = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex];
       const accidentals = this.tickmapObject.accidentalArray.filter((ar) =>
         ar.duration < duration && ar.pitches[pitch.letter]);
       const acLen = accidentals.length;
       const declared = acLen > 0 ?
         accidentals[acLen - 1].pitches[pitch.letter].pitch.accidental : keyAccidental;
-
       if ((declared !== pitch.accidental
         || pitch.cautionary) && smoNote.noteType === 'n') {
         const acc = new VF.Accidental(pitch.accidental);
@@ -492,12 +491,10 @@ export class VxMeasure {
     var j = 0;
     $(this.context.svg).find('g.' + this.smoMeasure.getClassId()).remove();
 
+    // Note: need to do this to get it into VEX KS format
     const key = SmoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature, 0);
-    const canceledKey = this.smoMeasure.canceledKeySignature ? SmoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature, 0)
-      : this.smoMeasure.canceledKeySignature;
-
+    const canceledKey = SmoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature, 0);
     const staffX = this.smoMeasure.staffX + this.smoMeasure.format.padLeft;
-
     this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - this.smoMeasure.format.padLeft,
       { font: { family: SourceSansProFont.fontFamily, size: '12pt' }, fill_style: VxMeasure.fillStyle });
     // If there is padLeft, draw an invisible box so the padding is included in the measure box

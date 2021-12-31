@@ -350,7 +350,7 @@ export abstract class SuiScoreView {
   }
   setMappedStaffIds() {
     this.score.staves.forEach((staff) => {
-      if (!this.isPartExposed(staff)) {
+      if (!this.isPartExposed()) {
         staff.partInfo.displayCues = staff.partInfo.cueInScore;
       } else {
         staff.partInfo.displayCues = false;
@@ -379,10 +379,8 @@ export abstract class SuiScoreView {
   isStaffVisible(staffId: number): boolean {
     return this.staffMap.findIndex((x) => x === staffId) >= 0;
   }
-  isPartExposed(staff: SmoSystemStaff): boolean {
-    const staveCount = staff.partInfo.stavesAfter + staff.partInfo.stavesBefore + 1;
-    return this.score.staves[0].staffId === staff.staffId && staveCount === this.score.staves.length
-      && staff.partInfo.stavesBefore === 0;
+  isPartExposed(): boolean {
+    return this.score.isPartExposed();
   }
   _mapPartFormatting() {
     this.score.layoutManager = this.score.staves[0].partInfo.layoutManager;
@@ -432,7 +430,7 @@ export abstract class SuiScoreView {
     // TODO: add part-specific measure formatting, etc.
     this.renderer.score = nscore;
     // If this current view is a part, show the part layout
-    if (this.isPartExposed(this.score.staves[0])) {
+    if (this.isPartExposed()) {
       this._mapPartFormatting();
       this.score.staves.forEach((staff) => {
         staff.partInfo.displayCues = false;

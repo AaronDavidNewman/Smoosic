@@ -60,7 +60,7 @@ export class SuiInstrumentAdapter extends SuiComponentAdapter {
   set applyTo(value: number) {
     this.applies = value;
     if (value === SuiInstrumentDialog.applyTo.score) {
-      this.selections = SmoSelection.getMeasureList(this.view.tracker.selections);
+      this.selections = SmoSelection.selectionsToEnd(this.view.score, this.selector.staff, 0);
     } else if (this.applyTo === SuiInstrumentDialog.applyTo.remaining) {
       this.selections = SmoSelection.selectionsToEnd(this.view.score, this.selector.staff, this.selector.measure);
     } else {

@@ -434,7 +434,7 @@ export class VxSystem {
       return;
     }
 
-    const vxMeasure: any = new VxMeasure(this.context, selection, printing);
+    const vxMeasure: VxMeasure = new VxMeasure(this.context, selection, printing);
 
     // create the vex notes, beam groups etc. for the measure
     vxMeasure.preFormat();

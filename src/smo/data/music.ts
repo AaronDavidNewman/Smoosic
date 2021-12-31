@@ -888,12 +888,47 @@ export class SmoMusic {
     return rv;
   }
   /**
+   * Get the actual pitch we are going to render, either the original pitch or the one transposed to
+   * concert key
+   * @param pitch original pitch
+   * @param offset transpose offset of instrument
+   * @param transposingScore whether or not the score is transposing 
+   * @param keySignature KS of measure
+   * @returns 
+   */
+  static getTransposedPitch(pitch: Pitch, offset: number, transposingScore: boolean, keySignature: string): Pitch {
+    if (!transposingScore || offset === 0) {
+      return JSON.parse(JSON.stringify(pitch));
+    }
+    const rv = SmoMusic.smoIntToPitch(
+      SmoMusic.smoPitchToInt(pitch) - offset);
+    const concertKey = SmoMusic.vexKeySigWithOffset(keySignature, -1 * offset);
+    return SmoMusic.getEnharmonicInKey(pitch, concertKey);
+  }
+  /**
+   * get the actual key signature we are going to render
+   * @param offset transpose offset of instrument
+   * @param transposingScore whether or not the score is transposing 
+   * @param keySignature KS of measure
+   * @returns 
+   */
+  static getTransposedKeySignature(offset: number, transposingScore: boolean, keySignature: string): string {
+    if (keySignature.length < 1) {
+      return keySignature;
+    }
+    const ks = transposingScore ? SmoMusic.vexKeySigWithOffset(keySignature, -1 * offset) : keySignature;
+    return SmoMusic.vexKeySignatureTranspose(ks, 0);
+  }
+  /**
    *
    * @param key start key
    * @param transposeIndex number of 1/2 steps
    * @returns {string} - vex key
    */
   static vexKeySignatureTranspose(key: string, transposeIndex: number): string {
+    if (key.length < 1) {
+      return key;
+    }
     const pitch: Pitch = SmoMusic.pitchKeyToPitch(SmoMusic.vexToSmoKey(key));
     key = SmoMusic.smoPitchesToVexKeys([pitch], transposeIndex, null)[0];
     key = SmoMusic.stripVexOctave(key);

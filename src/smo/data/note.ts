@@ -540,7 +540,7 @@ export class SmoNote implements Transposable {
    * @param keySignature
    * @returns 
    */
-  transpose(pitchArray: number[], offset: number, keySignature: string) {
+  transpose(pitchArray: number[], offset: number, keySignature: string): Transposable {
     return SmoNote.transpose(this, pitchArray, offset, keySignature);
   }
   /**
@@ -573,7 +573,7 @@ export class SmoNote implements Transposable {
    * @param keySignature for finding key-friendly enharmonic
    * @returns 
    */
-  static transpose(note: Transposable, pitchArray: number[], offset: number, keySignature: string) {
+  static transpose(note: Transposable, pitchArray: number[], offset: number, keySignature: string): Transposable {
     let index: number = 0;
     let j: number = 0;
     let letterKey: string = 'a';

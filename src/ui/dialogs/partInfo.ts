@@ -32,6 +32,9 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
     this.selection = SmoSelection.measureSelection(this.view.score, selector.staff, selector.measure)!;
     this.partInfo = this.selection.staff.partInfo;
     this.backup = new SmoPartInfo(this.selection.staff.partInfo);
+    if (this.view.isPartExposed()) {
+      this.restoreView = false;
+    }
   }
   update() {
     const self = this;
@@ -59,6 +62,7 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
       return;
     }
     this.partInfo[attr] = value;
+    this.changed = true;
   }
   get restoreScoreView() {
     return this.restoreView;
@@ -165,12 +169,16 @@ export class SuiPartInfoAdapter extends SuiComponentAdapter {
     });
   }
   commit() {
+    if (this.changed) {
+      this.update();
+    }
     if (this.restoreView) {
       this.restoreViewMap();
     }
   }
   cancel() {
     if (this.changed) {
+      this.partInfo = this.backup;
       this.update();
     }
     // restore previous view

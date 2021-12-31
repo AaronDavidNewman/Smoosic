@@ -84,7 +84,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   updateTextGroup(oldVersion: SmoTextGroup, newVersion: SmoTextGroup): Promise<void> {
     const index = this.score.textGroups.findIndex((grp) => oldVersion.attrs.id === grp.attrs.id);
-    const isPartExposed = this.isPartExposed(this.score.staves[0]);
+    const isPartExposed = this.score.isPartExposed();
     SmoUndoable.changeTextGroup(this.score, this.undoBuffer, oldVersion,
       UndoBuffer.bufferSubtypes.UPDATE);
     // If this is part text, don't store it in the score text, except for the displayed score
@@ -1466,7 +1466,7 @@ export class SuiScoreViewOperations extends SuiScoreView {
     const toSelector = this.tracker.getExtremeSelection(1).selector;
     const measureSelections = this.tracker.getSelectedMeasures();
     // If the formatting is on a part, preserve it in the part's info
-    const isPart = this.isPartExposed(measureSelections[0].staff);
+    const isPart = this.isPartExposed();
     measureSelections.forEach((m) => {
       this._undoColumn(label, m.selector.measure);
       SmoOperation.setMeasureFormat(this.score, m, format);

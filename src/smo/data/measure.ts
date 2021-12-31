@@ -21,6 +21,7 @@ import { layoutDebug } from '../../render/sui/layoutDebug';
 import { SvgHelpers } from '../../render/sui/svgHelpers';
 import { TickMap, TickAccidental } from '../xform/tickMap';
 import { MeasureNumber, SvgBox, SmoAttrs, Pitch, PitchLetter, Clef, FontInfo } from './common';
+import { SmoGraceNote } from './noteModifiers';
 
 /**
  * Voice is just a container for {@link SmoNote}
@@ -763,6 +764,20 @@ export class SmoMeasure implements SmoMeasureParams, TickMappable {
     return this.svg.yTop;
   }
 
+  transposeToOffset(offset: number) {
+    const diff = offset - this.transposeIndex;
+    this.voices.forEach((voice) => {
+      voice.notes.forEach((note) => {
+        const pitches: number[] = [...Array(note.pitches.length).keys()];
+        note.transpose(pitches, diff, this.keySignature);
+        note.getGraceNotes().forEach((gn) => {
+          const gpitch: number[] = [...Array(gn.pitches.length).keys()];
+          const xpose = SmoNote.transpose(gn, gpitch, diff, this.keySignature);
+          gn.pitches = xpose.pitches;
+        });
+      });
+    });
+  }
   /**
    * Return actual or estimated highest point in score
    */
