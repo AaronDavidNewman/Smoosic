@@ -337,6 +337,12 @@ export abstract class SuiScoreView {
     return rv;
   }
   startRenderingEngine() {
+    if (!this.renderer.score) {
+      // If the score is transposing, hide the instrument xpose settings
+      this._setTransposing();
+      this.renderer.score = this.score;
+      this.renderer.setViewport(true);
+    }
     this.layoutDemon.startDemon();
   }
   getView(): ViewMapEntry[] {
@@ -428,6 +434,7 @@ export abstract class SuiScoreView {
     // modifiers.
     this.setMappedStaffIds();
     // TODO: add part-specific measure formatting, etc.
+    this._setTransposing();
     this.renderer.score = nscore;
     // If this current view is a part, show the part layout
     if (this.isPartExposed()) {
@@ -448,8 +455,17 @@ export abstract class SuiScoreView {
     this.score = SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
     this.staffMap = this.defaultStaffMap;
     this.setMappedStaffIds();
+    this._setTransposing();
     this.renderer.score = this.score;
     this.renderer.setViewport(true);
+  }
+  _setTransposing() {
+    if (!this.score.isPartExposed()) {
+      const xpose = this.score.preferences?.transposingScore;
+      if (xpose) {
+        this.score.setTransposing();
+      }
+    }
   }
   // ### changeScore
   // Update the view after loading or restoring a completely new score
@@ -459,6 +475,8 @@ export abstract class SuiScoreView {
     this.renderer.setViewport(true);
     this.storeScore = SmoScore.deserialize(JSON.stringify(score.serialize()));
     this.score = score;
+    // If the score is non-transposing, hide the instrument xpose settings
+    this._setTransposing();
     this.staffMap = this.defaultStaffMap;
     this.setMappedStaffIds();
     return this.renderPromise();

@@ -6,7 +6,7 @@
  */
 import { SmoMeasure } from '../../smo/data/measure';
 import { UndoBuffer } from '../../smo/xform/undo';
-import { SmoAttrs,  SvgBox } from '../../smo/data/common';
+import { SvgBox } from '../../smo/data/common';
 import { SmoRenderConfiguration } from './configuration';
 import { PromiseHelpers } from '../../common/promiseHelpers';
 import { SmoSelection } from '../../smo/xform/selections';
@@ -247,7 +247,15 @@ export abstract class SuiRenderState {
     }
   }
 
+  /**
+   * Set the SVG viewport
+   * @param reset whether to re-render the entire SVG DOM
+   * @returns 
+   */
   setViewport(reset: boolean) {
+    if (!this.score) {
+      return;
+    }
     this._setViewport(reset, this.elementId);
     this.score!.staves.forEach((staff) => {
       staff.measures.forEach((measure) => {

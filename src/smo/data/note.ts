@@ -496,7 +496,7 @@ export class SmoNote implements Transposable {
    * Return true if this note is part of a tuplet
    */
   get isTuplet(): boolean {
-    return this.tuplet !== null && this.tuplet.id !== null;
+    return this.tuplet !== null && typeof(this.tuplet.id) !== 'undefined';
   }
 
   addMicrotone(tone: SmoMicrotone) {

@@ -158,11 +158,17 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   updateScorePreferences(pref: SmoScorePreferences): Promise<void> {
     this._undoScorePreferences('Update preferences');
-    // TODO: add action buffer here?
-    this.score.updateScorePreferences(JSON.parse(JSON.stringify(pref)));
-    this.storeScore.updateScorePreferences(JSON.parse(JSON.stringify(pref)));
+    const oldXpose = this.score.preferences.transposingScore;
+    const curXpose = pref.transposingScore;
+    this.score.updateScorePreferences(new SmoScorePreferences(pref));
+    this.storeScore.updateScorePreferences(new SmoScorePreferences(pref));
+    if (curXpose === false && oldXpose === true) {
+      this.score.setNonTransposing();
+    } else if (curXpose === true && oldXpose === false) {
+      this.score.setTransposing();
+    }
     this.renderer.setDirty();
-    return this.renderer.updatePromise()
+    return this.renderer.updatePromise();
   }
   /**
    * Update information about the score, composer etc.
@@ -171,7 +177,6 @@ export class SuiScoreViewOperations extends SuiScoreView {
    */
   updateScoreInfo(scoreInfo: SmoScoreInfo): Promise<void> {
     this._undoScorePreferences('Update preferences');
-    // TODO: add action buffer here?
     this.score.scoreInfo = scoreInfo;
     this.storeScore.scoreInfo = JSON.parse(JSON.stringify(scoreInfo));
     this.renderer.setDirty();

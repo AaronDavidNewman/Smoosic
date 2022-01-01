@@ -36,7 +36,7 @@ export class SuiScoreRender extends SuiRenderState {
   constructor(params: ScoreRenderParams) {
     super(params.config);
     this.elementId = params.elementId;
-    this.score = params.score;
+    // this.score = params.score;
     this.setViewport(true);
   }
   startRenderTime: number = 0;
@@ -149,7 +149,8 @@ export class SuiScoreRender extends SuiRenderState {
   // calculate which symbols like clef, key signature that we have to render in this measure.
   calculateBeginningSymbols(systemIndex: number, measure: SmoMeasure, clefLast: string, keySigLast: string, timeSigLast: TimeSignature, tempoLast: SmoTempoText) {
     // The key signature is set based on the transpose index already, i.e. an Eb part in concert C already has 3 sharps.
-    const xposeOffset = this.score?.preferences?.transposingScore ? measure.transposeIndex : 0;
+    const xposeScore = this.score?.preferences?.transposingScore && (this.score?.isPartExposed() === false);
+    const xposeOffset = xposeScore ? measure.transposeIndex : 0;
     const measureKeySig = SmoMusic.vexKeySignatureTranspose(measure.keySignature, xposeOffset);
     measure.svg.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
     measure.svg.forceTimeSignature = (measure.measureNumber.measureIndex === 0 || 

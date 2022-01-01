@@ -8,11 +8,10 @@ import { SmoMusic } from './music';
 import { Clef, FontInfo, SvgDimensions } from './common';
 import { SmoMeasure, SmoMeasureParams, ColumnMappedParams } from './measure';
 import { SmoNoteModifierBase } from './noteModifiers';
-import { SmoMeasureFormat, SmoMeasureModifierBase, TimeSignature, TimeSignatureParameters } from './measureModifiers';
+import { SmoTempoText, SmoMeasureFormat, SmoMeasureModifierBase, TimeSignature, TimeSignatureParameters } from './measureModifiers';
 import { StaffModifierBase, SmoInstrument } from './staffModifiers';
 import { SmoSystemGroup, SmoTextGroup, SmoScoreModifierBase, SmoPageLayout, SmoLayoutManager, SmoFormattingManager } from './scoreModifiers';
 import { SmoSystemStaff, SmoSystemStaffParams } from './systemStaff';
-import { SmoTempoText } from './measureModifiers';
 import { SmoSelector, SmoSelection } from '../xform/selections';
 import { smoSerialize } from '../../common/serializationHelpers';
 
@@ -44,6 +43,19 @@ export class SmoScoreInfo {
   copyright: string = '';
   version: number = 1;
 }
+export type SmoScorePreferenceBool = 'autoPlay' | 'autoAdvance' | 'showPiano' | 'transposingScore';
+export type SmoScorePreferenceNumber = 'defaultDupleDuration' | 'defaultTripleDuration';
+export const SmoScorePreferenceBools: SmoScorePreferenceBool[] = ['autoPlay', 'autoAdvance', 'showPiano', 'transposingScore'];
+export const SmoScorePreferenceNumbers: SmoScorePreferenceNumber[] = ['defaultDupleDuration', 'defaultTripleDuration'];
+export interface SmoScorePreferencesParams {
+  autoPlay: boolean;
+  autoAdvance: boolean;
+  defaultDupleDuration: number;
+  defaultTripleDuration: number;
+  customProportion: number;
+  showPiano: boolean;
+  transposingScore: boolean;
+}
 /**
  * Some default SMO behavior
  * @param autoPlay play a new note or chord
@@ -63,6 +75,27 @@ export class SmoScorePreferences {
   customProportion: number = 100;
   showPiano: boolean = true;
   transposingScore: boolean = false;
+  static get defaults(): SmoScorePreferencesParams {
+    return {
+      autoPlay: true,
+      autoAdvance: true,
+      defaultDupleDuration: 4096,
+      defaultTripleDuration: 6144,
+      customProportion: 100,
+      showPiano: true,
+      transposingScore: false
+    };
+  }
+  constructor(params: SmoScorePreferencesParams) {
+    if (params) {
+      SmoScorePreferenceBools.forEach((bb) => {
+        this[bb] = params[bb];
+      });
+      SmoScorePreferenceNumbers.forEach((nn) => {
+        this[nn] = params[nn];
+      });
+    }
+  }
 }
 /**
  * Constructor parameters.  Usually you will call
@@ -105,7 +138,7 @@ export class SmoScore {
   fonts: FontPurpose[] = []
   staffWidth: number = 1600
   scoreInfo: SmoScoreInfo = new SmoScoreInfo();
-  preferences: SmoScorePreferences = new SmoScorePreferences();
+  preferences: SmoScorePreferences = new SmoScorePreferences(SmoScorePreferences.defaults);
   startIndex: number = 0;
   staves: SmoSystemStaff[] = [];
   activeStaff: number = 0;
@@ -635,6 +668,40 @@ export class SmoScore {
       const netOffset = staff.measures[measureIndex].transposeIndex;
       const newKey = SmoMusic.vexKeySigWithOffset(key, netOffset);
       staff.addKeySignature(measureIndex, newKey);
+    });
+  }
+
+  /**
+   * If the part is a transposing part, remove the transposition from the notes/staff.  This logic
+   * assumes the measures previously had transposeIndex set up by the instrument map.
+   */
+  setTransposing() {
+    this.staves.forEach((staff) => {
+      staff.measures.forEach((mm) => {
+        if (mm.transposeIndex !== 0) {
+          const concert = SmoMusic.vexKeySigWithOffset(mm.keySignature, -1 * mm.transposeIndex);
+          mm.transposeToOffset(0);
+          mm.transposeIndex = 0;
+          mm.keySignature = concert;
+        }
+      });
+    });
+  }
+  /**
+   * If the score is switching from transposing to non-transposing, update the index
+   * and pitches.  This logic assumes we are changing from transposing to non-transposing.
+   */
+  setNonTransposing() {
+    this.staves.forEach((staff) => {
+      staff.measures.forEach((mm) => {
+        const inst = staff.getStaffInstrument(mm.measureNumber.measureIndex);
+        if (inst.keyOffset !== 0) {
+          const concert = SmoMusic.vexKeySigWithOffset(mm.keySignature, inst.keyOffset);
+          mm.transposeToOffset(inst.keyOffset);
+          mm.transposeIndex = inst.keyOffset;
+          mm.keySignature = concert;
+        }
+      });
     });
   }
 

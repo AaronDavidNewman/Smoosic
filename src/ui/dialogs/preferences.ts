@@ -14,7 +14,7 @@ export class SuiScorePreferencesAdapter extends SuiComponentAdapter {
   backup: SmoScorePreferences;
   constructor(view: SuiScoreViewOperations) {
     super(view);
-    this.preferences = view.score.preferences;
+    this.preferences = new SmoScorePreferences(view.score.preferences);
     this.backup = JSON.parse(JSON.stringify(this.preferences));
   }
   get autoAdvance(): boolean {

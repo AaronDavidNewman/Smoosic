@@ -600,7 +600,8 @@ export class SmoMusic {
 
   /**
    * Consider instrument transpose when setting key -
-   * e.g. Eb for Bb instruments is F.
+   * e.g. Eb for Bb instruments is F. Note:  return value is not
+   * a valid VEX key signature.  Use vexKeySignatureTranspose for that.
    */
   static vexKeySigWithOffset(vexKey: string, offset: number): string {
     const pk: PitchKey = SmoMusic.vexToSmoKey(vexKey);
@@ -888,55 +889,29 @@ export class SmoMusic {
     return rv;
   }
   /**
-   * Get the actual pitch we are going to render, either the original pitch or the one transposed to
-   * concert key
-   * @param pitch original pitch
-   * @param offset transpose offset of instrument
-   * @param transposingScore whether or not the score is transposing 
-   * @param keySignature KS of measure
-   * @returns 
-   */
-  static getTransposedPitch(pitch: Pitch, offset: number, transposingScore: boolean, keySignature: string): Pitch {
-    if (!transposingScore || offset === 0) {
-      return JSON.parse(JSON.stringify(pitch));
-    }
-    const rv = SmoMusic.smoIntToPitch(
-      SmoMusic.smoPitchToInt(pitch) - offset);
-    const concertKey = SmoMusic.vexKeySigWithOffset(keySignature, -1 * offset);
-    return SmoMusic.getEnharmonicInKey(pitch, concertKey);
-  }
-  /**
-   * get the actual key signature we are going to render
-   * @param offset transpose offset of instrument
-   * @param transposingScore whether or not the score is transposing 
-   * @param keySignature KS of measure
-   * @returns 
-   */
-  static getTransposedKeySignature(offset: number, transposingScore: boolean, keySignature: string): string {
-    if (keySignature.length < 1) {
-      return keySignature;
-    }
-    const ks = transposingScore ? SmoMusic.vexKeySigWithOffset(keySignature, -1 * offset) : keySignature;
-    return SmoMusic.vexKeySignatureTranspose(ks, 0);
-  }
-  /**
-   *
+   * return the key signature, transposed a number of 1/2 steps in Vex key format
    * @param key start key
    * @param transposeIndex number of 1/2 steps
    * @returns {string} - vex key
    */
   static vexKeySignatureTranspose(key: string, transposeIndex: number): string {
+    let rv = key;
     if (key.length < 1) {
       return key;
     }
-    const pitch: Pitch = SmoMusic.pitchKeyToPitch(SmoMusic.vexToSmoKey(key));
+    rv = this.vexKeySigWithOffset(key, transposeIndex);
+    if (rv.length === 1) {
+      return rv[0].toUpperCase();
+    }
+    return rv[0].toUpperCase() + rv.substring(1);
+    /* const pitch: Pitch = SmoMusic.pitchKeyToPitch(SmoMusic.vexToSmoKey(key));
     key = SmoMusic.smoPitchesToVexKeys([pitch], transposeIndex, null)[0];
     key = SmoMusic.stripVexOctave(key);
     key = key[0].toUpperCase() + key.substring(1, key.length);
     if (key.length > 1 && key[1] === 'n') {
       key = key[0];
     }
-    return key;
+    return key;  */
   }
   static get frequencyMap() {
     return SmoAudioPitch.pitchFrequencyMap;

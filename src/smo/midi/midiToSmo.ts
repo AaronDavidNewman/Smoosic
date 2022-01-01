@@ -137,7 +137,7 @@ export class MidiToSmo {
    */
    constructor(midi: any, quantizeDuration: number) {
     this.midi = midi;
-    console.log(JSON.stringify(midi, null, ''));
+    // console.log(JSON.stringify(midi, null, ''));
     this.timeSignatureMap[0] = new TimeSignature(TimeSignature.defaults);
     this.tempoMap[0] = new SmoTempoText(SmoTempoText.defaults);
     this.keySignatureMap[0] = 'c';
