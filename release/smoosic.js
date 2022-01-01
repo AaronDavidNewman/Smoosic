@@ -5925,7 +5925,15 @@ class SuiRenderState {
             this.measureMapper.scroller.updateViewport();
         }
     }
+    /**
+     * Set the SVG viewport
+     * @param reset whether to re-render the entire SVG DOM
+     * @returns
+     */
     setViewport(reset) {
+        if (!this.score) {
+            return;
+        }
         this._setViewport(reset, this.elementId);
         this.score.staves.forEach((staff) => {
             staff.measures.forEach((measure) => {
@@ -6302,7 +6310,7 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
         this.startRenderTime = 0;
         this.currentPage = 0;
         this.elementId = params.elementId;
-        this.score = params.score;
+        // this.score = params.score;
         this.setViewport(true);
     }
     // ### createScoreRenderer
@@ -6405,7 +6413,11 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
     // ### calculateBeginningSymbols
     // calculate which symbols like clef, key signature that we have to render in this measure.
     calculateBeginningSymbols(systemIndex, measure, clefLast, keySigLast, timeSigLast, tempoLast) {
-        const measureKeySig = music_1.SmoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
+        var _a, _b, _c;
+        // The key signature is set based on the transpose index already, i.e. an Eb part in concert C already has 3 sharps.
+        const xposeScore = ((_b = (_a = this.score) === null || _a === void 0 ? void 0 : _a.preferences) === null || _b === void 0 ? void 0 : _b.transposingScore) && (((_c = this.score) === null || _c === void 0 ? void 0 : _c.isPartExposed()) === false);
+        const xposeOffset = xposeScore ? measure.transposeIndex : 0;
+        const measureKeySig = music_1.SmoMusic.vexKeySignatureTranspose(measure.keySignature, xposeOffset);
         measure.svg.forceClef = (systemIndex === 0 || measure.clef !== clefLast);
         measure.svg.forceTimeSignature = (measure.measureNumber.measureIndex === 0 ||
             (!measure_1.SmoMeasure.timeSigEqual(timeSigLast, measure.timeSignature)) || measure.timeSignatureString.length > 0);
@@ -6425,8 +6437,8 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
         else if (tempo) {
             measure.svg.forceTempo = tempo.display && measure.svg.rowInSystem === 0;
         }
-        if (measureKeySig !== keySigLast) {
-            measure.canceledKeySignature = music_1.SmoMusic.vexKeySigWithOffset(keySigLast, -1 * measure.transposeIndex);
+        if (measureKeySig !== keySigLast && measure.measureNumber.measureIndex > 0) {
+            measure.canceledKeySignature = music_1.SmoMusic.vexKeySigWithOffset(keySigLast, xposeOffset);
             measure.svg.forceKeySignature = true;
         }
         else if (systemIndex === 0 && measureKeySig !== 'C') {
@@ -6730,8 +6742,8 @@ class SuiScoreRender extends renderState_1.SuiRenderState {
             if (!measureToLeft) {
                 measureToLeft = measure;
             }
-            s.measureKeySig = music_1.SmoMusic.vexKeySignatureTranspose(measure.keySignature, measure.transposeIndex);
-            s.keySigLast = music_1.SmoMusic.vexKeySignatureTranspose(measureToLeft.keySignature, measure.transposeIndex);
+            s.measureKeySig = music_1.SmoMusic.vexKeySignatureTranspose(measure.keySignature, 0);
+            s.keySigLast = music_1.SmoMusic.vexKeySignatureTranspose(measureToLeft.keySignature, 0);
             s.tempoLast = measureToLeft.getTempo();
             s.timeSigLast = measureToLeft.timeSignature;
             s.clefLast = measureToLeft.clef;
@@ -7065,6 +7077,12 @@ class SuiScoreView {
         return rv;
     }
     startRenderingEngine() {
+        if (!this.renderer.score) {
+            // If the score is transposing, hide the instrument xpose settings
+            this._setTransposing();
+            this.renderer.score = this.score;
+            this.renderer.setViewport(true);
+        }
         this.layoutDemon.startDemon();
     }
     getView() {
@@ -7078,7 +7096,7 @@ class SuiScoreView {
     }
     setMappedStaffIds() {
         this.score.staves.forEach((staff) => {
-            if (!this.isPartExposed(staff)) {
+            if (!this.isPartExposed()) {
                 staff.partInfo.displayCues = staff.partInfo.cueInScore;
             }
             else {
@@ -7108,10 +7126,8 @@ class SuiScoreView {
     isStaffVisible(staffId) {
         return this.staffMap.findIndex((x) => x === staffId) >= 0;
     }
-    isPartExposed(staff) {
-        const staveCount = staff.partInfo.stavesAfter + staff.partInfo.stavesBefore + 1;
-        return this.score.staves[0].staffId === staff.staffId && staveCount === this.score.staves.length
-            && staff.partInfo.stavesBefore === 0;
+    isPartExposed() {
+        return this.score.isPartExposed();
     }
     _mapPartFormatting() {
         this.score.layoutManager = this.score.staves[0].partInfo.layoutManager;
@@ -7157,9 +7173,10 @@ class SuiScoreView {
         // modifiers.
         this.setMappedStaffIds();
         // TODO: add part-specific measure formatting, etc.
+        this._setTransposing();
         this.renderer.score = nscore;
         // If this current view is a part, show the part layout
-        if (this.isPartExposed(this.score.staves[0])) {
+        if (this.isPartExposed()) {
             this._mapPartFormatting();
             this.score.staves.forEach((staff) => {
                 staff.partInfo.displayCues = false;
@@ -7178,8 +7195,18 @@ class SuiScoreView {
         this.score = score_1.SmoScore.deserialize(JSON.stringify(this.storeScore.serialize()));
         this.staffMap = this.defaultStaffMap;
         this.setMappedStaffIds();
+        this._setTransposing();
         this.renderer.score = this.score;
         this.renderer.setViewport(true);
+    }
+    _setTransposing() {
+        var _a;
+        if (!this.score.isPartExposed()) {
+            const xpose = (_a = this.score.preferences) === null || _a === void 0 ? void 0 : _a.transposingScore;
+            if (xpose) {
+                this.score.setTransposing();
+            }
+        }
     }
     // ### changeScore
     // Update the view after loading or restoring a completely new score
@@ -7189,6 +7216,8 @@ class SuiScoreView {
         this.renderer.setViewport(true);
         this.storeScore = score_1.SmoScore.deserialize(JSON.stringify(score.serialize()));
         this.score = score;
+        // If the score is non-transposing, hide the instrument xpose settings
+        this._setTransposing();
         this.staffMap = this.defaultStaffMap;
         this.setMappedStaffIds();
         return this.renderPromise();
@@ -7295,7 +7324,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      */
     updateTextGroup(oldVersion, newVersion) {
         const index = this.score.textGroups.findIndex((grp) => oldVersion.attrs.id === grp.attrs.id);
-        const isPartExposed = this.isPartExposed(this.score.staves[0]);
+        const isPartExposed = this.score.isPartExposed();
         undo_1.SmoUndoable.changeTextGroup(this.score, this.undoBuffer, oldVersion, undo_1.UndoBuffer.bufferSubtypes.UPDATE);
         // If this is part text, don't store it in the score text, except for the displayed score
         if (!isPartExposed) {
@@ -7370,9 +7399,16 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      */
     updateScorePreferences(pref) {
         this._undoScorePreferences('Update preferences');
-        // TODO: add action buffer here?
-        this.score.updateScorePreferences(JSON.parse(JSON.stringify(pref)));
-        this.storeScore.updateScorePreferences(JSON.parse(JSON.stringify(pref)));
+        const oldXpose = this.score.preferences.transposingScore;
+        const curXpose = pref.transposingScore;
+        this.score.updateScorePreferences(new score_1.SmoScorePreferences(pref));
+        this.storeScore.updateScorePreferences(new score_1.SmoScorePreferences(pref));
+        if (curXpose === false && oldXpose === true) {
+            this.score.setNonTransposing();
+        }
+        else if (curXpose === true && oldXpose === false) {
+            this.score.setTransposing();
+        }
         this.renderer.setDirty();
         return this.renderer.updatePromise();
     }
@@ -7383,7 +7419,6 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
      */
     updateScoreInfo(scoreInfo) {
         this._undoScorePreferences('Update preferences');
-        // TODO: add action buffer here?
         this.score.scoreInfo = scoreInfo;
         this.storeScore.scoreInfo = JSON.parse(JSON.stringify(scoreInfo));
         this.renderer.setDirty();
@@ -8656,7 +8691,7 @@ class SuiScoreViewOperations extends scoreView_1.SuiScoreView {
         const toSelector = this.tracker.getExtremeSelection(1).selector;
         const measureSelections = this.tracker.getSelectedMeasures();
         // If the formatting is on a part, preserve it in the part's info
-        const isPart = this.isPartExposed(measureSelections[0].staff);
+        const isPart = this.isPartExposed();
         measureSelections.forEach((m) => {
             this._undoColumn(label, m.selector.measure);
             operations_1.SmoOperation.setMeasureFormat(this.score, m, format);
@@ -12568,8 +12603,8 @@ class VxMeasure {
         smoNote.accidentalsRendered = [];
         for (i = 0; i < smoNote.pitches.length && this.tickmapObject !== null; ++i) {
             const pitch = smoNote.pitches[i];
-            const duration = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex];
             const keyAccidental = music_1.SmoMusic.getAccidentalForKeySignature(pitch, this.smoMeasure.keySignature);
+            const duration = this.tickmapObject.tickmaps[voiceIx].durationMap[tickIndex];
             const accidentals = this.tickmapObject.accidentalArray.filter((ar) => ar.duration < duration && ar.pitches[pitch.letter]);
             const acLen = accidentals.length;
             const declared = acLen > 0 ?
@@ -12939,9 +12974,9 @@ class VxMeasure {
     preFormat() {
         var j = 0;
         $(this.context.svg).find('g.' + this.smoMeasure.getClassId()).remove();
+        // Note: need to do this to get it into VEX KS format
         const key = music_1.SmoMusic.vexKeySignatureTranspose(this.smoMeasure.keySignature, 0);
-        const canceledKey = this.smoMeasure.canceledKeySignature ? music_1.SmoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature, 0)
-            : this.smoMeasure.canceledKeySignature;
+        const canceledKey = music_1.SmoMusic.vexKeySignatureTranspose(this.smoMeasure.canceledKeySignature, 0);
         const staffX = this.smoMeasure.staffX + this.smoMeasure.format.padLeft;
         this.stave = new VF.Stave(staffX, this.smoMeasure.staffY, this.smoMeasure.staffWidth - this.smoMeasure.format.padLeft, { font: { family: ssp_sans_metrics_1.SourceSansProFont.fontFamily, size: '12pt' }, fill_style: VxMeasure.fillStyle });
         // If there is padLeft, draw an invisible box so the padding is included in the measure box
@@ -14208,6 +14243,20 @@ class SmoMeasure {
      */
     get yTop() {
         return this.svg.yTop;
+    }
+    transposeToOffset(offset) {
+        const diff = offset - this.transposeIndex;
+        this.voices.forEach((voice) => {
+            voice.notes.forEach((note) => {
+                const pitches = [...Array(note.pitches.length).keys()];
+                note.transpose(pitches, diff, this.keySignature);
+                note.getGraceNotes().forEach((gn) => {
+                    const gpitch = [...Array(gn.pitches.length).keys()];
+                    const xpose = note_1.SmoNote.transpose(gn, gpitch, diff, this.keySignature);
+                    gn.pitches = xpose.pitches;
+                });
+            });
+        });
     }
     /**
      * Return actual or estimated highest point in score
@@ -15856,7 +15905,8 @@ class SmoMusic {
     }
     /**
      * Consider instrument transpose when setting key -
-     * e.g. Eb for Bb instruments is F.
+     * e.g. Eb for Bb instruments is F. Note:  return value is not
+     * a valid VEX key signature.  Use vexKeySignatureTranspose for that.
      */
     static vexKeySigWithOffset(vexKey, offset) {
         const pk = SmoMusic.vexToSmoKey(vexKey);
@@ -16138,20 +16188,29 @@ class SmoMusic {
         return rv;
     }
     /**
-     *
+     * return the key signature, transposed a number of 1/2 steps in Vex key format
      * @param key start key
      * @param transposeIndex number of 1/2 steps
      * @returns {string} - vex key
      */
     static vexKeySignatureTranspose(key, transposeIndex) {
-        const pitch = SmoMusic.pitchKeyToPitch(SmoMusic.vexToSmoKey(key));
+        let rv = key;
+        if (key.length < 1) {
+            return key;
+        }
+        rv = this.vexKeySigWithOffset(key, transposeIndex);
+        if (rv.length === 1) {
+            return rv[0].toUpperCase();
+        }
+        return rv[0].toUpperCase() + rv.substring(1);
+        /* const pitch: Pitch = SmoMusic.pitchKeyToPitch(SmoMusic.vexToSmoKey(key));
         key = SmoMusic.smoPitchesToVexKeys([pitch], transposeIndex, null)[0];
         key = SmoMusic.stripVexOctave(key);
         key = key[0].toUpperCase() + key.substring(1, key.length);
         if (key.length > 1 && key[1] === 'n') {
-            key = key[0];
+          key = key[0];
         }
-        return key;
+        return key;  */
     }
     static get frequencyMap() {
         return SmoAudioPitch.pitchFrequencyMap;
@@ -16965,7 +17024,7 @@ class SmoNote {
      * Return true if this note is part of a tuplet
      */
     get isTuplet() {
-        return this.tuplet !== null && this.tuplet.id !== null;
+        return this.tuplet !== null && typeof (this.tuplet.id) !== 'undefined';
     }
     addMicrotone(tone) {
         const ar = this.tones.filter((tn) => tn.pitchIndex !== tone.pitchIndex);
@@ -17918,7 +17977,7 @@ exports.SmoPartInfo = SmoPartInfo;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmoScore = exports.SmoScorePreferences = exports.SmoScoreInfo = void 0;
+exports.SmoScore = exports.SmoScorePreferences = exports.SmoScorePreferenceNumbers = exports.SmoScorePreferenceBools = exports.SmoScoreInfo = void 0;
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
 // Copyright (c) Aaron David Newman 2021.
 /**
@@ -17930,7 +17989,6 @@ const measure_1 = __webpack_require__(/*! ./measure */ "./src/smo/data/measure.t
 const measureModifiers_1 = __webpack_require__(/*! ./measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const scoreModifiers_1 = __webpack_require__(/*! ./scoreModifiers */ "./src/smo/data/scoreModifiers.ts");
 const systemStaff_1 = __webpack_require__(/*! ./systemStaff */ "./src/smo/data/systemStaff.ts");
-const measureModifiers_2 = __webpack_require__(/*! ./measureModifiers */ "./src/smo/data/measureModifiers.ts");
 const serializationHelpers_1 = __webpack_require__(/*! ../../common/serializationHelpers */ "./src/common/serializationHelpers.js");
 /**
  * Information about the score itself, like composer etc.
@@ -17947,6 +18005,8 @@ class SmoScoreInfo {
     }
 }
 exports.SmoScoreInfo = SmoScoreInfo;
+exports.SmoScorePreferenceBools = ['autoPlay', 'autoAdvance', 'showPiano', 'transposingScore'];
+exports.SmoScorePreferenceNumbers = ['defaultDupleDuration', 'defaultTripleDuration'];
 /**
  * Some default SMO behavior
  * @param autoPlay play a new note or chord
@@ -17955,16 +18015,37 @@ exports.SmoScoreInfo = SmoScoreInfo;
  * @param defaultTripleDuration in ticks, 6/8 etc.
  * @param customProportion a Vex measure format setting
  * @param showPiano show the piano widget in the score
+ * @param transposingScore Whether to show the score parts in concert key
  * @category SmoModifier
  */
 class SmoScorePreferences {
-    constructor() {
+    constructor(params) {
         this.autoPlay = true;
         this.autoAdvance = true;
         this.defaultDupleDuration = 4096;
         this.defaultTripleDuration = 6144;
         this.customProportion = 100;
         this.showPiano = true;
+        this.transposingScore = false;
+        if (params) {
+            exports.SmoScorePreferenceBools.forEach((bb) => {
+                this[bb] = params[bb];
+            });
+            exports.SmoScorePreferenceNumbers.forEach((nn) => {
+                this[nn] = params[nn];
+            });
+        }
+    }
+    static get defaults() {
+        return {
+            autoPlay: true,
+            autoAdvance: true,
+            defaultDupleDuration: 4096,
+            defaultTripleDuration: 6144,
+            customProportion: 100,
+            showPiano: true,
+            transposingScore: false
+        };
     }
 }
 exports.SmoScorePreferences = SmoScorePreferences;
@@ -17978,7 +18059,7 @@ class SmoScore {
         this.fonts = [];
         this.staffWidth = 1600;
         this.scoreInfo = new SmoScoreInfo();
-        this.preferences = new SmoScorePreferences();
+        this.preferences = new SmoScorePreferences(SmoScorePreferences.defaults);
         this.startIndex = 0;
         this.staves = [];
         this.activeStaff = 0;
@@ -18029,7 +18110,8 @@ class SmoScore {
                 defaultDupleDuration: 4096,
                 defaultTripleDuration: 6144,
                 customProportion: 100,
-                showPiano: true
+                showPiano: true,
+                transposingScore: false
             },
             staves: [],
             activeStaff: 0,
@@ -18087,7 +18169,7 @@ class SmoScore {
                     previous.timeSignature = current.timeSignature;
                     timeSignature[ix] = current.timeSignature;
                 }
-                if (!(measureModifiers_2.SmoTempoText.eq(current.tempo, previous.tempo))) {
+                if (!(measureModifiers_1.SmoTempoText.eq(current.tempo, previous.tempo))) {
                     previous.tempo = current.tempo;
                     tempo[ix] = current.tempo;
                 }
@@ -18231,6 +18313,7 @@ class SmoScore {
      * @returns
      */
     static deserialize(jsonString) {
+        var _a;
         let jsonObj = JSON.parse(jsonString);
         let upconvertFormat = false;
         let formattingManager = null;
@@ -18259,6 +18342,7 @@ class SmoScore {
         }
         // params.layout = JSON.parse(JSON.stringify(SmoScore.defaults.layout));
         serializationHelpers_1.smoSerialize.serializedMerge(SmoScore.defaultAttributes, jsonObj.score, params);
+        params.preferences.transposingScore = (_a = params.preferences.transposingScore) !== null && _a !== void 0 ? _a : false;
         jsonObj.staves.forEach((staffObj, staffIx) => {
             staffObj.staffId = staffIx;
             const staff = systemStaff_1.SmoSystemStaff.deserialize(staffObj);
@@ -18448,6 +18532,15 @@ class SmoScore {
         this.systemGroups = this.systemGroups.filter((sg) => !sg.overlaps(newGroup));
         this.systemGroups.push(newGroup);
     }
+    isPartExposed() {
+        if (this.staves.length > 2) {
+            return false;
+        }
+        const staff = this.staves[0];
+        const staveCount = staff.partInfo.stavesAfter + staff.partInfo.stavesBefore + 1;
+        return staveCount === this.staves.length
+            && staff.partInfo.stavesBefore === 0;
+    }
     // ### replace staff
     // Probably due to an undo operation, replace the staff at the given index.
     replaceStaff(index, staff) {
@@ -18471,6 +18564,39 @@ class SmoScore {
             const netOffset = staff.measures[measureIndex].transposeIndex;
             const newKey = music_1.SmoMusic.vexKeySigWithOffset(key, netOffset);
             staff.addKeySignature(measureIndex, newKey);
+        });
+    }
+    /**
+     * If the part is a transposing part, remove the transposition from the notes/staff.  This logic
+     * assumes the measures previously had transposeIndex set up by the instrument map.
+     */
+    setTransposing() {
+        this.staves.forEach((staff) => {
+            staff.measures.forEach((mm) => {
+                if (mm.transposeIndex !== 0) {
+                    const concert = music_1.SmoMusic.vexKeySigWithOffset(mm.keySignature, -1 * mm.transposeIndex);
+                    mm.transposeToOffset(0);
+                    mm.transposeIndex = 0;
+                    mm.keySignature = concert;
+                }
+            });
+        });
+    }
+    /**
+     * If the score is switching from transposing to non-transposing, update the index
+     * and pitches.  This logic assumes we are changing from transposing to non-transposing.
+     */
+    setNonTransposing() {
+        this.staves.forEach((staff) => {
+            staff.measures.forEach((mm) => {
+                const inst = staff.getStaffInstrument(mm.measureNumber.measureIndex);
+                if (inst.keyOffset !== 0) {
+                    const concert = music_1.SmoMusic.vexKeySigWithOffset(mm.keySignature, inst.keyOffset);
+                    mm.transposeToOffset(inst.keyOffset);
+                    mm.transposeIndex = inst.keyOffset;
+                    mm.keySignature = concert;
+                }
+            });
         });
     }
     // ### addInstrument
@@ -20121,6 +20247,7 @@ class SmoSystemStaff {
             for (i; i <= entry.instrument.endSelector.measure; ++i) {
                 const measure = this.measures[i];
                 const concertKey = music_1.SmoMusic.vexKeySigWithOffset(measure.keySignature, -1 * measure.transposeIndex);
+                measure.transposeToOffset(entry.instrument.keyOffset);
                 measure.transposeIndex = entry.instrument.keyOffset;
                 measure.keySignature = music_1.SmoMusic.vexKeySigWithOffset(concertKey, measure.transposeIndex);
                 measure.setClef(entry.instrument.clef);
@@ -20727,7 +20854,7 @@ class MidiToSmo {
         this.quantizeTicks = MidiToSmo.quantizeTicksDefault;
         this.eot = false;
         this.midi = midi;
-        console.log(JSON.stringify(midi, null, ''));
+        // console.log(JSON.stringify(midi, null, ''));
         this.timeSignatureMap[0] = new measureModifiers_1.TimeSignature(measureModifiers_1.TimeSignature.defaults);
         this.tempoMap[0] = new measureModifiers_1.SmoTempoText(measureModifiers_1.SmoTempoText.defaults);
         this.keySignatureMap[0] = 'c';
@@ -38226,7 +38353,7 @@ class SuiInstrumentAdapter extends adapter_1.SuiComponentAdapter {
     set applyTo(value) {
         this.applies = value;
         if (value === SuiInstrumentDialog.applyTo.score) {
-            this.selections = selections_1.SmoSelection.getMeasureList(this.view.tracker.selections);
+            this.selections = selections_1.SmoSelection.selectionsToEnd(this.view.score, this.selector.staff, 0);
         }
         else if (this.applyTo === SuiInstrumentDialog.applyTo.remaining) {
             this.selections = selections_1.SmoSelection.selectionsToEnd(this.view.score, this.selector.staff, this.selector.measure);
@@ -39043,6 +39170,9 @@ class SuiPartInfoAdapter extends adapter_1.SuiComponentAdapter {
         this.selection = selections_1.SmoSelection.measureSelection(this.view.score, selector.staff, selector.measure);
         this.partInfo = this.selection.staff.partInfo;
         this.backup = new partInfo_1.SmoPartInfo(this.selection.staff.partInfo);
+        if (this.view.isPartExposed()) {
+            this.restoreView = false;
+        }
     }
     update() {
         const self = this;
@@ -39069,6 +39199,7 @@ class SuiPartInfoAdapter extends adapter_1.SuiComponentAdapter {
             return;
         }
         this.partInfo[attr] = value;
+        this.changed = true;
     }
     get restoreScoreView() {
         return this.restoreView;
@@ -39176,12 +39307,16 @@ class SuiPartInfoAdapter extends adapter_1.SuiComponentAdapter {
         });
     }
     commit() {
+        if (this.changed) {
+            this.update();
+        }
         if (this.restoreView) {
             this.restoreViewMap();
         }
     }
     cancel() {
         if (this.changed) {
+            this.partInfo = this.backup;
             this.update();
         }
         // restore previous view
@@ -39307,12 +39442,15 @@ SuiPartInfoDialog.dialogElements = {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuiScorePreferencesDialog = exports.SuiScorePreferencesAdapter = void 0;
+// [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
+const score_1 = __webpack_require__(/*! ../../smo/data/score */ "./src/smo/data/score.ts");
 const adapter_1 = __webpack_require__(/*! ./adapter */ "./src/ui/dialogs/adapter.ts");
 const deepCopy = (x) => JSON.parse(JSON.stringify(x));
 class SuiScorePreferencesAdapter extends adapter_1.SuiComponentAdapter {
     constructor(view) {
         super(view);
-        this.preferences = view.score.preferences;
+        this.preferences = new score_1.SmoScorePreferences(view.score.preferences);
         this.backup = JSON.parse(JSON.stringify(this.preferences));
     }
     get autoAdvance() {
@@ -39350,6 +39488,13 @@ class SuiScorePreferencesAdapter extends adapter_1.SuiComponentAdapter {
         this.preferences.defaultTripleDuration = value;
         this.view.updateScorePreferences(this.preferences);
     }
+    get transposingScore() {
+        return this.preferences.transposingScore;
+    }
+    set transposingScore(value) {
+        this.preferences.transposingScore = value;
+        this.view.updateScorePreferences(this.preferences);
+    }
     cancel() {
         const p1 = JSON.stringify(this.preferences);
         const p2 = JSON.stringify(this.backup);
@@ -39382,6 +39527,10 @@ SuiScorePreferencesDialog.dialogElements = {
             smoName: 'showPiano',
             control: 'SuiToggleComponent',
             label: 'Show Piano widget'
+        }, {
+            smoName: 'transposingScore',
+            control: 'SuiToggleComponent',
+            label: 'Tranpose Score'
         }, {
             smoName: 'defaultDupleDuration',
             control: 'SuiDropdownComponent',
