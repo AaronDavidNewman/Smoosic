@@ -106,6 +106,7 @@ import { SuiScoreRender } from '../render/sui/scoreRender';
 import { layoutDebug } from '../render/sui/layoutDebug';
 import { SuiMapper } from '../render/sui/mapper';
 import { SuiScroller } from '../render/sui/scroller';
+import { SvgHelpers } from '../render/sui/svgHelpers';
 // SMO object model
 import { SmoScore } from '../smo/data/score';
 import { UndoBuffer } from '../smo/xform/undo';
@@ -174,7 +175,7 @@ export const Smo = {
     StaffCheckComponent, TextCheckComponent,
     SuiXhrLoader,PromiseHelpers,
     // Rendering components
-    SuiPiano, layoutDebug, SuiScoreView,SuiScroller, SuiMapper, SuiScoreRender,
+    SuiPiano, layoutDebug, SuiScoreView,SuiScroller, SvgHelpers, SuiMapper, SuiScoreRender,
     SuiScoreViewOperations,
     // Smo Music Objects
     SmoScore,

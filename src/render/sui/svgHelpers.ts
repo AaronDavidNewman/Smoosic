@@ -7,6 +7,7 @@ import { SmoSelection } from '../../smo/xform/selections';
 declare var $: any;
 
 export interface StrokeInfo {
+  strokeName: string,
   stroke: string,
   strokeWidth: string | number,
   strokeDasharray: string | number,
@@ -181,20 +182,22 @@ export class SvgHelpers {
 
   // ### eraseOutline
   // Erases old outlineRects.
-  static eraseOutline(svg: SVGSVGElement, style: string) {
-    $(svg).find(style).remove();
+  static eraseOutline(svg: SVGSVGElement, stroke: StrokeInfo) {
+    // Hack:  Assume a stroke style, should just take a stroke param.
+    $(svg).find('g.vf-' + stroke.strokeName).remove();
   }
 
   static _outlineRect(params: OutlineInfo) {
     const scroll = params.scroll;
     const context = params.context;
     // vex puts 'vf-' before everything rendered by context API
-    SvgHelpers.eraseOutline(context.svg, 'g.vf-' + params.classes);
+    SvgHelpers.eraseOutline(context.svg, params.stroke);
     // Don't highlight in print mode.
     if ($('body').hasClass('printing')) {
       return;
     }
-    var grp = context.openGroup(params.classes, params.classes + '-outline');
+    const classes = params.classes.length > 0 ? params.classes + ' ' + params.stroke.strokeName : params.stroke.strokeName;
+    var grp = context.openGroup(classes, classes + '-outline');
     const boxes = Array.isArray(params.box) ? params.box : [params.box];
 
     boxes.forEach((box: SvgBox) => {
@@ -222,6 +225,7 @@ export class SvgHelpers {
   }
 
   static outlineLogicalRect(params: OutlineInfo) {
+    params.clientCoordinates = false;
     SvgHelpers._outlineRect(params);
   }
 
@@ -266,7 +270,7 @@ export class SvgHelpers {
   }
 
   static arrowDown(svg: Document, box: SvgBox) {
-    const arrowStroke: StrokeInfo = { stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 };
+    const arrowStroke: StrokeInfo = { strokeName: 'arrow-stroke', stroke: '#321', strokeWidth: '2', strokeDasharray: '4,1', fill: 'none', opacity: 1.0 };
     SvgHelpers.line(svg, box.x + box.width / 2, box.y, box.x + box.width / 2, box.y + box.height, arrowStroke, '');
     var arrowY = box.y + box.height / 4;
     SvgHelpers.line(svg, box.x, arrowY, box.x + box.width / 2, box.y + box.height, arrowStroke, '');

@@ -45,24 +45,26 @@ export interface SuiLyricSessionParams {
   verse: number;
   selector: SmoSelector;
 }
-// The heirarchy of text editing objects goes:
-// dialog -> component -> session -> editor
-//
-// Editors and Sessions are defined in this module.
-// ### editor
-//  handles low-level events and renders the preview using one
-// of the text layout objects.
-//
-// ### session
-// creates and destroys editors, e.g. for lyrics that have a Different
-// editor instance for each note.
-//
-// ## SuiTextEditor
-// Next-gen text editor.  The base text editor handles the positioning and inserting
-// of text blocks into the text area.  The derived class shoud interpret key events.
-// A container class will manage the session for starting/stopping the editor
-// and retrieving the results into the target object.
-
+export type SuiTextStrokeName = 'text-suggestion' | 'text-selection' | 'text-highlight' | 'text-drag' | 'inactive-text';
+/**
+ * The heirarchy of text editing objects goes:
+ * 
+ * `dialog -> component -> session -> editor`
+ * 
+ * Editors and Sessions are defined in this module.
+ * ### editor
+ * handles low-level events and renders the preview using one
+ * of the text layout objects.
+ * ### session
+ * creates and destroys editors, e.g. for lyrics that have a Different
+ * editor instance for each note.
+ * 
+ * ## SuiTextEditor
+ * The base text editor handles the positioning and inserting
+ * of text blocks into the text area.  The derived class shoud interpret key events.
+ * A container class will manage the session for starting/stopping the editor
+ * and retrieving the results into the target object.
+ * */
 export class SuiTextEditor {
   static get States(): Record<string, number> {
     return { RUNNING: 1, STOPPING: 2, STOPPED: 4, PENDING_EDITOR: 8 };
@@ -114,9 +116,10 @@ export class SuiTextEditor {
     this.text = params.text;
   }
 
-  static get strokes(): Record<string, StrokeInfo> {
+  static get strokes(): Record<SuiTextStrokeName, StrokeInfo> {
     return {
       'text-suggestion': {
+        strokeName: 'text-suggestion',
         stroke: '#cce',
         strokeWidth: 1,
         strokeDasharray: '4,1',
@@ -124,22 +127,35 @@ export class SuiTextEditor {
         opacity: 1.0
       },
       'text-selection': {
+        strokeName: 'text-selection',
         stroke: '#99d',
         strokeWidth: 1,
         fill: 'none',
         strokeDasharray: '',
         opacity: 1.0
-      }, 'text-highlight': {
+      }, 
+      'text-highlight': {
+        strokeName: 'text-highlight',
         stroke: '#dd9',
         strokeWidth: 1,
         strokeDasharray: '4,1',
         fill: 'none',
         opacity: 1.0
-      }, 'text-drag': {
+      }, 
+      'text-drag': {
+        strokeName: 'text-drag',
         stroke: '#d99',
         strokeWidth: 1,
         strokeDasharray: '2,1',
         fill: '#eee',
+        opacity: 0.3
+      },
+      'inactive-text': {
+        strokeName: 'inactive-text',
+        stroke: '#fff',
+        strokeWidth: 1,
+        strokeDasharray: '',
+        fill: '#ddd',
         opacity: 0.3
       }
     };
@@ -147,10 +163,10 @@ export class SuiTextEditor {
 
   // ### _suggestionParameters
   // Create the svg text outline parameters
-  _suggestionParameters(box: SvgBox, strokeName: string): OutlineInfo {
+  _suggestionParameters(box: SvgBox, strokeName: SuiTextStrokeName): OutlineInfo {
     const outlineStroke = SuiTextEditor.strokes[strokeName];
     return {
-      context: this.context, box, classes: strokeName,
+      context: this.context, box, classes: '',
       stroke: outlineStroke, scroll: this.scroller.scrollState.scroll,
       clientCoordinates: false
     };
@@ -200,7 +216,7 @@ export class SuiTextEditor {
 
     // The mouse is not over the text
     if (!blocks.length) {
-      SvgHelpers.eraseOutline(this.context.svg, 'text-suggestion');
+      SvgHelpers.eraseOutline(this.context.svg, SuiTextEditor.strokes['text-suggestion']);
 
       // If the user clicks and there was a previous selection, treat it as selected
       if (ev.type === 'click' && this.suggestionIndex >= 0) {
@@ -223,7 +239,7 @@ export class SuiTextEditor {
     });
     // if the user clicked on it, add it to the selection.
     if (ev.type === 'click') {
-      SvgHelpers.eraseOutline(this.context.svg, 'text-suggestion');
+      SvgHelpers.eraseOutline(this.context.svg, SuiTextEditor.strokes['text-suggestion']);
       if (ev.shiftKey) {
         this._expandSelectionToSuggestion();
       } else {
@@ -486,6 +502,7 @@ export class SuiTextBlockEditor extends SuiTextEditor {
   // params: {lyric: SmoLyric,...}
   constructor(params: SuiTextEditorParams) {
     super(params);
+    $(this.context.svg).find('g.vf-text-highlight').remove();
     this.parseBlocks();
   }
 
@@ -496,7 +513,7 @@ export class SuiTextBlockEditor extends SuiTextEditor {
     const bbox = this.svgText.getLogicalBox();
     const outlineStroke = SuiTextEditor.strokes['text-highlight'];
     const obj: OutlineInfo = {
-      context: this.context, box: bbox, classes: 'text-highlight',
+      context: this.context, box: bbox, classes: '',
       stroke: outlineStroke, scroll: this.scroller.scrollState.scroll, clientCoordinates: false
     };
     SvgHelpers.outlineLogicalRect(obj);
@@ -841,7 +858,7 @@ export class SuiDragSession {
     }
     const svgX = this.currentBox.x;
     const svgY = this.currentBox.y;
-    this.currentClientBox.x = e.clientX - this.xOffset;
+    this.currentClientBox.x = e.clientX + this.xOffset;
     this.currentClientBox.y = e.clientY - this.yOffset;
     const coor = SvgHelpers.clientToLogical(this.context.svg,
       {
@@ -854,7 +871,7 @@ export class SuiDragSession {
     this.textObject.offsetStartX(this.currentBox.x - svgX);
     this.textObject.offsetStartY(this.currentBox.y - svgY);
     this.textObject.render();
-    SvgHelpers.eraseOutline(this.context.svg, 'text-drag');
+    SvgHelpers.eraseOutline(this.context.svg, SuiTextEditor.strokes['text-drag']);
     this._outlineBox();
   }
   get deltaX(): number {
@@ -868,8 +885,11 @@ export class SuiDragSession {
     this.textObject.render();
     this.textGroup.offsetX(this.deltaX);
     this.textGroup.offsetY(this.deltaY);
+    // Update starting position if the drag session starts again.
+    this.startBox.x += this.deltaX;
+    this.startBox.y += this.deltaY;
     this.dragging = false;
-    SvgHelpers.eraseOutline(this.context.svg, 'text-drag');
+    SvgHelpers.eraseOutline(this.context.svg, SuiTextEditor.strokes['text-drag']);
   }
 }
 

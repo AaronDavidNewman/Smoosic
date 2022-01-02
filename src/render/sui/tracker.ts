@@ -142,7 +142,7 @@ export class SuiTracker extends SuiMapper {
       return;
     }
     this.idleTimer = Date.now();
-    this.eraseRect('staffModifier');
+    SvgHelpers.eraseOutline(this.svg, SuiTracker.strokes['staffModifier']);
     const offset = keyEv.key === 'ArrowLeft' ? -1 : 1;
 
     if (!this.modifierTabs.length) {
@@ -598,6 +598,7 @@ export class SuiTracker extends SuiMapper {
     if (this.modifierSuggestion >= 0) {
       if (this.suggestFadeTimer) {
         clearTimeout(this.suggestFadeTimer);
+        this.suggestFadeTimer = null;
       }
       this.modifierIndex = -1;
       this.modifierSelections = [this.modifierTabs[this.modifierSuggestion]];
@@ -656,6 +657,7 @@ export class SuiTracker extends SuiMapper {
   static get strokes(): Record<string, StrokeInfo> {
     return {
       suggestion: {
+        strokeName: 'suggestion',
         stroke: '#fc9',
         strokeWidth: 2,
         strokeDasharray: '4,1',
@@ -663,6 +665,7 @@ export class SuiTracker extends SuiMapper {
         opacity: 1.0
       },
       selection: {
+        strokeName: 'selection',
         stroke: '#99d',
         strokeWidth: 2,
         strokeDasharray: 2,
@@ -670,6 +673,7 @@ export class SuiTracker extends SuiMapper {
         opacity: 1.0
       },
       staffModifier: {
+        strokeName: 'staffModifier',
         stroke: '#933',
         strokeWidth: 2,
         fill: 'none',
@@ -686,7 +690,7 @@ export class SuiTracker extends SuiMapper {
     const tracker = this;
     this.suggestFadeTimer = setTimeout(() => {
       if (tracker.containsArtifact()) {
-        tracker.eraseRect('suggestion');
+        SvgHelpers.eraseOutline(this.svg, SuiTracker.strokes['suggestion']);
         tracker.modifierSuggestion = -1;
       }
     }, 1000);
@@ -716,16 +720,10 @@ export class SuiTracker extends SuiMapper {
   }
 
   eraseAllSelections() {
-    const strokeKeys = Object.keys(SuiTracker.strokes);
-    strokeKeys.forEach((key) => {
-      this.eraseRect(key);
+    Object.keys(SuiTracker.strokes).forEach((key) => {
+      SvgHelpers.eraseOutline(this.svg, SuiTracker.strokes[key]);
     });
   }
-
-  eraseRect(stroke: string) {
-    $(this.renderElement).find('g.vf-' + stroke).remove();
-  }
-
   _highlightModifier() {
     let box: SvgBox | null = null;
     if (!this.modifierSelections.length) {
@@ -844,7 +842,7 @@ export class SuiTracker extends SuiMapper {
   _suggestionParameters(box: SvgBox | SvgBox[], strokeName: string): OutlineInfo {
     const stroke: StrokeInfo = (SuiTracker.strokes as any)[strokeName];
     return {
-      context: this.renderer.context, box, classes: strokeName,
+      context: this.renderer.context, box, classes: '',
       stroke, scroll: this.scroller.scrollState.scroll, clientCoordinates: false
     };
   }

@@ -47,6 +47,7 @@ export class SuiDragText extends SuiComponentBase {
     $(this._getInputElement()).find('span.icon').removeClass('icon-checkmark').addClass('icon-move');
     if (this.session && this.session.dragging) {
       this.session.dragging = false;
+      this.session.endDrag();
     }
     this.running = false;
   }
