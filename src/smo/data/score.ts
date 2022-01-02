@@ -431,6 +431,9 @@ export class SmoScore {
     smoSerialize.serializedMerge(
       SmoScore.defaultAttributes,
       jsonObj.score, params);
+    if (!params.preferences) {
+      params.preferences = SmoScore.defaults.preferences;
+    }
     params.preferences.transposingScore = params.preferences.transposingScore ?? false;
 
     jsonObj.staves.forEach((staffObj: any, staffIx: number) => {

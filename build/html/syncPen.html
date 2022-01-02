@@ -31,7 +31,7 @@
       const notesFromLetters = Smo.SmoMusic.notesFromLetters;
 
       // Create an empty score.  'Empty' score actually has a single treble-clef measure of rests.
-      const score = Smo.SmoScore.deserialize(Smo.emptyScoreJson);
+      const score = Smo.SmoScore.getDefaultScore(Smo.SmoScore.defaults, null);
 
       // create a new measure - we are going to replace the default measure with it.
       // Most SMO objects have defaults that you can use to construct a generic version

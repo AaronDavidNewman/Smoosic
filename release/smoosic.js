@@ -18342,6 +18342,9 @@ class SmoScore {
         }
         // params.layout = JSON.parse(JSON.stringify(SmoScore.defaults.layout));
         serializationHelpers_1.smoSerialize.serializedMerge(SmoScore.defaultAttributes, jsonObj.score, params);
+        if (!params.preferences) {
+            params.preferences = SmoScore.defaults.preferences;
+        }
         params.preferences.transposingScore = (_a = params.preferences.transposingScore) !== null && _a !== void 0 ? _a : false;
         jsonObj.staves.forEach((staffObj, staffIx) => {
             staffObj.staffId = staffIx;
