@@ -1237,6 +1237,15 @@ export class SuiScoreViewOperations extends SuiScoreView {
     this._undoScore('Set Page Layout');
     this.score.layoutManager!.updatePage(layout, pageIndex);
     this.storeScore.layoutManager!.updatePage(layout, pageIndex);
+    // If we are in part mode, save the page layout in the part so it is there next time
+    // the part is exposed.
+    if (this.score.isPartExposed()) {
+      this.score.staves.forEach((staff, staffIx) => {
+        staff.partInfo.layoutManager.updatePage(layout, pageIndex);
+        const altStaff = this.storeScore.staves[this.staffMap[staffIx]];
+        altStaff.partInfo.layoutManager.updatePage(layout, pageIndex);
+      });
+    }
     this.renderer.rerenderAll();
     return this.renderer.updatePromise();
   }

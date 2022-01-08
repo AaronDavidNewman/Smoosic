@@ -56,10 +56,11 @@ export interface XmlLyricData {
  * @category SmoToXml
  * */
 export class XmlHelpers {
-  // ### noteTypesToSmoMap
-  // mxml note 'types', really s/b stem types.
-  // For grace notes, we use the note type and not duration
-  // to get the flag
+  /**
+   * mxml note 'types', really s/b stem types.
+   * For grace notes, we use the note type and not duration
+   * to get the flag
+   */
   static get noteTypesToSmoMap(): Record<string, number> {
     return {
       'breve': 8192 * 4,

@@ -1,5 +1,7 @@
 <sub>[Github site](https://github.com/AaronDavidNewman/smoosic) | [source documentation](https://aarondavidnewman.github.io/Smoosic/release/docs/modules.html) | [change notes](https://aarondavidnewman.github.io/Smoosic/changes.html) | [application](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)<sub> 
 
+![](https://imgur.com/quur6md.png)
+
 # What is Smoosic?
 See [changes](https://aarondavidnewman.github.io/Smoosic/changes.html) for potentially breaking config object changes.
 Smoosic is an open-source javascript/typescript music composition and rendering library that uses the [VexFlow engraving library](https://github.com/0xfe/vexflow) for the rendering component.  There is also a [demo application](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html) using Smoosic.
@@ -62,15 +64,12 @@ Configuration
 
 ## Future SMO
 Things I am actively working on:
-1. MIDI import
-2. Taming the configuration object
-3. Documentation and examples
+1. Part extraction and formatting
+2. XML import and export imrprovements
 
 Things I hope to be working on soon:
-1. Part extraction, instruments
 2. UI improvements
 3. More rendering features
-4. Recording/playback of macros (actions)
 
 ## I'd like to help
 I'd appreciate it!  Even if you are not a programmer, if you are interested in music and this project, you can contribute.

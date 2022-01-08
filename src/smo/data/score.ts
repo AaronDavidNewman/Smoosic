@@ -47,6 +47,9 @@ export type SmoScorePreferenceBool = 'autoPlay' | 'autoAdvance' | 'showPiano' | 
 export type SmoScorePreferenceNumber = 'defaultDupleDuration' | 'defaultTripleDuration';
 export const SmoScorePreferenceBools: SmoScorePreferenceBool[] = ['autoPlay', 'autoAdvance', 'showPiano', 'transposingScore'];
 export const SmoScorePreferenceNumbers: SmoScorePreferenceNumber[] = ['defaultDupleDuration', 'defaultTripleDuration'];
+/**
+ * Global score/program behavior preferences, see below for parameters
+ */
 export interface SmoScorePreferencesParams {
   autoPlay: boolean;
   autoAdvance: boolean;
@@ -467,9 +470,10 @@ export class SmoScore {
     score.scoreInfo.version += 1;
     return score;
   }
-  // ## fromLegacyScore
-  // Convert measure formatting from legacy scores, that had the formatting
-  // per measure, to the new way that has a separate formatting object.
+  /**
+  * Convert measure formatting from legacy scores, that had the formatting
+  * per measure, to the new way that has a separate formatting object.
+  * **/
   static measureFormatFromLegacyScore(score: SmoScore, jsonObj: any): SmoFormattingManager | null {
     let current: SmoMeasureFormat | null = null;
     let previous: SmoMeasureFormat | null = null;

@@ -4,7 +4,7 @@ import { XmlHelpers, XmlLyricData, XmlDurationAlteration, XmlTieType, XmlSlurTyp
 import { SmoMeasureModifierBase, SmoTempoText } from '../data/measureModifiers';
 import { SmoSystemGroup, SmoFormattingManager } from '../data/scoreModifiers';
 import { SmoNote } from '../data/note';
-import { SmoTie, SmoStaffHairpin, SmoSlur, SmoSlurParams } from '../data/staffModifiers';
+import { SmoTie, SmoStaffHairpin, SmoSlur, SmoSlurParams, SmoInstrument, SmoInstrumentParams } from '../data/staffModifiers';
 import { SmoLyric, SmoDynamicText, SmoGraceNote } from '../data/noteModifiers';
 import { SmoTuplet } from '../data/tuplet';
 import { SmoSystemStaff } from '../data/systemStaff';
@@ -83,6 +83,8 @@ export class XmlState {
   ties: Record<number, XmlTieType> = {};
   wedges: XmlWedgeState = {} as XmlWedgeState;
   hairpins: XmlHairpinInfo[] = [];
+  instrument: SmoInstrumentParams = SmoInstrument.defaults;
+  instrumentMap: Record<number, SmoInstrument> = {};
   globalCursor = 0;
   staffVoiceHash: Record<string | number, number[]> = {};
   endingMap: Record<number, XmlEnding[]> = {};
@@ -125,6 +127,8 @@ export class XmlState {
     this.completedSlurs = [];
     this.completedTies = [];
     this.verseMap = {};
+    this.instrument.keyOffset = 0;
+    this.instrumentMap = {};
     this.formattingManager = new SmoFormattingManager(SmoFormattingManager.defaults);
   }
   // ### initializeForMeasure

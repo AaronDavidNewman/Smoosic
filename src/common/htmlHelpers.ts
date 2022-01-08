@@ -1,15 +1,9 @@
 // [Smoosic](https://github.com/AaronDavidNewman/Smoosic)
+// Copyright (c) Aaron David Newman 2021.
 
 import { SuiModalButtonStrings } from "../../release/smoosic";
 
-// Copyright (c) Aaron David Newman 2021.
 declare var $: any;
-// var smoDomBuilder = function (el) {}
-
-// # htmlHelpers
-// # Description:
-//  Helper functions for buildling UI elements
-
 /**
 * returns an object that  lets you build a DOM in a somewhat readable way.
 * 
@@ -24,7 +18,7 @@ declare var $: any;
 * ```  
 * Don't forget the '.dom()' !  That is the actual jquery element object
 * @returns 
-*/
+**/
 export class DomBuilder {
   e: any;
   constructor(el: any) {

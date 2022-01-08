@@ -53,14 +53,6 @@ export class SuiFileMenu extends SuiMenuBase {
       text: 'Import Midi',
       value: 'importMidi'
     }, {
-      icon: 'folder-save',
-      text: 'Save Actions',
-      value: 'saveActions'
-    }, {
-      icon: 'icon-play3',
-      text: 'Play Actions',
-      value: 'playActions'
-    }, {
       icon: '',
       text: 'Cancel',
       value: 'cancel'
@@ -98,31 +90,7 @@ export class SuiFileMenu extends SuiMenuBase {
         eventSource: this.eventSource,
         view: this.view,
         startPromise: this.closePromise
-      });/* 
-    } else if (text === 'saveActions') {
-      SuiSaveActionsDialog.createAndDisplay({
-        ctor: 'SuiSaveActionsDialog',
-        id: 'save',
-        modifier: null,
-        completeNotifier: this.completeNotifier,
-        tracker: this.tracker,
-        undoBuffer: this.undoBuffer,
-        eventSource: this.eventSource,
-        view: this.view,
-        startPromise: this.closePromise
       });
-    } else if (text === 'playActions') {
-      SuiLoadActionsDialog.createAndDisplay({
-        ctor: 'SuiLoadActionsDialog',
-        id: 'loadAction',
-        modifier: null,
-        completeNotifier: this.completeNotifier,
-        tracker: this.tracker,
-        undoBuffer: this.undoBuffer,
-        eventSource: this.eventSource,
-        view: this.view,
-        startPromise: this.closePromise
-      });  */
     } else if (text === 'openFile') {
       createAndDisplayDialog(SuiLoadFileDialog, {
         ctor: 'SuiLoadFileDialog',

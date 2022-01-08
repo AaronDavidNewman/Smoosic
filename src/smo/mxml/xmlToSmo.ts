@@ -19,6 +19,7 @@ import { Pitch, PitchKey, Clef } from '../data/common';
 import { SmoSlur } from '../../../release/smoosic';
 import { SmoSelection } from '../xform/selections';
 import { SmoOperation } from '../xform/operations';
+import { SmoInstrument } from '../data/staffModifiers';
 
 /**
  * A class that takes a music XML file and outputs a {@link SmoScore}
@@ -172,6 +173,11 @@ export class XmlToSmo {
       });
     });
   }
+  /**
+   * After parsing the XML, resolve the voltas we've saved
+   * @param score 
+   * @param state 
+   */
   static setVoltas(score: SmoScore, state: XmlState) {
     const endingMeasures = Object.keys(state.endingMap).map((k) => parseInt(k, 10));
     endingMeasures.forEach((em) => {
@@ -187,8 +193,12 @@ export class XmlToSmo {
     });
   }
 
-  // ### defaults
-  // /score-partwise/defaults
+  /**
+   * /score-partwise/defaults
+   * @param defaultsElement 
+   * @param score 
+   * @param layoutDefaults 
+   */
   static defaults(defaultsElement: Element, score: SmoScore, layoutDefaults: SmoLayoutManager) {
     // Default scale for mxml
     let scale = 1 / 7;
@@ -238,6 +248,7 @@ export class XmlToSmo {
         if (stavesForPart.length <= staffMeasure.clefInfo.staffId) {
           const params = SmoSystemStaff.defaults;
           params.staffId = staffId;
+          params.measureInstrumentMap = xmlState.instrumentMap;
           stavesForPart.push(new SmoSystemStaff(params));
           staffId += 1;
         }
@@ -332,6 +343,19 @@ export class XmlToSmo {
       xmlState.keySignature = smoKey.letter.toUpperCase();
       if (smoKey.accidental !== 'n') {
         xmlState.keySignature += smoKey.accidental;
+      }
+    }
+    const transposeNode = XmlHelpers.getChildrenFromPath(attributesNode, ['transpose']);
+    if (transposeNode.length) {
+      const offset = XmlHelpers.getNumberFromElement(transposeNode[0], 'chromatic', 0);
+      if (offset !== xmlState.instrument.keyOffset) {
+        xmlState.instrument.keyOffset = -1 * offset;
+        if (xmlState.instrumentMap[xmlState.measureIndex]) {
+          xmlState.instrumentMap[xmlState.measureIndex].keyOffset = xmlState.instrument.keyOffset;
+        } else {
+          const params = xmlState.instrument;
+          xmlState.instrumentMap[xmlState.measureIndex] = new SmoInstrument(params);
+        }
       }
     }
 
@@ -586,6 +610,7 @@ export class XmlToSmo {
     xmlState.staffArray.forEach((staffData) => {
       const clef = staffData.clefInfo.clef as Clef;
       const params: SmoMeasureParams = SmoMeasure.defaults;
+      params.transposeIndex = xmlState.instrument.keyOffset;
       params.clef = clef;
       const smoMeasure = SmoMeasure.getDefaultMeasure(params);
       smoMeasure.format = new SmoMeasureFormat(SmoMeasureFormat.defaults);

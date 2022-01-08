@@ -16,6 +16,14 @@ import { SmoScore } from '../../smo/data/score';
 const VF = eval('Vex.Flow');
 declare var $: any;
 
+/**
+ * Basic parameters to create a text editor
+ * @param context Vex renderer context
+ * @param scroller
+ * @param x initial x position
+ * @param y initial y position
+ * @param text initial text
+ */
 export interface SuiTextEditorParams {
   context: any,
   scroller: SuiScroller,

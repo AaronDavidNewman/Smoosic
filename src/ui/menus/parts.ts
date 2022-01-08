@@ -3,7 +3,7 @@ import { createAndDisplayDialog } from '../dialogs/dialog';
 import { SuiScoreViewDialog } from '../dialogs/scoreView';
 import { SuiInstrumentDialog } from '../dialogs/instrument';
 import { SuiPartInfoDialog } from '../dialogs/partInfo';
-
+import { SuiPageLayoutDialog } from '../dialogs/pageLayout';
 declare var $: any;
 
 export class SuiPartMenu extends SuiMenuBase {
@@ -17,6 +17,10 @@ export class SuiPartMenu extends SuiMenuBase {
         icon: '',
         text: 'Part Properties',
         value: 'editPart'
+      },  {
+        icon: '',
+        text: 'Page Layout',
+        value: 'pageLayout'
       }, {
         icon: '',
         text: 'View Parts/Staves',
@@ -83,13 +87,40 @@ export class SuiPartMenu extends SuiMenuBase {
       }
     );
   }
+  pageLayout() {
+    createAndDisplayDialog(SuiPageLayoutDialog,
+      {
+        completeNotifier: this.completeNotifier!,
+        view: this.view,
+        undoBuffer: this.view.undoBuffer,
+        eventSource: this.eventSource,
+        id: 'layoutDialog',
+        ctor: 'SuiPageLayoutDialog',
+        tracker: this.view.tracker,
+        modifier: null,
+        startPromise: this.closePromise
+      });
+  }
   preAttach() {
-    if (this.view.storeScore.staves.length !== this.view.score.staves.length) {
-      return;
-    }
+    const fullScore = this.view.storeScore.staves.length === this.view.score.staves.length;
     const defs: MenuChoiceDefinition[] = [];
     this.menuItems.forEach((item) => {
-      if (item.value !== 'viewAll') {
+      // Only show 'display all' if the full score is not already displayed
+      if (item.value === 'viewAll') {
+        if (!fullScore) {
+          defs.push(item);
+        }
+      } else if (item.value === 'pageLayout') {
+        // only show the page layout in part menu if we are in part mode
+        if (this.view.score.isPartExposed() && fullScore === false) {
+          defs.push(item);
+        }
+      } else if (item.value === 'view') {
+        if (this.view.score.isPartExposed() === false) {
+          // don't let the user restrict the view if we are already viewing a part.
+          defs.push(item);
+        }
+      } else {
         defs.push(item);
       }
     });
@@ -98,7 +129,10 @@ export class SuiPartMenu extends SuiMenuBase {
 
   selection(ev: any) {
     const op: string = $(ev.currentTarget).attr('data-value');
-    if (op === 'view') {
+    if (op === 'pageLayout') {
+      this.pageLayout();
+      this.complete();
+    } else if (op === 'view') {
       this.execView();
       this.complete();
     } else if (op === 'editPart') {

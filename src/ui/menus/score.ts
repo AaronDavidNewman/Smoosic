@@ -1,4 +1,4 @@
-import { MenuDefinition, SuiMenuBase, SuiMenuParams } from './menu';
+import { MenuDefinition, MenuChoiceDefinition, SuiMenuBase, SuiMenuParams } from './menu';
 import { SuiScorePreferencesDialog } from '../dialogs/preferences';
 import { SuiScoreIdentificationDialog } from '../dialogs/scoreId';
 import { SuiPageLayoutDialog } from '../dialogs/pageLayout';
@@ -17,13 +17,17 @@ export class SuiScoreMenu extends SuiMenuBase {
       value: 'preferences'
     }, {
       icon: '',
+      text: 'View All',
+      value: 'viewAll'
+    }, {
+      icon: '',
       text: 'Global Layout',
       value: 'globalLayout'
     }, {
       icon: '',
       text: 'Page Layout',
       value: 'pageLayout'
-    },  {
+    }, {
       icon: '',
       text: 'System Groups',
       value: 'staffGroups'
@@ -44,6 +48,26 @@ export class SuiScoreMenu extends SuiMenuBase {
 
   getDefinition() {
     return SuiScoreMenu.defaults;
+  }
+  preAttach() {
+    const defs: MenuChoiceDefinition[] = [];
+    this.menuItems.forEach((item) => {
+      // show these options no matter what
+      if (['fonts','cancel','identification','preferences'].findIndex((x) => x === item.value) >= 0) {
+        defs.push(item);
+      } else if (item.value === 'pageLayout' || item.value === 'globalLayout' || item.value === 'staffGroups') {
+        if (this.view.score.isPartExposed() === false || this.view.storeScore.staves.length === 1) {
+          // only show the page layout in score menu if we are in score mode
+          defs.push(item);
+        } 
+      } else if (item.value === 'viewAll') {
+        // Only show 'view all' if we are not viewing all
+        if (this.score.staves.length < this.view.storeScore.staves.length) {
+          defs.push(item);
+        }
+      }
+    });
+    this.menuItems = defs;
   }
   constructor(params: SuiMenuParams) {
     super(params);
@@ -135,6 +159,7 @@ export class SuiScoreMenu extends SuiMenuBase {
   }
   selection(ev: any) {
     const text = $(ev.currentTarget).attr('data-value');
+    const partMode = this.view.score.isPartExposed() && this.view.score.staves.length !== this.view.storeScore.staves.length;
     if (text === 'pageLayout') {
       this.execPageLayout();
     } else if (text === 'staffGroups') {
@@ -147,6 +172,8 @@ export class SuiScoreMenu extends SuiMenuBase {
       this.execGlobalLayout();
     } else if (text === 'identification') {
       this.execScoreId();
+    } else if (text === 'viewAll') {
+      this.view.viewAll();
     }
     this.complete();
   }

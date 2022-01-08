@@ -48,6 +48,12 @@ export interface SmoSystemStaffParams {
  * @category SmoObject
  * */
 export class SmoSystemStaff implements SmoObjectParams {
+  /**
+   * Gets the instrument assigned to a given measure
+   * @param measureInstrumentMap
+   * @param measureIndex 
+   * @returns 
+   */
   static getStaffInstrument(measureInstrumentMap: Record<number, SmoInstrument>, measureIndex: number) {
     const keyar: string[] = Object.keys(measureInstrumentMap);
     let fit = 0;

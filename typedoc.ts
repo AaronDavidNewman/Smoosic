@@ -7,6 +7,7 @@ export * from './src/application/eventHandler';
 export * from './src/application/exports';
 export * from './src/application/keyCommands';
 export * from './src/common/promiseHelpers';
+export * from './src/common/htmlHelpers';
 export * from './src/render/audio/oscillator';
 export * from './src/render/audio/player';
 export * from './src/render/sui/configuration';
