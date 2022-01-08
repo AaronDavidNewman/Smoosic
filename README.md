@@ -68,7 +68,7 @@ Things I am actively working on:
 2. XML import and export imrprovements
 
 Things I hope to be working on soon:
-2. UI improvements
+1. UI improvements
 3. More rendering features
 
 ## I'd like to help

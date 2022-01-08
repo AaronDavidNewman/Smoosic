@@ -1,24 +1,10 @@
 <sub>[Github site](https://github.com/AaronDavidNewman/smoosic) | [source documentation](https://aarondavidnewman.github.io/Smoosic/release/docs/modules.html) | [change notes](https://aarondavidnewman.github.io/Smoosic/changes.html) | [application](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)<sub> 
 
-# Smoosic
-
-Smoosic is a simple (?) but fully-functional-aspirant editor for music written in javascript.  It is also an interactive API for music notation/engraving.
-
-You can see Smoosic in action here:
-
-[Smoosic demo application](https://aarondavidnewman.github.io/Smoosic/release/html/smoosic.html)
-
-API Demo Links (codepen):
-* [Smoosic Promise-based (async) API](https://codepen.io/aarondavidnewman/pen/gOLgNEv) 
-* [Manipulating music objects directly (syncronous)](https://codepen.io/aarondavidnewman/pen/PoKyaGj)
-* [Load Score](https://codepen.io/aarondavidnewman/pen/XWNpLGJ)
-* [Load Music XML](https://codepen.io/aarondavidnewman/pen/LYbxKqb)
-* [Simple Music Editor](https://codepen.io/aarondavidnewman/pen/WNoRqgg)
-* [Launch Full Application](https://codepen.io/aarondavidnewman/pen/rNyqgrR)
-
----
 
 ## Changes to Smoosic
+### Jan 8 2022
+Fix issues persisting part-specific layout, formatting, and key.  Fix issues transposing in import/export musicXML.
+
 ### (Potentially breaking) Config/application changes, December 2021
 I am trying to simplify and canonize the rules for what the configuration file needs to contain, in the process  reducing hard-coded magic that happens when the library or application is bootstrapped.
 
